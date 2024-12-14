@@ -15,12 +15,12 @@ import { Utils } from "./Utils";
 import { Season } from "../objects/Season";
 import { Episode as EpisodeLocal } from "../objects/Episode";
 import { Cast } from "../objects/Cast";
-import { EpisodeData } from "@interfaces/EpisodeData";
+import { EpisodeData } from "../interfaces/EpisodeData";
 import { BrowserWindow } from "electron";
-import { LibraryData } from "@interfaces/LibraryData";
+import { LibraryData } from "../interfaces/LibraryData";
 import ffmetadata from "ffmetadata";
-import os from 'os';
-import pLimit from 'p-limit';
+import os from "os";
+import pLimit from "p-limit";
 
 export class DataManager {
 	static DATA_PATH: string = "./src/data/data.json";
@@ -92,6 +92,15 @@ export class DataManager {
 		}
 	};
 	//#endregion
+
+	//#region GET DATA
+	public static getLibrary(libraryId: string): Library | undefined {
+		return this.libraries.find((library) => library.id === libraryId);
+	}
+
+	public static getSeries(libraryId: string, seriesId: string): Series | null {
+		return this.getLibrary(libraryId)?.getSeriesById(seriesId) || null;
+	}
 
 	//#region ADD/UPDATE DATA
 	public static updateEpisode(
@@ -244,21 +253,24 @@ export class DataManager {
 		}
 	};
 
-	public static async scanFiles(newLibrary: Library): Promise<Library | undefined> {
+	public static async scanFiles(
+		newLibrary: Library
+	): Promise<Library | undefined> {
 		if (!newLibrary) return undefined;
-  
+
 		this.library = newLibrary;
 		this.addLibrary(newLibrary);
-  
+
 		this.win?.webContents.send(
-			 "add-library",
-			 this.library.toLibraryData(),
-			 this.libraries.map((library: Library) => library.toLibraryData())
+			"add-library",
+			this.library.toLibraryData(),
+			this.libraries.map((library: Library) => library.toLibraryData())
 		);
-  
+
 		const isoLanguage = this.library.language.split("-")[0];
-		if (!this.imageLangs.includes(isoLanguage)) this.imageLangs.push(isoLanguage);
-  
+		if (!this.imageLangs.includes(isoLanguage))
+			this.imageLangs.push(isoLanguage);
+
 		// Get available threads
 		let availableThreads = Math.max(os.cpus().length - 3, 1);
 
@@ -266,36 +278,36 @@ export class DataManager {
 			availableThreads = Math.min(availableThreads, 4);
 		}
 		const limit = pLimit(availableThreads);
-  
+
 		const tasks: Promise<void>[] = [];
-  
+
 		for (const rootFolder of this.library.folders) {
-			 const filesInFolder = await Utils.getFilesInFolder(rootFolder);
-  
-			 for (const file of filesInFolder) {
-				  const filePath = file.parentPath + "\\" + file.name;
-				  const task = limit(async () => {
-						if (this.library.type === "Shows") {
-							 await this.scanTVShow(filePath);
-						} else if (this.library.type === "Movies") {
-							 await this.scanMovie(filePath);
-						} else {
-							 await this.scanMusic(filePath);
-						}
-				  });
-				  tasks.push(task);
-			 }
+			const filesInFolder = await Utils.getFilesInFolder(rootFolder);
+
+			for (const file of filesInFolder) {
+				const filePath = file.parentPath + "\\" + file.name;
+				const task = limit(async () => {
+					if (this.library.type === "Shows") {
+						await this.scanTVShow(filePath);
+					} else if (this.library.type === "Movies") {
+						await this.scanMovie(filePath);
+					} else {
+						await this.scanMusic(filePath);
+					}
+				});
+				tasks.push(task);
+			}
 		}
-  
+
 		Promise.all(tasks);
-  
+
 		this.win?.webContents.send(
-			 "update-libraries",
-			 this.libraries.map((library: Library) => library.toLibraryData())
+			"update-libraries",
+			this.libraries.map((library: Library) => library.toLibraryData())
 		);
-  
+
 		return newLibrary;
-  }
+	}
 
 	public static async scanTVShow(folder: string) {
 		if (!this.moviedb) return undefined;
@@ -1857,7 +1869,9 @@ export class DataManager {
 
 			if (album.coverSrc === "") {
 				// Search for image in the same folder
-				let imageSrc = await Utils.findImageInFolder(path.dirname(musicFile));
+				let imageSrc = await Utils.findImageInFolder(
+					path.dirname(musicFile)
+				);
 
 				// If no image is found in the same folder, search in the parent folder
 				if (!imageSrc) {
@@ -1867,7 +1881,12 @@ export class DataManager {
 
 				if (imageSrc) {
 					await this.createFolder("resources/img/posters/" + album.id);
-					let destPath = Utils.getExternalPath("resources/img/posters/" + album.id + "/" + imageSrc.split("\\").pop());
+					let destPath = Utils.getExternalPath(
+						"resources/img/posters/" +
+							album.id +
+							"/" +
+							imageSrc.split("\\").pop()
+					);
 					fs.copyFile(imageSrc, destPath, (err) => {
 						if (err) {
 							console.error("Error copying image:", err);
@@ -1875,11 +1894,23 @@ export class DataManager {
 						}
 					});
 
-					album.setCoverSrc("resources/img/posters/" + album.id + "/" + imageSrc.split("\\").pop());
-	
+					album.setCoverSrc(
+						"resources/img/posters/" +
+							album.id +
+							"/" +
+							imageSrc.split("\\").pop()
+					);
+
 					if (collection.coverSrc === "") {
-						await this.createFolder("resources/img/posters/" + collection.id);
-						let destPath = Utils.getExternalPath("resources/img/posters/" + collection.id + "/" + imageSrc.split("\\").pop());
+						await this.createFolder(
+							"resources/img/posters/" + collection.id
+						);
+						let destPath = Utils.getExternalPath(
+							"resources/img/posters/" +
+								collection.id +
+								"/" +
+								imageSrc.split("\\").pop()
+						);
 						fs.copyFile(imageSrc, destPath, (err) => {
 							if (err) {
 								console.error("Error copying image:", err);
@@ -1887,8 +1918,13 @@ export class DataManager {
 							}
 						});
 
-						collection.setCoverSrc("resources/img/posters/" + collection.id + "/" + imageSrc.split("\\").pop());
-					} 
+						collection.setCoverSrc(
+							"resources/img/posters/" +
+								collection.id +
+								"/" +
+								imageSrc.split("\\").pop()
+						);
+					}
 				}
 			}
 
@@ -1937,6 +1973,5 @@ export class DataManager {
 		}
 	};
 
-	
 	//#endregion
 }

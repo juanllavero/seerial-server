@@ -1,9 +1,9 @@
-import { AudioTrackData } from "@interfaces/AudioTrackData";
-import { ChapterData } from "@interfaces/ChapterData";
-import { EpisodeData } from "@interfaces/EpisodeData";
-import { MediaInfoData } from "@interfaces/MediaInfoData";
-import { SubtitleTrackData } from "@interfaces/SubtitleTrackData";
-import { VideoTrackData } from "@interfaces/VideoTrackData";
+import { AudioTrackData } from "../interfaces/AudioTrackData";
+import { ChapterData } from "../interfaces/ChapterData";
+import { EpisodeData } from "../interfaces/EpisodeData";
+import { MediaInfoData } from "../interfaces/MediaInfoData";
+import { SubtitleTrackData } from "../interfaces/SubtitleTrackData";
+import { VideoTrackData } from "../interfaces/VideoTrackData";
 import axios from "axios";
 import { exec } from "child_process";
 import { app } from "electron";
@@ -15,7 +15,7 @@ import * as fs from "fs";
 import fsExtra from "fs-extra";
 import { promisify } from "util";
 import { Season } from "../objects/Season";
-import { Episode } from "@objects/Episode";
+import { Episode } from "../objects/Episode";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -51,7 +51,7 @@ export class Utils {
 		return new Promise<void>((resolve, reject) => {
 			ffmpeg.setFfprobePath(Utils.getInternalPath("lib/ffprobe.exe"));
 
-			ffmpeg.ffprobe(musicFile, (err, data) => {
+			ffmpeg.ffprobe(musicFile, (err: any, data: { format: any; }) => {
 				if (err) {
 					console.error("Error obtaining video metadata for music:", err);
 					reject(err);
