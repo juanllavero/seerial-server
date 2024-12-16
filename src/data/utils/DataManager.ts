@@ -102,7 +102,52 @@ export class DataManager {
 		return this.getLibrary(libraryId)?.getSeriesById(seriesId) || null;
 	}
 
-	//#region ADD/UPDATE DATA
+	//#region UPDATE DATA
+	public static updateLibrary(libraryId: string, library: Library) {
+		const libraryToEdit = this.libraries.find((l) => l.id === libraryId);
+
+		if (libraryToEdit) {
+			Object.assign(libraryToEdit, library);
+		}
+	}
+
+	public static updateShow(libraryId: string, showId: string, show: Series) {
+		const library = this.libraries.find((l) => l.id === libraryId);
+
+		if (!library) return;
+
+		const showToEdit = library.getSeriesById(showId);
+
+		if (showToEdit) {
+			Object.assign(showToEdit, show);
+		}
+	}
+
+	public static updateSeason(
+		libraryId: string,
+		seriesId: string,
+		seasonId: string,
+		season: Season
+	) {
+		const library = this.libraries.find(
+			(library) => library.id === libraryId
+		);
+
+		if (!library) return;
+
+		const series = library.getSeriesById(seriesId);
+
+		if (!series) return;
+
+		const seasonToEdit = series
+			.getSeasons()
+			.find((season) => season.id === seasonId);
+
+		if (seasonToEdit) {
+			Object.assign(seasonToEdit, season);
+		}
+	}
+
 	public static updateEpisode(
 		libraryId: string,
 		seriesId: string,
@@ -112,31 +157,29 @@ export class DataManager {
 			(library) => library.id === libraryId
 		);
 
-		if (library) {
-			const series = library
-				.getSeries()
-				.find((series) => series.id === seriesId);
+		if (!library) return;
 
-			if (series) {
-				const season = series
-					.getSeasons()
-					.find((season) => season.id === episode.seasonID);
+		const series = library.getSeriesById(seriesId);
 
-				if (season) {
-					season.getEpisodes().forEach((item) => {
-						if (item.id === episode.id) {
-							item = EpisodeLocal.fromJSON(episode);
-						}
-					});
-				}
-			}
+		if (!series) return;
+
+		const season = series
+			.getSeasons()
+			.find((season) => season.id === episode.seasonID);
+
+		if (!season) return;
+
+		const episodeToEdit = season.getEpisodeById(episode.id);
+
+		if (episodeToEdit) {
+			Object.assign(episodeToEdit, episode);
 		}
 	}
 	//#endregion
 
 	//#region DELETE DATA
-	public static async deleteLibrary(library: LibraryData) {
-		const libraryToFind = this.libraries.find((obj) => obj.id === library.id);
+	public static async deleteLibrary(libraryId: string) {
+		const libraryToFind = this.libraries.find((obj) => obj.id === libraryId);
 
 		if (!libraryToFind) return;
 
@@ -144,9 +187,9 @@ export class DataManager {
 			await this.deleteSeriesData(libraryToFind, series);
 		}
 
-		this.libraries = this.libraries.filter((obj) => obj.id !== library.id);
+		this.libraries = this.libraries.filter((obj) => obj.id !== libraryId);
 
-		if (this.library && this.library.id === library.id) {
+		if (this.library && this.library.id === libraryId) {
 			this.library = this.libraries[0] || undefined;
 		}
 
@@ -156,6 +199,24 @@ export class DataManager {
 		);
 	}
 
+	// Delete show object and stored data
+	public static async deleteShow(libraryId: string, seriesId: string) {
+		const library = this.libraries.find((l) => l.id === libraryId);
+
+		if (!library) return;
+
+		const series = library.getSeriesById(seriesId);
+
+		if (!series) return;
+
+		// Delete stored data
+		await this.deleteSeriesData(library, series);
+
+		// Delete show object
+		library.series = library.series.filter((s) => s.id !== seriesId);
+	}
+
+	// Delete show stored data
 	public static async deleteSeriesData(library: Library, series: Series) {
 		try {
 			await fs.remove(path.join("resources", "img", "posters", series.id));
@@ -174,6 +235,32 @@ export class DataManager {
 		library.getAnalyzedFolders().delete(series.folder);
 	}
 
+	// Delete season object and stored data
+	public static async deleteSeason(
+		libraryId: string,
+		seriesId: string,
+		seasonId: string
+	) {
+		const library = this.libraries.find((l) => l.id === libraryId);
+
+		if (!library) return;
+
+		const series = library.getSeriesById(seriesId);
+
+		if (!series) return;
+
+		const season = series.getSeasons().find((s) => s.id === seasonId);
+
+		if (!season) return;
+
+		// Delete stored data
+		await this.deleteSeasonData(library, season);
+
+		// Delete season object
+		series.seasons = series.seasons.filter((s) => s.id !== seasonId);
+	}
+
+	// Delete season stored data
 	public static async deleteSeasonData(library: Library, season: Season) {
 		try {
 			await fs.remove(
@@ -202,6 +289,37 @@ export class DataManager {
 		library.getSeasonFolders().delete(season.folder);
 	}
 
+	// Delete episode object and stored data
+	public static async deleteEpisode(
+		libraryId: string,
+		seriesId: string,
+		seasonId: string,
+		episodeId: string
+	) {
+		const library = this.libraries.find((l) => l.id === libraryId);
+
+		if (!library) return;
+
+		const series = library.getSeriesById(seriesId);
+
+		if (!series) return;
+
+		const season = series.getSeasons().find((s) => s.id === seasonId);
+
+		if (!season) return;
+
+		const episode = season.getEpisodeById(episodeId);
+
+		if (!episode) return;
+
+		// Delete stored data
+		await this.deleteEpisodeData(library, episode);
+
+		// Delete episode object
+		season.episodes = season.episodes.filter((e) => e.id !== episodeId);
+	}
+
+	// Delete episode stored data
 	public static async deleteEpisodeData(
 		library: Library,
 		episode: EpisodeLocal
@@ -233,7 +351,7 @@ export class DataManager {
 
 		const properties = propertiesReader("keys.properties");
 
-		// Obtener la clave API
+		// Get API Key
 		const apiKey = properties.get("TMDB_API_KEY");
 
 		if (apiKey) {
