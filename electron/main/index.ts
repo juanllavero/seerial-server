@@ -1,8 +1,9 @@
 import { nativeImage, app, Tray, Menu } from "electron";
-import fs from "fs";
 import path from "path";
+import fs from "fs-extra";
+import os from "os";
 import express from "express";
-import open, { apps } from "open"; // Open in browser
+import open from "open"; // Open in browser
 import http from "http";
 import { DataManager } from "../../src/data/utils/DataManager";
 import propertiesReader from "properties-reader";
@@ -42,6 +43,92 @@ const PORT = 3000;
 
 // Middleware to process JSON
 appServer.use(express.json());
+
+//#region GET FOLDERS
+// Función para obtener las unidades de disco
+const getDrives = () => {
+	const drives = [];
+	const platform = os.platform();
+
+	// Obtener el directorio del usuario actual
+	const userHome = os.homedir();
+	drives.push(userHome); // Agregar el directorio del usuario como el primer elemento
+
+	if (platform === "win32") {
+		const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+		for (let i = 0; i < letters.length; i++) {
+			const drive = `${letters[i]}:\\`;
+			if (fs.existsSync(drive)) {
+				drives.push(drive);
+			}
+		}
+	} else {
+		// Para sistemas Unix-like como macOS o Linux
+		drives.push("/"); // Añadir el directorio raíz
+		const volumes = "/Volumes"; // En macOS, los volúmenes externos están en /Volumes
+		if (fs.existsSync(volumes)) {
+			const mountedVolumes = fs.readdirSync(volumes);
+			mountedVolumes.forEach((volume) => {
+				drives.push(path.join(volumes, volume)); // Añadir cada volumen montado
+			});
+		}
+	}
+
+	return drives;
+};
+
+// Endpoint para obtener las unidades de disco
+appServer.get("/drives", (req, res) => {
+	const drives = getDrives();
+	res.json(drives);
+});
+
+// Función para obtener el contenido de una carpeta
+const getFolderContent = (dirPath: string) => {
+	const contents: { name: string; isFolder: boolean }[] = [];
+	const items = fs.readdirSync(dirPath, { withFileTypes: true });
+
+	items.forEach((item) => {
+		const itemPath = path.join(dirPath, item.name);
+
+		// Filtrar elementos ocultos
+		if (item.name.startsWith(".")) return;
+
+		if (item.isDirectory()) {
+			contents.push({ name: item.name, isFolder: true });
+		} else {
+			contents.push({ name: item.name, isFolder: false });
+		}
+	});
+
+	// Ordenar: primero carpetas, luego archivos
+	contents.sort((a, b) => {
+		if (a.isFolder && !b.isFolder) return -1; // Carpetas primero
+		if (!a.isFolder && b.isFolder) return 1; // Archivos después
+		return a.name.localeCompare(b.name); // Orden alfabético
+	});
+
+	return contents;
+};
+
+// Endpoint para obtener el contenido de una carpeta
+appServer.get("/folder/*", (req: any, res: any) => {
+	const folderPath = req.params[0]; // Extrae la ruta del parámetro
+	const fullPath = path.resolve(folderPath); // Asegura que la ruta sea absoluta
+
+	// Verificar si la carpeta existe
+	if (!fs.existsSync(fullPath) || !fs.lstatSync(fullPath).isDirectory()) {
+		return res.status(400).json({ error: "Invalid folder path" });
+	}
+
+	try {
+		const content = getFolderContent(fullPath);
+		res.json(content);
+	} catch (error) {
+		res.status(500).json({ error: "Error reading folder" });
+	}
+});
+//#endregion
 
 //#region GET DATA
 // Check server status

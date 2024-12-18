@@ -16,7 +16,7 @@ import { Season } from "../objects/Season";
 import { Episode as EpisodeLocal } from "../objects/Episode";
 import { Cast } from "../objects/Cast";
 import { EpisodeData } from "../interfaces/EpisodeData";
-import { BrowserWindow } from "electron";
+import { app, BrowserWindow } from "electron";
 import { LibraryData } from "../interfaces/LibraryData";
 import ffmetadata from "ffmetadata";
 import os from "os";
@@ -33,7 +33,6 @@ export class DataManager {
 	static win: BrowserWindow | null;
 	static moviedb: MovieDb | undefined;
 	static library: Library;
-	static imageLangs: string[] = ["es", "en", "ja"];
 
 	public static initFolders = async () => {
 		this.createFolder("resources/");
@@ -45,6 +44,16 @@ export class DataManager {
 		this.createFolder("resources/img/thumbnails/video/");
 		this.createFolder("resources/img/thumbnails/chapters/");
 		this.createFolder("resources/img/DownloadCache/");
+
+		// Check if running in development
+		const isDev = process.env.NODE_ENV === "development";
+
+		// Get resources folder path
+		const resourcesPath = isDev
+			? path.join(app.getAppPath(), "resources") // Development
+			: path.join(process.resourcesPath, "resources"); // Production
+
+		this.DATA_PATH = path.join(resourcesPath, "data.json");
 	};
 
 	public static getLibraries(): Library[] {
@@ -384,10 +393,6 @@ export class DataManager {
 			this.library.toLibraryData(),
 			this.libraries.map((library: Library) => library.toLibraryData())
 		);
-
-		const isoLanguage = this.library.language.split("-")[0];
-		if (!this.imageLangs.includes(isoLanguage))
-			this.imageLangs.push(isoLanguage);
 
 		// Get available threads
 		let availableThreads = Math.max(os.cpus().length - 3, 1);
@@ -1063,11 +1068,7 @@ export class DataManager {
 
 			// Download logos
 			for (const logo of logos) {
-				if (
-					logo.file_path &&
-					(logo.iso_639_1 === null ||
-						(logo.iso_639_1 && this.imageLangs.includes(logo.iso_639_1)))
-				) {
+				if (logo.file_path) {
 					const logoUrl = `${baseUrl}${logo.file_path}`;
 					const logoFilePath = path.join(
 						outputLogosDir,
@@ -1088,12 +1089,7 @@ export class DataManager {
 
 			// Download posters
 			for (const poster of posters) {
-				if (
-					poster.file_path &&
-					(poster.iso_639_1 === null ||
-						(poster.iso_639_1 &&
-							this.imageLangs.includes(poster.iso_639_1)))
-				) {
+				if (poster.file_path) {
 					const posterUrl = `${baseUrl}${poster.file_path}`;
 					const posterFilePath = path.join(
 						outputPostersDir,
@@ -1622,11 +1618,7 @@ export class DataManager {
 
 			// Download logos
 			for (const logo of logos) {
-				if (
-					logo.file_path &&
-					(logo.iso_639_1 === null ||
-						(logo.iso_639_1 && this.imageLangs.includes(logo.iso_639_1)))
-				) {
+				if (logo.file_path) {
 					const logoUrl = `${baseUrl}${logo.file_path}`;
 					const logoFilePath = path.join(
 						outputLogosDir,
@@ -1648,11 +1640,7 @@ export class DataManager {
 			// Download posters
 			for (const poster of posters) {
 				if (
-					poster.file_path &&
-					(poster.iso_639_1 === null ||
-						(poster.iso_639_1 &&
-							this.imageLangs.includes(poster.iso_639_1)))
-				) {
+					poster.file_path) {
 					const posterUrl = `${baseUrl}${poster.file_path}`;
 					const posterFilePath = path.join(
 						outputPostersDir,
