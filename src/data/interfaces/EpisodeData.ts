@@ -1,8 +1,8 @@
-import {ChapterData} from "@interfaces/ChapterData"
-import {MediaInfoData} from "@interfaces/MediaInfoData"
-import {AudioTrackData} from "@interfaces/AudioTrackData"
-import {SubtitleTrackData} from "@interfaces/SubtitleTrackData"
-import {VideoTrackData} from "@interfaces/VideoTrackData"
+import {ChapterData} from "../interfaces/ChapterData"
+import {MediaInfoData} from "../interfaces/MediaInfoData"
+import {AudioTrackData} from "../interfaces/AudioTrackData"
+import {SubtitleTrackData} from "../interfaces/SubtitleTrackData"
+import {VideoTrackData} from "../interfaces/VideoTrackData"
 
 export interface EpisodeData{
     id: string;

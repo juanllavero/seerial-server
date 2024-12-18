@@ -1,4 +1,4 @@
-import {SeriesData} from "@interfaces/SeriesData"
+import {SeriesData} from "../interfaces/SeriesData"
 
 export interface LibraryData {
     id: string;
@@ -13,4 +13,7 @@ export interface LibraryData {
     analyzedFiles: any;
     analyzedFolders: any;
     seasonFolders: any;
+    serverName: string;
+    serverIp: string;
+    pinned: boolean;
   }

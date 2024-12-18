@@ -1,4 +1,4 @@
-import {SeasonData} from "@interfaces/SeasonData"
+import {SeasonData} from "../interfaces/SeasonData"
 import { CastData } from "./CastData";
 
 export interface SeriesData{

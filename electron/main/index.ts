@@ -236,7 +236,7 @@ let tray: Tray;
 
 // Create Tray and configure Menu
 app.whenReady().then(() => {
-	const iconPath = path.join(__dirname, "public", "icon.png");
+	const iconPath = path.join("public", "icon.png");
 	const image = nativeImage.createFromPath(iconPath);
 	tray = new Tray(image);
 
@@ -254,6 +254,7 @@ app.whenReady().then(() => {
 		},
 	]);
 
+	tray.setToolTip("Seerial Media Server");
 	tray.setContextMenu(contextMenu);
 });
 //#endregion

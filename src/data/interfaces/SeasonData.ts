@@ -1,5 +1,5 @@
-import {EpisodeData} from "@interfaces/EpisodeData"
-import {CastData} from "@interfaces/CastData"
+import {EpisodeData} from "../interfaces/EpisodeData"
+import {CastData} from "../interfaces/CastData"
 
 export interface SeasonData{
     id: string;

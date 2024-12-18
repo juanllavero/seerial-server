@@ -1,9 +1,9 @@
 import { SubtitleTrack } from './SubtitleTrack';
-import { MediaInfoData } from '@interfaces/MediaInfoData';
-import { VideoTrackData } from '@interfaces/VideoTrackData';
-import { AudioTrackData } from '@interfaces/AudioTrackData';
-import { SubtitleTrackData } from '@interfaces/SubtitleTrackData';
-import { ChapterData } from '@interfaces/ChapterData';
+import { MediaInfoData } from '../interfaces/MediaInfoData';
+import { VideoTrackData } from '../interfaces/VideoTrackData';
+import { AudioTrackData } from '../interfaces/AudioTrackData';
+import { SubtitleTrackData } from '../interfaces/SubtitleTrackData';
+import { ChapterData } from '../interfaces/ChapterData';
 
 export class Episode {
   id: string;
