@@ -89,8 +89,6 @@ const getFolderContent = (dirPath: string) => {
 	const items = fs.readdirSync(dirPath, { withFileTypes: true });
 
 	items.forEach((item) => {
-		const itemPath = path.join(dirPath, item.name);
-
 		// Filter hidden files and folders
 		if (item.name.startsWith(".")) return;
 
