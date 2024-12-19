@@ -880,16 +880,13 @@ export class DataManager {
 				}
 
 				// Download thumbnails
-				for (const [index, thumbnail] of thumbnails.entries()) {
+				for (const [_index, thumbnail] of thumbnails.entries()) {
 					if (thumbnail.file_path) {
 						const url = `${imageBaseURL}${thumbnail.file_path}`;
-						const imageFilePath = path.join(outputDir, index + ".jpg");
+						episode.imgUrls.push(url);
 
 						if (episode.imgSrc === "") {
-							await Utils.downloadImage(url, imageFilePath);
-							episode.imgSrc = `resources/img/thumbnails/video/${episode.id}/${index}.jpg`;
-						} else {
-							Utils.downloadImage(url, imageFilePath);
+							episode.imgSrc = url;
 						}
 					}
 				}
@@ -1070,19 +1067,10 @@ export class DataManager {
 			for (const logo of logos) {
 				if (logo.file_path) {
 					const logoUrl = `${baseUrl}${logo.file_path}`;
-					const logoFilePath = path.join(
-						outputLogosDir,
-						logo.file_path.split("/").pop()!
-					);
+					show.logosUrls = [...show.logosUrls, logoUrl];
 
 					if (show.logoSrc === "") {
-						await Utils.downloadImage(logoUrl, logoFilePath);
-						show.logoSrc = `resources/img/logos/${
-							show.id
-						}/${logo.file_path.split("/").pop()}`;
-					} else {
-						show.logosUrls = [...show.logosUrls, logoUrl];
-						//Utils.downloadImage(logoUrl, logoFilePath);
+						show.logoSrc = logoUrl;
 					}
 				}
 			}
@@ -1091,19 +1079,10 @@ export class DataManager {
 			for (const poster of posters) {
 				if (poster.file_path) {
 					const posterUrl = `${baseUrl}${poster.file_path}`;
-					const posterFilePath = path.join(
-						outputPostersDir,
-						poster.file_path.split("/").pop()!
-					);
+					show.coversUrls = [...show.coversUrls, posterUrl];
 
 					if (show.coverSrc === "") {
-						await Utils.downloadImage(posterUrl, posterFilePath);
-						show.coverSrc = `resources/img/posters/${
-							show.id
-						}/${poster.file_path.split("/").pop()}`;
-					} else {
-						show.coversUrls = [...show.coversUrls, posterUrl];
-						//Utils.downloadImage(posterUrl, posterFilePath);
+						show.coverSrc = posterUrl;
 					}
 				}
 			}
@@ -1620,19 +1599,10 @@ export class DataManager {
 			for (const logo of logos) {
 				if (logo.file_path) {
 					const logoUrl = `${baseUrl}${logo.file_path}`;
-					const logoFilePath = path.join(
-						outputLogosDir,
-						logo.file_path.split("/").pop()!
-					);
+					season.logosUrls = [...season.logosUrls, logoUrl];
 
 					if (season.logoSrc === "") {
-						await Utils.downloadImage(logoUrl, logoFilePath);
-						season.logoSrc = `resources/img/logos/${
-							season.id
-						}/${logo.file_path.split("/").pop()}`;
-					} else {
-						season.logosUrls = [...season.logosUrls, logoUrl];
-						//Utils.downloadImage(logoUrl, logoFilePath);
+						season.logoSrc = logoUrl;
 					}
 				}
 			}
@@ -1642,34 +1612,16 @@ export class DataManager {
 				if (
 					poster.file_path) {
 					const posterUrl = `${baseUrl}${poster.file_path}`;
-					const posterFilePath = path.join(
-						outputPostersDir,
-						poster.file_path.split("/").pop()!
-					);
-					const posterColFilePath = path.join(
-						outputPostersCollectionDir,
-						poster.file_path.split("/").pop()!
-					);
+					season.coversUrls = [...season.coversUrls, posterUrl];
 
 					if (season.coverSrc === "") {
-						await Utils.downloadImage(posterUrl, posterFilePath);
-						season.coverSrc = `resources/img/posters/${
-							season.id
-						}/${poster.file_path.split("/").pop()}`;
-					} else {
-						season.coversUrls = [...season.coversUrls, posterUrl];
-						//Utils.downloadImage(posterUrl, posterFilePath);
+						season.coverSrc = posterUrl;
 					}
 
 					if (show.isCollection) {
+						show.coversUrls = [...show.coversUrls, posterUrl];
 						if (show.coverSrc === "") {
-							await Utils.downloadImage(posterUrl, posterColFilePath);
-							show.coverSrc = `resources/img/posters/${
-								show.id
-							}/${poster.file_path.split("/").pop()}`;
-						} else {
-							show.coversUrls = [...show.coversUrls, posterUrl];
-							//Utils.downloadImage(posterUrl, posterColFilePath);
+							show.coverSrc = posterUrl;
 						}
 					}
 				}
@@ -1772,23 +1724,14 @@ export class DataManager {
 		}
 
 		// Download thumbnails
-		let count = 5;
 		for (const [index, thumbnail] of thumbnails.entries()) {
 			if (thumbnail.file_path) {
-				if (count === 0) break;
-
 				const url = `${imageBaseURL}${thumbnail.file_path}`;
-				const imageFilePath = path.join(outputDir, index + ".jpg");
-
+				episode.imgUrls = [...episode.imgUrls, url];
+				
 				if (index === 0) {
-					await Utils.downloadImage(url, imageFilePath);
-					episode.imgSrc = `resources/img/thumbnails/video/${episode.id}/${index}.jpg`;
-				} else {
-					episode.imgUrls = [...episode.imgUrls, url];
-					//Utils.downloadImage(url, imageFilePath);
+					episode.imgSrc = url;
 				}
-
-				count--;
 			}
 		}
 
