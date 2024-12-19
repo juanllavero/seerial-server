@@ -45,7 +45,7 @@ const PORT = 3000;
 appServer.use(express.json());
 
 //#region GET FOLDERS
-// Función para obtener las unidades de disco
+// Function to get drives in the system
 const getDrives = () => {
 	const drives = [];
 	const platform = os.platform();
@@ -77,13 +77,13 @@ const getDrives = () => {
 	return drives;
 };
 
-// Endpoint para obtener las unidades de disco
+// Endpoint to get drives
 appServer.get("/drives", (req, res) => {
 	const drives = getDrives();
 	res.json(drives);
 });
 
-// Función para obtener el contenido de una carpeta
+// Function to get files and folders within a directory
 const getFolderContent = (dirPath: string) => {
 	const contents: { name: string; isFolder: boolean }[] = [];
 	const items = fs.readdirSync(dirPath, { withFileTypes: true });
@@ -91,7 +91,7 @@ const getFolderContent = (dirPath: string) => {
 	items.forEach((item) => {
 		const itemPath = path.join(dirPath, item.name);
 
-		// Filtrar elementos ocultos
+		// Filter hidden files and folders
 		if (item.name.startsWith(".")) return;
 
 		if (item.isDirectory()) {
@@ -101,22 +101,22 @@ const getFolderContent = (dirPath: string) => {
 		}
 	});
 
-	// Ordenar: primero carpetas, luego archivos
+	// Order: folders first, then files, alphabetically
 	contents.sort((a, b) => {
-		if (a.isFolder && !b.isFolder) return -1; // Carpetas primero
-		if (!a.isFolder && b.isFolder) return 1; // Archivos después
-		return a.name.localeCompare(b.name); // Orden alfabético
+		if (a.isFolder && !b.isFolder) return -1;
+		if (!a.isFolder && b.isFolder) return 1;
+		return a.name.localeCompare(b.name);
 	});
 
 	return contents;
 };
 
-// Endpoint para obtener el contenido de una carpeta
+// Endpoint to get files and folders within a directory
 appServer.get("/folder/*", (req: any, res: any) => {
-	const folderPath = req.params[0]; // Extrae la ruta del parámetro
-	const fullPath = path.resolve(folderPath); // Asegura que la ruta sea absoluta
+	const folderPath = req.params[0]; // Extract the folder path from the URL
+	const fullPath = path.resolve(folderPath); // Assert the path is absolute
 
-	// Verificar si la carpeta existe
+	// Check if the folder exists
 	if (!fs.existsSync(fullPath) || !fs.lstatSync(fullPath).isDirectory()) {
 		return res.status(400).json({ error: "Invalid folder path" });
 	}
@@ -173,7 +173,7 @@ appServer.get("/libraries", (_req, res) => {
 // Update Library
 appServer.put("/libraries/:libraryId", (req, res) => {
 	const { libraryId } = req.params;
-	const updatedLibrary = req.body; // Datos que vienen del cliente
+	const updatedLibrary = req.body;
 
 	try {
 		DataManager.updateLibrary(libraryId, updatedLibrary);
@@ -329,10 +329,10 @@ app.whenReady().then(() => {
 
 	const contextMenu = Menu.buildFromTemplate([
 		{
-			label: "Open Media Server",
+			label: "Open Seerial",
 			click: () => {
 				// Open in browser
-				open("http://localhost:3000");
+				open("http://www.seerial.es");
 			},
 		},
 		{
