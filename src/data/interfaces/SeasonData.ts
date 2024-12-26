@@ -39,6 +39,7 @@ export interface SeasonData{
     coverSrc: string;
     coversUrls: string[];
     backgroundSrc: string;
+    backgroundsUrls: string[];
     videoSrc: string;
     musicSrc: string;
     seriesID: string;

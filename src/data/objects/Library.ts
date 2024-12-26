@@ -13,9 +13,6 @@ export class Library {
 	analyzedFiles: Map<string, string> = new Map();
 	analyzedFolders: Map<string, string> = new Map();
 	seasonFolders: Map<string, string> = new Map();
-	serverName: string;
-	serverIp: string;
-	pinned: boolean;
 
 	constructor(
 		name: string,
@@ -23,9 +20,6 @@ export class Library {
 		type: string,
 		order: number,
 		folders: string[],
-		serverName: string,
-		serverIp: string,
-		pinned: boolean
 	) {
 		this.id = crypto.randomUUID();
 		this.name = name;
@@ -33,9 +27,6 @@ export class Library {
 		this.type = type;
 		this.order = order;
 		this.folders = folders;
-		this.serverName = serverName;
-		this.serverIp = serverIp;
-		this.pinned = pinned;
 	}
 
 	toLibraryData(): LibraryData {
@@ -52,9 +43,6 @@ export class Library {
 			analyzedFiles: Array.from(this.analyzedFiles.entries()),
 			analyzedFolders: Array.from(this.analyzedFolders.entries()),
 			seasonFolders: Array.from(this.seasonFolders.entries()),
-			serverName: this.serverName,
-			serverIp: this.serverIp,
-			pinned: this.pinned,
 		};
 	}
 
@@ -65,9 +53,6 @@ export class Library {
 			data.type,
 			data.order,
 			data.folders,
-			data.serverName,
-			data.serverIp,
-			data.pinned
 		);
 		library.id = data.id;
 		library.series = data.series.map((s: SeriesData) => Series.fromJSON(s)); // Convierte SeriesData a Series
@@ -90,9 +75,6 @@ export class Library {
 			analyzedFiles: Array.from(this.analyzedFiles.entries()), // Convertir Map a array de pares
 			analyzedFolders: Array.from(this.analyzedFolders.entries()),
 			seasonFolders: Array.from(this.seasonFolders.entries()),
-			serverName: this.serverName,
-			serverIp: this.serverIp,
-			pinned: this.pinned,
 		};
 	}
 
@@ -104,9 +86,6 @@ export class Library {
 			jsonData.type,
 			jsonData.order,
 			jsonData.folders,
-			jsonData.serverName,
-			jsonData.serverIp,
-			jsonData.pinned
 		);
 
 		library.id = jsonData.id;
@@ -203,13 +182,5 @@ export class Library {
 
 	setOrder(order: number): void {
 		this.order = order;
-	}
-
-	getServerName(): string {
-		return this.serverName;
-	}
-
-	setServerName(serverName: string): void {
-		this.serverName = serverName;
 	}
 }

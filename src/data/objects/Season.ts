@@ -39,6 +39,7 @@ export class Season {
   coverSrc: string;
   coversUrls: string[];
   backgroundSrc: string;
+  backgroundsUrls: string[];
   videoSrc: string;
   musicSrc: string;
   seriesID: string;
@@ -68,6 +69,7 @@ export class Season {
     this.coverSrc = '';
     this.coversUrls = [];
     this.backgroundSrc = '';
+    this.backgroundsUrls = [];
     this.videoSrc = '';
     this.musicSrc = '';
     this.seriesID = '';
@@ -120,6 +122,7 @@ export class Season {
     season.coverSrc = json.coverSrc || season.coverSrc;
     season.coversUrls = json.coversUrls || season.coversUrls;
     season.backgroundSrc = json.backgroundSrc || season.backgroundSrc;
+    season.backgroundsUrls = json.backgroundsUrls || season.backgroundsUrls;
     season.videoSrc = json.videoSrc || season.videoSrc;
     season.musicSrc = json.musicSrc || season.musicSrc;
     season.seriesID = json.seriesID || season.seriesID;
@@ -172,6 +175,7 @@ export class Season {
       coverSrc: this.coverSrc,
       coversUrls: this.coversUrls,
       backgroundSrc: this.backgroundSrc,
+      backgroundsUrls: this.backgroundsUrls,
       videoSrc: this.videoSrc,
       musicSrc: this.musicSrc,
       seriesID: this.seriesID,

@@ -32,5 +32,6 @@ yarn.lock
 /playwright-report/
 /playwright/.cache/
 
+lib/
 resources/
 data.json
