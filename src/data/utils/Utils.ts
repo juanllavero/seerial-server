@@ -8,17 +8,18 @@ import axios from "axios";
 import { exec } from "child_process";
 import { app } from "electron";
 import ffmpeg from "fluent-ffmpeg";
+import ffmpegPath from "ffmpeg-static";
+import ffprobePath from "ffprobe-static";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import * as fs from "fs";
-import fsExtra from "fs-extra";
 import { promisify } from "util";
 import { Season } from "../objects/Season";
 import { Episode } from "../objects/Episode";
-import { SeriesData } from "../interfaces/SeriesData";
 import { Series } from "../objects/Series";
 import { WebSocketManager } from "./WebSocketManager";
+import { Library } from "../objects/Library";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -52,7 +53,7 @@ export class Utils {
     musicFile: string
   ): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      ffmpeg.setFfprobePath(Utils.getInternalPath("lib/ffprobe.exe"));
+      ffmpeg.setFfprobePath(ffprobePath.path);
 
       ffmpeg.ffprobe(musicFile, (err: any, data: { format: any }) => {
         if (err) {
@@ -82,8 +83,6 @@ export class Utils {
 
     const videoPath = episode.videoSrc;
 
-    console.log(videoPath);
-
     // Verifica si el archivo existe
     if (!videoPath) {
       console.error("Video file does not exist.");
@@ -92,8 +91,8 @@ export class Utils {
 
     // Usa ffprobe para obtener la información del video
     return new Promise(async (resolve, reject) => {
-      ffmpeg.setFfmpegPath(Utils.getInternalPath("lib/ffmpeg.exe"));
-      ffmpeg.setFfprobePath(Utils.getInternalPath("lib/ffprobe.exe"));
+      ffmpeg.setFfmpegPath(ffmpegPath || "");
+      ffmpeg.setFfprobePath(ffprobePath.path);
       ffmpeg.ffprobe(videoPath, async (err, data) => {
         if (err) {
           console.error("Error obtaining video metadata:", err);
@@ -158,8 +157,6 @@ export class Utils {
         });
 
         episode.chapters = await this.getChapters(episode);
-
-        console.log(episode);
 
         // Resuelve la Promesa devolviendo el episodio procesado
         resolve(episode);
@@ -407,7 +404,7 @@ export class Utils {
 
     try {
       const { stdout } = await execPromise(
-        `ffprobe -v error -show_entries chapter -of json -i "${episode.videoSrc}"`
+        `${ffprobePath.path} -v error -show_entries chapter -of json -i "${episode.videoSrc}"`
       );
       const metadata = JSON.parse(stdout);
 
@@ -600,19 +597,45 @@ export class Utils {
   };
 
   //#region WEBSOCKET CONTENT MESSAGES
+  public static addLibrary = (
+    ws: WebSocketManager,
+    library: Library,
+  ) => {
+    const message = {
+      header: "ADD_LIBRARY",
+      body: {
+        library: library.toLibraryData(),
+      },
+    };
+    ws.broadcast(JSON.stringify(message));
+  };
+
+  public static updateLibrary = (
+    ws: WebSocketManager,
+    library: Library,
+  ) => {
+    const message = {
+      header: "UPDATE_LIBRARY",
+      body: {
+        library: library.toLibraryData(),
+      },
+    };
+    ws.broadcast(JSON.stringify(message));
+  };
+ 
   public static addSeries = (
     ws: WebSocketManager,
     libraryId: string,
     series: Series
   ) => {
-    const messageSeries = {
+    const message = {
       header: "ADD_SERIES",
       body: {
         libraryId: libraryId,
         series: series.toJSON(),
       },
     };
-    ws.broadcast(JSON.stringify(messageSeries));
+    ws.broadcast(JSON.stringify(message));
   };
 
   public static updateSeries = (
@@ -620,14 +643,14 @@ export class Utils {
     libraryId: string,
     series: Series
   ) => {
-    const messageSeries = {
+    const message = {
       header: "UPDATE_SERIES",
       body: {
         libraryId: libraryId,
         series: series.toJSON(),
       },
     };
-    ws.broadcast(JSON.stringify(messageSeries));
+    ws.broadcast(JSON.stringify(message));
   };
 
   public static addSeason = (
@@ -635,14 +658,14 @@ export class Utils {
     libraryId: string,
     season: Season
   ) => {
-    const messageSeries = {
+    const message = {
       header: "ADD_SEASON",
       body: {
         libraryId: libraryId,
         season: season.toJSON(),
       },
     };
-    ws.broadcast(JSON.stringify(messageSeries));
+    ws.broadcast(JSON.stringify(message));
   };
 
   public static addEpisode = (
@@ -651,7 +674,7 @@ export class Utils {
     showId: string,
     episode: Episode
   ) => {
-    const messageSeries = {
+    const message = {
       header: "ADD_EPISODE",
       body: {
         libraryId: libraryId,
@@ -659,7 +682,7 @@ export class Utils {
         episode: episode.toJSON(),
       },
     };
-    ws.broadcast(JSON.stringify(messageSeries));
+    ws.broadcast(JSON.stringify(message));
   };
   //#endregion
 

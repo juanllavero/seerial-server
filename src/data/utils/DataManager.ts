@@ -16,22 +16,21 @@ import { Season } from "../objects/Season";
 import { Episode as EpisodeLocal } from "../objects/Episode";
 import { Cast } from "../objects/Cast";
 import { EpisodeData } from "../interfaces/EpisodeData";
-import { app, BrowserWindow } from "electron";
 import { LibraryData } from "../interfaces/LibraryData";
 import ffmetadata from "ffmetadata";
+import ffmpegPath from "ffmpeg-static";
 import os from "os";
 import pLimit from "p-limit";
 import { WebSocketManager } from "./WebSocketManager";
 
 export class DataManager {
-  static DATA_PATH: string = "./src/data/data.json";
+  static DATA_PATH: string = "resources/data.json";
   static libraries: Library[] = [];
 
   // Number of threads (2 are already being used by this app, so -4 to leave some space for other apps)
   static availableThreads = Math.max(os.cpus().length - 4, 1);
 
   // Metadata attributes
-  static win: BrowserWindow | null;
   static moviedb: MovieDb | undefined;
   static library: Library;
 
@@ -45,16 +44,6 @@ export class DataManager {
     this.createFolder("resources/img/thumbnails/video/");
     this.createFolder("resources/img/thumbnails/chapters/");
     this.createFolder("resources/img/DownloadCache/");
-
-    // Check if running in development
-    const isDev = process.env.NODE_ENV === "development";
-
-    // Get resources folder path
-    const resourcesPath = isDev
-      ? path.join(app.getAppPath(), "resources") // Development
-      : path.join(process.resourcesPath, "resources"); // Production
-
-    this.DATA_PATH = path.join(resourcesPath, "data.json");
   };
 
   public static getLibraries(): Library[] {
@@ -73,7 +62,7 @@ export class DataManager {
   public static loadData = (): any => {
     if (this.libraries.length === 0) {
       try {
-        const data = fs.readFileSync(this.DATA_PATH, "utf8");
+        const data = fs.readFileSync(Utils.getExternalPath(this.DATA_PATH), "utf8");
 
         const jsonData: LibraryData[] = JSON.parse(data);
 
@@ -94,7 +83,7 @@ export class DataManager {
   // Save data in JSON
   public static saveData = (newData: any) => {
     try {
-      fs.writeFileSync(this.DATA_PATH, JSON.stringify(newData), "utf8");
+      fs.writeFileSync(Utils.getExternalPath(this.DATA_PATH), JSON.stringify(newData), "utf8");
       return true;
     } catch (err) {
       console.error("Error saving data:", err);
@@ -130,6 +119,7 @@ export class DataManager {
 
     return episode || null;
   }
+  //#endregion
 
   //#region UPDATE DATA
   public static updateLibrary(libraryId: string, library: Library) {
@@ -362,15 +352,17 @@ export class DataManager {
   //#endregion
 
   //#region METADATA DOWNLOAD
-  public static initConnection = (window: BrowserWindow | null): boolean => {
+  public static initConnection = (): boolean => {
     if (this.moviedb) return true;
 
-    this.win = window;
+    const properties = propertiesReader(path.join("resources", "config", "keys.properties"));
 
-    const properties = propertiesReader("keys.properties");
+    console.log(properties);
 
     // Get API Key
     const apiKey = properties.get("TMDB_API_KEY");
+
+    console.log(apiKey);
 
     if (apiKey) {
       this.moviedb = new MovieDb(String(apiKey));
@@ -380,7 +372,7 @@ export class DataManager {
         return false;
       }
 
-      ffmetadata.setFfmpegPath(Utils.getInternalPath("lib/ffmpeg.exe"));
+      ffmetadata.setFfmpegPath(Utils.getInternalPath(ffmpegPath || ""));
 
       return true;
     } else {
@@ -398,6 +390,8 @@ export class DataManager {
     this.library = newLibrary;
     this.addLibrary(newLibrary);
 
+    Utils.addLibrary(wsManager, newLibrary);
+
     // Get available threads
     let availableThreads = Math.max(os.cpus().length - 3, 1);
 
@@ -412,7 +406,9 @@ export class DataManager {
       const filesInFolder = await Utils.getFilesInFolder(rootFolder);
 
       for (const file of filesInFolder) {
-        const filePath = file.parentPath + "\\" + file.name;
+        const filePath = path.join(file.parentPath, file.name);
+
+        console.log("Scanning file: " + filePath);
         const task = limit(async () => {
           if (this.library.type === "Shows") {
             await this.scanTVShow(filePath, wsManager);
@@ -428,10 +424,7 @@ export class DataManager {
 
     Promise.all(tasks);
 
-    // this.win?.webContents.send(
-    //   "update-libraries",
-    //   this.libraries.map((library: Library) => library.toLibraryData())
-    // );
+    Utils.updateLibrary(wsManager, newLibrary);
 
     return newLibrary;
   }

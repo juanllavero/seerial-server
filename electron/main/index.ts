@@ -11,12 +11,13 @@ import { MovieDb } from "moviedb-promise";
 import { Utils } from "../../src/data/utils/Utils";
 import { Downloader } from "../../src/data/utils/Downloader";
 import { WebSocketManager } from "../../src/data/utils/WebSocketManager";
-
-// Check if running in development
-const isDev = process.env.NODE_ENV === "development";
+import { Library } from "../../src/data/objects/Library";
+import { fileURLToPath } from "url";
 
 // Get current directory path
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+process.env.APP_ROOT = path.join(__dirname, "../../");
 
 // if (!fs.existsSync(propertiesFilePath)) {
 // 	fs.writeFileSync(propertiesFilePath, "");
@@ -65,6 +66,15 @@ if (
     "utf-8"
   );
 }
+
+// Initialize folders
+DataManager.initFolders();
+
+const initMoveDBConnection = () => {
+  DataManager.initConnection();
+}
+
+initMoveDBConnection();
 
 // Read properties file
 const properties = propertiesReader(propertiesFilePath) || undefined;
@@ -417,9 +427,13 @@ appServer.post("/api-key", (req, res) => {
 
 // Add library
 appServer.post("/addLibrary", (req, _res) => {
-  const { library } = req.body;
+  const libraryData = req.body;
 
-  DataManager.addLibrary(library);
+  if (!libraryData) return;
+
+  const library = Library.fromLibraryData(libraryData);
+
+  DataManager.scanFiles(library, wsManager);
 });
 
 // Download video
