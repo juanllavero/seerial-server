@@ -135,17 +135,8 @@ export class Utils {
         episode.audioTracks = [];
         episode.subtitleTracks = [];
 
-        // Bandera para detectar cuando empiezan los subtítulos
-        let subtitleSectionStarted = false;
-
         streams.forEach((stream) => {
           const codecType = stream.codec_type;
-
-          if (codecType === "subtitle") {
-            subtitleSectionStarted = true;
-          } else if (subtitleSectionStarted) {
-            return; // Detiene el procesamiento cuando no hay más subtítulos
-          }
 
           if (codecType === "video") {
             Utils.processVideoData(stream, episode);
@@ -189,7 +180,7 @@ export class Utils {
 
     if (stream.codec_long_name) videoTrack.codecExt = stream.codec_long_name;
 
-    if (stream.tags["BPS"])
+    if (stream.tags && stream.tags["BPS"])
       videoTrack.bitrate = Math.round(
         parseFloat(stream.tags["BPS"]) / Math.pow(10, 3)
       ).toString();
@@ -252,7 +243,7 @@ export class Utils {
       profile: "",
       samplingRate: "",
     };
-
+	
     if (stream.codec_long_name) audioTrack.codecExt = stream.codec_long_name;
 
     if (stream.channels)
@@ -261,12 +252,12 @@ export class Utils {
     if (stream["channel_layout"])
       audioTrack.channelLayout = stream["channel_layout"];
 
-    if (stream.tags["BPS"])
+    if (stream.tags && stream.tags["BPS"])
       audioTrack.bitrate = Math.round(
         parseFloat(stream.tags["BPS"]) / Math.pow(10, 3)
       ).toString();
 
-    if (stream.tags["language"]) {
+    if (stream.tags && stream.tags["language"]) {
       audioTrack.languageTag = stream.tags["language"];
 
       const languageNames = new Intl.DisplayNames(["en"], {
@@ -320,12 +311,12 @@ export class Utils {
       subtitleTrack.codecExt = stream.codec_long_name;
     }
 
-    if (stream.tags["language"]) {
+    if (stream.tags && stream.tags["language"]) {
       subtitleTrack.languageTag = stream.tags["language"];
       subtitleTrack.language = stream.language;
     }
 
-    if (stream.tags["title"]) {
+    if (stream.tags && stream.tags["title"]) {
       subtitleTrack.title = stream.tags["title"];
     }
 
