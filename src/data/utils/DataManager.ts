@@ -1838,6 +1838,41 @@ export class DataManager {
   }
   //#endregion
 
+  //#region SEARCH THEMOVIEDB
+  public static searchShows = async (name: string, year: number) => {
+    if (!this.moviedb) return;
+
+    try {
+      const shows = await this.moviedb.searchTv({ query: name, year });
+      return shows.results;
+    } catch (error) {
+      console.error("Error searching shows", error);
+    }
+  };
+
+  public static searchMovies = async (name: string, year: number) => {
+    if (!this.moviedb) return;
+
+    try {
+      const movies = await this.moviedb.searchMovie({ query: name, year });
+      return movies.results;
+    } catch (error) {
+      console.error("Error searching movies", error);
+    }
+  };
+
+  public static searchEpisodeGroups = async (id: string) => {
+    if (!this.moviedb) return;
+
+    try {
+      const episodeGroups = await this.moviedb.episodeGroups({ id });
+      return episodeGroups.results;
+    } catch (error) {
+      console.error("Error searching movies", error);
+    }
+  };
+  //#endregion
+
   //#region UTILS
   public static createFolder = async (folderDir: string) => {
     Utils.getExternalPath(folderDir);

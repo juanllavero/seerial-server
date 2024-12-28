@@ -72,7 +72,7 @@ DataManager.initFolders();
 
 const initMoveDBConnection = () => {
   DataManager.initConnection();
-}
+};
 
 initMoveDBConnection();
 
@@ -201,6 +201,132 @@ appServer.get("/libraries", (_req, res) => {
   res.json(data);
 });
 
+appServer.get("/audio", (req: any, res: any) => {
+  // Ruta absoluta del audio, que puede estar en cualquier unidad
+  const audioPath = decodeURIComponent(req.query.path); // Pasar la ruta del audio como parámetro en la query
+
+  if (typeof audioPath !== "string") {
+    return res.status(400).send("Invalid audio path");
+  }
+
+  const stat = fs.statSync(audioPath);
+  const fileSize = stat.size;
+  const range = req.headers.range;
+
+  if (range) {
+    const parts = range.replace(/bytes=/, "").split("-");
+    const start = parseInt(parts[0], 10);
+    const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+
+    if (start >= fileSize) {
+      res
+        .status(416)
+        .send("Requested range not satisfiable\n" + start + " >= " + fileSize);
+      return;
+    }
+
+    const chunkSize = end - start + 1;
+    const file = fs.createReadStream(audioPath, { start, end });
+    const head = {
+      "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+      "Accept-Ranges": "bytes",
+      "Content-Length": chunkSize,
+      "Content-Type": (() => {
+        const ext = path.extname(audioPath).toLowerCase();
+        switch (ext) {
+          case ".mp3":
+            return "audio/mp3";
+          case ".ogg":
+            return "audio/ogg";
+          case ".wav":
+            return "audio/wav";
+          case ".aac":
+            return "audio/aac";
+          case ".m4a":
+            return "audio/m4a";
+          case ".flac":
+            return "audio/flac";
+          default:
+            return "audio/*";
+        }
+      })(),
+    };
+
+    res.writeHead(206, head);
+    file.pipe(res);
+  } else {
+    const head = {
+      "Content-Length": fileSize,
+      "Content-Type": "audio/mp3",
+    };
+    res.writeHead(200, head);
+    fs.createReadStream(audioPath).pipe(res);
+  }
+});
+
+appServer.get("/video", (req: any, res: any) => {
+  // Ruta absoluta del vídeo, que puede estar en cualquier unidad
+  const videoPath = decodeURIComponent(req.query.path); // Pasar la ruta del vídeo como parámetro en la query
+
+  if (typeof videoPath !== "string") {
+    return res.status(400).send("Invalid video path");
+  }
+
+  const stat = fs.statSync(videoPath);
+  const fileSize = stat.size;
+  const range = req.headers.range;
+
+  if (range) {
+    const parts = range.replace(/bytes=/, "").split("-");
+    const start = parseInt(parts[0], 10);
+    const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+
+    if (start >= fileSize) {
+      res
+        .status(416)
+        .send("Requested range not satisfiable\n" + start + " >= " + fileSize);
+      return;
+    }
+
+    const chunkSize = end - start + 1;
+    const file = fs.createReadStream(videoPath, { start, end });
+    const head = {
+      "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+      "Accept-Ranges": "bytes",
+      "Content-Length": chunkSize,
+      "Content-Type": (() => {
+        const ext = path.extname(videoPath).toLowerCase();
+        switch (ext) {
+          case ".mkv":
+            return "video/x-matroska";
+          case ".m2ts":
+            return "video/MP2T";
+          case ".mp4":
+            return "video/mp4";
+          case ".webm":
+            return "video/webm";
+          case ".avi":
+            return "video/avi";
+          case ".mov":
+            return "video/quicktime";
+          default:
+            return "video/mp4"; // Unknown extension, fallback to MP4
+        }
+      })(),
+    };
+
+    res.writeHead(206, head);
+    file.pipe(res);
+  } else {
+    const head = {
+      "Content-Length": fileSize,
+      "Content-Type": "video/mp4",
+    };
+    res.writeHead(200, head);
+    fs.createReadStream(videoPath).pipe(res);
+  }
+});
+
 // Get media info
 appServer.get(
   "/mediaInfo/:libraryId/:showId/:seasonId/:episodeId",
@@ -263,19 +389,38 @@ appServer.get("/searchMedia/:query", async (req, res) => {
   res.json(data);
 });
 
-// Get search shows results
-// appServer.get("/searchShows/:query", (req, res) => {
-//   const { query } = req.params;
-//   const data = DataManager.searchShows(query);
-//   res.json(data);
-// });
+// Search shows in TheMovieDB
+appServer.get("/shows/search", (req: any, res: any) => {
+  const { name, year } = req.query;
 
-// Get search movies results
-// appServer.get("/searchMovies/:query", (req, res) => {
-//   const { query } = req.params;
-//   const data = DataManager.searchMovies(query);
-//   res.json(data);
-// });
+  if (!name) {
+    return res.status(400).json({ error: 'Param name not found' });
+  }
+
+  DataManager.searchShows(name, year).then((data) => res.json(data));
+});
+
+// Search movies in TheMovieDB
+appServer.get("/movies/search", (req: any, res: any) => {
+  const { name, year } = req.query;
+
+  if (!name) {
+    return res.status(400).json({ error: 'Param name not found' });
+  }
+
+  DataManager.searchMovies(name, year).then((data) => res.json(data));
+});
+
+// Search episode groups in TheMovieDB
+appServer.get("/episodeGroups/search", (req: any, res: any) => {
+  const id = req.query.id;
+
+  if (!id) {
+    return res.status(400).json({ error: 'Param id not found' });
+  }
+
+  DataManager.searchEpisodeGroups(id).then((data) => res.json(data));
+});
 
 // Get search episode groups results
 // appServer.get("/searchEpisodeGroups/:query", (req, res) => {
@@ -443,14 +588,14 @@ appServer.post("/downloadVideo", (req: any, res: any) => {
   console.log(url, downloadFolder, fileName);
 
   if (!url || !downloadFolder || !fileName) {
-    return res.status(400).json({ error: 'Faltan parámetros' });
+    return res.status(400).json({ error: "Faltan parámetros" });
   }
 
   console.log(`Iniciando la descarga del vídeo desde URL: ${url}`);
 
   Downloader.downloadVideo(url, downloadFolder, fileName, wsManager);
 
-  res.json({ message: 'Descarga iniciada' });
+  res.json({ message: "Descarga iniciada" });
 });
 
 // Download music
@@ -458,14 +603,14 @@ appServer.post("/downloadMusic", (req: any, res: any) => {
   const { url, downloadFolder, fileName } = req.body;
 
   if (!url || !downloadFolder || !fileName) {
-    return res.status(400).json({ error: 'Faltan parámetros' });
+    return res.status(400).json({ error: "Faltan parámetros" });
   }
 
   console.log(`Iniciando la descarga del vídeo desde URL: ${url}`);
 
   Downloader.downloadAudio(url, downloadFolder, fileName, wsManager);
 
-  res.json({ message: 'Descarga iniciada' });
+  res.json({ message: "Descarga iniciada" });
 });
 //#endregion
 
