@@ -328,59 +328,30 @@ appServer.get("/video", (req: any, res: any) => {
 });
 
 // Get media info
-appServer.get(
-  "/mediaInfo/:libraryId/:showId/:seasonId/:episodeId",
-  async (req, res) => {
-    const { libraryId, showId, seasonId, episodeId } = req.params;
+appServer.get("/mediaInfo", async (req: any, res: any) => {
+  const { libraryId, showId, seasonId, episodeId } = req.query;
 
-    // console.log(libraryId, "/", showId, "/", seasonId, "/", episodeId);
-
-    // const videoObject = await DataManager.getEpisode(
-    //   libraryId,
-    //   showId,
-    //   seasonId,
-    //   episodeId
-    // );
-
-    // if (!videoObject) return;
-
-    const data = await Utils.getMediaInfo({
-      id: "5c7d4ef0-ac25-4fa9-8b3e-1aec77596a22",
-      name: "Sesión espiritista",
-      overview:
-        "En busca de respuestas, Vanessa y Sir Malcolm asisten a una fiesta en el hogar del egiptólogo Sir Ferdinand Lyle, donde se encuentran con el misteriosamente hermoso Dorian Gray. La fiesta da un giro inesperado, sin embargo, cuando la reconocida clarividente Madame Kali realiza una sesión espiritista. Mientras tanto, Ethan traba amistad con Brona Croft, una joven inmigrante irlandesa.",
-      year: "2014-05-18",
-      nameLock: false,
-      yearLock: false,
-      overviewLock: false,
-      imdbScore: 0,
-      score: 7.3,
-      directedBy: ["J. A. Bayona"],
-      writtenBy: ["John Logan"],
-      directedLock: false,
-      writtenLock: false,
-      album: "",
-      albumArtist: "",
-      order: 0,
-      runtime: 56,
-      runtimeInSeconds: 3335.36,
-      episodeNumber: 2,
-      seasonNumber: 1,
-      videoSrc: "F:\\SeriesTest\\Penny Dreadful\\S1\\Penny Dreadful S01E02.mkv",
-      imgSrc: "img/thumbnails/video/5c7d4ef0-ac25-4fa9-8b3e-1aec77596a22/0.jpg",
-      imgUrls: [],
-      seasonID: "b3b80f5f-c8aa-414b-bf0c-ec5a7c1641da",
-      watched: false,
-      timeWatched: 0,
-      chapters: [],
-      mediaInfo: undefined,
-      videoTracks: [],
-      audioTracks: [],
-      subtitleTracks: [],
-    });
-    res.json(data);
+  if (
+    typeof libraryId !== "string" ||
+    typeof showId !== "string" ||
+    typeof seasonId !== "string" ||
+    typeof episodeId !== "string"
+  ) {
+    return res.status(400).json({ error: "Invalid parameters" });
   }
-);
+
+  const videoObject = await DataManager.getEpisode(
+    libraryId,
+    showId,
+    seasonId,
+    episodeId
+  );
+
+  if (!videoObject) return;
+
+  const data = await Utils.getMediaInfo(videoObject);
+  res.json(data);
+});
 
 // Get search videos results
 appServer.get("/searchMedia/:query", async (req, res) => {
@@ -394,7 +365,7 @@ appServer.get("/shows/search", (req: any, res: any) => {
   const { name, year } = req.query;
 
   if (!name) {
-    return res.status(400).json({ error: 'Param name not found' });
+    return res.status(400).json({ error: "Param name not found" });
   }
 
   DataManager.searchShows(name, year).then((data) => res.json(data));
@@ -405,7 +376,7 @@ appServer.get("/movies/search", (req: any, res: any) => {
   const { name, year } = req.query;
 
   if (!name) {
-    return res.status(400).json({ error: 'Param name not found' });
+    return res.status(400).json({ error: "Param name not found" });
   }
 
   DataManager.searchMovies(name, year).then((data) => res.json(data));
@@ -416,18 +387,11 @@ appServer.get("/episodeGroups/search", (req: any, res: any) => {
   const id = req.query.id;
 
   if (!id) {
-    return res.status(400).json({ error: 'Param id not found' });
+    return res.status(400).json({ error: "Param id not found" });
   }
 
   DataManager.searchEpisodeGroups(id).then((data) => res.json(data));
 });
-
-// Get search episode groups results
-// appServer.get("/searchEpisodeGroups/:query", (req, res) => {
-//   const { query } = req.params;
-//   const data = DataManager.searchEpisodeGroups(query);
-//   res.json(data);
-// });
 //#endregion
 
 //#region UPDATE DATA
@@ -581,21 +545,30 @@ appServer.post("/addLibrary", (req, _res) => {
   DataManager.scanFiles(library, wsManager);
 });
 
-// Download video
-appServer.post("/downloadVideo", (req: any, res: any) => {
+// Download image
+appServer.post("/downloadImage", async (req: any, res: any) => {
   const { url, downloadFolder, fileName } = req.body;
 
-  console.log(url, downloadFolder, fileName);
-
   if (!url || !downloadFolder || !fileName) {
-    return res.status(400).json({ error: "Faltan parámetros" });
+    return res.status(400).json({ error: "Not enough parameters" });
   }
 
-  console.log(`Iniciando la descarga del vídeo desde URL: ${url}`);
+  await Utils.downloadImage(url, path.join(downloadFolder, fileName));
 
-  Downloader.downloadVideo(url, downloadFolder, fileName, wsManager);
+  res.json({ message: "DOWNLOAD_FINISHED" });
+});
 
-  res.json({ message: "Descarga iniciada" });
+// Download video
+appServer.post("/downloadVideo", async (req: any, res: any) => {
+  const { url, downloadFolder, fileName } = req.body;
+
+  if (!url || !downloadFolder || !fileName) {
+    return res.status(400).json({ error: "Not enough parameters" });
+  }
+
+  await Downloader.downloadVideo(url, downloadFolder, fileName, wsManager);
+
+  res.json({ message: "DOWNLOAD_FINISHED" });
 });
 
 // Download music
@@ -603,14 +576,57 @@ appServer.post("/downloadMusic", (req: any, res: any) => {
   const { url, downloadFolder, fileName } = req.body;
 
   if (!url || !downloadFolder || !fileName) {
-    return res.status(400).json({ error: "Faltan parámetros" });
+    return res.status(400).json({ error: "Not enough parameters" });
   }
-
-  console.log(`Iniciando la descarga del vídeo desde URL: ${url}`);
 
   Downloader.downloadAudio(url, downloadFolder, fileName, wsManager);
 
-  res.json({ message: "Descarga iniciada" });
+  res.json({ message: "DOWNLOAD_FINISHED" });
+});
+
+// Update TheMovieDB id for show
+appServer.post("/updateShowId", (req: any, res: any) => {
+  const { libraryId, showId, themdbId } = req.body;
+
+  if (!showId || !themdbId || !libraryId) {
+    return res.status(400).json({ error: "Not enough parameters" });
+  }
+
+  DataManager.updateShowMetadata(libraryId, showId, themdbId, wsManager);
+});
+
+// Update TheMovieDB id for movie
+appServer.post("/updateMovieId", (req: any, res: any) => {
+  const { libraryId, collectionId, seasonId, themdbId } = req.body;
+
+  if (!collectionId || !themdbId || !libraryId || !seasonId) {
+    return res.status(400).json({ error: "Not enough parameters" });
+  }
+
+  DataManager.updateMovieMetadata(
+    libraryId,
+    collectionId,
+    seasonId,
+    themdbId,
+    wsManager
+  );
+});
+
+// Update episode group for show
+appServer.post("/updateEpisodeGroup", (req: any, res: any) => {
+  const { libraryId, showId, themdbId, episodeGroupId } = req.body;
+
+  if (!showId || !themdbId || !episodeGroupId || !libraryId) {
+    return res.status(400).json({ error: "Not enough parameters" });
+  }
+
+  DataManager.updateShowMetadata(
+    libraryId,
+    showId,
+    themdbId,
+    wsManager,
+    episodeGroupId
+  );
 });
 //#endregion
 
@@ -622,7 +638,7 @@ const wsManager = WebSocketManager.getInstance(server);
 
 // Start server
 server.listen(PORT, () => {
-  console.log(`Servidor de streaming corriendo en http://localhost:${PORT}`);
+  console.log(`Streaming server running at http://localhost:${PORT}`);
 });
 //#endregion
 

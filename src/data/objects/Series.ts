@@ -347,4 +347,8 @@ export class Series {
   getSeason(number: number): Season | undefined {
     return this.seasons.find(season => season.seasonNumber === number);
   }
+
+  getSeasonById(id: string): Season | undefined {
+    return this.seasons.find(season => season.getId() === id);
+  }
 }

@@ -11,6 +11,7 @@ import { Series } from "../objects/Series";
 import { Library } from "../objects/Library";
 import fs from "fs-extra";
 import * as path from "path";
+import * as cheerio from 'cheerio';
 import { Utils } from "./Utils";
 import { Season } from "../objects/Season";
 import { Episode as EpisodeLocal } from "../objects/Episode";
@@ -22,6 +23,7 @@ import ffmpegPath from "ffmpeg-static";
 import os from "os";
 import pLimit from "p-limit";
 import { WebSocketManager } from "./WebSocketManager";
+import axios from "axios";
 
 export class DataManager {
   static DATA_PATH: string = "resources/data.json";
@@ -62,7 +64,10 @@ export class DataManager {
   public static loadData = (): any => {
     if (this.libraries.length === 0) {
       try {
-        const data = fs.readFileSync(Utils.getExternalPath(this.DATA_PATH), "utf8");
+        const data = fs.readFileSync(
+          Utils.getExternalPath(this.DATA_PATH),
+          "utf8"
+        );
 
         const jsonData: LibraryData[] = JSON.parse(data);
 
@@ -83,7 +88,11 @@ export class DataManager {
   // Save data in JSON
   public static saveData = (newData: any) => {
     try {
-      fs.writeFileSync(Utils.getExternalPath(this.DATA_PATH), JSON.stringify(newData), "utf8");
+      fs.writeFileSync(
+        Utils.getExternalPath(this.DATA_PATH),
+        JSON.stringify(newData),
+        "utf8"
+      );
       return true;
     } catch (err) {
       console.error("Error saving data:", err);
@@ -355,14 +364,12 @@ export class DataManager {
   public static initConnection = (): boolean => {
     if (this.moviedb) return true;
 
-    const properties = propertiesReader(path.join("resources", "config", "keys.properties"));
-
-    console.log(properties);
+    const properties = propertiesReader(
+      path.join("resources", "config", "keys.properties")
+    );
 
     // Get API Key
     const apiKey = properties.get("TMDB_API_KEY");
-
-    console.log(apiKey);
 
     if (apiKey) {
       this.moviedb = new MovieDb(String(apiKey));
@@ -408,7 +415,6 @@ export class DataManager {
       for (const file of filesInFolder) {
         const filePath = path.join(file.parentPath, file.name);
 
-        console.log("Scanning file: " + filePath);
         const task = limit(async () => {
           if (this.library.type === "Shows") {
             await this.scanTVShow(filePath, wsManager);
@@ -1628,25 +1634,33 @@ export class DataManager {
     }
   }
 
-  /*private static async setIMDBScore(imdbID: string, season: Season): Promise<void> {
-        try {
-            const url = `https://www.imdb.com/title/${imdbID}`;
-            const { data } = await axios.get(url, { timeout: 6000 });
-    
-            const $ = cheerio.load(data);
-            const body = $('div.sc-bde20123-2');
-    
-            body.find('span.sc-bde20123-1').each((_, element) => {
-                const score = $(element).text();
-                console.log("Imdb score: " + score);
-                season.score = parseFloat(score);
-                return false;
-            });
-    
-        } catch (error) {
-            console.error('setIMDBScore: IMDB connection lost');
-        }
-    };*/
+  // public static async getIMDBScore(
+  //   imdbID: string
+  // ): Promise<number> {
+  //   try {
+  //     const url = `https://www.imdb.com/title/${imdbID}`;
+  //     const { data } = await axios.get(url, { timeout: 6000 });
+
+  //     const $ = cheerio.load(data);
+  //     const body = $("div.sc-acdbf0f3-3");
+
+  //     let imdbScore = 0;
+
+  //     body.find("span.sc-d541859f-1").each((_, element) => {
+  //       const score = $(element).text();
+  //       console.log("Imdb score: " + score);
+        
+  //       imdbScore = Number(score);
+        
+  //       return false;
+  //     });
+
+  //     return imdbScore;
+  //   } catch (error) {
+  //     console.error("setIMDBScore: IMDB connection lost");
+  //     return 0;
+  //   }
+  // }
 
   //#endregion
 
@@ -1870,6 +1884,81 @@ export class DataManager {
     } catch (error) {
       console.error("Error searching movies", error);
     }
+  };
+  //#endregion
+
+  //#region UPDATE METADATA
+  public static updateShowMetadata = async (libraryId: string, showId: string, newTheMovieDBID: number, wsManager: WebSocketManager, newEpisodeGroupId?: string) => {
+    if (!this.moviedb) return;
+
+    const library = this.libraries.find((library) => library.id === libraryId);
+
+    if (!library) return;
+
+    const show = library.getSeriesById(showId);
+
+    if (!show) return;
+    
+    // Delete previous data
+    await this.deleteSeriesData(library, show);
+
+    // Restore folder stored in library
+    library.getAnalyzedFolders().set(show.folder, show.id);
+
+    // Clear season list
+    show.seasons = [];
+
+    // Update TheMovieDB ID
+    show.setThemdbID(newTheMovieDBID);
+
+    // Update EpisodeGroup ID if param is passed
+    if (newEpisodeGroupId) {
+      show.setEpisodeGroupID(newEpisodeGroupId);
+    }
+
+    // Set element loading to show in client
+    show.analyzingFiles = true;
+
+    Utils.updateSeries(wsManager, library.id, show);
+
+    // Get new data
+    await this.scanTVShow(show.folder, wsManager);
+  };
+
+  public static updateMovieMetadata = async (libraryId: string, seriesId: string, seasonId: string, newTheMovieDBID: number, wsManager: WebSocketManager) => {
+    if (!this.moviedb) return;
+
+    const library = this.libraries.find((library) => library.id === libraryId);
+
+    if (!library) return;
+
+    const collection = library.getSeriesById(seriesId);
+
+    if (!collection) return;
+
+    const movie = collection.getSeasonById(seasonId);
+
+    if (!movie) return;
+    
+    // Delete previous data
+    await this.deleteSeasonData(library, movie);
+
+    // Restore folder in library
+    library.getSeasonFolders().set(movie.folder, movie.id);
+
+    // Clear episode list
+    movie.episodes = [];
+
+    // Update TheMovieDB ID
+    movie.setThemdbID(newTheMovieDBID);
+
+    // Set element loading to show in client
+    collection.analyzingFiles = true;
+
+    Utils.updateSeries(wsManager, library.id, collection);
+
+    // Get new data
+    await this.scanMovie(movie.folder, wsManager);
   };
   //#endregion
 
