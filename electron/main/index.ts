@@ -3,6 +3,7 @@ import path from "path";
 import fs from "fs-extra";
 import os from "os";
 import express from "express";
+import multer from 'multer';
 import open from "open"; // Open in browser
 import http from "http";
 import { DataManager } from "../../src/data/utils/DataManager";
@@ -81,7 +82,6 @@ const properties = propertiesReader(propertiesFilePath) || undefined;
 
 // Get API Key
 let THEMOVIEDB_API_KEY = properties.get("TMDB_API_KEY") || "";
-let validApiKey = false;
 
 // Server settings
 const appServer = express();
@@ -89,6 +89,27 @@ const PORT = 3000;
 
 // Middleware to process JSON
 appServer.use(express.json());
+
+// Multer configuration to store files on disk
+const storage = multer.diskStorage({
+  destination: (req, _file, cb) => {
+    console.log({
+      storagePath: req.body.destPath,
+    });
+    const destPath = path.join(resourcesPath, req.body.destPath) || path.join(resourcesPath, 'img', 'DownloadCache'); // Destination path received from client or default
+    // Create folder if it doesn't exist
+    if (!fs.existsSync(destPath)) {
+      fs.mkdirSync(destPath, { recursive: true });
+    }
+    cb(null, destPath);
+  },
+  filename: (_req, file, cb) => {
+    cb(null, file.originalname); // Usar el nombre original del archivo
+  },
+});
+
+// Function to upload files from client
+const upload = multer({ storage });
 
 //#region GET FOLDERS
 // Function to get drives in the system
@@ -180,8 +201,6 @@ appServer.get("/", (_req, res) => {
   if (THEMOVIEDB_API_KEY) {
     const moviedb = new MovieDb(String(THEMOVIEDB_API_KEY));
 
-    validApiKey = moviedb != undefined;
-
     res.json({
       status: moviedb ? "VALID_API_KEY" : "INVALID_API_KEY",
     });
@@ -201,6 +220,7 @@ appServer.get("/libraries", (_req, res) => {
   res.json(data);
 });
 
+// Get audio file in user drive
 appServer.get("/audio", (req: any, res: any) => {
   // Ruta absoluta del audio, que puede estar en cualquier unidad
   const audioPath = decodeURIComponent(req.query.path); // Pasar la ruta del audio como parámetro en la query
@@ -264,6 +284,7 @@ appServer.get("/audio", (req: any, res: any) => {
   }
 });
 
+// Get video file in user drive
 appServer.get("/video", (req: any, res: any) => {
   // Ruta absoluta del vídeo, que puede estar en cualquier unidad
   const videoPath = decodeURIComponent(req.query.path); // Pasar la ruta del vídeo como parámetro en la query
@@ -327,6 +348,32 @@ appServer.get("/video", (req: any, res: any) => {
   }
 });
 
+// Get images from folder
+appServer.get("/images", (req: any, res: any) => {
+  const imagesPath = decodeURIComponent(req.query.path);
+
+  if (typeof imagesPath !== "string") {
+    return res.status(400).send("Invalid images path");
+  }
+
+  fs.readdir(path.join(resourcesPath, imagesPath), (err, files) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send("Error reading images folder");
+    }
+
+    const images = files.map((file) => {
+      const filePath = path.join(imagesPath, file);
+      return {
+        name: file,
+        url: filePath,
+      };
+    });
+
+    res.json(images);
+  });
+});
+
 // Get media info
 appServer.get("/mediaInfo", async (req: any, res: any) => {
   const { libraryId, showId, seasonId, episodeId } = req.query;
@@ -354,8 +401,13 @@ appServer.get("/mediaInfo", async (req: any, res: any) => {
 });
 
 // Get search videos results
-appServer.get("/searchMedia/:query", async (req, res) => {
-  const { query } = req.params;
+appServer.get("/media/search", async (req: any, res: any) => {
+  const { query } = req.query;
+
+  if (typeof query !== "string") {
+    return res.status(400).json({ error: "Invalid parameters" });
+  }
+
   const data = await Downloader.searchVideos(query, 20);
   res.json(data);
 });
@@ -545,6 +597,24 @@ appServer.post("/addLibrary", (req, _res) => {
   DataManager.scanFiles(library, wsManager);
 });
 
+// Upload image
+appServer.post('/uploadImage', upload.single('image'), (req: any, res: any) => {
+  console.log("Campos de la solicitud:", req.body);
+  const file = req.file;
+  const destPath = req.body.destPath;
+
+  if (!file) {
+    return res.status(400).send('No file received');
+  }
+
+  if (!destPath) {
+    return res.status(400).send('Destination path not specified');
+  }
+
+  // Success response
+  res.status(200).send(`Image uploaded successfully to ${path.join(destPath, file.originalname)}`);
+});
+
 // Download image
 appServer.post("/downloadImage", async (req: any, res: any) => {
   const { url, downloadFolder, fileName } = req.body;
@@ -553,7 +623,7 @@ appServer.post("/downloadImage", async (req: any, res: any) => {
     return res.status(400).json({ error: "Not enough parameters" });
   }
 
-  await Utils.downloadImage(url, path.join(downloadFolder, fileName));
+  await Utils.downloadImage(url, path.join(resourcesPath, downloadFolder, fileName));
 
   res.json({ message: "DOWNLOAD_FINISHED" });
 });
