@@ -49,7 +49,6 @@
     "axios": "^1.7.9",
     "electron": "^33.2.0",
     "electron-builder": "^24.13.3",
-    "fluent-ffmpeg": "^2.1.3",
     "moviedb-promise": "^4.0.7",
     "p-limit": "^6.1.0",
     "postcss": "^8.4.49",

@@ -3,7 +3,9 @@ import path from "path";
 import fs from "fs-extra";
 import os from "os";
 import express from "express";
-import multer from 'multer';
+import ffmpeg from "fluent-ffmpeg";
+import ffmpegPath from "ffmpeg-static";
+import multer from "multer";
 import open from "open"; // Open in browser
 import http from "http";
 import { DataManager } from "../../src/data/utils/DataManager";
@@ -96,7 +98,9 @@ const storage = multer.diskStorage({
     console.log({
       storagePath: req.body.destPath,
     });
-    const destPath = path.join(resourcesPath, req.body.destPath) || path.join(resourcesPath, 'img', 'DownloadCache'); // Destination path received from client or default
+    const destPath =
+      path.join(resourcesPath, req.body.destPath) ||
+      path.join(resourcesPath, "img", "DownloadCache"); // Destination path received from client or default
     // Create folder if it doesn't exist
     if (!fs.existsSync(destPath)) {
       fs.mkdirSync(destPath, { recursive: true });
@@ -110,6 +114,11 @@ const storage = multer.diskStorage({
 
 // Function to upload files from client
 const upload = multer({ storage });
+
+console.log("FFmpeg Path:", ffmpegPath);
+
+// Configure ffmpeg path
+ffmpeg.setFfmpegPath(ffmpegPath || "");
 
 //#region GET FOLDERS
 // Function to get drives in the system
@@ -423,6 +432,87 @@ appServer.get("/shows/search", (req: any, res: any) => {
   DataManager.searchShows(name, year).then((data) => res.json(data));
 });
 
+// Endpoint para comprimir y devolver una imagen
+appServer.get("/compressImage", async (req: any, res: any) => {
+  const { imagePath } = req.query;
+
+  if (!imagePath || typeof imagePath !== "string") {
+    return res
+      .status(400)
+      .json({ error: "Debes proporcionar una ruta válida a la imagen." });
+  }
+
+  // Eliminar los parámetros de la URL (como el timestamp)
+  const cleanedImagePath = imagePath.split("?")[0]; // Obtiene la ruta sin el query string
+
+  const imgPath = path.join(resourcesPath, cleanedImagePath);
+
+  if (!fs.existsSync(imgPath)) {
+    return res.status(404).json({ error: "La imagen especificada no existe." });
+  }
+
+  // Ruta de salida de la imagen comprimida
+  const outputFilePath = path.join(extPath, "cache", cleanedImagePath);
+
+  // Verificar si la imagen comprimida ya existe en caché
+  if (fs.existsSync(outputFilePath)) {
+    // Si existe, devolver la imagen desde el caché
+    return res.sendFile(outputFilePath, (err: any) => {
+      if (err) {
+        console.error("Error al enviar el archivo:", err);
+        return res
+          .status(500)
+          .json({ error: "Error al enviar la imagen comprimida." });
+      }
+    });
+  }
+
+  // Crear las carpetas necesarias si no existen
+  const outputDir = path.dirname(outputFilePath);
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+  }
+
+  const compressionQuality = 40; // Calidad de compresión
+
+  try {
+    // Redimensionar la imagen si es necesario
+    const resizedImagePath = path.join(
+      outputDir,
+      "resized-" + path.basename(imgPath)
+    );
+    await Utils.resizeToMaxResolution(imgPath, resizedImagePath);
+
+    // Comprimir la imagen con ffmpeg
+    await new Promise<void>((resolve, reject) => {
+      ffmpeg.setFfmpegPath(ffmpegPath || "");
+      ffmpeg(resizedImagePath)
+        .outputOptions([`-q:v ${Math.round((100 - compressionQuality) / 10)}`]) // Convertir calidad a escala de ffmpeg
+        .output(outputFilePath)
+        .on("end", () => {
+          // Eliminar la imagen redimensionada temporal después de la compresión
+          fs.unlinkSync(resizedImagePath);
+          resolve();
+        })
+        .on("error", (err) => reject(err))
+        .run();
+    });
+
+    // Enviar la imagen comprimida al cliente
+    res.sendFile(outputFilePath, (err: any) => {
+      if (err) {
+        console.error("Error al enviar el archivo:", err);
+        return res
+          .status(500)
+          .json({ error: "Error al enviar la imagen comprimida." });
+      }
+    });
+  } catch (error) {
+    console.error("Error al comprimir la imagen:", error);
+    res.status(500).json({ error: "Error al comprimir la imagen." });
+  }
+});
+
 // Search movies in TheMovieDB
 appServer.get("/movies/search", (req: any, res: any) => {
   const { name, year } = req.query;
@@ -598,21 +688,25 @@ appServer.post("/addLibrary", (req, _res) => {
 });
 
 // Upload image
-appServer.post('/uploadImage', upload.single('image'), (req: any, res: any) => {
+appServer.post("/uploadImage", upload.single("image"), (req: any, res: any) => {
   console.log("Campos de la solicitud:", req.body);
   const file = req.file;
   const destPath = req.body.destPath;
 
   if (!file) {
-    return res.status(400).send('No file received');
+    return res.status(400).send("No file received");
   }
 
   if (!destPath) {
-    return res.status(400).send('Destination path not specified');
+    return res.status(400).send("Destination path not specified");
   }
 
   // Success response
-  res.status(200).send(`Image uploaded successfully to ${path.join(destPath, file.originalname)}`);
+  res
+    .status(200)
+    .send(
+      `Image uploaded successfully to ${path.join(destPath, file.originalname)}`
+    );
 });
 
 // Download image
@@ -623,7 +717,10 @@ appServer.post("/downloadImage", async (req: any, res: any) => {
     return res.status(400).json({ error: "Not enough parameters" });
   }
 
-  await Utils.downloadImage(url, path.join(resourcesPath, downloadFolder, fileName));
+  await Utils.downloadImage(
+    url,
+    path.join(resourcesPath, downloadFolder, fileName)
+  );
 
   res.json({ message: "DOWNLOAD_FINISHED" });
 });

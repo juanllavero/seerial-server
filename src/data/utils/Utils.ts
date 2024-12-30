@@ -47,6 +47,25 @@ export class Utils {
     ".wma",
   ];
 
+  // Function to resize to 1080p
+  public static resizeToMaxResolution = (
+    inputPath: string,
+    outputPath: string
+  ) => {
+    return new Promise<void>((resolve, reject) => {
+      ffmpeg.setFfmpegPath(ffmpegPath || "");
+      ffmpeg(inputPath)
+        .outputOptions(
+          "-vf",
+          "scale='if(gt(iw,1920),1920,iw)':'if(gt(ih,1080),1080,ih)'"
+        ) // Resize to 1080p if necessary
+        .output(outputPath)
+        .on("end", () => resolve())
+        .on("error", (err) => reject(err))
+        .run();
+    });
+  };
+
   //#region MEDIA INFO
   public static async getOnlyRuntime(
     song: Episode,
@@ -243,7 +262,7 @@ export class Utils {
       profile: "",
       samplingRate: "",
     };
-	
+
     if (stream.codec_long_name) audioTrack.codecExt = stream.codec_long_name;
 
     if (stream.channels)
@@ -588,10 +607,7 @@ export class Utils {
   };
 
   //#region WEBSOCKET CONTENT MESSAGES
-  public static addLibrary = (
-    ws: WebSocketManager,
-    library: Library,
-  ) => {
+  public static addLibrary = (ws: WebSocketManager, library: Library) => {
     const message = {
       header: "ADD_LIBRARY",
       body: {
@@ -601,10 +617,7 @@ export class Utils {
     ws.broadcast(JSON.stringify(message));
   };
 
-  public static updateLibrary = (
-    ws: WebSocketManager,
-    library: Library,
-  ) => {
+  public static updateLibrary = (ws: WebSocketManager, library: Library) => {
     const message = {
       header: "UPDATE_LIBRARY",
       body: {
@@ -613,7 +626,7 @@ export class Utils {
     };
     ws.broadcast(JSON.stringify(message));
   };
- 
+
   public static addSeries = (
     ws: WebSocketManager,
     libraryId: string,
