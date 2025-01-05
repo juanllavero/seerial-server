@@ -90,7 +90,8 @@ const appServer = express();
 const PORT = 3000;
 
 // Middleware to process JSON
-appServer.use(express.json());
+appServer.use(express.json({limit: '50mb'}));
+appServer.use(express.urlencoded({limit: '50mb'}));
 
 // Multer configuration to store files on disk
 const storage = multer.diskStorage({
@@ -114,8 +115,6 @@ const storage = multer.diskStorage({
 
 // Function to upload files from client
 const upload = multer({ storage });
-
-console.log("FFmpeg Path:", ffmpegPath);
 
 // Configure ffmpeg path
 ffmpeg.setFfmpegPath(ffmpegPath || "");
@@ -452,20 +451,20 @@ appServer.get("/compressImage", async (req: any, res: any) => {
   }
 
   // Ruta de salida de la imagen comprimida
-  const outputFilePath = path.join(extPath, "cache", cleanedImagePath);
+  const outputFilePath = path.join(extPath, "cache", cleanedImagePath.replace(path.extname(cleanedImagePath), ".avif"));
 
   // Verificar si la imagen comprimida ya existe en caché
-  if (fs.existsSync(outputFilePath)) {
-    // Si existe, devolver la imagen desde el caché
-    return res.sendFile(outputFilePath, (err: any) => {
-      if (err) {
-        console.error("Error al enviar el archivo:", err);
-        return res
-          .status(500)
-          .json({ error: "Error al enviar la imagen comprimida." });
-      }
-    });
-  }
+  // if (fs.existsSync(outputFilePath)) {
+  //   // Si existe, devolver la imagen desde el caché
+  //   return res.sendFile(outputFilePath, (err: any) => {
+  //     if (err) {
+  //       console.error("Error al enviar el archivo:", err);
+  //       return res
+  //         .status(500)
+  //         .json({ error: "Error al enviar la imagen comprimida." });
+  //     }
+  //   });
+  // }
 
   // Crear las carpetas necesarias si no existen
   const outputDir = path.dirname(outputFilePath);
@@ -473,7 +472,7 @@ appServer.get("/compressImage", async (req: any, res: any) => {
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
-  const compressionQuality = 40; // Calidad de compresión
+  const compressionQuality = 10; // Calidad de compresión
 
   try {
     // Redimensionar la imagen si es necesario
@@ -489,6 +488,7 @@ appServer.get("/compressImage", async (req: any, res: any) => {
       ffmpeg(resizedImagePath)
         .outputOptions([`-q:v ${Math.round((100 - compressionQuality) / 10)}`]) // Convertir calidad a escala de ffmpeg
         .output(outputFilePath)
+        .outputFormat("avif")
         .on("end", () => {
           // Eliminar la imagen redimensionada temporal después de la compresión
           fs.unlinkSync(resizedImagePath);
@@ -539,9 +539,8 @@ appServer.get("/episodeGroups/search", (req: any, res: any) => {
 //#region UPDATE DATA
 
 // Update Library
-appServer.put("/libraries/:libraryId", (req, res) => {
-  const { libraryId } = req.params;
-  const updatedLibrary = req.body;
+appServer.put("/library", (req, res) => {
+  const { libraryId, updatedLibrary } = req.body;
 
   try {
     DataManager.updateLibrary(libraryId, updatedLibrary);
@@ -552,9 +551,8 @@ appServer.put("/libraries/:libraryId", (req, res) => {
 });
 
 // Update Show
-appServer.put("/libraries/:libraryId/shows/:showId", (req, res) => {
-  const { libraryId, showId } = req.params;
-  const updatedShow = req.body;
+appServer.put("/show", (req, res) => {
+  const { libraryId, showId, updatedShow } = req.body;
 
   try {
     DataManager.updateShow(libraryId, showId, updatedShow);
@@ -565,36 +563,28 @@ appServer.put("/libraries/:libraryId/shows/:showId", (req, res) => {
 });
 
 // Update Season
-appServer.put(
-  "/libraries/:libraryId/shows/:showId/seasons/:seasonId",
-  (req, res) => {
-    const { libraryId, showId, seasonId } = req.params;
-    const updatedSeason = req.body;
+appServer.put("/season", (req, res) => {
+  const { libraryId, showId, seasonId, updatedSeason } = req.body;
 
-    try {
-      DataManager.updateSeason(libraryId, showId, seasonId, updatedSeason);
-      res.status(200).json({ message: "Season updated successfully" });
-    } catch (error) {
-      res.status(500).json({ error: "Failed to update season" });
-    }
+  try {
+    DataManager.updateSeason(libraryId, showId, seasonId, updatedSeason);
+    res.status(200).json({ message: "Season updated successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update season" });
   }
-);
+});
 
 // Update Episode
-appServer.put(
-  "/libraries/:libraryId/shows/:showId/seasons/:seasonId/episodes/:episodeId",
-  (req, res) => {
-    const { libraryId, showId } = req.params;
-    const updatedEpisode = req.body;
+appServer.put("/episode", (req, res) => {
+  const { libraryId, showId, updatedEpisode } = req.body;
 
-    try {
-      DataManager.updateEpisode(libraryId, showId, updatedEpisode);
-      res.status(200).json({ message: "Episode updated successfully" });
-    } catch (error) {
-      res.status(500).json({ error: "Failed to update episode" });
-    }
+  try {
+    DataManager.updateEpisode(libraryId, showId, updatedEpisode);
+    res.status(200).json({ message: "Episode updated successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update episode" });
   }
-);
+});
 //#endregion
 
 //#region DELETE DATA
@@ -602,6 +592,8 @@ appServer.put(
 // Delete Library
 appServer.delete("/libraries/:libraryId", (req, res) => {
   const { libraryId } = req.params;
+
+  console.log(libraryId);
 
   try {
     DataManager.deleteLibrary(libraryId);

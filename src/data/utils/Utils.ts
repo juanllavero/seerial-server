@@ -57,7 +57,7 @@ export class Utils {
       ffmpeg(inputPath)
         .outputOptions(
           "-vf",
-          "scale='if(gt(iw,1920),1920,iw)':'if(gt(ih,1080),1080,ih)'"
+          "scale='if(gt(iw,720),720,iw)':'if(gt(ih,480),480,ih)'"
         ) // Resize to 1080p if necessary
         .output(outputPath)
         .on("end", () => resolve())

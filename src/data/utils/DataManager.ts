@@ -23,7 +23,6 @@ import ffmpegPath from "ffmpeg-static";
 import os from "os";
 import pLimit from "p-limit";
 import { WebSocketManager } from "./WebSocketManager";
-import axios from "axios";
 
 export class DataManager {
   static DATA_PATH: string = "resources/data.json";
@@ -86,7 +85,7 @@ export class DataManager {
   };
 
   // Save data in JSON
-  public static saveData = (newData: any) => {
+  public static saveData = (newData: LibraryData[]) => {
     try {
       fs.writeFileSync(
         Utils.getExternalPath(this.DATA_PATH),
@@ -131,11 +130,29 @@ export class DataManager {
   //#endregion
 
   //#region UPDATE DATA
+  
+  /**
+   * Checks if two objects have different properties or values
+   * @param obj1 first object to compare
+   * @param obj2 second object to compare
+   * @returns true if the objects have changes, false otherwise
+   */
+  private static hasChanges(obj1: object, obj2: object): boolean {
+    return JSON.stringify(obj1) !== JSON.stringify(obj2);
+  }
+
   public static updateLibrary(libraryId: string, library: Library) {
     const libraryToEdit = this.libraries.find((l) => l.id === libraryId);
 
     if (libraryToEdit) {
+      const previousState = { ...libraryToEdit };
+
       Object.assign(libraryToEdit, library);
+
+      // Update data if it has changed
+      if (this.hasChanges(previousState, libraryToEdit)) {
+        this.saveData(this.libraries.map((library) => library.toLibraryData()));
+      }
     }
   }
 
@@ -147,7 +164,14 @@ export class DataManager {
     const showToEdit = library.getSeriesById(showId);
 
     if (showToEdit) {
+      const previousState = { ...showToEdit };
+
       Object.assign(showToEdit, show);
+
+      // Update data if it has changed
+      if (this.hasChanges(previousState, showToEdit)) {
+        this.saveData(this.libraries.map((library) => library.toLibraryData()));
+      }
     }
   }
 
@@ -170,7 +194,14 @@ export class DataManager {
       .find((season) => season.id === seasonId);
 
     if (seasonToEdit) {
+      const previousState = { ...seasonToEdit };
+
       Object.assign(seasonToEdit, season);
+
+      // Update data if it has changed
+      if (this.hasChanges(previousState, seasonToEdit)) {
+        this.saveData(this.libraries.map((library) => library.toLibraryData()));
+      }
     }
   }
 
@@ -196,7 +227,14 @@ export class DataManager {
     const episodeToEdit = season.getEpisodeById(episode.id);
 
     if (episodeToEdit) {
+      const previousState = { ...episodeToEdit };
+
       Object.assign(episodeToEdit, episode);
+
+      // Update data if it has changed
+      if (this.hasChanges(previousState, episodeToEdit)) {
+        this.saveData(this.libraries.map((library) => library.toLibraryData()));
+      }
     }
   }
   //#endregion
@@ -216,6 +254,9 @@ export class DataManager {
     if (this.library && this.library.id === libraryId) {
       this.library = this.libraries[0] || undefined;
     }
+
+    // Save data
+    this.saveData(this.libraries.map((library) => library.toLibraryData()));
   }
 
   // Delete show object and stored data
@@ -400,7 +441,7 @@ export class DataManager {
     Utils.addLibrary(wsManager, newLibrary);
 
     // Get available threads
-    let availableThreads = Math.max(os.cpus().length - 3, 1);
+    let availableThreads = Math.max(os.cpus().length - 2, 1);
 
     if (this.library.type === "Music") {
       availableThreads = Math.min(availableThreads, 4);
@@ -423,6 +464,9 @@ export class DataManager {
           } else {
             await this.scanMusic(filePath, wsManager);
           }
+
+          // Save data
+          this.saveData(this.libraries.map((library) => library.toLibraryData()));
         });
         tasks.push(task);
       }
@@ -431,6 +475,9 @@ export class DataManager {
     Promise.all(tasks);
 
     Utils.updateLibrary(wsManager, newLibrary);
+
+    // Save data
+    this.saveData(this.libraries.map((library) => library.toLibraryData()));
 
     return newLibrary;
   }
@@ -772,7 +819,7 @@ export class DataManager {
         realEpisode !== -1 ? realSeason ?? 0 : seasonMetadata.season_number ?? 0
       );
 
-      this.downloadLogosAndPosters;
+      this.setSeasonBackgrounds(show, season);
 
       if (season.getSeasonNumber() === 0) season.setOrder(100);
 
@@ -977,6 +1024,55 @@ export class DataManager {
     await this.downloadLogosAndPosters(show.themdbID, show, false);
 
     // Mandar library y show a React
+  }
+
+  private static async setSeasonBackgrounds(show: Series, season: Season) {
+    if (!this.moviedb) return;
+
+    let backgroundFound = false;
+    if (show.getSeasons().length > 1){
+      for (let i = 0; i < show.getSeasons().length; i++) {
+        const s = show.getSeasons()[i];
+        if (s.backgroundSrc.length > 0) {
+          season.setBackgroundSrc(s.backgroundSrc);
+          season.backgroundsUrls = s.backgroundsUrls;
+          backgroundFound = true;
+          break;
+        }
+      }
+    }
+
+    if (backgroundFound) return;
+
+    try {
+      // Get images
+      const images = await this.moviedb.tvImages({ id: show.themdbID });
+      const backdrops = images.backdrops || [];
+
+      const baseUrl = "https://image.tmdb.org/t/p/original";
+
+      // Create folders if they do not exist
+      const outputImageDir = Utils.getExternalPath(
+        "resources/img/backgrounds/" + season.id
+      );
+      if (!fs.existsSync(outputImageDir)) {
+        fs.mkdirSync(outputImageDir);
+      }
+
+      // Download backgrounds
+      for (const backdrop of backdrops) {
+        if (backdrop.file_path) {
+          const backgroundUrl = `${baseUrl}${backdrop.file_path}`;
+          season.backgroundsUrls = [...season.backgroundsUrls, backgroundUrl];
+
+          if (season.backgroundSrc === "") {
+            season.backgroundSrc = backgroundUrl;
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error downloading images:", error);
+    }
   }
 
   private static async downloadLogosAndPosters(
