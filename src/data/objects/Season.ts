@@ -1,5 +1,5 @@
-import { Episode } from './Episode';
-import { Cast } from './Cast';
+import { Episode } from "./Episode";
+import { Cast } from "./Cast";
 
 export class Season {
   id: string;
@@ -14,23 +14,23 @@ export class Season {
   overviewLock: boolean;
 
   //Movie
-  score: number;
-  tagline: string;
-  creator: string[];
-  genres: string[];
-  cast: Cast[];
-  musicComposer: string[];
-  productionStudios: string[];
-  directedBy: string[];
-  writtenBy: string[];
-  creatorLock: boolean;
-  musicLock: boolean;
-  directedLock: boolean;
-  writtenLock: boolean;
-  genresLock: boolean;
-  studioLock: boolean;
-  taglineLock: boolean;
-  
+  score?: number;
+  tagline?: string;
+  creator?: string[];
+  genres?: string[];
+  cast?: Cast[];
+  musicComposer?: string[];
+  productionStudios?: string[];
+  directedBy?: string[];
+  writtenBy?: string[];
+  creatorLock?: boolean;
+  musicLock?: boolean;
+  directedLock?: boolean;
+  writtenLock?: boolean;
+  genresLock?: boolean;
+  studioLock?: boolean;
+  taglineLock?: boolean;
+
   //Other
   order: number;
   seasonNumber: number;
@@ -58,29 +58,29 @@ export class Season {
 
   constructor() {
     this.id = crypto.randomUUID();
-    this.name = '';
-    this.overview = '';
-    this.year = '';
+    this.name = "";
+    this.overview = "";
+    this.year = "";
     this.order = 0;
     this.score = 0;
     this.seasonNumber = 0;
-    this.logoSrc = '';
+    this.logoSrc = "";
     this.logosUrls = [];
-    this.coverSrc = '';
+    this.coverSrc = "";
     this.coversUrls = [];
-    this.backgroundSrc = '';
+    this.backgroundSrc = "";
     this.backgroundsUrls = [];
-    this.videoSrc = '';
-    this.musicSrc = '';
-    this.seriesID = '';
+    this.videoSrc = "";
+    this.musicSrc = "";
+    this.seriesID = "";
     this.themdbID = -1;
-    this.imdbID = '';
+    this.imdbID = "";
     this.lastDisc = 0;
-    this.folder = '';
+    this.folder = "";
     this.showName = true;
-    this.audioTrackLanguage = '';
+    this.audioTrackLanguage = "";
     this.selectedAudioTrack = -1;
-    this.subtitleTrackLanguage = '';
+    this.subtitleTrackLanguage = "";
     this.selectedSubtitleTrack = -1;
     this.episodes = [];
     this.genres = [];
@@ -91,7 +91,7 @@ export class Season {
     this.directedBy = [];
     this.writtenBy = [];
     this.productionStudios = [];
-    this.tagline = '';
+    this.tagline = "";
     this.nameLock = false;
     this.orderLock = false;
     this.yearLock = false;
@@ -130,32 +130,58 @@ export class Season {
     season.imdbID = json.imdbID || season.imdbID;
     season.lastDisc = json.lastDisc || season.lastDisc;
     season.folder = json.folder || season.folder;
-    season.showName = json.showName !== undefined ? json.showName : season.showName;
-    season.audioTrackLanguage = json.audioTrackLanguage || season.audioTrackLanguage;
-    season.selectedAudioTrack = json.selectedAudioTrack !== undefined ? json.selectedAudioTrack : season.selectedAudioTrack;
-    season.subtitleTrackLanguage = json.subtitleTrackLanguage || season.subtitleTrackLanguage;
-    season.selectedSubtitleTrack = json.selectedSubtitleTrack !== undefined ? json.selectedSubtitleTrack : season.selectedSubtitleTrack;
-    season.episodes = json.episodes ? json.episodes.map((e: any) => Episode.fromJSON(e)) : season.episodes;
+    season.showName =
+      json.showName !== undefined ? json.showName : season.showName;
+    season.audioTrackLanguage =
+      json.audioTrackLanguage || season.audioTrackLanguage;
+    season.selectedAudioTrack =
+      json.selectedAudioTrack !== undefined
+        ? json.selectedAudioTrack
+        : season.selectedAudioTrack;
+    season.subtitleTrackLanguage =
+      json.subtitleTrackLanguage || season.subtitleTrackLanguage;
+    season.selectedSubtitleTrack =
+      json.selectedSubtitleTrack !== undefined
+        ? json.selectedSubtitleTrack
+        : season.selectedSubtitleTrack;
+    season.episodes = json.episodes
+      ? json.episodes.map((e: any) => Episode.fromJSON(e))
+      : season.episodes;
     season.genres = json.genres || season.genres;
-    season.currentlyWatchingEpisode = json.currentlyWatchingEpisode !== undefined ? json.currentlyWatchingEpisode : season.currentlyWatchingEpisode;
+    season.currentlyWatchingEpisode =
+      json.currentlyWatchingEpisode !== undefined
+        ? json.currentlyWatchingEpisode
+        : season.currentlyWatchingEpisode;
     season.cast = json.cast || season.cast; // Ajustar si tienes una clase Cast
     season.creator = json.creator || season.creator;
     season.musicComposer = json.musicComposer || season.musicComposer;
     season.directedBy = json.directedBy || season.directedBy;
     season.writtenBy = json.writtenBy || season.writtenBy;
-    season.productionStudios = json.productionStudios || season.productionStudios;
+    season.productionStudios =
+      json.productionStudios || season.productionStudios;
     season.tagline = json.tagline || season.tagline;
-    season.nameLock = json.nameLock !== undefined ? json.nameLock : season.nameLock;
-    season.orderLock = json.orderLock !== undefined ? json.orderLock : season.orderLock;
-    season.yearLock = json.yearLock !== undefined ? json.yearLock : season.yearLock;
-    season.overviewLock = json.overviewLock !== undefined ? json.overviewLock : season.overviewLock;
-    season.studioLock = json.studioLock !== undefined ? json.studioLock : season.studioLock;
-    season.taglineLock = json.taglineLock !== undefined ? json.taglineLock : season.taglineLock;
-    season.creatorLock = json.creatorLock !== undefined ? json.creatorLock : season.creatorLock;
-    season.musicLock = json.musicLock !== undefined ? json.musicLock : season.musicLock;
-    season.directedLock = json.directedLock !== undefined ? json.directedLock : season.directedLock;
-    season.writtenLock = json.writtenLock !== undefined ? json.writtenLock : season.writtenLock;
-    season.genresLock = json.genresLock !== undefined ? json.genresLock : season.genresLock;
+    season.nameLock =
+      json.nameLock !== undefined ? json.nameLock : season.nameLock;
+    season.orderLock =
+      json.orderLock !== undefined ? json.orderLock : season.orderLock;
+    season.yearLock =
+      json.yearLock !== undefined ? json.yearLock : season.yearLock;
+    season.overviewLock =
+      json.overviewLock !== undefined ? json.overviewLock : season.overviewLock;
+    season.studioLock =
+      json.studioLock !== undefined ? json.studioLock : season.studioLock;
+    season.taglineLock =
+      json.taglineLock !== undefined ? json.taglineLock : season.taglineLock;
+    season.creatorLock =
+      json.creatorLock !== undefined ? json.creatorLock : season.creatorLock;
+    season.musicLock =
+      json.musicLock !== undefined ? json.musicLock : season.musicLock;
+    season.directedLock =
+      json.directedLock !== undefined ? json.directedLock : season.directedLock;
+    season.writtenLock =
+      json.writtenLock !== undefined ? json.writtenLock : season.writtenLock;
+    season.genresLock =
+      json.genresLock !== undefined ? json.genresLock : season.genresLock;
     season.watched = json.watched !== undefined ? json.watched : season.watched;
 
     return season;
@@ -188,7 +214,7 @@ export class Season {
       selectedAudioTrack: this.selectedAudioTrack,
       subtitleTrackLanguage: this.subtitleTrackLanguage,
       selectedSubtitleTrack: this.selectedSubtitleTrack,
-      episodes: this.episodes.map(e => e.toJSON()),
+      episodes: this.episodes.map((e) => e.toJSON()),
       genres: this.genres,
       currentlyWatchingEpisode: this.currentlyWatchingEpisode,
       cast: this.cast, // Ajustar si tienes una clase Cast
@@ -208,12 +234,16 @@ export class Season {
       musicLock: this.musicLock,
       directedLock: this.directedLock,
       writtenLock: this.writtenLock,
-      watched: this.watched
+      watched: this.watched,
     };
 
     // Filtrar atributos solo si están asignados o tienen un valor definido
-    Object.keys(json).forEach(key => {
-      if (json[key] === undefined || json[key] === null || (Array.isArray(json[key]) && json[key].length === 0)) {
+    Object.keys(json).forEach((key) => {
+      if (
+        json[key] === undefined ||
+        json[key] === null ||
+        (Array.isArray(json[key]) && json[key].length === 0)
+      ) {
         delete json[key];
       }
     });
@@ -258,7 +288,7 @@ export class Season {
   }
 
   getScore(): number {
-    return this.score;
+    return this.score ?? 0;
   }
 
   setScore(score: number): void {
@@ -402,11 +432,11 @@ export class Season {
   }
 
   removeEpisode(episode: Episode): void {
-    this.episodes = this.episodes.filter(e => e.getId() !== episode.getId());
+    this.episodes = this.episodes.filter((e) => e.getId() !== episode.getId());
   }
 
   getGenres(): string {
-    return Season.getString(this.genres);
+    return Season.getString(this.genres ?? []);
   }
 
   setGenres(genres: string[]): void {
@@ -414,7 +444,10 @@ export class Season {
   }
 
   getCurrentlyWatchingEpisode(): Episode | null {
-    if (this.currentlyWatchingEpisode !== -1 && this.currentlyWatchingEpisode < this.episodes.length) {
+    if (
+      this.currentlyWatchingEpisode !== -1 &&
+      this.currentlyWatchingEpisode < this.episodes.length
+    ) {
       return this.episodes[this.currentlyWatchingEpisode];
     }
     return null;
@@ -429,7 +462,7 @@ export class Season {
   }
 
   getCast(): Cast[] {
-    return this.cast;
+    return this.cast ?? [];
   }
 
   setCast(cast: Cast[]): void {
@@ -437,7 +470,7 @@ export class Season {
   }
 
   getCreator(): string[] {
-    return this.creator;
+    return this.creator ?? [];
   }
 
   setCreator(creator: string[]): void {
@@ -445,7 +478,7 @@ export class Season {
   }
 
   getMusicComposer(): string[] {
-    return this.musicComposer;
+    return this.musicComposer ?? [];
   }
 
   setMusicComposer(musicComposer: string[]): void {
@@ -453,7 +486,7 @@ export class Season {
   }
 
   getDirectedBy(): string[] {
-    return this.directedBy;
+    return this.directedBy ?? [];
   }
 
   setDirectedBy(directedBy: string[]): void {
@@ -461,7 +494,7 @@ export class Season {
   }
 
   getWrittenBy(): string[] {
-    return this.writtenBy;
+    return this.writtenBy ?? [];
   }
 
   setWrittenBy(writtenBy: string[]): void {
@@ -469,14 +502,14 @@ export class Season {
   }
 
   getEpisode(number: number): Episode | undefined {
-    return this.episodes.find(episode => episode.episodeNumber === number);
+    return this.episodes.find((episode) => episode.episodeNumber === number);
   }
 
   getEpisodeById(id: string): Episode | undefined {
-    return this.episodes.find(episode => episode.id === id);
+    return this.episodes.find((episode) => episode.id === id);
   }
 
   private static getString(genres: string[]): string {
-    return genres.join(', ');
+    return genres.join(", ");
   }
 }

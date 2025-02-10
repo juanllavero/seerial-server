@@ -1,9 +1,11 @@
-import { SubtitleTrack } from './SubtitleTrack';
-import { MediaInfoData } from '../interfaces/MediaInfoData';
-import { VideoTrackData } from '../interfaces/VideoTrackData';
-import { AudioTrackData } from '../interfaces/AudioTrackData';
-import { SubtitleTrackData } from '../interfaces/SubtitleTrackData';
-import { ChapterData } from '../interfaces/ChapterData';
+import {
+  ChapterData,
+  MediaInfoData,
+  VideoTrackData,
+  AudioTrackData,
+  SubtitleTrackData,
+} from "../interfaces/MediaInfo";
+import { SubtitleTrack } from "./SubtitleTrack";
 
 export class Episode {
   id: string;
@@ -18,15 +20,15 @@ export class Episode {
   imdbScore: number;
 
   //Show
-  score: number;
-  directedBy: string[];
-  writtenBy: string[];
-  directedLock: boolean;
-  writtenLock: boolean;
+  score?: number;
+  directedBy?: string[];
+  writtenBy?: string[];
+  directedLock?: boolean;
+  writtenLock?: boolean;
 
   //Song
-  album: string;
-  albumArtist: string;
+  album?: string;
+  albumArtist?: string;
 
   order: number;
   runtime: number;
@@ -44,12 +46,12 @@ export class Episode {
   videoTracks: VideoTrackData[];
   audioTracks: AudioTrackData[];
   subtitleTracks: SubtitleTrackData[];
-  
+
   constructor() {
     this.id = crypto.randomUUID();
-    this.name = '';
-    this.overview = '';
-    this.year = '';
+    this.name = "";
+    this.overview = "";
+    this.year = "";
     this.order = 0;
     this.score = 0;
     this.imdbScore = 0;
@@ -57,10 +59,10 @@ export class Episode {
     this.runtimeInSeconds = 0;
     this.episodeNumber = 0;
     this.seasonNumber = 0;
-    this.videoSrc = '';
-    this.imgSrc = '';
+    this.videoSrc = "";
+    this.imgSrc = "";
     this.imgUrls = [];
-    this.seasonID = '';
+    this.seasonID = "";
     this.watched = false;
     this.timeWatched = 0;
     this.chapters = [];
@@ -75,8 +77,8 @@ export class Episode {
     this.overviewLock = false;
     this.directedLock = false;
     this.writtenLock = false;
-    this.album = '';
-    this.albumArtist = '';
+    this.album = "";
+    this.albumArtist = "";
   }
 
   static fromJSON(json: any): Episode {
@@ -89,31 +91,60 @@ export class Episode {
     episode.year = json.year || episode.year;
     episode.order = json.order !== undefined ? json.order : episode.order;
     episode.score = json.score !== undefined ? json.score : episode.score;
-    episode.imdbScore = json.imdbScore !== undefined ? json.imdbScore : episode.imdbScore;
-    episode.runtime = json.runtime !== undefined ? json.runtime : episode.runtime;
-    episode.runtimeInSeconds = json.runtimeInSeconds !== undefined ? json.runtimeInSeconds : episode.runtimeInSeconds;
-    episode.episodeNumber = json.episodeNumber !== undefined ? json.episodeNumber : episode.episodeNumber;
-    episode.seasonNumber = json.seasonNumber !== undefined ? json.seasonNumber : episode.seasonNumber;
+    episode.imdbScore =
+      json.imdbScore !== undefined ? json.imdbScore : episode.imdbScore;
+    episode.runtime =
+      json.runtime !== undefined ? json.runtime : episode.runtime;
+    episode.runtimeInSeconds =
+      json.runtimeInSeconds !== undefined
+        ? json.runtimeInSeconds
+        : episode.runtimeInSeconds;
+    episode.episodeNumber =
+      json.episodeNumber !== undefined
+        ? json.episodeNumber
+        : episode.episodeNumber;
+    episode.seasonNumber =
+      json.seasonNumber !== undefined
+        ? json.seasonNumber
+        : episode.seasonNumber;
     episode.videoSrc = json.videoSrc || episode.videoSrc;
     episode.imgSrc = json.imgSrc || episode.imgSrc;
     episode.imgUrls = json.imgUrls || episode.imgUrls;
     episode.seasonID = json.seasonID || episode.seasonID;
-    episode.watched = json.watched !== undefined ? json.watched : episode.watched;
-    episode.timeWatched = json.timeWatched !== undefined ? json.timeWatched : episode.timeWatched;
+    episode.watched =
+      json.watched !== undefined ? json.watched : episode.watched;
+    episode.timeWatched =
+      json.timeWatched !== undefined ? json.timeWatched : episode.timeWatched;
     episode.chapters = json.chapters ? json.chapters : episode.chapters;
     episode.mediaInfo = json.mediaInfo ? json.mediaInfo : episode.mediaInfo;
-    episode.videoTracks = json.videoTracks ? json.videoTracks : episode.videoTracks;
-    episode.audioTracks = json.audioTracks ? json.audioTracks : episode.audioTracks;
-    episode.subtitleTracks = json.subtitleTracks ? json.subtitleTracks : episode.subtitleTracks;
+    episode.videoTracks = json.videoTracks
+      ? json.videoTracks
+      : episode.videoTracks;
+    episode.audioTracks = json.audioTracks
+      ? json.audioTracks
+      : episode.audioTracks;
+    episode.subtitleTracks = json.subtitleTracks
+      ? json.subtitleTracks
+      : episode.subtitleTracks;
     episode.directedBy = json.directedBy ? json.directedBy : episode.directedBy;
     episode.writtenBy = json.writtenBy ? json.writtenBy : episode.writtenBy;
-    episode.nameLock = json.nameLock !== undefined ? json.nameLock : episode.nameLock;
-    episode.yearLock = json.yearLock !== undefined ? json.yearLock : episode.yearLock;
-    episode.overviewLock = json.overviewLock !== undefined ? json.overviewLock : episode.overviewLock;
-    episode.directedLock = json.directedLock !== undefined ? json.directedLock : episode.directedLock;
-    episode.writtenLock = json.writtenLock !== undefined ? json.writtenLock : episode.writtenLock;
+    episode.nameLock =
+      json.nameLock !== undefined ? json.nameLock : episode.nameLock;
+    episode.yearLock =
+      json.yearLock !== undefined ? json.yearLock : episode.yearLock;
+    episode.overviewLock =
+      json.overviewLock !== undefined
+        ? json.overviewLock
+        : episode.overviewLock;
+    episode.directedLock =
+      json.directedLock !== undefined
+        ? json.directedLock
+        : episode.directedLock;
+    episode.writtenLock =
+      json.writtenLock !== undefined ? json.writtenLock : episode.writtenLock;
     episode.album = json.album !== undefined ? json.album : episode.album;
-    episode.albumArtist = json.albumArtist !== undefined ? json.albumArtist : episode.albumArtist;
+    episode.albumArtist =
+      json.albumArtist !== undefined ? json.albumArtist : episode.albumArtist;
 
     return episode;
   }
@@ -141,21 +172,27 @@ export class Episode {
       mediaInfo: this.mediaInfo ? this.mediaInfo : undefined,
       videoTracks: this.videoTracks.length ? this.videoTracks : undefined,
       audioTracks: this.audioTracks.length ? this.audioTracks : undefined,
-      subtitleTracks: this.subtitleTracks.length ? this.subtitleTracks : undefined,
-      directedBy: this.directedBy.length ? this.directedBy : undefined,
-      writtenBy: this.writtenBy.length ? this.writtenBy : undefined,
+      subtitleTracks: this.subtitleTracks.length
+        ? this.subtitleTracks
+        : undefined,
+      directedBy: this.directedBy?.length ? this.directedBy : undefined,
+      writtenBy: this.writtenBy?.length ? this.writtenBy : undefined,
       nameLock: this.nameLock,
       yearLock: this.yearLock,
       overviewLock: this.overviewLock,
       directedLock: this.directedLock,
       writtenLock: this.writtenLock,
       album: this.album,
-      albumArtist: this.albumArtist
+      albumArtist: this.albumArtist,
     };
 
     // Filtrar atributos solo si están asignados o tienen un valor definido
-    Object.keys(json).forEach(key => {
-      if (json[key] === undefined || json[key] === null || (Array.isArray(json[key]) && json[key].length === 0)) {
+    Object.keys(json).forEach((key) => {
+      if (
+        json[key] === undefined ||
+        json[key] === null ||
+        (Array.isArray(json[key]) && json[key].length === 0)
+      ) {
         delete json[key];
       }
     });
@@ -224,7 +261,7 @@ export class Episode {
   }
 
   getScore(): number {
-    return this.score;
+    return this.score ?? 0;
   }
 
   setScore(score: number): void {
@@ -286,14 +323,14 @@ export class Episode {
   }
 
   isWatched(): boolean {
-      return this.watched;
+    return this.watched;
   }
 
   setTimeWatched(seconds: number): void {
     this.timeWatched = seconds;
 
     // If we have watched more than 90% of the video, it is marked as watched
-    if (this.timeWatched > (this.getRuntimeInSeconds() * 0.9)) {
+    if (this.timeWatched > this.getRuntimeInSeconds() * 0.9) {
       this.setWatched();
     }
   }
@@ -343,7 +380,7 @@ export class Episode {
   }
 
   getDirectedBy(): string[] {
-    return this.directedBy;
+    return this.directedBy ?? [];
   }
 
   setDirectedBy(directedBy: string[]): void {
@@ -351,7 +388,7 @@ export class Episode {
   }
 
   getWrittenBy(): string[] {
-    return this.writtenBy;
+    return this.writtenBy ?? [];
   }
 
   setWrittenBy(writtenBy: string[]): void {

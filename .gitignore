@@ -36,3 +36,5 @@ lib/
 cache/
 resources/
 data.json
+certificate.key
+certificate.pem

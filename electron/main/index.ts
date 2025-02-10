@@ -7,7 +7,7 @@ import ffmpeg from "fluent-ffmpeg";
 import ffmpegPath from "ffmpeg-static";
 import multer from "multer";
 import open from "open"; // Open in browser
-import http from "http";
+import https from "https";
 import { DataManager } from "../../src/data/utils/DataManager";
 import propertiesReader from "properties-reader";
 import { MovieDb } from "moviedb-promise";
@@ -88,6 +88,14 @@ let THEMOVIEDB_API_KEY = properties.get("TMDB_API_KEY") || "";
 // Server settings
 const appServer = express();
 const PORT = 3000;
+
+// Middleware to allow CORS
+appServer.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Range');
+  next();
+});
 
 // Middleware to process JSON
 appServer.use(express.json({limit: '50mb'}));
@@ -790,14 +798,17 @@ appServer.post("/updateEpisodeGroup", (req: any, res: any) => {
 //#endregion
 
 //#region CREATE HTTP SERVER
-const server = http.createServer(appServer);
+const server = https.createServer({
+  cert: fs.readFileSync('./certificate.pem'),
+  key: fs.readFileSync('./certificate.key')
+}, appServer);
 
 // Create WebSocket Manager
 const wsManager = WebSocketManager.getInstance(server);
 
 // Start server
 server.listen(PORT, () => {
-  console.log(`Streaming server running at http://localhost:${PORT}`);
+  console.log(`Streaming server running at https://localhost:${PORT}`);
 });
 //#endregion
 

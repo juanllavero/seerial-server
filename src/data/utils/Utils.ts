@@ -1,9 +1,3 @@
-import { AudioTrackData } from "../interfaces/AudioTrackData";
-import { ChapterData } from "../interfaces/ChapterData";
-import { EpisodeData } from "../interfaces/EpisodeData";
-import { MediaInfoData } from "../interfaces/MediaInfoData";
-import { SubtitleTrackData } from "../interfaces/SubtitleTrackData";
-import { VideoTrackData } from "../interfaces/VideoTrackData";
 import axios from "axios";
 import { exec } from "child_process";
 import { app } from "electron";
@@ -20,6 +14,14 @@ import { Episode } from "../objects/Episode";
 import { Series } from "../objects/Series";
 import { WebSocketManager } from "./WebSocketManager";
 import { Library } from "../objects/Library";
+import { EpisodeData } from "../interfaces/EpisodeData";
+import {
+  AudioTrackData,
+  ChapterData,
+  MediaInfoData,
+  SubtitleTrackData,
+  VideoTrackData,
+} from "../interfaces/MediaInfo";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -147,6 +149,7 @@ export class Utils {
         // Establece la duración real del video
         if (format.duration) {
           episode.runtimeInSeconds = format.duration;
+          episode.runtime = episode.runtimeInSeconds / 60;
         }
 
         // Limpia las listas anteriores de pistas
@@ -439,6 +442,30 @@ export class Utils {
     return chaptersArray;
   }
   //#endregion
+
+  public static createFolder = async (folderDir: string) => {
+    Utils.getExternalPath(folderDir);
+    if (!fs.existsSync(folderDir)) {
+      fs.mkdirSync(folderDir);
+    }
+  };
+
+  public static getImages = async (dirPath: string) => {
+    try {
+      const files = fs.readdirSync(dirPath);
+      const images = files.filter((file) =>
+        [".png", ".jpg", ".jpeg", ".gif"].includes(
+          path.extname(file).toLowerCase()
+        )
+      );
+      return images.map((image) => path.join(dirPath, image));
+    } catch (error) {
+      console.log(
+        "DataManager.getImages: Error getting images for path " + dirPath
+      );
+      return [];
+    }
+  };
 
   public static getExternalPath(relativePath: string): string {
     const basePath = app.isPackaged
