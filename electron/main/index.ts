@@ -6,7 +6,7 @@ import express from "express";
 import ffmpeg from "fluent-ffmpeg";
 import ffmpegPath from "ffmpeg-static";
 import multer from "multer";
-import open from "open"; // Open in browser
+import open from "open";
 import https from "https";
 import { DataManager } from "../../src/data/utils/DataManager";
 import propertiesReader from "properties-reader";
@@ -16,15 +16,13 @@ import { Downloader } from "../../src/data/utils/Downloader";
 import { WebSocketManager } from "../../src/data/utils/WebSocketManager";
 import { Library } from "../../src/data/objects/Library";
 import { fileURLToPath } from "url";
+import { MovieDBWrapper } from "../../src/data/utils/MovieDB";
+import { FileSearch } from "../../src/data/utils/FileSearch";
 
 // Get current directory path
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 process.env.APP_ROOT = path.join(__dirname, "../../");
-
-// if (!fs.existsSync(propertiesFilePath)) {
-// 	fs.writeFileSync(propertiesFilePath, "");
-// }
 
 // External path
 const extPath = app.isPackaged
@@ -45,6 +43,10 @@ const propertiesFilePath = path.join(
   "config",
   "keys.properties"
 );
+
+if (!fs.existsSync(propertiesFilePath)) {
+  fs.writeFileSync(propertiesFilePath, "");
+}
 
 // Create resources and config folders
 createFolder(path.join(extPath, "resources"));
@@ -73,8 +75,9 @@ if (
 // Initialize folders
 DataManager.initFolders();
 
+// Initialize MoveDB Connection
 const initMoveDBConnection = () => {
-  DataManager.initConnection();
+  MovieDBWrapper.initConnection();
 };
 
 initMoveDBConnection();
@@ -90,16 +93,16 @@ const appServer = express();
 const PORT = 3000;
 
 // Middleware to allow CORS
-appServer.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,HEAD,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Range');
+appServer.use((_req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Range");
   next();
 });
 
 // Middleware to process JSON
-appServer.use(express.json({limit: '50mb'}));
-appServer.use(express.urlencoded({limit: '50mb'}));
+appServer.use(express.json({ limit: "50mb" }));
+appServer.use(express.urlencoded({ limit: "50mb" }));
 
 // Multer configuration to store files on disk
 const storage = multer.diskStorage({
@@ -436,7 +439,7 @@ appServer.get("/shows/search", (req: any, res: any) => {
     return res.status(400).json({ error: "Param name not found" });
   }
 
-  DataManager.searchShows(name, year).then((data) => res.json(data));
+  MovieDBWrapper.searchTVShows(name, year, 1).then((data) => res.json(data));
 });
 
 // Endpoint para comprimir y devolver una imagen
@@ -459,7 +462,11 @@ appServer.get("/compressImage", async (req: any, res: any) => {
   }
 
   // Ruta de salida de la imagen comprimida
-  const outputFilePath = path.join(extPath, "cache", cleanedImagePath.replace(path.extname(cleanedImagePath), ".avif"));
+  const outputFilePath = path.join(
+    extPath,
+    "cache",
+    cleanedImagePath.replace(path.extname(cleanedImagePath), ".avif")
+  );
 
   // Verificar si la imagen comprimida ya existe en caché
   // if (fs.existsSync(outputFilePath)) {
@@ -529,7 +536,7 @@ appServer.get("/movies/search", (req: any, res: any) => {
     return res.status(400).json({ error: "Param name not found" });
   }
 
-  DataManager.searchMovies(name, year).then((data) => res.json(data));
+  MovieDBWrapper.searchMovies(name, year, 1).then((data) => res.json(data));
 });
 
 // Search episode groups in TheMovieDB
@@ -540,7 +547,7 @@ appServer.get("/episodeGroups/search", (req: any, res: any) => {
     return res.status(400).json({ error: "Param id not found" });
   }
 
-  DataManager.searchEpisodeGroups(id).then((data) => res.json(data));
+  MovieDBWrapper.searchEpisodeGroups(id).then((data) => res.json(data));
 });
 //#endregion
 
@@ -684,7 +691,7 @@ appServer.post("/addLibrary", (req, _res) => {
 
   const library = Library.fromLibraryData(libraryData);
 
-  DataManager.scanFiles(library, wsManager);
+  FileSearch.scanFiles(library, wsManager);
 });
 
 // Upload image
@@ -759,7 +766,7 @@ appServer.post("/updateShowId", (req: any, res: any) => {
     return res.status(400).json({ error: "Not enough parameters" });
   }
 
-  DataManager.updateShowMetadata(libraryId, showId, themdbId, wsManager);
+  FileSearch.updateShowMetadata(libraryId, showId, themdbId, wsManager);
 });
 
 // Update TheMovieDB id for movie
@@ -770,7 +777,7 @@ appServer.post("/updateMovieId", (req: any, res: any) => {
     return res.status(400).json({ error: "Not enough parameters" });
   }
 
-  DataManager.updateMovieMetadata(
+  FileSearch.updateMovieMetadata(
     libraryId,
     collectionId,
     seasonId,
@@ -787,7 +794,7 @@ appServer.post("/updateEpisodeGroup", (req: any, res: any) => {
     return res.status(400).json({ error: "Not enough parameters" });
   }
 
-  DataManager.updateShowMetadata(
+  FileSearch.updateShowMetadata(
     libraryId,
     showId,
     themdbId,
@@ -798,10 +805,13 @@ appServer.post("/updateEpisodeGroup", (req: any, res: any) => {
 //#endregion
 
 //#region CREATE HTTP SERVER
-const server = https.createServer({
-  cert: fs.readFileSync('./certificate.pem'),
-  key: fs.readFileSync('./certificate.key')
-}, appServer);
+const server = https.createServer(
+  {
+    cert: fs.readFileSync("./certificate.pem"),
+    key: fs.readFileSync("./certificate.key"),
+  },
+  appServer
+);
 
 // Create WebSocket Manager
 const wsManager = WebSocketManager.getInstance(server);

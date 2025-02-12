@@ -11,6 +11,11 @@ import * as fs from "fs";
 import { promisify } from "util";
 import { Season } from "../objects/Season";
 import { Episode } from "../objects/Episode";
+import {
+  EpisodeGroupResponse,
+  Episode as MovieDBEpisode,
+  TvEpisodeGroupsResponse,
+} from "moviedb-promise";
 import { Series } from "../objects/Series";
 import { WebSocketManager } from "./WebSocketManager";
 import { Library } from "../objects/Library";
@@ -22,6 +27,7 @@ import {
   SubtitleTrackData,
   VideoTrackData,
 } from "../interfaces/MediaInfo";
+import { TvSeasonResponse } from "moviedb-promise";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -67,6 +73,138 @@ export class Utils {
         .run();
     });
   };
+
+  //#region FILE SEARCH
+  public static extractNameAndYear(source: string) {
+    // Remove parentheses and extra spaces
+    const cleanSource = source
+      .replace(/[()]/g, "")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+
+    // Regex to get name and year
+    const regex = /^(.*?)(?:[\s.-]*(\d{4}))?$/;
+    const match = cleanSource.match(regex);
+
+    let name = "";
+    let year = "1";
+
+    if (match) {
+      name = match[1];
+      year = match[2] || "1";
+    } else {
+      name = cleanSource;
+    }
+
+    // Clean and format the name
+    name = name
+      .replace(/[-_]/g, " ")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+
+    return [name, year];
+  }
+
+  /**
+   * Function to detect episode and season numbers in a video file name
+   * @param filename path to the video file
+   * @returns array of 1 to 2 elements corresponding with the episode and season number detected, or NaN if no episode was found
+   */
+  public static extractEpisodeSeason(filename: string): [number, number?] {
+    const regexPatterns = [
+      /[Ss](\d{1,4})[Ee](\d{1,4})/i, // S01E02, s1e2, S1.E2
+      /[Ss](\d{1,4})[\.]?E(\d{1,4})/i, // S1.E2
+      /[Ss](\d{1,4})[\s\-]+Ep?(\d{1,4})/i, // S01 E02, S1 E2
+      /(?:\b|^)(\d{1,4})(?:[^\d]+(\d{1,4}))?/i, // General case, exclude the first number for episodes
+    ];
+
+    for (const regex of regexPatterns) {
+      const match = filename.match(regex);
+      if (match) {
+        let episode, season;
+        if (regex === regexPatterns[3] && match[2]) {
+          // Only consider the second number as the episode if two numbers are present
+          episode = parseInt(match[2], 10);
+          season = undefined;
+        } else {
+          episode = parseInt(match[2] ?? match[1], 10);
+          season = match[2] ? parseInt(match[1], 10) : undefined;
+        }
+        return season ? [episode, season] : [episode];
+      }
+    }
+
+    return [NaN]; // Return NaN if no episode found
+  }
+
+  // Index episodes and seasons of a show to quicker access
+  public static indexSeasons(
+    seasonsMetadata: TvSeasonResponse[]
+  ): Map<
+    number,
+    { season: TvSeasonResponse; episodesMap: Map<number, MovieDBEpisode> }
+  > {
+    const index = new Map<
+      number,
+      { season: TvSeasonResponse; episodesMap: Map<number, MovieDBEpisode> }
+    >();
+
+    for (const season of seasonsMetadata) {
+      if (season.season_number != null) {
+        const episodesMap = new Map<number, MovieDBEpisode>();
+        if (season.episodes) {
+          for (const episode of season.episodes) {
+            if (episode.episode_number != null) {
+              episodesMap.set(episode.episode_number, episode);
+            }
+          }
+        }
+        index.set(season.season_number, { season, episodesMap });
+      }
+    }
+    return index;
+  }
+
+  // Función para construir un arreglo con la cuenta acumulada de episodios por temporada.
+  public static buildCumulativeEpisodes(
+    seasonsMetadata: TvSeasonResponse[]
+  ): number[] {
+    const cumulative: number[] = [];
+    let total = 0;
+
+    // Se consideran temporadas con número válido y que tengan episodios.
+    for (const season of seasonsMetadata) {
+      if (
+        season.season_number != null &&
+        season.season_number >= 1 &&
+        season.episodes
+      ) {
+        total += season.episodes.length;
+        cumulative.push(total);
+      }
+    }
+    return cumulative;
+  }
+
+  // Returns the season and episode by absolute number
+  public static getSeasonEpisodeByAbsoluteNumber(
+    absoluteNumber: number,
+    seasonsMetadata: TvSeasonResponse[],
+    cumulative: number[]
+  ): { season: TvSeasonResponse; episode: MovieDBEpisode } | null {
+    for (let i = 0; i < cumulative.length; i++) {
+      if (absoluteNumber <= cumulative[i]) {
+        const season = seasonsMetadata[i];
+        const previousCount = i > 0 ? cumulative[i - 1] : 0;
+        const episodeIndex = absoluteNumber - previousCount - 1; // índice basado en 0
+        if (season.episodes && season.episodes[episodeIndex]) {
+          return { season, episode: season.episodes[episodeIndex] };
+        }
+      }
+    }
+    return null;
+  }
+  //#endregion
 
   //#region MEDIA INFO
   public static async getOnlyRuntime(

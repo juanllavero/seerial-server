@@ -1,17 +1,14 @@
 import { Cast } from "../objects/Cast";
-import propertiesReader from "properties-reader";
 import fs from "fs-extra";
 import * as path from "path";
 import {
   Episode,
   EpisodeGroupResponse,
-  MovieDb,
   MovieResponse,
   ShowResponse,
   TvSeasonResponse,
 } from "moviedb-promise";
 import ffmetadata from "ffmetadata";
-import ffmpegPath from "ffmpeg-static";
 import os from "os";
 import pLimit from "p-limit";
 import { WebSocketManager } from "./WebSocketManager";
@@ -26,8 +23,6 @@ import { MovieDBWrapper } from "./MovieDB";
 
 export class FileSearch {
   static BASE_URL: string = "https://image.tmdb.org/t/p/original";
-  // Metadata attributes
-  static moviedb: MovieDb | undefined;
 
   // Number of threads (2 are already being used by this app, so -4 to leave some space for other apps)
   static availableThreads = Math.max(os.cpus().length - 4, 1);
@@ -91,8 +86,6 @@ export class FileSearch {
   }
 
   public static async scanTVShow(folder: string, wsManager: WebSocketManager) {
-    if (!this.moviedb) return undefined;
-
     if (!(await Utils.isFolder(folder))) return undefined;
 
     const videoFiles = await Utils.getValidVideoFiles(folder);
@@ -171,7 +164,7 @@ export class FileSearch {
     let seasonsMetadata: TvSeasonResponse[] = [];
     if (showData.seasons) {
       const seasonPromises = showData.seasons.map(async (seasonBasic) => {
-        if (this.moviedb && showData.id && seasonBasic.season_number) {
+        if (showData.id && seasonBasic.season_number) {
           return await MovieDBWrapper.getSeason(
             showData.id,
             seasonBasic.season_number
@@ -220,20 +213,24 @@ export class FileSearch {
     episodesGroup: EpisodeGroupResponse | undefined,
     wsManager: WebSocketManager
   ) {
-    // Process each episode
+    // Construir el índice y el arreglo acumulado para búsquedas optimizadas.
+    const seasonsIndex = Utils.indexSeasons(seasonsMetadata);
+    const cumulativeEpisodes = Utils.buildCumulativeEpisodes(seasonsMetadata);
+
+    // Procesar cada episodio en paralelo.
     const processPromises = videoFiles.map(async (video) => {
-      if (DataManager.library.getAnalyzedFiles().get(video) == null) {
+      if (!DataManager.library.getAnalyzedFiles().has(video)) {
         await this.processEpisode(
           show,
           video,
           seasonsMetadata,
+          seasonsIndex,
+          cumulativeEpisodes,
           episodesGroup,
           wsManager
         );
       }
     });
-
-    // Esperar a que todas las promesas se resuelvan
     await Promise.all(processPromises);
 
     // Change the name of every season to match the Episodes Group
@@ -262,6 +259,11 @@ export class FileSearch {
     show: Series,
     video: string,
     seasonsMetadata: TvSeasonResponse[],
+    seasonsIndex: Map<
+      number,
+      { season: TvSeasonResponse; episodesMap: Map<number, Episode> }
+    >,
+    cumulativeEpisodes: number[],
     episodesGroup: EpisodeGroupResponse | undefined,
     wsManager: WebSocketManager
   ) {
@@ -274,44 +276,23 @@ export class FileSearch {
 
     //Name of the file without the extension
     let fullName = path.parse(video).name;
-    let seasonEpisode: [number, number?] = this.extractEpisodeSeason(fullName);
+    let seasonEpisode: [number, number?] = Utils.extractEpisodeSeason(fullName);
 
     if (Number.isNaN(seasonEpisode)) return;
 
     //If there is no season and episode numbers
     if (!seasonEpisode[1]) {
       const absoluteNumber = seasonEpisode[0];
-      let episodeFound = false;
-      let episodeNumber = 1;
+      const result = Utils.getSeasonEpisodeByAbsoluteNumber(
+        absoluteNumber,
+        seasonsMetadata,
+        cumulativeEpisodes
+      );
 
-      //Find the real season and episode for the file
-      for (const season of seasonsMetadata) {
-        if (season.season_number && season.season_number >= 1) {
-          if (
-            season.episodes &&
-            episodeNumber + season.episodes.length < absoluteNumber
-          ) {
-            episodeNumber += season.episodes.length;
-            continue;
-          }
+      if (!result) return;
 
-          if (season.episodes) {
-            for (let i = 0; i < season.episodes.length; i++) {
-              if (episodeNumber === absoluteNumber) {
-                episodeMetadata = season.episodes[i];
-                seasonMetadata = season;
-                episodeFound = true;
-                break;
-              }
-              episodeNumber++;
-            }
-          }
-        }
-
-        if (episodeFound) break;
-      }
-
-      if (!episodeFound) return;
+      seasonMetadata = result.season;
+      episodeMetadata = result.episode;
     } else {
       const [episodeNumber, seasonNumber] = seasonEpisode;
 
@@ -370,19 +351,12 @@ export class FileSearch {
           }
         } else return;
       } else {
-        for (const seasonMeta of seasonsMetadata) {
-          if (seasonMeta.season_number === realSeason && seasonMeta.episodes) {
-            seasonMetadata = seasonMeta;
-
-            for (const episodeMeta of seasonMeta.episodes) {
-              if (episodeMeta.episode_number === realEpisode) {
-                episodeMetadata = episodeMeta;
-                break;
-              }
-            }
-
-            break;
-          }
+        const seasonData = seasonsIndex.get(seasonNumber);
+        if (seasonData && seasonData.episodesMap.has(episodeNumber)) {
+          seasonMetadata = seasonData.season;
+          episodeMetadata = seasonData.episodesMap.get(episodeNumber)!;
+        } else {
+          return;
         }
       }
     }
@@ -456,11 +430,6 @@ export class FileSearch {
       );
       episode.setRuntime(episodeMetadata?.runtime ?? 0);
 
-      // Get runtime with ffmpeg
-      //   if (episode.runtime === 0) {
-      //     Utils.getOnlyRuntime(episode, episode.getVideoSrc());
-      //   }
-
       if (realEpisode && realEpisode != -1)
         episode.setEpisodeNumber(realEpisode);
       else episode.setEpisodeNumber(episodeMetadata.episode_number ?? 0);
@@ -504,38 +473,6 @@ export class FileSearch {
         episode
       );
     }
-  }
-
-  /**
-   * Function to detec episode and season numbers in a video file name
-   * @param filename path to the video file
-   * @returns array of 1 to 2 elements corresponding with the episode and season number detected, or NaN if no episode was found
-   */
-  private static extractEpisodeSeason(filename: string): [number, number?] {
-    const regexPatterns = [
-      /[Ss](\d{1,4})[Ee](\d{1,4})/i, // S01E02, s1e2, S1.E2
-      /[Ss](\d{1,4})[\.]?E(\d{1,4})/i, // S1.E2
-      /[Ss](\d{1,4})[\s\-]+Ep?(\d{1,4})/i, // S01 E02, S1 E2
-      /(?:\b|^)(\d{1,4})(?:[^\d]+(\d{1,4}))?/i, // General case, exclude the first number for episodes
-    ];
-
-    for (const regex of regexPatterns) {
-      const match = filename.match(regex);
-      if (match) {
-        let episode, season;
-        if (regex === regexPatterns[3] && match[2]) {
-          // Only consider the second number as the episode if two numbers are present
-          episode = parseInt(match[2], 10);
-          season = undefined;
-        } else {
-          episode = parseInt(match[2] ?? match[1], 10);
-          season = match[2] ? parseInt(match[1], 10) : undefined;
-        }
-        return season ? [episode, season] : [episode];
-      }
-    }
-
-    return [NaN]; // Return NaN if no episode found
   }
 
   private static async setSeriesMetadataAndImages(
@@ -616,8 +553,6 @@ export class FileSearch {
   }
 
   private static async setSeasonBackgrounds(show: Series, season: Season) {
-    if (!this.moviedb) return;
-
     let backgroundFound = false;
     if (show.getSeasons().length > 1) {
       for (let i = 0; i < show.getSeasons().length; i++) {
@@ -666,8 +601,6 @@ export class FileSearch {
     themoviedbID: number,
     show: Series
   ) {
-    if (!this.moviedb) return;
-
     try {
       // Get images
       const images = await MovieDBWrapper.getTVShowImages(themoviedbID);
@@ -719,14 +652,12 @@ export class FileSearch {
   }
 
   public static async scanMovie(root: string, wsManager: WebSocketManager) {
-    if (!this.moviedb) return;
-
     if (!(await Utils.isFolder(root))) {
       //#region MOVIE FILE ONLY
-      if (!(await Utils.isVideoFile(root))) return;
+      if (!Utils.isVideoFile(root)) return;
 
       const fileFullName = await Utils.getFileName(root);
-      const nameAndYear = this.extractNameAndYear(fileFullName);
+      const nameAndYear = Utils.extractNameAndYear(fileFullName);
 
       let name = nameAndYear[0];
       let year = nameAndYear[1];
@@ -823,7 +754,7 @@ export class FileSearch {
 
         const processPromises = folders.map(async (folder) => {
           const fileFullName = Utils.getFileName(folder);
-          const nameAndYear = this.extractNameAndYear(fileFullName);
+          const nameAndYear = Utils.extractNameAndYear(fileFullName);
 
           let name = nameAndYear[0];
           let year = nameAndYear[1];
@@ -880,7 +811,7 @@ export class FileSearch {
       } else {
         //#region MOVIE FILE/CONCERT FILES INSIDE FOLDER
         const fileFullName = Utils.getFileName(root);
-        const nameAndYear = this.extractNameAndYear(fileFullName);
+        const nameAndYear = Utils.extractNameAndYear(fileFullName);
 
         let name = nameAndYear[0];
         let year = nameAndYear[1];
@@ -945,36 +876,6 @@ export class FileSearch {
     return moviesSearch && moviesSearch.length > 0
       ? await MovieDBWrapper.getMovie(moviesSearch[0].id ?? 0)
       : undefined;
-  }
-
-  private static extractNameAndYear(source: string) {
-    // Remove parentheses and extra spaces
-    const cleanSource = source
-      .replace(/[()]/g, "")
-      .replace(/\s{2,}/g, " ")
-      .trim();
-
-    // Regex to get name and year
-    const regex = /^(.*?)(?:[\s.-]*(\d{4}))?$/;
-    const match = cleanSource.match(regex);
-
-    let name = "";
-    let year = "1";
-
-    if (match) {
-      name = match[1];
-      year = match[2] || "1";
-    } else {
-      name = cleanSource;
-    }
-
-    // Clean and format the name
-    name = name
-      .replace(/[-_]/g, " ")
-      .replace(/\s{2,}/g, " ")
-      .trim();
-
-    return [name, year];
   }
 
   private static async setSeasonMetadata(
@@ -1512,41 +1413,6 @@ export class FileSearch {
   }
   //#endregion
 
-  //#region SEARCH THEMOVIEDB
-  public static searchShows = async (name: string, year: number) => {
-    if (!this.moviedb) return;
-
-    try {
-      const shows = await this.moviedb.searchTv({ query: name, year });
-      return shows.results;
-    } catch (error) {
-      console.error("Error searching shows", error);
-    }
-  };
-
-  public static searchMovies = async (name: string, year: number) => {
-    if (!this.moviedb) return;
-
-    try {
-      const movies = await this.moviedb.searchMovie({ query: name, year });
-      return movies.results;
-    } catch (error) {
-      console.error("Error searching movies", error);
-    }
-  };
-
-  public static searchEpisodeGroups = async (id: string) => {
-    if (!this.moviedb) return;
-
-    try {
-      const episodeGroups = await this.moviedb.episodeGroups({ id });
-      return episodeGroups.results;
-    } catch (error) {
-      console.error("Error searching movies", error);
-    }
-  };
-  //#endregion
-
   //#region UPDATE METADATA
   public static updateShowMetadata = async (
     libraryId: string,
@@ -1555,8 +1421,6 @@ export class FileSearch {
     wsManager: WebSocketManager,
     newEpisodeGroupId?: string
   ) => {
-    if (!this.moviedb) return;
-
     const library = DataManager.libraries.find(
       (library) => library.id === libraryId
     );
@@ -1600,8 +1464,6 @@ export class FileSearch {
     newTheMovieDBID: number,
     wsManager: WebSocketManager
   ) => {
-    if (!this.moviedb) return;
-
     const library = DataManager.libraries.find(
       (library) => library.id === libraryId
     );

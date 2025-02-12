@@ -1,25 +1,8 @@
-import { Cast } from "../objects/Cast";
 import propertiesReader from "properties-reader";
-import fs from "fs-extra";
 import * as path from "path";
-import {
-  Episode,
-  EpisodeGroupResponse,
-  MovieDb,
-  MovieResponse,
-  ShowResponse,
-  TvSeasonResponse,
-} from "moviedb-promise";
+import { MovieDb } from "moviedb-promise";
 import ffmetadata from "ffmetadata";
 import ffmpegPath from "ffmpeg-static";
-import os from "os";
-import pLimit from "p-limit";
-import { WebSocketManager } from "./WebSocketManager";
-import { Library } from "../objects/Library";
-import { Season } from "../objects/Season";
-import { Episode as EpisodeLocal } from "../objects/Episode";
-import { EpisodeData } from "../interfaces/EpisodeData";
-import { Series } from "../objects/Series";
 import { DataManager } from "./DataManager";
 import { Utils } from "./Utils";
 
@@ -27,9 +10,6 @@ export class MovieDBWrapper {
   static BASE_URL: string = "https://image.tmdb.org/t/p/original";
   // Metadata attributes
   static moviedb: MovieDb | undefined;
-
-  // Number of threads (2 are already being used by this app, so -4 to leave some space for other apps)
-  static availableThreads = Math.max(os.cpus().length - 4, 1);
 
   public static initConnection = (): boolean => {
     if (this.moviedb) return true;
@@ -59,6 +39,7 @@ export class MovieDBWrapper {
   };
 
   public static async searchMovies(name: string, year: string, page: number) {
+    if (!this.moviedb) return [];
     try {
       const res = await this.moviedb?.searchMovie({
         query: `${name}`,
@@ -78,6 +59,8 @@ export class MovieDBWrapper {
   }
 
   public static async searchTVShows(name: string, year: string, page: number) {
+    if (!this.moviedb) return [];
+
     try {
       const res = await this.moviedb?.searchTv({
         query: name,
@@ -96,7 +79,21 @@ export class MovieDBWrapper {
     }
   }
 
+  public static searchEpisodeGroups = async (id: string) => {
+    if (!this.moviedb) return;
+
+    try {
+      const episodeGroups = await this.moviedb.episodeGroups({ id });
+      return episodeGroups.results;
+    } catch (error) {
+      console.error("Error searching movies", error);
+      return [];
+    }
+  };
+
   public static async getMovie(id: number) {
+    if (!this.moviedb) return;
+
     return await this.moviedb?.movieInfo({
       id,
       language: DataManager.library.language,
@@ -104,6 +101,8 @@ export class MovieDBWrapper {
   }
 
   public static async getTVShow(id: number) {
+    if (!this.moviedb) return;
+
     return await this.moviedb?.tvInfo({
       id,
       language: DataManager.library.getLanguage(),
@@ -111,6 +110,8 @@ export class MovieDBWrapper {
   }
 
   public static async getSeason(showID: number, seasonNumber: number) {
+    if (!this.moviedb) return;
+
     return await this.moviedb?.seasonInfo({
       id: showID,
       season_number: seasonNumber,
@@ -122,25 +123,31 @@ export class MovieDBWrapper {
     showID: number,
     seasonNumber: number,
     episodeNumber: number
-  ) {}
+  ) {
+    if (!this.moviedb) return;
+  }
 
-  public static getEpisodeGroups(showID: number, seasonNumber: number) {}
+  public static getEpisodeGroups(showID: number, seasonNumber: number) {
+    if (!this.moviedb) return;
+  }
 
   public static async getEpisodeGroup(id: string) {
+    if (!this.moviedb) return;
+
     return await this.moviedb?.episodeGroup({
       id,
     });
   }
 
-  public static async getCast(id: number) {}
-
-  public static async getCrew(id: number) {}
-
   public static async getTVCredits(showID: number) {
+    if (!this.moviedb) return;
+
     return await this.moviedb?.tvCredits({ id: showID });
   }
 
   public static async getMovieCredits(movieID: number) {
+    if (!this.moviedb) return;
+
     return await this.moviedb?.movieCredits({
       id: movieID,
       language: DataManager.library.language,
@@ -148,16 +155,22 @@ export class MovieDBWrapper {
   }
 
   public static async getMovieImages(movieID: number) {
+    if (!this.moviedb) return;
+
     return await this.moviedb?.movieImages({
       id: movieID,
     });
   }
 
   public static async getTVShowImages(showID: number) {
+    if (!this.moviedb) return;
+
     return await this.moviedb?.tvImages({ id: showID });
   }
 
   public static async getSeasonImages(showID: number, seasonNumber: number) {
+    if (!this.moviedb) return;
+
     return await this.moviedb?.seasonImages({
       id: showID,
       season_number: seasonNumber,
@@ -169,6 +182,8 @@ export class MovieDBWrapper {
     seasonNumber: number,
     episodeNumber: number
   ) {
+    if (!this.moviedb) return;
+
     return await this.moviedb?.episodeImages({
       id: showID,
       season_number: seasonNumber,

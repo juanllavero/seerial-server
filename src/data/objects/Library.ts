@@ -35,10 +35,8 @@ export class Library {
       name: this.name,
       language: this.language,
       type: this.type,
-      isCollection: false, // o según sea necesario en tu lógica
       order: this.order,
       folders: this.folders,
-      showOnFullscreen: false, // o según sea necesario
       series: this.series.map((s) => {
         if (s) return s.toJSON();
       }),
