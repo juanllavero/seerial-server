@@ -7,6 +7,7 @@ import ffmpeg from "fluent-ffmpeg";
 import ffmpegPath from "ffmpeg-static";
 import multer from "multer";
 import open from "open";
+import cors from "cors";
 import https from "https";
 import { DataManager } from "../../src/data/utils/DataManager";
 import propertiesReader from "properties-reader";
@@ -18,6 +19,14 @@ import { Library } from "../../src/data/objects/Library";
 import { fileURLToPath } from "url";
 import { MovieDBWrapper } from "../../src/data/utils/MovieDB";
 import { FileSearch } from "../../src/data/utils/FileSearch";
+import VideoServer from "../../src/data/utils/VideoServer";
+
+interface Session {
+  tempDir: string;
+  ffmpegProcess: ffmpeg.FfmpegCommand;
+}
+
+const sessions = new Map<string, Session>();
 
 // Get current directory path
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -93,12 +102,12 @@ const appServer = express();
 const PORT = 3000;
 
 // Middleware to allow CORS
-appServer.use((_req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Range");
-  next();
-});
+appServer.use(
+  cors({
+    origin: "*",
+    exposedHeaders: ["Content-Range", "Accept-Ranges", "Content-Length"],
+  })
+);
 
 // Middleware to process JSON
 appServer.use(express.json({ limit: "50mb" }));
@@ -129,6 +138,26 @@ const upload = multer({ storage });
 
 // Configure ffmpeg path
 ffmpeg.setFfmpegPath(ffmpegPath || "");
+
+ffmpeg.getAvailableCodecs((err, codecs) => {
+  if (err) {
+    console.error("Error checking codecs:", err);
+    return;
+  }
+
+  console.log("Codecs disponibles:", codecs["libx265"]);
+  // Verificar si H.265 está disponible
+  const h265Supported = codecs["libx265"] && codecs["libx265"].canEncode;
+
+  console.log({
+    h265: h265Supported,
+    cpuCores: os.cpus().length,
+  });
+  // resolve({
+  //   h265: h265Supported,
+  //   cpuCores: os.cpus().length,
+  // });
+});
 
 //#region GET FOLDERS
 // Function to get drives in the system
@@ -303,16 +332,55 @@ appServer.get("/audio", (req: any, res: any) => {
   }
 });
 
-// Get video file in user drive
 appServer.get("/video", (req: any, res: any) => {
-  // Ruta absoluta del vídeo, que puede estar en cualquier unidad
-  const videoPath = decodeURIComponent(req.query.path); // Pasar la ruta del vídeo como parámetro en la query
-
-  if (typeof videoPath !== "string") {
-    return res.status(400).send("Invalid video path");
+  const filePath = req.query.path; // Ruta absoluta del archivo enviada por el cliente
+  if (!filePath || !fs.existsSync(filePath)) {
+    return res.status(404).send("Archivo no encontrado");
   }
 
-  const stat = fs.statSync(videoPath);
+  const fileExt = path.extname(filePath).toLowerCase();
+  const supportedFormats = [".mp4", ".mkv"]; // Formatos que manejarás
+
+  if (!supportedFormats.includes(fileExt)) {
+    return res.status(400).send("Formato no soportado");
+  }
+
+  // Obtener información del navegador (User-Agent) o del cliente para determinar compatibilidad
+  const needsTranscoding = checkIfTranscodingNeeded(filePath);
+
+  if (!needsTranscoding) {
+    // Si no necesita transcodificación, sirve el archivo directamente con soporte para range requests
+    serveFileDirectly(filePath, req, res);
+  } else {
+    // Si necesita transcodificación, usa FFmpeg para transmitir en tiempo real
+    transcodeAndStream(filePath, res);
+  }
+});
+
+// Función para verificar si se necesita transcodificación
+function checkIfTranscodingNeeded(filePath: string) {
+  // Aquí puedes usar ffprobe (viene con FFmpeg) para analizar codecs
+  // Por simplicidad, asumimos que si el archivo no es H.264/AAC, necesita transcodificación
+  return new Promise((resolve) => {
+    ffmpeg.ffprobe(filePath, (err, metadata) => {
+      if (err) return resolve(true); // Si hay error, transcodifica por seguridad
+      const videoCodec = metadata.streams.find(
+        (s) => s.codec_type === "video"
+      )?.codec_name;
+      const audioCodec = metadata.streams.find(
+        (s) => s.codec_type === "audio"
+      )?.codec_name;
+
+      // Navegadores modernos soportan H.264 y AAC por defecto
+      const isCompatible = videoCodec === "h264" && audioCodec === "aac";
+      resolve(!isCompatible);
+    });
+  });
+}
+
+// Sirve el archivo directamente con soporte para range requests
+function serveFileDirectly(filePath: string, req: any, res: any) {
+  const stat = fs.statSync(filePath);
   const fileSize = stat.size;
   const range = req.headers.range;
 
@@ -321,38 +389,13 @@ appServer.get("/video", (req: any, res: any) => {
     const start = parseInt(parts[0], 10);
     const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
 
-    if (start >= fileSize) {
-      res
-        .status(416)
-        .send("Requested range not satisfiable\n" + start + " >= " + fileSize);
-      return;
-    }
-
-    const chunkSize = end - start + 1;
-    const file = fs.createReadStream(videoPath, { start, end });
+    const chunksize = end - start + 1;
+    const file = fs.createReadStream(filePath, { start, end });
     const head = {
       "Content-Range": `bytes ${start}-${end}/${fileSize}`,
       "Accept-Ranges": "bytes",
-      "Content-Length": chunkSize,
-      "Content-Type": (() => {
-        const ext = path.extname(videoPath).toLowerCase();
-        switch (ext) {
-          case ".mkv":
-            return "video/x-matroska";
-          case ".m2ts":
-            return "video/MP2T";
-          case ".mp4":
-            return "video/mp4";
-          case ".webm":
-            return "video/webm";
-          case ".avi":
-            return "video/avi";
-          case ".mov":
-            return "video/quicktime";
-          default:
-            return "video/mp4"; // Unknown extension, fallback to MP4
-        }
-      })(),
+      "Content-Length": chunksize,
+      "Content-Type": "video/mp4", // Ajusta según el tipo de archivo
     };
 
     res.writeHead(206, head);
@@ -361,11 +404,166 @@ appServer.get("/video", (req: any, res: any) => {
     const head = {
       "Content-Length": fileSize,
       "Content-Type": "video/mp4",
+      "Accept-Ranges": "bytes",
     };
     res.writeHead(200, head);
-    fs.createReadStream(videoPath).pipe(res);
+    fs.createReadStream(filePath).pipe(res);
   }
-});
+}
+
+// Transcodifica y transmite en tiempo real
+function transcodeAndStream(filePath: string, res: any) {
+  res.setHeader("Content-Type", "video/mp4");
+
+  const proc = ffmpeg(filePath)
+    .videoCodec("copy") // H.264 para máxima compatibilidad
+    .audioCodec("aac") // AAC para audio
+    .outputOptions("-preset veryfast") // Optimiza velocidad sobre calidad
+    .format("mp4") // Formato de salida
+    .outputOptions("-movflags frag_keyframe+empty_moov") // Para streaming
+    .on("error", (err) => {
+      console.error("Error en FFmpeg:", err);
+      res.status(500).send("Error procesando el video");
+    });
+
+  // Pipe del stream de FFmpeg directamente a la respuesta
+  proc.pipe(res, { end: true });
+}
+
+// VideoServer.initializeVideoServer(appServer);
+
+// Get video file in user drive
+// appServer.get("/video", (req: any, res: any) => {
+//   // Ruta absoluta del vídeo, que puede estar en cualquier unidad
+//   const videoPath = decodeURIComponent(req.query.path); // Pasar la ruta del vídeo como parámetro en la query
+
+//   if (typeof videoPath !== "string") {
+//     return res.status(400).send("Invalid video path");
+//   }
+
+//   const stat = fs.statSync(videoPath);
+//   const fileSize = stat.size;
+//   const range = req.headers.range;
+
+//   if (range) {
+//     const parts = range.replace(/bytes=/, "").split("-");
+//     const start = parseInt(parts[0], 10);
+//     const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+
+//     if (start >= fileSize) {
+//       res
+//         .status(416)
+//         .send("Requested range not satisfiable\n" + start + " >= " + fileSize);
+//       return;
+//     }
+
+//     const chunkSize = end - start + 1;
+//     const file = fs.createReadStream(videoPath, { start, end });
+//     const head = {
+//       "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+//       "Accept-Ranges": "bytes",
+//       "Content-Length": chunkSize,
+//       "Content-Type": (() => {
+//         const ext = path.extname(videoPath).toLowerCase();
+//         switch (ext) {
+//           case ".mkv":
+//             return "video/x-matroska";
+//           case ".m2ts":
+//             return "video/MP2T";
+//           case ".mp4":
+//             return "video/mp4";
+//           case ".webm":
+//             return "video/webm";
+//           case ".avi":
+//             return "video/avi";
+//           case ".mov":
+//             return "video/quicktime";
+//           default:
+//             return "video/mp4"; // Unknown extension, fallback to MP4
+//         }
+//       })(),
+//     };
+
+//     res.writeHead(206, head);
+//     file.pipe(res);
+//   } else {
+//     const head = {
+//       "Content-Length": fileSize,
+//       "Content-Type": "video/mp4",
+//     };
+//     res.writeHead(200, head);
+//     fs.createReadStream(videoPath).pipe(res);
+//   }
+// });
+
+// appServer.get("/stream", (req, res) => {
+//   const videoPath = req.query.videoPath as string;
+//   const start = (req.query.start as string) || "0";
+
+//   if (!videoPath || !fs.existsSync(videoPath)) {
+//     res.status(400).send("El archivo de vídeo no existe o la ruta es inválida");
+//     return;
+//   }
+
+//   const sessionId = uuidv4();
+//   const tempDir = path.join(os.tmpdir(), sessionId);
+//   fs.mkdirSync(tempDir);
+
+//   const playlistPath = path.join(tempDir, "playlist.m3u8");
+
+//   const command = ffmpeg(videoPath)
+//     .input(videoPath)
+//     .setStartTime(parseFloat(start)) // Mover -ss después del input
+//     .outputOptions([
+//       "-c:v copy",
+//       "-c:a aac",
+//       "-f hls",
+//       "-hls_time 10",
+//       "-hls_list_size 5",
+//       "-hls_flags delete_segments",
+//       `-hls_segment_filename ${path.join(tempDir, "segment_%03d.ts")}`,
+//     ])
+//     .output(playlistPath)
+//     .on("start", (commandLine) => {
+//       console.log("ffmpeg iniciado con: " + commandLine);
+//     })
+//     .on("stderr", (stderrLine) => {
+//       console.error("ffmpeg stderr: " + stderrLine); // Capturar stderr para más información
+//     })
+//     .on("error", (err, stdout, stderr) => {
+//       console.error("Error en ffmpeg: " + err.message);
+//       console.error("ffmpeg stdout: " + stdout);
+//       console.error("ffmpeg stderr: " + stderr); // Capturar stderr y stdout para más detalles
+//     })
+//     .on("end", () => {
+//       console.log("Conversión ffmpeg finalizada.");
+//     });
+
+//   sessions.set(sessionId, { tempDir, ffmpegProcess: command });
+
+//   // Ejecutar el comando ffmpeg
+//   command.run();
+
+//   const playlistUrl = `/stream/${sessionId}/playlist.m3u8`;
+//   res.json({ playlistUrl });
+// });
+
+// appServer.get("/stream/:sessionId/:filename", (req, res) => {
+//   const { sessionId, filename } = req.params;
+//   const session = sessions.get(sessionId);
+
+//   if (!session) {
+//     res.status(404).send("Sesión no encontrada");
+//     return;
+//   }
+
+//   const filePath = path.join(session.tempDir, filename);
+//   if (fs.existsSync(filePath)) {
+//     res.sendFile(filePath);
+//   } else {
+//     res.status(404).send("Archivo no disponible todavía");
+//   }
+// });
 
 // Get images from folder
 appServer.get("/images", (req: any, res: any) => {
@@ -836,7 +1034,7 @@ app.whenReady().then(() => {
       label: "Open Seerial",
       click: () => {
         // Open in browser
-        open("http://www.seerial.es");
+        open("https://app.seerial.es/");
       },
     },
     {
