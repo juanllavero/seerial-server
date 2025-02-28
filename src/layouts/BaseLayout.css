@@ -1,0 +1,38 @@
+.background-layer {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  transition: opacity 1s ease-in-out;
+
+  background-blend-mode: hue;
+  background-color: rgba(46, 46, 46, 0.848);
+
+  z-index: -1;
+}
+
+.background-layer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('src/assets/img/noise.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+.fade-in {
+  opacity: 0;
+  animation: fade-in 1s forwards;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

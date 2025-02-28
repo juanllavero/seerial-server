@@ -1,0 +1,49 @@
+.card {
+  position: relative;
+
+  --border-radius: 8px;
+  border-radius: var(--border-radius);
+
+  border: 2px solid transparent;
+  transition: all 0.2s ease-in-out;
+
+  & img {
+    border-radius: var(--border-radius);
+  }
+
+  & .card-hover {
+    border-radius: var(--border-radius);
+    position: absolute;
+    opacity: 0;
+
+    color: white;
+    cursor: pointer;
+
+    background-color: rgba(0, 0, 0, 0.726);
+    z-index: 1;
+
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  &:hover {
+    border-color: var(--app-color);
+    & .card-hover {
+      opacity: 1;
+    }
+  }
+}
+
+.loading {
+  & .card-hover {
+    opacity: 1 !important;
+
+    & button {
+      display: none;
+    }
+  }
+}
+
+#subtitle {
+  color: var(--font-color);
+  font-size: 0.8rem;
+}
