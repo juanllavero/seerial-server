@@ -70,13 +70,6 @@ export function useForm<TFieldValues extends FieldValues>(
 
   const [locks, setLocks] = useState(initialLocks)
 
-  // Update form values when locks change
-  useEffect(() => {
-    Object.entries(locks).forEach(([key, value]) => {
-      form.setValue(key as Path<TFieldValues>, value)
-    })
-  }, [locks, form])
-
   const toggleLock = (field: Path<TFieldValues>) => {
     const lockField = `${field}Lock` as Path<TFieldValues>
     setLocks((prev) => {
