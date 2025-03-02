@@ -17,7 +17,7 @@ import {
   VolumeOff,
 } from 'lucide-react'
 import FlexBox from '@/components/ui/FlexBox'
-import { formatTime } from '@/utils/ReactUtils'
+import { formatTime, getOnlyYear } from '@/utils/ReactUtils'
 import { TrackNextIcon, TrackPreviousIcon } from '@radix-ui/react-icons'
 import Loading from '@/components/Loading'
 import DropdownWrapper from '@/components/DropdownWrapper'
@@ -268,6 +268,7 @@ function VideoPlayerPage() {
     video.addEventListener('seeking', () => setShowLoadingCircle(true))
     video.addEventListener('seeked', () => setShowLoadingCircle(false))
     video.addEventListener('waiting', () => setShowLoadingCircle(true))
+    video.addEventListener('playing', () => setShowLoadingCircle(false))
 
     // Clean listeners on unmount
     return () => {
@@ -275,6 +276,7 @@ function VideoPlayerPage() {
       video.addEventListener('seeking', () => setShowLoadingCircle(true))
       video.addEventListener('seeked', () => setShowLoadingCircle(false))
       video.addEventListener('waiting', () => setShowLoadingCircle(true))
+      video.addEventListener('playing', () => setShowLoadingCircle(false))
       window.removeEventListener('keydown', handleKeyDown)
 
       if (timeoutRef.current) {
@@ -286,7 +288,11 @@ function VideoPlayerPage() {
   return (
     <>
       {/* Loading Circle */}
-      {(!videoLoaded || showLoadingCircle) && <Loading />}
+      {(!videoLoaded || showLoadingCircle) && (
+        <div className="absolute top-50/100 left-50/100 z-999 flex justify-center">
+          <Loading />
+        </div>
+      )}
 
       {/* Video Player */}
       <div
@@ -331,7 +337,7 @@ function VideoPlayerPage() {
             </Button>
             <span className="text-xl font-semibold">
               {selectedLibrary?.type === 'Movies'
-                ? `${selectedSeason?.name} (${selectedSeason?.year})`
+                ? `${selectedSeason?.name} (${getOnlyYear(selectedSeason?.year ?? '')})`
                 : `${selectedSeries?.name} S${episode.seasonNumber}E${episode.episodeNumber} - ${episode.name}`}
             </span>
           </FlexBox>

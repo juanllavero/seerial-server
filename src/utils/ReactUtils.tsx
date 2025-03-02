@@ -28,3 +28,8 @@ export const formatTimeForView = (time: number) => {
     return `${minutes}m`
   }
 }
+
+export const getOnlyYear = (date: string) => {
+  const year = new Date(date).getFullYear()
+  return year
+}

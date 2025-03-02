@@ -356,6 +356,6 @@ ul {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: rgb(126, 126, 126);
+  background-color: rgb(63, 63, 63);
   width: 0.7em;
 }

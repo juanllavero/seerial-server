@@ -8,6 +8,7 @@ interface LazyImageProps {
   alt?: string
   width?: number | string
   height?: number | string
+  maxHeight?: number | string
   errorSrc?: string
   className?: string
 }
@@ -18,6 +19,7 @@ export default function LazyImage({
   alt = '',
   width = 'auto',
   height = 'auto',
+  maxHeight,
   errorSrc,
   className,
 }: LazyImageProps) {
@@ -28,13 +30,16 @@ export default function LazyImage({
   )
 
   return (
-    <div style={{ width, height }} className={`relative ${className}`}>
+    <div
+      style={{ width, height: height, maxHeight }}
+      className={`relative ${className}`}
+    >
       {!loaded && <Skeleton className="absolute inset-0 h-full w-full" />}
       <img
         src={imageSrc}
         alt={alt}
         width={width}
-        height={height}
+        height={maxHeight ? maxHeight : height}
         loading="lazy"
         onLoad={() => setLoaded(true)}
         onError={() => errorSrc && setImageSrc(errorSrc)}

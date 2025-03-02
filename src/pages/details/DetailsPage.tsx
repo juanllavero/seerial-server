@@ -26,7 +26,7 @@ function DetailsPage() {
         : selectedSeries.logoSrc
 
     if (logoUrl && logoUrl !== '') {
-      return <LazyImage url={logoUrl} height={200} />
+      return <LazyImage url={logoUrl} maxHeight={400} width={500} />
     } else {
       return (
         <span
@@ -62,11 +62,7 @@ function DetailsPage() {
     >
       <FlexBox justify="start" align="start" gap={4}>
         <FlexBox className="image-container">
-          <LazyImage
-            url={posterUrl}
-            width={500}
-            height={selectedLibrary.type === 'Music' ? 350 : 700}
-          />
+          <LazyImage url={posterUrl} width={500} />
         </FlexBox>
 
         <FlexBox direction="column" gap={1} width={'80%'}>
