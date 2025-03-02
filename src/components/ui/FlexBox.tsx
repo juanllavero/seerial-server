@@ -15,11 +15,15 @@ interface FlexBoxProps {
   align?: 'start' | 'center' | 'end' | 'stretch' | 'baseline'
   width?: string | number
   height?: string | number
-  onClick?: () => void
+  onClick?: (e?: React.MouseEvent) => void
   gap?: number
   padding?: string
   margin?: string
   className?: string
+  onMouseEnter?: (e?: React.MouseEvent) => void
+  onMouseLeave?: (e?: React.MouseEvent) => void
+  onMouseDown?: (e?: React.MouseEvent) => void
+  onMouseUp?: (e?: React.MouseEvent) => void
 }
 
 function FlexBox({
@@ -35,6 +39,10 @@ function FlexBox({
   onClick,
   margin = '0',
   className = '',
+  onMouseEnter,
+  onMouseLeave,
+  onMouseDown,
+  onMouseUp,
 }: FlexBoxProps) {
   return (
     <div
@@ -52,6 +60,10 @@ function FlexBox({
         margin: margin,
       }}
       onClick={onClick}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onMouseDown={onMouseDown}
+      onMouseUp={onMouseUp}
     >
       {children}
     </div>

@@ -16,7 +16,7 @@ function SeasonsContent() {
     selectSeason,
     selectEpisode,
   } = useDataStore()
-  const [distribution, setDistribution] = React.useState(0)
+  const [distribution, setDistribution] = React.useState(1)
 
   if (!selectedLibrary || !selectedSeries) {
     return null
