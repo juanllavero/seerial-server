@@ -10,7 +10,7 @@ import { Pencil } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 
 function CollectionCard({ series }: { series: Series }) {
-  const navigate = useNavigate()
+  const navigate = useNavigate({ from: '/collection' })
   const { selectedLibrary, selectSeries } = useDataStore()
 
   const content: DropdownContent = {

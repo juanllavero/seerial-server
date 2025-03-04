@@ -1,14 +1,13 @@
 import React from 'react'
-import { useState, useRef, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useServerStore } from '@/context/server.context'
 
 interface HTMLVideoPlayerProps {
   url: string
   videoRef: React.RefObject<HTMLVideoElement | null>
-  togglePlay: () => void
 }
 
-function HTMLVideoPlayer({ url, videoRef, togglePlay }: HTMLVideoPlayerProps) {
+function HTMLVideoPlayer({ url, videoRef }: HTMLVideoPlayerProps) {
   const { serverIP } = useServerStore()
 
   if (!url) {

@@ -12,7 +12,7 @@ import SeasonsContent from './components/SeasonsContent'
 function DetailsPage() {
   const { selectedLibrary, selectedSeries, selectedSeason } = useDataStore()
   const { t } = useTranslation()
-  const navigate = useNavigate()
+  const navigate = useNavigate({ from: '/details' })
 
   if (!selectedLibrary || !selectedSeries || !selectedSeason) {
     navigate({ to: '/' })
@@ -57,7 +57,7 @@ function DetailsPage() {
       direction="column"
       gap={1}
       wrap="nowrap"
-      padding="2rem"
+      padding="8rem 3rem"
       height={'100%'}
     >
       <FlexBox justify="start" align="start" gap={4}>

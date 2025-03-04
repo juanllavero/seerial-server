@@ -2,6 +2,7 @@ import { Library, Series, Season, Episode } from '@/data/interfaces/Media'
 import { create } from 'zustand'
 
 interface DataState {
+  loadingLibraries: boolean
   libraries: Library[]
   selectedLibrary: Library | null
   selectedSeries: Series | null
@@ -14,6 +15,7 @@ interface DataState {
   selectSeries: (series: Series | null) => void
   selectSeason: (season: Season | null) => void
   selectEpisode: (episode: Episode | null) => void
+  setLoadingLibraries: (loading: boolean) => void
 
   // Nueva función para modificar un episodio seleccionado
   updateSelectedEpisode: (updatedData: Partial<Episode>) => void
@@ -22,10 +24,13 @@ interface DataState {
 const useDataStore = create<DataState>((set) => ({
   libraries: [],
 
+  loadingLibraries: false,
   selectedLibrary: null,
   selectedSeries: null,
   selectedSeason: null,
   selectedEpisode: null,
+
+  setLoadingLibraries: (loading) => set({ loadingLibraries: loading }),
 
   selectLibrary: (library) =>
     set({

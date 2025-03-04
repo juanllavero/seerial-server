@@ -19,11 +19,15 @@ interface FlexBoxProps {
   gap?: number
   padding?: string
   margin?: string
+  scroll?: 'horizontal' | 'vertical'
+  hideScrollbar?: boolean
   className?: string
+  ref?: React.Ref<HTMLDivElement>
   onMouseEnter?: (e?: React.MouseEvent) => void
   onMouseLeave?: (e?: React.MouseEvent) => void
   onMouseDown?: (e?: React.MouseEvent) => void
   onMouseUp?: (e?: React.MouseEvent) => void
+  onScroll?: React.UIEventHandler<HTMLDivElement>
 }
 
 function FlexBox({
@@ -39,14 +43,19 @@ function FlexBox({
   onClick,
   margin = '0',
   className = '',
+  scroll,
+  hideScrollbar,
+  ref,
   onMouseEnter,
   onMouseLeave,
   onMouseDown,
   onMouseUp,
+  onScroll,
 }: FlexBoxProps) {
   return (
     <div
-      className={className}
+      ref={ref}
+      className={`${className} ${hideScrollbar ? 'hide-scrollbar' : ''} scroll-smooth ${scroll === 'horizontal' ? 'overflow-x-auto' : ''} ${scroll === 'vertical' ? 'overflow-y-auto' : ''}`}
       style={{
         display: 'flex',
         flexDirection: direction,
@@ -64,6 +73,7 @@ function FlexBox({
       onMouseLeave={onMouseLeave}
       onMouseDown={onMouseDown}
       onMouseUp={onMouseUp}
+      onScroll={onScroll}
     >
       {children}
     </div>

@@ -63,7 +63,7 @@ export default function BaseLayout({
       )*/}
 
       <DragWindowRegion />
-      <main className="h-screen p-2 pb-20">{children}</main>
+      <main className="h-screen w-screen">{children}</main>
     </div>
   )
 }

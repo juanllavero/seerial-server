@@ -31,13 +31,14 @@ function VideoPlayerPage() {
     selectedSeason,
     selectedEpisode: episode,
   } = useDataStore()
-  const navigate = useNavigate()
+  const navigate = useNavigate({ from: '/video-player' })
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [showLoadingCircle, setShowLoadingCircle] = useState(false)
   const [videoLoaded, setVideoLoaded] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [volume, setVolume] = useState(1)
+  const [duration, setDuration] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
   const [previewTime, setPreviewTime] = useState(0)
 
@@ -225,6 +226,8 @@ function VideoPlayerPage() {
     const video = videoRef.current
     if (!video) return
 
+    //setDuration(video.duration ? video.duration : episode.runtimeInSeconds)
+
     // Listen to time update
     video.addEventListener('timeupdate', () => {
       setCurrentTime(video.currentTime)
@@ -233,6 +236,16 @@ function VideoPlayerPage() {
         '--progress-position',
         percent.toString(),
       )
+
+      // Calcular el porcentaje del buffer
+      if (video.buffered.length > 0) {
+        const bufferedEnd = video.buffered.end(video.buffered.length - 1)
+        const bufferPercent = bufferedEnd / video.duration
+        timelineRef.current?.style.setProperty(
+          '--progress-position',
+          bufferPercent.toString(),
+        )
+      }
     })
 
     // Set Play/Pause state
@@ -352,11 +365,8 @@ function VideoPlayerPage() {
           </Button>
         </FlexBox>
 
-        <HTMLVideoPlayer
-          url={episode.videoSrc}
-          videoRef={videoRef}
-          togglePlay={togglePlay}
-        />
+        {/* Video Player */}
+        <HTMLVideoPlayer url={episode.videoSrc} videoRef={videoRef} />
 
         {/* Controls */}
         <FlexBox

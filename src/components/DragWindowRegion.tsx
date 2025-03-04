@@ -12,7 +12,7 @@ export default function DragWindowRegion() {
   }, [])
 
   return (
-    <div className="flex w-screen items-stretch justify-start align-top">
+    <div className="absolute top-0 flex w-screen items-stretch justify-start align-top">
       <FloatingBox isWindows={isWindows} />
     </div>
   )

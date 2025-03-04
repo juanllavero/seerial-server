@@ -19,9 +19,7 @@ export default function App() {
 
 const root = createRoot(document.getElementById('app')!)
 root.render(
-  <React.StrictMode>
-    <TooltipProvider>
-      <App />
-    </TooltipProvider>
-  </React.StrictMode>,
+  <TooltipProvider>
+    <App />
+  </TooltipProvider>,
 )

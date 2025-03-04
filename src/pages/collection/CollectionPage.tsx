@@ -6,7 +6,7 @@ import CollectionCard from './components/CollectionCard'
 
 function CollectionPage() {
   const { selectedLibrary } = useDataStore()
-  const navigate = useNavigate()
+  const navigate = useNavigate({ from: '/collection' })
 
   if (!selectedLibrary) {
     navigate({ to: '/' })
@@ -14,7 +14,7 @@ function CollectionPage() {
   }
 
   return (
-    <FlexBox gap={1} wrap="wrap" padding="2rem">
+    <FlexBox gap={1} wrap="wrap" padding="8rem 2rem">
       {selectedLibrary.series.map((series) => (
         <CollectionCard series={series} key={series.id} />
       ))}
