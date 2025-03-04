@@ -1,12 +1,26 @@
-import express, { Express, Request, Response } from "express";
+import { Express, Response } from "express";
 import fs from "fs";
 import path from "path";
-import ffmpegPath from "ffmpeg-static";
 import ffmpeg from "fluent-ffmpeg";
+import ffmpegPath from "ffmpeg-static";
+import ffprobePath from "ffprobe-static";
 import { fileURLToPath } from "url";
 
 // Tipos para los codecs y configuraciones
-type ResolutionKey = "360p" | "720p" | "1080p";
+type ResolutionKey = "480p" | "720p" | "1080p";
+type Bitrate =
+  | 200
+  | 300
+  | 700
+  | 1500
+  | 2000
+  | 3000
+  | 4000
+  | 8000
+  | 10000
+  | 12000
+  | 15000
+  | 20000;
 type Quality = ResolutionKey | "original";
 
 interface ResolutionConfig {
@@ -16,30 +30,18 @@ interface ResolutionConfig {
   audioBitrate: string;
 }
 
-interface SessionData {
-  currentTime: number;
-  lastGeneratedSegment: Record<Quality, number>;
-  isPlaying: boolean;
-  generationInProgress: Record<Quality, boolean>;
-  videoPath: string;
-}
-
 // Get current directory path
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default class VideoServer {
   static appServer: Express | null = null;
-  static OUTPUT_DIR: string = path.join(__dirname, "hls_segments");
-  static SEGMENT_DURATION: number = 4;
-  static INITIAL_SEGMENTS: number = 2;
-  static PRELOAD_LIMIT: number = 15; // 1 minuto
-  static TRANSCODE: boolean = true; // Variable para habilitar/deshabilitar transcodificación
+  static ENABLE_TRANSCODING: boolean = true;
 
   static RESOLUTIONS: Record<ResolutionKey, ResolutionConfig> = {
-    "360p": {
-      width: 640,
-      height: 360,
-      videoBitrate: "800k",
+    "480p": {
+      width: 720,
+      height: 480,
+      videoBitrate: "1000",
       audioBitrate: "96k",
     },
     "720p": {
@@ -65,363 +67,255 @@ export default class VideoServer {
   ];
   static COMPATIBLE_AUDIO_CODECS: string[] = ["aac", "mp3", "opus", "vorbis"];
 
-  static sessions: Map<string, SessionData> = new Map();
-
+  /**
+   * Initializes the video server.
+   *
+   * This function configures the Express server to serve videos directly or
+   * convert them to a format compatible with the current browser.
+   *
+   * @param {Express} server The Express server to be initialized.
+   */
   public static initializeVideoServer(server: Express): void {
     this.appServer = server;
 
     ffmpeg.setFfmpegPath(ffmpegPath || "");
-    if (!fs.existsSync(VideoServer.OUTPUT_DIR))
-      fs.mkdirSync(VideoServer.OUTPUT_DIR);
+    ffmpeg.setFfprobePath(ffprobePath.path || "");
 
-    // Endpoint para HLS con resolución específica o modo original
     this.appServer.get(
-      "/video/:sessionId/:time/:quality",
-      async (
-        req: Request<
-          { sessionId: string; time: string; quality: string },
-          any,
-          any,
-          { path: string }
-        >,
-        res: Response
-      ): Promise<any> => {
-        const { sessionId, time, quality } = req.params;
-        const videoPath: string = decodeURIComponent(req.query.path); // Ruta absoluta del video
-        const startTime: number = parseFloat(time) || 0;
+      "/video",
+      async (req: any, res: Response): Promise<any> => {
+        const {
+          path: videoPath,
+          start = 0,
+          quality = "original",
+          bitrate,
+        } = req.query;
 
-        if (typeof videoPath !== "string" || !fs.existsSync(videoPath)) {
-          return res.status(400).send("Invalid or missing video path");
+        if (!videoPath || !fs.existsSync(videoPath)) {
+          return res.status(404).send("File not found");
         }
 
-        if (!this.sessions.has(sessionId)) {
-          this.sessions.set(sessionId, {
-            currentTime: startTime,
-            lastGeneratedSegment: {
-              "360p": -1,
-              "720p": -1,
-              "1080p": -1,
-              original: -1,
-            },
-            isPlaying: true,
-            generationInProgress: {
-              "360p": false,
-              "720p": false,
-              "1080p": false,
-              original: false,
-            },
-            videoPath,
-          });
-        }
-
-        const session: SessionData = this.sessions.get(sessionId)!;
-        session.currentTime = startTime;
-
-        const segmentIndex: number = Math.floor(
-          startTime / VideoServer.SEGMENT_DURATION
-        );
-
-        try {
-          if (quality === "original") {
-            await this.handleOriginalQuality(
-              sessionId,
-              videoPath,
-              startTime,
-              res
-            );
-          } else if (this.RESOLUTIONS[quality as ResolutionKey]) {
-            await this.handleCustomQuality(
-              sessionId,
-              videoPath,
-              startTime,
-              quality as ResolutionKey,
-              res
-            );
-          } else {
-            res.status(400).send("Invalid quality option");
-          }
-        } catch (error) {
-          console.error(`[${sessionId}] Error generating segments:`, error);
-          res.status(500).send("Error generating video segments");
-        }
-      }
-    );
-
-    // Endpoint para estado de reproducción
-    this.appServer.post(
-      "/playback-state/:sessionId",
-      async (
-        req: Request<
-          { sessionId: string },
-          any,
-          { isPlaying: boolean; currentTime: number; quality: Quality }
-        >,
-        res: Response
-      ): Promise<any> => {
-        const { sessionId } = req.params;
-        const { isPlaying, currentTime, quality } = req.body;
-
-        if (!this.sessions.has(sessionId))
-          return res.status(404).send("Session not found");
-        if (
-          quality !== "original" &&
-          !this.RESOLUTIONS[quality as ResolutionKey]
-        )
-          return res.status(400).send("Invalid quality");
-
-        const session: SessionData = this.sessions.get(sessionId)!;
-        session.isPlaying = isPlaying;
-        session.currentTime = currentTime || session.currentTime;
-
-        if (isPlaying) {
-          this.preloadSegments(sessionId, session.currentTime, quality);
-        }
-        res.sendStatus(200);
-      }
-    );
-
-    // Servir archivos estáticos
-    this.appServer.use("/hls_segments", express.static(VideoServer.OUTPUT_DIR));
-  }
-
-  // Manejar opción "Original"
-  static async handleOriginalQuality(
-    sessionId: string,
-    videoPath: string,
-    startTime: number,
-    res: Response
-  ): Promise<any> {
-    const session: SessionData = this.sessions.get(sessionId)!;
-    const segmentIndex: number = Math.floor(startTime / this.SEGMENT_DURATION);
-    const { videoCodec, audioCodec } = await this.getOriginalCodecs(videoPath);
-
-    const videoCompatible: boolean = this.COMPATIBLE_VIDEO_CODECS.includes(
-      videoCodec ?? "unknown"
-    );
-    const audioCompatible: boolean = this.COMPATIBLE_AUDIO_CODECS.includes(
-      audioCodec ?? "unknown"
-    );
-
-    let videoCodecOpt: string = "copy";
-    let audioCodecOpt: string = "copy";
-
-    if (!videoCompatible || !audioCompatible) {
-      if (!this.TRANSCODE) {
-        return res
-          .status(400)
-          .send(
-            "Original codecs not compatible with Chromium and transcoding is disabled"
+        if (quality === "original") {
+          const codecsCompatibility = await this.checkCodecCompatibility(
+            videoPath
           );
+
+          if (
+            codecsCompatibility.videoCompatibility &&
+            codecsCompatibility.audioCompatibility
+          ) {
+            this.serveFileDirectly(videoPath, req, res);
+          } else {
+            if (this.ENABLE_TRANSCODING) {
+              this.handleCustomQuality(videoPath, start, quality, res);
+            } else {
+              return res.status(400).send("Transcoding is disabled");
+            }
+          }
+        } else if (
+          this.RESOLUTIONS[quality as ResolutionKey] ||
+          quality !== "original"
+        ) {
+          this.handleCustomQuality(
+            videoPath,
+            start,
+            quality as ResolutionKey,
+            res
+          );
+        } else {
+          res.status(400).send("Invalid quality option");
+        }
       }
-      videoCodecOpt = !videoCompatible
-        ? await this.getBestVideoCodec()
-        : "copy";
-      audioCodecOpt = !audioCompatible ? "aac" : "copy";
-    }
-
-    if (segmentIndex > session.lastGeneratedSegment.original) {
-      const playlistPath: string = await this.generateSegments(
-        sessionId,
-        videoPath,
-        startTime,
-        this.INITIAL_SEGMENTS,
-        "original",
-        videoCodecOpt,
-        audioCodecOpt
-      );
-      session.lastGeneratedSegment.original =
-        segmentIndex + this.INITIAL_SEGMENTS - 1;
-      setTimeout(
-        () => this.preloadSegments(sessionId, startTime, "original"),
-        0
-      );
-
-      let playlistContent: string = fs.readFileSync(playlistPath, "utf8");
-      playlistContent = playlistContent.replace(
-        new RegExp(this.OUTPUT_DIR + "/", "g"),
-        "/hls_segments/"
-      );
-      res.set("Content-Type", "application/vnd.apple.mpegurl");
-      res.send(playlistContent);
-    } else {
-      const playlistPath: string = path.join(
-        this.OUTPUT_DIR,
-        `${sessionId}_original_${segmentIndex}.m3u8`
-      );
-      if (fs.existsSync(playlistPath)) {
-        let playlistContent: string = fs.readFileSync(playlistPath, "utf8");
-        playlistContent = playlistContent.replace(
-          new RegExp(this.OUTPUT_DIR + "/", "g"),
-          "/hls_segments/"
-        );
-        res.set("Content-Type", "application/vnd.apple.mpegurl");
-        res.send(playlistContent);
-      } else {
-        res.status(404).send("Playlist not found");
-      }
-    }
-  }
-
-  // Manejar opción "Resolución y Bitrate"
-  static async handleCustomQuality(
-    sessionId: string,
-    videoPath: string,
-    startTime: number,
-    quality: ResolutionKey,
-    res: Response
-  ): Promise<void> {
-    const session: SessionData = this.sessions.get(sessionId)!;
-    const segmentIndex: number = Math.floor(startTime / this.SEGMENT_DURATION);
-
-    if (segmentIndex > session.lastGeneratedSegment[quality]) {
-      const playlistPath: string = await this.generateSegments(
-        sessionId,
-        videoPath,
-        startTime,
-        this.INITIAL_SEGMENTS,
-        quality,
-        "libx264",
-        "aac"
-      );
-      session.lastGeneratedSegment[quality] =
-        segmentIndex + this.INITIAL_SEGMENTS - 1;
-      setTimeout(() => this.preloadSegments(sessionId, startTime, quality), 0);
-
-      let playlistContent: string = fs.readFileSync(playlistPath, "utf8");
-      playlistContent = playlistContent.replace(
-        new RegExp(this.OUTPUT_DIR + "/", "g"),
-        "/hls_segments/"
-      );
-      res.set("Content-Type", "application/vnd.apple.mpegurl");
-      res.send(playlistContent);
-    } else {
-      const playlistPath: string = path.join(
-        this.OUTPUT_DIR,
-        `${sessionId}_${quality}_${segmentIndex}.m3u8`
-      );
-      if (fs.existsSync(playlistPath)) {
-        let playlistContent: string = fs.readFileSync(playlistPath, "utf8");
-        playlistContent = playlistContent.replace(
-          new RegExp(this.OUTPUT_DIR + "/", "g"),
-          "/hls_segments/"
-        );
-        res.set("Content-Type", "application/vnd.apple.mpegurl");
-        res.send(playlistContent);
-      } else {
-        res.status(404).send("Playlist not found");
-      }
-    }
-  }
-
-  // Generar fragmentos HLS
-  static async generateSegments(
-    sessionId: string,
-    videoPath: string,
-    startTime: number,
-    numSegments: number,
-    quality: Quality,
-    videoCodec: string,
-    audioCodec: string
-  ): Promise<string> {
-    const segmentIndex: number = Math.floor(startTime / this.SEGMENT_DURATION);
-    const outputPlaylist: string = path.join(
-      this.OUTPUT_DIR,
-      `${sessionId}_${quality}_${segmentIndex}.m3u8`
-    );
-    const segmentPattern: string = path.join(
-      this.OUTPUT_DIR,
-      `${sessionId}_${quality}_${segmentIndex}_%03d.ts`
     );
 
-    const isOriginal: boolean = quality === "original";
-    const res: ResolutionConfig | undefined = isOriginal
-      ? undefined
-      : this.RESOLUTIONS[quality as ResolutionKey];
+    this.appServer.get("/metadata", async (req: any, res: any) => {
+      const filePath = req.query.path;
+      if (!filePath || !fs.existsSync(filePath)) {
+        return res.status(404).send("Archivo no encontrado");
+      }
 
-    return new Promise((resolve, reject) => {
-      const command = ffmpeg(videoPath)
-        .seekInput(startTime)
-        .duration(this.SEGMENT_DURATION * numSegments)
-        .outputOptions(
-          [
-            isOriginal
-              ? ""
-              : `-vf scale=${res!.width}:${
-                  res!.height
-                }:force_original_aspect_ratio=decrease`,
-            `-c:v ${videoCodec}`,
-            `-c:a ${audioCodec}`,
-            isOriginal ? "" : `-b:v ${res!.videoBitrate}`,
-            isOriginal ? "" : `-b:a ${res!.audioBitrate}`,
-            "-hls_time",
-            this.SEGMENT_DURATION.toString(),
-            "-hls_list_size",
-            numSegments.toString(),
-            "-hls_segment_filename",
-            segmentPattern,
-          ].filter(Boolean)
-        )
-        .output(outputPlaylist)
-        .on("end", () => resolve(outputPlaylist))
-        .on("error", (err) => reject(err))
-        .run();
+      try {
+        const metadata: any = await this.getMetadata(filePath);
+        res.json({
+          duration: metadata.format.duration,
+          audioTracks: metadata.streams
+            .filter((s: any) => s.codec_type === "audio")
+            .map((s: any) => ({
+              index: s.index,
+              language: s.tags?.language || "unknown",
+            })),
+          subtitleTracks: metadata.streams
+            .filter((s: any) => s.codec_type === "subtitle")
+            .map((s: any) => ({
+              index: s.index,
+              language: s.tags?.language || "unknown",
+            })),
+        });
+      } catch (error) {
+        res.status(500).send("Error obteniendo metadatos");
+      }
     });
   }
 
-  // Precargar fragmentos
-  static async preloadSegments(
-    sessionId: string,
-    startTime: number,
-    quality: Quality
-  ): Promise<void> {
-    const session: SessionData = this.sessions.get(sessionId)!;
-    if (!session || session.generationInProgress[quality]) return;
-
-    session.generationInProgress[quality] = true;
-    const startSegment: number = Math.floor(startTime / this.SEGMENT_DURATION);
-    let segmentsToGenerate: number =
-      this.PRELOAD_LIMIT -
-      (session.lastGeneratedSegment[quality] - startSegment + 1);
-
-    if (segmentsToGenerate <= 0) {
-      session.generationInProgress[quality] = false;
-      return;
-    }
-
-    const nextStartTime: number =
-      (session.lastGeneratedSegment[quality] + 1) * this.SEGMENT_DURATION;
+  /**
+   * Serves a video file without transcoding.
+   * @param filePath The path to the video file to be served.
+   * @param req The express request object, containing details of the HTTP request.
+   * @param res The express response object, used to send back the desired HTTP response.
+   */
+  static serveFileDirectly(filePath: string, req: any, res: any) {
     try {
-      await this.generateSegments(
-        sessionId,
-        session.videoPath,
-        nextStartTime,
-        segmentsToGenerate,
-        quality,
-        quality === "original" ? "copy" : "libx264",
-        quality === "original" ? "copy" : "aac"
-      );
-      session.lastGeneratedSegment[quality] =
-        startSegment + segmentsToGenerate - 1;
-      this.cleanOldSegments(sessionId, startSegment, quality);
-    } catch (error) {
-      console.error(`[${sessionId}] Error preloading ${quality}:`, error);
-    }
+      // Verificar si el archivo existe y obtener sus estadísticas
+      const stat = fs.statSync(filePath);
+      const fileSize = stat.size;
+      const range = req.headers.range;
 
-    session.generationInProgress[quality] = false;
+      // Configurar el tipo de contenido (puedes ajustarlo según el archivo real)
+      const videoMimeType = "video/mp4"; // Podrías usar una librería como 'mime-types' para detectarlo dinámicamente
 
-    if (
-      session.isPlaying ||
-      session.lastGeneratedSegment[quality] <
-        startSegment + this.PRELOAD_LIMIT - 1
-    ) {
-      setTimeout(
-        () => this.preloadSegments(sessionId, session.currentTime, quality),
-        1000
-      );
+      if (range) {
+        // Manejo de solicitud parcial (HTTP 206)
+        const parts = range.replace(/bytes=/, "").split("-");
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+
+        // Validar rangos
+        if (start >= fileSize || end >= fileSize || start > end) {
+          res.writeHead(416, {
+            "Content-Range": `bytes */${fileSize}`,
+          });
+          return res.end();
+        }
+
+        const chunksize = end - start + 1;
+        const fileStream = fs.createReadStream(filePath, {
+          start,
+          end,
+          highWaterMark: 64 * 1024, // Aumentar el tamaño del búfer a 64KB
+        });
+
+        const headers = {
+          "Content-Range": `bytes ${start}-${end}/${fileSize}`,
+          "Accept-Ranges": "bytes",
+          "Content-Length": chunksize.toString(),
+          "Content-Type": videoMimeType,
+        };
+
+        res.writeHead(206, headers);
+
+        // Pipe con control de errores
+        fileStream.pipe(res).on("error", (err: any) => {
+          console.error("Error en el stream:", err);
+          res.status(500).end();
+        });
+      } else {
+        // Solicitud completa (HTTP 200)
+        const headers = {
+          "Content-Length": fileSize.toString(),
+          "Content-Type": videoMimeType,
+          "Accept-Ranges": "bytes",
+        };
+
+        res.writeHead(200, headers);
+        const fileStream = fs.createReadStream(filePath, {
+          highWaterMark: 64 * 1024, // Aumentar el tamaño del búfer
+        });
+
+        fileStream.pipe(res).on("error", (err: any) => {
+          console.error("Error en el stream:", err);
+          res.status(500).end();
+        });
+      }
+
+      // Manejar el cierre del cliente
+      req.on("close", () => {
+        res.end();
+      });
+    } catch (err) {
+      console.error("Error al servir el archivo:", err);
+      res.status(500).send("Error interno del servidor");
     }
   }
 
-  // Obtener codecs originales
+  /**
+   * Handles a request for a custom quality video stream
+   * @param videoPath The path to the video file
+   * @param start The start time of the video in seconds
+   * @param quality The quality of the video stream
+   * @param res The express response object
+   */
+  static async handleCustomQuality(
+    videoPath: string,
+    start: number,
+    quality: ResolutionKey,
+    res: Response
+  ): Promise<void> {
+    res.setHeader("Content-Type", "video/mp4");
+
+    const audioCodec = await this.getBestAudioCodec();
+
+    const proc = ffmpeg(videoPath)
+      .setStartTime(start)
+      .videoCodec("copy")
+      .audioCodec(audioCodec)
+      .audioBitrate(audioCodec === "opus" ? "192k" : "256k")
+      .outputOptions("-preset veryfast")
+      .format("mp4")
+      .outputOptions([
+        "-movflags frag_keyframe+empty_moov+faststart", // Optimización para streaming
+        "-frag_duration 1000000", // Fragmentos de 1 segundo
+      ]) // Send streaming fragments
+      .on("start", (commandLine) => {
+        console.log("FFmpeg iniciado con comando:", commandLine);
+      })
+      .on("progress", (progress) => {
+        console.log("Progreso:", progress.percent, "%");
+      })
+      .on("end", () => {
+        console.log("Procesamiento completado");
+      })
+      .on("error", (err) => {
+        console.error("FFmpeg error:", err);
+        res.status(500).send("Video processing error");
+      });
+
+    // FFmpeg streaming pipe to send video fragments
+    proc.pipe(res, { end: true });
+  }
+
+  /**
+   * Checks if the codecs of a video file are compatible with the HTML5 video player
+   * @param videoPath The path to the video file
+   * @returns An object with separate video and audio compatibility results
+   */
+  static async checkCodecCompatibility(videoPath: string): Promise<{
+    videoCompatibility: boolean;
+    audioCompatibility: boolean;
+  }> {
+    try {
+      // Retrieve the original codecs using the existing function
+      const { videoCodec, audioCodec } = await this.getOriginalCodecs(
+        videoPath
+      );
+
+      return {
+        videoCompatibility: videoCodec
+          ? this.COMPATIBLE_VIDEO_CODECS.includes(videoCodec.toLowerCase())
+          : false,
+        audioCompatibility: audioCodec
+          ? this.COMPATIBLE_AUDIO_CODECS.includes(audioCodec.toLowerCase())
+          : false,
+      };
+    } catch (error: any) {
+      throw new Error(`Error vefirying codec compatibility: ${error.message}`);
+    }
+  }
+
+  /**
+   * Retrieves the original video and audio codecs of a given video file.
+   * @param videoPath The path to the video file.
+   * @returns A promise resolving to an object containing the video and audio codec names.
+   */
   static async getOriginalCodecs(videoPath: string): Promise<{
     videoCodec: string | undefined;
     audioCodec: string | undefined;
@@ -443,7 +337,10 @@ export default class VideoServer {
     });
   }
 
-  // Obtener el mejor codec de video disponible
+  /**
+   * Retrieves the best video codec available in the system, prioritizing H.265 (HEVC) if available.
+   * @returns A promise resolving to the best video codec name.
+   */
   static async getBestVideoCodec(): Promise<string> {
     return new Promise((resolve) => {
       ffmpeg.getAvailableCodecs((err, codecs) => {
@@ -456,19 +353,28 @@ export default class VideoServer {
     });
   }
 
-  // Limpiar segmentos viejos
-  static cleanOldSegments(
-    sessionId: string,
-    currentSegment: number,
-    quality: Quality
-  ): void {
-    fs.readdir(this.OUTPUT_DIR, (err, files) => {
-      if (err) return;
-      files.forEach((file) => {
-        const match = file.match(new RegExp(`${sessionId}_${quality}_(\\d+)_`));
-        if (match && parseInt(match[1]) < currentSegment - this.PRELOAD_LIMIT) {
-          fs.unlink(path.join(this.OUTPUT_DIR, file), () => {});
+  /**
+   * Retrieves the best audio codec available in the system, prioritizing Opus if available.
+   * @returns A promise resolving to the best audio codec name.
+   */
+  static async getBestAudioCodec(): Promise<string> {
+    return new Promise((resolve) => {
+      ffmpeg.getAvailableCodecs((err, codecs) => {
+        if (err || !codecs["opus"] || !codecs["opus"].canEncode) {
+          resolve("opus");
+        } else {
+          resolve("aac");
         }
+      });
+    });
+  }
+
+  // Nueva función para obtener metadatos
+  static async getMetadata(filePath: string) {
+    return new Promise((resolve, reject) => {
+      ffmpeg.ffprobe(filePath, (err, metadata) => {
+        if (err) reject(err);
+        else resolve(metadata);
       });
     });
   }

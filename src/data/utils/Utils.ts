@@ -11,11 +11,7 @@ import * as fs from "fs";
 import { promisify } from "util";
 import { Season } from "../objects/Season";
 import { Episode } from "../objects/Episode";
-import {
-  EpisodeGroupResponse,
-  Episode as MovieDBEpisode,
-  TvEpisodeGroupsResponse,
-} from "moviedb-promise";
+import { Episode as MovieDBEpisode } from "moviedb-promise";
 import { Series } from "../objects/Series";
 import { WebSocketManager } from "./WebSocketManager";
 import { Library } from "../objects/Library";
@@ -582,7 +578,6 @@ export class Utils {
   //#endregion
 
   public static createFolder = async (folderDir: string) => {
-    Utils.getExternalPath(folderDir);
     if (!fs.existsSync(folderDir)) {
       fs.mkdirSync(folderDir);
     }

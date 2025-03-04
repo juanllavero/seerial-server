@@ -1,4 +1,4 @@
-import propertiesReader from "properties-reader";
+import propertiesReader, { Value } from "properties-reader";
 import * as path from "path";
 import { MovieDb } from "moviedb-promise";
 import ffmetadata from "ffmetadata";
@@ -7,6 +7,7 @@ import { DataManager } from "./DataManager";
 import { Utils } from "./Utils";
 
 export class MovieDBWrapper {
+  public static THEMOVIEDB_API_KEY: Value | null = "";
   static BASE_URL: string = "https://image.tmdb.org/t/p/original";
   // Metadata attributes
   static moviedb: MovieDb | undefined;
@@ -19,10 +20,10 @@ export class MovieDBWrapper {
     );
 
     // Get API Key
-    const apiKey = properties.get("TMDB_API_KEY");
+    this.THEMOVIEDB_API_KEY = properties.get("TMDB_API_KEY");
 
-    if (apiKey) {
-      this.moviedb = new MovieDb(String(apiKey));
+    if (this.THEMOVIEDB_API_KEY) {
+      this.moviedb = new MovieDb(String(this.THEMOVIEDB_API_KEY));
 
       if (!this.moviedb) {
         console.error("This App needs an API Key from TheMovieDB");
