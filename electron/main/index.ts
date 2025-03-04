@@ -2,8 +2,6 @@ import { nativeImage, app, Tray, Menu } from "electron";
 import path from "path";
 import fs from "fs";
 import express from "express";
-import ffmpeg from "fluent-ffmpeg";
-import ffmpegPath from "ffmpeg-static";
 import open from "open";
 import cors from "cors";
 import https from "https";
@@ -42,30 +40,7 @@ appServer.use(
 
 // Middleware to process JSON
 appServer.use(express.json({ limit: "50mb" }));
-appServer.use(express.urlencoded({ limit: "50mb" }));
-
-// Configure ffmpeg path
-ffmpeg.setFfmpegPath(ffmpegPath || "");
-
-// ffmpeg.getAvailableCodecs((err, codecs) => {
-//   if (err) {
-//     console.error("Error checking codecs:", err);
-//     return;
-//   }
-
-//   console.log("Codecs disponibles:", codecs["libx265"]);
-//   // Verificar si H.265 está disponible
-//   const h265Supported = codecs["libx265"] && codecs["libx265"].canEncode;
-
-//   console.log({
-//     h265: h265Supported,
-//     cpuCores: os.cpus().length,
-//   });
-//   // resolve({
-//   //   h265: h265Supported,
-//   //   cpuCores: os.cpus().length,
-//   // });
-// });
+appServer.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 // Create HTTP Server
 export const server = https.createServer(
