@@ -4,11 +4,27 @@ import { useServerStore } from '@/context/server.context'
 
 interface HTMLVideoPlayerProps {
   url: string
+  start?: number
+  audioTrack?: number
   videoRef: React.RefObject<HTMLVideoElement | null>
 }
 
-function HTMLVideoPlayer({ url, videoRef }: HTMLVideoPlayerProps) {
+function HTMLVideoPlayer({
+  url,
+  start,
+  audioTrack,
+  videoRef,
+}: HTMLVideoPlayerProps) {
   const { serverIP } = useServerStore()
+
+  const urlsTest = [
+    'F:\\UHD\\El Caballero Oscuro\\El Caballero Oscuro (2008)\\El Caballero Oscuro (2008).mkv',
+    'F:\\The Criterion Collection\\Akira Kurosawa Collection\\Los Siete Samuráis (1954)\\Los Siete Samuráis (1954).mkv',
+    'F:\\UHD\\Dune\\Dune (2021)\\Dune (2021).mkv',
+    'F:\\The Criterion Collection\\Mulholland Drive (2001)\\Mulholland Drive (2001).mkv',
+    'F:\\Anime\\FullMetal Alchemist Brotherhood\\S1\\Fullmetal Alchemist Brotherhood - S01E01 - Fullmetal Alchemist.mkv',
+    'https://seerial.sirjohn.es/video-file?path=F:\\Anime\\FullMetal Alchemist Brotherhood\\S1\\Fullmetal Alchemist Brotherhood - S01E01 - Fullmetal Alchemist.mkv',
+  ]
 
   if (!url) {
     return null
@@ -24,14 +40,16 @@ function HTMLVideoPlayer({ url, videoRef }: HTMLVideoPlayerProps) {
   }, [url])
 
   return (
-    <video
-      ref={videoRef}
-      src={`https://${serverIP}/video-file?path=F:\\Anime\\FullMetal Alchemist Brotherhood\\S1\\Fullmetal Alchemist Brotherhood - S01E01 - Fullmetal Alchemist.mkv`}
-      //src="../../test.mkv"
-      crossOrigin="anonymous"
-      playsInline
-      autoPlay
-    />
+    <div data-vjs-player>
+      <video
+        ref={videoRef}
+        src={`https://${serverIP}/stream-video?path=${urlsTest[4]}${start ? `&start=${start}` : ''}${audioTrack ? `&audio=${audioTrack}` : ''}`}
+        //src="../../test.mkv"
+        crossOrigin="anonymous"
+        playsInline
+        autoPlay
+      />
+    </div>
   )
 }
 

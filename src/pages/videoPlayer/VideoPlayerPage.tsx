@@ -38,7 +38,10 @@ function VideoPlayerPage() {
   const [videoLoaded, setVideoLoaded] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [volume, setVolume] = useState(1)
-  const [duration, setDuration] = useState(0)
+  const [duration, setDuration] = useState(
+    episode ? episode.runtimeInSeconds : 0,
+  )
+  const [videoStart, setVideoStart] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
   const [previewTime, setPreviewTime] = useState(0)
 
@@ -160,7 +163,7 @@ function VideoPlayerPage() {
     const percent =
       Math.min(Math.max(0, e.clientX - rect.left), rect.width) / rect.width
 
-    setPreviewTime(video.duration * percent)
+    setPreviewTime(duration * percent)
     timelineRef.current.style.setProperty(
       '--preview-position',
       percent.toString(),
@@ -190,7 +193,7 @@ function VideoPlayerPage() {
       setWasPaused(video.paused)
       videoRef.current?.pause()
     } else {
-      video.currentTime = percent * video.duration
+      video.currentTime = percent * duration
       if (!wasPaused) video.play()
     }
 
@@ -226,12 +229,10 @@ function VideoPlayerPage() {
     const video = videoRef.current
     if (!video) return
 
-    //setDuration(video.duration ? video.duration : episode.runtimeInSeconds)
-
     // Listen to time update
     video.addEventListener('timeupdate', () => {
       setCurrentTime(video.currentTime)
-      const percent = video.currentTime / video.duration
+      const percent = video.currentTime / duration
       timelineRef.current?.style.setProperty(
         '--progress-position',
         percent.toString(),
@@ -240,9 +241,9 @@ function VideoPlayerPage() {
       // Calcular el porcentaje del buffer
       if (video.buffered.length > 0) {
         const bufferedEnd = video.buffered.end(video.buffered.length - 1)
-        const bufferPercent = bufferedEnd / video.duration
+        const bufferPercent = bufferedEnd / duration
         timelineRef.current?.style.setProperty(
-          '--progress-position',
+          '--preview-position',
           bufferPercent.toString(),
         )
       }
@@ -366,7 +367,12 @@ function VideoPlayerPage() {
         </FlexBox>
 
         {/* Video Player */}
-        <HTMLVideoPlayer url={episode.videoSrc} videoRef={videoRef} />
+        <HTMLVideoPlayer
+          url={`F:\\Anime\\FullMetal Alchemist Brotherhood\\S1\\Fullmetal Alchemist Brotherhood - S01E01 - Fullmetal Alchemist.mkv`}
+          start={videoStart}
+          audioTrack={selectedAudio ? selectedAudio.id - 1 : undefined}
+          videoRef={videoRef}
+        />
 
         {/* Controls */}
         <FlexBox
@@ -399,11 +405,7 @@ function VideoPlayerPage() {
               </div>
             </div>
 
-            <span>
-              {formatTime(
-                videoRef.current ? videoRef.current.duration - currentTime : 0,
-              )}
-            </span>
+            <span>{formatTime(duration - currentTime)}</span>
           </FlexBox>
           <FlexBox width={'100%'} justify="space-between" gap={1}>
             <FlexBox gap={0.5} align="center">
@@ -451,6 +453,7 @@ function VideoPlayerPage() {
                         title: `${track.displayTitle} (${track.language})`,
                         action: () => {
                           setSelectedAudio(track)
+                          setVideoStart(currentTime)
                         },
                       })),
                     },

@@ -20,9 +20,39 @@ export default function HomePage() {
           libraries[1].series.map((series) => (
             <Card
               itemKey={'Home Card' + series.id}
-              imgSrc={series.coverSrc}
-              aspectRatio={2 / 3}
-              width={300}
+              imgSrc={series.seasons && series.seasons[0]?.backgroundSrc}
+              aspectRatio={16 / 9}
+              width={400}
+              title={series.name}
+              subtitle={series.year}
+              action={function (): void {
+                throw new Error('Function not implemented.')
+              }}
+            />
+          ))}
+        {libraries &&
+          libraries[1] &&
+          libraries[1].series.map((series) => (
+            <Card
+              itemKey={'Home Card' + series.id}
+              imgSrc={series.seasons && series.seasons[0]?.backgroundSrc}
+              aspectRatio={16 / 9}
+              width={400}
+              title={series.name}
+              subtitle={series.year}
+              action={function (): void {
+                throw new Error('Function not implemented.')
+              }}
+            />
+          ))}
+        {libraries &&
+          libraries[1] &&
+          libraries[1].series.map((series) => (
+            <Card
+              itemKey={'Home Card' + series.id}
+              imgSrc={series.seasons && series.seasons[0]?.backgroundSrc}
+              aspectRatio={16 / 9}
+              width={400}
               title={series.name}
               subtitle={series.year}
               action={function (): void {

@@ -51,14 +51,14 @@ function HorizontalList({ title, children }: HorizontalListProps) {
 
   const handleScrollLeft = () => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollLeft -= 400
+      scrollContainerRef.current.scrollLeft -= 1200
       handleScroll()
     }
   }
 
   const handleScrollRight = () => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollLeft += 400
+      scrollContainerRef.current.scrollLeft += 1200
       handleScroll()
     }
   }

@@ -31,7 +31,7 @@ export default function BaseLayout({
     const timeout = setTimeout(() => {
       prevBackground.current = selectedSeason.backgroundSrc
       setShowNewImage(false)
-    }, 1000)
+    }, 500)
 
     return () => clearTimeout(timeout)
   }, [selectedSeason])
