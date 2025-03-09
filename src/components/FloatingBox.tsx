@@ -1,11 +1,18 @@
 import React, { useEffect } from 'react'
 import { Card, CardHeader } from './ui/card'
 import { LibrarySwitcher } from './LibrarySwitcher'
-import { Settings, Music, Film, TvMinimal, House } from 'lucide-react'
+import {
+  Settings,
+  Music,
+  Film,
+  TvMinimal,
+  House,
+  ChevronLeft,
+} from 'lucide-react'
 import { Button } from './ui/button'
 import useDataStore from '@/context/data.context'
 import { useTranslation } from 'react-i18next'
-import { useNavigate, useRouter } from '@tanstack/react-router'
+import { useLocation, useNavigate, useRouter } from '@tanstack/react-router'
 import { useServerStore } from '@/context/server.context'
 import { Library } from '@/data/interfaces/Media'
 import useFetch from '@/hooks/useFetch'
@@ -20,11 +27,16 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
   const { serverIP } = useServerStore()
   const { fetchData, isLoading } = useFetch<Library[]>()
 
+  // Check if current location is details page
+  const location = useLocation()
+  const inHome = location.pathname === '/'
+  const inSettings = location.pathname === '/settings'
+
   useEffect(() => {
     if (serverIP !== '' && (!libraries || libraries.length === 0)) {
       setLoadingLibraries(true)
 
-      fetchData(`https://${serverIP}/libraries`, (data) => {
+      fetchData(`http://${serverIP}/libraries`, (data) => {
         setLibraries(data)
         setLoadingLibraries(false)
       })
@@ -61,15 +73,29 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
                           : Music,
                     action: () => {
                       selectLibrary(library)
-                      navigate({ to: '/collection' })
+                      navigate({
+                        to: '/collection/$libraryId',
+                        params: { libraryId: library.id },
+                      })
                     },
                   })),
                 ]}
               />
             )}
-            <Button variant="ghost">
-              <Settings />
-            </Button>
+            {!inHome && (
+              <Button variant="ghost" onClick={() => router.history.back()}>
+                <ChevronLeft />
+              </Button>
+            )}
+
+            {!inSettings && (
+              <Button
+                variant="ghost"
+                onClick={() => navigate({ to: '/settings' })}
+              >
+                <Settings />
+              </Button>
+            )}
           </CardHeader>
         </Card>
       )}

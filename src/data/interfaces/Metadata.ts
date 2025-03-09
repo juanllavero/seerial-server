@@ -1,6 +1,7 @@
 export interface Cast {
   name: string
   character: string
+  profileImage: string
 }
 
 export interface Chapter {

@@ -4,6 +4,7 @@ import '../styles/utils.css'
 import './BaseLayout.css'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
+import { useLocation } from '@tanstack/react-router'
 
 export default function BaseLayout({
   children,
@@ -12,28 +13,46 @@ export default function BaseLayout({
 }) {
   const { selectedSeason } = useDataStore()
   const { serverIP } = useServerStore()
-  const prevBackground = useRef(selectedSeason?.backgroundSrc)
+  const prevBackground = useRef<string | undefined>(undefined)
+  const [currentBackground, setCurrentBackground] = useState<
+    string | undefined
+  >(undefined)
   const [showNewImage, setShowNewImage] = useState(false)
 
-  useEffect(() => {
-    console.log({ selectedSeason, prevBackground })
+  // Check if current location is details page
+  const location = useLocation()
+  const inDetailsPage = location.pathname.startsWith('/details/')
 
-    if (!selectedSeason) {
+  useEffect(() => {
+    if (!selectedSeason || !selectedSeason.backgroundSrc) {
+      setCurrentBackground(undefined)
       prevBackground.current = undefined
       setShowNewImage(false)
       return
     }
 
-    if (selectedSeason.backgroundSrc === prevBackground.current) return
+    const newBackground = selectedSeason.backgroundSrc
 
-    setShowNewImage(true)
-
-    const timeout = setTimeout(() => {
-      prevBackground.current = selectedSeason.backgroundSrc
+    // Si no había fondo previo, establecer directamente sin animación
+    if (!prevBackground.current) {
+      setCurrentBackground(newBackground)
+      prevBackground.current = newBackground
       setShowNewImage(false)
-    }, 500)
+      return
+    }
 
-    return () => clearTimeout(timeout)
+    // Si hay un cambio de imagen, activar la animación
+    if (newBackground !== prevBackground.current) {
+      setShowNewImage(true)
+
+      const timeout = setTimeout(() => {
+        setCurrentBackground(newBackground)
+        prevBackground.current = newBackground
+        setShowNewImage(false)
+      }, 500)
+
+      return () => clearTimeout(timeout)
+    }
   }, [selectedSeason])
 
   const getSafeURL = (url: string | undefined) => {
@@ -42,25 +61,26 @@ export default function BaseLayout({
 
   return (
     <div className="relative">
-      {/* Imagen actual (desaparece si selectedSeason es null) */}
+      {/* Imagen actual */}
       <div
         className="background-layer"
         style={{
-          backgroundImage: prevBackground.current
-            ? `url(${prevBackground.current.startsWith('http') ? getSafeURL(prevBackground.current) : `https://${serverIP}/${getSafeURL(prevBackground.current)}`})`
-            : 'none',
-          opacity: prevBackground.current ? 1 : 0, // Hace la imagen invisible si no hay fondo
+          backgroundImage:
+            inDetailsPage && currentBackground
+              ? `url(${currentBackground.startsWith('http') ? getSafeURL(currentBackground) : `http://${serverIP}/${getSafeURL(currentBackground)}`})`
+              : 'none',
+          opacity: inDetailsPage && currentBackground ? 1 : 0,
         }}
       />
       {/* Imagen nueva que se desvanece */}
-      {/*showNewImage && selectedSeason?.backgroundSrc && (
+      {showNewImage && selectedSeason?.backgroundSrc && (
         <div
           className="background-layer fade-in"
           style={{
-            backgroundImage: `url(${selectedSeason.backgroundSrc.startsWith('http') ? getSafeURL(selectedSeason.backgroundSrc) : `https://${serverIP}/${getSafeURL(selectedSeason.backgroundSrc)}`})`,
+            backgroundImage: `url(${selectedSeason.backgroundSrc.startsWith('http') ? getSafeURL(selectedSeason.backgroundSrc) : `http://${serverIP}/${getSafeURL(selectedSeason.backgroundSrc)}`})`,
           }}
         />
-      )*/}
+      )}
 
       <DragWindowRegion />
       <main className="h-screen w-screen">{children}</main>

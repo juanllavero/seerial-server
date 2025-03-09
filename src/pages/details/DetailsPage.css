@@ -2,10 +2,10 @@
   overflow-y: scroll;
   & .image-container {
     overflow: hidden;
-    border-radius: 10px;
+    border-radius: 5px;
 
     & img {
-      border-radius: 10px;
+      border-radius: 5px;
       object-fit: cover;
 
       image-rendering: auto;
@@ -27,7 +27,7 @@
 
   & #directedBy {
     font-size: 0.9rem;
-    margin-bottom: 0.3rem;
+    margin-bottom: 0.8rem;
   }
 
   & span {

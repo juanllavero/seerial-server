@@ -73,7 +73,7 @@ function Card({
             {loading ? (
               <Loading />
             ) : !hidePlayButton ? (
-              <Button variant={'ghost'}>
+              <Button variant={'ghost'} className="rounded-full">
                 <Play />
               </Button>
             ) : null}

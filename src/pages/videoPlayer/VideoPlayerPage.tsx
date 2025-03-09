@@ -22,7 +22,8 @@ import { TrackNextIcon, TrackPreviousIcon } from '@radix-ui/react-icons'
 import Loading from '@/components/Loading'
 import DropdownWrapper from '@/components/DropdownWrapper'
 import './VideoPlayerPage.css'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useParams } from '@tanstack/react-router'
+import NotFound from '@/components/NotFound'
 
 function VideoPlayerPage() {
   const {
@@ -30,8 +31,68 @@ function VideoPlayerPage() {
     selectedSeries,
     selectedSeason,
     selectedEpisode: episode,
+    libraries,
+    selectLibrary,
+    selectSeries,
+    selectSeason,
   } = useDataStore()
-  const navigate = useNavigate({ from: '/video-player' })
+  const navigate = useNavigate()
+  const { libraryId, seriesId, seasonId, episodeId } = useParams({
+    from: '/video-player/$libraryId/$seriesId/$seasonId/$episodeId',
+  })
+
+  //#region CHECK DATA BEFORE LOAD
+  const library = libraries.find((library) => library.id === libraryId)
+
+  if (libraryId !== selectedLibrary?.id) {
+    if (library) {
+      selectLibrary(library)
+    } else {
+      return <NotFound />
+    }
+  }
+
+  if (!selectedLibrary) {
+    return <NotFound />
+  }
+
+  const series = library?.series.find((series) => series.id === seriesId)
+
+  if (seriesId !== selectedSeries?.id) {
+    if (series) {
+      selectSeries(series)
+    } else {
+      return <NotFound />
+    }
+  }
+
+  if (!selectedSeries) {
+    return <NotFound />
+  }
+
+  const season = series?.seasons.find((season) => season.id === seasonId)
+
+  if (seasonId !== selectedSeason?.id) {
+    if (season) {
+      selectSeason(season)
+    } else {
+      return <NotFound />
+    }
+  }
+
+  if (!selectedSeason) {
+    return <NotFound />
+  }
+
+  const episodeToFind = selectedSeason.episodes.find(
+    (episode) => episode.id === episodeId,
+  )
+
+  if (!episodeToFind) {
+    return <NotFound />
+  }
+  //#endregion
+
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [showLoadingCircle, setShowLoadingCircle] = useState(false)
@@ -345,7 +406,15 @@ function VideoPlayerPage() {
           <FlexBox gap={1} align="center" justify="center">
             <Button
               variant={'ghost'}
-              onClick={() => navigate({ to: '/details' })}
+              onClick={() =>
+                navigate({
+                  to: '/details/$libraryId/$seriesId',
+                  params: {
+                    libraryId: selectedLibrary?.id ?? '',
+                    seriesId: selectedSeries?.id ?? '',
+                  },
+                })
+              }
             >
               <ChevronLeft />
             </Button>

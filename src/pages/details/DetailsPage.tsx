@@ -1,23 +1,73 @@
 import FlexBox from '@/components/ui/FlexBox'
 import LazyImage from '@/components/ui/LazyImage'
 import useDataStore from '@/context/data.context'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useParams } from '@tanstack/react-router'
 import './DetailsPage.css'
 import React from 'react'
 import { Bookmark, Edit, Ellipsis, Play } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import SeasonsContent from './components/SeasonsContent'
+import { formatTimeForView } from '@/utils/ReactUtils'
+import CastList from './components/CastList'
+import NotFound from '@/components/NotFound'
 
 function DetailsPage() {
-  const { selectedLibrary, selectedSeries, selectedSeason } = useDataStore()
+  const { libraryId, seriesId } = useParams({
+    from: '/details/$libraryId/$seriesId',
+  })
+  const {
+    libraries,
+    selectLibrary,
+    selectSeries,
+    selectSeason,
+    selectedLibrary,
+    selectedSeries,
+    selectedSeason,
+  } = useDataStore()
   const { t } = useTranslation()
-  const navigate = useNavigate({ from: '/details' })
 
-  if (!selectedLibrary || !selectedSeries || !selectedSeason) {
-    navigate({ to: '/' })
-    return null
+  //#region CHECK DATA BEFORE LOAD
+  const library = libraries.find((library) => library.id === libraryId)
+
+  if (libraryId !== selectedLibrary?.id) {
+    if (library) {
+      selectLibrary(library)
+    } else {
+      return <NotFound />
+    }
   }
+
+  if (!selectedLibrary) {
+    return <NotFound />
+  }
+
+  const series = library?.series.find((series) => series.id === seriesId)
+
+  if (seriesId !== selectedSeries?.id) {
+    if (series) {
+      selectSeries(series)
+    } else {
+      return <NotFound />
+    }
+  }
+
+  if (
+    !selectedSeries ||
+    !selectedSeries.seasons ||
+    selectedSeries.seasons.length === 0
+  ) {
+    return <NotFound />
+  }
+
+  if (!selectedSeason) {
+    selectSeason(selectedSeries.seasons[0])
+  }
+
+  if (!selectedSeason) {
+    return <NotFound />
+  }
+  //#endregion
 
   const renderLogoOrText = () => {
     const logoUrl =
@@ -26,7 +76,7 @@ function DetailsPage() {
         : selectedSeries.logoSrc
 
     if (logoUrl && logoUrl !== '') {
-      return <LazyImage url={logoUrl} maxHeight={400} width={500} />
+      return <LazyImage url={logoUrl} maxHeight={300} width={350} />
     } else {
       return (
         <span
@@ -57,12 +107,12 @@ function DetailsPage() {
       direction="column"
       gap={1}
       wrap="nowrap"
-      padding="8rem 3rem"
+      padding="10rem 3rem"
       height={'100%'}
     >
       <FlexBox justify="start" align="start" gap={4}>
         <FlexBox className="image-container">
-          <LazyImage url={posterUrl} width={500} />
+          <LazyImage url={posterUrl} width={400} maxHeight={550} />
         </FlexBox>
 
         <FlexBox direction="column" gap={1} width={'80%'}>
@@ -79,11 +129,20 @@ function DetailsPage() {
                 {t('directedBy') + ' ' + selectedSeason.directedBy || ''}
               </span>
             ) : null}
-            <span id="date">
-              {new Date(selectedSeason.year).getFullYear() ||
-                new Date(selectedSeries.year).getFullYear() ||
-                null}
-            </span>
+            <FlexBox gap={1.3} margin="0 0 0.3rem 0">
+              <span id="date">
+                {new Date(selectedSeason.year).getFullYear() ||
+                  new Date(selectedSeries.year).getFullYear() ||
+                  null}
+              </span>
+              {selectedLibrary.type === 'Movies' &&
+                selectedSeason.episodes &&
+                selectedSeason.episodes.length === 1 && (
+                  <span>
+                    {formatTimeForView(selectedSeason.episodes[0].runtime)}
+                  </span>
+                )}
+            </FlexBox>
             <span id="genres">
               {selectedLibrary.type !== 'Shows'
                 ? selectedSeason.genres && selectedSeason.genres.length > 0
@@ -94,21 +153,26 @@ function DetailsPage() {
                   : ''}
             </span>
           </FlexBox>
-          <FlexBox gap={0.5} justify="center" align="center">
-            <img
-              src="./src/assets/svg/themoviedb.svg"
-              className="h-10 w-10"
-              alt="TheMovieDB logo"
-            />
-            <span className="font-bold">
-              {(selectedLibrary.type === 'Shows'
-                ? selectedSeries.score.toFixed(2)
-                : selectedSeason.score.toFixed(2)) || 'N/A'}
-            </span>
-          </FlexBox>
+          {selectedLibrary.type !== 'Music' && (
+            <FlexBox gap={0.5} justify="center" align="center">
+              <img
+                src="/svg/themoviedb.svg"
+                className="h-8 w-8"
+                alt="TheMovieDB logo"
+              />
+              <span className="text-sm font-bold">
+                {(selectedLibrary.type === 'Shows'
+                  ? selectedSeries.score.toFixed(2)
+                  : selectedSeason.score.toFixed(2)) || 'N/A'}
+              </span>
+            </FlexBox>
+          )}
           <FlexBox gap={1}>
-            <Button variant={'ghost'}>
-              <Play />
+            <Button>
+              <FlexBox align="center" gap={0.5}>
+                <Play />
+                Reproducir
+              </FlexBox>
             </Button>
             <Button
               variant={'ghost'}
@@ -147,7 +211,7 @@ function DetailsPage() {
             </Button>
           </FlexBox>
           <FlexBox>
-            <span>
+            <span className="font-semibold">
               {selectedSeason.overview ||
                 selectedSeries.overview ||
                 t('defaultOverview')}
@@ -157,6 +221,8 @@ function DetailsPage() {
       </FlexBox>
 
       <SeasonsContent />
+
+      <CastList />
     </FlexBox>
   )
 }

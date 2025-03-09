@@ -6,9 +6,10 @@ import useDataStore from '@/context/data.context'
 import { Episode } from '@/data/interfaces/Media'
 import { useNavigate } from '@tanstack/react-router'
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 
 function SeasonsContent() {
-  const navigate = useNavigate({ from: '/details' })
+  const navigate = useNavigate()
   const {
     selectedLibrary,
     selectedSeries,
@@ -16,6 +17,7 @@ function SeasonsContent() {
     selectSeason,
     selectEpisode,
   } = useDataStore()
+  const { t } = useTranslation()
   const [distribution, setDistribution] = React.useState(1)
 
   if (!selectedLibrary || !selectedSeries) {
@@ -49,21 +51,34 @@ function SeasonsContent() {
     setDistribution(Number(key))
   }
 
+  const onlyMovie =
+    selectedLibrary.type === 'Movies' &&
+    selectedSeason &&
+    selectedSeason.episodes &&
+    selectedSeason.episodes.length <= 1
+
   return (
     <FlexBox direction="column" gap={2} margin="1rem 0 0 0" width={'100%'}>
-      <FlexBox width={'100%'} justify="space-between" align="center">
-        <SelectableWrapper
-          defaultValue={selectedSeries.seasons[0].name}
-          options={selectedSeries.seasons.map((season, index) => {
-            return {
-              key: String(index),
-              value: season.name,
-            }
-          })}
-          onValueChange={selectSeasonOption}
-        />
+      <FlexBox width={'100%'} justify="space-between" align="start">
+        <FlexBox direction="column" gap={2}>
+          {selectedSeries.seasons && selectedSeries.seasons.length > 1 && (
+            <SelectableWrapper
+              defaultValue={selectedSeries.seasons[0].name}
+              options={selectedSeries.seasons.map((season, index) => {
+                return {
+                  key: String(index),
+                  value: season.name,
+                }
+              })}
+              width="fit-content"
+              onValueChange={selectSeasonOption}
+            />
+          )}
 
-        {selectedLibrary.type !== 'Music' && (
+          {!onlyMovie && <span>{t('episodes')}</span>}
+        </FlexBox>
+
+        {selectedLibrary.type !== 'Music' && !onlyMovie && (
           <SelectableWrapper
             defaultValue={'Cuadrícula'}
             options={[
@@ -80,53 +95,71 @@ function SeasonsContent() {
           />
         )}
       </FlexBox>
-      {distribution === 0 ? (
-        <Grid columns="repeat(auto-fill, minmax(300px, 1fr))" width="100%">
-          {selectedSeason
-            ? selectedSeason.episodes.map((episode) => (
-                <Card
-                  itemKey={episode.id}
-                  imgSrc={episode.imgSrc}
-                  aspectRatio={16 / 9}
-                  width={400}
-                  title={episode.name}
-                  subtitle={episode.episodeNumber.toString()}
-                  action={function (): void {
-                    throw new Error('Function not implemented.')
-                  }}
-                  menu={getEpisodeMenu(episode)}
-                />
-              ))
-            : null}
-        </Grid>
-      ) : (
-        <FlexBox direction="column" gap={0.5}>
-          {selectedSeason
-            ? selectedSeason.episodes.map((episode) => (
-                <FlexBox justify="space-between" align="center" gap={2}>
-                  <Card
-                    itemKey={episode.id}
-                    imgSrc={episode.imgSrc}
-                    aspectRatio={16 / 9}
-                    width={400}
-                    title=""
-                    subtitle=""
-                    action={() => {
-                      selectEpisode(episode)
-                      navigate({ to: '/video-player' })
-                    }}
-                    hideButtons
-                  />
-                  <FlexBox direction="column">
-                    <span>{episode.name}</span>
-                    <span>{episode.episodeNumber}</span>
-                    <span>{episode.overview}</span>
-                  </FlexBox>
-                </FlexBox>
-              ))
-            : null}
-        </FlexBox>
-      )}
+      {selectedSeason &&
+        selectedSeason.episodes &&
+        selectedSeason.episodes.length > 1 && (
+          <>
+            {distribution === 0 ? (
+              <Grid
+                columns="repeat(auto-fill, minmax(400px, 1fr))"
+                gap="1rem"
+                width="100%"
+              >
+                {selectedSeason
+                  ? selectedSeason.episodes.map((episode) => (
+                      <Card
+                        itemKey={episode.id}
+                        imgSrc={episode.imgSrc}
+                        aspectRatio={16 / 9}
+                        width={400}
+                        title={episode.name}
+                        subtitle={`${t('episode')} ${episode.episodeNumber.toString()}`}
+                        action={function (): void {
+                          throw new Error('Function not implemented.')
+                        }}
+                        menu={getEpisodeMenu(episode)}
+                      />
+                    ))
+                  : null}
+              </Grid>
+            ) : (
+              <FlexBox direction="column" gap={0.5}>
+                {selectedSeason
+                  ? selectedSeason.episodes.map((episode) => (
+                      <FlexBox justify="space-between" align="center" gap={2}>
+                        <Card
+                          itemKey={episode.id}
+                          imgSrc={episode.imgSrc}
+                          aspectRatio={16 / 9}
+                          width={400}
+                          title=""
+                          subtitle=""
+                          action={() => {
+                            selectEpisode(episode)
+                            navigate({
+                              to: '/video-player/$libraryId/$seriesId/$seasonId/$episodeId',
+                              params: {
+                                libraryId: selectedLibrary.id,
+                                seriesId: selectedSeries.id,
+                                seasonId: selectedSeason.id,
+                                episodeId: episode.id,
+                              },
+                            })
+                          }}
+                          hideButtons
+                        />
+                        <FlexBox direction="column">
+                          <span>{episode.name}</span>
+                          <span className="mb-3">{`${t('episode')} ${episode.episodeNumber.toString()}`}</span>
+                          <span>{episode.overview}</span>
+                        </FlexBox>
+                      </FlexBox>
+                    ))
+                  : null}
+              </FlexBox>
+            )}
+          </>
+        )}
     </FlexBox>
   )
 }

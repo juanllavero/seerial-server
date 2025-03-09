@@ -1,22 +1,50 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import FlexBox from '@/components/ui/FlexBox'
 import useDataStore from '@/context/data.context'
-import { useNavigate } from '@tanstack/react-router'
+import { useParams } from '@tanstack/react-router'
 import CollectionCard from './components/CollectionCard'
+import NotFound from '@/components/NotFound'
 
 function CollectionPage() {
-  const { selectedLibrary } = useDataStore()
-  const navigate = useNavigate({ from: '/collection' })
+  const { libraryId } = useParams({ from: '/collection/$libraryId' })
+  const {
+    libraries,
+    selectedLibrary,
+    selectLibrary,
+    selectSeries,
+    selectSeason,
+  } = useDataStore()
+
+  //#region CHECK DATA BEFORE LOAD
+  const library = libraries.find((library) => library.id === libraryId)
+
+  if (libraryId !== selectedLibrary?.id) {
+    if (library) {
+      selectLibrary(library)
+    } else {
+      return <NotFound />
+    }
+  }
 
   if (!selectedLibrary) {
-    navigate({ to: '/' })
-    return null
+    return <NotFound />
   }
+  //#endregion
+
+  // Clear series and season selection on load
+  useEffect(() => {
+    selectSeries(null)
+    selectSeason(null)
+  }, [])
 
   return (
     <FlexBox gap={1} wrap="wrap" padding="8rem 2rem">
       {selectedLibrary.series.map((series) => (
-        <CollectionCard series={series} key={series.id} />
+        <CollectionCard
+          library={selectedLibrary}
+          series={series}
+          key={series.id}
+        />
       ))}
     </FlexBox>
   )

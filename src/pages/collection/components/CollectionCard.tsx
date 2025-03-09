@@ -1,6 +1,6 @@
 import React from 'react'
 import useDataStore from '@/context/data.context'
-import { Season, Series } from '@/data/interfaces/Media'
+import { Library, Season, Series } from '@/data/interfaces/Media'
 import Card from '@/components/cards/Card'
 import { DropdownContent } from '@/data/interfaces/Utils'
 import { ModalWrapper } from '@/components/ModalWrapper'
@@ -9,9 +9,15 @@ import { Button } from '@/components/ui/button'
 import { Pencil } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
 
-function CollectionCard({ series }: { series: Series }) {
-  const navigate = useNavigate({ from: '/collection' })
-  const { selectedLibrary, selectSeries } = useDataStore()
+function CollectionCard({
+  library,
+  series,
+}: {
+  library: Library
+  series: Series
+}) {
+  const navigate = useNavigate()
+  const { selectSeries } = useDataStore()
 
   const content: DropdownContent = {
     items: [
@@ -106,15 +112,14 @@ function CollectionCard({ series }: { series: Series }) {
     <Card
       itemKey={series.id}
       imgSrc={
-        selectedLibrary &&
-        selectedLibrary.type === 'Movies' &&
+        library.type === 'Movies' &&
         !series.isCollection &&
         series.seasons.length > 0
           ? series.seasons[0].coverSrc
           : series.coverSrc
       }
       width={200}
-      aspectRatio={selectedLibrary?.type === 'Music' ? 1 : 2 / 3}
+      aspectRatio={library.type === 'Music' ? 1 : 2 / 3}
       title={series.name}
       subtitle={(() => {
         const minYear = Math.min(
@@ -132,7 +137,10 @@ function CollectionCard({ series }: { series: Series }) {
       cornerData={'22'}
       action={() => {
         selectSeries(series)
-        navigate({ to: '/details' })
+        navigate({
+          to: '/details/$libraryId/$seriesId',
+          params: { libraryId: library.id, seriesId: series.id },
+        })
       }}
       menu={content}
       editModal={
