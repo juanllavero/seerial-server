@@ -1,7 +1,92 @@
 import express from "express";
 const router = express.Router();
-import fs from "fs";
+import fs from "fs-extra";
+import ffmpeg from "fluent-ffmpeg";
 import path from "path";
+
+// Types for resolutions and configurations
+type ResolutionKey = "480p" | "720p" | "1080p" | "4K";
+
+// Valid resolutions and their corresponding heights
+const resolutionMap: Record<string, number> = {
+  "480p": 480,
+  "720p": 720,
+  "1080p": 1080,
+  "4K": 2160,
+};
+
+// Valid bitrate values
+const validBitrates: number[] = [
+  200, 300, 700, 1500, 2000, 3000, 4000, 8000, 10000, 12000, 15000, 20000,
+];
+
+// Endpoint for video streaming
+router.get("/stream-video", (req: any, res: any) => {
+  // Query parameters
+  const videoPath = req.query.path;
+  const videoStart = parseInt(req.query.start) || 0;
+  const audioTrack = parseInt(req.query.audio) || 0;
+  const subtitleTrack = parseInt(req.query.subs) || -1;
+  const quality = req.query.quality || "0";
+  const bitrate = parseInt(req.query.bitrate) || 0;
+
+  // Check if the file exists
+  if (!fs.existsSync(videoPath)) {
+    return res.status(404).json({ error: "Video not found" });
+  }
+
+  // Configure headers for streaming
+  res.setHeader("Content-Type", "video/mp4");
+  res.setHeader("Accept-Ranges", "bytes");
+
+  // Initialize FFmpeg command
+  const ffmpegCommand = ffmpeg(videoPath)
+    .audioCodec("opus")
+    .audioBitrate("128k")
+    .format("mp4");
+
+  // Handle video quality and bitrate
+  const isQualityZero = quality === "0" || quality === 0;
+  const isValidResolution = Object.keys(resolutionMap).includes(quality);
+  const isValidBitrate = validBitrates.includes(bitrate);
+
+  // Compress video track or copy
+  if (isQualityZero || !isValidResolution || !isValidBitrate) {
+    ffmpegCommand.videoCodec("copy");
+  } else {
+    const resolutionHeight = resolutionMap[quality as ResolutionKey];
+    ffmpegCommand
+      .videoCodec("libx264")
+      .videoBitrate(`${bitrate}k`)
+      .size(`?x${resolutionHeight}`)
+      .outputOptions([
+        "-preset veryfast", // Quality preset
+      ]);
+  }
+
+  // Add common output options
+  ffmpegCommand.outputOptions([
+    "-movflags frag_keyframe+empty_moov",
+    `-ss ${videoStart}`,
+    "-map 0:v:0",
+    `-map 0:a:${audioTrack}`,
+    ...(subtitleTrack >= 0 ? [`-map 0:s:${subtitleTrack}`] : ["-sn"]),
+    "-copyts", // Copy original timestamps
+    "-avoid_negative_ts make_zero", // Adjust negative timestamps
+    "-max_muxing_queue_size 1024",
+  ]);
+
+  // Error handling
+  ffmpegCommand.on("error", (err: any) => {
+    console.error("FFmpeg error:", err);
+    if (!res.headersSent) {
+      res.status(500).json({ error: "Error processing the video" });
+    }
+  });
+
+  // Pipe the stream to the response
+  ffmpegCommand.pipe(res, { end: true });
+});
 
 // Get video file in user drive
 router.get("/video-file", (req: any, res: any) => {

@@ -12,32 +12,32 @@ export class WebSocketManager {
   private wss: WebSocketServer;
   private clients: Map<string, Client> = new Map();
 
-  // Constructor que recibe el servidor HTTP
+  // Constructor that receives the HTTP server
   private constructor(server: http.Server) {
-    // Inicializamos WebSocketServer sin puerto específico
+    // Initialize WebSocketServer without specific port
     this.wss = new WebSocketServer({ noServer: true });
 
-    // Asignar la conexión WebSocket cuando el servidor HTTP detecte una actualización (upgrade)
-    server.on('upgrade', (req, socket, head) => {
+    // Handle WebSocket connection when HTTP server detects an upgrade
+    server.on("upgrade", (req, socket, head) => {
       this.wss.handleUpgrade(req, socket, head, (ws) => {
-        this.wss.emit('connection', ws, req);
+        this.wss.emit("connection", ws, req);
       });
     });
 
     console.log(`WebSocket server running using the same HTTP server`);
 
-    // Manejar nuevas conexiones WebSocket
+    // Handle new WebSocket connections
     this.wss.on("connection", (ws: WebSocket) => {
-      // Generar un ID único para cada cliente
+      // Generate a unique ID for each client
       const clientId = this.generateUniqueId();
 
-      // Crear el cliente y añadirlo a la lista de clientes
+      // Create the client and add it to the list of clients
       const client: Client = { id: clientId, socket: ws };
       this.clients.set(clientId, client);
 
       console.log(`Client connected: ${clientId}`);
 
-      // Manejar mensajes recibidos del cliente
+      // Handle messages received from the client
       ws.on("message", (data: string) => {
         console.log(`Received message from client ${clientId}: ${data}`);
         this.broadcast(
@@ -46,7 +46,7 @@ export class WebSocketManager {
         );
       });
 
-      // Manejar la desconexión del cliente
+      // Handle client disconnection
       ws.on("close", () => {
         console.log(`Client disconnected: ${clientId}`);
         this.clients.delete(clientId);
@@ -54,16 +54,16 @@ export class WebSocketManager {
     });
   }
 
-  // Método estático para obtener la única instancia
+  // Static method to get the single instance
   public static getInstance(server?: http.Server): WebSocketManager {
     if (!WebSocketManager.instance && server) {
       WebSocketManager.instance = new WebSocketManager(server);
     }
-    
+
     return WebSocketManager.instance;
   }
 
-  // Método para enviar un mensaje a todos los clientes, excepto al remitente
+  // Method to send a message to all clients, except the sender
   public broadcast(message: string, senderId?: string): void {
     this.clients.forEach((client, clientId) => {
       if (clientId !== senderId) {
@@ -72,7 +72,7 @@ export class WebSocketManager {
     });
   }
 
-  // Método para enviar un mensaje a un cliente específico
+  // Method to send a message to a specific client
   public sendMessageToClient(clientId: string, message: string): void {
     const client = this.clients.get(clientId);
     if (client) {
@@ -82,7 +82,7 @@ export class WebSocketManager {
     }
   }
 
-  // Método para generar un ID único para cada cliente
+  // Method to generate a unique ID for each client
   private generateUniqueId(): string {
     return Math.random().toString(36).substr(2, 9);
   }
