@@ -36,7 +36,7 @@ export const useServerStore = create<ServerState>((set, get) => ({
       ),
     )
 
-    const fetchPromise = fetch(`http://${serverIP}/`).then((res) => res.json())
+    const fetchPromise = fetch(`https://${serverIP}/`).then((res) => res.json())
 
     try {
       const data = await Promise.race([fetchPromise, timeoutPromise])
@@ -58,7 +58,7 @@ export const useServerStore = create<ServerState>((set, get) => ({
 
     set({ gettingApiKeyStatus: true })
 
-    const response = await fetch(`http://${serverIP}/api-key`, {
+    const response = await fetch(`https://${serverIP}/api-key`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ apiKey }),

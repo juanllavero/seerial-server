@@ -67,7 +67,7 @@ export default function BaseLayout({
         style={{
           backgroundImage:
             inDetailsPage && currentBackground
-              ? `url(${currentBackground.startsWith('http') ? getSafeURL(currentBackground) : `http://${serverIP}/${getSafeURL(currentBackground)}`})`
+              ? `url(${currentBackground.startsWith('http') ? getSafeURL(currentBackground) : `https://${serverIP}/${getSafeURL(currentBackground)}`})`
               : 'none',
           opacity: inDetailsPage && currentBackground ? 1 : 0,
         }}
@@ -77,7 +77,7 @@ export default function BaseLayout({
         <div
           className="background-layer fade-in"
           style={{
-            backgroundImage: `url(${selectedSeason.backgroundSrc.startsWith('http') ? getSafeURL(selectedSeason.backgroundSrc) : `http://${serverIP}/${getSafeURL(selectedSeason.backgroundSrc)}`})`,
+            backgroundImage: `url(${selectedSeason.backgroundSrc.startsWith('http') ? getSafeURL(selectedSeason.backgroundSrc) : `https://${serverIP}/${getSafeURL(selectedSeason.backgroundSrc)}`})`,
           }}
         />
       )}

@@ -36,7 +36,7 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
     if (serverIP !== '' && (!libraries || libraries.length === 0)) {
       setLoadingLibraries(true)
 
-      fetchData(`http://${serverIP}/libraries`, (data) => {
+      fetchData(`https://${serverIP}/libraries`, (data) => {
         setLibraries(data)
         setLoadingLibraries(false)
       })
