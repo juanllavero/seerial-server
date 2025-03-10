@@ -12,7 +12,7 @@ interface ServerState {
 }
 
 export const useServerStore = create<ServerState>((set, get) => ({
-  serverIP: '192.168.100.44:34200',
+  serverIP: 'seerial.sirjohn.es',
   serverStatus: true,
   gettingServerStatus: false,
   apiKeyStatus: true,

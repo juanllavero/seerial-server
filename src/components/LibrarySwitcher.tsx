@@ -19,19 +19,26 @@ interface Item {
 
 export function LibrarySwitcher({ libraries }: { libraries: Item[] }) {
   const [activeItem, setActiveItem] = React.useState<Item>(libraries[0])
+  const [isOpen, setIsOpen] = React.useState(false)
 
   const handleItemClick = (item: Item) => {
     setActiveItem(item)
     item.action()
+    setIsOpen(false)
   }
 
   return (
-    <DropdownMenu>
+    <DropdownMenu open={isOpen}>
       <DropdownMenuTrigger asChild>
         <Button
           variant={'ghost'}
           size="lg"
           className="flex w-45 justify-between gap-3 px-1"
+          onMouseEnter={() => setIsOpen(true)}
+          onClick={(e) => {
+            e.preventDefault()
+            activeItem.action()
+          }}
         >
           <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square items-center justify-center rounded-lg">
             <activeItem.logo className="size-5" />
@@ -47,6 +54,8 @@ export function LibrarySwitcher({ libraries }: { libraries: Item[] }) {
         align="start"
         side="bottom"
         sideOffset={4}
+        onMouseEnter={() => setIsOpen(true)}
+        onMouseLeave={() => setIsOpen(false)}
       >
         <DropdownMenuLabel className="text-muted-foreground text-xs">
           Libraries
