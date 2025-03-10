@@ -24,8 +24,8 @@ import { MovieDBWrapper } from "./MovieDB";
 export class FileSearch {
   static BASE_URL: string = "https://image.tmdb.org/t/p/original";
 
-  // Number of threads (2 are already being used by this app, so -4 to leave some space for other apps)
-  static availableThreads = Math.max(os.cpus().length - 4, 1);
+  // Number of threads (1 is already being used by this app)
+  static availableThreads = Math.max(os.cpus().length - 1, 1);
 
   //#region METADATA DOWNLOAD
   public static async scanFiles(
@@ -507,7 +507,13 @@ export class FileSearch {
         show.cast.splice(0, show.cast.length);
 
       credits.cast.forEach((person) => {
-        show.cast?.push(new Cast(person.name, person.character));
+        show.cast?.push(
+          new Cast(
+            person.name,
+            person.character,
+            person.profile_path ? `${this.BASE_URL}${person.profile_path}` : ""
+          )
+        );
       });
     }
 
@@ -979,7 +985,15 @@ export class FileSearch {
           season.cast.splice(0, season.cast.length);
 
         credits.cast.forEach((person) => {
-          season.cast?.push(new Cast(person.name, person.character));
+          season.cast?.push(
+            new Cast(
+              person.name,
+              person.character,
+              person.profile_path
+                ? `${this.BASE_URL}${person.profile_path}`
+                : ""
+            )
+          );
         });
       }
     }

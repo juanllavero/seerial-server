@@ -713,6 +713,12 @@ export class Utils {
     return fs.existsSync(filePath);
   }
 
+  public static createJSONFileIfNotExists(filePath: string, content: any) {
+    if (!this.fileExists(filePath)) {
+      fs.writeFileSync(filePath, JSON.stringify(content));
+    }
+  }
+
   public static getMusicFiles = async (
     folderPath: string
   ): Promise<string[]> => {
