@@ -5,18 +5,22 @@ import './BaseLayout.css'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { useLocation } from '@tanstack/react-router'
+import { ReactUtils } from '@/utils/ReactUtils'
 
 export default function BaseLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const { selectedSeason } = useDataStore()
+  const { selectedSeries, selectedSeason } = useDataStore()
   const { serverIP } = useServerStore()
   const prevBackground = useRef<string | undefined>(undefined)
   const [currentBackground, setCurrentBackground] = useState<
     string | undefined
   >(undefined)
+  const [colorBackground, setColorBackground] = useState<string | undefined>(
+    undefined,
+  )
   const [showNewImage, setShowNewImage] = useState(false)
 
   // Check if current location is details page
@@ -24,6 +28,15 @@ export default function BaseLayout({
   const inDetailsPage = location.pathname.startsWith('/details/')
 
   useEffect(() => {
+    if (selectedSeason && !selectedSeason.backgroundSrc) {
+      ReactUtils.generateGradient(selectedSeries, selectedSeason, serverIP)
+
+      setTimeout(() => {
+        const background = ReactUtils.getGradientBackground()
+        setColorBackground(background)
+      }, 500)
+    }
+
     if (!selectedSeason || !selectedSeason.backgroundSrc) {
       setCurrentBackground(undefined)
       prevBackground.current = undefined
@@ -60,7 +73,13 @@ export default function BaseLayout({
   }
 
   return (
-    <div className="relative">
+    <div
+      className="relative"
+      style={{
+        background:
+          inDetailsPage && !currentBackground ? colorBackground : 'none',
+      }}
+    >
       {/* Imagen actual */}
       <div
         className="background-layer"

@@ -27,10 +27,11 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
   const { serverIP } = useServerStore()
   const { fetchData, isLoading } = useFetch<Library[]>()
 
-  // Check if current location is details page
+  // Checks current page location
   const location = useLocation()
   const inHome = location.pathname === '/'
   const inSettings = location.pathname === '/settings'
+  const inPlayer = location.pathname.startsWith('/video-player')
 
   useEffect(() => {
     if (serverIP !== '' && (!libraries || libraries.length === 0)) {
@@ -54,7 +55,7 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
 
   return (
     <div className={`${isWindows ? 'pt-5' : 'pt-10'} pl-5`}>
-      {router.parseLocation().pathname !== '/video-player' && (
+      {!inPlayer && (
         <Card>
           <CardHeader className="flex flex-row flex-nowrap justify-start p-3">
             {isLoading ? (

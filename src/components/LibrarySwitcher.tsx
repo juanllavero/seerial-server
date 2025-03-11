@@ -27,14 +27,20 @@ export function LibrarySwitcher({ libraries }: { libraries: Item[] }) {
     setIsOpen(false)
   }
 
+  const handleShowDropdown = () => {
+    setTimeout(() => {
+      setIsOpen(true)
+    }, 200)
+  }
+
   return (
     <DropdownMenu open={isOpen}>
       <DropdownMenuTrigger asChild>
         <Button
           variant={'ghost'}
           size="lg"
-          className="flex w-45 justify-between gap-3 px-1"
-          onMouseEnter={() => setIsOpen(true)}
+          className="flex w-45 justify-between gap-3 px-1 focus-visible:ring-0 focus-visible:ring-offset-0"
+          onMouseEnter={handleShowDropdown}
           onClick={(e) => {
             e.preventDefault()
             activeItem.action()
@@ -53,9 +59,12 @@ export function LibrarySwitcher({ libraries }: { libraries: Item[] }) {
         className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
         align="start"
         side="bottom"
-        sideOffset={4}
-        onMouseEnter={() => setIsOpen(true)}
+        sideOffset={0}
+        onMouseEnter={() => {
+          handleShowDropdown()
+        }}
         onMouseLeave={() => setIsOpen(false)}
+        onInteractOutside={() => setIsOpen(false)}
       >
         <DropdownMenuLabel className="text-muted-foreground text-xs">
           Libraries

@@ -28,7 +28,7 @@ function SettingsPage() {
 
   return (
     <FlexBox gap={4} padding="10rem 3rem">
-      <FlexBox direction="column" gap={0.5}>
+      <FlexBox direction="column" gap={0.5} className="min-w-50">
         {/* Client Settings */}
         <span className="text-lg font-semibold">{t('client')}</span>
         <Button
@@ -119,7 +119,7 @@ function SettingsPage() {
           {t('libraries')}
         </Button>
       </FlexBox>
-      <FlexBox>
+      <FlexBox scroll="vertical">
         {currentSection === SettingsSection.ClientGeneral ? (
           <ClientGeneral />
         ) : currentSection === SettingsSection.ClientQuality ? (

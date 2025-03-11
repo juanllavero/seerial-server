@@ -38,6 +38,7 @@
     "@tanstack/router-devtools": "^1.102.5",
     "class-variance-authority": "^0.7.1",
     "embla-carousel-react": "^8.5.2",
+    "extract-colors": "^4.1.1",
     "hls.js": "^1.5.20",
     "i18next": "^24.2.2",
     "lucide-react": "^0.474.0",
