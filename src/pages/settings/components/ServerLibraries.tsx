@@ -1,4 +1,4 @@
-import LabeledInputWrapper from '@/components/form/labeledInputWrapper'
+import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'

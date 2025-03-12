@@ -1,9 +1,9 @@
-import LabeledInputWrapper from '@/components/form/labeledInputWrapper'
+import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
+import { Button } from '@/components/ui/button'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import ContentWrapper from './utils/ContentWrapper'
-import { Button } from '@/components/ui/button'
 
 function ClientQuality() {
   const { t } = useTranslation()

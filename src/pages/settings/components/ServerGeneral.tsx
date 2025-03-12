@@ -1,4 +1,4 @@
-import LabeledInputWrapper from '@/components/form/labeledInputWrapper'
+import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import FlexBox from '@/components/ui/FlexBox'
@@ -22,14 +22,14 @@ function ServerGeneral() {
       </span>
 
       <FlexBox wrap="wrap" gap={2} align="center">
-        <span>Versión 1.41.4.9463</span>
+        <span>{t('version')} 0.02.45</span>
         <Button variant={'secondary'}>
           <CloudDownload className="mr-3" />
-          Buscar actualizaciones
+          {t('searchUpdates')}
         </Button>
         <FlexBox gap={0.5}>
           <Check />
-          <span>Actualizado</span>
+          <span>{t('updated')}</span>
         </FlexBox>
       </FlexBox>
 
