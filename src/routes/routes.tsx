@@ -1,10 +1,10 @@
-import { createRoute } from '@tanstack/react-router'
-import { RootRoute } from './__root'
-import HomePage from '@/pages/home/HomePage'
 import CollectionPage from '@/pages/collection/CollectionPage'
 import DetailsPage from '@/pages/details/DetailsPage'
+import HomePage from '@/pages/home/HomePage'
 import SettingsPage from '@/pages/settings/SettingsPage'
 import VideoPlayerPage from '@/pages/videoPlayer/VideoPlayerPage'
+import { createRoute } from '@tanstack/react-router'
+import { RootRoute } from './__root'
 
 export const HomeRoute = createRoute({
   getParentRoute: () => RootRoute,
