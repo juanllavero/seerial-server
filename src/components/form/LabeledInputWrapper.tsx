@@ -16,11 +16,16 @@ function LabeledInputWrapper({
 }: LabeledInputWrapperProps) {
   return (
     <FlexBox direction="column">
-      <FlexBox direction={direction} align="center" gap={1}>
+      <FlexBox
+        direction={direction}
+        align={direction === 'column' ? 'start' : 'center'}
+        wrap={direction === 'column' ? 'nowrap' : 'wrap'}
+        gap={1}
+      >
         <span>{label}</span>
         {children}
       </FlexBox>
-      <span className="mt-1 ml-2 text-sm" style={{ color: 'lightgray' }}>
+      <span className="mt-2 ml-2 text-sm" style={{ color: 'lightgray' }}>
         {text}
       </span>
     </FlexBox>

@@ -1,3 +1,4 @@
+import { SelectableOption } from '@/data/interfaces/Utils'
 import React from 'react'
 import {
   Select,
@@ -6,7 +7,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from './select'
-import { SelectableOption } from '@/data/interfaces/Utils'
 
 interface SelectableWrapperProps {
   placeholder?: string
@@ -19,7 +19,7 @@ interface SelectableWrapperProps {
 function SelectableWrapper({
   placeholder = '',
   defaultValue,
-  width = 'w-[180px]',
+  width = 'auto',
   onValueChange,
   options,
 }: SelectableWrapperProps) {

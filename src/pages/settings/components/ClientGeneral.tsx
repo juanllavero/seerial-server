@@ -1,17 +1,19 @@
 import LabeledInputWrapper from '@/components/form/labeledInputWrapper'
 import LangToggle from '@/components/LangToggle'
+import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import FlexBox from '@/components/ui/FlexBox'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
+import ContentWrapper from './utils/ContentWrapper'
 
 function ClientGeneral() {
   const { t } = useTranslation()
   const [checked, setChecked] = React.useState(true)
+  const [isDirty, setIsDirty] = React.useState(false)
 
   return (
-    <FlexBox direction="column" gap={1.5}>
+    <ContentWrapper>
       <span className="mb-4 text-3xl font-bold">
         {t('client')} - {t('generalButton')}
       </span>
@@ -35,7 +37,9 @@ function ClientGeneral() {
           onValueChange={function (key: string, value: string): void {}}
         />
       </LabeledInputWrapper>
-    </FlexBox>
+
+      <Button disabled={!isDirty}>{t('saveButton')}</Button>
+    </ContentWrapper>
   )
 }
 
