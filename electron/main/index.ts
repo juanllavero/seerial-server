@@ -1,22 +1,17 @@
-import { nativeImage, app, Tray, Menu } from "electron";
-import path from "path";
-import express from "express";
-import open from "open";
 import cors from "cors";
+import { app, Menu, nativeImage, Tray } from "electron";
+import express from "express";
 import http from "http";
-import * as routes from "../../src/routes/index";
-import { FilesManager } from "../../src/data/utils/FilesManager";
-import { WebSocketManager } from "../../src/data/utils/WebSocketManager";
+import open from "open";
+import path from "path";
 import { fileURLToPath } from "url";
+import { FilesManager } from "../../src/data/utils/FilesManager";
 import { MovieDBWrapper } from "../../src/data/utils/MovieDB";
-import VideoServer from "../../src/data/utils/VideoServer";
+import { WebSocketManager } from "../../src/data/utils/WebSocketManager";
+import * as routes from "../../src/routes/index";
 
 // Get current directory path
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-// Load https certificates
-const keyPath = path.join(__dirname, "certs", "key.pem");
-const certPath = path.join(__dirname, "certs", "cert.pem");
 
 process.env.APP_ROOT = path.join(__dirname, "../../");
 
@@ -55,9 +50,6 @@ export const wsManager = WebSocketManager.getInstance(server);
 server.listen(PORT, () => {
   console.log(`Streaming server running at http://localhost:${PORT}`);
 });
-
-// Initialize video server
-VideoServer.initializeVideoServer(appServer);
 
 // Add all routes
 appServer.use("/", routes.folderRoutes);
