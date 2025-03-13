@@ -1,14 +1,14 @@
+import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import ClientGeneral from './components/ClientGeneral'
-import ClientQuality from './components/ClientQuality'
 import ClientPlayer from './components/ClientPlayer'
+import ClientQuality from './components/ClientQuality'
 import ServerGeneral from './components/ServerGeneral'
 import ServerLanguages from './components/ServerLanguages'
-import ServerTranscode from './components/ServerTranscode'
 import ServerLibraries from './components/ServerLibraries'
-import { Button } from '@/components/ui/button'
+import ServerTranscode from './components/ServerTranscode'
 
 enum SettingsSection {
   ClientGeneral = 1,

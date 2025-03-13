@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { CSSProperties } from 'react'
 
 interface FlexBoxProps {
   children: React.ReactNode
@@ -23,6 +23,7 @@ interface FlexBoxProps {
   hideScrollbar?: boolean
   className?: string
   ref?: React.Ref<HTMLDivElement>
+  css?: CSSProperties
   onMouseEnter?: (e?: React.MouseEvent) => void
   onMouseLeave?: (e?: React.MouseEvent) => void
   onMouseDown?: (e?: React.MouseEvent) => void
@@ -46,6 +47,7 @@ function FlexBox({
   scroll,
   hideScrollbar,
   ref,
+  css,
   onMouseEnter,
   onMouseLeave,
   onMouseDown,
@@ -67,6 +69,7 @@ function FlexBox({
         gap: gap + 'rem',
         padding: padding,
         margin: margin,
+        ...css,
       }}
       onClick={onClick}
       onMouseEnter={onMouseEnter}

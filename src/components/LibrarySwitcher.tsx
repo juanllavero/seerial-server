@@ -1,5 +1,5 @@
-import * as React from 'react'
 import { ChevronsUpDown, Plus } from 'lucide-react'
+import * as React from 'react'
 
 import {
   DropdownMenu,
@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useDialogStore } from '@/context/dialog.context'
 import { Button } from './ui/button'
 
 interface Item {
@@ -18,6 +19,7 @@ interface Item {
 }
 
 export function LibrarySwitcher({ libraries }: { libraries: Item[] }) {
+  const { openLibraryDialog } = useDialogStore()
   const [activeItem, setActiveItem] = React.useState<Item>(libraries[0])
   const [isOpen, setIsOpen] = React.useState(false)
 
@@ -82,7 +84,10 @@ export function LibrarySwitcher({ libraries }: { libraries: Item[] }) {
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="gap-2 p-2">
+        <DropdownMenuItem
+          className="gap-2 p-2"
+          onClick={() => openLibraryDialog()}
+        >
           <div className="bg-background flex size-6 items-center justify-center rounded-md border">
             <Plus className="size-4" />
           </div>

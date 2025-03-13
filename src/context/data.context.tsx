@@ -1,4 +1,4 @@
-import { Library, Series, Season, Episode } from '@/data/interfaces/Media'
+import { Episode, Library, Season, Series } from '@/data/interfaces/Media'
 import { create } from 'zustand'
 
 interface DataState {
@@ -9,7 +9,7 @@ interface DataState {
   selectedSeason: Season | null
   selectedEpisode: Episode | null
 
-  // Funciones de selección
+  // GET
   setLibraries: (libraries: Library[]) => void
   selectLibrary: (library: Library | null) => void
   selectSeries: (series: Series | null) => void
@@ -17,7 +17,46 @@ interface DataState {
   selectEpisode: (episode: Episode | null) => void
   setLoadingLibraries: (loading: boolean) => void
 
-  // Nueva función para modificar un episodio seleccionado
+  //POST
+  addLibrary: (library: Library) => void
+  addSeries: (payload: { libraryId: string; series: Series }) => void
+  addSeason: (payload: { libraryId: string; season: Season }) => void
+  addEpisode: (payload: {
+    libraryId: string
+    showId: string
+    episode: Episode
+  }) => void
+
+  // PUT
+  updateLibrary: (payload: Library) => void
+  updateSeries: (payload: { libraryId: string; series: Series }) => void
+  updateSeason: (payload: Season) => void
+  updateEpisode: (payload: {
+    libraryId: string
+    showId: string
+    episode: Episode
+  }) => void
+
+  // Utils
+  setSeasonWatched: (payload: {
+    libraryId: string
+    seriesId: string
+    seasonId: string
+    watched: boolean
+  }) => void
+  setSeriesWatched: (payload: {
+    libraryId: string
+    seriesId: string
+    watched: boolean
+  }) => void
+  markEpisodeWatched: (payload: {
+    libraryId: string
+    seriesId: string
+    seasonId: string
+    episodeId: string
+    watched: boolean
+  }) => void
+
   updateSelectedEpisode: (updatedData: Partial<Episode>) => void
 }
 
@@ -31,6 +70,17 @@ const useDataStore = create<DataState>((set) => ({
   selectedEpisode: null,
 
   setLoadingLibraries: (loading) => set({ loadingLibraries: loading }),
+
+  addLibrary: (library: Library) =>
+    set((store) => {
+      return {
+        libraries: [...store.libraries, library],
+        selectedLibrary: library,
+        selectedSeries: null,
+        selectedSeason: null,
+        selectedEpisode: null,
+      }
+    }),
 
   selectLibrary: (library) =>
     set({

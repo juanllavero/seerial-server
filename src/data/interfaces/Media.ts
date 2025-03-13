@@ -1,4 +1,4 @@
-import { MediaInfo, VideoTrack, AudioTrack, SubtitleTrack } from './MediaInfo'
+import { AudioTrack, MediaInfo, SubtitleTrack, VideoTrack } from './MediaInfo'
 import { Cast, Chapter } from './Metadata'
 
 export interface Library {

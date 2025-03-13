@@ -1,17 +1,20 @@
-import React, { useEffect, useRef, useState } from 'react'
+import DialogManager from '@/components/dialogs/DialogManager'
 import DragWindowRegion from '@/components/DragWindowRegion'
+import useDataStore from '@/context/data.context'
+import { useDeviceStore } from '@/context/device.context'
+import { useServerStore } from '@/context/server.context'
+import { ReactUtils } from '@/utils/ReactUtils'
+import { useLocation } from '@tanstack/react-router'
+import React, { useEffect, useRef, useState } from 'react'
 import '../styles/utils.css'
 import './BaseLayout.css'
-import useDataStore from '@/context/data.context'
-import { useServerStore } from '@/context/server.context'
-import { useLocation } from '@tanstack/react-router'
-import { ReactUtils } from '@/utils/ReactUtils'
 
 export default function BaseLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const { initializeDeviceDetection, isMobile } = useDeviceStore()
   const { selectedSeries, selectedSeason } = useDataStore()
   const { serverIP } = useServerStore()
   const prevBackground = useRef<string | undefined>(undefined)
@@ -26,6 +29,11 @@ export default function BaseLayout({
   // Check if current location is details page
   const location = useLocation()
   const inDetailsPage = location.pathname.startsWith('/details/')
+
+  // Check if the user device is mobile phone or window size is small
+  useEffect(() => {
+    initializeDeviceDetection()
+  }, [])
 
   useEffect(() => {
     if (selectedSeason && !selectedSeason.backgroundSrc) {
@@ -100,6 +108,9 @@ export default function BaseLayout({
           }}
         />
       )}
+
+      {/* Load All Dialogs */}
+      {!isMobile && <DialogManager />}
 
       <DragWindowRegion />
       <main className="h-screen w-screen">{children}</main>

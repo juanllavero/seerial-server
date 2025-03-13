@@ -1,4 +1,3 @@
-import React, { ReactNode, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -9,6 +8,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import React, { ReactNode, useState } from 'react'
 
 interface TabContent {
   title: string
@@ -19,7 +19,10 @@ interface ModalWrapperProps {
   title: string
   hideButtons?: boolean
   tabs: TabContent[]
-  button: ReactNode
+  button?: ReactNode
+  isOpen?: boolean
+  close?: () => void
+  openDialog?: () => void
 }
 
 export function ModalWrapper({
@@ -27,19 +30,34 @@ export function ModalWrapper({
   tabs,
   hideButtons,
   button,
+  isOpen,
+  close,
+  openDialog,
 }: ModalWrapperProps) {
   const [open, setOpen] = useState(false)
+  const dialogRef = React.useRef(null)
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{button}</DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+    <Dialog
+      open={isOpen ?? open}
+      onOpenChange={(newOpen) => {
+        setOpen(newOpen)
+
+        if (newOpen && openDialog) {
+          openDialog()
+        } else if (!newOpen && close) {
+          close()
+        }
+      }}
+    >
+      {button && <DialogTrigger asChild>{button}</DialogTrigger>}
+      <DialogContent ref={dialogRef} className="h-fit w-fit">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         {tabs && tabs.length > 1 ? (
           <Tabs defaultValue="tab1" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="mt-2 grid w-full grid-cols-3">
               {tabs.map((tab) => (
                 <TabsTrigger key={'Tab' + tab.title} value={tab.title}>
                   {tab.title}
@@ -61,10 +79,29 @@ export function ModalWrapper({
         ) : null}
         {!hideButtons && (
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (close) {
+                  close()
+                } else {
+                  setOpen(false)
+                }
+              }}
+            >
               Cerrar
             </Button>
-            <Button onClick={() => setOpen(false)}>Aceptar</Button>
+            <Button
+              onClick={() => {
+                if (close) {
+                  close()
+                } else {
+                  setOpen(false)
+                }
+              }}
+            >
+              Aceptar
+            </Button>
           </DialogFooter>
         )}
       </DialogContent>
