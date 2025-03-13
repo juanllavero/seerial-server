@@ -1,5 +1,6 @@
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import Loading from '@/components/Loading'
+import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
 import { useServerStore } from '@/context/server.context'
@@ -9,12 +10,14 @@ import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 interface FoldersDialogContentProps {
+  folders: string[]
   setFolders: (folders: string[]) => void
+  close: () => void
 }
 
 type Folder = { name: string; isFolder: boolean }
 
-function FoldersDialogContent({ setFolders }: FoldersDialogContentProps) {
+function FoldersDialogContent({ folders, setFolders, close }: FoldersDialogContentProps) {
   const { t } = useTranslation()
   const { serverIP } = useServerStore()
   const { fetchData, isLoading } = useFetch()
@@ -132,6 +135,14 @@ function FoldersDialogContent({ setFolders }: FoldersDialogContentProps) {
     return parts.pop()
   }
 
+  const handleAddFolder = () => {
+    if (currentPath && currentPath !== '' && !folders.includes(currentPath)) {
+      setFolders([...folders, currentPath])
+    }
+
+    close()
+  }
+
   return (
     <FlexBox direction="column" gap={1} width={'30rem'} height={'30rem'}>
       <FlexBox width={'100%'}>
@@ -170,6 +181,10 @@ function FoldersDialogContent({ setFolders }: FoldersDialogContentProps) {
         >
           {currentPath && renderFolderContent()}
         </FlexBox>
+      </FlexBox>
+      <FlexBox width={'100%'} justify="end" gap={1}>
+        <Button variant={'secondary'} onClick={close}>{t('cancelButton')}</Button>
+        <Button onClick={handleAddFolder}>{t('addButton')}</Button>
       </FlexBox>
     </FlexBox>
   )

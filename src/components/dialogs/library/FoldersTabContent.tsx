@@ -5,11 +5,13 @@ import React, { useState } from 'react'
 import FolderButton from './FolderButton'
 import FoldersDialog from './folders/FoldersDialog'
 
-function FoldersTabContent() {
-  const [folders, setFolders] = useState<string[]>([
-    'C:/user/content/example',
-    'C:/user/content/example/extended',
-  ])
+interface FoldersTabContentProps {
+  folders: string[]
+  setFolders: (folders: string[]) => void
+}
+
+function FoldersTabContent({ folders, setFolders }: FoldersTabContentProps) {
+  const [isOpen, setIsOpen] = useState(false)
 
   const handleRemoveFolder = (folder: string) => {
     setFolders([...folders.filter((elem) => elem !== folder)])
@@ -38,9 +40,13 @@ function FoldersTabContent() {
             <></>
           )}
         </FlexBox>
+
+        <Button onClick={() => setIsOpen(true)}>{t('addFolder')}</Button>
         <FoldersDialog
+          folders={folders}
+          isOpen={isOpen}
+          close={() => setIsOpen(false)}
           setFolders={setFolders}
-          trigger={<Button>{t('addFolder')}</Button>}
         />
       </FlexBox>
 

@@ -2,13 +2,24 @@ import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
-import React, { useState } from 'react'
+import React from 'react'
 import { useTranslation } from 'react-i18next'
 import LibraryTypeButton from './LibraryTypeButton'
+import ISO6391 from 'iso-639-1'
+import SelectableWrapper from '@/components/ui/SelectableWrapper'
+import { themdbLanguages } from '@/utils/TheMovieDBLanguages'
 
-function GeneralTabContent() {
+interface GeneralTabContentProps {
+  type: string | undefined
+  setType: (type: string | undefined) => void
+  name: string
+  setName: (name: string) => void
+  setLanguage: (language: string | undefined) => void
+}
+
+function GeneralTabContent({ type, setType, name, setName, setLanguage }: GeneralTabContentProps) {
   const { t } = useTranslation()
-  const [selectedType, setSelectedType] = useState<string | undefined>()
+  const currentLanguage = ISO6391.getCode(localStorage.getItem('i18nextLng')?.split('-')[0] ?? 'en') ?? 'en'
 
   return (
     <FlexBox
@@ -22,32 +33,48 @@ function GeneralTabContent() {
         <span>{t('type')}</span>
         <FlexBox>
           <LibraryTypeButton
-            selectedType={selectedType}
+            selectedType={type}
             type="Movies"
-            onClick={() => setSelectedType('Movies')}
+            onClick={() =>{
+              setType('Movies')
+              setName(t('movies'))
+            }}
           />
 
           <LibraryTypeButton
-            selectedType={selectedType}
+            selectedType={type}
             type="Shows"
-            onClick={() => setSelectedType('Shows')}
+            onClick={() =>{
+              setType('Shows')
+              setName(t('shows'))
+            }}
           />
 
           <LibraryTypeButton
-            selectedType={selectedType}
+            selectedType={type}
             type="Music"
-            onClick={() => setSelectedType('Music')}
+            onClick={() => {
+              setType('Music')
+              setName(t('music'))
+            }}
           />
         </FlexBox>
 
-        {selectedType && (
+        {type && (
           <FlexBox gap={1} margin="1rem 0 0 0">
             <LabeledInputWrapper label={t('name')}>
-              <Input type="text" />
+              <Input type="text" value={name} onChange={(e) => setName(e.target.value)} />
             </LabeledInputWrapper>
 
             <LabeledInputWrapper label={t('languageText')}>
-              <Input type="text" />
+              <SelectableWrapper
+                defaultValue={currentLanguage}
+                onValueChange={(_key: string, value: string) => setLanguage(value)}
+                options={themdbLanguages.map((language) => ({
+                  key: language.iso_639_1,
+                  value: ISO6391.getNativeName(language.iso_639_1) || language.iso_639_1
+                }))}
+              />
             </LabeledInputWrapper>
           </FlexBox>
         )}

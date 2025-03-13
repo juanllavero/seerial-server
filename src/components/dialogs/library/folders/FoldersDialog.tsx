@@ -4,11 +4,13 @@ import { useTranslation } from 'react-i18next'
 import FoldersDialogContent from './FoldersDialogContent'
 
 interface FoldersDialogProps {
+  folders: string[]
   setFolders: (folders: string[]) => void
-  trigger: React.ReactNode
+  isOpen: boolean
+  close: () => void
 }
 
-function FoldersDialog({ trigger, setFolders }: FoldersDialogProps) {
+function FoldersDialog({ folders, setFolders, isOpen, close }: FoldersDialogProps) {
   const { t } = useTranslation()
 
   return (
@@ -17,10 +19,12 @@ function FoldersDialog({ trigger, setFolders }: FoldersDialogProps) {
       tabs={[
         {
           title: '',
-          content: <FoldersDialogContent setFolders={setFolders} />,
+          content: <FoldersDialogContent folders={folders} setFolders={setFolders} close={close} />,
         },
       ]}
-      button={trigger}
+      isOpen={isOpen}
+      close={close}
+      hideButtons
     />
   )
 }

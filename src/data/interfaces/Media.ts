@@ -14,6 +14,9 @@ export interface Library {
   analyzedFiles: unknown
   analyzedFolders: unknown
   seasonFolders: unknown
+  preferAudioLan: string | undefined
+  preferSubLan: string | undefined
+  subsMode: string | undefined
 }
 
 export interface Series {

@@ -6,7 +6,16 @@ import ISO6391 from 'iso-639-1'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-function AdvancedTabContent() {
+interface AdvancedTabContentProps {
+  preferAudioLan: string | undefined
+  setPreferAudioLan: (language: string | undefined) => void
+  preferSubLan: string | undefined
+  setPreferSubLan: (language: string | undefined) => void
+  subsMode: string | undefined
+  setSubsMode: (mode: string | undefined) => void
+}
+
+function AdvancedTabContent({ preferAudioLan, setPreferAudioLan, preferSubLan, setPreferSubLan, subsMode, setSubsMode }: AdvancedTabContentProps) {
   const { t } = useTranslation()
   const languageCodes = ISO6391.getAllCodes()
 
@@ -42,24 +51,24 @@ function AdvancedTabContent() {
         <LabeledInputWrapper direction="row" label={t('preferAudio')}>
           <SelectableWrapper
             options={languagesOptions}
-            defaultValue={languagesOptions[0].value}
-            onValueChange={function (key: string, value: string): void {}}
+            defaultValue={preferAudioLan ?? ''}
+            onValueChange={(_key: string, value: string) => setPreferAudioLan(value)}
           />
         </LabeledInputWrapper>
 
         <LabeledInputWrapper direction="row" label={t('subsMode')}>
           <SelectableWrapper
             options={subtitleModeOptions}
-            defaultValue={subtitleModeOptions[0].value}
-            onValueChange={function (key: string, value: string): void {}}
+            defaultValue={subsMode ?? ''}
+            onValueChange={(_key: string, value: string) => setSubsMode(value)}
           />
         </LabeledInputWrapper>
 
         <LabeledInputWrapper direction="row" label={t('preferSubs')}>
           <SelectableWrapper
             options={languagesOptions}
-            defaultValue={languagesOptions[0].value}
-            onValueChange={function (key: string, value: string): void {}}
+            defaultValue={preferSubLan ?? ''}
+            onValueChange={(_key: string, value: string) => setPreferSubLan(value)}
           />
         </LabeledInputWrapper>
       </FlexBox>
