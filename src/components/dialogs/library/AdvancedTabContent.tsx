@@ -2,8 +2,10 @@ import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
+import { useServerStore } from '@/context/server.context'
+import { useSettingsStore } from '@/context/settings.context'
 import ISO6391 from 'iso-639-1'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
 interface AdvancedTabContentProps {
@@ -13,10 +15,16 @@ interface AdvancedTabContentProps {
   setPreferSubLan: (language: string | undefined) => void
   subsMode: string | undefined
   setSubsMode: (mode: string | undefined) => void
+  buttonDisabled: boolean
+  handleAddLibrary: () => void
+  close: () => void
 }
 
-function AdvancedTabContent({ preferAudioLan, setPreferAudioLan, preferSubLan, setPreferSubLan, subsMode, setSubsMode }: AdvancedTabContentProps) {
-  const { t } = useTranslation()
+function AdvancedTabContent({ preferAudioLan, setPreferAudioLan, preferSubLan, setPreferSubLan, subsMode, setSubsMode, buttonDisabled, handleAddLibrary, close }: AdvancedTabContentProps) {
+  const { t, i18n } = useTranslation()
+  const { serverIP } = useServerStore()
+  const { getServerSetting } = useSettingsStore()
+  const currentLanguage = i18n.language?.split('-')[0] ?? 'en'
   const languageCodes = ISO6391.getAllCodes()
 
   const languagesOptions = languageCodes.map((code) => ({
@@ -38,6 +46,34 @@ function AdvancedTabContent({ preferAudioLan, setPreferAudioLan, preferSubLan, s
       value: t('alwaysSubs'),
     },
   ]
+
+  const getPrefAudioLan = async () => {
+    const prefAudio = await getServerSetting(serverIP, 'preferAudioLan', currentLanguage)
+    return ISO6391.getNativeName(prefAudio.split('-')[0]) || currentLanguage
+  }
+
+  const getPrefSubLan = async () => {
+    const prefSub = await getServerSetting(serverIP, 'preferSubsLan', currentLanguage)
+    return ISO6391.getNativeName(prefSub.split('-')[0]) || currentLanguage
+  }
+
+  const getSubsMode = async () => {
+    const subs = await getServerSetting(serverIP, 'subsMode', 'autoSubs')
+    return t(subs)
+  }
+
+  useEffect(() => {
+    const setValues = async () => {
+      const prefAudio = await getPrefAudioLan()
+      setPreferAudioLan(prefAudio)
+      const subs = await getSubsMode()
+      setSubsMode(subs)
+      const prefSub = await getPrefSubLan()
+      setPreferSubLan(prefSub)
+    }
+
+    setValues()
+  }, [serverIP])
 
   return (
     <FlexBox
@@ -74,8 +110,8 @@ function AdvancedTabContent({ preferAudioLan, setPreferAudioLan, preferSubLan, s
       </FlexBox>
 
       <FlexBox width={'100%'} justify="end" gap={1}>
-        <Button variant={'secondary'}>{t('cancelButton')}</Button>
-        <Button>{t('next')}</Button>
+        <Button variant={'secondary'} onClick={close}>{t('cancelButton')}</Button>
+        <Button onClick={handleAddLibrary} disabled={buttonDisabled}>{t('addButton')}</Button>
       </FlexBox>
     </FlexBox>
   )

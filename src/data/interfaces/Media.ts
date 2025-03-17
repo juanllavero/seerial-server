@@ -9,11 +9,10 @@ export interface Library {
   isCollection: boolean
   order: number
   folders: string[]
-  showOnFullscreen: boolean
   series: Series[]
-  analyzedFiles: unknown
-  analyzedFolders: unknown
-  seasonFolders: unknown
+  analyzedFiles: any
+  analyzedFolders: any
+  seasonFolders: any
   preferAudioLan: string | undefined
   preferSubLan: string | undefined
   subsMode: string | undefined

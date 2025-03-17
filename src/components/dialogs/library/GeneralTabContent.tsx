@@ -2,7 +2,7 @@ import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import LibraryTypeButton from './LibraryTypeButton'
 import ISO6391 from 'iso-639-1'
@@ -15,11 +15,21 @@ interface GeneralTabContentProps {
   name: string
   setName: (name: string) => void
   setLanguage: (language: string | undefined) => void
+  selectTab: (tab: string) => void
+  close: () => void
 }
 
-function GeneralTabContent({ type, setType, name, setName, setLanguage }: GeneralTabContentProps) {
-  const { t } = useTranslation()
-  const currentLanguage = ISO6391.getCode(localStorage.getItem('i18nextLng')?.split('-')[0] ?? 'en') ?? 'en'
+function GeneralTabContent({ type, setType, name, setName, setLanguage, selectTab, close }: GeneralTabContentProps) {
+  const { t, i18n } = useTranslation()
+  const currentLanguage = i18n.language?.split('-')[0] ?? 'en'
+
+  useEffect(() => {
+    setLanguage(currentLanguage)
+  }, [currentLanguage])
+
+  const handleButton = () => {
+    selectTab(t('folders'))
+  }
 
   return (
     <FlexBox
@@ -68,7 +78,7 @@ function GeneralTabContent({ type, setType, name, setName, setLanguage }: Genera
 
             <LabeledInputWrapper label={t('languageText')}>
               <SelectableWrapper
-                defaultValue={currentLanguage}
+                defaultValue={ISO6391.getNativeName(currentLanguage) || currentLanguage}
                 onValueChange={(_key: string, value: string) => setLanguage(value)}
                 options={themdbLanguages.map((language) => ({
                   key: language.iso_639_1,
@@ -81,8 +91,8 @@ function GeneralTabContent({ type, setType, name, setName, setLanguage }: Genera
       </FlexBox>
 
       <FlexBox width={'100%'} justify="end" gap={1}>
-        <Button variant={'secondary'}>{t('cancelButton')}</Button>
-        <Button>{t('next')}</Button>
+        <Button variant={'secondary'} onClick={close}>{t('cancelButton')}</Button>
+        <Button onClick={handleButton} disabled={!type}>{t('next')}</Button>
       </FlexBox>
     </FlexBox>
   )

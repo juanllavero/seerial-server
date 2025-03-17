@@ -8,6 +8,7 @@ import { useLocation } from '@tanstack/react-router'
 import React, { useEffect, useRef, useState } from 'react'
 import '../styles/utils.css'
 import './BaseLayout.css'
+import WebSocketMessageHandler from '@/components/utils/WebSocketMessageHandler'
 
 export default function BaseLayout({
   children,
@@ -111,6 +112,9 @@ export default function BaseLayout({
 
       {/* Load All Dialogs */}
       {!isMobile && <DialogManager />}
+
+      {/* WebSocket Message Handler */}
+      <WebSocketMessageHandler />
 
       <DragWindowRegion />
       <main className="h-screen w-screen">{children}</main>

@@ -81,6 +81,7 @@ function SeasonsContent() {
         {selectedLibrary.type !== 'Music' && !onlyMovie && (
           <SelectableWrapper
             defaultValue={'Cuadrícula'}
+            width='w-fit'
             options={[
               {
                 key: '0',
@@ -112,10 +113,20 @@ function SeasonsContent() {
                         imgSrc={episode.imgSrc}
                         aspectRatio={16 / 9}
                         width={400}
+                        progress={((episode.timeWatched / episode.runtimeInSeconds) * 100) > 0 ? (episode.timeWatched / episode.runtimeInSeconds) * 100 : undefined}
                         title={episode.name}
                         subtitle={`${t('episode')} ${episode.episodeNumber.toString()}`}
-                        action={function (): void {
-                          throw new Error('Function not implemented.')
+                        action={() => {
+                          selectEpisode(episode)
+                          navigate({
+                            to: '/video-player/$libraryId/$seriesId/$seasonId/$episodeId',
+                            params: {
+                              libraryId: selectedLibrary.id,
+                              seriesId: selectedSeries.id,
+                              seasonId: selectedSeason.id,
+                              episodeId: episode.id,
+                            },
+                          })
                         }}
                         menu={getEpisodeMenu(episode)}
                       />
@@ -132,6 +143,7 @@ function SeasonsContent() {
                           imgSrc={episode.imgSrc}
                           aspectRatio={16 / 9}
                           width={400}
+                          progress={((episode.timeWatched / episode.runtimeInSeconds) * 100) > 0 ? (episode.timeWatched / episode.runtimeInSeconds) * 100 : undefined}
                           title=""
                           subtitle=""
                           action={() => {

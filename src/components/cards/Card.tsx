@@ -9,6 +9,7 @@ import FlexBox from '../ui/FlexBox'
 import './Card.css'
 import Loading from '../Loading'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
+import { Progress } from '../ui/progress'
 
 interface CardProps {
   itemKey: string
@@ -25,6 +26,7 @@ interface CardProps {
   cornerData?: string
   centerText?: boolean
   hidePlayButton?: boolean
+  progress?: number
 }
 
 function Card({
@@ -42,6 +44,7 @@ function Card({
   cornerData,
   centerText,
   hidePlayButton,
+  progress
 }: CardProps) {
   return (
     <FlexBox
@@ -54,6 +57,13 @@ function Card({
       onClick={action}
     >
       <div className={`card ${loading ? 'loading' : ''}`}>
+        {
+          progress && (
+            <FlexBox className="progress" justify="end" align="end" width="100%" height={'100%'}>
+          <Progress value={35} className='rounded-xs'/>
+        </FlexBox>
+          )
+        }
         <Grid
           className="card-hover"
           rows="1fr 1fr 1fr"

@@ -26,7 +26,7 @@ export default function LazyImage({
   const { serverIP } = useServerStore()
   const [loaded, setLoaded] = useState(false)
   const [imageSrc, setImageSrc] = useState(
-    url ? (url.startsWith('http') ? url : `https://${serverIP}/${url}`) : src,
+    url ? (url.startsWith('http2') ? url : `https://${serverIP}/${url}`) : src,
   )
 
   return (

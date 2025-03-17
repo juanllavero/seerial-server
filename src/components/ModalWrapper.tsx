@@ -8,10 +8,11 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import React, { ReactNode, useState } from 'react'
+import React, { ReactNode } from 'react'
 
 interface TabContent {
   title: string
+  disabled?: boolean
   content: ReactNode | ReactNode[]
 }
 
@@ -23,6 +24,8 @@ interface ModalWrapperProps {
   isOpen?: boolean
   close?: () => void
   openDialog?: () => void
+  activeTab?: string
+  onTabChange?: (tab: string) => void
 }
 
 export function ModalWrapper({
@@ -33,16 +36,30 @@ export function ModalWrapper({
   isOpen,
   close,
   openDialog,
+  activeTab,
+  onTabChange,
 }: ModalWrapperProps) {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = React.useState(false)
   const dialogRef = React.useRef(null)
+
+  const [internalActiveTab, setInternalActiveTab] = React.useState(tabs[0]?.title || 'tab1')
+  const currentTab = activeTab !== undefined ? activeTab : internalActiveTab
+
+  const handleTabChange = (newTab: string) => {
+    if (onTabChange) {
+      onTabChange(newTab)
+    }
+
+    if (activeTab === undefined) {
+      setInternalActiveTab(newTab)
+    }
+  }
 
   return (
     <Dialog
       open={isOpen ?? open}
       onOpenChange={(newOpen) => {
         setOpen(newOpen)
-
         if (newOpen && openDialog) {
           openDialog()
         } else if (!newOpen && close) {
@@ -56,10 +73,14 @@ export function ModalWrapper({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         {tabs && tabs.length > 1 ? (
-          <Tabs defaultValue="tab1" className="w-full">
+          <Tabs
+            value={currentTab} // Controlar la tab activa
+            onValueChange={handleTabChange} // Manejar cambios de tab
+            className="w-full"
+          >
             <TabsList className="mt-2 grid w-full grid-cols-3">
               {tabs.map((tab) => (
-                <TabsTrigger key={'Tab' + tab.title} value={tab.title}>
+                <TabsTrigger key={'Tab' + tab.title} value={tab.title} disabled={tab.disabled}>
                   {tab.title}
                 </TabsTrigger>
               ))}

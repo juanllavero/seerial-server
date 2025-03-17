@@ -8,9 +8,12 @@ import FoldersDialog from './folders/FoldersDialog'
 interface FoldersTabContentProps {
   folders: string[]
   setFolders: (folders: string[]) => void
+  close: () => void
+  buttonDisabled: boolean
+  handleAddLibrary: () => void
 }
 
-function FoldersTabContent({ folders, setFolders }: FoldersTabContentProps) {
+function FoldersTabContent({ folders, setFolders, close, buttonDisabled, handleAddLibrary }: FoldersTabContentProps) {
   const [isOpen, setIsOpen] = useState(false)
 
   const handleRemoveFolder = (folder: string) => {
@@ -51,8 +54,8 @@ function FoldersTabContent({ folders, setFolders }: FoldersTabContentProps) {
       </FlexBox>
 
       <FlexBox width={'100%'} justify="end" gap={1}>
-        <Button variant={'secondary'}>{t('cancelButton')}</Button>
-        <Button>{t('next')}</Button>
+        <Button variant={'secondary'} onClick={close}>{t('cancelButton')}</Button>
+        <Button onClick={handleAddLibrary} disabled={buttonDisabled}>{t('addButton')}</Button>
       </FlexBox>
     </FlexBox>
   )

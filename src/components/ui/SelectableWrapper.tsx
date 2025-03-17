@@ -19,12 +19,10 @@ interface SelectableWrapperProps {
 function SelectableWrapper({
   placeholder = '',
   defaultValue,
-  width = 'auto',
+  width = 'w-auto',
   onValueChange,
   options,
 }: SelectableWrapperProps) {
-  const [value, setValue] = React.useState<SelectableOption | null>(null)
-
   const handleValueChange = (value: string) => {
     const selectedOption = options.find((option) => option.value === value)
     if (selectedOption) {
