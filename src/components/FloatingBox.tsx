@@ -132,18 +132,19 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
             )}
 
             {selectedLibrary && (
-              <DropdownWrapper content={getLibraryDrowdown(selectedLibrary)} button={<Button variant={'ghost'}><EllipsisVertical /></Button>} />
+              <DropdownWrapper content={getLibraryDrowdown(selectedLibrary)} button={<Button variant={'ghost'} size={'icon'}><EllipsisVertical /></Button>} />
             )}
 
             {!inHome && (
-              <Button variant="ghost" onClick={() => router.history.back()}>
+              <Button variant="ghost" size={'icon'} onClick={() => router.history.back()}>
                 <ChevronLeft />
               </Button>
             )}
 
             {!inSettings && (
               <Button
-                variant="ghost"
+                variant="ghost" 
+                size={'icon'}
                 onClick={() => navigate({ to: '/settings' })}
               >
                 <Settings />

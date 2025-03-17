@@ -437,7 +437,7 @@ function VideoPlayerPage() {
 
         {/* Video Player */}
         <HTMLVideoPlayer
-          url={`F:\\Anime\\FullMetal Alchemist Brotherhood\\S1\\Fullmetal Alchemist Brotherhood - S01E01 - Fullmetal Alchemist.mkv`}
+          url={episode.videoSrc}
           start={videoStart}
           audioTrack={selectedAudio ? selectedAudio.id - 1 : undefined}
           videoRef={videoRef}

@@ -6,6 +6,7 @@ i18n.use(initReactI18next).init({
   resources: {
     en: {
       translation: {
+        changesSaved: 'Changes saved',
         up: 'Up',
         down: 'Down',
         center: 'Center',
@@ -286,6 +287,7 @@ i18n.use(initReactI18next).init({
     },
     'es-ES': {
       translation: {
+        changesSaved: 'Cambios guardados',
         up: 'Arriba',
         down: 'Abajo',
         center: 'Centro',
@@ -569,6 +571,7 @@ i18n.use(initReactI18next).init({
     },
     'pt-BR': {
       translation: {
+        changesSaved: 'Alterações salvas',
         up: 'Acima',
         down: 'Abaixo',
         center: 'Centro',
@@ -851,6 +854,7 @@ i18n.use(initReactI18next).init({
     },
     'pt-PT': {
       translation: {
+        changesSaved: 'Alterações guardadas',
         up: 'Acima',
         down: 'Abaixo',
         center: 'Centro',
@@ -1133,6 +1137,7 @@ i18n.use(initReactI18next).init({
     },
     'zh-CN': {
       translation: {
+        changesSaved: '更改已保存',
         up: '上',
         down: '下',
         center: '中心',
@@ -1404,6 +1409,7 @@ i18n.use(initReactI18next).init({
     },
     'zh-TW': {
       translation: {
+        changesSaved: '變更已儲存',
         up: '上',
         down: '下',
         center: '中心',
@@ -1675,6 +1681,7 @@ i18n.use(initReactI18next).init({
     },
     ja: {
       translation: {
+        changesSaved: '変更が保存されました',
         up: '上',
         down: '下',
         center: '中央',
@@ -1956,6 +1963,7 @@ i18n.use(initReactI18next).init({
     },
     ko: {
       translation: {
+        changesSaved: '변경 사항이 저장되었습니다',
         up: '위',
         down: '아래',
         center: '중앙',
@@ -2235,6 +2243,7 @@ i18n.use(initReactI18next).init({
     },
     fr: {
       translation: {
+        changesSaved: 'Changements enregistrés',
         up: 'Haut',
         down: 'Bas',
         center: 'Centre',
@@ -2520,6 +2529,7 @@ i18n.use(initReactI18next).init({
     },
     de: {
       translation: {
+        changesSaved: 'Änderungen gespeichert',
         up: 'Hoch',
         down: 'Runter',
         center: 'Mitte',
@@ -2804,6 +2814,7 @@ i18n.use(initReactI18next).init({
     },
     it: {
       translation: {
+        changesSaved: 'Modifiche salvate',
         up: 'Su',
         down: 'Giù',
         center: 'Centro',
@@ -3087,6 +3098,7 @@ i18n.use(initReactI18next).init({
     },
     nl: {
       translation: {
+        changesSaved: 'Wijzigingen opgeslagen',
         up: 'Omhoog',
         down: 'Omlaag',
         center: 'Midden',
@@ -3370,6 +3382,7 @@ i18n.use(initReactI18next).init({
     },
     hi: {
       translation: {
+        changesSaved: 'परिवर्तन सहेजे गए',
         up: 'ऊपर',
         down: 'नीचे',
         center: 'केंद्र',
@@ -3652,6 +3665,7 @@ i18n.use(initReactI18next).init({
     },
     ar: {
       translation: {
+        changesSaved: 'تم حفظ التغييرات',
         up: 'أعلى',
         down: 'أسفل',
         center: 'مركز',

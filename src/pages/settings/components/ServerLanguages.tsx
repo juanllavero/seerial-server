@@ -9,6 +9,7 @@ import ContentWrapper from './utils/ContentWrapper'
 import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import Loading from '@/components/Loading'
+import FlexBox from '@/components/ui/FlexBox'
 
 function ServerLanguages() {
   const { t, i18n } = useTranslation()
@@ -16,6 +17,8 @@ function ServerLanguages() {
   const { getServerSetting, setServerSetting } = useSettingsStore()
   const currentLanguage = i18n.language?.split('-')[0] ?? 'en'
   const [isDirty, setIsDirty] = React.useState(false)
+
+  const [showMessage, setShowMessage] = React.useState(false)
 
   const [preferAudioLan, setPreferAudioLan] = React.useState('')
   const [subsMode, setSubsMode] = React.useState('')
@@ -78,24 +81,28 @@ function ServerLanguages() {
     setServerSetting(serverIP, 'subsMode', subsMode)
     setServerSetting(serverIP, 'preferSubsLan', ISO6391.getCode(preferSubLan))
     setIsDirty(false)
+
+    setShowMessage(true)
+
+    setTimeout(() => {
+      setShowMessage(false)
+    }, 2000)
   }
 
-  const handlePreferAudioLanChange = (key: string, value: string) => {
+  const handlePreferAudioLanChange = (_key: string, value: string) => {
     setPreferAudioLan(value)
     setIsDirty(true)
   }
 
-  const handleSubsModeChange = (key: string, value: string) => {
+  const handleSubsModeChange = (key: string) => {
     setSubsMode(key)
     setIsDirty(true)
   }
 
-  const handlePreferSubLanChange = (key: string, value: string) => {
+  const handlePreferSubLanChange = (_key: string, value: string) => {
     setPreferSubLan(value)
     setIsDirty(true)
   }
-
-  if (preferAudioLan === '' || preferSubLan === '' || subsMode === '') return null
 
   return (
     <ContentWrapper>
@@ -103,35 +110,50 @@ function ServerLanguages() {
         {t('server')} - {t('languages')}
       </span>
 
-      <LabeledInputWrapper direction="row" label={t('autoSelectTracks')}>
-        <Checkbox />
-      </LabeledInputWrapper>
+      {
+        preferAudioLan === '' || subsMode === '' || preferSubLan === '' ? (
+          <Loading />
+        ) : (
+          <>
+            <LabeledInputWrapper direction="row" label={t('autoSelectTracks')}>
+              <Checkbox />
+            </LabeledInputWrapper>
 
-      <LabeledInputWrapper direction="row" label={t('preferAudio')}>
-        <SelectableWrapper
-          options={languagesOptions}
-          defaultValue={preferAudioLan}
-          onValueChange={handlePreferAudioLanChange}
-        />
-      </LabeledInputWrapper>
+            <LabeledInputWrapper direction="row" label={t('preferAudio')}>
+              <SelectableWrapper
+                options={languagesOptions}
+                defaultValue={preferAudioLan}
+                onValueChange={handlePreferAudioLanChange}
+              />
+            </LabeledInputWrapper>
 
-      <LabeledInputWrapper direction="row" label={t('subsMode')}>
-        <SelectableWrapper
-          options={subtitleModeOptions}
-          defaultValue={subsMode}
-          onValueChange={handleSubsModeChange}
-        />
-      </LabeledInputWrapper>
+            <LabeledInputWrapper direction="row" label={t('subsMode')}>
+              <SelectableWrapper
+                options={subtitleModeOptions}
+                defaultValue={subsMode}
+                onValueChange={handleSubsModeChange}
+              />
+            </LabeledInputWrapper>
 
-      <LabeledInputWrapper direction="row" label={t('preferSubs')}>
-        <SelectableWrapper
-          options={languagesOptions}
-          defaultValue={preferSubLan}
-          onValueChange={handlePreferSubLanChange}
-        />
-      </LabeledInputWrapper>
+            <LabeledInputWrapper direction="row" label={t('preferSubs')}>
+              <SelectableWrapper
+                options={languagesOptions}
+                defaultValue={preferSubLan}
+                onValueChange={handlePreferSubLanChange}
+              />
+            </LabeledInputWrapper>
 
-      <Button disabled={!isDirty} onClick={handleSave}>{t('saveButton')}</Button>
+            <FlexBox gap={1} justify='center' align='center'>
+              <Button disabled={!isDirty} onClick={handleSave}>{t('saveButton')}</Button>
+              {showMessage && (
+                <span className="text-sm text-muted-foreground">
+                  ✔ {t('changesSaved')}
+                </span>
+              )}
+            </FlexBox>
+          </>
+        )
+      }
     </ContentWrapper>
   )
 }
