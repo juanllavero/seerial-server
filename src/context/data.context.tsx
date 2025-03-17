@@ -37,6 +37,9 @@ interface DataState {
     episode: Episode
   }) => void
 
+  // DELETE
+  deleteLibrary: (libraryId: string) => void
+
   // Utils
   setSeasonWatched: (payload: {
     libraryId: string
@@ -76,6 +79,20 @@ const useDataStore = create<DataState>((set) => ({
       return {
         libraries: [...store.libraries, library],
         selectedLibrary: library,
+        selectedSeries: null,
+        selectedSeason: null,
+        selectedEpisode: null,
+      }
+    }),
+
+  deleteLibrary: (libraryId: string) =>
+    set((store) => {
+      const libraries = store.libraries.filter(
+        (library) => library.id !== libraryId,
+      )
+      return {
+        libraries,
+        selectedLibrary: null,
         selectedSeries: null,
         selectedSeason: null,
         selectedEpisode: null,

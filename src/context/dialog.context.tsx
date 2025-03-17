@@ -8,6 +8,10 @@ interface DialogState {
     isOpen: boolean
     libraryToEdit?: Library // Optional, for editing
   }
+  removeLibraryDialog: {
+    isOpen: boolean
+    libraryToRemove?: Library
+  }
   seriesDialog: {
     isOpen: boolean
     seriesToEdit?: Series
@@ -23,6 +27,8 @@ interface DialogState {
   // Functions to open and close dialogs
   openLibraryDialog: (libraryToEdit?: Library) => void
   closeLibraryDialog: () => void
+  openRemoveLibraryDialog: (libraryToRemove: Library) => void
+  closeRemoveLibraryDialog: () => void
   openSeriesDialog: (series: Series) => void
   closeSeriesDialog: () => void
   openSeasonDialog: (season: Season) => void
@@ -37,6 +43,10 @@ export const useDialogStore = create<DialogState>((set) => ({
   libraryDialog: {
     isOpen: false,
     libraryToEdit: undefined,
+  },
+  removeLibraryDialog: {
+    isOpen: false,
+    libraryToRemove: undefined,
   },
   seriesDialog: {
     isOpen: false,
@@ -64,6 +74,22 @@ export const useDialogStore = create<DialogState>((set) => ({
       libraryDialog: {
         isOpen: false,
         libraryToEdit: undefined, // Clear the object when closing
+      },
+    }),
+
+  // Functions for RemoveLibraryDialog
+  openRemoveLibraryDialog: (libraryToRemove: Library) =>
+    set({
+      removeLibraryDialog: {
+        isOpen: true,
+        libraryToRemove,
+      },
+    }),
+  closeRemoveLibraryDialog: () =>
+    set({
+      removeLibraryDialog: {
+        isOpen: false,
+        libraryToRemove: undefined, // Clear when closing
       },
     }),
 

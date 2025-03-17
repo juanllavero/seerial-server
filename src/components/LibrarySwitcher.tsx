@@ -1,5 +1,5 @@
 import { ChevronsUpDown, Plus } from 'lucide-react'
-import * as React from 'react'
+import React from 'react'
 
 import {
   DropdownMenu,
@@ -11,8 +11,10 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useDialogStore } from '@/context/dialog.context'
 import { Button } from './ui/button'
+import useDataStore from '@/context/data.context'
 
 interface Item {
+  id: string
   name: string
   logo: React.ElementType
   action: () => void
@@ -20,8 +22,17 @@ interface Item {
 
 export function LibrarySwitcher({ libraries }: { libraries: Item[] }) {
   const { openLibraryDialog } = useDialogStore()
+  const { selectedLibrary } = useDataStore()
   const [activeItem, setActiveItem] = React.useState<Item>(libraries[0])
   const [isOpen, setIsOpen] = React.useState(false)
+
+  React.useEffect(() => {
+    if (!selectedLibrary) {
+      setActiveItem(libraries[0])
+    } else {
+      setActiveItem(libraries.find((item) => item.id === selectedLibrary.id) || libraries[0])
+    }
+  }, [selectedLibrary])
 
   const handleItemClick = (item: Item) => {
     setActiveItem(item)

@@ -32,13 +32,13 @@ function CollectionPage() {
   //#endregion
 
   // Clear series and season selection on load
-  useEffect(() => {
-    selectSeries(null)
-    selectSeason(null)
-  }, [])
+  // useEffect(() => {
+  //   selectSeries(null)
+  //   selectSeason(null)
+  // }, [])
 
   return (
-    <FlexBox gap={1} wrap="wrap" padding="8rem 2rem">
+    <FlexBox gap={1} wrap="wrap" padding="8rem 2rem" scroll='vertical' height={'100%'}>
       {selectedLibrary.series.map((series) => (
         <CollectionCard
           library={selectedLibrary}
