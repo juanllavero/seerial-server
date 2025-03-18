@@ -8,6 +8,8 @@ interface GridProps {
   margin?: string
   width?: string
   height?: string
+  justifyContent?: string
+  alignItems?: string
   className?: string
   onClick?: () => void
   children: React.ReactNode
@@ -21,6 +23,8 @@ function Grid({
   margin = '0',
   width = 'auto',
   height = 'auto',
+  justifyContent = 'center',
+  alignItems = 'center',
   className = '',
   onClick,
   children,
@@ -32,6 +36,8 @@ function Grid({
         display: 'grid',
         gridTemplateColumns: columns,
         gridTemplateRows: rows,
+        justifyContent: justifyContent,
+        alignItems: alignItems,
         gap: gap,
         padding: padding,
         margin: margin,

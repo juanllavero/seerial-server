@@ -1,21 +1,21 @@
-import { Library, Series } from "../interfaces/Media";
-
+import { Library, Series } from '../interfaces/Media'
 
 export class LibraryObject {
-  id: string;
-  name: string;
-  language: string;
-  type: string;
-  order: number;
-  folders: string[];
-  series: Series[];
-  analyzedFiles: Map<string, string> = new Map();
-  analyzedFolders: Map<string, string> = new Map();
-  seasonFolders: Map<string, string> = new Map();
-  preferAudioLan: string | undefined;
-  preferSubLan: string | undefined;
-  subsMode: string | undefined;
-  isCollection: boolean;
+  id: string
+  name: string
+  language: string
+  type: string
+  order: number
+  folders: string[]
+  series: Series[]
+  seriesList: string[] = []
+  analyzedFiles: Map<string, string> = new Map()
+  analyzedFolders: Map<string, string> = new Map()
+  seasonFolders: Map<string, string> = new Map()
+  preferAudioLan: string | undefined
+  preferSubLan: string | undefined
+  subsMode: string | undefined
+  isCollection: boolean
 
   constructor(
     name: string,
@@ -25,19 +25,19 @@ export class LibraryObject {
     folders: string[],
     preferAudioLan: string | undefined,
     preferSubLan: string | undefined,
-    subsMode: string | undefined
+    subsMode: string | undefined,
   ) {
-    this.id = crypto.randomUUID();
-    this.name = name;
-    this.language = lang;
-    this.type = type;
-    this.order = order;
-    this.folders = folders;
-    this.preferAudioLan = preferAudioLan;
-    this.preferSubLan = preferSubLan;
-    this.subsMode = subsMode;
-    this.isCollection = false;
-    this.series = [];
+    this.id = crypto.randomUUID()
+    this.name = name
+    this.language = lang
+    this.type = type
+    this.order = order
+    this.folders = folders
+    this.preferAudioLan = preferAudioLan
+    this.preferSubLan = preferSubLan
+    this.subsMode = subsMode
+    this.isCollection = false
+    this.series = []
   }
 
   toLibraryData(): Library {
@@ -47,6 +47,7 @@ export class LibraryObject {
       language: this.language,
       type: this.type,
       series: [],
+      seriesList: this.seriesList,
       order: this.order,
       folders: this.folders,
       analyzedFiles: Array.from(this.analyzedFiles.entries()),
@@ -55,8 +56,8 @@ export class LibraryObject {
       preferAudioLan: this.preferAudioLan,
       preferSubLan: this.preferSubLan,
       subsMode: this.subsMode,
-      isCollection: this.isCollection
-    };
+      isCollection: this.isCollection,
+    }
   }
 
   static fromLibraryData(data: Library): Library {
@@ -68,13 +69,14 @@ export class LibraryObject {
       data.folders,
       data.preferAudioLan,
       data.preferSubLan,
-      data.subsMode
-    );
-    library.id = data.id;
-    library.analyzedFiles = new Map(data.analyzedFiles || []);
-    library.analyzedFolders = new Map(data.analyzedFolders || []);
-    library.seasonFolders = new Map(data.seasonFolders || []);
-    return library;
+      data.subsMode,
+    )
+    library.id = data.id
+    library.seriesList = data.seriesList
+    library.analyzedFiles = new Map(data.analyzedFiles || [])
+    library.analyzedFolders = new Map(data.analyzedFolders || [])
+    library.seasonFolders = new Map(data.seasonFolders || [])
+    return library
   }
 
   // Convertir Library a JSON
@@ -86,13 +88,14 @@ export class LibraryObject {
       type: this.type,
       order: this.order,
       folders: this.folders,
+      seriesList: this.seriesList,
       analyzedFiles: Array.from(this.analyzedFiles.entries()),
       analyzedFolders: Array.from(this.analyzedFolders.entries()),
       seasonFolders: Array.from(this.seasonFolders.entries()),
       preferAudioLan: this.preferAudioLan,
       preferSubLan: this.preferSubLan,
       subsMode: this.subsMode,
-    };
+    }
   }
 
   // Crear una instancia de Library desde JSON
@@ -105,88 +108,89 @@ export class LibraryObject {
       jsonData.folders,
       jsonData.preferAudioLan,
       jsonData.preferSubLan,
-      jsonData.subsMode
-    );
+      jsonData.subsMode,
+    )
 
-    library.id = jsonData.id;
+    library.id = jsonData.id
+    library.seriesList = jsonData.seriesList
     library.analyzedFiles = new Map(
-      Object.entries(jsonData.analyzedFiles || {})
-    );
+      Object.entries(jsonData.analyzedFiles || {}),
+    )
     library.analyzedFolders = new Map(
-      Object.entries(jsonData.analyzedFolders || {})
-    );
+      Object.entries(jsonData.analyzedFolders || {}),
+    )
     library.seasonFolders = new Map(
-      Object.entries(jsonData.seasonFolders || {})
-    );
+      Object.entries(jsonData.seasonFolders || {}),
+    )
 
-    return library;
+    return library
   }
 
   getId(): string {
-    return this.id;
+    return this.id
   }
 
   getName(): string {
-    return this.name;
+    return this.name
   }
 
   setName(name: string): void {
-    this.name = name;
+    this.name = name
   }
 
   getLanguage(): string {
-    return this.language;
+    return this.language
   }
 
   setLanguage(language: string): void {
-    this.language = language;
+    this.language = language
   }
 
   getType(): string {
-    return this.type;
+    return this.type
   }
 
   setType(type: string): void {
-    this.type = type;
+    this.type = type
   }
 
   getFolders(): string[] {
-    return this.folders;
+    return this.folders
   }
 
   setFolders(folders: string[]): void {
-    this.folders = folders;
+    this.folders = folders
   }
 
   getAnalyzedFiles(): Map<string, string> {
-    return this.analyzedFiles;
+    return this.analyzedFiles
   }
 
   setAnalyzedFiles(analyzedFiles: Map<string, string>): void {
-    this.analyzedFiles = analyzedFiles;
+    this.analyzedFiles = analyzedFiles
   }
 
   getAnalyzedFolders(): Map<string, string> {
-    return this.analyzedFolders;
+    return this.analyzedFolders
   }
 
   setAnalyzedFolders(analyzedFolders: Map<string, string>): void {
-    this.analyzedFolders = analyzedFolders;
+    this.analyzedFolders = analyzedFolders
   }
 
   getSeasonFolders(): Map<string, string> {
-    return this.seasonFolders;
+    return this.seasonFolders
   }
 
   setSeasonFolders(seasonFolders: Map<string, string>): void {
-    this.seasonFolders = seasonFolders;
+    this.seasonFolders = seasonFolders
   }
 
   getOrder(): number {
-    return this.order;
+    return this.order
   }
 
   setOrder(order: number): void {
-    this.order = order;
+    this.order = order
   }
 }

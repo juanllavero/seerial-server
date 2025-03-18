@@ -10,6 +10,7 @@ export interface Library {
   order: number
   folders: string[]
   series: Series[]
+  seriesList: string[]
   analyzedFiles: any
   analyzedFolders: any
   seasonFolders: any
