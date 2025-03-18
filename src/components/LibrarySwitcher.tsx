@@ -86,7 +86,7 @@ export function LibrarySwitcher({ libraries }: { libraries: Item[] }) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+        className="z-51 w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
         align="start"
         side="bottom"
         sideOffset={0}

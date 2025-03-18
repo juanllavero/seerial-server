@@ -6,6 +6,7 @@ i18n.use(initReactI18next).init({
   resources: {
     en: {
       translation: {
+        watchList: 'Watchlist',
         changesSaved: 'Changes saved',
         up: 'Up',
         down: 'Down',
@@ -287,6 +288,7 @@ i18n.use(initReactI18next).init({
     },
     'es-ES': {
       translation: {
+        watchList: 'Lista de seguimiento',
         changesSaved: 'Cambios guardados',
         up: 'Arriba',
         down: 'Abajo',
@@ -571,6 +573,7 @@ i18n.use(initReactI18next).init({
     },
     'pt-BR': {
       translation: {
+        watchList: 'Lista de acompanhamento',
         changesSaved: 'Alterações salvas',
         up: 'Acima',
         down: 'Abaixo',
@@ -854,6 +857,7 @@ i18n.use(initReactI18next).init({
     },
     'pt-PT': {
       translation: {
+        watchList: 'Lista de seguimento',
         changesSaved: 'Alterações guardadas',
         up: 'Acima',
         down: 'Abaixo',
@@ -1137,6 +1141,7 @@ i18n.use(initReactI18next).init({
     },
     'zh-CN': {
       translation: {
+        watchList: '观看列表',
         changesSaved: '更改已保存',
         up: '上',
         down: '下',
@@ -1409,6 +1414,7 @@ i18n.use(initReactI18next).init({
     },
     'zh-TW': {
       translation: {
+        watchList: '觀看清單',
         changesSaved: '變更已儲存',
         up: '上',
         down: '下',
@@ -1681,6 +1687,7 @@ i18n.use(initReactI18next).init({
     },
     ja: {
       translation: {
+        watchList: 'ウォッチリスト',
         changesSaved: '変更が保存されました',
         up: '上',
         down: '下',
@@ -1963,6 +1970,7 @@ i18n.use(initReactI18next).init({
     },
     ko: {
       translation: {
+        watchList: '시청 목록',
         changesSaved: '변경 사항이 저장되었습니다',
         up: '위',
         down: '아래',
@@ -2243,6 +2251,7 @@ i18n.use(initReactI18next).init({
     },
     fr: {
       translation: {
+        watchList: 'Liste de suivi',
         changesSaved: 'Changements enregistrés',
         up: 'Haut',
         down: 'Bas',
@@ -2529,6 +2538,7 @@ i18n.use(initReactI18next).init({
     },
     de: {
       translation: {
+        watchList: 'Beobachtungsliste',
         changesSaved: 'Änderungen gespeichert',
         up: 'Hoch',
         down: 'Runter',
@@ -2814,6 +2824,7 @@ i18n.use(initReactI18next).init({
     },
     it: {
       translation: {
+        watchList: 'Lista di visione',
         changesSaved: 'Modifiche salvate',
         up: 'Su',
         down: 'Giù',
@@ -3098,6 +3109,7 @@ i18n.use(initReactI18next).init({
     },
     nl: {
       translation: {
+        watchList: 'Volglijst',
         changesSaved: 'Wijzigingen opgeslagen',
         up: 'Omhoog',
         down: 'Omlaag',
@@ -3382,6 +3394,7 @@ i18n.use(initReactI18next).init({
     },
     hi: {
       translation: {
+        watchList: 'देखने की सूची',
         changesSaved: 'परिवर्तन सहेजे गए',
         up: 'ऊपर',
         down: 'नीचे',
@@ -3665,6 +3678,7 @@ i18n.use(initReactI18next).init({
     },
     ar: {
       translation: {
+        watchList: 'قائمة المشاهدة',
         changesSaved: 'تم حفظ التغييرات',
         up: 'أعلى',
         down: 'أسفل',
