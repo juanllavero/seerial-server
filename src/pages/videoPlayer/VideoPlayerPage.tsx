@@ -11,7 +11,6 @@ import {
   Minimize2,
   Music2,
   Pause,
-  Play,
   Volume1,
   Volume2,
   VolumeOff,
@@ -24,6 +23,7 @@ import DropdownWrapper from '@/components/DropdownWrapper'
 import './VideoPlayerPage.css'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import NotFound from '@/components/NotFound'
+import { PlayIcon } from '@/components/ui/IconLibrary'
 
 function VideoPlayerPage() {
   const {
@@ -486,7 +486,7 @@ function VideoPlayerPage() {
                 }}
                 size={'icon'}
               >
-                {isPlaying ? <Pause /> : <Play />}
+                {isPlaying ? <Pause /> : <PlayIcon />}
               </Button>
               <FlexBox gap={0.1}>
                 <Button

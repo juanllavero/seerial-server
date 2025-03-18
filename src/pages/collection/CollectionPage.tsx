@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import FlexBox from '@/components/ui/FlexBox'
 import useDataStore from '@/context/data.context'
 import { useParams } from '@tanstack/react-router'
@@ -11,8 +11,6 @@ function CollectionPage() {
     libraries,
     selectedLibrary,
     selectLibrary,
-    selectSeries,
-    selectSeason,
   } = useDataStore()
 
   //#region CHECK DATA BEFORE LOAD

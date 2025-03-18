@@ -27,8 +27,13 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const { openRemoveLibraryDialog } = useDialogStore()
-  const { libraries, setLibraries, selectedLibrary, selectLibrary, setLoadingLibraries } =
-    useDataStore()
+  const {
+    libraries,
+    setLibraries,
+    selectedLibrary,
+    selectLibrary,
+    setLoadingLibraries,
+  } = useDataStore()
   const { serverIP } = useServerStore()
   const { fetchData, isLoading } = useFetch<Library[]>()
 
@@ -54,7 +59,6 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
     name: t('home'),
     logo: House,
     action: () => {
-      selectLibrary(null)
       navigate({ to: '/' })
     },
   }
@@ -109,7 +113,6 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
             ) : (
               <LibrarySwitcher
                 libraries={[
-                  home,
                   ...libraries.map((library) => ({
                     id: library.id,
                     name: library.name,
@@ -125,25 +128,36 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
                         to: '/collection/$libraryId',
                         params: { libraryId: library.id },
                       })
-                    }
+                    },
                   })),
                 ]}
               />
             )}
 
             {selectedLibrary && (
-              <DropdownWrapper content={getLibraryDrowdown(selectedLibrary)} button={<Button variant={'ghost'} size={'icon'}><EllipsisVertical /></Button>} />
+              <DropdownWrapper
+                content={getLibraryDrowdown(selectedLibrary)}
+                button={
+                  <Button variant={'ghost'} size={'icon'}>
+                    <EllipsisVertical />
+                  </Button>
+                }
+              />
             )}
 
             {!inHome && (
-              <Button variant="ghost" size={'icon'} onClick={() => router.history.back()}>
+              <Button
+                variant="ghost"
+                size={'icon'}
+                onClick={() => router.history.back()}
+              >
                 <ChevronLeft />
               </Button>
             )}
 
             {!inSettings && (
               <Button
-                variant="ghost" 
+                variant="ghost"
                 size={'icon'}
                 onClick={() => navigate({ to: '/settings' })}
               >

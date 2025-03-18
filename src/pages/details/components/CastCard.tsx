@@ -24,6 +24,7 @@ function CastCard({ index, person }: CastCardProps) {
         width={150}
         height={150}
         className="rounded-full"
+        rounded
         alt={person.name}
       />
       <span>{person.name}</span>

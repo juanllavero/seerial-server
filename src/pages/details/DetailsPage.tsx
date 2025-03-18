@@ -4,13 +4,20 @@ import useDataStore from '@/context/data.context'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import './DetailsPage.css'
 import React from 'react'
-import { Bookmark, Edit, Ellipsis, Play } from 'lucide-react'
+import { Bookmark, Edit, Ellipsis } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import SeasonsContent from './components/SeasonsContent'
 import { formatTimeForView } from '@/utils/ReactUtils'
 import CastList from './components/CastList'
 import NotFound from '@/components/NotFound'
+import {
+  AddToListIcon,
+  MarkWatchedIcon,
+  PlayIcon,
+  RemoveFromListIcon,
+  UnmarkWatchedIcon,
+} from '@/components/ui/IconLibrary'
 
 function DetailsPage() {
   const { libraryId, seriesId } = useParams({
@@ -24,8 +31,10 @@ function DetailsPage() {
     selectedLibrary,
     selectedSeries,
     selectedSeason,
+    setSeasonWatched,
   } = useDataStore()
   const { t } = useTranslation()
+  const navigate = useNavigate()
 
   //#region CHECK DATA BEFORE LOAD
   const library = libraries.find((library) => library.id === libraryId)
@@ -101,6 +110,58 @@ function DetailsPage() {
           ? selectedSeries.coverSrc
           : selectedSeason.coverSrc
 
+  const getPlayButtonText = () => {
+    const watchingSeason = selectedSeries.currentlyWatchingSeason
+    const watchingEpisode =
+      watchingSeason !== -1
+        ? selectedSeries.seasons[watchingSeason].currentlyWatchingEpisode
+        : -1
+
+    if (selectedLibrary.type === 'Movies') {
+      if (
+        selectedSeason.episodes &&
+        selectedSeason.episodes.length > 1 &&
+        watchingEpisode !== -1
+      ) {
+        return t('continueWatching')
+      } else {
+        return t('playButton')
+      }
+    } else {
+      if (watchingEpisode !== -1) {
+        return `${t('continueWatching')} — ${t('seasonLetter')}${watchingSeason + 1}${t('episodeLetter')}${watchingEpisode + 1}`
+      } else {
+        return t('playButton')
+      }
+    }
+  }
+
+  const getEpisodeToWatch = () => {
+    const watchingSeason = selectedSeries.currentlyWatchingSeason
+    const watchingEpisode =
+      watchingSeason !== -1
+        ? selectedSeries.seasons[watchingSeason].currentlyWatchingEpisode
+        : -1
+
+    if (selectedLibrary.type === 'Movies') {
+      if (
+        selectedSeason.episodes &&
+        selectedSeason.episodes.length > 1 &&
+        watchingEpisode !== -1
+      ) {
+        return selectedSeason.episodes[watchingEpisode]
+      } else {
+        return selectedSeason.episodes[0]
+      }
+    } else {
+      if (watchingEpisode !== -1) {
+        return selectedSeries.seasons[watchingSeason].episodes[watchingEpisode]
+      } else {
+        return selectedSeries.seasons[0].episodes[0]
+      }
+    }
+  }
+
   return (
     <FlexBox
       className="details-container"
@@ -168,10 +229,26 @@ function DetailsPage() {
             </FlexBox>
           )}
           <FlexBox gap={1}>
-            <Button>
-              <FlexBox align="center" gap={0.5}>
-                <Play />
-                Reproducir
+            <Button
+              onClick={() => {
+                const episodeToWatch = getEpisodeToWatch()
+                if (episodeToWatch) {
+                  if (episodeToWatch.seasonID !== selectedSeason.id) {
+                    selectSeason(
+                      selectedSeries.seasons.find(
+                        (s) => s.id === episodeToWatch.seasonID,
+                      ) ?? selectedSeason,
+                    )
+                  }
+                  navigate({
+                    to: `/video-player/${libraryId}/${seriesId}/${episodeToWatch.seasonID}/${episodeToWatch.id}`,
+                  })
+                }
+              }}
+            >
+              <FlexBox align="center" gap={0.5} className="text-black">
+                <PlayIcon />
+                {getPlayButtonText()}
               </FlexBox>
             </Button>
             <Button
@@ -179,19 +256,40 @@ function DetailsPage() {
               title={
                 selectedSeason.watched ? t('markUnwatched') : t('markWatched')
               }
-              onClick={
-                () => {}
-                // dispatch(
-                //   setSeasonWatched({
-                //     libraryId: selectedLibrary.id,
-                //     seriesId: selectedSeries.id,
-                //     seasonId: selectedSeason.id,
-                //     watched: !selectedSeason.watched,
-                //   }),
-                // )
+              onClick={() =>
+                setSeasonWatched({
+                  libraryId: selectedLibrary.id,
+                  seriesId: selectedSeries.id,
+                  seasonId: selectedSeason.id,
+                  watched: !selectedSeason.watched,
+                })
               }
             >
-              {selectedSeason.watched ? <Bookmark /> : <Bookmark />}
+              {selectedSeason.watched ? (
+                <UnmarkWatchedIcon />
+              ) : (
+                <MarkWatchedIcon />
+              )}
+            </Button>
+            <Button
+              variant={'ghost'}
+              title={
+                selectedSeason.watched ? t('markUnwatched') : t('markWatched')
+              }
+              onClick={() =>
+                setSeasonWatched({
+                  libraryId: selectedLibrary.id,
+                  seriesId: selectedSeries.id,
+                  seasonId: selectedSeason.id,
+                  watched: !selectedSeason.watched,
+                })
+              }
+            >
+              {selectedSeason.watched ? (
+                <RemoveFromListIcon />
+              ) : (
+                <AddToListIcon />
+              )}
             </Button>
             <Button
               variant={'ghost'}

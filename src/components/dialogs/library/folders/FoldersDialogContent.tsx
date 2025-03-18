@@ -55,8 +55,15 @@ function FoldersDialogContent({ folders, setFolders, close }: FoldersDialogConte
         drives.includes(`${currentPath}/`)
       )
         return
-
-      const upperPath = currentPath.split('\\').slice(0, -1).join('\\')
+  
+      let upperPath = currentPath.split('\\').slice(0, -1).join('\\')
+      
+      // Comprobar si upperPath es una unidad de almacenamiento (ej. C:, D:, F:)
+      const isDriveUnit = /^[A-Z]:$/.test(upperPath)
+      if (isDriveUnit) {
+        upperPath += '\\'
+      }
+  
       fetchFolderContent(upperPath || '') // Si es raíz, reiniciar ruta
     } else {
       // Verificar si currentPath ya termina con '/' o '\'
@@ -144,7 +151,7 @@ function FoldersDialogContent({ folders, setFolders, close }: FoldersDialogConte
   }
 
   return (
-    <FlexBox direction="column" gap={1} width={'30rem'} height={'30rem'}>
+    <FlexBox direction="column" gap={1} width={'30rem'} height={'32rem'}>
       <FlexBox width={'100%'}>
         <LabeledInputWrapper label={t('addFolder')}>
           <Input
@@ -182,7 +189,7 @@ function FoldersDialogContent({ folders, setFolders, close }: FoldersDialogConte
           {currentPath && renderFolderContent()}
         </FlexBox>
       </FlexBox>
-      <FlexBox width={'100%'} justify="end" gap={1}>
+      <FlexBox width={'100%'} justify="end" gap={1} padding='0 0.5rem'>
         <Button variant={'secondary'} onClick={close}>{t('cancelButton')}</Button>
         <Button onClick={handleAddFolder}>{t('addButton')}</Button>
       </FlexBox>

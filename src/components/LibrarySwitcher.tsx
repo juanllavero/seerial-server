@@ -1,4 +1,4 @@
-import { ChevronsUpDown, Plus } from 'lucide-react'
+import { ChevronsUpDown, House, Plus } from 'lucide-react'
 import React from 'react'
 
 import {
@@ -12,6 +12,8 @@ import {
 import { useDialogStore } from '@/context/dialog.context'
 import { Button } from './ui/button'
 import useDataStore from '@/context/data.context'
+import { useTranslation } from 'react-i18next'
+import { useNavigate } from '@tanstack/react-router'
 
 interface Item {
   id: string
@@ -21,16 +23,31 @@ interface Item {
 }
 
 export function LibrarySwitcher({ libraries }: { libraries: Item[] }) {
+  const { t } = useTranslation()
+  const navigate = useNavigate()
   const { openLibraryDialog } = useDialogStore()
   const { selectedLibrary } = useDataStore()
-  const [activeItem, setActiveItem] = React.useState<Item>(libraries[0])
+
+  const home = {
+    id: '0',
+    name: t('home'),
+    logo: House,
+    action: () => {
+      navigate({ to: '/' })
+    },
+  }
+
+  const [activeItem, setActiveItem] = React.useState<Item>(home)
   const [isOpen, setIsOpen] = React.useState(false)
 
   React.useEffect(() => {
+    console.log({ selectedLibrary })
     if (!selectedLibrary) {
-      setActiveItem(libraries[0])
+      setActiveItem(home)
     } else {
-      setActiveItem(libraries.find((item) => item.id === selectedLibrary.id) || libraries[0])
+      setActiveItem(
+        libraries.find((item) => item.id === selectedLibrary.id) || home,
+      )
     }
   }, [selectedLibrary])
 
@@ -79,22 +96,42 @@ export function LibrarySwitcher({ libraries }: { libraries: Item[] }) {
         onMouseLeave={() => setIsOpen(false)}
         onInteractOutside={() => setIsOpen(false)}
       >
-        <DropdownMenuLabel className="text-muted-foreground text-xs">
-          Libraries
-        </DropdownMenuLabel>
-        {libraries.map((item) => (
-          <DropdownMenuItem
-            key={item.name}
-            onClick={() => handleItemClick(item)}
-            className="gap-2 p-2"
-          >
-            <div className="flex size-6 items-center justify-center rounded-xs border">
-              <item.logo className="size-4 shrink-0" />
-            </div>
-            {item.name}
-          </DropdownMenuItem>
-        ))}
+        {/* Home */}
+        <DropdownMenuItem
+          key={home.name}
+          onClick={() => handleItemClick(home)}
+          className="gap-2 p-2"
+        >
+          <div className="flex size-6 items-center justify-center">
+            <home.logo className="size-4 shrink-0" />
+          </div>
+          {home.name}
+        </DropdownMenuItem>
+
+        {/* Libraries List */}
+        {libraries && libraries.length > 0 && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="text-muted-foreground text-xs">
+              {t('libraries')}
+            </DropdownMenuLabel>
+            {libraries.map((item) => (
+              <DropdownMenuItem
+                key={item.name}
+                onClick={() => handleItemClick(item)}
+                className="gap-2 p-2"
+              >
+                <div className="flex size-6 items-center justify-center">
+                  <item.logo className="size-4 shrink-0" />
+                </div>
+                {item.name}
+              </DropdownMenuItem>
+            ))}
+          </>
+        )}
         <DropdownMenuSeparator />
+
+        {/* Add Library Button */}
         <DropdownMenuItem
           className="gap-2 p-2"
           onClick={() => openLibraryDialog()}
@@ -102,7 +139,9 @@ export function LibrarySwitcher({ libraries }: { libraries: Item[] }) {
           <div className="bg-background flex size-6 items-center justify-center rounded-md border">
             <Plus className="size-4" />
           </div>
-          <div className="text-muted-foreground font-medium">Add Library</div>
+          <div className="text-muted-foreground font-medium">
+            {t('libraryWindowTitle')}
+          </div>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

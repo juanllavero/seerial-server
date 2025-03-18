@@ -1,6 +1,6 @@
 import React from 'react'
 import useDataStore from '@/context/data.context'
-import { Library, Season, Series } from '@/data/interfaces/Media'
+import { Episode, Library, Season, Series } from '@/data/interfaces/Media'
 import Card from '@/components/cards/Card'
 import { DropdownContent } from '@/data/interfaces/Utils'
 import { ModalWrapper } from '@/components/ModalWrapper'
@@ -18,6 +18,21 @@ function CollectionCard({
 }) {
   const navigate = useNavigate()
   const { selectSeries } = useDataStore()
+
+  const getNumberOfEpisodesLeft = () => {
+    return series.seasons
+      ? series.seasons
+          .map((season: Season) =>
+            season.episodes && season.episodes.length > 0
+              ? season.episodes.map((episode: Episode) =>
+                  episode.watched ? 0 : 1,
+                )
+              : 0,
+          )
+          .flatMap((num) => (num instanceof Array ? num : [num]))
+          .reduce((acc, num) => acc + (num === 1 ? 1 : 0), 0)
+      : 0
+  }
 
   const content: DropdownContent = {
     items: [
@@ -62,6 +77,7 @@ function CollectionCard({
       imgSrc={
         library.type === 'Movies' &&
         !series.isCollection &&
+        series.seasons &&
         series.seasons.length > 0
           ? series.seasons[0].coverSrc
           : series.coverSrc
@@ -71,18 +87,24 @@ function CollectionCard({
       title={series.name}
       subtitle={(() => {
         const minYear = Math.min(
-          ...series.seasons ? series.seasons.map((season: Season) =>
-            Number.parseInt(season.year),
-          ) : [],
+          ...(series.seasons
+            ? series.seasons.map((season: Season) =>
+                Number.parseInt(season.year),
+              )
+            : []),
         )
         const maxYear = Math.max(
-          ...series.seasons ? series.seasons.map((season: Season) =>
-            Number.parseInt(season.year),
-          ) : [],
+          ...(series.seasons
+            ? series.seasons.map((season: Season) =>
+                Number.parseInt(season.year),
+              )
+            : []),
         )
         return minYear === maxYear ? `${minYear}` : `${minYear} - ${maxYear}`
       })()}
-      cornerData={'22'}
+      cornerData={''}
+      cornerNumber={getNumberOfEpisodesLeft()}
+      watched={series.watched}
       action={() => {
         selectSeries(series)
         navigate({
@@ -90,6 +112,7 @@ function CollectionCard({
           params: { libraryId: library.id, seriesId: series.id },
         })
       }}
+      hidePlayButton
       menu={content}
       editModal={
         <ModalWrapper
@@ -105,8 +128,12 @@ function CollectionCard({
             },
           ]}
           button={
-            <Button variant={'ghost'}>
-              <Pencil className="w-5" />
+            <Button
+              variant={'ghost'}
+              size={'icon'}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Pencil size={16} />
             </Button>
           }
         />

@@ -3,13 +3,14 @@ import LazyImage from '../ui/LazyImage'
 import { DropdownContent } from '@/data/interfaces/Utils'
 import { Button } from '../ui/button'
 import DropdownWrapper from '../DropdownWrapper'
-import { EllipsisVertical, Play } from 'lucide-react'
+import { Check, EllipsisVertical } from 'lucide-react'
 import Grid from '../ui/Grid'
 import FlexBox from '../ui/FlexBox'
 import './Card.css'
 import Loading from '../Loading'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 import { Progress } from '../ui/progress'
+import { PlayIcon } from '../ui/IconLibrary'
 
 interface CardProps {
   itemKey: string
@@ -27,6 +28,8 @@ interface CardProps {
   centerText?: boolean
   hidePlayButton?: boolean
   progress?: number
+  cornerNumber?: number
+  watched?: boolean
 }
 
 function Card({
@@ -44,7 +47,9 @@ function Card({
   cornerData,
   centerText,
   hidePlayButton,
-  progress
+  progress,
+  cornerNumber,
+  watched,
 }: CardProps) {
   return (
     <FlexBox
@@ -57,13 +62,22 @@ function Card({
       onClick={action}
     >
       <div className={`card ${loading ? 'loading' : ''}`}>
-        {
-          progress && (
-            <FlexBox className="progress" justify="end" align="end" width="100%" height={'100%'}>
-          <Progress value={35} className='rounded-xs'/>
-        </FlexBox>
-          )
-        }
+        {progress && !watched && (
+          <FlexBox
+            className="progress"
+            justify="end"
+            align="end"
+            width="100%"
+            height={'100%'}
+          >
+            <Progress value={35} className="rounded-xs" />
+          </FlexBox>
+        )}
+        {(cornerNumber || watched) && (
+          <div className="rightCorner">
+            <span>{!watched ? cornerNumber : <Check size={20} />}</span>
+          </div>
+        )}
         <Grid
           className="card-hover"
           rows="1fr 1fr 1fr"
@@ -83,8 +97,12 @@ function Card({
             {loading ? (
               <Loading />
             ) : !hidePlayButton ? (
-              <Button variant={'ghost'} className="rounded-full">
-                <Play />
+              <Button
+                variant={'ghost'}
+                className="rounded-full"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <PlayIcon />
               </Button>
             ) : null}
           </FlexBox>
@@ -99,8 +117,12 @@ function Card({
               <DropdownWrapper
                 content={menu}
                 button={
-                  <Button variant={'ghost'}>
-                    <EllipsisVertical />
+                  <Button
+                    variant={'ghost'}
+                    size={'icon'}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <EllipsisVertical size={20} />
                   </Button>
                 }
               />

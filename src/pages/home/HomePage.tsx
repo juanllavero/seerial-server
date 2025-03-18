@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import useDataStore from '@/context/data.context'
 import Loading from '@/components/Loading'
 import FlexBox from '@/components/ui/FlexBox'
@@ -6,7 +6,11 @@ import HorizontalList from './components/HorizontalList'
 import Card from '@/components/cards/Card'
 
 export default function HomePage() {
-  const { loadingLibraries, libraries } = useDataStore()
+  const { loadingLibraries, libraries, selectLibrary } = useDataStore()
+
+  useEffect(() => {
+    selectLibrary(null)
+  }, [])
 
   if (loadingLibraries) {
     return <Loading />
