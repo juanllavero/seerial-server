@@ -10,7 +10,15 @@ import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import FlexBox from '@/components/ui/FlexBox'
 
-function ServerTranscode({ serverSettings }: { serverSettings: Settings }) {
+interface ServerTranscodeProps {
+  serverSettings: Settings
+  setServerSettings: (newSettings: Settings) => void
+}
+
+function ServerTranscode({
+  serverSettings,
+  setServerSettings,
+}: ServerTranscodeProps) {
   const { t } = useTranslation()
   const [isDirty, setIsDirty] = React.useState(false)
   const [showMessage, setShowMessage] = React.useState(false)
@@ -102,6 +110,15 @@ function ServerTranscode({ serverSettings }: { serverSettings: Settings }) {
     setServerSetting(serverIP, 'transcodePreset', transcoderPreset)
     setServerSetting(serverIP, 'transcodeBuffer', defaultBuffer)
     setServerSetting(serverIP, 'maxTranscodeProcesses', maxTranscoding)
+
+    setServerSettings({
+      ...serverSettings,
+      tempTranscodeFolder: tempFolder,
+      transcodePreset: transcoderPreset,
+      transcodeBuffer: defaultBuffer,
+      maxTranscodeProcesses: maxTranscoding,
+    })
+
     setIsDirty(false)
 
     setShowMessage(true)

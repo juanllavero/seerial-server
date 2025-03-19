@@ -6,6 +6,7 @@ i18n.use(initReactI18next).init({
   resources: {
     en: {
       translation: {
+        musicVolume: 'Background music volume',
         watchList: 'Watchlist',
         changesSaved: 'Changes saved',
         up: 'Up',
@@ -288,6 +289,7 @@ i18n.use(initReactI18next).init({
     },
     'es-ES': {
       translation: {
+        musicVolume: 'Volumen de la música de fondo',
         watchList: 'Lista de seguimiento',
         changesSaved: 'Cambios guardados',
         up: 'Arriba',
@@ -297,7 +299,7 @@ i18n.use(initReactI18next).init({
         black: 'Negro',
         gray: 'Gris',
         brown: 'Marrón',
-        tiny: 'Pequeño',
+        tiny: 'Diminuto',
         big: 'Grande',
         auto: 'Automáticamente',
         onlyImageSubtitles: 'Solo formatos de imagen (como PGS)',
@@ -573,6 +575,7 @@ i18n.use(initReactI18next).init({
     },
     'pt-BR': {
       translation: {
+        musicVolume: 'Volume da música de fundo',
         watchList: 'Lista de acompanhamento',
         changesSaved: 'Alterações salvas',
         up: 'Acima',
@@ -582,7 +585,7 @@ i18n.use(initReactI18next).init({
         black: 'Preto',
         gray: 'Cinza',
         brown: 'Marrom',
-        tiny: 'Pequeno',
+        tiny: 'Minúsculo',
         big: 'Grande',
         auto: 'Automaticamente',
         onlyImageSubtitles: 'Apenas formatos de imagem (como PGS)',
@@ -857,6 +860,7 @@ i18n.use(initReactI18next).init({
     },
     'pt-PT': {
       translation: {
+        musicVolume: 'Volume da música de fundo',
         watchList: 'Lista de seguimento',
         changesSaved: 'Alterações guardadas',
         up: 'Acima',
@@ -866,7 +870,7 @@ i18n.use(initReactI18next).init({
         black: 'Preto',
         gray: 'Cinzento',
         brown: 'Castanho',
-        tiny: 'Pequeno',
+        tiny: 'Minúsculo',
         big: 'Grande',
         auto: 'Automaticamente',
         onlyImageSubtitles: 'Apenas formatos de imagem (como PGS)',
@@ -1141,6 +1145,7 @@ i18n.use(initReactI18next).init({
     },
     'zh-CN': {
       translation: {
+        musicVolume: '背景音乐音量',
         watchList: '观看列表',
         changesSaved: '更改已保存',
         up: '上',
@@ -1150,7 +1155,7 @@ i18n.use(initReactI18next).init({
         black: '黑',
         gray: '灰',
         brown: '棕',
-        tiny: '小',
+        tiny: '微小',
         big: '大',
         auto: '自动',
         onlyImageSubtitles: '仅图像格式（如PGS）',
@@ -1414,6 +1419,7 @@ i18n.use(initReactI18next).init({
     },
     'zh-TW': {
       translation: {
+        musicVolume: '背景音樂音量',
         watchList: '觀看清單',
         changesSaved: '變更已儲存',
         up: '上',
@@ -1423,7 +1429,7 @@ i18n.use(initReactI18next).init({
         black: '黑',
         gray: '灰',
         brown: '棕',
-        tiny: '小',
+        tiny: '微小',
         big: '大',
         auto: '自動',
         onlyImageSubtitles: '僅圖像格式（如PGS）',
@@ -1687,6 +1693,7 @@ i18n.use(initReactI18next).init({
     },
     ja: {
       translation: {
+        musicVolume: 'バックグラウンドミュージックの音量',
         watchList: 'ウォッチリスト',
         changesSaved: '変更が保存されました',
         up: '上',
@@ -1696,7 +1703,7 @@ i18n.use(initReactI18next).init({
         black: '黒',
         gray: '灰',
         brown: '茶',
-        tiny: '小さい',
+        tiny: '小さな',
         big: '大きい',
         auto: '自動',
         onlyImageSubtitles: '画像フォーマットのみ（PGSなど）',
@@ -1970,6 +1977,7 @@ i18n.use(initReactI18next).init({
     },
     ko: {
       translation: {
+        musicVolume: '배경 음악 볼륨',
         watchList: '시청 목록',
         changesSaved: '변경 사항이 저장되었습니다',
         up: '위',
@@ -2251,6 +2259,7 @@ i18n.use(initReactI18next).init({
     },
     fr: {
       translation: {
+        musicVolume: 'Volume de la musique de fond',
         watchList: 'Liste de suivi',
         changesSaved: 'Changements enregistrés',
         up: 'Haut',
@@ -2260,7 +2269,7 @@ i18n.use(initReactI18next).init({
         black: 'Noir',
         gray: 'Gris',
         brown: 'Marron',
-        tiny: 'Petit',
+        tiny: 'Minuscule',
         big: 'Grand',
         auto: 'Automatiquement',
         onlyImageSubtitles: "Formats d'image uniquement (comme PGS)",
@@ -2538,6 +2547,7 @@ i18n.use(initReactI18next).init({
     },
     de: {
       translation: {
+        musicVolume: 'Lautstärke der Hintergrundmusik',
         watchList: 'Beobachtungsliste',
         changesSaved: 'Änderungen gespeichert',
         up: 'Hoch',
@@ -2824,6 +2834,7 @@ i18n.use(initReactI18next).init({
     },
     it: {
       translation: {
+        musicVolume: 'Volume della musica di sottofondo',
         watchList: 'Lista di visione',
         changesSaved: 'Modifiche salvate',
         up: 'Su',
@@ -2833,7 +2844,7 @@ i18n.use(initReactI18next).init({
         black: 'Nero',
         gray: 'Grigio',
         brown: 'Marrone',
-        tiny: 'Piccolo',
+        tiny: 'Minuscolo',
         big: 'Grande',
         auto: 'Automaticamente',
         onlyImageSubtitles: 'Solo formati immagine (come PGS)',
@@ -3109,6 +3120,7 @@ i18n.use(initReactI18next).init({
     },
     nl: {
       translation: {
+        musicVolume: 'Volume van de achtergrondmuziek',
         watchList: 'Volglijst',
         changesSaved: 'Wijzigingen opgeslagen',
         up: 'Omhoog',
@@ -3394,6 +3406,7 @@ i18n.use(initReactI18next).init({
     },
     hi: {
       translation: {
+        musicVolume: 'पृष्ठभूमि संगीत की मात्रा',
         watchList: 'देखने की सूची',
         changesSaved: 'परिवर्तन सहेजे गए',
         up: 'ऊपर',
@@ -3678,6 +3691,7 @@ i18n.use(initReactI18next).init({
     },
     ar: {
       translation: {
+        musicVolume: 'حجم الموسيقى الخلفية',
         watchList: 'قائمة المشاهدة',
         changesSaved: 'تم حفظ التغييرات',
         up: 'أعلى',
@@ -3687,7 +3701,7 @@ i18n.use(initReactI18next).init({
         black: 'أسود',
         gray: 'رمادي',
         brown: 'بني',
-        tiny: 'صغير',
+        tiny: 'صغير جدا',
         big: 'كبير',
         auto: 'تلقائيًا',
         onlyImageSubtitles: 'تنسيقات الصور فقط (مثل PGS)',

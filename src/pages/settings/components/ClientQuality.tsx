@@ -5,10 +5,24 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import ContentWrapper from './utils/ContentWrapper'
 import { Settings } from '@/data/interfaces/Utils'
+import { useServerStore } from '@/context/server.context'
+import { useSettingsStore } from '@/context/settings.context'
+import FlexBox from '@/components/ui/FlexBox'
 
-function ClientQuality({ clientSettings }: { clientSettings: Settings }) {
+interface ClientQualityProps {
+  clientSettings: Settings
+  setClientSettings: (newSettings: Settings) => void
+}
+
+function ClientQuality({
+  clientSettings,
+  setClientSettings,
+}: ClientQualityProps) {
   const { t } = useTranslation()
+  const { serverIP } = useServerStore()
+  const { setClientSetting } = useSettingsStore()
   const [isDirty, setIsDirty] = React.useState(false)
+  const [showMessage, setShowMessage] = React.useState(false)
 
   const qualityOptions = [
     { key: 'Original', value: 'Original' },
@@ -26,6 +40,48 @@ function ClientQuality({ clientSettings }: { clientSettings: Settings }) {
     { key: '0.2 Mbps, 360p', value: '0.2 Mbps, 360p' },
   ]
 
+  const [localQuality, setLocalQuality] = React.useState(
+    qualityOptions.find(
+      (option) =>
+        option.key === (clientSettings['localVideoQuality'] as string),
+    )?.key || qualityOptions[0].key,
+  )
+  const [onlineQuality, setOnlineQuality] = React.useState(
+    qualityOptions.find(
+      (option) =>
+        option.key === (clientSettings['onlineVideoQuality'] as string),
+    )?.key || qualityOptions[0].key,
+  )
+
+  const handleSave = () => {
+    setClientSetting(serverIP, 'localVideoQuality', localQuality)
+    setClientSetting(serverIP, 'onlineVideoQuality', onlineQuality)
+
+    setClientSettings({
+      ...clientSettings,
+      localVideoQuality: localQuality,
+      onlineVideoQuality: onlineQuality,
+    })
+
+    setIsDirty(false)
+
+    setShowMessage(true)
+
+    setTimeout(() => {
+      setShowMessage(false)
+    }, 2000)
+  }
+
+  const handleLocalQualityChange = (key: string) => {
+    setLocalQuality(key)
+    setIsDirty(true)
+  }
+
+  const handleOnlineQualityChange = (key: string) => {
+    setOnlineQuality(key)
+    setIsDirty(true)
+  }
+
   return (
     <ContentWrapper group={t('client')} section={t('quality')}>
       <span className="text-lg font-semibold">{t('localStreaming')}</span>
@@ -33,8 +89,8 @@ function ClientQuality({ clientSettings }: { clientSettings: Settings }) {
       <LabeledInputWrapper direction="row" label={t('videoQuality')}>
         <SelectableWrapper
           options={qualityOptions}
-          defaultValue={qualityOptions[0].value}
-          onValueChange={function (key: string, value: string): void {}}
+          defaultValue={localQuality}
+          onValueChange={handleLocalQualityChange}
         />
       </LabeledInputWrapper>
 
@@ -43,12 +99,21 @@ function ClientQuality({ clientSettings }: { clientSettings: Settings }) {
       <LabeledInputWrapper direction="row" label={t('videoQuality')}>
         <SelectableWrapper
           options={qualityOptions}
-          defaultValue={qualityOptions[0].value}
-          onValueChange={function (key: string, value: string): void {}}
+          defaultValue={onlineQuality}
+          onValueChange={handleOnlineQualityChange}
         />
       </LabeledInputWrapper>
 
-      <Button disabled={!isDirty}>{t('saveButton')}</Button>
+      <FlexBox gap={1} justify="center" align="center">
+        <Button disabled={!isDirty} onClick={handleSave}>
+          {t('saveButton')}
+        </Button>
+        {showMessage && (
+          <span className="text-muted-foreground text-sm">
+            ✔ {t('changesSaved')}
+          </span>
+        )}
+      </FlexBox>
     </ContentWrapper>
   )
 }

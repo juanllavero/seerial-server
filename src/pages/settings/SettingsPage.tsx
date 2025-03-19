@@ -10,7 +10,7 @@ import ServerTranscode from './components/ServerTranscode'
 import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import Loading from '@/components/Loading'
-import { SettingsSection } from '@/data/interfaces/Utils'
+import { Settings, SettingsSection } from '@/data/interfaces/Utils'
 import LeftPanel from './components/leftPanel/LeftPanel'
 
 function SettingsPage() {
@@ -20,8 +20,8 @@ function SettingsPage() {
     SettingsSection.ClientGeneral,
   )
 
-  const [clientSettings, setClientSettings] = useState({})
-  const [serverSettings, setServerSettings] = useState({})
+  const [clientSettings, setClientSettings] = useState<Settings>({})
+  const [serverSettings, setServerSettings] = useState<Settings>({})
   const [loadingSettings, setLoadingSettings] = useState(true)
 
   useEffect(() => {
@@ -57,19 +57,40 @@ function SettingsPage() {
       ) : (
         <FlexBox scroll="vertical">
           {currentSection === SettingsSection.ClientGeneral ? (
-            <ClientGeneral clientSettings={clientSettings} />
+            <ClientGeneral
+              clientSettings={clientSettings}
+              setClientSettings={setClientSettings}
+            />
           ) : currentSection === SettingsSection.ClientQuality ? (
-            <ClientQuality clientSettings={clientSettings} />
+            <ClientQuality
+              clientSettings={clientSettings}
+              setClientSettings={setClientSettings}
+            />
           ) : currentSection === SettingsSection.ClientPlayer ? (
-            <ClientPlayer clientSettings={clientSettings} />
+            <ClientPlayer
+              clientSettings={clientSettings}
+              setClientSettings={setClientSettings}
+            />
           ) : currentSection === SettingsSection.ServerGeneral ? (
-            <ServerGeneral serverSettings={serverSettings} />
+            <ServerGeneral
+              serverSettings={serverSettings}
+              setServerSettings={setServerSettings}
+            />
           ) : currentSection === SettingsSection.ServerLanguages ? (
-            <ServerLanguages serverSettings={serverSettings} />
+            <ServerLanguages
+              serverSettings={serverSettings}
+              setServerSettings={setServerSettings}
+            />
           ) : currentSection === SettingsSection.ServerTranscode ? (
-            <ServerTranscode serverSettings={serverSettings} />
+            <ServerTranscode
+              serverSettings={serverSettings}
+              setServerSettings={setServerSettings}
+            />
           ) : (
-            <ServerLibraries serverSettings={serverSettings} />
+            <ServerLibraries
+              serverSettings={serverSettings}
+              setServerSettings={setServerSettings}
+            />
           )}
         </FlexBox>
       )}

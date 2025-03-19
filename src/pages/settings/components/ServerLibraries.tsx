@@ -10,7 +10,15 @@ import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import FlexBox from '@/components/ui/FlexBox'
 
-function ServerLibraries({ serverSettings }: { serverSettings: Settings }) {
+interface ServerLibrariesProps {
+  serverSettings: Settings
+  setServerSettings: (newSettings: Settings) => void
+}
+
+function ServerLibraries({
+  serverSettings,
+  setServerSettings,
+}: ServerLibrariesProps) {
   const { t } = useTranslation()
   const [isDirty, setIsDirty] = useState<boolean>(false)
   const [showMessage, setShowMessage] = useState(false)
@@ -100,6 +108,14 @@ function ServerLibraries({ serverSettings }: { serverSettings: Settings }) {
     setServerSetting(serverIP, 'autoScan', autoScan)
     setServerSetting(serverIP, 'autoScanPeriod', autoScanPeriod)
     setServerSetting(serverIP, 'generateChapters', generateChapters)
+
+    setServerSettings({
+      ...serverSettings,
+      autoScan: autoScan,
+      autoScanPeriod: autoScanPeriod,
+      generateChapters: generateChapters,
+    })
+
     setIsDirty(false)
 
     setShowMessage(true)

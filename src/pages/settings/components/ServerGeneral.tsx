@@ -11,7 +11,15 @@ import { Settings } from '@/data/interfaces/Utils'
 import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 
-function ServerGeneral({ serverSettings }: { serverSettings: Settings }) {
+interface ServerGeneralProps {
+  serverSettings: Settings
+  setServerSettings: (newSettings: Settings) => void
+}
+
+function ServerGeneral({
+  serverSettings,
+  setServerSettings,
+}: ServerGeneralProps) {
   const { t } = useTranslation()
   const { serverIP, serverVersion, setServerIP } = useServerStore()
   const { setServerSetting } = useSettingsStore()
@@ -26,6 +34,12 @@ function ServerGeneral({ serverSettings }: { serverSettings: Settings }) {
   const handleSave = () => {
     setServerIP(ip)
     setServerSetting(serverIP, 'automaticUpdates', autoUpdate)
+
+    setServerSettings({
+      ...serverSettings,
+      automaticUpdates: autoUpdate,
+    })
+
     setIsDirty(false)
 
     setShowMessage(true)

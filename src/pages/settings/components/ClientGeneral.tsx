@@ -23,27 +23,30 @@ const TimeFormatOptions = [
   },
 ]
 
-function ClientGeneral({ clientSettings }: { clientSettings: Settings }) {
+interface ClientGeneralProps {
+  clientSettings: Settings
+  setClientSettings: (newSettings: Settings) => void
+}
+
+function ClientGeneral({
+  clientSettings,
+  setClientSettings,
+}: ClientGeneralProps) {
   const { t } = useTranslation()
-  const [isDirty, setIsDirty] = React.useState(false)
   const { serverIP } = useServerStore()
-  const { setServerSetting } = useSettingsStore()
+  const { setClientSetting } = useSettingsStore()
+  const [isDirty, setIsDirty] = React.useState(false)
   const [showMessage, setShowMessage] = React.useState(false)
 
-  const [playMusic, setPlayMusic] = React.useState(true)
-  const [musicVolume, setMusicVolume] = React.useState(100)
-  const [timeFormat, setTimeFormat] = React.useState<string>('24h')
-
-  const handleSave = () => {
-    setServerSetting(serverIP, 'playBackgroundMusic', playMusic)
-    setIsDirty(false)
-
-    setShowMessage(true)
-
-    setTimeout(() => {
-      setShowMessage(false)
-    }, 2000)
-  }
+  const [playMusic, setPlayMusic] = React.useState(
+    clientSettings['playBackgroundMusic'] as boolean,
+  )
+  const [musicVolume, setMusicVolume] = React.useState(
+    clientSettings['backgroundMusicVolume'] as number,
+  )
+  const [timeFormat, setTimeFormat] = React.useState(
+    clientSettings['timeFormat'] as string,
+  )
 
   const handlePlayBackgroundMusicChange = (checked: boolean) => {
     setPlayMusic(checked)
@@ -58,6 +61,27 @@ function ClientGeneral({ clientSettings }: { clientSettings: Settings }) {
   const handleTimeFormatChange = (key: string) => {
     setTimeFormat(key)
     setIsDirty(true)
+  }
+
+  const handleSave = () => {
+    setClientSetting(serverIP, 'playBackgroundMusic', playMusic)
+    setClientSetting(serverIP, 'backgroundMusicVolume', musicVolume)
+    setClientSetting(serverIP, 'timeFormat', timeFormat)
+
+    setClientSettings({
+      ...clientSettings,
+      playBackgroundMusic: playMusic,
+      backgroundMusicVolume: musicVolume,
+      timeFormat: timeFormat,
+    })
+
+    setIsDirty(false)
+
+    setShowMessage(true)
+
+    setTimeout(() => {
+      setShowMessage(false)
+    }, 2000)
   }
 
   return (

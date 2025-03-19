@@ -5,10 +5,24 @@ import React from 'react'
 import { useTranslation } from 'react-i18next'
 import ContentWrapper from './utils/ContentWrapper'
 import { Settings } from '@/data/interfaces/Utils'
+import FlexBox from '@/components/ui/FlexBox'
+import { useServerStore } from '@/context/server.context'
+import { useSettingsStore } from '@/context/settings.context'
 
-function ClientPlayer({ clientSettings }: { clientSettings: Settings }) {
+interface ClientPlayerProps {
+  clientSettings: Settings
+  setClientSettings: (newSettings: Settings) => void
+}
+
+function ClientPlayer({
+  clientSettings,
+  setClientSettings,
+}: ClientPlayerProps) {
   const { t } = useTranslation()
+  const { serverIP } = useServerStore()
+  const { setClientSetting } = useSettingsStore()
   const [isDirty, setIsDirty] = React.useState(false)
+  const [showMessage, setShowMessage] = React.useState(false)
 
   const subtitleColorOptions = [
     {
@@ -39,8 +53,8 @@ function ClientPlayer({ clientSettings }: { clientSettings: Settings }) {
       value: t('small'),
     },
     {
-      key: 'medium',
-      value: t('medium'),
+      key: 'normal',
+      value: t('normal'),
     },
     {
       key: 'big',
@@ -82,29 +96,87 @@ function ClientPlayer({ clientSettings }: { clientSettings: Settings }) {
     },
   ]
 
+  const [subtitleColor, setSubtitleColor] = React.useState(
+    t(clientSettings['subtitleColor'] as string),
+  )
+  const [subtitleSize, setSubtitleSize] = React.useState(
+    t(clientSettings['subtitleSize'] as string),
+  )
+  const [subtitlePosition, setSubtitlePosition] = React.useState(
+    t(clientSettings['subtitlePosition'] as string),
+  )
+  const [subtitleBurn, setSubtitleBurn] = React.useState(
+    subtitleBurnOptions.find(
+      (option) => option.key === (clientSettings['burntSubtitles'] as string),
+    )?.value || subtitleBurnOptions[0].value,
+  )
+
+  const handleSave = () => {
+    setClientSetting(serverIP, 'subtitleColor', subtitleColor)
+    setClientSetting(serverIP, 'subtitleSize', subtitleSize)
+    setClientSetting(serverIP, 'subtitlePosition', subtitlePosition)
+    setClientSetting(serverIP, 'burntSubtitles', subtitleBurn)
+
+    setClientSettings({
+      ...clientSettings,
+      subtitleColor: subtitleColor,
+      subtitleSize: subtitleSize,
+      subtitlePosition: subtitlePosition,
+      burntSubtitles: subtitleBurn,
+    })
+
+    setIsDirty(false)
+
+    setShowMessage(true)
+
+    setTimeout(() => {
+      setShowMessage(false)
+    }, 2000)
+  }
+
+  const handleSubtitleColorChange = (key: string) => {
+    setSubtitleColor(key)
+    setIsDirty(true)
+  }
+
+  const handleSubtitlePositionChange = (key: string) => {
+    setSubtitlePosition(key)
+    setIsDirty(true)
+  }
+
+  const handleSubtitleSizeChange = (key: string) => {
+    setSubtitleSize(key)
+    setIsDirty(true)
+  }
+
+  const handleSubtitleBurnChange = (key: string) => {
+    setSubtitleBurn(key)
+    setIsDirty(true)
+  }
+
   return (
     <ContentWrapper group={t('client')} section={t('player')}>
       <LabeledInputWrapper direction="row" label={t('subtitleColor')}>
         <SelectableWrapper
           options={subtitleColorOptions}
-          defaultValue={subtitleColorOptions[0].value}
-          onValueChange={function (key: string, value: string): void {}}
+          defaultValue={subtitleColor}
+          onValueChange={handleSubtitleColorChange}
         />
       </LabeledInputWrapper>
 
       <LabeledInputWrapper direction="row" label={t('subtitlePosition')}>
         <SelectableWrapper
           options={subtitlePositionOptions}
-          defaultValue={subtitlePositionOptions[0].value}
-          onValueChange={function (key: string, value: string): void {}}
+          defaultValue={subtitlePosition}
+          onValueChange={handleSubtitlePositionChange}
         />
       </LabeledInputWrapper>
 
       <LabeledInputWrapper direction="row" label={t('subtitleSize')}>
         <SelectableWrapper
           options={subtitleSizeOptions}
-          defaultValue={subtitleSizeOptions[0].value}
-          onValueChange={function (key: string, value: string): void {}}
+          defaultValue={subtitleSize}
+          onValueChange={handleSubtitleSizeChange}
         />
       </LabeledInputWrapper>
 
@@ -115,12 +187,21 @@ function ClientPlayer({ clientSettings }: { clientSettings: Settings }) {
       >
         <SelectableWrapper
           options={subtitleBurnOptions}
-          defaultValue={subtitleBurnOptions[0].value}
-          onValueChange={function (key: string, value: string): void {}}
+          defaultValue={subtitleBurn}
+          onValueChange={handleSubtitleBurnChange}
         />
       </LabeledInputWrapper>
 
-      <Button disabled={!isDirty}>{t('saveButton')}</Button>
+      <FlexBox gap={1} justify="center" align="center">
+        <Button disabled={!isDirty} onClick={handleSave}>
+          {t('saveButton')}
+        </Button>
+        {showMessage && (
+          <span className="text-muted-foreground text-sm">
+            ✔ {t('changesSaved')}
+          </span>
+        )}
+      </FlexBox>
     </ContentWrapper>
   )
 }

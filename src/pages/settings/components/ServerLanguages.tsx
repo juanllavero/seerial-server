@@ -12,7 +12,15 @@ import Loading from '@/components/Loading'
 import FlexBox from '@/components/ui/FlexBox'
 import { Settings } from '@/data/interfaces/Utils'
 
-function ServerLanguages({ serverSettings }: { serverSettings: Settings }) {
+interface ServerLanguagesProps {
+  serverSettings: Settings
+  setServerSettings: (newSettings: Settings) => void
+}
+
+function ServerLanguages({
+  serverSettings,
+  setServerSettings,
+}: ServerLanguagesProps) {
   const { t, i18n } = useTranslation()
   const { serverIP } = useServerStore()
   const { setServerSetting } = useSettingsStore()
@@ -71,6 +79,15 @@ function ServerLanguages({ serverSettings }: { serverSettings: Settings }) {
     )
     setServerSetting(serverIP, 'subsMode', subsMode)
     setServerSetting(serverIP, 'preferSubsLan', ISO6391.getCode(preferSubLan))
+
+    setServerSettings({
+      ...serverSettings,
+      autoSelectTracks: autoSelectTracks,
+      preferAudioLan: ISO6391.getCode(preferAudioLan),
+      subsMode: subsMode,
+      preferSubsLan: ISO6391.getCode(preferSubLan),
+    })
+
     setIsDirty(false)
 
     setShowMessage(true)
