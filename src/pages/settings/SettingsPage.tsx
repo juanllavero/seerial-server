@@ -10,38 +10,25 @@ import ServerTranscode from './components/ServerTranscode'
 import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import Loading from '@/components/Loading'
-import { Settings, SettingsSection } from '@/data/interfaces/Utils'
+import { SettingsSection } from '@/data/interfaces/Utils'
 import LeftPanel from './components/leftPanel/LeftPanel'
 
 function SettingsPage() {
   const { serverIP } = useServerStore()
-  const { getAllClientSettings, getAllServerSettings } = useSettingsStore()
+  const {
+    getAllClientSettings,
+    getAllServerSettings,
+    clientSettings,
+    serverSettings,
+  } = useSettingsStore()
   const [currentSection, setCurrentSection] = useState<SettingsSection>(
     SettingsSection.ClientGeneral,
   )
 
-  const [clientSettings, setClientSettings] = useState<Settings>({})
-  const [serverSettings, setServerSettings] = useState<Settings>({})
-  const [loadingSettings, setLoadingSettings] = useState(true)
-
   useEffect(() => {
-    loadClientSettings()
-    loadServerSettings()
+    getAllClientSettings(serverIP)
+    getAllServerSettings(serverIP)
   }, [serverIP])
-
-  const loadClientSettings = async () => {
-    setLoadingSettings(true)
-    const settings = await getAllClientSettings(serverIP)
-    setClientSettings(settings)
-    setLoadingSettings(false)
-  }
-
-  const loadServerSettings = async () => {
-    setLoadingSettings(true)
-    const settings = await getAllServerSettings(serverIP)
-    setServerSettings(settings)
-    setLoadingSettings(false)
-  }
 
   return (
     <FlexBox gap={4} padding="10rem 3rem">
@@ -52,45 +39,25 @@ function SettingsPage() {
       />
 
       {/* Right Panel */}
-      {loadingSettings ? (
+      {Object.keys(serverSettings).length === 0 ||
+      Object.keys(clientSettings).length === 0 ? (
         <Loading />
       ) : (
         <FlexBox scroll="vertical">
           {currentSection === SettingsSection.ClientGeneral ? (
-            <ClientGeneral
-              clientSettings={clientSettings}
-              setClientSettings={setClientSettings}
-            />
+            <ClientGeneral />
           ) : currentSection === SettingsSection.ClientQuality ? (
-            <ClientQuality
-              clientSettings={clientSettings}
-              setClientSettings={setClientSettings}
-            />
+            <ClientQuality />
           ) : currentSection === SettingsSection.ClientPlayer ? (
-            <ClientPlayer
-              clientSettings={clientSettings}
-              setClientSettings={setClientSettings}
-            />
+            <ClientPlayer />
           ) : currentSection === SettingsSection.ServerGeneral ? (
-            <ServerGeneral
-              serverSettings={serverSettings}
-              setServerSettings={setServerSettings}
-            />
+            <ServerGeneral />
           ) : currentSection === SettingsSection.ServerLanguages ? (
-            <ServerLanguages
-              serverSettings={serverSettings}
-              setServerSettings={setServerSettings}
-            />
+            <ServerLanguages />
           ) : currentSection === SettingsSection.ServerTranscode ? (
-            <ServerTranscode
-              serverSettings={serverSettings}
-              setServerSettings={setServerSettings}
-            />
+            <ServerTranscode />
           ) : (
-            <ServerLibraries
-              serverSettings={serverSettings}
-              setServerSettings={setServerSettings}
-            />
+            <ServerLibraries />
           )}
         </FlexBox>
       )}

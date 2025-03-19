@@ -5,25 +5,17 @@ import SelectableWrapper from '@/components/ui/SelectableWrapper'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ContentWrapper from './utils/ContentWrapper'
-import { Settings } from '@/data/interfaces/Utils'
 import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import FlexBox from '@/components/ui/FlexBox'
 
-interface ServerTranscodeProps {
-  serverSettings: Settings
-  setServerSettings: (newSettings: Settings) => void
-}
-
-function ServerTranscode({
-  serverSettings,
-  setServerSettings,
-}: ServerTranscodeProps) {
+function ServerTranscode() {
   const { t } = useTranslation()
   const [isDirty, setIsDirty] = React.useState(false)
   const [showMessage, setShowMessage] = React.useState(false)
   const { serverIP } = useServerStore()
-  const { setServerSetting } = useSettingsStore()
+  const { setServerSetting, serverSettings, setServerSettings } =
+    useSettingsStore()
 
   const transcoderOptions = [
     {

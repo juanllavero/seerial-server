@@ -7,22 +7,14 @@ import { Check, CloudDownload } from 'lucide-react'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ContentWrapper from './utils/ContentWrapper'
-import { Settings } from '@/data/interfaces/Utils'
 import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 
-interface ServerGeneralProps {
-  serverSettings: Settings
-  setServerSettings: (newSettings: Settings) => void
-}
-
-function ServerGeneral({
-  serverSettings,
-  setServerSettings,
-}: ServerGeneralProps) {
+function ServerGeneral() {
   const { t } = useTranslation()
   const { serverIP, serverVersion, setServerIP } = useServerStore()
-  const { setServerSetting } = useSettingsStore()
+  const { setServerSetting, serverSettings, setServerSettings } =
+    useSettingsStore()
   const [isDirty, setIsDirty] = React.useState(false)
   const [showMessage, setShowMessage] = useState(false)
 

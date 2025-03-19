@@ -1,7 +1,11 @@
-import { ValueOption } from '@/data/interfaces/Utils'
+import { Settings, ValueOption } from '@/data/interfaces/Utils'
 import { create } from 'zustand'
 
 interface SettingsStore {
+  clientSettings: Settings
+  serverSettings: Settings
+  setClientSettings: (settings: Settings) => void
+  setServerSettings: (settings: Settings) => void
   getAllServerSettings: (serverIP: string) => Promise<any>
   getServerSetting: (
     serverIP: string,
@@ -19,11 +23,23 @@ interface SettingsStore {
   setClientSetting: (serverIP: string, key: string, value: ValueOption) => void
 }
 
-export const useSettingsStore = create<SettingsStore>(() => ({
+export const useSettingsStore = create<SettingsStore>((set) => ({
+  clientSettings: {},
+  serverSettings: {},
+  setClientSettings: (settings: Settings) =>
+    set((state) => ({
+      clientSettings: settings,
+      serverSettings: state.serverSettings,
+    })),
+  setServerSettings: (settings: Settings) =>
+    set((state) => ({
+      serverSettings: settings,
+      clientSettings: state.clientSettings,
+    })),
   getAllServerSettings: async (serverIP: string) => {
     const settings = await fetch(`https://${serverIP}/serverConfig`)
     const result = await settings.json()
-    return result
+    set({ serverSettings: result })
   },
   getServerSetting: async (
     serverIP: string,
@@ -52,7 +68,7 @@ export const useSettingsStore = create<SettingsStore>(() => ({
   getAllClientSettings: async (serverIP: string) => {
     const settings = await fetch(`https://${serverIP}/webConfig`)
     const result = await settings.json()
-    return result
+    set({ clientSettings: result })
   },
   getClientSetting: async (
     serverIP: string,

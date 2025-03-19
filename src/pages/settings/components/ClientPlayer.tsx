@@ -4,23 +4,15 @@ import SelectableWrapper from '@/components/ui/SelectableWrapper'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import ContentWrapper from './utils/ContentWrapper'
-import { Settings } from '@/data/interfaces/Utils'
 import FlexBox from '@/components/ui/FlexBox'
 import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 
-interface ClientPlayerProps {
-  clientSettings: Settings
-  setClientSettings: (newSettings: Settings) => void
-}
-
-function ClientPlayer({
-  clientSettings,
-  setClientSettings,
-}: ClientPlayerProps) {
+function ClientPlayer() {
   const { t } = useTranslation()
   const { serverIP } = useServerStore()
-  const { setClientSetting } = useSettingsStore()
+  const { setClientSetting, clientSettings, setClientSettings } =
+    useSettingsStore()
   const [isDirty, setIsDirty] = React.useState(false)
   const [showMessage, setShowMessage] = React.useState(false)
 

@@ -5,25 +5,17 @@ import SelectableWrapper from '@/components/ui/SelectableWrapper'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ContentWrapper from './utils/ContentWrapper'
-import { Settings } from '@/data/interfaces/Utils'
 import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import FlexBox from '@/components/ui/FlexBox'
 
-interface ServerLibrariesProps {
-  serverSettings: Settings
-  setServerSettings: (newSettings: Settings) => void
-}
-
-function ServerLibraries({
-  serverSettings,
-  setServerSettings,
-}: ServerLibrariesProps) {
+function ServerLibraries() {
   const { t } = useTranslation()
   const [isDirty, setIsDirty] = useState<boolean>(false)
   const [showMessage, setShowMessage] = useState(false)
   const { serverIP } = useServerStore()
-  const { setServerSetting } = useSettingsStore()
+  const { setServerSetting, serverSettings, setServerSettings } =
+    useSettingsStore()
 
   const scanOptions = [
     {

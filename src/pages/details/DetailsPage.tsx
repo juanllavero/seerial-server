@@ -3,7 +3,7 @@ import LazyImage from '@/components/ui/LazyImage'
 import useDataStore from '@/context/data.context'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import './DetailsPage.css'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Bookmark, Edit, Ellipsis } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
@@ -18,6 +18,8 @@ import {
   RemoveFromListIcon,
   UnmarkWatchedIcon,
 } from '@/components/ui/IconLibrary'
+import { useSettingsStore } from '@/context/settings.context'
+import { useServerStore } from '@/context/server.context'
 
 function DetailsPage() {
   const { libraryId, seriesId } = useParams({
@@ -34,7 +36,10 @@ function DetailsPage() {
     setSeasonWatched,
   } = useDataStore()
   const { t } = useTranslation()
+  const { clientSettings } = useSettingsStore()
   const navigate = useNavigate()
+
+  const [showPoster, setShowPoster] = useState<boolean>(clientSettings['showPosters'] as boolean ?? true)
 
   //#region CHECK DATA BEFORE LOAD
   const library = libraries.find((library) => library.id === libraryId)
@@ -172,9 +177,11 @@ function DetailsPage() {
       height={'100%'}
     >
       <FlexBox justify="start" align="start" gap={4}>
-        <FlexBox className="image-container">
-          <LazyImage url={posterUrl} width={400} maxHeight={550} />
-        </FlexBox>
+        {showPoster && (
+          <FlexBox className="image-container">
+            <LazyImage url={posterUrl} width={400} maxHeight={550} />
+          </FlexBox>
+        )}
 
         <FlexBox direction="column" gap={1} width={'80%'}>
           {renderLogoOrText()}

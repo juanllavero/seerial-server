@@ -10,20 +10,12 @@ import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import Loading from '@/components/Loading'
 import FlexBox from '@/components/ui/FlexBox'
-import { Settings } from '@/data/interfaces/Utils'
 
-interface ServerLanguagesProps {
-  serverSettings: Settings
-  setServerSettings: (newSettings: Settings) => void
-}
-
-function ServerLanguages({
-  serverSettings,
-  setServerSettings,
-}: ServerLanguagesProps) {
+function ServerLanguages() {
   const { t, i18n } = useTranslation()
   const { serverIP } = useServerStore()
-  const { setServerSetting } = useSettingsStore()
+  const { setServerSetting, serverSettings, setServerSettings } =
+    useSettingsStore()
   const currentLanguage = i18n.language?.split('-')[0] ?? 'en'
   const [isDirty, setIsDirty] = useState(false)
 
