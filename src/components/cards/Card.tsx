@@ -78,17 +78,20 @@ function Card({
             <span>{!watched ? cornerNumber : <Check size={20} />}</span>
           </div>
         )}
-        <Grid
+        <FlexBox
           className="card-hover"
-          rows="1fr 1fr 1fr"
+          direction="column"
+          justify="space-between"
+          align="center"
           width="100%"
           height="100%"
         >
           <FlexBox
-            className="top"
             justify="space-between"
             align="start"
+            width="100%"
             padding=".3rem"
+            gap={0.1}
           >
             <Button variant={'ghost'}>{cornerData}</Button>
             <Button variant={'ghost'}>{cornerData}</Button>
@@ -108,9 +111,9 @@ function Card({
           </FlexBox>
           {!hideButtons && menu && (
             <FlexBox
-              className="bottom"
               justify="space-between"
               align="end"
+              width="100%"
               padding=".3rem"
             >
               {editModal}
@@ -128,7 +131,7 @@ function Card({
               />
             </FlexBox>
           )}
-        </Grid>
+        </FlexBox>
         <LazyImage
           key={itemKey}
           url={imgSrc}
