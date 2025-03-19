@@ -1,8 +1,8 @@
-import { Utils } from "@/data/utils/Utils";
 import { app } from "electron";
 import express from "express";
 import fs from "fs";
 import path from "path";
+import { Utils } from "../../../data/utils/Utils";
 const router = express.Router();
 
 const extPath = app.isPackaged

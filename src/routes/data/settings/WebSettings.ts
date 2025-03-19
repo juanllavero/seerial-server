@@ -1,8 +1,8 @@
-import { Utils } from "@/data/utils/Utils";
 import { app } from "electron";
 import express from "express";
 import fs from "fs";
 import path from "path";
+import { Utils } from "../../../data/utils/Utils";
 const router = express.Router();
 
 const extPath = app.isPackaged
@@ -12,11 +12,17 @@ const extPath = app.isPackaged
 const CONFIG_FILE = path.join(extPath, "resources", "config", "webConfig.json");
 
 const defaultConfig = {
-  backgroundVolume: 30,
-  cardSize: 2,
-  currentLanguageTag: "es-ES",
-  playMusicDesktop: false,
-  subtitleSize: 0.8,
+  playBackgroundMusic: true,
+  backgroundMusicVolume: 30,
+  timeFormat: "24h",
+  localVideoQuality: "original",
+  onlineVideoQuality: "original",
+  showPosters: true,
+  subtitleColor: "white",
+  subtitlePosition: "bottom",
+  subtitleSize: "small",
+  burntSubtitles: "auto",
+  cardSize: "big",
 };
 
 // GET /config/:key - Retrieves a specific setting

@@ -10,6 +10,7 @@ export class Cast {
   ) {
     this.name = name;
     this.character = character;
+    this.profileImage = profileImage;
   }
 
   // Convert from JSON to Cast instance

@@ -62,6 +62,9 @@ appServer.use("/", routes.getMediaRoutes);
 appServer.use("/", routes.getMediaInfoRoutes);
 appServer.use("/", routes.getStatusRoutes);
 appServer.use("/", routes.getVideoRoutes);
+appServer.use("/", routes.getHTPCSettings);
+appServer.use("/", routes.getServerSettings);
+appServer.use("/", routes.getWebSettings);
 
 let tray: Tray;
 

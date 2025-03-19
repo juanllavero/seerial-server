@@ -1,8 +1,8 @@
-import { Utils } from "@/data/utils/Utils";
 import { app } from "electron";
 import express from "express";
 import fs from "fs";
 import path from "path";
+import { Utils } from "../../../data/utils/Utils";
 const router = express.Router();
 
 const extPath = app.isPackaged
@@ -18,10 +18,17 @@ const CONFIG_FILE = path.join(
 
 const defaultConfig = {
   autoScan: false,
-  generateThumbnails: true,
+  autoScanPeriod: "never",
+  generateChapters: "never",
+  autoSelectTracks: true,
   preferAudioLan: "es-ES",
   preferSubsLan: "es-ES",
-  subsMode: 2,
+  subsMode: "autoSubs",
+  tempTranscodeFolder: "",
+  transcodeBuffer: 60,
+  transcodePreset: "veryfast",
+  maxTranscodeProcesses: 4,
+  automaticUpdates: false,
 };
 
 // GET /config/:key - Retrieves a specific setting

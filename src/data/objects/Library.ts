@@ -1,6 +1,6 @@
 import { LibraryData } from "../interfaces/LibraryData";
-import { Series } from "./Series";
 import { SeriesData } from "../interfaces/SeriesData";
+import { Series } from "./Series";
 
 export class Library {
   id: string;
@@ -10,16 +10,23 @@ export class Library {
   order: number;
   folders: string[];
   series: Series[] = [];
+  seriesList: string[] = [];
   analyzedFiles: Map<string, string> = new Map();
   analyzedFolders: Map<string, string> = new Map();
   seasonFolders: Map<string, string> = new Map();
+  preferAudioLan: string | undefined;
+  preferSubLan: string | undefined;
+  subsMode: string | undefined;
 
   constructor(
     name: string,
     lang: string,
     type: string,
     order: number,
-    folders: string[]
+    folders: string[],
+    preferAudioLan: string | undefined,
+    preferSubLan: string | undefined,
+    subsMode: string | undefined
   ) {
     this.id = crypto.randomUUID();
     this.name = name;
@@ -27,6 +34,9 @@ export class Library {
     this.type = type;
     this.order = order;
     this.folders = folders;
+    this.preferAudioLan = preferAudioLan;
+    this.preferSubLan = preferSubLan;
+    this.subsMode = subsMode;
   }
 
   toLibraryData(): LibraryData {
@@ -37,12 +47,16 @@ export class Library {
       type: this.type,
       order: this.order,
       folders: this.folders,
+      seriesList: this.seriesList,
       series: this.series.map((s) => {
         if (s) return s.toJSON();
       }),
       analyzedFiles: Array.from(this.analyzedFiles.entries()),
       analyzedFolders: Array.from(this.analyzedFolders.entries()),
       seasonFolders: Array.from(this.seasonFolders.entries()),
+      preferAudioLan: this.preferAudioLan,
+      preferSubLan: this.preferSubLan,
+      subsMode: this.subsMode,
     };
   }
 
@@ -52,10 +66,14 @@ export class Library {
       data.language,
       data.type,
       data.order,
-      data.folders
+      data.folders,
+      data.preferAudioLan,
+      data.preferSubLan,
+      data.subsMode
     );
     library.id = data.id;
     library.series = data.series.map((s: SeriesData) => Series.fromJSON(s)); // Convierte SeriesData a Series
+    library.seriesList = data.seriesList;
     library.analyzedFiles = new Map(data.analyzedFiles || []);
     library.analyzedFolders = new Map(data.analyzedFolders || []);
     library.seasonFolders = new Map(data.seasonFolders || []);
@@ -74,9 +92,13 @@ export class Library {
       series: this.series.map((s) => {
         if (s) return s.toJSON();
       }),
+      seriesList: this.seriesList,
       analyzedFiles: Array.from(this.analyzedFiles.entries()), // Convertir Map a array de pares
       analyzedFolders: Array.from(this.analyzedFolders.entries()),
       seasonFolders: Array.from(this.seasonFolders.entries()),
+      preferAudioLan: this.preferAudioLan,
+      preferSubLan: this.preferSubLan,
+      subsMode: this.subsMode,
     };
   }
 
@@ -87,10 +109,14 @@ export class Library {
       jsonData.language,
       jsonData.type,
       jsonData.order,
-      jsonData.folders
+      jsonData.folders,
+      jsonData.preferAudioLan,
+      jsonData.preferSubLan,
+      jsonData.subsMode
     );
 
     library.id = jsonData.id;
+    library.seriesList = jsonData.seriesList;
     library.series = jsonData.series.map((s: any) => Series.fromJSON(s));
     library.analyzedFiles = new Map(
       Object.entries(jsonData.analyzedFiles || {})

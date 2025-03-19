@@ -8,7 +8,11 @@ export interface LibraryData {
   order: number;
   folders: string[];
   series: SeriesData[];
+  seriesList: string[];
   analyzedFiles: any;
   analyzedFolders: any;
   seasonFolders: any;
+  preferAudioLan: string | undefined;
+  preferSubLan: string | undefined;
+  subsMode: string | undefined;
 }
