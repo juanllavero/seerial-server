@@ -9,9 +9,14 @@ const extPath = app.isPackaged
   ? path.dirname(app.getPath("exe"))
   : app.getAppPath();
 
-const CONFIG_FILE = path.join(extPath, "resources", "config", "webConfig.json");
+const WEB_CONFIG_FILE = path.join(
+  extPath,
+  "resources",
+  "config",
+  "webConfig.json"
+);
 
-const defaultConfig = {
+const defaultWebConfig = {
   playBackgroundMusic: true,
   backgroundMusicVolume: 30,
   timeFormat: "24h",
@@ -29,8 +34,8 @@ const defaultConfig = {
 router.get("/webConfig/:key", (req: any, res: any) => {
   const key = req.params.key;
 
-  Utils.createJSONFileIfNotExists(CONFIG_FILE, defaultConfig);
-  const configData = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf8"));
+  Utils.createJSONFileIfNotExists(WEB_CONFIG_FILE, defaultWebConfig);
+  const configData = JSON.parse(fs.readFileSync(WEB_CONFIG_FILE, "utf8"));
 
   // If the key does not exist, return null
   const value = configData[key] !== undefined ? configData[key] : null;
@@ -39,22 +44,22 @@ router.get("/webConfig/:key", (req: any, res: any) => {
 
 // GET /config - Returns all settings
 router.get("/webConfig", (_req: any, res: any) => {
-  Utils.createJSONFileIfNotExists(CONFIG_FILE, defaultConfig);
-  const configData = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf8"));
+  Utils.createJSONFileIfNotExists(WEB_CONFIG_FILE, defaultWebConfig);
+  const configData = JSON.parse(fs.readFileSync(WEB_CONFIG_FILE, "utf8"));
   res.json(configData);
 });
 
 // PATCH /config - Modifies the data and saves the settings
 router.patch("/webConfig", (req: any, res: any) => {
-  Utils.createJSONFileIfNotExists(CONFIG_FILE, defaultConfig);
+  Utils.createJSONFileIfNotExists(WEB_CONFIG_FILE, defaultWebConfig);
   const updates = req.body; // The data to be modified is sent in the body of the request
-  let configData = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf8"));
+  let configData = JSON.parse(fs.readFileSync(WEB_CONFIG_FILE, "utf8"));
 
   // Update the existing data with the new values
   configData = { ...configData, ...updates };
 
   // Save the updated data to the file
-  fs.writeFileSync(CONFIG_FILE, JSON.stringify(configData, null, 2));
+  fs.writeFileSync(WEB_CONFIG_FILE, JSON.stringify(configData, null, 2));
   res.json({ message: "Configuration updated", config: configData });
 });
 

@@ -9,14 +9,14 @@ const extPath = app.isPackaged
   ? path.dirname(app.getPath("exe"))
   : app.getAppPath();
 
-const CONFIG_FILE = path.join(
+const HTPC_CONFIG_FILE = path.join(
   extPath,
   "resources",
   "config",
   "htpcConfig.json"
 );
 
-const defaultConfig = {
+const defaultHTPCConfig = {
   backgroundChoice: true,
   backgroundDelay: 2.0,
   backgroundVideoZoom: "Normal",
@@ -32,8 +32,8 @@ const defaultConfig = {
 router.get("/htpcConfig/:key", (req: any, res: any) => {
   const key = req.params.key;
 
-  Utils.createJSONFileIfNotExists(CONFIG_FILE, defaultConfig);
-  const configData = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf8"));
+  Utils.createJSONFileIfNotExists(HTPC_CONFIG_FILE, defaultHTPCConfig);
+  const configData = JSON.parse(fs.readFileSync(HTPC_CONFIG_FILE, "utf8"));
 
   // If the key does not exist, return null
   const value = configData[key] !== undefined ? configData[key] : null;
@@ -42,22 +42,22 @@ router.get("/htpcConfig/:key", (req: any, res: any) => {
 
 // GET /config - Returns all settings
 router.get("/htpcConfig", (_req: any, res: any) => {
-  Utils.createJSONFileIfNotExists(CONFIG_FILE, defaultConfig);
-  const configData = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf8"));
+  Utils.createJSONFileIfNotExists(HTPC_CONFIG_FILE, defaultHTPCConfig);
+  const configData = JSON.parse(fs.readFileSync(HTPC_CONFIG_FILE, "utf8"));
   res.json(configData);
 });
 
 // PATCH /config - Modifies the data and saves the settings
 router.patch("/htpcConfig", (req: any, res: any) => {
-  Utils.createJSONFileIfNotExists(CONFIG_FILE, defaultConfig);
+  Utils.createJSONFileIfNotExists(HTPC_CONFIG_FILE, defaultHTPCConfig);
   const updates = req.body; // The data to be modified is sent in the body of the request
-  let configData = JSON.parse(fs.readFileSync(CONFIG_FILE, "utf8"));
+  let configData = JSON.parse(fs.readFileSync(HTPC_CONFIG_FILE, "utf8"));
 
   // Update the existing data with the new values
   configData = { ...configData, ...updates };
 
   // Save the updated data to the file
-  fs.writeFileSync(CONFIG_FILE, JSON.stringify(configData, null, 2));
+  fs.writeFileSync(HTPC_CONFIG_FILE, JSON.stringify(configData, null, 2));
   res.json({ message: "Configuration updated", config: configData });
 });
 
