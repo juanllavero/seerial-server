@@ -3,6 +3,7 @@ import FlexBox from '@/components/ui/FlexBox'
 import Grid from '@/components/ui/Grid'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
 import useDataStore from '@/context/data.context'
+import useMusicStore from '@/context/music.context'
 import { Episode } from '@/data/interfaces/Media'
 import { useNavigate } from '@tanstack/react-router'
 import React from 'react'
@@ -18,6 +19,8 @@ function SeasonsContent() {
     selectEpisode,
   } = useDataStore()
   const { t } = useTranslation()
+  const { selectSong, setMusicPlayerShown, setMusicPlayerContracted } =
+    useMusicStore()
   const [distribution, setDistribution] = React.useState(1)
 
   if (!selectedLibrary || !selectedSeries) {
@@ -51,6 +54,33 @@ function SeasonsContent() {
     setDistribution(Number(key))
   }
 
+  const handleSelectEpisode = (episode: Episode) => {
+    if (!selectedSeason) return
+
+    if (selectedLibrary.type === 'Music') {
+      selectSong({
+        library: selectedLibrary,
+        collection: selectedSeries,
+        album: selectedSeason,
+        song: episode,
+      })
+
+      setMusicPlayerShown(true)
+      setMusicPlayerContracted(false)
+    } else {
+      selectEpisode(episode)
+      navigate({
+        to: '/video-player/$libraryId/$seriesId/$seasonId/$episodeId',
+        params: {
+          libraryId: selectedLibrary.id,
+          seriesId: selectedSeries.id,
+          seasonId: selectedSeason.id,
+          episodeId: episode.id,
+        },
+      })
+    }
+  }
+
   const onlyMovie =
     selectedLibrary.type === 'Movies' &&
     selectedSeason &&
@@ -81,7 +111,7 @@ function SeasonsContent() {
         {selectedLibrary.type !== 'Music' && !onlyMovie && (
           <SelectableWrapper
             defaultValue={'Cuadrícula'}
-            width='w-fit'
+            width="w-fit"
             options={[
               {
                 key: '0',
@@ -113,21 +143,17 @@ function SeasonsContent() {
                         imgSrc={episode.imgSrc}
                         aspectRatio={16 / 9}
                         width={400}
-                        progress={((episode.timeWatched / episode.runtimeInSeconds) * 100) > 0 ? (episode.timeWatched / episode.runtimeInSeconds) * 100 : undefined}
+                        progress={
+                          (episode.timeWatched / episode.runtimeInSeconds) *
+                            100 >
+                          0
+                            ? (episode.timeWatched / episode.runtimeInSeconds) *
+                              100
+                            : undefined
+                        }
                         title={episode.name}
                         subtitle={`${t('episode')} ${episode.episodeNumber.toString()}`}
-                        action={() => {
-                          selectEpisode(episode)
-                          navigate({
-                            to: '/video-player/$libraryId/$seriesId/$seasonId/$episodeId',
-                            params: {
-                              libraryId: selectedLibrary.id,
-                              seriesId: selectedSeries.id,
-                              seasonId: selectedSeason.id,
-                              episodeId: episode.id,
-                            },
-                          })
-                        }}
+                        action={() => handleSelectEpisode(episode)}
                         menu={getEpisodeMenu(episode)}
                       />
                     ))
@@ -143,21 +169,18 @@ function SeasonsContent() {
                           imgSrc={episode.imgSrc}
                           aspectRatio={16 / 9}
                           width={400}
-                          progress={((episode.timeWatched / episode.runtimeInSeconds) * 100) > 0 ? (episode.timeWatched / episode.runtimeInSeconds) * 100 : undefined}
+                          progress={
+                            (episode.timeWatched / episode.runtimeInSeconds) *
+                              100 >
+                            0
+                              ? (episode.timeWatched /
+                                  episode.runtimeInSeconds) *
+                                100
+                              : undefined
+                          }
                           title=""
                           subtitle=""
-                          action={() => {
-                            selectEpisode(episode)
-                            navigate({
-                              to: '/video-player/$libraryId/$seriesId/$seasonId/$episodeId',
-                              params: {
-                                libraryId: selectedLibrary.id,
-                                seriesId: selectedSeries.id,
-                                seasonId: selectedSeason.id,
-                                episodeId: episode.id,
-                              },
-                            })
-                          }}
+                          action={() => handleSelectEpisode(episode)}
                           hideButtons
                         />
                         <FlexBox direction="column">

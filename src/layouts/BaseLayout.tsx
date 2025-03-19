@@ -1,5 +1,7 @@
 import DialogManager from '@/components/dialogs/DialogManager'
 import DragWindowRegion from '@/components/DragWindowRegion'
+import MusicPlayer from '@/components/musicPlayer/MusicPlayer'
+import WebSocketMessageHandler from '@/components/utils/WebSocketMessageHandler'
 import useDataStore from '@/context/data.context'
 import { useDeviceStore } from '@/context/device.context'
 import { useServerStore } from '@/context/server.context'
@@ -8,7 +10,6 @@ import { useLocation } from '@tanstack/react-router'
 import React, { useEffect, useRef, useState } from 'react'
 import '../styles/utils.css'
 import './BaseLayout.css'
-import WebSocketMessageHandler from '@/components/utils/WebSocketMessageHandler'
 
 export default function BaseLayout({
   children,
@@ -115,6 +116,9 @@ export default function BaseLayout({
 
       {/* WebSocket Message Handler */}
       <WebSocketMessageHandler />
+
+      {/* Music Player */}
+      <MusicPlayer />
 
       <DragWindowRegion />
       <main className="h-screen w-screen">{children}</main>

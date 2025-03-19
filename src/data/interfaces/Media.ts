@@ -160,3 +160,10 @@ export interface Episode {
   audioTracks: AudioTrack[]
   subtitleTracks: SubtitleTrack[]
 }
+
+export interface Song {
+  library: Library
+  collection: Series
+  album: Season
+  song: Episode
+}

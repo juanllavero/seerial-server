@@ -19,7 +19,6 @@ import {
   UnmarkWatchedIcon,
 } from '@/components/ui/IconLibrary'
 import { useSettingsStore } from '@/context/settings.context'
-import { useServerStore } from '@/context/server.context'
 
 function DetailsPage() {
   const { libraryId, seriesId } = useParams({
@@ -39,7 +38,7 @@ function DetailsPage() {
   const { clientSettings } = useSettingsStore()
   const navigate = useNavigate()
 
-  const [showPoster, setShowPoster] = useState<boolean>(clientSettings['showPosters'] as boolean ?? true)
+  const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true
 
   //#region CHECK DATA BEFORE LOAD
   const library = libraries.find((library) => library.id === libraryId)
