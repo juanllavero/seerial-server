@@ -1,6 +1,6 @@
-import { Cast } from "../objects/Cast";
+import ffmetadata from "ffmetadata";
+import ffmpegPath from "ffmpeg-static";
 import fs from "fs-extra";
-import * as path from "path";
 import {
   Episode,
   EpisodeGroupResponse,
@@ -8,18 +8,19 @@ import {
   ShowResponse,
   TvSeasonResponse,
 } from "moviedb-promise";
-import ffmetadata from "ffmetadata";
 import os from "os";
 import pLimit from "p-limit";
-import { WebSocketManager } from "./WebSocketManager";
+import * as path from "path";
+import { EpisodeData } from "../interfaces/EpisodeData";
+import { Cast } from "../objects/Cast";
+import { Episode as EpisodeLocal } from "../objects/Episode";
 import { Library } from "../objects/Library";
 import { Season } from "../objects/Season";
-import { Episode as EpisodeLocal } from "../objects/Episode";
-import { EpisodeData } from "../interfaces/EpisodeData";
 import { Series } from "../objects/Series";
 import { DataManager } from "./DataManager";
-import { Utils } from "./Utils";
 import { MovieDBWrapper } from "./MovieDB";
+import { Utils } from "./Utils";
+import { WebSocketManager } from "./WebSocketManager";
 
 export class FileSearch {
   static BASE_URL: string = "https://image.tmdb.org/t/p/original";
@@ -1242,6 +1243,8 @@ export class FileSearch {
   //#region MUSIC METADATA EXTRACTION
   public static async scanMusic(folder: string, wsManager: WebSocketManager) {
     if (!(await Utils.isFolder(folder))) return;
+
+    ffmetadata.setFfmpegPath(ffmpegPath || "");
 
     let collection: Series | null;
 

@@ -1,10 +1,9 @@
-import propertiesReader, { Value } from "properties-reader";
-import * as path from "path";
-import { MovieDb } from "moviedb-promise";
 import ffmetadata from "ffmetadata";
 import ffmpegPath from "ffmpeg-static";
+import { MovieDb } from "moviedb-promise";
+import * as path from "path";
+import propertiesReader, { Value } from "properties-reader";
 import { DataManager } from "./DataManager";
-import { Utils } from "./Utils";
 
 export class MovieDBWrapper {
   public static THEMOVIEDB_API_KEY: Value | null = "";
@@ -30,7 +29,7 @@ export class MovieDBWrapper {
         return false;
       }
 
-      ffmetadata.setFfmpegPath(Utils.getInternalPath(ffmpegPath || ""));
+      ffmetadata.setFfmpegPath(ffmpegPath || "");
 
       return true;
     } else {
