@@ -7,23 +7,55 @@ import { Check, CloudDownload } from 'lucide-react'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ContentWrapper from './utils/ContentWrapper'
+import { Settings } from '@/data/interfaces/Utils'
+import { useServerStore } from '@/context/server.context'
+import { useSettingsStore } from '@/context/settings.context'
 
-function ServerGeneral() {
+function ServerGeneral({ serverSettings }: { serverSettings: Settings }) {
   const { t } = useTranslation()
-  const [ip, setIP] = useState<string>('')
+  const { serverIP, serverVersion, setServerIP } = useServerStore()
+  const { setServerSetting } = useSettingsStore()
   const [isDirty, setIsDirty] = React.useState(false)
+  const [showMessage, setShowMessage] = useState(false)
 
-  const [autoUpdate, setAutoUpdate] = useState<boolean>(false)
+  const [ip, setIP] = useState<string>(serverIP)
+  const [autoUpdate, setAutoUpdate] = useState<boolean>(
+    (serverSettings['automaticUpdates'] as boolean) ?? false,
+  )
+
+  const handleSave = () => {
+    setServerIP(ip)
+    setServerSetting(serverIP, 'automaticUpdates', autoUpdate)
+    setIsDirty(false)
+
+    setShowMessage(true)
+
+    setTimeout(() => {
+      setShowMessage(false)
+    }, 2000)
+  }
+
+  const handleIPChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setIP(event.target.value)
+    setIsDirty(true)
+  }
+
+  const handleAutoUpdateChange = (checked: boolean) => {
+    setAutoUpdate(checked)
+    setIsDirty(true)
+  }
+
+  const handleSearchUpdates = () => {
+    console.log('search updates')
+  }
 
   return (
-    <ContentWrapper>
-      <span className="mb-4 text-3xl font-bold">
-        {t('server')} - {t('generalButton')}
-      </span>
-
+    <ContentWrapper group={t('server')} section={t('generalButton')}>
       <FlexBox wrap="wrap" gap={2} align="center">
-        <span>{t('version')} 0.02.45</span>
-        <Button variant={'secondary'}>
+        <span>
+          {t('version')} {serverVersion}
+        </span>
+        <Button variant={'secondary'} onClick={handleSearchUpdates}>
           <CloudDownload className="mr-3" />
           {t('searchUpdates')}
         </Button>
@@ -38,9 +70,7 @@ function ServerGeneral() {
           placeholder="192.168.1.10:34200..."
           type="text"
           value={ip}
-          onChange={(e) => {
-            setIP(e.target.value)
-          }}
+          onChange={handleIPChange}
         />
       </LabeledInputWrapper>
 
@@ -49,10 +79,22 @@ function ServerGeneral() {
         label={t('autoUpdate')}
         text={t('autoUpdateMessage')}
       >
-        <Checkbox checked={autoUpdate} />
+        <Checkbox
+          checked={autoUpdate}
+          onCheckedChange={handleAutoUpdateChange}
+        />
       </LabeledInputWrapper>
 
-      <Button disabled={!isDirty}>{t('saveButton')}</Button>
+      <FlexBox gap={1} justify="center" align="center">
+        <Button disabled={!isDirty} onClick={handleSave}>
+          {t('saveButton')}
+        </Button>
+        {showMessage && (
+          <span className="text-muted-foreground text-sm">
+            ✔ {t('changesSaved')}
+          </span>
+        )}
+      </FlexBox>
     </ContentWrapper>
   )
 }

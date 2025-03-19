@@ -4,8 +4,9 @@ import SelectableWrapper from '@/components/ui/SelectableWrapper'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import ContentWrapper from './utils/ContentWrapper'
+import { Settings } from '@/data/interfaces/Utils'
 
-function ClientQuality() {
+function ClientQuality({ clientSettings }: { clientSettings: Settings }) {
   const { t } = useTranslation()
   const [isDirty, setIsDirty] = React.useState(false)
 
@@ -26,11 +27,7 @@ function ClientQuality() {
   ]
 
   return (
-    <ContentWrapper>
-      <span className="mb-4 text-3xl font-bold">
-        {t('client')} - {t('quality')}
-      </span>
-
+    <ContentWrapper group={t('client')} section={t('quality')}>
       <span className="text-lg font-semibold">{t('localStreaming')}</span>
 
       <LabeledInputWrapper direction="row" label={t('videoQuality')}>

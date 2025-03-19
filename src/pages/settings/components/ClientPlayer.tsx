@@ -4,8 +4,9 @@ import SelectableWrapper from '@/components/ui/SelectableWrapper'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import ContentWrapper from './utils/ContentWrapper'
+import { Settings } from '@/data/interfaces/Utils'
 
-function ClientPlayer() {
+function ClientPlayer({ clientSettings }: { clientSettings: Settings }) {
   const { t } = useTranslation()
   const [isDirty, setIsDirty] = React.useState(false)
 
@@ -82,11 +83,7 @@ function ClientPlayer() {
   ]
 
   return (
-    <ContentWrapper>
-      <span className="mb-4 text-3xl font-bold">
-        {t('client')} - {t('player')}
-      </span>
-
+    <ContentWrapper group={t('client')} section={t('player')}>
       <LabeledInputWrapper direction="row" label={t('subtitleColor')}>
         <SelectableWrapper
           options={subtitleColorOptions}

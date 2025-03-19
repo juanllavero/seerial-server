@@ -3,61 +3,23 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
 import ISO6391 from 'iso-639-1'
-import React, { useEffect } from 'react'
+import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ContentWrapper from './utils/ContentWrapper'
 import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import Loading from '@/components/Loading'
 import FlexBox from '@/components/ui/FlexBox'
+import { Settings } from '@/data/interfaces/Utils'
 
-function ServerLanguages() {
+function ServerLanguages({ serverSettings }: { serverSettings: Settings }) {
   const { t, i18n } = useTranslation()
   const { serverIP } = useServerStore()
-  const { getServerSetting, setServerSetting } = useSettingsStore()
+  const { setServerSetting } = useSettingsStore()
   const currentLanguage = i18n.language?.split('-')[0] ?? 'en'
-  const [isDirty, setIsDirty] = React.useState(false)
+  const [isDirty, setIsDirty] = useState(false)
 
-  const [showMessage, setShowMessage] = React.useState(false)
-
-  const [preferAudioLan, setPreferAudioLan] = React.useState('')
-  const [subsMode, setSubsMode] = React.useState('')
-  const [preferSubLan, setPreferSubLan] = React.useState('')
-
-  const languageCodes = ISO6391.getAllCodes()
-
-  const languagesOptions = languageCodes.map((code) => ({
-    key: code,
-    value: ISO6391.getNativeName(code),
-  }))
-
-  const getPrefAudioLan = async () => {
-    const prefAudio = await getServerSetting(serverIP, 'preferAudioLan', currentLanguage)
-    return ISO6391.getNativeName(prefAudio.split('-')[0]) || currentLanguage
-  }
-
-  const getPrefSubLan = async () => {
-    const prefSub = await getServerSetting(serverIP, 'preferSubsLan', currentLanguage)
-    return ISO6391.getNativeName(prefSub.split('-')[0]) || currentLanguage
-  }
-
-  const getSubsMode = async () => {
-    const subs = await getServerSetting(serverIP, 'subsMode', 'autoSubs')
-    return t(subs)
-  }
-
-  useEffect(() => {
-    const setValues = async () => {
-      const prefAudio = await getPrefAudioLan()
-      setPreferAudioLan(prefAudio)
-      const subs = await getSubsMode()
-      setSubsMode(subs)
-      const prefSub = await getPrefSubLan()
-      setPreferSubLan(prefSub)
-    }
-
-    setValues()
-  }, [serverIP])
+  const [showMessage, setShowMessage] = useState(false)
 
   const subtitleModeOptions = [
     {
@@ -74,10 +36,39 @@ function ServerLanguages() {
     },
   ]
 
-  const handleSave = () => {
-    console.log({ preferAudioLan, subsMode, preferSubLan })
+  const [autoSelectTracks, setAutoSelectTracks] = useState<boolean>(
+    (serverSettings['autoSelectTracks'] as boolean) ?? true,
+  )
+  const [preferAudioLan, setPreferAudioLan] = useState<string>(
+    ISO6391.getNativeName(
+      (serverSettings['preferAudioLan'] as string).split('-')[0],
+    ) || currentLanguage,
+  )
+  const [subsMode, setSubsMode] = useState<string>(
+    subtitleModeOptions.find(
+      (option) => option.key === serverSettings['subsMode'],
+    )?.value || subtitleModeOptions[0].value,
+  )
+  const [preferSubLan, setPreferSubLan] = useState<string>(
+    ISO6391.getNativeName(
+      (serverSettings['preferSubsLan'] as string).split('-')[0],
+    ) || currentLanguage,
+  )
 
-    setServerSetting(serverIP, 'preferAudioLan', ISO6391.getCode(preferAudioLan))
+  const languageCodes = ISO6391.getAllCodes()
+
+  const languagesOptions = languageCodes.map((code) => ({
+    key: code,
+    value: ISO6391.getNativeName(code),
+  }))
+
+  const handleSave = () => {
+    setServerSetting(serverIP, 'autoSelectTracks', autoSelectTracks)
+    setServerSetting(
+      serverIP,
+      'preferAudioLan',
+      ISO6391.getCode(preferAudioLan),
+    )
     setServerSetting(serverIP, 'subsMode', subsMode)
     setServerSetting(serverIP, 'preferSubsLan', ISO6391.getCode(preferSubLan))
     setIsDirty(false)
@@ -89,8 +80,13 @@ function ServerLanguages() {
     }, 2000)
   }
 
-  const handlePreferAudioLanChange = (_key: string, value: string) => {
-    setPreferAudioLan(value)
+  const handleAutoSelectTracksChange = (value: boolean) => {
+    setAutoSelectTracks(value)
+    setIsDirty(true)
+  }
+
+  const handlePreferAudioLanChange = (key: string) => {
+    setPreferAudioLan(key)
     setIsDirty(true)
   }
 
@@ -99,61 +95,60 @@ function ServerLanguages() {
     setIsDirty(true)
   }
 
-  const handlePreferSubLanChange = (_key: string, value: string) => {
-    setPreferSubLan(value)
+  const handlePreferSubLanChange = (key: string) => {
+    setPreferSubLan(key)
     setIsDirty(true)
   }
 
   return (
-    <ContentWrapper>
-      <span className="mb-4 text-3xl font-bold">
-        {t('server')} - {t('languages')}
-      </span>
+    <ContentWrapper group={t('server')} section={t('languages')}>
+      {preferAudioLan === '' || subsMode === '' || preferSubLan === '' ? (
+        <Loading />
+      ) : (
+        <>
+          <LabeledInputWrapper direction="row" label={t('autoSelectTracks')}>
+            <Checkbox
+              checked={autoSelectTracks}
+              onCheckedChange={handleAutoSelectTracksChange}
+            />
+          </LabeledInputWrapper>
 
-      {
-        preferAudioLan === '' || subsMode === '' || preferSubLan === '' ? (
-          <Loading />
-        ) : (
-          <>
-            <LabeledInputWrapper direction="row" label={t('autoSelectTracks')}>
-              <Checkbox />
-            </LabeledInputWrapper>
+          <LabeledInputWrapper direction="row" label={t('preferAudio')}>
+            <SelectableWrapper
+              options={languagesOptions}
+              defaultValue={preferAudioLan}
+              onValueChange={handlePreferAudioLanChange}
+            />
+          </LabeledInputWrapper>
 
-            <LabeledInputWrapper direction="row" label={t('preferAudio')}>
-              <SelectableWrapper
-                options={languagesOptions}
-                defaultValue={preferAudioLan}
-                onValueChange={handlePreferAudioLanChange}
-              />
-            </LabeledInputWrapper>
+          <LabeledInputWrapper direction="row" label={t('subsMode')}>
+            <SelectableWrapper
+              options={subtitleModeOptions}
+              defaultValue={subsMode}
+              onValueChange={handleSubsModeChange}
+            />
+          </LabeledInputWrapper>
 
-            <LabeledInputWrapper direction="row" label={t('subsMode')}>
-              <SelectableWrapper
-                options={subtitleModeOptions}
-                defaultValue={subsMode}
-                onValueChange={handleSubsModeChange}
-              />
-            </LabeledInputWrapper>
+          <LabeledInputWrapper direction="row" label={t('preferSubs')}>
+            <SelectableWrapper
+              options={languagesOptions}
+              defaultValue={preferSubLan}
+              onValueChange={handlePreferSubLanChange}
+            />
+          </LabeledInputWrapper>
 
-            <LabeledInputWrapper direction="row" label={t('preferSubs')}>
-              <SelectableWrapper
-                options={languagesOptions}
-                defaultValue={preferSubLan}
-                onValueChange={handlePreferSubLanChange}
-              />
-            </LabeledInputWrapper>
-
-            <FlexBox gap={1} justify='center' align='center'>
-              <Button disabled={!isDirty} onClick={handleSave}>{t('saveButton')}</Button>
-              {showMessage && (
-                <span className="text-sm text-muted-foreground">
-                  ✔ {t('changesSaved')}
-                </span>
-              )}
-            </FlexBox>
-          </>
-        )
-      }
+          <FlexBox gap={1} justify="center" align="center">
+            <Button disabled={!isDirty} onClick={handleSave}>
+              {t('saveButton')}
+            </Button>
+            {showMessage && (
+              <span className="text-muted-foreground text-sm">
+                ✔ {t('changesSaved')}
+              </span>
+            )}
+          </FlexBox>
+        </>
+      )}
     </ContentWrapper>
   )
 }

@@ -3,6 +3,7 @@ import { create } from 'zustand'
 interface ServerState {
   serverIP: string
   serverStatus: boolean
+  serverVersion: string
   gettingServerStatus: boolean
   apiKeyStatus: boolean
   gettingApiKeyStatus: boolean
@@ -14,6 +15,7 @@ interface ServerState {
 export const useServerStore = create<ServerState>((set, get) => ({
   serverIP: 'seerial.sirjohn.es',
   serverStatus: true,
+  serverVersion: '0.22.44',
   gettingServerStatus: false,
   apiKeyStatus: true,
   gettingApiKeyStatus: false,

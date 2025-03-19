@@ -1,7 +1,5 @@
-import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
-import React from 'react'
-import { useTranslation } from 'react-i18next'
+import React, { useEffect, useState } from 'react'
 import ClientGeneral from './components/ClientGeneral'
 import ClientPlayer from './components/ClientPlayer'
 import ClientQuality from './components/ClientQuality'
@@ -9,133 +7,72 @@ import ServerGeneral from './components/ServerGeneral'
 import ServerLanguages from './components/ServerLanguages'
 import ServerLibraries from './components/ServerLibraries'
 import ServerTranscode from './components/ServerTranscode'
-
-enum SettingsSection {
-  ClientGeneral = 1,
-  ClientQuality,
-  ClientPlayer,
-  ServerGeneral,
-  ServerTranscode,
-  ServerLanguages,
-  ServerLibraries,
-}
+import { useServerStore } from '@/context/server.context'
+import { useSettingsStore } from '@/context/settings.context'
+import Loading from '@/components/Loading'
+import { SettingsSection } from '@/data/interfaces/Utils'
+import LeftPanel from './components/leftPanel/LeftPanel'
 
 function SettingsPage() {
-  const { t } = useTranslation()
-  const [currentSection, setCurrentSection] = React.useState<SettingsSection>(
+  const { serverIP } = useServerStore()
+  const { getAllClientSettings, getAllServerSettings } = useSettingsStore()
+  const [currentSection, setCurrentSection] = useState<SettingsSection>(
     SettingsSection.ClientGeneral,
   )
 
+  const [clientSettings, setClientSettings] = useState({})
+  const [serverSettings, setServerSettings] = useState({})
+  const [loadingSettings, setLoadingSettings] = useState(true)
+
+  useEffect(() => {
+    loadClientSettings()
+    loadServerSettings()
+  }, [serverIP])
+
+  const loadClientSettings = async () => {
+    setLoadingSettings(true)
+    const settings = await getAllClientSettings(serverIP)
+    setClientSettings(settings)
+    setLoadingSettings(false)
+  }
+
+  const loadServerSettings = async () => {
+    setLoadingSettings(true)
+    const settings = await getAllServerSettings(serverIP)
+    setServerSettings(settings)
+    setLoadingSettings(false)
+  }
+
   return (
     <FlexBox gap={4} padding="10rem 3rem">
-      <FlexBox direction="column" gap={0.5} className="min-w-50">
-        {/* Client Settings */}
-        <span className="text-lg font-semibold">{t('client')}</span>
-        <Button
-          variant={'ghost'}
-          style={{
-            color:
-              currentSection === SettingsSection.ClientGeneral
-                ? 'var(--app-color)'
-                : 'white',
-          }}
-          onClick={() => setCurrentSection(SettingsSection.ClientGeneral)}
-        >
-          {t('generalButton')}
-        </Button>
-        <Button
-          variant={'ghost'}
-          style={{
-            color:
-              currentSection === SettingsSection.ClientQuality
-                ? 'var(--app-color)'
-                : 'white',
-          }}
-          onClick={() => setCurrentSection(SettingsSection.ClientQuality)}
-        >
-          {t('quality')}
-        </Button>
-        <Button
-          variant={'ghost'}
-          style={{
-            color:
-              currentSection === SettingsSection.ClientPlayer
-                ? 'var(--app-color)'
-                : 'white',
-          }}
-          onClick={() => setCurrentSection(SettingsSection.ClientPlayer)}
-        >
-          {t('player')}
-        </Button>
+      {/* Left Panel */}
+      <LeftPanel
+        currentSection={currentSection}
+        setCurrentSection={setCurrentSection}
+      />
 
-        {/* Server Settings */}
-        <span className="text-lg font-semibold">{t('server')}</span>
-        <Button
-          variant={'ghost'}
-          style={{
-            color:
-              currentSection === SettingsSection.ServerGeneral
-                ? 'var(--app-color)'
-                : 'white',
-          }}
-          onClick={() => setCurrentSection(SettingsSection.ServerGeneral)}
-        >
-          {t('generalButton')}
-        </Button>
-        <Button
-          variant={'ghost'}
-          style={{
-            color:
-              currentSection === SettingsSection.ServerLanguages
-                ? 'var(--app-color)'
-                : 'white',
-          }}
-          onClick={() => setCurrentSection(SettingsSection.ServerLanguages)}
-        >
-          {t('languages')}
-        </Button>
-        <Button
-          variant={'ghost'}
-          style={{
-            color:
-              currentSection === SettingsSection.ServerTranscode
-                ? 'var(--app-color)'
-                : 'white',
-          }}
-          onClick={() => setCurrentSection(SettingsSection.ServerTranscode)}
-        >
-          {t('transcode')}
-        </Button>
-        <Button
-          variant={'ghost'}
-          style={{
-            color:
-              currentSection === SettingsSection.ServerLibraries
-                ? 'var(--app-color)'
-                : 'white',
-          }}
-          onClick={() => setCurrentSection(SettingsSection.ServerLibraries)}
-        >
-          {t('libraries')}
-        </Button>
-      </FlexBox>
-      <FlexBox scroll="vertical">
-        {currentSection === SettingsSection.ClientGeneral ? (
-          <ClientGeneral />
-        ) : currentSection === SettingsSection.ClientQuality ? (
-          <ClientQuality />
-        ) : currentSection === SettingsSection.ClientPlayer ? (
-          <ClientPlayer />
-        ) : currentSection === SettingsSection.ServerGeneral ? (
-          <ServerGeneral />
-        ) : currentSection === SettingsSection.ServerLanguages ? (
-          <ServerLanguages />
-        ) : currentSection === SettingsSection.ServerTranscode ? (
-          <ServerTranscode />
-        ) : (
-          <ServerLibraries />
-        )}
-      </FlexBox>
+      {/* Right Panel */}
+      {loadingSettings ? (
+        <Loading />
+      ) : (
+        <FlexBox scroll="vertical">
+          {currentSection === SettingsSection.ClientGeneral ? (
+            <ClientGeneral clientSettings={clientSettings} />
+          ) : currentSection === SettingsSection.ClientQuality ? (
+            <ClientQuality clientSettings={clientSettings} />
+          ) : currentSection === SettingsSection.ClientPlayer ? (
+            <ClientPlayer clientSettings={clientSettings} />
+          ) : currentSection === SettingsSection.ServerGeneral ? (
+            <ServerGeneral serverSettings={serverSettings} />
+          ) : currentSection === SettingsSection.ServerLanguages ? (
+            <ServerLanguages serverSettings={serverSettings} />
+          ) : currentSection === SettingsSection.ServerTranscode ? (
+            <ServerTranscode serverSettings={serverSettings} />
+          ) : (
+            <ServerLibraries serverSettings={serverSettings} />
+          )}
+        </FlexBox>
+      )}
     </FlexBox>
   )
 }

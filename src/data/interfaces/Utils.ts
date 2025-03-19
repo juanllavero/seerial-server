@@ -29,6 +29,22 @@ export interface SelectableOption {
   value: string
 }
 
+export type ValueOption = string | number | boolean
+
+export interface Settings {
+  [key: string]: ValueOption
+}
+
+export enum SettingsSection {
+  ClientGeneral = 1,
+  ClientQuality,
+  ClientPlayer,
+  ServerGeneral,
+  ServerTranscode,
+  ServerLanguages,
+  ServerLibraries,
+}
+
 //#region DropDown Menu
 export interface DropdownItem {
   title: string
