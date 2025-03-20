@@ -19,8 +19,12 @@ function SeasonsContent() {
     selectEpisode,
   } = useDataStore()
   const { t } = useTranslation()
-  const { selectSong, setMusicPlayerShown, setMusicPlayerContracted } =
-    useMusicStore()
+  const {
+    selectSong,
+    setSongQueue,
+    setMusicPlayerShown,
+    setMusicPlayerContracted,
+  } = useMusicStore()
   const [distribution, setDistribution] = React.useState(1)
 
   if (!selectedLibrary || !selectedSeries) {
@@ -64,6 +68,15 @@ function SeasonsContent() {
         album: selectedSeason,
         song: episode,
       })
+
+      setSongQueue(
+        selectedSeason.episodes.map((e) => ({
+          library: selectedLibrary,
+          collection: selectedSeries,
+          album: selectedSeason,
+          song: e,
+        })),
+      )
 
       setMusicPlayerShown(true)
       setMusicPlayerContracted(false)

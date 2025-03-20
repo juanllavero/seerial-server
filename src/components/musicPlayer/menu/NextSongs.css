@@ -1,0 +1,46 @@
+.songItem {
+  & .imgContainer {
+    position: relative;
+    cursor: pointer;
+
+    & .shadowImage {
+      position: absolute;
+      opacity: 0;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      background-color: rgba(0, 0, 0, 0.541);
+
+      top: 0;
+      left: 0;
+
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 5px;
+
+      & svg {
+        & path {
+          fill: lightgray;
+        }
+      }
+    }
+
+    &:hover {
+      .shadowImage {
+        opacity: 1;
+        display: flex;
+      }
+    }
+  }
+}
+
+.activeSong {
+  background-color: rgba(211, 211, 211, 0.253);
+
+  & .imgContainer {
+    & .shadowImage {
+      opacity: 1;
+      display: flex;
+    }
+  }
+}

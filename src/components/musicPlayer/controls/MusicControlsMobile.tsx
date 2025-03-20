@@ -1,7 +1,16 @@
+import { Button } from '@/components/ui/button'
+import useMusicStore from '@/context/music.context'
 import React from 'react'
 
 function MusicControlsMobile() {
-  return <div>MusicControlsMobile</div>
+  const { setMusicPlayerContracted, musicPlayerContracted } = useMusicStore()
+  return (
+    <div>
+      <Button onClick={() => setMusicPlayerContracted(!musicPlayerContracted)}>
+        Show/Hide
+      </Button>
+    </div>
+  )
 }
 
 export default MusicControlsMobile

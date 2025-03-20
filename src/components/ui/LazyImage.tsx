@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useServerStore } from '@/context/server.context'
+import React, { useState } from 'react'
 
 interface LazyImageProps {
   src?: string
@@ -9,6 +9,7 @@ interface LazyImageProps {
   width?: number | string
   height?: number | string
   maxHeight?: number | string
+  aspectRatio?: string
   rounded?: boolean
   errorSrc?: string
   className?: string
@@ -20,6 +21,7 @@ export default function LazyImage({
   alt = '',
   width = 'auto',
   height = 'auto',
+  aspectRatio = 'auto',
   maxHeight,
   rounded = false,
   errorSrc,
@@ -31,17 +33,22 @@ export default function LazyImage({
     url ? (url.startsWith('http2') ? url : `https://${serverIP}/${url}`) : src,
   )
 
+  const containerStyles = {
+    width: width,
+    height: height === 'auto' && aspectRatio !== 'auto' ? undefined : height,
+    maxHeight: maxHeight,
+    aspectRatio: aspectRatio !== 'auto' ? aspectRatio : undefined,
+    position: 'relative' as const,
+  }
+
   return (
-    <div
-      style={{ width, height: height, maxHeight }}
-      className={`relative ${className}`}
-    >
+    <div style={containerStyles} className={`relative ${className}`}>
       {!loaded && <Skeleton className="absolute inset-0 h-full w-full" />}
       <img
         src={imageSrc}
         alt={alt}
-        width={width}
-        height={maxHeight ? maxHeight : height}
+        width={width === 'auto' ? undefined : width}
+        height={maxHeight ? maxHeight : height === 'auto' ? undefined : height}
         loading="lazy"
         onLoad={() => setLoaded(true)}
         onError={() => errorSrc && setImageSrc(errorSrc)}

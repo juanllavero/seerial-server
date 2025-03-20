@@ -1,13 +1,13 @@
-import React from 'react'
+import Card from '@/components/cards/Card'
+import { ModalWrapper } from '@/components/ModalWrapper'
+import { Button } from '@/components/ui/button'
 import useDataStore from '@/context/data.context'
 import { Episode, Library, Season, Series } from '@/data/interfaces/Media'
-import Card from '@/components/cards/Card'
 import { DropdownContent } from '@/data/interfaces/Utils'
-import { ModalWrapper } from '@/components/ModalWrapper'
 import { AddServerForm } from '@/pages/home/components/AddServerModal'
-import { Button } from '@/components/ui/button'
-import { Pencil } from 'lucide-react'
 import { useNavigate } from '@tanstack/react-router'
+import { Pencil } from 'lucide-react'
+import React from 'react'
 
 function CollectionCard({
   library,
@@ -20,6 +20,10 @@ function CollectionCard({
   const { selectSeries } = useDataStore()
 
   const getNumberOfEpisodesLeft = () => {
+    if (library.type === 'Music') {
+      return 0
+    }
+
     return series.seasons
       ? series.seasons
           .map((season: Season) =>
