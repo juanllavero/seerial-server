@@ -30,7 +30,11 @@ export default function LazyImage({
   const { serverIP } = useServerStore()
   const [loaded, setLoaded] = useState(false)
   const [imageSrc, setImageSrc] = useState(
-    url ? (url.startsWith('http2') ? url : `https://${serverIP}/${url}`) : src,
+    url
+      ? url.startsWith('http2')
+        ? url
+        : `https://${serverIP}/${url.replace('resources/img', 'img/')}`
+      : src,
   )
 
   const containerStyles = {
@@ -39,6 +43,7 @@ export default function LazyImage({
     maxHeight: maxHeight,
     aspectRatio: aspectRatio !== 'auto' ? aspectRatio : undefined,
     position: 'relative' as const,
+    borderRadius: rounded ? '5px' : undefined,
   }
 
   return (
@@ -50,6 +55,7 @@ export default function LazyImage({
         width={width === 'auto' ? undefined : width}
         height={maxHeight ? maxHeight : height === 'auto' ? undefined : height}
         loading="lazy"
+        style={{ borderRadius: !rounded ? '5px' : undefined }}
         onLoad={() => setLoaded(true)}
         onError={() => errorSrc && setImageSrc(errorSrc)}
         className={`transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'} ${rounded ? 'rounded-full object-cover' : ''}`}

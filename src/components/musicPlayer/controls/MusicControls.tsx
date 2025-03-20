@@ -150,11 +150,10 @@ function MusicControls() {
         <FlexBox justify="start" align="center" gap={1}>
           {musicPlayerContracted && (
             <LazyImage
-              src={currentSong?.album.coverSrc}
+              url={currentSong?.album.coverSrc}
               alt={currentSong?.song.name}
               width={50}
               height={50}
-              className="rounded-lg"
             />
           )}
           <FlexBox direction="column" justify="center">

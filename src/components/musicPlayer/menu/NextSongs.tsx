@@ -32,8 +32,8 @@ function NextSongs() {
           <FlexBox gap={1} align="center">
             <div className="imgContainer" onClick={() => selectSong(item)}>
               <LazyImage
-                url={item.song.imgSrc}
-                width={'2.5rem'}
+                url={item.album.coverSrc}
+                aspectRatio="1"
                 height={'2.5rem'}
               />
               <div className="shadowImage">
