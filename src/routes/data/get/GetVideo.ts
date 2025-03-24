@@ -1,8 +1,9 @@
 import express from "express";
-const router = express.Router();
-import fs from "fs-extra";
+import ffmpegPath from "ffmpeg-static";
 import ffmpeg from "fluent-ffmpeg";
+import fs from "fs-extra";
 import path from "path";
+const router = express.Router();
 
 // Types for resolutions and configurations
 type ResolutionKey = "480p" | "720p" | "1080p" | "4K";
@@ -22,6 +23,9 @@ const validBitrates: number[] = [
 
 // Endpoint for video streaming
 router.get("/stream-video", (req: any, res: any) => {
+  // Set FFmpeg path
+  ffmpeg.setFfmpegPath(ffmpegPath || "");
+
   // Query parameters
   const videoPath = req.query.path;
   const videoStart = parseInt(req.query.start) || 0;

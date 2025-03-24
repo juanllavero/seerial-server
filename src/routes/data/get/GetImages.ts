@@ -1,11 +1,11 @@
-import { Utils } from "../../../data/utils/Utils";
 import express from "express";
-const router = express.Router();
+import ffmpegPath from "ffmpeg-static";
+import ffmpeg from "fluent-ffmpeg";
 import fs from "fs";
 import path from "path";
-import ffmpeg from "fluent-ffmpeg";
-import ffmpegPath from "ffmpeg-static";
 import { FilesManager } from "../../../data/utils/FilesManager";
+import { Utils } from "../../../data/utils/Utils";
+const router = express.Router();
 
 // Serve images to outside
 router.use(
