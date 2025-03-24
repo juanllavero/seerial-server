@@ -1,16 +1,15 @@
-import React from 'react'
-import LazyImage from '../ui/LazyImage'
 import { DropdownContent } from '@/data/interfaces/Utils'
-import { Button } from '../ui/button'
-import DropdownWrapper from '../DropdownWrapper'
 import { Check, EllipsisVertical } from 'lucide-react'
-import Grid from '../ui/Grid'
-import FlexBox from '../ui/FlexBox'
-import './Card.css'
+import React from 'react'
+import DropdownWrapper from '../DropdownWrapper'
 import Loading from '../Loading'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
-import { Progress } from '../ui/progress'
+import { Button } from '../ui/button'
+import FlexBox from '../ui/FlexBox'
 import { PlayIcon } from '../ui/IconLibrary'
+import LazyImage from '../ui/LazyImage'
+import { Progress } from '../ui/progress'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
+import './Card.css'
 
 interface CardProps {
   itemKey: string
@@ -30,6 +29,7 @@ interface CardProps {
   progress?: number
   cornerNumber?: number
   watched?: boolean
+  errorSrc?: string
 }
 
 function Card({
@@ -50,6 +50,7 @@ function Card({
   progress,
   cornerNumber,
   watched,
+  errorSrc,
 }: CardProps) {
   return (
     <FlexBox
@@ -96,7 +97,13 @@ function Card({
             <Button variant={'ghost'}>{cornerData}</Button>
             <Button variant={'ghost'}>{cornerData}</Button>
           </FlexBox>
-          <FlexBox className="center" justify="center" align="center">
+          <FlexBox
+            className="center"
+            justify="center"
+            align="center"
+            width={'100%'}
+            height={'100%'}
+          >
             {loading ? (
               <Loading />
             ) : !hidePlayButton ? (
@@ -138,6 +145,7 @@ function Card({
           width={width}
           height={width / aspectRatio}
           alt={title}
+          errorSrc={errorSrc}
         />
       </div>
       <FlexBox

@@ -142,6 +142,11 @@ function CollectionCard({
           }
         />
       }
+      errorSrc={
+        library.type === 'Music'
+          ? '/img/songDefault.png'
+          : '/img/fileNotFound.jpg'
+      }
     />
   )
 }

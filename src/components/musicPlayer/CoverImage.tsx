@@ -23,6 +23,7 @@ function CoverImage({ isMobile }: { isMobile: boolean }) {
         height={'80%'}
         aspectRatio={'1'}
         maxHeight={isMobile ? 100 : 700}
+        errorSrc="/img/songDefault.png"
       />
     </FlexBox>
   )

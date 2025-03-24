@@ -27,7 +27,7 @@ function SeasonsContent() {
     setMusicPlayerShown,
     setMusicPlayerContracted,
   } = useMusicStore()
-  const [distribution, setDistribution] = React.useState(1)
+  const [distribution, setDistribution] = React.useState(0)
 
   if (!selectedLibrary || !selectedSeries) {
     return null
@@ -161,12 +161,8 @@ function SeasonsContent() {
                         return (
                           <MusicCard
                             index={index}
-                            library={selectedLibrary}
-                            collection={selectedSeries}
-                            album={selectedSeason}
                             song={episode}
                             action={() => handleSelectEpisode(episode)}
-                            menu={getEpisodeMenu(episode)}
                           />
                         )
                       } else {
@@ -176,6 +172,7 @@ function SeasonsContent() {
                             imgSrc={episode.imgSrc}
                             aspectRatio={16 / 9}
                             width={400}
+                            hideButtons
                             progress={
                               (episode.timeWatched / episode.runtimeInSeconds) *
                                 100 >
@@ -189,6 +186,7 @@ function SeasonsContent() {
                             subtitle={`${t('episode')} ${episode.episodeNumber.toString()}`}
                             action={() => handleSelectEpisode(episode)}
                             menu={getEpisodeMenu(episode)}
+                            errorSrc="/img/Default_video_thumbnail.jpg"
                           />
                         )
                       }
@@ -218,6 +216,7 @@ function SeasonsContent() {
                           subtitle=""
                           action={() => handleSelectEpisode(episode)}
                           hideButtons
+                          errorSrc="/img/Default_video_thumbnail.jpg"
                         />
                         <FlexBox direction="column">
                           <span>{episode.name}</span>

@@ -14,7 +14,7 @@ import { useSettingsStore } from '@/context/settings.context'
 import { formatTimeForView } from '@/utils/ReactUtils'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { Edit, Ellipsis } from 'lucide-react'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import CastList from './components/CastList'
 import SeasonsContent from './components/SeasonsContent'
@@ -38,7 +38,78 @@ function DetailsPage() {
   const { clientSettings } = useSettingsStore()
   const navigate = useNavigate()
 
+  const [currentPoster, setCurrentPoster] = useState<string | undefined>()
+  const [nextPoster, setNextPoster] = useState<string | undefined>()
+  const [showAnimPoster, setShowAnimPoster] = useState(false)
+
   const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true
+
+  const renderLogoOrText = () => {
+    const logoUrl =
+      selectedLibrary?.type === 'Movies'
+        ? selectedSeason?.logoSrc
+        : selectedSeries?.logoSrc
+
+    if (logoUrl && logoUrl !== '') {
+      return (
+        <LazyImage
+          url={logoUrl}
+          maxHeight={300}
+          width={350}
+          errorSrc="/img/Default_video_thumbnail.jpg"
+        />
+      )
+    } else {
+      if (selectedLibrary?.type === 'Music') {
+        return (
+          <>
+            <span
+              id="details-title-music"
+              style={{
+                textTransform: 'capitalize',
+              }}
+            >
+              {selectedSeries?.name}
+            </span>
+            <span
+              id="details-subtitle-music"
+              style={{
+                textTransform: 'capitalize',
+              }}
+            >
+              {selectedSeason?.name}
+            </span>
+          </>
+        )
+      } else {
+        return (
+          <span
+            id="details-title"
+            style={{
+              textTransform: 'uppercase',
+            }}
+          >
+            {selectedSeries?.name}
+          </span>
+        )
+      }
+    }
+  }
+
+  const posterUrl =
+    selectedLibrary && selectedLibrary.type !== 'Shows'
+      ? selectedSeason?.coverSrc
+      : selectedSeries?.coverSrc
+
+  useEffect(() => {
+    setNextPoster(posterUrl)
+    setShowAnimPoster(true)
+
+    setTimeout(() => {
+      setShowAnimPoster(false)
+      setCurrentPoster(posterUrl)
+    }, 1000)
+  }, [posterUrl])
 
   //#region CHECK DATA BEFORE LOAD
   const library = libraries.find((library) => library.id === libraryId)
@@ -81,38 +152,6 @@ function DetailsPage() {
     return <NotFound />
   }
   //#endregion
-
-  const renderLogoOrText = () => {
-    const logoUrl =
-      selectedLibrary.type === 'Movies'
-        ? selectedSeason.logoSrc
-        : selectedSeries.logoSrc
-
-    if (logoUrl && logoUrl !== '') {
-      return <LazyImage url={logoUrl} maxHeight={300} width={350} />
-    } else {
-      return (
-        <span
-          id="details-title"
-          style={{
-            textTransform:
-              selectedLibrary.type === 'Music' ? 'capitalize' : 'uppercase',
-          }}
-        >
-          {selectedSeries.name}
-        </span>
-      )
-    }
-  }
-
-  const posterUrl =
-    selectedLibrary.type === 'Movies'
-      ? selectedSeason.coverSrc
-      : selectedLibrary.type === 'Shows'
-        ? selectedSeries.coverSrc
-        : selectedSeries.isCollection
-          ? selectedSeries.coverSrc
-          : selectedSeason.coverSrc
 
   const getPlayButtonText = () => {
     const watchingSeason = selectedSeries.currentlyWatchingSeason
@@ -176,11 +215,39 @@ function DetailsPage() {
       height={'100%'}
     >
       <FlexBox justify="start" align="start" gap={4}>
-        {showPoster && (
-          <FlexBox className="image-container">
-            <LazyImage url={posterUrl} width={400} maxHeight={550} />
-          </FlexBox>
-        )}
+        <div className="cover-container">
+          {showPoster && (
+            <FlexBox className="image-container">
+              <LazyImage
+                url={currentPoster}
+                width={300}
+                maxHeight={550}
+                height={selectedLibrary.type === 'Music' ? 300 : 550}
+                errorSrc={
+                  selectedLibrary.type === 'Music'
+                    ? '/img/songDefault.png'
+                    : '/img/fileNotFound.jpg'
+                }
+              />
+            </FlexBox>
+          )}
+
+          {showAnimPoster && (
+            <FlexBox className="image-container-animated fade-in">
+              <LazyImage
+                url={nextPoster}
+                width={300}
+                maxHeight={550}
+                height={selectedLibrary.type === 'Music' ? 300 : 550}
+                errorSrc={
+                  selectedLibrary.type === 'Music'
+                    ? '/img/songDefault.png'
+                    : '/img/fileNotFound.jpg'
+                }
+              />
+            </FlexBox>
+          )}
+        </div>
 
         <FlexBox direction="column" gap={1} width={'80%'}>
           {renderLogoOrText()}
@@ -253,7 +320,7 @@ function DetailsPage() {
               }}
             >
               <FlexBox align="center" gap={0.5} className="text-black">
-                <PlayIcon />
+                <PlayIcon color="#111111" />
                 {getPlayButtonText()}
               </FlexBox>
             </Button>

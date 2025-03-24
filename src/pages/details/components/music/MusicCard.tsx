@@ -1,30 +1,18 @@
 import FlexBox from '@/components/ui/FlexBox'
 import { PlayIcon } from '@/components/ui/IconLibrary'
 import useMusicStore from '@/context/music.context'
-import { Episode, Library, Season, Series } from '@/data/interfaces/Media'
+import { Episode } from '@/data/interfaces/Media'
 import { formatTime } from '@/utils/ReactUtils'
 import React from 'react'
 import './MusicCard.css'
 
 interface MusicCardProps {
   index: number
-  library: Library
-  collection: Series
-  album: Season
   song: Episode
   action: () => void
-  menu: any
 }
 
-function MusicCard({
-  index,
-  library,
-  collection,
-  album,
-  song,
-  action,
-  menu,
-}: MusicCardProps) {
+function MusicCard({ index, song, action }: MusicCardProps) {
   const { currentSong, selectSong, setMusicPlayerShown, setSongQueue } =
     useMusicStore()
 
@@ -35,7 +23,7 @@ function MusicCard({
       justify="space-between"
       align="center"
       gap={1}
-      padding="0.5rem"
+      padding="0.8rem 0.5rem"
       width={'100%'}
       css={{ borderRadius: '5px', maxWidth: '1500px' }}
       onClick={action}

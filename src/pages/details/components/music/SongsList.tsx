@@ -27,12 +27,8 @@ function SongsList({ handleSelectEpisode }: SongsListProps) {
         {selectedSeason.episodes.map((episode, index) => (
           <MusicCard
             index={index}
-            library={selectedLibrary}
-            collection={selectedSeries}
-            album={selectedSeason}
             song={episode}
             action={() => handleSelectEpisode(episode)}
-            menu={{}}
           />
         ))}
       </FlexBox>
@@ -69,12 +65,8 @@ function SongsList({ handleSelectEpisode }: SongsListProps) {
           {songs.map((episode, index) => (
             <MusicCard
               index={index}
-              library={selectedLibrary}
-              collection={selectedSeries}
-              album={selectedSeason}
               song={episode}
               action={() => handleSelectEpisode(episode)}
-              menu={{}}
             />
           ))}
         </FlexBox>

@@ -24,27 +24,29 @@ export default function LazyImage({
   aspectRatio = 'auto',
   maxHeight,
   rounded = false,
-  errorSrc,
+  errorSrc = '/img/fileNotFound.jpg',
   className,
 }: LazyImageProps) {
   const { serverIP } = useServerStore()
   const [loaded, setLoaded] = useState(false)
   const [imageSrc, setImageSrc] = useState(
     url
-      ? url.startsWith('http2')
+      ? url.startsWith('http')
         ? url
         : `https://${serverIP}/${url.replace('resources/img', 'img')}`
-      : src,
+      : (src ?? errorSrc),
   )
+  const [hasError, setHasError] = useState(false) // New state to track errors
 
   useEffect(() => {
     const newSrc = url
-      ? url.startsWith('http2')
+      ? url.startsWith('http')
         ? url
         : `https://${serverIP}/${url.replace('resources/img', 'img')}`
       : src
-    setImageSrc(newSrc)
-    setLoaded(false) // Reset loaded to show skeleton while new image is loading
+    setImageSrc(newSrc ?? errorSrc)
+    setLoaded(false) // Reset loaded to show skeleton while loading new image
+    setHasError(false) // Reset error state
   }, [url, src, serverIP])
 
   const containerStyles = {
@@ -66,8 +68,16 @@ export default function LazyImage({
         height={maxHeight ? maxHeight : height === 'auto' ? undefined : height}
         loading="lazy"
         style={{ borderRadius: !rounded ? '5px' : undefined }}
-        onLoad={() => setLoaded(true)}
-        onError={() => errorSrc && setImageSrc(errorSrc)}
+        onLoad={() => setLoaded(true)} // Triggered when the image (original or errorSrc) loads
+        onError={() => {
+          if (!hasError && errorSrc) {
+            // Only change to errorSrc if it hasn't failed before
+            setImageSrc(errorSrc)
+            setHasError(true) // Mark that there was an error to avoid loops
+          } else {
+            setLoaded(true) // If there is no errorSrc or it has already failed, hide the skeleton
+          }
+        }}
         className={`transition-opacity duration-300 ${loaded ? 'opacity-100' : 'opacity-0'} ${rounded ? 'rounded-full object-cover' : ''}`}
       />
     </div>
