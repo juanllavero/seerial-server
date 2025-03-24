@@ -12,6 +12,17 @@
   z-index: -1;
 }
 
+.background-gradient {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: none;
+  filter: brightness(0.55);
+  transition: opacity 0.5s ease-in-out;
+
+  z-index: -1;
+}
+
 .background-layer::after {
   content: '';
   position: absolute;
@@ -26,6 +37,11 @@
 .fade-in {
   opacity: 0;
   animation: fade-in 0.5s forwards;
+}
+
+.fade-in-slow {
+  opacity: 0;
+  animation: fade-in 1s forwards;
 }
 
 @keyframes fade-in {

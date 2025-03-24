@@ -1,6 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton'
 import { useServerStore } from '@/context/server.context'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 interface LazyImageProps {
   src?: string
@@ -33,9 +33,19 @@ export default function LazyImage({
     url
       ? url.startsWith('http2')
         ? url
-        : `https://${serverIP}/${url.replace('resources/img', 'img/')}`
+        : `https://${serverIP}/${url.replace('resources/img', 'img')}`
       : src,
   )
+
+  useEffect(() => {
+    const newSrc = url
+      ? url.startsWith('http2')
+        ? url
+        : `https://${serverIP}/${url.replace('resources/img', 'img')}`
+      : src
+    setImageSrc(newSrc)
+    setLoaded(false) // Reset loaded to show skeleton while new image is loading
+  }, [url, src, serverIP])
 
   const containerStyles = {
     width: width,

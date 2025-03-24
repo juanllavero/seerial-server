@@ -6,7 +6,7 @@ import LazyImage from '../ui/LazyImage'
 function CoverImage({ isMobile }: { isMobile: boolean }) {
   const { currentSong } = useMusicStore()
 
-  if (!currentSong) return null
+  console.log('currentSong:', currentSong)
 
   return (
     <FlexBox
@@ -17,8 +17,8 @@ function CoverImage({ isMobile }: { isMobile: boolean }) {
       justify="center"
     >
       <LazyImage
-        url={currentSong.album.coverSrc}
-        alt={currentSong.song.name}
+        url={currentSong?.album.coverSrc}
+        alt={currentSong?.song.name}
         width={'auto'}
         height={'80%'}
         aspectRatio={'1'}

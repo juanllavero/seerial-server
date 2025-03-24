@@ -25,7 +25,8 @@ function MusicCard({
   action,
   menu,
 }: MusicCardProps) {
-  const { currentSong, selectSong } = useMusicStore()
+  const { currentSong, selectSong, setMusicPlayerShown, setSongQueue } =
+    useMusicStore()
 
   return (
     <FlexBox
@@ -37,14 +38,7 @@ function MusicCard({
       padding="0.5rem"
       width={'100%'}
       css={{ borderRadius: '5px', maxWidth: '1500px' }}
-      onClick={() =>
-        selectSong({
-          library,
-          collection,
-          album,
-          song,
-        })
-      }
+      onClick={action}
     >
       <FlexBox gap={1} align="center">
         <FlexBox

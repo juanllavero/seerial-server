@@ -20,19 +20,19 @@ export default function BaseLayout({
   const { selectedSeries, selectedSeason } = useDataStore()
   const { serverIP } = useServerStore()
   const prevBackground = useRef<string | undefined>(undefined)
+  const prevGradient = useRef<string | undefined>(undefined) // Nuevo ref para el gradiente anterior
   const [currentBackground, setCurrentBackground] = useState<
     string | undefined
   >(undefined)
-  const [colorBackground, setColorBackground] = useState<string | undefined>(
+  const [currentGradient, setCurrentGradient] = useState<string | undefined>(
     undefined,
-  )
+  ) // Estado para el gradiente actual
   const [showNewImage, setShowNewImage] = useState(false)
+  const [showNewGradient, setShowNewGradient] = useState(false) // Estado para la transición del gradiente
 
-  // Check if current location is details page
   const location = useLocation()
   const inDetailsPage = location.pathname.startsWith('/details/')
 
-  // Check if the user device is mobile phone or window size is small
   useEffect(() => {
     initializeDeviceDetection()
   }, [])
@@ -42,9 +42,25 @@ export default function BaseLayout({
       ReactUtils.generateGradient(selectedSeries, selectedSeason, serverIP)
 
       setTimeout(() => {
-        const background = ReactUtils.getGradientBackground()
-        setColorBackground(background)
+        const newGradient = ReactUtils.getGradientBackground()
+
+        // Si no hay gradiente previo o es diferente, activamos la transición
+        if (!prevGradient.current || newGradient !== prevGradient.current) {
+          setShowNewGradient(true)
+
+          const timeout = setTimeout(() => {
+            setCurrentGradient(newGradient)
+            prevGradient.current = newGradient
+            setShowNewGradient(false)
+          }, 500)
+
+          return () => clearTimeout(timeout)
+        }
       }, 500)
+    } else {
+      setCurrentGradient(undefined)
+      prevGradient.current = undefined
+      setShowNewGradient(false)
     }
 
     if (!selectedSeason || !selectedSeason.backgroundSrc) {
@@ -56,7 +72,6 @@ export default function BaseLayout({
 
     const newBackground = selectedSeason.backgroundSrc
 
-    // Si no había fondo previo, establecer directamente sin animación
     if (!prevBackground.current) {
       setCurrentBackground(newBackground)
       prevBackground.current = newBackground
@@ -64,7 +79,6 @@ export default function BaseLayout({
       return
     }
 
-    // Si hay un cambio de imagen, activar la animación
     if (newBackground !== prevBackground.current) {
       setShowNewImage(true)
 
@@ -83,14 +97,8 @@ export default function BaseLayout({
   }
 
   return (
-    <div
-      className="relative"
-      style={{
-        background:
-          inDetailsPage && !currentBackground ? colorBackground : 'none',
-      }}
-    >
-      {/* Imagen actual */}
+    <div className="relative">
+      {/* Current background */}
       <div
         className="background-layer"
         style={{
@@ -101,7 +109,8 @@ export default function BaseLayout({
           opacity: inDetailsPage && currentBackground ? 1 : 0,
         }}
       />
-      {/* Imagen nueva que se desvanece */}
+
+      {/* New background that fades in */}
       {showNewImage && selectedSeason?.backgroundSrc && (
         <div
           className="background-layer fade-in"
@@ -111,15 +120,32 @@ export default function BaseLayout({
         />
       )}
 
-      {/* Load All Dialogs */}
+      {/* Current gradient */}
+      {!selectedSeason?.backgroundSrc && (
+        <div
+          className="background-gradient"
+          style={{
+            background:
+              inDetailsPage && !currentBackground ? currentGradient : 'none',
+          }}
+        />
+      )}
+
+      {/* New gradient that fades in */}
+      {showNewGradient && !selectedSeason?.backgroundSrc && (
+        <div
+          className="background-gradient fade-in-slow"
+          style={{
+            background: inDetailsPage
+              ? ReactUtils.getGradientBackground()
+              : 'none',
+          }}
+        />
+      )}
+
       {!isMobile && <DialogManager />}
-
-      {/* WebSocket Message Handler */}
       <WebSocketMessageHandler />
-
-      {/* Music Player */}
       <MusicPlayer />
-
       <DragWindowRegion />
       <main className="h-screen w-screen">{children}</main>
     </div>
