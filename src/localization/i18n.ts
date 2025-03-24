@@ -6,6 +6,7 @@ i18n.use(initReactI18next).init({
   resources: {
     en: {
       translation: {
+        disc: 'Disc',
         musicVolume: 'Background music volume',
         watchList: 'Watchlist',
         changesSaved: 'Changes saved',
@@ -289,6 +290,7 @@ i18n.use(initReactI18next).init({
     },
     'es-ES': {
       translation: {
+        disc: 'Disco',
         musicVolume: 'Volumen de la música de fondo',
         watchList: 'Lista de seguimiento',
         changesSaved: 'Cambios guardados',
@@ -575,6 +577,7 @@ i18n.use(initReactI18next).init({
     },
     'pt-BR': {
       translation: {
+        disc: 'Disco',
         musicVolume: 'Volume da música de fundo',
         watchList: 'Lista de acompanhamento',
         changesSaved: 'Alterações salvas',
@@ -860,6 +863,7 @@ i18n.use(initReactI18next).init({
     },
     'pt-PT': {
       translation: {
+        disc: 'Disco',
         musicVolume: 'Volume da música de fundo',
         watchList: 'Lista de seguimento',
         changesSaved: 'Alterações guardadas',
@@ -1145,6 +1149,7 @@ i18n.use(initReactI18next).init({
     },
     'zh-CN': {
       translation: {
+        disc: '光盘',
         musicVolume: '背景音乐音量',
         watchList: '观看列表',
         changesSaved: '更改已保存',
@@ -1419,6 +1424,7 @@ i18n.use(initReactI18next).init({
     },
     'zh-TW': {
       translation: {
+        disc: '光碟',
         musicVolume: '背景音樂音量',
         watchList: '觀看清單',
         changesSaved: '變更已儲存',
@@ -1693,6 +1699,7 @@ i18n.use(initReactI18next).init({
     },
     ja: {
       translation: {
+        disc: 'ディスク',
         musicVolume: 'バックグラウンドミュージックの音量',
         watchList: 'ウォッチリスト',
         changesSaved: '変更が保存されました',
@@ -1977,6 +1984,7 @@ i18n.use(initReactI18next).init({
     },
     ko: {
       translation: {
+        disc: '디스크',
         musicVolume: '배경 음악 볼륨',
         watchList: '시청 목록',
         changesSaved: '변경 사항이 저장되었습니다',
@@ -2259,6 +2267,7 @@ i18n.use(initReactI18next).init({
     },
     fr: {
       translation: {
+        disc: 'Disque',
         musicVolume: 'Volume de la musique de fond',
         watchList: 'Liste de suivi',
         changesSaved: 'Changements enregistrés',
@@ -2547,6 +2556,7 @@ i18n.use(initReactI18next).init({
     },
     de: {
       translation: {
+        disc: 'Disc',
         musicVolume: 'Lautstärke der Hintergrundmusik',
         watchList: 'Beobachtungsliste',
         changesSaved: 'Änderungen gespeichert',
@@ -2834,6 +2844,7 @@ i18n.use(initReactI18next).init({
     },
     it: {
       translation: {
+        disc: 'Disco',
         musicVolume: 'Volume della musica di sottofondo',
         watchList: 'Lista di visione',
         changesSaved: 'Modifiche salvate',
@@ -3120,6 +3131,7 @@ i18n.use(initReactI18next).init({
     },
     nl: {
       translation: {
+        disc: 'Schijf',
         musicVolume: 'Volume van de achtergrondmuziek',
         watchList: 'Volglijst',
         changesSaved: 'Wijzigingen opgeslagen',
@@ -3406,6 +3418,7 @@ i18n.use(initReactI18next).init({
     },
     hi: {
       translation: {
+        disc: 'डिस्क',
         musicVolume: 'पृष्ठभूमि संगीत की मात्रा',
         watchList: 'देखने की सूची',
         changesSaved: 'परिवर्तन सहेजे गए',
@@ -3691,6 +3704,7 @@ i18n.use(initReactI18next).init({
     },
     ar: {
       translation: {
+        disc: 'قرص',
         musicVolume: 'حجم الموسيقى الخلفية',
         watchList: 'قائمة المشاهدة',
         changesSaved: 'تم حفظ التغييرات',

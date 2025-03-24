@@ -8,6 +8,8 @@ import { Episode } from '@/data/interfaces/Media'
 import { useNavigate } from '@tanstack/react-router'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
+import MusicCard from './music/MusicCard'
+import SongsList from './music/SongsList'
 
 function SeasonsContent() {
   const navigate = useNavigate()
@@ -118,7 +120,9 @@ function SeasonsContent() {
             />
           )}
 
-          {!onlyMovie && <span>{t('episodes')}</span>}
+          {!onlyMovie && selectedLibrary.type !== 'Music' && (
+            <span>{t('episodes')}</span>
+          )}
         </FlexBox>
 
         {selectedLibrary.type !== 'Music' && !onlyMovie && (
@@ -143,33 +147,52 @@ function SeasonsContent() {
         selectedSeason.episodes &&
         selectedSeason.episodes.length > 1 && (
           <>
-            {distribution === 0 ? (
+            {selectedLibrary.type === 'Music' ? (
+              <SongsList handleSelectEpisode={handleSelectEpisode} />
+            ) : distribution === 0 ? (
               <Grid
                 columns="repeat(auto-fill, minmax(400px, 1fr))"
                 gap="1rem"
                 width="100%"
               >
                 {selectedSeason
-                  ? selectedSeason.episodes.map((episode) => (
-                      <Card
-                        itemKey={episode.id}
-                        imgSrc={episode.imgSrc}
-                        aspectRatio={16 / 9}
-                        width={400}
-                        progress={
-                          (episode.timeWatched / episode.runtimeInSeconds) *
-                            100 >
-                          0
-                            ? (episode.timeWatched / episode.runtimeInSeconds) *
-                              100
-                            : undefined
-                        }
-                        title={episode.name}
-                        subtitle={`${t('episode')} ${episode.episodeNumber.toString()}`}
-                        action={() => handleSelectEpisode(episode)}
-                        menu={getEpisodeMenu(episode)}
-                      />
-                    ))
+                  ? selectedSeason.episodes.map((episode, index) => {
+                      if (selectedLibrary.type === 'Music') {
+                        return (
+                          <MusicCard
+                            index={index}
+                            library={selectedLibrary}
+                            collection={selectedSeries}
+                            album={selectedSeason}
+                            song={episode}
+                            action={() => handleSelectEpisode(episode)}
+                            menu={getEpisodeMenu(episode)}
+                          />
+                        )
+                      } else {
+                        return (
+                          <Card
+                            itemKey={episode.id}
+                            imgSrc={episode.imgSrc}
+                            aspectRatio={16 / 9}
+                            width={400}
+                            progress={
+                              (episode.timeWatched / episode.runtimeInSeconds) *
+                                100 >
+                              0
+                                ? (episode.timeWatched /
+                                    episode.runtimeInSeconds) *
+                                  100
+                                : undefined
+                            }
+                            title={episode.name}
+                            subtitle={`${t('episode')} ${episode.episodeNumber.toString()}`}
+                            action={() => handleSelectEpisode(episode)}
+                            menu={getEpisodeMenu(episode)}
+                          />
+                        )
+                      }
+                    })
                   : null}
               </Grid>
             ) : (

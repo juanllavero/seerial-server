@@ -1,16 +1,6 @@
-import FlexBox from '@/components/ui/FlexBox'
-import LazyImage from '@/components/ui/LazyImage'
-import useDataStore from '@/context/data.context'
-import { useNavigate, useParams } from '@tanstack/react-router'
-import './DetailsPage.css'
-import React, { useEffect, useState } from 'react'
-import { Bookmark, Edit, Ellipsis } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
-import { Button } from '@/components/ui/button'
-import SeasonsContent from './components/SeasonsContent'
-import { formatTimeForView } from '@/utils/ReactUtils'
-import CastList from './components/CastList'
 import NotFound from '@/components/NotFound'
+import { Button } from '@/components/ui/button'
+import FlexBox from '@/components/ui/FlexBox'
 import {
   AddToListIcon,
   MarkWatchedIcon,
@@ -18,7 +8,17 @@ import {
   RemoveFromListIcon,
   UnmarkWatchedIcon,
 } from '@/components/ui/IconLibrary'
+import LazyImage from '@/components/ui/LazyImage'
+import useDataStore from '@/context/data.context'
 import { useSettingsStore } from '@/context/settings.context'
+import { formatTimeForView } from '@/utils/ReactUtils'
+import { useNavigate, useParams } from '@tanstack/react-router'
+import { Edit, Ellipsis } from 'lucide-react'
+import React from 'react'
+import { useTranslation } from 'react-i18next'
+import CastList from './components/CastList'
+import SeasonsContent from './components/SeasonsContent'
+import './DetailsPage.css'
 
 function DetailsPage() {
   const { libraryId, seriesId } = useParams({
@@ -326,7 +326,7 @@ function DetailsPage() {
 
       <SeasonsContent />
 
-      <CastList />
+      {selectedLibrary.type !== 'Music' && <CastList />}
     </FlexBox>
   )
 }

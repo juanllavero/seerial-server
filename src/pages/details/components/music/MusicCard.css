@@ -1,0 +1,51 @@
+.songItem {
+  cursor: pointer;
+
+  & .songNumberAndButton {
+    & #index {
+      opacity: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+
+      & span {
+        text-align: center;
+        width: 100%;
+      }
+    }
+
+    & .playButtonContainer {
+      opacity: 0;
+      display: none;
+    }
+  }
+
+  &:hover {
+    & .songNumberAndButton {
+      & .playButtonContainer {
+        display: flex;
+        opacity: 1;
+      }
+
+      & #index {
+        opacity: 0;
+        display: none;
+      }
+    }
+  }
+}
+
+.activeSong {
+  & .songNumberAndButton {
+    & .playButtonContainer {
+      opacity: 1;
+      display: flex;
+    }
+
+    & #index {
+      opacity: 0;
+      display: none;
+    }
+  }
+}
