@@ -1,12 +1,12 @@
-import { Series } from "../objects/Series";
-import { Library } from "../objects/Library";
 import fs from "fs-extra";
 import * as path from "path";
-import { Utils } from "./Utils";
-import { Season } from "../objects/Season";
-import { Episode as EpisodeLocal } from "../objects/Episode";
 import { EpisodeData } from "../interfaces/EpisodeData";
 import { LibraryData } from "../interfaces/LibraryData";
+import { Episode, Episode as EpisodeLocal } from "../objects/Episode";
+import { Library } from "../objects/Library";
+import { Season } from "../objects/Season";
+import { Series } from "../objects/Series";
+import { Utils } from "./Utils";
 
 export class DataManager {
   static DATA_PATH: string = "resources/data.json";
@@ -87,6 +87,27 @@ export class DataManager {
     return this.getLibrary(libraryId)?.getSeriesById(seriesId) || null;
   }
 
+  public static getSeasonById(
+    libraryId: string,
+    seasonId: string
+  ): Season | null {
+    const library = this.getLibrary(libraryId);
+
+    if (!library) return null;
+
+    for (const series of library.series) {
+      if (!series.seasons) continue;
+
+      for (const season of series.seasons) {
+        if (season.id === seasonId) {
+          return season;
+        }
+      }
+    }
+
+    return null;
+  }
+
   public static getEpisode(
     libraryId: string,
     showId: string,
@@ -104,6 +125,29 @@ export class DataManager {
     const episode = season.getEpisodeById(episodeId);
 
     return episode || null;
+  }
+
+  public static getEpisodeByPath(
+    libraryId: string,
+    episodePath: string
+  ): Episode | null {
+    const library = this.getLibrary(libraryId);
+
+    if (!library) return null;
+
+    for (const series of library.series) {
+      if (!series.seasons) return null;
+      for (const season of series.seasons) {
+        if (!season.episodes) return null;
+        for (const episode of season.episodes) {
+          if (episode.videoSrc === episodePath) {
+            return episode;
+          }
+        }
+      }
+    }
+
+    return null;
   }
   //#endregion
 
@@ -129,7 +173,7 @@ export class DataManager {
 
       // Update data if it has changed
       if (this.hasChanges(previousState, libraryToEdit)) {
-        this.saveData(this.libraries.map((library) => library.toLibraryData()));
+        this.saveData(this.libraries.map((library) => library.toJSON()));
       }
     }
   }
@@ -148,7 +192,7 @@ export class DataManager {
 
       // Update data if it has changed
       if (this.hasChanges(previousState, showToEdit)) {
-        this.saveData(this.libraries.map((library) => library.toLibraryData()));
+        this.saveData(this.libraries.map((library) => library.toJSON()));
       }
     }
   }
@@ -178,7 +222,7 @@ export class DataManager {
 
       // Update data if it has changed
       if (this.hasChanges(previousState, seasonToEdit)) {
-        this.saveData(this.libraries.map((library) => library.toLibraryData()));
+        this.saveData(this.libraries.map((library) => library.toJSON()));
       }
     }
   }
@@ -211,7 +255,7 @@ export class DataManager {
 
       // Update data if it has changed
       if (this.hasChanges(previousState, episodeToEdit)) {
-        this.saveData(this.libraries.map((library) => library.toLibraryData()));
+        this.saveData(this.libraries.map((library) => library.toJSON()));
       }
     }
   }
@@ -234,7 +278,7 @@ export class DataManager {
     }
 
     // Save data
-    this.saveData(this.libraries.map((library) => library.toLibraryData()));
+    this.saveData(this.libraries.map((library) => library.toJSON()));
   }
 
   // Delete show object and stored data

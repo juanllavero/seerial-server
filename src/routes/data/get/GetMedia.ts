@@ -1,8 +1,9 @@
-import { FileSearch } from "@/data/utils/FileSearch";
 import express from "express";
 import { DataManager } from "../../../data/utils/DataManager";
 import { Downloader } from "../../../data/utils/Downloader";
+import { FileSearch } from "../../../data/utils/FileSearch";
 import { MovieDBWrapper } from "../../../data/utils/MovieDB";
+import { WebSocketManager } from "../../../data/utils/WebSocketManager";
 const router = express.Router();
 
 // Get libraries
@@ -12,10 +13,18 @@ router.get("/libraries", (_req, res) => {
 });
 
 // Search files in library
-router.get("/library/search", (req: any, res: any) => {
-  const { libraryId, query } = req.query;
+router.get("/library/search", async (req: any, res: any) => {
+  const { libraryId } = req.query;
 
-  FileSearch.scanFiles();
+  const library = DataManager.getLibrary(libraryId);
+
+  if (!library) return;
+
+  await FileSearch.clearLibrary(libraryId, WebSocketManager.getInstance());
+
+  FileSearch.scanFiles(library, WebSocketManager.getInstance(), false);
+
+  res.json({});
 });
 
 // Search movies in TheMovieDB

@@ -1,20 +1,14 @@
 import axios from "axios";
 import { exec } from "child_process";
 import { app } from "electron";
-import ffmpeg from "fluent-ffmpeg";
 import ffmpegPath from "ffmpeg-static";
 import ffprobePath from "ffprobe-static";
-import path from "path";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
+import ffmpeg from "fluent-ffmpeg";
 import * as fs from "fs";
+import { Episode as MovieDBEpisode, TvSeasonResponse } from "moviedb-promise";
+import path, { dirname } from "path";
+import { fileURLToPath } from "url";
 import { promisify } from "util";
-import { Season } from "../objects/Season";
-import { Episode } from "../objects/Episode";
-import { Episode as MovieDBEpisode } from "moviedb-promise";
-import { Series } from "../objects/Series";
-import { WebSocketManager } from "./WebSocketManager";
-import { Library } from "../objects/Library";
 import { EpisodeData } from "../interfaces/EpisodeData";
 import {
   AudioTrackData,
@@ -23,7 +17,11 @@ import {
   SubtitleTrackData,
   VideoTrackData,
 } from "../interfaces/MediaInfo";
-import { TvSeasonResponse } from "moviedb-promise";
+import { Episode } from "../objects/Episode";
+import { Library } from "../objects/Library";
+import { Season } from "../objects/Season";
+import { Series } from "../objects/Series";
+import { WebSocketManager } from "./WebSocketManager";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -777,7 +775,7 @@ export class Utils {
     const message = {
       header: "ADD_LIBRARY",
       body: {
-        library: library.toLibraryData(),
+        library: library.toJSON(),
       },
     };
     ws.broadcast(JSON.stringify(message));
@@ -787,7 +785,7 @@ export class Utils {
     const message = {
       header: "UPDATE_LIBRARY",
       body: {
-        library: library.toLibraryData(),
+        library: library.toJSON(),
       },
     };
     ws.broadcast(JSON.stringify(message));
@@ -850,6 +848,38 @@ export class Utils {
         libraryId: libraryId,
         showId: showId,
         episode: episode.toJSON(),
+      },
+    };
+    ws.broadcast(JSON.stringify(message));
+  };
+
+  public static deleteSeason = (
+    ws: WebSocketManager,
+    libraryId: string,
+    seriesId: string,
+    seasonId: string
+  ) => {
+    const message = {
+      header: "DELETE_SEASON",
+      body: {
+        libraryId,
+        seriesId,
+        seasonId,
+      },
+    };
+    ws.broadcast(JSON.stringify(message));
+  };
+
+  public static deleteSeries = (
+    ws: WebSocketManager,
+    libraryId: string,
+    seriesId: string
+  ) => {
+    const message = {
+      header: "DELETE_SERIES",
+      body: {
+        libraryId,
+        seriesId,
       },
     };
     ws.broadcast(JSON.stringify(message));

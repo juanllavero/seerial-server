@@ -1,5 +1,6 @@
-import { Episode } from "./Episode";
+import crypto from "crypto";
 import { Cast } from "./Cast";
+import { Episode } from "./Episode";
 
 export class Season {
   id: string;
@@ -57,7 +58,7 @@ export class Season {
   watched: boolean;
 
   constructor() {
-    this.id = crypto.randomUUID();
+    this.id = crypto.randomBytes(4).toString("hex");
     this.name = "";
     this.overview = "";
     this.year = "";

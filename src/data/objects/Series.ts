@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { Cast } from "./Cast";
 import { Season } from "./Season";
 
@@ -46,7 +47,7 @@ export class Series {
   currentlyWatchingSeason: number;
 
   constructor() {
-    this.id = crypto.randomUUID();
+    this.id = crypto.randomBytes(4).toString("hex");
     this.themdbID = -1;
     this.name = "";
     this.overview = "";

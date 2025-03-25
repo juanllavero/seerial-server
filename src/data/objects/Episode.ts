@@ -1,9 +1,10 @@
+import crypto from "crypto";
 import {
+  AudioTrackData,
   ChapterData,
   MediaInfoData,
-  VideoTrackData,
-  AudioTrackData,
   SubtitleTrackData,
+  VideoTrackData,
 } from "../interfaces/MediaInfo";
 import { SubtitleTrack } from "./SubtitleTrack";
 
@@ -48,7 +49,7 @@ export class Episode {
   subtitleTracks: SubtitleTrackData[];
 
   constructor() {
-    this.id = crypto.randomUUID();
+    this.id = crypto.randomBytes(4).toString("hex");
     this.name = "";
     this.overview = "";
     this.year = "";

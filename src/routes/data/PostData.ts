@@ -1,14 +1,14 @@
-import { Library } from "../../data/objects/Library";
-import { Downloader } from "../../data/utils/Downloader";
-import { FileSearch } from "../../data/utils/FileSearch";
-import { Utils } from "../../data/utils/Utils";
-import { wsManager } from "../../../electron/main/index";
+import express from "express";
 import { MovieDb } from "moviedb-promise";
 import path from "path";
 import propertiesReader from "properties-reader";
-import { MovieDBWrapper } from "../../data/utils/MovieDB";
-import express from "express";
+import { wsManager } from "../../../electron/main/index";
+import { Library } from "../../data/objects/Library";
+import { Downloader } from "../../data/utils/Downloader";
+import { FileSearch } from "../../data/utils/FileSearch";
 import { FilesManager } from "../../data/utils/FilesManager";
+import { MovieDBWrapper } from "../../data/utils/MovieDB";
+import { Utils } from "../../data/utils/Utils";
 const router = express.Router();
 
 router.post("/api-key", (req, res) => {
@@ -42,9 +42,9 @@ router.post("/addLibrary", (req, _res) => {
 
   if (!libraryData) return;
 
-  const library = Library.fromLibraryData(libraryData);
+  const library = Library.fromJSON(libraryData);
 
-  FileSearch.scanFiles(library, wsManager);
+  FileSearch.scanFiles(library, wsManager, true);
 });
 
 // Upload image

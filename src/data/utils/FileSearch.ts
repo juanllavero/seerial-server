@@ -1,6 +1,7 @@
 import IMDb from "@skymansion/imdb";
 import ffmetadata from "ffmetadata";
 import ffmpegPath from "ffmpeg-static";
+import { existsSync } from "fs";
 import fs from "fs-extra";
 import {
   Episode,
@@ -12,6 +13,7 @@ import {
 import os from "os";
 import pLimit from "p-limit";
 import * as path from "path";
+import { parse } from "path";
 import { EpisodeData } from "../interfaces/EpisodeData";
 import { Cast } from "../objects/Cast";
 import { Episode as EpisodeLocal } from "../objects/Episode";
@@ -34,14 +36,17 @@ export class FileSearch {
   //#region METADATA DOWNLOAD
   public static async scanFiles(
     newLibrary: Library,
-    wsManager: WebSocketManager
+    wsManager: WebSocketManager,
+    addLibrary: boolean
   ): Promise<Library | undefined> {
     if (!newLibrary) return undefined;
 
     DataManager.library = newLibrary;
-    DataManager.addLibrary(newLibrary);
 
-    Utils.addLibrary(wsManager, newLibrary);
+    if (addLibrary) {
+      DataManager.addLibrary(newLibrary);
+      Utils.addLibrary(wsManager, newLibrary);
+    }
 
     // Get available threads
     let availableThreads = Math.max(os.cpus().length - 2, 1);
@@ -70,7 +75,7 @@ export class FileSearch {
 
           // Save data
           DataManager.saveData(
-            DataManager.libraries.map((library) => library.toLibraryData())
+            DataManager.libraries.map((library) => library.toJSON())
           );
         });
         tasks.push(task);
@@ -83,7 +88,7 @@ export class FileSearch {
 
     // Save data
     DataManager.saveData(
-      DataManager.libraries.map((library) => library.toLibraryData())
+      DataManager.libraries.map((library) => library.toJSON())
     );
 
     return newLibrary;
@@ -100,6 +105,7 @@ export class FileSearch {
     let show: Series | null;
 
     let exists: boolean = false;
+
     if (DataManager.library.getAnalyzedFolders().get(folder)) {
       show = DataManager.library.getSeriesById(
         DataManager.library.getAnalyzedFolders().get(folder) ?? ""
@@ -107,8 +113,11 @@ export class FileSearch {
 
       if (show === null) return undefined;
 
+      console.log("EXISTING SHOW ", folder);
+
       exists = true;
     } else {
+      console.log("NEW SHOW ", folder);
       show = new Series();
       show.setFolder(folder);
       DataManager.library.getAnalyzedFolders().set(folder, show.getId());
@@ -160,6 +169,7 @@ export class FileSearch {
     show.setAnalyzingFiles(true);
 
     if (!exists) {
+      console.log("Adding Show...");
       // Add show to view
       Utils.addSeries(wsManager, DataManager.library.id, show);
     }
@@ -204,7 +214,10 @@ export class FileSearch {
     }
 
     show.setAnalyzingFiles(false);
-    DataManager.library.series.push(show);
+
+    if (!exists) {
+      DataManager.library.series.push(show);
+    }
 
     // Update show in view
     Utils.updateSeries(wsManager, DataManager.library.id, show);
@@ -1439,6 +1452,10 @@ export class FileSearch {
   }
   //#endregion
 
+  //#region SEARCH LIBRARY
+
+  //#endregion
+
   //#region UPDATE METADATA
   public static updateShowMetadata = async (
     libraryId: string,
@@ -1524,5 +1541,114 @@ export class FileSearch {
     // Get new data
     await this.scanMovie(movie.folder, wsManager);
   };
+  //#endregion
+
+  //#region CLEAR LIBRARY
+  /**
+   * Delete removed files from library
+   * @param libraryId Library ID
+   * @param wsManager Websocket manager to send updates to client
+   * @returns
+   */
+  public static async clearLibrary(
+    libraryId: string,
+    wsManager: WebSocketManager
+  ) {
+    const library = DataManager.libraries.find(
+      (library) => library.id === libraryId
+    );
+
+    if (
+      !library ||
+      library.analyzedFiles.size === 0 ||
+      !library.folders ||
+      library.folders.length === 0
+    )
+      return;
+
+    // Map to associate each file with its closest root folder
+    const fileToRootFolder = new Map<string, string>();
+
+    // Group files by their root folder
+    for (const filePath of library.analyzedFiles.keys()) {
+      const matchingRootFolder = library.folders
+        .filter((folder) => filePath.startsWith(folder))
+        .sort((a, b) => b.length - a.length)[0]; // Sort by length in descending order to get the most specific one
+
+      if (matchingRootFolder) {
+        fileToRootFolder.set(filePath, matchingRootFolder);
+      } else {
+        // If there is no matching root folder, use the file's root
+        const { root } = parse(filePath);
+        fileToRootFolder.set(filePath, root);
+      }
+    }
+
+    // Check each root folder and its associated files
+    const checkedRoots = new Set<string>(); // To avoid checking the same root multiple times
+
+    for (const [filePath, rootFolder] of fileToRootFolder) {
+      const resolvedRoot = path.resolve(rootFolder);
+
+      if (!checkedRoots.has(resolvedRoot)) {
+        if (!existsSync(resolvedRoot)) {
+          console.log(
+            `Root folder ${resolvedRoot} is not connected. Its files will be skipped.`
+          );
+          checkedRoots.add(resolvedRoot);
+          continue;
+        }
+        checkedRoots.add(resolvedRoot);
+      }
+
+      // If the root is connected, check the file
+      const fileExists = existsSync(filePath);
+
+      if (!fileExists) {
+        const episode = DataManager.getEpisodeByPath(library.id, filePath);
+
+        if (episode) {
+          const season = DataManager.getSeasonById(
+            library.id,
+            episode.seasonID
+          );
+
+          if (!season) continue;
+
+          const series = DataManager.getSeries(library.id, season.seriesID);
+
+          if (!series) continue;
+
+          await DataManager.deleteEpisode(
+            library.id,
+            season.seriesID,
+            episode.seasonID,
+            episode.id
+          );
+
+          if (season.episodes.length === 0) {
+            await DataManager.deleteSeason(
+              library.id,
+              season.seriesID,
+              season.id
+            );
+
+            // Update library in client
+            Utils.deleteSeason(wsManager, library.id, series.id, season.id);
+          }
+
+          if (series.seasons.length === 0) {
+            await DataManager.deleteShow(library.id, series.id);
+
+            // Update library in client
+            Utils.deleteSeries(wsManager, library.id, series.id);
+          }
+        }
+      }
+    }
+
+    // Update library in client
+    Utils.updateLibrary(wsManager, library);
+  }
   //#endregion
 }
