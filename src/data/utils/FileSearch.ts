@@ -1,3 +1,4 @@
+import IMDb from "@skymansion/imdb";
 import ffmetadata from "ffmetadata";
 import ffmpegPath from "ffmpeg-static";
 import fs from "fs-extra";
@@ -21,6 +22,8 @@ import { DataManager } from "./DataManager";
 import { MovieDBWrapper } from "./MovieDB";
 import { Utils } from "./Utils";
 import { WebSocketManager } from "./WebSocketManager";
+
+const imdb = new IMDb();
 
 export class FileSearch {
   static BASE_URL: string = "https://image.tmdb.org/t/p/original";
@@ -918,9 +921,15 @@ export class FileSearch {
       ? movieMetadata.production_companies.map((company) => company.name ?? "")
       : [];
 
-    /*if (season.getImdbID() !== "-1" && season.getImdbID() !== ""){
-                await this.setIMDBScore(season.imdbID, season);
-            }*/
+    const movieDetails = await imdb.getIMDbMovieDetails(season.imdbID, 10);
+
+    if (movieDetails) {
+      season.setScore(
+        !movieDetails.rating || movieDetails.rating === "N/A"
+          ? season.score ?? 0
+          : Number(movieDetails.rating)
+      );
+    }
 
     //#region GET TAGS
     const credits = await MovieDBWrapper.getMovieCredits(season.getThemdbID());

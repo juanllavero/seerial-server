@@ -1,13 +1,21 @@
+import { FileSearch } from "@/data/utils/FileSearch";
+import express from "express";
 import { DataManager } from "../../../data/utils/DataManager";
 import { Downloader } from "../../../data/utils/Downloader";
 import { MovieDBWrapper } from "../../../data/utils/MovieDB";
-import express from "express";
 const router = express.Router();
 
 // Get libraries
 router.get("/libraries", (_req, res) => {
   const data = DataManager.loadData();
   res.json(data);
+});
+
+// Search files in library
+router.get("/library/search", (req: any, res: any) => {
+  const { libraryId, query } = req.query;
+
+  FileSearch.scanFiles();
 });
 
 // Search movies in TheMovieDB

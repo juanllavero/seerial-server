@@ -20,6 +20,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@skymansion/imdb": "^1.0.0",
     "cors": "^2.8.5",
     "electron-updater": "^6.3.9",
     "express": "^4.21.2",
