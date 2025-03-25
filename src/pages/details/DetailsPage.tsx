@@ -106,8 +106,10 @@ function DetailsPage() {
     setShowAnimPoster(true)
 
     setTimeout(() => {
-      setShowAnimPoster(false)
       setCurrentPoster(posterUrl)
+      setTimeout(() => {
+        setShowAnimPoster(false)
+      }, 100)
     }, 1000)
   }, [posterUrl])
 

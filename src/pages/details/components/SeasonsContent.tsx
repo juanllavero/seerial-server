@@ -1,4 +1,3 @@
-import Card from '@/components/cards/Card'
 import FlexBox from '@/components/ui/FlexBox'
 import Grid from '@/components/ui/Grid'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
@@ -8,6 +7,8 @@ import { Episode } from '@/data/interfaces/Media'
 import { useNavigate } from '@tanstack/react-router'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
+import EpisodeCard from './cards/EpisodeCard'
+import EpisodeCardDetails from './cards/EpisodeCardDetails'
 import MusicCard from './music/MusicCard'
 import SongsList from './music/SongsList'
 
@@ -167,26 +168,10 @@ function SeasonsContent() {
                         )
                       } else {
                         return (
-                          <Card
-                            itemKey={episode.id}
-                            imgSrc={episode.imgSrc}
-                            aspectRatio={16 / 9}
-                            width={400}
-                            hideButtons
-                            progress={
-                              (episode.timeWatched / episode.runtimeInSeconds) *
-                                100 >
-                              0
-                                ? (episode.timeWatched /
-                                    episode.runtimeInSeconds) *
-                                  100
-                                : undefined
-                            }
-                            title={episode.name}
-                            subtitle={`${t('episode')} ${episode.episodeNumber.toString()}`}
-                            action={() => handleSelectEpisode(episode)}
-                            menu={getEpisodeMenu(episode)}
-                            errorSrc="/img/Default_video_thumbnail.jpg"
+                          <EpisodeCard
+                            episode={episode}
+                            handleSelectEpisode={handleSelectEpisode}
+                            getEpisodeMenu={getEpisodeMenu}
                           />
                         )
                       }
@@ -197,33 +182,10 @@ function SeasonsContent() {
               <FlexBox direction="column" gap={0.5}>
                 {selectedSeason
                   ? selectedSeason.episodes.map((episode) => (
-                      <FlexBox justify="space-between" align="center" gap={2}>
-                        <Card
-                          itemKey={episode.id}
-                          imgSrc={episode.imgSrc}
-                          aspectRatio={16 / 9}
-                          width={400}
-                          progress={
-                            (episode.timeWatched / episode.runtimeInSeconds) *
-                              100 >
-                            0
-                              ? (episode.timeWatched /
-                                  episode.runtimeInSeconds) *
-                                100
-                              : undefined
-                          }
-                          title=""
-                          subtitle=""
-                          action={() => handleSelectEpisode(episode)}
-                          hideButtons
-                          errorSrc="/img/Default_video_thumbnail.jpg"
-                        />
-                        <FlexBox direction="column">
-                          <span>{episode.name}</span>
-                          <span className="mb-3">{`${t('episode')} ${episode.episodeNumber.toString()}`}</span>
-                          <span>{episode.overview}</span>
-                        </FlexBox>
-                      </FlexBox>
+                      <EpisodeCardDetails
+                        episode={episode}
+                        handleSelectEpisode={handleSelectEpisode}
+                      />
                     ))
                   : null}
               </FlexBox>

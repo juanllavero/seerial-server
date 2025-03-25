@@ -87,16 +87,18 @@ function Card({
           width="100%"
           height="100%"
         >
-          <FlexBox
-            justify="space-between"
-            align="start"
-            width="100%"
-            padding=".3rem"
-            gap={0.1}
-          >
-            <Button variant={'ghost'}>{cornerData}</Button>
-            <Button variant={'ghost'}>{cornerData}</Button>
-          </FlexBox>
+          {!hideButtons && (
+            <FlexBox
+              justify="space-between"
+              align="start"
+              width="100%"
+              padding=".3rem"
+              gap={0.1}
+            >
+              <Button variant={'ghost'}>{cornerData}</Button>
+              <Button variant={'ghost'}>{cornerData}</Button>
+            </FlexBox>
+          )}
           <FlexBox
             className="center"
             justify="center"
