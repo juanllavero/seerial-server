@@ -77,6 +77,7 @@ export interface Season {
   overviewLock: boolean
 
   //Moviecreator:
+  imdbScore: number
   score: number
   tagline: string
   creator: string[]
