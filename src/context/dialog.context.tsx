@@ -24,6 +24,15 @@ interface DialogState {
     isOpen: boolean
     episodeToEdit?: Episode
   }
+  identificationDialog: {
+    isOpen: boolean
+    seriesToEdit?: Series
+    seasonToEdit?: Season
+  }
+  episodesGroupDialog: {
+    isOpen: boolean
+    seriesToEdit?: Series
+  }
   // Functions to open and close dialogs
   openLibraryDialog: (libraryToEdit?: Library) => void
   closeLibraryDialog: () => void
@@ -35,6 +44,13 @@ interface DialogState {
   closeSeasonDialog: () => void
   openEpisodeDialog: (episode: Episode) => void
   closeEpisodeDialog: () => void
+  openIdentificationDialog: (
+    series: Series | undefined,
+    season: Season | undefined,
+  ) => void
+  closeIdentificationDialog: () => void
+  openEpisodesGroupDialog: (series: Series) => void
+  closeEpisodesGroupDialog: () => void
 }
 
 // Create the store with Zustand
@@ -59,6 +75,15 @@ export const useDialogStore = create<DialogState>((set) => ({
   episodeDialog: {
     isOpen: false,
     episode: undefined,
+  },
+  identificationDialog: {
+    isOpen: false,
+    seriesToEdit: undefined,
+    seasonToEdit: undefined,
+  },
+  episodesGroupDialog: {
+    isOpen: false,
+    seriesToEdit: undefined,
   },
 
   // Functions for LibraryDialog
@@ -138,6 +163,38 @@ export const useDialogStore = create<DialogState>((set) => ({
       episodeDialog: {
         isOpen: false,
         episodeToEdit: undefined, // Clear when closing
+      },
+    }),
+  openIdentificationDialog: (
+    series: Series | undefined,
+    season: Season | undefined,
+  ) =>
+    set({
+      identificationDialog: {
+        isOpen: true,
+        seriesToEdit: series,
+        seasonToEdit: season,
+      },
+    }),
+  closeIdentificationDialog: () =>
+    set({
+      identificationDialog: {
+        isOpen: false,
+        seriesToEdit: undefined, // Clear when closing
+      },
+    }),
+  openEpisodesGroupDialog: (series: Series) =>
+    set({
+      episodesGroupDialog: {
+        isOpen: true,
+        seriesToEdit: series,
+      },
+    }),
+  closeEpisodesGroupDialog: () =>
+    set({
+      episodesGroupDialog: {
+        isOpen: false,
+        seriesToEdit: undefined, // Clear when closing
       },
     }),
 }))

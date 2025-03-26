@@ -15,12 +15,13 @@ function LabeledInputWrapper({
   children,
 }: LabeledInputWrapperProps) {
   return (
-    <FlexBox direction="column">
+    <FlexBox direction="column" width={'100%'}>
       <FlexBox
         direction={direction}
         align={direction === 'column' ? 'start' : 'center'}
         wrap={direction === 'column' ? 'nowrap' : 'wrap'}
         gap={1}
+        width={'100%'}
       >
         <span>{label}</span>
         {children}

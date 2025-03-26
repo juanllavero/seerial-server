@@ -9,11 +9,13 @@ export interface EpisodeGroupResult {
 }
 
 export interface IdentificationResult {
-  id: string
-  title: string
+  id: number
+  name?: string
+  title?: string
+  first_air_date?: string
+  release_date?: string
+  poster_path: string
   overview: string
-  date: string
-  poster: string
 }
 
 export interface MediaSearchResult {
@@ -50,7 +52,7 @@ export interface DropdownItem {
   title: string
   shortcut?: string
   action: () => void
-  disabled?: boolean
+  hidden?: boolean
   items?: DropdownGroup[]
 }
 

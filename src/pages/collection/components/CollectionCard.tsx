@@ -2,12 +2,14 @@ import Card from '@/components/cards/Card'
 import { ModalWrapper } from '@/components/ModalWrapper'
 import { Button } from '@/components/ui/button'
 import useDataStore from '@/context/data.context'
+import { useDialogStore } from '@/context/dialog.context'
 import { Episode, Library, Season, Series } from '@/data/interfaces/Media'
 import { DropdownContent } from '@/data/interfaces/Utils'
 import { AddServerForm } from '@/pages/home/components/AddServerModal'
 import { useNavigate } from '@tanstack/react-router'
 import { Pencil } from 'lucide-react'
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 
 function CollectionCard({
   library,
@@ -16,8 +18,10 @@ function CollectionCard({
   library: Library
   series: Series
 }) {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const { selectSeries } = useDataStore()
+  const { openIdentificationDialog, openEpisodesGroupDialog } = useDialogStore()
 
   const getNumberOfEpisodesLeft = () => {
     if (library.type === 'Music') {
@@ -44,20 +48,23 @@ function CollectionCard({
         separator: false,
         items: [
           {
-            title: 'Profile',
+            title: t('updateMetadata'),
             action: () => console.log('Profile clicked'),
           },
           {
-            title: 'Billing',
-            action: () => console.log('Billing clicked'),
+            title: t('correctIdentification'),
+            action: () => openIdentificationDialog(series, undefined),
+            hidden: library.type !== 'Shows',
           },
           {
-            title: 'Settings',
-            action: () => console.log('Settings clicked'),
+            title: t('changeEpisodesGroup'),
+            action: () => openEpisodesGroupDialog(series),
+            hidden: library.type !== 'Shows',
           },
           {
-            title: 'Keyboard shortcuts',
-            action: () => console.log('Keyboard shortcuts clicked'),
+            title: series.watched ? t('markUnwatched') : t('markWatched'),
+            action: () => console.log('Log out clicked'),
+            hidden: library.type === 'Music',
           },
         ],
       },
@@ -66,8 +73,7 @@ function CollectionCard({
         separator: false,
         items: [
           {
-            title: 'Log out',
-            shortcut: '⇧⌘Q',
+            title: t('removeButton'),
             action: () => console.log('Log out clicked'),
           },
         ],
@@ -109,6 +115,7 @@ function CollectionCard({
       cornerData={''}
       cornerNumber={getNumberOfEpisodesLeft()}
       watched={series.watched}
+      loading={series.analyzingFiles}
       action={() => {
         selectSeries(series)
         navigate({

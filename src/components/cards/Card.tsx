@@ -60,7 +60,10 @@ function Card({
       gap={0.1}
       width={width}
       key={itemKey}
-      onClick={action}
+      onClick={(e) => {
+        if (e) e.stopPropagation()
+        action()
+      }}
     >
       <div className={`card ${loading ? 'loading' : ''}`}>
         {progress && !watched && (
@@ -123,6 +126,9 @@ function Card({
               justify="space-between"
               align="end"
               width="100%"
+              onClick={(e) => {
+                if (e) e.stopPropagation()
+              }}
               padding=".3rem"
             >
               {editModal}

@@ -42,7 +42,9 @@ export function ModalWrapper({
   const [open, setOpen] = React.useState(false)
   const dialogRef = React.useRef(null)
 
-  const [internalActiveTab, setInternalActiveTab] = React.useState(tabs[0]?.title || 'tab1')
+  const [internalActiveTab, setInternalActiveTab] = React.useState(
+    tabs[0]?.title || 'tab1',
+  )
   const currentTab = activeTab !== undefined ? activeTab : internalActiveTab
 
   const handleTabChange = (newTab: string) => {
@@ -80,7 +82,11 @@ export function ModalWrapper({
           >
             <TabsList className="mt-2 grid w-full grid-cols-3">
               {tabs.map((tab) => (
-                <TabsTrigger key={'Tab' + tab.title} value={tab.title} disabled={tab.disabled}>
+                <TabsTrigger
+                  key={'Tab' + tab.title}
+                  value={tab.title}
+                  disabled={tab.disabled}
+                >
                   {tab.title}
                 </TabsTrigger>
               ))}
@@ -96,7 +102,7 @@ export function ModalWrapper({
             ))}
           </Tabs>
         ) : tabs && tabs.length === 1 ? (
-          <div>{tabs[0]?.content ?? <></>}</div>
+          <div className="w-full">{tabs[0]?.content ?? <></>}</div>
         ) : null}
         {!hideButtons && (
           <DialogFooter>

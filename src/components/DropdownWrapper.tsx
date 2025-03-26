@@ -1,3 +1,4 @@
+import { DropdownContent } from '@/data/interfaces/Utils'
 import React from 'react'
 import {
   DropdownMenu,
@@ -13,7 +14,6 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu'
-import { DropdownContent } from '@/data/interfaces/Utils'
 
 interface DropdownWrapperProps {
   content: DropdownContent
@@ -44,47 +44,52 @@ function DropdownWrapper({
             <DropdownMenuGroup>
               {group.items.map((item, itemIndex) =>
                 item.items ? (
-                  <DropdownMenuSub key={itemIndex}>
-                    <DropdownMenuSubTrigger disabled={item.disabled}>
-                      {item.title}
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuPortal>
-                      <DropdownMenuSubContent>
-                        {item.items.map((subGroup, subGroupIndex) => (
-                          <React.Fragment key={subGroupIndex}>
-                            {subGroup.items.map((subItem, subItemIndex) => (
-                              <DropdownMenuItem
-                                key={subItemIndex}
-                                onClick={subItem.action}
-                                disabled={subItem.disabled}
-                              >
-                                {subItem.title}
-                                {subItem.shortcut && (
-                                  <DropdownMenuShortcut>
-                                    {subItem.shortcut}
-                                  </DropdownMenuShortcut>
+                  <>
+                    {item.hidden ? null : (
+                      <DropdownMenuSub key={itemIndex}>
+                        <DropdownMenuSubTrigger disabled={item.hidden}>
+                          {item.title}
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuPortal>
+                          <DropdownMenuSubContent>
+                            {item.items.map((subGroup, subGroupIndex) => (
+                              <React.Fragment key={subGroupIndex}>
+                                {subGroup.items.map((subItem, subItemIndex) => (
+                                  <DropdownMenuItem
+                                    key={subItemIndex}
+                                    onClick={subItem.action}
+                                  >
+                                    {subItem.title}
+                                    {subItem.shortcut && (
+                                      <DropdownMenuShortcut>
+                                        {subItem.shortcut}
+                                      </DropdownMenuShortcut>
+                                    )}
+                                  </DropdownMenuItem>
+                                ))}
+                                {subGroup.separator && (
+                                  <DropdownMenuSeparator />
                                 )}
-                              </DropdownMenuItem>
+                              </React.Fragment>
                             ))}
-                            {subGroup.separator && <DropdownMenuSeparator />}
-                          </React.Fragment>
-                        ))}
-                      </DropdownMenuSubContent>
-                    </DropdownMenuPortal>
-                  </DropdownMenuSub>
-                ) : (
-                  <DropdownMenuItem
-                    key={itemIndex}
-                    onClick={item.action}
-                    disabled={item.disabled}
-                  >
-                    {item.title}
-                    {item.shortcut && (
-                      <DropdownMenuShortcut>
-                        {item.shortcut}
-                      </DropdownMenuShortcut>
+                          </DropdownMenuSubContent>
+                        </DropdownMenuPortal>
+                      </DropdownMenuSub>
                     )}
-                  </DropdownMenuItem>
+                  </>
+                ) : (
+                  <>
+                    {item.hidden ? null : (
+                      <DropdownMenuItem key={itemIndex} onClick={item.action}>
+                        {item.title}
+                        {item.shortcut && (
+                          <DropdownMenuShortcut>
+                            {item.shortcut}
+                          </DropdownMenuShortcut>
+                        )}
+                      </DropdownMenuItem>
+                    )}
+                  </>
                 ),
               )}
             </DropdownMenuGroup>

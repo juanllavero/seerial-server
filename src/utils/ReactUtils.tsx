@@ -108,3 +108,24 @@ export const getOnlyYear = (date: string) => {
   const year = new Date(date).getFullYear()
   return year
 }
+
+export const getEpisodeGroupType = (type: number) => {
+  switch (type) {
+    case 1:
+      return 'Original air date'
+    case 2:
+      return 'Absolute'
+    case 3:
+      return 'DVD'
+    case 4:
+      return 'Digital'
+    case 5:
+      return 'Story arc'
+    case 6:
+      return 'Production'
+    case 7:
+      return 'TV'
+    default:
+      return 'Unknown'
+  }
+}
