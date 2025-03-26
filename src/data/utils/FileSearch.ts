@@ -901,6 +901,10 @@ export class FileSearch {
       : undefined;
   }
 
+  public static async getIMDBScore(imdbID: string) {
+    return await imdb.getIMDbMovieDetails(imdbID, 90);
+  }
+
   private static async setSeasonMetadata(
     show: Series,
     season: Season,
@@ -934,13 +938,20 @@ export class FileSearch {
       ? movieMetadata.production_companies.map((company) => company.name ?? "")
       : [];
 
-    const movieDetails = await imdb.getIMDbMovieDetails(season.imdbID, 10);
+    try {
+      const movieDetails = await imdb.getIMDbMovieDetails(season.imdbID, 10);
 
-    if (movieDetails) {
-      season.setScore(
-        !movieDetails.rating || movieDetails.rating === "N/A"
-          ? season.score ?? 0
-          : Number(movieDetails.rating)
+      if (movieDetails) {
+        season.setIMDBScore(
+          !movieDetails.rating || movieDetails.rating === "N/A"
+            ? 0
+            : Number(movieDetails.rating)
+        );
+      }
+    } catch (error: any) {
+      console.error(
+        `Error al obtener detalles de la película ${season.imdbID}:`,
+        error.message
       );
     }
 
@@ -1214,7 +1225,7 @@ export class FileSearch {
       episode
     );
 
-    episode.runtime = episodeData?.runtime ?? episode.runtime;
+    episode.runtime = episodeData ? episodeData.runtime : episode.runtime;
 
     if (episodeData) {
       if (episodeData.mediaInfo) episode.mediaInfo = episodeData.mediaInfo;
@@ -1231,34 +1242,6 @@ export class FileSearch {
       if (episodeData.chapters) episode.chapters = episodeData.chapters;
     }
   }
-
-  // public static async getIMDBScore(
-  //   imdbID: string
-  // ): Promise<number> {
-  //   try {
-  //     const url = `https://www.imdb.com/title/${imdbID}`;
-  //     const { data } = await axios.get(url, { timeout: 6000 });
-
-  //     const $ = cheerio.load(data);
-  //     const body = $("div.sc-acdbf0f3-3");
-
-  //     let imdbScore = 0;
-
-  //     body.find("span.sc-d541859f-1").each((_, element) => {
-  //       const score = $(element).text();
-  //       console.log("Imdb score: " + score);
-
-  //       imdbScore = Number(score);
-
-  //       return false;
-  //     });
-
-  //     return imdbScore;
-  //   } catch (error) {
-  //     console.error("setIMDBScore: IMDB connection lost");
-  //     return 0;
-  //   }
-  // }
 
   //#endregion
 
@@ -1470,6 +1453,8 @@ export class FileSearch {
 
     if (!library) return;
 
+    DataManager.library = library;
+
     const show = library.getSeriesById(showId);
 
     if (!show) return;
@@ -1512,6 +1497,8 @@ export class FileSearch {
     );
 
     if (!library) return;
+
+    DataManager.library = library;
 
     const collection = library.getSeriesById(seriesId);
 

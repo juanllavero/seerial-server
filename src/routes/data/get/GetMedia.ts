@@ -49,6 +49,12 @@ router.get("/episodeGroups/search", (req: any, res: any) => {
   MovieDBWrapper.searchEpisodeGroups(id).then((data) => res.json(data));
 });
 
+router.get("/imdbScore/", (req: any, res: any) => {
+  const id = req.query.id;
+
+  FileSearch.getIMDBScore(id).then((data) => res.json(data));
+});
+
 // Get search videos results
 router.get("/media/search", async (req: any, res: any) => {
   const { query } = req.query;

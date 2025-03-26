@@ -15,6 +15,7 @@ export class Season {
   overviewLock: boolean;
 
   //Movie
+  imdbScore?: number;
   score?: number;
   tagline?: string;
   creator?: string[];
@@ -64,6 +65,7 @@ export class Season {
     this.year = "";
     this.order = 0;
     this.score = 0;
+    this.imdbScore = 0;
     this.seasonNumber = 0;
     this.logoSrc = "";
     this.logosUrls = [];
@@ -117,6 +119,7 @@ export class Season {
     season.year = json.year || season.year;
     season.order = json.order || season.order;
     season.score = json.score || season.score;
+    season.imdbScore = json.imdbScore || season.imdbScore;
     season.seasonNumber = json.seasonNumber || season.seasonNumber;
     season.logoSrc = json.logoSrc || season.logoSrc;
     season.logosUrls = json.logosUrls || season.logosUrls;
@@ -196,6 +199,7 @@ export class Season {
       year: this.year,
       order: this.order,
       score: this.score,
+      imdbScore: this.imdbScore,
       seasonNumber: this.seasonNumber,
       logoSrc: this.logoSrc,
       logosUrls: this.logosUrls,
@@ -294,6 +298,14 @@ export class Season {
 
   setScore(score: number): void {
     this.score = score;
+  }
+
+  getIMDBScore(): number {
+    return this.imdbScore ?? 0;
+  }
+
+  setIMDBScore(score: number): void {
+    this.imdbScore = score;
   }
 
   getSeasonNumber(): number {

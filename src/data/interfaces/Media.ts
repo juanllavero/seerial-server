@@ -49,6 +49,8 @@ export interface Season {
   //Common data
   name: string;
   year: string;
+  score: number;
+  imdbScore: number;
   nameLock: boolean;
   yearLock: boolean;
   seasonNumber: number;
