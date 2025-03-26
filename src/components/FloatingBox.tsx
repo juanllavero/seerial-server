@@ -1,26 +1,27 @@
-import React, { useEffect } from 'react'
-import { Card, CardHeader } from './ui/card'
-import { LibrarySwitcher } from './LibrarySwitcher'
+import useDataStore from '@/context/data.context'
+import { useDialogStore } from '@/context/dialog.context'
+import { useServerStore } from '@/context/server.context'
+import { useWebSocketStore } from '@/context/ws.context'
+import { Library } from '@/data/interfaces/Media'
+import { DropdownContent } from '@/data/interfaces/Utils'
+import useFetch from '@/hooks/useFetch'
+import { useLocation, useNavigate, useRouter } from '@tanstack/react-router'
 import {
-  Settings,
-  Music,
-  Film,
-  TvMinimal,
-  House,
   ChevronLeft,
   EllipsisVertical,
+  Film,
+  House,
+  Music,
+  Settings,
+  TvMinimal,
 } from 'lucide-react'
-import { Button } from './ui/button'
-import useDataStore from '@/context/data.context'
+import React, { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useLocation, useNavigate, useRouter } from '@tanstack/react-router'
-import { useServerStore } from '@/context/server.context'
-import { Library } from '@/data/interfaces/Media'
-import useFetch from '@/hooks/useFetch'
-import Loading from './Loading'
-import { DropdownContent } from '@/data/interfaces/Utils'
 import DropdownWrapper from './DropdownWrapper'
-import { useDialogStore } from '@/context/dialog.context'
+import { LibrarySwitcher } from './LibrarySwitcher'
+import Loading from './Loading'
+import { Button } from './ui/button'
+import { Card, CardHeader } from './ui/card'
 
 function FloatingBox({ isWindows }: { isWindows: boolean }) {
   const router = useRouter()
@@ -35,6 +36,7 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
     setLoadingLibraries,
   } = useDataStore()
   const { serverIP } = useServerStore()
+  const { connectWS } = useWebSocketStore()
   const { fetchData, isLoading } = useFetch<Library[]>()
 
   // Checks current page location
@@ -70,20 +72,22 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
           separator: false,
           items: [
             {
-              title: 'Profile',
-              action: () => console.log('Profile clicked'),
+              title: t('searchFiles'),
+              action: async () => {
+                await connectWS(serverIP)
+                fetch(
+                  `https://${serverIP}/library/search?libraryId=${library.id}`,
+                )
+              },
             },
             {
-              title: 'Billing',
-              action: () => console.log('Billing clicked'),
-            },
-            {
-              title: 'Settings',
-              action: () => console.log('Settings clicked'),
-            },
-            {
-              title: 'Keyboard shortcuts',
-              action: () => console.log('Keyboard shortcuts clicked'),
+              title: t('updateMetadata'),
+              action: async () => {
+                await connectWS(serverIP)
+                fetch(
+                  `https://${serverIP}/library/updateMetadata?libraryId=${library.id}`,
+                )
+              },
             },
           ],
         },

@@ -27,7 +27,14 @@ export class LibraryObject {
     preferSubLan: string | undefined,
     subsMode: string | undefined,
   ) {
-    this.id = crypto.randomUUID()
+    // Generates 4 random bytes (32 bits)
+    const array = new Uint8Array(4)
+    window.crypto.getRandomValues(array)
+    // Converts the bytes to hexadecimal
+    this.id = Array.from(array)
+      .map((byte) => byte.toString(16).padStart(2, '0'))
+      .join('')
+
     this.name = name
     this.language = lang
     this.type = type

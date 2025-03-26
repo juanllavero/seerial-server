@@ -39,6 +39,12 @@ interface DataState {
 
   // DELETE
   deleteLibrary: (libraryId: string) => void
+  deleteSeries: (payload: { libraryId: string; seriesId: string }) => void
+  deleteSeason: (payload: {
+    libraryId: string
+    seriesId: string
+    seasonId: string
+  }) => void
 
   // Utils
   setSeasonWatched: (payload: {
@@ -115,6 +121,42 @@ const useDataStore = create<DataState>((set) => ({
         series && series?.seasons.length > 0 ? series.seasons[0] : null,
       selectedEpisode: null,
     })),
+
+  deleteSeries: (payload: { libraryId: string; seriesId: string }) =>
+    set((store) => {
+      const library = store.libraries.find(
+        (lib) => lib.id === payload.libraryId,
+      )
+      if (library) {
+        const series = library.series.find((s) => s.id === payload.seriesId)
+        if (series) {
+          library.series = library.series.filter(
+            (s) => s.id !== payload.seriesId,
+          )
+        }
+      }
+      return store
+    }),
+
+  deleteSeason: (payload: {
+    libraryId: string
+    seriesId: string
+    seasonId: string
+  }) =>
+    set((store) => {
+      const library = store.libraries.find(
+        (lib) => lib.id === payload.libraryId,
+      )
+      if (library) {
+        const series = library.series.find((s) => s.id === payload.seriesId)
+        if (series) {
+          series.seasons = series.seasons.filter(
+            (s) => s.id !== payload.seasonId,
+          )
+        }
+      }
+      return store
+    }),
 
   selectSeason: (season) =>
     set((state) => ({
