@@ -1,9 +1,11 @@
 import express from "express";
+import { EpisodeData } from "../../../data/interfaces/EpisodeData";
 import { DataManager } from "../../../data/utils/DataManager";
 import { Downloader } from "../../../data/utils/Downloader";
 import { FileSearch } from "../../../data/utils/FileSearch";
 import { IMDBScores } from "../../../data/utils/IMDBScores";
 import { MovieDBWrapper } from "../../../data/utils/MovieDB";
+import { Utils } from "../../../data/utils/Utils";
 import { WebSocketManager } from "../../../data/utils/WebSocketManager";
 const router = express.Router();
 
@@ -50,11 +52,77 @@ router.get("/episodeGroups/search", (req: any, res: any) => {
   MovieDBWrapper.searchEpisodeGroups(id).then((data) => res.json(data));
 });
 
-// Test to get the IMDB score given a IMDB ID
-router.get("/imdbScore/", (req: any, res: any) => {
+// Test endpoint to get the IMDB score given a IMDB ID
+router.get("/imdbScore", (req: any, res: any) => {
   const id = req.query.id;
 
   IMDBScores.getIMDBScore(id).then((data) => res.json(data));
+});
+
+// Test endpoint to get chapters
+router.get("/chapters", async (req: any, res: any) => {
+  const path = req.query.path;
+
+  const episode: EpisodeData = {
+    id: "",
+    name: "",
+    overview: "",
+    year: "",
+    nameLock: false,
+    yearLock: false,
+    overviewLock: false,
+    order: 0,
+    runtime: 0,
+    runtimeInSeconds: 0,
+    episodeNumber: 0,
+    seasonNumber: 0,
+    videoSrc: path,
+    imgSrc: "",
+    imgUrls: [],
+    seasonID: "",
+    watched: false,
+    timeWatched: 0,
+    chapters: [],
+    videoTracks: [],
+    audioTracks: [],
+    subtitleTracks: [],
+  };
+
+  res.json(await Utils.getChapters(episode));
+});
+
+// Test endpoint to get media info
+router.get("/mediaInfo", async (req: any, res: any) => {
+  const path = req.query.path;
+
+  const episode: EpisodeData = {
+    id: "",
+    name: "",
+    overview: "",
+    year: "",
+    nameLock: false,
+    yearLock: false,
+    overviewLock: false,
+    order: 0,
+    runtime: 0,
+    runtimeInSeconds: 0,
+    episodeNumber: 0,
+    seasonNumber: 0,
+    videoSrc: path,
+    imgSrc: "",
+    imgUrls: [],
+    seasonID: "",
+    watched: false,
+    timeWatched: 0,
+    chapters: [],
+    videoTracks: [],
+    audioTracks: [],
+    subtitleTracks: [],
+  };
+
+  await Utils.getMediaInfo(episode);
+
+  res.json(episode);
 });
 
 // Get search videos results

@@ -1,5 +1,3 @@
-import ffmetadata from "ffmetadata";
-import ffmpegPath from "ffmpeg-static";
 import { MovieDb } from "moviedb-promise";
 import * as path from "path";
 import propertiesReader, { Value } from "properties-reader";
@@ -28,8 +26,6 @@ export class MovieDBWrapper {
         console.error("This App needs an API Key from TheMovieDB");
         return false;
       }
-
-      ffmetadata.setFfmpegPath(ffmpegPath || "");
 
       return true;
     } else {

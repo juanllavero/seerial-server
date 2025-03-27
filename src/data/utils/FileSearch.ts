@@ -246,22 +246,22 @@ export class FileSearch {
 
     // Change the name of every season to match the Episodes Group
     if (show.getEpisodeGroupID() !== "" && episodesGroup) {
-      show.seasons.forEach((season) => {
+      for (const season of show.getSeasons()) {
         if (episodesGroup.groups) {
-          episodesGroup.groups.forEach((group) => {
+          for (const group of episodesGroup.groups) {
             if (group.order == season.getSeasonNumber()) {
               season.setName(group.name ?? season.name);
             }
-          });
+          }
         }
-      });
+      }
     } else if (show.getSeasons().length > 1) {
       //If two seasons have the same name
       if (show.getSeasons()[0].getName() === show.getSeasons()[1].getName()) {
-        show.seasons.forEach((season) => {
+        for (const season of show.getSeasons()) {
           if (season.getSeasonNumber() !== 0)
             season.setName("Season " + season.getSeasonNumber());
-        });
+        }
       }
     }
   }
@@ -448,22 +448,20 @@ export class FileSearch {
       if (episodeMetadata.crew) {
         if (!episode.directedLock && episode.directedBy) {
           episode.directedBy.splice(0, episode.directedBy.length);
-          episodeMetadata.crew.forEach((person) => {
+          for (const person of episodeMetadata.crew) {
             if (person.name && person.job === "Director" && episode?.directedBy)
               episode.directedBy.push(person.name);
-          });
+          }
         }
 
         if (!episode.writtenLock && episode.writtenBy) {
           episode.writtenBy.splice(0, episode.writtenBy.length);
-          episodeMetadata.crew.forEach((person) => {
+          for (const person of episodeMetadata.crew) {
             if (person.name && person.job === "Writer" && episode?.writtenBy)
               episode?.writtenBy.push(person.name);
-          });
+          }
         }
       }
-
-      await this.processMediaInfo(episode);
 
       // Create images folder if not exists
       const outputDir = Utils.getExternalPath(
@@ -517,7 +515,7 @@ export class FileSearch {
       if (show.cast && show.cast.length > 0)
         show.cast.splice(0, show.cast.length);
 
-      credits.cast.forEach((person) => {
+      for (const person of credits.cast) {
         show.cast?.push(
           new Cast(
             person.name,
@@ -525,7 +523,7 @@ export class FileSearch {
             person.profile_path ? `${this.BASE_URL}${person.profile_path}` : ""
           )
         );
-      });
+      }
     }
 
     if (credits && credits.crew) {
@@ -535,7 +533,7 @@ export class FileSearch {
       if (show.musicComposer && show.musicComposer.length > 0)
         show.musicComposer.splice(0, show.musicComposer.length);
 
-      credits.crew.forEach((person) => {
+      for (const person of credits.crew) {
         if (
           person.job &&
           (person.job === "Author" ||
@@ -555,7 +553,7 @@ export class FileSearch {
         if (person.job && person.job === "Original Music Composer")
           if (person.name && !show.musicLock && show.musicComposer)
             show.musicComposer.push(person.name);
-      });
+      }
     }
 
     if (show.creator && show.creator.length === 0) {
@@ -946,18 +944,18 @@ export class FileSearch {
       if (credits.crew) {
         if (!season.directedLock && season.directedBy) {
           season.directedBy.splice(0, season.directedBy.length);
-          credits.crew.forEach((person) => {
+          for (const person of credits.crew) {
             if (person.name && person.job === "Director" && season.directedBy)
               season?.directedBy.push(person.name);
-          });
+          }
         }
 
         if (!season.writtenLock && season.writtenBy) {
           season.writtenBy.splice(0, season.writtenBy.length);
-          credits.crew.forEach((person) => {
+          for (const person of credits.crew) {
             if (person.name && person.job === "Writer" && season.writtenBy)
               season?.writtenBy.push(person.name);
-          });
+          }
         }
 
         if (!season.creatorLock && season.creator && season.creator.length > 0)
@@ -970,7 +968,7 @@ export class FileSearch {
         )
           season.musicComposer.splice(0, season.musicComposer.length);
 
-        credits.crew.forEach((person) => {
+        for (const person of credits.crew) {
           if (
             !season.creatorLock &&
             person.job &&
@@ -995,14 +993,14 @@ export class FileSearch {
           )
             if (person.name && !season.musicLock && season.musicComposer)
               season.musicComposer.push(person.name);
-        });
+        }
       }
 
       if (credits.cast) {
         if (season.cast && season.cast.length > 0)
           season.cast.splice(0, season.cast.length);
 
-        credits.cast.forEach((person) => {
+        for (const person of credits.cast) {
           season.cast?.push(
             new Cast(
               person.name,
@@ -1012,7 +1010,7 @@ export class FileSearch {
                 : ""
             )
           );
-        });
+        }
       }
     }
     //#endregion
@@ -1130,8 +1128,6 @@ export class FileSearch {
       episode.setImgSrc("resources/img/Default_video_thumbnail.jpg");
     }
 
-    await this.processMediaInfo(episode);
-
     // Add episode to view
     Utils.addEpisode(
       wsManager,
@@ -1170,8 +1166,6 @@ export class FileSearch {
 
     if (!episode) return;
 
-    await this.processMediaInfo(episode);
-
     const images = await MovieDBWrapper.getMovieImages(season.themdbID);
 
     let thumbnails = images?.backdrops || [];
@@ -1204,9 +1198,13 @@ export class FileSearch {
     );
   }
 
-  private static async processMediaInfo(episode: EpisodeLocal) {
+  private static async processMediaInfo(
+    episode: EpisodeLocal,
+    getChapters: boolean = true
+  ) {
     let episodeData: EpisodeData | undefined = await Utils.getMediaInfo(
-      episode
+      episode,
+      getChapters
     );
 
     if (episodeData) {
@@ -1226,7 +1224,6 @@ export class FileSearch {
       if (episodeData.chapters) episode.chapters = episodeData.chapters;
     }
   }
-
   //#endregion
 
   //#region MUSIC METADATA EXTRACTION
@@ -1417,10 +1414,6 @@ export class FileSearch {
       console.error("Error processing music file", error);
     }
   }
-  //#endregion
-
-  //#region SEARCH LIBRARY
-
   //#endregion
 
   //#region UPDATE METADATA

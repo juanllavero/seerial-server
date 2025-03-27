@@ -1,5 +1,5 @@
 import axios from "axios";
-import { exec } from "child_process";
+import { spawn } from "child_process";
 import { app } from "electron";
 import ffmpegPath from "ffmpeg-static";
 import ffprobePath from "ffprobe-static";
@@ -8,7 +8,6 @@ import * as fs from "fs";
 import { Episode as MovieDBEpisode, TvSeasonResponse } from "moviedb-promise";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
-import { promisify } from "util";
 import { EpisodeData } from "../interfaces/EpisodeData";
 import {
   AudioTrackData,
@@ -26,7 +25,7 @@ import { WebSocketManager } from "./WebSocketManager";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const execPromise = promisify(exec);
+ffmpeg.setFfprobePath(ffprobePath.path);
 
 export class Utils {
   static videoExtensions = [
@@ -200,113 +199,127 @@ export class Utils {
   }
   //#endregion
 
+  //#region FFPROBE
+  public static async probeMediaFile(
+    filePath: string,
+    timeoutMs: number = 10000
+  ): Promise<any> {
+    return new Promise((resolve, reject) => {
+      // Create a timeout to stop execution
+      const timeout = setTimeout(() => {
+        reject(new Error("ffprobe timed out"));
+      }, timeoutMs);
+
+      // Exec ffprobe
+      ffmpeg.ffprobe(filePath, (err, data) => {
+        clearTimeout(timeout); // Clear timeout if ffprobe resolves
+
+        if (err) {
+          reject(err);
+          return;
+        }
+
+        resolve(data);
+      });
+    });
+  }
+  //#endregion
+
   //#region MEDIA INFO
   public static async getOnlyRuntime(
     song: Episode,
     musicFile: string
   ): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      ffmpeg.setFfprobePath(ffprobePath.path);
+    try {
+      const data = await this.probeMediaFile(musicFile);
+      const format = data?.format;
 
-      ffmpeg.ffprobe(musicFile, (err: any, data: { format: any }) => {
-        if (err) {
-          console.error("Error obtaining video metadata for music:", err);
-          reject(err);
-          return;
-        }
-
-        const format = data?.format;
-
-        if (format && format.duration) {
-          song.runtimeInSeconds = format.duration;
-          song.runtime = song.runtimeInSeconds / 60;
-          resolve(); // Indicar que se ha completado correctamente
-        } else {
-          console.warn(`Duration not found for file: ${musicFile}`);
-          resolve(); // Resolver aunque no haya duración para continuar el flujo
-        }
-      });
-    });
+      if (format && format.duration) {
+        song.runtimeInSeconds = format.duration;
+        song.runtime = song.runtimeInSeconds / 60;
+      } else {
+        console.log("Failed to get runtime for song:", musicFile);
+      }
+    } catch (err) {
+      console.log("Failed to get runtime", { error: err });
+      throw err; // Re-lanzar el error para que el llamador lo maneje si es necesario
+    }
   }
 
-  public static getMediaInfo(
-    episode: EpisodeData | undefined
-  ): Promise<EpisodeData> | undefined {
-    if (!episode) return undefined;
-
-    const videoPath = episode.videoSrc;
-
-    // Verifica si el archivo existe
-    if (!videoPath || videoPath === "") {
-      console.error("Video file does not exist.");
+  public static async getMediaInfo(
+    episode: EpisodeData | undefined,
+    getChapters: boolean = true
+  ): Promise<EpisodeData | undefined> {
+    if (!episode) {
+      console.log("Episode is undefined, skipping media info retrieval");
       return undefined;
     }
 
-    // Usa ffprobe para obtener la información del video
-    return new Promise(async (resolve, reject) => {
-      ffmpeg.setFfmpegPath(ffmpegPath || "");
-      ffmpeg.setFfprobePath(ffprobePath.path);
-      ffmpeg.ffprobe(videoPath, async (err, data) => {
-        if (err) {
-          console.error("Error obtaining video metadata:", err);
-          return reject(err);
+    const videoPath = episode.videoSrc;
+
+    if (!videoPath || videoPath === "") {
+      console.log("Video file does not exist or path is empty", { videoPath });
+      return undefined;
+    }
+
+    try {
+      const data = await this.probeMediaFile(videoPath);
+      const format = data.format;
+      const streams = data.streams;
+
+      // Configura la información general del medio
+      let fileSize = format.size ? format.size : 0;
+      let sizeSufix = " GB";
+      fileSize = fileSize / Math.pow(1024, 3);
+
+      if (fileSize < 1) {
+        fileSize = fileSize * Math.pow(1024, 1);
+        sizeSufix = " MB";
+      }
+
+      const mediaInfo: MediaInfoData = {
+        file: path.basename(videoPath),
+        location: videoPath,
+        bitrate: format.bit_rate
+          ? (format.bit_rate / Math.pow(10, 3)).toFixed(2) + " kbps"
+          : "0",
+        duration: format.duration ? Utils.formatTime(format.duration) : "0",
+        size: fileSize.toFixed(2) + sizeSufix,
+        container: path.extname(videoPath).replace(".", "").toUpperCase(),
+      };
+      episode.mediaInfo = mediaInfo;
+
+      // Establece la duración real del video
+      if (format.duration) {
+        episode.runtimeInSeconds = format.duration;
+        episode.runtime = episode.runtimeInSeconds / 60;
+      }
+
+      // Limpia las listas anteriores de pistas
+      episode.videoTracks = [];
+      episode.audioTracks = [];
+      episode.subtitleTracks = [];
+
+      for (const stream of streams) {
+        const codecType = stream.codec_type;
+        if (codecType === "video") {
+          Utils.processVideoData(stream, episode);
+        } else if (codecType === "audio") {
+          Utils.processAudioData(stream, episode);
+        } else if (codecType === "subtitle") {
+          Utils.processSubtitleData(stream, episode);
         }
+      }
 
-        const format = data.format;
-        const streams = data.streams;
-
-        // Configura la información general del medio
-        let fileSize = format.size ? format.size : 0;
-
-        let sizeSufix = " GB";
-        fileSize = fileSize / Math.pow(1024, 3);
-
-        if (fileSize < 1) {
-          fileSize = fileSize * Math.pow(1024, 1);
-          sizeSufix = " MB";
-        }
-
-        const mediaInfo: MediaInfoData = {
-          file: path.basename(videoPath),
-          location: videoPath,
-          bitrate: format.bit_rate
-            ? (format.bit_rate / Math.pow(10, 3)).toFixed(2) + " kbps"
-            : "0",
-          duration: format.duration ? Utils.formatTime(format.duration) : "0",
-          size: fileSize.toFixed(2) + sizeSufix,
-          container: path.extname(videoPath).replace(".", "").toUpperCase(),
-        };
-        episode.mediaInfo = mediaInfo;
-
-        // Establece la duración real del video
-        if (format.duration) {
-          episode.runtimeInSeconds = format.duration;
-          episode.runtime = episode.runtimeInSeconds / 60;
-        }
-
-        // Limpia las listas anteriores de pistas
-        episode.videoTracks = [];
-        episode.audioTracks = [];
-        episode.subtitleTracks = [];
-
-        streams.forEach((stream) => {
-          const codecType = stream.codec_type;
-
-          if (codecType === "video") {
-            Utils.processVideoData(stream, episode);
-          } else if (codecType === "audio") {
-            Utils.processAudioData(stream, episode);
-          } else if (codecType === "subtitle") {
-            Utils.processSubtitleData(stream, episode);
-          }
-        });
-
+      if (getChapters) {
         episode.chapters = await this.getChapters(episode);
+      }
 
-        // Resuelve la Promesa devolviendo el episodio procesado
-        resolve(episode);
-      });
-    });
+      return episode;
+    } catch (err) {
+      console.log("Failed to get media info", { error: err });
+      throw err; // Re-lanzar para manejo externo si es necesario
+    }
   }
 
   // Procesa datos de video
@@ -546,32 +559,88 @@ export class Utils {
     episode: EpisodeData
   ): Promise<ChapterData[]> {
     const chaptersArray: ChapterData[] = [];
-
-    try {
-      const { stdout } = await execPromise(
-        `${ffprobePath.path} -v error -show_entries chapter -of json -i "${episode.videoSrc}"`
-      );
-      const metadata = JSON.parse(stdout);
-
-      if (metadata.chapters && metadata.chapters.length > 0) {
-        metadata.chapters.forEach((chapter: any) => {
-          const chapterData: ChapterData = {
-            title: chapter.title || "Sin título",
-            time: chapter.start_time || 0,
-            displayTime: Utils.formatTime(chapter.start_time || 0),
-            thumbnailSrc: "",
-          };
-
-          chaptersArray.push(chapterData);
-        });
-      } else {
-        return chaptersArray;
-      }
-    } catch (error) {
-      console.error("Error al obtener los capítulos:", error);
+    if (!episode.videoSrc || episode.videoSrc === "") {
+      console.log("No video source provided for chapters extraction", {
+        episode,
+      });
+      return chaptersArray;
     }
 
-    return chaptersArray;
+    const ffprobeCommand = `${ffprobePath.path} -v error -show_entries chapter -of json -i "${episode.videoSrc}"`;
+    const timeoutMs = 10000;
+
+    return new Promise((resolve) => {
+      console.log(`Extracting chapters for episode: ${episode.videoSrc}`, {
+        command: ffprobeCommand,
+      });
+
+      const process = spawn(ffprobePath.path, [
+        "-v",
+        "error",
+        "-show_entries",
+        "chapter",
+        "-of",
+        "json",
+        "-i",
+        episode.videoSrc,
+      ]);
+
+      let stdout = "";
+      let stderr = "";
+
+      process.stdout.on("data", (data) => (stdout += data));
+      process.stderr.on("data", (data) => (stderr += data));
+
+      const timeout = setTimeout(() => {
+        process.kill("SIGTERM");
+        console.log(`ffprobe timed out after ${timeoutMs}ms`, {
+          file: episode.videoSrc,
+        });
+        resolve(chaptersArray);
+      }, timeoutMs);
+
+      process.on("close", (code) => {
+        clearTimeout(timeout);
+        if (code !== 0) {
+          console.log("ffprobe exited with error", {
+            code,
+            stderr,
+            file: episode.videoSrc,
+          });
+          resolve(chaptersArray);
+          return;
+        }
+
+        try {
+          const metadata = JSON.parse(stdout);
+          const chapters = metadata.chapters || [];
+          if (chapters.length > 0) {
+            for (const chapter of chapters) {
+              const chapterData: ChapterData = {
+                title: chapter.title || "Sin título",
+                time: chapter.start_time || 0,
+                displayTime: Utils.formatTime(chapter.start_time || 0),
+                thumbnailSrc: "",
+              };
+              chaptersArray.push(chapterData);
+            }
+            console.log("Chapters extracted", {
+              chapterCount: chaptersArray.length,
+            });
+          } else {
+            console.log("No chapters found in the file", {
+              file: episode.videoSrc,
+            });
+          }
+        } catch (error: any) {
+          console.log("Error parsing chapters", {
+            error: error.message,
+            file: episode.videoSrc,
+          });
+        }
+        resolve(chaptersArray);
+      });
+    });
   }
   //#endregion
 

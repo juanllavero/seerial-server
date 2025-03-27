@@ -1,6 +1,5 @@
-import { WebSocketServer } from "ws";
-import WebSocket from "ws";
 import http from "http";
+import WebSocket, { WebSocketServer } from "ws";
 
 interface Client {
   id: string;
