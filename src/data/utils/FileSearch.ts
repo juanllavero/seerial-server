@@ -677,7 +677,7 @@ export class FileSearch {
       //#region MOVIE FILE ONLY
       if (!Utils.isVideoFile(root)) return;
 
-      const fileFullName = await Utils.getFileName(root);
+      const fileFullName = Utils.getFileName(root);
       const nameAndYear = Utils.extractNameAndYear(fileFullName);
 
       let name = nameAndYear[0];
@@ -759,7 +759,7 @@ export class FileSearch {
         if (await Utils.isFolder(filePath)) {
           folders.push(filePath);
         } else {
-          if (await Utils.isVideoFile(filePath)) filesInRoot.push(filePath);
+          if (Utils.isVideoFile(filePath)) filesInRoot.push(filePath);
         }
       }
 
@@ -812,7 +812,13 @@ export class FileSearch {
             });
 
             await Promise.all(processPromises);
+
+            show.setAnalyzingFiles(false);
             DataManager.library.getSeries().push(show);
+
+            // Update show in view
+            Utils.updateSeries(wsManager, DataManager.library.id, show);
+
             return;
           }
 
@@ -865,6 +871,8 @@ export class FileSearch {
           });
 
           await Promise.all(processPromises);
+
+          show.setAnalyzingFiles(false);
           DataManager.library.getSeries().push(show);
 
           // Update show in view
@@ -1114,6 +1122,8 @@ export class FileSearch {
       );
     }
 
+    console.log({ filePath, episode });
+
     if (!episode) {
       episode = new EpisodeLocal();
       season.addEpisode(episode);
@@ -1205,9 +1215,9 @@ export class FileSearch {
       episode
     );
 
-    episode.runtime = episodeData ? episodeData.runtime : episode.runtime;
-
     if (episodeData) {
+      episode.runtime = episodeData.runtime;
+
       if (episodeData.mediaInfo) episode.mediaInfo = episodeData.mediaInfo;
 
       if (episodeData.videoTracks)

@@ -237,7 +237,7 @@ export class Utils {
     const videoPath = episode.videoSrc;
 
     // Verifica si el archivo existe
-    if (!videoPath) {
+    if (!videoPath || videoPath === "") {
       console.error("Video file does not exist.");
       return undefined;
     }
