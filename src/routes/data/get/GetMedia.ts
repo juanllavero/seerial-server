@@ -2,6 +2,7 @@ import express from "express";
 import { DataManager } from "../../../data/utils/DataManager";
 import { Downloader } from "../../../data/utils/Downloader";
 import { FileSearch } from "../../../data/utils/FileSearch";
+import { IMDBScores } from "../../../data/utils/IMDBScores";
 import { MovieDBWrapper } from "../../../data/utils/MovieDB";
 import { WebSocketManager } from "../../../data/utils/WebSocketManager";
 const router = express.Router();
@@ -49,10 +50,11 @@ router.get("/episodeGroups/search", (req: any, res: any) => {
   MovieDBWrapper.searchEpisodeGroups(id).then((data) => res.json(data));
 });
 
+// Test to get the IMDB score given a IMDB ID
 router.get("/imdbScore/", (req: any, res: any) => {
   const id = req.query.id;
 
-  FileSearch.getIMDBScore(id).then((data) => res.json(data));
+  IMDBScores.getIMDBScore(id).then((data) => res.json(data));
 });
 
 // Get search videos results

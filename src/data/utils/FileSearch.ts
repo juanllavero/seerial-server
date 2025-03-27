@@ -1,4 +1,3 @@
-import IMDb from "@skymansion/imdb";
 import ffmetadata from "ffmetadata";
 import ffmpegPath from "ffmpeg-static";
 import { existsSync } from "fs";
@@ -21,11 +20,10 @@ import { Library } from "../objects/Library";
 import { Season } from "../objects/Season";
 import { Series } from "../objects/Series";
 import { DataManager } from "./DataManager";
+import { IMDBScores } from "./IMDBScores";
 import { MovieDBWrapper } from "./MovieDB";
 import { Utils } from "./Utils";
 import { WebSocketManager } from "./WebSocketManager";
-
-const imdb = new IMDb();
 
 export class FileSearch {
   static BASE_URL: string = "https://image.tmdb.org/t/p/original";
@@ -901,10 +899,6 @@ export class FileSearch {
       : undefined;
   }
 
-  public static async getIMDBScore(imdbID: string) {
-    return await imdb.getIMDbMovieDetails(imdbID, 90);
-  }
-
   private static async setSeasonMetadata(
     show: Series,
     season: Season,
@@ -938,22 +932,8 @@ export class FileSearch {
       ? movieMetadata.production_companies.map((company) => company.name ?? "")
       : [];
 
-    try {
-      const movieDetails = await imdb.getIMDbMovieDetails(season.imdbID, 10);
-
-      if (movieDetails) {
-        season.setIMDBScore(
-          !movieDetails.rating || movieDetails.rating === "N/A"
-            ? 0
-            : Number(movieDetails.rating)
-        );
-      }
-    } catch (error: any) {
-      console.error(
-        `Error al obtener detalles de la película ${season.imdbID}:`,
-        error.message
-      );
-    }
+    // Get IMDB Score for Movie
+    season.setIMDBScore(await IMDBScores.getIMDBScore(season.imdbID));
 
     //#region GET TAGS
     const credits = await MovieDBWrapper.getMovieCredits(season.getThemdbID());
