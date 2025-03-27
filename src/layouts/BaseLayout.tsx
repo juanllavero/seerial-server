@@ -31,7 +31,9 @@ export default function BaseLayout({
   const [showNewGradient, setShowNewGradient] = useState(false) // Estado para la transición del gradiente
 
   const location = useLocation()
-  const inDetailsPage = location.pathname.startsWith('/details/')
+  const inDetailsPage =
+    location.pathname.startsWith('/details/') ||
+    location.pathname.startsWith('/episodeDetails/')
 
   useEffect(() => {
     initializeDeviceDetection()

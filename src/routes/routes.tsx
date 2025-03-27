@@ -1,5 +1,6 @@
 import CollectionPage from '@/pages/collection/CollectionPage'
 import DetailsPage from '@/pages/details/DetailsPage'
+import EpisodeDetailsPage from '@/pages/episodeDetails/EpisodeDetailsPage'
 import HomePage from '@/pages/home/HomePage'
 import SettingsPage from '@/pages/settings/SettingsPage'
 import VideoPlayerPage from '@/pages/videoPlayer/VideoPlayerPage'
@@ -24,6 +25,12 @@ export const DetailsRoute = createRoute({
   component: DetailsPage,
 })
 
+export const EpisodeDetailsRoute = createRoute({
+  getParentRoute: () => RootRoute,
+  path: '/episodeDetails/$libraryId/$seriesId/$seasonId/$episodeId',
+  component: EpisodeDetailsPage,
+})
+
 export const SettingsRoute = createRoute({
   getParentRoute: () => RootRoute,
   path: '/settings',
@@ -42,4 +49,5 @@ export const rootTree = RootRoute.addChildren([
   DetailsRoute,
   SettingsRoute,
   VideoPlayerRoute,
+  EpisodeDetailsRoute,
 ])

@@ -83,6 +83,18 @@ export class ReactUtils {
     new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+export const formatDate = (dateString: string): string => {
+  const date = new Date(dateString)
+
+  const monthOptions: Intl.DateTimeFormatOptions = { month: 'short' }
+
+  const month = date.toLocaleString('en-US', monthOptions)
+  const day = date.getDate()
+  const year = date.getFullYear()
+
+  return `${month} ${day}, ${year}`
+}
+
 export const formatTime = (time: number) => {
   const minutes = Math.floor(time / 60)
   const seconds = Math.floor(time % 60)
