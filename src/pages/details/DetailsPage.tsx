@@ -291,8 +291,12 @@ function DetailsPage() {
           </FlexBox>
           {selectedLibrary.type !== 'Music' && (
             <FlexBox gap={0.5} justify="center" align="center">
-              {selectedSeason.imdbScore ? (
-                <img src="/svg/imdb.svg" className="h-8 w-8" alt="IMDB logo" />
+              {selectedSeason.imdbScore > 0 ? (
+                <img
+                  src="/img/logos/imdb.png"
+                  className="h-8 w-8"
+                  alt="IMDB logo"
+                />
               ) : (
                 <img
                   src="/svg/themoviedb.svg"
@@ -303,7 +307,7 @@ function DetailsPage() {
               <span className="text-sm font-bold">
                 {selectedLibrary.type === 'Shows'
                   ? selectedSeries.score.toFixed(2)
-                  : selectedSeason.imdbScore
+                  : selectedSeason.imdbScore > 0
                     ? selectedSeason.imdbScore.toFixed(2)
                     : selectedSeason.score.toFixed(2) || 'N/A'}
               </span>
