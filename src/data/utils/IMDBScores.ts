@@ -19,28 +19,22 @@ export class IMDBScores {
       const $ = cheerio.load(data);
       const jsonLdScript = $('script[type="application/ld+json"]').html();
 
-      // Evitar errores si jsonLdScript es null o undefined
+      // Avoid errors if jsonLdScript is null or undefined
       if (!jsonLdScript) {
-        throw new Error("No se encontró el script JSON-LD");
+        throw new Error("JSON-LD script not found");
       }
 
       const jsonData = JSON.parse(jsonLdScript);
       const rating = jsonData.aggregateRating?.ratingValue;
 
       if (typeof rating !== "number" && typeof rating !== "string") {
-        throw new Error("Rating no encontrado o inválido");
+        throw new Error("Rating not found or invalid");
       }
 
-      // Convertir a número directamente (maneja coma o punto según región)
-      const numericRating = Number(rating.toString().replace(",", "."));
-
-      console.log(`Calificación: ${numericRating}`);
-      return numericRating;
+      // Convert to number directly (handles comma or period depending on region)
+      return Number(rating.toString().replace(",", "."));
     } catch (error: any) {
-      console.error(
-        `Error obteniendo calificación para ${imdbID}:`,
-        error.message
-      );
+      console.error(`Error obtaining score for ${imdbID}:`, error.message);
       return -1;
     }
   }

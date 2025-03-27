@@ -52,7 +52,7 @@ router.post(
   "/uploadImage",
   FilesManager.upload.single("image"),
   (req: any, res: any) => {
-    console.log("Campos de la solicitud:", req.body);
+    console.log("Request fields:", req.body);
     const file = req.file;
     const destPath = req.body.destPath;
 

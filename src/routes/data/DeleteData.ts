@@ -1,12 +1,10 @@
-import { DataManager } from "../../data/utils/DataManager";
 import express from "express";
+import { DataManager } from "../../data/utils/DataManager";
 const router = express.Router();
 
 // Delete Library
 router.delete("/libraries/:libraryId", (req, res) => {
   const { libraryId } = req.params;
-
-  console.log(libraryId);
 
   try {
     DataManager.deleteLibrary(libraryId);

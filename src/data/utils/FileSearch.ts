@@ -111,11 +111,8 @@ export class FileSearch {
 
       if (show === null) return undefined;
 
-      console.log("EXISTING SHOW ", folder);
-
       exists = true;
     } else {
-      console.log("NEW SHOW ", folder);
       show = new Series();
       show.setFolder(folder);
       DataManager.library.getAnalyzedFolders().set(folder, show.getId());
@@ -167,7 +164,6 @@ export class FileSearch {
     show.setAnalyzingFiles(true);
 
     if (!exists) {
-      console.log("Adding Show...");
       // Add show to view
       Utils.addSeries(wsManager, DataManager.library.id, show);
     }
@@ -1121,8 +1117,6 @@ export class FileSearch {
         DataManager.library.getAnalyzedFiles().get(filePath) ?? ""
       );
     }
-
-    console.log({ filePath, episode });
 
     if (!episode) {
       episode = new EpisodeLocal();
