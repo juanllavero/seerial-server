@@ -1,5 +1,6 @@
-import { DataManager } from "../../data/utils/DataManager";
 import express from "express";
+import { DataManager } from "../../data/utils/DataManager";
+import { Utils } from "../../data/utils/Utils";
 const router = express.Router();
 
 // Update Library
@@ -48,6 +49,24 @@ router.put("/episode", (req, res) => {
   } catch (error) {
     res.status(500).json({ error: "Failed to update episode" });
   }
+});
+
+// Test endpoint to get media info
+router.get("/updateMediaInfo", async (req: any, res: any) => {
+  const { libraryId, showId, seasonId, episodeId } = req.body;
+
+  const episode = DataManager.getEpisode(
+    libraryId,
+    showId,
+    seasonId,
+    episodeId
+  );
+
+  if (!episode) return res.status(404).json({ error: "Episode not found" });
+
+  await Utils.getMediaInfo(episode);
+
+  res.json(episode);
 });
 
 export default router;
