@@ -19,6 +19,7 @@ interface CardProps {
   title: string
   subtitle: string
   action: () => void
+  playButtonAction?: () => void
   hideButtons?: boolean
   menu?: DropdownContent
   loading?: boolean
@@ -40,6 +41,7 @@ function Card({
   title,
   subtitle,
   action,
+  playButtonAction,
   menu,
   hideButtons,
   loading,
@@ -115,7 +117,10 @@ function Card({
               <Button
                 variant={'ghost'}
                 className="rounded-full"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (playButtonAction) playButtonAction()
+                }}
               >
                 <PlayIcon />
               </Button>

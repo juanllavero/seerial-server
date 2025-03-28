@@ -222,7 +222,7 @@ function DetailsPage() {
             <FlexBox className="image-container">
               <LazyImage
                 url={currentPoster}
-                width={300}
+                width={350}
                 maxHeight={550}
                 height={selectedLibrary.type === 'Music' ? 300 : 550}
                 errorSrc={
@@ -238,7 +238,7 @@ function DetailsPage() {
             <FlexBox className="image-container-animated fade-in">
               <LazyImage
                 url={nextPoster}
-                width={300}
+                width={350}
                 maxHeight={550}
                 height={selectedLibrary.type === 'Music' ? 300 : 550}
                 errorSrc={

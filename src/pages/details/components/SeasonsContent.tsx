@@ -61,7 +61,21 @@ function SeasonsContent() {
     setDistribution(Number(key))
   }
 
-  const handleSelectEpisode = (episode: Episode) => {
+  const goToDetails = (episode: Episode) => {
+    if (!selectedSeason) return
+
+    navigate({
+      to: '/episodeDetails/$libraryId/$seriesId/$seasonId/$episodeId',
+      params: {
+        libraryId: selectedLibrary.id,
+        seriesId: selectedSeries.id,
+        seasonId: selectedSeason.id,
+        episodeId: episode.id,
+      },
+    })
+  }
+
+  const playEpisode = (episode: Episode) => {
     if (!selectedSeason) return
 
     if (selectedLibrary.type === 'Music') {
@@ -149,7 +163,7 @@ function SeasonsContent() {
         selectedSeason.episodes.length > 1 && (
           <>
             {selectedLibrary.type === 'Music' ? (
-              <SongsList handleSelectEpisode={handleSelectEpisode} />
+              <SongsList handleSelectEpisode={playEpisode} />
             ) : distribution === 0 ? (
               <Grid
                 columns="repeat(auto-fill, minmax(400px, 1fr))"
@@ -157,36 +171,42 @@ function SeasonsContent() {
                 width="100%"
               >
                 {selectedSeason
-                  ? selectedSeason.episodes.map((episode, index) => {
-                      if (selectedLibrary.type === 'Music') {
-                        return (
-                          <MusicCard
-                            index={index}
-                            song={episode}
-                            action={() => handleSelectEpisode(episode)}
-                          />
-                        )
-                      } else {
-                        return (
-                          <EpisodeCard
-                            episode={episode}
-                            handleSelectEpisode={handleSelectEpisode}
-                            getEpisodeMenu={getEpisodeMenu}
-                          />
-                        )
-                      }
-                    })
+                  ? selectedSeason.episodes
+                      .sort((a, b) => a.episodeNumber - b.episodeNumber)
+                      .map((episode, index) => {
+                        if (selectedLibrary.type === 'Music') {
+                          return (
+                            <MusicCard
+                              index={index}
+                              song={episode}
+                              action={() => playEpisode(episode)}
+                            />
+                          )
+                        } else {
+                          return (
+                            <EpisodeCard
+                              episode={episode}
+                              playEpisode={playEpisode}
+                              goToDetails={goToDetails}
+                              getEpisodeMenu={getEpisodeMenu}
+                            />
+                          )
+                        }
+                      })
                   : null}
               </Grid>
             ) : (
               <FlexBox direction="column" gap={0.5}>
                 {selectedSeason
-                  ? selectedSeason.episodes.map((episode) => (
-                      <EpisodeCardDetails
-                        episode={episode}
-                        handleSelectEpisode={handleSelectEpisode}
-                      />
-                    ))
+                  ? selectedSeason.episodes
+                      .sort((a, b) => a.episodeNumber - b.episodeNumber)
+                      .map((episode) => (
+                        <EpisodeCardDetails
+                          episode={episode}
+                          playEpisode={playEpisode}
+                          goToDetails={goToDetails}
+                        />
+                      ))
                   : null}
               </FlexBox>
             )}

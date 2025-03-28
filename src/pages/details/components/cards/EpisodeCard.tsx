@@ -4,13 +4,15 @@ import { useTranslation } from 'react-i18next'
 
 interface EpisodeCardProps {
   episode: any
-  handleSelectEpisode: (episode: any) => void
+  playEpisode: (episode: any) => void
+  goToDetails: (episode: any) => void
   getEpisodeMenu: (episode: any) => any
 }
 
 function EpisodeCard({
   episode,
-  handleSelectEpisode,
+  goToDetails,
+  playEpisode,
   getEpisodeMenu,
 }: EpisodeCardProps) {
   const { t } = useTranslation()
@@ -28,7 +30,8 @@ function EpisodeCard({
       }
       title={episode.name}
       subtitle={`${t('episode')} ${episode.episodeNumber.toString()}`}
-      action={() => handleSelectEpisode(episode)}
+      action={() => goToDetails(episode)}
+      playButtonAction={() => playEpisode(episode)}
       menu={getEpisodeMenu(episode)}
       errorSrc="/img/Default_video_thumbnail.jpg"
     />

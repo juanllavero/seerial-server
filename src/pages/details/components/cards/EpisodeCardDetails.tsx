@@ -5,12 +5,14 @@ import { useTranslation } from 'react-i18next'
 
 interface EpisodeCardDetailsProps {
   episode: any
-  handleSelectEpisode: (episode: any) => void
+  playEpisode: (episode: any) => void
+  goToDetails: (episode: any) => void
 }
 
 function EpisodeCardDetails({
   episode,
-  handleSelectEpisode,
+  playEpisode,
+  goToDetails,
 }: EpisodeCardDetailsProps) {
   const { t } = useTranslation()
 
@@ -28,7 +30,8 @@ function EpisodeCardDetails({
         }
         title=""
         subtitle=""
-        action={() => handleSelectEpisode(episode)}
+        action={() => goToDetails(episode)}
+        playButtonAction={() => playEpisode(episode)}
         hideButtons
         errorSrc="/img/Default_video_thumbnail.jpg"
       />
