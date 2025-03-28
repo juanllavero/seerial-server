@@ -153,7 +153,7 @@ export class Library {
   }
 
   getSeriesById(id: string): Series | null {
-    return this.series.find((serie) => serie.getId() === id) || null;
+    return this.series.find((serie) => serie.getId() === id) ?? null;
   }
 
   getOrder(): number {

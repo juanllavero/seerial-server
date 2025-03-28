@@ -84,7 +84,13 @@ export class DataManager {
   }
 
   public static getSeries(libraryId: string, seriesId: string): Series | null {
-    return this.getLibrary(libraryId)?.getSeriesById(seriesId) || null;
+    const library = this.getLibrary(libraryId);
+
+    console.log({ libraryId: library?.id });
+
+    if (!library) return null;
+
+    return library.getSeriesById(seriesId);
   }
 
   public static getSeasonById(
@@ -116,9 +122,13 @@ export class DataManager {
   ): EpisodeLocal | null {
     const series = this.getSeries(libraryId, showId);
 
+    console.log({ seriesId: series?.id });
+
     if (!series) return null;
 
     const season = series.seasons.find((season) => season.id === seasonId);
+
+    console.log({ seasonId: season?.id });
 
     if (!season) return null;
 

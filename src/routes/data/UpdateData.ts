@@ -52,21 +52,14 @@ router.put("/episode", (req, res) => {
 });
 
 // Test endpoint to get media info
-router.get("/updateMediaInfo", async (req: any, res: any) => {
-  const { libraryId, showId, seasonId, episodeId } = req.body;
+router.put("/updateMediaInfo", async (req: any, res: any) => {
+  const { episode } = req.body;
 
-  const episode = DataManager.getEpisode(
-    libraryId,
-    showId,
-    seasonId,
-    episodeId
-  );
+  if (!episode) {
+    return res.status(404).json({ error: "Episode not found" });
+  }
 
-  if (!episode) return res.status(404).json({ error: "Episode not found" });
-
-  await Utils.getMediaInfo(episode);
-
-  res.json(episode);
+  res.json(await Utils.getMediaInfo(episode));
 });
 
 export default router;
