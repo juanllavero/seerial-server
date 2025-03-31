@@ -1,4 +1,5 @@
 import Card from '@/components/cards/Card'
+import EpisodeDialog from '@/components/dialogs/episode/EpisodeDialog'
 import FlexBox from '@/components/ui/FlexBox'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
@@ -33,6 +34,7 @@ function EpisodeCardDetails({
         action={() => goToDetails(episode)}
         playButtonAction={() => playEpisode(episode)}
         hideButtons
+        editModal={<EpisodeDialog />}
         errorSrc="/img/Default_video_thumbnail.jpg"
       />
       <FlexBox direction="column">

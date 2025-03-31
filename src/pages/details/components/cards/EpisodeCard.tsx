@@ -1,4 +1,7 @@
 import Card from '@/components/cards/Card'
+import { Button } from '@/components/ui/button'
+import { useDialogStore } from '@/context/dialog.context'
+import { Pencil } from 'lucide-react'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -16,6 +19,7 @@ function EpisodeCard({
   getEpisodeMenu,
 }: EpisodeCardProps) {
   const { t } = useTranslation()
+  const { openEpisodeDialog } = useDialogStore()
 
   return (
     <Card
@@ -33,6 +37,18 @@ function EpisodeCard({
       action={() => goToDetails(episode)}
       playButtonAction={() => playEpisode(episode)}
       menu={getEpisodeMenu(episode)}
+      editModal={
+        <Button
+          variant={'ghost'}
+          size={'icon'}
+          onClick={(e) => {
+            e.stopPropagation()
+            openEpisodeDialog(episode)
+          }}
+        >
+          <Pencil size={16} />
+        </Button>
+      }
       errorSrc="/img/Default_video_thumbnail.jpg"
     />
   )
