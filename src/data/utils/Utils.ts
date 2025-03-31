@@ -452,7 +452,7 @@ export class Utils {
       codecDisplayName = stream.profile;
     else codecDisplayName = stream.codec_name.toUpperCase();
 
-    audioTrack.displayTitle = `${audioTrack.language} (${codecDisplayName} ${audioTrack.channels})`;
+    audioTrack.displayTitle = `(${codecDisplayName} ${audioTrack.channels})`;
     episode.audioTracks.push(audioTrack);
   }
 
@@ -473,6 +473,7 @@ export class Utils {
     codecDisplayName = stream.codec_name.toUpperCase();
 
     if (codecDisplayName == "HDMV_PGS_SUBTITLE") codecDisplayName = "PGS";
+    else if (codecDisplayName == "SUBRIP") codecDisplayName = "SRT";
 
     if (stream.codec_long_name) {
       subtitleTrack.codecExt = stream.codec_long_name;
@@ -487,7 +488,9 @@ export class Utils {
       subtitleTrack.title = stream.tags["title"];
     }
 
-    subtitleTrack.displayTitle = `${subtitleTrack.title} (${subtitleTrack.language} ${codecDisplayName})`;
+    subtitleTrack.displayTitle = `${
+      stream.disposition["forced"] === 1 ? "(Forced)" : ""
+    } (${codecDisplayName})`;
     episode.subtitleTracks.push(subtitleTrack);
   }
 
