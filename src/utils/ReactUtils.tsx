@@ -1,4 +1,5 @@
-import { Season, Series } from '@/data/interfaces/Media'
+import { Library, Season, Series } from '@/data/interfaces/Media'
+import { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
 import { extractColors } from 'extract-colors'
 
 export class ReactUtils {
@@ -83,6 +84,7 @@ export class ReactUtils {
     new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+//#region DATETIME
 export const formatDate = (dateString: string): string => {
   const date = new Date(dateString)
 
@@ -120,6 +122,7 @@ export const getOnlyYear = (date: string) => {
   const year = new Date(date).getFullYear()
   return year
 }
+//#endregion
 
 export const getEpisodeGroupType = (type: number) => {
   switch (type) {
@@ -139,5 +142,69 @@ export const getEpisodeGroupType = (type: number) => {
       return 'TV'
     default:
       return 'Unknown'
+  }
+}
+
+export const getAudioTrack = (
+  library: Library,
+  season: Season,
+  audioTracks: AudioTrack[],
+) => {
+  if (
+    season.selectedAudioTrack !== -1 &&
+    season.selectedAudioTrack < audioTracks.length
+  ) {
+    return audioTracks[season.selectedAudioTrack]
+  } else {
+    if (season.audioTrackLanguage !== '') {
+      const track = audioTracks.find(
+        (track) => track.language === season.audioTrackLanguage,
+      )
+      if (track) return track
+    }
+
+    const prefAudioLan = library.preferAudioLan
+
+    const track = audioTracks.find((track) => track.language === prefAudioLan)
+    if (track) return track
+
+    return audioTracks[0]
+  }
+}
+
+export const getSubtitleTrack = (
+  library: Library,
+  season: Season,
+  subtitleTracks: SubtitleTrack[],
+) => {
+  if (
+    season.selectedSubtitleTrack !== -1 &&
+    season.selectedSubtitleTrack < subtitleTracks.length
+  ) {
+    return subtitleTracks[season.selectedSubtitleTrack]
+  } else {
+    const subsMode = library.subsMode
+    const prefSubsLan = library.preferSubLan
+
+    switch (subsMode) {
+      case 'autoSubs':
+        if (prefSubsLan === season.subtitleTrackLanguage) {
+          const track = subtitleTracks.find(
+            (track) => track.language === prefSubsLan,
+          )
+          if (track) return track
+        }
+
+        return null
+      case 'alwaysSubs':
+        const track = subtitleTracks.find(
+          (track) => track.language === prefSubsLan,
+        )
+        if (track) return track
+
+        return null
+      default:
+        return null
+    }
   }
 }

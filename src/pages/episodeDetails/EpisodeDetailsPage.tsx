@@ -5,18 +5,31 @@ import LazyImage from '@/components/ui/LazyImage'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
-import { formatDate } from '@/utils/ReactUtils'
+import {
+  AudioTrack,
+  SubtitleTrack,
+  VideoTrack,
+} from '@/data/interfaces/MediaInfo'
+import { useLanguageName } from '@/localization/TrackLanguages'
+import { formatDate, getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
 import { useNavigate, useParams } from '@tanstack/react-router'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 function EpisodeDetailsPage() {
   const navigate = useNavigate()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { serverIP } = useServerStore()
   const { libraryId, seriesId, seasonId, episodeId } = useParams({
     from: '/episodeDetails/$libraryId/$seriesId/$seasonId/$episodeId',
   })
+
+  const [selectedVideoTrack, setSelectedVideoTrack] =
+    useState<VideoTrack | null>(null)
+  const [selectedAudioTrack, setSelectedAudioTrack] =
+    useState<AudioTrack | null>(null)
+  const [selectedSubtitleTrack, setSelectedSubtitleTrack] =
+    useState<SubtitleTrack | null>(null)
 
   const {
     libraries,
@@ -62,6 +75,63 @@ function EpisodeDetailsPage() {
         libraryId: selectedLibrary.id,
         showId: selectedSeries.id,
         episode: data,
+      })
+
+      const audioTrack = getAudioTrack(
+        selectedLibrary,
+        selectedSeason,
+        data.audioTracks,
+      )
+      const subtitleTrack = getSubtitleTrack(
+        selectedLibrary,
+        selectedSeason,
+        data.subtitleTracks,
+      )
+
+      const videoTrack = data.videoTracks[0] ?? null
+
+      setSelectedVideoTrack(videoTrack)
+      setSelectedAudioTrack(audioTrack)
+      setSelectedSubtitleTrack(subtitleTrack)
+
+      if (videoTrack) {
+        for (const videoTrack of selectedEpisode.videoTracks) {
+          videoTrack.selected = false
+        }
+        videoTrack.selected = true
+      }
+
+      if (audioTrack) {
+        for (const audioTrack of selectedEpisode.audioTracks) {
+          audioTrack.selected = false
+        }
+        audioTrack.selected = true
+      }
+
+      if (subtitleTrack) {
+        for (const subTrack of selectedEpisode.subtitleTracks) {
+          subTrack.selected = false
+        }
+        subtitleTrack.selected = true
+      }
+
+      updateEpisode({
+        libraryId: selectedLibrary.id,
+        showId: selectedSeries.id,
+        episode: {
+          ...selectedEpisode,
+          videoTracks: selectedEpisode.videoTracks.map((track) =>
+            track.id === (videoTrack?.id ?? '') ? (videoTrack ?? track) : track,
+          ),
+          audioTracks: selectedEpisode.audioTracks.map((track) =>
+            track.id === (audioTrack?.id ?? '') ? (audioTrack ?? track) : track,
+          ),
+          subtitleTracks: selectedEpisode.subtitleTracks.map((track) =>
+            track.id === (subtitleTrack?.id ?? '')
+              ? (subtitleTrack ?? track)
+              : track,
+          ),
+        },
       })
     }
 
@@ -118,9 +188,85 @@ function EpisodeDetailsPage() {
     !selectedLibrary ||
     !selectedSeries ||
     !selectedSeason ||
-    !selectedEpisode
+    !selectedEpisode ||
+    !selectedEpisode.audioTracks
   ) {
     return <Loading />
+  }
+
+  const handleVideoTrackChange = (key: string) => {
+    const trackToSelect = selectedEpisode.videoTracks.find(
+      (track) => track.id.toString() === key,
+    )
+
+    if (trackToSelect) {
+      for (const subTrack of selectedEpisode.videoTracks) {
+        subTrack.selected = false
+      }
+
+      trackToSelect.selected = true
+
+      updateEpisode({
+        libraryId: selectedLibrary.id,
+        showId: selectedSeries.id,
+        episode: {
+          ...selectedEpisode,
+          videoTracks: selectedEpisode.videoTracks.map((track) =>
+            track.id.toString() === key ? (trackToSelect ?? track) : track,
+          ),
+        },
+      })
+    }
+  }
+
+  const handleAudioTrackChange = (key: string) => {
+    const trackToSelect = selectedEpisode.audioTracks.find(
+      (track) => track.id.toString() === key,
+    )
+
+    if (trackToSelect) {
+      for (const audioTrack of selectedEpisode.audioTracks) {
+        audioTrack.selected = false
+      }
+
+      trackToSelect.selected = true
+
+      updateEpisode({
+        libraryId: selectedLibrary.id,
+        showId: selectedSeries.id,
+        episode: {
+          ...selectedEpisode,
+          audioTracks: selectedEpisode.audioTracks.map((track) =>
+            track.id.toString() === key ? (trackToSelect ?? track) : track,
+          ),
+        },
+      })
+    }
+  }
+
+  const handleSubtitleTrackChange = (key: string) => {
+    const trackToSelect = selectedEpisode.subtitleTracks.find(
+      (track) => track.id.toString() === key,
+    )
+
+    if (trackToSelect) {
+      for (const subTrack of selectedEpisode.subtitleTracks) {
+        subTrack.selected = false
+      }
+
+      trackToSelect.selected = true
+
+      updateEpisode({
+        libraryId: selectedLibrary.id,
+        showId: selectedSeries.id,
+        episode: {
+          ...selectedEpisode,
+          subtitleTracks: selectedEpisode.subtitleTracks.map((track) =>
+            track.id.toString() === key ? (trackToSelect ?? track) : track,
+          ),
+        },
+      })
+    }
   }
 
   const isShow = selectedLibrary.type === 'Shows'
@@ -128,7 +274,7 @@ function EpisodeDetailsPage() {
   return (
     <FlexBox
       className="details-container"
-      gap={1}
+      gap={2}
       wrap="nowrap"
       padding="10rem 3rem"
       height={'100%'}
@@ -179,13 +325,13 @@ function EpisodeDetailsPage() {
             height={'10rem'}
           >
             <FlexBox justify="center" align="center" height={'2rem'}>
-              <span>{t('video')}</span>
+              <span style={{ color: 'lightgray' }}>{t('video')}</span>
             </FlexBox>
             <FlexBox justify="center" align="center" height={'2rem'}>
-              <span>{t('audio')}</span>
+              <span style={{ color: 'lightgray' }}>{t('audio')}</span>
             </FlexBox>
             <FlexBox justify="center" align="center" height={'2rem'}>
-              <span>{t('subs')}</span>
+              <span style={{ color: 'lightgray' }}>{t('subs')}</span>
             </FlexBox>
           </FlexBox>
           <FlexBox
@@ -193,30 +339,78 @@ function EpisodeDetailsPage() {
             justify="center"
             align="start"
             gap={1}
-            width={'6rem'}
+            width={'100%'}
             height={'10rem'}
           >
-            <SelectableWrapper
-              defaultValue={''}
-              onValueChange={function (key: string, value: string): void {
-                throw new Error('Function not implemented.')
-              }}
-              options={[]}
-            />
-            <SelectableWrapper
-              defaultValue={''}
-              onValueChange={function (key: string, value: string): void {
-                throw new Error('Function not implemented.')
-              }}
-              options={[]}
-            />
-            <SelectableWrapper
-              defaultValue={''}
-              onValueChange={function (key: string, value: string): void {
-                throw new Error('Function not implemented.')
-              }}
-              options={[]}
-            />
+            {selectedEpisode.videoTracks &&
+            selectedEpisode.videoTracks.length > 1 ? (
+              <SelectableWrapper
+                defaultValue={selectedVideoTrack?.displayTitle ?? ''}
+                onValueChange={handleVideoTrackChange}
+                options={
+                  selectedEpisode.videoTracks
+                    ? selectedEpisode.videoTracks.map((track: VideoTrack) => ({
+                        key: track.id.toString(),
+                        value: track.displayTitle,
+                      }))
+                    : []
+                }
+              />
+            ) : (
+              <span className="font-semibold">
+                {selectedVideoTrack?.displayTitle ?? ''}
+              </span>
+            )}
+
+            {selectedEpisode.audioTracks &&
+            selectedEpisode.audioTracks.length > 1 ? (
+              <SelectableWrapper
+                defaultValue={
+                  selectedAudioTrack
+                    ? `${useLanguageName(selectedAudioTrack?.languageTag ?? '', i18n.language)} ${selectedAudioTrack?.displayTitle}`
+                    : ''
+                }
+                onValueChange={handleAudioTrackChange}
+                options={
+                  selectedEpisode.audioTracks
+                    ? selectedEpisode.audioTracks.map((track: AudioTrack) => ({
+                        key: track.id.toString(),
+                        value: `${useLanguageName(track.languageTag, i18n.language)} ${track.displayTitle}`,
+                      }))
+                    : []
+                }
+              />
+            ) : (
+              <span className="font-semibold">
+                {selectedAudioTrack?.displayTitle ?? ''}
+              </span>
+            )}
+
+            {selectedEpisode.subtitleTracks &&
+            selectedEpisode.subtitleTracks.length > 1 ? (
+              <SelectableWrapper
+                defaultValue={
+                  selectedSubtitleTrack
+                    ? `${useLanguageName(selectedSubtitleTrack?.languageTag ?? '', i18n.language)} ${selectedSubtitleTrack?.displayTitle}`
+                    : ''
+                }
+                onValueChange={handleSubtitleTrackChange}
+                options={
+                  selectedEpisode.subtitleTracks
+                    ? selectedEpisode.subtitleTracks.map(
+                        (track: SubtitleTrack) => ({
+                          key: track.id.toString(),
+                          value: `${useLanguageName(track.languageTag, i18n.language)} ${track.displayTitle}`,
+                        }),
+                      )
+                    : []
+                }
+              />
+            ) : (
+              <span className="font-semibold">
+                {selectedSubtitleTrack?.displayTitle ?? ''}
+              </span>
+            )}
           </FlexBox>
         </FlexBox>
       </FlexBox>
