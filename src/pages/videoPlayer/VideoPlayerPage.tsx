@@ -1,9 +1,14 @@
-import { useState, useRef, useEffect } from 'react'
+import DropdownWrapper from '@/components/DropdownWrapper'
+import Loading from '@/components/Loading'
+import NotFound from '@/components/NotFound'
 import { Button } from '@/components/ui/button'
-import { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
-import React from 'react'
+import FlexBox from '@/components/ui/FlexBox'
+import { PlayIcon } from '@/components/ui/IconLibrary'
 import useDataStore from '@/context/data.context'
-import HTMLVideoPlayer from './components/HTMLVideoPlayer'
+import { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
+import { formatTime, getOnlyYear } from '@/utils/ReactUtils'
+import { TrackNextIcon, TrackPreviousIcon } from '@radix-ui/react-icons'
+import { useNavigate, useParams } from '@tanstack/react-router'
 import {
   Captions,
   ChevronLeft,
@@ -15,15 +20,9 @@ import {
   Volume2,
   VolumeOff,
 } from 'lucide-react'
-import FlexBox from '@/components/ui/FlexBox'
-import { formatTime, getOnlyYear } from '@/utils/ReactUtils'
-import { TrackNextIcon, TrackPreviousIcon } from '@radix-ui/react-icons'
-import Loading from '@/components/Loading'
-import DropdownWrapper from '@/components/DropdownWrapper'
+import React, { useEffect, useRef, useState } from 'react'
+import HTMLVideoPlayer from './components/HTMLVideoPlayer'
 import './VideoPlayerPage.css'
-import { useNavigate, useParams } from '@tanstack/react-router'
-import NotFound from '@/components/NotFound'
-import { PlayIcon } from '@/components/ui/IconLibrary'
 
 function VideoPlayerPage() {
   const {

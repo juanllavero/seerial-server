@@ -1,6 +1,5 @@
-import React from 'react'
-import { useEffect } from 'react'
 import { useServerStore } from '@/context/server.context'
+import React, { useEffect } from 'react'
 
 interface HTMLVideoPlayerProps {
   url: string
