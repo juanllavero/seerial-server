@@ -5,8 +5,14 @@ import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { PlayIcon } from '@/components/ui/IconLibrary'
 import useDataStore from '@/context/data.context'
+import { useServerStore } from '@/context/server.context'
 import { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
-import { formatTime, getOnlyYear } from '@/utils/ReactUtils'
+import {
+  formatTime,
+  getAudioTrack,
+  getOnlyYear,
+  getSubtitleTrack,
+} from '@/utils/ReactUtils'
 import { TrackNextIcon, TrackPreviousIcon } from '@radix-ui/react-icons'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import {
@@ -31,66 +37,16 @@ function VideoPlayerPage() {
     selectedSeason,
     selectedEpisode: episode,
     libraries,
+    updateEpisode,
     selectLibrary,
     selectSeries,
     selectSeason,
   } = useDataStore()
+  const { serverIP } = useServerStore()
   const navigate = useNavigate()
   const { libraryId, seriesId, seasonId, episodeId } = useParams({
     from: '/video-player/$libraryId/$seriesId/$seasonId/$episodeId',
   })
-
-  //#region CHECK DATA BEFORE LOAD
-  const library = libraries.find((library) => library.id === libraryId)
-
-  if (libraryId !== selectedLibrary?.id) {
-    if (library) {
-      selectLibrary(library)
-    } else {
-      return <NotFound />
-    }
-  }
-
-  if (!selectedLibrary) {
-    return <NotFound />
-  }
-
-  const series = library?.series.find((series) => series.id === seriesId)
-
-  if (seriesId !== selectedSeries?.id) {
-    if (series) {
-      selectSeries(series)
-    } else {
-      return <NotFound />
-    }
-  }
-
-  if (!selectedSeries) {
-    return <NotFound />
-  }
-
-  const season = series?.seasons.find((season) => season.id === seasonId)
-
-  if (seasonId !== selectedSeason?.id) {
-    if (season) {
-      selectSeason(season)
-    } else {
-      return <NotFound />
-    }
-  }
-
-  if (!selectedSeason) {
-    return <NotFound />
-  }
-
-  const episodeToFind = selectedSeason.episodes.find(
-    (episode) => episode.id === episodeId,
-  )
-
-  if (!episodeToFind) {
-    return <NotFound />
-  }
-  //#endregion
 
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -115,16 +71,12 @@ function VideoPlayerPage() {
   const [wasPaused, setWasPaused] = useState(false)
   const [isScrubbing, setIsScrubbing] = useState(false)
 
-  if (!episode) {
-    return null
-  }
-
   const [selectedAudio, setSelectedAudio] = useState<AudioTrack | null>(
-    episode.audioTracks?.find((track) => track.selected) || null,
+    episode?.audioTracks?.find((track) => track.selected) || null,
   )
   const [selectedSubtitle, setSelectedSubtitle] =
     useState<SubtitleTrack | null>(
-      episode.subtitleTracks?.find((track) => track.selected) || null,
+      episode?.subtitleTracks?.find((track) => track.selected) || null,
     )
 
   //#region Player Controls
@@ -163,6 +115,31 @@ function VideoPlayerPage() {
     } else {
       setVolume(video.volume)
     }
+  }
+
+  const handleGoBack = () => {
+    if (!episode) return
+
+    setVideoLoaded(false)
+    setIsPlaying(false)
+
+    updateEpisode({
+      libraryId: selectedLibrary?.id ?? '',
+      showId: selectedSeries?.id ?? '',
+      episode: {
+        ...episode,
+        timeWatched: currentTime,
+        watched: currentTime > episode.runtimeInSeconds * 0.9,
+      },
+    })
+
+    navigate({
+      to: '/details/$libraryId/$seriesId',
+      params: {
+        libraryId: selectedLibrary?.id ?? '',
+        seriesId: selectedSeries?.id ?? '',
+      },
+    })
   }
 
   const handleVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -359,6 +336,157 @@ function VideoPlayerPage() {
     }
   }, [])
 
+  useEffect(() => {
+    if (
+      !selectedLibrary ||
+      !selectedSeries ||
+      !selectedSeason ||
+      !episode ||
+      episode.mediaInfo
+    )
+      return
+
+    const fetchData = async () => {
+      const result = await fetch(`https://${serverIP}/updateMediaInfo`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          episode: episode,
+        }),
+      })
+
+      if (!result.ok) {
+        return
+      }
+
+      const data = await result.json()
+
+      updateEpisode({
+        libraryId: selectedLibrary.id,
+        showId: selectedSeries.id,
+        episode: data,
+      })
+
+      const audioTrack = getAudioTrack(
+        selectedLibrary,
+        selectedSeason,
+        data.audioTracks,
+      )
+      const subtitleTrack = getSubtitleTrack(
+        selectedLibrary,
+        selectedSeason,
+        data.subtitleTracks,
+      )
+      const videoTrack = data.videoTracks[0] ?? null
+
+      if (videoTrack) {
+        for (const videoTrack of episode.videoTracks) {
+          videoTrack.selected = false
+        }
+        videoTrack.selected = true
+      }
+
+      if (audioTrack) {
+        for (const audioTrack of episode.audioTracks) {
+          audioTrack.selected = false
+        }
+        audioTrack.selected = true
+      }
+
+      if (subtitleTrack) {
+        for (const subTrack of episode.subtitleTracks) {
+          subTrack.selected = false
+        }
+        subtitleTrack.selected = true
+      }
+
+      updateEpisode({
+        libraryId: selectedLibrary.id,
+        showId: selectedSeries.id,
+        episode: {
+          ...episode,
+          videoTracks: episode.videoTracks.map((track) =>
+            track.id === (videoTrack?.id ?? '') ? (videoTrack ?? track) : track,
+          ),
+          audioTracks: episode.audioTracks.map((track) =>
+            track.id === (audioTrack?.id ?? '') ? (audioTrack ?? track) : track,
+          ),
+          subtitleTracks: episode.subtitleTracks.map((track) =>
+            track.id === (subtitleTrack?.id ?? '')
+              ? (subtitleTrack ?? track)
+              : track,
+          ),
+        },
+      })
+    }
+
+    fetchData()
+  }, [selectedLibrary, selectedSeries, selectedSeason, episode])
+
+  //#region CHECK DATA BEFORE LOAD
+  const library = libraries.find((library) => library.id === libraryId)
+
+  if (libraryId !== selectedLibrary?.id) {
+    if (library) {
+      selectLibrary(library)
+    } else {
+      return <NotFound />
+    }
+  }
+
+  if (!selectedLibrary) {
+    return <NotFound />
+  }
+
+  const series = library?.series.find((series) => series.id === seriesId)
+
+  if (seriesId !== selectedSeries?.id) {
+    if (series) {
+      selectSeries(series)
+    } else {
+      return <NotFound />
+    }
+  }
+
+  if (!selectedSeries) {
+    return <NotFound />
+  }
+
+  const season = series?.seasons.find((season) => season.id === seasonId)
+
+  if (seasonId !== selectedSeason?.id) {
+    if (season) {
+      selectSeason(season)
+    } else {
+      return <NotFound />
+    }
+  }
+
+  if (!selectedSeason) {
+    return <NotFound />
+  }
+
+  const episodeToFind = selectedSeason.episodes.find(
+    (episode) => episode.id === episodeId,
+  )
+
+  if (!episodeToFind) {
+    return <NotFound />
+  }
+  //#endregion
+
+  if (
+    !selectedLibrary ||
+    !selectedSeries ||
+    !selectedSeason ||
+    !episode ||
+    !episode.audioTracks
+  ) {
+    return <Loading />
+  }
+
   return (
     <>
       {/* Loading Circle */}
@@ -403,18 +531,7 @@ function VideoPlayerPage() {
           className={`top-shadow fixed top-0 z-1 gap-4 ${isPlaying && !showControls ? '' : 'active'}`}
         >
           <FlexBox gap={1} align="center" justify="center">
-            <Button
-              variant={'ghost'}
-              onClick={() =>
-                navigate({
-                  to: '/details/$libraryId/$seriesId',
-                  params: {
-                    libraryId: selectedLibrary?.id ?? '',
-                    seriesId: selectedSeries?.id ?? '',
-                  },
-                })
-              }
-            >
+            <Button variant={'ghost'} onClick={handleGoBack}>
               <ChevronLeft />
             </Button>
             <span className="text-xl font-semibold">
