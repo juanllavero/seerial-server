@@ -463,6 +463,18 @@ export class FileSearch {
         }
       }
 
+      const images = await MovieDBWrapper.getEpisodeImages(
+        show.themdbID,
+        season.seasonNumber,
+        episode.episodeNumber
+      );
+
+      if (images) {
+        episode.imgUrls = images.stills
+          ? images.stills.map((img: any) => img.file_path ?? "")
+          : [];
+      }
+
       // Create images folder if not exists
       const outputDir = Utils.getExternalPath(
         "resources/img/thumbnails/video/" + episode.id + "/"
