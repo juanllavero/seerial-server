@@ -9,6 +9,8 @@ interface GridProps {
   width?: string
   height?: string
   justifyContent?: string
+  scroll?: 'horizontal' | 'vertical'
+  hideScrollbar?: boolean
   alignItems?: string
   className?: string
   onClick?: () => void
@@ -25,13 +27,15 @@ function Grid({
   height = 'auto',
   justifyContent = 'center',
   alignItems = 'center',
+  scroll,
+  hideScrollbar,
   className = '',
   onClick,
   children,
 }: GridProps) {
   return (
     <div
-      className={className}
+      className={`${className} ${hideScrollbar ? 'hide-scrollbar' : ''} scroll-smooth ${scroll === 'horizontal' ? 'overflow-x-auto' : ''} ${scroll === 'vertical' ? 'overflow-y-auto' : ''}`}
       style={{
         display: 'grid',
         gridTemplateColumns: columns,

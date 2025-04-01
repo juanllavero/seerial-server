@@ -4,9 +4,9 @@ import { useWebSocketStore } from '@/context/ws.context'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ModalWrapper } from '../../ModalWrapper'
+import ImageListTab from '../components/ImageListTab'
 import EpisodeInfoTab from './components/EpisodeInfoTab'
 import EpisodeMediaInfoTab from './components/EpisodeMediaInfoTab'
-import ImageListTab from './components/ImageListTab'
 
 function EpisodeDialog() {
   const { t } = useTranslation()
@@ -34,23 +34,27 @@ function EpisodeDialog() {
   const [writtenBy, setWrittenBy] = useState<string[]>([])
   //#endregion
 
+  const episode = episodeDialog.episodeToEdit
+
   useEffect(() => {
-    if (episodeDialog) {
-      setNameLock(false)
-      setYearLock(false)
-      setOverviewLock(false)
-      setDirectedLock(false)
-      setWrittenLock(false)
-      setName('')
-      setYear('')
-      setOverview('')
-      setDirectedBy([])
-      setWrittenBy([])
+    console.log({ episode })
+    if (episodeDialog && episode) {
+      console.log('AAAA')
+      setNameLock(episode.nameLock)
+      setYearLock(episode.yearLock)
+      setOverviewLock(episode.overviewLock)
+      setDirectedLock(episode.directedLock)
+      setWrittenLock(episode.writtenLock)
+      setName(episode.name)
+      setYear(episode.year)
+      setOverview(episode.overview)
+      setDirectedBy(episode.directedBy)
+      setWrittenBy(episode.writtenBy)
+      setImages(episode.imgUrls)
+      setSelectedImage(episode.imgSrc)
       setSelectedTab(t('generalButton'))
     }
   }, [episodeDialog])
-
-  const episode = episodeDialog.episodeToEdit
 
   if (!episode) return null
 

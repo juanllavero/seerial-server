@@ -9,6 +9,15 @@ import {
 } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import React, { ReactNode } from 'react'
+import { useIsTablet } from './hooks/use-tablet'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from './ui/drawer'
 
 interface TabContent {
   title: string
@@ -41,6 +50,7 @@ export function ModalWrapper({
 }: ModalWrapperProps) {
   const [open, setOpen] = React.useState(false)
   const dialogRef = React.useRef(null)
+  const isTablet = useIsTablet()
 
   const [internalActiveTab, setInternalActiveTab] = React.useState(
     tabs[0]?.title || 'tab1',
@@ -57,6 +67,85 @@ export function ModalWrapper({
     }
   }
 
+  if (isTablet) {
+    return (
+      <Drawer
+        open={isOpen ?? open}
+        onOpenChange={(newOpen) => {
+          setOpen(newOpen)
+          if (newOpen && openDialog) {
+            openDialog()
+          } else if (!newOpen && close) {
+            close()
+          }
+        }}
+      >
+        {button && <DrawerTrigger asChild>{button}</DrawerTrigger>}
+        <DrawerContent ref={dialogRef}>
+          <DrawerHeader>
+            <DrawerTitle>{title}</DrawerTitle>
+          </DrawerHeader>
+          {tabs && tabs.length > 1 ? (
+            <Tabs
+              value={currentTab} // Controlar la tab activa
+              onValueChange={handleTabChange} // Manejar cambios de tab
+              className="w-full"
+            >
+              <TabsList className="mt-2 grid w-full grid-cols-3">
+                {tabs.map((tab) => (
+                  <TabsTrigger
+                    key={'Tab' + tab.title}
+                    value={tab.title}
+                    disabled={tab.disabled}
+                  >
+                    {tab.title}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              {tabs.map((tab) => (
+                <TabsContent key={tab.title} value={tab.title} className="py-4">
+                  {Array.isArray(tab.content)
+                    ? tab.content.map((item, index) => (
+                        <div key={index}>{item}</div>
+                      ))
+                    : tab.content}
+                </TabsContent>
+              ))}
+            </Tabs>
+          ) : tabs && tabs.length === 1 ? (
+            <div className="w-full">{tabs[0]?.content ?? <></>}</div>
+          ) : null}
+          {!hideButtons && (
+            <DrawerFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  if (close) {
+                    close()
+                  } else {
+                    setOpen(false)
+                  }
+                }}
+              >
+                Cerrar
+              </Button>
+              <Button
+                onClick={() => {
+                  if (close) {
+                    close()
+                  } else {
+                    setOpen(false)
+                  }
+                }}
+              >
+                Aceptar
+              </Button>
+            </DrawerFooter>
+          )}
+        </DrawerContent>
+      </Drawer>
+    )
+  }
   return (
     <Dialog
       open={isOpen ?? open}

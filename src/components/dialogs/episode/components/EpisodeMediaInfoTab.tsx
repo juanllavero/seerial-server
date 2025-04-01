@@ -1,3 +1,4 @@
+import { useIsTablet } from '@/components/hooks/use-tablet'
 import Loading from '@/components/Loading'
 import FlexBox from '@/components/ui/FlexBox'
 import useDataStore from '@/context/data.context'
@@ -30,6 +31,7 @@ function EpisodeMediaInfoTab({
     updateEpisode,
   } = useDataStore()
   const { serverIP } = useServerStore()
+  const isTablet = useIsTablet()
   const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
@@ -140,8 +142,10 @@ function EpisodeMediaInfoTab({
           (field, index) =>
             field.value && (
               <div key={index + 'video-media'}>
-                <span id="media-info-key">{field.key}</span>
-                <span id="media-info-value">{field.value}</span>
+                <span className="mr-2" style={{ color: 'lightgray' }}>
+                  {field.key}
+                </span>
+                <span className="font-semibold">{field.value}</span>
               </div>
             ),
         )}
@@ -170,8 +174,10 @@ function EpisodeMediaInfoTab({
           (field, index) =>
             field.value && (
               <div key={index + 'audio-media'}>
-                <span id="media-info-key">{field.key}</span>
-                <span id="media-info-value">{field.value}</span>
+                <span className="mr-2" style={{ color: 'lightgray' }}>
+                  {field.key}
+                </span>
+                <span className="font-semibold">{field.value}</span>
               </div>
             ),
         )}
@@ -195,8 +201,10 @@ function EpisodeMediaInfoTab({
           (field, index) =>
             field.value && (
               <div key={index + 'subs-media'}>
-                <span id="media-info-key">{field.key}</span>
-                <span id="media-info-value">{field.value}</span>
+                <span className="mr-2" style={{ color: 'lightgray' }}>
+                  {field.key}
+                </span>
+                <span className="font-semibold">{field.value}</span>
               </div>
             ),
         )}
@@ -204,84 +212,94 @@ function EpisodeMediaInfoTab({
     )
   }
 
-  if (!loaded) return <Loading />
+  if (!loaded)
+    return (
+      <FlexBox
+        direction="column"
+        gap={1}
+        justify="space-between"
+        height={isTablet ? '25rem' : '35rem'}
+        width={isTablet ? '100%' : '50rem'}
+        hideScrollbar={isTablet}
+        scroll="vertical"
+      >
+        <Loading />
+      </FlexBox>
+    )
 
   return (
     <FlexBox
       direction="column"
       gap={1}
       justify="space-between"
-      height={'25rem'}
-      width={'30rem'}
+      height={isTablet ? '25rem' : '35rem'}
+      width={isTablet ? '100%' : '50rem'}
+      hideScrollbar={isTablet}
+      scroll="vertical"
     >
-      <div className="dialog-horizontal-box">
-        <section className="left-media-info">
-          <span id="media-info-title">Media info</span>
-          <div>
-            <span id="media-info-key">Duration</span>
-            <span id="media-info-value">
-              {selectedEpisode?.mediaInfo?.duration}
-            </span>
+      <FlexBox direction="column" className="left-media-info">
+        <span className="mb-1 text-lg font-semibold">Media info</span>
+        <FlexBox gap={0.5}>
+          <span style={{ color: 'lightgray' }}>Duration</span>
+          <span className="font-semibold">
+            {selectedEpisode?.mediaInfo?.duration}
+          </span>
+        </FlexBox>
+        <FlexBox gap={0.5}>
+          <span style={{ color: 'lightgray' }}>File</span>
+          <span className="font-semibold">
+            {selectedEpisode?.mediaInfo?.file}
+          </span>
+        </FlexBox>
+        <FlexBox gap={0.5}>
+          <span style={{ color: 'lightgray' }}>Location</span>
+          <span className="font-semibold">
+            {selectedEpisode?.mediaInfo?.location}
+          </span>
+        </FlexBox>
+        <FlexBox gap={0.5}>
+          <span style={{ color: 'lightgray' }}>Bitrate</span>
+          <span className="font-semibold">
+            {selectedEpisode?.mediaInfo?.bitrate}
+          </span>
+        </FlexBox>
+        <FlexBox gap={0.5}>
+          <span style={{ color: 'lightgray' }}>Size</span>
+          <span className="font-semibold">
+            {selectedEpisode?.mediaInfo?.size}
+          </span>
+        </FlexBox>
+        <FlexBox gap={0.5}>
+          <span style={{ color: 'lightgray' }}>Container</span>
+          <span className="font-semibold">
+            {selectedEpisode?.mediaInfo?.container}
+          </span>
+        </FlexBox>
+      </FlexBox>
+      <FlexBox direction="column" gap={1}>
+        {selectedEpisode?.videoTracks.map((track: VideoTrack) => (
+          <div key={track.id + '-video'}>
+            <span className="mt-2 mb-1 text-lg font-semibold">Video</span>
+            {getVideoInfo(track)}
           </div>
-          <div>
-            <span id="media-info-key">File</span>
-            <span id="media-info-value">
-              {selectedEpisode?.mediaInfo?.file}
-            </span>
-          </div>
-          <div>
-            <span id="media-info-key">Location</span>
-            <span id="media-info-value">
-              {selectedEpisode?.mediaInfo?.location}
-            </span>
-          </div>
-          <div>
-            <span id="media-info-key">Bitrate</span>
-            <span id="media-info-value">
-              {selectedEpisode?.mediaInfo?.bitrate}
-            </span>
-          </div>
-          <div>
-            <span id="media-info-key">Size</span>
-            <span id="media-info-value">
-              {selectedEpisode?.mediaInfo?.size}
-            </span>
-          </div>
-          <div>
-            <span id="media-info-key">Container</span>
-            <span id="media-info-value">
-              {selectedEpisode?.mediaInfo?.container}
-            </span>
-          </div>
-        </section>
-        <section className="right-media-info">
-          {selectedEpisode?.videoTracks.map((track: VideoTrack) => (
-            <div key={track.id + '-video'}>
-              <span id="media-info-title">Video</span>
-              {getVideoInfo(track)}
-              <div className="separator"></div>
+        ))}
+        {selectedEpisode?.audioTracks.map(
+          (audioTrack: AudioTrack, index: number) => (
+            <div key={index + '-audio'}>
+              <span className="mt-2 mb-1 text-lg font-semibold">Audio</span>
+              {getAudioInfo(audioTrack)}
             </div>
-          ))}
-          {selectedEpisode?.audioTracks.map(
-            (audioTrack: AudioTrack, index: number) => (
-              <div key={index + '-audio'}>
-                <span id="media-info-title">Audio</span>
-                {getAudioInfo(audioTrack)}
-                <div className="separator"></div>
-              </div>
-            ),
-          )}
-          {selectedEpisode?.subtitleTracks.map(
-            (track: SubtitleTrack, index: number) => (
-              <div key={index + '-subs'}>
-                <span id="media-info-title">Subtitle</span>
-                {getSubtitleInfo(track)}
-                <div className="separator"></div>
-              </div>
-            ),
-          )}
-        </section>
-      </div>
+          ),
+        )}
+        {selectedEpisode?.subtitleTracks.map(
+          (track: SubtitleTrack, index: number) => (
+            <div key={index + '-subs'}>
+              <span className="mt-2 mb-1 text-lg font-semibold">Subtitle</span>
+              {getSubtitleInfo(track)}
+            </div>
+          ),
+        )}
+      </FlexBox>
     </FlexBox>
   )
 }

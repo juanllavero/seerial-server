@@ -1,6 +1,8 @@
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
+import { useIsTablet } from '@/components/hooks/use-tablet'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { t } from 'i18next'
 import React from 'react'
 
@@ -43,34 +45,39 @@ function EpisodeInfoTab({
   selectTab,
   close,
 }: EpisodeInfoTabProps) {
+  const isTablet = useIsTablet()
   return (
     <FlexBox
       direction="column"
       gap={1}
-      justify="space-between"
-      height={'25rem'}
-      width={'30rem'}
+      justify="start"
+      align="center"
+      height={isTablet ? '25rem' : '35rem'}
+      width={isTablet ? '100%' : '50rem'}
+      hideScrollbar={isTablet}
     >
-      <LabeledInputWrapper label={t('name')}>
-        <Input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-      </LabeledInputWrapper>
+      <FlexBox gap={1} width={'100%'}>
+        <LabeledInputWrapper label={t('name')}>
+          <Input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </LabeledInputWrapper>
 
-      <LabeledInputWrapper label={t('year')}>
-        <Input
-          type="text"
-          value={year}
-          onChange={(e) => setYear(e.target.value)}
-        />
-      </LabeledInputWrapper>
+        <LabeledInputWrapper label={t('year')}>
+          <Input
+            type="text"
+            value={year}
+            onChange={(e) => setYear(e.target.value)}
+          />
+        </LabeledInputWrapper>
+      </FlexBox>
 
       <LabeledInputWrapper label={t('overview')}>
-        <Input
-          type="text"
+        <Textarea
           value={overview}
+          rows={5}
           onChange={(e) => setOverview(e.target.value)}
         />
       </LabeledInputWrapper>
