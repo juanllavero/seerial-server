@@ -15,13 +15,11 @@ import React, { useEffect, useState } from 'react'
 interface EpisodeMediaInfoTabProps {
   episode: Episode
   setEpisode: (episode: Episode) => void
-  handleAccept: () => void
 }
 
 function EpisodeMediaInfoTab({
   episode,
   setEpisode,
-  handleAccept,
 }: EpisodeMediaInfoTabProps) {
   const {
     selectedLibrary,

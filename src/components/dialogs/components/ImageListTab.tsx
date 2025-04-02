@@ -9,13 +9,13 @@ import { useServerStore } from '@/context/server.context'
 import { generateRandoumUUID } from '@/utils/ReactUtils'
 import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import './ImageListTab.css'
 
 interface ImageListTabProps {
   imagesList: string[]
   localFolder: string
   selectImage: (image: string) => void
   selectedImage: string
-  handleAccept: () => void
   isPoster?: boolean
 }
 
@@ -24,7 +24,6 @@ function ImageListTab({
   localFolder,
   selectImage,
   selectedImage,
-  handleAccept,
   isPoster = false,
 }: ImageListTabProps) {
   const { t } = useTranslation()
@@ -260,8 +259,9 @@ function ImageListTab({
       >
         {imagesList &&
           imagesList.map((image) => (
-            <div key={image}>
+            <div key={image} onClick={() => selectImage(image)}>
               <LazyImage
+                className={`image-list-img ${selectedImage === image ? 'selected-image' : ''}`}
                 url={`https://image.tmdb.org/t/p/original/${image}`}
                 alt={image}
                 errorSrc={
@@ -277,8 +277,12 @@ function ImageListTab({
           localImages &&
           localImages.map(
             (image: { name: string; url: string }, index: number) => (
-              <div key={image.url ?? 'Image ' + index}>
+              <div
+                key={image.url ?? 'Image ' + index}
+                onClick={() => selectImage(image.url)}
+              >
                 <LazyImage
+                  className={`image-list-img ${selectedImage === image.url ? 'selected-image' : ''}`}
                   url={image.url}
                   alt={image.name}
                   errorSrc={

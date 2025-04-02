@@ -127,18 +127,13 @@ function EpisodeDialog() {
               localFolder={localFolder}
               selectImage={setSelectedImage}
               selectedImage={selectedImage}
-              handleAccept={handleEditEpisode}
             />
           ),
         },
         {
           title: t('details'),
           content: (
-            <EpisodeMediaInfoTab
-              episode={episode}
-              setEpisode={setEpisode}
-              handleAccept={handleEditEpisode}
-            />
+            <EpisodeMediaInfoTab episode={episode} setEpisode={setEpisode} />
           ),
         },
       ]}
