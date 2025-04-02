@@ -56,6 +56,8 @@ router.post(
     const file = req.file;
     const destPath = req.body.destPath;
 
+    console.log({ file, destPath });
+
     if (!file) {
       return res.status(400).send("No file received");
     }
