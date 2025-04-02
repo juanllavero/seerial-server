@@ -23,7 +23,6 @@ interface EpisodeInfoTabProps {
   directedLock: boolean
   writtenLock: boolean
   selectTab: (tab: string | undefined) => void
-  close: () => void
 }
 
 function EpisodeInfoTab({
@@ -43,7 +42,6 @@ function EpisodeInfoTab({
   directedLock,
   writtenLock,
   selectTab,
-  close,
 }: EpisodeInfoTabProps) {
   const isTablet = useIsTablet()
   return (

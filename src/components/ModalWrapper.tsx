@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import React, { ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useIsTablet } from './hooks/use-tablet'
 import {
   Drawer,
@@ -32,6 +33,7 @@ interface ModalWrapperProps {
   button?: ReactNode
   isOpen?: boolean
   close?: () => void
+  onAccept?: () => void
   openDialog?: () => void
   activeTab?: string
   onTabChange?: (tab: string) => void
@@ -44,10 +46,12 @@ export function ModalWrapper({
   button,
   isOpen,
   close,
+  onAccept,
   openDialog,
   activeTab,
   onTabChange,
 }: ModalWrapperProps) {
+  const { t } = useTranslation()
   const [open, setOpen] = React.useState(false)
   const dialogRef = React.useRef(null)
   const isTablet = useIsTablet()
@@ -127,10 +131,14 @@ export function ModalWrapper({
                   }
                 }}
               >
-                Cerrar
+                {t('cancelButton')}
               </Button>
               <Button
                 onClick={() => {
+                  if (onAccept) {
+                    onAccept()
+                  }
+
                   if (close) {
                     close()
                   } else {
@@ -138,7 +146,7 @@ export function ModalWrapper({
                   }
                 }}
               >
-                Aceptar
+                {t('saveButton')}
               </Button>
             </DrawerFooter>
           )}
@@ -205,10 +213,14 @@ export function ModalWrapper({
                 }
               }}
             >
-              Cerrar
+              {t('cancelButton')}
             </Button>
             <Button
               onClick={() => {
+                if (onAccept) {
+                  onAccept()
+                }
+
                 if (close) {
                   close()
                 } else {
@@ -216,7 +228,7 @@ export function ModalWrapper({
                 }
               }}
             >
-              Aceptar
+              {t('saveButton')}
             </Button>
           </DialogFooter>
         )}

@@ -208,3 +208,13 @@ export const getSubtitleTrack = (
     }
   }
 }
+
+export const generateRandoumUUID = () => {
+  // Generates 4 random bytes (32 bits)
+  const array = new Uint8Array(4)
+  window.crypto.getRandomValues(array)
+  // Converts the bytes to hexadecimal
+  return Array.from(array)
+    .map((byte) => byte.toString(16).padStart(2, '0'))
+    .join('')
+}

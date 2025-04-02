@@ -1,18 +1,20 @@
 import { useIsTablet } from '@/components/hooks/use-tablet'
+import TextMessageWrapper from '@/components/TextMessageWrapper'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import Grid from '@/components/ui/Grid'
 import { Input } from '@/components/ui/input'
 import LazyImage from '@/components/ui/LazyImage'
 import { useServerStore } from '@/context/server.context'
-import React, { useEffect, useState } from 'react'
+import { generateRandoumUUID } from '@/utils/ReactUtils'
+import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 interface ImageListTabProps {
   imagesList: string[]
   localFolder: string
   selectImage: (image: string) => void
-  close: () => void
+  selectedImage: string
   handleAccept: () => void
   isPoster?: boolean
 }
@@ -21,16 +23,28 @@ function ImageListTab({
   imagesList,
   localFolder,
   selectImage,
-  close,
+  selectedImage,
   handleAccept,
   isPoster = false,
 }: ImageListTabProps) {
   const { t } = useTranslation()
   const [loaded, setLoaded] = useState(false)
-  const [localImages, setLocalImages] = useState<string[]>([])
+  const [localImages, setLocalImages] = useState<
+    { name: string; url: string }[]
+  >([])
   const [pastingUrl, setPastingUrl] = useState<boolean>(false)
   const [urlToDownload, setUrlToDownload] = useState<string>('')
   const isTablet = useIsTablet()
+
+  // Upload image
+  const [imageUrl, setImageUrl] = useState<string | null>(null)
+  const [isUploading, setIsUploading] = useState<boolean>(false)
+
+  // Reference to hidden file input
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const [imageLoadedText, setImageLoadedText] = useState<string>('')
+  const [imageLoadedTextError, setImageLoadedTextError] = useState<string>('')
 
   const { serverIP } = useServerStore()
 
@@ -38,7 +52,9 @@ function ImageListTab({
     if (!loaded) {
       const fetchLocalImages = async () => {
         try {
-          const response = await fetch(`https://${serverIP}/${localFolder}`)
+          const response = await fetch(
+            `https://${serverIP}/images?path=${localFolder}`,
+          )
           const data = await response.json()
           setLocalImages(data)
           setLoaded(true)
@@ -48,9 +64,118 @@ function ImageListTab({
         }
       }
 
-      if (localFolder) fetchLocalImages()
+      if (localFolder && !isUploading) fetchLocalImages()
     }
-  }, [loaded, serverIP, localFolder])
+  }, [loaded, serverIP, localFolder, isUploading])
+
+  const handleImageUpload = () => {
+    // Clean previous states
+    setImageLoadedText('')
+    setImageLoadedTextError('')
+    setImageUrl(null)
+
+    // Open the file selection programatically
+    fileInputRef.current?.click()
+  }
+
+  // Handle file selection (separado del click del botón)
+  const handleFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const file = event.target.files?.[0]
+
+    if (file) {
+      // Verify if the file is an image
+      if (!file.type.startsWith('image/')) {
+        setImageLoadedTextError(
+          'Por favor, selecciona un archivo de imagen válido',
+        )
+        setImageLoadedText('')
+        return
+      }
+
+      // Create URL for preview
+      const imageUrl = URL.createObjectURL(file)
+      setImageUrl(imageUrl)
+
+      // Send the image to the server
+      await uploadImage(file)
+    }
+
+    // Clear the input after selection
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const uploadImage = async (file: File) => {
+    setIsUploading(true)
+    const formData = new FormData()
+    formData.append('destPath', localFolder)
+    formData.append('image', file)
+
+    try {
+      const response = await fetch(`https://${serverIP}/uploadImage`, {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error('Error al subir la imagen')
+      }
+
+      const data = await response.text()
+      setImageLoadedText('¡Imagen subida exitosamente!')
+      setImageLoadedTextError('')
+      console.log('Respuesta del servidor:', data)
+    } catch (err) {
+      setImageLoadedTextError('Error desconocido al subir la imagen')
+      setImageLoadedText('')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const downloadImage = async (url: string) => {
+    setIsUploading(true)
+
+    try {
+      const response = await fetch(`https://${serverIP}/downloadImage`, {
+        method: 'POST',
+        body: JSON.stringify({
+          url: url,
+          downloadFolder: localFolder,
+          fileName: generateRandoumUUID(),
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error('Error al subir la imagen')
+      }
+
+      const data = await response.text()
+      setImageLoadedText('¡Imagen subida exitosamente!')
+      setImageLoadedTextError('')
+      console.log('Respuesta del servidor:', data)
+    } catch (err) {
+      setImageLoadedTextError('Error desconocido al subir la imagen')
+      setImageLoadedText('')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  // Clean up the object URL when the component unmounts
+  useEffect(() => {
+    return () => {
+      if (imageUrl) {
+        URL.revokeObjectURL(imageUrl)
+      }
+    }
+  }, [imageUrl])
 
   return (
     <FlexBox
@@ -66,6 +191,15 @@ function ImageListTab({
         width={'100%'}
         padding="0 0.5rem"
       >
+        {/* Hidden input for file selection */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          accept="image/*"
+          onChange={handleFileSelect}
+          style={{ display: 'none' }}
+        />
+
         {pastingUrl ? (
           <>
             <Input
@@ -81,22 +215,35 @@ function ImageListTab({
                 selectImage(urlToDownload)
               }}
             >
-              {t('cancel')}
+              {t('cancelButton')}
             </Button>
             <Button
               onClick={() => {
                 setPastingUrl(false)
-                selectImage(urlToDownload)
+                downloadImage(urlToDownload)
               }}
             >
-              {t('download')}
+              {t('downloadButton')}
             </Button>
           </>
         ) : (
           <>
-            <Button onClick={() => {}}>{t('loadImage')}</Button>
-            <Button onClick={() => setPastingUrl(true)}>{t('pasteUrl')}</Button>
+            <Button onClick={handleImageUpload} disabled={isUploading}>
+              {t('loadImageButton')}
+            </Button>
+            <Button onClick={() => setPastingUrl(true)} disabled={isUploading}>
+              {t('fromURLButton')}
+            </Button>
           </>
+        )}
+      </FlexBox>
+      <FlexBox direction="column" width={'100%'} justify="center" gap={0.5}>
+        {imageLoadedText ? (
+          <TextMessageWrapper message={imageLoadedText} />
+        ) : imageLoadedTextError ? (
+          <TextMessageWrapper message={imageLoadedTextError} error />
+        ) : (
+          <></>
         )}
       </FlexBox>
       <Grid
@@ -110,7 +257,7 @@ function ImageListTab({
           imagesList.map((image) => (
             <div key={image}>
               <LazyImage
-                url={image}
+                url={`https://image.tmdb.org/t/p/original/${image}`}
                 alt={image}
                 errorSrc={
                   isPoster
@@ -123,11 +270,21 @@ function ImageListTab({
 
         {loaded &&
           localImages &&
-          localImages.map((image) => (
-            <div key={image}>
-              <img src={image} alt={image} />
-            </div>
-          ))}
+          localImages.map(
+            (image: { name: string; url: string }, index: number) => (
+              <div key={image.url ?? 'Image ' + index}>
+                <LazyImage
+                  url={image.url}
+                  alt={image.name}
+                  errorSrc={
+                    isPoster
+                      ? '/img/fileNotFound.jpg'
+                      : '/img/Default_video_thumbnail.jpg'
+                  }
+                />
+              </div>
+            ),
+          )}
       </Grid>
     </FlexBox>
   )

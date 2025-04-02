@@ -5,22 +5,22 @@ import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { Episode } from '@/data/interfaces/Media'
 import {
-  AudioTrack,
-  SubtitleTrack,
-  VideoTrack,
+    AudioTrack,
+    SubtitleTrack,
+    VideoTrack,
 } from '@/data/interfaces/MediaInfo'
 import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
 import React, { useEffect, useState } from 'react'
 
 interface EpisodeMediaInfoTabProps {
   episode: Episode
-  close: () => void
+  setEpisode: (episode: Episode) => void
   handleAccept: () => void
 }
 
 function EpisodeMediaInfoTab({
   episode,
-  close,
+  setEpisode,
   handleAccept,
 }: EpisodeMediaInfoTabProps) {
   const {
@@ -39,28 +39,38 @@ function EpisodeMediaInfoTab({
 
     const fetchData = async () => {
       setLoaded(false)
-      const result = await fetch(`https://${serverIP}/updateMediaInfo`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          episode: episode,
-        }),
-      })
 
-      if (!result.ok) {
-        return
+      const attemptFetch = async () => {
+        const result = await fetch(`https://${serverIP}/updateMediaInfo`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            episode: episode,
+          }),
+        })
+
+        return result.ok ? await result.json() : null
       }
 
-      const data = await result.json()
+      // First attempt
+      let data = await attemptFetch()
 
-      updateEpisode({
-        libraryId: selectedLibrary.id,
-        showId: selectedSeries.id,
-        episode: data,
-      })
+      // If there are no data after the first attempt, wait 2 seconds and make second attempt
+      if (!data) {
+        await new Promise((resolve) => setTimeout(resolve, 2000)) // Wait 2 seconds
+        data = await attemptFetch()
 
+        // If the second attempt fails, wait 4 seconds and set loaded as true
+        if (!data) {
+          await new Promise((resolve) => setTimeout(resolve, 4000)) // Wait 4 seconds
+          setLoaded(true)
+          return
+        }
+      }
+
+      // Process the data if it was obtained in either of the attempts
       const audioTrack = getAudioTrack(
         selectedLibrary,
         selectedSeason,
@@ -73,22 +83,22 @@ function EpisodeMediaInfoTab({
       )
       const videoTrack = data.videoTracks[0] ?? null
 
-      if (videoTrack) {
-        for (const videoTrack of episode.videoTracks) {
+      if (videoTrack && data.videoTracks) {
+        for (const videoTrack of data.videoTracks) {
           videoTrack.selected = false
         }
         videoTrack.selected = true
       }
 
-      if (audioTrack) {
-        for (const audioTrack of episode.audioTracks) {
+      if (audioTrack && data.audioTracks) {
+        for (const audioTrack of data.audioTracks) {
           audioTrack.selected = false
         }
         audioTrack.selected = true
       }
 
-      if (subtitleTrack) {
-        for (const subTrack of episode.subtitleTracks) {
+      if (subtitleTrack && data.subtitleTracks) {
+        for (const subTrack of data.subtitleTracks) {
           subTrack.selected = false
         }
         subtitleTrack.selected = true
@@ -98,19 +108,54 @@ function EpisodeMediaInfoTab({
         libraryId: selectedLibrary.id,
         showId: selectedSeries.id,
         episode: {
-          ...episode,
-          videoTracks: episode.videoTracks.map((track) =>
-            track.id === (videoTrack?.id ?? '') ? (videoTrack ?? track) : track,
-          ),
-          audioTracks: episode.audioTracks.map((track) =>
-            track.id === (audioTrack?.id ?? '') ? (audioTrack ?? track) : track,
-          ),
-          subtitleTracks: episode.subtitleTracks.map((track) =>
-            track.id === (subtitleTrack?.id ?? '')
-              ? (subtitleTrack ?? track)
-              : track,
-          ),
+          ...data,
+          videoTracks: data.videoTracks
+            ? data.videoTracks.map((track: VideoTrack) =>
+                track.id === (videoTrack?.id ?? '')
+                  ? (videoTrack ?? track)
+                  : track,
+              )
+            : [],
+          audioTracks: data.audioTracks
+            ? data.audioTracks.map((track: AudioTrack) =>
+                track.id === (audioTrack?.id ?? '')
+                  ? (audioTrack ?? track)
+                  : track,
+              )
+            : [],
+          subtitleTracks: data.subtitleTracks
+            ? data.subtitleTracks.map((track: SubtitleTrack) =>
+                track.id === (subtitleTrack?.id ?? '')
+                  ? (subtitleTrack ?? track)
+                  : track,
+              )
+            : [],
         },
+      })
+
+      setEpisode({
+        ...data,
+        videoTracks: data.videoTracks
+          ? data.videoTracks.map((track: VideoTrack) =>
+              track.id === (videoTrack?.id ?? '')
+                ? (videoTrack ?? track)
+                : track,
+            )
+          : [],
+        audioTracks: data.audioTracks
+          ? data.audioTracks.map((track: AudioTrack) =>
+              track.id === (audioTrack?.id ?? '')
+                ? (audioTrack ?? track)
+                : track,
+            )
+          : [],
+        subtitleTracks: data.subtitleTracks
+          ? data.subtitleTracks.map((track: SubtitleTrack) =>
+              track.id === (subtitleTrack?.id ?? '')
+                ? (subtitleTrack ?? track)
+                : track,
+            )
+          : [],
       })
 
       setLoaded(true)
@@ -212,7 +257,7 @@ function EpisodeMediaInfoTab({
     )
   }
 
-  if (!loaded)
+  if (!loaded || !episode) {
     return (
       <FlexBox
         direction="column"
@@ -226,6 +271,7 @@ function EpisodeMediaInfoTab({
         <Loading />
       </FlexBox>
     )
+  }
 
   return (
     <FlexBox
@@ -234,6 +280,7 @@ function EpisodeMediaInfoTab({
       justify="space-between"
       height={isTablet ? '25rem' : '35rem'}
       width={isTablet ? '100%' : '50rem'}
+      padding="0 0.5rem"
       hideScrollbar={isTablet}
       scroll="vertical"
     >
@@ -241,64 +288,51 @@ function EpisodeMediaInfoTab({
         <span className="mb-1 text-lg font-semibold">Media info</span>
         <FlexBox gap={0.5}>
           <span style={{ color: 'lightgray' }}>Duration</span>
-          <span className="font-semibold">
-            {selectedEpisode?.mediaInfo?.duration}
-          </span>
+          <span className="font-semibold">{episode.mediaInfo?.duration}</span>
         </FlexBox>
         <FlexBox gap={0.5}>
           <span style={{ color: 'lightgray' }}>File</span>
-          <span className="font-semibold">
-            {selectedEpisode?.mediaInfo?.file}
-          </span>
+          <span className="font-semibold">{episode.mediaInfo?.file}</span>
         </FlexBox>
         <FlexBox gap={0.5}>
           <span style={{ color: 'lightgray' }}>Location</span>
-          <span className="font-semibold">
-            {selectedEpisode?.mediaInfo?.location}
-          </span>
+          <span className="font-semibold">{episode.mediaInfo?.location}</span>
         </FlexBox>
         <FlexBox gap={0.5}>
           <span style={{ color: 'lightgray' }}>Bitrate</span>
-          <span className="font-semibold">
-            {selectedEpisode?.mediaInfo?.bitrate}
-          </span>
+          <span className="font-semibold">{episode.mediaInfo?.bitrate}</span>
         </FlexBox>
         <FlexBox gap={0.5}>
           <span style={{ color: 'lightgray' }}>Size</span>
-          <span className="font-semibold">
-            {selectedEpisode?.mediaInfo?.size}
-          </span>
+          <span className="font-semibold">{episode.mediaInfo?.size}</span>
         </FlexBox>
         <FlexBox gap={0.5}>
           <span style={{ color: 'lightgray' }}>Container</span>
-          <span className="font-semibold">
-            {selectedEpisode?.mediaInfo?.container}
-          </span>
+          <span className="font-semibold">{episode.mediaInfo?.container}</span>
         </FlexBox>
       </FlexBox>
       <FlexBox direction="column" gap={1}>
-        {selectedEpisode?.videoTracks.map((track: VideoTrack) => (
-          <div key={track.id + '-video'}>
-            <span className="mt-2 mb-1 text-lg font-semibold">Video</span>
-            {getVideoInfo(track)}
-          </div>
-        ))}
-        {selectedEpisode?.audioTracks.map(
-          (audioTrack: AudioTrack, index: number) => (
+        {episode.videoTracks &&
+          episode.videoTracks.map((track: VideoTrack) => (
+            <div key={track.id + '-video'}>
+              <span className="mt-2 mb-1 text-lg font-semibold">Video</span>
+              {getVideoInfo(track)}
+            </div>
+          ))}
+        {episode.audioTracks &&
+          episode.audioTracks.map((audioTrack: AudioTrack, index: number) => (
             <div key={index + '-audio'}>
               <span className="mt-2 mb-1 text-lg font-semibold">Audio</span>
               {getAudioInfo(audioTrack)}
             </div>
-          ),
-        )}
-        {selectedEpisode?.subtitleTracks.map(
-          (track: SubtitleTrack, index: number) => (
+          ))}
+        {episode.subtitleTracks &&
+          episode.subtitleTracks.map((track: SubtitleTrack, index: number) => (
             <div key={index + '-subs'}>
               <span className="mt-2 mb-1 text-lg font-semibold">Subtitle</span>
               {getSubtitleInfo(track)}
             </div>
-          ),
-        )}
+          ))}
       </FlexBox>
     </FlexBox>
   )

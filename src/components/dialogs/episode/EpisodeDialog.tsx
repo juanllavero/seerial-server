@@ -1,6 +1,8 @@
+import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
+import { Episode } from '@/data/interfaces/Media'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ModalWrapper } from '../../ModalWrapper'
@@ -12,8 +14,8 @@ function EpisodeDialog() {
   const { t } = useTranslation()
   const { serverIP } = useServerStore()
   const { connectWS } = useWebSocketStore()
-  const { episodeDialog, closeEpisodeDialog, openEpisodeDialog } =
-    useDialogStore()
+  const { selectedLibrary, selectedSeries, selectedSeason } = useDataStore()
+  const { episodeDialog, closeEpisodeDialog } = useDialogStore()
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 
   const [images, setImages] = useState<string[]>([])
@@ -32,26 +34,27 @@ function EpisodeDialog() {
   const [overview, setOverview] = useState<string>('')
   const [directedBy, setDirectedBy] = useState<string[]>([])
   const [writtenBy, setWrittenBy] = useState<string[]>([])
+  const [episode, setEpisode] = useState<Episode | undefined>(
+    episodeDialog.episodeToEdit,
+  )
   //#endregion
 
-  const episode = episodeDialog.episodeToEdit
-
   useEffect(() => {
-    console.log({ episode })
-    if (episodeDialog && episode) {
-      console.log('AAAA')
-      setNameLock(episode.nameLock)
-      setYearLock(episode.yearLock)
-      setOverviewLock(episode.overviewLock)
-      setDirectedLock(episode.directedLock)
-      setWrittenLock(episode.writtenLock)
-      setName(episode.name)
-      setYear(episode.year)
-      setOverview(episode.overview)
-      setDirectedBy(episode.directedBy)
-      setWrittenBy(episode.writtenBy)
-      setImages(episode.imgUrls)
-      setSelectedImage(episode.imgSrc)
+    if (episodeDialog && episodeDialog.episodeToEdit) {
+      setNameLock(episodeDialog.episodeToEdit.nameLock)
+      setYearLock(episodeDialog.episodeToEdit.yearLock)
+      setOverviewLock(episodeDialog.episodeToEdit.overviewLock)
+      setDirectedLock(episodeDialog.episodeToEdit.directedLock)
+      setWrittenLock(episodeDialog.episodeToEdit.writtenLock)
+      setName(episodeDialog.episodeToEdit.name)
+      setYear(episodeDialog.episodeToEdit.year)
+      setOverview(episodeDialog.episodeToEdit.overview)
+      setDirectedBy(episodeDialog.episodeToEdit.directedBy)
+      setWrittenBy(episodeDialog.episodeToEdit.writtenBy)
+      setImages(episodeDialog.episodeToEdit.imgUrls)
+      setSelectedImage(episodeDialog.episodeToEdit.imgSrc)
+      setEpisode(episodeDialog.episodeToEdit)
+      setLocalFolder(`img/thumbnails/video/${episodeDialog.episodeToEdit.id}`)
       setSelectedTab(t('generalButton'))
     }
   }, [episodeDialog])
@@ -74,9 +77,24 @@ function EpisodeDialog() {
     closeEpisodeDialog()
   }
 
+  const getWindowTitle = () => {
+    if (!selectedLibrary || !selectedSeason || !selectedSeries)
+      return `${t('editButton')} ${episode.name}`
+
+    return `${t('editButton')} ${
+      selectedLibrary && selectedLibrary.type === 'Shows'
+        ? selectedSeries.name
+        : selectedSeason.name
+    } - ${episode.name} ${
+      selectedLibrary &&
+      selectedLibrary.type === 'Shows' &&
+      `(${t('seasonLetter')}${episode.seasonNumber}${t('episodeLetter')}${episode.episodeNumber})`
+    }`
+  }
+
   return (
     <ModalWrapper
-      title={t('episodeWindowTitle')}
+      title={getWindowTitle()}
       tabs={[
         {
           title: t('generalButton'),
@@ -98,18 +116,17 @@ function EpisodeDialog() {
               directedLock={directedLock}
               writtenLock={writtenLock}
               selectTab={setSelectedTab}
-              close={closeEpisodeDialog}
             />
           ),
         },
         {
-          title: t('thumbnails'),
+          title: t('thumbnailsButton'),
           content: (
             <ImageListTab
               imagesList={images}
               localFolder={localFolder}
               selectImage={setSelectedImage}
-              close={closeEpisodeDialog}
+              selectedImage={selectedImage}
               handleAccept={handleEditEpisode}
             />
           ),
@@ -119,7 +136,7 @@ function EpisodeDialog() {
           content: (
             <EpisodeMediaInfoTab
               episode={episode}
-              close={closeEpisodeDialog}
+              setEpisode={setEpisode}
               handleAccept={handleEditEpisode}
             />
           ),
@@ -127,7 +144,7 @@ function EpisodeDialog() {
       ]}
       isOpen={episodeDialog.isOpen}
       close={closeEpisodeDialog}
-      hideButtons
+      onAccept={handleEditEpisode}
       activeTab={selectedTab}
       onTabChange={(newTab) => setSelectedTab(newTab)}
     />

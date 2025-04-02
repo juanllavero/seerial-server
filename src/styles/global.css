@@ -20,6 +20,9 @@
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
 
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
 
@@ -134,6 +137,8 @@
     --accent-foreground: #fafafa;
     --destructive: #8f2e2e;
     --destructive-foreground: #f9d5d5;
+    --success: #2e8f2e;
+    --success-foreground: #d5f9e0;
     --border: #262629;
     --input: #262629;
     --ring: #d1d1d6;
