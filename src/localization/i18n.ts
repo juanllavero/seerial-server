@@ -6,6 +6,9 @@ i18n.use(initReactI18next).init({
   resources: {
     en: {
       translation: {
+        invalidImageError: 'Select a valid image file',
+        imageLoaded: 'Image uploaded successfully',
+        imageNotLoaded: 'Error uploading image',
         disc: 'Disc',
         musicVolume: 'Background music volume',
         watchList: 'Watchlist',
@@ -290,6 +293,9 @@ i18n.use(initReactI18next).init({
     },
     'es-ES': {
       translation: {
+        invalidImageError: 'Selecciona un archivo de imagen válido',
+        imageLoaded: 'La imagen se ha subido correctamente',
+        imageNotLoaded: 'Error al subir la imagen',
         disc: 'Disco',
         musicVolume: 'Volumen de la música de fondo',
         watchList: 'Lista de seguimiento',
@@ -577,6 +583,9 @@ i18n.use(initReactI18next).init({
     },
     'pt-BR': {
       translation: {
+        invalidImageError: 'Selecione um arquivo de imagem válido',
+        imageLoaded: 'A imagem foi enviada com sucesso',
+        imageNotLoaded: 'Erro ao enviar a imagem',
         disc: 'Disco',
         musicVolume: 'Volume da música de fundo',
         watchList: 'Lista de acompanhamento',
@@ -863,6 +872,9 @@ i18n.use(initReactI18next).init({
     },
     'pt-PT': {
       translation: {
+        invalidImageError: 'Selecione um ficheiro de imagem válido',
+        imageLoaded: 'A imagem foi carregada con sucesso',
+        imageNotLoaded: 'Erro ao carregar a imagem',
         disc: 'Disco',
         musicVolume: 'Volume da música de fundo',
         watchList: 'Lista de seguimento',
@@ -1149,6 +1161,9 @@ i18n.use(initReactI18next).init({
     },
     'zh-CN': {
       translation: {
+        invalidImageError: '请选择有效的图片文件',
+        imageLoaded: '图片已成功上传',
+        imageNotLoaded: '上传图片时出错',
         disc: '光盘',
         musicVolume: '背景音乐音量',
         watchList: '观看列表',
@@ -1424,6 +1439,9 @@ i18n.use(initReactI18next).init({
     },
     'zh-TW': {
       translation: {
+        invalidImageError: '請選擇有效的圖片文件',
+        imageLoaded: '圖片已成功上傳',
+        imageNotLoaded: '上傳圖片時出錯',
         disc: '光碟',
         musicVolume: '背景音樂音量',
         watchList: '觀看清單',
@@ -1699,6 +1717,9 @@ i18n.use(initReactI18next).init({
     },
     ja: {
       translation: {
+        invalidImageError: '有効な画像ファイルを選択してください',
+        imageLoaded: '画像が正常にアップロードされました',
+        imageNotLoaded: '画像のアップロードに失敗しました',
         disc: 'ディスク',
         musicVolume: 'バックグラウンドミュージックの音量',
         watchList: 'ウォッチリスト',
@@ -1984,6 +2005,9 @@ i18n.use(initReactI18next).init({
     },
     ko: {
       translation: {
+        invalidImageError: '유효한 이미지 파일을 선택하세요',
+        imageLoaded: '이미지가 성공적으로 업로드되었습니다',
+        imageNotLoaded: '이미지 업로드 중 오류가 발생했습니다',
         disc: '디스크',
         musicVolume: '배경 음악 볼륨',
         watchList: '시청 목록',
@@ -2267,6 +2291,9 @@ i18n.use(initReactI18next).init({
     },
     fr: {
       translation: {
+        invalidImageError: 'Sélectionnez un fichier image valide',
+        imageLoaded: "L'image a été téléchargée avec succès",
+        imageNotLoaded: "Erreur lors du téléchargement de l'image",
         disc: 'Disque',
         musicVolume: 'Volume de la musique de fond',
         watchList: 'Liste de suivi',
@@ -2556,6 +2583,9 @@ i18n.use(initReactI18next).init({
     },
     de: {
       translation: {
+        invalidImageError: 'Wählen Sie eine gültige Bilddatei aus',
+        imageLoaded: 'Das Bild wurde erfolgreich hochgeladen',
+        imageNotLoaded: 'Fehler beim Hochladen des Bildes',
         disc: 'Disc',
         musicVolume: 'Lautstärke der Hintergrundmusik',
         watchList: 'Beobachtungsliste',
@@ -2844,6 +2874,9 @@ i18n.use(initReactI18next).init({
     },
     it: {
       translation: {
+        invalidImageError: 'Seleziona un file immagine valido',
+        imageLoaded: "L'immagine è stata caricata correttamente",
+        imageNotLoaded: "Errore durante il caricamento dell'immagine",
         disc: 'Disco',
         musicVolume: 'Volume della musica di sottofondo',
         watchList: 'Lista di visione',
@@ -3131,6 +3164,9 @@ i18n.use(initReactI18next).init({
     },
     nl: {
       translation: {
+        invalidImageError: 'Selecteer een geldig afbeeldingsbestand',
+        imageLoaded: 'De afbeelding is succesvol geüpload',
+        imageNotLoaded: 'Fout bij het uploaden van de afbeelding',
         disc: 'Schijf',
         musicVolume: 'Volume van de achtergrondmuziek',
         watchList: 'Volglijst',
@@ -3418,6 +3454,9 @@ i18n.use(initReactI18next).init({
     },
     hi: {
       translation: {
+        invalidImageError: 'कृपया एक वैध छवि फ़ाइल चुनें',
+        imageLoaded: 'छवि सफलतापूर्वक अपलोड हो गई है',
+        imageNotLoaded: 'छवि अपलोड करने में त्रुटि हुई',
         disc: 'डिस्क',
         musicVolume: 'पृष्ठभूमि संगीत की मात्रा',
         watchList: 'देखने की सूची',
@@ -3704,6 +3743,9 @@ i18n.use(initReactI18next).init({
     },
     ar: {
       translation: {
+        invalidImageError: 'يرجى تحديد ملف صورة صالح',
+        imageLoaded: 'تم تحميل الصورة بنجاح',
+        imageNotLoaded: 'حدث خطأ أثناء تحميل الصورة',
         disc: 'قرص',
         musicVolume: 'حجم الموسيقى الخلفية',
         watchList: 'قائمة المشاهدة',

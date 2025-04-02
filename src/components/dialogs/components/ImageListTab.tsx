@@ -49,24 +49,40 @@ function ImageListTab({
   const { serverIP } = useServerStore()
 
   useEffect(() => {
-    if (!loaded) {
-      const fetchLocalImages = async () => {
-        try {
-          const response = await fetch(
-            `https://${serverIP}/images?path=${localFolder}`,
-          )
-          const data = await response.json()
-          setLocalImages(data)
-          setLoaded(true)
-        } catch (error) {
-          setLocalImages([])
-          setLoaded(true)
-        }
+    const fetchLocalImages = async () => {
+      try {
+        const response = await fetch(
+          `https://${serverIP}/images?path=${localFolder}`,
+        )
+        const data = await response.json()
+        setLocalImages(data)
+        setLoaded(true)
+      } catch (error) {
+        setLocalImages([])
+        setLoaded(true)
       }
-
-      if (localFolder && !isUploading) fetchLocalImages()
     }
-  }, [loaded, serverIP, localFolder, isUploading])
+
+    if (localFolder && !isUploading) fetchLocalImages()
+  }, [serverIP, localFolder, isUploading])
+
+  const setErrorText = (text: string) => {
+    setImageLoadedTextError(text)
+    setImageLoadedText('')
+
+    setTimeout(() => {
+      setImageLoadedTextError('')
+    }, 3000)
+  }
+
+  const setSuccessText = (text: string) => {
+    setImageLoadedText(text)
+    setImageLoadedTextError('')
+
+    setTimeout(() => {
+      setImageLoadedText('')
+    }, 3000)
+  }
 
   const handleImageUpload = () => {
     // Clean previous states
@@ -87,10 +103,7 @@ function ImageListTab({
     if (file) {
       // Verify if the file is an image
       if (!file.type.startsWith('image/')) {
-        setImageLoadedTextError(
-          'Por favor, selecciona un archivo de imagen válido',
-        )
-        setImageLoadedText('')
+        setErrorText(t('invalidImageError'))
         return
       }
 
@@ -121,16 +134,12 @@ function ImageListTab({
       })
 
       if (!response.ok) {
-        throw new Error('Error al subir la imagen')
+        throw new Error()
       }
 
-      const data = await response.text()
-      setImageLoadedText('¡Imagen subida exitosamente!')
-      setImageLoadedTextError('')
-      console.log('Respuesta del servidor:', data)
+      setSuccessText(t('imageLoaded'))
     } catch (err) {
-      setImageLoadedTextError('Error desconocido al subir la imagen')
-      setImageLoadedText('')
+      setErrorText(t('imageNotLoaded'))
     } finally {
       setIsUploading(false)
     }
@@ -153,16 +162,12 @@ function ImageListTab({
       })
 
       if (!response.ok) {
-        throw new Error('Error al subir la imagen')
+        throw new Error()
       }
 
-      const data = await response.text()
-      setImageLoadedText('¡Imagen subida exitosamente!')
-      setImageLoadedTextError('')
-      console.log('Respuesta del servidor:', data)
+      setSuccessText(t('imageLoaded'))
     } catch (err) {
-      setImageLoadedTextError('Error desconocido al subir la imagen')
-      setImageLoadedText('')
+      setErrorText(t('imageNotLoaded'))
     } finally {
       setIsUploading(false)
     }
