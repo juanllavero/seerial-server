@@ -86,10 +86,18 @@ router.post("/downloadImage", async (req: any, res: any) => {
     return res.status(400).json({ error: "Not enough parameters" });
   }
 
-  await Utils.downloadImage(
-    url,
-    path.join(FilesManager.resourcesPath, downloadFolder, fileName)
-  );
+  if (!Utils.isValidURL(url)) {
+    return res.status(400).json({ error: "Invalid URL" });
+  }
+
+  try {
+    await Utils.downloadImage(
+      url,
+      path.join(FilesManager.resourcesPath, downloadFolder, fileName)
+    );
+  } catch (error) {
+    return res.status(400).json({ error: "Error downloading image" });
+  }
 
   res.json({ message: "DOWNLOAD_FINISHED" });
 });

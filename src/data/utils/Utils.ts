@@ -699,7 +699,7 @@ export class Utils {
         writer.on("error", reject);
       });
     } catch (error: any) {
-      console.error(`Error downloading image: ${error.message}`);
+      throw new Error(`Error downloading image: ${error.message}`);
     }
   };
 
@@ -840,6 +840,20 @@ export class Utils {
     }
 
     return null;
+  };
+
+  /**
+   * Checks if a string is a valid URL
+   * @param urlString string representing the URL
+   * @returns
+   */
+  public static isValidURL = (urlString: string) => {
+    try {
+      const url = new URL(urlString);
+      return url.protocol === "http:" || url.protocol === "https:";
+    } catch (err) {
+      return false;
+    }
   };
 
   //#region WEBSOCKET CONTENT MESSAGES

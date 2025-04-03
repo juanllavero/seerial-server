@@ -471,7 +471,7 @@ export class FileSearch {
 
       if (images) {
         episode.imgUrls = images.stills
-          ? images.stills.map((img: any) => img.file_path ?? "")
+          ? images.stills.map((img: any) => `${this.BASE_URL}${img.file_path}`)
           : [];
       }
 

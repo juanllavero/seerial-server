@@ -257,11 +257,12 @@ export class DataManager {
     if (!season) return;
 
     const episodeToEdit = season.getEpisodeById(episode.id);
+    const episodeObject = Episode.fromJSON(episode);
 
     if (episodeToEdit) {
       const previousState = { ...episodeToEdit };
 
-      Object.assign(episodeToEdit, episode);
+      Object.assign(episodeToEdit, episodeObject);
 
       // Update data if it has changed
       if (this.hasChanges(previousState, episodeToEdit)) {
