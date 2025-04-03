@@ -1,0 +1,12 @@
+.lock {
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 5px;
+  height: 100%;
+  transition: all 0.15s ease;
+}
+
+.locked {
+  background-color: white;
+  color: black;
+}

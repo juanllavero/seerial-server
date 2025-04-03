@@ -158,6 +158,11 @@ function EpisodeDialog() {
               overviewLock={overviewLock}
               directedLock={directedLock}
               writtenLock={writtenLock}
+              setNameLock={setNameLock}
+              setYearLock={setYearLock}
+              setOverviewLock={setOverviewLock}
+              setDirectedLock={setDirectedLock}
+              setWrittenLock={setWrittenLock}
               selectTab={setSelectedTab}
             />
           ),

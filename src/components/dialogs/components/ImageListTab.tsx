@@ -1,3 +1,4 @@
+import { useIsMobile } from '@/components/hooks/use-mobile'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
@@ -34,6 +35,7 @@ function ImageListTab({
   const [pastingUrl, setPastingUrl] = useState<boolean>(false)
   const [urlToDownload, setUrlToDownload] = useState<string>('')
   const isTablet = useIsTablet()
+  const isMobile = useIsMobile()
 
   // Upload image
   const [imageUrl, setImageUrl] = useState<string | null>(null)
@@ -215,7 +217,7 @@ function ImageListTab({
       </FlexBox>
       <Grid
         gap={'1rem'}
-        columns={`repeat(${isPoster ? 4 : 3}, 1fr)`}
+        columns={`repeat(${isPoster ? (isMobile ? 3 : 4) : isMobile ? 2 : 3}, 1fr)`}
         scroll="vertical"
         hideScrollbar={isTablet}
         padding="0 0.5rem"

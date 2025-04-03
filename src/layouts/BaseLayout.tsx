@@ -149,7 +149,7 @@ export default function BaseLayout({
       {/* Toaster root */}
       <Toaster theme="dark" richColors />
 
-      {!isMobile && <DialogManager />}
+      <DialogManager />
       <WebSocketMessageHandler />
       <MusicPlayer />
       <DragWindowRegion />

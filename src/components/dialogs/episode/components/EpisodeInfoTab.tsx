@@ -1,10 +1,9 @@
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import FlexBox from '@/components/ui/FlexBox'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { t } from 'i18next'
 import React from 'react'
+import LockInput from '../../components/LockInput'
 
 interface EpisodeInfoTabProps {
   name: string
@@ -22,6 +21,11 @@ interface EpisodeInfoTabProps {
   overviewLock: boolean
   directedLock: boolean
   writtenLock: boolean
+  setNameLock: (nameLock: boolean) => void
+  setYearLock: (yearLock: boolean) => void
+  setOverviewLock: (overviewLock: boolean) => void
+  setDirectedLock: (directedLock: boolean) => void
+  setWrittenLock: (writtenLock: boolean) => void
   selectTab: (tab: string | undefined) => void
 }
 
@@ -38,6 +42,11 @@ function EpisodeInfoTab({
   setWrittenBy,
   nameLock,
   yearLock,
+  setNameLock,
+  setYearLock,
+  setOverviewLock,
+  setDirectedLock,
+  setWrittenLock,
   overviewLock,
   directedLock,
   writtenLock,
@@ -54,29 +63,33 @@ function EpisodeInfoTab({
       width={isTablet ? '100%' : '50rem'}
       hideScrollbar={isTablet}
     >
-      <FlexBox gap={1} width={'100%'}>
+      <FlexBox gap={1} width={'100%'} direction={isTablet ? 'column' : 'row'}>
         <LabeledInputWrapper label={t('name')}>
-          <Input
-            type="text"
+          <LockInput
+            lock={nameLock}
+            setLock={setNameLock}
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            setValue={setName}
           />
         </LabeledInputWrapper>
 
         <LabeledInputWrapper label={t('year')}>
-          <Input
-            type="text"
+          <LockInput
+            lock={yearLock}
+            setLock={setYearLock}
             value={year}
-            onChange={(e) => setYear(e.target.value)}
+            setValue={setYear}
           />
         </LabeledInputWrapper>
       </FlexBox>
 
       <LabeledInputWrapper label={t('overview')}>
-        <Textarea
+        <LockInput
+          lock={overviewLock}
+          setLock={setOverviewLock}
           value={overview}
-          rows={5}
-          onChange={(e) => setOverview(e.target.value)}
+          setValue={setOverview}
+          isTextArea
         />
       </LabeledInputWrapper>
     </FlexBox>
