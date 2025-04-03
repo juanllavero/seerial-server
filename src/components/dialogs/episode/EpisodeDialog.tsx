@@ -163,7 +163,6 @@ function EpisodeDialog() {
               setOverviewLock={setOverviewLock}
               setDirectedLock={setDirectedLock}
               setWrittenLock={setWrittenLock}
-              selectTab={setSelectedTab}
             />
           ),
         },

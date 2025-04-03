@@ -1,3 +1,4 @@
+import { useIsMobile } from '@/components/hooks/use-mobile'
 import NotFound from '@/components/NotFound'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
@@ -10,6 +11,7 @@ import {
 } from '@/components/ui/IconLibrary'
 import LazyImage from '@/components/ui/LazyImage'
 import useDataStore from '@/context/data.context'
+import { useDialogStore } from '@/context/dialog.context'
 import { useSettingsStore } from '@/context/settings.context'
 import { formatTimeForView } from '@/utils/ReactUtils'
 import { useNavigate, useParams } from '@tanstack/react-router'
@@ -36,6 +38,8 @@ function DetailsPage() {
   } = useDataStore()
   const { t } = useTranslation()
   const { clientSettings } = useSettingsStore()
+  const { openSeasonDialog } = useDialogStore()
+  const isMobile = useIsMobile()
   const navigate = useNavigate()
 
   const [currentPoster, setCurrentPoster] = useState<string | undefined>()
@@ -213,45 +217,52 @@ function DetailsPage() {
       direction="column"
       gap={1}
       wrap="nowrap"
-      padding="10rem 3rem"
+      padding={isMobile ? '10rem 0' : '10rem 3rem'}
       height={'100%'}
     >
       <FlexBox justify="start" align="start" gap={4}>
-        <div className="cover-container">
-          {showPoster && (
-            <FlexBox className="image-container">
-              <LazyImage
-                url={currentPoster}
-                width={350}
-                maxHeight={550}
-                height={selectedLibrary.type === 'Music' ? 300 : 550}
-                errorSrc={
-                  selectedLibrary.type === 'Music'
-                    ? '/img/songDefault.png'
-                    : '/img/fileNotFound.jpg'
-                }
-              />
-            </FlexBox>
-          )}
+        {!isMobile && (
+          <div className="cover-container">
+            {showPoster && (
+              <FlexBox className="image-container">
+                <LazyImage
+                  url={currentPoster}
+                  width={350}
+                  maxHeight={550}
+                  height={selectedLibrary.type === 'Music' ? 300 : 550}
+                  errorSrc={
+                    selectedLibrary.type === 'Music'
+                      ? '/img/songDefault.png'
+                      : '/img/fileNotFound.jpg'
+                  }
+                />
+              </FlexBox>
+            )}
 
-          {showAnimPoster && (
-            <FlexBox className="image-container-animated fade-in">
-              <LazyImage
-                url={nextPoster}
-                width={350}
-                maxHeight={550}
-                height={selectedLibrary.type === 'Music' ? 300 : 550}
-                errorSrc={
-                  selectedLibrary.type === 'Music'
-                    ? '/img/songDefault.png'
-                    : '/img/fileNotFound.jpg'
-                }
-              />
-            </FlexBox>
-          )}
-        </div>
+            {showAnimPoster && (
+              <FlexBox className="image-container-animated fade-in">
+                <LazyImage
+                  url={nextPoster}
+                  width={350}
+                  maxHeight={550}
+                  height={selectedLibrary.type === 'Music' ? 300 : 550}
+                  errorSrc={
+                    selectedLibrary.type === 'Music'
+                      ? '/img/songDefault.png'
+                      : '/img/fileNotFound.jpg'
+                  }
+                />
+              </FlexBox>
+            )}
+          </div>
+        )}
 
-        <FlexBox direction="column" gap={1} width={'80%'}>
+        <FlexBox
+          direction="column"
+          gap={1}
+          width={isMobile ? '100%' : '80%'}
+          padding={isMobile ? '0 2rem' : '0'}
+        >
           {renderLogoOrText()}
           {selectedLibrary.type == 'Shows' &&
           selectedSeries.seasons &&
@@ -313,7 +324,7 @@ function DetailsPage() {
               </span>
             </FlexBox>
           )}
-          <FlexBox gap={1}>
+          <FlexBox gap={1} wrap="wrap">
             <Button
               onClick={() => {
                 const episodeToWatch = getEpisodeToWatch()
@@ -336,50 +347,58 @@ function DetailsPage() {
                 {getPlayButtonText()}
               </FlexBox>
             </Button>
-            <Button
-              variant={'ghost'}
-              title={
-                selectedSeason.watched ? t('markUnwatched') : t('markWatched')
-              }
-              onClick={() =>
-                setSeasonWatched({
-                  libraryId: selectedLibrary.id,
-                  seriesId: selectedSeries.id,
-                  seasonId: selectedSeason.id,
-                  watched: !selectedSeason.watched,
-                })
-              }
-            >
-              {selectedSeason.watched ? (
-                <UnmarkWatchedIcon />
-              ) : (
-                <MarkWatchedIcon />
-              )}
-            </Button>
-            <Button
-              variant={'ghost'}
-              title={
-                selectedSeason.watched ? t('markUnwatched') : t('markWatched')
-              }
-              onClick={() =>
-                setSeasonWatched({
-                  libraryId: selectedLibrary.id,
-                  seriesId: selectedSeries.id,
-                  seasonId: selectedSeason.id,
-                  watched: !selectedSeason.watched,
-                })
-              }
-            >
-              {selectedSeason.watched ? (
-                <RemoveFromListIcon />
-              ) : (
-                <AddToListIcon />
-              )}
-            </Button>
+            {!isMobile && (
+              <>
+                <Button
+                  variant={'ghost'}
+                  title={
+                    selectedSeason.watched
+                      ? t('markUnwatched')
+                      : t('markWatched')
+                  }
+                  onClick={() =>
+                    setSeasonWatched({
+                      libraryId: selectedLibrary.id,
+                      seriesId: selectedSeries.id,
+                      seasonId: selectedSeason.id,
+                      watched: !selectedSeason.watched,
+                    })
+                  }
+                >
+                  {selectedSeason.watched ? (
+                    <UnmarkWatchedIcon />
+                  ) : (
+                    <MarkWatchedIcon />
+                  )}
+                </Button>
+                <Button
+                  variant={'ghost'}
+                  title={
+                    selectedSeason.watched
+                      ? t('markUnwatched')
+                      : t('markWatched')
+                  }
+                  onClick={() =>
+                    setSeasonWatched({
+                      libraryId: selectedLibrary.id,
+                      seriesId: selectedSeries.id,
+                      seasonId: selectedSeason.id,
+                      watched: !selectedSeason.watched,
+                    })
+                  }
+                >
+                  {selectedSeason.watched ? (
+                    <RemoveFromListIcon />
+                  ) : (
+                    <AddToListIcon />
+                  )}
+                </Button>
+              </>
+            )}
             <Button
               variant={'ghost'}
               title={t('editButton')}
-              // onClick={() => dispatch(toggleSeasonWindow())}
+              onClick={() => openSeasonDialog(selectedSeason)}
             >
               <Edit />
             </Button>

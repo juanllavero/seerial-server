@@ -114,6 +114,7 @@ export const en = {
     folders: 'Folders',
     logosButton: 'Logos',
     postersButton: 'Posters',
+    backgroundsButton: 'Backgrounds',
     fromURLButton: 'From URL',
     thumbnailsButton: 'Thumbnails',
     selectAllButton: 'Select all',

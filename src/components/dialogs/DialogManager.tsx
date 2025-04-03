@@ -4,6 +4,7 @@ import ChangeEpisodesGroupDialog from './episodesGroup/ChangeEpisodesGroupDialog
 import ChangeIdentificationDialog from './identification/ChangeIdentificationDialog'
 import LibraryDialog from './library/LibraryDialog'
 import RemoveLibraryDialog from './remove/RemoveLibraryDialog'
+import SeasonDialog from './season/SeasonDialog'
 
 function DialogManager() {
   return (
@@ -15,6 +16,7 @@ function DialogManager() {
       {/* Series Dialogs */}
 
       {/* Season Dialogs */}
+      <SeasonDialog />
 
       {/* Episode Dialogs */}
       <EpisodeDialog />

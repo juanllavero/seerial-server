@@ -114,6 +114,7 @@ export const ja = {
     folders: 'フォルダ',
     logosButton: 'ロゴ',
     postersButton: 'ポスター',
+    backgroundsButton: '画像',
     fromURLButton: 'URLから',
     thumbnailsButton: 'サムネイル',
     selectAllButton: 'すべて選択',

@@ -116,6 +116,7 @@ export const de = {
     folders: 'Ordner',
     logosButton: 'Logos',
     postersButton: 'Poster',
+    backgroundsButton: 'Bilder',
     fromURLButton: 'Von URL',
     thumbnailsButton: 'Vorschaubilder',
     selectAllButton: 'Alle auswählen',

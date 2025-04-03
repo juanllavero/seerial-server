@@ -116,6 +116,7 @@ export const es = {
     folders: 'Carpetas',
     logosButton: 'Logos',
     postersButton: 'Posters',
+    backgroundsButton: 'Imágenes',
     fromURLButton: 'Pegar URL',
     thumbnailsButton: 'Miniaturas',
     selectAllButton: 'Seleccionar todos',

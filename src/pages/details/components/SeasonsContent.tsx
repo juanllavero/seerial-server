@@ -1,3 +1,4 @@
+import { useIsMobile } from '@/components/hooks/use-mobile'
 import FlexBox from '@/components/ui/FlexBox'
 import Grid from '@/components/ui/Grid'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
@@ -29,6 +30,7 @@ function SeasonsContent() {
     setMusicPlayerContracted,
   } = useMusicStore()
   const [distribution, setDistribution] = React.useState(0)
+  const isMobile = useIsMobile()
 
   if (!selectedLibrary || !selectedSeries) {
     return null
@@ -118,7 +120,13 @@ function SeasonsContent() {
     selectedSeason.episodes.length <= 1
 
   return (
-    <FlexBox direction="column" gap={2} margin="1rem 0 0 0" width={'100%'}>
+    <FlexBox
+      direction="column"
+      gap={2}
+      margin="1rem 0 0 0"
+      padding={isMobile ? '1rem 2rem' : '0'}
+      width={'100%'}
+    >
       <FlexBox width={'100%'} justify="space-between" align="start">
         <FlexBox direction="column" gap={2}>
           {selectedSeries.seasons && selectedSeries.seasons.length > 1 && (

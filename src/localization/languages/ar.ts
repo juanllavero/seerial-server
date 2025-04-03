@@ -112,6 +112,7 @@ export const ar = {
     folders: 'مجلدات',
     logosButton: 'شعارات',
     postersButton: 'ملصقات',
+    backgroundsButton: 'صور',
     fromURLButton: 'من URL',
     thumbnailsButton: 'صور مصغرة',
     selectAllButton: 'تحديد الكل',

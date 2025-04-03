@@ -109,6 +109,7 @@ export const cn = {
     folders: '文件夹',
     logosButton: '标志',
     postersButton: '海报',
+    backgroundsButton: '图片',
     fromURLButton: '从URL',
     thumbnailsButton: '缩略图',
     selectAllButton: '全选',

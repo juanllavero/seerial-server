@@ -26,7 +26,6 @@ interface EpisodeInfoTabProps {
   setOverviewLock: (overviewLock: boolean) => void
   setDirectedLock: (directedLock: boolean) => void
   setWrittenLock: (writtenLock: boolean) => void
-  selectTab: (tab: string | undefined) => void
 }
 
 function EpisodeInfoTab({
@@ -50,7 +49,6 @@ function EpisodeInfoTab({
   overviewLock,
   directedLock,
   writtenLock,
-  selectTab,
 }: EpisodeInfoTabProps) {
   const isTablet = useIsTablet()
   return (

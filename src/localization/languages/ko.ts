@@ -112,6 +112,7 @@ export const ko = {
     folders: '폴더',
     logosButton: '로고',
     postersButton: '포스터',
+    backgroundsButton: '이미지',
     fromURLButton: 'URL에서',
     thumbnailsButton: '썸네일',
     selectAllButton: '모두 선택',

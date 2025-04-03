@@ -110,6 +110,7 @@ export const tw = {
     folders: '資料夾',
     logosButton: '標誌',
     postersButton: '海報',
+    backgroundsButton: '圖片',
     fromURLButton: '從URL',
     thumbnailsButton: '縮圖',
     selectAllButton: '全選',

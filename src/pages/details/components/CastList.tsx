@@ -1,3 +1,4 @@
+import { useIsMobile } from '@/components/hooks/use-mobile'
 import FlexBox from '@/components/ui/FlexBox'
 import useDataStore from '@/context/data.context'
 import React from 'react'
@@ -6,10 +7,11 @@ import CastCard from './CastCard'
 
 function CastList() {
   const { t } = useTranslation()
+  const isMobile = useIsMobile()
   const { selectedLibrary, selectedSeries, selectedSeason } = useDataStore()
 
   return (
-    <FlexBox direction="column" gap={1}>
+    <FlexBox direction="column" gap={1} padding={isMobile ? '0 0 0 1rem' : '0'}>
       <span>{t('cast')}</span>
       <FlexBox gap={0.5} scroll="horizontal" hideScrollbar width={'94dvw'}>
         {selectedLibrary && selectedLibrary.type === 'Movies' ? (

@@ -116,6 +116,7 @@ export const br = {
     folders: 'Pastas',
     logosButton: 'Logos',
     postersButton: 'Pôsteres',
+    backgroundsButton: 'Imagens',
     fromURLButton: 'A partir de URL',
     thumbnailsButton: 'Miniaturas',
     selectAllButton: 'Selecionar todos',

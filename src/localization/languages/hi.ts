@@ -115,6 +115,7 @@ export const hi = {
     folders: 'फोल्डर',
     logosButton: 'लोगो',
     postersButton: 'पोस्टर',
+    backgroundsButton: 'छवियाँ',
     fromURLButton: 'URL से',
     thumbnailsButton: 'थंबनेल',
     selectAllButton: 'सभी चुनें',
