@@ -1,12 +1,11 @@
 import { useIsTablet } from '@/components/hooks/use-tablet'
-import TextMessageWrapper from '@/components/TextMessageWrapper'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import Grid from '@/components/ui/Grid'
 import { Input } from '@/components/ui/input'
 import LazyImage from '@/components/ui/LazyImage'
 import { useServerStore } from '@/context/server.context'
-import { generateRandoumUUID } from '@/utils/ReactUtils'
+import { generateRandoumUUID, showToast } from '@/utils/ReactUtils'
 import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import './ImageListTab.css'
@@ -27,6 +26,7 @@ function ImageListTab({
   isPoster = false,
 }: ImageListTabProps) {
   const { t } = useTranslation()
+  const { serverIP } = useServerStore()
   const [loaded, setLoaded] = useState(false)
   const [localImages, setLocalImages] = useState<
     { name: string; url: string }[]
@@ -41,11 +41,6 @@ function ImageListTab({
 
   // Reference to hidden file input
   const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const [imageLoadedText, setImageLoadedText] = useState<string>('')
-  const [imageLoadedTextError, setImageLoadedTextError] = useState<string>('')
-
-  const { serverIP } = useServerStore()
 
   useEffect(() => {
     const fetchLocalImages = async () => {
@@ -65,35 +60,12 @@ function ImageListTab({
     if (localFolder && !isUploading) fetchLocalImages()
   }, [serverIP, localFolder, isUploading])
 
-  const setErrorText = (text: string) => {
-    setImageLoadedTextError(text)
-    setImageLoadedText('')
-
-    setTimeout(() => {
-      setImageLoadedTextError('')
-    }, 3000)
-  }
-
-  const setSuccessText = (text: string) => {
-    setImageLoadedText(text)
-    setImageLoadedTextError('')
-
-    setTimeout(() => {
-      setImageLoadedText('')
-    }, 3000)
-  }
-
   const handleImageUpload = () => {
-    // Clean previous states
-    setImageLoadedText('')
-    setImageLoadedTextError('')
     setImageUrl(null)
-
-    // Open the file selection programatically
     fileInputRef.current?.click()
   }
 
-  // Handle file selection (separado del click del botón)
+  // Handle file selection
   const handleFileSelect = async (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
@@ -102,7 +74,7 @@ function ImageListTab({
     if (file) {
       // Verify if the file is an image
       if (!file.type.startsWith('image/')) {
-        setErrorText(t('invalidImageError'))
+        showToast('error', t('invalidImageError'))
         return
       }
 
@@ -136,9 +108,9 @@ function ImageListTab({
         throw new Error()
       }
 
-      setSuccessText(t('imageLoaded'))
+      showToast('success', t('imageLoaded'))
     } catch (err) {
-      setErrorText(t('imageNotLoaded'))
+      showToast('error', t('errorImageUpload'))
     } finally {
       setIsUploading(false)
     }
@@ -164,9 +136,9 @@ function ImageListTab({
         throw new Error()
       }
 
-      setSuccessText(t('imageLoaded'))
+      showToast('success', t('imageLoaded'))
     } catch (err) {
-      setErrorText(t('imageNotLoaded'))
+      showToast('error', t('errorImageUpload'))
     } finally {
       setIsUploading(false)
     }
@@ -241,15 +213,6 @@ function ImageListTab({
           </>
         )}
       </FlexBox>
-      <FlexBox direction="column" width={'100%'} justify="center" gap={0.5}>
-        {imageLoadedText ? (
-          <TextMessageWrapper message={imageLoadedText} />
-        ) : imageLoadedTextError ? (
-          <TextMessageWrapper message={imageLoadedTextError} error />
-        ) : (
-          <></>
-        )}
-      </FlexBox>
       <Grid
         gap={'1rem'}
         columns={`repeat(${isPoster ? 4 : 3}, 1fr)`}
@@ -259,10 +222,23 @@ function ImageListTab({
       >
         {imagesList &&
           imagesList.map((image) => (
-            <div key={image} onClick={() => selectImage(image)}>
+            <div
+              key={image}
+              onClick={() =>
+                selectImage(
+                  image.startsWith('http')
+                    ? image
+                    : `https://image.tmdb.org/t/p/original/${image}`,
+                )
+              }
+            >
               <LazyImage
-                className={`image-list-img ${selectedImage === image ? 'selected-image' : ''}`}
-                url={`https://image.tmdb.org/t/p/original/${image}`}
+                className={`image-list-img ${selectedImage === image || selectedImage.endsWith(image) ? 'selected-image' : ''}`}
+                url={
+                  image.startsWith('http')
+                    ? image
+                    : `https://image.tmdb.org/t/p/original/${image}`
+                }
                 alt={image}
                 errorSrc={
                   isPoster

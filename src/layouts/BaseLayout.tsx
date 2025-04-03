@@ -8,6 +8,7 @@ import { useServerStore } from '@/context/server.context'
 import { ReactUtils } from '@/utils/ReactUtils'
 import { useLocation } from '@tanstack/react-router'
 import React, { useEffect, useRef, useState } from 'react'
+import { Toaster } from 'sonner'
 import '../styles/utils.css'
 import './BaseLayout.css'
 
@@ -20,15 +21,15 @@ export default function BaseLayout({
   const { selectedSeries, selectedSeason } = useDataStore()
   const { serverIP } = useServerStore()
   const prevBackground = useRef<string | undefined>(undefined)
-  const prevGradient = useRef<string | undefined>(undefined) // Nuevo ref para el gradiente anterior
+  const prevGradient = useRef<string | undefined>(undefined)
   const [currentBackground, setCurrentBackground] = useState<
     string | undefined
   >(undefined)
   const [currentGradient, setCurrentGradient] = useState<string | undefined>(
     undefined,
-  ) // Estado para el gradiente actual
+  ) // State for the current gradient
   const [showNewImage, setShowNewImage] = useState(false)
-  const [showNewGradient, setShowNewGradient] = useState(false) // Estado para la transición del gradiente
+  const [showNewGradient, setShowNewGradient] = useState(false) // State for the new gradient
 
   const location = useLocation()
   const inDetailsPage =
@@ -46,7 +47,7 @@ export default function BaseLayout({
       setTimeout(() => {
         const newGradient = ReactUtils.getGradientBackground()
 
-        // Si no hay gradiente previo o es diferente, activamos la transición
+        // If there is no previous gradient or it is different, activate the transition
         if (!prevGradient.current || newGradient !== prevGradient.current) {
           setShowNewGradient(true)
 
@@ -144,6 +145,9 @@ export default function BaseLayout({
           }}
         />
       )}
+
+      {/* Toaster root */}
+      <Toaster theme="dark" richColors />
 
       {!isMobile && <DialogManager />}
       <WebSocketMessageHandler />

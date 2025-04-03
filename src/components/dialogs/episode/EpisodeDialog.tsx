@@ -3,6 +3,7 @@ import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Episode } from '@/data/interfaces/Media'
+import { showToast } from '@/utils/ReactUtils'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ModalWrapper } from '../../ModalWrapper'
@@ -14,7 +15,8 @@ function EpisodeDialog() {
   const { t } = useTranslation()
   const { serverIP } = useServerStore()
   const { connectWS } = useWebSocketStore()
-  const { selectedLibrary, selectedSeries, selectedSeason } = useDataStore()
+  const { selectedLibrary, selectedSeries, selectedSeason, updateEpisode } =
+    useDataStore()
   const { episodeDialog, closeEpisodeDialog } = useDialogStore()
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 
@@ -62,16 +64,57 @@ function EpisodeDialog() {
   if (!episode) return null
 
   const handleEditEpisode = async () => {
+    if (!selectedLibrary || !selectedSeries) return
+
     await connectWS(serverIP)
 
-    fetch(`https://${serverIP}/episode/${episode.id}`, {
+    const response = await fetch(`https://${serverIP}/episode`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        episode: episode,
+        libraryId: selectedLibrary.id,
+        showId: selectedSeries.id,
+        updatedEpisode: {
+          ...episode,
+          imgSrc: selectedImage,
+          name: name,
+          year: year,
+          overview: overview,
+          directedBy: directedBy,
+          writtenBy: writtenBy,
+          nameLock: nameLock,
+          yearLock: yearLock,
+          overviewLock: overviewLock,
+          directedLock: directedLock,
+          writtenLock: writtenLock,
+        },
       }),
+    })
+
+    if (!response.ok) {
+      showToast('error', 'Error updating episode')
+      return
+    }
+
+    updateEpisode({
+      libraryId: selectedLibrary.id,
+      showId: selectedSeries.id,
+      episode: {
+        ...episode,
+        imgSrc: selectedImage,
+        name: name,
+        year: year,
+        overview: overview,
+        directedBy: directedBy,
+        writtenBy: writtenBy,
+        nameLock: nameLock,
+        yearLock: yearLock,
+        overviewLock: overviewLock,
+        directedLock: directedLock,
+        writtenLock: writtenLock,
+      },
     })
 
     closeEpisodeDialog()
