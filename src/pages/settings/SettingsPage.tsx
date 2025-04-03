@@ -1,17 +1,18 @@
+import { useIsMobile } from '@/components/hooks/use-mobile'
+import Loading from '@/components/Loading'
 import FlexBox from '@/components/ui/FlexBox'
+import { useServerStore } from '@/context/server.context'
+import { useSettingsStore } from '@/context/settings.context'
+import { SettingsSection } from '@/data/interfaces/Utils'
 import React, { useEffect, useState } from 'react'
 import ClientGeneral from './components/ClientGeneral'
 import ClientPlayer from './components/ClientPlayer'
 import ClientQuality from './components/ClientQuality'
+import LeftPanel from './components/leftPanel/LeftPanel'
 import ServerGeneral from './components/ServerGeneral'
 import ServerLanguages from './components/ServerLanguages'
 import ServerLibraries from './components/ServerLibraries'
 import ServerTranscode from './components/ServerTranscode'
-import { useServerStore } from '@/context/server.context'
-import { useSettingsStore } from '@/context/settings.context'
-import Loading from '@/components/Loading'
-import { SettingsSection } from '@/data/interfaces/Utils'
-import LeftPanel from './components/leftPanel/LeftPanel'
 
 function SettingsPage() {
   const { serverIP } = useServerStore()
@@ -24,6 +25,7 @@ function SettingsPage() {
   const [currentSection, setCurrentSection] = useState<SettingsSection>(
     SettingsSection.ClientGeneral,
   )
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     getAllClientSettings(serverIP)
@@ -31,7 +33,10 @@ function SettingsPage() {
   }, [serverIP])
 
   return (
-    <FlexBox gap={4} padding="10rem 3rem">
+    <FlexBox
+      gap={isMobile ? 0.5 : 4}
+      padding={isMobile ? '8rem 1rem' : '10rem 3rem'}
+    >
       {/* Left Panel */}
       <LeftPanel
         currentSection={currentSection}

@@ -1,4 +1,5 @@
 import Card from '@/components/cards/Card'
+import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
 import { useDialogStore } from '@/context/dialog.context'
 import { Pencil } from 'lucide-react'
@@ -19,6 +20,7 @@ function EpisodeCard({
   getEpisodeMenu,
 }: EpisodeCardProps) {
   const { t } = useTranslation()
+  const isMobile = useIsMobile()
   const { openEpisodeDialog } = useDialogStore()
 
   return (
@@ -26,7 +28,7 @@ function EpisodeCard({
       itemKey={episode.id}
       imgSrc={episode.imgSrc}
       aspectRatio={16 / 9}
-      width={400}
+      width={isMobile ? '100%' : 400}
       progress={
         (episode.timeWatched / episode.runtimeInSeconds) * 100 > 0
           ? (episode.timeWatched / episode.runtimeInSeconds) * 100

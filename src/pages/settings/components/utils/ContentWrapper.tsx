@@ -1,3 +1,4 @@
+import { useIsMobile } from '@/components/hooks/use-mobile'
 import FlexBox from '@/components/ui/FlexBox'
 import React from 'react'
 
@@ -8,9 +9,12 @@ interface ContentWrapperProps {
 }
 
 function ContentWrapper({ children, group, section }: ContentWrapperProps) {
+  const isMobile = useIsMobile()
   return (
-    <FlexBox direction="column" gap={1.5} padding=".5rem">
-      <span className="mb-4 text-3xl font-bold">
+    <FlexBox direction="column" gap={1.5} padding={isMobile ? '0' : '.5rem'}>
+      <span
+        className={` ${isMobile ? 'mb-1 text-lg' : 'mb-4 text-3xl'} font-bold`}
+      >
         {group} - {section}
       </span>
       {children}

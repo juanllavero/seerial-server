@@ -174,7 +174,11 @@ function SeasonsContent() {
               <SongsList handleSelectEpisode={playEpisode} />
             ) : distribution === 0 ? (
               <Grid
-                columns="repeat(auto-fill, minmax(400px, 1fr))"
+                columns={
+                  isMobile
+                    ? 'repeat(auto-fill, minmax(200px, 1fr))'
+                    : 'repeat(auto-fill, minmax(400px, 1fr))'
+                }
                 gap="1rem"
                 width="100%"
               >

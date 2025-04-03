@@ -10,7 +10,6 @@ import {
   ChevronLeft,
   EllipsisVertical,
   Film,
-  House,
   Music,
   Settings,
   TvMinimal,
@@ -18,6 +17,7 @@ import {
 import React, { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import DropdownWrapper from './DropdownWrapper'
+import { useIsMobile } from './hooks/use-mobile'
 import { LibrarySwitcher } from './LibrarySwitcher'
 import Loading from './Loading'
 import { Button } from './ui/button'
@@ -38,6 +38,7 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
   const { serverIP } = useServerStore()
   const { connectWS } = useWebSocketStore()
   const { fetchData, isLoading } = useFetch<Library[]>()
+  const isMobile = useIsMobile()
 
   // Checks current page location
   const location = useLocation()
@@ -55,15 +56,6 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
       })
     }
   }, [])
-
-  const home = {
-    id: '0',
-    name: t('home'),
-    logo: House,
-    action: () => {
-      navigate({ to: '/' })
-    },
-  }
 
   const getLibraryDrowdown = (library: Library): DropdownContent => {
     return {
@@ -108,7 +100,9 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
   }
 
   return (
-    <div className={`${isWindows ? 'pt-5' : 'pt-10'} pl-5`}>
+    <div
+      className={`pl-5 ${isMobile ? 'w-full px-5 pt-5' : isWindows ? 'pt-5' : 'pt-10'}`}
+    >
       {!inPlayer && (
         <Card>
           <CardHeader className="flex flex-row flex-nowrap justify-start p-3">

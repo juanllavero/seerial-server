@@ -1,7 +1,8 @@
+import { useIsMobile } from '@/components/hooks/use-mobile'
 import FlexBox from '@/components/ui/FlexBox'
-import { useTranslation } from 'react-i18next'
-import React from 'react'
 import { SettingsSection } from '@/data/interfaces/Utils'
+import React from 'react'
+import { useTranslation } from 'react-i18next'
 import LeftPanelButton from './LeftPanelButton'
 import LeftPanelGroup from './LeftPanelGroup'
 
@@ -13,9 +14,14 @@ function LeftPanel({
   setCurrentSection: (section: SettingsSection) => void
 }) {
   const { t } = useTranslation()
+  const isMobile = useIsMobile()
 
   return (
-    <FlexBox direction="column" gap={1} className="min-w-50">
+    <FlexBox
+      direction="column"
+      gap={1}
+      className={`${isMobile ? 'w-fit' : 'min-w-50'}`}
+    >
       {/* Client Settings */}
       <LeftPanelGroup title={t('client')}>
         <LeftPanelButton

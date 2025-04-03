@@ -58,8 +58,8 @@ function DetailsPage() {
       return (
         <LazyImage
           url={logoUrl}
-          maxHeight={300}
-          width={350}
+          maxHeight={isMobile ? '100%' : 300}
+          width={isMobile ? '100%' : 350}
           errorSrc="/img/Default_video_thumbnail.jpg"
         />
       )

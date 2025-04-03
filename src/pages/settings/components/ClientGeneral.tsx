@@ -2,14 +2,14 @@ import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import LangToggle from '@/components/LangToggle'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import FlexBox from '@/components/ui/FlexBox'
+import { Input } from '@/components/ui/input'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
+import { useServerStore } from '@/context/server.context'
+import { useSettingsStore } from '@/context/settings.context'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import ContentWrapper from './utils/ContentWrapper'
-import { useServerStore } from '@/context/server.context'
-import { useSettingsStore } from '@/context/settings.context'
-import FlexBox from '@/components/ui/FlexBox'
-import { Input } from '@/components/ui/input'
 
 const TimeFormatOptions = [
   {

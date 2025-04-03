@@ -1,4 +1,5 @@
 import Card from '@/components/cards/Card'
+import { useIsTablet } from '@/components/hooks/use-tablet'
 import { ModalWrapper } from '@/components/ModalWrapper'
 import { Button } from '@/components/ui/button'
 import useDataStore from '@/context/data.context'
@@ -21,6 +22,7 @@ function CollectionCard({
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { selectSeries } = useDataStore()
+  const isTablet = useIsTablet()
   const { openIdentificationDialog, openEpisodesGroupDialog } = useDialogStore()
 
   const getNumberOfEpisodesLeft = () => {
@@ -92,7 +94,7 @@ function CollectionCard({
           ? series.seasons[0].coverSrc
           : series.coverSrc
       }
-      width={200}
+      width={isTablet ? '100%' : 200}
       aspectRatio={library.type === 'Music' ? 1 : 2 / 3}
       title={series.name}
       subtitle={(() => {

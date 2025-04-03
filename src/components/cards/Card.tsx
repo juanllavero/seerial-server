@@ -15,7 +15,7 @@ interface CardProps {
   itemKey: string
   imgSrc: string
   aspectRatio: number
-  width: number
+  width: string | number
   title: string
   subtitle: string
   action: () => void
@@ -156,7 +156,7 @@ function Card({
           key={itemKey}
           url={imgSrc}
           width={width}
-          height={width / aspectRatio}
+          height={typeof width === 'number' ? width / aspectRatio : undefined}
           alt={title}
           errorSrc={errorSrc}
         />
