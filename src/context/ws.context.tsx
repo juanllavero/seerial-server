@@ -1,31 +1,39 @@
 // websocketStore.ts
+import { MessageType } from '@/data/enums/WSMessage'
 import { Series } from '@/data/interfaces/Media'
 import { create } from 'zustand'
-import { MessageType } from '@/data/enums/WSMessage'
 
 // Message interface
 interface WebSocketMessage {
-  header: MessageType;
-  body: any;
+  header: MessageType
+  body: any
 }
 
 interface WebSocketState {
-  downloading: boolean;
-  downloadPercentage: number;
-  analyzing: boolean;
-  seriesReceived: Series | null;
-  ws: WebSocket | null;
-  wsConnected: boolean;
-  messageQueue: WebSocketMessage[];
-  setDownloading: (value: boolean) => void;
-  setDownloadPercentage: (value: number) => void;
-  setAnalyzing: (value: boolean) => void;
-  setSeriesReceived: (value: Series | null) => void;
-  connectWS: (ip: string) => Promise<void>;
-  downloadAudio: (elementId: string, url: string, serverIP: string) => Promise<void>;
-  downloadVideo: (elementId: string, url: string, serverIP: string) => Promise<void>;
-  addMessageToQueue: (message: WebSocketMessage) => void;
-  clearMessageQueue: () => void;
+  downloading: boolean
+  downloadPercentage: number
+  analyzing: boolean
+  seriesReceived: Series | null
+  ws: WebSocket | null
+  wsConnected: boolean
+  messageQueue: WebSocketMessage[]
+  setDownloading: (value: boolean) => void
+  setDownloadPercentage: (value: number) => void
+  setAnalyzing: (value: boolean) => void
+  setSeriesReceived: (value: Series | null) => void
+  connectWS: (ip: string) => Promise<void>
+  downloadAudio: (
+    elementId: string,
+    url: string,
+    serverIP: string,
+  ) => Promise<void>
+  downloadVideo: (
+    elementId: string,
+    url: string,
+    serverIP: string,
+  ) => Promise<void>
+  addMessageToQueue: (message: WebSocketMessage) => void
+  clearMessageQueue: () => void
 }
 
 export const useWebSocketStore = create<WebSocketState>((set, get) => ({
@@ -41,16 +49,17 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
   setDownloadPercentage: (value) => set({ downloadPercentage: value }),
   setAnalyzing: (value) => set({ analyzing: value }),
   setSeriesReceived: (value) => set({ seriesReceived: value }),
-  addMessageToQueue: (message) => set((state) => ({
-    messageQueue: [...state.messageQueue, message]
-  })),
+  addMessageToQueue: (message) =>
+    set((state) => ({
+      messageQueue: [...state.messageQueue, message],
+    })),
   clearMessageQueue: () => set({ messageQueue: [] }),
 
   connectWS: async (ip: string) => {
     if (!get().wsConnected) {
       return new Promise<void>((resolve, reject) => {
         const websocket = new WebSocket(`ws://${ip}/ws`)
-  
+
         websocket.onopen = () => {
           set({
             wsConnected: true,
@@ -58,11 +67,11 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
           })
           resolve()
         }
-  
+
         websocket.onerror = (err) => {
           reject(err)
         }
-  
+
         websocket.onclose = () => {
           set({
             wsConnected: false,
@@ -71,14 +80,14 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
             analyzing: false,
           })
         }
-  
+
         websocket.onmessage = (event) => {
           const message = JSON.parse(event.data)
           const wsMessage: WebSocketMessage = {
             header: message.header as MessageType,
-            body: message.body
+            body: message.body,
           }
-          
+
           // Handle immediate state updates
           switch (message.header) {
             case MessageType.DOWNLOAD_PROGRESS:
@@ -91,7 +100,7 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
               set({ downloading: false })
               break
           }
-          
+
           // Add all messages to queue for external processing
           get().addMessageToQueue(wsMessage)
         }
@@ -106,7 +115,7 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
     await connectWS(serverIP)
 
     try {
-      const response = await fetch(`https://${serverIP}/downloadVideo`, {
+      const response = await fetch(`http://${serverIP}/downloadVideo`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -131,7 +140,7 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
     await connectWS(serverIP)
 
     try {
-      const response = await fetch(`https://${serverIP}/downloadMusic`, {
+      const response = await fetch(`http://${serverIP}/downloadMusic`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

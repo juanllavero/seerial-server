@@ -26,7 +26,7 @@ function ChangeEpisodesGroupSearch() {
 
   const search = () => {
     fetch(
-      `https://${serverIP}/episodeGroups/search?id=${episodesGroupDialog.seriesToEdit?.id}`,
+      `http://${serverIP}/episodeGroups/search?id=${episodesGroupDialog.seriesToEdit?.id}`,
     )
       .then((response) => response.json())
       .then((data) => {
@@ -37,7 +37,7 @@ function ChangeEpisodesGroupSearch() {
 
   const saveIdentification = async (id: string) => {
     await connectWS(serverIP)
-    fetch(`https://${serverIP}/updateEpisodeGroup`, {
+    fetch(`http://${serverIP}/updateEpisodeGroup`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

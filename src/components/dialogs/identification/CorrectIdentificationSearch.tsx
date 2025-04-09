@@ -50,7 +50,7 @@ function CorrectIdentificationSearch() {
 
   const search = (name: string, year: string) => {
     fetch(
-      `https://${serverIP}/${isShow ? 'shows' : 'movies'}/search?name=${name}&year=${year}`,
+      `http://${serverIP}/${isShow ? 'shows' : 'movies'}/search?name=${name}&year=${year}`,
     )
       .then((response) => response.json())
       .then((data) => {
@@ -61,7 +61,7 @@ function CorrectIdentificationSearch() {
 
   const saveIdentification = async (id: number) => {
     await connectWS(serverIP)
-    fetch(`https://${serverIP}/${isShow ? 'updateShowId' : 'updateMovieId'}`, {
+    fetch(`http://${serverIP}/${isShow ? 'updateShowId' : 'updateMovieId'}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -149,7 +149,7 @@ function CorrectIdentificationSearch() {
 
                 <FlexBox width={'25%'}>
                   <LazyImage
-                    src={`https://image.tmdb.org/t/p/original/${result.poster_path}`}
+                    src={`http://image.tmdb.org/t/p/original/${result.poster_path}`}
                     alt={result.name ?? result.title ?? 'Poster'}
                     width={'100%'}
                     height={'auto'}

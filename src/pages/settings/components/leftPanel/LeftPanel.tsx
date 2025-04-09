@@ -7,9 +7,11 @@ import LeftPanelButton from './LeftPanelButton'
 import LeftPanelGroup from './LeftPanelGroup'
 
 function LeftPanel({
+  isLoaded,
   currentSection,
   setCurrentSection,
 }: {
+  isLoaded: boolean
   currentSection: SettingsSection
   setCurrentSection: (section: SettingsSection) => void
 }) {
@@ -23,26 +25,28 @@ function LeftPanel({
       className={`${isMobile ? 'w-fit' : 'min-w-50'}`}
     >
       {/* Client Settings */}
-      <LeftPanelGroup title={t('client')}>
-        <LeftPanelButton
-          currentSection={currentSection}
-          setCurrentSection={setCurrentSection}
-          section={SettingsSection.ClientGeneral}
-          label={t('generalButton')}
-        />
-        <LeftPanelButton
-          currentSection={currentSection}
-          setCurrentSection={setCurrentSection}
-          section={SettingsSection.ClientQuality}
-          label={t('quality')}
-        />
-        <LeftPanelButton
-          currentSection={currentSection}
-          setCurrentSection={setCurrentSection}
-          section={SettingsSection.ClientPlayer}
-          label={t('player')}
-        />
-      </LeftPanelGroup>
+      {isLoaded && (
+        <LeftPanelGroup title={t('client')}>
+          <LeftPanelButton
+            currentSection={currentSection}
+            setCurrentSection={setCurrentSection}
+            section={SettingsSection.ClientGeneral}
+            label={t('generalButton')}
+          />
+          <LeftPanelButton
+            currentSection={currentSection}
+            setCurrentSection={setCurrentSection}
+            section={SettingsSection.ClientQuality}
+            label={t('quality')}
+          />
+          <LeftPanelButton
+            currentSection={currentSection}
+            setCurrentSection={setCurrentSection}
+            section={SettingsSection.ClientPlayer}
+            label={t('player')}
+          />
+        </LeftPanelGroup>
+      )}
 
       {/* Server Settings */}
       <LeftPanelGroup title={t('server')}>
@@ -52,24 +56,28 @@ function LeftPanel({
           section={SettingsSection.ServerGeneral}
           label={t('generalButton')}
         />
-        <LeftPanelButton
-          currentSection={currentSection}
-          setCurrentSection={setCurrentSection}
-          section={SettingsSection.ServerLanguages}
-          label={t('languages')}
-        />
-        <LeftPanelButton
-          currentSection={currentSection}
-          setCurrentSection={setCurrentSection}
-          section={SettingsSection.ServerTranscode}
-          label={t('transcode')}
-        />
-        <LeftPanelButton
-          currentSection={currentSection}
-          setCurrentSection={setCurrentSection}
-          section={SettingsSection.ServerLibraries}
-          label={t('libraries')}
-        />
+        {isLoaded && (
+          <>
+            <LeftPanelButton
+              currentSection={currentSection}
+              setCurrentSection={setCurrentSection}
+              section={SettingsSection.ServerLanguages}
+              label={t('languages')}
+            />
+            <LeftPanelButton
+              currentSection={currentSection}
+              setCurrentSection={setCurrentSection}
+              section={SettingsSection.ServerTranscode}
+              label={t('transcode')}
+            />
+            <LeftPanelButton
+              currentSection={currentSection}
+              setCurrentSection={setCurrentSection}
+              section={SettingsSection.ServerLibraries}
+              label={t('libraries')}
+            />
+          </>
+        )}
       </LeftPanelGroup>
     </FlexBox>
   )

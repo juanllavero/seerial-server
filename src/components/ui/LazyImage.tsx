@@ -31,18 +31,18 @@ export default function LazyImage({
   const [loaded, setLoaded] = useState(false)
   const [imageSrc, setImageSrc] = useState(
     url
-      ? url.startsWith('http')
+      ? url.startsWith('http2')
         ? url
-        : `https://${serverIP}/${url.replace('resources/img', 'img')}`
+        : `http://${serverIP}/${url.replace('resources/img', 'img')}`
       : (src ?? errorSrc),
   )
   const [hasError, setHasError] = useState(false) // New state to track errors
 
   useEffect(() => {
     const newSrc = url
-      ? url.startsWith('http')
+      ? url.startsWith('http2')
         ? url
-        : `https://${serverIP}/${url.replace('resources/img', 'img')}`
+        : `http://${serverIP}/${url.replace('resources/img', 'img')}`
       : src
     setImageSrc(newSrc ?? errorSrc)
     setLoaded(false) // Reset loaded to show skeleton while loading new image

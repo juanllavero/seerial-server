@@ -56,7 +56,7 @@ export class ReactUtils {
     if (collection && !album) {
       if (collection.coverSrc !== '') {
         ReactUtils.getDominantColors(
-          `https://${serverIP}/${collection.coverSrc.replace('resources/img', 'img')}`,
+          `http://${serverIP}/${collection.coverSrc.replace('resources/img', 'img')}`,
         )
       } else {
         ReactUtils.getDominantColors('/img/songDefault.png')
@@ -64,11 +64,11 @@ export class ReactUtils {
     } else if (collection && album) {
       if (album.coverSrc !== '') {
         ReactUtils.getDominantColors(
-          `https://${serverIP}/${album.coverSrc.replace('resources/img', 'img')}`,
+          `http://${serverIP}/${album.coverSrc.replace('resources/img', 'img')}`,
         )
       } else if (collection.coverSrc !== '') {
         ReactUtils.getDominantColors(
-          `https://${serverIP}/${collection.coverSrc.replace('resources/img', 'img')}`,
+          `http://${serverIP}/${collection.coverSrc.replace('resources/img', 'img')}`,
         )
       } else {
         ReactUtils.getDominantColors('/img/songDefault.png')

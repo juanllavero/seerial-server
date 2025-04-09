@@ -64,7 +64,7 @@ function LibraryDialog({ library }: LibraryDialogProps) {
       subsMode,
     )
 
-    fetch(`https://${serverIP}/addLibrary`, {
+    fetch(`http://${serverIP}/addLibrary`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

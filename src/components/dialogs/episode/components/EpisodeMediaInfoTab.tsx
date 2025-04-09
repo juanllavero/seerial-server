@@ -5,9 +5,9 @@ import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { Episode } from '@/data/interfaces/Media'
 import {
-    AudioTrack,
-    SubtitleTrack,
-    VideoTrack,
+  AudioTrack,
+  SubtitleTrack,
+  VideoTrack,
 } from '@/data/interfaces/MediaInfo'
 import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
 import React, { useEffect, useState } from 'react'
@@ -39,7 +39,7 @@ function EpisodeMediaInfoTab({
       setLoaded(false)
 
       const attemptFetch = async () => {
-        const result = await fetch(`https://${serverIP}/updateMediaInfo`, {
+        const result = await fetch(`http://${serverIP}/updateMediaInfo`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

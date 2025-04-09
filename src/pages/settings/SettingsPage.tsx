@@ -1,5 +1,4 @@
 import { useIsMobile } from '@/components/hooks/use-mobile'
-import Loading from '@/components/Loading'
 import FlexBox from '@/components/ui/FlexBox'
 import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
@@ -23,7 +22,7 @@ function SettingsPage() {
     serverSettings,
   } = useSettingsStore()
   const [currentSection, setCurrentSection] = useState<SettingsSection>(
-    SettingsSection.ClientGeneral,
+    SettingsSection.ServerGeneral,
   )
   const isMobile = useIsMobile()
 
@@ -32,6 +31,10 @@ function SettingsPage() {
     getAllServerSettings(serverIP)
   }, [serverIP])
 
+  const isLoaded =
+    Object.keys(serverSettings).length > 0 &&
+    Object.keys(clientSettings).length > 0
+
   return (
     <FlexBox
       gap={isMobile ? 0.5 : 4}
@@ -39,14 +42,14 @@ function SettingsPage() {
     >
       {/* Left Panel */}
       <LeftPanel
+        isLoaded={isLoaded}
         currentSection={currentSection}
         setCurrentSection={setCurrentSection}
       />
 
       {/* Right Panel */}
-      {Object.keys(serverSettings).length === 0 ||
-      Object.keys(clientSettings).length === 0 ? (
-        <Loading />
+      {!isLoaded ? (
+        <ServerGeneral isLoaded={isLoaded} />
       ) : (
         <FlexBox scroll="vertical">
           {currentSection === SettingsSection.ClientGeneral ? (
@@ -56,7 +59,7 @@ function SettingsPage() {
           ) : currentSection === SettingsSection.ClientPlayer ? (
             <ClientPlayer />
           ) : currentSection === SettingsSection.ServerGeneral ? (
-            <ServerGeneral />
+            <ServerGeneral isLoaded={isLoaded} />
           ) : currentSection === SettingsSection.ServerLanguages ? (
             <ServerLanguages />
           ) : currentSection === SettingsSection.ServerTranscode ? (

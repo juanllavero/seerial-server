@@ -3,14 +3,14 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
+import { useServerStore } from '@/context/server.context'
+import { useSettingsStore } from '@/context/settings.context'
 import { Check, CloudDownload } from 'lucide-react'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ContentWrapper from './utils/ContentWrapper'
-import { useServerStore } from '@/context/server.context'
-import { useSettingsStore } from '@/context/settings.context'
 
-function ServerGeneral() {
+function ServerGeneral({ isLoaded }: { isLoaded: boolean }) {
   const { t } = useTranslation()
   const { serverIP, serverVersion, setServerIP } = useServerStore()
   const { setServerSetting, serverSettings, setServerSettings } =
@@ -43,7 +43,14 @@ function ServerGeneral() {
 
   const handleIPChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setIP(event.target.value)
-    setIsDirty(true)
+
+    setTimeout(() => {
+      changeIP(event.target.value)
+    }, 1000)
+  }
+
+  const changeIP = (ip: string) => {
+    setServerIP(ip)
   }
 
   const handleAutoUpdateChange = (checked: boolean) => {
@@ -72,12 +79,15 @@ function ServerGeneral() {
       </FlexBox>
 
       <LabeledInputWrapper label={t('serverIP')} text={t('serverIPMessage')}>
-        <Input
-          placeholder="192.168.1.10:34200..."
-          type="text"
-          value={ip}
-          onChange={handleIPChange}
-        />
+        <FlexBox align="center" gap={1}>
+          <Input
+            placeholder="192.168.1.10:34200..."
+            type="text"
+            value={ip}
+            onChange={handleIPChange}
+          />
+          <Button onClick={() => changeIP(ip)}>{t('checkButton')}</Button>
+        </FlexBox>
       </LabeledInputWrapper>
 
       <LabeledInputWrapper
@@ -87,6 +97,7 @@ function ServerGeneral() {
       >
         <Checkbox
           checked={autoUpdate}
+          disabled={!isLoaded}
           onCheckedChange={handleAutoUpdateChange}
         />
       </LabeledInputWrapper>

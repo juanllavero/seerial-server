@@ -115,7 +115,7 @@ function SeasonDialog() {
 
     await connectWS(serverIP)
 
-    const response = await fetch(`https://${serverIP}/season`, {
+    const response = await fetch(`http://${serverIP}/season`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

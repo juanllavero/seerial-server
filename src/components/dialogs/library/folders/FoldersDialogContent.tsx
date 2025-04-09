@@ -17,7 +17,11 @@ interface FoldersDialogContentProps {
 
 type Folder = { name: string; isFolder: boolean }
 
-function FoldersDialogContent({ folders, setFolders, close }: FoldersDialogContentProps) {
+function FoldersDialogContent({
+  folders,
+  setFolders,
+  close,
+}: FoldersDialogContentProps) {
   const { t } = useTranslation()
   const { serverIP } = useServerStore()
   const { fetchData, isLoading } = useFetch()
@@ -28,7 +32,7 @@ function FoldersDialogContent({ folders, setFolders, close }: FoldersDialogConte
   // Fetch para obtener las unidades de disco
   useEffect(() => {
     fetchData(
-      `https://${serverIP}/drives`,
+      `http://${serverIP}/drives`,
       (data) => setDrives(data as string[]),
       (err) => console.error('Error fetching drives:', err),
     )
@@ -37,7 +41,7 @@ function FoldersDialogContent({ folders, setFolders, close }: FoldersDialogConte
   // Fetch para obtener el contenido de una carpeta
   const fetchFolderContent = async (path: string) => {
     fetchData(
-      `https://${serverIP}/folder/${encodeURIComponent(path)}`,
+      `http://${serverIP}/folder/${encodeURIComponent(path)}`,
       (data) => {
         setFolderContent(data as Folder[])
         setCurrentPath(path)
@@ -55,15 +59,15 @@ function FoldersDialogContent({ folders, setFolders, close }: FoldersDialogConte
         drives.includes(`${currentPath}/`)
       )
         return
-  
+
       let upperPath = currentPath.split('\\').slice(0, -1).join('\\')
-      
+
       // Comprobar si upperPath es una unidad de almacenamiento (ej. C:, D:, F:)
       const isDriveUnit = /^[A-Z]:$/.test(upperPath)
       if (isDriveUnit) {
         upperPath += '\\'
       }
-  
+
       fetchFolderContent(upperPath || '') // Si es raíz, reiniciar ruta
     } else {
       // Verificar si currentPath ya termina con '/' o '\'
@@ -189,8 +193,10 @@ function FoldersDialogContent({ folders, setFolders, close }: FoldersDialogConte
           {currentPath && renderFolderContent()}
         </FlexBox>
       </FlexBox>
-      <FlexBox width={'100%'} justify="end" gap={1} padding='0 0.5rem'>
-        <Button variant={'secondary'} onClick={close}>{t('cancelButton')}</Button>
+      <FlexBox width={'100%'} justify="end" gap={1} padding="0 0.5rem">
+        <Button variant={'secondary'} onClick={close}>
+          {t('cancelButton')}
+        </Button>
         <Button onClick={handleAddFolder}>{t('addButton')}</Button>
       </FlexBox>
     </FlexBox>

@@ -22,7 +22,7 @@ function HTMLVideoPlayer({
   //   'F:\\UHD\\Dune\\Dune (2021)\\Dune (2021).mkv',
   //   'F:\\The Criterion Collection\\Mulholland Drive (2001)\\Mulholland Drive (2001).mkv',
   //   'F:\\Anime\\FullMetal Alchemist Brotherhood\\S1\\Fullmetal Alchemist Brotherhood - S01E01 - Fullmetal Alchemist.mkv',
-  //   'https://seerial.sirjohn.es/video-file?path=F:\\Anime\\FullMetal Alchemist Brotherhood\\S1\\Fullmetal Alchemist Brotherhood - S01E01 - Fullmetal Alchemist.mkv',
+  //   'http://seerial.sirjohn.es/video-file?path=F:\\Anime\\FullMetal Alchemist Brotherhood\\S1\\Fullmetal Alchemist Brotherhood - S01E01 - Fullmetal Alchemist.mkv',
   // ]
 
   if (!url) {
@@ -42,7 +42,7 @@ function HTMLVideoPlayer({
     <div data-vjs-player>
       <video
         ref={videoRef}
-        src={`https://${serverIP}/stream-video?path=${url}${start ? `&start=${start}` : ''}${audioTrack ? `&audio=${audioTrack}` : ''}`}
+        src={`http://${serverIP}/stream-video?path=${url}${start ? `&start=${start}` : ''}${audioTrack ? `&audio=${audioTrack}` : ''}`}
         crossOrigin="anonymous"
         playsInline
         autoPlay

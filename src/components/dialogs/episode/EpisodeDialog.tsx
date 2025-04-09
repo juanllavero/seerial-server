@@ -68,7 +68,7 @@ function EpisodeDialog() {
 
     await connectWS(serverIP)
 
-    const response = await fetch(`https://${serverIP}/episode`, {
+    const response = await fetch(`http://${serverIP}/episode`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

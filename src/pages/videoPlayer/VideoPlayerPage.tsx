@@ -347,7 +347,7 @@ function VideoPlayerPage() {
       return
 
     const fetchData = async () => {
-      const result = await fetch(`https://${serverIP}/updateMediaInfo`, {
+      const result = await fetch(`http://${serverIP}/updateMediaInfo`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

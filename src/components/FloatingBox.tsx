@@ -50,7 +50,7 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
     if (serverIP !== '' && (!libraries || libraries.length === 0)) {
       setLoadingLibraries(true)
 
-      fetchData(`https://${serverIP}/libraries`, (data) => {
+      fetchData(`http://${serverIP}/libraries`, (data) => {
         setLibraries(data)
         setLoadingLibraries(false)
       })
@@ -68,7 +68,7 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
               action: async () => {
                 await connectWS(serverIP)
                 fetch(
-                  `https://${serverIP}/library/search?libraryId=${library.id}`,
+                  `http://${serverIP}/library/search?libraryId=${library.id}`,
                 )
               },
             },
@@ -77,7 +77,7 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
               action: async () => {
                 await connectWS(serverIP)
                 fetch(
-                  `https://${serverIP}/library/updateMetadata?libraryId=${library.id}`,
+                  `http://${serverIP}/library/updateMetadata?libraryId=${library.id}`,
                 )
               },
             },
