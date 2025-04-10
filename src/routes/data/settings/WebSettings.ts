@@ -1,13 +1,10 @@
-import { app } from "electron";
 import express from "express";
 import fs from "fs";
 import path from "path";
 import { Utils } from "../../../data/utils/Utils";
 const router = express.Router();
 
-const extPath = app.isPackaged
-  ? path.dirname(app.getPath("exe"))
-  : app.getAppPath();
+const extPath = "/";
 
 const WEB_CONFIG_FILE = path.join(
   extPath,

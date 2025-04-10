@@ -1,13 +1,11 @@
 import axios from "axios";
 import { spawn } from "child_process";
-import { app } from "electron";
 import ffmpegPath from "ffmpeg-static";
 import ffprobePath from "ffprobe-static";
 import ffmpeg from "fluent-ffmpeg";
 import * as fs from "fs";
 import { Episode as MovieDBEpisode, TvSeasonResponse } from "moviedb-promise";
-import path, { dirname } from "path";
-import { fileURLToPath } from "url";
+import path from "path";
 import { EpisodeData } from "../interfaces/EpisodeData";
 import {
   AudioTrackData,
@@ -21,9 +19,6 @@ import { Library } from "../objects/Library";
 import { Season } from "../objects/Season";
 import { Series } from "../objects/Series";
 import { WebSocketManager } from "./WebSocketManager";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 ffmpeg.setFfprobePath(ffprobePath.path);
 
@@ -671,16 +666,12 @@ export class Utils {
   };
 
   public static getExternalPath(relativePath: string): string {
-    const basePath = app.isPackaged
-      ? path.dirname(app.getPath("exe"))
-      : app.getAppPath();
+    const basePath = "/";
     return path.join(basePath, relativePath);
   }
 
   public static getInternalPath(relativePath: string): string {
-    const filePath = app.isPackaged
-      ? path.join(process.resourcesPath, relativePath) // Build app
-      : path.join(__dirname, "../../src/", relativePath); // In development
+    const filePath = path.join(__dirname, "../../src/", relativePath); // In development
     return filePath;
   }
 

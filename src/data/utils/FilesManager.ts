@@ -1,15 +1,12 @@
-import { app } from "electron";
-import path from "path";
 import fs from "fs";
+import multer from "multer";
+import path from "path";
+import PropertiesReader, { Reader } from "properties-reader";
 import { DataManager } from "./DataManager";
 import { Utils } from "./Utils";
-import multer from "multer";
-import PropertiesReader, { Reader } from "properties-reader";
 
 export class FilesManager {
-  public static extPath = app.isPackaged
-    ? path.dirname(app.getPath("exe"))
-    : app.getAppPath();
+  public static extPath = "/";
   public static resourcesPath = path.join(this.extPath, "resources");
   public static propertiesFilePath = path.join(
     this.extPath,

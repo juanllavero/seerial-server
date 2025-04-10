@@ -1289,7 +1289,7 @@ export class FileSearch {
   ) {
     try {
       const data = await new Promise<any>((resolve, reject) => {
-        ffmetadata.read(musicFile, (err, data) => {
+        ffmetadata.read(musicFile, (err: any, data: any) => {
           if (err) {
             reject(err);
           } else {
@@ -1374,7 +1374,7 @@ export class FileSearch {
               "/" +
               imageSrc.split("\\").pop()
           );
-          fs.copyFile(imageSrc, destPath, (err) => {
+          fs.copyFile(imageSrc, destPath, (err: any) => {
             if (err) {
               console.error("Error copying image:", err);
               return;
@@ -1396,7 +1396,7 @@ export class FileSearch {
                 "/" +
                 imageSrc.split("\\").pop()
             );
-            fs.copyFile(imageSrc, destPath, (err) => {
+            fs.copyFile(imageSrc, destPath, (err: any) => {
               if (err) {
                 console.error("Error copying image:", err);
                 return;

@@ -1,17 +1,11 @@
 import cors from "cors";
-import { app, Menu, nativeImage, Tray } from "electron";
 import express from "express";
 import http from "http";
-import open from "open";
 import path from "path";
-import { fileURLToPath } from "url";
-import { FilesManager } from "../../src/data/utils/FilesManager";
-import { MovieDBWrapper } from "../../src/data/utils/MovieDB";
-import { WebSocketManager } from "../../src/data/utils/WebSocketManager";
-import * as routes from "../../src/routes/index";
-
-// Get current directory path
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+import { FilesManager } from "./data/utils/FilesManager";
+import { MovieDBWrapper } from "./data/utils/MovieDB";
+import { WebSocketManager } from "./data/utils/WebSocketManager";
+import * as routes from "./routes/index";
 
 process.env.APP_ROOT = path.join(__dirname, "../../");
 
@@ -66,35 +60,35 @@ appServer.use("/", routes.getHTPCSettings);
 appServer.use("/", routes.getServerSettings);
 appServer.use("/", routes.getWebSettings);
 
-let tray: Tray;
+// let tray: Tray;
 
-// Create Tray and configure Menu
-app.whenReady().then(() => {
-  const iconPath = path.join("public", "icon.png");
-  const image = nativeImage.createFromPath(iconPath);
-  tray = new Tray(image);
+// // Create Tray and configure Menu
+// app.whenReady().then(() => {
+//   const iconPath = path.join(assetsPath, "icon.png");
+//   const image = nativeImage.createFromPath(iconPath);
+//   tray = new Tray(image);
 
-  const contextMenu = Menu.buildFromTemplate([
-    {
-      label: "Open Seerial",
-      click: () => {
-        // Open in browser
-        open("https://app.seerial.es/");
-      },
-    },
-    {
-      label: "Exit",
-      click: () => app.quit(),
-    },
-  ]);
+//   const contextMenu = Menu.buildFromTemplate([
+//     {
+//       label: "Open Seerial",
+//       click: () => {
+//         // Open in browser
+//         open("https://app.seerial.es/");
+//       },
+//     },
+//     {
+//       label: "Exit",
+//       click: () => app.quit(),
+//     },
+//   ]);
 
-  tray.setToolTip("Seerial Media Server");
-  tray.setContextMenu(contextMenu);
-});
+//   tray.setToolTip("Seerial Media Server");
+//   tray.setContextMenu(contextMenu);
+// });
 
-// Close app when all windows are closed (Windows, not MacOS)
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
-});
+// // Close app when all windows are closed (Windows, not MacOS)
+// app.on("window-all-closed", () => {
+//   if (process.platform !== "darwin") {
+//     app.quit();
+//   }
+// });
