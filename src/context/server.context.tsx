@@ -13,7 +13,7 @@ interface ServerState {
 }
 
 export const useServerStore = create<ServerState>((set, get) => ({
-  serverIP: 'localhost:34200',
+  serverIP: '192.168.100.44:34200',
   serverStatus: true,
   serverVersion: '0.22.44',
   gettingServerStatus: false,
