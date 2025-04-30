@@ -1,7 +1,7 @@
 import express from "express";
 import { Episode } from "../../../data/objects/Episode";
-import { DataManager } from "../../../data/utils/DataManager";
-import { Utils } from "../../../data/utils/Utils";
+import { DataManager } from "../../../db/DataManager";
+import { Utils } from "../../../utils/Utils";
 const router = express.Router();
 
 // Get media info

@@ -3,8 +3,8 @@ import ffmpegPath from "ffmpeg-static";
 import ffmpeg from "fluent-ffmpeg";
 import fs from "fs";
 import path from "path";
-import { FilesManager } from "../../../data/utils/FilesManager";
-import { Utils } from "../../../data/utils/Utils";
+import { FilesManager } from "../../../utils/FilesManager";
+import { Utils } from "../../../utils/Utils";
 const router = express.Router();
 
 // Serve images to outside

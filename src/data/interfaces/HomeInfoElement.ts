@@ -1,11 +1,8 @@
-import { EpisodeData } from "./EpisodeData";
-import { LibraryData } from "./LibraryData";
-import { SeasonData } from "./SeasonData";
-import { SeriesData } from "./SeriesData";
+import { Episode, Library, Season, Series } from "./Media";
 
 export interface HomeInfoElement {
-    library: LibraryData, 
-    show: SeriesData, 
-    season: SeasonData,
-    episode: EpisodeData
+  library: Library;
+  show: Series;
+  season: Season;
+  episode: Episode;
 }

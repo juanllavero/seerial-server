@@ -1,12 +1,4 @@
 export interface MediaInfo {
-  mediaInfo: MediaInfoData;
-  videoTracks: VideoTrackData[];
-  audioTracks: AudioTrackData[];
-  subtitleTracks: SubtitleTrackData[];
-  chapters: ChapterData[];
-}
-
-export interface MediaInfoData {
   file: string;
   location: string;
   bitrate: string;
@@ -15,14 +7,14 @@ export interface MediaInfoData {
   container: string;
 }
 
-export interface ChapterData {
+export interface Chapter {
   title: string;
   time: number;
   displayTime: string;
   thumbnailSrc: string;
 }
 
-export interface VideoTrackData {
+export interface VideoTrack {
   displayTitle: string;
   id: number;
   selected: boolean;
@@ -40,7 +32,7 @@ export interface VideoTrackData {
   colorRange: string;
 }
 
-export interface AudioTrackData {
+export interface AudioTrack {
   displayTitle: string;
   id: number;
   language: string;
@@ -56,7 +48,7 @@ export interface AudioTrackData {
   samplingRate: string;
 }
 
-export interface SubtitleTrackData {
+export interface SubtitleTrack {
   displayTitle: string;
   id: number;
   language: string;

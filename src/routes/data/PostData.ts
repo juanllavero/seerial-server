@@ -3,12 +3,12 @@ import { MovieDb } from "moviedb-promise";
 import path from "path";
 import propertiesReader from "properties-reader";
 import { Library } from "../../data/objects/Library";
-import { Downloader } from "../../data/utils/Downloader";
-import { FileSearch } from "../../data/utils/FileSearch";
-import { FilesManager } from "../../data/utils/FilesManager";
-import { MovieDBWrapper } from "../../data/utils/MovieDB";
-import { Utils } from "../../data/utils/Utils";
+import { Downloader } from "../../downloaders/Downloader";
+import { FileSearch } from "../../fileSearch/FileSearch";
 import { wsManager } from "../../index";
+import { MovieDBWrapper } from "../../theMovieDB/MovieDB";
+import { FilesManager } from "../../utils/FilesManager";
+import { Utils } from "../../utils/Utils";
 const router = express.Router();
 
 router.post("/api-key", (req, res) => {

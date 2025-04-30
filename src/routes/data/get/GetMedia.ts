@@ -1,12 +1,12 @@
 import express from "express";
 import { EpisodeData } from "../../../data/interfaces/EpisodeData";
-import { DataManager } from "../../../data/utils/DataManager";
-import { Downloader } from "../../../data/utils/Downloader";
-import { FileSearch } from "../../../data/utils/FileSearch";
-import { IMDBScores } from "../../../data/utils/IMDBScores";
-import { MovieDBWrapper } from "../../../data/utils/MovieDB";
-import { Utils } from "../../../data/utils/Utils";
-import { WebSocketManager } from "../../../data/utils/WebSocketManager";
+import { DataManager } from "../../../db/DataManager";
+import { Downloader } from "../../../downloaders/Downloader";
+import { FileSearch } from "../../../fileSearch/FileSearch";
+import { MovieDBWrapper } from "../../../theMovieDB/MovieDB";
+import { IMDBScores } from "../../../utils/IMDBScores";
+import { Utils } from "../../../utils/Utils";
+import { WebSocketManager } from "../../../WebSockets/WebSocketManager";
 const router = express.Router();
 
 // Get libraries

@@ -1,7 +1,7 @@
-import { MovieDBWrapper } from "../../../data/utils/MovieDB";
 import express from "express";
-const router = express.Router();
 import { MovieDb } from "moviedb-promise";
+import { MovieDBWrapper } from "../../../theMovieDB/MovieDB";
+const router = express.Router();
 
 // Check server status
 router.get("/", (_req, res) => {

@@ -1,6 +1,6 @@
 import express from "express";
-import { DataManager } from "../../data/utils/DataManager";
-import { Utils } from "../../data/utils/Utils";
+import { DataManager } from "../../db/DataManager";
+import { Utils } from "../../utils/Utils";
 const router = express.Router();
 
 // Update Library

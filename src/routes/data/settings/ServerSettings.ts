@@ -1,16 +1,12 @@
 import express from "express";
 import fs from "fs";
-import path from "path";
-import { Utils } from "../../../data/utils/Utils";
+import { FilesManager } from "../../../utils/FilesManager";
+import { Utils } from "../../../utils/Utils";
+
 const router = express.Router();
 
-const extPath = "/";
-
-const SERVER_CONFIG_FILE = path.join(
-  extPath,
-  "resources",
-  "config",
-  "serverConfig.json"
+const SERVER_CONFIG_FILE = FilesManager.getExternalPath(
+  "resources/config/serverConfig.json"
 );
 
 const defaultServerConfig = {

@@ -2,12 +2,16 @@ import cors from "cors";
 import express from "express";
 import http from "http";
 import path from "path";
-import { FilesManager } from "./data/utils/FilesManager";
-import { MovieDBWrapper } from "./data/utils/MovieDB";
-import { WebSocketManager } from "./data/utils/WebSocketManager";
+import { DBManager } from "./db/DBManager";
 import * as routes from "./routes/index";
+import { MovieDBWrapper } from "./theMovieDB/MovieDB";
+import { FilesManager } from "./utils/FilesManager";
+import { WebSocketManager } from "./WebSockets/WebSocketManager";
 
 process.env.APP_ROOT = path.join(__dirname, "../../");
+
+// Initialize Database
+DBManager.initializeDatabase();
 
 // Initialize Folders
 FilesManager.initFolders();
@@ -29,6 +33,13 @@ appServer.use(
     exposedHeaders: ["Content-Range", "Accept-Ranges", "Content-Length"],
   })
 );
+
+appServer.use((_req, res) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Expose-Headers", "x-total-count");
+  res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH");
+  res.header("Access-Control-Allow-Headers", "Content-Type,authorization");
+});
 
 // Middleware to process JSON
 appServer.use(express.json({ limit: "50mb" }));
@@ -59,6 +70,12 @@ appServer.use("/", routes.getVideoRoutes);
 appServer.use("/", routes.getHTPCSettings);
 appServer.use("/", routes.getServerSettings);
 appServer.use("/", routes.getWebSettings);
+
+const test = async () => {
+  console.log(await DBManager.executeQuery("SELECT * FROM series;"));
+};
+
+test();
 
 // let tray: Tray;
 

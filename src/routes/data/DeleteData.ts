@@ -1,5 +1,5 @@
 import express from "express";
-import { DataManager } from "../../data/utils/DataManager";
+import { DataManager } from "../../db/DataManager";
 const router = express.Router();
 
 // Delete Library
