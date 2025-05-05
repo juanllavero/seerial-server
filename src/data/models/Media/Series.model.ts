@@ -37,24 +37,28 @@ export class Series extends Model {
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
+    defaultValue: '',
     field: 'themdb_id',
   })
   themdbId!: number;
 
   @Column({
     type: DataType.INTEGER,
+    defaultValue: 0,
     allowNull: false,
   })
   order!: number;
 
   @Column({
     type: DataType.STRING,
+    defaultValue: '',
     allowNull: false,
   })
   name!: string;
 
   @Column({
     type: DataType.BOOLEAN,
+    defaultValue: false,
     allowNull: false,
     field: 'name_lock',
   })
@@ -62,12 +66,14 @@ export class Series extends Model {
 
   @Column({
     type: DataType.TEXT,
+    defaultValue: '',
     allowNull: false,
   })
   overview!: string;
 
   @Column({
     type: DataType.BOOLEAN,
+    defaultValue: false,
     allowNull: false,
     field: 'oberview_lock',
   })
@@ -75,6 +81,7 @@ export class Series extends Model {
 
   @Column({
     type: DataType.STRING,
+    defaultValue: '',
     allowNull: false,
   })
   year!: string;
@@ -82,24 +89,28 @@ export class Series extends Model {
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
+    defaultValue: false,
     field: 'year_lock',
   })
   yearLock!: boolean;
 
   @Column({
     type: DataType.FLOAT,
+    defaultValue: 0,
     allowNull: false,
   })
   score!: number;
 
   @Column({
     type: DataType.STRING,
+    defaultValue: '',
     allowNull: false,
   })
   tagline!: string;
 
   @Column({
     type: DataType.BOOLEAN,
+    defaultValue: false,
     allowNull: false,
     field: 'tagline_lock',
   })
@@ -107,6 +118,7 @@ export class Series extends Model {
 
   @Column({
     type: DataType.STRING,
+    defaultValue: '',
     allowNull: false,
     field: 'logo_src',
   })
@@ -114,6 +126,7 @@ export class Series extends Model {
 
   @Column({
     type: DataType.TEXT,
+    defaultValue: [],
     allowNull: false,
     field: 'logos_urls',
     get() {
@@ -128,6 +141,7 @@ export class Series extends Model {
 
   @Column({
     type: DataType.STRING,
+    defaultValue: '',
     allowNull: false,
     field: 'cover_src',
   })
@@ -135,6 +149,7 @@ export class Series extends Model {
 
   @Column({
     type: DataType.TEXT,
+    defaultValue: [],
     allowNull: false,
     field: 'covers_urls',
     get() {
@@ -149,6 +164,7 @@ export class Series extends Model {
 
   @Column({
     type: DataType.TEXT,
+    defaultValue: [],
     allowNull: false,
     field: 'production_studios',
     get() {
@@ -163,6 +179,7 @@ export class Series extends Model {
 
   @Column({
     type: DataType.BOOLEAN,
+    defaultValue: false,
     allowNull: false,
     field: 'production_studios_lock',
   })
@@ -170,6 +187,7 @@ export class Series extends Model {
 
   @Column({
     type: DataType.TEXT,
+    defaultValue: [],
     allowNull: false,
     get() {
       const value = this.getDataValue('creator');
@@ -183,6 +201,7 @@ export class Series extends Model {
 
   @Column({
     type: DataType.BOOLEAN,
+    defaultValue: false,
     allowNull: false,
     field: 'creator_lock',
   })
@@ -190,6 +209,7 @@ export class Series extends Model {
 
   @Column({
     type: DataType.TEXT,
+    defaultValue: [],
     allowNull: false,
     field: 'music_composer',
     get() {
@@ -204,6 +224,7 @@ export class Series extends Model {
 
   @Column({
     type: DataType.BOOLEAN,
+    defaultValue: false,
     allowNull: false,
     field: 'music_composer_lock',
   })
@@ -211,6 +232,7 @@ export class Series extends Model {
 
   @Column({
     type: DataType.TEXT,
+    defaultValue: [],
     allowNull: false,
     get() {
       const value = this.getDataValue('genres');
@@ -224,6 +246,7 @@ export class Series extends Model {
 
   @Column({
     type: DataType.BOOLEAN,
+    defaultValue: false,
     allowNull: false,
     field: 'genres_lock',
   })
@@ -231,6 +254,7 @@ export class Series extends Model {
 
   @Column({
     type: DataType.TEXT,
+    defaultValue: [],
     allowNull: false,
     get() {
       const value = this.getDataValue('cast');
@@ -244,12 +268,14 @@ export class Series extends Model {
 
   @Column({
     type: DataType.STRING,
+    defaultValue: '',
     allowNull: false,
   })
   folder!: string;
 
   @Column({
     type: DataType.STRING,
+    defaultValue: '',
     allowNull: false,
     field: 'episode_group_id',
   })
@@ -257,6 +283,7 @@ export class Series extends Model {
 
   @Column({
     type: DataType.BOOLEAN,
+    defaultValue: false,
     allowNull: false,
     field: 'analyzing_files',
   })
@@ -264,6 +291,7 @@ export class Series extends Model {
 
   @Column({
     type: DataType.STRING,
+    defaultValue: '',
     allowNull: false,
     field: 'currently_watching_episode_id',
   })
@@ -271,6 +299,7 @@ export class Series extends Model {
 
   @Column({
     type: DataType.BOOLEAN,
+    defaultValue: false,
     allowNull: false,
   })
   watched!: boolean;

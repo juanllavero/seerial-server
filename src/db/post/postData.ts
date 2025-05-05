@@ -38,6 +38,8 @@ export const addLibrary = (library: LibraryData) => {
   const newLibrary = new Library({ values: library });
 
   newLibrary.save();
+
+  return newLibrary;
 };
 
 //#region Collections
@@ -48,6 +50,8 @@ export const addCollection = (title: string) => {
   const newCollection = new Collection({ values: { title } });
 
   newCollection.save();
+
+  return newCollection;
 };
 
 export const addSeriesToCollection = (
@@ -87,12 +91,14 @@ export const addAlbumToCollection = (collectionId: string, albumId: string) => {
 
 //#region Media
 
-export const addSeries = (series: SeriesData) => {
+export const addSeries = (series?: SeriesData) => {
   if (!SequelizeManager.sequelize) return null;
 
   const newSeries = new Series({ values: series });
 
   newSeries.save();
+
+  return newSeries;
 };
 
 export const addMovie = (movie: MovieData) => {
@@ -101,6 +107,8 @@ export const addMovie = (movie: MovieData) => {
   const newMovie = new Movie({ values: movie });
 
   newMovie.save();
+
+  return newMovie;
 };
 
 export const addSeason = (season: SeasonData) => {
@@ -109,6 +117,8 @@ export const addSeason = (season: SeasonData) => {
   const newSeason = new Season({ values: season });
 
   newSeason.save();
+
+  return newSeason;
 };
 
 export const addEpisode = (episode: EpisodeData) => {
@@ -117,9 +127,11 @@ export const addEpisode = (episode: EpisodeData) => {
   const newEpisode = new Episode({ values: episode });
 
   newEpisode.save();
+
+  return newEpisode;
 };
 
-export const addVideoAsMovie = (movieId: string, video: VideoData) => {
+export const addVideoAsMovie = (movieId: string, video?: VideoData) => {
   if (!SequelizeManager.sequelize) return null;
 
   const newVideo = new Video({
@@ -130,9 +142,11 @@ export const addVideoAsMovie = (movieId: string, video: VideoData) => {
   });
 
   newVideo.save();
+
+  return newVideo;
 };
 
-export const addVideoAsMovieExtra = (movieId: string, video: VideoData) => {
+export const addVideoAsMovieExtra = (movieId: string, video?: VideoData) => {
   if (!SequelizeManager.sequelize) return null;
 
   const newVideo = new Video({
@@ -143,9 +157,11 @@ export const addVideoAsMovieExtra = (movieId: string, video: VideoData) => {
   });
 
   newVideo.save();
+
+  return newVideo;
 };
 
-export const addVideoAsEpisode = (episodeId: string, video: VideoData) => {
+export const addVideoAsEpisode = (episodeId: string, video?: VideoData) => {
   if (!SequelizeManager.sequelize) return null;
 
   const newVideo = new Video({
@@ -156,6 +172,8 @@ export const addVideoAsEpisode = (episodeId: string, video: VideoData) => {
   });
 
   newVideo.save();
+
+  return newVideo;
 };
 
 //#endregion
@@ -168,6 +186,8 @@ export const addAlbum = (album: AlbumData) => {
   const newAlbum = new Album({ values: album });
 
   newAlbum.save();
+
+  return newAlbum;
 };
 
 export const addArtist = (artist: ArtistData) => {
@@ -176,6 +196,8 @@ export const addArtist = (artist: ArtistData) => {
   const newArtist = new Artist({ values: artist });
 
   newArtist.save();
+
+  return newArtist;
 };
 
 export const addArtistToAlbum = (artistId: string, albumId: string) => {
@@ -197,6 +219,8 @@ export const addSong = (song: SongData) => {
   const newSong = new Song({ values: song });
 
   newSong.save();
+
+  return newSong;
 };
 
 //#endregion
@@ -209,6 +233,8 @@ export const addPlaylist = (playList: PlayListData) => {
   const newPlayList = new PlayList({ values: playList });
 
   newPlayList.save();
+
+  return newPlayList;
 };
 
 export const addSongToPlaylist = (playlistId: string, songId: string) => {

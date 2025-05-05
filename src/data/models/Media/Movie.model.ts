@@ -261,7 +261,7 @@ export class Movie extends Model {
     allowNull: true,
     field: 'logo_src',
   })
-  logoSrc!: string[];
+  logoSrc!: string;
 
   @Column({
     type: DataType.TEXT,
@@ -297,6 +297,27 @@ export class Movie extends Model {
     },
   })
   coversUrls!: string[];
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+    field: 'background_src',
+  })
+  backgroundSrc!: string;
+
+  @Column({
+    type: DataType.TEXT,
+    allowNull: false,
+    field: 'background_urls',
+    get() {
+      const value = this.getDataValue('backgroundsUrls');
+      return value ? JSON.parse(value) : [];
+    },
+    set(value: string[]) {
+      this.setDataValue('backgroundsUrls', JSON.stringify(value));
+    },
+  })
+  backgroundsUrls!: string[];
 
   @Column({
     type: DataType.BOOLEAN,

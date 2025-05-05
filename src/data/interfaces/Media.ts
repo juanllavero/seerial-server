@@ -13,7 +13,7 @@ export interface Cast {
 }
 
 export interface Library {
-  id?: string;
+  id: string;
   name: string;
   language: string;
   type: string;
@@ -29,13 +29,17 @@ export interface Library {
 }
 
 export interface Collection {
-  id?: string;
+  id: string;
   title: string;
   description?: string;
+  backgroundSrc: string;
+  backgroundsUrls: string[];
+  coverSrc: string;
+  coversUrls: string[];
 }
 
 export interface Series {
-  id?: string;
+  id: string;
   libraryId: string;
   themdbId: number;
   order: number;
@@ -72,7 +76,7 @@ export interface Series {
 }
 
 export interface Season {
-  id?: string;
+  id: string;
   seriesId: string;
   themdbId: number;
   order: number;
@@ -100,7 +104,7 @@ export interface Season {
 }
 
 export interface Episode {
-  id?: string;
+  id: string;
   seasonId: string;
   name: string;
   nameLock: boolean;
@@ -121,7 +125,7 @@ export interface Episode {
 }
 
 export interface Movie {
-  id?: string;
+  id: string;
   libraryId: string;
   imdbId: string;
   themdbId: number;
@@ -155,13 +159,15 @@ export interface Movie {
 
   logoSrc: string;
   logosUrls: string[];
+  backgroundSrc: string;
+  backgroundsUrls: string[];
   coverSrc: string;
   coversUrls: string[];
   watched: boolean;
 }
 
 export interface Video {
-  id?: string;
+  id: string;
   fileSrc: string;
   runtime: number;
   imgSrc: string;

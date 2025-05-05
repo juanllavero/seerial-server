@@ -47,6 +47,48 @@ export class Collection extends Model {
   })
   libraryId!: string;
 
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    field: 'cover_src',
+  })
+  coverSrc!: string;
+
+  @Column({
+    type: DataType.TEXT,
+    allowNull: false,
+    field: 'covers_urls',
+    get() {
+      const value = this.getDataValue('coversUrls');
+      return value ? JSON.parse(value) : [];
+    },
+    set(value: string[]) {
+      this.setDataValue('coversUrls', JSON.stringify(value));
+    },
+  })
+  coversUrls!: string[];
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+    field: 'background_src',
+  })
+  backgroundSrc!: string;
+
+  @Column({
+    type: DataType.TEXT,
+    allowNull: false,
+    field: 'background_urls',
+    get() {
+      const value = this.getDataValue('backgroundsUrls');
+      return value ? JSON.parse(value) : [];
+    },
+    set(value: string[]) {
+      this.setDataValue('backgroundsUrls', JSON.stringify(value));
+    },
+  })
+  backgroundsUrls!: string[];
+
   @BelongsToMany(() => Movie, () => CollectionMovie)
   movies!: Movie[];
 
