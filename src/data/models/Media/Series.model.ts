@@ -7,15 +7,15 @@ import {
   Model,
   PrimaryKey,
   Table,
-} from "sequelize-typescript";
-import { v4 as uuidv4 } from "uuid";
-import { Cast } from "../../interfaces/Media";
-import { Collection } from "../Collections/Collection.model";
-import { CollectionSeries } from "../Collections/CollectionSeries.model";
-import { Library } from "./Library.model";
-import { Season } from "./Season.model";
+} from 'sequelize-typescript';
+import { v4 as uuidv4 } from 'uuid';
+import { Cast } from '../../interfaces/Media';
+import { Collection } from '../Collections/Collection.model';
+import { CollectionSeries } from '../Collections/CollectionSeries.model';
+import { Library } from './Library.model';
+import { Season } from './Season.model';
 
-@Table({ tableName: "Series", timestamps: false })
+@Table({ tableName: 'Series', timestamps: false })
 export class Series extends Model {
   @PrimaryKey
   @Column({
@@ -29,15 +29,17 @@ export class Series extends Model {
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
-    onDelete: "CASCADE",
+    onDelete: 'CASCADE',
+    field: 'library_id',
   })
-  libraryid!: string;
+  libraryId!: string;
 
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
+    field: 'themdb_id',
   })
-  themdbid!: string;
+  themdbId!: number;
 
   @Column({
     type: DataType.INTEGER,
@@ -54,6 +56,7 @@ export class Series extends Model {
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
+    field: 'name_lock',
   })
   nameLock!: boolean;
 
@@ -66,6 +69,7 @@ export class Series extends Model {
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
+    field: 'oberview_lock',
   })
   overviewLock!: boolean;
 
@@ -78,6 +82,7 @@ export class Series extends Model {
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
+    field: 'year_lock',
   })
   yearLock!: boolean;
 
@@ -96,24 +101,27 @@ export class Series extends Model {
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
+    field: 'tagline_lock',
   })
   taglineLock!: boolean;
 
   @Column({
     type: DataType.STRING,
     allowNull: false,
+    field: 'logo_src',
   })
   logoSrc!: string;
 
   @Column({
     type: DataType.TEXT,
     allowNull: false,
+    field: 'logos_urls',
     get() {
-      const value = this.getDataValue("logosUrls");
+      const value = this.getDataValue('logosUrls');
       return value ? JSON.parse(value) : [];
     },
     set(value: string[]) {
-      this.setDataValue("logosUrls", JSON.stringify(value));
+      this.setDataValue('logosUrls', JSON.stringify(value));
     },
   })
   logosUrls!: string[];
@@ -121,18 +129,20 @@ export class Series extends Model {
   @Column({
     type: DataType.STRING,
     allowNull: false,
+    field: 'cover_src',
   })
   coverSrc!: string;
 
   @Column({
     type: DataType.TEXT,
     allowNull: false,
+    field: 'covers_urls',
     get() {
-      const value = this.getDataValue("coversUrls");
+      const value = this.getDataValue('coversUrls');
       return value ? JSON.parse(value) : [];
     },
     set(value: string[]) {
-      this.setDataValue("coversUrls", JSON.stringify(value));
+      this.setDataValue('coversUrls', JSON.stringify(value));
     },
   })
   coversUrls!: string[];
@@ -140,12 +150,13 @@ export class Series extends Model {
   @Column({
     type: DataType.TEXT,
     allowNull: false,
+    field: 'production_studios',
     get() {
-      const value = this.getDataValue("productionStudios");
+      const value = this.getDataValue('productionStudios');
       return value ? JSON.parse(value) : [];
     },
     set(value: string[]) {
-      this.setDataValue("productionStudios", JSON.stringify(value));
+      this.setDataValue('productionStudios', JSON.stringify(value));
     },
   })
   productionStudios!: string[];
@@ -153,6 +164,7 @@ export class Series extends Model {
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
+    field: 'production_studios_lock',
   })
   productionStudiosLock!: boolean;
 
@@ -160,11 +172,11 @@ export class Series extends Model {
     type: DataType.TEXT,
     allowNull: false,
     get() {
-      const value = this.getDataValue("creator");
+      const value = this.getDataValue('creator');
       return value ? JSON.parse(value) : [];
     },
     set(value: string[]) {
-      this.setDataValue("creator", JSON.stringify(value));
+      this.setDataValue('creator', JSON.stringify(value));
     },
   })
   creator!: string[];
@@ -172,18 +184,20 @@ export class Series extends Model {
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
+    field: 'creator_lock',
   })
   creatorLock!: boolean;
 
   @Column({
     type: DataType.TEXT,
     allowNull: false,
+    field: 'music_composer',
     get() {
-      const value = this.getDataValue("musicComposer");
+      const value = this.getDataValue('musicComposer');
       return value ? JSON.parse(value) : [];
     },
     set(value: string[]) {
-      this.setDataValue("musicComposer", JSON.stringify(value));
+      this.setDataValue('musicComposer', JSON.stringify(value));
     },
   })
   musicComposer!: string[];
@@ -191,6 +205,7 @@ export class Series extends Model {
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
+    field: 'music_composer_lock',
   })
   musicComposerLock!: boolean;
 
@@ -198,11 +213,11 @@ export class Series extends Model {
     type: DataType.TEXT,
     allowNull: false,
     get() {
-      const value = this.getDataValue("genres");
+      const value = this.getDataValue('genres');
       return value ? JSON.parse(value) : [];
     },
     set(value: string[]) {
-      this.setDataValue("genres", JSON.stringify(value));
+      this.setDataValue('genres', JSON.stringify(value));
     },
   })
   genres!: string[];
@@ -210,6 +225,7 @@ export class Series extends Model {
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
+    field: 'genres_lock',
   })
   genresLock!: boolean;
 
@@ -217,11 +233,11 @@ export class Series extends Model {
     type: DataType.TEXT,
     allowNull: false,
     get() {
-      const value = this.getDataValue("cast");
+      const value = this.getDataValue('cast');
       return value ? JSON.parse(value) : [];
     },
     set(value: Cast[]) {
-      this.setDataValue("cast", JSON.stringify(value));
+      this.setDataValue('cast', JSON.stringify(value));
     },
   })
   cast!: Cast[];
@@ -235,20 +251,23 @@ export class Series extends Model {
   @Column({
     type: DataType.STRING,
     allowNull: false,
+    field: 'episode_group_id',
   })
-  episodeGroupID!: string;
+  episodeGroupId!: string;
 
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
+    field: 'analyzing_files',
   })
   analyzingFiles!: boolean;
 
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.STRING,
     allowNull: false,
+    field: 'currently_watching_episode_id',
   })
-  currentlyWatchingEpisodeid!: string;
+  currentlyWatchingEpisodeId!: string;
 
   @Column({
     type: DataType.BOOLEAN,

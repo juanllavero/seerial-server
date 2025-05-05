@@ -1,13 +1,16 @@
 import {
+  BelongsToMany,
   Column,
   DataType,
   Model,
   PrimaryKey,
   Table,
-} from "sequelize-typescript";
-import { v4 as uuidv4 } from "uuid";
+} from 'sequelize-typescript';
+import { v4 as uuidv4 } from 'uuid';
+import { Album } from './Album.model';
+import { AlbumArtist } from './AlbumArtist.model';
 
-@Table({ tableName: "Artist", timestamps: false })
+@Table({ tableName: 'Artist', timestamps: false })
 export class Artist extends Model {
   @PrimaryKey
   @Column({
@@ -22,4 +25,7 @@ export class Artist extends Model {
     allowNull: false,
   })
   name!: string;
+
+  @BelongsToMany(() => Album, () => AlbumArtist)
+  albums!: Album[];
 }

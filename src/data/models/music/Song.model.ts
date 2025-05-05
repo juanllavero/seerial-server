@@ -6,13 +6,13 @@ import {
   Model,
   PrimaryKey,
   Table,
-} from "sequelize-typescript";
-import { v4 as uuidv4 } from "uuid";
-import { PlayList } from "../Lists/PlayList.model";
-import { PlayListItem } from "../Lists/PlayListItem.model";
-import { Album } from "./Album.model";
+} from 'sequelize-typescript';
+import { v4 as uuidv4 } from 'uuid';
+import { PlayList } from '../Lists/PlayList.model';
+import { PlayListItem } from '../Lists/PlayListItem.model';
+import { Album } from './Album.model';
 
-@Table({ tableName: "Song", timestamps: false })
+@Table({ tableName: 'Song', timestamps: false })
 export class Song extends Model {
   @PrimaryKey
   @Column({
@@ -26,9 +26,10 @@ export class Song extends Model {
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
-    onDelete: "CASCADE",
+    onDelete: 'CASCADE',
+    field: 'album_id',
   })
-  albumid!: string;
+  albumId!: string;
 
   @Column({
     type: DataType.STRING,
@@ -39,6 +40,7 @@ export class Song extends Model {
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
+    field: 'track_number',
   })
   trackNumber!: number;
 

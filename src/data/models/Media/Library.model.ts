@@ -49,7 +49,15 @@ export class Library extends Model {
   order!: number;
 
   @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+    allowNull: false,
+  })
+  hidden!: boolean;
+
+  @Column({
     type: DataType.TEXT,
+    defaultValue: [],
     allowNull: false,
     get() {
       const value = this.getDataValue('folders');
@@ -88,7 +96,7 @@ export class Library extends Model {
     defaultValue: '{}',
     field: 'analyzed_files',
   })
-  analyzedFiles!: any;
+  analyzedFiles!: Map<string, string>;
 
   @Column({
     type: DataType.TEXT,
@@ -96,7 +104,7 @@ export class Library extends Model {
     defaultValue: '{}',
     field: 'analyzed_folders',
   })
-  analyzedFolders!: any;
+  analyzedFolders!: Map<string, string>;
 
   @Column({
     type: DataType.TEXT,
@@ -104,7 +112,7 @@ export class Library extends Model {
     defaultValue: '{}',
     field: 'season_folders',
   })
-  seasonFolders!: any;
+  seasonFolders!: Map<string, string>;
 
   @HasMany(() => Series)
   series!: Series[];

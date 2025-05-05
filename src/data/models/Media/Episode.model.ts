@@ -2,6 +2,7 @@ import {
   Column,
   DataType,
   ForeignKey,
+  HasOne,
   Model,
   PrimaryKey,
   Table,
@@ -136,16 +137,6 @@ export class Episode extends Model {
   })
   order!: number;
 
-  @Column({
-    type: DataType.TEXT,
-    allowNull: false,
-    get() {
-      const value = this.getDataValue('video');
-      return value ? JSON.parse(value) : {};
-    },
-    set(value: Video) {
-      this.setDataValue('video', JSON.stringify(value));
-    },
-  })
+  @HasOne(() => Video)
   video!: Video;
 }

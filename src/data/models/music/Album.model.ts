@@ -6,13 +6,15 @@ import {
   Model,
   PrimaryKey,
   Table,
-} from "sequelize-typescript";
-import { v4 as uuidv4 } from "uuid";
-import { Collection } from "../Collections/Collection.model";
-import { CollectionAlbum } from "../Collections/CollectionAlbum.model";
-import { Library } from "../Media/Library.model";
+} from 'sequelize-typescript';
+import { v4 as uuidv4 } from 'uuid';
+import { Collection } from '../Collections/Collection.model';
+import { CollectionAlbum } from '../Collections/CollectionAlbum.model';
+import { Library } from '../Media/Library.model';
+import { AlbumArtist } from './AlbumArtist.model';
+import { Artist } from './Artist.model';
 
-@Table({ tableName: "Album", timestamps: false })
+@Table({ tableName: 'Album', timestamps: false })
 export class Album extends Model {
   @PrimaryKey
   @Column({
@@ -26,9 +28,10 @@ export class Album extends Model {
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
-    onDelete: "CASCADE",
+    onDelete: 'CASCADE',
+    field: 'library_id',
   })
-  libraryid!: string;
+  libraryId!: string;
 
   @Column({
     type: DataType.STRING,
@@ -50,4 +53,7 @@ export class Album extends Model {
 
   @BelongsToMany(() => Collection, () => CollectionAlbum)
   collections!: Collection[];
+
+  @BelongsToMany(() => Artist, () => AlbumArtist)
+  artists!: Artist[];
 }

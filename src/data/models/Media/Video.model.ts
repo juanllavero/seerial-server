@@ -6,19 +6,19 @@ import {
   Model,
   PrimaryKey,
   Table,
-} from "sequelize-typescript";
-import { v4 as uuidv4 } from "uuid";
+} from 'sequelize-typescript';
+import { v4 as uuidv4 } from 'uuid';
 import {
   AudioTrack,
   Chapter,
   MediaInfo,
   SubtitleTrack,
   VideoTrack,
-} from "../../interfaces/MediaInfo";
-import { Episode } from "./Episode.model";
-import { Movie } from "./Movie.model";
+} from '../../interfaces/MediaInfo';
+import { Episode } from './Episode.model';
+import { Movie } from './Movie.model';
 
-@Table({ tableName: "Video", timestamps: false })
+@Table({ tableName: 'Video', timestamps: false })
 export class Video extends Model {
   @PrimaryKey
   @Column({
@@ -31,61 +31,73 @@ export class Video extends Model {
   @Column({
     type: DataType.STRING,
     allowNull: false,
+    field: 'file_src',
   })
   fileSrc!: string;
 
   @Column({
     type: DataType.INTEGER,
+    defaultValue: 0,
     allowNull: false,
   })
   runtime!: number;
 
   @Column({
     type: DataType.STRING,
+    defaultValue: '',
     allowNull: false,
+    field: 'img_src',
   })
   imgSrc!: string;
 
   @Column({
     type: DataType.TEXT,
+    defaultValue: [],
     allowNull: false,
+    field: 'img_urls',
     get() {
-      const value = this.getDataValue("imgUrls");
+      const value = this.getDataValue('imgUrls');
       return value ? JSON.parse(value) : [];
     },
     set(value: string[]) {
-      this.setDataValue("imgUrls", JSON.stringify(value));
+      this.setDataValue('imgUrls', JSON.stringify(value));
     },
   })
   imgUrls!: string[];
 
   @Column({
     type: DataType.BOOLEAN,
+    defaultValue: false,
     allowNull: false,
   })
   watched!: boolean;
 
   @Column({
     type: DataType.INTEGER,
+    defaultValue: 0,
     allowNull: false,
+    field: 'time_watched',
   })
   timeWatched!: number;
 
   @Column({
     type: DataType.STRING,
+    defaultValue: '',
     allowNull: false,
+    field: 'last_watched',
   })
   lastWatched!: string;
 
   @Column({
     type: DataType.TEXT,
     allowNull: true,
+    field: 'media_info',
     get() {
-      const value = this.getDataValue("mediaInfo");
+      const value = this.getDataValue('mediaInfo');
       return value ? JSON.parse(value) : undefined;
     },
     set(value: MediaInfo | undefined) {
-      this.setDataValue("mediaInfo", value ? JSON.stringify(value) : null);
+      this.setDataValue('mediaInfo', value ? JSON.stringify(value) : null);
     },
   })
   mediaInfo?: MediaInfo;
@@ -93,12 +105,13 @@ export class Video extends Model {
   @Column({
     type: DataType.TEXT,
     allowNull: true,
+    field: 'video_tracks',
     get() {
-      const value = this.getDataValue("videoTracks");
+      const value = this.getDataValue('videoTracks');
       return value ? JSON.parse(value) : undefined;
     },
     set(value: VideoTrack[] | undefined) {
-      this.setDataValue("videoTracks", value ? JSON.stringify(value) : null);
+      this.setDataValue('videoTracks', value ? JSON.stringify(value) : null);
     },
   })
   videoTracks?: VideoTrack[];
@@ -106,12 +119,13 @@ export class Video extends Model {
   @Column({
     type: DataType.TEXT,
     allowNull: true,
+    field: 'subtitle_tracks',
     get() {
-      const value = this.getDataValue("subtitleTracks");
+      const value = this.getDataValue('subtitleTracks');
       return value ? JSON.parse(value) : undefined;
     },
     set(value: SubtitleTrack[] | undefined) {
-      this.setDataValue("subtitleTracks", value ? JSON.stringify(value) : null);
+      this.setDataValue('subtitleTracks', value ? JSON.stringify(value) : null);
     },
   })
   subtitleTracks?: SubtitleTrack[];
@@ -119,12 +133,13 @@ export class Video extends Model {
   @Column({
     type: DataType.TEXT,
     allowNull: true,
+    field: 'audio_tracks',
     get() {
-      const value = this.getDataValue("audioTracks");
+      const value = this.getDataValue('audioTracks');
       return value ? JSON.parse(value) : undefined;
     },
     set(value: AudioTrack[] | undefined) {
-      this.setDataValue("audioTracks", value ? JSON.stringify(value) : null);
+      this.setDataValue('audioTracks', value ? JSON.stringify(value) : null);
     },
   })
   audioTracks?: AudioTrack[];
@@ -133,11 +148,11 @@ export class Video extends Model {
     type: DataType.TEXT,
     allowNull: true,
     get() {
-      const value = this.getDataValue("chapters");
+      const value = this.getDataValue('chapters');
       return value ? JSON.parse(value) : undefined;
     },
     set(value: Chapter[] | undefined) {
-      this.setDataValue("chapters", value ? JSON.stringify(value) : null);
+      this.setDataValue('chapters', value ? JSON.stringify(value) : null);
     },
   })
   chapters?: Chapter[];
@@ -145,30 +160,34 @@ export class Video extends Model {
   @Column({
     type: DataType.STRING,
     allowNull: true,
+    field: 'extra_type',
   })
-  extra_type?: string;
+  extraType?: string;
 
   @ForeignKey(() => Episode)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.STRING,
     allowNull: true,
-    onDelete: "CASCADE",
+    onDelete: 'CASCADE',
+    field: 'episode_id',
   })
-  episodeId?: number;
+  episodeId?: string;
 
-  @BelongsTo(() => Movie, "videoId")
+  @BelongsTo(() => Movie, 'videoId')
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.STRING,
     allowNull: true,
-    onDelete: "CASCADE",
+    onDelete: 'CASCADE',
+    field: 'movie_id',
   })
-  movieId?: number;
+  movieId?: string;
 
-  @BelongsTo(() => Movie, "extraId")
+  @BelongsTo(() => Movie, 'extraId')
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.STRING,
     allowNull: true,
-    onDelete: "CASCADE",
+    onDelete: 'CASCADE',
+    field: 'extra_id',
   })
-  extraId?: number;
+  extraId?: string;
 }

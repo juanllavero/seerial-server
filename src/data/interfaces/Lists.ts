@@ -1,4 +1,4 @@
-import { Movie, Series } from "./Media";
+import { Movie, Series } from './Media';
 
 export interface MyListItem {
   id?: number;

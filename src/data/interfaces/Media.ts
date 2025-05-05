@@ -4,7 +4,7 @@ import {
   MediaInfo,
   SubtitleTrack,
   VideoTrack,
-} from "./MediaInfo";
+} from './MediaInfo';
 
 export interface Cast {
   name: string;
@@ -13,11 +13,12 @@ export interface Cast {
 }
 
 export interface Library {
-  id?: number;
+  id?: string;
   name: string;
   language: string;
   type: string;
   order: number;
+  hidden: boolean;
   folders: string[];
   preferAudioLan?: string;
   preferSubLan?: string;
@@ -28,15 +29,15 @@ export interface Library {
 }
 
 export interface Collection {
-  id?: number;
+  id?: string;
   title: string;
   description?: string;
 }
 
 export interface Series {
-  id?: number;
-  libraryId: number;
-  themdbID: number;
+  id?: string;
+  libraryId: string;
+  themdbId: number;
   order: number;
   name: string;
   nameLock: boolean;
@@ -64,16 +65,16 @@ export interface Series {
   cast: Cast[];
 
   folder: string;
-  episodeGroupID: string;
+  episodeGroupId: string;
   analyzingFiles: boolean;
-  currentlyWatchingEpisodeID: number;
+  currentlyWatchingEpisodeId: string;
   watched: boolean;
 }
 
 export interface Season {
-  id?: number;
-  seriesID: number;
-  themdbID: number;
+  id?: string;
+  seriesId: string;
+  themdbId: number;
   order: number;
   name: string;
   nameLock: boolean;
@@ -99,8 +100,8 @@ export interface Season {
 }
 
 export interface Episode {
-  id?: number;
-  seasonID: number;
+  id?: string;
+  seasonId: string;
   name: string;
   nameLock: boolean;
   year: string;
@@ -117,13 +118,11 @@ export interface Episode {
   episodeNumber: number;
   seasonNumber: number;
   order: number;
-
-  video: Video;
 }
 
 export interface Movie {
-  id?: number;
-  libraryId: number;
+  id?: string;
+  libraryId: string;
   imdbId: string;
   themdbId: number;
   imdbScore: number;
@@ -152,6 +151,8 @@ export interface Movie {
   musicComposerLock: boolean;
   cast: Cast[];
 
+  folder: string;
+
   logoSrc: string;
   logosUrls: string[];
   coverSrc: string;
@@ -160,7 +161,7 @@ export interface Movie {
 }
 
 export interface Video {
-  id?: number;
+  id?: string;
   fileSrc: string;
   runtime: number;
   imgSrc: string;
@@ -175,9 +176,8 @@ export interface Video {
   audioTracks?: AudioTrack[];
   chapters?: Chapter[];
 
-  isMovieExtra: boolean;
-  extra_type?: string;
+  extraType?: string;
 
-  episodeId?: number;
-  movieId?: number;
+  episodeId?: string;
+  movieId?: string;
 }

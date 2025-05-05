@@ -5,12 +5,12 @@ import {
   Model,
   PrimaryKey,
   Table,
-} from "sequelize-typescript";
-import { v4 as uuidv4 } from "uuid";
-import { Album } from "./Album.model";
-import { Artist } from "./Artist.model";
+} from 'sequelize-typescript';
+import { v4 as uuidv4 } from 'uuid';
+import { Album } from './Album.model';
+import { Artist } from './Artist.model';
 
-@Table({ tableName: "Album_Artist", timestamps: false })
+@Table({ tableName: 'Album_Artist', timestamps: false })
 export class AlbumArtist extends Model {
   @PrimaryKey
   @Column({
@@ -24,13 +24,15 @@ export class AlbumArtist extends Model {
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
+    field: 'artist_id',
   })
-  artist_id!: string;
+  artistId!: string;
 
   @ForeignKey(() => Album)
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
+    field: 'album_id',
   })
-  album_id!: string;
+  albumId!: string;
 }

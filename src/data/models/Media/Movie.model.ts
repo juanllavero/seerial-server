@@ -46,7 +46,7 @@ export class Movie extends Model {
     allowNull: false,
     field: 'themdb_id',
   })
-  themdbId!: string;
+  themdbId!: number;
 
   @Column({
     type: DataType.FLOAT,
@@ -142,6 +142,7 @@ export class Movie extends Model {
   @Column({
     type: DataType.TEXT,
     allowNull: false,
+    field: 'production_studios',
     get() {
       const value = this.getDataValue('productionStudios');
       return value ? JSON.parse(value) : [];
@@ -155,12 +156,14 @@ export class Movie extends Model {
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
+    field: 'production_studios_lock',
   })
   productionStudiosLock!: boolean;
 
   @Column({
     type: DataType.TEXT,
     allowNull: false,
+    field: 'directed_by',
     get() {
       const value = this.getDataValue('directedBy');
       return value ? JSON.parse(value) : [];
@@ -174,12 +177,14 @@ export class Movie extends Model {
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
+    field: 'directed_by_lock',
   })
   directedByLock!: boolean;
 
   @Column({
     type: DataType.TEXT,
     allowNull: false,
+    field: 'written_by',
     get() {
       const value = this.getDataValue('writtenBy');
       return value ? JSON.parse(value) : [];
@@ -193,6 +198,7 @@ export class Movie extends Model {
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
+    field: 'written_by_lock',
   })
   writtenByLock!: boolean;
 
@@ -212,12 +218,14 @@ export class Movie extends Model {
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
+    field: 'creator_lock',
   })
   creatorLock!: boolean;
 
   @Column({
     type: DataType.TEXT,
     allowNull: false,
+    field: 'music_composer',
     get() {
       const value = this.getDataValue('musicComposer');
       return value ? JSON.parse(value) : [];
@@ -231,6 +239,7 @@ export class Movie extends Model {
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
+    field: 'music_composer_lock',
   })
   musicComposerLock!: boolean;
 
@@ -250,12 +259,14 @@ export class Movie extends Model {
   @Column({
     type: DataType.STRING,
     allowNull: true,
+    field: 'logo_src',
   })
   logoSrc!: string[];
 
   @Column({
     type: DataType.TEXT,
     allowNull: false,
+    field: 'logos_urls',
     get() {
       const value = this.getDataValue('logosUrls');
       return value ? JSON.parse(value) : [];
@@ -269,12 +280,14 @@ export class Movie extends Model {
   @Column({
     type: DataType.STRING,
     allowNull: true,
+    field: 'cover_src',
   })
   coverSrc!: string;
 
   @Column({
     type: DataType.TEXT,
     allowNull: false,
+    field: 'covers_urls',
     get() {
       const value = this.getDataValue('coversUrls');
       return value ? JSON.parse(value) : [];
@@ -291,6 +304,12 @@ export class Movie extends Model {
     defaultValue: false,
   })
   watched!: boolean;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+  })
+  folder!: string;
 
   @BelongsToMany(() => Collection, () => CollectionMovie)
   collections!: Collection[];
