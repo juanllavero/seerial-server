@@ -1,46 +1,52 @@
-import axios from "axios";
-import { spawn } from "child_process";
-import ffmpegPath from "ffmpeg-static";
-import ffprobePath from "ffprobe-static";
-import ffmpeg from "fluent-ffmpeg";
-import * as fs from "fs";
-import { Episode as MovieDBEpisode, TvSeasonResponse } from "moviedb-promise";
-import path from "path";
-import { WebSocketManager } from "../WebSockets/WebSocketManager";
-import { EpisodeData } from "../data/interfaces/EpisodeData";
+import axios from 'axios';
+import { spawn } from 'child_process';
+import ffmpegPath from 'ffmpeg-static';
+import ffprobePath from 'ffprobe-static';
+import ffmpeg from 'fluent-ffmpeg';
+import * as fs from 'fs';
 import {
-  AudioTrackData,
-  ChapterData,
-  MediaInfoData,
-  SubtitleTrackData,
-  VideoTrackData,
-} from "../data/interfaces/MediaInfo";
-import { Episode } from "../data/objects/Episode";
-import { Library } from "../data/objects/Library";
-import { Season } from "../data/objects/Season";
-import { Series } from "../data/objects/Series";
+  Episode,
+  Episode as MovieDBEpisode,
+  TvSeasonResponse,
+} from 'moviedb-promise';
+import path from 'path';
+import { WebSocketManager } from '../WebSockets/WebSocketManager';
+import {
+  Episode as EpisodeData,
+  Library,
+  Season,
+  Series,
+} from '../data/interfaces/Media';
+import {
+  AudioTrack as AudioTrackData,
+  Chapter as ChapterData,
+  MediaInfo as MediaInfoData,
+  SubtitleTrack as SubtitleTrackData,
+  VideoTrack as VideoTrackData,
+} from '../data/interfaces/MediaInfo';
+import { Video } from '../data/models/Media/Video.model';
 
 ffmpeg.setFfprobePath(ffprobePath.path);
 
 export class Utils {
   static videoExtensions = [
-    ".mp4",
-    ".mkv",
-    ".avi",
-    ".mov",
-    ".wmv",
-    ".flv",
-    ".mpeg",
-    ".m2ts",
+    '.mp4',
+    '.mkv',
+    '.avi',
+    '.mov',
+    '.wmv',
+    '.flv',
+    '.mpeg',
+    '.m2ts',
   ];
   static audioExtensions = [
-    ".mp3",
-    ".flac",
-    ".wav",
-    ".m4a",
-    ".ogg",
-    ".aac",
-    ".wma",
+    '.mp3',
+    '.flac',
+    '.wav',
+    '.m4a',
+    '.ogg',
+    '.aac',
+    '.wma',
   ];
 
   // Function to resize to 1080p
@@ -49,15 +55,15 @@ export class Utils {
     outputPath: string
   ) => {
     return new Promise<void>((resolve, reject) => {
-      ffmpeg.setFfmpegPath(ffmpegPath || "");
+      ffmpeg.setFfmpegPath(ffmpegPath || '');
       ffmpeg(inputPath)
         .outputOptions(
-          "-vf",
+          '-vf',
           "scale='if(gt(iw,720),720,iw)':'if(gt(ih,480),480,ih)'"
         ) // Resize to 1080p if necessary
         .output(outputPath)
-        .on("end", () => resolve())
-        .on("error", (err) => reject(err))
+        .on('end', () => resolve())
+        .on('error', (err) => reject(err))
         .run();
     });
   };
@@ -66,28 +72,28 @@ export class Utils {
   public static extractNameAndYear(source: string) {
     // Remove parentheses and extra spaces
     const cleanSource = source
-      .replace(/[()]/g, "")
-      .replace(/\s{2,}/g, " ")
+      .replace(/[()]/g, '')
+      .replace(/\s{2,}/g, ' ')
       .trim();
 
     // Regex to get name and year
     const regex = /^(.*?)(?:[\s.-]*(\d{4}))?$/;
     const match = cleanSource.match(regex);
 
-    let name = "";
-    let year = "1";
+    let name = '';
+    let year = '1';
 
     if (match) {
       name = match[1];
-      year = match[2] || "1";
+      year = match[2] || '1';
     } else {
       name = cleanSource;
     }
 
     // Clean and format the name
     name = name
-      .replace(/[-_]/g, " ")
-      .replace(/\s{2,}/g, " ")
+      .replace(/[-_]/g, ' ')
+      .replace(/\s{2,}/g, ' ')
       .trim();
 
     return [name, year];
@@ -202,7 +208,7 @@ export class Utils {
     return new Promise((resolve, reject) => {
       // Create a timeout to stop execution
       const timeout = setTimeout(() => {
-        reject(new Error("ffprobe timed out"));
+        reject(new Error('ffprobe timed out'));
       }, timeoutMs);
 
       // Exec ffprobe
@@ -230,30 +236,29 @@ export class Utils {
       const format = data?.format;
 
       if (format && format.duration) {
-        song.runtimeInSeconds = format.duration;
-        song.runtime = song.runtimeInSeconds / 60;
+        song.runtime = format.duration / 60;
       } else {
-        console.log("Failed to get runtime for song:", musicFile);
+        console.log('Failed to get runtime for song:', musicFile);
       }
     } catch (err) {
-      console.log("Failed to get runtime", { error: err });
+      console.log('Failed to get runtime', { error: err });
       throw err; // Re-lanzar el error para que el llamador lo maneje si es necesario
     }
   }
 
   public static async getMediaInfo(
-    episode: EpisodeData | undefined,
+    video: Video | undefined,
     getChapters: boolean = true
-  ): Promise<EpisodeData | undefined> {
-    if (!episode) {
-      console.log("Episode is undefined, skipping media info retrieval");
+  ): Promise<Video | undefined> {
+    if (!video) {
+      console.log('Video is undefined, skipping media info retrieval');
       return undefined;
     }
 
-    const videoPath = episode.videoSrc;
+    const videoPath = video.fileSrc;
 
-    if (!videoPath || videoPath === "") {
-      console.log("Video file does not exist or path is empty", { videoPath });
+    if (!videoPath || videoPath === '') {
+      console.log('Video file does not exist or path is empty', { videoPath });
       return undefined;
     }
 
@@ -264,97 +269,96 @@ export class Utils {
 
       // Configura la información general del medio
       let fileSize = format.size ? format.size : 0;
-      let sizeSufix = " GB";
+      let sizeSufix = ' GB';
       fileSize = fileSize / Math.pow(1024, 3);
 
       if (fileSize < 1) {
         fileSize = fileSize * Math.pow(1024, 1);
-        sizeSufix = " MB";
+        sizeSufix = ' MB';
       }
 
       const mediaInfo: MediaInfoData = {
         file: path.basename(videoPath),
         location: videoPath,
         bitrate: format.bit_rate
-          ? (format.bit_rate / Math.pow(10, 3)).toFixed(2) + " kbps"
-          : "0",
-        duration: format.duration ? Utils.formatTime(format.duration) : "0",
+          ? (format.bit_rate / Math.pow(10, 3)).toFixed(2) + ' kbps'
+          : '0',
+        duration: format.duration ? Utils.formatTime(format.duration) : '0',
         size: fileSize.toFixed(2) + sizeSufix,
-        container: path.extname(videoPath).replace(".", "").toUpperCase(),
+        container: path.extname(videoPath).replace('.', '').toUpperCase(),
       };
-      episode.mediaInfo = mediaInfo;
+      video.mediaInfo = mediaInfo;
 
       // Establece la duración real del video
       if (format.duration) {
-        episode.runtimeInSeconds = format.duration;
-        episode.runtime = episode.runtimeInSeconds / 60;
+        video.runtime = format.duration / 60;
       }
 
       // Limpia las listas anteriores de pistas
-      episode.videoTracks = [];
-      episode.audioTracks = [];
-      episode.subtitleTracks = [];
+      video.videoTracks = [];
+      video.audioTracks = [];
+      video.subtitleTracks = [];
 
       for (const stream of streams) {
         const codecType = stream.codec_type;
-        if (codecType === "video") {
-          Utils.processVideoData(stream, episode);
-        } else if (codecType === "audio") {
-          Utils.processAudioData(stream, episode);
-        } else if (codecType === "subtitle") {
-          Utils.processSubtitleData(stream, episode);
+        if (codecType === 'video') {
+          Utils.processVideoData(stream, video);
+        } else if (codecType === 'audio') {
+          Utils.processAudioData(stream, video);
+        } else if (codecType === 'subtitle') {
+          Utils.processSubtitleData(stream, video);
         }
       }
 
       if (getChapters) {
-        episode.chapters = await this.getChapters(episode);
+        video.chapters = await this.getChapters(video);
       }
 
-      return episode;
+      return video;
     } catch (err) {
-      console.log("Failed to get media info", { error: err });
+      console.log('Failed to get media info', { error: err });
       throw err; // Re-lanzar para manejo externo si es necesario
     }
   }
 
   // Procesa datos de video
-  private static processVideoData(stream: any, episode: EpisodeData) {
+  private static processVideoData(stream: any, video: Video) {
     const videoTrack: VideoTrackData = {
       id: stream.index,
-      codec: stream.codec_name?.toUpperCase() || "",
-      displayTitle: "",
+      codec: stream.codec_name?.toUpperCase() || '',
+      displayTitle: '',
       selected: false,
-      codecExt: "",
-      bitrate: "",
-      framerate: "",
-      codedHeight: "",
-      codedWidth: "",
-      chromaLocation: "",
-      colorSpace: "",
-      aspectRatio: "",
-      profile: "",
-      refFrames: "",
-      colorRange: "",
+      codecExt: '',
+      bitrate: '',
+      framerate: '',
+      codedHeight: '',
+      codedWidth: '',
+      chromaLocation: '',
+      colorSpace: '',
+      aspectRatio: '',
+      profile: '',
+      refFrames: '',
+      colorRange: '',
     };
 
-    let resolution: string = "";
-    let hdr: string = "";
+    let resolution: string = '';
+    let hdr: string = '';
 
     if (stream.codec_long_name) videoTrack.codecExt = stream.codec_long_name;
 
-    if (stream.tags && stream.tags["BPS"])
+    if (stream.tags && stream.tags['BPS'])
       videoTrack.bitrate = Math.round(
-        parseFloat(stream.tags["BPS"]) / Math.pow(10, 3)
+        parseFloat(stream.tags['BPS']) / Math.pow(10, 3)
       ).toString();
 
     if (stream.avg_frame_rate) {
       const [numerator, denominator] = stream.avg_frame_rate
-        .split("/")
+        .split('/')
         .map(Number);
       if (denominator && denominator !== 0) {
-        videoTrack.framerate = (numerator / denominator).toFixed(3) + " fps";
+        videoTrack.framerate = (numerator / denominator).toFixed(3) + ' fps';
       } else {
-        videoTrack.framerate = numerator.toFixed(3) + " fps";
+        videoTrack.framerate = numerator.toFixed(3) + ' fps';
       }
     }
 
@@ -366,44 +370,44 @@ export class Utils {
       videoTrack.codedHeight
     );
 
-    if (stream["chroma_location"])
-      videoTrack.chromaLocation = stream["chroma_location"];
+    if (stream['chroma_location'])
+      videoTrack.chromaLocation = stream['chroma_location'];
 
-    if (stream["color_space"]) {
-      if (stream["color_space"] == "bt2020nc") hdr = "HDR10";
-      videoTrack.colorSpace = stream["color_space"];
+    if (stream['color_space']) {
+      if (stream['color_space'] == 'bt2020nc') hdr = 'HDR10';
+      videoTrack.colorSpace = stream['color_space'];
     }
 
-    if (stream["display_aspect_ratio"])
-      videoTrack.aspectRatio = stream["display_aspect_ratio"];
+    if (stream['display_aspect_ratio'])
+      videoTrack.aspectRatio = stream['display_aspect_ratio'];
 
-    if (stream["profile"]) videoTrack.profile = stream["profile"];
+    if (stream['profile']) videoTrack.profile = stream['profile'];
 
-    if (stream["refs"]) videoTrack.refFrames = stream["refs"];
+    if (stream['refs']) videoTrack.refFrames = stream['refs'];
 
-    if (stream["color_range"]) videoTrack.colorRange = stream["color_range"];
+    if (stream['color_range']) videoTrack.colorRange = stream['color_range'];
 
     // Rellenar otros datos
     videoTrack.displayTitle = `${resolution} ${hdr} (${videoTrack.codec} ${videoTrack.profile})`;
-    episode.videoTracks.push(videoTrack);
+    if (video.videoTracks) video.videoTracks.push(videoTrack);
   }
 
   // Procesa datos de audio
-  private static processAudioData(stream: any, episode: EpisodeData) {
+  private static processAudioData(stream: any, video: Video) {
     const audioTrack: AudioTrackData = {
       id: stream.index,
-      codec: stream.codec_name?.toUpperCase() || "",
-      displayTitle: "",
-      language: "",
-      languageTag: "",
+      codec: stream.codec_name?.toUpperCase() || '',
+      displayTitle: '',
+      language: '',
+      languageTag: '',
       selected: false,
-      codecExt: "",
-      channels: "",
-      channelLayout: "",
-      bitrate: "",
-      bitDepth: "",
-      profile: "",
-      samplingRate: "",
+      codecExt: '',
+      channels: '',
+      channelLayout: '',
+      bitrate: '',
+      bitDepth: '',
+      profile: '',
+      samplingRate: '',
     };
 
     if (stream.codec_long_name) audioTrack.codecExt = stream.codec_long_name;
@@ -411,82 +415,82 @@ export class Utils {
     if (stream.channels)
       audioTrack.channels = Utils.formatAudioChannels(stream.channels);
 
-    if (stream["channel_layout"])
-      audioTrack.channelLayout = stream["channel_layout"];
+    if (stream['channel_layout'])
+      audioTrack.channelLayout = stream['channel_layout'];
 
-    if (stream.tags && stream.tags["BPS"])
+    if (stream.tags && stream.tags['BPS'])
       audioTrack.bitrate = Math.round(
-        parseFloat(stream.tags["BPS"]) / Math.pow(10, 3)
+        parseFloat(stream.tags['BPS']) / Math.pow(10, 3)
       ).toString();
 
-    if (stream.tags && stream.tags["language"]) {
-      audioTrack.languageTag = stream.tags["language"];
+    if (stream.tags && stream.tags['language']) {
+      audioTrack.languageTag = stream.tags['language'];
 
-      const languageNames = new Intl.DisplayNames(["en"], {
-        type: "language",
-        languageDisplay: "standard",
+      const languageNames = new Intl.DisplayNames(['en'], {
+        type: 'language',
+        languageDisplay: 'standard',
       });
       const languageName = languageNames.of(audioTrack.languageTag);
 
       if (languageName) audioTrack.language = languageName;
     }
 
-    if (stream["bits_per_raw_sample"] != "N/A")
-      audioTrack.bitDepth = stream["bits_per_raw_sample"];
+    if (stream['bits_per_raw_sample'] != 'N/A')
+      audioTrack.bitDepth = stream['bits_per_raw_sample'];
 
-    if (stream["profile"]) {
-      if (stream["profile"] == "DTS-HD MA") audioTrack.profile = "ma";
-      else if (stream.profile == "LC") audioTrack.profile = "lc";
+    if (stream['profile']) {
+      if (stream['profile'] == 'DTS-HD MA') audioTrack.profile = 'ma';
+      else if (stream.profile == 'LC') audioTrack.profile = 'lc';
     }
 
-    if (stream["sample_rate"])
-      audioTrack.samplingRate = stream["sample_rate"] + " hz";
+    if (stream['sample_rate'])
+      audioTrack.samplingRate = stream['sample_rate'] + ' hz';
 
-    let codecDisplayName: string = "";
-    if (stream.profile && stream.profile == "DTS-HD MA")
+    let codecDisplayName: string = '';
+    if (stream.profile && stream.profile == 'DTS-HD MA')
       codecDisplayName = stream.profile;
     else codecDisplayName = stream.codec_name.toUpperCase();
 
     audioTrack.displayTitle = `(${codecDisplayName} ${audioTrack.channels})`;
-    episode.audioTracks.push(audioTrack);
+    if (video.audioTracks) video.audioTracks.push(audioTrack);
   }
 
   // Procesa datos de subtítulos
-  private static processSubtitleData(stream: any, episode: EpisodeData) {
+  private static processSubtitleData(stream: any, video: Video) {
     const subtitleTrack: SubtitleTrackData = {
       id: stream.index,
-      codec: stream.codec_name?.toUpperCase() || "",
-      displayTitle: "",
-      language: "",
-      languageTag: "",
+      codec: stream.codec_name?.toUpperCase() || '',
+      displayTitle: '',
+      language: '',
+      languageTag: '',
       selected: false,
-      codecExt: "",
-      title: "",
+      codecExt: '',
+      title: '',
     };
 
-    let codecDisplayName: string = "";
+    let codecDisplayName: string = '';
     codecDisplayName = stream.codec_name.toUpperCase();
 
-    if (codecDisplayName == "HDMV_PGS_SUBTITLE") codecDisplayName = "PGS";
-    else if (codecDisplayName == "SUBRIP") codecDisplayName = "SRT";
+    if (codecDisplayName == 'HDMV_PGS_SUBTITLE') codecDisplayName = 'PGS';
+    else if (codecDisplayName == 'SUBRIP') codecDisplayName = 'SRT';
 
     if (stream.codec_long_name) {
       subtitleTrack.codecExt = stream.codec_long_name;
     }
 
-    if (stream.tags && stream.tags["language"]) {
-      subtitleTrack.languageTag = stream.tags["language"];
+    if (stream.tags && stream.tags['language']) {
+      subtitleTrack.languageTag = stream.tags['language'];
       subtitleTrack.language = stream.language;
     }
 
-    if (stream.tags && stream.tags["title"]) {
-      subtitleTrack.title = stream.tags["title"];
+    if (stream.tags && stream.tags['title']) {
+      subtitleTrack.title = stream.tags['title'];
     }
 
     subtitleTrack.displayTitle = `${
-      stream.disposition["forced"] === 1 ? "(Forced)" : ""
+      stream.disposition['forced'] === 1 ? '(Forced)' : ''
     } (${codecDisplayName})`;
-    episode.subtitleTracks.push(subtitleTrack);
+    if (video.subtitleTracks) video.subtitleTracks.push(subtitleTrack);
   }
 
   // Formato de la resolución del video
@@ -494,19 +498,19 @@ export class Utils {
     const widthNum = parseInt(width, 10); // Convertir a número
     switch (widthNum) {
       case 7680:
-        return "8K";
+        return '8K';
       case 3840:
-        return "4K";
+        return '4K';
       case 2560:
-        return "QHD";
+        return 'QHD';
       case 1920:
-        return "1080p";
+        return '1080p';
       case 1280:
-        return "720p";
+        return '720p';
       case 854:
-        return "480p";
+        return '480p';
       case 640:
-        return "360p";
+        return '360p';
       default:
         return `${height}p`;
     }
@@ -516,13 +520,13 @@ export class Utils {
   private static formatAudioChannels(channels: number): string {
     switch (channels) {
       case 1:
-        return "MONO";
+        return 'MONO';
       case 2:
-        return "STEREO";
+        return 'STEREO';
       case 6:
-        return "5.1";
+        return '5.1';
       case 8:
-        return "7.1";
+        return '7.1';
       default:
         return `${channels} channels`;
     }
@@ -534,9 +538,9 @@ export class Utils {
     const m = Math.floor((seconds % 3600) / 60);
     const s = Math.floor(seconds % 60);
 
-    return `${h.toString().padStart(2, "0")}:${m
+    return `${h.toString().padStart(2, '0')}:${m
       .toString()
-      .padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+      .padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   }
 
   public static formatTime(time: number): string {
@@ -545,65 +549,63 @@ export class Utils {
     const s = Math.floor(time % 60);
 
     if (h > 0) {
-      return `${h.toString().padStart(2, "0")}:${m
+      return `${h.toString().padStart(2, '0')}:${m
         .toString()
-        .padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+        .padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     }
 
-    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   }
 
-  public static async getChapters(
-    episode: EpisodeData
-  ): Promise<ChapterData[]> {
+  public static async getChapters(video: Video): Promise<ChapterData[]> {
     const chaptersArray: ChapterData[] = [];
-    if (!episode.videoSrc || episode.videoSrc === "") {
-      console.log("No video source provided for chapters extraction", {
-        episode,
+    if (!video.fileSrc || video.fileSrc === '') {
+      console.log('No video source provided for chapters extraction', {
+        video,
       });
       return chaptersArray;
     }
 
-    const ffprobeCommand = `${ffprobePath.path} -v error -show_entries chapter -of json -i "${episode.videoSrc}"`;
+    const ffprobeCommand = `${ffprobePath.path} -v error -show_entries chapter -of json -i "${video.fileSrc}"`;
     const timeoutMs = 10000;
 
     return new Promise((resolve) => {
-      console.log(`Extracting chapters for episode: ${episode.videoSrc}`, {
+      console.log(`Extracting chapters for episode: ${video.fileSrc}`, {
         command: ffprobeCommand,
       });
 
       const process = spawn(ffprobePath.path, [
-        "-v",
-        "error",
-        "-show_entries",
-        "chapter",
-        "-of",
-        "json",
-        "-i",
-        episode.videoSrc,
+        '-v',
+        'error',
+        '-show_entries',
+        'chapter',
+        '-of',
+        'json',
+        '-i',
+        video.fileSrc,
       ]);
 
-      let stdout = "";
-      let stderr = "";
+      let stdout = '';
+      let stderr = '';
 
-      process.stdout.on("data", (data) => (stdout += data));
-      process.stderr.on("data", (data) => (stderr += data));
+      process.stdout.on('data', (data) => (stdout += data));
+      process.stderr.on('data', (data) => (stderr += data));
 
       const timeout = setTimeout(() => {
-        process.kill("SIGTERM");
+        process.kill('SIGTERM');
         console.log(`ffprobe timed out after ${timeoutMs}ms`, {
-          file: episode.videoSrc,
+          file: video.fileSrc,
         });
         resolve(chaptersArray);
       }, timeoutMs);
 
-      process.on("close", (code) => {
+      process.on('close', (code) => {
         clearTimeout(timeout);
         if (code !== 0) {
-          console.log("ffprobe exited with error", {
+          console.log('ffprobe exited with error', {
             code,
             stderr,
-            file: episode.videoSrc,
+            file: video.fileSrc,
           });
           resolve(chaptersArray);
           return;
@@ -615,25 +617,25 @@ export class Utils {
           if (chapters.length > 0) {
             for (const chapter of chapters) {
               const chapterData: ChapterData = {
-                title: chapter.title || "Sin título",
+                title: chapter.title || 'Sin título',
                 time: chapter.start_time || 0,
                 displayTime: Utils.formatTime(chapter.start_time || 0),
-                thumbnailSrc: "",
+                thumbnailSrc: '',
               };
               chaptersArray.push(chapterData);
             }
-            console.log("Chapters extracted", {
+            console.log('Chapters extracted', {
               chapterCount: chaptersArray.length,
             });
           } else {
-            console.log("No chapters found in the file", {
-              file: episode.videoSrc,
+            console.log('No chapters found in the file', {
+              file: video.fileSrc,
             });
           }
         } catch (error: any) {
-          console.log("Error parsing chapters", {
+          console.log('Error parsing chapters', {
             error: error.message,
-            file: episode.videoSrc,
+            file: video.fileSrc,
           });
         }
         resolve(chaptersArray);
@@ -646,14 +648,14 @@ export class Utils {
     try {
       const files = fs.readdirSync(dirPath);
       const images = files.filter((file) =>
-        [".png", ".jpg", ".jpeg", ".gif"].includes(
+        ['.png', '.jpg', '.jpeg', '.gif'].includes(
           path.extname(file).toLowerCase()
         )
       );
       return images.map((image) => path.join(dirPath, image));
     } catch (error) {
       console.log(
-        "DataManager.getImages: Error getting images for path " + dirPath
+        'DataManager.getImages: Error getting images for path ' + dirPath
       );
       return [];
     }
@@ -663,15 +665,15 @@ export class Utils {
     try {
       const response = await axios({
         url,
-        method: "GET",
-        responseType: "stream",
+        method: 'GET',
+        responseType: 'stream',
       });
 
       return new Promise<void>((resolve, reject) => {
         const writer = fs.createWriteStream(filePath);
         response.data.pipe(writer);
-        writer.on("finish", resolve);
-        writer.on("error", reject);
+        writer.on('finish', resolve);
+        writer.on('error', reject);
       });
     } catch (error: any) {
       throw new Error(`Error downloading image: ${error.message}`);
@@ -679,9 +681,9 @@ export class Utils {
   };
 
   public static getFileName(filePath: string) {
-    const fileNameWithExtension = filePath.split(/[/\\]/).pop() || "";
+    const fileNameWithExtension = filePath.split(/[/\\]/).pop() || '';
     const fileName =
-      fileNameWithExtension.split(".").slice(0, -1).join(".") ||
+      fileNameWithExtension.split('.').slice(0, -1).join('.') ||
       fileNameWithExtension;
     return fileName;
   }
@@ -802,13 +804,13 @@ export class Utils {
     folderPath: string
   ): Promise<string | null> => {
     const files = await fs.promises.readdir(folderPath);
-    const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp"];
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp'];
 
     for (const file of files) {
       const fileExt = path.extname(file).toLowerCase();
       if (
         imageExtensions.includes(fileExt) &&
-        file.toLowerCase().includes("cover")
+        file.toLowerCase().includes('cover')
       ) {
         return path.join(folderPath, file);
       }
@@ -825,7 +827,7 @@ export class Utils {
   public static isValidURL = (urlString: string) => {
     try {
       const url = new URL(urlString);
-      return url.protocol === "http:" || url.protocol === "https:";
+      return url.protocol === 'http:' || url.protocol === 'https:';
     } catch (err) {
       return false;
     }
@@ -834,9 +836,9 @@ export class Utils {
   //#region WEBSOCKET CONTENT MESSAGES
   public static addLibrary = (ws: WebSocketManager, library: Library) => {
     const message = {
-      header: "ADD_LIBRARY",
+      header: 'ADD_LIBRARY',
       body: {
-        library: library.toJSON(),
+        library: library,
       },
     };
     ws.broadcast(JSON.stringify(message));
@@ -844,9 +846,9 @@ export class Utils {
 
   public static updateLibrary = (ws: WebSocketManager, library: Library) => {
     const message = {
-      header: "UPDATE_LIBRARY",
+      header: 'UPDATE_LIBRARY',
       body: {
-        library: library.toJSON(),
+        library: library,
       },
     };
     ws.broadcast(JSON.stringify(message));
@@ -858,10 +860,10 @@ export class Utils {
     series: Series
   ) => {
     const message = {
-      header: "ADD_SERIES",
+      header: 'ADD_SERIES',
       body: {
         libraryId: libraryId,
-        series: series.toJSON(),
+        series: series,
       },
     };
     ws.broadcast(JSON.stringify(message));
@@ -873,10 +875,10 @@ export class Utils {
     series: Series
   ) => {
     const message = {
-      header: "UPDATE_SERIES",
+      header: 'UPDATE_SERIES',
       body: {
         libraryId: libraryId,
-        series: series.toJSON(),
+        series: series,
       },
     };
     ws.broadcast(JSON.stringify(message));
@@ -888,10 +890,10 @@ export class Utils {
     season: Season
   ) => {
     const message = {
-      header: "ADD_SEASON",
+      header: 'ADD_SEASON',
       body: {
         libraryId: libraryId,
-        season: season.toJSON(),
+        season: season,
       },
     };
     ws.broadcast(JSON.stringify(message));
@@ -901,14 +903,14 @@ export class Utils {
     ws: WebSocketManager,
     libraryId: string,
     showId: string,
-    episode: Episode
+    episode: EpisodeData
   ) => {
     const message = {
-      header: "ADD_EPISODE",
+      header: 'ADD_EPISODE',
       body: {
         libraryId: libraryId,
         showId: showId,
-        episode: episode.toJSON(),
+        episode: episode,
       },
     };
     ws.broadcast(JSON.stringify(message));
@@ -921,7 +923,7 @@ export class Utils {
     seasonId: string
   ) => {
     const message = {
-      header: "DELETE_SEASON",
+      header: 'DELETE_SEASON',
       body: {
         libraryId,
         seriesId,
@@ -937,7 +939,7 @@ export class Utils {
     seriesId: string
   ) => {
     const message = {
-      header: "DELETE_SERIES",
+      header: 'DELETE_SERIES',
       body: {
         libraryId,
         seriesId,

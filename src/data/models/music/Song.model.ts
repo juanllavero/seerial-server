@@ -22,6 +22,13 @@ export class Song extends Model {
   })
   id!: string;
 
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+    field: 'file_src',
+  })
+  fileSrc!: string;
+
   @ForeignKey(() => Album)
   @Column({
     type: DataType.INTEGER,

@@ -168,6 +168,7 @@ export interface Movie {
 
 export interface Video {
   id: string;
+  title: string;
   fileSrc: string;
   runtime: number;
   imgSrc: string;

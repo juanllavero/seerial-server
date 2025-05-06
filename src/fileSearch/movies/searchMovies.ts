@@ -1,11 +1,11 @@
 import fs from 'fs-extra';
 import { MovieResponse } from 'moviedb-promise';
+import { wsManager } from '../..';
 import { Collection } from '../../data/models/Collections/Collection.model';
 import { Movie } from '../../data/models/Media/Movie.model';
-import { Series } from '../../data/models/Media/Series.model';
 import { Video } from '../../data/models/Media/Video.model';
-import { getVideoById } from '../../db/get/getData';
-import { addVideoAsMovie } from '../../db/post/postData';
+import { getCollectionById, getVideoById } from '../../db/get/getData';
+import { addMovieToCollection, addVideoAsMovie } from '../../db/post/postData';
 import { MovieDBWrapper } from '../../theMovieDB/MovieDB';
 import { FilesManager } from '../../utils/FilesManager';
 import { IMDBScores } from '../../utils/IMDBScores';
@@ -13,89 +13,23 @@ import { Utils } from '../../utils/Utils';
 import { WebSocketManager } from '../../WebSockets/WebSocketManager';
 import { FileSearch } from '../FileSearch';
 
+/**
+ * Scans a specific folder for movies and collections
+ * @param root Root folder/file to search into
+ * @param wsManager WebSocket Manager to communicate with the client apps
+ */
 export async function scanMovie(root: string, wsManager: WebSocketManager) {
   if (!FileSearch.library) return;
 
   if (!(await Utils.isFolder(root))) {
-    //#region MOVIE FILE ONLY
+    // ONLY ONE FILE
     if (!Utils.isVideoFile(root)) return;
 
-    const fileFullName = Utils.getFileName(root);
-    const nameAndYear = Utils.extractNameAndYear(fileFullName);
-
-    let name = nameAndYear[0];
-    let year = nameAndYear[1];
-
-    const movieMetadata = await searchMovie(name, year);
-
-    let show = new Series();
-    show.name = name;
-    show.folder = root;
-    show.analyzingFiles = true;
-    FileSearch.library.analyzedFolders.set(root, show.id);
-
-    // Add show to view
-    Utils.addSeries(wsManager, FileSearch.library.id, show);
-
-    let movie = new movie();
-    FileSearch.library.analyzedFolders.set(root, movie.id);
-    movie.setSeriesID(show.id);
-    movie.setFolder(root);
-    show.addSeason(movie);
-
-    if (movieMetadata) {
-      await setSeasonMetadata(show, movie, movieMetadata, name, year);
-    } else {
-      //Save movie without metadata
-      movie.setName(name);
-      movie.setYear(year !== '1' ? year : '');
-      movie.setSeasonNumber(show.seasons.length);
-
-      // Add movie to view
-      Utils.addSeason(wsManager, FileSearch.library.id, movie);
-
-      saveMovieWithoutMetadata(movie, root, wsManager);
-      FileSearch.library.getSeries().push(show);
-      return;
-    }
-
-    // Add movie to view
-    Utils.addSeason(wsManager, FileSearch.library.id, movie);
-
-    await processMovie(movie, root, wsManager);
-
-    show.analyzingFiles = false;
-    FileSearch.library.series.push(show);
-    //#endregion
-
-    // Update show in view
-    Utils.updateSeries(wsManager, FileSearch.library.id, show);
+    processFolder(root, [root]);
   } else {
-    let show: Series | null;
-
-    //let exists: boolean = false;
-    if (FileSearch.library.analyzedFolders.get(root)) {
-      show = FileSearch.library.getSeriesById(
-        FileSearch.library.analyzedFolders.get(root) ?? ''
-      );
-
-      if (show === null) return;
-
-      //exists = true;
-    } else {
-      show = new Series();
-      show.setFolder(root);
-      FileSearch.library.analyzedFolders.set(root, show.id);
-    }
-
-    show.analyzingFiles = true;
-
-    // Add show to view
-    Utils.addSeries(wsManager, FileSearch.library.id, show);
-
     const filesInDir = await Utils.getFilesInFolder(root);
-    const folders: string[] = [];
     const filesInRoot: string[] = [];
+    const folders: string[] = [];
 
     for (const file of filesInDir) {
       const filePath = `${root}/${file.name}`;
@@ -107,135 +41,116 @@ export async function scanMovie(root: string, wsManager: WebSocketManager) {
     }
 
     if (folders.length > 0) {
-      //#region FOLDERS CORRESPONDING DIFFERENT MOVIES FROM A COLLECTION
-      show.isCollection = true;
+      // FOLDERS CORRESPONDING DIFFERENT MOVIES FROM A COLLECTION
+      let collection: Collection | null;
 
-      const fileFullName = Utils.getFileName(root);
+      //let exists: boolean = false;
+      if (FileSearch.library.analyzedFolders.get(root)) {
+        collection = await getCollectionById(
+          FileSearch.library.analyzedFolders.get(root) ?? ''
+        );
 
-      show.setName(fileFullName);
-      show.setFolder(root);
-      FileSearch.library.analyzedFolders.set(root, show.id);
+        if (collection === null) return;
 
-      const processPromises = folders.map(async (folder) => {
-        const fileFullName = Utils.getFileName(folder);
-        const nameAndYear = Utils.extractNameAndYear(fileFullName);
-
-        let name = nameAndYear[0];
-        let year = nameAndYear[1];
-
-        const movieMetadata = await searchMovie(name, year);
-
-        let movie = new movie();
-        FileSearch.library.analyzedFolders.set(folder, movie.id);
-        movie.setSeriesID(show.id);
-        movie.setFolder(folder);
-        show.addSeason(movie);
-
-        const files = await Utils.getValidVideoFiles(folder);
-
-        if (movieMetadata) {
-          await setSeasonMetadata(show, movie, movieMetadata, name, year);
-        } else {
-          //Save videos without metadata
-          movie.setName(name);
-          movie.setYear(year !== '1' ? year : '');
-          movie.setSeasonNumber(show.seasons.length);
-
-          // Add movie to view
-          Utils.addSeason(wsManager, FileSearch.library.id, movie);
-
-          const processPromises = files.map(async (file) => {
-            await saveMovieWithoutMetadata(movie, file, wsManager);
-          });
-
-          await Promise.all(processPromises);
-
-          show.analyzingFiles = false;
-          FileSearch.library.getSeries().push(show);
-
-          // Update show in view
-          Utils.updateSeries(wsManager, FileSearch.library.id, show);
-
-          return;
-        }
-
-        // Add movie to view
-        Utils.addSeason(wsManager, FileSearch.library.id, movie);
-
-        const processPromises = files.map(async (file) => {
-          await processMovie(movie, file, wsManager);
-        });
-
-        await Promise.all(processPromises);
-      });
-
-      await Promise.all(processPromises);
-      FileSearch.library.series.push(show);
-      //#endregion
-    } else {
-      //#region MOVIE FILE/CONCERT FILES INSIDE FOLDER
-      const fileFullName = Utils.getFileName(root);
-      const nameAndYear = Utils.extractNameAndYear(fileFullName);
-
-      let name = nameAndYear[0];
-      let year = nameAndYear[1];
-
-      const movieMetadata = await searchMovie(name, year);
-
-      show.setName(name);
-      show.setFolder(root);
-      FileSearch.library.analyzedFolders.set(root, show.id);
-
-      let movie = new movie();
-      FileSearch.library.analyzedFolders.set(root, movie.id);
-      movie.setSeriesID(show.id);
-      movie.setFolder(root);
-      show.addSeason(movie);
-
-      if (movieMetadata) {
-        await setMovieMetadata(show, movie, movieMetadata, name, year);
+        //exists = true;
       } else {
-        //Save videos without metadata
-        movie.setName(name);
-        movie.setYear(year !== '1' ? year : '');
-        movie.setSeasonNumber(show.seasons.length);
-
-        // Add movie to view
-        Utils.addSeason(wsManager, FileSearch.library.id, movie);
-
-        const processPromises = filesInRoot.map(async (file) => {
-          await saveMovieWithoutMetadata(movie, file, wsManager);
-        });
-
-        await Promise.all(processPromises);
-
-        show.analyzingFiles = false;
-        show.libraryId = FileSearch.library.id;
-
-        // Update show in view
-        Utils.updateSeries(wsManager, FileSearch.library.id, show);
-        return;
+        collection = new Collection();
+        collection.libraryId = FileSearch.library.id;
+        FileSearch.library.analyzedFolders.set(root, collection.id);
       }
 
-      // Add movie to view
-      Utils.addSeason(wsManager, FileSearch.library.id, movie);
+      // Add collection to view
+      //Utils.addSeries(wsManager, FileSearch.library.id, collection);
 
-      const processPromises = filesInRoot.map(async (file) => {
-        await processMovie(movie, file, wsManager);
+      FileSearch.library.analyzedFolders.set(root, collection.id);
+
+      const processPromises = folders.map(async (folder) => {
+        const files = await Utils.getValidVideoFiles(folder);
+        processFolder(folder, files, collection);
       });
 
       await Promise.all(processPromises);
-      show.libraryId = FileSearch.library.id;
-      //#endregion
+    } else {
+      // MOVIE FILE/CONCERT FILES INSIDE FOLDER
+      processFolder(root, filesInRoot);
     }
-
-    show.analyzingFiles = false;
-
-    // Update show in view
-    Utils.updateSeries(wsManager, FileSearch.library.id, show);
   }
 }
 
+/**
+ * Processes the files inside the movie folder, creating the Movie object and searching for metadata
+ * @param rootFolder Root folder of the movie
+ * @param files Video files inside the root folder
+ * @param collection Collection from the movie
+ */
+export async function processFolder(
+  rootFolder: string,
+  files: string[],
+  collection?: Collection
+) {
+  if (!FileSearch.library) return;
+
+  const fileFullName = Utils.getFileName(rootFolder);
+  const nameAndYear = Utils.extractNameAndYear(fileFullName);
+
+  let name = nameAndYear[0];
+  let year = nameAndYear[1];
+
+  const movieMetadata = await searchMovie(name, year);
+
+  let movie = new Movie();
+  FileSearch.library.analyzedFolders.set(rootFolder, movie.id);
+  movie.libraryId = FileSearch.library.id;
+  movie.folder = rootFolder;
+
+  if (collection) {
+    addMovieToCollection(collection.id, movie.id);
+  }
+
+  if (!movieMetadata) {
+    //Save videos without metadata
+    movie.name = name;
+    movie.year = year !== '1' ? year : '';
+
+    // Add movie to view
+    //Utils.addSeason(wsManager, FileSearch.library.id, movie);
+
+    const processPromises = files.map(async (file) => {
+      await saveMovieWithoutMetadata(movie, file, wsManager);
+    });
+
+    await Promise.all(processPromises);
+
+    //show.analyzingFiles = false;
+
+    // Update show in view
+    //Utils.updateSeries(wsManager, FileSearch.library.id, show);
+    return;
+  }
+
+  await setMovieMetadata(movie, movieMetadata, name, year);
+
+  // Add movie to view
+  //Utils.addSeason(wsManager, FileSearch.library.id, movie);
+
+  const processPromises = files.map(async (file) => {
+    await processVideo(movie, file, wsManager);
+  });
+
+  await Promise.all(processPromises);
+
+  //show.analyzingFiles = false;
+
+  // Update show in view
+  //Utils.updateSeries(wsManager, FileSearch.library.id, show);
+}
+
+/**
+ * Searches in TheMovieDB for a specific movie name and year and returns the first match
+ * @param name Title of the movie
+ * @param year Release year of the movie
+ * @returns The first result of the search
+ */
 export async function searchMovie(name: string, year: string) {
   const moviesSearch = await MovieDBWrapper.searchMovies(name, year, 1);
 
@@ -244,6 +159,14 @@ export async function searchMovie(name: string, year: string) {
     : undefined;
 }
 
+/**
+ * Sets the metadata from TheMovieDB to the Movie object
+ * @param movie Movie object
+ * @param movieMetadata Metadata from TheMovieDB
+ * @param name Name of the movie
+ * @param year Release date of the movie
+ * @param collection The collection the movie is in, if it is
+ */
 export async function setMovieMetadata(
   movie: Movie,
   movieMetadata: MovieResponse,
@@ -276,7 +199,7 @@ export async function setMovieMetadata(
   movie.imdbScore = await IMDBScores.getIMDBScore(movie.imdbId);
 
   //#region GET TAGS
-  const credits = await MovieDBWrapper.getMovieCredits(movie.imdbId);
+  const credits = await MovieDBWrapper.getMovieCredits(movie.themdbId);
 
   if (credits) {
     if (credits.crew) {
@@ -437,6 +360,12 @@ export async function setMovieMetadata(
   //#endregion
 }
 
+/**
+ * Processes the video file associated to a movie without any metadata from TheMovieDB
+ * @param movie Movie object
+ * @param filePath Path to the video file
+ * @param wsManager WebSocket Manager to update the info in the client apps
+ */
 export async function saveMovieWithoutMetadata(
   movie: Movie,
   filePath: string,
@@ -466,7 +395,13 @@ export async function saveMovieWithoutMetadata(
   //Utils.addEpisode(wsManager, FileSearch.library.id, movie.seriesID, episode);
 }
 
-export async function processMovie(
+/**
+ * Processes the video file associated to a movie
+ * @param movie Movie object
+ * @param filePath Path to the video file
+ * @param wsManager WebSocket Manager to update the info in the client apps
+ */
+export async function processVideo(
   movie: Movie,
   filePath: string,
   wsManager: WebSocketManager
@@ -483,10 +418,11 @@ export async function processMovie(
       FileSearch.library.analyzedFiles.get(filePath) ?? ''
     );
   } else {
-    video = new Video();
+    video = new Video({
+      fileSrc: filePath,
+    });
     video.movieId = movie.id;
     FileSearch.library.analyzedFiles.set(filePath, video.id);
-    video.fileSrc = filePath;
   }
 
   if (!video) return;
@@ -512,6 +448,40 @@ export async function processMovie(
         video.imgSrc = url;
       }
     }
+  }
+
+  // Add episode to view
+  //Utils.addEpisode(wsManager, FileSearch.library.id, movie.id, video);
+}
+
+/**
+ * Processes the video file associated to a movie extra
+ * @param movie Movie object
+ * @param filePath Path to the video file
+ * @param wsManager WebSocket Manager to update the info in the client apps
+ */
+export async function processVideoAsExtra(
+  movie: Movie,
+  filePath: string,
+  wsManager: WebSocketManager
+) {
+  if (!FileSearch.library) return;
+
+  let video: Video | null;
+
+  if (
+    FileSearch.library.analyzedFiles.get(filePath) &&
+    FileSearch.library.analyzedFiles.get(filePath) !== null
+  ) {
+    video = await getVideoById(
+      FileSearch.library.analyzedFiles.get(filePath) ?? ''
+    );
+  } else {
+    video = new Video({
+      fileSrc: filePath,
+    });
+    video.movieId = movie.id;
+    FileSearch.library.analyzedFiles.set(filePath, video.id);
   }
 
   // Add episode to view

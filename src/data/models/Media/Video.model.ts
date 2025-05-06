@@ -31,6 +31,14 @@ export class Video extends Model {
   @Column({
     type: DataType.STRING,
     allowNull: false,
+    defaultValue: '',
+    field: 'title',
+  })
+  title!: string;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
     field: 'file_src',
   })
   fileSrc!: string;
