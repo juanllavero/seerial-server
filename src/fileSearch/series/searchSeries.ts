@@ -91,7 +91,7 @@ export async function scanTVShow(
     show.themdbId = showsSearch[0].id ?? -1;
   }
 
-  showData = await MovieDBWrapper.getTVShow(show.themdbId);
+  showData = await MovieDBWrapper.getTVShow(show.themdbId, library.language);
 
   if (!showData) return undefined;
 
@@ -114,7 +114,8 @@ export async function scanTVShow(
       if (showData.id && seasonBasic.season_number) {
         return await MovieDBWrapper.getSeason(
           showData.id,
-          seasonBasic.season_number
+          seasonBasic.season_number,
+          library.language
         ); // Devolver el resultado para añadirlo a seasonsMetadata
       }
     });

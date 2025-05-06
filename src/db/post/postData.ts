@@ -35,6 +35,8 @@ import { SequelizeManager } from '../SequelizeManager';
 export const addLibrary = (library: Partial<LibraryData>) => {
   if (!SequelizeManager.sequelize) return null;
 
+  console.log({ library });
+
   const newLibrary = new Library({ values: library });
 
   newLibrary.save();

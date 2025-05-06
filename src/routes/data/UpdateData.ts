@@ -1,62 +1,67 @@
-import express from "express";
-import { DataManager } from "../../db/DataManager";
-import { Utils } from "../../utils/Utils";
+import express from 'express';
+import {
+  updateEpisode,
+  updateLibrary,
+  updateSeason,
+  updateSeries,
+} from '../../db/update/updateData';
+import { Utils } from '../../utils/Utils';
 const router = express.Router();
 
 // Update Library
-router.put("/library", (req, res) => {
+router.put('/library', (req, res) => {
   const { libraryId, updatedLibrary } = req.body;
 
   try {
-    DataManager.updateLibrary(libraryId, updatedLibrary);
-    res.status(200).json({ message: "Library updated successfully" });
+    updateLibrary(libraryId, updatedLibrary);
+    res.status(200).json({ message: 'Library updated successfully' });
   } catch (error) {
-    res.status(500).json({ error: "Failed to update library" });
+    res.status(500).json({ error: 'Failed to update library' });
   }
 });
 
 // Update Show
-router.put("/show", (req, res) => {
-  const { libraryId, showId, updatedShow } = req.body;
+router.put('/show', (req, res) => {
+  const { showId, updatedShow } = req.body;
 
   try {
-    DataManager.updateShow(libraryId, showId, updatedShow);
-    res.status(200).json({ message: "Show updated successfully" });
+    updateSeries(showId, updatedShow);
+    res.status(200).json({ message: 'Show updated successfully' });
   } catch (error) {
-    res.status(500).json({ error: "Failed to update show" });
+    res.status(500).json({ error: 'Failed to update show' });
   }
 });
 
 // Update Season
-router.put("/season", (req, res) => {
-  const { libraryId, showId, seasonId, updatedSeason } = req.body;
+router.put('/season', (req, res) => {
+  const { seasonId, updatedSeason } = req.body;
 
   try {
-    DataManager.updateSeason(libraryId, showId, seasonId, updatedSeason);
-    res.status(200).json({ message: "Season updated successfully" });
+    updateSeason(seasonId, updatedSeason);
+    res.status(200).json({ message: 'Season updated successfully' });
   } catch (error) {
-    res.status(500).json({ error: "Failed to update season" });
+    res.status(500).json({ error: 'Failed to update season' });
   }
 });
 
 // Update Episode
-router.put("/episode", (req, res) => {
-  const { libraryId, showId, updatedEpisode } = req.body;
+router.put('/episode', (req, res) => {
+  const { episodeId, updatedEpisode } = req.body;
 
   try {
-    DataManager.updateEpisode(libraryId, showId, updatedEpisode);
-    res.status(200).json({ message: "Episode updated successfully" });
+    updateEpisode(episodeId, updatedEpisode);
+    res.status(200).json({ message: 'Episode updated successfully' });
   } catch (error) {
-    res.status(500).json({ error: "Failed to update episode" });
+    res.status(500).json({ error: 'Failed to update episode' });
   }
 });
 
 // Test endpoint to get media info
-router.put("/updateMediaInfo", async (req: any, res: any) => {
+router.put('/updateMediaInfo', async (req: any, res: any) => {
   const { episode } = req.body;
 
   if (!episode) {
-    return res.status(404).json({ error: "Episode not found" });
+    return res.status(404).json({ error: 'Episode not found' });
   }
 
   res.json(await Utils.getMediaInfo(episode));

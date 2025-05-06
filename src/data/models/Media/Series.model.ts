@@ -126,7 +126,7 @@ export class Series extends Model {
 
   @Column({
     type: DataType.TEXT,
-    defaultValue: [],
+    defaultValue: '[]',
     allowNull: false,
     field: 'logos_urls',
     get() {
@@ -149,7 +149,7 @@ export class Series extends Model {
 
   @Column({
     type: DataType.TEXT,
-    defaultValue: [],
+    defaultValue: '[]',
     allowNull: false,
     field: 'covers_urls',
     get() {
@@ -164,7 +164,7 @@ export class Series extends Model {
 
   @Column({
     type: DataType.TEXT,
-    defaultValue: [],
+    defaultValue: '[]',
     allowNull: false,
     field: 'production_studios',
     get() {
@@ -187,7 +187,7 @@ export class Series extends Model {
 
   @Column({
     type: DataType.TEXT,
-    defaultValue: [],
+    defaultValue: '[]',
     allowNull: false,
     get() {
       const value = this.getDataValue('creator');
@@ -209,7 +209,7 @@ export class Series extends Model {
 
   @Column({
     type: DataType.TEXT,
-    defaultValue: [],
+    defaultValue: '[]',
     allowNull: false,
     field: 'music_composer',
     get() {
@@ -232,7 +232,7 @@ export class Series extends Model {
 
   @Column({
     type: DataType.TEXT,
-    defaultValue: [],
+    defaultValue: '[]',
     allowNull: false,
     get() {
       const value = this.getDataValue('genres');
@@ -254,7 +254,7 @@ export class Series extends Model {
 
   @Column({
     type: DataType.TEXT,
-    defaultValue: [],
+    defaultValue: '[]',
     allowNull: false,
     get() {
       const value = this.getDataValue('cast');

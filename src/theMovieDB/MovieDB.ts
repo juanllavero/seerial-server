@@ -1,11 +1,10 @@
-import { MovieDb } from "moviedb-promise";
-import * as path from "path";
-import propertiesReader, { Value } from "properties-reader";
-import { DataManager } from "../db/DataManager";
+import { MovieDb } from 'moviedb-promise';
+import * as path from 'path';
+import propertiesReader, { Value } from 'properties-reader';
 
 export class MovieDBWrapper {
-  public static THEMOVIEDB_API_KEY: Value | null = "";
-  static BASE_URL: string = "https://image.tmdb.org/t/p/original";
+  public static THEMOVIEDB_API_KEY: Value | null = '';
+  static BASE_URL: string = 'https://image.tmdb.org/t/p/original';
   // Metadata attributes
   static moviedb: MovieDb | undefined;
 
@@ -13,23 +12,23 @@ export class MovieDBWrapper {
     if (this.moviedb) return true;
 
     const properties = propertiesReader(
-      path.join("resources", "config", "keys.properties")
+      path.join('resources', 'config', 'keys.properties')
     );
 
     // Get API Key
-    this.THEMOVIEDB_API_KEY = properties.get("TMDB_API_KEY");
+    this.THEMOVIEDB_API_KEY = properties.get('TMDB_API_KEY');
 
     if (this.THEMOVIEDB_API_KEY) {
       this.moviedb = new MovieDb(String(this.THEMOVIEDB_API_KEY));
 
       if (!this.moviedb) {
-        console.error("This App needs an API Key from TheMovieDB");
+        console.error('This App needs an API Key from TheMovieDB');
         return false;
       }
 
       return true;
     } else {
-      console.error("This App needs an API Key from TheMovieDB");
+      console.error('This App needs an API Key from TheMovieDB');
       return false;
     }
   };
@@ -49,7 +48,7 @@ export class MovieDBWrapper {
 
       return [];
     } catch (e) {
-      console.log("searchMovies: search for movies has failed with error " + e);
+      console.log('searchMovies: search for movies has failed with error ' + e);
       return [];
     }
   }
@@ -70,7 +69,7 @@ export class MovieDBWrapper {
 
       return [];
     } catch (e) {
-      console.log("searchTVShows: search for shows has failed with error " + e);
+      console.log('searchTVShows: search for shows has failed with error ' + e);
       return [];
     }
   }
@@ -82,36 +81,40 @@ export class MovieDBWrapper {
       const episodeGroups = await this.moviedb.episodeGroups({ id });
       return episodeGroups.results;
     } catch (error) {
-      console.error("Error searching movies", error);
+      console.error('Error searching movies', error);
       return [];
     }
   };
 
-  public static async getMovie(id: number) {
+  public static async getMovie(id: number, language: string) {
     if (!this.moviedb) return;
 
     return await this.moviedb?.movieInfo({
       id,
-      language: DataManager.library.language,
+      language,
     });
   }
 
-  public static async getTVShow(id: number) {
+  public static async getTVShow(id: number, language: string) {
     if (!this.moviedb) return;
 
     return await this.moviedb?.tvInfo({
       id,
-      language: DataManager.library.getLanguage(),
+      language,
     });
   }
 
-  public static async getSeason(showID: number, seasonNumber: number) {
+  public static async getSeason(
+    showID: number,
+    seasonNumber: number,
+    language: string
+  ) {
     if (!this.moviedb) return;
 
     return await this.moviedb?.seasonInfo({
       id: showID,
       season_number: seasonNumber,
-      language: DataManager.library.getLanguage(),
+      language,
     });
   }
 
@@ -141,12 +144,12 @@ export class MovieDBWrapper {
     return await this.moviedb?.tvCredits({ id: showID });
   }
 
-  public static async getMovieCredits(movieID: number) {
+  public static async getMovieCredits(movieID: number, language: string) {
     if (!this.moviedb) return;
 
     return await this.moviedb?.movieCredits({
       id: movieID,
-      language: DataManager.library.language,
+      language,
     });
   }
 

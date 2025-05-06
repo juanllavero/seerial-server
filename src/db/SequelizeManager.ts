@@ -1,5 +1,25 @@
 import fs from 'fs';
 import { Sequelize } from 'sequelize-typescript';
+import {
+  Album,
+  AlbumArtist,
+  Artist,
+  Collection,
+  CollectionAlbum,
+  CollectionMovie,
+  CollectionSeries,
+  ContinueWatching,
+  Episode,
+  Library,
+  Movie,
+  MyList,
+  PlayList,
+  PlayListItem,
+  Season,
+  Series,
+  Song,
+  Video,
+} from '../data/models';
 import { FilesManager } from '../utils/FilesManager';
 
 export class SequelizeManager {
@@ -24,11 +44,30 @@ export class SequelizeManager {
         username: 'root',
         password: '',
         storage: SequelizeManager.DB_PATH,
-        models: [__dirname + '../data/models/**/*.model.ts'],
+        models: [
+          Collection,
+          CollectionAlbum,
+          CollectionMovie,
+          CollectionSeries,
+          ContinueWatching,
+          Episode,
+          Library,
+          Movie,
+          MyList,
+          PlayList,
+          PlayListItem,
+          Season,
+          Series,
+          Video,
+          Album,
+          AlbumArtist,
+          Artist,
+          Song,
+        ],
         define: {
           underscored: true, // Map snake_case (DB) to camelCase (Models)
         },
-        logging: false,
+        logging: (msg) => console.log(msg),
       });
 
       // Enable foreign keys

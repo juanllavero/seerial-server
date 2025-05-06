@@ -335,9 +335,9 @@ export class Movie extends Model {
   @BelongsToMany(() => Collection, () => CollectionMovie)
   collections!: Collection[];
 
-  @HasMany(() => Video, 'videoId')
+  @HasMany(() => Video, { foreignKey: 'movieId', as: 'videos' })
   videos!: Video[];
 
-  @HasMany(() => Video, 'extraId')
+  @HasMany(() => Video, { foreignKey: 'extraId', as: 'extras' })
   extras!: Video[];
 }

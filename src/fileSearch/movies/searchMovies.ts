@@ -91,7 +91,7 @@ export async function processFolder(
   let name = nameAndYear[0];
   let year = nameAndYear[1];
 
-  const movieMetadata = await searchMovie(name, year);
+  const movieMetadata = await searchMovie(name, year, library.language);
 
   let movie = new Movie();
   library.analyzedFolders.set(rootFolder, movie.id);
@@ -123,7 +123,7 @@ export async function processFolder(
     return;
   }
 
-  await setMovieMetadata(movie, movieMetadata, name, year);
+  await setMovieMetadata(library, movie, movieMetadata, name, year);
 
   // Add movie to view
   //Utils.addSeason(wsManager, library.id, movie);
@@ -149,11 +149,15 @@ export async function processFolder(
  * @param year Release year of the movie
  * @returns The first result of the search
  */
-export async function searchMovie(name: string, year: string) {
+export async function searchMovie(
+  name: string,
+  year: string,
+  language: string
+) {
   const moviesSearch = await MovieDBWrapper.searchMovies(name, year, 1);
 
   return moviesSearch && moviesSearch.length > 0
-    ? await MovieDBWrapper.getMovie(moviesSearch[0].id ?? 0)
+    ? await MovieDBWrapper.getMovie(moviesSearch[0].id ?? 0, language)
     : undefined;
 }
 
@@ -166,6 +170,7 @@ export async function searchMovie(name: string, year: string) {
  * @param collection The collection the movie is in, if it is
  */
 export async function setMovieMetadata(
+  library: Library,
   movie: Movie,
   movieMetadata: MovieResponse,
   name: string,
@@ -197,7 +202,10 @@ export async function setMovieMetadata(
   movie.imdbScore = await IMDBScores.getIMDBScore(movie.imdbId);
 
   //#region GET TAGS
-  const credits = await MovieDBWrapper.getMovieCredits(movie.themdbId);
+  const credits = await MovieDBWrapper.getMovieCredits(
+    movie.themdbId,
+    library.language
+  );
 
   if (credits) {
     if (credits.crew) {

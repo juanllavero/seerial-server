@@ -140,13 +140,13 @@ router.post('/updateShowId', (req: any, res: any) => {
 
 // Update TheMovieDB id for movie
 router.post('/updateMovieId', (req: any, res: any) => {
-  const { libraryId, collectionId, seasonId, themdbId } = req.body;
+  const { libraryId, movieId, themdbId } = req.body;
 
-  if (!collectionId || !themdbId || !libraryId || !seasonId) {
+  if (!movieId || !themdbId || !libraryId) {
     return res.status(400).json({ error: 'Not enough parameters' });
   }
 
-  updateMovieMetadata(libraryId, collectionId, seasonId, themdbId, wsManager);
+  updateMovieMetadata(libraryId, movieId, themdbId, wsManager);
 });
 
 // Update episode group for show

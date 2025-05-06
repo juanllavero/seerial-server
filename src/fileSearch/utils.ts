@@ -1,11 +1,14 @@
 import { existsSync } from 'fs-extra';
 import * as path from 'path';
 import { parse } from 'path';
-import { Library } from '../data/models/Media/Library.model';
-import { DataManager } from '../db/DataManager';
-import { deleteEpisode, deleteSeason } from '../db/delete/deleteData';
+import {
+  deleteEpisode,
+  deleteSeason,
+  deleteSeries,
+} from '../db/delete/deleteData';
 import {
   getEpisodeByPath,
+  getLibraryById,
   getSeasonById,
   getSeriesById,
 } from '../db/get/getData';
@@ -22,9 +25,7 @@ export async function clearLibrary(
   libraryId: string,
   wsManager: WebSocketManager
 ) {
-  const library = DataManager.libraries.find(
-    (library: Library) => library.id === libraryId
-  );
+  const library = await getLibraryById(libraryId);
 
   if (
     !library ||
@@ -94,7 +95,7 @@ export async function clearLibrary(
         }
 
         if (series.seasons.length === 0) {
-          await DataManager.deleteShow(library.id, series.id);
+          await deleteSeries(series.id);
 
           // Update library in client
           Utils.deleteSeries(wsManager, library.id, series.id);

@@ -15,6 +15,7 @@ import {
   SubtitleTrack,
   VideoTrack,
 } from '../../interfaces/MediaInfo';
+import { ContinueWatching } from '../Lists/ContinueWatching.model';
 import { Episode } from './Episode.model';
 import { Movie } from './Movie.model';
 
@@ -60,7 +61,7 @@ export class Video extends Model {
 
   @Column({
     type: DataType.TEXT,
-    defaultValue: [],
+    defaultValue: '[]',
     allowNull: false,
     field: 'img_urls',
     get() {
@@ -181,7 +182,17 @@ export class Video extends Model {
   })
   episodeId?: string;
 
-  @BelongsTo(() => Movie, 'videoId')
+  @ForeignKey(() => ContinueWatching)
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    field: 'continue_watching_id',
+  })
+  continueWatchingId?: string;
+
+  @BelongsTo(() => Movie, { foreignKey: 'movieId', as: 'movie' })
+  movie?: Movie;
+
   @Column({
     type: DataType.STRING,
     allowNull: true,
@@ -190,7 +201,9 @@ export class Video extends Model {
   })
   movieId?: string;
 
-  @BelongsTo(() => Movie, 'extraId')
+  @BelongsTo(() => Movie, { foreignKey: 'extraId', as: 'extra' })
+  extra?: Movie;
+
   @Column({
     type: DataType.STRING,
     allowNull: true,
@@ -198,4 +211,7 @@ export class Video extends Model {
     field: 'extra_id',
   })
   extraId?: string;
+
+  @BelongsTo(() => ContinueWatching, { foreignKey: 'id', targetKey: 'videoId' })
+  continueWatching?: ContinueWatching;
 }

@@ -34,12 +34,12 @@ appServer.use(
   })
 );
 
-appServer.use((_req, res) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Expose-Headers', 'x-total-count');
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH');
-  res.header('Access-Control-Allow-Headers', 'Content-Type,authorization');
-});
+// appServer.use((_req, res) => {
+//   res.header('Access-Control-Allow-Origin', '*');
+//   res.header('Access-Control-Expose-Headers', 'x-total-count');
+//   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH');
+//   res.header('Access-Control-Allow-Headers', 'Content-Type,authorization');
+// });
 
 // Middleware to process JSON
 appServer.use(express.json({ limit: '50mb' }));

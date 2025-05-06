@@ -57,7 +57,7 @@ export class Library extends Model {
 
   @Column({
     type: DataType.TEXT,
-    defaultValue: [],
+    defaultValue: '[]',
     allowNull: false,
     get() {
       const value = this.getDataValue('folders');
