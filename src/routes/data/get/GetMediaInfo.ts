@@ -1,28 +1,23 @@
-import express from "express";
-import { Episode } from "../../../data/objects/Episode";
-import { DataManager } from "../../../db/DataManager";
-import { Utils } from "../../../utils/Utils";
+import express from 'express';
+import { Video } from '../../../data/models/Media/Video.model';
+import { getVideoByEpisodeId } from '../../../db/get/getData';
+import { Utils } from '../../../utils/Utils';
 const router = express.Router();
 
 // Get media info
-router.get("/mediaInfo", async (req: any, res: any) => {
+router.get('/mediaInfo', async (req: any, res: any) => {
   const { libraryId, showId, seasonId, episodeId } = req.query;
 
   if (
-    typeof libraryId !== "string" ||
-    typeof showId !== "string" ||
-    typeof seasonId !== "string" ||
-    typeof episodeId !== "string"
+    typeof libraryId !== 'string' ||
+    typeof showId !== 'string' ||
+    typeof seasonId !== 'string' ||
+    typeof episodeId !== 'string'
   ) {
-    return res.status(400).json({ error: "Invalid parameters" });
+    return res.status(400).json({ error: 'Invalid parameters' });
   }
 
-  const videoObject = DataManager.getEpisode(
-    libraryId,
-    showId,
-    seasonId,
-    episodeId
-  );
+  const videoObject = await getVideoByEpisodeId(episodeId);
 
   if (!videoObject) return;
 
@@ -30,14 +25,16 @@ router.get("/mediaInfo", async (req: any, res: any) => {
   res.json(data);
 });
 
-router.get("/video-info", async (req: any, res: any) => {
+router.get('/video-info', async (req: any, res: any) => {
   const { path } = req.query;
 
-  if (typeof path !== "string") {
-    return res.status(400).json({ error: "Invalid parameters" });
+  if (typeof path !== 'string') {
+    return res.status(400).json({ error: 'Invalid parameters' });
   }
 
-  const videoObject = new Episode();
+  const videoObject = new Video({
+    fileSrc: path,
+  });
 
   const data = await Utils.getMediaInfo(videoObject);
   res.json(data);

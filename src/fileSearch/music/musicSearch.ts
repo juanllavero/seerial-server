@@ -1,60 +1,56 @@
 import ffmetadata from 'ffmetadata';
 import ffmpegPath from 'ffmpeg-static';
-import { path } from 'ffprobe-static';
+import fs from 'fs';
+import path from 'path';
+import { Collection } from '../../data/models/Collections/Collection.model';
+import { Library } from '../../data/models/Media/Library.model';
+import { Album } from '../../data/models/music/Album.model';
+import {
+  addAlbumToCollection,
+  addArtist,
+  addArtistToAlbum,
+  addCollection,
+  addSong,
+} from '../../db/post/postData';
 import { FilesManager } from '../../utils/FilesManager';
 import { Utils } from '../../utils/Utils';
 import { WebSocketManager } from '../../WebSockets/WebSocketManager';
-import { FileSearch } from '../FileSearch';
-import { Series, Season } from '../../data/interfaces/Media';
-import { Season } from '../../data/models/Media/Season.model';
-import { Series } from '../../data/models/Media/Series.model';
 
 //#region MUSIC METADATA EXTRACTION
-export async function scanMusic(folder: string, wsManager: WebSocketManager) {
-  if (!(await Utils.isFolder(folder)) || !FileSearch.library) return;
+export async function scanMusic(
+  library: Library,
+  folder: string,
+  wsManager: WebSocketManager
+) {
+  if (!(await Utils.isFolder(folder))) return;
 
   ffmetadata.setFfmpegPath(ffmpegPath || '');
 
-  let collection: Series | null;
+  // Add collection or retrieve existing one
+  const collection = await addCollection(Utils.getFileName(folder));
 
-  if (!FileSearch.library.analyzedFolders.get(folder)) {
-    collection = new Series();
-    collection.setName(Utils.getFileName(folder));
-    collection.analyzingFiles = true;
-    FileSearch.library.series.push(collection);
-    FileSearch.library.analyzedFolders.set(folder, collection.id);
+  if (!collection) return;
 
-    // Add show to view
-    Utils.addSeries(wsManager, FileSearch.library.id, collection);
-  } else {
-    collection = FileSearch.library.getSeriesById(
-      FileSearch.library.analyzedFolders.get(folder) || ''
-    );
-  }
-
-  if (collection === null || !collection) return;
-
-  collection.analyzingFiles = true;
+  collection.libraryId = library.id;
 
   // Get music files inside folder (4 folders of depth)
   const musicFiles = await Utils.getMusicFiles(folder);
 
   // Process each file
   for (const file of musicFiles) {
-    if (!FileSearch.library.analyzedFiles.get(file)) {
-      await processMusicFile(file, collection, wsManager);
+    if (!library.analyzedFiles.get(file)) {
+      await processMusicFile(library, file, collection, wsManager);
     }
   }
 
-  collection.isCollection = collection.seasons.length > 1;
-  collection.analyzingFiles = false;
-
   // Update show in view
-  Utils.updateSeries(wsManager, FileSearch.library.id, collection);
+  //Utils.updateSeries(wsManager, library.id, collection);
 }
 
 export async function processMusicFile(
+  library: Library,
   musicFile: string,
+  collection: Collection,
   wsManager: WebSocketManager
 ) {
   try {
@@ -71,62 +67,61 @@ export async function processMusicFile(
     const artistName = data['album_artist'] ? data['album_artist'] : '';
     const albumName = data.album ?? 'Unknown';
 
-    let album: Season | null = null;
+    let newAlbum: Album | null = null;
 
-    for (const season of collection.seasons) {
-      if (season.name === albumName) {
-        album = season;
+    for (const album of collection.albums) {
+      if (album.title === albumName) {
+        newAlbum = album;
         break;
       }
     }
 
-    if (album === null) {
-      album = new Season();
-      album.setName(albumName ?? 'Unknown');
-      album.setSeriesID(collection.id);
-      album.setYear(
-        data.date
+    if (!newAlbum) {
+      newAlbum = new Album({
+        title: albumName ?? 'Unknown',
+        year: data.date
           ? new Date(data.date).getFullYear().toString()
           : data['TYER']
           ? new Date(data['TYER']).getFullYear().toString()
-          : ''
-      );
-      album.setGenres(
-        data.genre
+          : '',
+        libraryId: library.id,
+        genres: data.genre
           ? data.genre.split(',').map((genre: string) => genre.trim())
-          : []
-      );
-      collection.seasons.push(album);
+          : [],
+      });
+
+      addAlbumToCollection(collection.id, newAlbum.id);
 
       // Add season to view
-      Utils.addSeason(wsManager, FileSearch.library.id, album);
+      //Utils.addSeason(wsManager, library.id, album);
     }
 
-    let song = new EpisodeLocal();
-    song.setName(data.title ?? Utils.getFileName(musicFile));
-    song.setYear(
-      data.date
-        ? new Date(data.date).getFullYear().toString()
-        : data['TYER']
-        ? new Date(data['TYER']).getFullYear().toString()
-        : ''
-    );
-    song.setSeasonNumber(data['disc'] ? Number.parseInt(data['disc']) : 0);
-    song.setEpisodeNumber(data.track ? Number.parseInt(data.track) : 0);
-    song.album = albumName ?? 'Unknown';
-    song.albumArtist = artistName ?? 'Unknown';
-    song.setDirectedBy(
-      data.artist
-        ? data.artist.split(',').map((artist: string) => artist.trim())
-        : []
-    );
-    song.setWrittenBy(
-      data.composer
+    const song = addSong({
+      title: data.title ?? Utils.getFileName(musicFile),
+      albumId: newAlbum.id,
+      trackNumber: data.track ? Number.parseInt(data.track) : 0,
+      discNumber: data['disc'] ? Number.parseInt(data['disc']) : 0,
+      composers: data.composer
         ? data.composer.split(',').map((composer: string) => composer.trim())
-        : []
-    );
+        : [],
+      artists: data.artist
+        ? data.artist.split(',').map((artist: string) => artist.trim())
+        : [],
+      fileSrc: musicFile,
+      duration: 0,
+    });
 
-    if (album.coverSrc === '') {
+    if (artistName) {
+      const artist = await addArtist({
+        name: artistName,
+      });
+
+      if (artist) {
+        addArtistToAlbum(artist.id, newAlbum.id);
+      }
+    }
+
+    if (newAlbum.coverSrc === '') {
       // Search for image in the same folder
       let imageSrc = await Utils.findImageInFolder(path.dirname(musicFile));
 
@@ -138,10 +133,13 @@ export async function processMusicFile(
 
       if (imageSrc) {
         FilesManager.createFolder(
-          FilesManager.getExternalPath('resources/img/posters/' + album.id)
+          FilesManager.getExternalPath('resources/img/posters/' + newAlbum.id)
         );
         let destPath = FilesManager.getExternalPath(
-          'resources/img/posters/' + album.id + '/' + imageSrc.split('\\').pop()
+          'resources/img/posters/' +
+            newAlbum.id +
+            '/' +
+            imageSrc.split('\\').pop()
         );
         fs.copyFile(imageSrc, destPath, (err: any) => {
           if (err) {
@@ -150,11 +148,13 @@ export async function processMusicFile(
           }
         });
 
-        album.setCoverSrc(
-          'resources/img/posters/' + album.id + '/' + imageSrc.split('\\').pop()
-        );
+        newAlbum.coverSrc =
+          'resources/img/posters/' +
+          newAlbum.id +
+          '/' +
+          imageSrc.split('\\').pop();
 
-        if (collection.coverSrc === '') {
+        if (collection.musicPosterSrc === '') {
           FilesManager.createFolder(
             FilesManager.getExternalPath(
               'resources/img/posters/' + collection.id
@@ -173,25 +173,30 @@ export async function processMusicFile(
             }
           });
 
-          collection.setCoverSrc(
+          collection.musicPosterSrc =
             'resources/img/posters/' +
-              collection.id +
-              '/' +
-              imageSrc.split('\\').pop()
-          );
+            collection.id +
+            '/' +
+            imageSrc.split('\\').pop();
         }
       }
     }
 
+    if (!song) return;
+
     // Get runtime
     await Utils.getOnlyRuntime(song, musicFile);
 
-    song.setVideoSrc(musicFile);
-    album.addEpisode(song);
-    FileSearch.library.analyzedFiles.set(musicFile, song.id);
+    library.analyzedFiles.set(musicFile, song.id);
+
+    // Save data in DB
+    library.save();
+    collection.save();
+    newAlbum.save();
+    song.save();
 
     // Add episode to view
-    Utils.addEpisode(wsManager, FileSearch.library.id, collection.id, song);
+    //Utils.addEpisode(wsManager, library.id, collection.id, song);
   } catch (error) {
     console.error('Error processing music file', error);
   }

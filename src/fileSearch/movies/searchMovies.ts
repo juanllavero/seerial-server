@@ -2,30 +2,37 @@ import fs from 'fs-extra';
 import { MovieResponse } from 'moviedb-promise';
 import { wsManager } from '../..';
 import { Collection } from '../../data/models/Collections/Collection.model';
+import { Library } from '../../data/models/Media/Library.model';
 import { Movie } from '../../data/models/Media/Movie.model';
 import { Video } from '../../data/models/Media/Video.model';
-import { getCollectionById, getVideoById } from '../../db/get/getData';
-import { addMovieToCollection, addVideoAsMovie } from '../../db/post/postData';
+import { getVideoById } from '../../db/get/getData';
+import {
+  addCollection,
+  addMovieToCollection,
+  addVideoAsMovie,
+} from '../../db/post/postData';
 import { MovieDBWrapper } from '../../theMovieDB/MovieDB';
 import { FilesManager } from '../../utils/FilesManager';
 import { IMDBScores } from '../../utils/IMDBScores';
 import { Utils } from '../../utils/Utils';
 import { WebSocketManager } from '../../WebSockets/WebSocketManager';
-import { FileSearch } from '../FileSearch';
+import { FileSearch } from '../fileSearch';
 
 /**
  * Scans a specific folder for movies and collections
  * @param root Root folder/file to search into
  * @param wsManager WebSocket Manager to communicate with the client apps
  */
-export async function scanMovie(root: string, wsManager: WebSocketManager) {
-  if (!FileSearch.library) return;
-
+export async function scanMovie(
+  library: Library,
+  root: string,
+  wsManager: WebSocketManager
+) {
   if (!(await Utils.isFolder(root))) {
     // ONLY ONE FILE
     if (!Utils.isVideoFile(root)) return;
 
-    processFolder(root, [root]);
+    processFolder(library, root, [root]);
   } else {
     const filesInDir = await Utils.getFilesInFolder(root);
     const filesInRoot: string[] = [];
@@ -42,37 +49,26 @@ export async function scanMovie(root: string, wsManager: WebSocketManager) {
 
     if (folders.length > 0) {
       // FOLDERS CORRESPONDING DIFFERENT MOVIES FROM A COLLECTION
-      let collection: Collection | null;
 
-      //let exists: boolean = false;
-      if (FileSearch.library.analyzedFolders.get(root)) {
-        collection = await getCollectionById(
-          FileSearch.library.analyzedFolders.get(root) ?? ''
-        );
+      // Add collection or retrieve existing one
+      const collection = await addCollection(Utils.getFileName(root));
 
-        if (collection === null) return;
-
-        //exists = true;
-      } else {
-        collection = new Collection();
-        collection.libraryId = FileSearch.library.id;
-        FileSearch.library.analyzedFolders.set(root, collection.id);
+      if (collection) {
+        collection.libraryId = library.id;
       }
 
       // Add collection to view
-      //Utils.addSeries(wsManager, FileSearch.library.id, collection);
-
-      FileSearch.library.analyzedFolders.set(root, collection.id);
+      //Utils.addSeries(wsManager, library.id, collection);
 
       const processPromises = folders.map(async (folder) => {
         const files = await Utils.getValidVideoFiles(folder);
-        processFolder(folder, files, collection);
+        processFolder(library, folder, files, collection ?? undefined);
       });
 
       await Promise.all(processPromises);
     } else {
       // MOVIE FILE/CONCERT FILES INSIDE FOLDER
-      processFolder(root, filesInRoot);
+      processFolder(library, root, filesInRoot);
     }
   }
 }
@@ -84,12 +80,11 @@ export async function scanMovie(root: string, wsManager: WebSocketManager) {
  * @param collection Collection from the movie
  */
 export async function processFolder(
+  library: Library,
   rootFolder: string,
   files: string[],
   collection?: Collection
 ) {
-  if (!FileSearch.library) return;
-
   const fileFullName = Utils.getFileName(rootFolder);
   const nameAndYear = Utils.extractNameAndYear(fileFullName);
 
@@ -99,8 +94,8 @@ export async function processFolder(
   const movieMetadata = await searchMovie(name, year);
 
   let movie = new Movie();
-  FileSearch.library.analyzedFolders.set(rootFolder, movie.id);
-  movie.libraryId = FileSearch.library.id;
+  library.analyzedFolders.set(rootFolder, movie.id);
+  movie.libraryId = library.id;
   movie.folder = rootFolder;
 
   if (collection) {
@@ -113,10 +108,10 @@ export async function processFolder(
     movie.year = year !== '1' ? year : '';
 
     // Add movie to view
-    //Utils.addSeason(wsManager, FileSearch.library.id, movie);
+    //Utils.addSeason(wsManager, library.id, movie);
 
     const processPromises = files.map(async (file) => {
-      await saveMovieWithoutMetadata(movie, file, wsManager);
+      await saveMovieWithoutMetadata(library, movie, file, wsManager);
     });
 
     await Promise.all(processPromises);
@@ -124,25 +119,28 @@ export async function processFolder(
     //show.analyzingFiles = false;
 
     // Update show in view
-    //Utils.updateSeries(wsManager, FileSearch.library.id, show);
+    //Utils.updateSeries(wsManager, library.id, show);
     return;
   }
 
   await setMovieMetadata(movie, movieMetadata, name, year);
 
   // Add movie to view
-  //Utils.addSeason(wsManager, FileSearch.library.id, movie);
+  //Utils.addSeason(wsManager, library.id, movie);
 
   const processPromises = files.map(async (file) => {
-    await processVideo(movie, file, wsManager);
+    await processVideo(library, movie, file, wsManager);
   });
 
   await Promise.all(processPromises);
 
+  // Save data in DB
+  library.save();
+
   //show.analyzingFiles = false;
 
   // Update show in view
-  //Utils.updateSeries(wsManager, FileSearch.library.id, show);
+  //Utils.updateSeries(wsManager, library.id, show);
 }
 
 /**
@@ -349,15 +347,19 @@ export async function setMovieMetadata(
         }
 
         if (collection) {
-          collection.coversUrls = [...collection.coversUrls, posterUrl];
-          if (collection.coverSrc === '') {
-            collection.coverSrc = posterUrl;
+          collection.postersUrls = [...collection.postersUrls, posterUrl];
+          if (collection.posterSrc === '') {
+            collection.posterSrc = posterUrl;
           }
         }
       }
     }
   }
   //#endregion
+
+  // Save data in DB
+  collection?.save();
+  movie.save();
 }
 
 /**
@@ -367,23 +369,22 @@ export async function setMovieMetadata(
  * @param wsManager WebSocket Manager to update the info in the client apps
  */
 export async function saveMovieWithoutMetadata(
+  library: Library,
   movie: Movie,
   filePath: string,
   wsManager: WebSocketManager
 ) {
   let video = addVideoAsMovie(movie.id);
 
-  if (!video || !FileSearch.library) return;
+  if (!video) return;
 
   video.movieId = movie.id;
 
   if (
-    FileSearch.library.analyzedFiles.get(filePath) &&
-    FileSearch.library.analyzedFiles.get(filePath) !== null
+    library.analyzedFiles.get(filePath) &&
+    library.analyzedFiles.get(filePath) !== null
   ) {
-    video = await getVideoById(
-      FileSearch.library.analyzedFiles.get(filePath) ?? ''
-    );
+    video = await getVideoById(library.analyzedFiles.get(filePath) ?? '');
   }
 
   if (!video) return;
@@ -391,8 +392,12 @@ export async function saveMovieWithoutMetadata(
   video.fileSrc = filePath;
   video.imgSrc = 'resources/img/Default_video_thumbnail.jpg';
 
+  // Save data in DB
+  movie.save();
+  video.save();
+
   // Add episode to view
-  //Utils.addEpisode(wsManager, FileSearch.library.id, movie.seriesID, episode);
+  //Utils.addEpisode(wsManager, library.id, movie.seriesID, episode);
 }
 
 /**
@@ -402,27 +407,24 @@ export async function saveMovieWithoutMetadata(
  * @param wsManager WebSocket Manager to update the info in the client apps
  */
 export async function processVideo(
+  library: Library,
   movie: Movie,
   filePath: string,
   wsManager: WebSocketManager
 ) {
-  if (!FileSearch.library) return;
-
   let video: Video | null;
 
   if (
-    FileSearch.library.analyzedFiles.get(filePath) &&
-    FileSearch.library.analyzedFiles.get(filePath) !== null
+    library.analyzedFiles.get(filePath) &&
+    library.analyzedFiles.get(filePath) !== null
   ) {
-    video = await getVideoById(
-      FileSearch.library.analyzedFiles.get(filePath) ?? ''
-    );
+    video = await getVideoById(library.analyzedFiles.get(filePath) ?? '');
   } else {
     video = new Video({
       fileSrc: filePath,
     });
     video.movieId = movie.id;
-    FileSearch.library.analyzedFiles.set(filePath, video.id);
+    library.analyzedFiles.set(filePath, video.id);
   }
 
   if (!video) return;
@@ -450,8 +452,11 @@ export async function processVideo(
     }
   }
 
+  // Save data in DB
+  video.save();
+
   // Add episode to view
-  //Utils.addEpisode(wsManager, FileSearch.library.id, movie.id, video);
+  //Utils.addEpisode(wsManager, library.id, movie.id, video);
 }
 
 /**
@@ -461,29 +466,29 @@ export async function processVideo(
  * @param wsManager WebSocket Manager to update the info in the client apps
  */
 export async function processVideoAsExtra(
+  library: Library,
   movie: Movie,
   filePath: string,
   wsManager: WebSocketManager
 ) {
-  if (!FileSearch.library) return;
-
   let video: Video | null;
 
   if (
-    FileSearch.library.analyzedFiles.get(filePath) &&
-    FileSearch.library.analyzedFiles.get(filePath) !== null
+    library.analyzedFiles.get(filePath) &&
+    library.analyzedFiles.get(filePath) !== null
   ) {
-    video = await getVideoById(
-      FileSearch.library.analyzedFiles.get(filePath) ?? ''
-    );
+    video = await getVideoById(library.analyzedFiles.get(filePath) ?? '');
   } else {
     video = new Video({
       fileSrc: filePath,
     });
     video.movieId = movie.id;
-    FileSearch.library.analyzedFiles.set(filePath, video.id);
+    library.analyzedFiles.set(filePath, video.id);
   }
 
+  // Save data in DB
+  video?.save();
+
   // Add episode to view
-  //Utils.addEpisode(wsManager, FileSearch.library.id, movie.id, video);
+  //Utils.addEpisode(wsManager, library.id, movie.id, video);
 }

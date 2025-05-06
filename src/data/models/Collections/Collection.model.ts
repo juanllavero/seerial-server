@@ -50,14 +50,14 @@ export class Collection extends Model {
   @Column({
     type: DataType.STRING,
     allowNull: true,
-    field: 'cover_src',
+    field: 'posterSrc',
   })
-  coverSrc!: string;
+  posterSrc!: string;
 
   @Column({
     type: DataType.TEXT,
     allowNull: false,
-    field: 'covers_urls',
+    field: 'posters_urls',
     get() {
       const value = this.getDataValue('coversUrls');
       return value ? JSON.parse(value) : [];
@@ -66,7 +66,28 @@ export class Collection extends Model {
       this.setDataValue('coversUrls', JSON.stringify(value));
     },
   })
-  coversUrls!: string[];
+  postersUrls!: string[];
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    field: 'music_poster_src',
+  })
+  musicPosterSrc!: string;
+
+  @Column({
+    type: DataType.TEXT,
+    allowNull: false,
+    field: 'music_posters_urls',
+    get() {
+      const value = this.getDataValue('coversUrls');
+      return value ? JSON.parse(value) : [];
+    },
+    set(value: string[]) {
+      this.setDataValue('coversUrls', JSON.stringify(value));
+    },
+  })
+  musicPostersUrls!: string[];
 
   @Column({
     type: DataType.STRING,

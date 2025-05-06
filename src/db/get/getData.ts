@@ -122,6 +122,16 @@ export const getLibraryByVideoId = async (videoId: string) => {
 
 //#region Collections
 
+export const getCollections = async (libraryId: string) => {
+  if (!SequelizeManager.sequelize) return null;
+
+  return Collection.findAll({
+    where: {
+      libraryId,
+    },
+  });
+};
+
 export const getCollectionById = async (id: string) => {
   if (!SequelizeManager.sequelize) return null;
 
@@ -194,7 +204,7 @@ export const getSeasonById = (seasonId: string) => {
 
 //#region Episodes
 
-export const getEpisode = (seasonId: string) => {
+export const getEpisodes = (seasonId: string) => {
   if (!SequelizeManager.sequelize) return null;
 
   return Episode.findAll({
@@ -249,7 +259,7 @@ export const getVideoByEpisodeId = (episodeId: string) => {
 export const getVideoByMovieId = (movieId: string) => {
   if (!SequelizeManager.sequelize) return null;
 
-  return Video.findOne({
+  return Video.findAll({
     where: {
       movieId,
     },
@@ -259,7 +269,7 @@ export const getVideoByMovieId = (movieId: string) => {
 export const getVideoByExtraId = (extraId: string) => {
   if (!SequelizeManager.sequelize) return null;
 
-  return Video.findOne({
+  return Video.findAll({
     where: {
       extraId,
     },
@@ -295,7 +305,7 @@ export const getMovieById = (movieId: string) => {
 
 //#region Music
 
-export const getAlbum = (libraryId: string) => {
+export const getAlbums = (libraryId: string) => {
   if (!SequelizeManager.sequelize) return null;
 
   return Album.findAll({
@@ -321,6 +331,16 @@ export const getArtistById = (artistId: string) => {
 
   return Artist.findByPk(artistId, {
     include: [{ model: Album, as: 'albums' }],
+  });
+};
+
+export const getSongs = (albumId: string) => {
+  if (!SequelizeManager.sequelize) return null;
+
+  return Song.findAll({
+    where: {
+      albumId,
+    },
   });
 };
 

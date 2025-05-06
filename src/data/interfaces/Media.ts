@@ -78,7 +78,6 @@ export interface Series {
 export interface Season {
   id: string;
   seriesId: string;
-  themdbId: number;
   order: number;
   name: string;
   nameLock: boolean;

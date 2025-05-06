@@ -1,8 +1,16 @@
-import { Library } from '../data/models/Media/Library.model';
-import { DataManager } from '../db/DataManager';
-import { Utils } from '../utils/Utils';
+import {
+  deleteMovieData,
+  deleteSeriesData,
+  deleteVideo,
+  deleteVideoData,
+} from '../db/delete/deleteData';
+import {
+  getLibraryById,
+  getMovieById,
+  getSeriesById,
+  getVideoByMovieId,
+} from '../db/get/getData';
 import { WebSocketManager } from '../WebSockets/WebSocketManager';
-import { FileSearch } from './FileSearch';
 import { scanMovie } from './movies/searchMovies';
 
 import { scanTVShow } from './series/searchSeries';
@@ -13,20 +21,16 @@ export async function updateShowMetadata(
   wsManager: WebSocketManager,
   newepisodeGroupId?: string
 ) {
-  const library = DataManager.libraries.find(
-    (library: Library) => library.id === libraryId
-  );
+  const library = await getLibraryById(libraryId);
 
   if (!library) return;
 
-  FileSearch.library = library;
-
-  const show = library.getSeriesById(showId);
+  const show = await getSeriesById(showId);
 
   if (!show) return;
 
   // Delete previous data
-  await DataManager.deleteSeriesData(library, show);
+  await deleteSeriesData(library.id, show);
 
   // Restore folder stored in library
   library.analyzedFolders.set(show.folder, show.id);
@@ -35,62 +39,61 @@ export async function updateShowMetadata(
   show.seasons = [];
 
   // Update TheMovieDB ID
-  show.setthemdbId(newTheMovieDBID);
+  show.themdbId = newTheMovieDBID;
 
   // Update EpisodeGroup ID if param is passed
   if (newepisodeGroupId) {
-    show.setepisodeGroupId(newepisodeGroupId);
+    show.episodeGroupId = newepisodeGroupId;
   }
 
   // Set element loading to show in client
   show.analyzingFiles = true;
 
-  Utils.updateSeries(wsManager, library.id, show);
+  // Save changes in DB
+  show.save();
+  //Utils.updateSeries(wsManager, library.id, show);
 
   // Get new data
-  await scanTVShow(show.folder, wsManager);
+  await scanTVShow(library, show.folder, wsManager);
 }
 
 export async function updateMovieMetadata(
   libraryId: string,
-  seriesId: string,
-  seasonId: string,
+  movieId: string,
   newTheMovieDBID: number,
   wsManager: WebSocketManager
 ) {
-  const library = DataManager.libraries.find(
-    (library: Library) => library.id === libraryId
-  );
+  const library = await getLibraryById(libraryId);
 
   if (!library) return;
 
-  FileSearch.library = library;
-
-  const collection = library.getSeriesById(seriesId);
-
-  if (!collection) return;
-
-  const movie = collection.getSeasonById(seasonId);
+  const movie = await getMovieById(movieId);
 
   if (!movie) return;
 
   // Delete previous data
-  await DataManager.deleteSeasonData(library, movie);
+  await deleteMovieData(library.id, movie);
 
   // Restore folder in library
-  library.getSeasonFolders().set(movie.folder, movie.id);
+  library.seasonFolders.set(movie.folder, movie.id);
 
-  // Clear episode list
-  movie.episodes = [];
+  // Remove videos
+  const videos = await getVideoByMovieId(movieId);
+
+  if (videos) {
+    for (const video of videos) {
+      deleteVideoData(libraryId, video);
+      deleteVideo(video.id);
+    }
+  }
 
   // Update TheMovieDB ID
-  movie.setthemdbId(newTheMovieDBID);
+  movie.themdbId = newTheMovieDBID;
 
-  // Set element loading to show in client
-  collection.analyzingFiles = true;
-
-  Utils.updateSeries(wsManager, library.id, collection);
+  // Save changes in DB
+  movie.save();
+  //Utils.updateSeries(wsManager, library.id, collection);
 
   // Get new data
-  await scanMovie(movie.folder, wsManager);
+  await scanMovie(library, movie.folder, wsManager);
 }

@@ -7,20 +7,29 @@ import {
 } from 'moviedb-promise';
 import path from 'path';
 import { Episode as EpisodeLocal } from '../../data/models/Media/Episode.model';
+import { Library } from '../../data/models/Media/Library.model';
 import { Season } from '../../data/models/Media/Season.model';
 import { Series } from '../../data/models/Media/Series.model';
 import { Video } from '../../data/models/Media/Video.model';
 import { getSeriesById } from '../../db/get/getData';
-import { addSeries, addVideoAsEpisode } from '../../db/post/postData';
-import { updateVideo } from '../../db/update/updateData';
+import {
+  addEpisode,
+  addSeason,
+  addSeries,
+  addVideoAsEpisode,
+} from '../../db/post/postData';
 import { MovieDBWrapper } from '../../theMovieDB/MovieDB';
 import { FilesManager } from '../../utils/FilesManager';
 import { Utils } from '../../utils/Utils';
 import { WebSocketManager } from '../../WebSockets/WebSocketManager';
-import { FileSearch } from '../FileSearch';
+import { FileSearch } from '../fileSearch';
 
-export async function scanTVShow(folder: string, wsManager: WebSocketManager) {
-  if (!(await Utils.isFolder(folder)) || !FileSearch.library) return undefined;
+export async function scanTVShow(
+  library: Library,
+  folder: string,
+  wsManager: WebSocketManager
+) {
+  if (!(await Utils.isFolder(folder))) return undefined;
 
   const videoFiles = await Utils.getValidVideoFiles(folder);
 
@@ -32,22 +41,21 @@ export async function scanTVShow(folder: string, wsManager: WebSocketManager) {
   let exists: boolean = false;
 
   // Get existing data or create a new Series
-  if (FileSearch.library.analyzedFolders.get(folder)) {
-    show = await getSeriesById(
-      FileSearch.library.analyzedFolders.get(folder) ?? ''
-    );
+  if (library.analyzedFolders.get(folder)) {
+    show = await getSeriesById(library.analyzedFolders.get(folder) ?? '');
 
     if (show === null) return undefined;
 
     exists = true;
   } else {
-    show = addSeries();
+    show = addSeries({
+      folder,
+      libraryId: library.id,
+    });
 
     if (!show) return;
 
-    show.folder = folder;
-    show.libraryId = FileSearch.library.id;
-    FileSearch.library.analyzedFolders.set(folder, show.id);
+    library.analyzedFolders.set(folder, show.id);
   }
 
   let themdbId = show.themdbId;
@@ -91,10 +99,13 @@ export async function scanTVShow(folder: string, wsManager: WebSocketManager) {
 
   show.analyzingFiles = true;
 
-  if (!exists) {
-    // Add show to view
-    Utils.addSeries(wsManager, FileSearch.library.id, show);
-  }
+  // Save data in DB
+  show.save();
+
+  //   if (!exists) {
+  //     // Add show to view
+  //     Utils.addSeries(wsManager, library.id, show);
+  //   }
 
   // Descargar metadatos de cada temporada
   let seasonsMetadata: TvSeasonResponse[] = [];
@@ -123,6 +134,7 @@ export async function scanTVShow(folder: string, wsManager: WebSocketManager) {
       : undefined;
 
   await processEpisodes(
+    library,
     videoFiles,
     show,
     seasonsMetadata,
@@ -131,17 +143,21 @@ export async function scanTVShow(folder: string, wsManager: WebSocketManager) {
   );
 
   if (show.seasons.length === 0) {
-    FileSearch.library.analyzedFolders.delete(show.folder);
+    library.analyzedFolders.delete(show.folder);
     return undefined;
   }
 
   show.analyzingFiles = false;
 
+  // Save data in DB
+  show.save();
+
   // Update show in view
-  Utils.updateSeries(wsManager, FileSearch.library.id, show);
+  //Utils.updateSeries(wsManager, library.id, show);
 }
 
 export async function processEpisodes(
+  library: Library,
   videoFiles: string[],
   show: Series,
   seasonsMetadata: TvSeasonResponse[],
@@ -154,8 +170,9 @@ export async function processEpisodes(
 
   // Procesar cada episodio en paralelo.
   const processPromises = videoFiles.map(async (video) => {
-    if (FileSearch.library && !FileSearch.library.analyzedFiles.has(video)) {
+    if (!library.analyzedFiles.has(video)) {
       await processEpisode(
+        library,
         show,
         video,
         seasonsMetadata,
@@ -191,6 +208,7 @@ export async function processEpisodes(
 }
 
 export async function processEpisode(
+  library: Library,
   show: Series,
   videoSrc: string,
   seasonsMetadata: TvSeasonResponse[],
@@ -202,8 +220,6 @@ export async function processEpisode(
   episodesGroup: EpisodeGroupResponse | undefined,
   wsManager: WebSocketManager
 ) {
-  if (!FileSearch.library) return;
-
   //SeasonMetadataBasic and episode metadata to find for the current file
   let seasonMetadata: TvSeasonResponse | null = null;
   let episodeMetadata: Episode | null = null;
@@ -297,7 +313,7 @@ export async function processEpisode(
 
   if (!seasonMetadata || !episodeMetadata) return;
 
-  let season: Season | undefined;
+  let season: Season | null | undefined;
   if (realEpisode !== -1 && realSeason) {
     season = show.seasons.find((season) => season.seasonNumber === realSeason);
   } else if (seasonMetadata.season_number) {
@@ -307,20 +323,23 @@ export async function processEpisode(
   }
 
   if (!season) {
-    season = new Season();
-    show.seasons.push(season);
+    season = addSeason({
+      seriesId: show.id,
+      name: seasonMetadata.name ?? '',
+      year:
+        seasonMetadata.episodes &&
+        seasonMetadata.episodes[0] &&
+        seasonMetadata.episodes[0].air_date
+          ? seasonMetadata.episodes[0].air_date
+          : '',
+      overview: seasonMetadata.overview ?? show.overview,
+      seasonNumber:
+        realEpisode !== -1
+          ? realSeason ?? 0
+          : seasonMetadata.season_number ?? 0,
+    });
 
-    season.seriesId = show.id;
-    season.name = seasonMetadata.name ?? '';
-    season.overview = seasonMetadata.overview ?? show.overview;
-    season.year =
-      seasonMetadata.episodes &&
-      seasonMetadata.episodes[0] &&
-      seasonMetadata.episodes[0].air_date
-        ? seasonMetadata.episodes[0].air_date
-        : '';
-    season.seasonNumber =
-      realEpisode !== -1 ? realSeason ?? 0 : seasonMetadata.season_number ?? 0;
+    if (!season) return;
 
     if (show.seasons.length > 1) {
       season.backgroundSrc = show.seasons[0].backgroundSrc;
@@ -331,11 +350,14 @@ export async function processEpisode(
 
     if (season.seasonNumber === 0) season.order = 100;
 
+    // Save data in DB
+    season.save();
+
     // Add season to view
-    Utils.addSeason(wsManager, FileSearch.library.id, season);
+    //Utils.addSeason(wsManager, library.id, season);
   }
 
-  let episode: EpisodeLocal | undefined;
+  let episode: EpisodeLocal | undefined | null;
   if (realEpisode && realEpisode !== -1) {
     episode = season.episodes.find(
       (episode) => episode.episodeNumber === realEpisode
@@ -352,25 +374,26 @@ export async function processEpisode(
     video = addVideoAsEpisode(episode.id);
     if (video) video.fileSrc = videoSrc;
   } else {
-    episode = new EpisodeLocal();
-    episode.seasonId = season.id;
-    episode.seasonId = season.id;
-    episode.seasonNumber = season.seasonNumber;
+    episode = addEpisode({
+      seasonId: season.id,
+      seasonNumber: season.seasonNumber,
+      name: episodeMetadata?.name ?? '',
+      overview: episodeMetadata?.overview ?? '',
+      year: episodeMetadata?.air_date ?? '',
+      score: episodeMetadata?.vote_average
+        ? (episodeMetadata.vote_average * 10.0) / 10.0
+        : 0,
+      episodeNumber:
+        realEpisode && realEpisode != -1
+          ? realEpisode
+          : episodeMetadata.episode_number ?? 0,
+    });
 
-    FileSearch.library.analyzedFiles.set(videoSrc, episode.id);
+    if (!episode) return;
+
+    library.analyzedFiles.set(videoSrc, episode.id);
 
     // Set Metadata
-    episode.name = episodeMetadata?.name ?? '';
-    episode.overview = episodeMetadata?.overview ?? '';
-    episode.year = episodeMetadata?.air_date ?? '';
-    episode.score = episodeMetadata?.vote_average
-      ? (episodeMetadata.vote_average * 10.0) / 10.0
-      : 0;
-
-    episode.episodeNumber =
-      realEpisode && realEpisode != -1
-        ? realEpisode
-        : episodeMetadata.episode_number ?? 0;
 
     if (episodeMetadata.crew) {
       if (!episode.directedByLock && episode.directedBy) {
@@ -423,18 +446,20 @@ export async function processEpisode(
     video.imgSrc = `${FileSearch.BASE_URL}${episodeMetadata.still_path}`;
 
     // Add episode to view
-    Utils.addEpisode(
-      wsManager,
-      FileSearch.library.id,
-      season.seriesId,
-      episode
-    );
+    // Utils.addEpisode(
+    //   wsManager,
+    //   library.id,
+    //   season.seriesId,
+    //   episode
+    // );
   }
 
   // Update video in DB
+  episode.save();
+
   if (video) {
     video.episodeId = episode.id;
-    updateVideo(video.id, video);
+    video.save();
   }
 }
 

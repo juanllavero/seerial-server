@@ -31,7 +31,7 @@ export class Song extends Model {
 
   @ForeignKey(() => Album)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.STRING,
     allowNull: false,
     onDelete: 'CASCADE',
     field: 'album_id',
@@ -47,9 +47,48 @@ export class Song extends Model {
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
+  })
+  duration!: number;
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
     field: 'track_number',
   })
   trackNumber!: number;
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+    field: 'disc_number',
+  })
+  discNumber!: number;
+
+  @Column({
+    type: DataType.TEXT,
+    allowNull: false,
+    get() {
+      const value = this.getDataValue('composers');
+      return value ? JSON.parse(value) : [];
+    },
+    set(value: string[]) {
+      this.setDataValue('composers', JSON.stringify(value));
+    },
+  })
+  composers!: string[];
+
+  @Column({
+    type: DataType.TEXT,
+    allowNull: false,
+    get() {
+      const value = this.getDataValue('artists');
+      return value ? JSON.parse(value) : [];
+    },
+    set(value: string[]) {
+      this.setDataValue('artists', JSON.stringify(value));
+    },
+  })
+  artists!: string[];
 
   @BelongsToMany(() => PlayList, () => PlayListItem)
   playLists!: PlayList[];

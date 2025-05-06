@@ -12,6 +12,8 @@ export class SequelizeManager {
    * Initialize SQLite DB.
    */
   public static async initializeDB(): Promise<void> {
+    if (this.sequelize) return;
+
     try {
       SequelizeManager.ensureDatabaseDirectory();
 

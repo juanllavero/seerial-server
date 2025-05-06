@@ -51,6 +51,14 @@ export class Album extends Model {
   })
   description?: string;
 
+  @Column({
+    type: DataType.TEXT,
+    allowNull: true,
+    defaultValue: '',
+    field: 'cover_src',
+  })
+  coverSrc!: string;
+
   @BelongsToMany(() => Collection, () => CollectionAlbum)
   collections!: Collection[];
 

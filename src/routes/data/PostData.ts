@@ -3,7 +3,11 @@ import { MovieDb } from 'moviedb-promise';
 import path from 'path';
 import propertiesReader from 'properties-reader';
 import { Downloader } from '../../downloaders/Downloader';
-import { FileSearch } from '../../fileSearch/FileSearch';
+import { FileSearch } from '../../fileSearch/fileSearch';
+import {
+  updateMovieMetadata,
+  updateShowMetadata,
+} from '../../fileSearch/updateMetadata';
 import { wsManager } from '../../index';
 import { MovieDBWrapper } from '../../theMovieDB/MovieDB';
 import { FilesManager } from '../../utils/FilesManager';
@@ -131,7 +135,7 @@ router.post('/updateShowId', (req: any, res: any) => {
     return res.status(400).json({ error: 'Not enough parameters' });
   }
 
-  FileSearch.updateShowMetadata(libraryId, showId, themdbId, wsManager);
+  updateShowMetadata(libraryId, showId, themdbId, wsManager);
 });
 
 // Update TheMovieDB id for movie
@@ -142,13 +146,7 @@ router.post('/updateMovieId', (req: any, res: any) => {
     return res.status(400).json({ error: 'Not enough parameters' });
   }
 
-  FileSearch.updateMovieMetadata(
-    libraryId,
-    collectionId,
-    seasonId,
-    themdbId,
-    wsManager
-  );
+  updateMovieMetadata(libraryId, collectionId, seasonId, themdbId, wsManager);
 });
 
 // Update episode group for show
@@ -159,13 +157,7 @@ router.post('/updateEpisodeGroup', (req: any, res: any) => {
     return res.status(400).json({ error: 'Not enough parameters' });
   }
 
-  FileSearch.updateShowMetadata(
-    libraryId,
-    showId,
-    themdbId,
-    wsManager,
-    episodeGroupId
-  );
+  updateShowMetadata(libraryId, showId, themdbId, wsManager, episodeGroupId);
 });
 
 export default router;

@@ -32,7 +32,7 @@ import { Artist } from '../../data/models/music/Artist.model';
 import { Song } from '../../data/models/music/Song.model';
 import { SequelizeManager } from '../SequelizeManager';
 
-export const addLibrary = (library: LibraryData) => {
+export const addLibrary = (library: Partial<LibraryData>) => {
   if (!SequelizeManager.sequelize) return null;
 
   const newLibrary = new Library({ values: library });
@@ -46,6 +46,14 @@ export const addLibrary = (library: LibraryData) => {
 
 export const addCollection = (title: string) => {
   if (!SequelizeManager.sequelize) return null;
+
+  const existingCollection = Collection.findOne({
+    where: {
+      title,
+    },
+  });
+
+  if (existingCollection) return existingCollection;
 
   const newCollection = new Collection({ values: { title } });
 
@@ -91,7 +99,7 @@ export const addAlbumToCollection = (collectionId: string, albumId: string) => {
 
 //#region Media
 
-export const addSeries = (series?: SeriesData) => {
+export const addSeries = (series: Partial<SeriesData>) => {
   if (!SequelizeManager.sequelize) return null;
 
   const newSeries = new Series({ values: series });
@@ -101,7 +109,7 @@ export const addSeries = (series?: SeriesData) => {
   return newSeries;
 };
 
-export const addMovie = (movie: MovieData) => {
+export const addMovie = (movie: Partial<MovieData>) => {
   if (!SequelizeManager.sequelize) return null;
 
   const newMovie = new Movie({ values: movie });
@@ -111,7 +119,7 @@ export const addMovie = (movie: MovieData) => {
   return newMovie;
 };
 
-export const addSeason = (season: SeasonData) => {
+export const addSeason = (season: Partial<SeasonData>) => {
   if (!SequelizeManager.sequelize) return null;
 
   const newSeason = new Season({ values: season });
@@ -121,7 +129,7 @@ export const addSeason = (season: SeasonData) => {
   return newSeason;
 };
 
-export const addEpisode = (episode: EpisodeData) => {
+export const addEpisode = (episode: Partial<EpisodeData>) => {
   if (!SequelizeManager.sequelize) return null;
 
   const newEpisode = new Episode({ values: episode });
@@ -131,7 +139,10 @@ export const addEpisode = (episode: EpisodeData) => {
   return newEpisode;
 };
 
-export const addVideoAsMovie = (movieId: string, video?: VideoData) => {
+export const addVideoAsMovie = (
+  movieId: string,
+  video?: Partial<VideoData>
+) => {
   if (!SequelizeManager.sequelize) return null;
 
   const newVideo = new Video({
@@ -146,7 +157,10 @@ export const addVideoAsMovie = (movieId: string, video?: VideoData) => {
   return newVideo;
 };
 
-export const addVideoAsMovieExtra = (movieId: string, video?: VideoData) => {
+export const addVideoAsMovieExtra = (
+  movieId: string,
+  video?: Partial<VideoData>
+) => {
   if (!SequelizeManager.sequelize) return null;
 
   const newVideo = new Video({
@@ -161,7 +175,10 @@ export const addVideoAsMovieExtra = (movieId: string, video?: VideoData) => {
   return newVideo;
 };
 
-export const addVideoAsEpisode = (episodeId: string, video?: VideoData) => {
+export const addVideoAsEpisode = (
+  episodeId: string,
+  video?: Partial<VideoData>
+) => {
   if (!SequelizeManager.sequelize) return null;
 
   const newVideo = new Video({
@@ -180,7 +197,7 @@ export const addVideoAsEpisode = (episodeId: string, video?: VideoData) => {
 
 //#region Music
 
-export const addAlbum = (album: AlbumData) => {
+export const addAlbum = (album: Partial<AlbumData>) => {
   if (!SequelizeManager.sequelize) return null;
 
   const newAlbum = new Album({ values: album });
@@ -190,8 +207,16 @@ export const addAlbum = (album: AlbumData) => {
   return newAlbum;
 };
 
-export const addArtist = (artist: ArtistData) => {
+export const addArtist = (artist: Partial<ArtistData>) => {
   if (!SequelizeManager.sequelize) return null;
+
+  const existingArtist = Artist.findOne({
+    where: {
+      name: artist.name,
+    },
+  });
+
+  if (existingArtist) return existingArtist;
 
   const newArtist = new Artist({ values: artist });
 
@@ -213,7 +238,7 @@ export const addArtistToAlbum = (artistId: string, albumId: string) => {
   newElement.save();
 };
 
-export const addSong = (song: SongData) => {
+export const addSong = (song: Partial<SongData>) => {
   if (!SequelizeManager.sequelize) return null;
 
   const newSong = new Song({ values: song });
@@ -227,7 +252,7 @@ export const addSong = (song: SongData) => {
 
 //#region Lists
 
-export const addPlaylist = (playList: PlayListData) => {
+export const addPlaylist = (playList: Partial<PlayListData>) => {
   if (!SequelizeManager.sequelize) return null;
 
   const newPlayList = new PlayList({ values: playList });

@@ -4,11 +4,7 @@ import ffmpegPath from 'ffmpeg-static';
 import ffprobePath from 'ffprobe-static';
 import ffmpeg from 'fluent-ffmpeg';
 import * as fs from 'fs';
-import {
-  Episode,
-  Episode as MovieDBEpisode,
-  TvSeasonResponse,
-} from 'moviedb-promise';
+import { Episode as MovieDBEpisode, TvSeasonResponse } from 'moviedb-promise';
 import path from 'path';
 import { WebSocketManager } from '../WebSockets/WebSocketManager';
 import {
@@ -25,6 +21,7 @@ import {
   VideoTrack as VideoTrackData,
 } from '../data/interfaces/MediaInfo';
 import { Video } from '../data/models/Media/Video.model';
+import { Song } from '../data/models/music/Song.model';
 
 ffmpeg.setFfprobePath(ffprobePath.path);
 
@@ -228,7 +225,7 @@ export class Utils {
 
   //#region MEDIA INFO
   public static async getOnlyRuntime(
-    song: Episode,
+    song: Song,
     musicFile: string
   ): Promise<void> {
     try {
@@ -236,7 +233,7 @@ export class Utils {
       const format = data?.format;
 
       if (format && format.duration) {
-        song.runtime = format.duration / 60;
+        song.duration = format.duration / 60;
       } else {
         console.log('Failed to get runtime for song:', musicFile);
       }

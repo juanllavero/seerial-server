@@ -33,13 +33,6 @@ export class Season extends Model {
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
-    field: 'themdb_id',
-  })
-  themdbId!: number;
-
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
   })
   order!: number;
 
