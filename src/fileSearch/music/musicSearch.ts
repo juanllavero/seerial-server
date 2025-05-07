@@ -5,6 +5,7 @@ import path from "path";
 import { Collection } from "../../data/models/Collections/Collection.model";
 import { Library } from "../../data/models/Media/Library.model";
 import { Album } from "../../data/models/music/Album.model";
+import { getAlbums } from "../../db/get/getData";
 import {
   addAlbumToCollection,
   addArtist,
@@ -70,10 +71,14 @@ export async function processMusicFile(
 
     let newAlbum: Album | null = null;
 
-    for (const album of collection.albums) {
-      if (album.title === albumName) {
-        newAlbum = album;
-        break;
+    const albums = await getAlbums(library.id);
+
+    if (albums) {
+      for (const album of albums) {
+        if (album.title === albumName) {
+          newAlbum = album;
+          break;
+        }
       }
     }
 
@@ -91,11 +96,11 @@ export async function processMusicFile(
           : [],
       });
 
-      addAlbumToCollection(collection.id, newAlbum.id);
-
       // Add season to view
       //Utils.addSeason(wsManager, library.id, album);
     }
+
+    await addAlbumToCollection(collection.id, newAlbum.id);
 
     const song = await addSong({
       title: data.title ?? Utils.getFileName(musicFile),
