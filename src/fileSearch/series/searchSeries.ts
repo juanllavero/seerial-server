@@ -401,7 +401,7 @@ export async function processEpisode(
         episode.directedBy.splice(0, episode.directedBy.length);
         for (const person of episodeMetadata.crew) {
           if (person.name && person.job === "Director" && episode?.directedBy)
-            episode.directedBy.push(person.name);
+            episode.directedBy = [...episode.directedBy, person.name];
         }
       }
 
@@ -409,7 +409,7 @@ export async function processEpisode(
         episode.writtenBy.splice(0, episode.writtenBy.length);
         for (const person of episodeMetadata.crew) {
           if (person.name && person.job === "Writer" && episode?.writtenBy)
-            episode?.writtenBy.push(person.name);
+            episode.writtenBy = [...episode.writtenBy, person.name];
         }
       }
     }
@@ -493,13 +493,16 @@ export async function setSeriesMetadataAndImages(
       show.cast.splice(0, show.cast.length);
 
     for (const person of credits.cast) {
-      show.cast?.push({
-        name: person.name ?? "",
-        character: person.character ?? "",
-        profileImage: person.profile_path
-          ? `${FileSearch.BASE_URL}${person.profile_path}`
-          : "",
-      });
+      show.cast = [
+        ...show.cast,
+        {
+          name: person.name ?? "",
+          character: person.character ?? "",
+          profileImage: person.profile_path
+            ? `${FileSearch.BASE_URL}${person.profile_path}`
+            : "",
+        },
+      ];
     }
   }
 
@@ -525,11 +528,11 @@ export async function setSeriesMetadataAndImages(
           person.job === "Original Concept")
       )
         if (person.name && !show.creatorLock && show.creator)
-          show.creator.push(person.name);
+          show.creator = [...show.creator, person.name];
 
       if (person.job && person.job === "Original Music Composer")
         if (person.name && !show.musicComposerLock && show.musicComposer)
-          show.musicComposer.push(person.name);
+          show.musicComposer = [...show.musicComposer, person.name];
     }
   }
 

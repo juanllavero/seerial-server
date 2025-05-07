@@ -215,20 +215,26 @@ export async function setMovieMetadata(
   );
 
   if (credits) {
+    console.log({ credits });
     if (credits.crew) {
       if (!movie.directedByLock && movie.directedBy) {
         movie.directedBy.splice(0, movie.directedBy.length);
         for (const person of credits.crew) {
+          console.log({ person });
           if (person.name && person.job === "Director" && movie.directedBy)
-            movie?.directedBy.push(person.name);
+            movie.directedBy = [...movie.directedBy, person.name];
         }
       }
 
       if (!movie.writtenByLock && movie.writtenBy) {
         movie.writtenBy.splice(0, movie.writtenBy.length);
         for (const person of credits.crew) {
-          if (person.name && person.job === "Writer" && movie.writtenBy)
-            movie?.writtenBy.push(person.name);
+          if (
+            person.name &&
+            (person.job === "Writer" || person.job === "Novel") &&
+            movie.writtenBy
+          )
+            movie.writtenBy = [...movie.writtenBy, person.name];
         }
       }
 
@@ -258,7 +264,7 @@ export async function setMovieMetadata(
             person.job === "Original Concept")
         )
           if (person.name && !movie.creatorLock && movie.creator)
-            movie.creator.push(person.name);
+            movie.creator = [...movie.creator, person.name];
 
         if (
           !movie.musicComposerLock &&
@@ -266,7 +272,7 @@ export async function setMovieMetadata(
           person.job === "Original Music Composer"
         )
           if (person.name && !movie.musicComposerLock && movie.musicComposer)
-            movie.musicComposer.push(person.name);
+            movie.musicComposer = [...movie.musicComposer, person.name];
       }
     }
 
@@ -275,13 +281,16 @@ export async function setMovieMetadata(
         movie.cast.splice(0, movie.cast.length);
 
       for (const person of credits.cast) {
-        movie.cast?.push({
-          name: person.name ?? "",
-          character: person.character ?? "",
-          profileImage: person.profile_path
-            ? `${FileSearch.BASE_URL}${person.profile_path}`
-            : "",
-        });
+        movie.cast = [
+          ...movie.cast,
+          {
+            name: person.name ?? "",
+            character: person.character ?? "",
+            profileImage: person.profile_path
+              ? `${FileSearch.BASE_URL}${person.profile_path}`
+              : "",
+          },
+        ];
       }
     }
   }
