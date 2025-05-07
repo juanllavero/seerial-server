@@ -11,7 +11,8 @@ import { Library } from "../../data/models/Media/Library.model";
 import { Season } from "../../data/models/Media/Season.model";
 import { Series } from "../../data/models/Media/Series.model";
 import { Video } from "../../data/models/Media/Video.model";
-import { getSeriesById } from "../../db/get/getData";
+import { deleteSeries } from "../../db/delete/deleteData";
+import { getEpisodes, getSeasons, getSeriesById } from "../../db/get/getData";
 import {
   addEpisode,
   addSeason,
@@ -143,8 +144,10 @@ export async function scanTVShow(
     wsManager
   );
 
-  if (show.seasons.length === 0) {
-    await library.removeAnalyzedFolder(show.folder);
+  const seasons = await getSeasons(show.id);
+
+  if (!seasons || seasons.length < 1) {
+    await deleteSeries(show.id);
     return undefined;
   }
 
@@ -184,11 +187,16 @@ export async function processEpisodes(
       );
     }
   });
+
   await Promise.all(processPromises);
+
+  const seasons = await getSeasons(show.id);
+
+  if (!seasons) return;
 
   // Change the name of every season to match the Episodes Group
   if (show.episodeGroupId !== "" && episodesGroup) {
-    for (const season of show.seasons) {
+    for (const season of seasons) {
       if (episodesGroup.groups) {
         for (const group of episodesGroup.groups) {
           if (group.order == season.seasonNumber) {
@@ -197,10 +205,10 @@ export async function processEpisodes(
         }
       }
     }
-  } else if (show.seasons.length > 1) {
+  } else if (seasons.length > 1) {
     //If two seasons have the same name
-    if (show.seasons[0].name === show.seasons[1].name) {
-      for (const season of show.seasons) {
+    if (seasons[0].name === seasons[1].name) {
+      for (const season of seasons) {
         if (season.seasonNumber !== 0)
           season.name = "Season " + season.seasonNumber;
       }
@@ -315,10 +323,11 @@ export async function processEpisode(
   if (!seasonMetadata || !episodeMetadata) return;
 
   let season: Season | null | undefined;
-  if (realEpisode !== -1 && realSeason) {
-    season = show.seasons.find((season) => season.seasonNumber === realSeason);
-  } else if (seasonMetadata.season_number) {
-    season = show.seasons.find(
+  const seasons = await getSeasons(show.id);
+  if (seasons && realEpisode !== -1 && realSeason) {
+    season = seasons.find((season) => season.seasonNumber === realSeason);
+  } else if (seasons && seasonMetadata.season_number) {
+    season = seasons.find(
       (season) => season.seasonNumber === seasonMetadata.season_number
     );
   }
@@ -342,9 +351,9 @@ export async function processEpisode(
 
     if (!season) return;
 
-    if (show.seasons.length > 1) {
-      season.backgroundSrc = show.seasons[0].backgroundSrc;
-      season.backgroundsUrls = show.seasons[0].backgroundsUrls;
+    if (seasons && seasons.length > 1) {
+      season.backgroundSrc = seasons[0].backgroundSrc;
+      season.backgroundsUrls = seasons[0].backgroundsUrls;
     } else {
       setSeasonBackgrounds(show, season);
     }
@@ -358,13 +367,12 @@ export async function processEpisode(
     //Utils.addSeason(wsManager, library.id, season);
   }
 
+  const episodes = await getEpisodes(season.id);
   let episode: EpisodeLocal | undefined | null;
-  if (realEpisode && realEpisode !== -1) {
-    episode = season.episodes.find(
-      (episode) => episode.episodeNumber === realEpisode
-    );
-  } else if (episodeMetadata.episode_number) {
-    episode = season.episodes.find(
+  if (episodes && realEpisode && realEpisode !== -1) {
+    episode = episodes.find((episode) => episode.episodeNumber === realEpisode);
+  } else if (episodes && episodeMetadata.episode_number) {
+    episode = episodes.find(
       (episode) => episode.episodeNumber === episodeMetadata.episode_number
     );
   }
@@ -372,8 +380,9 @@ export async function processEpisode(
   let video: Video | null = null;
 
   if (episode) {
-    video = await addVideoAsEpisode(episode.id);
-    if (video) video.fileSrc = videoSrc;
+    video = await addVideoAsEpisode(episode.id, {
+      fileSrc: videoSrc,
+    });
   } else {
     episode = await addEpisode({
       seasonId: season.id,
@@ -414,12 +423,13 @@ export async function processEpisode(
       }
     }
 
-    video = await addVideoAsEpisode(episode?.id);
+    video = await addVideoAsEpisode(episode.id, {
+      fileSrc: videoSrc,
+    });
 
     if (!video) return;
 
     video.runtime = episodeMetadata?.runtime ?? 0;
-    video.fileSrc = videoSrc;
 
     const images = await MovieDBWrapper.getEpisodeImages(
       show.themdbId,
@@ -549,9 +559,10 @@ export async function setSeriesMetadataAndImages(
 
 export async function setSeasonBackgrounds(show: Series, season: Season) {
   let backgroundFound = false;
-  if (show.seasons.length > 1) {
-    for (let i = 0; i < show.seasons.length; i++) {
-      const s = show.seasons[i];
+  const seasons = await getSeasons(show.id);
+  if (seasons && seasons.length > 1) {
+    for (let i = 0; i < seasons.length; i++) {
+      const s = seasons[i];
       if (s.backgroundSrc.length > 0) {
         season.backgroundSrc = s.backgroundSrc;
         season.backgroundsUrls = s.backgroundsUrls;

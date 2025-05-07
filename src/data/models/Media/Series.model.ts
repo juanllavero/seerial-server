@@ -36,7 +36,7 @@ export class Series extends Model {
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
-    defaultValue: "",
+    defaultValue: -1,
     field: "themdb_id",
   })
   themdbId!: number;
