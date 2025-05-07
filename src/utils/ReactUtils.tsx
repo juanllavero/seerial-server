@@ -152,6 +152,7 @@ export const getAudioTrack = (
   audioTracks: AudioTrack[],
 ) => {
   if (
+    season.selectedAudioTrack &&
     season.selectedAudioTrack !== -1 &&
     season.selectedAudioTrack < audioTracks.length
   ) {
@@ -179,6 +180,7 @@ export const getSubtitleTrack = (
   subtitleTracks: SubtitleTrack[],
 ) => {
   if (
+    season.selectedSubtitleTrack &&
     season.selectedSubtitleTrack !== -1 &&
     season.selectedSubtitleTrack < subtitleTracks.length
   ) {

@@ -4,7 +4,7 @@ import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Library } from '@/data/interfaces/Media'
 import { DropdownContent } from '@/data/interfaces/Utils'
-import useFetch from '@/hooks/useFetch'
+import { fetcher } from '@/utils/utils'
 import { useLocation, useNavigate, useRouter } from '@tanstack/react-router'
 import {
   ChevronLeft,
@@ -14,12 +14,14 @@ import {
   Settings,
   TvMinimal,
 } from 'lucide-react'
-import React, { useEffect } from 'react'
+import React from 'react'
 import { useTranslation } from 'react-i18next'
+import useSWR from 'swr'
 import DropdownWrapper from './DropdownWrapper'
 import { useIsMobile } from './hooks/use-mobile'
 import { LibrarySwitcher } from './LibrarySwitcher'
 import Loading from './Loading'
+import NotFound from './NotFound'
 import { Button } from './ui/button'
 import { Card, CardHeader } from './ui/card'
 
@@ -28,34 +30,21 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const { openRemoveLibraryDialog } = useDialogStore()
-  const {
-    libraries,
-    setLibraries,
-    selectedLibrary,
-    selectLibrary,
-    setLoadingLibraries,
-  } = useDataStore()
+  const { selectedLibrary, selectLibrary } = useDataStore()
   const { serverIP } = useServerStore()
   const { connectWS } = useWebSocketStore()
-  const { fetchData, isLoading } = useFetch<Library[]>()
   const isMobile = useIsMobile()
+
+  const { data: libraries, isLoading } = useSWR<Library[]>(
+    `http://${serverIP}/libraries/`,
+    fetcher,
+  )
 
   // Checks current page location
   const location = useLocation()
   const inHome = location.pathname === '/'
   const inSettings = location.pathname === '/settings'
   const inPlayer = location.pathname.startsWith('/video-player')
-
-  useEffect(() => {
-    if (serverIP !== '' && (!libraries || libraries.length === 0)) {
-      setLoadingLibraries(true)
-
-      fetchData(`http://${serverIP}/libraries`, (data) => {
-        setLibraries(data)
-        setLoadingLibraries(false)
-      })
-    }
-  }, [])
 
   const getLibraryDrowdown = (library: Library): DropdownContent => {
     return {
@@ -99,6 +88,14 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
     }
   }
 
+  if (isLoading) {
+    return <Loading />
+  }
+
+  if (!libraries || libraries.length === 0) {
+    return <NotFound />
+  }
+
   return (
     <div
       className={`pl-5 ${isMobile ? 'w-full px-5 pt-5' : isWindows ? 'pt-5' : 'pt-10'}`}
@@ -123,7 +120,7 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
                     action: () => {
                       selectLibrary(library)
                       navigate({
-                        to: '/collection/$libraryId',
+                        to: '/library/$libraryId',
                         params: { libraryId: library.id },
                       })
                     },

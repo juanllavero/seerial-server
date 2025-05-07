@@ -12,11 +12,11 @@
 // import SeasonMediaTab from './components/SeasonMediaTab'
 // import SeasonTagsTab from './components/SeasonTagsTab'
 
-// function SeasonDialog() {
+// function MovieDialog() {
 //   const { t } = useTranslation()
 //   const { serverIP } = useServerStore()
 //   const { connectWS } = useWebSocketStore()
-//   const { selectedLibrary, selectedSeries, updateSeason } = useDataStore()
+//   const { selectedLibrary, selectedMovie } = useDataStore()
 //   const { seasonDialog, closeSeasonDialog } = useDialogStore()
 //   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 
@@ -277,4 +277,4 @@
 //   )
 // }
 
-// export default SeasonDialog
+// export default MovieDialog

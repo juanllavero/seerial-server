@@ -15,8 +15,7 @@ function EpisodeDialog() {
   const { t } = useTranslation()
   const { serverIP } = useServerStore()
   const { connectWS } = useWebSocketStore()
-  const { selectedLibrary, selectedSeries, selectedSeason, updateEpisode } =
-    useDataStore()
+  const { selectedLibrary, selectedSeries, selectedSeason } = useDataStore()
   const { episodeDialog, closeEpisodeDialog } = useDialogStore()
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 
@@ -46,15 +45,11 @@ function EpisodeDialog() {
       setNameLock(episodeDialog.episodeToEdit.nameLock)
       setYearLock(episodeDialog.episodeToEdit.yearLock)
       setOverviewLock(episodeDialog.episodeToEdit.overviewLock)
-      setDirectedLock(episodeDialog.episodeToEdit.directedLock)
-      setWrittenLock(episodeDialog.episodeToEdit.writtenLock)
       setName(episodeDialog.episodeToEdit.name)
       setYear(episodeDialog.episodeToEdit.year)
       setOverview(episodeDialog.episodeToEdit.overview)
       setDirectedBy(episodeDialog.episodeToEdit.directedBy)
       setWrittenBy(episodeDialog.episodeToEdit.writtenBy)
-      setImages(episodeDialog.episodeToEdit.imgUrls)
-      setSelectedImage(episodeDialog.episodeToEdit.imgSrc)
       setEpisode(episodeDialog.episodeToEdit)
       setLocalFolder(`img/thumbnails/video/${episodeDialog.episodeToEdit.id}`)
       setSelectedTab(t('generalButton'))
@@ -97,25 +92,6 @@ function EpisodeDialog() {
       showToast('error', 'Error updating episode')
       return
     }
-
-    updateEpisode({
-      libraryId: selectedLibrary.id,
-      showId: selectedSeries.id,
-      episode: {
-        ...episode,
-        imgSrc: selectedImage,
-        name: name,
-        year: year,
-        overview: overview,
-        directedBy: directedBy,
-        writtenBy: writtenBy,
-        nameLock: nameLock,
-        yearLock: yearLock,
-        overviewLock: overviewLock,
-        directedLock: directedLock,
-        writtenLock: writtenLock,
-      },
-    })
 
     closeEpisodeDialog()
   }
@@ -180,7 +156,10 @@ function EpisodeDialog() {
         {
           title: t('details'),
           content: (
-            <EpisodeMediaInfoTab episode={episode} setEpisode={setEpisode} />
+            <EpisodeMediaInfoTab
+              video={episode as any}
+              setEpisode={setEpisode}
+            />
           ),
         },
       ]}

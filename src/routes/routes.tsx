@@ -1,7 +1,6 @@
-import CollectionPage from '@/pages/collection/CollectionPage'
 import DetailsPage from '@/pages/details/DetailsPage'
-import EpisodeDetailsPage from '@/pages/episodeDetails/EpisodeDetailsPage'
 import HomePage from '@/pages/home/HomePage'
+import LibraryPage from '@/pages/library/LibraryPage'
 import SettingsPage from '@/pages/settings/SettingsPage'
 import VideoPlayerPage from '@/pages/videoPlayer/VideoPlayerPage'
 import { createRoute } from '@tanstack/react-router'
@@ -13,22 +12,40 @@ export const HomeRoute = createRoute({
   component: HomePage,
 })
 
-export const CollectionRoute = createRoute({
+export const LibraryRoute = createRoute({
   getParentRoute: () => RootRoute,
-  path: '/collection/$libraryId',
-  component: CollectionPage,
+  path: '/library/$libraryId',
+  component: LibraryPage,
 })
 
-export const DetailsRoute = createRoute({
+export const MovieDetailsRoute = createRoute({
   getParentRoute: () => RootRoute,
-  path: '/details/$libraryId/$seriesId',
+  path: '/details/movie/$movieId',
+  component: DetailsPage,
+})
+
+export const SeriesDetailsRoute = createRoute({
+  getParentRoute: () => RootRoute,
+  path: '/details/series/$seriesId',
+  component: DetailsPage,
+})
+
+export const AlbumDetailsRoute = createRoute({
+  getParentRoute: () => RootRoute,
+  path: '/details/album/$albumId',
+  component: DetailsPage,
+})
+
+export const CollectionDetailsRoute = createRoute({
+  getParentRoute: () => RootRoute,
+  path: '/details/collection/$collectionId',
   component: DetailsPage,
 })
 
 export const EpisodeDetailsRoute = createRoute({
   getParentRoute: () => RootRoute,
-  path: '/episodeDetails/$libraryId/$seriesId/$seasonId/$episodeId',
-  component: EpisodeDetailsPage,
+  path: '/details/episode/$episodeId',
+  component: DetailsPage,
 })
 
 export const SettingsRoute = createRoute({
@@ -45,9 +62,12 @@ export const VideoPlayerRoute = createRoute({
 
 export const rootTree = RootRoute.addChildren([
   HomeRoute,
-  CollectionRoute,
-  DetailsRoute,
+  LibraryRoute,
+  MovieDetailsRoute,
+  SeriesDetailsRoute,
+  AlbumDetailsRoute,
+  CollectionDetailsRoute,
+  EpisodeDetailsRoute,
   SettingsRoute,
   VideoPlayerRoute,
-  EpisodeDetailsRoute,
 ])

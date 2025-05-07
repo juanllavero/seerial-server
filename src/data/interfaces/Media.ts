@@ -1,170 +1,188 @@
-import { AudioTrack, MediaInfo, SubtitleTrack, VideoTrack } from './MediaInfo'
-import { Cast, Chapter } from './Metadata'
+import {
+  AudioTrack,
+  Chapter,
+  MediaInfo,
+  SubtitleTrack,
+  VideoTrack,
+} from "./MediaInfo";
+
+export interface Cast {
+  name: string;
+  character: string;
+  profileImage: string;
+}
 
 export interface Library {
-  id: string
-  name: string
-  language: string
-  type: string
-  isCollection: boolean
-  order: number
-  folders: string[]
-  series: Series[]
-  seriesList: string[]
-  analyzedFiles: any
-  analyzedFolders: any
-  seasonFolders: any
-  preferAudioLan: string | undefined
-  preferSubLan: string | undefined
-  subsMode: string | undefined
+  id: string;
+  name: string;
+  language: string;
+  type: string;
+  order: number;
+  hidden: boolean;
+  folders: string[];
+  preferAudioLan?: string;
+  preferSubLan?: string;
+  subsMode?: string;
+  analyzedFiles: Record<string, string>;
+  analyzedFolders: Record<string, string>;
+  backgroundSrc: string;
+}
+
+export interface Collection {
+  id: string;
+  title: string;
+  description?: string;
+  backgroundSrc: string;
+  backgroundsUrls: string[];
+  coverSrc: string;
+  coversUrls: string[];
 }
 
 export interface Series {
-  id: string
+  id: string;
+  libraryId: string;
+  themdbId: number;
+  order: number;
+  name: string;
+  nameLock: boolean;
+  overview: string;
+  overviewLock: boolean;
+  year: string;
+  yearLock: boolean;
+  score: number;
+  tagline: string;
+  taglineLock: boolean;
 
-  //Common data
-  name: string
-  overview: string
-  coverSrc: string
-  coversUrls: string[]
-  nameLock: boolean
-  overviewLock: boolean
+  logoSrc: string;
+  logosUrls: string[];
+  coverSrc: string;
+  coversUrls: string[];
 
-  //Show
-  year: string
-  score: number
-  tagline: string
-  logoSrc: string
-  logosUrls: string[]
-  creator: string[]
-  genres: string[]
-  cast: Cast[]
-  musicComposer: string[]
-  productionStudios: string[]
-  yearLock: boolean
-  studioLock: boolean
-  taglineLock: boolean
-  creatorLock: boolean
-  musicLock: boolean
-  genresLock: boolean
+  productionStudios: string[];
+  productionStudiosLock: boolean;
+  creator: string[];
+  creatorLock: boolean;
+  musicComposer: string[];
+  musicComposerLock: boolean;
+  genres: string[];
+  genresLock: boolean;
+  cast: Cast[];
 
-  //Other
-  watched: boolean
-  themdbID: number
-  isCollection: boolean
-  order: number
-  numberOfSeasons: number
-  numberOfEpisodes: number
-  folder: string
-  videoZoom: number
-  episodeGroupID: string
-  seasons: Season[]
-  playSameMusic: boolean
-  analyzingFiles: boolean
-  currentlyWatchingSeason: number
+  folder: string;
+  episodeGroupId: string;
+  analyzingFiles: boolean;
+  currentlyWatchingEpisodeId: string;
+  watched: boolean;
 }
 
 export interface Season {
-  id: string
+  id: string;
+  seriesId: string;
+  order: number;
+  name: string;
+  nameLock: boolean;
+  year: string;
+  yearLock: boolean;
+  overview: string;
+  overviewLock: boolean;
+  seasonNumber: number;
 
-  //Common data
-  name: string
-  year: string
-  overview: string
-  nameLock: boolean
-  orderLock: boolean
-  yearLock: boolean
-  overviewLock: boolean
+  coverSrc: string;
+  coversUrls: string[];
+  backgroundSrc: string;
+  backgroundsUrls: string[];
+  videoSrc: string;
+  musicSrc: string;
 
-  //Moviecreator:
-  imdbScore: number
-  score: number
-  tagline: string
-  creator: string[]
-  genres: string[]
-  cast: Cast[]
-  musicComposer: string[]
-  productionStudios: string[]
-  directedBy: string[]
-  writtenBy: string[]
-  studioLock: boolean
-  taglineLock: boolean
-  creatorLock: boolean
-  musicLock: boolean
-  directedLock: boolean
-  writtenLock: boolean
-  genresLock: boolean
-
-  //Other
-  order: number
-  seasonNumber: number
-  logoSrc: string
-  logosUrls: string[]
-  coverSrc: string
-  coversUrls: string[]
-  backgroundSrc: string
-  backgroundsUrls: string[]
-  videoSrc: string
-  musicSrc: string
-  seriesID: string
-  themdbID: number
-  imdbID: string
-  lastDisc: number
-  folder: string
-  showName: boolean
-  audioTrackLanguage: string
-  selectedAudioTrack: number
-  subtitleTrackLanguage: string
-  selectedSubtitleTrack: number
-  episodes: Episode[]
-  currentlyWatchingEpisode: number
-  watched: boolean
+  audioTrackLanguage?: string;
+  selectedAudioTrack?: number;
+  subtitleTrackLanguage?: string;
+  selectedSubtitleTrack?: number;
+  watched: boolean;
 }
 
 export interface Episode {
-  id: string
+  id: string;
+  seasonId: string;
+  name: string;
+  nameLock: boolean;
+  year: string;
+  yearLock: boolean;
+  overview: string;
+  overviewLock: boolean;
+  score: number;
 
-  //Common data
-  name: string
-  overview: string
-  year: string
-  nameLock: boolean
-  yearLock: boolean
-  overviewLock: boolean
+  directedBy: string[];
+  directedByLock: boolean;
+  writtenBy: string[];
+  writtenByLock: boolean;
 
-  //Show
-  score: number
-  imdbScore: number
-  directedBy: string[]
-  writtenBy: string[]
-  directedLock: boolean
-  writtenLock: boolean
-
-  //Song
-  album: string
-  albumArtist: string
-
-  order: number
-  runtime: number
-  runtimeInSeconds: number
-  episodeNumber: number
-  seasonNumber: number
-  videoSrc: string
-  imgSrc: string
-  imgUrls: string[]
-  seasonID: string
-  watched: boolean
-  timeWatched: number
-  chapters: Chapter[]
-  mediaInfo?: MediaInfo
-  videoTracks: VideoTrack[]
-  audioTracks: AudioTrack[]
-  subtitleTracks: SubtitleTrack[]
+  episodeNumber: number;
+  seasonNumber: number;
+  order: number;
 }
 
-export interface Song {
-  library: Library
-  collection: Series
-  album: Season
-  song: Episode
+export interface Movie {
+  id: string;
+  libraryId: string;
+  imdbId: string;
+  themdbId: number;
+  imdbScore: number;
+  score: number;
+  order: number;
+  name: string;
+  nameLock: boolean;
+  overview: string;
+  overviewLock: boolean;
+  year: string;
+  yearLock: boolean;
+  tagline: string;
+  taglineLock: boolean;
+
+  genres: string[];
+  genresLock: boolean;
+  productionStudios: string[];
+  productionStudiosLock: boolean;
+  directedBy: string[];
+  directedByLock: boolean;
+  writtenBy: string[];
+  writtenByLock: boolean;
+  creator: string[];
+  creatorLock: boolean;
+  musicComposer: string[];
+  musicComposerLock: boolean;
+  cast: Cast[];
+
+  folder: string;
+
+  logoSrc: string;
+  logosUrls: string[];
+  backgroundSrc: string;
+  backgroundsUrls: string[];
+  coverSrc: string;
+  coversUrls: string[];
+  watched: boolean;
+}
+
+export interface Video {
+  id: string;
+  title: string;
+  fileSrc: string;
+  runtime: number;
+  imgSrc: string;
+  imgUrls: string[];
+  watched: boolean;
+  timeWatched: number;
+  lastWatched: string;
+
+  mediaInfo?: MediaInfo;
+  videoTracks?: VideoTrack[];
+  subtitleTracks?: SubtitleTrack[];
+  audioTracks?: AudioTrack[];
+  chapters?: Chapter[];
+
+  extraType?: string;
+
+  episodeId?: string;
+  movieId?: string;
 }

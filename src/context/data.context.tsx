@@ -1,336 +1,124 @@
-import { Episode, Library, Season, Series } from '@/data/interfaces/Media'
+import {
+  Collection,
+  Episode,
+  Library,
+  Movie,
+  Season,
+  Series,
+  Video,
+} from '@/data/interfaces/Media'
+import { Album, Song } from '@/data/interfaces/Music'
 import { create } from 'zustand'
 
 interface DataState {
-  loadingLibraries: boolean
-  libraries: Library[]
   selectedLibrary: Library | null
+  selectdCollection: Collection | null
+  selectedMovie: Movie | null
   selectedSeries: Series | null
   selectedSeason: Season | null
   selectedEpisode: Episode | null
+  selectedVideo: Video | null
+  selectedAlbum: Album | null
+  selectedSong: Song | null
 
   // GET
-  setLibraries: (libraries: Library[]) => void
   selectLibrary: (library: Library | null) => void
+  selectCollection: (collection: Collection | null) => void
+  selectMovie: (movie: Movie | null) => void
   selectSeries: (series: Series | null) => void
   selectSeason: (season: Season | null) => void
   selectEpisode: (episode: Episode | null) => void
-  setLoadingLibraries: (loading: boolean) => void
-
-  //POST
-  addLibrary: (library: Library) => void
-  addSeries: (payload: { libraryId: string; series: Series }) => void
-  addSeason: (payload: { libraryId: string; season: Season }) => void
-  addEpisode: (payload: {
-    libraryId: string
-    showId: string
-    episode: Episode
-  }) => void
-
-  // PUT
-  updateLibrary: (payload: Library) => void
-  updateSeries: (payload: { libraryId: string; series: Series }) => void
-  updateSeason: (payload: Season) => void
-  updateEpisode: (payload: {
-    libraryId: string
-    showId: string
-    episode: Episode
-  }) => void
-
-  // DELETE
-  deleteLibrary: (libraryId: string) => void
-  deleteSeries: (payload: { libraryId: string; seriesId: string }) => void
-  deleteSeason: (payload: {
-    libraryId: string
-    seriesId: string
-    seasonId: string
-  }) => void
+  selectVideo: (video: Video | null) => void
+  selectAlbum: (album: Album | null) => void
+  selectSong: (song: Song | null) => void
 
   // Utils
-  setSeasonWatched: (payload: {
-    libraryId: string
-    seriesId: string
-    seasonId: string
-    watched: boolean
-  }) => void
-  setSeriesWatched: (payload: {
-    libraryId: string
-    seriesId: string
-    watched: boolean
-  }) => void
-  markEpisodeWatched: (payload: {
-    libraryId: string
-    seriesId: string
-    seasonId: string
-    episodeId: string
-    watched: boolean
-  }) => void
-
-  updateSelectedEpisode: (updatedData: Partial<Episode>) => void
+  // setSeasonWatched: (payload: {
+  //   libraryId: string
+  //   seriesId: string
+  //   seasonId: string
+  //   watched: boolean
+  // }) => void
+  // setSeriesWatched: (payload: {
+  //   libraryId: string
+  //   seriesId: string
+  //   watched: boolean
+  // }) => void
+  // markEpisodeWatched: (payload: {
+  //   libraryId: string
+  //   seriesId: string
+  //   seasonId: string
+  //   episodeId: string
+  //   watched: boolean
+  // }) => void
 }
 
 const useDataStore = create<DataState>((set) => ({
-  libraries: [],
-
-  loadingLibraries: false,
   selectedLibrary: null,
+  selectdCollection: null,
+  selectedMovie: null,
   selectedSeries: null,
   selectedSeason: null,
   selectedEpisode: null,
+  selectedVideo: null,
+  selectedAlbum: null,
+  selectedSong: null,
 
-  setLoadingLibraries: (loading) => set({ loadingLibraries: loading }),
-
-  addLibrary: (library: Library) =>
-    set((store) => {
-      return {
-        libraries: [...store.libraries, library],
-        selectedLibrary: library,
-        selectedSeries: null,
-        selectedSeason: null,
-        selectedEpisode: null,
-      }
-    }),
-
-  deleteLibrary: (libraryId: string) =>
-    set((store) => {
-      const libraries = store.libraries.filter(
-        (library) => library.id !== libraryId,
-      )
-      return {
-        libraries,
-        selectedLibrary: null,
-        selectedSeries: null,
-        selectedSeason: null,
-        selectedEpisode: null,
-      }
-    }),
-
-  selectLibrary: (library) =>
-    set({
+  selectLibrary(library: Library | null) {
+    set(() => ({
       selectedLibrary: library,
-      selectedSeries: null,
-      selectedSeason: null,
-      selectedEpisode: null,
-    }),
+    }))
+  },
 
-  selectSeries: (series) =>
-    set((state) => ({
-      selectedLibrary: state.selectedLibrary,
+  selectCollection(collection: Collection | null) {
+    set(() => ({
+      selectdCollection: collection,
+    }))
+  },
+
+  selectMovie(movie: Movie | null) {
+    set(() => ({
+      selectedMovie: movie,
+    }))
+  },
+
+  selectSeries(series: Series | null) {
+    set(() => ({
       selectedSeries: series,
-      selectedSeason:
-        series && series?.seasons.length > 0 ? series.seasons[0] : null,
-      selectedEpisode: null,
-    })),
+    }))
+  },
 
-  deleteSeries: (payload: { libraryId: string; seriesId: string }) =>
-    set((store) => {
-      const library = store.libraries.find(
-        (lib) => lib.id === payload.libraryId,
-      )
-      if (library) {
-        const series = library.series.find((s) => s.id === payload.seriesId)
-        if (series) {
-          library.series = library.series.filter(
-            (s) => s.id !== payload.seriesId,
-          )
-        }
-      }
-      return store
-    }),
-
-  deleteSeason: (payload: {
-    libraryId: string
-    seriesId: string
-    seasonId: string
-  }) =>
-    set((store) => {
-      const library = store.libraries.find(
-        (lib) => lib.id === payload.libraryId,
-      )
-      if (library) {
-        const series = library.series.find((s) => s.id === payload.seriesId)
-        if (series) {
-          series.seasons = series.seasons.filter(
-            (s) => s.id !== payload.seasonId,
-          )
-        }
-      }
-      return store
-    }),
-
-  selectSeason: (season) =>
-    set((state) => ({
-      selectedLibrary: state.selectedLibrary,
-      selectedSeries: state.selectedSeries,
+  selectSeason(season: Season | null) {
+    set(() => ({
       selectedSeason: season,
-      selectedEpisode: null,
-    })),
+    }))
+  },
 
-  selectEpisode: (episode) =>
-    set((state) => ({
-      selectedLibrary: state.selectedLibrary,
-      selectedSeries: state.selectedSeries,
-      selectedSeason: state.selectedSeason,
+  selectEpisode(episode: Episode | null) {
+    set(() => ({
       selectedEpisode: episode,
-    })),
+    }))
+  },
 
-  setLibraries: (payload: Library[]) =>
-    set((state) => {
-      state.libraries = payload
+  selectVideo(video: Video | null) {
+    set(() => ({
+      selectedVideo: video,
+    }))
+  },
 
-      if (state.selectedLibrary !== null) {
-        let index = state.libraries.findIndex(
-          (library) => library.id === state.selectedLibrary?.id,
-        )
+  selectAlbum(album: Album | null) {
+    set(() => ({
+      selectedAlbum: album,
+    }))
+  },
 
-        if (index < 0) {
-          index = 0
-        }
+  selectSong(song: Song | null) {
+    set(() => ({
+      selectedSong: song,
+    }))
+  },
 
-        state.selectedLibrary = state.libraries[index]
-      } else if (state.libraries.length > 0) {
-        state.selectedLibrary = null
-      }
-
-      return state
-    }),
-
-  updateLibrary: (payload: Library) =>
-    set((state) => {
-      state.selectedLibrary = payload
-
-      if (state.libraries.includes(payload)) {
-        const libraries = state.libraries
-
-        if (libraries) {
-          // Update Library in list
-          const libraryIndex = libraries.findIndex(
-            (library) => library.id === payload.id,
-          )
-
-          if (libraryIndex >= 0) {
-            libraries[libraryIndex] = payload
-          }
-        } else {
-          state.libraries = [...state.libraries, payload]
-        }
-      }
-
-      return state
-    }),
-
-  updateSelectedEpisode: (updatedData) =>
-    set((state) => {
-      if (!state.selectedEpisode) return state // Si no hay episodio seleccionado, no hacer nada
-
-      const updatedEpisode = { ...state.selectedEpisode, ...updatedData }
-
-      // Actualizar en libraries
-      const updatedLibraries = state.libraries.map((library) => ({
-        ...library,
-        series: library.series.map((series) => ({
-          ...series,
-          seasons: series.seasons.map((season) => ({
-            ...season,
-            episodes: season.episodes.map((episode) =>
-              episode.id === state.selectedEpisode?.id
-                ? updatedEpisode
-                : episode,
-            ),
-          })),
-        })),
-      }))
-
-      return {
-        libraries: updatedLibraries,
-        selectedEpisode: updatedEpisode, // También actualizamos la referencia en el estado global
-      }
-    }),
-
-  addSeason: (payload: { libraryId: string; season: Season }) =>
-    set((state) => {
-      const { libraryId, season } = payload
-      const library = state.libraries.find((lib) => lib.id === libraryId)
-
-      if (library && library.series) {
-        const series = library.series.find((s) => s.id === season.seriesID)
-
-        if (series) {
-          if (!series.seasons) {
-            series.seasons = []
-          }
-
-          if (!series.seasons.find((s) => s.id === season.id)) {
-            series.seasons = [...series.seasons, season]
-
-            // Actualizar selección si es necesario
-            const newState = {
-              libraries: [...state.libraries],
-              selectedSeries:
-                state.selectedSeries?.id === season.seriesID
-                  ? series
-                  : state.selectedSeries,
-              selectedSeason: state.selectedSeason
-                ? state.selectedSeason
-                : series.seasons[0],
-              selectedLibrary:
-                state.selectedLibrary?.id === library.id
-                  ? library
-                  : state.selectedLibrary,
-            }
-
-            return newState
-          }
-        }
-
-        if (state.selectedLibrary?.id === library.id) {
-          state.selectedLibrary = library
-        }
-      }
-
-      return state
-    }),
-
-  updateSeason: (payload: Season) =>
-    set((state) => {
-      const { seriesID, id } = payload
-      const library = state.selectedLibrary
-
-      if (library) {
-        const series = library.series.find((s) => s.id === seriesID)
-
-        if (series) {
-          const seasonIndex = series.seasons.findIndex(
-            (season) => season.id === id,
-          )
-
-          if (seasonIndex >= 0) {
-            series.seasons[seasonIndex] = payload
-
-            const newState = {
-              libraries: [...state.libraries],
-              selectedSeries:
-                state.selectedSeries?.id === series.id
-                  ? series
-                  : state.selectedSeries,
-              selectedSeason:
-                state.selectedSeason?.id === payload.id
-                  ? payload
-                  : state.selectedSeason,
-              selectedLibrary:
-                state.selectedLibrary?.id === library.id
-                  ? library
-                  : state.selectedLibrary,
-            }
-
-            return newState
-          }
-        }
-      }
-
-      return state
-    }),
-
+  /*
   setSeasonWatched: (payload: {
     libraryId: string
     seriesId: string
@@ -409,61 +197,6 @@ const useDataStore = create<DataState>((set) => ({
       return state
     }),
 
-  addSeries: (payload: { libraryId: string; series: Series }) =>
-    set((state) => {
-      const { libraryId, series } = payload
-      const library = state.libraries.find((lib) => lib.id === libraryId)
-
-      if (library && !library.series.find((s) => s.id === series.id)) {
-        library.series = [...library.series, series]
-
-        // Actualizar selección si es necesario
-        const newState = {
-          libraries: [...state.libraries],
-          selectedLibrary:
-            state.selectedLibrary?.id === library.id
-              ? library
-              : state.selectedLibrary,
-        }
-
-        return newState
-      }
-
-      return state
-    }),
-
-  updateSeries: (payload: { libraryId: string; series: Series }) =>
-    set((state) => {
-      const { libraryId, series } = payload
-      const library = state.libraries.find((lib) => lib.id === libraryId)
-
-      if (library) {
-        const existingSeries = library.series.find((s) => s.id === series.id)
-
-        if (existingSeries) {
-          // Actualizar la serie
-          Object.assign(existingSeries, series)
-
-          // Sincronizar la selección si es necesario
-          const newState = {
-            libraries: [...state.libraries],
-            selectedSeries:
-              state.selectedSeries?.id === existingSeries.id
-                ? existingSeries
-                : state.selectedSeries,
-            selectedLibrary:
-              state.selectedLibrary?.id === library.id
-                ? library
-                : state.selectedLibrary,
-          }
-
-          return newState
-        }
-      }
-
-      return state
-    }),
-
   setSeriesWatched: (payload: {
     libraryId: string
     seriesId: string
@@ -510,100 +243,6 @@ const useDataStore = create<DataState>((set) => ({
         }
       }
 
-      return state
-    }),
-
-  // Función para agregar un episodio
-  addEpisode: (payload: {
-    libraryId: string
-    showId: string
-    episode: Episode
-  }) =>
-    set((state) => {
-      const { libraryId, showId, episode } = payload
-      const library = state.libraries.find((lib) => lib.id === libraryId)
-      if (library) {
-        const series = library.series.find((s) => s.id === showId)
-        if (series) {
-          const season = series.seasons.find((s) => s.id === episode.seasonID)
-          if (season) {
-            if (!season.episodes) {
-              season.episodes = []
-            }
-            if (!season.episodes.find((ep) => ep.id === episode.id)) {
-              season.episodes.push(episode)
-
-              // Actualizar selección si es necesario
-              const newState = {
-                libraries: [...state.libraries],
-                selectedSeason:
-                  state.selectedSeason?.id === episode.seasonID
-                    ? season
-                    : state.selectedSeason,
-                selectedSeries:
-                  state.selectedSeries?.id === series.id
-                    ? series
-                    : state.selectedSeries,
-                selectedLibrary:
-                  state.selectedLibrary?.id === library.id
-                    ? library
-                    : state.selectedLibrary,
-              }
-
-              return newState
-            }
-          }
-        }
-      }
-      return state
-    }),
-
-  // Función para actualizar un episodio
-  updateEpisode: (payload: {
-    libraryId: string
-    showId: string
-    episode: Episode
-  }) =>
-    set((state) => {
-      const { libraryId, showId, episode } = payload
-      const library = state.libraries.find((lib) => lib.id === libraryId)
-      if (library) {
-        const series = library.series.find((s) => s.id === showId)
-        if (series) {
-          const season = series.seasons.find((s) => s.id === episode.seasonID)
-          if (season) {
-            const episodeIndex = season.episodes.findIndex(
-              (ep) => ep.id === episode.id,
-            )
-            if (episodeIndex >= 0) {
-              season.episodes[episodeIndex] = episode
-
-              // Actualizar selección si es necesario
-              const newState = {
-                libraries: [...state.libraries],
-                selectedEpisode:
-                  state.selectedEpisode?.id === episode.id
-                    ? episode
-                    : state.selectedEpisode,
-                selectedSeason:
-                  state.selectedSeason?.id === episode.seasonID
-                    ? season
-                    : state.selectedSeason,
-                selectedSeries:
-                  state.selectedSeries?.id === series.id
-                    ? series
-                    : state.selectedSeries,
-                selectedLibrary:
-                  state.selectedLibrary?.id === library.id
-                    ? library
-                    : state.selectedLibrary,
-              }
-
-              return newState
-            }
-          }
-        }
-      }
       return state
     }),
 
@@ -657,6 +296,7 @@ const useDataStore = create<DataState>((set) => ({
       }
       return state
     }),
+    */
 }))
 
 export default useDataStore

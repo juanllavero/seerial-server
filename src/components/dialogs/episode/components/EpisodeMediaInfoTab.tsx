@@ -3,7 +3,7 @@ import Loading from '@/components/Loading'
 import FlexBox from '@/components/ui/FlexBox'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
-import { Episode } from '@/data/interfaces/Media'
+import { Episode, Video } from '@/data/interfaces/Media'
 import {
   AudioTrack,
   SubtitleTrack,
@@ -13,21 +13,12 @@ import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
 import React, { useEffect, useState } from 'react'
 
 interface EpisodeMediaInfoTabProps {
-  episode: Episode
+  video: Video
   setEpisode: (episode: Episode) => void
 }
 
-function EpisodeMediaInfoTab({
-  episode,
-  setEpisode,
-}: EpisodeMediaInfoTabProps) {
-  const {
-    selectedLibrary,
-    selectedSeries,
-    selectedSeason,
-    selectedEpisode,
-    updateEpisode,
-  } = useDataStore()
+function EpisodeMediaInfoTab({ video, setEpisode }: EpisodeMediaInfoTabProps) {
+  const { selectedLibrary, selectedSeries, selectedSeason } = useDataStore()
   const { serverIP } = useServerStore()
   const isTablet = useIsTablet()
   const [loaded, setLoaded] = useState(false)
@@ -45,7 +36,7 @@ function EpisodeMediaInfoTab({
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            episode: episode,
+            episode: video,
           }),
         })
 
@@ -102,34 +93,34 @@ function EpisodeMediaInfoTab({
         subtitleTrack.selected = true
       }
 
-      updateEpisode({
-        libraryId: selectedLibrary.id,
-        showId: selectedSeries.id,
-        episode: {
-          ...data,
-          videoTracks: data.videoTracks
-            ? data.videoTracks.map((track: VideoTrack) =>
-                track.id === (videoTrack?.id ?? '')
-                  ? (videoTrack ?? track)
-                  : track,
-              )
-            : [],
-          audioTracks: data.audioTracks
-            ? data.audioTracks.map((track: AudioTrack) =>
-                track.id === (audioTrack?.id ?? '')
-                  ? (audioTrack ?? track)
-                  : track,
-              )
-            : [],
-          subtitleTracks: data.subtitleTracks
-            ? data.subtitleTracks.map((track: SubtitleTrack) =>
-                track.id === (subtitleTrack?.id ?? '')
-                  ? (subtitleTrack ?? track)
-                  : track,
-              )
-            : [],
-        },
-      })
+      // updateEpisode({
+      //   libraryId: selectedLibrary.id,
+      //   showId: selectedSeries.id,
+      //   episode: {
+      //     ...data,
+      //     videoTracks: data.videoTracks
+      //       ? data.videoTracks.map((track: VideoTrack) =>
+      //           track.id === (videoTrack?.id ?? '')
+      //             ? (videoTrack ?? track)
+      //             : track,
+      //         )
+      //       : [],
+      //     audioTracks: data.audioTracks
+      //       ? data.audioTracks.map((track: AudioTrack) =>
+      //           track.id === (audioTrack?.id ?? '')
+      //             ? (audioTrack ?? track)
+      //             : track,
+      //         )
+      //       : [],
+      //     subtitleTracks: data.subtitleTracks
+      //       ? data.subtitleTracks.map((track: SubtitleTrack) =>
+      //           track.id === (subtitleTrack?.id ?? '')
+      //             ? (subtitleTrack ?? track)
+      //             : track,
+      //         )
+      //       : [],
+      //   },
+      // })
 
       setEpisode({
         ...data,
@@ -255,7 +246,7 @@ function EpisodeMediaInfoTab({
     )
   }
 
-  if (!loaded || !episode) {
+  if (!loaded || !video) {
     return (
       <FlexBox
         direction="column"
@@ -286,46 +277,46 @@ function EpisodeMediaInfoTab({
         <span className="mb-1 text-lg font-semibold">Media info</span>
         <FlexBox gap={0.5}>
           <span style={{ color: 'lightgray' }}>Duration</span>
-          <span className="font-semibold">{episode.mediaInfo?.duration}</span>
+          <span className="font-semibold">{video.mediaInfo?.duration}</span>
         </FlexBox>
         <FlexBox gap={0.5}>
           <span style={{ color: 'lightgray' }}>File</span>
-          <span className="font-semibold">{episode.mediaInfo?.file}</span>
+          <span className="font-semibold">{video.mediaInfo?.file}</span>
         </FlexBox>
         <FlexBox gap={0.5}>
           <span style={{ color: 'lightgray' }}>Location</span>
-          <span className="font-semibold">{episode.mediaInfo?.location}</span>
+          <span className="font-semibold">{video.mediaInfo?.location}</span>
         </FlexBox>
         <FlexBox gap={0.5}>
           <span style={{ color: 'lightgray' }}>Bitrate</span>
-          <span className="font-semibold">{episode.mediaInfo?.bitrate}</span>
+          <span className="font-semibold">{video.mediaInfo?.bitrate}</span>
         </FlexBox>
         <FlexBox gap={0.5}>
           <span style={{ color: 'lightgray' }}>Size</span>
-          <span className="font-semibold">{episode.mediaInfo?.size}</span>
+          <span className="font-semibold">{video.mediaInfo?.size}</span>
         </FlexBox>
         <FlexBox gap={0.5}>
           <span style={{ color: 'lightgray' }}>Container</span>
-          <span className="font-semibold">{episode.mediaInfo?.container}</span>
+          <span className="font-semibold">{video.mediaInfo?.container}</span>
         </FlexBox>
       </FlexBox>
       <FlexBox direction="column" gap={1}>
-        {episode.videoTracks &&
-          episode.videoTracks.map((track: VideoTrack) => (
+        {video.videoTracks &&
+          video.videoTracks.map((track: VideoTrack) => (
             <div key={track.id + '-video'}>
               <span className="mt-2 mb-1 text-lg font-semibold">Video</span>
               {getVideoInfo(track)}
             </div>
           ))}
-        {episode.audioTracks &&
-          episode.audioTracks.map((audioTrack: AudioTrack, index: number) => (
+        {video.audioTracks &&
+          video.audioTracks.map((audioTrack: AudioTrack, index: number) => (
             <div key={index + '-audio'}>
               <span className="mt-2 mb-1 text-lg font-semibold">Audio</span>
               {getAudioInfo(audioTrack)}
             </div>
           ))}
-        {episode.subtitleTracks &&
-          episode.subtitleTracks.map((track: SubtitleTrack, index: number) => (
+        {video.subtitleTracks &&
+          video.subtitleTracks.map((track: SubtitleTrack, index: number) => (
             <div key={index + '-subs'}>
               <span className="mt-2 mb-1 text-lg font-semibold">Subtitle</span>
               {getSubtitleInfo(track)}

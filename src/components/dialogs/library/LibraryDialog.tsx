@@ -2,7 +2,6 @@ import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Library } from '@/data/interfaces/Media'
-import { LibraryObject } from '@/data/objects/Library'
 import { useNavigate } from '@tanstack/react-router'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -53,31 +52,36 @@ function LibraryDialog({ library }: LibraryDialogProps) {
   const handleAddEditLibrary = async () => {
     await connectWS(serverIP)
 
-    const newLibrary = new LibraryObject(
+    const newLibrary = {
       name,
-      language ?? 'en',
-      type ?? 'Shows',
-      0,
-      folders ?? [],
+      language: language ?? 'en',
+      type: type ?? 'Shows',
+      order: 0,
+      folders: folders ?? [],
       preferAudioLan,
       preferSubLan,
       subsMode,
-    )
+    }
 
-    fetch(`http://${serverIP}/addLibrary`, {
+    const response = await fetch(`http://${serverIP}/addLibrary`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(newLibrary.toLibraryData()),
+      body: JSON.stringify(newLibrary),
     })
 
     closeLibraryDialog()
 
+    if (!response.ok) return
+
+    const data = await response.json()
+    const libraryId = data.id
+
     // Navigate to new library page
     navigate({
       to: '/collection/$libraryId',
-      params: { libraryId: newLibrary.id },
+      params: { libraryId },
     })
   }
 

@@ -1,5 +1,4 @@
 import AlertWrapper from '@/components/AlertWrapper'
-import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
@@ -11,7 +10,6 @@ function RemoveLibraryDialog() {
   const { t } = useTranslation()
   const { serverIP } = useServerStore()
   const { connectWS } = useWebSocketStore()
-  const { deleteLibrary } = useDataStore()
   const { removeLibraryDialog, closeRemoveLibraryDialog } = useDialogStore()
   const navigate = useNavigate()
   return (
@@ -28,7 +26,7 @@ function RemoveLibraryDialog() {
             method: 'DELETE',
           },
         )
-        deleteLibrary(removeLibraryDialog.libraryToRemove?.id || '')
+        //deleteLibrary(removeLibraryDialog.libraryToRemove?.id || '')
         navigate({ to: '/' })
         closeRemoveLibraryDialog()
       }}
