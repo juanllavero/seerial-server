@@ -1,19 +1,19 @@
-import { existsSync } from 'fs-extra';
-import * as path from 'path';
-import { parse } from 'path';
+import { existsSync } from "fs-extra";
+import * as path from "path";
+import { parse } from "path";
 import {
   deleteEpisode,
   deleteSeason,
   deleteSeries,
-} from '../db/delete/deleteData';
+} from "../db/delete/deleteData";
 import {
   getEpisodeByPath,
   getLibraryById,
   getSeasonById,
   getSeriesById,
-} from '../db/get/getData';
-import { Utils } from '../utils/Utils';
-import { WebSocketManager } from '../WebSockets/WebSocketManager';
+} from "../db/get/getData";
+import { Utils } from "../utils/Utils";
+import { WebSocketManager } from "../WebSockets/WebSocketManager";
 
 /**
  * Delete removed files from library
@@ -29,34 +29,34 @@ export async function clearLibrary(
 
   if (
     !library ||
-    library.analyzedFiles.size === 0 ||
+    Object.keys(library.analyzedFiles).length === 0 ||
     !library.folders ||
     library.folders.length === 0
   )
     return;
 
   // Map to associate each file with its closest root folder
-  const fileToRootFolder = new Map<string, string>();
+  const fileToRootFolder: Record<string, string> = {};
 
   // Group files by their root folder
-  for (const filePath of library.analyzedFiles.keys()) {
+  for (const filePath of Object.keys(library.analyzedFiles)) {
     const matchingRootFolder = library.folders
       .filter((folder: string) => filePath.startsWith(folder))
       .sort((a: string, b: string) => b.length - a.length)[0]; // Sort by length in descending order to get the most specific one
 
     if (matchingRootFolder) {
-      fileToRootFolder.set(filePath, matchingRootFolder);
+      fileToRootFolder[filePath] = matchingRootFolder;
     } else {
       // If there is no matching root folder, use the file's root
       const { root } = parse(filePath);
-      fileToRootFolder.set(filePath, root);
+      fileToRootFolder[filePath] = root;
     }
   }
 
   // Check each root folder and its associated files
   const checkedRoots = new Set<string>(); // To avoid checking the same root multiple times
 
-  for (const [filePath, rootFolder] of fileToRootFolder) {
+  for (const [filePath, rootFolder] of Object.entries(fileToRootFolder)) {
     const resolvedRoot = path.resolve(rootFolder);
 
     if (!checkedRoots.has(resolvedRoot)) {

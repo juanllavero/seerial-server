@@ -6,22 +6,21 @@ import {
   Model,
   PrimaryKey,
   Table,
-} from 'sequelize-typescript';
-import { v4 as uuidv4 } from 'uuid';
-import { Library } from '../Media/Library.model';
-import { Movie } from '../Media/Movie.model';
-import { Series } from '../Media/Series.model';
-import { Album } from '../music/Album.model';
-import { CollectionAlbum } from './CollectionAlbum.model';
-import { CollectionMovie } from './CollectionMovie.model';
-import { CollectionSeries } from './CollectionSeries.model';
+} from "sequelize-typescript";
+import { Library } from "../Media/Library.model";
+import { Movie } from "../Media/Movie.model";
+import { Series } from "../Media/Series.model";
+import { Album } from "../music/Album.model";
+import { CollectionAlbum } from "./CollectionAlbum.model";
+import { CollectionMovie } from "./CollectionMovie.model";
+import { CollectionSeries } from "./CollectionSeries.model";
 
-@Table({ tableName: 'Collection', timestamps: false })
+@Table({ tableName: "Collection", timestamps: false })
 export class Collection extends Model {
   @PrimaryKey
   @Column({
     type: DataType.STRING,
-    defaultValue: () => uuidv4(), // Generates default UUID
+    defaultValue: () => require("uuid").v4().split("-")[0], // Generates default UUID
     allowNull: false,
   })
   id!: string;
@@ -35,6 +34,7 @@ export class Collection extends Model {
   @Column({
     type: DataType.TEXT,
     allowNull: true,
+    defaultValue: "",
   })
   description?: string;
 
@@ -42,71 +42,56 @@ export class Collection extends Model {
   @Column({
     type: DataType.STRING,
     allowNull: false,
-    onDelete: 'CASCADE',
-    field: 'library_id',
+    onDelete: "CASCADE",
+    field: "library_id",
   })
   libraryId!: string;
 
   @Column({
     type: DataType.STRING,
     allowNull: true,
-    field: 'posterSrc',
+    field: "poster_src",
+    defaultValue: "",
   })
   posterSrc!: string;
 
   @Column({
-    type: DataType.TEXT,
+    type: DataType.JSON,
     allowNull: false,
-    field: 'posters_urls',
-    get() {
-      const value = this.getDataValue('coversUrls');
-      return value ? JSON.parse(value) : [];
-    },
-    set(value: string[]) {
-      this.setDataValue('coversUrls', JSON.stringify(value));
-    },
+    field: "posters_urls",
+    defaultValue: [],
   })
   postersUrls!: string[];
 
   @Column({
     type: DataType.STRING,
     allowNull: true,
-    field: 'music_poster_src',
+    field: "music_poster_src",
+    defaultValue: "",
   })
   musicPosterSrc!: string;
 
   @Column({
-    type: DataType.TEXT,
+    type: DataType.JSON,
     allowNull: false,
-    field: 'music_posters_urls',
-    get() {
-      const value = this.getDataValue('coversUrls');
-      return value ? JSON.parse(value) : [];
-    },
-    set(value: string[]) {
-      this.setDataValue('coversUrls', JSON.stringify(value));
-    },
+    field: "music_posters_urls",
+    defaultValue: [],
   })
   musicPostersUrls!: string[];
 
   @Column({
     type: DataType.STRING,
     allowNull: false,
-    field: 'background_src',
+    field: "background_src",
+    defaultValue: "",
   })
   backgroundSrc!: string;
 
   @Column({
-    type: DataType.TEXT,
+    type: DataType.JSON,
     allowNull: false,
-    field: 'background_urls',
-    get() {
-      const value = this.getDataValue('backgroundsUrls');
-      return value ? JSON.parse(value) : [];
-    },
-    set(value: string[]) {
-      this.setDataValue('backgroundsUrls', JSON.stringify(value));
-    },
+    field: "background_urls",
+    defaultValue: [],
   })
   backgroundsUrls!: string[];
 

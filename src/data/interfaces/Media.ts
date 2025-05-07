@@ -4,7 +4,7 @@ import {
   MediaInfo,
   SubtitleTrack,
   VideoTrack,
-} from './MediaInfo';
+} from "./MediaInfo";
 
 export interface Cast {
   name: string;
@@ -23,9 +23,9 @@ export interface Library {
   preferAudioLan?: string;
   preferSubLan?: string;
   subsMode?: string;
-  analyzedFiles: any;
-  analyzedFolders: any;
-  seasonFolders: any;
+  analyzedFiles: Record<string, string>;
+  analyzedFolders: Record<string, string>;
+  backgroundSrc: string;
 }
 
 export interface Collection {
@@ -93,12 +93,11 @@ export interface Season {
   backgroundsUrls: string[];
   videoSrc: string;
   musicSrc: string;
-  folder: string;
 
-  audioTrackLanguage: string;
-  selectedAudioTrack: number;
-  subtitleTrackLanguage: string;
-  selectedSubtitleTrack: number;
+  audioTrackLanguage?: string;
+  selectedAudioTrack?: number;
+  subtitleTrackLanguage?: string;
+  selectedSubtitleTrack?: number;
   watched: boolean;
 }
 

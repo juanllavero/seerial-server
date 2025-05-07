@@ -5,17 +5,16 @@ import {
   Model,
   PrimaryKey,
   Table,
-} from 'sequelize-typescript';
-import { v4 as uuidv4 } from 'uuid';
-import { Movie } from '../Media/Movie.model';
-import { Series } from '../Media/Series.model';
+} from "sequelize-typescript";
+import { Movie } from "../Media/Movie.model";
+import { Series } from "../Media/Series.model";
 
-@Table({ tableName: 'My_List', timestamps: false })
+@Table({ tableName: "My_List", timestamps: false })
 export class MyList extends Model {
   @PrimaryKey
   @Column({
     type: DataType.STRING,
-    defaultValue: () => uuidv4(), // Generates default UUID
+    defaultValue: () => require("uuid").v4().split("-")[0], // Generates default UUID
     allowNull: false,
   })
   id!: string;
@@ -24,7 +23,7 @@ export class MyList extends Model {
     type: DataType.DATE,
     defaultValue: DataType.NOW,
     allowNull: false,
-    field: 'added_at',
+    field: "added_at",
   })
   addedAt!: Date;
 
@@ -32,7 +31,7 @@ export class MyList extends Model {
   @Column({
     type: DataType.INTEGER,
     allowNull: true,
-    field: 'series_id',
+    field: "series_id",
   })
   seriesId?: number;
 
@@ -40,7 +39,7 @@ export class MyList extends Model {
   @Column({
     type: DataType.INTEGER,
     allowNull: true,
-    field: 'movie_id',
+    field: "movie_id",
   })
   movieId?: number;
 }

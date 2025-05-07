@@ -1,20 +1,21 @@
 import {
+  BelongsTo,
   Column,
   DataType,
   ForeignKey,
-  HasOne,
   Model,
   PrimaryKey,
   Table,
-} from 'sequelize-typescript';
-import { Video } from '../Media/Video.model';
+} from "sequelize-typescript";
+import { Video } from "../Media/Video.model";
 
-@Table({ tableName: 'Continue_Watching', timestamps: true })
+@Table({ tableName: "Continue_Watching", timestamps: true })
 export class ContinueWatching extends Model {
   @PrimaryKey
   @Column({
     type: DataType.STRING,
     allowNull: false,
+    defaultValue: () => require("uuid").v4().split("-")[0],
   })
   id!: string;
 
@@ -22,10 +23,10 @@ export class ContinueWatching extends Model {
   @Column({
     type: DataType.STRING,
     allowNull: false,
-    field: 'video_id',
+    field: "video_id",
   })
   videoId!: string;
 
-  @HasOne(() => Video)
+  @BelongsTo(() => Video)
   video!: Video;
 }

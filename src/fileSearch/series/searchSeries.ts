@@ -1,28 +1,28 @@
-import fs from 'fs-extra';
+import fs from "fs-extra";
 import {
   Episode,
   EpisodeGroupResponse,
   ShowResponse,
   TvSeasonResponse,
-} from 'moviedb-promise';
-import path from 'path';
-import { Episode as EpisodeLocal } from '../../data/models/Media/Episode.model';
-import { Library } from '../../data/models/Media/Library.model';
-import { Season } from '../../data/models/Media/Season.model';
-import { Series } from '../../data/models/Media/Series.model';
-import { Video } from '../../data/models/Media/Video.model';
-import { getSeriesById } from '../../db/get/getData';
+} from "moviedb-promise";
+import path from "path";
+import { Episode as EpisodeLocal } from "../../data/models/Media/Episode.model";
+import { Library } from "../../data/models/Media/Library.model";
+import { Season } from "../../data/models/Media/Season.model";
+import { Series } from "../../data/models/Media/Series.model";
+import { Video } from "../../data/models/Media/Video.model";
+import { getSeriesById } from "../../db/get/getData";
 import {
   addEpisode,
   addSeason,
   addSeries,
   addVideoAsEpisode,
-} from '../../db/post/postData';
-import { MovieDBWrapper } from '../../theMovieDB/MovieDB';
-import { FilesManager } from '../../utils/FilesManager';
-import { Utils } from '../../utils/Utils';
-import { WebSocketManager } from '../../WebSockets/WebSocketManager';
-import { FileSearch } from '../fileSearch';
+} from "../../db/post/postData";
+import { MovieDBWrapper } from "../../theMovieDB/MovieDB";
+import { FilesManager } from "../../utils/FilesManager";
+import { Utils } from "../../utils/Utils";
+import { WebSocketManager } from "../../WebSockets/WebSocketManager";
+import { FileSearch } from "../fileSearch";
 
 export async function scanTVShow(
   library: Library,
@@ -41,31 +41,31 @@ export async function scanTVShow(
   let exists: boolean = false;
 
   // Get existing data or create a new Series
-  if (library.analyzedFolders.get(folder)) {
-    show = await getSeriesById(library.analyzedFolders.get(folder) ?? '');
+  if (folder in library.analyzedFolders) {
+    show = await getSeriesById(library.analyzedFolders[folder] ?? "");
 
     if (show === null) return undefined;
 
     exists = true;
   } else {
-    show = addSeries({
+    show = await addSeries({
       folder,
       libraryId: library.id,
     });
 
     if (!show) return;
 
-    library.analyzedFolders.set(folder, show.id);
+    await library.addAnalyzedFolder(folder, show.id);
   }
 
   let themdbId = show.themdbId;
 
   if (themdbId === -1) {
     //#region EXTRACT NAME AND YEAR
-    let finalName: string = folder.split(/[/\\]/).pop() ?? '';
+    let finalName: string = folder.split(/[/\\]/).pop() ?? "";
 
     // Remove parenthesis
-    const nameWithoutParenthesis: string = finalName.replace(/[()]/g, '');
+    const nameWithoutParenthesis: string = finalName.replace(/[()]/g, "");
 
     // Regular expression to extract name and year
     const pattern = /^(.*?)(?:\s(\d{4}))?$/;
@@ -79,7 +79,7 @@ export async function scanTVShow(
       year = matcher[2];
     }
 
-    if (!year) year = '1';
+    if (!year) year = "1";
     //#endregion
 
     // Search for the show
@@ -130,7 +130,7 @@ export async function scanTVShow(
 
   // Download Episodes Group Metadata
   let episodesGroup =
-    show.episodeGroupId !== ''
+    show.episodeGroupId !== ""
       ? await MovieDBWrapper.getEpisodeGroup(show.episodeGroupId)
       : undefined;
 
@@ -144,7 +144,7 @@ export async function scanTVShow(
   );
 
   if (show.seasons.length === 0) {
-    library.analyzedFolders.delete(show.folder);
+    await library.removeAnalyzedFolder(show.folder);
     return undefined;
   }
 
@@ -171,7 +171,7 @@ export async function processEpisodes(
 
   // Procesar cada episodio en paralelo.
   const processPromises = videoFiles.map(async (video) => {
-    if (!library.analyzedFiles.has(video)) {
+    if (!library.analyzedFiles[video]) {
       await processEpisode(
         library,
         show,
@@ -187,7 +187,7 @@ export async function processEpisodes(
   await Promise.all(processPromises);
 
   // Change the name of every season to match the Episodes Group
-  if (show.episodeGroupId !== '' && episodesGroup) {
+  if (show.episodeGroupId !== "" && episodesGroup) {
     for (const season of show.seasons) {
       if (episodesGroup.groups) {
         for (const group of episodesGroup.groups) {
@@ -202,7 +202,7 @@ export async function processEpisodes(
     if (show.seasons[0].name === show.seasons[1].name) {
       for (const season of show.seasons) {
         if (season.seasonNumber !== 0)
-          season.name = 'Season ' + season.seasonNumber;
+          season.name = "Season " + season.seasonNumber;
       }
     }
   }
@@ -261,7 +261,7 @@ export async function processEpisode(
       }
     }
 
-    if (toFindMetadata && show.episodeGroupId !== '') {
+    if (toFindMetadata && show.episodeGroupId !== "") {
       if (!episodesGroup) {
         episodesGroup = await MovieDBWrapper.getEpisodeGroup(
           show.episodeGroupId
@@ -324,15 +324,15 @@ export async function processEpisode(
   }
 
   if (!season) {
-    season = addSeason({
+    season = await addSeason({
       seriesId: show.id,
-      name: seasonMetadata.name ?? '',
+      name: seasonMetadata.name ?? "",
       year:
         seasonMetadata.episodes &&
         seasonMetadata.episodes[0] &&
         seasonMetadata.episodes[0].air_date
           ? seasonMetadata.episodes[0].air_date
-          : '',
+          : "",
       overview: seasonMetadata.overview ?? show.overview,
       seasonNumber:
         realEpisode !== -1
@@ -372,15 +372,15 @@ export async function processEpisode(
   let video: Video | null = null;
 
   if (episode) {
-    video = addVideoAsEpisode(episode.id);
+    video = await addVideoAsEpisode(episode.id);
     if (video) video.fileSrc = videoSrc;
   } else {
-    episode = addEpisode({
+    episode = await addEpisode({
       seasonId: season.id,
       seasonNumber: season.seasonNumber,
-      name: episodeMetadata?.name ?? '',
-      overview: episodeMetadata?.overview ?? '',
-      year: episodeMetadata?.air_date ?? '',
+      name: episodeMetadata?.name ?? "",
+      overview: episodeMetadata?.overview ?? "",
+      year: episodeMetadata?.air_date ?? "",
       score: episodeMetadata?.vote_average
         ? (episodeMetadata.vote_average * 10.0) / 10.0
         : 0,
@@ -392,7 +392,7 @@ export async function processEpisode(
 
     if (!episode) return;
 
-    library.analyzedFiles.set(videoSrc, episode.id);
+    await library.addAnalyzedFile(videoSrc, episode.id);
 
     // Set Metadata
 
@@ -400,7 +400,7 @@ export async function processEpisode(
       if (!episode.directedByLock && episode.directedBy) {
         episode.directedBy.splice(0, episode.directedBy.length);
         for (const person of episodeMetadata.crew) {
-          if (person.name && person.job === 'Director' && episode?.directedBy)
+          if (person.name && person.job === "Director" && episode?.directedBy)
             episode.directedBy.push(person.name);
         }
       }
@@ -408,13 +408,13 @@ export async function processEpisode(
       if (!episode.writtenByLock && episode.writtenBy) {
         episode.writtenBy.splice(0, episode.writtenBy.length);
         for (const person of episodeMetadata.crew) {
-          if (person.name && person.job === 'Writer' && episode?.writtenBy)
+          if (person.name && person.job === "Writer" && episode?.writtenBy)
             episode?.writtenBy.push(person.name);
         }
       }
     }
 
-    video = addVideoAsEpisode(episode?.id);
+    video = await addVideoAsEpisode(episode?.id);
 
     if (!video) return;
 
@@ -437,7 +437,7 @@ export async function processEpisode(
 
     // Create images folder if not exists
     const outputDir = FilesManager.getExternalPath(
-      'resources/img/thumbnails/video/' + episode.id + '/'
+      "resources/img/thumbnails/video/" + episode.id + "/"
     );
 
     if (!fs.existsSync(outputDir)) {
@@ -468,23 +468,23 @@ export async function setSeriesMetadataAndImages(
   show: Series,
   showData: ShowResponse
 ) {
-  show.name = !show.nameLock ? showData.name ?? '' : '';
-  show.year = !show.yearLock ? showData.first_air_date ?? '' : '';
-  show.overview = !show.overviewLock ? showData.overview ?? '' : '';
+  show.name = !show.nameLock ? showData.name ?? "" : "";
+  show.year = !show.yearLock ? showData.first_air_date ?? "" : "";
+  show.overview = !show.overviewLock ? showData.overview ?? "" : "";
   show.score = showData.vote_average
     ? (showData.vote_average * 10.0) / 10.0
     : 0;
   show.productionStudios = show.productionStudiosLock
     ? show.productionStudios
     : showData.production_companies
-    ? showData.production_companies.map((company) => company.name ?? '')
+    ? showData.production_companies.map((company) => company.name ?? "")
     : [];
   show.genres = show.genresLock
     ? show.genres
     : showData.genres
-    ? showData.genres.map((genre) => genre.name ?? '')
+    ? showData.genres.map((genre) => genre.name ?? "")
     : [];
-  show.tagline = !show.taglineLock ? showData.tagline ?? '' : '';
+  show.tagline = !show.taglineLock ? showData.tagline ?? "" : "";
 
   const credits = await MovieDBWrapper.getTVCredits(show.themdbId);
 
@@ -494,11 +494,11 @@ export async function setSeriesMetadataAndImages(
 
     for (const person of credits.cast) {
       show.cast?.push({
-        name: person.name ?? '',
-        character: person.character ?? '',
+        name: person.name ?? "",
+        character: person.character ?? "",
         profileImage: person.profile_path
           ? `${FileSearch.BASE_URL}${person.profile_path}`
-          : '',
+          : "",
       });
     }
   }
@@ -513,21 +513,21 @@ export async function setSeriesMetadataAndImages(
     for (const person of credits.crew) {
       if (
         person.job &&
-        (person.job === 'Author' ||
-          person.job === 'Novel' ||
-          person.job === 'Original Series Creator' ||
-          person.job === 'Comic Book' ||
-          person.job === 'Idea' ||
-          person.job === 'Original Story' ||
-          person.job === 'Story' ||
-          person.job === 'Story by' ||
-          person.job === 'Book' ||
-          person.job === 'Original Concept')
+        (person.job === "Author" ||
+          person.job === "Novel" ||
+          person.job === "Original Series Creator" ||
+          person.job === "Comic Book" ||
+          person.job === "Idea" ||
+          person.job === "Original Story" ||
+          person.job === "Story" ||
+          person.job === "Story by" ||
+          person.job === "Book" ||
+          person.job === "Original Concept")
       )
         if (person.name && !show.creatorLock && show.creator)
           show.creator.push(person.name);
 
-      if (person.job && person.job === 'Original Music Composer')
+      if (person.job && person.job === "Original Music Composer")
         if (person.name && !show.musicComposerLock && show.musicComposer)
           show.musicComposer.push(person.name);
     }
@@ -535,7 +535,7 @@ export async function setSeriesMetadataAndImages(
 
   if (show.creator && show.creator.length === 0) {
     show.creator = showData.created_by
-      ? showData.created_by.map((person) => person.name ?? '')
+      ? showData.created_by.map((person) => person.name ?? "")
       : [];
   }
 
@@ -567,7 +567,7 @@ export async function setSeasonBackgrounds(show: Series, season: Season) {
 
     // Create folders if they do not exist
     const outputImageDir = FilesManager.getExternalPath(
-      'resources/img/backgrounds/' + season.id
+      "resources/img/backgrounds/" + season.id
     );
     if (!fs.existsSync(outputImageDir)) {
       fs.mkdirSync(outputImageDir);
@@ -579,13 +579,13 @@ export async function setSeasonBackgrounds(show: Series, season: Season) {
         const backgroundUrl = `${FileSearch.BASE_URL}${backdrop.file_path}`;
         season.backgroundsUrls = [...season.backgroundsUrls, backgroundUrl];
 
-        if (season.backgroundSrc === '') {
+        if (season.backgroundSrc === "") {
           season.backgroundSrc = backgroundUrl;
         }
       }
     }
   } catch (error) {
-    console.error('Error downloading images:', error);
+    console.error("Error downloading images:", error);
   }
 }
 
@@ -602,14 +602,14 @@ export async function downloadLogosAndPosters(
 
     // Create folders if they do not exist
     const outputLogosDir = FilesManager.getExternalPath(
-      'resources/img/logos/' + show.id
+      "resources/img/logos/" + show.id
     );
     if (!fs.existsSync(outputLogosDir)) {
       fs.mkdirSync(outputLogosDir);
     }
 
     const outputPostersDir = FilesManager.getExternalPath(
-      'resources/img/posters/' + show.id
+      "resources/img/posters/" + show.id
     );
     if (!fs.existsSync(outputPostersDir)) {
       fs.mkdirSync(outputPostersDir);
@@ -621,7 +621,7 @@ export async function downloadLogosAndPosters(
         const logoUrl = `${FileSearch.BASE_URL}${logo.file_path}`;
         show.logosUrls = [...show.logosUrls, logoUrl];
 
-        if (show.logoSrc === '') {
+        if (show.logoSrc === "") {
           show.logoSrc = logoUrl;
         }
       }
@@ -633,12 +633,12 @@ export async function downloadLogosAndPosters(
         const posterUrl = `${FileSearch.BASE_URL}${poster.file_path}`;
         show.coversUrls = [...show.coversUrls, posterUrl];
 
-        if (show.coverSrc === '') {
+        if (show.coverSrc === "") {
           show.coverSrc = posterUrl;
         }
       }
     }
   } catch (error) {
-    console.error('Error al descargar imágenes:', error);
+    console.error("Error al descargar imágenes:", error);
   }
 }

@@ -6,20 +6,19 @@ import {
   Model,
   PrimaryKey,
   Table,
-} from 'sequelize-typescript';
-import { v4 as uuidv4 } from 'uuid';
-import { Collection } from '../Collections/Collection.model';
-import { CollectionAlbum } from '../Collections/CollectionAlbum.model';
-import { Library } from '../Media/Library.model';
-import { AlbumArtist } from './AlbumArtist.model';
-import { Artist } from './Artist.model';
+} from "sequelize-typescript";
+import { Collection } from "../Collections/Collection.model";
+import { CollectionAlbum } from "../Collections/CollectionAlbum.model";
+import { Library } from "../Media/Library.model";
+import { AlbumArtist } from "./AlbumArtist.model";
+import { Artist } from "./Artist.model";
 
-@Table({ tableName: 'Album', timestamps: false })
+@Table({ tableName: "Album", timestamps: false })
 export class Album extends Model {
   @PrimaryKey
   @Column({
     type: DataType.STRING,
-    defaultValue: () => uuidv4(), // Generates default UUID
+    defaultValue: () => require("uuid").v4().split("-")[0], // Generates default UUID
     allowNull: false,
   })
   id!: string;
@@ -28,25 +27,28 @@ export class Album extends Model {
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
-    onDelete: 'CASCADE',
-    field: 'library_id',
+    onDelete: "CASCADE",
+    field: "library_id",
   })
   libraryId!: string;
 
   @Column({
     type: DataType.STRING,
+    defaultValue: "",
     allowNull: false,
   })
   title!: string;
 
   @Column({
     type: DataType.STRING,
+    defaultValue: "",
     allowNull: true,
   })
   year?: string;
 
   @Column({
     type: DataType.TEXT,
+    defaultValue: "",
     allowNull: true,
   })
   description?: string;
@@ -54,8 +56,8 @@ export class Album extends Model {
   @Column({
     type: DataType.TEXT,
     allowNull: true,
-    defaultValue: '',
-    field: 'cover_src',
+    defaultValue: "",
+    field: "cover_src",
   })
   coverSrc!: string;
 

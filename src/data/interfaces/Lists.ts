@@ -1,14 +1,14 @@
 import { Movie, Series } from './Media';
 
 export interface MyListItem {
-  id?: number;
+  id: number;
   addedAt: string;
   series?: Series;
   movie?: Movie;
 }
 
 export interface PlayList {
-  id?: number;
+  id: string;
   title: string;
   description?: string;
 }

@@ -1,17 +1,17 @@
-import { Collection } from '../../data/models/Collections/Collection.model';
-import { ContinueWatching } from '../../data/models/Lists/ContinueWatching.model';
-import { MyList } from '../../data/models/Lists/MyList.model';
-import { PlayList } from '../../data/models/Lists/PlayList.model';
-import { Episode } from '../../data/models/Media/Episode.model';
-import { Library } from '../../data/models/Media/Library.model';
-import { Movie } from '../../data/models/Media/Movie.model';
-import { Season } from '../../data/models/Media/Season.model';
-import { Series } from '../../data/models/Media/Series.model';
-import { Video } from '../../data/models/Media/Video.model';
-import { Album } from '../../data/models/music/Album.model';
-import { Artist } from '../../data/models/music/Artist.model';
-import { Song } from '../../data/models/music/Song.model';
-import { SequelizeManager } from '../SequelizeManager';
+import { Collection } from "../../data/models/Collections/Collection.model";
+import { ContinueWatching } from "../../data/models/Lists/ContinueWatching.model";
+import { MyList } from "../../data/models/Lists/MyList.model";
+import { PlayList } from "../../data/models/Lists/PlayList.model";
+import { Episode } from "../../data/models/Media/Episode.model";
+import { Library } from "../../data/models/Media/Library.model";
+import { Movie } from "../../data/models/Media/Movie.model";
+import { Season } from "../../data/models/Media/Season.model";
+import { Series } from "../../data/models/Media/Series.model";
+import { Video } from "../../data/models/Media/Video.model";
+import { Album } from "../../data/models/music/Album.model";
+import { Artist } from "../../data/models/music/Artist.model";
+import { Song } from "../../data/models/music/Song.model";
+import { SequelizeManager } from "../SequelizeManager";
 
 //#region Libraries
 
@@ -27,10 +27,10 @@ export const getLibraryById = async (id: string) => {
   try {
     const library = await Library.findByPk(id, {
       include: [
-        { model: Series, as: 'series' },
-        { model: Movie, as: 'movies' },
-        { model: Album, as: 'albums' },
-        { model: Collection, as: 'collections' },
+        { model: Series, as: "series" },
+        { model: Movie, as: "movies" },
+        { model: Album, as: "albums" },
+        { model: Collection, as: "collections" },
       ],
     });
 
@@ -99,7 +99,7 @@ export const getLibraryByVideoId = async (videoId: string) => {
 
   let element: Episode | Movie | null = video.episodeId
     ? await getEpisodeById(video.episodeId)
-    : await getMovieById(video.movieId ?? video.extraId ?? '');
+    : await getMovieById(video.movieId ?? video.extraId ?? "");
 
   if (!element) return null;
 
@@ -138,9 +138,9 @@ export const getCollectionById = async (id: string) => {
   try {
     const colection = await Collection.findByPk(id, {
       include: [
-        { model: Series, as: 'shows' },
-        { model: Movie, as: 'movies' },
-        { model: Album, as: 'albums' },
+        { model: Series, as: "shows" },
+        { model: Movie, as: "movies" },
+        { model: Album, as: "albums" },
       ],
     });
 
@@ -174,7 +174,7 @@ export const getSeriesById = (seriesId: string) => {
   if (!SequelizeManager.sequelize) return null;
 
   return Series.findByPk(seriesId, {
-    include: [{ model: Season, as: 'seasons' }],
+    include: [{ model: Season, as: "seasons" }],
   });
 };
 
@@ -196,7 +196,7 @@ export const getSeasonById = (seasonId: string) => {
   if (!SequelizeManager.sequelize) return null;
 
   return Season.findByPk(seasonId, {
-    include: [{ model: Episode, as: 'episodes' }],
+    include: [{ model: Episode, as: "episodes" }],
   });
 };
 
@@ -232,7 +232,7 @@ export const getEpisodeByPath = async (videoSrc: string) => {
   if (!video || !video.episodeId) return null;
 
   return Episode.findByPk(video.episodeId, {
-    include: [{ model: Video, as: 'video' }],
+    include: [{ model: Video, as: "video" }],
   });
 };
 
@@ -295,8 +295,8 @@ export const getMovieById = (movieId: string) => {
 
   return Movie.findByPk(movieId, {
     include: [
-      { model: Video, as: 'videos' },
-      { model: Video, as: 'extras' },
+      { model: Video, as: "videos" },
+      { model: Video, as: "extras" },
     ],
   });
 };
@@ -320,8 +320,8 @@ export const getAlbumById = (albumId: string) => {
 
   return Album.findByPk(albumId, {
     include: [
-      { model: Song, as: 'songs' },
-      { model: Artist, as: 'artists' },
+      { model: Song, as: "songs" },
+      { model: Artist, as: "artists" },
     ],
   });
 };
@@ -330,7 +330,7 @@ export const getArtistById = (artistId: string) => {
   if (!SequelizeManager.sequelize) return null;
 
   return Artist.findByPk(artistId, {
-    include: [{ model: Album, as: 'albums' }],
+    include: [{ model: Album, as: "albums" }],
   });
 };
 
@@ -364,7 +364,7 @@ export const getPlayListById = (id: string) => {
   if (!SequelizeManager.sequelize) return null;
 
   return PlayList.findByPk(id, {
-    include: [{ model: Song, as: 'songs' }],
+    include: [{ model: Song, as: "songs" }],
   });
 };
 
@@ -376,12 +376,12 @@ export const getMyList = async () => {
       include: [
         {
           model: Series,
-          as: 'series',
+          as: "series",
           required: false, // Left join
         },
         {
           model: Movie,
-          as: 'movie',
+          as: "movie",
           required: false, // Left join
         },
       ],
@@ -402,7 +402,7 @@ export const getContinueWatchingVideos = async () => {
       include: [
         {
           model: Video,
-          as: 'video',
+          as: "video",
           required: true,
         },
       ],

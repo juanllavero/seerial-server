@@ -1,22 +1,23 @@
-import fs from 'fs-extra';
-import { MovieResponse } from 'moviedb-promise';
-import { wsManager } from '../..';
-import { Collection } from '../../data/models/Collections/Collection.model';
-import { Library } from '../../data/models/Media/Library.model';
-import { Movie } from '../../data/models/Media/Movie.model';
-import { Video } from '../../data/models/Media/Video.model';
-import { getVideoById } from '../../db/get/getData';
+import fs from "fs-extra";
+import { MovieResponse } from "moviedb-promise";
+import { wsManager } from "../..";
+import { Collection } from "../../data/models/Collections/Collection.model";
+import { Library } from "../../data/models/Media/Library.model";
+import { Movie } from "../../data/models/Media/Movie.model";
+import { Video } from "../../data/models/Media/Video.model";
+import { getVideoById } from "../../db/get/getData";
 import {
   addCollection,
+  addMovie,
   addMovieToCollection,
   addVideoAsMovie,
-} from '../../db/post/postData';
-import { MovieDBWrapper } from '../../theMovieDB/MovieDB';
-import { FilesManager } from '../../utils/FilesManager';
-import { IMDBScores } from '../../utils/IMDBScores';
-import { Utils } from '../../utils/Utils';
-import { WebSocketManager } from '../../WebSockets/WebSocketManager';
-import { FileSearch } from '../fileSearch';
+} from "../../db/post/postData";
+import { MovieDBWrapper } from "../../theMovieDB/MovieDB";
+import { FilesManager } from "../../utils/FilesManager";
+import { IMDBScores } from "../../utils/IMDBScores";
+import { Utils } from "../../utils/Utils";
+import { WebSocketManager } from "../../WebSockets/WebSocketManager";
+import { FileSearch } from "../fileSearch";
 
 /**
  * Scans a specific folder for movies and collections
@@ -32,7 +33,7 @@ export async function scanMovie(
     // ONLY ONE FILE
     if (!Utils.isVideoFile(root)) return;
 
-    processFolder(library, root, [root]);
+    await processFolder(library, root, [root]);
   } else {
     const filesInDir = await Utils.getFilesInFolder(root);
     const filesInRoot: string[] = [];
@@ -51,26 +52,28 @@ export async function scanMovie(
       // FOLDERS CORRESPONDING DIFFERENT MOVIES FROM A COLLECTION
 
       // Add collection or retrieve existing one
-      const collection = await addCollection(Utils.getFileName(root));
-
-      if (collection) {
-        collection.libraryId = library.id;
-      }
+      const collection = await addCollection({
+        title: Utils.getFileName(root),
+        libraryId: library.id,
+      });
 
       // Add collection to view
       //Utils.addSeries(wsManager, library.id, collection);
 
       const processPromises = folders.map(async (folder) => {
         const files = await Utils.getValidVideoFiles(folder);
-        processFolder(library, folder, files, collection ?? undefined);
+        await processFolder(library, folder, files, collection ?? undefined);
       });
 
       await Promise.all(processPromises);
     } else {
       // MOVIE FILE/CONCERT FILES INSIDE FOLDER
-      processFolder(library, root, filesInRoot);
+      await processFolder(library, root, filesInRoot);
     }
   }
+
+  // Save data in DB
+  library.save();
 }
 
 /**
@@ -93,10 +96,14 @@ export async function processFolder(
 
   const movieMetadata = await searchMovie(name, year, library.language);
 
-  let movie = new Movie();
-  library.analyzedFolders.set(rootFolder, movie.id);
-  movie.libraryId = library.id;
-  movie.folder = rootFolder;
+  let movie = await addMovie({
+    libraryId: library.id,
+    folder: rootFolder,
+  });
+
+  if (!movie) return;
+
+  await library.addAnalyzedFolder(rootFolder, movie.id);
 
   if (collection) {
     addMovieToCollection(collection.id, movie.id);
@@ -105,7 +112,7 @@ export async function processFolder(
   if (!movieMetadata) {
     //Save videos without metadata
     movie.name = name;
-    movie.year = year !== '1' ? year : '';
+    movie.year = year !== "1" ? year : "";
 
     // Add movie to view
     //Utils.addSeason(wsManager, library.id, movie);
@@ -179,10 +186,10 @@ export async function setMovieMetadata(
 ) {
   movie.name = !movie.nameLock ? movieMetadata.title ?? name : name;
   movie.year = !movie.yearLock ? movieMetadata.release_date ?? year : year;
-  movie.overview = !movie.overviewLock ? movieMetadata.overview ?? '' : '';
-  movie.tagline = !movie.taglineLock ? movieMetadata.tagline ?? '' : '';
+  movie.overview = !movie.overviewLock ? movieMetadata.overview ?? "" : "";
+  movie.tagline = !movie.taglineLock ? movieMetadata.tagline ?? "" : "";
   movie.themdbId = movieMetadata.id ?? -1;
-  movie.imdbId = movieMetadata.imdb_id ?? '-1';
+  movie.imdbId = movieMetadata.imdb_id ?? "-1";
   movie.score = movieMetadata.vote_average
     ? (movieMetadata.vote_average * 10) / 10
     : 0;
@@ -190,12 +197,12 @@ export async function setMovieMetadata(
     movie.genresLock && movie.genres
       ? movie.genres
       : movieMetadata.genres
-      ? movieMetadata.genres.map((genre) => genre.name ?? '')
+      ? movieMetadata.genres.map((genre) => genre.name ?? "")
       : [];
   movie.productionStudios = movie.productionStudiosLock
     ? movie.productionStudios
     : movieMetadata.production_companies
-    ? movieMetadata.production_companies.map((company) => company.name ?? '')
+    ? movieMetadata.production_companies.map((company) => company.name ?? "")
     : [];
 
   // Get IMDB Score for Movie
@@ -212,7 +219,7 @@ export async function setMovieMetadata(
       if (!movie.directedByLock && movie.directedBy) {
         movie.directedBy.splice(0, movie.directedBy.length);
         for (const person of credits.crew) {
-          if (person.name && person.job === 'Director' && movie.directedBy)
+          if (person.name && person.job === "Director" && movie.directedBy)
             movie?.directedBy.push(person.name);
         }
       }
@@ -220,7 +227,7 @@ export async function setMovieMetadata(
       if (!movie.writtenByLock && movie.writtenBy) {
         movie.writtenBy.splice(0, movie.writtenBy.length);
         for (const person of credits.crew) {
-          if (person.name && person.job === 'Writer' && movie.writtenBy)
+          if (person.name && person.job === "Writer" && movie.writtenBy)
             movie?.writtenBy.push(person.name);
         }
       }
@@ -239,16 +246,16 @@ export async function setMovieMetadata(
         if (
           !movie.creatorLock &&
           person.job &&
-          (person.job === 'Author' ||
-            person.job === 'Novel' ||
-            person.job === 'Original Series Creator' ||
-            person.job === 'Comic Book' ||
-            person.job === 'Idea' ||
-            person.job === 'Original Story' ||
-            person.job === 'Story' ||
-            person.job === 'Story by' ||
-            person.job === 'Book' ||
-            person.job === 'Original Concept')
+          (person.job === "Author" ||
+            person.job === "Novel" ||
+            person.job === "Original Series Creator" ||
+            person.job === "Comic Book" ||
+            person.job === "Idea" ||
+            person.job === "Original Story" ||
+            person.job === "Story" ||
+            person.job === "Story by" ||
+            person.job === "Book" ||
+            person.job === "Original Concept")
         )
           if (person.name && !movie.creatorLock && movie.creator)
             movie.creator.push(person.name);
@@ -256,7 +263,7 @@ export async function setMovieMetadata(
         if (
           !movie.musicComposerLock &&
           person.job &&
-          person.job === 'Original Music Composer'
+          person.job === "Original Music Composer"
         )
           if (person.name && !movie.musicComposerLock && movie.musicComposer)
             movie.musicComposer.push(person.name);
@@ -269,11 +276,11 @@ export async function setMovieMetadata(
 
       for (const person of credits.cast) {
         movie.cast?.push({
-          name: person.name ?? '',
-          character: person.character ?? '',
+          name: person.name ?? "",
+          character: person.character ?? "",
           profileImage: person.profile_path
             ? `${FileSearch.BASE_URL}${person.profile_path}`
-            : '',
+            : "",
         });
       }
     }
@@ -290,21 +297,21 @@ export async function setMovieMetadata(
 
     // Create folders if they do not exist
     const outputLogosDir = FilesManager.getExternalPath(
-      'resources/img/logos/' + movie.id
+      "resources/img/logos/" + movie.id
     );
     if (!fs.existsSync(outputLogosDir)) {
       fs.mkdirSync(outputLogosDir);
     }
 
     const outputPostersDir = FilesManager.getExternalPath(
-      'resources/img/posters/' + movie.id
+      "resources/img/posters/" + movie.id
     );
     if (!fs.existsSync(outputPostersDir)) {
       fs.mkdirSync(outputPostersDir);
     }
 
     const outputPostersCollectionDir = FilesManager.getExternalPath(
-      'resources/img/posters/' + collection?.id
+      "resources/img/posters/" + collection?.id
     );
 
     if (collection) {
@@ -314,7 +321,7 @@ export async function setMovieMetadata(
     }
 
     const outputImageDir = FilesManager.getExternalPath(
-      'resources/img/backgrounds/' + movie.id
+      "resources/img/backgrounds/" + movie.id
     );
     if (!fs.existsSync(outputImageDir)) {
       fs.mkdirSync(outputImageDir);
@@ -326,7 +333,7 @@ export async function setMovieMetadata(
         const backgroundUrl = `${FileSearch.BASE_URL}${backdrop.file_path}`;
         movie.backgroundsUrls = [...movie.backgroundsUrls, backgroundUrl];
 
-        if (movie.backgroundSrc === '') {
+        if (movie.backgroundSrc === "") {
           movie.backgroundSrc = backgroundUrl;
         }
       }
@@ -338,7 +345,7 @@ export async function setMovieMetadata(
         const logoUrl = `${FileSearch.BASE_URL}${logo.file_path}`;
         movie.logosUrls = [...movie.logosUrls, logoUrl];
 
-        if (movie.logoSrc === '') {
+        if (movie.logoSrc === "") {
           movie.logoSrc = logoUrl;
         }
       }
@@ -350,13 +357,13 @@ export async function setMovieMetadata(
         const posterUrl = `${FileSearch.BASE_URL}${poster.file_path}`;
         movie.coversUrls = [...movie.coversUrls, posterUrl];
 
-        if (movie.coverSrc === '') {
+        if (movie.coverSrc === "") {
           movie.coverSrc = posterUrl;
         }
 
         if (collection) {
           collection.postersUrls = [...collection.postersUrls, posterUrl];
-          if (collection.posterSrc === '') {
+          if (collection.posterSrc === "") {
             collection.posterSrc = posterUrl;
           }
         }
@@ -382,23 +389,22 @@ export async function saveMovieWithoutMetadata(
   filePath: string,
   wsManager: WebSocketManager
 ) {
-  let video = addVideoAsMovie(movie.id);
+  let video = await addVideoAsMovie(movie.id);
 
   if (!video) return;
 
   video.movieId = movie.id;
 
-  if (
-    library.analyzedFiles.get(filePath) &&
-    library.analyzedFiles.get(filePath) !== null
-  ) {
-    video = await getVideoById(library.analyzedFiles.get(filePath) ?? '');
+  if (filePath in library.analyzedFiles) {
+    video = await getVideoById(library.analyzedFiles[filePath] ?? "");
   }
 
   if (!video) return;
 
+  await library.addAnalyzedFile(filePath, video.id);
+
   video.fileSrc = filePath;
-  video.imgSrc = 'resources/img/Default_video_thumbnail.jpg';
+  video.imgSrc = "resources/img/Default_video_thumbnail.jpg";
 
   // Save data in DB
   movie.save();
@@ -422,17 +428,19 @@ export async function processVideo(
 ) {
   let video: Video | null;
 
-  if (
-    library.analyzedFiles.get(filePath) &&
-    library.analyzedFiles.get(filePath) !== null
-  ) {
-    video = await getVideoById(library.analyzedFiles.get(filePath) ?? '');
+  if (filePath in library.analyzedFiles) {
+    video = await getVideoById(library.analyzedFiles[filePath] ?? "");
   } else {
-    video = new Video({
+    video = await addVideoAsMovie(movie.id, {
       fileSrc: filePath,
+      movieId: movie.id,
     });
-    video.movieId = movie.id;
-    library.analyzedFiles.set(filePath, video.id);
+
+    if (!video) return;
+
+    await library.addAnalyzedFile(filePath, video.id);
+
+    console.log({ filePath, id: video.id, files: library.analyzedFiles });
   }
 
   if (!video) return;
@@ -442,7 +450,7 @@ export async function processVideo(
   let thumbnails = images?.backdrops || [];
 
   const outputDir = FilesManager.getExternalPath(
-    'resources/img/thumbnails/video/' + video.id + '/'
+    "resources/img/thumbnails/video/" + video.id + "/"
   );
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir);
@@ -481,17 +489,17 @@ export async function processVideoAsExtra(
 ) {
   let video: Video | null;
 
-  if (
-    library.analyzedFiles.get(filePath) &&
-    library.analyzedFiles.get(filePath) !== null
-  ) {
-    video = await getVideoById(library.analyzedFiles.get(filePath) ?? '');
+  if (filePath in library.analyzedFiles) {
+    video = await getVideoById(library.analyzedFiles[filePath] ?? "");
   } else {
-    video = new Video({
+    video = await addVideoAsMovie(movie.id, {
       fileSrc: filePath,
+      movieId: movie.id,
     });
-    video.movieId = movie.id;
-    library.analyzedFiles.set(filePath, video.id);
+
+    if (!video) return;
+
+    library.analyzedFiles[filePath] = video.id;
   }
 
   // Save data in DB

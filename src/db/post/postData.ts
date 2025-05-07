@@ -1,4 +1,5 @@
-import { PlayList as PlayListData } from '../../data/interfaces/Lists';
+import { v4 as uuidv4 } from "uuid";
+import { PlayList as PlayListData } from "../../data/interfaces/Lists";
 import {
   Episode as EpisodeData,
   Library as LibraryData,
@@ -6,311 +7,830 @@ import {
   Season as SeasonData,
   Series as SeriesData,
   Video as VideoData,
-} from '../../data/interfaces/Media';
+} from "../../data/interfaces/Media";
 import {
   Album as AlbumData,
   Artist as ArtistData,
   Song as SongData,
-} from '../../data/interfaces/Music';
-import { Collection } from '../../data/models/Collections/Collection.model';
-import { CollectionAlbum } from '../../data/models/Collections/CollectionAlbum.model';
-import { CollectionMovie } from '../../data/models/Collections/CollectionMovie.model';
-import { CollectionSeries } from '../../data/models/Collections/CollectionSeries.model';
-import { ContinueWatching } from '../../data/models/Lists/ContinueWatching.model';
-import { MyList } from '../../data/models/Lists/MyList.model';
-import { PlayList } from '../../data/models/Lists/PlayList.model';
-import { PlayListItem } from '../../data/models/Lists/PlayListItem.model';
-import { Episode } from '../../data/models/Media/Episode.model';
-import { Library } from '../../data/models/Media/Library.model';
-import { Movie } from '../../data/models/Media/Movie.model';
-import { Season } from '../../data/models/Media/Season.model';
-import { Series } from '../../data/models/Media/Series.model';
-import { Video } from '../../data/models/Media/Video.model';
-import { Album } from '../../data/models/music/Album.model';
-import { AlbumArtist } from '../../data/models/music/AlbumArtist.model';
-import { Artist } from '../../data/models/music/Artist.model';
-import { Song } from '../../data/models/music/Song.model';
-import { SequelizeManager } from '../SequelizeManager';
+} from "../../data/interfaces/Music";
+import { Collection } from "../../data/models/Collections/Collection.model";
+import { CollectionAlbum } from "../../data/models/Collections/CollectionAlbum.model";
+import { CollectionMovie } from "../../data/models/Collections/CollectionMovie.model";
+import { CollectionSeries } from "../../data/models/Collections/CollectionSeries.model";
+import { ContinueWatching } from "../../data/models/Lists/ContinueWatching.model";
+import { MyList } from "../../data/models/Lists/MyList.model";
+import { PlayList } from "../../data/models/Lists/PlayList.model";
+import { PlayListItem } from "../../data/models/Lists/PlayListItem.model";
+import { Episode } from "../../data/models/Media/Episode.model";
+import { Library } from "../../data/models/Media/Library.model";
+import { Movie } from "../../data/models/Media/Movie.model";
+import { Season } from "../../data/models/Media/Season.model";
+import { Series } from "../../data/models/Media/Series.model";
+import { Video } from "../../data/models/Media/Video.model";
+import { Album } from "../../data/models/music/Album.model";
+import { AlbumArtist } from "../../data/models/music/AlbumArtist.model";
+import { Artist } from "../../data/models/music/Artist.model";
+import { Song } from "../../data/models/music/Song.model";
+import {
+  getAlbumById,
+  getEpisodeById,
+  getMovieById,
+  getPlayListById,
+  getSeasonById,
+  getSeriesById,
+  getSongById,
+  getVideoById,
+} from "../get/getData";
+import { SequelizeManager } from "../SequelizeManager";
 
-export const addLibrary = (library: Partial<LibraryData>) => {
-  if (!SequelizeManager.sequelize) return null;
+//#region Library
+
+export const addLibrary = async (library: Partial<LibraryData>) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
 
   console.log({ library });
 
-  const newLibrary = new Library({ values: library });
+  let attempts = 0;
+  const maxAttempts = 3;
 
-  newLibrary.save();
+  while (attempts < maxAttempts) {
+    const libraryData = {
+      ...library,
+      id: uuidv4().split("-")[0],
+    };
 
-  return newLibrary;
+    try {
+      // Verifica si el id ya existe
+      const existingLibrary = await Library.findOne({
+        where: { id: libraryData.id },
+      });
+      if (existingLibrary) {
+        console.log(`Colisión de UUID: ${libraryData.id}. Reintentando...`);
+        attempts++;
+        continue;
+      }
+
+      const newLibrary = new Library(libraryData);
+      console.log({ newLibrary });
+      await newLibrary.save();
+      console.log("Librería guardada:", newLibrary.toJSON());
+      return newLibrary;
+    } catch (error) {
+      console.error(
+        `Error al intentar guardar la librería (intento ${
+          attempts + 1
+        }/${maxAttempts}):`,
+        error
+      );
+      attempts++;
+      continue;
+    }
+  }
+
+  console.error(
+    "Error: No se pudo generar un UUID único después de varios intentos"
+  );
+  return null;
 };
+
+//#endregion
 
 //#region Collections
 
-export const addCollection = (title: string) => {
-  if (!SequelizeManager.sequelize) return null;
+export const addCollection = async (collection: Partial<Collection>) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
 
-  const existingCollection = Collection.findOne({
-    where: {
-      title,
-    },
-  });
+  try {
+    // Verifica si ya existe una colección con el mismo título
+    if (collection.title) {
+      const existingCollection = await Collection.findOne({
+        where: {
+          title: collection.title,
+        },
+      });
 
-  if (existingCollection) return existingCollection;
+      if (existingCollection) {
+        console.log(`Colección con título "${collection.title}" ya existe`);
+        return existingCollection;
+      }
+    }
 
-  const newCollection = new Collection({ values: { title } });
+    // Genera un UUID para el id
+    const collectionData = {
+      ...collection,
+      id: uuidv4().split("-")[0],
+    };
 
-  newCollection.save();
-
-  return newCollection;
+    const newCollection = new Collection(collectionData);
+    await newCollection.save();
+    console.log("Colección guardada:", newCollection.toJSON());
+    return newCollection;
+  } catch (error) {
+    console.error("Error al agregar la colección:", error);
+    return null;
+  }
 };
 
-export const addSeriesToCollection = (
+export const addSeriesToCollection = async (
   collectionId: string,
   seriesId: string
 ) => {
-  if (!SequelizeManager.sequelize) return null;
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
 
-  const newElement = new CollectionSeries({
-    values: { collectionId, seriesId },
-  });
+  try {
+    // Verifica si ya existe la relación
+    const existingElement = await CollectionSeries.findOne({
+      where: {
+        collectionId,
+        seriesId,
+      },
+    });
 
-  newElement.save();
+    if (existingElement) {
+      console.log(
+        `La serie ${seriesId} ya está en la colección ${collectionId}`
+      );
+      return existingElement;
+    }
+
+    // Genera un UUID para el id
+    const newElementData = {
+      id: uuidv4().split("-")[0],
+      collectionId,
+      seriesId,
+    };
+
+    const newElement = new CollectionSeries(newElementData);
+    await newElement.save();
+    console.log("Relación serie-colección guardada:", newElement.toJSON());
+    return newElement;
+  } catch (error) {
+    console.error("Error al agregar la serie a la colección:", error);
+    return null;
+  }
 };
 
-export const addMovieToCollection = (collectionId: string, movieId: string) => {
-  if (!SequelizeManager.sequelize) return null;
+export const addMovieToCollection = async (
+  collectionId: string,
+  movieId: string
+) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
 
-  const newElement = new CollectionMovie({
-    values: { collectionId, movieId },
-  });
+  try {
+    // Verifica si ya existe la relación
+    const existingElement = await CollectionMovie.findOne({
+      where: {
+        collectionId,
+        movieId,
+      },
+    });
 
-  newElement.save();
+    if (existingElement) {
+      console.log(
+        `La película ${movieId} ya está en la colección ${collectionId}`
+      );
+      return existingElement;
+    }
+
+    // Genera un UUID para el id
+    const newElementData = {
+      id: uuidv4().split("-")[0],
+      collectionId,
+      movieId,
+    };
+
+    const newElement = new CollectionMovie(newElementData);
+    await newElement.save();
+    console.log("Relación película-colección guardada:", newElement.toJSON());
+    return newElement;
+  } catch (error) {
+    console.error("Error al agregar la película a la colección:", error);
+    return null;
+  }
 };
 
-export const addAlbumToCollection = (collectionId: string, albumId: string) => {
-  if (!SequelizeManager.sequelize) return null;
+export const addAlbumToCollection = async (
+  collectionId: string,
+  albumId: string
+) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
 
-  const newElement = new CollectionAlbum({
-    values: { collectionId, albumId },
-  });
+  try {
+    // Verifica si ya existe la relación
+    const existingElement = await CollectionAlbum.findOne({
+      where: {
+        collectionId,
+        albumId,
+      },
+    });
 
-  newElement.save();
+    if (existingElement) {
+      console.log(
+        `El álbum ${albumId} ya está en la colección ${collectionId}`
+      );
+      return existingElement;
+    }
+
+    // Genera un UUID para el id
+    const newElementData = {
+      id: uuidv4().split("-")[0],
+      collectionId,
+      albumId,
+    };
+
+    const newElement = new CollectionAlbum(newElementData);
+    await newElement.save();
+    console.log("Relación álbum-colección guardada:", newElement.toJSON());
+    return newElement;
+  } catch (error) {
+    console.error("Error al agregar el álbum a la colección:", error);
+    return null;
+  }
 };
 
 //#endregion
 
 //#region Media
 
-export const addSeries = (series: Partial<SeriesData>) => {
-  if (!SequelizeManager.sequelize) return null;
+export const addSeries = async (series: Partial<SeriesData>) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
 
-  const newSeries = new Series({ values: series });
+  try {
+    // Verifica si la serie ya existe
+    if (series.id) {
+      const existingSeries = await getSeriesById(series.id);
+      if (existingSeries) {
+        console.log(`La serie con ID ${series.id} ya existe`);
+        return existingSeries;
+      }
+    }
 
-  newSeries.save();
+    // Genera un UUID para el id
+    const seriesData = {
+      ...series,
+      id: uuidv4().split("-")[0],
+    };
 
-  return newSeries;
+    const newSeries = new Series(seriesData);
+    await newSeries.save();
+    console.log("Serie guardada:", newSeries.toJSON());
+    return newSeries;
+  } catch (error) {
+    console.error("Error al agregar la serie:", error);
+    return null;
+  }
 };
 
-export const addMovie = (movie: Partial<MovieData>) => {
-  if (!SequelizeManager.sequelize) return null;
+export const addMovie = async (movie: Partial<MovieData>) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
 
-  const newMovie = new Movie({ values: movie });
+  try {
+    // Verifica si la película ya existe
+    if (movie.id) {
+      const existingMovie = await getMovieById(movie.id);
+      if (existingMovie) {
+        console.log(`La película con ID ${movie.id} ya existe`);
+        return existingMovie;
+      }
+    }
 
-  newMovie.save();
+    // Genera un UUID para el id
+    const movieData = {
+      ...movie,
+      id: uuidv4().split("-")[0],
+    };
 
-  return newMovie;
+    const newMovie = new Movie(movieData);
+    await newMovie.save();
+    console.log("Película guardada:", newMovie.toJSON());
+    return newMovie;
+  } catch (error) {
+    console.error("Error al agregar la película:", error);
+    return null;
+  }
 };
 
-export const addSeason = (season: Partial<SeasonData>) => {
-  if (!SequelizeManager.sequelize) return null;
+export const addSeason = async (season: Partial<SeasonData>) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
 
-  const newSeason = new Season({ values: season });
+  try {
+    // Verifica si la temporada ya existe
+    if (season.id) {
+      const existingSeason = await getSeasonById(season.id);
+      if (existingSeason) {
+        console.log(`La temporada con ID ${season.id} ya existe`);
+        return existingSeason;
+      }
+    }
 
-  newSeason.save();
+    // Genera un UUID para el id
+    const seasonData = {
+      ...season,
+      id: uuidv4().split("-")[0],
+    };
 
-  return newSeason;
+    const newSeason = new Season(seasonData);
+    await newSeason.save();
+    console.log("Temporada guardada:", newSeason.toJSON());
+    return newSeason;
+  } catch (error) {
+    console.error("Error al agregar la temporada:", error);
+    return null;
+  }
 };
 
-export const addEpisode = (episode: Partial<EpisodeData>) => {
-  if (!SequelizeManager.sequelize) return null;
+export const addEpisode = async (episode: Partial<EpisodeData>) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
 
-  const newEpisode = new Episode({ values: episode });
+  try {
+    // Verifica si el episodio ya existe
+    if (episode.id) {
+      const existingEpisode = await getEpisodeById(episode.id);
+      if (existingEpisode) {
+        console.log(`El episodio con ID ${episode.id} ya existe`);
+        return existingEpisode;
+      }
+    }
 
-  newEpisode.save();
+    // Genera un UUID para el id
+    const episodeData = {
+      ...episode,
+      id: uuidv4().split("-")[0],
+    };
 
-  return newEpisode;
+    const newEpisode = new Episode(episodeData);
+    await newEpisode.save();
+    console.log("Episodio guardado:", newEpisode.toJSON());
+    return newEpisode;
+  } catch (error) {
+    console.error("Error al agregar el episodio:", error);
+    return null;
+  }
 };
 
-export const addVideoAsMovie = (
+export const addVideoAsMovie = async (
   movieId: string,
   video?: Partial<VideoData>
 ) => {
-  if (!SequelizeManager.sequelize) return null;
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
 
-  const newVideo = new Video({
-    values: {
+  try {
+    // Verifica si el video ya existe
+    if (video && video.id) {
+      const existingVideo = await getVideoById(video.id);
+      if (existingVideo) {
+        console.log(`El video con ID ${video.id} ya existe`);
+        return existingVideo;
+      }
+    }
+
+    // Genera un UUID para el id
+    const videoData = {
       ...video,
+      id: uuidv4().split("-")[0],
       movieId,
-    },
-  });
+    };
 
-  newVideo.save();
-
-  return newVideo;
+    const newVideo = new Video(videoData);
+    await newVideo.save();
+    console.log("Video como película guardado:", newVideo.toJSON());
+    return newVideo;
+  } catch (error) {
+    console.error("Error al agregar el video como película:", error);
+    return null;
+  }
 };
 
-export const addVideoAsMovieExtra = (
+export const addVideoAsMovieExtra = async (
   movieId: string,
   video?: Partial<VideoData>
 ) => {
-  if (!SequelizeManager.sequelize) return null;
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
 
-  const newVideo = new Video({
-    values: {
+  try {
+    // Verifica si el video ya existe
+    if (video && video.id) {
+      const existingVideo = await getVideoById(video.id);
+      if (existingVideo) {
+        console.log(`El video con ID ${video.id} ya existe`);
+        return existingVideo;
+      }
+    }
+
+    // Genera un UUID para el id
+    const videoData = {
       ...video,
+      id: uuidv4().split("-")[0],
       extraId: movieId,
-    },
-  });
+    };
 
-  newVideo.save();
-
-  return newVideo;
+    const newVideo = new Video(videoData);
+    await newVideo.save();
+    console.log("Video como extra de película guardado:", newVideo.toJSON());
+    return newVideo;
+  } catch (error) {
+    console.error("Error al agregar el video como extra de película:", error);
+    return null;
+  }
 };
 
-export const addVideoAsEpisode = (
+export const addVideoAsEpisode = async (
   episodeId: string,
   video?: Partial<VideoData>
 ) => {
-  if (!SequelizeManager.sequelize) return null;
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
 
-  const newVideo = new Video({
-    values: {
+  try {
+    // Verifica si el video ya existe
+    if (video && video.id) {
+      const existingVideo = await getVideoById(video.id);
+      if (existingVideo) {
+        console.log(`El video con ID ${video.id} ya existe`);
+        return existingVideo;
+      }
+    }
+
+    // Genera un UUID para el id
+    const videoData = {
       ...video,
+      id: uuidv4().split("-")[0],
       episodeId,
-    },
-  });
+    };
 
-  newVideo.save();
-
-  return newVideo;
+    const newVideo = new Video(videoData);
+    await newVideo.save();
+    console.log("Video como episodio guardado:", newVideo.toJSON());
+    return newVideo;
+  } catch (error) {
+    console.error("Error al agregar el video como episodio:", error);
+    return null;
+  }
 };
 
 //#endregion
 
 //#region Music
 
-export const addAlbum = (album: Partial<AlbumData>) => {
-  if (!SequelizeManager.sequelize) return null;
+export const addAlbum = async (album: Partial<AlbumData>) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
 
-  const newAlbum = new Album({ values: album });
+  try {
+    // Verifica si el álbum ya existe
+    if (album.id) {
+      const existingAlbum = await getAlbumById(album.id);
+      if (existingAlbum) {
+        console.log(`El álbum con ID ${album.id} ya existe`);
+        return existingAlbum;
+      }
+    }
 
-  newAlbum.save();
+    // Genera un UUID para el id
+    const albumData = {
+      ...album,
+      id: uuidv4().split("-")[0],
+    };
 
-  return newAlbum;
+    const newAlbum = new Album(albumData);
+    await newAlbum.save();
+    console.log("Álbum guardado:", newAlbum.toJSON());
+    return newAlbum;
+  } catch (error) {
+    console.error("Error al agregar el álbum:", error);
+    return null;
+  }
 };
 
-export const addArtist = (artist: Partial<ArtistData>) => {
-  if (!SequelizeManager.sequelize) return null;
+export const addArtist = async (artist: Partial<ArtistData>) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
 
-  const existingArtist = Artist.findOne({
-    where: {
-      name: artist.name,
-    },
-  });
+  try {
+    // Verifica si el artista ya existe
+    if (artist.name) {
+      const existingArtist = await Artist.findOne({
+        where: {
+          name: artist.name,
+        },
+      });
 
-  if (existingArtist) return existingArtist;
+      if (existingArtist) {
+        console.log(`El artista con nombre "${artist.name}" ya existe`);
+        return existingArtist;
+      }
+    }
 
-  const newArtist = new Artist({ values: artist });
+    // Genera un UUID para el id
+    const artistData = {
+      ...artist,
+      id: uuidv4().split("-")[0],
+    };
 
-  newArtist.save();
-
-  return newArtist;
+    const newArtist = new Artist(artistData);
+    await newArtist.save();
+    console.log("Artista guardado:", newArtist.toJSON());
+    return newArtist;
+  } catch (error) {
+    console.error("Error al agregar el artista:", error);
+    return null;
+  }
 };
 
-export const addArtistToAlbum = (artistId: string, albumId: string) => {
-  if (!SequelizeManager.sequelize) return null;
+export const addArtistToAlbum = async (artistId: string, albumId: string) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
 
-  const newElement = new AlbumArtist({
-    values: {
+  try {
+    // Verifica si la relación ya existe
+    const existingElement = await AlbumArtist.findOne({
+      where: {
+        artistId,
+        albumId,
+      },
+    });
+
+    if (existingElement) {
+      console.log(
+        `El artista ${artistId} ya está asociado al álbum ${albumId}`
+      );
+      return existingElement;
+    }
+
+    // Genera un UUID para el id
+    const newElementData = {
+      id: uuidv4().split("-")[0],
       artistId,
       albumId,
-    },
-  });
+    };
 
-  newElement.save();
+    const newElement = new AlbumArtist(newElementData);
+    await newElement.save();
+    console.log("Relación artista-álbum guardada:", newElement.toJSON());
+    return newElement;
+  } catch (error) {
+    console.error("Error al agregar el artista al álbum:", error);
+    return null;
+  }
 };
 
-export const addSong = (song: Partial<SongData>) => {
-  if (!SequelizeManager.sequelize) return null;
+export const addSong = async (song: Partial<SongData>) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
 
-  const newSong = new Song({ values: song });
+  try {
+    // Verifica si la canción ya existe
+    if (song.id) {
+      const existingSong = await getSongById(song.id);
+      if (existingSong) {
+        console.log(`La canción con ID ${song.id} ya existe`);
+        return existingSong;
+      }
+    }
 
-  newSong.save();
+    // Genera un UUID para el id
+    const songData = {
+      ...song,
+      id: uuidv4().split("-")[0],
+    };
 
-  return newSong;
+    const newSong = new Song(songData);
+    await newSong.save();
+    console.log("Canción guardada:", newSong.toJSON());
+    return newSong;
+  } catch (error) {
+    console.error("Error al agregar la canción:", error);
+    return null;
+  }
 };
 
 //#endregion
 
 //#region Lists
 
-export const addPlaylist = (playList: Partial<PlayListData>) => {
-  if (!SequelizeManager.sequelize) return null;
+export const addPlaylist = async (playList: Partial<PlayListData>) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
 
-  const newPlayList = new PlayList({ values: playList });
+  try {
+    // Verifica si la lista de reproducción ya existe
+    if (playList.id) {
+      const existingPlayList = await getPlayListById(playList.id);
+      if (existingPlayList) {
+        console.log(`La lista de reproducción con ID ${playList.id} ya existe`);
+        return existingPlayList;
+      }
+    }
 
-  newPlayList.save();
+    // Genera un UUID para el id
+    const playListData = {
+      ...playList,
+      id: uuidv4().split("-")[0],
+    };
 
-  return newPlayList;
+    const newPlayList = new PlayList(playListData);
+    await newPlayList.save();
+    console.log("Lista de reproducción guardada:", newPlayList.toJSON());
+    return newPlayList;
+  } catch (error) {
+    console.error("Error al agregar la lista de reproducción:", error);
+    return null;
+  }
 };
 
-export const addSongToPlaylist = (playlistId: string, songId: string) => {
-  if (!SequelizeManager.sequelize) return null;
+export const addSongToPlaylist = async (playlistId: string, songId: string) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
 
-  const newPlayListItem = new PlayListItem({
-    values: {
+  try {
+    // Verifica si la relación ya existe
+    const existingElement = await PlayListItem.findOne({
+      where: {
+        playlistId,
+        songId,
+      },
+    });
+
+    if (existingElement) {
+      console.log(
+        `La canción ${songId} ya está en la lista de reproducción ${playlistId}`
+      );
+      return existingElement;
+    }
+
+    // Genera un UUID para el id
+    const newElementData = {
+      id: uuidv4().split("-")[0],
       playlistId,
       songId,
-    },
-  });
+    };
 
-  newPlayListItem.save();
+    const newPlayListItem = new PlayListItem(newElementData);
+    await newPlayListItem.save();
+    console.log(
+      "Relación canción-lista de reproducción guardada:",
+      newPlayListItem.toJSON()
+    );
+    return newPlayListItem;
+  } catch (error) {
+    console.error(
+      "Error al agregar la canción a la lista de reproducción:",
+      error
+    );
+    return null;
+  }
 };
 
-export const addSeriesToMyList = (seriesId: string) => {
-  if (!SequelizeManager.sequelize) return null;
+export const addSeriesToMyList = async (seriesId: string) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
 
-  const newElement = new MyList({
-    values: {
+  try {
+    // Verifica si la serie ya está en la lista
+    const existingElement = await MyList.findOne({
+      where: {
+        seriesId,
+      },
+    });
+
+    if (existingElement) {
+      console.log(`La serie ${seriesId} ya está en Mi Lista`);
+      return existingElement;
+    }
+
+    // Genera un UUID para el id
+    const newElementData = {
+      id: uuidv4().split("-")[0],
       seriesId,
-    },
-  });
+    };
 
-  newElement.save();
+    const newElement = new MyList(newElementData);
+    await newElement.save();
+    console.log("Serie agregada a Mi Lista:", newElement.toJSON());
+    return newElement;
+  } catch (error) {
+    console.error("Error al agregar la serie a Mi Lista:", error);
+    return null;
+  }
 };
 
-export const addMovieToMyList = (movieId: string) => {
-  if (!SequelizeManager.sequelize) return null;
+export const addMovieToMyList = async (movieId: string) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
 
-  const newElement = new MyList({
-    values: {
+  try {
+    // Verifica si la película ya está en la lista
+    const existingElement = await MyList.findOne({
+      where: {
+        movieId,
+      },
+    });
+
+    if (existingElement) {
+      console.log(`La película ${movieId} ya está en Mi Lista`);
+      return existingElement;
+    }
+
+    // Genera un UUID para el id
+    const newElementData = {
+      id: uuidv4().split("-")[0],
       movieId,
-    },
-  });
+    };
 
-  newElement.save();
+    const newElement = new MyList(newElementData);
+    await newElement.save();
+    console.log("Película agregada a Mi Lista:", newElement.toJSON());
+    return newElement;
+  } catch (error) {
+    console.error("Error al agregar la película a Mi Lista:", error);
+    return null;
+  }
 };
 
-export const addVideoToContinueWatching = (videoId: string) => {
-  if (!SequelizeManager.sequelize) return null;
+export const addVideoToContinueWatching = async (videoId: string) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
 
-  const newElement = new ContinueWatching({
-    values: {
+  try {
+    // Verifica si el video ya está en Continue Watching
+    const existingElement = await ContinueWatching.findOne({
+      where: {
+        videoId,
+      },
+    });
+
+    if (existingElement) {
+      console.log(`El video ${videoId} ya está en Continue Watching`);
+      return existingElement;
+    }
+
+    // Genera un UUID para el id
+    const newElementData = {
+      id: uuidv4().split("-")[0],
       videoId,
-    },
-  });
+    };
 
-  newElement.save();
+    const newElement = new ContinueWatching(newElementData);
+    await newElement.save();
+    console.log("Video agregado a Continue Watching:", newElement.toJSON());
+    return newElement;
+  } catch (error) {
+    console.error("Error al agregar el video a Continue Watching:", error);
+    return null;
+  }
 };
 
 //#endregion

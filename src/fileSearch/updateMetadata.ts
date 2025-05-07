@@ -3,17 +3,17 @@ import {
   deleteSeriesData,
   deleteVideo,
   deleteVideoData,
-} from '../db/delete/deleteData';
+} from "../db/delete/deleteData";
 import {
   getLibraryById,
   getMovieById,
   getSeriesById,
   getVideoByMovieId,
-} from '../db/get/getData';
-import { WebSocketManager } from '../WebSockets/WebSocketManager';
-import { scanMovie } from './movies/searchMovies';
+} from "../db/get/getData";
+import { WebSocketManager } from "../WebSockets/WebSocketManager";
+import { scanMovie } from "./movies/searchMovies";
 
-import { scanTVShow } from './series/searchSeries';
+import { scanTVShow } from "./series/searchSeries";
 export async function updateShowMetadata(
   libraryId: string,
   showId: string,
@@ -33,7 +33,7 @@ export async function updateShowMetadata(
   await deleteSeriesData(library.id, show);
 
   // Restore folder stored in library
-  library.analyzedFolders.set(show.folder, show.id);
+  await library.addAnalyzedFolder(show.folder, show.id);
 
   // Clear season list
   show.seasons = [];
@@ -75,7 +75,7 @@ export async function updateMovieMetadata(
   await deleteMovieData(library.id, movie);
 
   // Restore folder in library
-  library.seasonFolders.set(movie.folder, movie.id);
+  await library.addAnalyzedFolder(movie.folder, movie.id);
 
   // Remove videos
   const videos = await getVideoByMovieId(movieId);

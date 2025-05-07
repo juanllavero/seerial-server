@@ -6,17 +6,16 @@ import {
   Model,
   PrimaryKey,
   Table,
-} from 'sequelize-typescript';
-import { v4 as uuidv4 } from 'uuid';
-import { Episode } from './Episode.model';
-import { Series } from './Series.model';
+} from "sequelize-typescript";
+import { Episode } from "./Episode.model";
+import { Series } from "./Series.model";
 
-@Table({ tableName: 'Season', timestamps: false })
+@Table({ tableName: "Season", timestamps: false })
 export class Season extends Model {
   @PrimaryKey
   @Column({
     type: DataType.STRING,
-    defaultValue: () => uuidv4(), // Generates default UUID
+    defaultValue: () => require("uuid").v4().split("-")[0], // Generates default UUID
     allowNull: false,
   })
   id!: string;
@@ -25,156 +24,151 @@ export class Season extends Model {
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
-    onDelete: 'CASCADE',
-    field: 'series_id',
+    onDelete: "CASCADE",
+    field: "series_id",
   })
   seriesId!: string;
 
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
+    defaultValue: 0,
   })
   order!: number;
 
   @Column({
     type: DataType.STRING,
     allowNull: false,
+    defaultValue: "",
   })
   name!: string;
 
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
-    field: 'name_lock',
+    field: "name_lock",
+    defaultValue: false,
   })
   nameLock!: boolean;
 
   @Column({
     type: DataType.STRING,
     allowNull: false,
+    defaultValue: "",
   })
   year!: string;
 
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
-    field: 'year_lock',
+    field: "year_lock",
+    defaultValue: false,
   })
   yearLock!: boolean;
 
   @Column({
     type: DataType.TEXT,
     allowNull: false,
+    defaultValue: "",
   })
   overview!: string;
 
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
-    field: 'overview_lock',
+    field: "overview_lock",
+    defaultValue: false,
   })
   overviewLock!: boolean;
 
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
-    field: 'season_number',
+    field: "season_number",
+    defaultValue: 0,
   })
   seasonNumber!: number;
 
   @Column({
     type: DataType.STRING,
     allowNull: false,
-    field: 'cover_src',
+    field: "cover_src",
+    defaultValue: "",
   })
   coverSrc!: string;
 
   @Column({
-    type: DataType.TEXT,
+    type: DataType.JSON,
     allowNull: false,
-    field: 'covers_urls',
-    get() {
-      const value = this.getDataValue('coversUrls');
-      return value ? JSON.parse(value) : [];
-    },
-    set(value: string[]) {
-      this.setDataValue('coversUrls', JSON.stringify(value));
-    },
+    field: "covers_urls",
+    defaultValue: [],
   })
   coversUrls!: string[];
 
   @Column({
     type: DataType.STRING,
     allowNull: false,
-    field: 'background_src',
+    field: "background_src",
+    defaultValue: "",
   })
   backgroundSrc!: string;
 
   @Column({
-    type: DataType.TEXT,
+    type: DataType.JSON,
     allowNull: false,
-    field: 'background_urls',
-    get() {
-      const value = this.getDataValue('backgroundsUrls');
-      return value ? JSON.parse(value) : [];
-    },
-    set(value: string[]) {
-      this.setDataValue('backgroundsUrls', JSON.stringify(value));
-    },
+    field: "background_urls",
+    defaultValue: [],
   })
   backgroundsUrls!: string[];
 
   @Column({
     type: DataType.STRING,
     allowNull: false,
-    field: 'video_src',
+    field: "video_src",
+    defaultValue: "",
   })
   videoSrc!: string;
 
   @Column({
     type: DataType.STRING,
     allowNull: false,
-    field: 'music_src',
+    field: "music_src",
+    defaultValue: "",
   })
   musicSrc!: string;
 
   @Column({
     type: DataType.STRING,
-    allowNull: false,
+    allowNull: true,
+    field: "audio_track_language",
   })
-  folder!: string;
-
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: 'audio_track_language',
-  })
-  audioTrackLanguage!: string;
+  audioTrackLanguage?: string;
 
   @Column({
     type: DataType.INTEGER,
-    allowNull: false,
-    field: 'selected_audio_track',
+    allowNull: true,
+    field: "selected_audio_track",
   })
-  selectedAudioTrack!: number;
+  selectedAudioTrack?: number;
 
   @Column({
     type: DataType.STRING,
-    allowNull: false,
-    field: 'subtitle_track_language',
+    allowNull: true,
+    field: "subtitle_track_language",
   })
-  subtitleTrackLanguage!: string;
+  subtitleTrackLanguage?: string;
 
   @Column({
     type: DataType.INTEGER,
-    allowNull: false,
-    field: 'selected_subtitle_track',
+    allowNull: true,
+    field: "selected_subtitle_track",
   })
-  selectedSubtitleTrack!: number;
+  selectedSubtitleTrack?: number;
 
   @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
+    defaultValue: false,
   })
   watched!: boolean;
 

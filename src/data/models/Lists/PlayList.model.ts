@@ -5,17 +5,16 @@ import {
   Model,
   PrimaryKey,
   Table,
-} from 'sequelize-typescript';
-import { v4 as uuidv4 } from 'uuid';
-import { Song } from '../music/Song.model';
-import { PlayListItem } from './PlayListItem.model';
+} from "sequelize-typescript";
+import { Song } from "../music/Song.model";
+import { PlayListItem } from "./PlayListItem.model";
 
-@Table({ tableName: 'PlayList', timestamps: false })
+@Table({ tableName: "PlayList", timestamps: false })
 export class PlayList extends Model {
   @PrimaryKey
   @Column({
     type: DataType.STRING,
-    defaultValue: () => uuidv4(), // Generates default UUID
+    defaultValue: () => require("uuid").v4().split("-")[0], // Generates default UUID
     allowNull: false,
   })
   id!: string;
@@ -29,6 +28,7 @@ export class PlayList extends Model {
   @Column({
     type: DataType.STRING,
     allowNull: true,
+    defaultValue: "",
   })
   description?: string;
 
