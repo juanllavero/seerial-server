@@ -1,6 +1,6 @@
 import FlexBox from '@/components/ui/FlexBox'
 import LazyImage from '@/components/ui/LazyImage'
-import { Cast } from '@/data/interfaces/Metadata'
+import { Cast } from '@/data/interfaces/Media'
 import React from 'react'
 
 interface CastCardProps {

@@ -11,7 +11,6 @@ import {
   UnmarkWatchedIcon,
 } from '@/components/ui/IconLibrary'
 import LazyImage from '@/components/ui/LazyImage'
-import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import { Movie } from '@/data/interfaces/Media'
@@ -30,7 +29,6 @@ function MovieDetailsPage() {
   const { movieId } = useParams({ from: '/details/movie/$movieId' })
   const { serverIP } = useServerStore()
   const { clientSettings } = useSettingsStore()
-  const { openSeasonDialog } = useDialogStore()
 
   // Get movie data
   const { data: movie, isLoading } = useSWR<Movie>(
@@ -247,7 +245,7 @@ function MovieDetailsPage() {
 
       <MovieContent movie={movie} />
 
-      <CastList />
+      <CastList cast={movie.cast ?? []} />
     </FlexBox>
   )
 }

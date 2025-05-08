@@ -9,11 +9,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useDialogStore } from '@/context/dialog.context'
-import { Button } from './ui/button'
 import useDataStore from '@/context/data.context'
-import { useTranslation } from 'react-i18next'
+import { useDialogStore } from '@/context/dialog.context'
 import { useNavigate } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
+import { Button } from './ui/button'
 
 interface Item {
   id: string
@@ -26,7 +26,7 @@ export function LibrarySwitcher({ libraries }: { libraries: Item[] }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { openLibraryDialog } = useDialogStore()
-  const { selectedLibrary } = useDataStore()
+  const { selectedLibraryId } = useDataStore()
 
   const home = {
     id: '0',
@@ -41,15 +41,14 @@ export function LibrarySwitcher({ libraries }: { libraries: Item[] }) {
   const [isOpen, setIsOpen] = React.useState(false)
 
   React.useEffect(() => {
-    console.log({ selectedLibrary })
-    if (!selectedLibrary) {
+    if (!selectedLibraryId) {
       setActiveItem(home)
     } else {
       setActiveItem(
-        libraries.find((item) => item.id === selectedLibrary.id) || home,
+        libraries.find((item) => item.id === selectedLibraryId) || home,
       )
     }
-  }, [selectedLibrary])
+  }, [selectedLibraryId])
 
   const handleItemClick = (item: Item) => {
     setActiveItem(item)

@@ -1,22 +1,15 @@
-import React, { useEffect } from 'react'
-import useDataStore from '@/context/data.context'
-import Loading from '@/components/Loading'
 import FlexBox from '@/components/ui/FlexBox'
-import HorizontalList from './components/HorizontalList'
-import Card from '@/components/cards/Card'
+import useDataStore from '@/context/data.context'
+import React, { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
 export default function HomePage() {
   const { t } = useTranslation()
-  const { loadingLibraries, libraries, selectLibrary } = useDataStore()
+  const { selectLibrary } = useDataStore()
 
   useEffect(() => {
     selectLibrary(null)
   }, [])
-
-  if (loadingLibraries) {
-    return <Loading />
-  }
 
   return (
     <FlexBox
@@ -26,8 +19,9 @@ export default function HomePage() {
       scroll="vertical"
       height="100%"
     >
+      <h1></h1>
       {/* Continue Watching */}
-      <HorizontalList title={t('continueWatching')}>
+      {/* <HorizontalList title={t('continueWatching')}>
         {libraries &&
           libraries[0] &&
           libraries[0].series.map((series) => (
@@ -54,10 +48,10 @@ export default function HomePage() {
               action={function (): void {}}
             />
           ))}
-      </HorizontalList>
+      </HorizontalList> */}
 
       {/* User WatchList */}
-      <HorizontalList title={t('watchList')}>
+      {/* <HorizontalList title={t('watchList')}>
         {libraries &&
           libraries[0] &&
           libraries[0].series.map((series) => (
@@ -98,7 +92,7 @@ export default function HomePage() {
               action={function (): void {}}
             />
           ))}
-      </HorizontalList>
+      </HorizontalList> */}
     </FlexBox>
   )
 }

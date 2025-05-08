@@ -42,7 +42,7 @@ export const AlbumDetailsRoute = createRoute({
 
 export const CollectionDetailsRoute = createRoute({
   getParentRoute: () => RootRoute,
-  path: '/details/collection/$collectionId/$isMusic',
+  path: '/details/collection/$collectionId/$type',
   component: CollectionDetailsPage,
 })
 

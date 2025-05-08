@@ -5,7 +5,12 @@ import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import LazyImage from '@/components/ui/LazyImage'
 import { useServerStore } from '@/context/server.context'
-import { Collection } from '@/data/interfaces/Media'
+import { Collection, Movie, Series } from '@/data/interfaces/Media'
+import { Album } from '@/data/interfaces/Music'
+import HorizontalList from '@/pages/home/components/HorizontalList'
+import AlbumCard from '@/pages/library/components/cards/AlbumCard'
+import MovieCard from '@/pages/library/components/cards/MovieCard'
+import SeriesCard from '@/pages/library/components/cards/SeriesCard'
 import { fetcher } from '@/utils/utils'
 import { useParams } from '@tanstack/react-router'
 import { Edit, Ellipsis } from 'lucide-react'
@@ -15,8 +20,8 @@ import useSWR from 'swr'
 import '../DetailsPage.css'
 
 function CollectionDetailsPage() {
-  const { collectionId, isMusic } = useParams({
-    from: '/details/collection/$collectionId/$isMusic',
+  const { collectionId, type } = useParams({
+    from: '/details/collection/$collectionId/$type',
   })
   const { t } = useTranslation()
   const { serverIP } = useServerStore()
@@ -56,6 +61,52 @@ function CollectionDetailsPage() {
     return <NotFound />
   }
 
+  type ContentType = 'Music' | 'Shows' | 'Movies'
+  type CollectionKey = keyof CollectionItems
+  type CollectionItems = {
+    albums: Album[]
+    movies: Movie[]
+    shows: Series[]
+  }
+
+  // Define el orden según type
+  const orderMap: Record<ContentType, CollectionKey[]> = {
+    Music: ['albums', 'movies', 'shows'],
+    Shows: ['shows', 'movies', 'albums'],
+    Movies: ['movies', 'shows', 'albums'],
+  }
+
+  // Componentes de renderizado por tipo
+  const renderMap: Record<CollectionKey, (items: any[]) => React.ReactNode> = {
+    albums: (items: Album[]) => (
+      <FlexBox direction="column" justify="center" align="center">
+        <HorizontalList key="albums" title={t('albums')}>
+          {items.map((album) => (
+            <AlbumCard key={album.id} album={album} />
+          ))}
+        </HorizontalList>
+      </FlexBox>
+    ),
+    movies: (items: Movie[]) => (
+      <FlexBox direction="column" justify="start" align="start" gap={0}>
+        <HorizontalList key="movies" title={t('movies')}>
+          {items.map((movie) => (
+            <MovieCard key={movie.id} movie={movie} />
+          ))}
+        </HorizontalList>
+      </FlexBox>
+    ),
+    shows: (items: Series[]) => (
+      <FlexBox>
+        <HorizontalList key="shows" title={t('shows')}>
+          {items.map((series) => (
+            <SeriesCard key={series.id} series={series} />
+          ))}
+        </HorizontalList>
+      </FlexBox>
+    ),
+  }
+
   return (
     <FlexBox
       className="details-container"
@@ -65,7 +116,7 @@ function CollectionDetailsPage() {
       padding={isMobile ? '10rem 0' : '10rem 3rem'}
       height={'100%'}
     >
-      <FlexBox justify="start" align="start" gap={4}>
+      <FlexBox justify="start" align="start" gap={4} padding="0 0 1rem 0">
         {!isMobile && (
           <div className="cover-container">
             <FlexBox className="image-container">
@@ -73,9 +124,11 @@ function CollectionDetailsPage() {
                 url={currentPoster}
                 width={350}
                 maxHeight={550}
-                height={isMusic ? 300 : 550}
+                height={type === 'Music' ? 300 : 550}
                 errorSrc={
-                  isMusic ? '/img/songDefault.png' : '/img/fileNotFound.jpg'
+                  type === 'Music'
+                    ? '/img/songDefault.png'
+                    : '/img/fileNotFound.jpg'
                 }
               />
             </FlexBox>
@@ -86,9 +139,11 @@ function CollectionDetailsPage() {
                   url={nextPoster}
                   width={350}
                   maxHeight={550}
-                  height={isMusic ? 300 : 550}
+                  height={type === 'Music' ? 300 : 550}
                   errorSrc={
-                    isMusic ? '/img/songDefault.png' : '/img/fileNotFound.jpg'
+                    type === 'Music'
+                      ? '/img/songDefault.png'
+                      : '/img/fileNotFound.jpg'
                   }
                 />
               </FlexBox>
@@ -133,8 +188,10 @@ function CollectionDetailsPage() {
       </FlexBox>
 
       {/* Content */}
-
-      {/* Library Name (Anime, Music, Soundtracks, Movies...) --> Content */}
+      {orderMap[type as ContentType].map((key) => {
+        const items = collection[key]
+        return items.length > 0 ? renderMap[key](items) : null
+      })}
     </FlexBox>
   )
 }

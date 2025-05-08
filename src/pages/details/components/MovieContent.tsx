@@ -1,22 +1,22 @@
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import FlexBox from '@/components/ui/FlexBox'
-import Grid from '@/components/ui/Grid'
-import { useServerStore } from '@/context/server.context'
-import { Episode, Movie } from '@/data/interfaces/Media'
+import { Movie, Video } from '@/data/interfaces/Media'
+import HorizontalList from '@/pages/home/components/HorizontalList'
 import { useNavigate } from '@tanstack/react-router'
 import React from 'react'
-import EpisodeCard from './cards/EpisodeCard'
+import { useTranslation } from 'react-i18next'
+import VideoCard from './cards/VideoCard'
 
 interface MovieContentProps {
   movie: Movie
 }
 
 function MovieContent({ movie }: MovieContentProps) {
+  const { t } = useTranslation()
   const navigate = useNavigate()
-  const { serverIP } = useServerStore()
   const isMobile = useIsMobile()
 
-  const getEpisodeMenu = (episode: Episode) => {
+  const getEpisodeMenu = () => {
     return {
       items: [
         {
@@ -35,30 +35,11 @@ function MovieContent({ movie }: MovieContentProps) {
     }
   }
 
-  const goToDetails = (episode: Episode) => {
-    navigate({
-      to: '/details/episode/$episodeId',
-      params: {
-        episodeId: episode.id,
-      },
-    })
-  }
-
-  const playEpisode = async (episode: Episode) => {
-    const response = await fetch(
-      `http://${serverIP}/episode-video?episodeId=${episode.id}`,
-    )
-
-    if (!response.ok) {
-      // Show error message
-      return
-    }
-
-    const data = await response.json()
+  const playEpisode = async (video: Video) => {
     navigate({
       to: '/video-player/$videoId',
       params: {
-        videoId: data.videoId,
+        videoId: video.id,
       },
     })
   }
@@ -73,24 +54,33 @@ function MovieContent({ movie }: MovieContentProps) {
       padding={isMobile ? '1rem 2rem' : '0'}
       width={'100%'}
     >
-      <Grid
-        columns={
-          isMobile
-            ? 'repeat(auto-fill, minmax(200px, 1fr))'
-            : 'repeat(auto-fill, minmax(400px, 1fr))'
-        }
-        gap="1rem"
-        width="100%"
-      >
-        {movie.videos.map((video) => (
-          <EpisodeCard
-            episode={video}
-            playEpisode={playEpisode}
-            goToDetails={goToDetails}
-            getEpisodeMenu={getEpisodeMenu}
-          />
-        ))}
-      </Grid>
+      {movie.videos && movie.videos.length > 1 && (
+        <HorizontalList title={t('videos')}>
+          {movie.videos.map((video) => (
+            <VideoCard
+              video={video}
+              playVideo={playEpisode}
+              getVideoMenu={getEpisodeMenu}
+              title={video.title}
+              subtitle={''}
+            />
+          ))}
+        </HorizontalList>
+      )}
+
+      {movie.extras && movie.extras.length > 0 && (
+        <HorizontalList title={t('extras')}>
+          {movie.extras.map((video) => (
+            <VideoCard
+              video={video}
+              playVideo={playEpisode}
+              getVideoMenu={getEpisodeMenu}
+              title={video.title}
+              subtitle={video.extraType ? t(video.extraType) : ''}
+            />
+          ))}
+        </HorizontalList>
+      )}
     </FlexBox>
   )
 }

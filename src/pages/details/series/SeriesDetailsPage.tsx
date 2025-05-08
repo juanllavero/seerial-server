@@ -264,7 +264,7 @@ function SeriesDetailsPage() {
 
       <SeasonContent seasonList={series.seasons} season={season} />
 
-      <CastList />
+      <CastList cast={series.cast ?? []} />
     </FlexBox>
   )
 }

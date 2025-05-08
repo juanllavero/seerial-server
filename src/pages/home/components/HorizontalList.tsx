@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 interface HorizontalListProps {
   title?: string
@@ -68,11 +68,11 @@ function HorizontalList({ title, children }: HorizontalListProps) {
       <FlexBox
         justify="space-between"
         gap={1}
-        padding="0 1rem"
+        padding="0 0.5rem"
         width={'100%'}
         height={'3rem'}
       >
-        <span>{title}</span>
+        <span className="text-xl font-semibold">{title}</span>
         {showButtons && (
           <FlexBox gap={0.5}>
             <Button

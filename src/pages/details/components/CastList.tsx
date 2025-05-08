@@ -1,38 +1,22 @@
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import FlexBox from '@/components/ui/FlexBox'
-import useDataStore from '@/context/data.context'
+import { Cast } from '@/data/interfaces/Media'
+import HorizontalList from '@/pages/home/components/HorizontalList'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import CastCard from './CastCard'
 
-function CastList() {
+interface CastListProps {
+  cast: Cast[]
+}
+
+function CastList({ cast }: CastListProps) {
   const { t } = useTranslation()
-  const isMobile = useIsMobile()
-  const { selectedLibrary, selectedSeries, selectedSeason } = useDataStore()
 
   return (
-    <FlexBox direction="column" gap={1} padding={isMobile ? '0 0 0 1rem' : '0'}>
-      <span>{t('cast')}</span>
-      <FlexBox gap={0.5} scroll="horizontal" hideScrollbar width={'94dvw'}>
-        {selectedLibrary && selectedLibrary.type === 'Movies' ? (
-          <>
-            {selectedSeason &&
-              selectedSeason.cast &&
-              selectedSeason.cast.map((person, index) => (
-                <CastCard index={index} person={person} />
-              ))}
-          </>
-        ) : (
-          <>
-            {selectedSeries &&
-              selectedSeries.cast &&
-              selectedSeries.cast.map((person, index) => (
-                <CastCard index={index} person={person} />
-              ))}
-          </>
-        )}
-      </FlexBox>
-    </FlexBox>
+    <HorizontalList title={t('cast')}>
+      {cast.map((person, index) => (
+        <CastCard index={index} person={person} />
+      ))}
+    </HorizontalList>
   )
 }
 

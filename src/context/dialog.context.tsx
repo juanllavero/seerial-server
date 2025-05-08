@@ -10,7 +10,7 @@ interface DialogState {
   }
   removeLibraryDialog: {
     isOpen: boolean
-    libraryToRemove?: Library
+    libraryToRemove?: string
   }
   seriesDialog: {
     isOpen: boolean
@@ -36,7 +36,7 @@ interface DialogState {
   // Functions to open and close dialogs
   openLibraryDialog: (libraryToEdit?: Library) => void
   closeLibraryDialog: () => void
-  openRemoveLibraryDialog: (libraryToRemove: Library) => void
+  openRemoveLibraryDialog: (libraryToRemove: string) => void
   closeRemoveLibraryDialog: () => void
   openSeriesDialog: (series: Series) => void
   closeSeriesDialog: () => void
@@ -103,7 +103,7 @@ export const useDialogStore = create<DialogState>((set) => ({
     }),
 
   // Functions for RemoveLibraryDialog
-  openRemoveLibraryDialog: (libraryToRemove: Library) =>
+  openRemoveLibraryDialog: (libraryToRemove: string) =>
     set({
       removeLibraryDialog: {
         isOpen: true,

@@ -63,10 +63,13 @@ function CollectionCard({ collection, type }: CollectionCardProps) {
       title={collection.title}
       subtitle={'Not yet'}
       action={() => {
-        selectCollection(collection)
+        selectCollection(collection.id)
         navigate({
-          to: '/details/collection/$collectionId',
-          params: { collectionId: collection.id },
+          to: '/details/collection/$collectionId/$type',
+          params: {
+            collectionId: collection.id,
+            type: type,
+          },
         })
       }}
       hidePlayButton

@@ -30,7 +30,7 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const { openRemoveLibraryDialog } = useDialogStore()
-  const { selectedLibrary, selectLibrary } = useDataStore()
+  const { selectedLibraryId, selectLibrary } = useDataStore()
   const { serverIP } = useServerStore()
   const { connectWS } = useWebSocketStore()
   const isMobile = useIsMobile()
@@ -46,7 +46,7 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
   const inSettings = location.pathname === '/settings'
   const inPlayer = location.pathname.startsWith('/video-player')
 
-  const getLibraryDrowdown = (library: Library): DropdownContent => {
+  const getLibraryDrowdown = (): DropdownContent => {
     return {
       items: [
         {
@@ -57,7 +57,7 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
               action: async () => {
                 await connectWS(serverIP)
                 fetch(
-                  `http://${serverIP}/library/search?libraryId=${library.id}`,
+                  `http://${serverIP}/library/search?libraryId=${selectedLibraryId}`,
                 )
               },
             },
@@ -66,7 +66,7 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
               action: async () => {
                 await connectWS(serverIP)
                 fetch(
-                  `http://${serverIP}/library/updateMetadata?libraryId=${library.id}`,
+                  `http://${serverIP}/library/updateMetadata?libraryId=${selectedLibraryId}`,
                 )
               },
             },
@@ -79,7 +79,7 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
             {
               title: t('removeButton'),
               action: () => {
-                openRemoveLibraryDialog(library)
+                openRemoveLibraryDialog(selectedLibraryId ?? '')
               },
             },
           ],
@@ -92,7 +92,7 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
     return <Loading />
   }
 
-  if (!libraries || libraries.length === 0) {
+  if (!libraries) {
     return <NotFound />
   }
 
@@ -118,7 +118,7 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
                           ? Film
                           : Music,
                     action: () => {
-                      selectLibrary(library)
+                      selectLibrary(library.id)
                       navigate({
                         to: '/library/$libraryId',
                         params: { libraryId: library.id },
@@ -129,9 +129,9 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
               />
             )}
 
-            {selectedLibrary && (
+            {selectedLibraryId && (
               <DropdownWrapper
-                content={getLibraryDrowdown(selectedLibrary)}
+                content={getLibraryDrowdown()}
                 button={
                   <Button variant={'ghost'} size={'icon'}>
                     <EllipsisVertical />

@@ -80,7 +80,7 @@ function LibraryDialog({ library }: LibraryDialogProps) {
 
     // Navigate to new library page
     navigate({
-      to: '/collection/$libraryId',
+      to: '/library/$libraryId',
       params: { libraryId },
     })
   }
