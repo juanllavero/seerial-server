@@ -5,6 +5,7 @@ import {
   SubtitleTrack,
   VideoTrack,
 } from "./MediaInfo";
+import { Album } from "./Music";
 
 export interface Cast {
   name: string;
@@ -26,6 +27,11 @@ export interface Library {
   analyzedFiles: Record<string, string>;
   analyzedFolders: Record<string, string>;
   backgroundSrc: string;
+
+  series: Series[];
+  movies: Movie[];
+  albums: Album[];
+  collections: Collection[];
 }
 
 export interface Collection {
@@ -36,6 +42,10 @@ export interface Collection {
   backgroundsUrls: string[];
   coverSrc: string;
   coversUrls: string[];
+
+  shows: Series[];
+  movies: Movie[];
+  albums: Album[];
 }
 
 export interface Series {
@@ -73,6 +83,8 @@ export interface Series {
   analyzingFiles: boolean;
   currentlyWatchingEpisodeId: string;
   watched: boolean;
+
+  seasons: Season[];
 }
 
 export interface Season {
@@ -99,6 +111,8 @@ export interface Season {
   subtitleTrackLanguage?: string;
   selectedSubtitleTrack?: number;
   watched: boolean;
+
+  episodes: Episode[];
 }
 
 export interface Episode {
@@ -120,6 +134,8 @@ export interface Episode {
   episodeNumber: number;
   seasonNumber: number;
   order: number;
+
+  video: Video;
 }
 
 export interface Movie {
@@ -162,6 +178,9 @@ export interface Movie {
   coverSrc: string;
   coversUrls: string[];
   watched: boolean;
+
+  videos: Video[];
+  extras: Video[];
 }
 
 export interface Video {

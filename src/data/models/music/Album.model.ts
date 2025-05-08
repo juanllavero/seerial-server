@@ -3,6 +3,7 @@ import {
   Column,
   DataType,
   ForeignKey,
+  HasMany,
   Model,
   PrimaryKey,
   Table,
@@ -12,6 +13,7 @@ import { CollectionAlbum } from "../Collections/CollectionAlbum.model";
 import { Library } from "../Media/Library.model";
 import { AlbumArtist } from "./AlbumArtist.model";
 import { Artist } from "./Artist.model";
+import { Song } from "./Song.model";
 
 @Table({ tableName: "Album", timestamps: false })
 export class Album extends Model {
@@ -47,6 +49,13 @@ export class Album extends Model {
   year?: string;
 
   @Column({
+    type: DataType.JSON,
+    defaultValue: [],
+    allowNull: true,
+  })
+  genres!: string[];
+
+  @Column({
     type: DataType.TEXT,
     defaultValue: "",
     allowNull: true,
@@ -66,4 +75,7 @@ export class Album extends Model {
 
   @BelongsToMany(() => Artist, () => AlbumArtist)
   artists!: Artist[];
+
+  @HasMany(() => Song)
+  songs!: Song[];
 }
