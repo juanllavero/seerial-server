@@ -13,6 +13,7 @@ import {
   Artist as ArtistData,
   Song as SongData,
 } from "../../data/interfaces/Music";
+import { LibraryCollection } from "../../data/models";
 import { Collection } from "../../data/models/Collections/Collection.model";
 import { CollectionAlbum } from "../../data/models/Collections/CollectionAlbum.model";
 import { CollectionMovie } from "../../data/models/Collections/CollectionMovie.model";
@@ -133,6 +134,48 @@ export const addCollection = async (collection: Partial<Collection>) => {
     return newCollection;
   } catch (error) {
     console.error("Error al agregar la colección:", error);
+    return null;
+  }
+};
+
+export const addLibraryToCollection = async (
+  libraryId: string,
+  collectionId: string
+) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
+
+  try {
+    // Verifica si ya existe la relación
+    const existingElement = await LibraryCollection.findOne({
+      where: {
+        libraryId,
+        collectionId,
+      },
+    });
+
+    if (existingElement) {
+      console.log(
+        `La biblioteca ${libraryId} ya está en la colección ${collectionId}`
+      );
+      return existingElement;
+    }
+
+    // Genera un UUID para el id
+    const newElementData = {
+      id: uuidv4().split("-")[0],
+      libraryId,
+      collectionId,
+    };
+
+    const newElement = new LibraryCollection(newElementData);
+    await newElement.save();
+    console.log("Relación biblioteca-colección guardada:", newElement.toJSON());
+    return newElement;
+  } catch (error) {
+    console.error("Error al agregar la biblioteca a la colección:", error);
     return null;
   }
 };

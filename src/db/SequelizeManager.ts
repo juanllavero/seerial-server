@@ -1,5 +1,5 @@
-import fs from 'fs';
-import { Sequelize } from 'sequelize-typescript';
+import fs from "fs";
+import { Sequelize } from "sequelize-typescript";
 import {
   Album,
   AlbumArtist,
@@ -11,6 +11,7 @@ import {
   ContinueWatching,
   Episode,
   Library,
+  LibraryCollection,
   Movie,
   MyList,
   PlayList,
@@ -19,12 +20,12 @@ import {
   Series,
   Song,
   Video,
-} from '../data/models';
-import { FilesManager } from '../utils/FilesManager';
+} from "../data/models";
+import { FilesManager } from "../utils/FilesManager";
 
 export class SequelizeManager {
   public static DB_PATH: string = FilesManager.getExternalPath(
-    'resources/db/data.db'
+    "resources/db/data.db"
   );
   public static sequelize: Sequelize | null = null;
 
@@ -39,16 +40,17 @@ export class SequelizeManager {
 
       // Initialize Sequelize
       SequelizeManager.sequelize = new Sequelize({
-        database: 'data',
-        dialect: 'sqlite',
-        username: 'root',
-        password: '',
+        database: "data",
+        dialect: "sqlite",
+        username: "root",
+        password: "",
         storage: SequelizeManager.DB_PATH,
         models: [
           Collection,
           CollectionAlbum,
           CollectionMovie,
           CollectionSeries,
+          LibraryCollection,
           ContinueWatching,
           Episode,
           Library,
@@ -71,12 +73,12 @@ export class SequelizeManager {
       });
 
       // Enable foreign keys
-      await SequelizeManager.sequelize.query('PRAGMA foreign_keys = ON;');
+      await SequelizeManager.sequelize.query("PRAGMA foreign_keys = ON;");
 
       // Sync models to db
       await SequelizeManager.sequelize.sync({ alter: true });
 
-      console.log('Database initialized successfully with Sequelize');
+      console.log("Database initialized successfully with Sequelize");
     } catch (error: any) {
       throw new Error(`Database initialization failed: ${error.message}`);
     }
@@ -88,7 +90,7 @@ export class SequelizeManager {
   public static async close(): Promise<void> {
     if (SequelizeManager.sequelize) {
       await SequelizeManager.sequelize.close();
-      console.log('Database connection closed');
+      console.log("Database connection closed");
     }
   }
 
@@ -96,7 +98,7 @@ export class SequelizeManager {
    * Creates db directory if it does not exist.
    */
   private static ensureDatabaseDirectory(): void {
-    const dbDir = FilesManager.getExternalPath('resources/db/');
+    const dbDir = FilesManager.getExternalPath("resources/db/");
     if (!fs.existsSync(dbDir)) {
       fs.mkdirSync(dbDir, { recursive: true });
     }

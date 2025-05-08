@@ -122,14 +122,10 @@ export const getLibraryByVideoId = async (videoId: string) => {
 
 //#region Collections
 
-export const getCollections = async (libraryId: string) => {
+export const getCollections = async () => {
   if (!SequelizeManager.sequelize) return null;
 
-  return Collection.findAll({
-    where: {
-      libraryId,
-    },
-  });
+  return Collection.findAll();
 };
 
 export const getCollectionById = async (id: string) => {

@@ -1,6 +1,7 @@
 import os from "os";
 import pLimit from "p-limit";
 import path from "path";
+import { Library as LibraryData } from "../data/interfaces/Media";
 import { Library } from "../data/models/Media/Library.model";
 import { getLibraryById } from "../db/get/getData";
 import { addLibrary } from "../db/post/postData";
@@ -17,7 +18,7 @@ export class FileSearch {
   static availableThreads = Math.max(os.cpus().length - 1, 1);
 
   public static async scanFiles(
-    newLibrary: Library,
+    newLibrary: Partial<LibraryData>,
     wsManager: WebSocketManager,
     addNewLibrary: boolean
   ): Promise<Library | undefined> {
@@ -25,7 +26,7 @@ export class FileSearch {
 
     const library = addNewLibrary
       ? await addLibrary(newLibrary)
-      : await getLibraryById(newLibrary.id);
+      : await getLibraryById(newLibrary.id ?? "");
 
     if (!library) return undefined;
 

@@ -8,6 +8,7 @@ import { Video } from "../../data/models/Media/Video.model";
 import { getVideoById } from "../../db/get/getData";
 import {
   addCollection,
+  addLibraryToCollection,
   addMovie,
   addMovieToCollection,
   addVideoAsMovie,
@@ -54,8 +55,11 @@ export async function scanMovie(
       // Add collection or retrieve existing one
       const collection = await addCollection({
         title: Utils.getFileName(root),
-        libraryId: library.id,
       });
+
+      if (collection) {
+        await addLibraryToCollection(library.id, collection.id);
+      }
 
       // Add collection to view
       //Utils.addSeries(wsManager, library.id, collection);

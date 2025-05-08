@@ -47,13 +47,9 @@ router.get("/libraries", async (_req, res) => {
 });
 
 router.get("/collections", async (req, res) => {
-  const { libraryId } = req.query;
-
-  if (!libraryId || libraryId === "") return;
-
   await SequelizeManager.initializeDB();
 
-  res.json(await getCollections(libraryId as string));
+  res.json(await getCollections());
 });
 
 router.get("/series", async (req, res) => {
@@ -212,7 +208,11 @@ router.get("/library/search", async (req: any, res: any) => {
 
   await clearLibrary(libraryId, WebSocketManager.getInstance());
 
-  FileSearch.scanFiles(library, WebSocketManager.getInstance(), false);
+  FileSearch.scanFiles(
+    { id: library.id },
+    WebSocketManager.getInstance(),
+    false
+  );
 
   res.json({});
 });

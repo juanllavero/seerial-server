@@ -2,7 +2,6 @@ import {
   BelongsToMany,
   Column,
   DataType,
-  ForeignKey,
   Model,
   PrimaryKey,
   Table,
@@ -14,6 +13,7 @@ import { Album } from "../music/Album.model";
 import { CollectionAlbum } from "./CollectionAlbum.model";
 import { CollectionMovie } from "./CollectionMovie.model";
 import { CollectionSeries } from "./CollectionSeries.model";
+import { LibraryCollection } from "./LibraryCollection";
 
 @Table({ tableName: "Collection", timestamps: false })
 export class Collection extends Model {
@@ -37,15 +37,6 @@ export class Collection extends Model {
     defaultValue: "",
   })
   description?: string;
-
-  @ForeignKey(() => Library)
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    onDelete: "CASCADE",
-    field: "library_id",
-  })
-  libraryId!: string;
 
   @Column({
     type: DataType.STRING,
@@ -94,6 +85,9 @@ export class Collection extends Model {
     defaultValue: [],
   })
   backgroundsUrls!: string[];
+
+  @BelongsToMany(() => Library, () => LibraryCollection)
+  libraries!: Library[];
 
   @BelongsToMany(() => Movie, () => CollectionMovie)
   movies!: Movie[];

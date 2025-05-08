@@ -7,10 +7,12 @@ import { Library } from "../../data/models/Media/Library.model";
 import { Album } from "../../data/models/music/Album.model";
 import { getAlbums } from "../../db/get/getData";
 import {
+  addAlbum,
   addAlbumToCollection,
   addArtist,
   addArtistToAlbum,
   addCollection,
+  addLibraryToCollection,
   addSong,
 } from "../../db/post/postData";
 import { FilesManager } from "../../utils/FilesManager";
@@ -30,10 +32,11 @@ export async function scanMusic(
   // Add collection or retrieve existing one
   const collection = await addCollection({
     title: Utils.getFileName(folder),
-    libraryId: library.id,
   });
 
   if (!collection) return;
+
+  await addLibraryToCollection(library.id, collection.id);
 
   // Get music files inside folder (4 folders of depth)
   const musicFiles = await Utils.getMusicFiles(folder);
@@ -67,7 +70,7 @@ export async function processMusicFile(
     });
 
     const artistName = data["album_artist"] ? data["album_artist"] : "";
-    const albumName = data.album ?? "Unknown";
+    const albumName = data.album ? data.album : collection.title;
 
     let newAlbum: Album | null = null;
 
@@ -83,7 +86,7 @@ export async function processMusicFile(
     }
 
     if (!newAlbum) {
-      newAlbum = new Album({
+      newAlbum = await addAlbum({
         title: albumName ?? "Unknown",
         year: data.date
           ? new Date(data.date).getFullYear().toString()
@@ -99,6 +102,8 @@ export async function processMusicFile(
       // Add season to view
       //Utils.addSeason(wsManager, library.id, album);
     }
+
+    if (!newAlbum) return;
 
     await addAlbumToCollection(collection.id, newAlbum.id);
 

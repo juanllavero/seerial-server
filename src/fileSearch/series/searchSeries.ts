@@ -172,13 +172,13 @@ export async function processEpisodes(
   const seasonsIndex = Utils.indexSeasons(seasonsMetadata);
   const cumulativeEpisodes = Utils.buildCumulativeEpisodes(seasonsMetadata);
 
-  // Procesar cada episodio en paralelo.
-  const processPromises = videoFiles.map(async (video) => {
-    if (!library.analyzedFiles[video]) {
+  // Process each episode
+  for (const videoFile of videoFiles) {
+    if (!library.analyzedFiles[videoFile]) {
       await processEpisode(
         library,
         show,
-        video,
+        videoFile,
         seasonsMetadata,
         seasonsIndex,
         cumulativeEpisodes,
@@ -186,9 +186,7 @@ export async function processEpisodes(
         wsManager
       );
     }
-  });
-
-  await Promise.all(processPromises);
+  }
 
   const seasons = await getSeasons(show.id);
 
@@ -322,8 +320,8 @@ export async function processEpisode(
 
   if (!seasonMetadata || !episodeMetadata) return;
 
-  let season: Season | null | undefined;
   const seasons = await getSeasons(show.id);
+  let season: Season | null | undefined;
   if (seasons && realEpisode !== -1 && realSeason) {
     season = seasons.find((season) => season.seasonNumber === realSeason);
   } else if (seasons && seasonMetadata.season_number) {

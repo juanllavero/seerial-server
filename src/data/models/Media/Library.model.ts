@@ -1,4 +1,5 @@
 import {
+  BelongsToMany,
   Column,
   DataType,
   HasMany,
@@ -8,6 +9,7 @@ import {
   Table,
 } from "sequelize-typescript";
 import { Collection } from "../Collections/Collection.model";
+import { LibraryCollection } from "../Collections/LibraryCollection";
 import { Album } from "../music/Album.model";
 import { Movie } from "./Movie.model";
 import { Series } from "./Series.model";
@@ -130,6 +132,6 @@ export class Library extends Model {
   @HasMany(() => Album)
   albums!: Album[];
 
-  @HasMany(() => Collection)
+  @BelongsToMany(() => Collection, () => LibraryCollection)
   collections!: Collection[];
 }
