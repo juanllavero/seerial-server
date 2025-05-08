@@ -1,4 +1,8 @@
-import DetailsPage from '@/pages/details/DetailsPage'
+import AlbumDetailsPage from '@/pages/details/album/AlbumDetailsPage'
+import CollectionDetailsPage from '@/pages/details/collection/CollectionDetailsPage'
+import EpisodeDetailsPage from '@/pages/details/episode/EpisodeDetailsPage'
+import MovieDetailsPage from '@/pages/details/movie/MovieDetailsPage'
+import SeriesDetailsPage from '@/pages/details/series/SeriesDetailsPage'
 import HomePage from '@/pages/home/HomePage'
 import LibraryPage from '@/pages/library/LibraryPage'
 import SettingsPage from '@/pages/settings/SettingsPage'
@@ -21,31 +25,31 @@ export const LibraryRoute = createRoute({
 export const MovieDetailsRoute = createRoute({
   getParentRoute: () => RootRoute,
   path: '/details/movie/$movieId',
-  component: DetailsPage,
+  component: MovieDetailsPage,
 })
 
 export const SeriesDetailsRoute = createRoute({
   getParentRoute: () => RootRoute,
   path: '/details/series/$seriesId',
-  component: DetailsPage,
+  component: SeriesDetailsPage,
 })
 
 export const AlbumDetailsRoute = createRoute({
   getParentRoute: () => RootRoute,
   path: '/details/album/$albumId',
-  component: DetailsPage,
+  component: AlbumDetailsPage,
 })
 
 export const CollectionDetailsRoute = createRoute({
   getParentRoute: () => RootRoute,
-  path: '/details/collection/$collectionId',
-  component: DetailsPage,
+  path: '/details/collection/$collectionId/$isMusic',
+  component: CollectionDetailsPage,
 })
 
 export const EpisodeDetailsRoute = createRoute({
   getParentRoute: () => RootRoute,
   path: '/details/episode/$episodeId',
-  component: DetailsPage,
+  component: EpisodeDetailsPage,
 })
 
 export const SettingsRoute = createRoute({
@@ -56,7 +60,7 @@ export const SettingsRoute = createRoute({
 
 export const VideoPlayerRoute = createRoute({
   getParentRoute: () => RootRoute,
-  path: '/video-player/$libraryId/$seriesId/$seasonId/$episodeId',
+  path: '/video-player/$videoId',
   component: VideoPlayerPage,
 })
 

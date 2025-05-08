@@ -1,14 +1,14 @@
 import FlexBox from '@/components/ui/FlexBox'
 import { PlayIcon } from '@/components/ui/IconLibrary'
 import useMusicStore from '@/context/music.context'
-import { Episode } from '@/data/interfaces/Media'
+import { Song } from '@/data/interfaces/Music'
 import { formatTime } from '@/utils/ReactUtils'
 import React from 'react'
 import './MusicCard.css'
 
 interface MusicCardProps {
   index: number
-  song: Episode
+  song: Song
   action: () => void
 }
 
@@ -42,9 +42,9 @@ function MusicCard({ index, song, action }: MusicCardProps) {
             <PlayIcon />
           </div>
         </FlexBox>
-        <span>{song.name}</span>
+        <span>{song.title}</span>
       </FlexBox>
-      <span>{formatTime(song.runtimeInSeconds)}</span>
+      <span>{formatTime(song.duration)}</span>
     </FlexBox>
   )
 }

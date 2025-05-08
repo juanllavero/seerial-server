@@ -1,36 +1,26 @@
-import {
-  Collection,
-  Episode,
-  Library,
-  Movie,
-  Season,
-  Series,
-  Video,
-} from '@/data/interfaces/Media'
-import { Album, Song } from '@/data/interfaces/Music'
 import { create } from 'zustand'
 
 interface DataState {
-  selectedLibrary: Library | null
-  selectdCollection: Collection | null
-  selectedMovie: Movie | null
-  selectedSeries: Series | null
-  selectedSeason: Season | null
-  selectedEpisode: Episode | null
-  selectedVideo: Video | null
-  selectedAlbum: Album | null
-  selectedSong: Song | null
+  selectedLibraryId: string | null
+  selectedCollectionId: string | null
+  selectedMovieId: string | null
+  selectedSeriesId: string | null
+  selectedSeasonId: string | null
+  selectedEpisodeId: string | null
+  selectedVideoId: string | null
+  selectedAlbumId: string | null
+  selectedSongId: string | null
 
   // GET
-  selectLibrary: (library: Library | null) => void
-  selectCollection: (collection: Collection | null) => void
-  selectMovie: (movie: Movie | null) => void
-  selectSeries: (series: Series | null) => void
-  selectSeason: (season: Season | null) => void
-  selectEpisode: (episode: Episode | null) => void
-  selectVideo: (video: Video | null) => void
-  selectAlbum: (album: Album | null) => void
-  selectSong: (song: Song | null) => void
+  selectLibrary: (libraryId: string | null) => void
+  selectCollection: (collectionId: string | null) => void
+  selectMovie: (movieId: string | null) => void
+  selectSeries: (seriesId: string | null) => void
+  selectSeason: (seasonId: string | null) => void
+  selectEpisode: (episodeId: string | null) => void
+  selectVideo: (videoId: string | null) => void
+  selectAlbum: (albumId: string | null) => void
+  selectSong: (songId: string | null) => void
 
   // Utils
   // setSeasonWatched: (payload: {
@@ -54,67 +44,67 @@ interface DataState {
 }
 
 const useDataStore = create<DataState>((set) => ({
-  selectedLibrary: null,
-  selectdCollection: null,
-  selectedMovie: null,
-  selectedSeries: null,
-  selectedSeason: null,
-  selectedEpisode: null,
-  selectedVideo: null,
-  selectedAlbum: null,
-  selectedSong: null,
+  selectedLibraryId: null,
+  selectedCollectionId: null,
+  selectedMovieId: null,
+  selectedSeriesId: null,
+  selectedSeasonId: null,
+  selectedEpisodeId: null,
+  selectedVideoId: null,
+  selectedAlbumId: null,
+  selectedSongId: null,
 
-  selectLibrary(library: Library | null) {
+  selectLibrary(libraryId: string | null) {
     set(() => ({
-      selectedLibrary: library,
+      selectedLibraryId: libraryId,
     }))
   },
 
-  selectCollection(collection: Collection | null) {
+  selectCollection(collectionId: string | null) {
     set(() => ({
-      selectdCollection: collection,
+      selectedCollectionId: collectionId,
     }))
   },
 
-  selectMovie(movie: Movie | null) {
+  selectMovie(movieId: string | null) {
     set(() => ({
-      selectedMovie: movie,
+      selectedMovieId: movieId,
     }))
   },
 
-  selectSeries(series: Series | null) {
+  selectSeries(seriesId: string | null) {
     set(() => ({
-      selectedSeries: series,
+      selectedSeriesId: seriesId,
     }))
   },
 
-  selectSeason(season: Season | null) {
+  selectSeason(seasonId: string | null) {
     set(() => ({
-      selectedSeason: season,
+      selectedSeasonId: seasonId,
     }))
   },
 
-  selectEpisode(episode: Episode | null) {
+  selectEpisode(episodeId: string | null) {
     set(() => ({
-      selectedEpisode: episode,
+      selectedEpisodeId: episodeId,
     }))
   },
 
-  selectVideo(video: Video | null) {
+  selectVideo(videoId: string | null) {
     set(() => ({
-      selectedVideo: video,
+      selectedVideoId: videoId,
     }))
   },
 
-  selectAlbum(album: Album | null) {
+  selectAlbum(albumId: string | null) {
     set(() => ({
-      selectedAlbum: album,
+      selectedAlbumId: albumId,
     }))
   },
 
-  selectSong(song: Song | null) {
+  selectSong(songId: string | null) {
     set(() => ({
-      selectedSong: song,
+      selectedSongId: songId,
     }))
   },
 

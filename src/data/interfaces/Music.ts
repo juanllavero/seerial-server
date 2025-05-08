@@ -8,8 +8,11 @@ export interface Album {
   libraryId: string
   title: string
   year?: string
+  genres: string[]
   description?: string
   coverSrc: string
+
+  songs: Song[]
 }
 
 export interface Song {

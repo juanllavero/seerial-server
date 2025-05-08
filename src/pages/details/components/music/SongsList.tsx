@@ -1,47 +1,43 @@
 import FlexBox from '@/components/ui/FlexBox'
 import useDataStore from '@/context/data.context'
-import { Episode } from '@/data/interfaces/Media'
+import { Album, Song } from '@/data/interfaces/Music'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import MusicCard from './MusicCard'
 
 interface SongsListProps {
-  handleSelectEpisode: (episode: any) => void
+  album: Album
 }
 
-function SongsList({ handleSelectEpisode }: SongsListProps) {
+function SongsList({ album }: SongsListProps) {
   const { t } = useTranslation()
-  const { selectedLibrary, selectedSeries, selectedSeason } = useDataStore()
+  const { selectSong } = useDataStore()
 
-  if (!selectedLibrary || !selectedSeries || !selectedSeason) return null
-
-  const hasDiscs = selectedSeason.episodes.some(
-    (episode) => episode.seasonNumber > 0,
-  )
+  const hasDiscs = album.songs.some((song) => song.discNumber > 0)
 
   // Show all songs if there are no discs
   if (!hasDiscs) {
     return (
       <FlexBox direction="column" gap={1} width={'100%'}>
         <span className="text-xl font-semibold">{t('tracks')}</span>
-        {selectedSeason.episodes.map((episode, index) => (
+        {album.songs.map((song, index) => (
           <MusicCard
             index={index}
-            song={episode}
-            action={() => handleSelectEpisode(episode)}
+            song={song}
+            action={() => selectSong(song.id)}
           />
         ))}
       </FlexBox>
     )
   }
 
-  const groupedByDisc = selectedSeason.episodes.reduce(
-    (acc: { [key: number]: Episode[] }, episode) => {
-      const discNumber = episode.seasonNumber
+  const groupedByDisc = album.songs.reduce(
+    (acc: { [key: number]: Song[] }, song) => {
+      const discNumber = song.discNumber
       if (!acc[discNumber]) {
         acc[discNumber] = []
       }
-      acc[discNumber].push(episode)
+      acc[discNumber].push(song)
       return acc
     },
     {},
@@ -62,11 +58,11 @@ function SongsList({ handleSelectEpisode }: SongsListProps) {
           <span className="text-xl font-semibold">
             {t('disc')} {discNumber}
           </span>
-          {songs.map((episode, index) => (
+          {songs.map((song, index) => (
             <MusicCard
               index={index}
-              song={episode}
-              action={() => handleSelectEpisode(episode)}
+              song={song}
+              action={() => selectSong(song.id)}
             />
           ))}
         </FlexBox>

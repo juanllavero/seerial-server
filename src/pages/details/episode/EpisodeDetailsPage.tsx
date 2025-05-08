@@ -20,8 +20,8 @@ function EpisodeDetailsPage() {
   const navigate = useNavigate()
   const { t, i18n } = useTranslation()
   const { serverIP } = useServerStore()
-  const { libraryId, seriesId, seasonId, episodeId } = useParams({
-    from: '/episodeDetails/$libraryId/$seriesId/$seasonId/$episodeId',
+  const { episodeId } = useParams({
+    from: '/details/episode/$episodeId',
   })
 
   const [selectedVideoTrack, setSelectedVideoTrack] =
@@ -32,12 +32,10 @@ function EpisodeDetailsPage() {
     useState<SubtitleTrack | null>(null)
 
   const {
-    libraries,
     selectLibrary,
     selectSeries,
     selectSeason,
     selectEpisode,
-    updateEpisode,
     selectedLibrary,
     selectedSeries,
     selectedSeason,

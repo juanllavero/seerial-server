@@ -18,31 +18,31 @@ import SeriesList from './components/lists/SeriesList'
 function LibraryPage() {
   const { libraryId } = useParams({ from: '/library/$libraryId' })
   const { serverIP } = useServerStore()
-  const { selectedLibrary, selectLibrary } = useDataStore()
+  const { selectedLibraryId, selectLibrary } = useDataStore()
   const isTablet = useIsTablet()
   const isMobile = useIsMobile()
 
   const { data: library, isLoading } = useSWR<Library>(
-    libraryId ? `http://${serverIP}/libraries/${libraryId}` : null,
+    libraryId ? `http://${serverIP}/library?id=${libraryId}` : null,
     fetcher,
   )
 
   useEffect(() => {
     if (library) {
-      selectLibrary(library)
+      selectLibrary(library.id)
     }
   }, [library])
 
-  if (libraryId !== selectedLibrary?.id) {
+  if (libraryId !== selectedLibraryId) {
     if (library) {
-      selectLibrary(library)
+      selectLibrary(library.id)
     } else {
       return <NotFound />
     }
   }
 
   if (!library || isLoading) {
-    ;<Loading />
+    return <Loading />
   }
 
   const ItemsList = () =>

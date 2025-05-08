@@ -3,38 +3,26 @@ import FlexBox from '@/components/ui/FlexBox'
 import Grid from '@/components/ui/Grid'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
 import useDataStore from '@/context/data.context'
-import useMusicStore from '@/context/music.context'
-import { Episode } from '@/data/interfaces/Media'
+import { useServerStore } from '@/context/server.context'
+import { Episode, Season } from '@/data/interfaces/Media'
 import { useNavigate } from '@tanstack/react-router'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import EpisodeCard from './cards/EpisodeCard'
 import EpisodeCardDetails from './cards/EpisodeCardDetails'
-import MusicCard from './music/MusicCard'
-import SongsList from './music/SongsList'
 
-function SeasonsContent() {
+interface SeasonContentProps {
+  seasonList: Season[]
+  season: Season
+}
+
+function SeasonContent({ seasonList, season }: SeasonContentProps) {
   const navigate = useNavigate()
-  const {
-    selectedLibrary,
-    selectedSeries,
-    selectedSeason,
-    selectSeason,
-    selectEpisode,
-  } = useDataStore()
+  const { selectSeason } = useDataStore()
   const { t } = useTranslation()
-  const {
-    selectSong,
-    setSongQueue,
-    setMusicPlayerShown,
-    setMusicPlayerContracted,
-  } = useMusicStore()
+  const { serverIP } = useServerStore()
   const [distribution, setDistribution] = React.useState(0)
   const isMobile = useIsMobile()
-
-  if (!selectedLibrary || !selectedSeries) {
-    return null
-  }
 
   const getEpisodeMenu = (episode: Episode) => {
     return {
@@ -56,68 +44,40 @@ function SeasonsContent() {
   }
 
   const selectSeasonOption = (key: string, _value: string) => {
-    selectSeason(selectedSeries.seasons[Number(key)])
+    selectSeason(seasonList[Number(key)]?.id || null)
   }
 
   const selectDistributionOption = (key: string, _value: string) => {
     setDistribution(Number(key))
   }
 
-  const goToDetails = (episode: Episode) => {
-    if (!selectedSeason) return
-
+  const goToEpisodePage = (episode: Episode) => {
     navigate({
-      to: '/episodeDetails/$libraryId/$seriesId/$seasonId/$episodeId',
+      to: '/details/episode/$episodeId',
       params: {
-        libraryId: selectedLibrary.id,
-        seriesId: selectedSeries.id,
-        seasonId: selectedSeason.id,
         episodeId: episode.id,
       },
     })
   }
 
-  const playEpisode = (episode: Episode) => {
-    if (!selectedSeason) return
+  const playEpisode = async (episodeId: Episode) => {
+    const response = await fetch(
+      `http://${serverIP}/episode-video?episodeId=${episodeId.id}`,
+    )
 
-    if (selectedLibrary.type === 'Music') {
-      selectSong({
-        library: selectedLibrary,
-        collection: selectedSeries,
-        album: selectedSeason,
-        song: episode,
-      })
-
-      setSongQueue(
-        selectedSeason.episodes.map((e) => ({
-          library: selectedLibrary,
-          collection: selectedSeries,
-          album: selectedSeason,
-          song: e,
-        })),
-      )
-
-      setMusicPlayerShown(true)
-      setMusicPlayerContracted(false)
-    } else {
-      selectEpisode(episode)
-      navigate({
-        to: '/video-player/$libraryId/$seriesId/$seasonId/$episodeId',
-        params: {
-          libraryId: selectedLibrary.id,
-          seriesId: selectedSeries.id,
-          seasonId: selectedSeason.id,
-          episodeId: episode.id,
-        },
-      })
+    if (!response.ok) {
+      // Show error message
+      return
     }
-  }
 
-  const onlyMovie =
-    selectedLibrary.type === 'Movies' &&
-    selectedSeason &&
-    selectedSeason.episodes &&
-    selectedSeason.episodes.length <= 1
+    const data = await response.json()
+    navigate({
+      to: '/video-player/$videoId',
+      params: {
+        videoId: data.videoId,
+      },
+    })
+  }
 
   return (
     <FlexBox
@@ -129,10 +89,10 @@ function SeasonsContent() {
     >
       <FlexBox width={'100%'} justify="space-between" align="start">
         <FlexBox direction="column" gap={2}>
-          {selectedSeries.seasons && selectedSeries.seasons.length > 1 && (
+          {seasonList.length > 1 && (
             <SelectableWrapper
-              defaultValue={selectedSeries.seasons[0].name}
-              options={selectedSeries.seasons.map((season, index) => {
+              defaultValue={seasonList[0].name}
+              options={seasonList.map((season, index) => {
                 return {
                   key: String(index),
                   value: season.name,
@@ -143,89 +103,65 @@ function SeasonsContent() {
             />
           )}
 
-          {!onlyMovie && selectedLibrary.type !== 'Music' && (
-            <span>{t('episodes')}</span>
-          )}
+          <span>{t('episodes')}</span>
         </FlexBox>
 
-        {selectedLibrary.type !== 'Music' && !onlyMovie && (
-          <SelectableWrapper
-            defaultValue={'Cuadrícula'}
-            width="w-fit"
-            options={[
-              {
-                key: '0',
-                value: 'Cuadrícula',
-              },
-              {
-                key: '1',
-                value: 'Detalles',
-              },
-            ]}
-            onValueChange={selectDistributionOption}
-          />
-        )}
+        <SelectableWrapper
+          defaultValue={'Cuadrícula'}
+          width="w-fit"
+          options={[
+            {
+              key: '0',
+              value: 'Cuadrícula',
+            },
+            {
+              key: '1',
+              value: 'Detalles',
+            },
+          ]}
+          onValueChange={selectDistributionOption}
+        />
       </FlexBox>
-      {selectedSeason &&
-        selectedSeason.episodes &&
-        selectedSeason.episodes.length > 1 && (
-          <>
-            {selectedLibrary.type === 'Music' ? (
-              <SongsList handleSelectEpisode={playEpisode} />
-            ) : distribution === 0 ? (
-              <Grid
-                columns={
-                  isMobile
-                    ? 'repeat(auto-fill, minmax(200px, 1fr))'
-                    : 'repeat(auto-fill, minmax(400px, 1fr))'
-                }
-                gap="1rem"
-                width="100%"
-              >
-                {selectedSeason
-                  ? selectedSeason.episodes
-                      .sort((a, b) => a.episodeNumber - b.episodeNumber)
-                      .map((episode, index) => {
-                        if (selectedLibrary.type === 'Music') {
-                          return (
-                            <MusicCard
-                              index={index}
-                              song={episode}
-                              action={() => playEpisode(episode)}
-                            />
-                          )
-                        } else {
-                          return (
-                            <EpisodeCard
-                              episode={episode}
-                              playEpisode={playEpisode}
-                              goToDetails={goToDetails}
-                              getEpisodeMenu={getEpisodeMenu}
-                            />
-                          )
-                        }
-                      })
-                  : null}
-              </Grid>
-            ) : (
-              <FlexBox direction="column" gap={0.5}>
-                {selectedSeason
-                  ? selectedSeason.episodes
-                      .sort((a, b) => a.episodeNumber - b.episodeNumber)
-                      .map((episode) => (
-                        <EpisodeCardDetails
-                          episode={episode}
-                          playEpisode={playEpisode}
-                          goToDetails={goToDetails}
-                        />
-                      ))
-                  : null}
-              </FlexBox>
-            )}
-          </>
-        )}
+      {season.episodes && season.episodes.length > 1 && (
+        <>
+          {distribution === 0 ? (
+            <Grid
+              columns={
+                isMobile
+                  ? 'repeat(auto-fill, minmax(200px, 1fr))'
+                  : 'repeat(auto-fill, minmax(400px, 1fr))'
+              }
+              gap="1rem"
+              width="100%"
+            >
+              {season.episodes
+                .sort((a, b) => a.episodeNumber - b.episodeNumber)
+                .map((episode) => (
+                  <EpisodeCard
+                    episode={episode}
+                    playEpisode={playEpisode}
+                    goToDetails={goToEpisodePage}
+                    getEpisodeMenu={getEpisodeMenu}
+                  />
+                ))}
+            </Grid>
+          ) : (
+            <FlexBox direction="column" gap={0.5}>
+              {season.episodes
+                .sort((a, b) => a.episodeNumber - b.episodeNumber)
+                .map((episode) => (
+                  <EpisodeCardDetails
+                    episode={episode}
+                    playEpisode={playEpisode}
+                    goToDetails={goToEpisodePage}
+                  />
+                ))}
+            </FlexBox>
+          )}
+        </>
+      )}
     </FlexBox>
   )
 }
 
-export default SeasonsContent
+export default SeasonContent
