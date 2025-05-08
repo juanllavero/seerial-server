@@ -1,6 +1,6 @@
 import Loading from '@/components/Loading'
 import { useServerStore } from '@/context/server.context'
-import { Collection, Series } from '@/data/interfaces/Media'
+import { Library, Series } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
 import React from 'react'
 import useSWR from 'swr'
@@ -8,35 +8,31 @@ import CollectionCard from '../cards/CollectionCard'
 import SeriesCard from '../cards/SeriesCard'
 
 interface SeriesListProps {
-  libraryId: string
+  library: Library
 }
 
-function SeriesList({ libraryId }: SeriesListProps) {
+function SeriesList({ library }: SeriesListProps) {
   const { serverIP } = useServerStore()
   const { data: seriesList, isLoading: loadingSeries } = useSWR<Series[]>(
-    libraryId ? `http://${serverIP}/series?libraryId=${libraryId}` : null,
-    fetcher,
-  )
-  const { data: collectionList, isLoading: loadingCollections } = useSWR<
-    Collection[]
-  >(
-    libraryId ? `http://${serverIP}/collections?libraryId=${libraryId}` : null,
+    library ? `http://${serverIP}/series?libraryId=${library.id}` : null,
     fetcher,
   )
 
-  if (loadingCollections || loadingSeries) {
+  if (loadingSeries) {
     return <Loading />
   }
 
   return (
     <>
-      {collectionList?.map((collection) => (
-        <CollectionCard
-          key={collection.id}
-          collection={collection}
-          type={'Shows'}
-        />
-      ))}
+      {library.collections &&
+        library.collections.length > 0 &&
+        library.collections.map((collection) => (
+          <CollectionCard
+            key={collection.id}
+            collection={collection}
+            type={'Shows'}
+          />
+        ))}
       {seriesList?.map((series) => (
         <SeriesCard key={series.id} series={series} />
       ))}

@@ -27,6 +27,11 @@ export interface Library {
   analyzedFiles: Record<string, string>
   analyzedFolders: Record<string, string>
   backgroundSrc: string
+
+  series: Series[]
+  movies: Movie[]
+  albums: Album[]
+  collections: Collection[]
 }
 
 export interface Collection {

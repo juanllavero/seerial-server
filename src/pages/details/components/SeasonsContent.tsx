@@ -122,7 +122,7 @@ function SeasonContent({ seasonList, season }: SeasonContentProps) {
           onValueChange={selectDistributionOption}
         />
       </FlexBox>
-      {season.episodes && season.episodes.length > 1 && (
+      {season.episodes && season.episodes.length > 0 && (
         <>
           {distribution === 0 ? (
             <Grid

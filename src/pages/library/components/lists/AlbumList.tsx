@@ -1,6 +1,6 @@
 import Loading from '@/components/Loading'
 import { useServerStore } from '@/context/server.context'
-import { Collection } from '@/data/interfaces/Media'
+import { Library } from '@/data/interfaces/Media'
 import { Album } from '@/data/interfaces/Music'
 import { fetcher } from '@/utils/utils'
 import React from 'react'
@@ -9,35 +9,31 @@ import AlbumCard from '../cards/AlbumCard'
 import CollectionCard from '../cards/CollectionCard'
 
 interface AlbumListProps {
-  libraryId: string
+  library: Library
 }
 
-function AlbumList({ libraryId }: AlbumListProps) {
+function AlbumList({ library }: AlbumListProps) {
   const { serverIP } = useServerStore()
-  const { data: albumList, isLoading: loadingMovies } = useSWR<Album[]>(
-    libraryId ? `http://${serverIP}/albums?libraryId=${libraryId}` : null,
-    fetcher,
-  )
-  const { data: collectionList, isLoading: loadingCollections } = useSWR<
-    Collection[]
-  >(
-    libraryId ? `http://${serverIP}/collections?libraryId=${libraryId}` : null,
+  const { data: albumList, isLoading: loadingAlbums } = useSWR<Album[]>(
+    library ? `http://${serverIP}/albums?libraryId=${library.id}` : null,
     fetcher,
   )
 
-  if (loadingCollections || loadingMovies) {
+  if (loadingAlbums) {
     return <Loading />
   }
 
   return (
     <>
-      {collectionList?.map((collection) => (
-        <CollectionCard
-          key={collection.id}
-          collection={collection}
-          type={'Music'}
-        />
-      ))}
+      {library.collections &&
+        library.collections.length > 0 &&
+        library.collections.map((collection) => (
+          <CollectionCard
+            key={collection.id}
+            collection={collection}
+            type={'Music'}
+          />
+        ))}
       {albumList?.map((album) => <AlbumCard key={album.id} album={album} />)}
     </>
   )

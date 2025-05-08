@@ -47,11 +47,11 @@ function LibraryPage() {
 
   const ItemsList = () =>
     library?.type === 'Music' ? (
-      <AlbumList libraryId={libraryId} />
+      <AlbumList library={library} />
     ) : library?.type === 'Shows' ? (
-      <SeriesList libraryId={libraryId} />
+      <SeriesList library={library} />
     ) : (
-      <MoviesList libraryId={libraryId} />
+      <MoviesList library={library} />
     )
 
   if (isTablet || isMobile) {
