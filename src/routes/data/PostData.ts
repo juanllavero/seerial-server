@@ -2,6 +2,11 @@ import express from "express";
 import { MovieDb } from "moviedb-promise";
 import path from "path";
 import propertiesReader from "properties-reader";
+import {
+  getEpisodeById,
+  getSeasonById,
+  getSeasons,
+} from "../../db/get/getData";
 import { Downloader } from "../../downloaders/Downloader";
 import { FileSearch } from "../../fileSearch/fileSearch";
 import {
@@ -160,6 +165,68 @@ router.post("/updateEpisodeGroup", (req: any, res: any) => {
   }
 
   updateShowMetadata(libraryId, showId, themdbId, wsManager, episodeGroupId);
+});
+
+// Set movie as watched
+
+// Set episode as watched
+router.post("/setEpisodeWatched", async (req: any, res: any) => {
+  const { episodeId } = req.body;
+
+  if (!episodeId) {
+    return res.status(400).json({ error: "Not enough parameters" });
+  }
+
+  const episode = await getEpisodeById(episodeId);
+
+  if (!episode) {
+    return res.status(404).json({ error: "Episode not found" });
+  }
+
+  const season = await getSeasonById(episode.seasonId);
+
+  if (!season) {
+    return res.status(404).json({ error: "Season not found" });
+  }
+
+  const seasons = await getSeasons(season.seriesId);
+
+  if (!seasons) {
+    return res.status(404).json({ error: "Seasons not found" });
+  }
+
+  // Sort seasons before updating
+  seasons
+    .sort((a, b) => a.seasonNumber - b.seasonNumber)
+    .map(async (s) => {
+      if (s.seasonNumber > season.seasonNumber) return;
+
+      if (s.seasonNumber < season.seasonNumber) {
+        for (const episode of s.episodes) {
+          const episodeDB = await getEpisodeById(episode.id);
+
+          if (!episodeDB) continue;
+
+          // Set episode as watched
+          episodeDB.video.watched = true;
+          episodeDB.video.lastWatched = "";
+          episodeDB.video.timeWatched = 0;
+          await episodeDB.video.save();
+        }
+      } else {
+        for (const episode of s.episodes) {
+          const episodeDB = await getEpisodeById(episode.id);
+
+          if (!episodeDB) continue;
+
+          // Set episode as watched
+          episodeDB.video.watched = true;
+          episodeDB.video.lastWatched = "";
+          episodeDB.video.timeWatched = 0;
+          await episodeDB.video.save();
+        }
+      }
+    });
 });
 
 export default router;

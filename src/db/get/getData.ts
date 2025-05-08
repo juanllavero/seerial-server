@@ -213,7 +213,9 @@ export const getEpisodes = (seasonId: string) => {
 export const getEpisodeById = (episodeId: string) => {
   if (!SequelizeManager.sequelize) return null;
 
-  return Episode.findByPk(episodeId);
+  return Episode.findByPk(episodeId, {
+    include: [{ model: Video, as: "video" }],
+  });
 };
 
 export const getEpisodeByPath = async (videoSrc: string) => {
