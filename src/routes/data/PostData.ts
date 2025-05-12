@@ -4,8 +4,10 @@ import path from "path";
 import propertiesReader from "properties-reader";
 import {
   getEpisodeById,
+  getMovieById,
   getSeasonById,
-  getSeasons,
+  getSeriesById,
+  getVideoById,
 } from "../../db/get/getData";
 import { Downloader } from "../../downloaders/Downloader";
 import { FileSearch } from "../../fileSearch/fileSearch";
@@ -167,11 +169,95 @@ router.post("/updateEpisodeGroup", (req: any, res: any) => {
   updateShowMetadata(libraryId, showId, themdbId, wsManager, episodeGroupId);
 });
 
-// Set movie as watched
+// Set movie watched state
+router.post("/setMovieWatched", async (req: any, res: any) => {
+  const { movieId, watched } = req.body;
 
-// Set episode as watched
+  if (!movieId) {
+    return res.status(400).json({ error: "Not enough parameters" });
+  }
+
+  const movie = await getMovieById(movieId);
+
+  if (!movie) {
+    return res.status(404).json({ error: "Movie not found" });
+  }
+
+  movie.watched = watched;
+  await movie.save();
+
+  res.json({ message: "WATCH_STATE_UPDATED" });
+});
+
+// Set video watched state
+router.post("/setVideoWatched", async (req: any, res: any) => {
+  const { videoId, watched } = req.body;
+
+  if (!videoId) {
+    return res.status(400).json({ error: "Not enough parameters" });
+  }
+
+  const video = await getVideoById(videoId);
+
+  if (!video) {
+    return res.status(404).json({ error: "Video not found" });
+  }
+
+  video.watched = watched;
+  await video.save();
+
+  res.json({ message: "WATCH_STATE_UPDATED" });
+});
+
+// Set show watched state
+router.post("/setSeriesWatched", async (req: any, res: any) => {
+  const { seriesId, watched } = req.body;
+
+  if (!seriesId) {
+    return res.status(400).json({ error: "Not enough parameters" });
+  }
+
+  const series = await getSeriesById(seriesId);
+
+  if (!series) {
+    return res.status(404).json({ error: "Series not found" });
+  }
+
+  series.watched = watched;
+  series.currentlyWatchingEpisodeId = "";
+  await series.save();
+
+  res.json({ message: "WATCH_STATE_UPDATED" });
+});
+
+// Set season watched state
+router.post("/setSeasonWatched", async (req: any, res: any) => {
+  const { seasonId, watched } = req.body;
+
+  if (!seasonId) {
+    return res.status(400).json({ error: "Not enough parameters" });
+  }
+
+  const season = await getSeasonById(seasonId);
+
+  if (!season) {
+    return res.status(404).json({ error: "Season not found" });
+  }
+
+  // Get last episode in order to set its watched state
+  const lastEpisode = season.episodes.sort(
+    (a, b) => a.episodeNumber - b.episodeNumber
+  )[season.episodes.length - 1];
+
+  // Set last episode watched state
+  await Utils.setEpisodeWatchState(season, lastEpisode, watched);
+
+  res.json({ message: "WATCH_STATE_UPDATED" });
+});
+
+// Set episode watched state
 router.post("/setEpisodeWatched", async (req: any, res: any) => {
-  const { episodeId } = req.body;
+  const { episodeId, watched } = req.body;
 
   if (!episodeId) {
     return res.status(400).json({ error: "Not enough parameters" });
@@ -189,44 +275,9 @@ router.post("/setEpisodeWatched", async (req: any, res: any) => {
     return res.status(404).json({ error: "Season not found" });
   }
 
-  const seasons = await getSeasons(season.seriesId);
+  await Utils.setEpisodeWatchState(season, episode, watched);
 
-  if (!seasons) {
-    return res.status(404).json({ error: "Seasons not found" });
-  }
-
-  // Sort seasons before updating
-  seasons
-    .sort((a, b) => a.seasonNumber - b.seasonNumber)
-    .map(async (s) => {
-      if (s.seasonNumber > season.seasonNumber) return;
-
-      if (s.seasonNumber < season.seasonNumber) {
-        for (const episode of s.episodes) {
-          const episodeDB = await getEpisodeById(episode.id);
-
-          if (!episodeDB) continue;
-
-          // Set episode as watched
-          episodeDB.video.watched = true;
-          episodeDB.video.lastWatched = "";
-          episodeDB.video.timeWatched = 0;
-          await episodeDB.video.save();
-        }
-      } else {
-        for (const episode of s.episodes) {
-          const episodeDB = await getEpisodeById(episode.id);
-
-          if (!episodeDB) continue;
-
-          // Set episode as watched
-          episodeDB.video.watched = true;
-          episodeDB.video.lastWatched = "";
-          episodeDB.video.timeWatched = 0;
-          await episodeDB.video.save();
-        }
-      }
-    });
+  res.json({ message: "WATCH_STATE_UPDATED" });
 });
 
 export default router;

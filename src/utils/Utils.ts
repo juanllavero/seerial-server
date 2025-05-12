@@ -14,8 +14,14 @@ import {
   SubtitleTrack as SubtitleTrackData,
   VideoTrack as VideoTrackData,
 } from "../data/interfaces/MediaInfo";
+import { Episode, Season } from "../data/models";
 import { Video } from "../data/models/Media/Video.model";
 import { Song } from "../data/models/music/Song.model";
+import {
+  getEpisodeById,
+  getSeasonById,
+  getSeriesById,
+} from "../db/get/getData";
 
 ffmpeg.setFfprobePath(ffprobePath.path);
 
@@ -633,6 +639,122 @@ export class Utils {
       });
     });
   }
+  //#endregion
+
+  //#region EPISODE WATCH STATE
+  public static setEpisodeWatchState = async (
+    season: Season,
+    episodeToUpdate: Episode,
+    state: boolean
+  ) => {
+    const series = await getSeriesById(season.seriesId);
+
+    if (!series || series.seasons.length === 0) {
+      return;
+    }
+
+    const seasons = series.seasons.sort(
+      (a, b) => a.seasonNumber - b.seasonNumber
+    );
+
+    // Sort seasons before updating
+
+    seasons.map(async (s) => {
+      const realSeason = await getSeasonById(s.id);
+
+      if (!realSeason) {
+        return;
+      }
+
+      const episodes = realSeason.episodes.sort(
+        (a, b) => a.episodeNumber - b.episodeNumber
+      );
+
+      if (s.seasonNumber < season.seasonNumber) {
+        for (const episode of episodes) {
+          const episodeDB = await getEpisodeById(episode.id);
+
+          if (!episodeDB || episodeDB.video.watched) continue;
+
+          // Set episode as watched
+          episodeDB.video.watched = true;
+          episodeDB.video.lastWatched = "";
+          episodeDB.video.timeWatched = 0;
+          await episodeDB.video.save();
+        }
+
+        realSeason.watched = true;
+        await realSeason.save();
+      } else if (s.seasonNumber === season.seasonNumber) {
+        for (const episode of episodes) {
+          const episodeDB = await getEpisodeById(episode.id);
+
+          if (!episodeDB) continue;
+
+          if (episode.episodeNumber < episodeToUpdate.episodeNumber) {
+            episodeDB.video.watched = true;
+          } else if (episode.episodeNumber === episodeToUpdate.episodeNumber) {
+            episodeDB.video.watched = state;
+
+            // Update current episode
+            if (state === false) {
+              series.currentlyWatchingEpisodeId = episodeDB.id;
+              series.watched = false;
+              season.watched = false;
+
+              await series.save();
+              await season.save();
+            } else {
+              const isLastEpisode =
+                episodes.indexOf(episodeDB) === episodes.length - 1;
+
+              if (isLastEpisode) {
+                season.watched = true;
+
+                // If all seasons are watched, mark show as watched
+                if (seasons.indexOf(realSeason) === seasons.length - 1) {
+                  series.currentlyWatchingEpisodeId = "";
+                  series.watched = true;
+                } else {
+                  const nextSeason = seasons[seasons.indexOf(realSeason) + 1];
+
+                  if (!nextSeason) {
+                    series.currentlyWatchingEpisodeId = "";
+                    series.watched = true;
+                  } else {
+                    series.currentlyWatchingEpisodeId =
+                      nextSeason.episodes[0].id;
+                    series.watched = false;
+                  }
+                }
+
+                await season.save();
+                await series.save();
+              }
+            }
+          } else {
+            episodeDB.video.watched = false;
+          }
+
+          episodeDB.video.lastWatched = "";
+          episodeDB.video.timeWatched = 0;
+          await episodeDB.video.save();
+        }
+      } else {
+        for (const episode of episodes) {
+          const episodeDB = await getEpisodeById(episode.id);
+
+          if (!episodeDB || !episodeDB.video.watched) continue;
+
+          // Set episode as watched
+          episodeDB.video.watched = false;
+          episodeDB.video.lastWatched = "";
+          episodeDB.video.timeWatched = 0;
+          await episodeDB.video.save();
+        }
+      }
+    });
+  };
   //#endregion
 
   public static getImages = async (dirPath: string) => {
