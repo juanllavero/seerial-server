@@ -21,6 +21,7 @@ import {
   getEpisodeById,
   getSeasonById,
   getSeriesById,
+  getVideoByEpisodeId,
 } from "../db/get/getData";
 
 ffmpeg.setFfprobePath(ffprobePath.path);
@@ -674,13 +675,17 @@ export class Utils {
         for (const episode of episodes) {
           const episodeDB = await getEpisodeById(episode.id);
 
-          if (!episodeDB || episodeDB.video.watched) continue;
+          if (!episodeDB) continue;
+
+          const video = await getVideoByEpisodeId(episodeDB.id);
+
+          if (!video || !video.watched) continue;
 
           // Set episode as watched
-          episodeDB.video.watched = true;
-          episodeDB.video.lastWatched = "";
-          episodeDB.video.timeWatched = 0;
-          await episodeDB.video.save();
+          video.watched = true;
+          video.lastWatched = "";
+          video.timeWatched = 0;
+          await video.save();
         }
 
         realSeason.watched = true;
@@ -691,10 +696,14 @@ export class Utils {
 
           if (!episodeDB) continue;
 
+          const video = await getVideoByEpisodeId(episodeDB.id);
+
+          if (!video) continue;
+
           if (episode.episodeNumber < episodeToUpdate.episodeNumber) {
-            episodeDB.video.watched = true;
+            video.watched = true;
           } else if (episode.episodeNumber === episodeToUpdate.episodeNumber) {
-            episodeDB.video.watched = state;
+            video.watched = state;
 
             // Update current episode
             if (state === false) {
@@ -733,24 +742,28 @@ export class Utils {
               }
             }
           } else {
-            episodeDB.video.watched = false;
+            video.watched = false;
           }
 
-          episodeDB.video.lastWatched = "";
-          episodeDB.video.timeWatched = 0;
-          await episodeDB.video.save();
+          video.lastWatched = "";
+          video.timeWatched = 0;
+          await video.save();
         }
       } else {
         for (const episode of episodes) {
           const episodeDB = await getEpisodeById(episode.id);
 
-          if (!episodeDB || !episodeDB.video.watched) continue;
+          if (!episodeDB) continue;
+
+          const video = await getVideoByEpisodeId(episodeDB.id);
+
+          if (!video || !video.watched) continue;
 
           // Set episode as watched
-          episodeDB.video.watched = false;
-          episodeDB.video.lastWatched = "";
-          episodeDB.video.timeWatched = 0;
-          await episodeDB.video.save();
+          video.watched = false;
+          video.lastWatched = "";
+          video.timeWatched = 0;
+          await video.save();
         }
       }
     });
