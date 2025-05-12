@@ -31,7 +31,8 @@ function SeriesDetailsPage() {
   const { seriesId } = useParams({ from: '/details/series/$seriesId' })
   const { serverIP } = useServerStore()
   const { wsMessage } = useWebSocketStore()
-  const { selectedSeasonId, selectSeason } = useDataStore()
+  const { selectedSeasonId, selectSeason, setCurrentBackground } =
+    useDataStore()
   const { clientSettings } = useSettingsStore()
   const { openSeasonDialog } = useDialogStore()
 
@@ -83,7 +84,6 @@ function SeriesDetailsPage() {
 
   useEffect(() => {
     if (series) {
-      console.log({ seaosns: series.seasons, series })
       selectSeason(
         series.seasons && series.seasons.length > 0
           ? series.seasons[0].id
@@ -91,6 +91,15 @@ function SeriesDetailsPage() {
       )
     }
   }, [series])
+
+  // Set background image src
+  useEffect(() => {
+    if (season) {
+      setCurrentBackground(season.backgroundSrc)
+    } else {
+      setCurrentBackground(undefined)
+    }
+  }, [season])
 
   useEffect(() => {
     setNextPoster(posterUrl)

@@ -1,4 +1,4 @@
-import { Library, Season, Series } from '@/data/interfaces/Media'
+import { Library, Season } from '@/data/interfaces/Media'
 import { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
 import { extractColors } from 'extract-colors'
 import { toast } from 'sonner'
@@ -49,30 +49,15 @@ export class ReactUtils {
   }
 
   public static generateGradient = (
-    collection: Series | null,
-    album: Season | null,
+    background: string | undefined,
     serverIP: string,
   ) => {
-    if (collection && !album) {
-      if (collection.coverSrc !== '') {
-        ReactUtils.getDominantColors(
-          `http://${serverIP}/${collection.coverSrc.replace('resources/img', 'img')}`,
-        )
-      } else {
-        ReactUtils.getDominantColors('/img/songDefault.png')
-      }
-    } else if (collection && album) {
-      if (album.coverSrc !== '') {
-        ReactUtils.getDominantColors(
-          `http://${serverIP}/${album.coverSrc.replace('resources/img', 'img')}`,
-        )
-      } else if (collection.coverSrc !== '') {
-        ReactUtils.getDominantColors(
-          `http://${serverIP}/${collection.coverSrc.replace('resources/img', 'img')}`,
-        )
-      } else {
-        ReactUtils.getDominantColors('/img/songDefault.png')
-      }
+    if (background) {
+      ReactUtils.getDominantColors(
+        `http://${serverIP}/${background.replace('resources/img', 'img')}`,
+      )
+    } else {
+      ReactUtils.getDominantColors('/img/songDefault.png')
     }
   }
 

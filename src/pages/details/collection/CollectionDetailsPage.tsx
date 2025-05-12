@@ -4,6 +4,7 @@ import NotFound from '@/components/NotFound'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import LazyImage from '@/components/ui/LazyImage'
+import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
@@ -26,8 +27,9 @@ function CollectionDetailsPage() {
     from: '/details/collection/$collectionId/$type',
   })
   const { t } = useTranslation()
-  const { serverIP } = useServerStore()
+  const { setCurrentBackground } = useDataStore()
   const { wsMessage } = useWebSocketStore()
+  const { serverIP } = useServerStore()
   const isMobile = useIsMobile()
 
   // Get collection data
@@ -66,6 +68,15 @@ function CollectionDetailsPage() {
       }, 100)
     }, 1000)
   }, [posterUrl])
+
+  // Set background image src
+  useEffect(() => {
+    if (collection) {
+      setCurrentBackground(collection.backgroundSrc)
+    } else {
+      setCurrentBackground(undefined)
+    }
+  }, [collection])
 
   if (isLoading) {
     return <Loading />

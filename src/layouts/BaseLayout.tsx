@@ -1,7 +1,6 @@
 import DialogManager from '@/components/dialogs/DialogManager'
 import DragWindowRegion from '@/components/DragWindowRegion'
 import MusicPlayer from '@/components/musicPlayer/MusicPlayer'
-import WebSocketMessageHandler from '@/components/utils/WebSocketMessageHandler'
 import useDataStore from '@/context/data.context'
 import { useDeviceStore } from '@/context/device.context'
 import { useServerStore } from '@/context/server.context'
@@ -17,8 +16,8 @@ export default function BaseLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { initializeDeviceDetection, isMobile } = useDeviceStore()
-  const { selectedSeries, selectedSeason } = useDataStore()
+  const { initializeDeviceDetection } = useDeviceStore()
+  const { currentBackground: selectedBackground } = useDataStore()
   const { serverIP } = useServerStore()
   const prevBackground = useRef<string | undefined>(undefined)
   const prevGradient = useRef<string | undefined>(undefined)
@@ -41,8 +40,8 @@ export default function BaseLayout({
   }, [])
 
   useEffect(() => {
-    if (selectedSeason && !selectedSeason.backgroundSrc) {
-      ReactUtils.generateGradient(selectedSeries, selectedSeason, serverIP)
+    if (selectedBackground) {
+      ReactUtils.generateGradient(selectedBackground, serverIP)
 
       setTimeout(() => {
         const newGradient = ReactUtils.getGradientBackground()
@@ -66,14 +65,14 @@ export default function BaseLayout({
       setShowNewGradient(false)
     }
 
-    if (!selectedSeason || !selectedSeason.backgroundSrc) {
+    if (!selectedBackground) {
       setCurrentBackground(undefined)
       prevBackground.current = undefined
       setShowNewImage(false)
       return
     }
 
-    const newBackground = selectedSeason.backgroundSrc
+    const newBackground = selectedBackground
 
     if (!prevBackground.current) {
       setCurrentBackground(newBackground)
@@ -93,7 +92,7 @@ export default function BaseLayout({
 
       return () => clearTimeout(timeout)
     }
-  }, [selectedSeason])
+  }, [selectedBackground])
 
   const getSafeURL = (url: string | undefined) => {
     return url ? url.replace(/\\/g, '/') : ''
@@ -114,17 +113,17 @@ export default function BaseLayout({
       />
 
       {/* New background that fades in */}
-      {showNewImage && selectedSeason?.backgroundSrc && (
+      {showNewImage && selectedBackground && (
         <div
           className="background-layer fade-in"
           style={{
-            backgroundImage: `url(${selectedSeason.backgroundSrc.startsWith('http') ? getSafeURL(selectedSeason.backgroundSrc) : `http://${serverIP}/${getSafeURL(selectedSeason.backgroundSrc)}`})`,
+            backgroundImage: `url(${selectedBackground.startsWith('http') ? getSafeURL(selectedBackground) : `http://${serverIP}/${getSafeURL(selectedBackground)}`})`,
           }}
         />
       )}
 
       {/* Current gradient */}
-      {!selectedSeason?.backgroundSrc && (
+      {!selectedBackground && (
         <div
           className="background-gradient"
           style={{
@@ -135,7 +134,7 @@ export default function BaseLayout({
       )}
 
       {/* New gradient that fades in */}
-      {showNewGradient && !selectedSeason?.backgroundSrc && (
+      {showNewGradient && !selectedBackground && (
         <div
           className="background-gradient fade-in-slow"
           style={{
@@ -150,7 +149,6 @@ export default function BaseLayout({
       <Toaster theme="dark" richColors />
 
       <DialogManager />
-      <WebSocketMessageHandler />
       <MusicPlayer />
       <DragWindowRegion />
       <main className="h-screen w-screen">{children}</main>

@@ -11,6 +11,7 @@ import {
   UnmarkWatchedIcon,
 } from '@/components/ui/IconLibrary'
 import LazyImage from '@/components/ui/LazyImage'
+import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import { useWebSocketStore } from '@/context/ws.context'
@@ -29,9 +30,10 @@ import '../DetailsPage.css'
 
 function MovieDetailsPage() {
   const { movieId } = useParams({ from: '/details/movie/$movieId' })
-  const { serverIP } = useServerStore()
-  const { wsMessage } = useWebSocketStore()
+  const { setCurrentBackground } = useDataStore()
   const { clientSettings } = useSettingsStore()
+  const { wsMessage } = useWebSocketStore()
+  const { serverIP } = useServerStore()
 
   // Get movie data
   const {
@@ -70,6 +72,15 @@ function MovieDetailsPage() {
       }, 100)
     }, 1000)
   }, [posterUrl])
+
+  // Set background image src
+  useEffect(() => {
+    if (movie) {
+      setCurrentBackground(movie.backgroundSrc)
+    } else {
+      setCurrentBackground(undefined)
+    }
+  }, [movie])
 
   if (isLoading) {
     return <Loading />
