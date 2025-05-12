@@ -13,6 +13,8 @@ export const es = {
     errorImageUpload: 'Error al subir la imagen',
     invalidImageError: 'Selecciona un archivo de imagen válido',
 
+    addToMyList: 'Añadir a mi lista',
+    removeFromMyList: 'Quitar de mi lista',
     imageLoaded: 'La imagen se ha subido correctamente',
     disc: 'Disco',
     musicVolume: 'Volumen de la música de fondo',

@@ -13,6 +13,8 @@ export const de = {
     errorImageUpload: 'Fehler beim Hochladen des Bildes',
     invalidImageError: 'Wählen Sie eine gültige Bilddatei aus',
 
+    addToMyList: 'Zur meiner Liste hinzufügen',
+    removeFromMyList: 'Von meiner Liste entfernen',
     imageLoaded: 'Das Bild wurde erfolgreich hochgeladen',
     disc: 'Disc',
     musicVolume: 'Lautstärke der Hintergrundmusik',

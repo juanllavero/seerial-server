@@ -1,11 +1,33 @@
+import Card from '@/components/cards/Card'
 import FlexBox from '@/components/ui/FlexBox'
 import useDataStore from '@/context/data.context'
+import { useServerStore } from '@/context/server.context'
+import { Movie, Series, Video } from '@/data/interfaces/Media'
+import { fetcher } from '@/utils/utils'
 import React, { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import useSWR from 'swr'
+import HorizontalList from './components/HorizontalList'
 
 export default function HomePage() {
   const { t } = useTranslation()
+  const { serverIP } = useServerStore()
   const { selectLibrary } = useDataStore()
+
+  // Get Continue Watching items
+  const { data: continueWatching, isLoading: loadingContinueWatching } = useSWR<
+    Video[]
+  >(`http://${serverIP}/continueWatching`, fetcher)
+
+  // Get Shows in My List
+  const { data: showsInMyList, isLoading: loadingShowsInMyList } = useSWR<
+    Series[]
+  >(`http://${serverIP}/myListSeries`, fetcher)
+
+  // Get Movies in My List
+  const { data: moviesInMyList, isLoading: loadingMoviesInMyList } = useSWR<
+    Movie[]
+  >(`http://${serverIP}/myListMovies`, fetcher)
 
   useEffect(() => {
     selectLibrary(null)
@@ -21,78 +43,55 @@ export default function HomePage() {
     >
       <h1></h1>
       {/* Continue Watching */}
-      {/* <HorizontalList title={t('continueWatching')}>
-        {libraries &&
-          libraries[0] &&
-          libraries[0].series.map((series) => (
+      <HorizontalList title={t('continueWatching')}>
+        {continueWatching &&
+          continueWatching.length > 0 &&
+          continueWatching.map((video: Video) => (
             <Card
-              itemKey={'Home Card' + series.id}
-              imgSrc={series.seasons && series.seasons[0]?.backgroundSrc}
+              itemKey={'Home Card' + video.id}
+              imgSrc={video.imgSrc}
               aspectRatio={16 / 9}
               width={380}
-              title={series.name}
-              subtitle={series.year}
+              title={video.title}
+              subtitle={'Not yet'}
               action={function (): void {}}
             />
           ))}
-        {libraries &&
-          libraries[0] &&
-          libraries[0].series.map((series) => (
-            <Card
-              itemKey={'Home Card' + series.id}
-              imgSrc={series.seasons && series.seasons[0]?.backgroundSrc}
-              aspectRatio={16 / 9}
-              width={380}
-              title={series.name}
-              subtitle={series.year}
-              action={function (): void {}}
-            />
-          ))}
-      </HorizontalList> */}
+      </HorizontalList>
 
-      {/* User WatchList */}
-      {/* <HorizontalList title={t('watchList')}>
-        {libraries &&
-          libraries[0] &&
-          libraries[0].series.map((series) => (
+      {/* User's Shows in WatchList */}
+      <HorizontalList title={t('watchList')}>
+        {showsInMyList &&
+          showsInMyList.length > 0 &&
+          showsInMyList.map((series: Series) => (
             <Card
               itemKey={'Home Card' + series.id}
-              imgSrc={
-                libraries[0].type === 'Movies' &&
-                !series.isCollection &&
-                series.seasons &&
-                series.seasons.length > 0
-                  ? series.seasons[0].coverSrc
-                  : series.coverSrc
-              }
+              imgSrc={series.coverSrc}
               width={180}
-              aspectRatio={libraries[0].type === 'Music' ? 1 : 2 / 3}
+              aspectRatio={2 / 3}
               title={series.name}
               subtitle={series.year}
               action={function (): void {}}
             />
           ))}
-        {libraries &&
-          libraries[0] &&
-          libraries[0].series.map((series) => (
+      </HorizontalList>
+
+      {/* User's Movies in WatchList */}
+      <HorizontalList title={t('watchList')}>
+        {moviesInMyList &&
+          moviesInMyList.length > 0 &&
+          moviesInMyList.map((movie: Movie) => (
             <Card
-              itemKey={'Home Card' + series.id}
-              imgSrc={
-                libraries[0].type === 'Movies' &&
-                !series.isCollection &&
-                series.seasons &&
-                series.seasons.length > 0
-                  ? series.seasons[0].coverSrc
-                  : series.coverSrc
-              }
+              itemKey={'Home Card' + movie.id}
+              imgSrc={movie.coverSrc}
               width={180}
-              aspectRatio={libraries[0].type === 'Music' ? 1 : 2 / 3}
-              title={series.name}
-              subtitle={series.year}
+              aspectRatio={2 / 3}
+              title={movie.name}
+              subtitle={movie.year}
               action={function (): void {}}
             />
           ))}
-      </HorizontalList> */}
+      </HorizontalList>
     </FlexBox>
   )
 }

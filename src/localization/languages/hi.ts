@@ -13,6 +13,8 @@ export const hi = {
     errorImageUpload: 'छवि अपलोड करने में त्रुटि',
     invalidImageError: 'कृपया एक वैध छवि फ़ाइल चुनें',
 
+    addToMyList: 'मेरी सूची में जोड़ें',
+    removeFromMyList: 'मेरी सूची से हटाएं',
     imageLoaded: 'छवि सफलतापूर्वक अपलोड हो गई है',
     disc: 'डिस्क',
     musicVolume: 'पृष्ठभूमि संगीत की मात्रा',

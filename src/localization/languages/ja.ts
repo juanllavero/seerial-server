@@ -13,6 +13,8 @@ export const ja = {
     errorImageUpload: '画像のアップロード中にエラーが発生しました',
     invalidImageError: '有効な画像ファイルを選択してください',
 
+    addToMyList: 'マイリストに追加',
+    removeFromMyList: 'マイリストから削除',
     imageLoaded: '画像が正常にアップロードされました',
     disc: 'ディスク',
     musicVolume: 'バックグラウンドミュージックの音量',

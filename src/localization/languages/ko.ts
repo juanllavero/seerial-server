@@ -13,6 +13,8 @@ export const ko = {
     errorImageUpload: '이미지 업로드 중 오류 발생',
     invalidImageError: '유효한 이미지 파일을 선택하세요',
 
+    addToMyList: '내 목록에 추가',
+    removeFromMyList: '내 목록에서 제거',
     imageLoaded: '이미지가 성공적으로 업로드되었습니다',
     disc: '디스크',
     musicVolume: '배경 음악 볼륨',

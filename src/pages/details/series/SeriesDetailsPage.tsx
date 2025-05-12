@@ -61,6 +61,12 @@ function SeriesDetailsPage() {
     series && series.currentlyWatchingEpisodeId
       ? `http://${serverIP}/details/episode?id=${series.currentlyWatchingEpisodeId}`
       : null,
+    fetcher,
+  )
+  // Get if show is in My List
+  const { data: inMyList, mutate: mutateInMyList } = useSWR(
+    series ? `http://${serverIP}/isShowInMyList?seriesId=${series.id}` : null,
+    fetcher,
   )
 
   const isMobile = useIsMobile()
@@ -151,6 +157,58 @@ function SeriesDetailsPage() {
     return !episode
       ? t('playButton')
       : `${t('continueWatching')} — ${t('seasonLetter')}${episode.seasonNumber + 1}${t('episodeLetter')}${episode.episodeNumber + 1}`
+  }
+
+  const toggleSeriesWatched = async () => {
+    if (series) {
+      fetch(`http://${serverIP}/setSeriesWatched`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          seriesId: series.id,
+          watched: !series.watched,
+        }),
+      }).then(() => {
+        mutateSeries()
+        mutateSeason()
+      })
+    }
+  }
+
+  const toggleSeasonWatched = async () => {
+    if (season) {
+      fetch(`http://${serverIP}/setSeasonWatched`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          seasonId: season.id,
+          watched: !season.watched,
+        }),
+      }).then(() => {
+        mutateSeries()
+        mutateSeason()
+      })
+    }
+  }
+
+  const toggleMyList = () => {
+    if (series) {
+      fetch(`http://${serverIP}/updateSeriesMyList`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          seriesId: series.id,
+        }),
+      }).then(() => {
+        mutateInMyList()
+      })
+    }
   }
 
   return (
@@ -255,14 +313,24 @@ function SeriesDetailsPage() {
                 <Button
                   variant={'ghost'}
                   title={season.watched ? t('markUnwatched') : t('markWatched')}
+                  onClick={toggleSeasonWatched}
                 >
                   {season.watched ? <UnmarkWatchedIcon /> : <MarkWatchedIcon />}
                 </Button>
                 <Button
                   variant={'ghost'}
-                  title={season.watched ? t('markUnwatched') : t('markWatched')}
+                  title={
+                    inMyList && inMyList.isInMyList
+                      ? t('addToMyList')
+                      : t('removeFromMyList')
+                  }
+                  onClick={toggleMyList}
                 >
-                  {season.watched ? <RemoveFromListIcon /> : <AddToListIcon />}
+                  {inMyList && inMyList.isInMyList ? (
+                    <RemoveFromListIcon />
+                  ) : (
+                    <AddToListIcon />
+                  )}
                 </Button>
               </>
             )}

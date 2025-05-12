@@ -12,6 +12,9 @@ export const cn = {
     errorMusicDownload: '下载歌曲时出错',
     errorImageUpload: '上传图片时出错',
     invalidImageError: '请选择有效的图片文件',
+
+    addToMyList: '添加到我的列表',
+    removeFromMyList: '从我的列表中移除',
     imageLoaded: '图片已成功上传',
     disc: '光盘',
     musicVolume: '背景音乐音量',

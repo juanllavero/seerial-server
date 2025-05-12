@@ -6,6 +6,7 @@ import FlexBox from '@/components/ui/FlexBox'
 import { PlayIcon } from '@/components/ui/IconLibrary'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
+import { Video } from '@/data/interfaces/Media'
 import { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
 import {
   formatTime,
@@ -13,6 +14,7 @@ import {
   getOnlyYear,
   getSubtitleTrack,
 } from '@/utils/ReactUtils'
+import { fetcher } from '@/utils/utils'
 import { TrackNextIcon, TrackPreviousIcon } from '@radix-ui/react-icons'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import {
@@ -27,26 +29,22 @@ import {
   VolumeOff,
 } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
+import useSWR from 'swr'
 import HTMLVideoPlayer from './components/HTMLVideoPlayer'
 import './VideoPlayerPage.css'
 
 function VideoPlayerPage() {
-  const {
-    selectedLibrary,
-    selectedSeries,
-    selectedSeason,
-    selectedEpisode: episode,
-    libraries,
-    updateEpisode,
-    selectLibrary,
-    selectSeries,
-    selectSeason,
-  } = useDataStore()
+  const { selectLibrary, selectSeries, selectSeason } = useDataStore()
   const { serverIP } = useServerStore()
   const navigate = useNavigate()
-  const { libraryId, seriesId, seasonId, episodeId } = useParams({
-    from: '/video-player/$libraryId/$seriesId/$seasonId/$episodeId',
+  const { videoId } = useParams({
+    from: '/video-player/$videoId',
   })
+
+  const { data: video, isLoading } = useSWR<Video>(
+    `http://${serverIP}/details/video?id=${videoId}`,
+    fetcher,
+  )
 
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -54,9 +52,7 @@ function VideoPlayerPage() {
   const [videoLoaded, setVideoLoaded] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [volume, setVolume] = useState(1)
-  const [duration, setDuration] = useState(
-    episode ? episode.runtimeInSeconds : 0,
-  )
+  const [duration, setDuration] = useState(video ? video.runtime / 60 : 0)
   const [videoStart, setVideoStart] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
   const [previewTime, setPreviewTime] = useState(0)
@@ -72,11 +68,11 @@ function VideoPlayerPage() {
   const [isScrubbing, setIsScrubbing] = useState(false)
 
   const [selectedAudio, setSelectedAudio] = useState<AudioTrack | null>(
-    episode?.audioTracks?.find((track) => track.selected) || null,
+    video?.audioTracks?.find((track) => track.selected) || null,
   )
   const [selectedSubtitle, setSelectedSubtitle] =
     useState<SubtitleTrack | null>(
-      episode?.subtitleTracks?.find((track) => track.selected) || null,
+      video?.subtitleTracks?.find((track) => track.selected) || null,
     )
 
   //#region Player Controls
@@ -118,28 +114,28 @@ function VideoPlayerPage() {
   }
 
   const handleGoBack = () => {
-    if (!episode) return
+    if (!video) return
 
     setVideoLoaded(false)
     setIsPlaying(false)
 
-    updateEpisode({
-      libraryId: selectedLibrary?.id ?? '',
-      showId: selectedSeries?.id ?? '',
-      episode: {
-        ...episode,
-        timeWatched: currentTime,
-        watched: currentTime > episode.runtimeInSeconds * 0.9,
-      },
-    })
+    // updateEpisode({
+    //   libraryId: selectedLibrary?.id ?? '',
+    //   showId: selectedSeries?.id ?? '',
+    //   episode: {
+    //     ...episode,
+    //     timeWatched: currentTime,
+    //     watched: currentTime > episode.runtimeInSeconds * 0.9,
+    //   },
+    // })
 
-    navigate({
-      to: '/details/$libraryId/$seriesId',
-      params: {
-        libraryId: selectedLibrary?.id ?? '',
-        seriesId: selectedSeries?.id ?? '',
-      },
-    })
+    // navigate({
+    //   to: '/details/$libraryId/$seriesId',
+    //   params: {
+    //     libraryId: selectedLibrary?.id ?? '',
+    //     seriesId: selectedSeries?.id ?? '',
+    //   },
+    // })
   }
 
   const handleVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -337,14 +333,7 @@ function VideoPlayerPage() {
   }, [])
 
   useEffect(() => {
-    if (
-      !selectedLibrary ||
-      !selectedSeries ||
-      !selectedSeason ||
-      !episode ||
-      episode.mediaInfo
-    )
-      return
+    if (!video) return
 
     const fetchData = async () => {
       const result = await fetch(`http://${serverIP}/updateMediaInfo`, {
@@ -353,7 +342,7 @@ function VideoPlayerPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          episode: episode,
+          video: video,
         }),
       })
 
@@ -363,11 +352,11 @@ function VideoPlayerPage() {
 
       const data = await result.json()
 
-      updateEpisode({
-        libraryId: selectedLibrary.id,
-        showId: selectedSeries.id,
-        episode: data,
-      })
+      // updateEpisode({
+      //   libraryId: selectedLibrary.id,
+      //   showId: selectedSeries.id,
+      //   episode: data,
+      // })
 
       const audioTrack = getAudioTrack(
         selectedLibrary,

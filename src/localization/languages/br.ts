@@ -13,6 +13,8 @@ export const br = {
     errorImageUpload: 'Erro ao enviar a imagem',
     invalidImageError: 'Selecione um arquivo de imagem válido',
 
+    addToMyList: 'Adicionar à minha lista',
+    removeFromMyList: 'Remover da minha lista',
     imageLoaded: 'A imagem foi enviada com sucesso',
     disc: 'Disco',
     musicVolume: 'Volume da música de fundo',

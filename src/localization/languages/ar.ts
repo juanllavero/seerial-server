@@ -13,6 +13,8 @@ export const ar = {
     errorImageUpload: 'خطأ في تحميل الصورة',
     invalidImageError: 'يرجى تحديد ملف صورة صالح',
 
+    addToMyList: 'أضف إلى قائمتي',
+    removeFromMyList: 'إزالة من قائمتي',
     imageLoaded: 'تم تحميل الصورة بنجاح',
     disc: 'قرص',
     musicVolume: 'حجم الموسيقى الخلفية',

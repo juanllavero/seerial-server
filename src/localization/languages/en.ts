@@ -13,6 +13,8 @@ export const en = {
     errorImageUpload: 'Error uploading image',
     invalidImageError: 'Select a valid image file',
 
+    addToMyList: 'Add to My List',
+    removeFromMyList: 'Remove from My List',
     imageLoaded: 'Image uploaded successfully',
     disc: 'Disc',
     musicVolume: 'Background music volume',

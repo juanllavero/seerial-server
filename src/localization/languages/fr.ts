@@ -13,6 +13,8 @@ export const fr = {
     errorImageUpload: "Erreur lors du téléchargement de l'image",
     invalidImageError: 'Sélectionnez un fichier image valide',
 
+    addToMyList: 'Ajouter à ma liste',
+    removeFromMyList: 'Retirer de ma liste',
     imageLoaded: "L'image a été téléchargée avec succès",
     disc: 'Disque',
     musicVolume: 'Volume de la musique de fond',

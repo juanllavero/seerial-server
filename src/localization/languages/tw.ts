@@ -13,6 +13,8 @@ export const tw = {
     errorImageUpload: '上傳圖片時出錯',
     invalidImageError: '請選擇有效的圖片文件',
 
+    addToMyList: '加入我的清單',
+    removeFromMyList: '從我的清單中移除',
     imageLoaded: '圖片已成功上傳',
     disc: '光碟',
     musicVolume: '背景音樂音量',

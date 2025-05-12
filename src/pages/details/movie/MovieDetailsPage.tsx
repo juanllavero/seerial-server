@@ -44,6 +44,11 @@ function MovieDetailsPage() {
     movieId ? `http://${serverIP}/details/movie?id=${movieId}` : null,
     fetcher,
   )
+  // Get if movie is in My List
+  const { data: inMyList, mutate: mutateInMyList } = useSWR(
+    movie ? `http://${serverIP}/isMovieInMyList?movieId=${movie.id}` : null,
+    fetcher,
+  )
 
   const isMobile = useIsMobile()
 
@@ -118,6 +123,22 @@ function MovieDetailsPage() {
 
   const getPlayButtonText = () => {
     return t('playButton')
+  }
+
+  const toggleMyList = () => {
+    if (movie) {
+      fetch(`http://${serverIP}/updateMovieMyList`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          movieId: movie.id,
+        }),
+      }).then(() => {
+        mutateInMyList()
+      })
+    }
   }
 
   return (
@@ -240,9 +261,18 @@ function MovieDetailsPage() {
                 </Button>
                 <Button
                   variant={'ghost'}
-                  title={movie.watched ? t('markUnwatched') : t('markWatched')}
+                  title={
+                    inMyList && inMyList.isInMyList
+                      ? t('removeFromMyList')
+                      : t('addToMyList')
+                  }
+                  onClick={toggleMyList}
                 >
-                  {movie.watched ? <RemoveFromListIcon /> : <AddToListIcon />}
+                  {inMyList && inMyList.isInMyList ? (
+                    <RemoveFromListIcon />
+                  ) : (
+                    <AddToListIcon />
+                  )}
                 </Button>
               </>
             )}

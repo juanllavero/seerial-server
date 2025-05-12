@@ -13,6 +13,8 @@ export const pt = {
     errorImageUpload: 'Erro ao carregar a imagem',
     invalidImageError: 'Selecione um ficheiro de imagem válido',
 
+    addToMyList: 'Adicionar à minha lista',
+    removeFromMyList: 'Remover da minha lista',
     imageLoaded: 'A imagem foi carregada con sucesso',
     disc: 'Disco',
     musicVolume: 'Volume da música de fundo',
