@@ -6,6 +6,8 @@ import FlexBox from '@/components/ui/FlexBox'
 import Grid from '@/components/ui/Grid'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
+import { useWebSocketStore } from '@/context/ws.context'
+import { MessageType } from '@/data/enums/WSMessage'
 import { Library } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
 import { useParams } from '@tanstack/react-router'
@@ -18,11 +20,16 @@ import SeriesList from './components/lists/SeriesList'
 function LibraryPage() {
   const { libraryId } = useParams({ from: '/library/$libraryId' })
   const { serverIP } = useServerStore()
+  const { wsMessage } = useWebSocketStore()
   const { selectedLibraryId, selectLibrary } = useDataStore()
   const isTablet = useIsTablet()
   const isMobile = useIsMobile()
 
-  const { data: library, isLoading } = useSWR<Library>(
+  const {
+    data: library,
+    isLoading,
+    mutate,
+  } = useSWR<Library>(
     libraryId ? `http://${serverIP}/library?id=${libraryId}` : null,
     fetcher,
   )
@@ -32,6 +39,13 @@ function LibraryPage() {
       selectLibrary(library.id)
     }
   }, [library])
+
+  // Mutate content on ws message
+  useEffect(() => {
+    if (wsMessage === MessageType.MUTATE_LIBRARY) {
+      mutate()
+    }
+  }, [wsMessage])
 
   if (libraryId !== selectedLibraryId) {
     if (library) {

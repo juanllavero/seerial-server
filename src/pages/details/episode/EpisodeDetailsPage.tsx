@@ -2,6 +2,8 @@ import Loading from '@/components/Loading'
 import FlexBox from '@/components/ui/FlexBox'
 import LazyImage from '@/components/ui/LazyImage'
 import { useServerStore } from '@/context/server.context'
+import { useWebSocketStore } from '@/context/ws.context'
+import { MessageType } from '@/data/enums/WSMessage'
 import {
   AudioTrack,
   SubtitleTrack,
@@ -9,20 +11,24 @@ import {
 } from '@/data/interfaces/MediaInfo'
 import { formatDate } from '@/utils/ReactUtils'
 import { fetcher } from '@/utils/utils'
-import { useNavigate, useParams } from '@tanstack/react-router'
+import { useParams } from '@tanstack/react-router'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 
 function EpisodeDetailsPage() {
-  const navigate = useNavigate()
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
+  const { wsMessage } = useWebSocketStore()
   const { serverIP } = useServerStore()
   const { episodeId } = useParams({
     from: '/details/episode/$episodeId',
   })
 
-  const { data: episode, isLoading } = useSWR(
+  const {
+    data: episode,
+    isLoading,
+    mutate,
+  } = useSWR(
     episodeId ? `http://${serverIP}/details/episode?id=${episodeId}` : null,
     fetcher,
   )
@@ -33,6 +39,13 @@ function EpisodeDetailsPage() {
     useState<AudioTrack | null>(null)
   const [selectedSubtitleTrack, setSelectedSubtitleTrack] =
     useState<SubtitleTrack | null>(null)
+
+  // Mutate content on ws message
+  useEffect(() => {
+    if (wsMessage === MessageType.MUTATE_SEASON) {
+      mutate()
+    }
+  })
 
   useEffect(() => {
     if (!episode) return

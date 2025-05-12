@@ -7,6 +7,8 @@ import { PlayIcon } from '@/components/ui/IconLibrary'
 import LazyImage from '@/components/ui/LazyImage'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
+import { useWebSocketStore } from '@/context/ws.context'
+import { MessageType } from '@/data/enums/WSMessage'
 import { Album } from '@/data/interfaces/Music'
 import { fetcher } from '@/utils/utils'
 import { useParams } from '@tanstack/react-router'
@@ -19,11 +21,16 @@ import '../DetailsPage.css'
 
 function AlbumDetailsPage() {
   const { albumId } = useParams({ from: '/details/album/$albumId' })
+  const { wsMessage } = useWebSocketStore()
   const { serverIP } = useServerStore()
   const { selectSong } = useDataStore()
 
   // Get series data
-  const { data: album, isLoading } = useSWR<Album>(
+  const {
+    data: album,
+    isLoading,
+    mutate,
+  } = useSWR<Album>(
     albumId ? `http://${serverIP}/details/album?id=${albumId}` : null,
     fetcher,
   )
@@ -35,6 +42,12 @@ function AlbumDetailsPage() {
   const [showAnimPoster, setShowAnimPoster] = useState(false)
 
   const posterUrl = album?.coverSrc
+
+  useEffect(() => {
+    if (wsMessage === MessageType.MUTATE_ALBUM) {
+      mutate()
+    }
+  }, [wsMessage])
 
   useEffect(() => {
     setNextPoster(posterUrl)

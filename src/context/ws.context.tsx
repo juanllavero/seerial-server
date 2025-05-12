@@ -10,11 +10,12 @@ interface WebSocketMessage {
 }
 
 interface WebSocketState {
+  ws: WebSocket | null
+  wsMessage: MessageType
   downloading: boolean
   downloadPercentage: number
   analyzing: boolean
   seriesReceived: Series | null
-  ws: WebSocket | null
   wsConnected: boolean
   messageQueue: WebSocketMessage[]
   setDownloading: (value: boolean) => void
@@ -37,13 +38,14 @@ interface WebSocketState {
 }
 
 export const useWebSocketStore = create<WebSocketState>((set, get) => ({
-  downloading: false,
-  downloadPercentage: 0,
-  analyzing: false,
-  seriesReceived: null,
   ws: null,
+  wsMessage: MessageType.NO_MESSAGE,
   wsConnected: false,
   messageQueue: [],
+  analyzing: false,
+  downloading: false,
+  downloadPercentage: 0,
+  seriesReceived: null,
 
   setDownloading: (value) => set({ downloading: value }),
   setDownloadPercentage: (value) => set({ downloadPercentage: value }),
@@ -99,6 +101,8 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
             case MessageType.DOWNLOAD_COMPLETE:
               set({ downloading: false })
               break
+            default:
+              set({ wsMessage: message.header })
           }
 
           // Add all messages to queue for external processing

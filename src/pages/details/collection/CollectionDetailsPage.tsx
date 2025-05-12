@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import LazyImage from '@/components/ui/LazyImage'
 import { useServerStore } from '@/context/server.context'
+import { useWebSocketStore } from '@/context/ws.context'
+import { MessageType } from '@/data/enums/WSMessage'
 import { Collection, Movie, Series } from '@/data/interfaces/Media'
 import { Album } from '@/data/interfaces/Music'
 import HorizontalList from '@/pages/home/components/HorizontalList'
@@ -25,10 +27,15 @@ function CollectionDetailsPage() {
   })
   const { t } = useTranslation()
   const { serverIP } = useServerStore()
+  const { wsMessage } = useWebSocketStore()
   const isMobile = useIsMobile()
 
   // Get collection data
-  const { data: collection, isLoading } = useSWR<Collection>(
+  const {
+    data: collection,
+    isLoading,
+    mutate,
+  } = useSWR<Collection>(
     collectionId
       ? `http://${serverIP}/details/collection?id=${collectionId}`
       : null,
@@ -40,6 +47,13 @@ function CollectionDetailsPage() {
   const [showAnimPoster, setShowAnimPoster] = useState(false)
 
   const posterUrl = collection?.coverSrc
+
+  // Mutate content on ws message
+  useEffect(() => {
+    if (wsMessage === MessageType.MUTATE_LIBRARY) {
+      mutate()
+    }
+  }, [wsMessage])
 
   useEffect(() => {
     setNextPoster(posterUrl)

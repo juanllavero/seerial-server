@@ -13,10 +13,12 @@ import {
 import LazyImage from '@/components/ui/LazyImage'
 import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
+import { useWebSocketStore } from '@/context/ws.context'
+import { MessageType } from '@/data/enums/WSMessage'
 import { Movie } from '@/data/interfaces/Media'
 import { formatTimeForView } from '@/utils/ReactUtils'
 import { fetcher } from '@/utils/utils'
-import { useNavigate, useParams } from '@tanstack/react-router'
+import { useParams } from '@tanstack/react-router'
 import { t } from 'i18next'
 import { Edit, Ellipsis } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
@@ -28,16 +30,20 @@ import '../DetailsPage.css'
 function MovieDetailsPage() {
   const { movieId } = useParams({ from: '/details/movie/$movieId' })
   const { serverIP } = useServerStore()
+  const { wsMessage } = useWebSocketStore()
   const { clientSettings } = useSettingsStore()
 
   // Get movie data
-  const { data: movie, isLoading } = useSWR<Movie>(
+  const {
+    data: movie,
+    isLoading,
+    mutate,
+  } = useSWR<Movie>(
     movieId ? `http://${serverIP}/details/movie?id=${movieId}` : null,
     fetcher,
   )
 
   const isMobile = useIsMobile()
-  const navigate = useNavigate()
 
   const [currentPoster, setCurrentPoster] = useState<string | undefined>()
   const [nextPoster, setNextPoster] = useState<string | undefined>()
@@ -45,6 +51,13 @@ function MovieDetailsPage() {
 
   const posterUrl = movie?.coverSrc
   const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true
+
+  // Mutate content on ws message
+  useEffect(() => {
+    if (wsMessage === MessageType.MUTATE_MOVIE) {
+      mutate()
+    }
+  }, [wsMessage])
 
   useEffect(() => {
     setNextPoster(posterUrl)

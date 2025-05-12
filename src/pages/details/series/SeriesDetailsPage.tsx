@@ -14,6 +14,8 @@ import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
+import { useWebSocketStore } from '@/context/ws.context'
+import { MessageType } from '@/data/enums/WSMessage'
 import { Episode, Season, Series } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
 import { useNavigate, useParams } from '@tanstack/react-router'
@@ -28,17 +30,26 @@ import '../DetailsPage.css'
 function SeriesDetailsPage() {
   const { seriesId } = useParams({ from: '/details/series/$seriesId' })
   const { serverIP } = useServerStore()
+  const { wsMessage } = useWebSocketStore()
   const { selectedSeasonId, selectSeason } = useDataStore()
   const { clientSettings } = useSettingsStore()
   const { openSeasonDialog } = useDialogStore()
 
   // Get series data
-  const { data: series, isLoading: loadingSeries } = useSWR<Series>(
+  const {
+    data: series,
+    isLoading: loadingSeries,
+    mutate: mutateSeries,
+  } = useSWR<Series>(
     seriesId ? `http://${serverIP}/details/series?id=${seriesId}` : null,
     fetcher,
   )
   // Get selected season data
-  const { data: season, isLoading: loadingSeason } = useSWR<Season>(
+  const {
+    data: season,
+    isLoading: loadingSeason,
+    mutate: mutateSeason,
+  } = useSWR<Season>(
     selectedSeasonId
       ? `http://${serverIP}/details/season?id=${selectedSeasonId}`
       : null,
@@ -60,6 +71,15 @@ function SeriesDetailsPage() {
 
   const posterUrl = series?.coverSrc
   const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true
+
+  // Mutate content on ws message
+  useEffect(() => {
+    if (wsMessage === MessageType.MUTATE_SERIES) {
+      mutateSeries()
+    } else if (wsMessage === MessageType.MUTATE_SEASON) {
+      mutateSeason()
+    }
+  }, [wsMessage])
 
   useEffect(() => {
     if (series) {
