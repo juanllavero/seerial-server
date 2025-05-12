@@ -61,9 +61,8 @@ export class FileSearch {
 
     Promise.all(tasks);
 
-    // Save data in DB
-    //library.save();
-    //Utils.updateLibrary(wsManager, newLibrary);
+    // Update content in clients
+    Utils.mutateLibrary(wsManager);
 
     return library;
   }

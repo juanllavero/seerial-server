@@ -61,8 +61,8 @@ export async function scanMovie(
         await addLibraryToCollection(library.id, collection.id);
       }
 
-      // Add collection to view
-      //Utils.addSeries(wsManager, library.id, collection);
+      // Update content in clients
+      Utils.mutateLibrary(wsManager);
 
       const processPromises = folders.map(async (folder) => {
         const files = await Utils.getValidVideoFiles(folder);
@@ -118,9 +118,6 @@ export async function processFolder(
     movie.name = name;
     movie.year = year !== "1" ? year : "";
 
-    // Add movie to view
-    //Utils.addSeason(wsManager, library.id, movie);
-
     const processPromises = files.map(async (file) => {
       await saveMovieWithoutMetadata(library, movie, file, wsManager);
     });
@@ -129,15 +126,16 @@ export async function processFolder(
 
     //show.analyzingFiles = false;
 
-    // Update show in view
-    //Utils.updateSeries(wsManager, library.id, show);
+    // Update content in clients
+    Utils.mutateMovie(wsManager);
     return;
   }
 
   await setMovieMetadata(library, movie, movieMetadata, name, year);
 
-  // Add movie to view
-  //Utils.addSeason(wsManager, library.id, movie);
+  // Update content in clients
+  Utils.mutateLibrary(wsManager);
+  Utils.mutateMovie(wsManager);
 
   const processPromises = files.map(async (file) => {
     await processVideo(library, movie, file, wsManager);
@@ -150,8 +148,8 @@ export async function processFolder(
 
   //show.analyzingFiles = false;
 
-  // Update show in view
-  //Utils.updateSeries(wsManager, library.id, show);
+  // Update content in clients
+  Utils.mutateLibrary(wsManager);
 }
 
 /**
@@ -423,8 +421,8 @@ export async function saveMovieWithoutMetadata(
   movie.save();
   video.save();
 
-  // Add episode to view
-  //Utils.addEpisode(wsManager, library.id, movie.seriesID, episode);
+  // Update content in clients
+  Utils.mutateMovie(wsManager);
 }
 
 /**
@@ -484,8 +482,8 @@ export async function processVideo(
   // Save data in DB
   video.save();
 
-  // Add episode to view
-  //Utils.addEpisode(wsManager, library.id, movie.id, video);
+  // Update content in clients
+  Utils.mutateMovie(wsManager);
 }
 
 /**
@@ -518,6 +516,6 @@ export async function processVideoAsExtra(
   // Save data in DB
   video?.save();
 
-  // Add episode to view
-  //Utils.addEpisode(wsManager, library.id, movie.id, video);
+  // Update content in clients
+  Utils.mutateMovie(wsManager);
 }

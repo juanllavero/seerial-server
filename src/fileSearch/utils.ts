@@ -91,19 +91,20 @@ export async function clearLibrary(
           await deleteSeason(season.id);
 
           // Update library in client
-          Utils.deleteSeason(wsManager, library.id, series.id, season.id);
+          Utils.mutateSeries(wsManager);
         }
 
         if (series.seasons.length === 0) {
           await deleteSeries(series.id);
 
           // Update library in client
-          Utils.deleteSeries(wsManager, library.id, series.id);
+          Utils.mutateLibrary(wsManager);
         }
       }
     }
   }
 
   // Update library in client
-  Utils.updateLibrary(wsManager, library);
+  Utils.mutateLibrary(wsManager);
+  Utils.mutateSeries(wsManager);
 }

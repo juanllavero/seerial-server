@@ -103,10 +103,9 @@ export async function scanTVShow(
   // Save data in DB
   show.save();
 
-  //   if (!exists) {
-  //     // Add show to view
-  //     Utils.addSeries(wsManager, library.id, show);
-  //   }
+  // Update content in clients
+  Utils.mutateLibrary(wsManager);
+  Utils.mutateSeries(wsManager);
 
   // Descargar metadatos de cada temporada
   let seasonsMetadata: TvSeasonResponse[] = [];
@@ -156,8 +155,9 @@ export async function scanTVShow(
   // Save data in DB
   show.save();
 
-  // Update show in view
-  //Utils.updateSeries(wsManager, library.id, show);
+  // Update content in clients
+  Utils.mutateLibrary(wsManager);
+  Utils.mutateSeries(wsManager);
 }
 
 export async function processEpisodes(
@@ -361,8 +361,8 @@ export async function processEpisode(
     // Save data in DB
     season.save();
 
-    // Add season to view
-    //Utils.addSeason(wsManager, library.id, season);
+    // Update content in clients
+    Utils.mutateSeries(wsManager);
   }
 
   const episodes = await getEpisodes(season.id);
@@ -453,14 +453,6 @@ export async function processEpisode(
     }
 
     video.imgSrc = `${FileSearch.BASE_URL}${episodeMetadata.still_path}`;
-
-    // Add episode to view
-    // Utils.addEpisode(
-    //   wsManager,
-    //   library.id,
-    //   season.seriesId,
-    //   episode
-    // );
   }
 
   // Update video in DB
@@ -470,6 +462,9 @@ export async function processEpisode(
     video.episodeId = episode.id;
     video.save();
   }
+
+  // Update content in clients
+  Utils.mutateSeason(wsManager);
 }
 
 export async function setSeriesMetadataAndImages(

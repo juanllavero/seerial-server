@@ -8,19 +8,12 @@ import { Episode as MovieDBEpisode, TvSeasonResponse } from "moviedb-promise";
 import path from "path";
 import { WebSocketManager } from "../WebSockets/WebSocketManager";
 import {
-  Episode as EpisodeData,
-  Library,
-  Season,
-  Series,
-} from "../data/interfaces/Media";
-import {
   AudioTrack as AudioTrackData,
   Chapter as ChapterData,
   MediaInfo as MediaInfoData,
   SubtitleTrack as SubtitleTrackData,
   VideoTrack as VideoTrackData,
 } from "../data/interfaces/MediaInfo";
-import { Library as LibraryModel } from "../data/models/Media/Library.model";
 import { Video } from "../data/models/Media/Video.model";
 import { Song } from "../data/models/music/Song.model";
 
@@ -832,119 +825,58 @@ export class Utils {
   };
 
   //#region WEBSOCKET CONTENT MESSAGES
-  public static addLibrary = (ws: WebSocketManager, library: Library) => {
+  public static mutateLibraries = (ws: WebSocketManager) => {
     const message = {
-      header: "ADD_LIBRARY",
-      body: {
-        library: library,
-      },
+      header: "MUTATE_LIBRARIES",
+      body: {},
     };
     ws.broadcast(JSON.stringify(message));
   };
 
-  public static updateLibrary = (
-    ws: WebSocketManager,
-    library: LibraryModel
-  ) => {
+  public static mutateLibrary = (ws: WebSocketManager) => {
     const message = {
-      header: "UPDATE_LIBRARY",
-      body: {
-        library: library,
-      },
+      header: "MUTATE_LIBRARY",
+      body: {},
     };
     ws.broadcast(JSON.stringify(message));
   };
 
-  public static addSeries = (
-    ws: WebSocketManager,
-    libraryId: string,
-    series: Series
-  ) => {
+  public static mutateSeries = (ws: WebSocketManager) => {
     const message = {
-      header: "ADD_SERIES",
-      body: {
-        libraryId: libraryId,
-        series: series,
-      },
+      header: "MUTATE_SERIES",
+      body: {},
     };
     ws.broadcast(JSON.stringify(message));
   };
 
-  public static updateSeries = (
-    ws: WebSocketManager,
-    libraryId: string,
-    series: Series
-  ) => {
+  public static mutateSeason = (ws: WebSocketManager) => {
     const message = {
-      header: "UPDATE_SERIES",
-      body: {
-        libraryId: libraryId,
-        series: series,
-      },
+      header: "MUTATE_SEASON",
+      body: {},
     };
     ws.broadcast(JSON.stringify(message));
   };
 
-  public static addSeason = (
-    ws: WebSocketManager,
-    libraryId: string,
-    season: Season
-  ) => {
+  public static mutateEpisode = (ws: WebSocketManager) => {
     const message = {
-      header: "ADD_SEASON",
-      body: {
-        libraryId: libraryId,
-        season: season,
-      },
+      header: "MUTATE_EPISODE",
+      body: {},
     };
     ws.broadcast(JSON.stringify(message));
   };
 
-  public static addEpisode = (
-    ws: WebSocketManager,
-    libraryId: string,
-    showId: string,
-    episode: EpisodeData
-  ) => {
+  public static mutateMovie = (ws: WebSocketManager) => {
     const message = {
-      header: "ADD_EPISODE",
-      body: {
-        libraryId: libraryId,
-        showId: showId,
-        episode: episode,
-      },
+      header: "MUTATE_MOVIE",
+      body: {},
     };
     ws.broadcast(JSON.stringify(message));
   };
 
-  public static deleteSeason = (
-    ws: WebSocketManager,
-    libraryId: string,
-    seriesId: string,
-    seasonId: string
-  ) => {
+  public static mutateAlbum = (ws: WebSocketManager) => {
     const message = {
-      header: "DELETE_SEASON",
-      body: {
-        libraryId,
-        seriesId,
-        seasonId,
-      },
-    };
-    ws.broadcast(JSON.stringify(message));
-  };
-
-  public static deleteSeries = (
-    ws: WebSocketManager,
-    libraryId: string,
-    seriesId: string
-  ) => {
-    const message = {
-      header: "DELETE_SERIES",
-      body: {
-        libraryId,
-        seriesId,
-      },
+      header: "MUTATE_ALBUM",
+      body: {},
     };
     ws.broadcast(JSON.stringify(message));
   };

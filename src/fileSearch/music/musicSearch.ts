@@ -48,8 +48,8 @@ export async function scanMusic(
     }
   }
 
-  // Update show in view
-  //Utils.updateSeries(wsManager, library.id, collection);
+  // Update content in clients
+  Utils.mutateLibrary(wsManager);
 }
 
 export async function processMusicFile(
@@ -99,8 +99,8 @@ export async function processMusicFile(
           : [],
       });
 
-      // Add season to view
-      //Utils.addSeason(wsManager, library.id, album);
+      // Update content in clients
+      Utils.mutateLibrary(wsManager);
     }
 
     if (!newAlbum) return;
@@ -191,6 +191,9 @@ export async function processMusicFile(
             imageSrc.split("\\").pop();
         }
       }
+
+      // Update content in clients
+      Utils.mutateLibrary(wsManager);
     }
 
     if (!song) return;
@@ -206,8 +209,8 @@ export async function processMusicFile(
     newAlbum.save();
     song.save();
 
-    // Add episode to view
-    //Utils.addEpisode(wsManager, library.id, collection.id, song);
+    // Update content in clients
+    Utils.mutateAlbum(wsManager);
   } catch (error) {
     console.error("Error processing music file", error);
   }
