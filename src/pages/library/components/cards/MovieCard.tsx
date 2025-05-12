@@ -1,6 +1,7 @@
 import useDataStore from '@/context/data.context'
 import { Movie } from '@/data/interfaces/Media'
 import { DropdownContent } from '@/data/interfaces/Utils'
+import { getOnlyYear } from '@/utils/ReactUtils'
 import { useNavigate } from '@tanstack/react-router'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
@@ -60,17 +61,16 @@ function MovieCard({ movie }: MovieCardProps) {
       type="Movies"
       imgSrc={movie.coverSrc}
       title={movie.name}
-      subtitle={movie.year}
+      subtitle={getOnlyYear(movie.year).toString()}
       watched={movie.watched}
       action={() => {
-        selectMovie(movie)
+        selectMovie(movie.id)
         navigate({
           to: '/details/movie/$movieId',
           params: { movieId: movie.id },
         })
       }}
       hidePlayButton
-      cornerNumber={2}
       menuContent={menuContent}
       editModal={<></>}
       errorSrc="/img/fileNotFound.jpg"

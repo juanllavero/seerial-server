@@ -16,7 +16,7 @@ function MoviesList({ library }: MoviesListProps) {
           <CollectionCard
             key={collection.id}
             collection={collection}
-            type={'Shows'}
+            type={'Movies'}
           />
         ))}
       {library.movies &&

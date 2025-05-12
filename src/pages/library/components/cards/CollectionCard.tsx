@@ -1,9 +1,13 @@
+import Loading from '@/components/Loading'
 import useDataStore from '@/context/data.context'
+import { useServerStore } from '@/context/server.context'
 import { Collection } from '@/data/interfaces/Media'
 import { DropdownContent } from '@/data/interfaces/Utils'
+import { fetcher } from '@/utils/utils'
 import { useNavigate } from '@tanstack/react-router'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import useSWR from 'swr'
 import ParentCard from './ParentCard'
 
 interface CollectionCardProps {
@@ -14,7 +18,14 @@ interface CollectionCardProps {
 function CollectionCard({ collection, type }: CollectionCardProps) {
   const { t } = useTranslation()
   const { selectCollection } = useDataStore()
+  const { serverIP } = useServerStore()
+  const [subtitleText, setSubtitleText] = useState<string>('')
   const navigate = useNavigate()
+
+  const { data: collectionDetails, isLoading } = useSWR(
+    `http://${serverIP}/details/collection?id=${collection.id}`,
+    fetcher,
+  )
 
   const menuContent: DropdownContent = {
     items: [
@@ -55,13 +66,48 @@ function CollectionCard({ collection, type }: CollectionCardProps) {
     ],
   }
 
+  useEffect(() => {
+    if (collectionDetails) {
+      if (
+        type === 'Movies' &&
+        collectionDetails.movies &&
+        collectionDetails.movies.length > 0
+      ) {
+        let text =
+          collectionDetails.movies.length > 1 ? t('movies') : t('movie')
+        setSubtitleText(`${collectionDetails.movies.length} ${text}`)
+      } else if (
+        type === 'Series' &&
+        collectionDetails.shows &&
+        collectionDetails.shows.length > 0
+      ) {
+        let text = collectionDetails.shows.length > 1 ? t('shows') : t('show')
+        setSubtitleText(`${collectionDetails.shows.length} ${text}`)
+      } else if (
+        type === 'Music' &&
+        collectionDetails.albums &&
+        collectionDetails.albums.length > 0
+      ) {
+        let text =
+          collectionDetails.albums.length > 1 ? t('albums') : t('album')
+        setSubtitleText(`${collectionDetails.albums.length} ${text}`)
+      } else {
+        setSubtitleText('')
+      }
+    }
+  }, [collectionDetails])
+
+  if (isLoading) return <Loading />
+
+  if (!collectionDetails) return null
+
   return (
     <ParentCard
       itemKey={collection.id}
       type={type}
       imgSrc={collection.coverSrc}
       title={collection.title}
-      subtitle={'Not yet'}
+      subtitle={subtitleText}
       action={() => {
         selectCollection(collection.id)
         navigate({
@@ -73,7 +119,6 @@ function CollectionCard({ collection, type }: CollectionCardProps) {
         })
       }}
       hidePlayButton
-      cornerNumber={2}
       menuContent={menuContent}
       editModal={<></>}
       errorSrc={

@@ -62,14 +62,13 @@ function AlbumCard({ album }: AlbumCardProps) {
       title={album.title}
       subtitle={album.year ?? '-'}
       action={() => {
-        selectAlbum(album)
+        selectAlbum(album.id)
         navigate({
           to: '/details/album/$albumId',
           params: { albumId: album.id },
         })
       }}
       hidePlayButton
-      cornerNumber={2}
       menuContent={menuContent}
       editModal={<></>}
       errorSrc="/img/songDefault.png"
