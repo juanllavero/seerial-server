@@ -5,16 +5,19 @@ import {
   getAlbums,
   getCollectionById,
   getCollections,
+  getContinueWatchingVideos,
   getEpisodeById,
   getEpisodes,
   getLibraries,
   getLibraryById,
   getMovieById,
   getMovies,
+  getMoviesInMyList,
   getSeasonById,
   getSeasons,
   getSeries,
   getSeriesById,
+  getSeriesInMyList,
   getVideoByEpisodeId,
   getVideoById,
   getVideoByMovieId,
@@ -100,6 +103,24 @@ router.get("/albums", async (req, res) => {
   await SequelizeManager.initializeDB();
 
   res.json(await getAlbums(libraryId as string));
+});
+
+router.get("/myListSeries", async (req, res) => {
+  await SequelizeManager.initializeDB();
+
+  res.json(await getSeriesInMyList());
+});
+
+router.get("/myListMovies", async (req, res) => {
+  await SequelizeManager.initializeDB();
+
+  res.json(await getMoviesInMyList());
+});
+
+router.get("/continueWatching", async (req, res) => {
+  await SequelizeManager.initializeDB();
+
+  res.json(await getContinueWatchingVideos());
 });
 
 //#endregion

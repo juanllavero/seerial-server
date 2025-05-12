@@ -2,8 +2,10 @@ import express from "express";
 import { Video } from "../../../data/models/Media/Video.model";
 import {
   getMovieById,
+  getMovieFromMyList,
   getSeasonById,
   getSeriesById,
+  getSeriesFromMyList,
   getVideoByEpisodeId,
 } from "../../../db/get/getData";
 import { Utils } from "../../../utils/Utils";
@@ -98,6 +100,30 @@ router.get("/remaining-videos", async (req: any, res: any) => {
   }
 
   res.json({ remainingVideos });
+});
+
+// Get if a series is in My List
+router.get("/isShowInMyList", async (req: any, res: any) => {
+  const { seriesId } = req.query;
+
+  if (typeof seriesId !== "string") {
+    return res.status(400).json({ error: "Invalid parameters" });
+  }
+
+  const isInMyList = await getSeriesFromMyList(seriesId);
+  res.json({ isInMyList: isInMyList !== null });
+});
+
+// Get if a movie is in My List
+router.get("/isMovieInMyList", async (req: any, res: any) => {
+  const { movieId } = req.query;
+
+  if (typeof movieId !== "string") {
+    return res.status(400).json({ error: "Invalid parameters" });
+  }
+
+  const isInMyList = await getMovieFromMyList(movieId);
+  res.json({ isInMyList: isInMyList !== null });
 });
 
 export default router;

@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import { Collection } from "../../data/models/Collections/Collection.model";
 import { ContinueWatching } from "../../data/models/Lists/ContinueWatching.model";
 import { MyList } from "../../data/models/Lists/MyList.model";
@@ -366,29 +367,101 @@ export const getPlayListById = (id: string) => {
   });
 };
 
-export const getMyList = async () => {
+export const getSeriesInMyList = async () => {
   if (!SequelizeManager.sequelize) return null;
 
   try {
-    const myListItems = await MyList.findAll({
-      include: [
-        {
-          model: Series,
-          as: "series",
-          required: false, // Left join
+    // Get the IDs of the series saved in MyList
+    const myListSeries = await MyList.findAll({
+      where: {
+        seriesId: {
+          [Op.not]: null,
         },
-        {
-          model: Movie,
-          as: "movie",
-          required: false, // Left join
-        },
-      ],
+      },
+      attributes: ["seriesId"], // Only the ID
     });
 
-    return myListItems;
+    const seriesIds = myListSeries.map((item) => item.seriesId);
+
+    if (seriesIds.length === 0) return [];
+
+    // Search the series corresponding to those IDs
+    const series = await Series.findAll({
+      where: {
+        id: {
+          [Op.in]: seriesIds,
+        },
+      },
+    });
+
+    return series;
+  } catch (error: any) {
+    console.log(`Error fetching Series in My_List: ${error.message}`);
+    return [];
+  }
+};
+
+export const getMoviesInMyList = async () => {
+  if (!SequelizeManager.sequelize) return null;
+
+  try {
+    // Get the IDs of the movies saved in MyList
+    const myListMovies = await MyList.findAll({
+      where: {
+        movieId: {
+          [Op.not]: null,
+        },
+      },
+      attributes: ["movieId"], // Only the ID
+    });
+
+    const movieIds = myListMovies.map((item) => item.movieId);
+
+    if (movieIds.length === 0) return [];
+
+    // Search the movies corresponding to those IDs
+    const movies = await Movie.findAll({
+      where: {
+        id: {
+          [Op.in]: movieIds,
+        },
+      },
+    });
+
+    return movies;
+  } catch (error: any) {
+    console.log(`Error fetching Movies in My_List: ${error.message}`);
+    return [];
+  }
+};
+
+export const getSeriesFromMyList = async (seriesId: string) => {
+  if (!SequelizeManager.sequelize) return null;
+
+  try {
+    return await MyList.findOne({
+      where: {
+        seriesId: seriesId,
+      },
+    });
   } catch (error: any) {
     console.log(`Error fetching My_List items: ${error.message}`);
-    return [];
+    return null;
+  }
+};
+
+export const getMovieFromMyList = async (movieId: string) => {
+  if (!SequelizeManager.sequelize) return null;
+
+  try {
+    return await MyList.findOne({
+      where: {
+        movieId: movieId,
+      },
+    });
+  } catch (error: any) {
+    console.log(`Error fetching My_List items: ${error.message}`);
+    return null;
   }
 };
 

@@ -771,6 +771,46 @@ export const addSongToPlaylist = async (playlistId: string, songId: string) => {
   }
 };
 
+export const removeSongFromPlaylist = async (
+  playlistId: string,
+  songId: string
+) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
+
+  try {
+    // Verifica si la relacion ya existe
+    const existingElement = await PlayListItem.findOne({
+      where: {
+        playlistId,
+        songId,
+      },
+    });
+
+    if (!existingElement) {
+      console.log(
+        `La canción ${songId} no estaba en la lista de reproducción ${playlistId}`
+      );
+      return existingElement;
+    }
+
+    await existingElement.destroy();
+    console.log(
+      "Relación canción-lista de reproducción eliminada:",
+      existingElement.toJSON()
+    );
+    return existingElement;
+  } catch (error) {
+    console.error(
+      "Error al eliminar la canción de la lista de reproducción:",
+      error
+    );
+    return null;
+  }
+};
+
 export const addSeriesToMyList = async (seriesId: string) => {
   if (!SequelizeManager.sequelize) {
     console.error("Error: Sequelize no está inicializado");
@@ -806,6 +846,34 @@ export const addSeriesToMyList = async (seriesId: string) => {
   }
 };
 
+export const removeSeriesFromMyList = async (seriesId: string) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
+
+  try {
+    // Verifica si la serie ya estaba en la lista
+    const existingElement = await MyList.findOne({
+      where: {
+        seriesId,
+      },
+    });
+
+    if (!existingElement) {
+      console.log(`La serie ${seriesId} no estaba en Mi Lista`);
+      return existingElement;
+    }
+
+    await existingElement.destroy();
+    console.log("Serie eliminada de Mi Lista:", existingElement.toJSON());
+    return existingElement;
+  } catch (error) {
+    console.error("Error al eliminar la serie de Mi Lista:", error);
+    return null;
+  }
+};
+
 export const addMovieToMyList = async (movieId: string) => {
   if (!SequelizeManager.sequelize) {
     console.error("Error: Sequelize no está inicializado");
@@ -837,6 +905,34 @@ export const addMovieToMyList = async (movieId: string) => {
     return newElement;
   } catch (error) {
     console.error("Error al agregar la película a Mi Lista:", error);
+    return null;
+  }
+};
+
+export const removeMovieFromMyList = async (movieId: string) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
+
+  try {
+    // Verifica si la película ya estaba en la lista
+    const existingElement = await MyList.findOne({
+      where: {
+        movieId,
+      },
+    });
+
+    if (!existingElement) {
+      console.log(`La película ${movieId} no estaba en Mi Lista`);
+      return existingElement;
+    }
+
+    await existingElement.destroy();
+    console.log("Película eliminada de Mi Lista:", existingElement.toJSON());
+    return existingElement;
+  } catch (error) {
+    console.error("Error al eliminar la película de Mi Lista:", error);
     return null;
   }
 };

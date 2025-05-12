@@ -5,10 +5,18 @@ import propertiesReader from "properties-reader";
 import {
   getEpisodeById,
   getMovieById,
+  getMovieFromMyList,
   getSeasonById,
   getSeriesById,
+  getSeriesFromMyList,
   getVideoById,
 } from "../../db/get/getData";
+import {
+  addMovieToMyList,
+  addSeriesToMyList,
+  removeMovieFromMyList,
+  removeSeriesFromMyList,
+} from "../../db/post/postData";
 import { Downloader } from "../../downloaders/Downloader";
 import { FileSearch } from "../../fileSearch/fileSearch";
 import {
@@ -278,6 +286,40 @@ router.post("/setEpisodeWatched", async (req: any, res: any) => {
   await Utils.setEpisodeWatchState(season, episode, watched);
 
   res.json({ message: "WATCH_STATE_UPDATED" });
+});
+
+// Add/remove series from My List
+router.post("/updateSeriesMyList", async (req: any, res: any) => {
+  const { seriesId } = req.body;
+
+  if (!seriesId) {
+    return res.status(400).json({ error: "Not enough parameters" });
+  }
+
+  if (await getSeriesFromMyList(seriesId)) {
+    await removeSeriesFromMyList(seriesId);
+  } else {
+    await addSeriesToMyList(seriesId);
+  }
+
+  res.json({ message: "MY_LIST_UPDATED" });
+});
+
+// Add/remove movie from My List
+router.post("/updateMovieMyList", async (req: any, res: any) => {
+  const { movieId } = req.body;
+
+  if (!movieId) {
+    return res.status(400).json({ error: "Not enough parameters" });
+  }
+
+  if (await getMovieFromMyList(movieId)) {
+    await removeMovieFromMyList(movieId);
+  } else {
+    await addMovieToMyList(movieId);
+  }
+
+  res.json({ message: "MY_LIST_UPDATED" });
 });
 
 export default router;
