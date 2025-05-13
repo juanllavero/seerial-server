@@ -19,7 +19,7 @@ import { MessageType } from '@/data/enums/WSMessage'
 import { Movie } from '@/data/interfaces/Media'
 import { formatTimeForView } from '@/utils/ReactUtils'
 import { fetcher } from '@/utils/utils'
-import { useParams } from '@tanstack/react-router'
+import { useNavigate, useParams } from '@tanstack/react-router'
 import { t } from 'i18next'
 import { Edit, Ellipsis } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
@@ -34,6 +34,7 @@ function MovieDetailsPage() {
   const { clientSettings } = useSettingsStore()
   const { wsMessage } = useWebSocketStore()
   const { serverIP } = useServerStore()
+  const navigate = useNavigate()
 
   // Get movie data
   const {
@@ -230,21 +231,13 @@ function MovieDetailsPage() {
           </FlexBox>
           <FlexBox gap={1} wrap="wrap">
             <Button
-            // onClick={() => {
-            //   const episodeToWatch = getEpisodeToWatch()
-            //   if (episodeToWatch) {
-            //     if (episodeToWatch.seasonID !== selectedSeason.id) {
-            //       selectSeason(
-            //         selectedSeries.seasons.find(
-            //           (s) => s.id === episodeToWatch.seasonID,
-            //         ) ?? selectedSeason,
-            //       )
-            //     }
-            //     navigate({
-            //       to: `/video-player/${libraryId}/${seriesId}/${episodeToWatch.seasonID}/${episodeToWatch.id}`,
-            //     })
-            //   }
-            // }}
+              onClick={() => {
+                if (movie.videos && movie.videos.length > 0) {
+                  navigate({
+                    to: `/video-player/${movie.videos[0].id}`,
+                  })
+                }
+              }}
             >
               <FlexBox align="center" gap={0.5} className="text-black">
                 <PlayIcon color="#111111" />

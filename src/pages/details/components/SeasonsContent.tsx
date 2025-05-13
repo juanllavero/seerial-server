@@ -71,10 +71,11 @@ function SeasonContent({ seasonList, season }: SeasonContentProps) {
     }
 
     const data = await response.json()
+    console.log({ data })
     navigate({
       to: '/video-player/$videoId',
       params: {
-        videoId: data.videoId,
+        videoId: data.id,
       },
     })
   }

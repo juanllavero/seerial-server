@@ -350,7 +350,7 @@ function VideoPlayerPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          video: video,
+          videoId: video.id,
         }),
       })
 

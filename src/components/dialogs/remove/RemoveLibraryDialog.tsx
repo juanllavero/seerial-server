@@ -21,12 +21,11 @@ function RemoveLibraryDialog() {
       action={() => {
         connectWS(serverIP)
         fetch(
-          `http://${serverIP}/libraries/${removeLibraryDialog.libraryToRemove?.id}`,
+          `http://${serverIP}/libraries/${removeLibraryDialog.libraryToRemove}`,
           {
             method: 'DELETE',
           },
         )
-        //deleteLibrary(removeLibraryDialog.libraryToRemove?.id || '')
         navigate({ to: '/' })
         closeRemoveLibraryDialog()
       }}
