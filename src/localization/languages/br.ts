@@ -13,6 +13,12 @@ export const br = {
     errorImageUpload: 'Erro ao enviar a imagem',
     invalidImageError: 'Selecione um arquivo de imagem válido',
 
+    serverError: 'O servidor não está disponível',
+    serverErrorMessage:
+      'Verifique sua conexão com a internet e se o servidor está conectado',
+    apiKey: 'Chave de API',
+    apiKeyTitle: 'Nenhuma chave de API encontrada para TheMovieDB',
+    apiKeyMessage: 'Adicione uma chave de API. Você pode obter uma em ',
     addToMyList: 'Adicionar à minha lista',
     removeFromMyList: 'Remover da minha lista',
     imageLoaded: 'A imagem foi enviada com sucesso',

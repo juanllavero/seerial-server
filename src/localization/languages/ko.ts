@@ -13,6 +13,11 @@ export const ko = {
     errorImageUpload: '이미지 업로드 중 오류 발생',
     invalidImageError: '유효한 이미지 파일을 선택하세요',
 
+    serverError: '서버를 사용할 수 없습니다',
+    serverErrorMessage: '인터넷 연결과 서버가 연결되어 있는지 확인하세요',
+    apiKey: 'API 키',
+    apiKeyTitle: 'TheMovieDB의 API 키를 찾을 수 없습니다',
+    apiKeyMessage: 'API 키를 추가하세요.  에서 받을 수 있습니다',
     addToMyList: '내 목록에 추가',
     removeFromMyList: '내 목록에서 제거',
     imageLoaded: '이미지가 성공적으로 업로드되었습니다',

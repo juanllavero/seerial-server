@@ -13,6 +13,12 @@ export const ja = {
     errorImageUpload: '画像のアップロード中にエラーが発生しました',
     invalidImageError: '有効な画像ファイルを選択してください',
 
+    serverError: 'サーバーは利用できません',
+    serverErrorMessage:
+      'インターネット接続とサーバーが接続されていることを確認してください',
+    apiKey: 'APIキー',
+    apiKeyTitle: 'TheMovieDB の API キーが見つかりません',
+    apiKeyMessage: 'APIキーを追加してください。 で取得できます',
     addToMyList: 'マイリストに追加',
     removeFromMyList: 'マイリストから削除',
     imageLoaded: '画像が正常にアップロードされました',

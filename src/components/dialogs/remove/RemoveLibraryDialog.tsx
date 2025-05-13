@@ -5,6 +5,7 @@ import { useWebSocketStore } from '@/context/ws.context'
 import { useNavigate } from '@tanstack/react-router'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
+import { mutate } from 'swr'
 
 function RemoveLibraryDialog() {
   const { t } = useTranslation()
@@ -18,14 +19,18 @@ function RemoveLibraryDialog() {
       title={t('removeLibrary')}
       description={t('removeLibraryMessage')}
       actionMessage={t('removeButton')}
-      action={() => {
+      action={async () => {
         connectWS(serverIP)
-        fetch(
+        await fetch(
           `http://${serverIP}/libraries/${removeLibraryDialog.libraryToRemove}`,
           {
             method: 'DELETE',
           },
         )
+
+        // Mutate libraries list
+        mutate((key: string) => key.startsWith(`http://${serverIP}/libraries`))
+
         navigate({ to: '/' })
         closeRemoveLibraryDialog()
       }}

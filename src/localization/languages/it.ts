@@ -13,6 +13,12 @@ export const it = {
     errorImageUpload: "Errore durante il caricamento dell'immagine",
     invalidImageError: 'Seleziona un file immagine valido',
 
+    serverError: 'Il server non è disponibile',
+    serverErrorMessage:
+      'Verifica la connessione a internet e che il server sia online',
+    apiKey: 'Chiave API',
+    apiKeyTitle: 'Nessuna chiave API trovata per TheMovieDB',
+    apiKeyMessage: 'Aggiungi una chiave API. Puoi ottenerla su ',
     addToMyList: 'Aggiungi alla mia lista',
     removeFromMyList: 'Rimuovi dalla mia lista',
     imageLoaded: "L'immagine è stata caricata correttamente",

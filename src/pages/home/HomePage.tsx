@@ -1,4 +1,5 @@
 import Card from '@/components/cards/Card'
+import Loading from '@/components/Loading'
 import FlexBox from '@/components/ui/FlexBox'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
@@ -8,11 +9,14 @@ import React, { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 import HorizontalList from './components/HorizontalList'
+import NoAPIKey from './components/NoAPIKey'
+import NoContent from './components/NoContent'
+import NoServer from './components/NoServer'
 
 export default function HomePage() {
   const { t } = useTranslation()
-  const { serverIP } = useServerStore()
-  const { selectLibrary } = useDataStore()
+  const { serverIP, serverStatus, apiKeyStatus } = useServerStore()
+  const { selectLibrary, isContent, loadingContent } = useDataStore()
 
   // Get Continue Watching items
   const { data: continueWatching, isLoading: loadingContinueWatching } = useSWR<
@@ -33,6 +37,22 @@ export default function HomePage() {
     selectLibrary(null)
   }, [])
 
+  if (loadingContent) {
+    return <Loading />
+  }
+
+  if (!serverStatus) {
+    return <NoServer />
+  }
+
+  if (!apiKeyStatus) {
+    return <NoAPIKey />
+  }
+
+  if (!isContent) {
+    return <NoContent />
+  }
+
   return (
     <FlexBox
       direction="column"
@@ -41,12 +61,15 @@ export default function HomePage() {
       scroll="vertical"
       height="100%"
     >
-      <h1></h1>
+      {(!continueWatching || continueWatching.length === 0) &&
+        (!showsInMyList || showsInMyList.length === 0) &&
+        (!moviesInMyList || moviesInMyList.length === 0) && (
+          <h1>{t('noResults')}</h1>
+        )}
       {/* Continue Watching */}
-      <HorizontalList title={t('continueWatching')}>
-        {continueWatching &&
-          continueWatching.length > 0 &&
-          continueWatching.map((video: Video) => (
+      {continueWatching && continueWatching.length > 0 && (
+        <HorizontalList title={t('continueWatching')}>
+          {continueWatching.map((video: Video) => (
             <Card
               itemKey={'Home Card' + video.id}
               imgSrc={video.imgSrc}
@@ -57,13 +80,13 @@ export default function HomePage() {
               action={function (): void {}}
             />
           ))}
-      </HorizontalList>
+        </HorizontalList>
+      )}
 
       {/* User's Shows in WatchList */}
-      <HorizontalList title={t('watchList')}>
-        {showsInMyList &&
-          showsInMyList.length > 0 &&
-          showsInMyList.map((series: Series) => (
+      {showsInMyList && showsInMyList.length > 0 && (
+        <HorizontalList title={t('watchList')}>
+          {showsInMyList.map((series: Series) => (
             <Card
               itemKey={'Home Card' + series.id}
               imgSrc={series.coverSrc}
@@ -74,13 +97,13 @@ export default function HomePage() {
               action={function (): void {}}
             />
           ))}
-      </HorizontalList>
+        </HorizontalList>
+      )}
 
       {/* User's Movies in WatchList */}
-      <HorizontalList title={t('watchList')}>
-        {moviesInMyList &&
-          moviesInMyList.length > 0 &&
-          moviesInMyList.map((movie: Movie) => (
+      {moviesInMyList && moviesInMyList.length > 0 && (
+        <HorizontalList title={t('watchList')}>
+          {moviesInMyList.map((movie: Movie) => (
             <Card
               itemKey={'Home Card' + movie.id}
               imgSrc={movie.coverSrc}
@@ -91,7 +114,8 @@ export default function HomePage() {
               action={function (): void {}}
             />
           ))}
-      </HorizontalList>
+        </HorizontalList>
+      )}
     </FlexBox>
   )
 }

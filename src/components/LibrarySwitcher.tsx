@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
+import { useServerStore } from '@/context/server.context'
 import { useNavigate } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { Button } from './ui/button'
@@ -25,6 +26,7 @@ interface Item {
 export function LibrarySwitcher({ libraries }: { libraries: Item[] }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const { serverStatus, apiKeyStatus } = useServerStore()
   const { openLibraryDialog } = useDialogStore()
   const { selectedLibraryId } = useDataStore()
 
@@ -133,6 +135,7 @@ export function LibrarySwitcher({ libraries }: { libraries: Item[] }) {
         {/* Add Library Button */}
         <DropdownMenuItem
           className="gap-2 p-2"
+          disabled={!serverStatus || !apiKeyStatus}
           onClick={() => openLibraryDialog()}
         >
           <div className="bg-background flex size-6 items-center justify-center rounded-md border">

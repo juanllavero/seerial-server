@@ -13,6 +13,11 @@ export const ar = {
     errorImageUpload: 'خطأ في تحميل الصورة',
     invalidImageError: 'يرجى تحديد ملف صورة صالح',
 
+    serverError: 'الخادم غير متاح',
+    serverErrorMessage: 'تحقق من اتصالك بالإنترنت وتأكد من أن الخادم متصل',
+    apiKey: 'مفتاح API',
+    apiKeyTitle: 'لم يتم العثور على مفتاح API لـ TheMovieDB',
+    apiKeyMessage: 'يرجى إضافة مفتاح API. يمكنك الحصول عليه من',
     addToMyList: 'أضف إلى قائمتي',
     removeFromMyList: 'إزالة من قائمتي',
     imageLoaded: 'تم تحميل الصورة بنجاح',

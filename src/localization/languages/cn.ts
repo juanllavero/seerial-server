@@ -13,6 +13,11 @@ export const cn = {
     errorImageUpload: '上传图片时出错',
     invalidImageError: '请选择有效的图片文件',
 
+    serverError: '服务器不可用',
+    serverErrorMessage: '请检查您的网络连接并确保服务器已连接',
+    apiKey: 'API 密钥',
+    apiKeyTitle: '未找到 TheMovieDB 的 API 密钥',
+    apiKeyMessage: '请添加 API 密钥。你可以在  获取',
     addToMyList: '添加到我的列表',
     removeFromMyList: '从我的列表中移除',
     imageLoaded: '图片已成功上传',

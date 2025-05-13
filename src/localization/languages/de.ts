@@ -13,6 +13,13 @@ export const de = {
     errorImageUpload: 'Fehler beim Hochladen des Bildes',
     invalidImageError: 'Wählen Sie eine gültige Bilddatei aus',
 
+    serverError: 'Der Server ist nicht verfügbar',
+    serverErrorMessage:
+      'Bitte überprüfen Sie Ihre Internetverbindung und ob der Server online ist',
+    apiKey: 'API-Schlüssel',
+    apiKeyTitle: 'Kein API-Schlüssel für TheMovieDB gefunden',
+    apiKeyMessage:
+      'Fügen Sie einen API-Schlüssel hinzu. Sie können ihn unter  erhalten',
     addToMyList: 'Zur meiner Liste hinzufügen',
     removeFromMyList: 'Von meiner Liste entfernen',
     imageLoaded: 'Das Bild wurde erfolgreich hochgeladen',

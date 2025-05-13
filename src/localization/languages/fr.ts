@@ -13,6 +13,12 @@ export const fr = {
     errorImageUpload: "Erreur lors du téléchargement de l'image",
     invalidImageError: 'Sélectionnez un fichier image valide',
 
+    serverError: "Le serveur n'est pas disponible",
+    serverErrorMessage:
+      'Vérifiez votre connexion internet et que le serveur est en ligne',
+    apiKey: 'Clé API',
+    apiKeyTitle: 'Clé API introuvable pour TheMovieDB',
+    apiKeyMessage: 'Ajoutez une clé API. Vous pouvez en obtenir une sur ',
     addToMyList: 'Ajouter à ma liste',
     removeFromMyList: 'Retirer de ma liste',
     imageLoaded: "L'image a été téléchargée avec succès",

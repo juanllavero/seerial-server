@@ -14,14 +14,13 @@ import {
   Settings,
   TvMinimal,
 } from 'lucide-react'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 import DropdownWrapper from './DropdownWrapper'
 import { useIsMobile } from './hooks/use-mobile'
 import { LibrarySwitcher } from './LibrarySwitcher'
 import Loading from './Loading'
-import NotFound from './NotFound'
 import { Button } from './ui/button'
 import { Card, CardHeader } from './ui/card'
 
@@ -30,7 +29,8 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const { openRemoveLibraryDialog } = useDialogStore()
-  const { selectedLibraryId, selectLibrary } = useDataStore()
+  const { selectedLibraryId, selectLibrary, setIsContent, setLoadingContent } =
+    useDataStore()
   const { serverIP } = useServerStore()
   const { connectWS } = useWebSocketStore()
   const isMobile = useIsMobile()
@@ -38,6 +38,10 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
   const { data: libraries, isLoading } = useSWR<Library[]>(
     `http://${serverIP}/libraries/`,
     fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+    },
   )
 
   // Checks current page location
@@ -45,6 +49,12 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
   const inHome = location.pathname === '/'
   const inSettings = location.pathname === '/settings'
   const inPlayer = location.pathname.startsWith('/video-player')
+
+  // Update global state variables
+  useEffect(() => {
+    setLoadingContent(isLoading)
+    setIsContent(!isLoading && libraries !== undefined && libraries.length > 0)
+  }, [libraries, isLoading])
 
   const getLibraryDrowdown = (): DropdownContent => {
     return {
@@ -88,14 +98,6 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
     }
   }
 
-  if (isLoading) {
-    return <Loading />
-  }
-
-  if (!libraries) {
-    return <NotFound />
-  }
-
   return (
     <div
       className={`pl-5 ${isMobile ? 'w-full px-5 pt-5' : isWindows ? 'pt-5' : 'pt-10'}`}
@@ -107,25 +109,29 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
               <Loading />
             ) : (
               <LibrarySwitcher
-                libraries={[
-                  ...libraries.map((library) => ({
-                    id: library.id,
-                    name: library.name,
-                    logo:
-                      library.type === 'Shows'
-                        ? TvMinimal
-                        : library.type === 'Movies'
-                          ? Film
-                          : Music,
-                    action: () => {
-                      selectLibrary(library.id)
-                      navigate({
-                        to: '/library/$libraryId',
-                        params: { libraryId: library.id },
-                      })
-                    },
-                  })),
-                ]}
+                libraries={
+                  libraries
+                    ? [
+                        ...libraries.map((library) => ({
+                          id: library.id,
+                          name: library.name,
+                          logo:
+                            library.type === 'Shows'
+                              ? TvMinimal
+                              : library.type === 'Movies'
+                                ? Film
+                                : Music,
+                          action: () => {
+                            selectLibrary(library.id)
+                            navigate({
+                              to: '/library/$libraryId',
+                              params: { libraryId: library.id },
+                            })
+                          },
+                        })),
+                      ]
+                    : []
+                }
               />
             )}
 

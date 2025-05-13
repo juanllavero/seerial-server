@@ -13,6 +13,12 @@ export const pt = {
     errorImageUpload: 'Erro ao carregar a imagem',
     invalidImageError: 'Selecione um ficheiro de imagem válido',
 
+    serverError: 'O servidor não está disponível',
+    serverErrorMessage:
+      'Verifique a sua ligação à internet e se o servidor está ligado',
+    apiKey: 'Chave de API',
+    apiKeyTitle: 'Nenhuma chave de API encontrada para TheMovieDB',
+    apiKeyMessage: 'Adicione uma chave de API. Pode obter uma em ',
     addToMyList: 'Adicionar à minha lista',
     removeFromMyList: 'Remover da minha lista',
     imageLoaded: 'A imagem foi carregada con sucesso',

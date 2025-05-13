@@ -13,6 +13,12 @@ export const en = {
     errorImageUpload: 'Error uploading image',
     invalidImageError: 'Select a valid image file',
 
+    serverError: 'The server is unavailable',
+    serverErrorMessage:
+      'Please check your internet connection and make sure the server is online',
+    apiKey: 'API key',
+    apiKeyTitle: 'No API key found for TheMovieDB',
+    apiKeyMessage: 'Please add an API key. You can get one at ',
     addToMyList: 'Add to My List',
     removeFromMyList: 'Remove from My List',
     imageLoaded: 'Image uploaded successfully',

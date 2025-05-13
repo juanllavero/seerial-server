@@ -13,6 +13,12 @@ export const hi = {
     errorImageUpload: 'छवि अपलोड करने में त्रुटि',
     invalidImageError: 'कृपया एक वैध छवि फ़ाइल चुनें',
 
+    serverError: 'सर्वर उपलब्ध नहीं है',
+    serverErrorMessage:
+      'कृपया सुनिश्चित करें कि इंटरनेट कनेक्शन चालू है और सर्वर चालू है',
+    apiKey: 'API कुंजी',
+    apiKeyTitle: 'TheMovieDB के लिए API कुंजी नहीं मिली',
+    apiKeyMessage: 'कृपया एक API कुंजी जोड़ें। आप इसे  से प्राप्त कर सकते हैं',
     addToMyList: 'मेरी सूची में जोड़ें',
     removeFromMyList: 'मेरी सूची से हटाएं',
     imageLoaded: 'छवि सफलतापूर्वक अपलोड हो गई है',

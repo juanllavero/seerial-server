@@ -13,6 +13,11 @@ export const tw = {
     errorImageUpload: '上傳圖片時出錯',
     invalidImageError: '請選擇有效的圖片文件',
 
+    serverError: '伺服器無法使用',
+    serverErrorMessage: '請確認您的網路連線，並確保伺服器已連接',
+    apiKey: 'API 金鑰',
+    apiKeyTitle: '未找到 TheMovieDB 的 API 金鑰',
+    apiKeyMessage: '請新增一組 API 金鑰。您可以在  取得',
     addToMyList: '加入我的清單',
     removeFromMyList: '從我的清單中移除',
     imageLoaded: '圖片已成功上傳',

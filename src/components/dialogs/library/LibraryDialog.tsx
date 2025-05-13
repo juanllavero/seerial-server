@@ -76,6 +76,7 @@ function LibraryDialog({ library }: LibraryDialogProps) {
 
     if (!response.ok) return
 
+    // Mutate libraries list
     mutate((key: string) => key.startsWith(`http://${serverIP}/libraries`))
 
     const data = await response.json()

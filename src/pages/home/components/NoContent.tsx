@@ -1,0 +1,12 @@
+import React from 'react'
+import { useTranslation } from 'react-i18next'
+import AlertContent from './AlertContent'
+
+function NoContent() {
+  const { t } = useTranslation()
+  return (
+    <AlertContent title={t('noLibraries')} message={t('addLibraryMessage')} />
+  )
+}
+
+export default NoContent

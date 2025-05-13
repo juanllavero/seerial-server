@@ -11,6 +11,8 @@ interface DataState {
   selectedAlbumId: string | null
   selectedSongId: string | null
   currentBackground: string | undefined
+  isContent: boolean
+  loadingContent: boolean
 
   // GET
   selectLibrary: (libraryId: string | null) => void
@@ -25,6 +27,8 @@ interface DataState {
 
   // SET
   setCurrentBackground: (background: string | undefined) => void
+  setIsContent: (isContent: boolean) => void
+  setLoadingContent: (loadingContent: boolean) => void
 }
 
 const useDataStore = create<DataState>((set) => ({
@@ -38,6 +42,8 @@ const useDataStore = create<DataState>((set) => ({
   selectedAlbumId: null,
   selectedSongId: null,
   currentBackground: undefined,
+  isContent: false,
+  loadingContent: true,
 
   selectLibrary(libraryId: string | null) {
     set(() => ({
@@ -96,6 +102,18 @@ const useDataStore = create<DataState>((set) => ({
   setCurrentBackground(background: string | undefined) {
     set(() => ({
       currentBackground: background,
+    }))
+  },
+
+  setIsContent(isContent: boolean) {
+    set(() => ({
+      isContent: isContent,
+    }))
+  },
+
+  setLoadingContent(loadingContent: boolean) {
+    set(() => ({
+      loadingContent: loadingContent,
     }))
   },
 }))
