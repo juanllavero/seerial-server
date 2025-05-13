@@ -1,4 +1,5 @@
 import {
+  BelongsTo,
   BelongsToMany,
   Column,
   DataType,
@@ -32,7 +33,6 @@ export class Song extends Model {
   @Column({
     type: DataType.STRING,
     allowNull: false,
-    onDelete: "CASCADE",
     field: "album_id",
   })
   albumId!: string;
@@ -80,6 +80,9 @@ export class Song extends Model {
     defaultValue: [],
   })
   artists!: string[];
+
+  @BelongsTo(() => Album, { onDelete: "CASCADE", hooks: true })
+  album!: Album;
 
   @BelongsToMany(() => PlayList, {
     through: () => PlayListItem,

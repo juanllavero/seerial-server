@@ -24,6 +24,7 @@ export class ContinueWatching extends Model {
     type: DataType.STRING,
     allowNull: false,
     field: "video_id",
+    onDelete: "CASCADE",
   })
   videoId!: string;
 

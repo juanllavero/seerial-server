@@ -24,6 +24,7 @@ export class AlbumArtist extends Model {
     type: DataType.INTEGER,
     allowNull: false,
     field: "artist_id",
+    onDelete: "CASCADE",
   })
   artistId!: string;
 
@@ -32,6 +33,7 @@ export class AlbumArtist extends Model {
     type: DataType.INTEGER,
     allowNull: false,
     field: "album_id",
+    onDelete: "CASCADE",
   })
   albumId!: string;
 }

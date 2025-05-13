@@ -32,6 +32,7 @@ export class MyList extends Model {
     type: DataType.INTEGER,
     allowNull: true,
     field: "series_id",
+    onDelete: "CASCADE",
   })
   seriesId?: number;
 
@@ -40,6 +41,7 @@ export class MyList extends Model {
     type: DataType.INTEGER,
     allowNull: true,
     field: "movie_id",
+    onDelete: "CASCADE",
   })
   movieId?: number;
 }

@@ -15,6 +15,7 @@ export class CollectionMovie extends Model {
     type: DataType.INTEGER,
     allowNull: false,
     field: "collection_id",
+    onDelete: "CASCADE",
   })
   collectionId!: string;
 
@@ -23,6 +24,7 @@ export class CollectionMovie extends Model {
     type: DataType.INTEGER,
     allowNull: false,
     field: "movie_id",
+    onDelete: "CASCADE",
   })
   movieId!: string;
 }

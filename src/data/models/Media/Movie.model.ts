@@ -1,4 +1,5 @@
 import {
+  BelongsTo,
   BelongsToMany,
   Column,
   DataType,
@@ -28,7 +29,6 @@ export class Movie extends Model {
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
-    onDelete: "CASCADE",
     field: "library_id",
   })
   libraryId!: string;
@@ -293,6 +293,9 @@ export class Movie extends Model {
     defaultValue: "",
   })
   folder!: string;
+
+  @BelongsTo(() => Library, { onDelete: "CASCADE" })
+  library!: Library;
 
   @BelongsToMany(() => Collection, {
     through: () => CollectionMovie,

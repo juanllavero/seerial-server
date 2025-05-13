@@ -1,4 +1,5 @@
 import {
+  BelongsTo,
   Column,
   DataType,
   ForeignKey,
@@ -24,7 +25,6 @@ export class Episode extends Model {
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
-    onDelete: "CASCADE",
     field: "season_id",
   })
   seasonId!: string;
@@ -135,6 +135,9 @@ export class Episode extends Model {
     defaultValue: 0,
   })
   order!: number;
+
+  @BelongsTo(() => Season, { onDelete: "CASCADE" })
+  season!: Season;
 
   @HasOne(() => Video)
   video!: Video;

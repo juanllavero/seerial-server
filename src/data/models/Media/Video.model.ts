@@ -90,71 +90,36 @@ export class Video extends Model {
   lastWatched!: string;
 
   @Column({
-    type: DataType.TEXT,
+    type: DataType.JSON,
     allowNull: true,
     field: "media_info",
-    get() {
-      const value = this.getDataValue("mediaInfo");
-      return value ? JSON.parse(value) : undefined;
-    },
-    set(value: MediaInfo | undefined) {
-      this.setDataValue("mediaInfo", value ? JSON.stringify(value) : null);
-    },
   })
   mediaInfo?: MediaInfo;
 
   @Column({
-    type: DataType.TEXT,
+    type: DataType.JSON,
     allowNull: true,
     field: "video_tracks",
-    get() {
-      const value = this.getDataValue("videoTracks");
-      return value ? JSON.parse(value) : undefined;
-    },
-    set(value: VideoTrack[] | undefined) {
-      this.setDataValue("videoTracks", value ? JSON.stringify(value) : null);
-    },
   })
   videoTracks?: VideoTrack[];
 
   @Column({
-    type: DataType.TEXT,
+    type: DataType.JSON,
     allowNull: true,
     field: "subtitle_tracks",
-    get() {
-      const value = this.getDataValue("subtitleTracks");
-      return value ? JSON.parse(value) : undefined;
-    },
-    set(value: SubtitleTrack[] | undefined) {
-      this.setDataValue("subtitleTracks", value ? JSON.stringify(value) : null);
-    },
   })
   subtitleTracks?: SubtitleTrack[];
 
   @Column({
-    type: DataType.TEXT,
+    type: DataType.JSON,
     allowNull: true,
     field: "audio_tracks",
-    get() {
-      const value = this.getDataValue("audioTracks");
-      return value ? JSON.parse(value) : undefined;
-    },
-    set(value: AudioTrack[] | undefined) {
-      this.setDataValue("audioTracks", value ? JSON.stringify(value) : null);
-    },
   })
   audioTracks?: AudioTrack[];
 
   @Column({
-    type: DataType.TEXT,
+    type: DataType.JSON,
     allowNull: true,
-    get() {
-      const value = this.getDataValue("chapters");
-      return value ? JSON.parse(value) : undefined;
-    },
-    set(value: Chapter[] | undefined) {
-      this.setDataValue("chapters", value ? JSON.stringify(value) : null);
-    },
   })
   chapters?: Chapter[];
 
@@ -179,12 +144,20 @@ export class Video extends Model {
   })
   extraType?: string;
 
+  @BelongsTo(() => Episode, {
+    foreignKey: "episodeId",
+    as: "episode",
+    onDelete: "CASCADE",
+    hooks: true,
+  })
+  episode?: Episode;
+
   @ForeignKey(() => Episode)
   @Column({
     type: DataType.STRING,
     allowNull: true,
-    onDelete: "CASCADE",
     field: "episode_id",
+    onDelete: "CASCADE",
   })
   episodeId?: string;
 
@@ -196,11 +169,12 @@ export class Video extends Model {
   })
   movie?: Movie;
 
+  @ForeignKey(() => Movie)
   @Column({
     type: DataType.STRING,
     allowNull: true,
-    onDelete: "CASCADE",
     field: "movie_id",
+    onDelete: "CASCADE",
   })
   movieId?: string;
 
@@ -212,11 +186,12 @@ export class Video extends Model {
   })
   extra?: Movie;
 
+  @ForeignKey(() => Movie)
   @Column({
     type: DataType.STRING,
     allowNull: true,
-    onDelete: "CASCADE",
     field: "extra_id",
+    onDelete: "CASCADE",
   })
   extraId?: string;
 

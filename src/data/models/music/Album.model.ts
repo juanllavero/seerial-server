@@ -1,4 +1,5 @@
 import {
+  BelongsTo,
   BelongsToMany,
   Column,
   DataType,
@@ -69,6 +70,9 @@ export class Album extends Model {
     field: "cover_src",
   })
   coverSrc!: string;
+
+  @BelongsTo(() => Library, { onDelete: "CASCADE" })
+  library!: Library;
 
   @BelongsToMany(() => Collection, {
     through: () => CollectionAlbum,

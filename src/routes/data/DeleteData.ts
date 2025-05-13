@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  deleteCollection,
   deleteEpisode,
   deleteLibrary,
   deleteSeason,
@@ -52,6 +53,18 @@ router.delete("/episode/:id", (req, res) => {
     res.status(200).json({ message: "Episode deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: "Failed to delete episode" });
+  }
+});
+
+// Delete collection
+router.delete("/collection/:id", (req, res) => {
+  const { id } = req.params;
+
+  try {
+    deleteCollection(id);
+    res.status(200).json({ message: "Collection deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to delete collection" });
   }
 });
 

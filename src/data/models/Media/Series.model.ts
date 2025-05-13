@@ -1,4 +1,5 @@
 import {
+  BelongsTo,
   BelongsToMany,
   Column,
   DataType,
@@ -28,7 +29,6 @@ export class Series extends Model {
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
-    onDelete: "CASCADE",
     field: "library_id",
   })
   libraryId!: string;
@@ -262,6 +262,9 @@ export class Series extends Model {
     allowNull: false,
   })
   watched!: boolean;
+
+  @BelongsTo(() => Library, { onDelete: "CASCADE" })
+  library!: Library;
 
   @BelongsToMany(() => Collection, {
     through: () => CollectionSeries,

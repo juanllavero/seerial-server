@@ -4,17 +4,18 @@ import {
   ForeignKey,
   Model,
   Table,
-} from 'sequelize-typescript';
-import { Album } from '../music/Album.model';
-import { Collection } from './Collection.model';
+} from "sequelize-typescript";
+import { Album } from "../music/Album.model";
+import { Collection } from "./Collection.model";
 
-@Table({ tableName: 'Collection_Album', timestamps: false })
+@Table({ tableName: "Collection_Album", timestamps: false })
 export class CollectionAlbum extends Model {
   @ForeignKey(() => Collection)
   @Column({
     type: DataType.STRING,
     allowNull: false,
-    field: 'collection_id',
+    field: "collection_id",
+    onDelete: "CASCADE",
   })
   collectionId!: string;
 
@@ -22,7 +23,8 @@ export class CollectionAlbum extends Model {
   @Column({
     type: DataType.STRING,
     allowNull: false,
-    field: 'album_id',
+    field: "album_id",
+    onDelete: "CASCADE",
   })
   albumId!: string;
 }

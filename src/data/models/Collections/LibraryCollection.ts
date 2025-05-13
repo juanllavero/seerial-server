@@ -15,6 +15,7 @@ export class LibraryCollection extends Model {
     type: DataType.STRING,
     allowNull: false,
     field: "library_id",
+    onDelete: "CASCADE",
   })
   libraryId!: string;
 
@@ -23,6 +24,7 @@ export class LibraryCollection extends Model {
     type: DataType.STRING,
     allowNull: false,
     field: "collection_id",
+    onDelete: "CASCADE",
   })
   collectionId!: string;
 }

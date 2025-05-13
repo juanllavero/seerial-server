@@ -24,6 +24,7 @@ export class PlayListItem extends Model {
     type: DataType.INTEGER,
     allowNull: false,
     field: "playlist_id",
+    onDelete: "CASCADE",
   })
   playlistId!: string;
 
@@ -32,6 +33,7 @@ export class PlayListItem extends Model {
     type: DataType.INTEGER,
     allowNull: false,
     field: "song_id",
+    onDelete: "CASCADE",
   })
   songId!: string;
 }
