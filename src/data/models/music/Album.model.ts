@@ -70,10 +70,18 @@ export class Album extends Model {
   })
   coverSrc!: string;
 
-  @BelongsToMany(() => Collection, () => CollectionAlbum)
+  @BelongsToMany(() => Collection, {
+    through: () => CollectionAlbum,
+    onDelete: "CASCADE",
+    hooks: true,
+  })
   collections!: Collection[];
 
-  @BelongsToMany(() => Artist, () => AlbumArtist)
+  @BelongsToMany(() => Artist, {
+    through: () => AlbumArtist,
+    onDelete: "CASCADE",
+    hooks: true,
+  })
   artists!: Artist[];
 
   @HasMany(() => Song)

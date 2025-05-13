@@ -294,7 +294,11 @@ export class Movie extends Model {
   })
   folder!: string;
 
-  @BelongsToMany(() => Collection, () => CollectionMovie)
+  @BelongsToMany(() => Collection, {
+    through: () => CollectionMovie,
+    onDelete: "CASCADE",
+    hooks: true,
+  })
   collections!: Collection[];
 
   @HasMany(() => Video, { foreignKey: "movieId", as: "videos" })

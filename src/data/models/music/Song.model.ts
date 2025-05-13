@@ -81,7 +81,11 @@ export class Song extends Model {
   })
   artists!: string[];
 
-  @BelongsToMany(() => PlayList, () => PlayListItem)
+  @BelongsToMany(() => PlayList, {
+    through: () => PlayListItem,
+    onDelete: "CASCADE",
+    hooks: true,
+  })
   playLists!: PlayList[];
 }
 [];

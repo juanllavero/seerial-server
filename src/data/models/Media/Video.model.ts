@@ -159,6 +159,20 @@ export class Video extends Model {
   chapters?: Chapter[];
 
   @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+    field: "selected_audio_track",
+  })
+  selectedAudioTrack?: number;
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: true,
+    field: "selected_subtitle_track",
+  })
+  selectedSubtitleTrack?: number;
+
+  @Column({
     type: DataType.STRING,
     allowNull: true,
     field: "extra_type",
@@ -174,7 +188,12 @@ export class Video extends Model {
   })
   episodeId?: string;
 
-  @BelongsTo(() => Movie, { foreignKey: "movieId", as: "movie" })
+  @BelongsTo(() => Movie, {
+    foreignKey: "movieId",
+    as: "movie",
+    onDelete: "CASCADE",
+    hooks: true,
+  })
   movie?: Movie;
 
   @Column({
@@ -185,7 +204,12 @@ export class Video extends Model {
   })
   movieId?: string;
 
-  @BelongsTo(() => Movie, { foreignKey: "extraId", as: "extra" })
+  @BelongsTo(() => Movie, {
+    foreignKey: "extraId",
+    as: "extra",
+    onDelete: "CASCADE",
+    hooks: true,
+  })
   extra?: Movie;
 
   @Column({
@@ -204,6 +228,9 @@ export class Video extends Model {
   })
   continueWatchingId?: string;
 
-  @BelongsTo(() => ContinueWatching)
+  @BelongsTo(() => ContinueWatching, {
+    onDelete: "CASCADE",
+    hooks: true,
+  })
   continueWatching?: ContinueWatching;
 }

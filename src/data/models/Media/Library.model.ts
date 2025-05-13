@@ -132,6 +132,10 @@ export class Library extends Model {
   @HasMany(() => Album)
   albums!: Album[];
 
-  @BelongsToMany(() => Collection, () => LibraryCollection)
+  @BelongsToMany(() => Collection, {
+    through: () => LibraryCollection,
+    onDelete: "CASCADE",
+    hooks: true,
+  })
   collections!: Collection[];
 }

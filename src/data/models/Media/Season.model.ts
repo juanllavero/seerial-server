@@ -138,34 +138,6 @@ export class Season extends Model {
   musicSrc!: string;
 
   @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    field: "audio_track_language",
-  })
-  audioTrackLanguage?: string;
-
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: true,
-    field: "selected_audio_track",
-  })
-  selectedAudioTrack?: number;
-
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    field: "subtitle_track_language",
-  })
-  subtitleTrackLanguage?: string;
-
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: true,
-    field: "selected_subtitle_track",
-  })
-  selectedSubtitleTrack?: number;
-
-  @Column({
     type: DataType.BOOLEAN,
     allowNull: false,
     defaultValue: false,

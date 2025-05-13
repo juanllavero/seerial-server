@@ -312,6 +312,8 @@ export class Utils {
         video.chapters = await this.getChapters(video);
       }
 
+      await video.save();
+
       return video;
     } catch (err) {
       console.log("Failed to get media info", { error: err });

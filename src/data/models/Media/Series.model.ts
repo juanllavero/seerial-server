@@ -247,6 +247,15 @@ export class Series extends Model {
   })
   currentlyWatchingEpisodeId!: string;
 
+  @Column({ type: DataType.STRING, allowNull: true, field: "prefer_audio_lan" })
+  preferAudioLan?: string;
+
+  @Column({ type: DataType.STRING, allowNull: true, field: "prefer_sub_lan" })
+  preferSubLan?: string;
+
+  @Column({ type: DataType.STRING, allowNull: true, field: "subs_mode" })
+  subsMode?: string;
+
   @Column({
     type: DataType.BOOLEAN,
     defaultValue: false,
@@ -254,7 +263,11 @@ export class Series extends Model {
   })
   watched!: boolean;
 
-  @BelongsToMany(() => Collection, () => CollectionSeries)
+  @BelongsToMany(() => Collection, {
+    through: () => CollectionSeries,
+    onDelete: "CASCADE",
+    hooks: true,
+  })
   collections!: Collection[];
 
   @HasMany(() => Season)

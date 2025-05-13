@@ -86,15 +86,31 @@ export class Collection extends Model {
   })
   backgroundsUrls!: string[];
 
-  @BelongsToMany(() => Library, () => LibraryCollection)
+  @BelongsToMany(() => Library, {
+    through: () => LibraryCollection,
+    onDelete: "CASCADE",
+    hooks: true,
+  })
   libraries!: Library[];
 
-  @BelongsToMany(() => Movie, () => CollectionMovie)
+  @BelongsToMany(() => Movie, {
+    through: () => CollectionMovie,
+    onDelete: "CASCADE",
+    hooks: true,
+  })
   movies!: Movie[];
 
-  @BelongsToMany(() => Series, () => CollectionSeries)
+  @BelongsToMany(() => Series, {
+    through: () => CollectionSeries,
+    onDelete: "CASCADE",
+    hooks: true,
+  })
   shows!: Series[];
 
-  @BelongsToMany(() => Album, () => CollectionAlbum)
+  @BelongsToMany(() => Album, {
+    through: () => CollectionAlbum,
+    onDelete: "CASCADE",
+    hooks: true,
+  })
   albums!: Album[];
 }

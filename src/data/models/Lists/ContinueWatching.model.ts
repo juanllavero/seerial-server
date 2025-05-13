@@ -27,6 +27,9 @@ export class ContinueWatching extends Model {
   })
   videoId!: string;
 
-  @BelongsTo(() => Video)
+  @BelongsTo(() => Video, {
+    onDelete: "CASCADE",
+    hooks: true,
+  })
   video!: Video;
 }

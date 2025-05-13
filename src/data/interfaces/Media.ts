@@ -78,6 +78,10 @@ export interface Series {
   genresLock: boolean;
   cast: Cast[];
 
+  preferAudioLan?: string;
+  preferSubLan?: string;
+  subsMode?: string;
+
   folder: string;
   episodeGroupId: string;
   analyzingFiles: boolean;
@@ -105,11 +109,6 @@ export interface Season {
   backgroundsUrls: string[];
   videoSrc: string;
   musicSrc: string;
-
-  audioTrackLanguage?: string;
-  selectedAudioTrack?: number;
-  subtitleTrackLanguage?: string;
-  selectedSubtitleTrack?: number;
   watched: boolean;
 
   episodes: Episode[];
@@ -199,6 +198,9 @@ export interface Video {
   subtitleTracks?: SubtitleTrack[];
   audioTracks?: AudioTrack[];
   chapters?: Chapter[];
+
+  selectedAudioTrack?: number;
+  selectedSubtitleTrack?: number;
 
   extraType?: string;
 

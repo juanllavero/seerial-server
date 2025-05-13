@@ -25,6 +25,10 @@ export class Artist extends Model {
   })
   name!: string;
 
-  @BelongsToMany(() => Album, () => AlbumArtist)
+  @BelongsToMany(() => Album, {
+    through: () => AlbumArtist,
+    onDelete: "CASCADE",
+    hooks: true,
+  })
   albums!: Album[];
 }
