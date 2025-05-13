@@ -1,22 +1,15 @@
 import DropdownWrapper from '@/components/DropdownWrapper'
 import Loading from '@/components/Loading'
-import NotFound from '@/components/NotFound'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { PlayIcon } from '@/components/ui/IconLibrary'
-import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { Video } from '@/data/interfaces/Media'
 import { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
-import {
-  formatTime,
-  getAudioTrack,
-  getOnlyYear,
-  getSubtitleTrack,
-} from '@/utils/ReactUtils'
+import { formatTime, getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
 import { fetcher } from '@/utils/utils'
 import { TrackNextIcon, TrackPreviousIcon } from '@radix-ui/react-icons'
-import { useNavigate, useParams } from '@tanstack/react-router'
+import { useParams, useRouter } from '@tanstack/react-router'
 import {
   Captions,
   ChevronLeft,
@@ -33,16 +26,34 @@ import useSWR from 'swr'
 import HTMLVideoPlayer from './components/HTMLVideoPlayer'
 import './VideoPlayerPage.css'
 
+interface VideoInfo {
+  title: string
+  subtitle: string
+  preferAudioLan: string
+  preferSubtitleLan: string
+  subsMode: string
+}
+
 function VideoPlayerPage() {
-  const { selectLibrary, selectSeries, selectSeason } = useDataStore()
   const { serverIP } = useServerStore()
-  const navigate = useNavigate()
+  const router = useRouter()
   const { videoId } = useParams({
     from: '/video-player/$videoId',
   })
 
-  const { data: video, isLoading } = useSWR<Video>(
-    `http://${serverIP}/details/video?id=${videoId}`,
+  // Get video data
+  const {
+    data: video,
+    isLoading: loadingVideo,
+    mutate,
+  } = useSWR<Video>(
+    videoId ? `http://${serverIP}/details/video?id=${videoId}` : null,
+    fetcher,
+  )
+
+  // Get library data
+  const { data: videoInfo, isLoading: loadingVideoInfo } = useSWR<VideoInfo>(
+    videoId ? `http://${serverIP}/videoInfo?id=${videoId}` : null,
     fetcher,
   )
 
@@ -67,10 +78,11 @@ function VideoPlayerPage() {
   const [wasPaused, setWasPaused] = useState(false)
   const [isScrubbing, setIsScrubbing] = useState(false)
 
-  const [selectedAudio, setSelectedAudio] = useState<AudioTrack | null>(
-    video?.audioTracks?.find((track) => track.selected) || null,
-  )
-  const [selectedSubtitle, setSelectedSubtitle] =
+  const [selectedAudioTrack, setSelectedAudioTrack] =
+    useState<AudioTrack | null>(
+      video?.audioTracks?.find((track) => track.selected) || null,
+    )
+  const [selectedSubtitleTrack, setSelectedSubtitleTrack] =
     useState<SubtitleTrack | null>(
       video?.subtitleTracks?.find((track) => track.selected) || null,
     )
@@ -113,29 +125,25 @@ function VideoPlayerPage() {
     }
   }
 
-  const handleGoBack = () => {
+  const handleGoBack = async () => {
     if (!video) return
 
     setVideoLoaded(false)
     setIsPlaying(false)
 
-    // updateEpisode({
-    //   libraryId: selectedLibrary?.id ?? '',
-    //   showId: selectedSeries?.id ?? '',
-    //   episode: {
-    //     ...episode,
-    //     timeWatched: currentTime,
-    //     watched: currentTime > episode.runtimeInSeconds * 0.9,
-    //   },
-    // })
+    await fetch(`http://${serverIP}/updateWatchState`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        videoId: video.id,
+        timeWatched: currentTime,
+        watched: currentTime > (video.runtime / 60) * 0.9,
+      }),
+    })
 
-    // navigate({
-    //   to: '/details/$libraryId/$seriesId',
-    //   params: {
-    //     libraryId: selectedLibrary?.id ?? '',
-    //     seriesId: selectedSeries?.id ?? '',
-    //   },
-    // })
+    router.history.back()
   }
 
   const handleVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -333,7 +341,7 @@ function VideoPlayerPage() {
   }, [])
 
   useEffect(() => {
-    if (!video) return
+    if (!video || !videoInfo) return
 
     const fetchData = async () => {
       const result = await fetch(`http://${serverIP}/updateMediaInfo`, {
@@ -352,127 +360,45 @@ function VideoPlayerPage() {
 
       const data = await result.json()
 
-      // updateEpisode({
-      //   libraryId: selectedLibrary.id,
-      //   showId: selectedSeries.id,
-      //   episode: data,
-      // })
-
-      const audioTrack = getAudioTrack(
-        selectedLibrary,
-        selectedSeason,
-        data.audioTracks,
-      )
+      const audioTrack = getAudioTrack(videoInfo.preferAudioLan, video)
       const subtitleTrack = getSubtitleTrack(
-        selectedLibrary,
-        selectedSeason,
-        data.subtitleTracks,
+        videoInfo.preferSubtitleLan,
+        videoInfo.subsMode,
+        video,
       )
       const videoTrack = data.videoTracks[0] ?? null
 
-      if (videoTrack) {
-        for (const videoTrack of episode.videoTracks) {
+      setSelectedAudioTrack(audioTrack)
+      setSelectedSubtitleTrack(subtitleTrack)
+
+      if (videoTrack && video.videoTracks) {
+        for (const videoTrack of video.videoTracks) {
           videoTrack.selected = false
         }
         videoTrack.selected = true
       }
 
-      if (audioTrack) {
-        for (const audioTrack of episode.audioTracks) {
+      if (audioTrack && video.audioTracks) {
+        for (const audioTrack of video.audioTracks) {
           audioTrack.selected = false
         }
         audioTrack.selected = true
       }
 
-      if (subtitleTrack) {
-        for (const subTrack of episode.subtitleTracks) {
+      if (subtitleTrack && video.subtitleTracks) {
+        for (const subTrack of video.subtitleTracks) {
           subTrack.selected = false
         }
         subtitleTrack.selected = true
       }
 
-      updateEpisode({
-        libraryId: selectedLibrary.id,
-        showId: selectedSeries.id,
-        episode: {
-          ...episode,
-          videoTracks: episode.videoTracks.map((track) =>
-            track.id === (videoTrack?.id ?? '') ? (videoTrack ?? track) : track,
-          ),
-          audioTracks: episode.audioTracks.map((track) =>
-            track.id === (audioTrack?.id ?? '') ? (audioTrack ?? track) : track,
-          ),
-          subtitleTracks: episode.subtitleTracks.map((track) =>
-            track.id === (subtitleTrack?.id ?? '')
-              ? (subtitleTrack ?? track)
-              : track,
-          ),
-        },
-      })
+      mutate()
     }
 
     fetchData()
-  }, [selectedLibrary, selectedSeries, selectedSeason, episode])
+  }, [videoId])
 
-  //#region CHECK DATA BEFORE LOAD
-  const library = libraries.find((library) => library.id === libraryId)
-
-  if (libraryId !== selectedLibrary?.id) {
-    if (library) {
-      selectLibrary(library)
-    } else {
-      return <NotFound />
-    }
-  }
-
-  if (!selectedLibrary) {
-    return <NotFound />
-  }
-
-  const series = library?.series.find((series) => series.id === seriesId)
-
-  if (seriesId !== selectedSeries?.id) {
-    if (series) {
-      selectSeries(series)
-    } else {
-      return <NotFound />
-    }
-  }
-
-  if (!selectedSeries) {
-    return <NotFound />
-  }
-
-  const season = series?.seasons.find((season) => season.id === seasonId)
-
-  if (seasonId !== selectedSeason?.id) {
-    if (season) {
-      selectSeason(season)
-    } else {
-      return <NotFound />
-    }
-  }
-
-  if (!selectedSeason) {
-    return <NotFound />
-  }
-
-  const episodeToFind = selectedSeason.episodes.find(
-    (episode) => episode.id === episodeId,
-  )
-
-  if (!episodeToFind) {
-    return <NotFound />
-  }
-  //#endregion
-
-  if (
-    !selectedLibrary ||
-    !selectedSeries ||
-    !selectedSeason ||
-    !episode ||
-    !episode.audioTracks
-  ) {
+  if (!video || loadingVideo || loadingVideoInfo) {
     return <Loading />
   }
 
@@ -524,9 +450,7 @@ function VideoPlayerPage() {
               <ChevronLeft />
             </Button>
             <span className="text-xl font-semibold">
-              {selectedLibrary?.type === 'Movies'
-                ? `${selectedSeason?.name} (${getOnlyYear(selectedSeason?.year ?? '')})`
-                : `${selectedSeries?.name} S${episode.seasonNumber}E${episode.episodeNumber} - ${episode.name}`}
+              {videoInfo?.title} {videoInfo?.subtitle}
             </span>
           </FlexBox>
           <Button
@@ -542,9 +466,11 @@ function VideoPlayerPage() {
 
         {/* Video Player */}
         <HTMLVideoPlayer
-          url={episode.videoSrc}
+          url={video.fileSrc}
           start={videoStart}
-          audioTrack={selectedAudio ? selectedAudio.id - 1 : undefined}
+          audioTrack={
+            selectedAudioTrack ? selectedAudioTrack.id - 1 : undefined
+          }
           videoRef={videoRef}
         />
 
@@ -619,58 +545,62 @@ function VideoPlayerPage() {
               </span>
             </FlexBox>
             <FlexBox gap={0.5}>
-              <DropdownWrapper
-                content={{
-                  items: [
-                    {
-                      items: episode.audioTracks.map((track) => ({
-                        title: `${track.displayTitle} (${track.language})`,
-                        action: () => {
-                          setSelectedAudio(track)
-                          setVideoStart(currentTime)
+              {video.audioTracks && video.subtitleTracks && (
+                <>
+                  <DropdownWrapper
+                    content={{
+                      items: [
+                        {
+                          items: video.audioTracks.map((track) => ({
+                            title: `${track.displayTitle} (${track.language})`,
+                            action: () => {
+                              setSelectedAudioTrack(track)
+                              setVideoStart(currentTime)
+                            },
+                          })),
                         },
-                      })),
-                    },
-                  ],
-                }}
-                button={
-                  <Button
-                    variant={'ghost'}
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation()
+                      ],
                     }}
-                  >
-                    <Music2 />
-                  </Button>
-                }
-              />
-              <DropdownWrapper
-                content={{
-                  items: [
-                    {
-                      items: episode.subtitleTracks.map((track) => ({
-                        title: `${track.displayTitle} (${track.language})`,
-                        action: () => {
-                          setSelectedSubtitle(track)
+                    button={
+                      <Button
+                        variant={'ghost'}
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                        }}
+                      >
+                        <Music2 />
+                      </Button>
+                    }
+                  />
+                  <DropdownWrapper
+                    content={{
+                      items: [
+                        {
+                          items: video.subtitleTracks.map((track) => ({
+                            title: `${track.displayTitle} (${track.language})`,
+                            action: () => {
+                              setSelectedSubtitleTrack(track)
+                            },
+                          })),
                         },
-                      })),
-                    },
-                  ],
-                }}
-                button={
-                  <Button
-                    className="show-controls"
-                    variant={'ghost'}
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation()
+                      ],
                     }}
-                  >
-                    <Captions />
-                  </Button>
-                }
-              />
+                    button={
+                      <Button
+                        className="show-controls"
+                        variant={'ghost'}
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                        }}
+                      >
+                        <Captions />
+                      </Button>
+                    }
+                  />
+                </>
+              )}
               <FlexBox align="center" justify="center">
                 <Button
                   className="show-controls"

@@ -1,5 +1,4 @@
-import { Library, Season } from '@/data/interfaces/Media'
-import { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
+import { Video } from '@/data/interfaces/Media'
 import { extractColors } from 'extract-colors'
 import { toast } from 'sonner'
 
@@ -131,66 +130,54 @@ export const getEpisodeGroupType = (type: number) => {
   }
 }
 
-export const getAudioTrack = (
-  library: Library,
-  season: Season,
-  audioTracks: AudioTrack[],
-) => {
+export const getAudioTrack = (prefAudioLan: string, video: Video) => {
+  if (!video.audioTracks || video.audioTracks.length === 0) return null
+
   if (
-    season.selectedAudioTrack &&
-    season.selectedAudioTrack !== -1 &&
-    season.selectedAudioTrack < audioTracks.length
+    video.selectedAudioTrack &&
+    video.selectedAudioTrack !== -1 &&
+    video.selectedAudioTrack < video.audioTracks.length
   ) {
-    return audioTracks[season.selectedAudioTrack]
+    return video.audioTracks[video.selectedAudioTrack]
   } else {
-    if (season.audioTrackLanguage !== '') {
-      const track = audioTracks.find(
-        (track) => track.language === season.audioTrackLanguage,
+    if (prefAudioLan !== '') {
+      const track = video.audioTracks.find(
+        (track) => track.language === prefAudioLan,
       )
       if (track) return track
     }
 
-    const prefAudioLan = library.preferAudioLan
-
-    const track = audioTracks.find((track) => track.language === prefAudioLan)
-    if (track) return track
-
-    return audioTracks[0]
+    return video.audioTracks[0]
   }
 }
 
 export const getSubtitleTrack = (
-  library: Library,
-  season: Season,
-  subtitleTracks: SubtitleTrack[],
+  prefSubsLan: string,
+  subsMode: string,
+  video: Video,
 ) => {
-  if (
-    season.selectedSubtitleTrack &&
-    season.selectedSubtitleTrack !== -1 &&
-    season.selectedSubtitleTrack < subtitleTracks.length
-  ) {
-    return subtitleTracks[season.selectedSubtitleTrack]
-  } else {
-    const subsMode = library.subsMode
-    const prefSubsLan = library.preferSubLan
+  if (!video.subtitleTracks || video.subtitleTracks.length === 0) return null
 
+  if (
+    video.selectedSubtitleTrack &&
+    video.selectedSubtitleTrack !== -1 &&
+    video.selectedSubtitleTrack < video.subtitleTracks.length
+  ) {
+    return video.subtitleTracks[video.selectedSubtitleTrack]
+  } else {
     switch (subsMode) {
       case 'autoSubs':
-        if (prefSubsLan === season.subtitleTrackLanguage) {
-          const track = subtitleTracks.find(
+        return (
+          video.subtitleTracks.find(
             (track) => track.language === prefSubsLan,
-          )
-          if (track) return track
-        }
-
-        return null
-      case 'alwaysSubs':
-        const track = subtitleTracks.find(
-          (track) => track.language === prefSubsLan,
+          ) ?? null
         )
-        if (track) return track
-
-        return null
+      case 'alwaysSubs':
+        return (
+          video.subtitleTracks.find(
+            (track) => track.language === prefSubsLan,
+          ) ?? null
+        )
       default:
         return null
     }
