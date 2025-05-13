@@ -5,6 +5,7 @@ import { Library } from '@/data/interfaces/Media'
 import { useNavigate } from '@tanstack/react-router'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { mutate } from 'swr'
 import { ModalWrapper } from '../../ModalWrapper'
 import AdvancedTabContent from './AdvancedTabContent'
 import FoldersTabContent from './FoldersTabContent'
@@ -74,6 +75,8 @@ function LibraryDialog({ library }: LibraryDialogProps) {
     closeLibraryDialog()
 
     if (!response.ok) return
+
+    mutate((key: string) => key.startsWith(`http://${serverIP}/libraries`))
 
     const data = await response.json()
     const libraryId = data.id
