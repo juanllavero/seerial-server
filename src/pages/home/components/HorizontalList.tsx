@@ -1,3 +1,4 @@
+import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -13,6 +14,8 @@ function HorizontalList({ title, children }: HorizontalListProps) {
   const [showButtons, setShowButtons] = useState(false)
   const [disableLeft, setDisableLeft] = useState(true)
   const [disableRight, setDisableRight] = useState(false)
+
+  const isMobile = useIsMobile()
 
   const updateButtonVisibility = () => {
     if (scrollContainerRef.current) {
@@ -64,7 +67,7 @@ function HorizontalList({ title, children }: HorizontalListProps) {
   }
 
   return (
-    <FlexBox direction="column" gap={0.5} width={'100%'}>
+    <FlexBox direction="column" gap={isMobile ? 1.5 : 0.5} width={'100%'}>
       <FlexBox
         justify="space-between"
         gap={1}

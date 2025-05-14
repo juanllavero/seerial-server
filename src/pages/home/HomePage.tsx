@@ -12,9 +12,11 @@ import HorizontalList from './components/HorizontalList'
 import NoAPIKey from './components/NoAPIKey'
 import NoContent from './components/NoContent'
 import NoServer from './components/NoServer'
+import { useNavigate } from '@tanstack/react-router'
 
 export default function HomePage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const { serverIP, serverStatus, apiKeyStatus, getServerStatus } =
     useServerStore()
   const { selectLibrary, isContent, loadingContent } = useDataStore()
@@ -55,6 +57,12 @@ export default function HomePage() {
     return <NoContent />
   }
 
+  const goToContent = (url: string) => {
+    navigate({
+      to: url,
+    })
+  }
+
   return (
     <FlexBox
       direction="column"
@@ -79,7 +87,11 @@ export default function HomePage() {
               width={380}
               title={video.title}
               subtitle={'Not yet'}
-              action={function (): void {}}
+              action={() =>
+                goToContent(
+                  `/details/${video.episodeId ? 'episode' : 'movie'}/${video.episodeId ? video.episodeId : video.movieId}`,
+                )
+              }
             />
           ))}
         </HorizontalList>
@@ -96,7 +108,8 @@ export default function HomePage() {
               aspectRatio={2 / 3}
               title={series.name}
               subtitle={series.year}
-              action={function (): void {}}
+              hidePlayButton
+              action={() => goToContent(`/details/series/${series.id}`)}
             />
           ))}
         </HorizontalList>
@@ -113,7 +126,8 @@ export default function HomePage() {
               aspectRatio={2 / 3}
               title={movie.name}
               subtitle={movie.year}
-              action={function (): void {}}
+              hidePlayButton
+              action={() => goToContent(`/details/movie/${movie.id}`)}
             />
           ))}
         </HorizontalList>

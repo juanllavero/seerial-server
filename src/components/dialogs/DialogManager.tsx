@@ -7,6 +7,7 @@ import LibraryDialog from './library/LibraryDialog'
 import MovieDialog from './movie/MovieDialog'
 import RemoveLibraryDialog from './remove/RemoveLibraryDialog'
 import SeasonDialog from './season/SeasonDialog'
+import CollectionDialog from './collection/CollectionDIalog'
 
 function DialogManager() {
   return (
@@ -16,6 +17,7 @@ function DialogManager() {
       <RemoveLibraryDialog />
 
       {/* Collection Dialogs */}
+      <CollectionDialog />
 
       {/* Movie Dialogs */}
       <MovieDialog />

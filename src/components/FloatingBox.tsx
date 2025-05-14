@@ -104,7 +104,7 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
     >
       {!inPlayer && (
         <Card>
-          <CardHeader className="flex flex-row flex-nowrap justify-start p-3">
+          <CardHeader className="flex flex-row flex-nowrap justify-between p-3">
             {isLoading ? (
               <Loading />
             ) : (

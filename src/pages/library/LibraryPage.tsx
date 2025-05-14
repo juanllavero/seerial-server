@@ -76,6 +76,8 @@ function LibraryPage() {
         padding="8rem 1rem"
         height={'100%'}
         scroll="vertical"
+        justifyContent="start"
+        alignItems="start"
         hideScrollbar
       >
         <ItemsList />

@@ -6,7 +6,7 @@ import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { Episode, Season } from '@/data/interfaces/Media'
 import { useNavigate } from '@tanstack/react-router'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import EpisodeCard from './cards/EpisodeCard'
 import EpisodeCardDetails from './cards/EpisodeCardDetails'
@@ -23,6 +23,12 @@ function SeasonContent({ seasonList, season }: SeasonContentProps) {
   const { serverIP } = useServerStore()
   const [distribution, setDistribution] = React.useState(0)
   const isMobile = useIsMobile()
+
+  useEffect(() => {
+    if (isMobile) {
+      setDistribution(0)
+    }
+  }, [isMobile])
 
   const getEpisodeMenu = (episode: Episode) => {
     return {
@@ -107,21 +113,23 @@ function SeasonContent({ seasonList, season }: SeasonContentProps) {
           <span>{t('episodes')}</span>
         </FlexBox>
 
-        <SelectableWrapper
-          defaultValue={'Cuadrícula'}
-          width="w-fit"
-          options={[
-            {
-              key: '0',
-              value: 'Cuadrícula',
-            },
-            {
-              key: '1',
-              value: 'Detalles',
-            },
-          ]}
-          onValueChange={selectDistributionOption}
-        />
+        {!isMobile && (
+          <SelectableWrapper
+            defaultValue={'Cuadrícula'}
+            width="w-fit"
+            options={[
+              {
+                key: '0',
+                value: 'Cuadrícula',
+              },
+              {
+                key: '1',
+                value: 'Detalles',
+              },
+            ]}
+            onValueChange={selectDistributionOption}
+          />
+        )}
       </FlexBox>
       {season.episodes && season.episodes.length > 0 && (
         <>
