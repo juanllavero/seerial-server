@@ -48,7 +48,7 @@ function ImageListTab({
     const fetchLocalImages = async () => {
       try {
         const response = await fetch(
-          `http://${serverIP}/images?path=${localFolder}`,
+          `https://${serverIP}/images?path=${localFolder}`,
         )
         const data = await response.json()
         setLocalImages(data)
@@ -101,7 +101,7 @@ function ImageListTab({
     formData.append('image', file)
 
     try {
-      const response = await fetch(`http://${serverIP}/uploadImage`, {
+      const response = await fetch(`https://${serverIP}/uploadImage`, {
         method: 'POST',
         body: formData,
       })
@@ -122,7 +122,7 @@ function ImageListTab({
     setIsUploading(true)
 
     try {
-      const response = await fetch(`http://${serverIP}/downloadImage`, {
+      const response = await fetch(`https://${serverIP}/downloadImage`, {
         method: 'POST',
         body: JSON.stringify({
           url: url,

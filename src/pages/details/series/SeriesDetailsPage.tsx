@@ -42,7 +42,7 @@ function SeriesDetailsPage() {
     isLoading: loadingSeries,
     mutate: mutateSeries,
   } = useSWR<Series>(
-    seriesId ? `http://${serverIP}/details/series?id=${seriesId}` : null,
+    seriesId ? `https://${serverIP}/details/series?id=${seriesId}` : null,
     fetcher,
   )
   // Get selected season data
@@ -52,20 +52,20 @@ function SeriesDetailsPage() {
     mutate: mutateSeason,
   } = useSWR<Season>(
     selectedSeasonId
-      ? `http://${serverIP}/details/season?id=${selectedSeasonId}`
+      ? `https://${serverIP}/details/season?id=${selectedSeasonId}`
       : null,
     fetcher,
   )
   // Get current episode
   const { data: episode } = useSWR<Episode>(
     series && series.currentlyWatchingEpisodeId
-      ? `http://${serverIP}/details/episode?id=${series.currentlyWatchingEpisodeId}`
+      ? `https://${serverIP}/details/episode?id=${series.currentlyWatchingEpisodeId}`
       : null,
     fetcher,
   )
   // Get if show is in My List
   const { data: inMyList, mutate: mutateInMyList } = useSWR(
-    series ? `http://${serverIP}/isShowInMyList?seriesId=${series.id}` : null,
+    series ? `https://${serverIP}/isShowInMyList?seriesId=${series.id}` : null,
     fetcher,
   )
 
@@ -161,7 +161,7 @@ function SeriesDetailsPage() {
 
   const toggleSeriesWatched = async () => {
     if (series) {
-      fetch(`http://${serverIP}/setSeriesWatched`, {
+      fetch(`https://${serverIP}/setSeriesWatched`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -179,7 +179,7 @@ function SeriesDetailsPage() {
 
   const toggleSeasonWatched = async () => {
     if (season) {
-      fetch(`http://${serverIP}/setSeasonWatched`, {
+      fetch(`https://${serverIP}/setSeasonWatched`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -197,7 +197,7 @@ function SeriesDetailsPage() {
 
   const toggleMyList = () => {
     if (series) {
-      fetch(`http://${serverIP}/updateSeriesMyList`, {
+      fetch(`https://${serverIP}/updateSeriesMyList`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -289,7 +289,7 @@ function SeriesDetailsPage() {
               onClick={async () => {
                 if (episode) {
                   const response = await fetch(
-                    `http://${serverIP}/video?id=${episode.id}`,
+                    `https://${serverIP}/video?id=${episode.id}`,
                   )
 
                   if (!response.ok) {

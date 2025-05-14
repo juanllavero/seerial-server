@@ -39,7 +39,7 @@ function CollectionDetailsPage() {
     mutate,
   } = useSWR<Collection>(
     collectionId
-      ? `http://${serverIP}/details/collection?id=${collectionId}`
+      ? `https://${serverIP}/details/collection?id=${collectionId}`
       : null,
     fetcher,
   )

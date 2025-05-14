@@ -48,7 +48,7 @@ function CorrectIdentificationSearch() {
 
   const search = (name: string, year: string) => {
     fetch(
-      `http://${serverIP}/${isShow ? 'shows' : 'movies'}/search?name=${name}&year=${year}`,
+      `https://${serverIP}/${isShow ? 'shows' : 'movies'}/search?name=${name}&year=${year}`,
     )
       .then((response) => response.json())
       .then((data) => {
@@ -59,7 +59,7 @@ function CorrectIdentificationSearch() {
 
   const saveIdentification = async (id: number) => {
     await connectWS(serverIP)
-    fetch(`http://${serverIP}/${isShow ? 'updateShowId' : 'updateMovieId'}`, {
+    fetch(`https://${serverIP}/${isShow ? 'updateShowId' : 'updateMovieId'}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

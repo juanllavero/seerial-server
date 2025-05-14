@@ -62,7 +62,7 @@ function SeasonDialog() {
   const handleEditSeason = async () => {
     await connectWS(serverIP)
 
-    const response = await fetch(`http://${serverIP}/season`, {
+    const response = await fetch(`https://${serverIP}/season`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -85,7 +85,9 @@ function SeasonDialog() {
       return
     }
 
-    mutate((key: string) => key.startsWith(`http://${serverIP}/details/season`))
+    mutate((key: string) =>
+      key.startsWith(`https://${serverIP}/details/season`),
+    )
 
     closeSeasonDialog()
   }

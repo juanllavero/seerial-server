@@ -42,12 +42,12 @@ function MovieDetailsPage() {
     isLoading,
     mutate,
   } = useSWR<Movie>(
-    movieId ? `http://${serverIP}/details/movie?id=${movieId}` : null,
+    movieId ? `https://${serverIP}/details/movie?id=${movieId}` : null,
     fetcher,
   )
   // Get if movie is in My List
   const { data: inMyList, mutate: mutateInMyList } = useSWR(
-    movie ? `http://${serverIP}/isMovieInMyList?movieId=${movie.id}` : null,
+    movie ? `https://${serverIP}/isMovieInMyList?movieId=${movie.id}` : null,
     fetcher,
   )
 
@@ -128,7 +128,7 @@ function MovieDetailsPage() {
 
   const toggleMyList = () => {
     if (movie) {
-      fetch(`http://${serverIP}/updateMovieMyList`, {
+      fetch(`https://${serverIP}/updateMovieMyList`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

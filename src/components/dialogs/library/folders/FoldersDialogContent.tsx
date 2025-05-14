@@ -32,7 +32,7 @@ function FoldersDialogContent({
   // Fetch para obtener las unidades de disco
   useEffect(() => {
     fetchData(
-      `http://${serverIP}/drives`,
+      `https://${serverIP}/drives`,
       (data) => setDrives(data as string[]),
       (err) => console.error('Error fetching drives:', err),
     )
@@ -41,7 +41,7 @@ function FoldersDialogContent({
   // Fetch para obtener el contenido de una carpeta
   const fetchFolderContent = async (path: string) => {
     fetchData(
-      `http://${serverIP}/folder/${encodeURIComponent(path)}`,
+      `https://${serverIP}/folder/${encodeURIComponent(path)}`,
       (data) => {
         setFolderContent(data as Folder[])
         setCurrentPath(path)

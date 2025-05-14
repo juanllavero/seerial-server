@@ -42,7 +42,7 @@ function EpisodeDialog() {
 
   const { data: series } = useSWR(
     episode
-      ? `http://${serverIP}/details/seriesBySeasonId?seasonId=${episode.seasonId}`
+      ? `https://${serverIP}/details/seriesBySeasonId?seasonId=${episode.seasonId}`
       : null,
     fetcher,
   )
@@ -68,7 +68,7 @@ function EpisodeDialog() {
   const handleEditEpisode = async () => {
     await connectWS(serverIP)
 
-    const response = await fetch(`http://${serverIP}/episode`, {
+    const response = await fetch(`https://${serverIP}/episode`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

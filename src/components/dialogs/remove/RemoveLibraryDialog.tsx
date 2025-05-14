@@ -22,14 +22,14 @@ function RemoveLibraryDialog() {
       action={async () => {
         connectWS(serverIP)
         await fetch(
-          `http://${serverIP}/libraries/${removeLibraryDialog.libraryToRemove}`,
+          `https://${serverIP}/libraries/${removeLibraryDialog.libraryToRemove}`,
           {
             method: 'DELETE',
           },
         )
 
         // Mutate libraries list
-        mutate((key: string) => key.startsWith(`http://${serverIP}/libraries`))
+        mutate((key: string) => key.startsWith(`https://${serverIP}/libraries`))
 
         navigate({ to: '/' })
         closeRemoveLibraryDialog()

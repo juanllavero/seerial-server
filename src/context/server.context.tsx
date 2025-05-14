@@ -13,7 +13,7 @@ interface ServerState {
 }
 
 export const useServerStore = create<ServerState>((set, get) => ({
-  serverIP: '192.168.100.44:34200',
+  serverIP: localStorage.getItem('serverIP') || '',
   serverStatus: false,
   serverVersion: '0.22.44',
   gettingServerStatus: false,
@@ -21,6 +21,7 @@ export const useServerStore = create<ServerState>((set, get) => ({
   gettingApiKeyStatus: false,
 
   setServerIP: (ip) => {
+    localStorage.setItem('serverIP', ip)
     set({ serverIP: ip })
     get().getServerStatus()
   },
@@ -38,7 +39,7 @@ export const useServerStore = create<ServerState>((set, get) => ({
       ),
     )
 
-    const fetchPromise = fetch(`http://${serverIP}/`).then((res) => res.json())
+    const fetchPromise = fetch(`https://${serverIP}/`).then((res) => res.json())
 
     try {
       const data = await Promise.race([fetchPromise, timeoutPromise])
@@ -60,7 +61,7 @@ export const useServerStore = create<ServerState>((set, get) => ({
 
     set({ gettingApiKeyStatus: true })
 
-    const response = await fetch(`http://${serverIP}/api-key`, {
+    const response = await fetch(`https://${serverIP}/api-key`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ apiKey }),

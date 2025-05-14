@@ -47,13 +47,13 @@ function VideoPlayerPage() {
     isLoading: loadingVideo,
     mutate,
   } = useSWR<Video>(
-    videoId ? `http://${serverIP}/details/video?id=${videoId}` : null,
+    videoId ? `https://${serverIP}/details/video?id=${videoId}` : null,
     fetcher,
   )
 
   // Get video info
   const { data: videoInfo, isLoading: loadingVideoInfo } = useSWR<VideoInfo>(
-    videoId ? `http://${serverIP}/videoInfo?id=${videoId}` : null,
+    videoId ? `https://${serverIP}/videoInfo?id=${videoId}` : null,
     fetcher,
   )
 
@@ -131,7 +131,7 @@ function VideoPlayerPage() {
     setVideoLoaded(false)
     setIsPlaying(false)
 
-    await fetch(`http://${serverIP}/updateWatchState`, {
+    await fetch(`https://${serverIP}/updateWatchState`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -344,7 +344,7 @@ function VideoPlayerPage() {
     if (!video || !videoInfo) return
 
     const fetchData = async () => {
-      const result = await fetch(`http://${serverIP}/updateMediaInfo`, {
+      const result = await fetch(`https://${serverIP}/updateMediaInfo`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

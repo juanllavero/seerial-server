@@ -42,7 +42,7 @@ function HTMLVideoPlayer({
     <div data-vjs-player>
       <video
         ref={videoRef}
-        src={`http://${serverIP}/stream-video?path=${url}${start ? `&start=${start}` : ''}${audioTrack ? `&audio=${audioTrack}` : ''}`}
+        src={`https://${serverIP}/stream-video?path=${url}${start ? `&start=${start}` : ''}${audioTrack ? `&audio=${audioTrack}` : ''}`}
         crossOrigin="anonymous"
         playsInline
         autoPlay

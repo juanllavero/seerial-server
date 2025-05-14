@@ -41,7 +41,7 @@ function MusicControls() {
   // Get Album details
   const { data: album } = useSWR<Album>(
     currentSong
-      ? `http://${serverIP}/details/album?id=${currentSong.albumId}`
+      ? `https://${serverIP}/details/album?id=${currentSong.albumId}`
       : null,
     fetcher,
   )

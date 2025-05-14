@@ -5,6 +5,7 @@ import TagInput from '@/components/ui/tags-input'
 import { t } from 'i18next'
 import React from 'react'
 import LockInput from '../../components/LockInput'
+import { useIsMobile } from '@/components/hooks/use-mobile'
 
 interface EpisodeInfoTabProps {
   name: string
@@ -52,6 +53,7 @@ function EpisodeInfoTab({
   writtenLock,
 }: EpisodeInfoTabProps) {
   const isTablet = useIsTablet()
+  const isMobile = useIsMobile()
   return (
     <FlexBox
       direction="column"
@@ -61,6 +63,7 @@ function EpisodeInfoTab({
       height={isTablet ? '25rem' : '35rem'}
       width={isTablet ? '100%' : '50rem'}
       hideScrollbar={isTablet}
+      scroll="vertical"
     >
       <FlexBox gap={1} width={'100%'} direction={isTablet ? 'column' : 'row'}>
         <LabeledInputWrapper label={t('name')}>
@@ -92,13 +95,26 @@ function EpisodeInfoTab({
         />
       </LabeledInputWrapper>
 
-      <LabeledInputWrapper label={t('directedBy')}>
-        <TagInput value={directedBy} onChange={setDirectedBy} />
-      </LabeledInputWrapper>
+      <FlexBox
+        direction="row"
+        wrap={isMobile ? 'wrap' : 'nowrap'}
+        justify="center"
+        align="center"
+        width={'100%'}
+        gap={1}
+      >
+        <LabeledInputWrapper label={t('directedBy')}>
+          <TagInput
+            value={directedBy}
+            onChange={setDirectedBy}
+            width="w-full"
+          />
+        </LabeledInputWrapper>
 
-      <LabeledInputWrapper label={t('writtenBy')}>
-        <TagInput value={writtenBy} onChange={setWrittenBy} />
-      </LabeledInputWrapper>
+        <LabeledInputWrapper label={t('writtenBy')}>
+          <TagInput value={writtenBy} onChange={setWrittenBy} width="w-full" />
+        </LabeledInputWrapper>
+      </FlexBox>
     </FlexBox>
   )
 }

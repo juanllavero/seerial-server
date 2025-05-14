@@ -11,6 +11,7 @@ interface TagInputProps {
   placeholder?: string
   disabled?: boolean
   maxTags?: number
+  width?: string
 }
 
 export default function TagInput({
@@ -19,6 +20,7 @@ export default function TagInput({
   placeholder = '',
   disabled = false,
   maxTags,
+  width = 'w-auto',
 }: TagInputProps) {
   const [inputValue, setInputValue] = useState('')
   const [isFocused, setIsFocused] = useState(false)
@@ -63,7 +65,7 @@ export default function TagInput({
   return (
     <div
       ref={containerRef}
-      className={`bg-secondary flex min-h-10 flex-wrap items-center gap-2 rounded-md border p-2`}
+      className={`bg-secondary flex min-h-10 flex-wrap items-center gap-2 rounded-md border p-2 ${width}`}
       onClick={handleContainerClick}
     >
       {value.map((tag, index) => (

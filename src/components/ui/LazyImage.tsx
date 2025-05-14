@@ -33,7 +33,7 @@ export default function LazyImage({
     url
       ? url.startsWith('http2')
         ? url
-        : `http://${serverIP}/${url.replace('resources/img', 'img')}`
+        : `https://${serverIP}/${url.replace('resources/img', 'img')}`
       : (src ?? errorSrc),
   )
   const [hasError, setHasError] = useState(false) // New state to track errors
@@ -42,7 +42,7 @@ export default function LazyImage({
     const newSrc = url
       ? url.startsWith('http2')
         ? url
-        : `http://${serverIP}/${url.replace('resources/img', 'img')}`
+        : `https://${serverIP}/${url.replace('resources/img', 'img')}`
       : src
     setImageSrc(newSrc ?? errorSrc)
     setLoaded(false) // Reset loaded to show skeleton while loading new image

@@ -14,7 +14,7 @@ function NextSongs() {
   const { serverIP } = useServerStore()
   const { data: album } = useSWR(
     currentSong
-      ? `http://${serverIP}/details/album?id=${currentSong.albumId}`
+      ? `https://${serverIP}/details/album?id=${currentSong.albumId}`
       : null,
     fetcher,
   )

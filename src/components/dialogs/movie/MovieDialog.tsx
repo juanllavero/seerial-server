@@ -109,7 +109,7 @@ function MovieDialog() {
   const handleEditMovie = async () => {
     await connectWS(serverIP)
 
-    const response = await fetch(`http://${serverIP}/movie`, {
+    const response = await fetch(`https://${serverIP}/movie`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -134,7 +134,7 @@ function MovieDialog() {
       return
     }
 
-    mutate((key: string) => key.startsWith(`http://${serverIP}/details/movie`))
+    mutate((key: string) => key.startsWith(`https://${serverIP}/details/movie`))
 
     closeMovieDialog()
   }

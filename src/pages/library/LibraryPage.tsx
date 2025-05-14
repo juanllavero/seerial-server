@@ -30,7 +30,7 @@ function LibraryPage() {
     isLoading,
     mutate,
   } = useSWR<Library>(
-    libraryId ? `http://${serverIP}/library?id=${libraryId}` : null,
+    libraryId ? `https://${serverIP}/library?id=${libraryId}` : null,
     fetcher,
   )
 

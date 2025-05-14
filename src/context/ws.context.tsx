@@ -119,7 +119,7 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
     await connectWS(serverIP)
 
     try {
-      const response = await fetch(`http://${serverIP}/downloadVideo`, {
+      const response = await fetch(`https://${serverIP}/downloadVideo`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -144,7 +144,7 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
     await connectWS(serverIP)
 
     try {
-      const response = await fetch(`http://${serverIP}/downloadMusic`, {
+      const response = await fetch(`https://${serverIP}/downloadMusic`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

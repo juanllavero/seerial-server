@@ -20,7 +20,17 @@ interface AdvancedTabContentProps {
   close: () => void
 }
 
-function AdvancedTabContent({ preferAudioLan, setPreferAudioLan, preferSubLan, setPreferSubLan, subsMode, setSubsMode, buttonDisabled, handleAddLibrary, close }: AdvancedTabContentProps) {
+function AdvancedTabContent({
+  preferAudioLan,
+  setPreferAudioLan,
+  preferSubLan,
+  setPreferSubLan,
+  subsMode,
+  setSubsMode,
+  buttonDisabled,
+  handleAddLibrary,
+  close,
+}: AdvancedTabContentProps) {
   const { t, i18n } = useTranslation()
   const { serverIP } = useServerStore()
   const { getServerSetting } = useSettingsStore()
@@ -48,12 +58,20 @@ function AdvancedTabContent({ preferAudioLan, setPreferAudioLan, preferSubLan, s
   ]
 
   const getPrefAudioLan = async () => {
-    const prefAudio = await getServerSetting(serverIP, 'preferAudioLan', currentLanguage)
+    const prefAudio = await getServerSetting(
+      serverIP,
+      'preferAudioLan',
+      currentLanguage,
+    )
     return ISO6391.getNativeName(prefAudio.split('-')[0]) || currentLanguage
   }
 
   const getPrefSubLan = async () => {
-    const prefSub = await getServerSetting(serverIP, 'preferSubsLan', currentLanguage)
+    const prefSub = await getServerSetting(
+      serverIP,
+      'preferSubsLan',
+      currentLanguage,
+    )
     return ISO6391.getNativeName(prefSub.split('-')[0]) || currentLanguage
   }
 
@@ -88,7 +106,9 @@ function AdvancedTabContent({ preferAudioLan, setPreferAudioLan, preferSubLan, s
           <SelectableWrapper
             options={languagesOptions}
             defaultValue={preferAudioLan ?? ''}
-            onValueChange={(_key: string, value: string) => setPreferAudioLan(value)}
+            onValueChange={(_key: string, value: string) =>
+              setPreferAudioLan(value)
+            }
           />
         </LabeledInputWrapper>
 
@@ -104,14 +124,20 @@ function AdvancedTabContent({ preferAudioLan, setPreferAudioLan, preferSubLan, s
           <SelectableWrapper
             options={languagesOptions}
             defaultValue={preferSubLan ?? ''}
-            onValueChange={(_key: string, value: string) => setPreferSubLan(value)}
+            onValueChange={(_key: string, value: string) =>
+              setPreferSubLan(value)
+            }
           />
         </LabeledInputWrapper>
       </FlexBox>
 
       <FlexBox width={'100%'} justify="end" gap={1}>
-        <Button variant={'secondary'} onClick={close}>{t('cancelButton')}</Button>
-        <Button onClick={handleAddLibrary} disabled={buttonDisabled}>{t('addButton')}</Button>
+        <Button variant={'secondary'} onClick={close}>
+          {t('cancelButton')}
+        </Button>
+        <Button onClick={handleAddLibrary} disabled={buttonDisabled}>
+          {t('addButton')}
+        </Button>
       </FlexBox>
     </FlexBox>
   )

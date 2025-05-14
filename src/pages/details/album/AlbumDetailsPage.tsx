@@ -31,7 +31,7 @@ function AlbumDetailsPage() {
     isLoading,
     mutate,
   } = useSWR<Album>(
-    albumId ? `http://${serverIP}/details/album?id=${albumId}` : null,
+    albumId ? `https://${serverIP}/details/album?id=${albumId}` : null,
     fetcher,
   )
 

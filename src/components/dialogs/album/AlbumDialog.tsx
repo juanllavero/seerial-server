@@ -51,7 +51,7 @@ function AlbumDialog() {
   const handleEditAlbum = async () => {
     await connectWS(serverIP)
 
-    const response = await fetch(`http://${serverIP}/album`, {
+    const response = await fetch(`https://${serverIP}/album`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -72,7 +72,7 @@ function AlbumDialog() {
       return
     }
 
-    mutate((key: string) => key.startsWith(`http://${serverIP}/details/album`))
+    mutate((key: string) => key.startsWith(`https://${serverIP}/details/album`))
 
     closeAlbumDialog()
   }

@@ -36,7 +36,7 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
   const isMobile = useIsMobile()
 
   const { data: libraries, isLoading } = useSWR<Library[]>(
-    `http://${serverIP}/libraries/`,
+    `https://${serverIP}/libraries/`,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -67,7 +67,7 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
               action: async () => {
                 await connectWS(serverIP)
                 fetch(
-                  `http://${serverIP}/library/search?libraryId=${selectedLibraryId}`,
+                  `https://${serverIP}/library/search?libraryId=${selectedLibraryId}`,
                 )
               },
             },
@@ -76,7 +76,7 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
               action: async () => {
                 await connectWS(serverIP)
                 fetch(
-                  `http://${serverIP}/library/updateMetadata?libraryId=${selectedLibraryId}`,
+                  `https://${serverIP}/library/updateMetadata?libraryId=${selectedLibraryId}`,
                 )
               },
             },

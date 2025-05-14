@@ -62,7 +62,7 @@ function SeasonContent({ seasonList, season }: SeasonContentProps) {
 
   const playEpisode = async (episodeId: Episode) => {
     const response = await fetch(
-      `http://${serverIP}/episode-video?episodeId=${episodeId.id}`,
+      `https://${serverIP}/episode-video?episodeId=${episodeId.id}`,
     )
 
     if (!response.ok) {

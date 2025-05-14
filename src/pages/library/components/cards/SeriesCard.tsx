@@ -62,7 +62,7 @@ function SeriesCard({ series }: SeriesCardProps) {
 
   const getRemainingEpisodes = async () => {
     const response = await fetch(
-      `http://${serverIP}/remaining-episodes?seriesId=${series.id}`,
+      `https://${serverIP}/remaining-episodes?seriesId=${series.id}`,
     )
 
     if (!response.ok) {

@@ -23,7 +23,7 @@ function CollectionCard({ collection, type }: CollectionCardProps) {
   const navigate = useNavigate()
 
   const { data: collectionDetails, isLoading } = useSWR(
-    `http://${serverIP}/details/collection?id=${collection.id}`,
+    `https://${serverIP}/details/collection?id=${collection.id}`,
     fetcher,
   )
 

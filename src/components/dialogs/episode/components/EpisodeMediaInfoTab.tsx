@@ -33,7 +33,7 @@ function EpisodeMediaInfoTab({ video, setEpisode }: EpisodeMediaInfoTabProps) {
 
   // Get video info
   const { data: videoInfo } = useSWR<VideoInfo>(
-    video.id ? `http://${serverIP}/videoInfo?id=${video.id}` : null,
+    video.id ? `https://${serverIP}/videoInfo?id=${video.id}` : null,
     fetcher,
   )
 
@@ -44,7 +44,7 @@ function EpisodeMediaInfoTab({ video, setEpisode }: EpisodeMediaInfoTabProps) {
       setLoaded(false)
 
       const attemptFetch = async () => {
-        const result = await fetch(`http://${serverIP}/updateMediaInfo`, {
+        const result = await fetch(`https://${serverIP}/updateMediaInfo`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

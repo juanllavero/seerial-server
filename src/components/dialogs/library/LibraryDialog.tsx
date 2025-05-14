@@ -64,7 +64,7 @@ function LibraryDialog({ library }: LibraryDialogProps) {
       subsMode,
     }
 
-    const response = await fetch(`http://${serverIP}/addLibrary`, {
+    const response = await fetch(`https://${serverIP}/addLibrary`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -77,7 +77,7 @@ function LibraryDialog({ library }: LibraryDialogProps) {
     if (!response.ok) return
 
     // Mutate libraries list
-    mutate((key: string) => key.startsWith(`http://${serverIP}/libraries`))
+    mutate((key: string) => key.startsWith(`https://${serverIP}/libraries`))
 
     const data = await response.json()
     const libraryId = data.id

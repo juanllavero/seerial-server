@@ -22,19 +22,20 @@ export default function HomePage() {
   // Get Continue Watching items
   const { data: continueWatching, isLoading: loadingContinueWatching } = useSWR<
     Video[]
-  >(`http://${serverIP}/continueWatching`, fetcher)
+  >(`https://${serverIP}/continueWatching`, fetcher)
 
   // Get Shows in My List
   const { data: showsInMyList, isLoading: loadingShowsInMyList } = useSWR<
     Series[]
-  >(`http://${serverIP}/myListSeries`, fetcher)
+  >(`https://${serverIP}/myListSeries`, fetcher)
 
   // Get Movies in My List
   const { data: moviesInMyList, isLoading: loadingMoviesInMyList } = useSWR<
     Movie[]
-  >(`http://${serverIP}/myListMovies`, fetcher)
+  >(`https://${serverIP}/myListMovies`, fetcher)
 
   useEffect(() => {
+    getServerStatus()
     selectLibrary(null)
   }, [])
 

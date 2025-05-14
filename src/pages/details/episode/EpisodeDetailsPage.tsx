@@ -29,7 +29,7 @@ function EpisodeDetailsPage() {
     isLoading,
     mutate,
   } = useSWR(
-    episodeId ? `http://${serverIP}/details/episode?id=${episodeId}` : null,
+    episodeId ? `https://${serverIP}/details/episode?id=${episodeId}` : null,
     fetcher,
   )
 
@@ -51,7 +51,7 @@ function EpisodeDetailsPage() {
     if (!episode) return
 
     const fetchData = async () => {
-      const result = await fetch(`http://${serverIP}/updateMediaInfo`, {
+      const result = await fetch(`https://${serverIP}/updateMediaInfo`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
