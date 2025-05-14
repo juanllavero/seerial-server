@@ -92,22 +92,6 @@ export class Season extends Model {
   @Column({
     type: DataType.STRING,
     allowNull: false,
-    field: "cover_src",
-    defaultValue: "",
-  })
-  coverSrc!: string;
-
-  @Column({
-    type: DataType.JSON,
-    allowNull: false,
-    field: "covers_urls",
-    defaultValue: [],
-  })
-  coversUrls!: string[];
-
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
     field: "background_src",
     defaultValue: "",
   })

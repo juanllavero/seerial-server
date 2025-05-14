@@ -103,8 +103,6 @@ export interface Season {
   overviewLock: boolean;
   seasonNumber: number;
 
-  coverSrc: string;
-  coversUrls: string[];
   backgroundSrc: string;
   backgroundsUrls: string[];
   videoSrc: string;

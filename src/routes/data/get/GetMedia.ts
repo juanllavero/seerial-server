@@ -147,6 +147,20 @@ router.get("/details/series", async (req, res) => {
   res.json(await getSeriesById(id as string));
 });
 
+router.get("/details/seriesBySeasonId", async (req, res) => {
+  const { seasonId } = req.query;
+
+  if (!seasonId || seasonId === "") return;
+
+  await SequelizeManager.initializeDB();
+
+  const season = await getSeasonById(seasonId as string);
+
+  if (!season) return;
+
+  res.json(await getSeriesById(season.seriesId));
+});
+
 router.get("/details/season", async (req, res) => {
   const { id } = req.query;
 
