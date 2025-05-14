@@ -51,7 +51,7 @@ function VideoPlayerPage() {
     fetcher,
   )
 
-  // Get library data
+  // Get video info
   const { data: videoInfo, isLoading: loadingVideoInfo } = useSWR<VideoInfo>(
     videoId ? `http://${serverIP}/videoInfo?id=${videoId}` : null,
     fetcher,

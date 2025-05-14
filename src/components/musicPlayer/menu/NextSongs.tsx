@@ -2,12 +2,24 @@ import FlexBox from '@/components/ui/FlexBox'
 import { PlayIcon } from '@/components/ui/IconLibrary'
 import LazyImage from '@/components/ui/LazyImage'
 import useMusicStore from '@/context/music.context'
+import { useServerStore } from '@/context/server.context'
 import { formatTime } from '@/utils/ReactUtils'
+import { fetcher } from '@/utils/utils'
 import React from 'react'
+import useSWR from 'swr'
 import './NextSongs.css'
 
 function NextSongs() {
   const { songQueue, currentSong, selectSong } = useMusicStore()
+  const { serverIP } = useServerStore()
+  const { data: album } = useSWR(
+    currentSong
+      ? `http://${serverIP}/details/album?id=${currentSong.albumId}`
+      : null,
+    fetcher,
+  )
+
+  if (!album) return null
 
   return (
     <FlexBox
@@ -21,7 +33,7 @@ function NextSongs() {
       {songQueue.map((item, index) => (
         <FlexBox
           key={index}
-          className={`songItem ${currentSong?.song.id === item.song.id ? 'activeSong' : ''}`}
+          className={`songItem ${currentSong?.id === item.id ? 'activeSong' : ''}`}
           justify="space-between"
           align="center"
           gap={1}
@@ -32,7 +44,7 @@ function NextSongs() {
           <FlexBox gap={1} align="center">
             <div className="imgContainer" onClick={() => selectSong(item)}>
               <LazyImage
-                url={item.album.coverSrc}
+                url={album.coverSrc}
                 aspectRatio="1"
                 height={'2.5rem'}
               />
@@ -41,11 +53,11 @@ function NextSongs() {
               </div>
             </div>
             <FlexBox direction="column">
-              <span>{item.song.name}</span>
-              <span>{item.collection.name}</span>
+              <span>{item.title}</span>
+              <span>{album.name}</span>
             </FlexBox>
           </FlexBox>
-          <span>{formatTime(item.song.runtimeInSeconds)}</span>
+          <span>{formatTime(item.duration)}</span>
         </FlexBox>
       ))}
     </FlexBox>

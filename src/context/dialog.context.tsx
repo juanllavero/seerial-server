@@ -1,5 +1,13 @@
 // store/dialogStore.ts
-import { Episode, Library, Season, Series } from '@/data/interfaces/Media'
+import {
+  Collection,
+  Episode,
+  Library,
+  Movie,
+  Season,
+  Series,
+} from '@/data/interfaces/Media'
+import { Album } from '@/data/interfaces/Music'
 import { create } from 'zustand'
 
 // Type of the store state
@@ -12,6 +20,14 @@ interface DialogState {
     isOpen: boolean
     libraryToRemove?: string
   }
+  collectionDialog: {
+    isOpen: boolean
+    collectionToEdit?: Collection
+  }
+  movieDialog: {
+    isOpen: boolean
+    movieToEdit?: Movie
+  }
   seriesDialog: {
     isOpen: boolean
     seriesToEdit?: Series
@@ -23,6 +39,10 @@ interface DialogState {
   episodeDialog: {
     isOpen: boolean
     episodeToEdit?: Episode
+  }
+  albumDialog: {
+    isOpen: boolean
+    albumToEdit?: Album
   }
   identificationDialog: {
     isOpen: boolean
@@ -38,12 +58,18 @@ interface DialogState {
   closeLibraryDialog: () => void
   openRemoveLibraryDialog: (libraryToRemove: string) => void
   closeRemoveLibraryDialog: () => void
+  openCollectionDialog: (collection: Collection) => void
+  closeCollectionDialog: () => void
+  openMovieDialog: (movie: Movie) => void
+  closeMovieDialog: () => void
   openSeriesDialog: (series: Series) => void
   closeSeriesDialog: () => void
   openSeasonDialog: (season: Season) => void
   closeSeasonDialog: () => void
   openEpisodeDialog: (episode: Episode) => void
   closeEpisodeDialog: () => void
+  openAlbumDialog: (album: Album) => void
+  closeAlbumDialog: () => void
   openIdentificationDialog: (
     series: Series | undefined,
     season: Season | undefined,
@@ -64,22 +90,33 @@ export const useDialogStore = create<DialogState>((set) => ({
     isOpen: false,
     libraryToRemove: undefined,
   },
+  collectionDialog: {
+    isOpen: false,
+    collectionToEdit: undefined,
+  },
+  movieDialog: {
+    isOpen: false,
+    movieToEdit: undefined,
+  },
   seriesDialog: {
     isOpen: false,
-    series: undefined,
+    seriesToEdit: undefined,
   },
   seasonDialog: {
     isOpen: false,
-    season: undefined,
+    seasonToEdit: undefined,
   },
   episodeDialog: {
     isOpen: false,
-    episode: undefined,
+    episodeToEdit: undefined,
+  },
+  albumDialog: {
+    isOpen: false,
+    albumToEdit: undefined,
   },
   identificationDialog: {
     isOpen: false,
     seriesToEdit: undefined,
-    seasonToEdit: undefined,
   },
   episodesGroupDialog: {
     isOpen: false,
@@ -115,6 +152,38 @@ export const useDialogStore = create<DialogState>((set) => ({
       removeLibraryDialog: {
         isOpen: false,
         libraryToRemove: undefined, // Clear when closing
+      },
+    }),
+
+  // Functions for CollectionDialog
+  openCollectionDialog: (collectionToEdit: Collection) =>
+    set({
+      collectionDialog: {
+        isOpen: true,
+        collectionToEdit,
+      },
+    }),
+  closeCollectionDialog: () =>
+    set({
+      collectionDialog: {
+        isOpen: false,
+        collectionToEdit: undefined, // Clear when closing
+      },
+    }),
+
+  // Functions for MovieDialog
+  openMovieDialog: (movieToEdit: Movie) =>
+    set({
+      movieDialog: {
+        isOpen: true,
+        movieToEdit,
+      },
+    }),
+  closeMovieDialog: () =>
+    set({
+      movieDialog: {
+        isOpen: false,
+        movieToEdit: undefined, // Clear when closing
       },
     }),
 
@@ -165,6 +234,23 @@ export const useDialogStore = create<DialogState>((set) => ({
         episodeToEdit: undefined, // Clear when closing
       },
     }),
+
+  // Functions for AlbumDialog
+  openAlbumDialog: (albumToEdit: Album) =>
+    set({
+      albumDialog: {
+        isOpen: true,
+        albumToEdit,
+      },
+    }),
+  closeAlbumDialog: () =>
+    set({
+      albumDialog: {
+        isOpen: false,
+        albumToEdit: undefined, // Clear when closing
+      },
+    }),
+
   openIdentificationDialog: (
     series: Series | undefined,
     season: Season | undefined,

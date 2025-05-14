@@ -1,4 +1,4 @@
-import { Song } from '@/data/interfaces/Media'
+import { Song } from '@/data/interfaces/Music'
 import { create } from 'zustand'
 
 interface MusicState {
@@ -40,7 +40,7 @@ const useMusicStore = create<MusicState>((set) => ({
     set((state) => ({ songQueue: [...state.songQueue, song] })),
   removeSong: (element) =>
     set((state) => ({
-      songQueue: state.songQueue.filter((s) => s.song.id !== element.song.id),
+      songQueue: state.songQueue.filter((s) => s.id !== element.id),
     })),
   clearQueue: () => set({ songQueue: [] }),
 

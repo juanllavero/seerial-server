@@ -19,7 +19,7 @@ function MusicCard({ index, song, action }: MusicCardProps) {
   return (
     <FlexBox
       key={index}
-      className={`songItem ${currentSong?.song.id === song.id ? 'activeSong' : ''}`}
+      className={`songItem ${currentSong?.id === song.id ? 'activeSong' : ''}`}
       justify="space-between"
       align="center"
       gap={1}

@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
 import LazyImage from '@/components/ui/LazyImage'
-import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
@@ -17,7 +16,6 @@ function CorrectIdentificationSearch() {
   const { t } = useTranslation()
   const { serverIP } = useServerStore()
   const { connectWS } = useWebSocketStore()
-  const { selectedLibrary } = useDataStore()
   const { identificationDialog, closeIdentificationDialog } = useDialogStore()
   const [identificationResults, setIdentificationResults] = useState<
     IdentificationResult[]
@@ -69,12 +67,10 @@ function CorrectIdentificationSearch() {
       body: JSON.stringify(
         isShow
           ? {
-              libraryId: selectedLibrary?.id,
               showId: identificationDialog.seriesToEdit?.id,
               themdbId: id,
             }
           : {
-              libraryId: selectedLibrary?.id,
               collectionId: identificationDialog.seriesToEdit?.id,
               seasonId: identificationDialog.seasonToEdit?.id,
               themdbId: id,

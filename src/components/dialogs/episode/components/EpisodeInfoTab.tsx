@@ -1,6 +1,7 @@
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import FlexBox from '@/components/ui/FlexBox'
+import TagInput from '@/components/ui/tags-input'
 import { t } from 'i18next'
 import React from 'react'
 import LockInput from '../../components/LockInput'
@@ -89,6 +90,14 @@ function EpisodeInfoTab({
           setValue={setOverview}
           isTextArea
         />
+      </LabeledInputWrapper>
+
+      <LabeledInputWrapper label={t('directedBy')}>
+        <TagInput value={directedBy} onChange={setDirectedBy} />
+      </LabeledInputWrapper>
+
+      <LabeledInputWrapper label={t('writtenBy')}>
+        <TagInput value={writtenBy} onChange={setWrittenBy} />
       </LabeledInputWrapper>
     </FlexBox>
   )

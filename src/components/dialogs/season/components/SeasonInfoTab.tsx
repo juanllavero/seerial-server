@@ -1,8 +1,6 @@
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import FlexBox from '@/components/ui/FlexBox'
-import TagInput from '@/components/ui/tags-input'
-import useDataStore from '@/context/data.context'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import LockInput from '../../components/LockInput'
@@ -22,20 +20,8 @@ interface SeasonInfoTabProps {
   setOverviewLock: (overviewLock: boolean) => void
   orderLock: boolean
   setOrderLock: (orderLock: boolean) => void
-  studios: string[]
-  setStudios: (studios: string[]) => void
-  studiosLock: boolean
-  setStudiosLock: (studiosLock: boolean) => void
-  tagline: string
-  setTagline: (tagline: string) => void
-  taglineLock: boolean
-  setTaglineLock: (taglineLock: boolean) => void
   order: string
   setOrder: (order: string) => void
-  genres: string[]
-  setGenres: (genres: string[]) => void
-  genresLock: boolean
-  setGenresLock: (genresLock: boolean) => void
 }
 
 function SeasonInfoTab({
@@ -53,24 +39,11 @@ function SeasonInfoTab({
   setOverviewLock,
   orderLock,
   setOrderLock,
-  studios,
-  setStudios,
-  studiosLock,
-  setStudiosLock,
-  genres,
-  setGenres,
-  genresLock,
-  setGenresLock,
-  tagline,
-  setTagline,
-  taglineLock,
-  setTaglineLock,
   order,
   setOrder,
 }: SeasonInfoTabProps) {
   const { t } = useTranslation()
   const isTablet = useIsTablet()
-  const { selectedLibrary } = useDataStore()
 
   return (
     <FlexBox
@@ -112,47 +85,15 @@ function SeasonInfoTab({
         </LabeledInputWrapper>
       </FlexBox>
 
-      {selectedLibrary?.type === 'Movies' && (
-        <>
-          <LabeledInputWrapper label={t('studios')}>
-            <TagInput
-              value={studios}
-              onChange={setStudios}
-              placeholder="Añadir estudio..."
-            />
-          </LabeledInputWrapper>
-          <LabeledInputWrapper label={t('tagline')}>
-            <LockInput
-              lock={taglineLock}
-              setLock={setTaglineLock}
-              value={tagline}
-              setValue={setTagline}
-            />
-          </LabeledInputWrapper>
-        </>
-      )}
-
-      {selectedLibrary?.type === 'Music' && (
-        <LabeledInputWrapper label={t('genres')}>
-          <TagInput
-            value={genres}
-            onChange={setGenres}
-            placeholder="Añadir género..."
-          />
-        </LabeledInputWrapper>
-      )}
-
-      {selectedLibrary?.type !== 'Music' && (
-        <LabeledInputWrapper label={t('overview')}>
-          <LockInput
-            lock={overviewLock}
-            setLock={setOverviewLock}
-            value={overview}
-            setValue={setOverview}
-            isTextArea
-          />
-        </LabeledInputWrapper>
-      )}
+      <LabeledInputWrapper label={t('overview')}>
+        <LockInput
+          lock={overviewLock}
+          setLock={setOverviewLock}
+          value={overview}
+          setValue={setOverview}
+          isTextArea
+        />
+      </LabeledInputWrapper>
     </FlexBox>
   )
 }

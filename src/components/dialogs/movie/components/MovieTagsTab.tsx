@@ -5,7 +5,7 @@ import TagInput from '@/components/ui/tags-input'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
-interface SeasonTagsTabProps {
+interface MovieTagsTabProps {
   genres: string[]
   setGenres: (genres: string[]) => void
   creator: string[]
@@ -18,7 +18,7 @@ interface SeasonTagsTabProps {
   setMusic: (music: string[]) => void
 }
 
-function SeasonTagsTab({
+function MovieTagsTab({
   genres,
   setGenres,
   creator,
@@ -29,7 +29,7 @@ function SeasonTagsTab({
   setWrittenBy,
   music,
   setMusic,
-}: SeasonTagsTabProps) {
+}: MovieTagsTabProps) {
   const { t } = useTranslation()
   const isTablet = useIsTablet()
   return (
@@ -82,4 +82,4 @@ function SeasonTagsTab({
   )
 }
 
-export default SeasonTagsTab
+export default MovieTagsTab

@@ -1,12 +1,22 @@
 import useMusicStore from '@/context/music.context'
+import { useServerStore } from '@/context/server.context'
+import { fetcher } from '@/utils/utils'
 import React from 'react'
+import useSWR from 'swr'
 import FlexBox from '../ui/FlexBox'
 import LazyImage from '../ui/LazyImage'
 
 function CoverImage({ isMobile }: { isMobile: boolean }) {
   const { currentSong } = useMusicStore()
+  const { serverIP } = useServerStore()
+  const { data: album } = useSWR(
+    currentSong
+      ? `http://${serverIP}/details/album?id=${currentSong.albumId}`
+      : null,
+    fetcher,
+  )
 
-  console.log('currentSong:', currentSong)
+  if (!album) return null
 
   return (
     <FlexBox
@@ -17,8 +27,8 @@ function CoverImage({ isMobile }: { isMobile: boolean }) {
       justify="center"
     >
       <LazyImage
-        url={currentSong?.album.coverSrc}
-        alt={currentSong?.song.name}
+        url={album.coverSrc}
+        alt={currentSong?.title}
         width={'auto'}
         height={'80%'}
         aspectRatio={'1'}

@@ -15,7 +15,8 @@ import NoServer from './components/NoServer'
 
 export default function HomePage() {
   const { t } = useTranslation()
-  const { serverIP, serverStatus, apiKeyStatus } = useServerStore()
+  const { serverIP, serverStatus, apiKeyStatus, getServerStatus } =
+    useServerStore()
   const { selectLibrary, isContent, loadingContent } = useDataStore()
 
   // Get Continue Watching items

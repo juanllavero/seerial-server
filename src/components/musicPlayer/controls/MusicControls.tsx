@@ -10,9 +10,13 @@ import {
 import LazyImage from '@/components/ui/LazyImage'
 import { Slider } from '@/components/ui/slider'
 import useMusicStore from '@/context/music.context'
+import { useServerStore } from '@/context/server.context'
+import { Album } from '@/data/interfaces/Music'
 import { formatTime } from '@/utils/ReactUtils'
+import { fetcher } from '@/utils/utils'
 import { ChevronDown, Repeat, Repeat1, Volume2, VolumeOff } from 'lucide-react'
 import React, { useRef, useState } from 'react'
+import useSWR from 'swr'
 import './MusicControls.css'
 
 function MusicControls() {
@@ -32,6 +36,17 @@ function MusicControls() {
   const [volume, setVolume] = useState<number>(1)
   const [prevVolume, setPrevVolume] = useState<number>(1)
   const [repeatState, setRepeatState] = useState<'none' | 'one' | 'all'>('none')
+  const { serverIP } = useServerStore()
+
+  // Get Album details
+  const { data: album } = useSWR<Album>(
+    currentSong
+      ? `http://${serverIP}/details/album?id=${currentSong.albumId}`
+      : null,
+    fetcher,
+  )
+
+  if (!album || !currentSong) return null
 
   const handleTimelineUpdate = (e: any) => {
     if (!timelineRef.current) return
@@ -144,25 +159,23 @@ function MusicControls() {
             <StopIcon />
           </Button>
           <span className="text-xs" style={{ color: 'lightgrey' }}>
-            00:00 / {formatTime(currentSong?.song.runtimeInSeconds ?? 0)}
+            00:00 / {formatTime(currentSong.duration ?? 0)}
           </span>
         </FlexBox>
         <FlexBox justify="start" align="center" gap={1}>
           {musicPlayerContracted && (
             <LazyImage
-              url={currentSong?.album.coverSrc}
-              alt={currentSong?.song.name}
+              url={album.coverSrc}
+              alt={currentSong.title}
               width={50}
               height={50}
             />
           )}
           <FlexBox direction="column" justify="center">
-            <span>{currentSong?.song.name}</span>
+            <span>{currentSong?.title}</span>
             <span>
-              {currentSong?.collection.name} • {currentSong?.album.name}{' '}
-              {currentSong?.album.year &&
-                `• 
-            ${currentSong?.album.year}`}
+              {/* {currentSong?.collection.name} • {currentSong?.album.name}{' '} */}
+              {album.title} {album.year}
             </span>
           </FlexBox>
         </FlexBox>

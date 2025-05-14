@@ -1,7 +1,6 @@
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import Loading from '@/components/Loading'
 import FlexBox from '@/components/ui/FlexBox'
-import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { Episode, Video } from '@/data/interfaces/Media'
 import {
@@ -10,23 +9,38 @@ import {
   VideoTrack,
 } from '@/data/interfaces/MediaInfo'
 import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
+import { fetcher } from '@/utils/utils'
 import React, { useEffect, useState } from 'react'
+import useSWR from 'swr'
 
 interface EpisodeMediaInfoTabProps {
   video: Video
   setEpisode: (episode: Episode) => void
 }
 
+interface VideoInfo {
+  title: string
+  subtitle: string
+  preferAudioLan: string
+  preferSubtitleLan: string
+  subsMode: string
+}
+
 function EpisodeMediaInfoTab({ video, setEpisode }: EpisodeMediaInfoTabProps) {
-  const { selectedLibrary, selectedSeries, selectedSeason } = useDataStore()
   const { serverIP } = useServerStore()
   const isTablet = useIsTablet()
   const [loaded, setLoaded] = useState(false)
 
-  useEffect(() => {
-    if (!selectedLibrary || !selectedSeries || !selectedSeason) return
+  // Get video info
+  const { data: videoInfo } = useSWR<VideoInfo>(
+    video.id ? `http://${serverIP}/videoInfo?id=${video.id}` : null,
+    fetcher,
+  )
 
+  useEffect(() => {
     const fetchData = async () => {
+      if (!videoInfo) return
+
       setLoaded(false)
 
       const attemptFetch = async () => {
@@ -36,7 +50,7 @@ function EpisodeMediaInfoTab({ video, setEpisode }: EpisodeMediaInfoTabProps) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            episode: video,
+            videoId: video.id,
           }),
         })
 
@@ -60,67 +74,34 @@ function EpisodeMediaInfoTab({ video, setEpisode }: EpisodeMediaInfoTabProps) {
       }
 
       // Process the data if it was obtained in either of the attempts
-      const audioTrack = getAudioTrack(
-        selectedLibrary,
-        selectedSeason,
-        data.audioTracks,
-      )
+      const audioTrack = getAudioTrack(videoInfo.preferAudioLan, video)
       const subtitleTrack = getSubtitleTrack(
-        selectedLibrary,
-        selectedSeason,
-        data.subtitleTracks,
+        videoInfo.preferSubtitleLan,
+        videoInfo.subsMode,
+        video,
       )
       const videoTrack = data.videoTracks[0] ?? null
 
-      if (videoTrack && data.videoTracks) {
-        for (const videoTrack of data.videoTracks) {
+      if (videoTrack && video.videoTracks) {
+        for (const videoTrack of video.videoTracks) {
           videoTrack.selected = false
         }
         videoTrack.selected = true
       }
 
-      if (audioTrack && data.audioTracks) {
-        for (const audioTrack of data.audioTracks) {
+      if (audioTrack && video.audioTracks) {
+        for (const audioTrack of video.audioTracks) {
           audioTrack.selected = false
         }
         audioTrack.selected = true
       }
 
-      if (subtitleTrack && data.subtitleTracks) {
-        for (const subTrack of data.subtitleTracks) {
+      if (subtitleTrack && video.subtitleTracks) {
+        for (const subTrack of video.subtitleTracks) {
           subTrack.selected = false
         }
         subtitleTrack.selected = true
       }
-
-      // updateEpisode({
-      //   libraryId: selectedLibrary.id,
-      //   showId: selectedSeries.id,
-      //   episode: {
-      //     ...data,
-      //     videoTracks: data.videoTracks
-      //       ? data.videoTracks.map((track: VideoTrack) =>
-      //           track.id === (videoTrack?.id ?? '')
-      //             ? (videoTrack ?? track)
-      //             : track,
-      //         )
-      //       : [],
-      //     audioTracks: data.audioTracks
-      //       ? data.audioTracks.map((track: AudioTrack) =>
-      //           track.id === (audioTrack?.id ?? '')
-      //             ? (audioTrack ?? track)
-      //             : track,
-      //         )
-      //       : [],
-      //     subtitleTracks: data.subtitleTracks
-      //       ? data.subtitleTracks.map((track: SubtitleTrack) =>
-      //           track.id === (subtitleTrack?.id ?? '')
-      //             ? (subtitleTrack ?? track)
-      //             : track,
-      //         )
-      //       : [],
-      //   },
-      // })
 
       setEpisode({
         ...data,

@@ -14,10 +14,10 @@ interface ServerState {
 
 export const useServerStore = create<ServerState>((set, get) => ({
   serverIP: '192.168.100.44:34200',
-  serverStatus: true,
+  serverStatus: false,
   serverVersion: '0.22.44',
   gettingServerStatus: false,
-  apiKeyStatus: true,
+  apiKeyStatus: false,
   gettingApiKeyStatus: false,
 
   setServerIP: (ip) => {

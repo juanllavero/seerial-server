@@ -1,6 +1,5 @@
 import Loading from '@/components/Loading'
 import FlexBox from '@/components/ui/FlexBox'
-import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
@@ -14,7 +13,6 @@ function ChangeEpisodesGroupSearch() {
   const { t } = useTranslation()
   const { serverIP } = useServerStore()
   const { connectWS } = useWebSocketStore()
-  const { selectedLibrary } = useDataStore()
   const { episodesGroupDialog, closeEpisodesGroupDialog } = useDialogStore()
   const [episodeGroupsResults, setEpisodeGroupsResults] = useState<
     EpisodeGroupResult[]
@@ -43,9 +41,8 @@ function ChangeEpisodesGroupSearch() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        libraryId: selectedLibrary?.id,
         showId: episodesGroupDialog.seriesToEdit?.id,
-        themdbId: episodesGroupDialog.seriesToEdit?.themdbID,
+        themdbId: episodesGroupDialog.seriesToEdit?.themdbId,
         episodeGroupId: id,
       }),
     })

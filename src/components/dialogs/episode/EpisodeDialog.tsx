@@ -1,11 +1,12 @@
-import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Episode } from '@/data/interfaces/Media'
 import { showToast } from '@/utils/ReactUtils'
+import { fetcher } from '@/utils/utils'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import useSWR from 'swr'
 import { ModalWrapper } from '../../ModalWrapper'
 import ImageListTab from '../components/ImageListTab'
 import EpisodeInfoTab from './components/EpisodeInfoTab'
@@ -15,7 +16,6 @@ function EpisodeDialog() {
   const { t } = useTranslation()
   const { serverIP } = useServerStore()
   const { connectWS } = useWebSocketStore()
-  const { selectedLibrary, selectedSeries, selectedSeason } = useDataStore()
   const { episodeDialog, closeEpisodeDialog } = useDialogStore()
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 
@@ -40,6 +40,13 @@ function EpisodeDialog() {
   )
   //#endregion
 
+  const { data: series } = useSWR(
+    episode
+      ? `http://${serverIP}/details/seriesBySeasonId?seasonId=${episode.seasonId}`
+      : null,
+    fetcher,
+  )
+
   useEffect(() => {
     if (episodeDialog && episodeDialog.episodeToEdit) {
       setNameLock(episodeDialog.episodeToEdit.nameLock)
@@ -56,11 +63,9 @@ function EpisodeDialog() {
     }
   }, [episodeDialog])
 
-  if (!episode) return null
+  if (!episode || !series) return null
 
   const handleEditEpisode = async () => {
-    if (!selectedLibrary || !selectedSeries) return
-
     await connectWS(serverIP)
 
     const response = await fetch(`http://${serverIP}/episode`, {
@@ -69,8 +74,6 @@ function EpisodeDialog() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        libraryId: selectedLibrary.id,
-        showId: selectedSeries.id,
         updatedEpisode: {
           ...episode,
           imgSrc: selectedImage,
@@ -97,18 +100,7 @@ function EpisodeDialog() {
   }
 
   const getWindowTitle = () => {
-    if (!selectedLibrary || !selectedSeason || !selectedSeries)
-      return `${t('editButton')} ${episode.name}`
-
-    return `${t('editButton')} ${
-      selectedLibrary && selectedLibrary.type === 'Shows'
-        ? selectedSeries.name
-        : selectedSeason.name
-    } - ${episode.name} ${
-      selectedLibrary &&
-      selectedLibrary.type === 'Shows' &&
-      `(${t('seasonLetter')}${episode.seasonNumber}${t('episodeLetter')}${episode.episodeNumber})`
-    }`
+    return `${t('editButton')} ${series.name} - ${episode.name} ${`(${t('seasonLetter')}${episode.seasonNumber}${t('episodeLetter')}${episode.episodeNumber})`}`
   }
 
   return (

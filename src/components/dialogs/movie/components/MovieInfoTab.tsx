@@ -2,12 +2,11 @@ import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import FlexBox from '@/components/ui/FlexBox'
 import TagInput from '@/components/ui/tags-input'
-import useDataStore from '@/context/data.context'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import LockInput from '../../components/LockInput'
 
-interface SeasonInfoTabProps {
+interface MovieInfoTabProps {
   name: string
   setName: (name: string) => void
   year: string
@@ -32,13 +31,9 @@ interface SeasonInfoTabProps {
   setTaglineLock: (taglineLock: boolean) => void
   order: string
   setOrder: (order: string) => void
-  genres: string[]
-  setGenres: (genres: string[]) => void
-  genresLock: boolean
-  setGenresLock: (genresLock: boolean) => void
 }
 
-function SeasonInfoTab({
+function MovieInfoTab({
   name,
   setName,
   year,
@@ -57,20 +52,15 @@ function SeasonInfoTab({
   setStudios,
   studiosLock,
   setStudiosLock,
-  genres,
-  setGenres,
-  genresLock,
-  setGenresLock,
   tagline,
   setTagline,
   taglineLock,
   setTaglineLock,
   order,
   setOrder,
-}: SeasonInfoTabProps) {
+}: MovieInfoTabProps) {
   const { t } = useTranslation()
   const isTablet = useIsTablet()
-  const { selectedLibrary } = useDataStore()
 
   return (
     <FlexBox
@@ -112,49 +102,33 @@ function SeasonInfoTab({
         </LabeledInputWrapper>
       </FlexBox>
 
-      {selectedLibrary?.type === 'Movies' && (
-        <>
-          <LabeledInputWrapper label={t('studios')}>
-            <TagInput
-              value={studios}
-              onChange={setStudios}
-              placeholder="Añadir estudio..."
-            />
-          </LabeledInputWrapper>
-          <LabeledInputWrapper label={t('tagline')}>
-            <LockInput
-              lock={taglineLock}
-              setLock={setTaglineLock}
-              value={tagline}
-              setValue={setTagline}
-            />
-          </LabeledInputWrapper>
-        </>
-      )}
+      <LabeledInputWrapper label={t('studios')}>
+        <TagInput
+          value={studios}
+          onChange={setStudios}
+          placeholder="Añadir estudio..."
+        />
+      </LabeledInputWrapper>
+      <LabeledInputWrapper label={t('tagline')}>
+        <LockInput
+          lock={taglineLock}
+          setLock={setTaglineLock}
+          value={tagline}
+          setValue={setTagline}
+        />
+      </LabeledInputWrapper>
 
-      {selectedLibrary?.type === 'Music' && (
-        <LabeledInputWrapper label={t('genres')}>
-          <TagInput
-            value={genres}
-            onChange={setGenres}
-            placeholder="Añadir género..."
-          />
-        </LabeledInputWrapper>
-      )}
-
-      {selectedLibrary?.type !== 'Music' && (
-        <LabeledInputWrapper label={t('overview')}>
-          <LockInput
-            lock={overviewLock}
-            setLock={setOverviewLock}
-            value={overview}
-            setValue={setOverview}
-            isTextArea
-          />
-        </LabeledInputWrapper>
-      )}
+      <LabeledInputWrapper label={t('overview')}>
+        <LockInput
+          lock={overviewLock}
+          setLock={setOverviewLock}
+          value={overview}
+          setValue={setOverview}
+          isTextArea
+        />
+      </LabeledInputWrapper>
     </FlexBox>
   )
 }
 
-export default SeasonInfoTab
+export default MovieInfoTab
