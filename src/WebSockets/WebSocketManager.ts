@@ -23,7 +23,9 @@ export class WebSocketManager {
       });
     });
 
-    console.log(`WebSocket server running using the same HTTP server`);
+    console.log(
+      `[WebSocket Manager]: server running using the same HTTP server`
+    );
 
     // Handle new WebSocket connections
     this.wss.on("connection", (ws: WebSocket) => {
@@ -34,11 +36,10 @@ export class WebSocketManager {
       const client: Client = { id: clientId, socket: ws };
       this.clients.set(clientId, client);
 
-      console.log(`Client connected: ${clientId}`);
+      console.log(`[WebSocket Manager]: Client connected: ${clientId}`);
 
       // Handle messages received from the client
       ws.on("message", (data: string) => {
-        console.log(`Received message from client ${clientId}: ${data}`);
         this.broadcast(
           JSON.stringify({ from: clientId, message: data }),
           clientId
@@ -47,7 +48,7 @@ export class WebSocketManager {
 
       // Handle client disconnection
       ws.on("close", () => {
-        console.log(`Client disconnected: ${clientId}`);
+        console.log(`[WebSocket Manager]: Client disconnected: ${clientId}`);
         this.clients.delete(clientId);
       });
     });
@@ -77,7 +78,9 @@ export class WebSocketManager {
     if (client) {
       client.socket.send(message);
     } else {
-      console.error(`Client with ID ${clientId} not found.`);
+      console.error(
+        `[WebSocket Manager]: Client with ID ${clientId} not found.`
+      );
     }
   }
 

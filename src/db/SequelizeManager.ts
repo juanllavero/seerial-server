@@ -70,6 +70,7 @@ export class SequelizeManager {
           underscored: true, // Map snake_case (DB) to camelCase (Models)
         },
         //logging: (msg) => console.log(msg),
+        logging: false,
       });
 
       // Enable foreign keys
@@ -78,9 +79,13 @@ export class SequelizeManager {
       // Sync models to db
       await SequelizeManager.sequelize.sync({ alter: false });
 
-      console.log("Database initialized successfully with Sequelize");
+      console.log(
+        "[Database Manager]: Database initialized successfully with Sequelize"
+      );
     } catch (error: any) {
-      throw new Error(`Database initialization failed: ${error.message}`);
+      throw new Error(
+        `[Database Manager]: Database initialization failed: ${error.message}`
+      );
     }
   }
 

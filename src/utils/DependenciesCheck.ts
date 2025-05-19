@@ -16,9 +16,11 @@ async function checkCommandExists(command: string): Promise<boolean> {
 async function checkYtdlp(): Promise<boolean> {
   const exists = await checkCommandExists("yt-dlp");
   if (exists) {
-    console.log("yt-dlp is already installed");
+    console.log(
+      "[DepCheck]: yt-dlp is already installed. No need to install it"
+    );
   } else {
-    console.log("yt-dlp is not installed");
+    console.log("[DepCheck]: yt-dlp is not installed");
   }
   return exists;
 }
@@ -41,7 +43,7 @@ async function checkPythonAndPip(): Promise<{
 
   if (!python) {
     console.error(
-      "Python is not installed or not in PATH. Please install Python from https://www.python.org/downloads/"
+      "[DepCheck]: Python is not installed or not in PATH. Please install Python from https://www.python.org/downloads/"
     );
     // Open the download page
     shell.openExternal("https://www.python.org/downloads/");
@@ -51,12 +53,12 @@ async function checkPythonAndPip(): Promise<{
   try {
     await execPromise(`${python} -m pip --version`);
   } catch {
-    console.log("pip is not installed, trying to install...");
+    console.log("[DepCheck]: pip is not installed, trying to install...");
     try {
       await execPromise(`${python} -m ensurepip --upgrade`);
-      console.log("pip installed successfully");
+      console.log("[DepCheck]: pip installed successfully");
     } catch (e) {
-      console.error("Error installing pip: install it manually", e);
+      console.error("[DepCheck]: Error installing pip. install it manually", e);
       return null;
     }
   }
@@ -96,7 +98,7 @@ function spawnTerminalCommand(command: string): Promise<void> {
         stdio: "inherit",
       });
     } else {
-      reject(new Error("Platform not supported"));
+      reject(new Error("[DepCheck]: Platform not supported"));
       return;
     }
 
@@ -104,7 +106,7 @@ function spawnTerminalCommand(command: string): Promise<void> {
       if (code === 0) {
         resolve();
       } else {
-        reject(new Error(`Error in terminal with code ${code}`));
+        reject(new Error(`[DepCheck]: Error in terminal with code ${code}`));
       }
     });
   });
@@ -113,16 +115,18 @@ function spawnTerminalCommand(command: string): Promise<void> {
 async function installYtdlp() {
   const deps = await checkPythonAndPip();
   if (!deps) {
-    throw new Error("Missing necessary dependencies to install yt-dlp.");
+    throw new Error(
+      "[DepCheck]: Missing necessary dependencies to install yt-dlp."
+    );
   }
 
   const installCommand = `${deps.pip} install --upgrade yt-dlp`;
 
   try {
     await spawnTerminalCommand(installCommand);
-    console.log("yt-dlp installed successfully");
+    console.log("[DepCheck]: yt-dlp installed successfully");
   } catch (err) {
-    console.error("Error installing yt-dlp:", err);
+    console.error("[DepCheck]: Error installing yt-dlp:", err);
     throw err;
   }
 }
@@ -133,7 +137,7 @@ export const checkDependencies = async () => {
     try {
       await installYtdlp();
     } catch (e) {
-      console.error("yt-dlp installation failed:", e);
+      console.error("[DepCheck]: yt-dlp installation failed:", e);
     }
   }
 };

@@ -57,7 +57,9 @@ export const wsManager = WebSocketManager.getInstance(server);
 
 // Start server
 server.listen(PORT, () => {
-  console.log(`Streaming server running at http://localhost:${PORT}`);
+  console.log(
+    `[Streaming Server]: http server running at http://localhost:${PORT}`
+  );
 });
 
 // Add all routes
@@ -120,6 +122,7 @@ function createTray() {
         shell.openExternal("https://seerial.es");
       },
     },
+    { type: "separator" },
     {
       label: "Exit",
       click: () => {
