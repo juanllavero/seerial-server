@@ -1,3 +1,4 @@
+import * as fs from "fs";
 import { MovieDb } from "moviedb-promise";
 import * as path from "path";
 import propertiesReader, { Value } from "properties-reader";
@@ -11,9 +12,20 @@ export class MovieDBWrapper {
   public static initConnection = (): boolean => {
     if (this.moviedb) return true;
 
-    const properties = propertiesReader(
-      path.join("resources", "config", "keys.properties")
+    const propertiesFilePath = path.join(
+      "resources",
+      "config",
+      "keys.properties"
     );
+
+    if (!fs.existsSync(propertiesFilePath)) {
+      console.warn(
+        "keys.properties file not found, omitting connection with TMDB."
+      );
+      return false;
+    }
+
+    const properties = propertiesReader(propertiesFilePath);
 
     // Get API Key
     this.THEMOVIEDB_API_KEY = properties.get("TMDB_API_KEY");

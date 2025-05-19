@@ -56,28 +56,19 @@ export class FilesManager {
     for (const folderPath in this.folders) {
       this.createFolder(this.getExternalPath(folderPath));
     }
-
-    // Create properties file
-    if (!fs.existsSync(this.propertiesFilePath)) {
-      fs.writeFileSync(this.propertiesFilePath, "");
-    }
   }
 
   public static loadProperties() {
     // Create keys.properties if it doesn't exist
-    if (
-      !fs.existsSync(
-        path.join(this.extPath, "resources", "config", "keys.properties")
-      )
-    ) {
+    if (!fs.existsSync(FilesManager.propertiesFilePath)) {
       fs.writeFileSync(
-        path.join(this.extPath, "resources", "config", "keys.properties"),
+        FilesManager.propertiesFilePath,
         JSON.stringify({ language: "es-ES" }, null, 2),
         "utf-8"
       );
     }
 
-    this.properties = PropertiesReader(this.propertiesFilePath);
+    this.properties = PropertiesReader(FilesManager.propertiesFilePath);
   }
 
   /**
