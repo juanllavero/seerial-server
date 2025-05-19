@@ -1,4 +1,5 @@
 import {
+  BeforeDestroy,
   BelongsTo,
   Column,
   DataType,
@@ -8,6 +9,7 @@ import {
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
+import { deleteSeasonData } from "../../../db/delete/deleteData";
 import { Episode } from "./Episode.model";
 import { Series } from "./Series.model";
 
@@ -133,4 +135,14 @@ export class Season extends Model {
 
   @HasMany(() => Episode)
   episodes!: Episode[];
+
+  @BeforeDestroy
+  static async beforeDestroyHook(instance: Season): Promise<void> {
+    try {
+      await deleteSeasonData(instance);
+      console.log(`Cleaned data from season ID=${instance.id}`);
+    } catch (error) {
+      console.error(`Error cleaning data for season ID=${instance.id}:`, error);
+    }
+  }
 }

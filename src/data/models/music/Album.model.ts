@@ -1,4 +1,5 @@
 import {
+  BeforeDestroy,
   BelongsTo,
   BelongsToMany,
   Column,
@@ -9,6 +10,7 @@ import {
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
+import { deleteAlbumData } from "../../../db/delete/deleteData";
 import { Collection } from "../Collections/Collection.model";
 import { CollectionAlbum } from "../Collections/CollectionAlbum.model";
 import { Library } from "../Media/Library.model";
@@ -90,4 +92,14 @@ export class Album extends Model {
 
   @HasMany(() => Song)
   songs!: Song[];
+
+  @BeforeDestroy
+  static async beforeDestroyHook(instance: Album): Promise<void> {
+    try {
+      await deleteAlbumData(instance);
+      console.log(`Cleaned data from album ID=${instance.id}`);
+    } catch (error) {
+      console.error(`Error cleaning data for album ID=${instance.id}:`, error);
+    }
+  }
 }

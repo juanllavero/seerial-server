@@ -25,14 +25,7 @@ import { AlbumArtist } from "../../data/models/music/AlbumArtist.model";
 import { Artist } from "../../data/models/music/Artist.model";
 import { Song } from "../../data/models/music/Song.model";
 import { SequelizeManager } from "../SequelizeManager";
-import {
-  getLibraryById,
-  getLibraryBySeasonId,
-  getLibraryByVideoId,
-  getSeasonById,
-  getSeriesById,
-  getVideoById,
-} from "../get/getData";
+import { getLibraryById, getLibraryByVideoId } from "../get/getData";
 
 /**
  * Deletes a Library record by ID.
@@ -105,16 +98,6 @@ export async function deleteSeries(id: string): Promise<boolean> {
     throw new Error("Sequelize is not initialized");
   }
 
-  const series = await getSeriesById(id);
-
-  if (!series) return false;
-
-  const library = await getLibraryById(series.libraryId);
-
-  if (!library) return false;
-
-  deleteSeriesData(library.id, series);
-
   const affectedCount = await Series.destroy({
     where: { id },
   });
@@ -152,16 +135,6 @@ export async function deleteSeason(id: string): Promise<boolean> {
   if (!SequelizeManager.sequelize) {
     throw new Error("Sequelize is not initialized");
   }
-
-  const libraryId = await getLibraryBySeasonId(id);
-
-  if (!libraryId) return false;
-
-  const season = await getSeasonById(id);
-
-  if (!season) return false;
-
-  deleteSeasonData(season);
 
   const affectedCount = await Season.destroy({
     where: { id },
@@ -228,16 +201,6 @@ export async function deleteVideo(id: string): Promise<boolean> {
     throw new Error("Sequelize is not initialized");
   }
 
-  const libraryId = await getLibraryByVideoId(id);
-
-  if (!libraryId) return false;
-
-  const video = await getVideoById(id);
-
-  if (!video) return false;
-
-  deleteVideoData(libraryId, video);
-
   const affectedCount = await Video.destroy({
     where: { id },
   });
@@ -249,7 +212,7 @@ export async function deleteVideo(id: string): Promise<boolean> {
   return true;
 }
 
-export async function deleteVideoData(libraryId: string, video: VideoData) {
+export async function deleteVideoData(video: VideoData) {
   try {
     await fs.remove(
       path.join("resources", "img", "thumbnails", "video", video.id ?? "")
@@ -259,11 +222,14 @@ export async function deleteVideoData(libraryId: string, video: VideoData) {
     );
   } catch (error) {
     console.error(
-      "deleteVideoData: Error deleting directory: resources/img/discCovers/" +
-        video.id,
+      "deleteVideoData: Error deleting images directories" + video.id,
       error
     );
   }
+
+  const libraryId = await getLibraryByVideoId(video.id ?? "");
+
+  if (!libraryId) return;
 
   const library = await getLibraryById(libraryId);
 
@@ -289,6 +255,23 @@ export async function deleteCollection(id: string): Promise<boolean> {
   }
 
   return true;
+}
+
+// Delete collection stored data
+export async function deleteCollectionData(collection: Collection) {
+  try {
+    await fs.remove(
+      path.join("resources", "img", "posters", collection.id ?? "")
+    );
+    await fs.remove(
+      path.join("resources", "img", "backgrounds", collection.id ?? "")
+    );
+  } catch (error) {
+    console.error(
+      "deleteCollectionData: Error deleting images files and directories",
+      error
+    );
+  }
 }
 
 /**
@@ -391,6 +374,18 @@ export async function deleteAlbum(id: string): Promise<boolean> {
   }
 
   return true;
+}
+
+// Delete album stored data
+export async function deleteAlbumData(album: Album) {
+  try {
+    await fs.remove(path.join("resources", "img", "posters", album.id ?? ""));
+  } catch (error) {
+    console.error(
+      "deleteAlbumData: Error deleting images files and directories",
+      error
+    );
+  }
 }
 
 /**

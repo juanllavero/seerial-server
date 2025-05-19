@@ -69,14 +69,14 @@ export class SequelizeManager {
         define: {
           underscored: true, // Map snake_case (DB) to camelCase (Models)
         },
-        logging: (msg) => console.log(msg),
+        //logging: (msg) => console.log(msg),
       });
 
       // Enable foreign keys
       await SequelizeManager.sequelize.query("PRAGMA foreign_keys = ON;");
 
       // Sync models to db
-      await SequelizeManager.sequelize.sync({ alter: true });
+      await SequelizeManager.sequelize.sync({ alter: false });
 
       console.log("Database initialized successfully with Sequelize");
     } catch (error: any) {

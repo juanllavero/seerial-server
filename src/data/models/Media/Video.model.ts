@@ -1,4 +1,5 @@
 import {
+  BeforeDestroy,
   BelongsTo,
   Column,
   DataType,
@@ -7,6 +8,7 @@ import {
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
+import { deleteVideoData } from "../../../db/delete/deleteData";
 import {
   AudioTrack,
   Chapter,
@@ -208,4 +210,14 @@ export class Video extends Model {
     hooks: true,
   })
   continueWatching?: ContinueWatching;
+
+  @BeforeDestroy
+  static async beforeDestroyHook(instance: Video): Promise<void> {
+    try {
+      await deleteVideoData(instance);
+      console.log(`Cleaned data from video ID=${instance.id}`);
+    } catch (error) {
+      console.error(`Error cleaning data for video ID=${instance.id}:`, error);
+    }
+  }
 }

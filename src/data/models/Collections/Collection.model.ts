@@ -1,4 +1,5 @@
 import {
+  BeforeDestroy,
   BelongsToMany,
   Column,
   DataType,
@@ -6,6 +7,7 @@ import {
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
+import { deleteCollectionData } from "../../../db/delete/deleteData";
 import { Library } from "../Media/Library.model";
 import { Movie } from "../Media/Movie.model";
 import { Series } from "../Media/Series.model";
@@ -109,4 +111,17 @@ export class Collection extends Model {
     hooks: true,
   })
   albums!: Album[];
+
+  @BeforeDestroy
+  static async beforeDestroyHook(instance: Collection): Promise<void> {
+    try {
+      await deleteCollectionData(instance);
+      console.log(`Cleaned data from collection ID=${instance.id}`);
+    } catch (error) {
+      console.error(
+        `Error cleaning data for collection ID=${instance.id}:`,
+        error
+      );
+    }
+  }
 }

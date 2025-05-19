@@ -7,10 +7,12 @@ import {
 } from "../../db/get/getData";
 import { addVideoToContinueWatching } from "../../db/post/postData";
 import {
+  updateCollection,
   updateEpisode,
   updateLibrary,
   updateSeason,
   updateSeries,
+  updateVideo,
 } from "../../db/update/updateData";
 import { Utils } from "../../utils/Utils";
 const router = express.Router();
@@ -24,6 +26,18 @@ router.put("/library", (req, res) => {
     res.status(200).json({ message: "Library updated successfully" });
   } catch (error) {
     res.status(500).json({ error: "Failed to update library" });
+  }
+});
+
+// Update Collection
+router.put("/collection", (req, res) => {
+  const { collectionId, updatedCollection } = req.body;
+
+  try {
+    updateCollection(collectionId, updatedCollection);
+    res.status(200).json({ message: "Collection updated successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update collection" });
   }
 });
 
@@ -60,6 +74,54 @@ router.put("/episode", (req, res) => {
     res.status(200).json({ message: "Episode updated successfully" });
   } catch (error) {
     res.status(500).json({ error: "Failed to update episode" });
+  }
+});
+
+// Update Video
+router.put("/video", (req, res) => {
+  const { videoId, updatedVideo } = req.body;
+
+  try {
+    updateVideo(videoId, updatedVideo);
+    res.status(200).json({ message: "Video updated successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update video" });
+  }
+});
+
+// Update Movie
+router.put("/movie", (req, res) => {
+  const { movieId, updatedMovie } = req.body;
+
+  try {
+    updateVideo(movieId, updatedMovie);
+    res.status(200).json({ message: "Movie updated successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update movie" });
+  }
+});
+
+// Update Album
+router.put("/album", (req, res) => {
+  const { albumId, updatedAlbum } = req.body;
+
+  try {
+    updateVideo(albumId, updatedAlbum);
+    res.status(200).json({ message: "Album updated successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update album" });
+  }
+});
+
+// Update Song
+router.put("/song", (req, res) => {
+  const { songId, updatedSong } = req.body;
+
+  try {
+    updateVideo(songId, updatedSong);
+    res.status(200).json({ message: "Song updated successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update song" });
   }
 });
 

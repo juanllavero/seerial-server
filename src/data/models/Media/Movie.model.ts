@@ -1,4 +1,5 @@
 import {
+  BeforeDestroy,
   BelongsTo,
   BelongsToMany,
   Column,
@@ -9,6 +10,7 @@ import {
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
+import { deleteMovieData } from "../../../db/delete/deleteData";
 import { Cast } from "../../interfaces/Media";
 import { Collection } from "../Collections/Collection.model";
 import { CollectionMovie } from "../Collections/CollectionMovie.model";
@@ -309,4 +311,14 @@ export class Movie extends Model {
 
   @HasMany(() => Video, { foreignKey: "extraId", as: "extras" })
   extras!: Video[];
+
+  @BeforeDestroy
+  static async beforeDestroyHook(instance: Movie): Promise<void> {
+    try {
+      await deleteMovieData(instance.libraryId, instance);
+      console.log(`Cleaned data from movie ID=${instance.id}`);
+    } catch (error) {
+      console.error(`Error cleaning data for movie ID=${instance.id}:`, error);
+    }
+  }
 }

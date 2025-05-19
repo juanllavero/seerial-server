@@ -146,35 +146,39 @@ router.post("/downloadMusic", (req: any, res: any) => {
 
 // Update TheMovieDB id for show
 router.post("/updateShowId", (req: any, res: any) => {
-  const { libraryId, showId, themdbId } = req.body;
+  const { showId, themdbId } = req.body;
 
-  if (!showId || !themdbId || !libraryId) {
+  if (!showId || !themdbId) {
     return res.status(400).json({ error: "Not enough parameters" });
   }
 
-  updateShowMetadata(libraryId, showId, themdbId, wsManager);
+  updateShowMetadata(showId, themdbId, wsManager);
+
+  res.json({ message: "UPDATE_FINISHED" });
 });
 
 // Update TheMovieDB id for movie
 router.post("/updateMovieId", (req: any, res: any) => {
-  const { libraryId, movieId, themdbId } = req.body;
+  const { movieId, themdbId } = req.body;
 
-  if (!movieId || !themdbId || !libraryId) {
+  if (!movieId || !themdbId) {
     return res.status(400).json({ error: "Not enough parameters" });
   }
 
-  updateMovieMetadata(libraryId, movieId, themdbId, wsManager);
+  updateMovieMetadata(movieId, themdbId, wsManager);
+
+  res.json({ message: "UPDATE_FINISHED" });
 });
 
 // Update episode group for show
 router.post("/updateEpisodeGroup", (req: any, res: any) => {
-  const { libraryId, showId, themdbId, episodeGroupId } = req.body;
+  const { showId, themdbId, episodeGroupId } = req.body;
 
-  if (!showId || !themdbId || !episodeGroupId || !libraryId) {
+  if (!showId || !themdbId || !episodeGroupId) {
     return res.status(400).json({ error: "Not enough parameters" });
   }
 
-  updateShowMetadata(libraryId, showId, themdbId, wsManager, episodeGroupId);
+  updateShowMetadata(showId, themdbId, wsManager, episodeGroupId);
 });
 
 // Set movie watched state

@@ -10,27 +10,27 @@ import {
   getSeriesById,
   getVideoByMovieId,
 } from "../db/get/getData";
+import { Utils } from "../utils/Utils";
 import { WebSocketManager } from "../WebSockets/WebSocketManager";
 import { scanMovie } from "./movies/searchMovies";
 
 import { scanTVShow } from "./series/searchSeries";
 export async function updateShowMetadata(
-  libraryId: string,
   showId: string,
   newTheMovieDBID: number,
   wsManager: WebSocketManager,
   newepisodeGroupId?: string
 ) {
-  const library = await getLibraryById(libraryId);
-
-  if (!library) return;
-
   const show = await getSeriesById(showId);
 
   if (!show) return;
 
   // Delete previous data
-  await deleteSeriesData(library.id, show);
+  await deleteSeriesData(show.libraryId, show);
+
+  const library = await getLibraryById(show.libraryId);
+
+  if (!library) return;
 
   // Restore folder stored in library
   await library.addAnalyzedFolder(show.folder, show.id);
@@ -51,28 +51,29 @@ export async function updateShowMetadata(
 
   // Save changes in DB
   show.save();
-  //Utils.updateSeries(wsManager, library.id, show);
+  Utils.mutateSeries(wsManager);
+  Utils.mutateSeason(wsManager);
+  Utils.mutateLibrary(wsManager);
 
   // Get new data
   await scanTVShow(library, show.folder, wsManager);
 }
 
 export async function updateMovieMetadata(
-  libraryId: string,
   movieId: string,
   newTheMovieDBID: number,
   wsManager: WebSocketManager
 ) {
-  const library = await getLibraryById(libraryId);
-
-  if (!library) return;
-
   const movie = await getMovieById(movieId);
 
   if (!movie) return;
 
   // Delete previous data
-  await deleteMovieData(library.id, movie);
+  await deleteMovieData(movie.libraryId, movie);
+
+  const library = await getLibraryById(movie.libraryId);
+
+  if (!library) return;
 
   // Restore folder in library
   await library.addAnalyzedFolder(movie.folder, movie.id);
@@ -82,7 +83,7 @@ export async function updateMovieMetadata(
 
   if (videos) {
     for (const video of videos) {
-      deleteVideoData(libraryId, video);
+      deleteVideoData(video);
       deleteVideo(video.id);
     }
   }
@@ -92,7 +93,8 @@ export async function updateMovieMetadata(
 
   // Save changes in DB
   movie.save();
-  //Utils.updateSeries(wsManager, library.id, collection);
+  Utils.mutateMovie(wsManager);
+  Utils.mutateLibrary(wsManager);
 
   // Get new data
   await scanMovie(library, movie.folder, wsManager);
