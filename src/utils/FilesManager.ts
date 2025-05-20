@@ -2,6 +2,7 @@ import fs from "fs";
 import multer from "multer";
 import path from "path";
 import PropertiesReader, { Reader } from "properties-reader";
+import { LOCAL_DATA_PATH } from "./constants";
 
 export class FilesManager {
   public static extPath = "/";
@@ -53,7 +54,7 @@ export class FilesManager {
 
   public static initFolders() {
     // Initialize folders
-    for (const folderPath in this.folders) {
+    for (const folderPath of this.folders) {
       this.createFolder(this.getExternalPath(folderPath));
     }
   }
@@ -61,11 +62,7 @@ export class FilesManager {
   public static loadProperties() {
     // Create keys.properties if it doesn't exist
     if (!fs.existsSync(FilesManager.propertiesFilePath)) {
-      fs.writeFileSync(
-        FilesManager.propertiesFilePath,
-        JSON.stringify({ language: "es-ES" }, null, 2),
-        "utf-8"
-      );
+      fs.writeFileSync(FilesManager.propertiesFilePath, "");
     }
 
     this.properties = PropertiesReader(FilesManager.propertiesFilePath);
@@ -78,24 +75,23 @@ export class FilesManager {
    * @returns Absolute path to the external file
    */
   public static getExternalPath(relativePath: string): string {
-    // Determine base directory
-    const isPackaged =
-      process.env.NODE_ENV === "production" ||
-      !!process.execPath.includes("snapshot");
-    const baseDir = isPackaged
-      ? path.dirname(process.execPath) // Directory of the executable
-      : path.resolve(__dirname, "../../"); // Project root
+    try {
+      const baseDir = LOCAL_DATA_PATH;
+      const fullPath = path.join(baseDir, relativePath);
 
-    // Construct full path
-    const fullPath = path.join(baseDir, relativePath);
+      const isNumeric = !isNaN(Number(relativePath));
 
-    // Ensure parent directories exist
-    const parentDir = path.dirname(fullPath);
-    if (!fs.existsSync(parentDir)) {
-      fs.mkdirSync(parentDir, { recursive: true });
+      if (!isNumeric) {
+        const parentDir = path.dirname(fullPath);
+        if (!fs.existsSync(parentDir)) {
+          fs.mkdirSync(parentDir, { recursive: true });
+        }
+      }
+
+      return fullPath;
+    } catch (error) {
+      return "";
     }
-
-    return fullPath;
   }
 
   /**

@@ -2,6 +2,7 @@ import * as fs from "fs";
 import { MovieDb } from "moviedb-promise";
 import * as path from "path";
 import propertiesReader, { Value } from "properties-reader";
+import { FilesManager } from "../utils/FilesManager";
 
 export class MovieDBWrapper {
   public static THEMOVIEDB_API_KEY: Value | null = "";
@@ -12,10 +13,8 @@ export class MovieDBWrapper {
   public static initConnection = (): boolean => {
     if (this.moviedb) return true;
 
-    const propertiesFilePath = path.join(
-      "resources",
-      "config",
-      "keys.properties"
+    const propertiesFilePath = FilesManager.getExternalPath(
+      path.join("resources", "config", "keys.properties")
     );
 
     if (!fs.existsSync(propertiesFilePath)) {

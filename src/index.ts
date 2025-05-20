@@ -6,23 +6,11 @@ import path from "path";
 import { SequelizeManager } from "./db/SequelizeManager";
 import * as routes from "./routes/index";
 import { MovieDBWrapper } from "./theMovieDB/MovieDB";
-import { checkDependencies } from "./utils/DependenciesCheck";
 import { FilesManager } from "./utils/FilesManager";
+import { downloadYtDlp } from "./utils/YoutubeDownloader";
 import { WebSocketManager } from "./WebSockets/WebSocketManager";
 
 process.env.APP_ROOT = path.join(__dirname, "../../");
-
-// Initialize Database
-SequelizeManager.initializeDB();
-
-// Initialize Folders
-FilesManager.initFolders();
-
-// Load properties file
-FilesManager.loadProperties();
-
-// Initialize MoveDB Connection
-MovieDBWrapper.initConnection();
 
 // Server settings
 export const appServer = express();
@@ -61,21 +49,6 @@ server.listen(PORT, () => {
     `[Streaming Server]: http server running at http://localhost:${PORT}`
   );
 });
-
-// Add all routes
-appServer.use("/", routes.folderRoutes);
-appServer.use("/", routes.deleteDataRoutes);
-appServer.use("/", routes.postDataRoutes);
-appServer.use("/", routes.updateDataRoutes);
-appServer.use("/", routes.getAudioRoutes);
-appServer.use("/", routes.getImagesRoutes);
-appServer.use("/", routes.getMediaRoutes);
-appServer.use("/", routes.getMediaInfoRoutes);
-appServer.use("/", routes.getStatusRoutes);
-appServer.use("/", routes.getVideoRoutes);
-appServer.use("/", routes.getHTPCSettings);
-appServer.use("/", routes.getServerSettings);
-appServer.use("/", routes.getWebSettings);
 
 //#region TRAY ICON
 let tray: Tray | null = null;
@@ -144,10 +117,41 @@ function createTray() {
 }
 //#endregion
 
+function addServerRoutes() {
+  appServer.use("/", routes.folderRoutes);
+  appServer.use("/", routes.deleteDataRoutes);
+  appServer.use("/", routes.postDataRoutes);
+  appServer.use("/", routes.updateDataRoutes);
+  appServer.use("/", routes.getAudioRoutes);
+  appServer.use("/", routes.getImagesRoutes);
+  appServer.use("/", routes.getMediaRoutes);
+  appServer.use("/", routes.getMediaInfoRoutes);
+  appServer.use("/", routes.getStatusRoutes);
+  appServer.use("/", routes.getVideoRoutes);
+  appServer.use("/", routes.getHTPCSettings);
+  appServer.use("/", routes.getServerSettings);
+  appServer.use("/", routes.getWebSettings);
+}
+
 // Start the app
 app.whenReady().then(async () => {
   // Check dependencies and install if necessary (python, pip, yt-dl)
-  await checkDependencies();
+  await downloadYtDlp();
+
+  // Initialize Database
+  SequelizeManager.initializeDB();
+
+  // Initialize Folders
+  FilesManager.initFolders();
+
+  // Load properties file
+  FilesManager.loadProperties();
+
+  // Initialize MoveDB Connection
+  MovieDBWrapper.initConnection();
+
+  // Add all routes
+  addServerRoutes();
 
   // Create Tray icon
   createTray();

@@ -5,6 +5,7 @@ import { promisify } from "util";
 import { WebSocketManager } from "../WebSockets/WebSocketManager";
 import { MediaSearchResult } from "../data/interfaces/SearchResults";
 import { FilesManager } from "../utils/FilesManager";
+import { ytDlpPath } from "../utils/YoutubeDownloader";
 
 const execAsync = promisify(exec);
 
@@ -13,9 +14,6 @@ export class Downloader {
     query: string,
     numberOfResults: number
   ): Promise<MediaSearchResult[]> {
-    // Get the absolute path of yt-dlp.exe based on the current directory
-    const ytDlpPath = FilesManager.getInternalPath("lib/yt-dlp.exe");
-
     const searchQuery = `${ytDlpPath} "ytsearch${
       numberOfResults > 0 ? numberOfResults : 1
     }:${query}" --dump-json --default-search ytsearch --no-playlist --no-check-certificate --geo-bypass --flat-playlist --skip-download --quiet --ignore-errors`;

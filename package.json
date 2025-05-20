@@ -6,26 +6,76 @@
   "author": "Juan Llavero",
   "license": "MIT",
   "private": true,
-  "debug": {
-    "env": {
-      "VITE_DEV_SERVER_URL": "http://127.0.0.1:7777/"
-    }
-  },
   "config": {
     "forge": {
       "packagerConfig": {
-        "name": "SeerialMediaServer",
-        "executableName": "Seerial Media Server"
+        "name": "seerial-server",
+        "executableName": "Seerial Media Server",
+        "icon": "./assets/icon.ico",
+        "ignore": [
+          "^/src",
+          "^/resources",
+          "^/assets",
+          "^/build",
+          "^/tests?",
+          "^/tsconfig\\.json$",
+          "^/forge\\.config\\.(js|ts)$",
+          "^/\\.vscode",
+          "^/\\.git",
+          "^/.*\\.ts$",
+          "^/README\\.md$",
+          "^/.*\\.log$",
+          "^/node_modules/\\.cache"
+        ]
       },
       "makers": [
         {
           "name": "@electron-forge/maker-squirrel",
           "config": {
-            "name": "SeerialMediaServer",
+            "name": "seerial-server",
             "setupExe": "Seerial Media Server Installer.exe"
           }
         }
       ]
+    }
+  },
+  "build": {
+    "appId": "es.seerial.media",
+    "productName": "Seerial Media Server",
+    "files": [
+      "dist/**",
+      "assets/**",
+      "node_modules/**",
+      "package.json"
+    ],
+    "asar": true,
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "directories": {
+      "output": "prod",
+      "buildResources": "assets"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "assets/icon.ico",
+      "uninstallerIcon": "assets/icon.ico",
+      "installerHeaderIcon": "assets/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Seerial Media Server"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "juanllavero",
+        "repo": "seerial-server"
+      }
+    ],
+    "extraMetadata": {
+      "description": "Media management server for the suite Seerial"
     }
   },
   "type": "commonjs",
@@ -34,21 +84,22 @@
     "dev": "npm run build && electron-forge start",
     "package": "npm run build && electron-forge package",
     "make": "npm run build && electron-forge make",
-    "publish": "npm run build && electron-forge publish",
-    "lint": "echo \"No linting configured\"",
-    "postbundle": "copyfiles -u 1 assets/* dist/assets/"
+    "postbundle": "copyfiles -u 1 assets/* dist/assets/",
+    "build-win": "npm run build && npx electron-builder --win",
+    "publish": "node dist/utils/publish.js",
+    "publish-win": "npx electron-builder --win --publish always"
   },
   "dependencies": {
     "axios": "^1.7.9",
     "cheerio": "^1.0.0",
     "cors": "^2.8.5",
-    "cross-spawn": "^7.0.6",
     "electron-squirrel-startup": "^1.0.1",
     "express": "^4.21.2",
     "ffmetadata": "^1.7.0",
     "ffmpeg-static": "^5.2.0",
     "ffprobe-static": "^3.1.0",
     "fluent-ffmpeg": "^2.1.3",
+    "follow-redirects": "^1.15.9",
     "fs-extra": "^11.3.0",
     "moviedb-promise": "^4.0.7",
     "multer": "^1.4.5-lts.1",
@@ -64,26 +115,25 @@
   "devDependencies": {
     "@electron-forge/cli": "^7.8.1",
     "@electron-forge/maker-deb": "^7.8.1",
-    "@electron-forge/maker-rpm": "^7.8.1",
     "@electron-forge/maker-squirrel": "^7.8.1",
     "@electron-forge/maker-zip": "^7.8.1",
     "@electron-forge/plugin-auto-unpack-natives": "^7.8.1",
     "@electron-forge/plugin-fuses": "^7.8.1",
     "@electron/fuses": "^1.8.0",
-    "electron": "36.2.1",
     "@types/cors": "^2.8.17",
-    "@types/cross-spawn": "^6.0.6",
     "@types/express": "^5.0.0",
     "@types/ffprobe-static": "^2.0.3",
     "@types/fluent-ffmpeg": "^2.1.27",
+    "@types/follow-redirects": "^1.14.4",
     "@types/fs-extra": "^11.0.4",
     "@types/multer": "^1.4.12",
     "@types/properties-reader": "^2.1.3",
     "@types/uuid": "^10.0.0",
     "@types/ws": "^8.5.13",
     "copyfiles": "^2.4.1",
-    "nodemon": "^3.1.9",
-    "ts-node": "^10.9.2",
+    "dotenv": "^16.5.0",
+    "electron": "36.2.1",
+    "electron-builder": "^26.0.12",
     "typescript": "^5.4.2"
   }
 }
