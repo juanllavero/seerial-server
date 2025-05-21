@@ -16,10 +16,17 @@ jobs:
         with:
           node-version: 18
       - run: npm install
+
+      # Exportar GH_TOKEN al entorno de ejecución
+      - name: Set GH_TOKEN
+        run: echo "GH_TOKEN=${{ secrets.GH_TOKEN }}" >> $GITHUB_ENV
+
+      # Construir binario Windows (sin publicar)
       - run: npm run build-win
-      - run: npx electron-builder --win --publish always
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      # Publicar el .exe generado (solo el instalador)
+      - name: Publish Windows Artifacts
+        run: npx electron-builder --win --publish always
 
   build-mac:
     runs-on: macos-latest
@@ -29,10 +36,13 @@ jobs:
         with:
           node-version: 18
       - run: npm install
+
+      - name: Set GH_TOKEN
+        run: echo "GH_TOKEN=${{ secrets.GH_TOKEN }}" >> $GITHUB_ENV
+
       - run: npm run build-mac
-      - run: npx electron-builder --mac --publish always
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Publish macOS Artifacts
+        run: npx electron-builder --mac --publish always
 
   build-linux:
     runs-on: ubuntu-latest
@@ -42,7 +52,10 @@ jobs:
         with:
           node-version: 18
       - run: npm install
+
+      - name: Set GH_TOKEN
+        run: echo "GH_TOKEN=${{ secrets.GH_TOKEN }}" >> $GITHUB_ENV
+
       - run: npm run build-linux
-      - run: npx electron-builder --linux --publish always
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      - name: Publish Linux Artifacts
+        run: npx electron-builder --linux --publish always
