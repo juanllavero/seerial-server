@@ -6,39 +6,6 @@
   "author": "Juan Llavero",
   "license": "MIT",
   "private": true,
-  "config": {
-    "forge": {
-      "packagerConfig": {
-        "name": "seerial-server",
-        "executableName": "Seerial Media Server",
-        "icon": "./assets/icons/icon.ico",
-        "ignore": [
-          "^/src",
-          "^/resources",
-          "^/assets",
-          "^/build",
-          "^/tests?",
-          "^/tsconfig\\.json$",
-          "^/forge\\.config\\.(js|ts)$",
-          "^/\\.vscode",
-          "^/\\.git",
-          "^/.*\\.ts$",
-          "^/README\\.md$",
-          "^/.*\\.log$",
-          "^/node_modules/\\.cache"
-        ]
-      },
-      "makers": [
-        {
-          "name": "@electron-forge/maker-squirrel",
-          "config": {
-            "name": "seerial-server",
-            "setupExe": "Seerial Media Server Installer.exe"
-          }
-        }
-      ]
-    }
-  },
   "build": {
     "appId": "es.seerial.media",
     "productName": "Seerial Media Server",
@@ -87,10 +54,8 @@
   "type": "commonjs",
   "scripts": {
     "build": "tsc && npm run postbundle",
-    "dev": "npm run build && electron-forge start",
-    "package": "npm run build && electron-forge package",
-    "make": "npm run build && electron-forge make",
-    "postbundle": "copyfiles -u 1 assets/* dist/assets/",
+    "dev": "npm run build && electron dist/index.js",
+    "postbundle": "copyfiles -u 1 assets/**/* dist/assets/",
     "build-win": "npm run build && npx electron-builder --win",
     "build-mac": "npm run build && npx electron-builder --mac",
     "build-linux": "npm run build && npx electron-builder --linux",
@@ -100,7 +65,6 @@
     "axios": "^1.7.9",
     "cheerio": "^1.0.0",
     "cors": "^2.8.5",
-    "electron-squirrel-startup": "^1.0.1",
     "express": "^4.21.2",
     "ffmetadata": "^1.7.0",
     "ffmpeg-static": "^5.2.0",
@@ -120,12 +84,6 @@
     "ws": "^8.18.0"
   },
   "devDependencies": {
-    "@electron-forge/cli": "^7.8.1",
-    "@electron-forge/maker-deb": "^7.8.1",
-    "@electron-forge/maker-squirrel": "^7.8.1",
-    "@electron-forge/maker-zip": "^7.8.1",
-    "@electron-forge/plugin-auto-unpack-natives": "^7.8.1",
-    "@electron-forge/plugin-fuses": "^7.8.1",
     "@electron/fuses": "^1.8.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
