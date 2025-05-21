@@ -53,6 +53,12 @@
       "target": "nsis",
       "icon": "assets/icons/icon.ico"
     },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Utility"
+    },
     "directories": {
       "output": "prod",
       "buildResources": "assets"
@@ -88,10 +94,7 @@
     "build-win": "npm run build && npx electron-builder --win",
     "build-mac": "npm run build && npx electron-builder --mac",
     "build-linux": "npm run build && npx electron-builder --linux",
-    "publish": "node dist/utils/publish.js",
-    "publish-win": "npx electron-builder --win --publish always",
-    "publish-mac": "npx electron-builder --mac --publish always",
-    "publish-linux": "npx electron-builder --linux --publish always"
+    "publish": "node dist/utils/publish.js"
   },
   "dependencies": {
     "axios": "^1.7.9",
