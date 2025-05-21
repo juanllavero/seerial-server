@@ -19,6 +19,7 @@ jobs:
 
       # Exportar GH_TOKEN al entorno de ejecución
       - name: Set GH_TOKEN
+        shell: bash
         run: echo "GH_TOKEN=${{ secrets.GH_TOKEN }}" >> $GITHUB_ENV
 
       # Construir binario Windows (sin publicar)
