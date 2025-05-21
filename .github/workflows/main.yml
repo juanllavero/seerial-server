@@ -1,4 +1,4 @@
-name: Build and Publish Windows Installer
+name: Build and Publish (Win, MacOS, Linux)
 
 on:
   push:
