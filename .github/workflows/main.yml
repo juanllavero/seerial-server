@@ -58,4 +58,4 @@ jobs:
 
       - run: npm run build
       - name: Publish Linux Artifacts
-        run: npx electron-builder --linux --publish always
+        run: npx electron-builder --linux AppImage --publish always
