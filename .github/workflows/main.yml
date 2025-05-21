@@ -22,7 +22,7 @@ jobs:
         run: echo "GH_TOKEN=${{ secrets.GH_TOKEN }}" >> $GITHUB_ENV
 
       # Construir binario Windows (sin publicar)
-      - run: npm run build-win
+      - run: npm run build
 
       # Publicar el .exe generado (solo el instalador)
       - name: Publish Windows Artifacts
@@ -40,7 +40,7 @@ jobs:
       - name: Set GH_TOKEN
         run: echo "GH_TOKEN=${{ secrets.GH_TOKEN }}" >> $GITHUB_ENV
 
-      - run: npm run build-mac
+      - run: npm run build
       - name: Publish macOS Artifacts
         run: npx electron-builder --mac --publish always
 
@@ -56,6 +56,6 @@ jobs:
       - name: Set GH_TOKEN
         run: echo "GH_TOKEN=${{ secrets.GH_TOKEN }}" >> $GITHUB_ENV
 
-      - run: npm run build-linux
+      - run: npm run build
       - name: Publish Linux Artifacts
         run: npx electron-builder --linux --publish always
