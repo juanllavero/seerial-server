@@ -23,7 +23,7 @@ import { MovieDBWrapper } from "../../theMovieDB/MovieDB";
 import { FilesManager } from "../../utils/FilesManager";
 import { Utils } from "../../utils/Utils";
 import { WebSocketManager } from "../../WebSockets/WebSocketManager";
-import { FileSearch } from "../fileSearch";
+import { FileSearch } from "../FileSearch";
 
 export async function scanTVShow(
   library: Library,

@@ -24,7 +24,7 @@ import {
 } from "../../../db/get/getData";
 import { SequelizeManager } from "../../../db/SequelizeManager";
 import { Downloader } from "../../../downloaders/Downloader";
-import { FileSearch } from "../../../fileSearch/fileSearch";
+import { FileSearch } from "../../../fileSearch/FileSearch";
 import { clearLibrary } from "../../../fileSearch/utils";
 import { MovieDBWrapper } from "../../../theMovieDB/MovieDB";
 import { IMDBScores } from "../../../utils/IMDBScores";

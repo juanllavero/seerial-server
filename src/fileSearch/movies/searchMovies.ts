@@ -18,7 +18,7 @@ import { FilesManager } from "../../utils/FilesManager";
 import { IMDBScores } from "../../utils/IMDBScores";
 import { Utils } from "../../utils/Utils";
 import { WebSocketManager } from "../../WebSockets/WebSocketManager";
-import { FileSearch } from "../fileSearch";
+import { FileSearch } from "../FileSearch";
 
 /**
  * Scans a specific folder for movies and collections

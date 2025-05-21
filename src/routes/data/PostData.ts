@@ -18,7 +18,7 @@ import {
   removeSeriesFromMyList,
 } from "../../db/post/postData";
 import { Downloader } from "../../downloaders/Downloader";
-import { FileSearch } from "../../fileSearch/fileSearch";
+import { FileSearch } from "../../fileSearch/FileSearch";
 import {
   updateMovieMetadata,
   updateShowMetadata,
