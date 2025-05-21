@@ -5,7 +5,6 @@ const router = express.Router();
 
 // Check server status
 router.get("/", (_req, res) => {
-  console.log({ moviedb: MovieDBWrapper.THEMOVIEDB_API_KEY });
   if (MovieDBWrapper.THEMOVIEDB_API_KEY) {
     const moviedb = new MovieDb(String(MovieDBWrapper.THEMOVIEDB_API_KEY));
 
