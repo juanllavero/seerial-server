@@ -56,6 +56,7 @@ function createTray() {
   const iconPath = path.join(
     __dirname,
     "assets",
+    "icons",
     process.platform === "win32" ? "icon.ico" : "icon.png"
   );
 

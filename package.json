@@ -141,6 +141,7 @@
     "dotenv": "^16.5.0",
     "electron": "36.2.1",
     "electron-builder": "^26.0.12",
+    "electron-icon-builder": "^2.0.1",
     "typescript": "^5.4.2"
   }
 }
