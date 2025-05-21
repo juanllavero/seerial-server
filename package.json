@@ -78,7 +78,6 @@
         "provider": "github",
         "owner": "juanllavero",
         "repo": "seerial-server",
-        "releaseType": "release",
         "draft": false,
         "prerelease": true
       }
