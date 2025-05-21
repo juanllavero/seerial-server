@@ -86,8 +86,12 @@
     "make": "npm run build && electron-forge make",
     "postbundle": "copyfiles -u 1 assets/* dist/assets/",
     "build-win": "npm run build && npx electron-builder --win",
+    "build-mac": "npm run build && npx electron-builder --mac",
+    "build-linux": "npm run build && npx electron-builder --linux",
     "publish": "node dist/utils/publish.js",
-    "publish-win": "npx electron-builder --win --publish always"
+    "publish-win": "npx electron-builder --win --publish always",
+    "publish-mac": "npx electron-builder --mac --publish always",
+    "publish-linux": "npx electron-builder --linux --publish always"
   },
   "dependencies": {
     "axios": "^1.7.9",
