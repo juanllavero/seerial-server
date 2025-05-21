@@ -77,9 +77,7 @@
       {
         "provider": "github",
         "owner": "juanllavero",
-        "repo": "seerial-server",
-        "draft": false,
-        "prerelease": true
+        "repo": "seerial-server"
       }
     ],
     "extraMetadata": {
