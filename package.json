@@ -11,7 +11,7 @@
       "packagerConfig": {
         "name": "seerial-server",
         "executableName": "Seerial Media Server",
-        "icon": "./assets/icon.ico",
+        "icon": "./assets/icons/icon.ico",
         "ignore": [
           "^/src",
           "^/resources",
@@ -51,7 +51,7 @@
     "asar": true,
     "win": {
       "target": "nsis",
-      "icon": "assets/icon.ico"
+      "icon": "assets/icons/icon.ico"
     },
     "directories": {
       "output": "prod",
@@ -60,9 +60,9 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "installerIcon": "assets/icon.ico",
-      "uninstallerIcon": "assets/icon.ico",
-      "installerHeaderIcon": "assets/icon.ico",
+      "installerIcon": "assets/icons/icon.ico",
+      "uninstallerIcon": "assets/icons/icon.ico",
+      "installerHeaderIcon": "assets/icons/icon.ico",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "Seerial Media Server"
