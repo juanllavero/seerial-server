@@ -13,15 +13,14 @@ interface ServerState {
 }
 
 export const useServerStore = create<ServerState>((set, get) => ({
-  serverIP: localStorage.getItem('serverIP') || '',
+  serverIP: '',
   serverStatus: false,
-  serverVersion: '0.22.44',
+  serverVersion: '',
   gettingServerStatus: false,
   apiKeyStatus: false,
   gettingApiKeyStatus: false,
 
   setServerIP: (ip) => {
-    localStorage.setItem('serverIP', ip)
     set({ serverIP: ip })
     get().getServerStatus()
   },

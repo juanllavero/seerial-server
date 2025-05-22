@@ -5,6 +5,7 @@ import MovieDetailsPage from '@/pages/details/movie/MovieDetailsPage'
 import SeriesDetailsPage from '@/pages/details/series/SeriesDetailsPage'
 import HomePage from '@/pages/home/HomePage'
 import LibraryPage from '@/pages/library/LibraryPage'
+import LoginPage from '@/pages/login/LoginPage'
 import SettingsPage from '@/pages/settings/SettingsPage'
 import VideoPlayerPage from '@/pages/videoPlayer/VideoPlayerPage'
 import { createRoute } from '@tanstack/react-router'
@@ -14,6 +15,12 @@ export const HomeRoute = createRoute({
   getParentRoute: () => RootRoute,
   path: '/',
   component: HomePage,
+})
+
+export const LoginRoute = createRoute({
+  getParentRoute: () => RootRoute,
+  path: '/login',
+  component: LoginPage,
 })
 
 export const LibraryRoute = createRoute({
@@ -66,6 +73,7 @@ export const VideoPlayerRoute = createRoute({
 
 export const rootTree = RootRoute.addChildren([
   HomeRoute,
+  LoginRoute,
   LibraryRoute,
   MovieDetailsRoute,
   SeriesDetailsRoute,

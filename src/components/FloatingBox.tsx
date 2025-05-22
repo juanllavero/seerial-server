@@ -4,6 +4,7 @@ import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Library } from '@/data/interfaces/Media'
 import { DropdownContent } from '@/data/interfaces/Utils'
+import { CENTRAL_SERVER } from '@/utils/constants'
 import { fetcher } from '@/utils/utils'
 import { useLocation, useNavigate, useRouter } from '@tanstack/react-router'
 import {
@@ -34,6 +35,15 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
   const { serverIP } = useServerStore()
   const { connectWS } = useWebSocketStore()
   const isMobile = useIsMobile()
+
+  const { data: servers, isLoading: loadingServers } = useSWR<Library[]>(
+    `https://${CENTRAL_SERVER}/servers/`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+    },
+  )
 
   const { data: libraries, isLoading } = useSWR<Library[]>(
     `https://${serverIP}/libraries/`,

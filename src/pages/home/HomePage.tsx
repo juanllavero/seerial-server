@@ -4,15 +4,18 @@ import FlexBox from '@/components/ui/FlexBox'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { Movie, Series, Video } from '@/data/interfaces/Media'
+import { Server } from '@/data/interfaces/Users'
+import { CENTRAL_SERVER } from '@/utils/constants'
 import { fetcher } from '@/utils/utils'
-import React, { useEffect } from 'react'
+import { useNavigate } from '@tanstack/react-router'
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 import HorizontalList from './components/HorizontalList'
 import NoAPIKey from './components/NoAPIKey'
 import NoContent from './components/NoContent'
 import NoServer from './components/NoServer'
-import { useNavigate } from '@tanstack/react-router'
+import NotAvailableServer from './components/NotAvailableServer'
 
 export default function HomePage() {
   const { t } = useTranslation()
@@ -20,6 +23,16 @@ export default function HomePage() {
   const { serverIP, serverStatus, apiKeyStatus, getServerStatus } =
     useServerStore()
   const { selectLibrary, isContent, loadingContent } = useDataStore()
+
+  // Get Servers
+  const { data: servers, isLoading: loadingServers } = useSWR<Server[]>(
+    `https://${CENTRAL_SERVER}/servers/`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+    },
+  )
 
   // Get Continue Watching items
   const { data: continueWatching, isLoading: loadingContinueWatching } = useSWR<
@@ -41,12 +54,16 @@ export default function HomePage() {
     selectLibrary(null)
   }, [])
 
-  if (loadingContent) {
+  if (loadingServers) {
     return <Loading />
   }
 
-  if (!serverStatus) {
+  if (!servers) {
     return <NoServer />
+  }
+
+  if (!serverStatus) {
+    return <NotAvailableServer />
   }
 
   if (!apiKeyStatus) {

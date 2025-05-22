@@ -1,5 +1,6 @@
 import React from 'react'
 import AlbumDialog from './album/AlbumDialog'
+import CollectionDialog from './collection/CollectionDialog'
 import EpisodeDialog from './episode/EpisodeDialog'
 import ChangeEpisodesGroupDialog from './episodesGroup/ChangeEpisodesGroupDialog'
 import ChangeIdentificationDialog from './identification/ChangeIdentificationDialog'
@@ -7,7 +8,6 @@ import LibraryDialog from './library/LibraryDialog'
 import MovieDialog from './movie/MovieDialog'
 import RemoveLibraryDialog from './remove/RemoveLibraryDialog'
 import SeasonDialog from './season/SeasonDialog'
-import CollectionDialog from './collection/CollectionDIalog'
 
 function DialogManager() {
   return (

@@ -2,8 +2,8 @@ import DialogManager from '@/components/dialogs/DialogManager'
 import DragWindowRegion from '@/components/DragWindowRegion'
 import MusicPlayer from '@/components/musicPlayer/MusicPlayer'
 import useDataStore from '@/context/data.context'
-import { useDeviceStore } from '@/context/device.context'
 import { useServerStore } from '@/context/server.context'
+import { getToken } from '@/lib/auth'
 import { ReactUtils } from '@/utils/ReactUtils'
 import { useLocation } from '@tanstack/react-router'
 import React, { useEffect, useRef, useState } from 'react'
@@ -16,7 +16,6 @@ export default function BaseLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { initializeDeviceDetection } = useDeviceStore()
   const { currentBackground: selectedBackground } = useDataStore()
   const { serverIP } = useServerStore()
   const prevBackground = useRef<string | undefined>(undefined)
@@ -34,10 +33,6 @@ export default function BaseLayout({
   const inDetailsPage =
     location.pathname.startsWith('/details/') ||
     location.pathname.startsWith('/episodeDetails/')
-
-  useEffect(() => {
-    initializeDeviceDetection()
-  }, [])
 
   useEffect(() => {
     if (selectedBackground) {
@@ -148,9 +143,15 @@ export default function BaseLayout({
       {/* Toaster root */}
       <Toaster theme="dark" richColors />
 
-      <DialogManager />
-      <MusicPlayer />
-      <DragWindowRegion />
+      {/* Load components only if the user is logged in */}
+      {getToken() !== null && (
+        <>
+          <DialogManager />
+          <MusicPlayer />
+          <DragWindowRegion />
+        </>
+      )}
+
       <main className="h-screen w-screen">{children}</main>
     </div>
   )
