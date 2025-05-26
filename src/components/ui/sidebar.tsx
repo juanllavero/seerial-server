@@ -1,10 +1,9 @@
-import * as React from 'react'
 import { Slot } from '@radix-ui/react-slot'
 import { VariantProps, cva } from 'class-variance-authority'
 import { PanelLeft } from 'lucide-react'
+import * as React from 'react'
 
 import { useIsMobile } from '@/components/hooks/use-mobile'
-import { cn } from '@/utils/tailwind'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
@@ -16,6 +15,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { cn } from '@/utils/tailwind'
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state'
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -329,12 +329,17 @@ const SidebarInset = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<'main'>
 >(({ className, ...props }, ref) => {
+  const { isMobile, state } = useSidebar()
+
   return (
     <main
       ref={ref}
       className={cn(
         'bg-background relative flex min-h-svh flex-1 flex-col',
         'peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2',
+        !isMobile && state === 'expanded' && 'ml-50',
+        !isMobile && state === 'collapsed' && 'ml-12',
+        !isMobile && 'transition-[margin-left] duration-200 ease-linear',
         className,
       )}
       {...props}

@@ -1,7 +1,7 @@
 import { TooltipProvider } from '@radix-ui/react-tooltip'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 import { RouterProvider } from '@tanstack/react-router'
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { useTranslation } from 'react-i18next'
 import { AuthProvider } from './context/auth.context'

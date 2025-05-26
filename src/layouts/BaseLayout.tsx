@@ -1,10 +1,24 @@
 import DialogManager from '@/components/dialogs/DialogManager'
-import DragWindowRegion from '@/components/DragWindowRegion'
 import MusicPlayer from '@/components/musicPlayer/MusicPlayer'
+import { AppSidebar } from '@/components/SideBar/AppSidebar'
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from '@/components/ui/sidebar'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { getToken } from '@/lib/auth'
 import { ReactUtils } from '@/utils/ReactUtils'
+import { Separator } from '@radix-ui/react-dropdown-menu'
 import { useLocation } from '@tanstack/react-router'
 import React, { useEffect, useRef, useState } from 'react'
 import { Toaster } from 'sonner'
@@ -148,11 +162,35 @@ export default function BaseLayout({
         <>
           <DialogManager />
           <MusicPlayer />
-          <DragWindowRegion />
+          {/* <DragWindowRegion /> */}
         </>
       )}
 
-      <main className="h-screen w-screen">{children}</main>
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+            <div className="flex items-center gap-2 px-4">
+              <SidebarTrigger />
+              <Separator className="mr-2 h-4" />
+              <Breadcrumb>
+                <BreadcrumbList>
+                  <BreadcrumbItem className="hidden md:block">
+                    <BreadcrumbLink href="#">
+                      Building Your Application
+                    </BreadcrumbLink>
+                  </BreadcrumbItem>
+                  <BreadcrumbSeparator className="hidden md:block" />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage>Data Fetching</BreadcrumbPage>
+                  </BreadcrumbItem>
+                </BreadcrumbList>
+              </Breadcrumb>
+            </div>
+          </header>
+          <div className="bg-secondary h-screen flex-1">{children}</div>
+        </SidebarInset>
+      </SidebarProvider>
     </div>
   )
 }

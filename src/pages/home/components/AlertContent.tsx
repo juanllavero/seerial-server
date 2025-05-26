@@ -28,7 +28,7 @@ function AlertContent({ title, message, url, children }: AlertContentProps) {
         <WarningIcon />
       </div>
       <span className="text-xl font-semibold">{title}</span>
-      <span text->
+      <span className="text-center">
         {message}{' '}
         <a
           href=""

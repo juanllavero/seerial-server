@@ -1,3 +1,4 @@
+import { useAuth } from '@/context/auth.context'
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
@@ -21,14 +22,15 @@ import useSWR from 'swr'
 import DropdownWrapper from './DropdownWrapper'
 import { useIsMobile } from './hooks/use-mobile'
 import { LibrarySwitcher } from './LibrarySwitcher'
-import Loading from './Loading'
 import { Button } from './ui/button'
 import { Card, CardHeader } from './ui/card'
+import LazyImage from './ui/LazyImage'
 
 function FloatingBox({ isWindows }: { isWindows: boolean }) {
   const router = useRouter()
   const navigate = useNavigate()
   const { t } = useTranslation()
+  const { user } = useAuth()
   const { openRemoveLibraryDialog } = useDialogStore()
   const { selectedLibraryId, selectLibrary, setIsContent, setLoadingContent } =
     useDataStore()
@@ -110,14 +112,13 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
 
   return (
     <div
-      className={`pl-5 ${isMobile ? 'w-full px-5 pt-5' : isWindows ? 'pt-5' : 'pt-10'}`}
+      className={`flex w-full flex-row justify-between px-5 pl-5 ${isMobile ? 'pt-5' : isWindows ? 'pt-5' : 'pt-10'}`}
     >
       {!inPlayer && (
-        <Card>
-          <CardHeader className="flex flex-row flex-nowrap justify-between p-3">
-            {isLoading ? (
-              <Loading />
-            ) : (
+        <>
+          {/* Left Card */}
+          <Card>
+            <CardHeader className="flex flex-row flex-nowrap justify-between p-3">
               <LibrarySwitcher
                 libraries={
                   libraries
@@ -143,40 +144,49 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
                     : []
                 }
               />
-            )}
+            </CardHeader>
+          </Card>
 
-            {selectedLibraryId && (
-              <DropdownWrapper
-                content={getLibraryDrowdown()}
-                button={
-                  <Button variant={'ghost'} size={'icon'}>
-                    <EllipsisVertical />
-                  </Button>
-                }
-              />
-            )}
+          {/* Right Card */}
+          <Card>
+            <CardHeader className="flex flex-row flex-nowrap justify-between p-3">
+              {selectedLibraryId && (
+                <DropdownWrapper
+                  content={getLibraryDrowdown()}
+                  button={
+                    <Button variant={'ghost'} size={'icon'}>
+                      <EllipsisVertical />
+                    </Button>
+                  }
+                />
+              )}
 
-            {!inHome && (
-              <Button
-                variant="ghost"
-                size={'icon'}
-                onClick={() => router.history.back()}
-              >
-                <ChevronLeft />
+              {!inHome && (
+                <Button
+                  variant="ghost"
+                  size={'icon'}
+                  onClick={() => router.history.back()}
+                >
+                  <ChevronLeft />
+                </Button>
+              )}
+
+              {!inSettings && (
+                <Button
+                  variant="ghost"
+                  size={'icon'}
+                  onClick={() => navigate({ to: '/settings' })}
+                >
+                  <Settings />
+                </Button>
+              )}
+
+              <Button>
+                <LazyImage src={user ? user.image : ''} rounded width={40} />
               </Button>
-            )}
-
-            {!inSettings && (
-              <Button
-                variant="ghost"
-                size={'icon'}
-                onClick={() => navigate({ to: '/settings' })}
-              >
-                <Settings />
-              </Button>
-            )}
-          </CardHeader>
-        </Card>
+            </CardHeader>
+          </Card>
+        </>
       )}
     </div>
   )

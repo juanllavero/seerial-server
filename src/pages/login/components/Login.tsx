@@ -1,8 +1,10 @@
 import { useAuth } from '@/context/auth.context'
 import { CredentialResponse, GoogleLogin } from '@react-oauth/google'
+import { useNavigate } from '@tanstack/react-router'
 
 const Login = () => {
   const { login } = useAuth()
+  const navigate = useNavigate()
 
   const handleLogin = async (credentialResponse: CredentialResponse) => {
     const credential = credentialResponse.credential
@@ -22,6 +24,8 @@ const Login = () => {
 
       if (res.ok && data.token) {
         await login(data.token)
+
+        navigate({ to: '/' })
       } else {
         alert(data.error || 'Login fallido')
       }
