@@ -1,6 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton'
 import { useServerStore } from '@/context/server.context'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface LazyImageProps {
   src?: string
@@ -27,13 +27,13 @@ export default function LazyImage({
   errorSrc = '/img/fileNotFound.jpg',
   className,
 }: LazyImageProps) {
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const [loaded, setLoaded] = useState(false)
   const [imageSrc, setImageSrc] = useState(
     url
       ? url.startsWith('http2')
         ? url
-        : `https://${serverIP}/${url.replace('resources/img', 'img')}`
+        : `https://${selectedServer?.ip}/${url.replace('resources/img', 'img')}`
       : (src ?? errorSrc),
   )
   const [hasError, setHasError] = useState(false) // New state to track errors
@@ -42,12 +42,12 @@ export default function LazyImage({
     const newSrc = url
       ? url.startsWith('http2')
         ? url
-        : `https://${serverIP}/${url.replace('resources/img', 'img')}`
+        : `https://${selectedServer?.ip}/${url.replace('resources/img', 'img')}`
       : src
     setImageSrc(newSrc ?? errorSrc)
     setLoaded(false) // Reset loaded to show skeleton while loading new image
     setHasError(false) // Reset error state
-  }, [url, src, serverIP])
+  }, [url, src, selectedServer])
 
   const containerStyles = {
     width: width,

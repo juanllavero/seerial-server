@@ -14,20 +14,21 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { useAuth } from '@/context/auth.context'
+import { useServerStore } from '@/context/server.context'
 import { Server } from '@/data/interfaces/Users'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ServerIcon } from '../ui/IconLibrary'
 
-export function TeamSwitcher({
-  teams,
-}: {
-  teams: {
-    name: string
-    logo: React.ElementType
-    plan: string
-  }[]
-}) {
+export function ServerSwitcher() {
   const { user } = useAuth()
+  const { selectServer } = useServerStore()
+
+  useEffect(() => {
+    console.log('user', user)
+    if (user && user.servers && user.servers.length > 0) {
+      selectServer(user.servers[0])
+    }
+  }, [user])
 
   const servers = user && user.servers ? user.servers : []
 
@@ -35,6 +36,10 @@ export function TeamSwitcher({
   const [activeServer, setActiveServer] = useState<Server | undefined>(
     servers.length > 0 ? servers[0] : undefined,
   )
+
+  if (servers.length > 0 && !activeServer) {
+    setActiveServer(servers[0])
+  }
 
   if (!activeServer) {
     return null
@@ -46,8 +51,8 @@ export function TeamSwitcher({
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              size={'lg'}
+              className="data-[state=open]:bg-accent data-[state=open]:text-accent-foreground"
             >
               <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                 <ServerIcon />
@@ -62,7 +67,7 @@ export function TeamSwitcher({
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+            className="w-[--radix-dropdown-menu-trigger-width] max-w-56 min-w-56 rounded-lg"
             align="start"
             side={isMobile ? 'bottom' : 'right'}
             sideOffset={4}
@@ -72,8 +77,11 @@ export function TeamSwitcher({
             </DropdownMenuLabel>
             {servers.map((server, index) => (
               <DropdownMenuItem
-                key={server.name}
-                onClick={() => setActiveServer(server)}
+                key={server.ip + index}
+                onClick={() => {
+                  setActiveServer(server)
+                  selectServer(server)
+                }}
                 className="gap-2 p-2"
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">

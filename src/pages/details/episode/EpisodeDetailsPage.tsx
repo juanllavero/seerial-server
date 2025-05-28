@@ -12,14 +12,14 @@ import {
 import { formatDate } from '@/utils/ReactUtils'
 import { fetcher } from '@/utils/utils'
 import { useParams } from '@tanstack/react-router'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 
 function EpisodeDetailsPage() {
   const { t } = useTranslation()
   const { wsMessage } = useWebSocketStore()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { episodeId } = useParams({
     from: '/details/episode/$episodeId',
   })
@@ -29,7 +29,9 @@ function EpisodeDetailsPage() {
     isLoading,
     mutate,
   } = useSWR(
-    episodeId ? `https://${serverIP}/details/episode?id=${episodeId}` : null,
+    episodeId && selectedServer
+      ? `https://${selectedServer.ip}/details/episode?id=${episodeId}`
+      : null,
     fetcher,
   )
 
@@ -51,15 +53,18 @@ function EpisodeDetailsPage() {
     if (!episode) return
 
     const fetchData = async () => {
-      const result = await fetch(`https://${serverIP}/updateMediaInfo`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
+      const result = await fetch(
+        `https://${selectedServer?.ip}/updateMediaInfo`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            episode: episode,
+          }),
         },
-        body: JSON.stringify({
-          episode: episode,
-        }),
-      })
+      )
 
       if (!result.ok) {
         return

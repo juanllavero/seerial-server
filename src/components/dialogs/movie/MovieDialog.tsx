@@ -4,7 +4,7 @@ import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Movie } from '@/data/interfaces/Media'
 import { showToast } from '@/utils/ReactUtils'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
 import ImageListTab from '../components/ImageListTab'
@@ -14,7 +14,7 @@ import MovieTagsTab from './components/MovieTagsTab'
 
 function MovieDialog() {
   const { t } = useTranslation()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { connectWS } = useWebSocketStore()
   const { movieDialog, closeMovieDialog } = useDialogStore()
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
@@ -107,6 +107,10 @@ function MovieDialog() {
   if (!movie) return null
 
   const handleEditMovie = async () => {
+    if (!selectedServer) return
+
+    const serverIP = selectedServer.ip
+
     await connectWS(serverIP)
 
     const response = await fetch(`https://${serverIP}/movie`, {

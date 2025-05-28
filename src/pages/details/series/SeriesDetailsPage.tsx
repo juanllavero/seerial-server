@@ -21,7 +21,7 @@ import { fetcher } from '@/utils/utils'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { t } from 'i18next'
 import { Edit, Ellipsis, PlayIcon } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 import CastList from '../components/CastList'
 import SeasonContent from '../components/SeasonsContent'
@@ -29,7 +29,7 @@ import '../DetailsPage.css'
 
 function SeriesDetailsPage() {
   const { seriesId } = useParams({ from: '/details/series/$seriesId' })
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { wsMessage } = useWebSocketStore()
   const { selectedSeasonId, selectSeason, setCurrentBackground } =
     useDataStore()
@@ -42,7 +42,9 @@ function SeriesDetailsPage() {
     isLoading: loadingSeries,
     mutate: mutateSeries,
   } = useSWR<Series>(
-    seriesId ? `https://${serverIP}/details/series?id=${seriesId}` : null,
+    seriesId && selectedServer
+      ? `https://${selectedServer.ip}/details/series?id=${seriesId}`
+      : null,
     fetcher,
   )
   // Get selected season data
@@ -51,21 +53,23 @@ function SeriesDetailsPage() {
     isLoading: loadingSeason,
     mutate: mutateSeason,
   } = useSWR<Season>(
-    selectedSeasonId
-      ? `https://${serverIP}/details/season?id=${selectedSeasonId}`
+    selectedSeasonId && selectedServer
+      ? `https://${selectedServer.ip}/details/season?id=${selectedSeasonId}`
       : null,
     fetcher,
   )
   // Get current episode
   const { data: episode } = useSWR<Episode>(
-    series && series.currentlyWatchingEpisodeId
-      ? `https://${serverIP}/details/episode?id=${series.currentlyWatchingEpisodeId}`
+    series && series.currentlyWatchingEpisodeId && selectedServer
+      ? `https://${selectedServer.ip}/details/episode?id=${series.currentlyWatchingEpisodeId}`
       : null,
     fetcher,
   )
   // Get if show is in My List
   const { data: inMyList, mutate: mutateInMyList } = useSWR(
-    series ? `https://${serverIP}/isShowInMyList?seriesId=${series.id}` : null,
+    series && selectedServer
+      ? `https://${selectedServer.ip}/isShowInMyList?seriesId=${series.id}`
+      : null,
     fetcher,
   )
 
@@ -126,6 +130,8 @@ function SeriesDetailsPage() {
   if (!series || !season) {
     return <NotFound />
   }
+
+  const serverIP = selectedServer?.ip
 
   const renderLogoOrText = () => {
     const logoUrl = series?.logoSrc

@@ -3,13 +3,12 @@ import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { useNavigate } from '@tanstack/react-router'
-import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
 
 function RemoveLibraryDialog() {
   const { t } = useTranslation()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { connectWS } = useWebSocketStore()
   const { removeLibraryDialog, closeRemoveLibraryDialog } = useDialogStore()
   const navigate = useNavigate()
@@ -20,6 +19,9 @@ function RemoveLibraryDialog() {
       description={t('removeLibraryMessage')}
       actionMessage={t('removeButton')}
       action={async () => {
+        if (!selectedServer) return
+
+        const serverIP = selectedServer.ip
         connectWS(serverIP)
         await fetch(
           `https://${serverIP}/libraries/${removeLibraryDialog.libraryToRemove}`,

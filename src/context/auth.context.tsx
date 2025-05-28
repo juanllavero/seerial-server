@@ -1,4 +1,5 @@
 import { User } from '@/data/interfaces/Users'
+import { CENTRAL_SERVER } from '@/utils/constants'
 import React, { createContext, useContext, useEffect, useState } from 'react'
 
 type AuthContextType = {
@@ -20,7 +21,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   useEffect(() => {
     if (token) {
-      fetch('http://localhost:3000/users/me', {
+      fetch(`https://${CENTRAL_SERVER}/users/me`, {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then((res) => (res.ok ? res.json() : null))
@@ -30,6 +31,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [token])
 
   const login = async (newToken: string) => {
+    console.log('login', newToken)
     localStorage.setItem('token', newToken)
     setToken(newToken)
   }

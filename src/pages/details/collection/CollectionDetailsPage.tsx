@@ -29,7 +29,7 @@ function CollectionDetailsPage() {
   const { t } = useTranslation()
   const { setCurrentBackground } = useDataStore()
   const { wsMessage } = useWebSocketStore()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const isMobile = useIsMobile()
 
   // Get collection data
@@ -38,8 +38,8 @@ function CollectionDetailsPage() {
     isLoading,
     mutate,
   } = useSWR<Collection>(
-    collectionId
-      ? `https://${serverIP}/details/collection?id=${collectionId}`
+    collectionId && selectedServer
+      ? `https://${selectedServer.ip}/details/collection?id=${collectionId}`
       : null,
     fetcher,
   )

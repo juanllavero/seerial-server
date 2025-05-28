@@ -3,7 +3,7 @@ import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Library } from '@/data/interfaces/Media'
 import { useNavigate } from '@tanstack/react-router'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
 import { ModalWrapper } from '../../ModalWrapper'
@@ -18,7 +18,7 @@ interface LibraryDialogProps {
 function LibraryDialog({ library }: LibraryDialogProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { connectWS } = useWebSocketStore()
   const { libraryDialog, closeLibraryDialog, openLibraryDialog } =
     useDialogStore()
@@ -51,6 +51,10 @@ function LibraryDialog({ library }: LibraryDialogProps) {
   }
 
   const handleAddEditLibrary = async () => {
+    if (!selectedServer) return
+
+    const serverIP = selectedServer.ip
+
     await connectWS(serverIP)
 
     const newLibrary = {

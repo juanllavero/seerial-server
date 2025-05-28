@@ -2,9 +2,9 @@ import { ModalWrapper } from '@/components/ModalWrapper'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
-import { Collection, Season } from '@/data/interfaces/Media'
+import { Collection } from '@/data/interfaces/Media'
 import { showToast } from '@/utils/ReactUtils'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
 import ImageListTab from '../components/ImageListTab'
@@ -12,7 +12,7 @@ import CollectionInfoTab from './components/CollectionInfoTab'
 
 function CollectionDialog() {
   const { t } = useTranslation()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { connectWS } = useWebSocketStore()
   const { collectionDialog, closeCollectionDialog } = useDialogStore()
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
@@ -58,6 +58,9 @@ function CollectionDialog() {
   if (!collection) return null
 
   const handleEditCollection = async () => {
+    if (!selectedServer) return
+
+    const serverIP = selectedServer.ip
     await connectWS(serverIP)
 
     const response = await fetch(`https://${serverIP}/season`, {

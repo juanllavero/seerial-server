@@ -36,12 +36,12 @@ function MusicControls() {
   const [volume, setVolume] = useState<number>(1)
   const [prevVolume, setPrevVolume] = useState<number>(1)
   const [repeatState, setRepeatState] = useState<'none' | 'one' | 'all'>('none')
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
 
   // Get Album details
   const { data: album } = useSWR<Album>(
-    currentSong
-      ? `https://${serverIP}/details/album?id=${currentSong.albumId}`
+    currentSong && selectedServer
+      ? `https://${selectedServer.ip}/details/album?id=${currentSong.albumId}`
       : null,
     fetcher,
   )

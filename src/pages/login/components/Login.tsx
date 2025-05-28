@@ -1,4 +1,5 @@
 import { useAuth } from '@/context/auth.context'
+import { CENTRAL_SERVER } from '@/utils/constants'
 import { CredentialResponse, GoogleLogin } from '@react-oauth/google'
 import { useNavigate } from '@tanstack/react-router'
 
@@ -14,7 +15,7 @@ const Login = () => {
     }
 
     try {
-      const res = await fetch('http://localhost:3000/auth/google', {
+      const res = await fetch(`https://${CENTRAL_SERVER}/auth/google`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ credential }),
@@ -22,7 +23,10 @@ const Login = () => {
 
       const data = await res.json()
 
+      console.log('data', data)
+
       if (res.ok && data.token) {
+        console.log('loginButton', data.token)
         await login(data.token)
 
         navigate({ to: '/' })

@@ -35,7 +35,7 @@ interface VideoInfo {
 }
 
 function VideoPlayerPage() {
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const router = useRouter()
   const { videoId } = useParams({
     from: '/video-player/$videoId',
@@ -47,13 +47,17 @@ function VideoPlayerPage() {
     isLoading: loadingVideo,
     mutate,
   } = useSWR<Video>(
-    videoId ? `https://${serverIP}/details/video?id=${videoId}` : null,
+    videoId && selectedServer
+      ? `https://${selectedServer.ip}/details/video?id=${videoId}`
+      : null,
     fetcher,
   )
 
   // Get video info
   const { data: videoInfo, isLoading: loadingVideoInfo } = useSWR<VideoInfo>(
-    videoId ? `https://${serverIP}/videoInfo?id=${videoId}` : null,
+    videoId && selectedServer
+      ? `https://${selectedServer.ip}/videoInfo?id=${videoId}`
+      : null,
     fetcher,
   )
 
@@ -131,7 +135,7 @@ function VideoPlayerPage() {
     setVideoLoaded(false)
     setIsPlaying(false)
 
-    await fetch(`https://${serverIP}/updateWatchState`, {
+    await fetch(`https://${selectedServer?.ip}/updateWatchState`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -344,15 +348,18 @@ function VideoPlayerPage() {
     if (!video || !videoInfo) return
 
     const fetchData = async () => {
-      const result = await fetch(`https://${serverIP}/updateMediaInfo`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
+      const result = await fetch(
+        `https://${selectedServer?.ip}/updateMediaInfo`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            videoId: video.id,
+          }),
         },
-        body: JSON.stringify({
-          videoId: video.id,
-        }),
-      })
+      )
 
       if (!result.ok) {
         return

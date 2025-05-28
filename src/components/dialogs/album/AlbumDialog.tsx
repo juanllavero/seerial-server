@@ -4,7 +4,7 @@ import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Album } from '@/data/interfaces/Music'
 import { showToast } from '@/utils/ReactUtils'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
 import ImageListTab from '../components/ImageListTab'
@@ -12,7 +12,7 @@ import AlbumInfoTab from './components/AlbumInfoTab'
 
 function AlbumDialog() {
   const { t } = useTranslation()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { connectWS } = useWebSocketStore()
   const { albumDialog, closeAlbumDialog } = useDialogStore()
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
@@ -49,6 +49,9 @@ function AlbumDialog() {
   if (!album) return null
 
   const handleEditAlbum = async () => {
+    if (!selectedServer) return
+
+    const serverIP = selectedServer.ip
     await connectWS(serverIP)
 
     const response = await fetch(`https://${serverIP}/album`, {

@@ -4,7 +4,7 @@ import { useWebSocketStore } from '@/context/ws.context'
 import { Episode } from '@/data/interfaces/Media'
 import { showToast } from '@/utils/ReactUtils'
 import { fetcher } from '@/utils/utils'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 import { ModalWrapper } from '../../ModalWrapper'
@@ -14,7 +14,7 @@ import EpisodeMediaInfoTab from './components/EpisodeMediaInfoTab'
 
 function EpisodeDialog() {
   const { t } = useTranslation()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { connectWS } = useWebSocketStore()
   const { episodeDialog, closeEpisodeDialog } = useDialogStore()
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
@@ -41,8 +41,8 @@ function EpisodeDialog() {
   //#endregion
 
   const { data: series } = useSWR(
-    episode
-      ? `https://${serverIP}/details/seriesBySeasonId?seasonId=${episode.seasonId}`
+    episode && selectedServer
+      ? `https://${selectedServer.ip}/details/seriesBySeasonId?seasonId=${episode.seasonId}`
       : null,
     fetcher,
   )
@@ -66,6 +66,9 @@ function EpisodeDialog() {
   if (!episode || !series) return null
 
   const handleEditEpisode = async () => {
+    if (!selectedServer) return
+
+    const serverIP = selectedServer.ip
     await connectWS(serverIP)
 
     const response = await fetch(`https://${serverIP}/episode`, {

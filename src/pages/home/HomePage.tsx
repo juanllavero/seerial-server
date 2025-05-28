@@ -1,12 +1,13 @@
 import Card from '@/components/cards/Card'
 import Loading from '@/components/Loading'
 import FlexBox from '@/components/ui/FlexBox'
+import { useAuth } from '@/context/auth.context'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { Movie, Series, Video } from '@/data/interfaces/Media'
 import { Server } from '@/data/interfaces/Users'
 import { CENTRAL_SERVER } from '@/utils/constants'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher, fetcher } from '@/utils/utils'
 import { useNavigate } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -20,14 +21,15 @@ import NotAvailableServer from './components/NotAvailableServer'
 export default function HomePage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { serverIP, serverStatus, apiKeyStatus, getServerStatus } =
+  const { user } = useAuth()
+  const { selectedServer, serverStatus, apiKeyStatus, getServerStatus } =
     useServerStore()
   const { selectLibrary, isContent, loadingContent } = useDataStore()
 
   // Get Servers
   const { data: servers, isLoading: loadingServers } = useSWR<Server[]>(
-    `https://${CENTRAL_SERVER}/servers/`,
-    fetcher,
+    user ? `https://${CENTRAL_SERVER}/servers/` : null,
+    authenticatedFetcher,
     {
       revalidateOnFocus: false,
       revalidateIfStale: false,
@@ -37,17 +39,26 @@ export default function HomePage() {
   // Get Continue Watching items
   const { data: continueWatching, isLoading: loadingContinueWatching } = useSWR<
     Video[]
-  >(`https://${serverIP}/continueWatching`, fetcher)
+  >(
+    selectedServer ? `https://${selectedServer.ip}/continueWatching` : null,
+    fetcher,
+  )
 
   // Get Shows in My List
   const { data: showsInMyList, isLoading: loadingShowsInMyList } = useSWR<
     Series[]
-  >(`https://${serverIP}/myListSeries`, fetcher)
+  >(
+    selectedServer ? `https://${selectedServer.ip}/myListSeries` : null,
+    fetcher,
+  )
 
   // Get Movies in My List
   const { data: moviesInMyList, isLoading: loadingMoviesInMyList } = useSWR<
     Movie[]
-  >(`https://${serverIP}/myListMovies`, fetcher)
+  >(
+    selectedServer ? `https://${selectedServer.ip}/myListMovies` : null,
+    fetcher,
+  )
 
   useEffect(() => {
     getServerStatus()

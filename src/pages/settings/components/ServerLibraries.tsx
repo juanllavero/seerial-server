@@ -1,19 +1,19 @@
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import FlexBox from '@/components/ui/FlexBox'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
-import React, { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import ContentWrapper from './utils/ContentWrapper'
 import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
-import FlexBox from '@/components/ui/FlexBox'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import ContentWrapper from './utils/ContentWrapper'
 
 function ServerLibraries() {
   const { t } = useTranslation()
   const [isDirty, setIsDirty] = useState<boolean>(false)
   const [showMessage, setShowMessage] = useState(false)
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { setServerSetting, serverSettings, setServerSettings } =
     useSettingsStore()
 
@@ -97,6 +97,9 @@ function ServerLibraries() {
   }
 
   const handleSave = () => {
+    if (!selectedServer) return
+
+    const serverIP = selectedServer.ip
     setServerSetting(serverIP, 'autoScan', autoScan)
     setServerSetting(serverIP, 'autoScanPeriod', autoScanPeriod)
     setServerSetting(serverIP, 'generateChapters', generateChapters)

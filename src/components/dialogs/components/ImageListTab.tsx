@@ -27,7 +27,7 @@ function ImageListTab({
   isPoster = false,
 }: ImageListTabProps) {
   const { t } = useTranslation()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const [loaded, setLoaded] = useState(false)
   const [localImages, setLocalImages] = useState<
     { name: string; url: string }[]
@@ -48,7 +48,7 @@ function ImageListTab({
     const fetchLocalImages = async () => {
       try {
         const response = await fetch(
-          `https://${serverIP}/images?path=${localFolder}`,
+          `https://${selectedServer?.ip}/images?path=${localFolder}`,
         )
         const data = await response.json()
         setLocalImages(data)
@@ -60,7 +60,7 @@ function ImageListTab({
     }
 
     if (localFolder && !isUploading) fetchLocalImages()
-  }, [serverIP, localFolder, isUploading])
+  }, [selectedServer, localFolder, isUploading])
 
   const handleImageUpload = () => {
     setImageUrl(null)
@@ -101,10 +101,13 @@ function ImageListTab({
     formData.append('image', file)
 
     try {
-      const response = await fetch(`https://${serverIP}/uploadImage`, {
-        method: 'POST',
-        body: formData,
-      })
+      const response = await fetch(
+        `https://${selectedServer?.ip}/uploadImage`,
+        {
+          method: 'POST',
+          body: formData,
+        },
+      )
 
       if (!response.ok) {
         throw new Error()
@@ -122,17 +125,20 @@ function ImageListTab({
     setIsUploading(true)
 
     try {
-      const response = await fetch(`https://${serverIP}/downloadImage`, {
-        method: 'POST',
-        body: JSON.stringify({
-          url: url,
-          downloadFolder: localFolder,
-          fileName: generateRandoumUUID(),
-        }),
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `https://${selectedServer?.ip}/downloadImage`,
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            url: url,
+            downloadFolder: localFolder,
+            fileName: generateRandoumUUID(),
+          }),
+          headers: {
+            'Content-Type': 'application/json',
+          },
         },
-      })
+      )
 
       if (!response.ok) {
         throw new Error()

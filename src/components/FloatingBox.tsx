@@ -5,7 +5,6 @@ import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Library } from '@/data/interfaces/Media'
 import { DropdownContent } from '@/data/interfaces/Utils'
-import { CENTRAL_SERVER } from '@/utils/constants'
 import { fetcher } from '@/utils/utils'
 import { useLocation, useNavigate, useRouter } from '@tanstack/react-router'
 import {
@@ -34,21 +33,12 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
   const { openRemoveLibraryDialog } = useDialogStore()
   const { selectedLibraryId, selectLibrary, setIsContent, setLoadingContent } =
     useDataStore()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { connectWS } = useWebSocketStore()
   const isMobile = useIsMobile()
 
-  const { data: servers, isLoading: loadingServers } = useSWR<Library[]>(
-    `https://${CENTRAL_SERVER}/servers/`,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-    },
-  )
-
   const { data: libraries, isLoading } = useSWR<Library[]>(
-    `https://${serverIP}/libraries/`,
+    selectedServer ? `https://${selectedServer.ip}/libraries/` : null,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -77,6 +67,9 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
             {
               title: t('searchFiles'),
               action: async () => {
+                if (!selectedServer) return
+
+                const serverIP = selectedServer?.ip
                 await connectWS(serverIP)
                 fetch(
                   `https://${serverIP}/library/search?libraryId=${selectedLibraryId}`,
@@ -86,6 +79,9 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
             {
               title: t('updateMetadata'),
               action: async () => {
+                if (!selectedServer) return
+
+                const serverIP = selectedServer?.ip
                 await connectWS(serverIP)
                 fetch(
                   `https://${serverIP}/library/updateMetadata?libraryId=${selectedLibraryId}`,

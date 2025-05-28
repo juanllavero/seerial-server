@@ -22,7 +22,7 @@ import { fetcher } from '@/utils/utils'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { t } from 'i18next'
 import { Edit, Ellipsis } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 import CastList from '../components/CastList'
 import MovieContent from '../components/MovieContent'
@@ -33,7 +33,7 @@ function MovieDetailsPage() {
   const { setCurrentBackground } = useDataStore()
   const { clientSettings } = useSettingsStore()
   const { wsMessage } = useWebSocketStore()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const navigate = useNavigate()
 
   // Get movie data
@@ -42,12 +42,16 @@ function MovieDetailsPage() {
     isLoading,
     mutate,
   } = useSWR<Movie>(
-    movieId ? `https://${serverIP}/details/movie?id=${movieId}` : null,
+    movieId && selectedServer
+      ? `https://${selectedServer.ip}/details/movie?id=${movieId}`
+      : null,
     fetcher,
   )
   // Get if movie is in My List
   const { data: inMyList, mutate: mutateInMyList } = useSWR(
-    movie ? `https://${serverIP}/isMovieInMyList?movieId=${movie.id}` : null,
+    movie && selectedServer
+      ? `https://${selectedServer.ip}/isMovieInMyList?movieId=${movie.id}`
+      : null,
     fetcher,
   )
 
@@ -128,7 +132,7 @@ function MovieDetailsPage() {
 
   const toggleMyList = () => {
     if (movie) {
-      fetch(`https://${serverIP}/updateMovieMyList`, {
+      fetch(`https://${selectedServer?.ip}/updateMovieMyList`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { useServerStore } from '@/context/server.context'
 import useFetch from '@/hooks/useFetch'
 import { ChevronLeft, FileIcon, FolderIcon, HomeIcon } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 interface FoldersDialogContentProps {
@@ -23,7 +23,7 @@ function FoldersDialogContent({
   close,
 }: FoldersDialogContentProps) {
   const { t } = useTranslation()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { fetchData, isLoading } = useFetch()
   const [drives, setDrives] = useState<string[]>([]) // Lista de unidades
   const [folderContent, setFolderContent] = useState<Folder[]>([]) // Contenido de la carpeta
@@ -32,7 +32,7 @@ function FoldersDialogContent({
   // Fetch para obtener las unidades de disco
   useEffect(() => {
     fetchData(
-      `https://${serverIP}/drives`,
+      `https://${selectedServer?.ip}/drives`,
       (data) => setDrives(data as string[]),
       (err) => console.error('Error fetching drives:', err),
     )
@@ -41,7 +41,7 @@ function FoldersDialogContent({
   // Fetch para obtener el contenido de una carpeta
   const fetchFolderContent = async (path: string) => {
     fetchData(
-      `https://${serverIP}/folder/${encodeURIComponent(path)}`,
+      `https://${selectedServer?.ip}/folder/${encodeURIComponent(path)}`,
       (data) => {
         setFolderContent(data as Folder[])
         setCurrentPath(path)

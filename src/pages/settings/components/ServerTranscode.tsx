@@ -1,19 +1,19 @@
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { Button } from '@/components/ui/button'
+import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
+import { useServerStore } from '@/context/server.context'
+import { useSettingsStore } from '@/context/settings.context'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ContentWrapper from './utils/ContentWrapper'
-import { useServerStore } from '@/context/server.context'
-import { useSettingsStore } from '@/context/settings.context'
-import FlexBox from '@/components/ui/FlexBox'
 
 function ServerTranscode() {
   const { t } = useTranslation()
   const [isDirty, setIsDirty] = React.useState(false)
   const [showMessage, setShowMessage] = React.useState(false)
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { setServerSetting, serverSettings, setServerSettings } =
     useSettingsStore()
 
@@ -98,10 +98,11 @@ function ServerTranscode() {
   }
 
   const handleSave = () => {
-    setServerSetting(serverIP, 'tempTranscodeFolder', tempFolder)
-    setServerSetting(serverIP, 'transcodePreset', transcoderPreset)
-    setServerSetting(serverIP, 'transcodeBuffer', defaultBuffer)
-    setServerSetting(serverIP, 'maxTranscodeProcesses', maxTranscoding)
+    if (!selectedServer) return
+    setServerSetting(selectedServer.ip, 'tempTranscodeFolder', tempFolder)
+    setServerSetting(selectedServer.ip, 'transcodePreset', transcoderPreset)
+    setServerSetting(selectedServer.ip, 'transcodeBuffer', defaultBuffer)
+    setServerSetting(selectedServer.ip, 'maxTranscodeProcesses', maxTranscoding)
 
     setServerSettings({
       ...serverSettings,

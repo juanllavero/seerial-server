@@ -20,7 +20,7 @@ function SeasonContent({ seasonList, season }: SeasonContentProps) {
   const navigate = useNavigate()
   const { selectSeason } = useDataStore()
   const { t } = useTranslation()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const [distribution, setDistribution] = React.useState(0)
   const isMobile = useIsMobile()
 
@@ -68,7 +68,7 @@ function SeasonContent({ seasonList, season }: SeasonContentProps) {
 
   const playEpisode = async (episodeId: Episode) => {
     const response = await fetch(
-      `https://${serverIP}/episode-video?episodeId=${episodeId.id}`,
+      `https://${selectedServer?.ip}/episode-video?episodeId=${episodeId.id}`,
     )
 
     if (!response.ok) {

@@ -5,7 +5,7 @@ import { Collection } from '@/data/interfaces/Media'
 import { DropdownContent } from '@/data/interfaces/Utils'
 import { fetcher } from '@/utils/utils'
 import { useNavigate } from '@tanstack/react-router'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 import ParentCard from './ParentCard'
@@ -18,12 +18,14 @@ interface CollectionCardProps {
 function CollectionCard({ collection, type }: CollectionCardProps) {
   const { t } = useTranslation()
   const { selectCollection } = useDataStore()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const [subtitleText, setSubtitleText] = useState<string>('')
   const navigate = useNavigate()
 
   const { data: collectionDetails, isLoading } = useSWR(
-    `https://${serverIP}/details/collection?id=${collection.id}`,
+    selectedServer
+      ? `https://${selectedServer.ip}/details/collection?id=${collection.id}`
+      : null,
     fetcher,
   )
 

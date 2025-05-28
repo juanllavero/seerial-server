@@ -5,7 +5,7 @@ import SelectableWrapper from '@/components/ui/SelectableWrapper'
 import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import ISO6391 from 'iso-639-1'
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
 interface AdvancedTabContentProps {
@@ -32,7 +32,7 @@ function AdvancedTabContent({
   close,
 }: AdvancedTabContentProps) {
   const { t, i18n } = useTranslation()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { getServerSetting } = useSettingsStore()
   const currentLanguage = i18n.language?.split('-')[0] ?? 'en'
   const languageCodes = ISO6391.getAllCodes()
@@ -59,7 +59,7 @@ function AdvancedTabContent({
 
   const getPrefAudioLan = async () => {
     const prefAudio = await getServerSetting(
-      serverIP,
+      selectedServer?.ip ?? '',
       'preferAudioLan',
       currentLanguage,
     )
@@ -68,7 +68,7 @@ function AdvancedTabContent({
 
   const getPrefSubLan = async () => {
     const prefSub = await getServerSetting(
-      serverIP,
+      selectedServer?.ip ?? '',
       'preferSubsLan',
       currentLanguage,
     )
@@ -76,7 +76,11 @@ function AdvancedTabContent({
   }
 
   const getSubsMode = async () => {
-    const subs = await getServerSetting(serverIP, 'subsMode', 'autoSubs')
+    const subs = await getServerSetting(
+      selectedServer?.ip ?? '',
+      'subsMode',
+      'autoSubs',
+    )
     return t(subs)
   }
 
@@ -91,7 +95,7 @@ function AdvancedTabContent({
     }
 
     setValues()
-  }, [serverIP])
+  }, [selectedServer])
 
   return (
     <FlexBox

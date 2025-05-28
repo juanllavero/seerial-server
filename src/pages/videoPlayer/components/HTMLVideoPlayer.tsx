@@ -14,7 +14,7 @@ function HTMLVideoPlayer({
   audioTrack,
   videoRef,
 }: HTMLVideoPlayerProps) {
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
 
   // const urlsTest = [
   //   'F:\\UHD\\El Caballero Oscuro\\El Caballero Oscuro (2008)\\El Caballero Oscuro (2008).mkv',
@@ -42,7 +42,7 @@ function HTMLVideoPlayer({
     <div data-vjs-player>
       <video
         ref={videoRef}
-        src={`https://${serverIP}/stream-video?path=${url}${start ? `&start=${start}` : ''}${audioTrack ? `&audio=${audioTrack}` : ''}`}
+        src={`https://${selectedServer?.ip}/stream-video?path=${url}${start ? `&start=${start}` : ''}${audioTrack ? `&audio=${audioTrack}` : ''}`}
         crossOrigin="anonymous"
         playsInline
         autoPlay

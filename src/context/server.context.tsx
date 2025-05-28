@@ -1,33 +1,34 @@
+import { Server } from '@/data/interfaces/Users'
 import { create } from 'zustand'
 
 interface ServerState {
-  serverIP: string
+  selectedServer: Server | null
   serverStatus: boolean
   serverVersion: string
   gettingServerStatus: boolean
   apiKeyStatus: boolean
   gettingApiKeyStatus: boolean
-  setServerIP: (ip: string) => void
+  selectServer: (server: Server | null) => void
   getServerStatus: () => Promise<void>
   setApiKey: (apiKey: string) => Promise<void>
 }
 
 export const useServerStore = create<ServerState>((set, get) => ({
-  serverIP: '',
+  selectedServer: null,
   serverStatus: false,
   serverVersion: '',
   gettingServerStatus: false,
   apiKeyStatus: false,
   gettingApiKeyStatus: false,
 
-  setServerIP: (ip) => {
-    set({ serverIP: ip })
+  selectServer: (server) => {
+    set({ selectedServer: server })
     get().getServerStatus()
   },
 
   getServerStatus: async () => {
-    const { serverIP } = get()
-    if (serverIP === '') return
+    const { selectedServer } = get()
+    if (!selectedServer) return
 
     set({ gettingServerStatus: true })
 
@@ -38,7 +39,9 @@ export const useServerStore = create<ServerState>((set, get) => ({
       ),
     )
 
-    const fetchPromise = fetch(`https://${serverIP}/`).then((res) => res.json())
+    const fetchPromise = fetch(`https://${selectedServer.ip}/`).then((res) =>
+      res.json(),
+    )
 
     try {
       const data = await Promise.race([fetchPromise, timeoutPromise])
@@ -55,12 +58,12 @@ export const useServerStore = create<ServerState>((set, get) => ({
   },
 
   setApiKey: async (apiKey) => {
-    const { serverIP } = get()
-    if (serverIP === '') return
+    const { selectedServer } = get()
+    if (!selectedServer) return
 
     set({ gettingApiKeyStatus: true })
 
-    const response = await fetch(`https://${serverIP}/api-key`, {
+    const response = await fetch(`https://${selectedServer.ip}/api-key`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ apiKey }),

@@ -14,7 +14,7 @@ import { fetcher } from '@/utils/utils'
 import { useParams } from '@tanstack/react-router'
 import { t } from 'i18next'
 import { Edit, Ellipsis } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 import AlbumContent from '../components/AlbumContent'
 import '../DetailsPage.css'
@@ -22,7 +22,7 @@ import '../DetailsPage.css'
 function AlbumDetailsPage() {
   const { albumId } = useParams({ from: '/details/album/$albumId' })
   const { wsMessage } = useWebSocketStore()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { selectSong } = useDataStore()
 
   // Get series data
@@ -31,7 +31,9 @@ function AlbumDetailsPage() {
     isLoading,
     mutate,
   } = useSWR<Album>(
-    albumId ? `https://${serverIP}/details/album?id=${albumId}` : null,
+    albumId && selectedServer
+      ? `https://${selectedServer.ip}/details/album?id=${albumId}`
+      : null,
     fetcher,
   )
 

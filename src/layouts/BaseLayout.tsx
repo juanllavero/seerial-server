@@ -2,14 +2,6 @@ import DialogManager from '@/components/dialogs/DialogManager'
 import MusicPlayer from '@/components/musicPlayer/MusicPlayer'
 import { AppSidebar } from '@/components/SideBar/AppSidebar'
 import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb'
-import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
@@ -31,7 +23,7 @@ export default function BaseLayout({
   children: React.ReactNode
 }) {
   const { currentBackground: selectedBackground } = useDataStore()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const prevBackground = useRef<string | undefined>(undefined)
   const prevGradient = useRef<string | undefined>(undefined)
   const [currentBackground, setCurrentBackground] = useState<
@@ -49,8 +41,8 @@ export default function BaseLayout({
     location.pathname.startsWith('/episodeDetails/')
 
   useEffect(() => {
-    if (selectedBackground) {
-      ReactUtils.generateGradient(selectedBackground, serverIP)
+    if (selectedBackground && selectedServer) {
+      ReactUtils.generateGradient(selectedBackground, selectedServer.ip)
 
       setTimeout(() => {
         const newGradient = ReactUtils.getGradientBackground()
@@ -115,7 +107,7 @@ export default function BaseLayout({
         style={{
           backgroundImage:
             inDetailsPage && currentBackground
-              ? `url(${currentBackground.startsWith('http') ? getSafeURL(currentBackground) : `https://${serverIP}/${getSafeURL(currentBackground)}`})`
+              ? `url(${currentBackground.startsWith('http') ? getSafeURL(currentBackground) : `https://${selectedServer?.ip}/${getSafeURL(currentBackground)}`})`
               : 'none',
           opacity: inDetailsPage && currentBackground ? 1 : 0,
         }}
@@ -126,7 +118,7 @@ export default function BaseLayout({
         <div
           className="background-layer fade-in"
           style={{
-            backgroundImage: `url(${selectedBackground.startsWith('http') ? getSafeURL(selectedBackground) : `https://${serverIP}/${getSafeURL(selectedBackground)}`})`,
+            backgroundImage: `url(${selectedBackground.startsWith('http') ? getSafeURL(selectedBackground) : `https://${selectedServer?.ip}/${getSafeURL(selectedBackground)}`})`,
           }}
         />
       )}
@@ -171,9 +163,9 @@ export default function BaseLayout({
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
             <div className="flex items-center gap-2 px-4">
-              <SidebarTrigger />
+              <SidebarTrigger className="-ml-1" />
               <Separator className="mr-2 h-4" />
-              <Breadcrumb>
+              {/* <Breadcrumb>
                 <BreadcrumbList>
                   <BreadcrumbItem className="hidden md:block">
                     <BreadcrumbLink href="#">
@@ -185,10 +177,10 @@ export default function BaseLayout({
                     <BreadcrumbPage>Data Fetching</BreadcrumbPage>
                   </BreadcrumbItem>
                 </BreadcrumbList>
-              </Breadcrumb>
+              </Breadcrumb> */}
             </div>
           </header>
-          <div className="bg-secondary h-screen flex-1">{children}</div>
+          <div className="h-screen flex-1">{children}</div>
         </SidebarInset>
       </SidebarProvider>
     </div>

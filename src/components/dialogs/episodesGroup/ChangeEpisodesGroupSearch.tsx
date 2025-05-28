@@ -5,13 +5,13 @@ import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { EpisodeGroupResult } from '@/data/interfaces/Utils'
 import { getEpisodeGroupType } from '@/utils/ReactUtils'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import './ChangeEpisodesGroupSearch.css'
 
 function ChangeEpisodesGroupSearch() {
   const { t } = useTranslation()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { connectWS } = useWebSocketStore()
   const { episodesGroupDialog, closeEpisodesGroupDialog } = useDialogStore()
   const [episodeGroupsResults, setEpisodeGroupsResults] = useState<
@@ -24,7 +24,7 @@ function ChangeEpisodesGroupSearch() {
 
   const search = () => {
     fetch(
-      `https://${serverIP}/episodeGroups/search?id=${episodesGroupDialog.seriesToEdit?.id}`,
+      `https://${selectedServer?.ip}/episodeGroups/search?id=${episodesGroupDialog.seriesToEdit?.id}`,
     )
       .then((response) => response.json())
       .then((data) => {
@@ -34,6 +34,9 @@ function ChangeEpisodesGroupSearch() {
   }
 
   const saveIdentification = async (id: string) => {
+    if (!selectedServer) return
+
+    const serverIP = selectedServer.ip
     await connectWS(serverIP)
     fetch(`https://${serverIP}/updateEpisodeGroup`, {
       method: 'POST',

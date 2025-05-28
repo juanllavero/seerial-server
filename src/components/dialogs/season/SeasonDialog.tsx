@@ -4,7 +4,7 @@ import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Season } from '@/data/interfaces/Media'
 import { showToast } from '@/utils/ReactUtils'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
 import ImageListTab from '../components/ImageListTab'
@@ -13,7 +13,7 @@ import SeasonMediaTab from './components/SeasonMediaTab'
 
 function SeasonDialog() {
   const { t } = useTranslation()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { connectWS } = useWebSocketStore()
   const { seasonDialog, closeSeasonDialog } = useDialogStore()
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
@@ -60,6 +60,10 @@ function SeasonDialog() {
   if (!season) return null
 
   const handleEditSeason = async () => {
+    if (!selectedServer) return
+
+    const serverIP = selectedServer.ip
+
     await connectWS(serverIP)
 
     const response = await fetch(`https://${serverIP}/season`, {

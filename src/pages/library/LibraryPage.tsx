@@ -11,7 +11,7 @@ import { MessageType } from '@/data/enums/WSMessage'
 import { Library } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
 import { useParams } from '@tanstack/react-router'
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import useSWR from 'swr'
 import AlbumList from './components/lists/AlbumList'
 import MoviesList from './components/lists/MoviesList'
@@ -19,7 +19,7 @@ import SeriesList from './components/lists/SeriesList'
 
 function LibraryPage() {
   const { libraryId } = useParams({ from: '/library/$libraryId' })
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { wsMessage } = useWebSocketStore()
   const { selectedLibraryId, selectLibrary } = useDataStore()
   const isTablet = useIsTablet()
@@ -30,7 +30,9 @@ function LibraryPage() {
     isLoading,
     mutate,
   } = useSWR<Library>(
-    libraryId ? `https://${serverIP}/library?id=${libraryId}` : null,
+    libraryId && selectedServer
+      ? `https://${selectedServer.ip}/library?id=${libraryId}`
+      : null,
     fetcher,
   )
 

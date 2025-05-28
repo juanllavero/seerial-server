@@ -5,16 +5,15 @@ import useMusicStore from '@/context/music.context'
 import { useServerStore } from '@/context/server.context'
 import { formatTime } from '@/utils/ReactUtils'
 import { fetcher } from '@/utils/utils'
-import React from 'react'
 import useSWR from 'swr'
 import './NextSongs.css'
 
 function NextSongs() {
   const { songQueue, currentSong, selectSong } = useMusicStore()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { data: album } = useSWR(
-    currentSong
-      ? `https://${serverIP}/details/album?id=${currentSong.albumId}`
+    currentSong && selectedServer
+      ? `https://${selectedServer.ip}/details/album?id=${currentSong.albumId}`
       : null,
     fetcher,
   )

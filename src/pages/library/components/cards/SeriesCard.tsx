@@ -4,7 +4,7 @@ import { Series } from '@/data/interfaces/Media'
 import { DropdownContent } from '@/data/interfaces/Utils'
 import { getOnlyYear } from '@/utils/ReactUtils'
 import { useNavigate } from '@tanstack/react-router'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ParentCard from './ParentCard'
 
@@ -14,7 +14,7 @@ interface SeriesCardProps {
 
 function SeriesCard({ series }: SeriesCardProps) {
   const { t } = useTranslation()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { selectSeries } = useDataStore()
   const [remainingEpisodes, setRemainingEpisodes] = useState<
     number | undefined
@@ -62,7 +62,7 @@ function SeriesCard({ series }: SeriesCardProps) {
 
   const getRemainingEpisodes = async () => {
     const response = await fetch(
-      `https://${serverIP}/remaining-episodes?seriesId=${series.id}`,
+      `https://${selectedServer?.ip}/remaining-episodes?seriesId=${series.id}`,
     )
 
     if (!response.ok) {

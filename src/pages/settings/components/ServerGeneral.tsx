@@ -12,20 +12,21 @@ import ContentWrapper from './utils/ContentWrapper'
 
 function ServerGeneral({ isLoaded }: { isLoaded: boolean }) {
   const { t } = useTranslation()
-  const { serverIP, serverVersion, setServerIP } = useServerStore()
+  const { selectedServer, serverVersion, selectServer } = useServerStore()
   const { setServerSetting, serverSettings, setServerSettings } =
     useSettingsStore()
   const [isDirty, setIsDirty] = React.useState(false)
   const [showMessage, setShowMessage] = useState(false)
 
-  const [ip, setIP] = useState<string>(serverIP)
+  const [ip, setIP] = useState<string>(selectedServer?.ip ?? '')
   const [autoUpdate, setAutoUpdate] = useState<boolean>(
     (serverSettings['automaticUpdates'] as boolean) ?? false,
   )
 
   const handleSave = () => {
-    setServerIP(ip)
-    setServerSetting(serverIP, 'automaticUpdates', autoUpdate)
+    if (!selectedServer) return
+
+    setServerSetting(selectedServer.ip, 'automaticUpdates', autoUpdate)
 
     setServerSettings({
       ...serverSettings,
@@ -50,7 +51,7 @@ function ServerGeneral({ isLoaded }: { isLoaded: boolean }) {
   }
 
   const changeIP = (ip: string) => {
-    setServerIP(ip)
+    //setServerIP(ip)
   }
 
   const handleAutoUpdateChange = (checked: boolean) => {

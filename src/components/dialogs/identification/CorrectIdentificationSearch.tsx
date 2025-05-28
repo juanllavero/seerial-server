@@ -8,13 +8,13 @@ import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { IdentificationResult } from '@/data/interfaces/Utils'
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import './CorrectIdentificationSearch.css'
 
 function CorrectIdentificationSearch() {
   const { t } = useTranslation()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { connectWS } = useWebSocketStore()
   const { identificationDialog, closeIdentificationDialog } = useDialogStore()
   const [identificationResults, setIdentificationResults] = useState<
@@ -48,7 +48,7 @@ function CorrectIdentificationSearch() {
 
   const search = (name: string, year: string) => {
     fetch(
-      `https://${serverIP}/${isShow ? 'shows' : 'movies'}/search?name=${name}&year=${year}`,
+      `https://${selectedServer?.ip}/${isShow ? 'shows' : 'movies'}/search?name=${name}&year=${year}`,
     )
       .then((response) => response.json())
       .then((data) => {
@@ -58,6 +58,10 @@ function CorrectIdentificationSearch() {
   }
 
   const saveIdentification = async (id: number) => {
+    if (!selectedServer) return
+
+    const serverIP = selectedServer?.ip
+
     await connectWS(serverIP)
     fetch(`https://${serverIP}/${isShow ? 'updateShowId' : 'updateMovieId'}`, {
       method: 'POST',

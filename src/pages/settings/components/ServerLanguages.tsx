@@ -1,19 +1,19 @@
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
+import Loading from '@/components/Loading'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
+import FlexBox from '@/components/ui/FlexBox'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
-import ISO6391 from 'iso-639-1'
-import React, { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import ContentWrapper from './utils/ContentWrapper'
 import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
-import Loading from '@/components/Loading'
-import FlexBox from '@/components/ui/FlexBox'
+import ISO6391 from 'iso-639-1'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import ContentWrapper from './utils/ContentWrapper'
 
 function ServerLanguages() {
   const { t, i18n } = useTranslation()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { setServerSetting, serverSettings, setServerSettings } =
     useSettingsStore()
   const currentLanguage = i18n.language?.split('-')[0] ?? 'en'
@@ -63,6 +63,9 @@ function ServerLanguages() {
   }))
 
   const handleSave = () => {
+    if (!selectedServer) return
+
+    const serverIP = selectedServer.ip
     setServerSetting(serverIP, 'autoSelectTracks', autoSelectTracks)
     setServerSetting(
       serverIP,

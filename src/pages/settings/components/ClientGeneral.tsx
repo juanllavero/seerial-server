@@ -24,7 +24,7 @@ const TimeFormatOptions = [
 
 function ClientGeneral() {
   const { t } = useTranslation()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { setClientSetting, clientSettings, setClientSettings } =
     useSettingsStore()
   const [isDirty, setIsDirty] = React.useState(false)
@@ -56,6 +56,9 @@ function ClientGeneral() {
   }
 
   const handleSave = () => {
+    if (!selectedServer) return
+
+    const serverIP = selectedServer.ip
     setClientSetting(serverIP, 'playBackgroundMusic', playMusic)
     setClientSetting(serverIP, 'backgroundMusicVolume', musicVolume)
     setClientSetting(serverIP, 'timeFormat', timeFormat)

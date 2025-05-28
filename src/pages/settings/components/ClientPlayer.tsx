@@ -1,16 +1,16 @@
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { Button } from '@/components/ui/button'
+import FlexBox from '@/components/ui/FlexBox'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
+import { useServerStore } from '@/context/server.context'
+import { useSettingsStore } from '@/context/settings.context'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import ContentWrapper from './utils/ContentWrapper'
-import FlexBox from '@/components/ui/FlexBox'
-import { useServerStore } from '@/context/server.context'
-import { useSettingsStore } from '@/context/settings.context'
 
 function ClientPlayer() {
   const { t } = useTranslation()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { setClientSetting, clientSettings, setClientSettings } =
     useSettingsStore()
   const [isDirty, setIsDirty] = React.useState(false)
@@ -104,10 +104,12 @@ function ClientPlayer() {
   )
 
   const handleSave = () => {
-    setClientSetting(serverIP, 'subtitleColor', subtitleColor)
-    setClientSetting(serverIP, 'subtitleSize', subtitleSize)
-    setClientSetting(serverIP, 'subtitlePosition', subtitlePosition)
-    setClientSetting(serverIP, 'burntSubtitles', subtitleBurn)
+    if (!selectedServer) return
+
+    setClientSetting(selectedServer.ip, 'subtitleColor', subtitleColor)
+    setClientSetting(selectedServer.ip, 'subtitleSize', subtitleSize)
+    setClientSetting(selectedServer.ip, 'subtitlePosition', subtitlePosition)
+    setClientSetting(selectedServer.ip, 'burntSubtitles', subtitleBurn)
 
     setClientSettings({
       ...clientSettings,

@@ -1,17 +1,16 @@
 import useMusicStore from '@/context/music.context'
 import { useServerStore } from '@/context/server.context'
 import { fetcher } from '@/utils/utils'
-import React from 'react'
 import useSWR from 'swr'
 import FlexBox from '../ui/FlexBox'
 import LazyImage from '../ui/LazyImage'
 
 function CoverImage({ isMobile }: { isMobile: boolean }) {
   const { currentSong } = useMusicStore()
-  const { serverIP } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { data: album } = useSWR(
-    currentSong
-      ? `https://${serverIP}/details/album?id=${currentSong.albumId}`
+    currentSong && selectedServer
+      ? `https://${selectedServer.ip}/details/album?id=${currentSong.albumId}`
       : null,
     fetcher,
   )
