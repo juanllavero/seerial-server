@@ -11,7 +11,7 @@ function LoginPage() {
   if (token) navigate({ to: '/' })
 
   return (
-    <FlexBox width={'100%'} height={'100%'} justify="center" align="center">
+    <FlexBox width={'100%'} height={'100dvh'} justify="center" align="center">
       <Card className="bg-secondary">
         <CardHeader className="gap-3 text-center">
           <h1 className="text-2xl font-semibold">Seerial Web</h1>

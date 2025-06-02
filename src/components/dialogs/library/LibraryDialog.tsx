@@ -88,8 +88,8 @@ function LibraryDialog({ library }: LibraryDialogProps) {
 
     // Navigate to new library page
     navigate({
-      to: '/library/$libraryId',
-      params: { libraryId },
+      to: '/server/$serverId/library/$libraryId',
+      params: { serverId: selectedServer.id, libraryId },
     })
   }
 

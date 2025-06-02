@@ -38,7 +38,7 @@ function VideoPlayerPage() {
   const { selectedServer } = useServerStore()
   const router = useRouter()
   const { videoId } = useParams({
-    from: '/video-player/$videoId',
+    from: '/server/$serverId/video-player/$videoId',
   })
 
   // Get video data

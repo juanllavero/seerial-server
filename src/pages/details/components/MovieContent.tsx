@@ -6,6 +6,7 @@ import { useNavigate } from '@tanstack/react-router'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import VideoCard from './cards/VideoCard'
+import { useServerStore } from '@/context/server.context'
 
 interface MovieContentProps {
   movie: Movie
@@ -15,6 +16,7 @@ function MovieContent({ movie }: MovieContentProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const isMobile = useIsMobile()
+  const { selectedServer } = useServerStore()
 
   const getEpisodeMenu = () => {
     return {
@@ -37,8 +39,9 @@ function MovieContent({ movie }: MovieContentProps) {
 
   const playEpisode = async (video: Video) => {
     navigate({
-      to: '/video-player/$videoId',
+      to: '/server/$serverId/video-player/$videoId',
       params: {
+        serverId: selectedServer?.id ?? '',
         videoId: video.id,
       },
     })

@@ -20,7 +20,9 @@ import AlbumContent from '../components/AlbumContent'
 import '../DetailsPage.css'
 
 function AlbumDetailsPage() {
-  const { albumId } = useParams({ from: '/details/album/$albumId' })
+  const { albumId } = useParams({
+    from: '/server/$serverId/details/album/$albumId',
+  })
   const { wsMessage } = useWebSocketStore()
   const { selectedServer } = useServerStore()
   const { selectSong } = useDataStore()

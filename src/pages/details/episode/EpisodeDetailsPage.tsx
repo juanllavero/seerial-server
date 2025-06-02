@@ -21,7 +21,7 @@ function EpisodeDetailsPage() {
   const { wsMessage } = useWebSocketStore()
   const { selectedServer } = useServerStore()
   const { episodeId } = useParams({
-    from: '/details/episode/$episodeId',
+    from: '/server/$serverId/details/episode/$episodeId',
   })
 
   const {

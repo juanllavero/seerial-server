@@ -29,7 +29,9 @@ import MovieContent from '../components/MovieContent'
 import '../DetailsPage.css'
 
 function MovieDetailsPage() {
-  const { movieId } = useParams({ from: '/details/movie/$movieId' })
+  const { movieId } = useParams({
+    from: '/server/$serverId/details/movie/$movieId',
+  })
   const { setCurrentBackground } = useDataStore()
   const { clientSettings } = useSettingsStore()
   const { wsMessage } = useWebSocketStore()

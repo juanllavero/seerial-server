@@ -11,6 +11,7 @@ import SettingsPage from '@/pages/settings/SettingsPage'
 import VideoPlayerPage from '@/pages/videoPlayer/VideoPlayerPage'
 import { createRoute, redirect } from '@tanstack/react-router'
 import { RootRoute } from './__root'
+import ServerLayout from '@/pages/serverLayout/ServerLayout'
 
 export const HomeRoute = createRoute({
   getParentRoute: () => RootRoute,
@@ -45,6 +46,7 @@ export const ServerRoute = createRoute({
 
     return { server }
   },
+  component: ServerLayout,
 })
 
 export const LibraryRoute = createRoute({

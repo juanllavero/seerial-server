@@ -28,7 +28,9 @@ import SeasonContent from '../components/SeasonsContent'
 import '../DetailsPage.css'
 
 function SeriesDetailsPage() {
-  const { seriesId } = useParams({ from: '/details/series/$seriesId' })
+  const { seriesId } = useParams({
+    from: '/server/$serverId/details/series/$seriesId',
+  })
   const { selectedServer } = useServerStore()
   const { wsMessage } = useWebSocketStore()
   const { selectedSeasonId, selectSeason, setCurrentBackground } =
