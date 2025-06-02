@@ -1,7 +1,6 @@
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { useIsTablet } from '@/components/hooks/use-tablet'
-import Loading from '@/components/Loading'
-import NotFound from '@/components/NotFound'
+import CardGridSkeleton from '@/components/skeletons/CardGridSkeleton'
 import FlexBox from '@/components/ui/FlexBox'
 import Grid from '@/components/ui/Grid'
 import useDataStore from '@/context/data.context'
@@ -10,7 +9,7 @@ import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
 import { Library } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
-import { useParams } from '@tanstack/react-router'
+import { useLoaderData, useNavigate, useParams } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import useSWR from 'swr'
 import AlbumList from './components/lists/AlbumList'
@@ -18,20 +17,30 @@ import MoviesList from './components/lists/MoviesList'
 import SeriesList from './components/lists/SeriesList'
 
 function LibraryPage() {
-  const { libraryId } = useParams({ from: '/library/$libraryId' })
-  const { selectedServer } = useServerStore()
+  const navigate = useNavigate()
+  const { server } = useLoaderData({ from: '/server/$serverId' })
+  const { libraryId } = useParams({
+    from: '/server/$serverId/library/$libraryId',
+  })
+  const { serverStatus, selectServer } = useServerStore()
   const { wsMessage } = useWebSocketStore()
   const { selectedLibraryId, selectLibrary } = useDataStore()
   const isTablet = useIsTablet()
   const isMobile = useIsMobile()
+
+  const cardWidth = Number(localStorage.getItem('cardWidth')) || 200
+
+  if (server) {
+    selectServer(server)
+  }
 
   const {
     data: library,
     isLoading,
     mutate,
   } = useSWR<Library>(
-    libraryId && selectedServer
-      ? `https://${selectedServer.ip}/library?id=${libraryId}`
+    libraryId && server && serverStatus
+      ? `https://${server.ip}/library?id=${libraryId}`
       : null,
     fetcher,
   )
@@ -49,16 +58,21 @@ function LibraryPage() {
     }
   }, [wsMessage])
 
-  if (libraryId !== selectedLibraryId) {
-    if (library) {
-      selectLibrary(library.id)
-    } else {
-      return <NotFound />
-    }
-  }
+  // if (libraryId !== selectedLibraryId) {
+  //   if (library) {
+  //     selectLibrary(library.id)
+  //   } else {
+  //     return <NotFound />
+  //   }
+  // }
+
+  // if (!server || !serverStatus) {
+  //   navigate({ to: '/' })
+  //   return null
+  // }
 
   if (!library || isLoading) {
-    return <Loading />
+    return <CardGridSkeleton cards={12} width={cardWidth} aspectRatio={3 / 2} />
   }
 
   const ItemsList = () =>
@@ -75,7 +89,7 @@ function LibraryPage() {
       <Grid
         columns={isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)'}
         gap="1rem"
-        padding="8rem 1rem"
+        padding="1rem"
         height={'100%'}
         scroll="vertical"
         justifyContent="start"
@@ -91,7 +105,7 @@ function LibraryPage() {
     <FlexBox
       gap={1}
       wrap="wrap"
-      padding="8rem 2rem"
+      padding="2rem"
       scroll="vertical"
       height={'100%'}
     >

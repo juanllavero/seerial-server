@@ -2,10 +2,11 @@ import { useIsMobile } from '@/components/hooks/use-mobile'
 import FlexBox from '@/components/ui/FlexBox'
 import Grid from '@/components/ui/Grid'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
+import { useAuth } from '@/context/auth.context'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { Episode, Season } from '@/data/interfaces/Media'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate, useParams } from '@tanstack/react-router'
 import React, { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import EpisodeCard from './cards/EpisodeCard'
@@ -17,12 +18,22 @@ interface SeasonContentProps {
 }
 
 function SeasonContent({ seasonList, season }: SeasonContentProps) {
+  const { serverId } = useParams({
+    from: '/server/$serverId/details/series/$seriesId',
+  })
   const navigate = useNavigate()
   const { selectSeason } = useDataStore()
   const { t } = useTranslation()
-  const { selectedServer } = useServerStore()
+  const { selectServer, serverStatus } = useServerStore()
   const [distribution, setDistribution] = React.useState(0)
   const isMobile = useIsMobile()
+  const { user } = useAuth()
+
+  const server = user?.servers.find((server) => server.id === serverId)
+
+  if (server) {
+    selectServer(server)
+  }
 
   useEffect(() => {
     if (isMobile) {
@@ -58,17 +69,26 @@ function SeasonContent({ seasonList, season }: SeasonContentProps) {
   }
 
   const goToEpisodePage = (episode: Episode) => {
+    if (!server || !serverStatus) {
+      return
+    }
+
     navigate({
-      to: '/details/episode/$episodeId',
+      to: '/server/$serverId/details/episode/$episodeId',
       params: {
         episodeId: episode.id,
+        serverId: server.id,
       },
     })
   }
 
   const playEpisode = async (episodeId: Episode) => {
+    if (!server || !serverStatus) {
+      return
+    }
+
     const response = await fetch(
-      `https://${selectedServer?.ip}/episode-video?episodeId=${episodeId.id}`,
+      `https://${server.ip}/episode-video?episodeId=${episodeId.id}`,
     )
 
     if (!response.ok) {
@@ -77,13 +97,18 @@ function SeasonContent({ seasonList, season }: SeasonContentProps) {
     }
 
     const data = await response.json()
-    console.log({ data })
     navigate({
-      to: '/video-player/$videoId',
+      to: '/server/$serverId/video-player/$videoId',
       params: {
+        serverId: server.id,
         videoId: data.id,
       },
     })
+  }
+
+  if (!server || !serverStatus) {
+    navigate({ to: '/' })
+    return null
   }
 
   return (

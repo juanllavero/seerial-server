@@ -88,8 +88,8 @@ function SeriesCard({ series }: SeriesCardProps) {
       action={() => {
         selectSeries(series.id)
         navigate({
-          to: '/details/series/$seriesId',
-          params: { seriesId: series.id },
+          to: '/server/$serverId/details/series/$seriesId',
+          params: { serverId: selectedServer?.id ?? '', seriesId: series.id },
         })
       }}
       hidePlayButton

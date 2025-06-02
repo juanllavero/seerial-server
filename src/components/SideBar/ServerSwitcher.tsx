@@ -21,14 +21,7 @@ import { ServerIcon } from '../ui/IconLibrary'
 
 export function ServerSwitcher() {
   const { user } = useAuth()
-  const { selectServer } = useServerStore()
-
-  useEffect(() => {
-    console.log('user', user)
-    if (user && user.servers && user.servers.length > 0) {
-      selectServer(user.servers[0])
-    }
-  }, [user])
+  const { selectServer, selectedServer } = useServerStore()
 
   const servers = user && user.servers ? user.servers : []
 
@@ -37,7 +30,14 @@ export function ServerSwitcher() {
     servers.length > 0 ? servers[0] : undefined,
   )
 
+  useEffect(() => {
+    if (selectedServer) {
+      setActiveServer(selectedServer)
+    }
+  }, [selectedServer])
+
   if (servers.length > 0 && !activeServer) {
+    selectServer(servers[0])
     setActiveServer(servers[0])
   }
 

@@ -8,9 +8,9 @@ export const ServerIcon = () => (
     <g
       fill="none"
       stroke="currentColor"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      stroke-width="32"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth="32"
     >
       <ellipse cx="256" cy="112" rx="176" ry="80" />
       <path d="M432 112v288c0 44.183-78.798 80-176 80S80 444.183 80 400V112" />

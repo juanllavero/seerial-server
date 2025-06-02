@@ -35,10 +35,15 @@ function ParentCard({
   errorSrc,
 }: CardProps) {
   const isTablet = useIsTablet()
+
+  const cardWidth = localStorage.getItem('cardWidth')
+    ? Number(localStorage.getItem('cardWidth')) * 0.8
+    : 200 * 0.8
+
   return (
     <Card
       itemKey={itemKey}
-      width={isTablet ? '100%' : 200}
+      width={isTablet ? cardWidth * 1.2 : cardWidth}
       imgSrc={imgSrc}
       aspectRatio={type === 'Music' ? 1 : 2 / 3}
       title={title}

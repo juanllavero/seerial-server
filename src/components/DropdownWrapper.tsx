@@ -40,23 +40,23 @@ function DropdownWrapper({
 
         {/* Items Groups */}
         {content.items.map((group, groupIndex) => (
-          <React.Fragment key={groupIndex}>
+          <React.Fragment key={'Group' + groupIndex}>
             <DropdownMenuGroup>
               {group.items.map((item, itemIndex) =>
                 item.items ? (
                   <>
                     {item.hidden ? null : (
-                      <DropdownMenuSub key={itemIndex}>
+                      <DropdownMenuSub key={'Sub' + itemIndex}>
                         <DropdownMenuSubTrigger disabled={item.hidden}>
                           {item.title}
                         </DropdownMenuSubTrigger>
                         <DropdownMenuPortal>
                           <DropdownMenuSubContent>
                             {item.items.map((subGroup, subGroupIndex) => (
-                              <React.Fragment key={subGroupIndex}>
+                              <React.Fragment key={'SubGroup' + subGroupIndex}>
                                 {subGroup.items.map((subItem, subItemIndex) => (
                                   <DropdownMenuItem
-                                    key={subItemIndex}
+                                    key={'SubItem' + subItemIndex}
                                     onClick={subItem.action}
                                   >
                                     {subItem.title}

@@ -95,9 +95,15 @@ export function NavLibraries() {
                 : Music,
           action: () => {
             selectLibrary(library.id)
+
+            if (!selectedServer || !serverStatus) return
+
             navigate({
-              to: '/library/$libraryId',
-              params: { libraryId: library.id },
+              to: '/server/$serverId/library/$libraryId',
+              params: {
+                serverId: selectedServer.id,
+                libraryId: library.id,
+              },
             })
           },
         })),
@@ -113,11 +119,27 @@ export function NavLibraries() {
             <SidebarMenuButton asChild tooltip={home.name}>
               <a
                 href={''}
-                className="flex items-center gap-2"
-                onClick={(e) => e.preventDefault()}
+                className={`flex items-center gap-2 ${
+                  activeItem.id === home.id ? 'bg-accent' : ''
+                }`}
+                onClick={(e) => {
+                  e.preventDefault()
+                  setActiveItem(home)
+                  navigate({ to: '/' })
+                }}
+                style={{
+                  color: activeItem.id === home.id ? 'var(--app-color)' : '',
+                }}
               >
                 <home.logo />
-                <span>{home.name}</span>
+                <span
+                  className="font-semibold"
+                  style={{
+                    color: activeItem.id === home.id ? 'var(--app-color)' : '',
+                  }}
+                >
+                  {home.name}
+                </span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -138,11 +160,38 @@ export function NavLibraries() {
                   <SidebarMenuButton asChild tooltip={item.name}>
                     <a
                       href={''}
-                      className="flex items-center gap-2"
-                      onClick={(e) => e.preventDefault()}
+                      className={`flex items-center gap-2 ${
+                        activeItem.id === item.id ? 'bg-accent' : ''
+                      }`}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setActiveItem(item)
+
+                        if (!selectedServer || !serverStatus) return
+
+                        navigate({
+                          to: '/server/$serverId/library/$libraryId',
+                          params: {
+                            serverId: selectedServer.id,
+                            libraryId: item.id,
+                          },
+                        })
+                      }}
+                      style={{
+                        color:
+                          activeItem.id === item.id ? 'var(--app-color)' : '',
+                      }}
                     >
                       <item.logo />
-                      <span>{item.name}</span>
+                      <span
+                        className="font-semibold"
+                        style={{
+                          color:
+                            activeItem.id === item.id ? 'var(--app-color)' : '',
+                        }}
+                      >
+                        {item.name}
+                      </span>
                     </a>
                   </SidebarMenuButton>
                   <DropdownMenu>

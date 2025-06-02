@@ -113,8 +113,9 @@ function CollectionCard({ collection, type }: CollectionCardProps) {
       action={() => {
         selectCollection(collection.id)
         navigate({
-          to: '/details/collection/$collectionId/$type',
+          to: '/server/$serverId/details/collection/$collectionId/$type',
           params: {
+            serverId: selectedServer?.id ?? '',
             collectionId: collection.id,
             type: type,
           },

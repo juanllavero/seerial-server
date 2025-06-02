@@ -33,7 +33,7 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
   const { openRemoveLibraryDialog } = useDialogStore()
   const { selectedLibraryId, selectLibrary, setIsContent, setLoadingContent } =
     useDataStore()
-  const { selectedServer } = useServerStore()
+  const { selectedServer, serverStatus } = useServerStore()
   const { connectWS } = useWebSocketStore()
   const isMobile = useIsMobile()
 
@@ -130,9 +130,15 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
                                 : Music,
                           action: () => {
                             selectLibrary(library.id)
+
+                            if (!selectedServer || !serverStatus) return
+
                             navigate({
-                              to: '/library/$libraryId',
-                              params: { libraryId: library.id },
+                              to: '/server/$serverId/library/$libraryId',
+                              params: {
+                                serverId: selectedServer.id,
+                                libraryId: library.id,
+                              },
                             })
                           },
                         })),
@@ -171,7 +177,13 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
                 <Button
                   variant="ghost"
                   size={'icon'}
-                  onClick={() => navigate({ to: '/settings' })}
+                  onClick={() => {
+                    if (!selectedServer || !serverStatus) return
+
+                    navigate({
+                      to: '/settings',
+                    })
+                  }}
                 >
                   <Settings />
                 </Button>

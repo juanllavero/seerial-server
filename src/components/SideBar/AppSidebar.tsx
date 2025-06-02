@@ -12,13 +12,12 @@ import { ServerSwitcher } from './ServerSwitcher'
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
-        <ServerSwitcher />
-      </SidebarHeader>
+      <SidebarHeader></SidebarHeader>
       <SidebarContent>
         <NavLibraries />
       </SidebarContent>
       <SidebarFooter>
+        <ServerSwitcher />
         <NavUser />
       </SidebarFooter>
       <SidebarRail />

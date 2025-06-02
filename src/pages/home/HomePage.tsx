@@ -4,7 +4,7 @@ import FlexBox from '@/components/ui/FlexBox'
 import { useAuth } from '@/context/auth.context'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
-import { Movie, Series, Video } from '@/data/interfaces/Media'
+import { Library, Movie, Series, Video } from '@/data/interfaces/Media'
 import { Server } from '@/data/interfaces/Users'
 import { CENTRAL_SERVER } from '@/utils/constants'
 import { authenticatedFetcher, fetcher } from '@/utils/utils'
@@ -24,11 +24,21 @@ export default function HomePage() {
   const { user } = useAuth()
   const { selectedServer, serverStatus, apiKeyStatus, getServerStatus } =
     useServerStore()
-  const { selectLibrary, isContent, loadingContent } = useDataStore()
+  const { selectLibrary, loadingContent } = useDataStore()
 
   // Get Servers
   const { data: servers, isLoading: loadingServers } = useSWR<Server[]>(
     user ? `https://${CENTRAL_SERVER}/servers/` : null,
+    authenticatedFetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+    },
+  )
+
+  // Get Libraries
+  const { data: libraries, isLoading: loadingLibraries } = useSWR<Library[]>(
+    selectedServer ? `https://${selectedServer.ip}/libraries/` : null,
     authenticatedFetcher,
     {
       revalidateOnFocus: false,
@@ -65,7 +75,7 @@ export default function HomePage() {
     selectLibrary(null)
   }, [])
 
-  if (loadingServers) {
+  if (loadingServers || loadingLibraries) {
     return <Loading />
   }
 
@@ -81,7 +91,7 @@ export default function HomePage() {
     return <NoAPIKey />
   }
 
-  if (!isContent) {
+  if (!libraries) {
     return <NoContent />
   }
 
@@ -95,7 +105,7 @@ export default function HomePage() {
     <FlexBox
       direction="column"
       gap={1}
-      padding="7rem 2rem 2rem 2rem"
+      padding="2rem"
       scroll="vertical"
       height="100%"
     >

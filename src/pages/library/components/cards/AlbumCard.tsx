@@ -1,8 +1,8 @@
 import useDataStore from '@/context/data.context'
+import { useServerStore } from '@/context/server.context'
 import { Album } from '@/data/interfaces/Music'
 import { DropdownContent } from '@/data/interfaces/Utils'
 import { useNavigate } from '@tanstack/react-router'
-import React from 'react'
 import { useTranslation } from 'react-i18next'
 import ParentCard from './ParentCard'
 
@@ -13,6 +13,7 @@ interface AlbumCardProps {
 function AlbumCard({ album }: AlbumCardProps) {
   const { t } = useTranslation()
   const { selectAlbum } = useDataStore()
+  const { selectedServer } = useServerStore()
   const navigate = useNavigate()
 
   const menuContent: DropdownContent = {
@@ -64,8 +65,8 @@ function AlbumCard({ album }: AlbumCardProps) {
       action={() => {
         selectAlbum(album.id)
         navigate({
-          to: '/details/album/$albumId',
-          params: { albumId: album.id },
+          to: '/server/$serverId/details/album/$albumId',
+          params: { serverId: selectedServer?.id ?? '', albumId: album.id },
         })
       }}
       hidePlayButton

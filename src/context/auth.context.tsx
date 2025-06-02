@@ -31,7 +31,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [token])
 
   const login = async (newToken: string) => {
-    console.log('login', newToken)
     localStorage.setItem('token', newToken)
     setToken(newToken)
   }

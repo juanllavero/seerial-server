@@ -1,3 +1,4 @@
+import { getUser } from '@/lib/auth'
 import AlbumDetailsPage from '@/pages/details/album/AlbumDetailsPage'
 import CollectionDetailsPage from '@/pages/details/collection/CollectionDetailsPage'
 import EpisodeDetailsPage from '@/pages/details/episode/EpisodeDetailsPage'
@@ -8,7 +9,7 @@ import LibraryPage from '@/pages/library/LibraryPage'
 import LoginPage from '@/pages/login/LoginPage'
 import SettingsPage from '@/pages/settings/SettingsPage'
 import VideoPlayerPage from '@/pages/videoPlayer/VideoPlayerPage'
-import { createRoute } from '@tanstack/react-router'
+import { createRoute, redirect } from '@tanstack/react-router'
 import { RootRoute } from './__root'
 
 export const HomeRoute = createRoute({
@@ -23,50 +24,67 @@ export const LoginRoute = createRoute({
   component: LoginPage,
 })
 
-export const LibraryRoute = createRoute({
-  getParentRoute: () => RootRoute,
-  path: '/library/$libraryId',
-  component: LibraryPage,
-})
-
-export const MovieDetailsRoute = createRoute({
-  getParentRoute: () => RootRoute,
-  path: '/details/movie/$movieId',
-  component: MovieDetailsPage,
-})
-
-export const SeriesDetailsRoute = createRoute({
-  getParentRoute: () => RootRoute,
-  path: '/details/series/$seriesId',
-  component: SeriesDetailsPage,
-})
-
-export const AlbumDetailsRoute = createRoute({
-  getParentRoute: () => RootRoute,
-  path: '/details/album/$albumId',
-  component: AlbumDetailsPage,
-})
-
-export const CollectionDetailsRoute = createRoute({
-  getParentRoute: () => RootRoute,
-  path: '/details/collection/$collectionId/$type',
-  component: CollectionDetailsPage,
-})
-
-export const EpisodeDetailsRoute = createRoute({
-  getParentRoute: () => RootRoute,
-  path: '/details/episode/$episodeId',
-  component: EpisodeDetailsPage,
-})
-
 export const SettingsRoute = createRoute({
   getParentRoute: () => RootRoute,
   path: '/settings',
   component: SettingsPage,
 })
 
-export const VideoPlayerRoute = createRoute({
+export const ServerRoute = createRoute({
   getParentRoute: () => RootRoute,
+  path: '/server/$serverId',
+  loader: async ({ params }) => {
+    const { serverId } = params
+
+    const user = await getUser()
+    const server = user?.servers.find((server) => server.id === serverId)
+
+    if (!server) {
+      throw redirect({ to: '/' })
+    }
+
+    return { server }
+  },
+})
+
+export const LibraryRoute = createRoute({
+  getParentRoute: () => ServerRoute,
+  path: '/library/$libraryId',
+  component: LibraryPage,
+})
+
+export const MovieDetailsRoute = createRoute({
+  getParentRoute: () => ServerRoute,
+  path: '/details/movie/$movieId',
+  component: MovieDetailsPage,
+})
+
+export const SeriesDetailsRoute = createRoute({
+  getParentRoute: () => ServerRoute,
+  path: '/details/series/$seriesId',
+  component: SeriesDetailsPage,
+})
+
+export const AlbumDetailsRoute = createRoute({
+  getParentRoute: () => ServerRoute,
+  path: '/details/album/$albumId',
+  component: AlbumDetailsPage,
+})
+
+export const CollectionDetailsRoute = createRoute({
+  getParentRoute: () => ServerRoute,
+  path: '/details/collection/$collectionId/$type',
+  component: CollectionDetailsPage,
+})
+
+export const EpisodeDetailsRoute = createRoute({
+  getParentRoute: () => ServerRoute,
+  path: '/details/episode/$episodeId',
+  component: EpisodeDetailsPage,
+})
+
+export const VideoPlayerRoute = createRoute({
+  getParentRoute: () => ServerRoute,
   path: '/video-player/$videoId',
   component: VideoPlayerPage,
 })
@@ -74,12 +92,14 @@ export const VideoPlayerRoute = createRoute({
 export const rootTree = RootRoute.addChildren([
   HomeRoute,
   LoginRoute,
-  LibraryRoute,
-  MovieDetailsRoute,
-  SeriesDetailsRoute,
-  AlbumDetailsRoute,
-  CollectionDetailsRoute,
-  EpisodeDetailsRoute,
   SettingsRoute,
-  VideoPlayerRoute,
+  ServerRoute.addChildren([
+    LibraryRoute,
+    MovieDetailsRoute,
+    SeriesDetailsRoute,
+    AlbumDetailsRoute,
+    CollectionDetailsRoute,
+    EpisodeDetailsRoute,
+    VideoPlayerRoute,
+  ]),
 ])

@@ -15,22 +15,26 @@ import AlbumCard from '@/pages/library/components/cards/AlbumCard'
 import MovieCard from '@/pages/library/components/cards/MovieCard'
 import SeriesCard from '@/pages/library/components/cards/SeriesCard'
 import { fetcher } from '@/utils/utils'
-import { useParams } from '@tanstack/react-router'
+import { useLoaderData, useParams } from '@tanstack/react-router'
 import { Edit, Ellipsis } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 import '../DetailsPage.css'
-
 function CollectionDetailsPage() {
+  const { server } = useLoaderData({ from: '/server/$serverId' })
   const { collectionId, type } = useParams({
-    from: '/details/collection/$collectionId/$type',
+    from: '/server/$serverId/details/collection/$collectionId/$type',
   })
   const { t } = useTranslation()
   const { setCurrentBackground } = useDataStore()
   const { wsMessage } = useWebSocketStore()
-  const { selectedServer } = useServerStore()
+  const { selectServer, serverStatus, selectedServer } = useServerStore()
   const isMobile = useIsMobile()
+
+  if (server && server != selectedServer) {
+    selectServer(server)
+  }
 
   // Get collection data
   const {
@@ -38,8 +42,8 @@ function CollectionDetailsPage() {
     isLoading,
     mutate,
   } = useSWR<Collection>(
-    collectionId && selectedServer
-      ? `https://${selectedServer.ip}/details/collection?id=${collectionId}`
+    collectionId && server && serverStatus
+      ? `https://${server.ip}/details/collection?id=${collectionId}`
       : null,
     fetcher,
   )
@@ -104,7 +108,12 @@ function CollectionDetailsPage() {
   // Componentes de renderizado por tipo
   const renderMap: Record<CollectionKey, (items: any[]) => React.ReactNode> = {
     albums: (items: Album[]) => (
-      <FlexBox direction="column" justify="center" align="center">
+      <FlexBox
+        key={'Albums'}
+        direction="column"
+        justify="center"
+        align="center"
+      >
         <HorizontalList key="albums" title={t('albums')}>
           {items.map((album) => (
             <AlbumCard key={album.id} album={album} />
@@ -113,7 +122,13 @@ function CollectionDetailsPage() {
       </FlexBox>
     ),
     movies: (items: Movie[]) => (
-      <FlexBox direction="column" justify="start" align="start" gap={0}>
+      <FlexBox
+        key={'Movies'}
+        direction="column"
+        justify="start"
+        align="start"
+        gap={0}
+      >
         <HorizontalList key="movies" title={t('movies')}>
           {items.map((movie) => (
             <MovieCard key={movie.id} movie={movie} />
@@ -122,7 +137,7 @@ function CollectionDetailsPage() {
       </FlexBox>
     ),
     shows: (items: Series[]) => (
-      <FlexBox>
+      <FlexBox key={'Shows'}>
         <HorizontalList key="shows" title={t('shows')}>
           {items.map((series) => (
             <SeriesCard key={series.id} series={series} />

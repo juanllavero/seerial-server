@@ -1,9 +1,9 @@
 import useDataStore from '@/context/data.context'
+import { useServerStore } from '@/context/server.context'
 import { Movie } from '@/data/interfaces/Media'
 import { DropdownContent } from '@/data/interfaces/Utils'
 import { getOnlyYear } from '@/utils/ReactUtils'
 import { useNavigate } from '@tanstack/react-router'
-import React from 'react'
 import { useTranslation } from 'react-i18next'
 import ParentCard from './ParentCard'
 
@@ -14,6 +14,7 @@ interface MovieCardProps {
 function MovieCard({ movie }: MovieCardProps) {
   const { t } = useTranslation()
   const { selectMovie } = useDataStore()
+  const { selectedServer } = useServerStore()
   const navigate = useNavigate()
 
   const menuContent: DropdownContent = {
@@ -66,8 +67,8 @@ function MovieCard({ movie }: MovieCardProps) {
       action={() => {
         selectMovie(movie.id)
         navigate({
-          to: '/details/movie/$movieId',
-          params: { movieId: movie.id },
+          to: '/server/$serverId/details/movie/$movieId',
+          params: { serverId: selectedServer?.id ?? '', movieId: movie.id },
         })
       }}
       hidePlayButton

@@ -23,10 +23,7 @@ const Login = () => {
 
       const data = await res.json()
 
-      console.log('data', data)
-
       if (res.ok && data.token) {
-        console.log('loginButton', data.token)
         await login(data.token)
 
         navigate({ to: '/' })
