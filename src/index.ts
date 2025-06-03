@@ -149,7 +149,7 @@ app.whenReady().then(async () => {
   FilesManager.loadProperties();
 
   // Initialize MoveDB Connection
-  MovieDBWrapper.initConnection();
+  await MovieDBWrapper.initConnection();
 
   // Add all routes
   addServerRoutes();

@@ -225,22 +225,44 @@ export class Utils {
   //#endregion
 
   //#region MEDIA INFO
+  /**
+   * Retrieves the duration of a music file and sets it on the provided Song object.
+   *
+   * Uses ffprobe to extract the duration of the given music file and assigns
+   * the duration (in minutes) to the Song object's `duration` property.
+   * Logs an error if the duration cannot be determined.
+   *
+   * @param song - The Song object whose duration property will be set.
+   * @param musicFile - The path to the music file to probe for duration.
+   * @returns A Promise that resolves when the operation is complete.
+   * @throws Will rethrow any error encountered during probing.
+   */
   public static async getOnlyRuntime(
     song: Song,
     musicFile: string
   ): Promise<void> {
+    if (!musicFile || typeof musicFile !== "string") {
+      console.error("getOnlyRuntime: Invalid music file path provided.");
+      return;
+    }
+
     try {
       const data = await this.probeMediaFile(musicFile);
-      const format = data?.format;
+      const duration = data?.format?.duration;
 
-      if (format && format.duration) {
-        song.duration = format.duration / 60;
+      if (typeof duration === "number" && !isNaN(duration)) {
+        song.duration = duration / 60;
       } else {
-        console.log("Failed to get runtime for song:", musicFile);
+        console.error(
+          `getOnlyRuntime: Failed to get valid runtime for song: ${musicFile}`
+        );
       }
     } catch (err) {
-      console.log("Failed to get runtime", { error: err });
-      throw err; // Re-lanzar el error para que el llamador lo maneje si es necesario
+      console.error("getOnlyRuntime: Error while getting runtime", {
+        error: err,
+        musicFile,
+      });
+      throw err; // Rethrow for the caller to handle if necessary
     }
   }
 

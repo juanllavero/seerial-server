@@ -217,12 +217,10 @@ export async function setMovieMetadata(
   );
 
   if (credits) {
-    console.log({ credits });
     if (credits.crew) {
       if (!movie.directedByLock && movie.directedBy) {
         movie.directedBy.splice(0, movie.directedBy.length);
         for (const person of credits.crew) {
-          console.log({ person });
           if (person.name && person.job === "Director" && movie.directedBy)
             movie.directedBy = [...movie.directedBy, person.name];
         }
