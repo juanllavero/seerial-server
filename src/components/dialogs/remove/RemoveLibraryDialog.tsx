@@ -33,7 +33,7 @@ function RemoveLibraryDialog() {
         // Mutate libraries list
         mutate((key: string) => key.startsWith(`https://${serverIP}/libraries`))
 
-        navigate({ to: '/' })
+        navigate({ to: '/home' })
         closeRemoveLibraryDialog()
       }}
       isDeleteAlert

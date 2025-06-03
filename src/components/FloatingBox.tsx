@@ -48,7 +48,7 @@ function FloatingBox({ isWindows }: { isWindows: boolean }) {
 
   // Checks current page location
   const location = useLocation()
-  const inHome = location.pathname === '/'
+  const inHome = location.pathname === '/home'
   const inSettings = location.pathname === '/settings'
   const inPlayer = location.pathname.startsWith('/video-player')
 

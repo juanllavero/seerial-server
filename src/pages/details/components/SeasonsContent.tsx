@@ -107,7 +107,7 @@ function SeasonContent({ seasonList, season }: SeasonContentProps) {
   }
 
   if (!server || !serverStatus) {
-    navigate({ to: '/' })
+    navigate({ to: '/home' })
     return null
   }
 

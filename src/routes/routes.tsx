@@ -11,11 +11,17 @@ import SettingsPage from '@/pages/settings/SettingsPage'
 import VideoPlayerPage from '@/pages/videoPlayer/VideoPlayerPage'
 import { createRoute, redirect } from '@tanstack/react-router'
 import { RootRoute } from './__root'
-import ServerLayout from '@/pages/serverLayout/ServerLayout'
+import SideBarLayout from '@/pages/sidebarLayout/SideBarLayout'
 
-export const HomeRoute = createRoute({
+export const BaseRoute = createRoute({
   getParentRoute: () => RootRoute,
   path: '/',
+  component: SideBarLayout,
+})
+
+export const HomeRoute = createRoute({
+  getParentRoute: () => BaseRoute,
+  path: '/home',
   component: HomePage,
 })
 
@@ -32,7 +38,7 @@ export const SettingsRoute = createRoute({
 })
 
 export const ServerRoute = createRoute({
-  getParentRoute: () => RootRoute,
+  getParentRoute: () => BaseRoute,
   path: '/server/$serverId',
   loader: async ({ params }) => {
     const { serverId } = params
@@ -41,12 +47,11 @@ export const ServerRoute = createRoute({
     const server = user?.servers.find((server) => server.id === serverId)
 
     if (!server) {
-      throw redirect({ to: '/' })
+      throw redirect({ to: '/home' })
     }
 
     return { server }
   },
-  component: ServerLayout,
 })
 
 export const LibraryRoute = createRoute({
@@ -92,16 +97,18 @@ export const VideoPlayerRoute = createRoute({
 })
 
 export const rootTree = RootRoute.addChildren([
-  HomeRoute,
   LoginRoute,
   SettingsRoute,
-  ServerRoute.addChildren([
-    LibraryRoute,
-    MovieDetailsRoute,
-    SeriesDetailsRoute,
-    AlbumDetailsRoute,
-    CollectionDetailsRoute,
-    EpisodeDetailsRoute,
-    VideoPlayerRoute,
+  BaseRoute.addChildren([
+    HomeRoute,
+    ServerRoute.addChildren([
+      LibraryRoute,
+      MovieDetailsRoute,
+      SeriesDetailsRoute,
+      AlbumDetailsRoute,
+      CollectionDetailsRoute,
+      EpisodeDetailsRoute,
+      VideoPlayerRoute,
+    ]),
   ]),
 ])

@@ -56,7 +56,6 @@ function Card({
 }: CardProps) {
   return (
     <FlexBox
-      className="card-container"
       direction="column"
       justify="center"
       gap={0.1}
@@ -161,15 +160,19 @@ function Card({
           errorSrc={errorSrc}
         />
       </div>
-      <FlexBox
-        direction="column"
-        padding=".5rem"
-        width={width}
-        align={centerText ? 'center' : 'start'}
+      <div
+        className="grid gap-1 p-2"
+        style={{
+          width: width,
+          textAlign: centerText ? 'center' : 'left',
+          justifyItems: centerText ? 'center' : 'start',
+          alignItems: 'start',
+          minWidth: 0,
+        }}
       >
         <Tooltip>
           <TooltipTrigger className="max-w-full truncate">
-            <a className="a_text" id="title" onClick={action}>
+            <a className="a_text" id="title ellipsis truncate" onClick={action}>
               {title}
             </a>
           </TooltipTrigger>
@@ -179,7 +182,7 @@ function Card({
         </Tooltip>
 
         <span id="subtitle">{subtitle}</span>
-      </FlexBox>
+      </div>
     </FlexBox>
   )
 }

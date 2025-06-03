@@ -34,16 +34,10 @@ function ParentCard({
   editModal,
   errorSrc,
 }: CardProps) {
-  const isTablet = useIsTablet()
-
-  const cardWidth = localStorage.getItem('cardWidth')
-    ? Number(localStorage.getItem('cardWidth')) * 0.8
-    : 200 * 0.8
-
   return (
     <Card
       itemKey={itemKey}
-      width={isTablet ? cardWidth * 1.2 : cardWidth}
+      width={'100%'}
       imgSrc={imgSrc}
       aspectRatio={type === 'Music' ? 1 : 2 / 3}
       title={title}

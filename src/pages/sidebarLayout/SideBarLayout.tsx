@@ -5,17 +5,21 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
+import { Outlet } from '@tanstack/react-router'
+import CardWidthSlider from './components/CardWidthSlider'
 
-const ServerLayout = ({ children }: { children: React.ReactNode }) => {
+const SideBarLayout = () => {
   return (
-    <SidebarProvider>
-      <AppSidebar />
-      <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
-          <div className="flex items-center gap-2 px-4">
-            <SidebarTrigger className="-ml-1" />
-            <Separator className="mr-2 h-4" />
-            {/* <Breadcrumb>
+    <div className="relative">
+      <SidebarProvider>
+        <AppSidebar />
+        <SidebarInset>
+          <header className="flex h-16 shrink-0 items-center gap-2 p-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+            <SidebarTrigger className="ml-3" />
+            <Separator orientation="vertical" />
+            <CardWidthSlider />
+          </header>
+          {/* <Breadcrumb>
                 <BreadcrumbList>
                   <BreadcrumbItem className="hidden md:block">
                     <BreadcrumbLink href="#">
@@ -28,12 +32,13 @@ const ServerLayout = ({ children }: { children: React.ReactNode }) => {
                   </BreadcrumbItem>
                 </BreadcrumbList>
               </Breadcrumb> */}
+          <div className="h-screen flex-1">
+            <Outlet />
           </div>
-        </header>
-        <div className="h-screen flex-1">{children}</div>
-      </SidebarInset>
-    </SidebarProvider>
+        </SidebarInset>
+      </SidebarProvider>
+    </div>
   )
 }
 
-export default ServerLayout
+export default SideBarLayout

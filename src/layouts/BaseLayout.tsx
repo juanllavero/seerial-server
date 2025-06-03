@@ -90,7 +90,7 @@ export default function BaseLayout({
   }, [selectedBackground])
 
   const getSafeURL = (url: string | undefined) => {
-    return url ? url.replace(/\\/g, '/') : ''
+    return url ? url.replace(/\\/g, '/home') : ''
   }
 
   return (

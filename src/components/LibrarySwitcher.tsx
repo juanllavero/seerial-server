@@ -35,7 +35,7 @@ export function LibrarySwitcher({ libraries }: { libraries: Item[] }) {
     name: t('home'),
     logo: House,
     action: () => {
-      navigate({ to: '/' })
+      navigate({ to: '/home' })
     },
   }
 

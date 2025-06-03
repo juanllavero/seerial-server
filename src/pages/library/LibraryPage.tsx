@@ -1,7 +1,6 @@
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import CardGridSkeleton from '@/components/skeletons/CardGridSkeleton'
-import FlexBox from '@/components/ui/FlexBox'
 import Grid from '@/components/ui/Grid'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
@@ -9,30 +8,33 @@ import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
 import { Library } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
-import { useLoaderData, useNavigate, useParams } from '@tanstack/react-router'
+import { useLoaderData, useParams } from '@tanstack/react-router'
 import { useEffect } from 'react'
 import useSWR from 'swr'
 import AlbumList from './components/lists/AlbumList'
 import MoviesList from './components/lists/MoviesList'
 import SeriesList from './components/lists/SeriesList'
+import { useCardWidth } from '@/hooks/useCardWidth'
 
 function LibraryPage() {
-  const navigate = useNavigate()
   const { server } = useLoaderData({ from: '/server/$serverId' })
   const { libraryId } = useParams({
     from: '/server/$serverId/library/$libraryId',
   })
+  const { cardWidth } = useCardWidth()
   const { serverStatus, selectServer } = useServerStore()
   const { wsMessage } = useWebSocketStore()
-  const { selectedLibraryId, selectLibrary } = useDataStore()
+  const { selectLibrary } = useDataStore()
   const isTablet = useIsTablet()
   const isMobile = useIsMobile()
 
-  const cardWidth = Number(localStorage.getItem('cardWidth')) || 200
+  console.log('Here')
 
-  if (server) {
-    selectServer(server)
-  }
+  useEffect(() => {
+    if (server) {
+      selectServer(server)
+    }
+  }, [server, selectServer])
 
   const {
     data: library,
@@ -56,20 +58,16 @@ function LibraryPage() {
     if (wsMessage === MessageType.MUTATE_LIBRARY) {
       mutate()
     }
-  }, [wsMessage])
+  }, [wsMessage, mutate])
 
-  // if (libraryId !== selectedLibraryId) {
-  //   if (library) {
-  //     selectLibrary(library.id)
-  //   } else {
-  //     return <NotFound />
-  //   }
-  // }
+  const getCardWidth = () => {
+    const baseWidth = cardWidth * 0.8
+    if (isMobile) return Math.max(baseWidth * 0.8, 120)
+    if (isTablet) return Math.max(baseWidth * 0.9, 150)
+    return Math.max(baseWidth, 180)
+  }
 
-  // if (!server || !serverStatus) {
-  //   navigate({ to: '/' })
-  //   return null
-  // }
+  const finalCardWidth = getCardWidth()
 
   if (!library || isLoading) {
     return <CardGridSkeleton cards={12} width={cardWidth} aspectRatio={3 / 2} />
@@ -84,33 +82,22 @@ function LibraryPage() {
       <MoviesList library={library} />
     )
 
-  if (isTablet || isMobile) {
-    return (
-      <Grid
-        columns={isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)'}
-        gap="1rem"
-        padding="1rem"
-        height={'100%'}
-        scroll="vertical"
-        justifyContent="start"
-        alignItems="start"
-        hideScrollbar
-      >
-        <ItemsList />
-      </Grid>
-    )
-  }
-
   return (
-    <FlexBox
-      gap={1}
-      wrap="wrap"
-      padding="2rem"
+    <Grid
+      columns={
+        isMobile || isTablet
+          ? `repeat(auto-fit, minmax(${cardWidth}px, 1fr))`
+          : `repeat(auto-fit, minmax(${cardWidth * 0.8}px, ${cardWidth * 1.2}px))`
+      }
+      gap="1rem"
+      padding={isMobile ? '1rem' : '2rem'}
       scroll="vertical"
-      height={'100%'}
+      justifyContent="start"
+      alignItems="start"
+      hideScrollbar
     >
       <ItemsList />
-    </FlexBox>
+    </Grid>
   )
 }
 

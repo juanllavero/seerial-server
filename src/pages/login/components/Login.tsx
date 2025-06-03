@@ -26,7 +26,7 @@ const Login = () => {
       if (res.ok && data.token) {
         await login(data.token)
 
-        navigate({ to: '/' })
+        navigate({ to: '/home' })
       } else {
         alert(data.error || 'Login fallido')
       }

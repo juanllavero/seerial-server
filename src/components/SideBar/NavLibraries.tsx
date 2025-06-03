@@ -65,7 +65,7 @@ export function NavLibraries() {
     name: t('home'),
     logo: House,
     action: () => {
-      navigate({ to: '/' })
+      navigate({ to: '/home' })
     },
   }
 
@@ -125,7 +125,7 @@ export function NavLibraries() {
                 onClick={(e) => {
                   e.preventDefault()
                   setActiveItem(home)
-                  navigate({ to: '/' })
+                  navigate({ to: '/home' })
                 }}
                 style={{
                   color: activeItem.id === home.id ? 'var(--app-color)' : '',

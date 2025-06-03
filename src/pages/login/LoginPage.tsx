@@ -8,7 +8,7 @@ function LoginPage() {
   const navigate = useNavigate()
   const token = getToken()
 
-  if (token) navigate({ to: '/' })
+  if (token) navigate({ to: '/home' })
 
   return (
     <FlexBox width={'100%'} height={'100dvh'} justify="center" align="center">

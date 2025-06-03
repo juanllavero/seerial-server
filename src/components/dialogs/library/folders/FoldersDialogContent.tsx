@@ -70,9 +70,9 @@ function FoldersDialogContent({
 
       fetchFolderContent(upperPath || '') // Si es raíz, reiniciar ruta
     } else {
-      // Verificar si currentPath ya termina con '/' o '\'
+      // Verificar si currentPath ya termina con '/home' o '\'
       const separator =
-        currentPath.endsWith('/') || currentPath.endsWith('\\') ? '' : '\\'
+        currentPath.endsWith('/home') || currentPath.endsWith('\\') ? '' : '\\'
       fetchFolderContent(`${currentPath}${separator}${folder}`)
     }
   }
