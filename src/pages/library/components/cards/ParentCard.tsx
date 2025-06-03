@@ -1,5 +1,4 @@
 import Card from '@/components/cards/Card'
-import { useIsTablet } from '@/components/hooks/use-tablet'
 import { DropdownContent } from '@/data/interfaces/Utils'
 import React from 'react'
 

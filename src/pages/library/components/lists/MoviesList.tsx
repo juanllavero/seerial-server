@@ -1,5 +1,4 @@
-import { Library } from '@/data/interfaces/Media'
-import React from 'react'
+import { Collection, Library, Movie } from '@/data/interfaces/Media'
 import CollectionCard from '../cards/CollectionCard'
 import MovieCard from '../cards/MovieCard'
 
@@ -8,6 +7,18 @@ interface MoviesListProps {
 }
 
 function MoviesList({ library }: MoviesListProps) {
+  // Get all movie IDs that are in any collection
+  const collectionMovieIds = new Set(
+    (library.collections || []).flatMap((collection: Collection) =>
+      (collection.movies || []).map((movie: Movie) => movie.id),
+    ),
+  )
+
+  // Filter movies to only include those not in any collection
+  const standaloneMovies = (library.movies || []).filter(
+    (movie: Movie) => !collectionMovieIds.has(movie.id),
+  )
+
   return (
     <>
       {library.collections &&
@@ -19,9 +30,8 @@ function MoviesList({ library }: MoviesListProps) {
             type={'Movies'}
           />
         ))}
-      {library.movies &&
-        library.movies.length > 0 &&
-        library.movies.map((movie) => (
+      {standaloneMovies.length > 0 &&
+        standaloneMovies.map((movie) => (
           <MovieCard key={movie.id} movie={movie} />
         ))}
     </>

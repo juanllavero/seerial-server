@@ -18,6 +18,7 @@ const SideBarLayout = () => {
             <SidebarTrigger className="ml-3" />
             <Separator orientation="vertical" />
             <CardWidthSlider />
+            {/* <DisplayCollectionsSelector /> */}
           </header>
           {/* <Breadcrumb>
                 <BreadcrumbList>

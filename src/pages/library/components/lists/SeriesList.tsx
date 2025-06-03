@@ -1,5 +1,4 @@
-import { Library } from '@/data/interfaces/Media'
-import React from 'react'
+import { Library, Collection, Series } from '@/data/interfaces/Media'
 import CollectionCard from '../cards/CollectionCard'
 import SeriesCard from '../cards/SeriesCard'
 
@@ -8,6 +7,18 @@ interface SeriesListProps {
 }
 
 function SeriesList({ library }: SeriesListProps) {
+  // Get all series IDs that are in any collection
+  const collectionSeriesIds = new Set(
+    (library.collections || []).flatMap((collection: Collection) =>
+      (collection.shows || []).map((series: Series) => series.id),
+    ),
+  )
+
+  // Filter series to only include those not in any collection
+  const standaloneSeries = (library.series || []).filter(
+    (series: Series) => !collectionSeriesIds.has(series.id),
+  )
+
   return (
     <>
       {library.collections &&
@@ -19,9 +30,8 @@ function SeriesList({ library }: SeriesListProps) {
             type={'Shows'}
           />
         ))}
-      {library.series &&
-        library.series.length > 0 &&
-        library.series.map((series) => (
+      {standaloneSeries.length > 0 &&
+        standaloneSeries.map((series) => (
           <SeriesCard key={series.id} series={series} />
         ))}
     </>
