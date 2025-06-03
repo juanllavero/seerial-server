@@ -11,9 +11,17 @@ interface FoldersTabContentProps {
   close: () => void
   buttonDisabled: boolean
   handleAddLibrary: () => void
+  edit?: boolean
 }
 
-function FoldersTabContent({ folders, setFolders, close, buttonDisabled, handleAddLibrary }: FoldersTabContentProps) {
+function FoldersTabContent({
+  folders,
+  setFolders,
+  close,
+  buttonDisabled,
+  handleAddLibrary,
+  edit,
+}: FoldersTabContentProps) {
   const [isOpen, setIsOpen] = useState(false)
 
   const handleRemoveFolder = (folder: string) => {
@@ -54,8 +62,12 @@ function FoldersTabContent({ folders, setFolders, close, buttonDisabled, handleA
       </FlexBox>
 
       <FlexBox width={'100%'} justify="end" gap={1}>
-        <Button variant={'secondary'} onClick={close}>{t('cancelButton')}</Button>
-        <Button onClick={handleAddLibrary} disabled={buttonDisabled}>{t('addButton')}</Button>
+        <Button variant={'secondary'} onClick={close}>
+          {t('cancelButton')}
+        </Button>
+        <Button onClick={handleAddLibrary} disabled={buttonDisabled}>
+          {t(edit ? 'saveButton' : 'addButton')}
+        </Button>
       </FlexBox>
     </FlexBox>
   )

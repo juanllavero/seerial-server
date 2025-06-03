@@ -32,7 +32,9 @@ function LibraryContent({ library }: LibraryContentProps) {
           ? `repeat(auto-fit, minmax(${cardWidth}px, 1fr))`
           : `repeat(auto-fit, minmax(${cardWidth * 0.8}px, ${cardWidth * 1.2}px))`
       }
+      rows="0fr"
       gap="1rem"
+      height="100%"
       padding={isMobile ? '1rem' : '2rem'}
       scroll="vertical"
       justifyContent="start"

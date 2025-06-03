@@ -23,6 +23,7 @@ import { fetcher } from '@/utils/utils'
 import { useNavigate } from '@tanstack/react-router'
 import { t } from 'i18next'
 import {
+  EditIcon,
   Film,
   Folder,
   Forward,
@@ -30,6 +31,7 @@ import {
   MoreVertical,
   Music,
   Plus,
+  SearchIcon,
   Trash2,
   TvMinimal,
 } from 'lucide-react'
@@ -48,7 +50,7 @@ export function NavLibraries() {
   const navigate = useNavigate()
 
   const { selectedServer, serverStatus, apiKeyStatus } = useServerStore()
-  const { openLibraryDialog } = useDialogStore()
+  const { openLibraryDialog, openRemoveLibraryDialog } = useDialogStore()
   const { selectedLibraryId, selectLibrary } = useDataStore()
 
   const { data: libraries, isLoading } = useSWR<Library[]>(
@@ -70,7 +72,6 @@ export function NavLibraries() {
   }
 
   const [activeItem, setActiveItem] = React.useState<Item>(home)
-  const [isOpen, setIsOpen] = React.useState(false)
 
   React.useEffect(() => {
     if (!selectedLibraryId) {
@@ -206,18 +207,30 @@ export function NavLibraries() {
                       side={isMobile ? 'bottom' : 'right'}
                       align={isMobile ? 'end' : 'start'}
                     >
-                      <DropdownMenuItem>
-                        <Folder className="text-muted-foreground" />
-                        <span>View Project</span>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          const library = libraries.find(
+                            (library) => library.id === item.id,
+                          )
+
+                          if (library) {
+                            openLibraryDialog(library)
+                          }
+                        }}
+                      >
+                        <EditIcon className="text-muted-foreground" />
+                        <span>{t('editButton')}</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem>
-                        <Forward className="text-muted-foreground" />
-                        <span>Share Project</span>
+                        <SearchIcon className="text-muted-foreground" />
+                        <span>{t('searchFiles')}</span>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => openRemoveLibraryDialog(item.id)}
+                      >
                         <Trash2 className="text-muted-foreground" />
-                        <span>Delete Project</span>
+                        <span>{t('removeLibrary')}</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

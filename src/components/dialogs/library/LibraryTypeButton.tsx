@@ -6,12 +6,14 @@ import React from 'react'
 interface LibraryTypeButtonProps {
   selectedType: string | undefined
   type: 'Movies' | 'Shows' | 'Music'
+  disabled?: boolean
   onClick: () => void
 }
 
 function LibraryTypeButton({
   selectedType,
   type,
+  disabled,
   onClick,
 }: LibraryTypeButtonProps) {
   return (
@@ -19,6 +21,7 @@ function LibraryTypeButton({
       variant={'ghost'}
       className="h-fit w-40"
       onClick={onClick}
+      disabled={disabled}
       style={{ color: selectedType === type ? 'var(--app-color)' : '' }}
     >
       <FlexBox

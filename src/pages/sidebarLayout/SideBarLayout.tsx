@@ -33,7 +33,7 @@ const SideBarLayout = () => {
                   </BreadcrumbItem>
                 </BreadcrumbList>
               </Breadcrumb> */}
-          <div className="h-screen flex-1">
+          <div className="h-screen">
             <Outlet />
           </div>
         </SidebarInset>

@@ -18,6 +18,7 @@ interface AdvancedTabContentProps {
   buttonDisabled: boolean
   handleAddLibrary: () => void
   close: () => void
+  edit?: boolean
 }
 
 function AdvancedTabContent({
@@ -30,6 +31,7 @@ function AdvancedTabContent({
   buttonDisabled,
   handleAddLibrary,
   close,
+  edit,
 }: AdvancedTabContentProps) {
   const { t, i18n } = useTranslation()
   const { selectedServer } = useServerStore()
@@ -140,7 +142,7 @@ function AdvancedTabContent({
           {t('cancelButton')}
         </Button>
         <Button onClick={handleAddLibrary} disabled={buttonDisabled}>
-          {t('addButton')}
+          {t(edit ? 'saveButton' : 'addButton')}
         </Button>
       </FlexBox>
     </FlexBox>

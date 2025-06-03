@@ -4,6 +4,7 @@ interface GridProps {
   columns?: string
   rows?: string
   gap?: string
+  columnGap?: string
   padding?: string
   margin?: string
   width?: string
@@ -21,6 +22,7 @@ function Grid({
   columns = '1fr',
   rows = '1fr',
   gap = '0',
+  columnGap = '0',
   padding = '0',
   margin = '0',
   width = 'auto',
@@ -40,6 +42,7 @@ function Grid({
         display: 'grid',
         gridTemplateColumns: columns,
         gridTemplateRows: rows,
+        columnGap: columnGap,
         justifyContent: justifyContent,
         alignItems: alignItems,
         gap: gap,

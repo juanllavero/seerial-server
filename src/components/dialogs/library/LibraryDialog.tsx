@@ -10,12 +10,9 @@ import { ModalWrapper } from '../../ModalWrapper'
 import AdvancedTabContent from './AdvancedTabContent'
 import FoldersTabContent from './FoldersTabContent'
 import GeneralTabContent from './GeneralTabContent'
+import { set } from 'video.js/dist/types/tech/middleware'
 
-interface LibraryDialogProps {
-  library?: Library
-}
-
-function LibraryDialog({ library }: LibraryDialogProps) {
+function LibraryDialog() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { selectedServer } = useServerStore()
@@ -34,7 +31,7 @@ function LibraryDialog({ library }: LibraryDialogProps) {
   const [subsMode, setSubsMode] = useState<string | undefined>()
 
   useEffect(() => {
-    if (libraryDialog) {
+    if (libraryDialog && !libraryDialog.libraryToEdit) {
       setType(undefined)
       setName('')
       setLanguage(undefined)
@@ -43,12 +40,17 @@ function LibraryDialog({ library }: LibraryDialogProps) {
       setPreferSubLan(undefined)
       setSubsMode(undefined)
       setSelectedTab(t('generalButton'))
+    } else if (libraryDialog && libraryDialog.libraryToEdit) {
+      setType(libraryDialog.libraryToEdit.type)
+      setName(libraryDialog.libraryToEdit.name)
+      setLanguage(libraryDialog.libraryToEdit.language)
+      setFolders(libraryDialog.libraryToEdit.folders)
+      setPreferAudioLan(libraryDialog.libraryToEdit.preferAudioLan)
+      setPreferSubLan(libraryDialog.libraryToEdit.preferSubLan)
+      setSubsMode(libraryDialog.libraryToEdit.subsMode)
+      setSelectedTab(t('generalButton'))
     }
   }, [libraryDialog])
-
-  const openDialog = () => {
-    openLibraryDialog(library)
-  }
 
   const handleAddEditLibrary = async () => {
     if (!selectedServer) return
@@ -56,6 +58,38 @@ function LibraryDialog({ library }: LibraryDialogProps) {
     const serverIP = selectedServer.ip
 
     await connectWS(serverIP)
+
+    if (libraryDialog.libraryToEdit) {
+      const newLibrary = {
+        id: libraryDialog.libraryToEdit.id,
+        name,
+        language: language ?? 'en',
+        type: type ?? 'Shows',
+        order: 0,
+        folders: folders ?? [],
+        preferAudioLan,
+        preferSubLan,
+        subsMode,
+      }
+
+      await fetch(`https://${serverIP}/library`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          libraryId: libraryDialog.libraryToEdit.id,
+          updatedLibrary: newLibrary,
+        }),
+      })
+
+      // Mutate libraries list
+      mutate((key: string) => key.startsWith(`https://${serverIP}/libraries`))
+
+      closeLibraryDialog()
+
+      return
+    }
 
     const newLibrary = {
       name,
@@ -93,9 +127,21 @@ function LibraryDialog({ library }: LibraryDialogProps) {
     })
   }
 
+  const handleSaveOrNext = () => {
+    if (libraryDialog.libraryToEdit) {
+      handleAddEditLibrary()
+    } else {
+      setSelectedTab(t('folders'))
+    }
+  }
+
   return (
     <ModalWrapper
-      title={library ? t('libraryWindowTitleEdit') : t('libraryWindowTitle')}
+      title={
+        libraryDialog.libraryToEdit
+          ? t('libraryWindowTitleEdit')
+          : t('libraryWindowTitle')
+      }
       tabs={[
         {
           title: t('generalButton'),
@@ -106,8 +152,9 @@ function LibraryDialog({ library }: LibraryDialogProps) {
               name={name}
               setName={setName}
               setLanguage={setLanguage}
-              selectTab={setSelectedTab}
+              onSave={handleSaveOrNext}
               close={closeLibraryDialog}
+              edit={libraryDialog.libraryToEdit !== undefined}
             />
           ),
         },
@@ -121,6 +168,7 @@ function LibraryDialog({ library }: LibraryDialogProps) {
               close={closeLibraryDialog}
               handleAddLibrary={handleAddEditLibrary}
               buttonDisabled={!folders || folders.length === 0}
+              edit={libraryDialog.libraryToEdit !== undefined}
             />
           ),
         },
@@ -138,12 +186,12 @@ function LibraryDialog({ library }: LibraryDialogProps) {
               close={closeLibraryDialog}
               buttonDisabled={!folders || folders.length === 0}
               handleAddLibrary={handleAddEditLibrary}
+              edit={libraryDialog.libraryToEdit !== undefined}
             />
           ),
         },
       ]}
       isOpen={libraryDialog.isOpen}
-      openDialog={openDialog}
       close={closeLibraryDialog}
       hideButtons
       activeTab={selectedTab}
