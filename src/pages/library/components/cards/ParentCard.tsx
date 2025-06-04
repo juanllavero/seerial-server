@@ -1,5 +1,9 @@
 import Card from '@/components/cards/Card'
+import { useIsMobile } from '@/components/hooks/use-mobile'
+import { useIsTablet } from '@/components/hooks/use-tablet'
 import { DropdownContent } from '@/data/interfaces/Utils'
+import { useCardWidth } from '@/hooks/useCardWidth'
+import { title } from 'process'
 import React from 'react'
 
 interface CardProps {
@@ -33,10 +37,13 @@ function ParentCard({
   editModal,
   errorSrc,
 }: CardProps) {
+  const { cardWidth } = useCardWidth()
+  const isMobile = useIsMobile()
+  const isTablet = useIsTablet()
   return (
     <Card
       itemKey={itemKey}
-      width={'100%'}
+      width={isMobile ? '100%' : cardWidth * 1.2}
       imgSrc={imgSrc}
       aspectRatio={type === 'Music' ? 1 : 2 / 3}
       title={title}

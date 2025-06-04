@@ -157,6 +157,7 @@ function Card({
           width={width}
           height={typeof width === 'number' ? width / aspectRatio : undefined}
           alt={title}
+          aspectRatio={String(aspectRatio)}
           errorSrc={errorSrc}
         />
       </div>

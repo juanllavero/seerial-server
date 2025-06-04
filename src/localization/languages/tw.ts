@@ -13,6 +13,8 @@ export const tw = {
     errorImageUpload: '上傳圖片時出錯',
     invalidImageError: '請選擇有效的圖片文件',
 
+    watchListShows: '我的清單：影集',
+    watchListMovies: '我的清單：電影',
     serverError: '伺服器無法使用',
     serverErrorMessage: '請確認您的網路連線，並確保伺服器已連接',
     apiKey: 'API 金鑰',

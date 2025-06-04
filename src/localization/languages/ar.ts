@@ -13,6 +13,8 @@ export const ar = {
     errorImageUpload: 'خطأ في تحميل الصورة',
     invalidImageError: 'يرجى تحديد ملف صورة صالح',
 
+    watchListShows: 'قائمتي: المسلسلات',
+    watchListMovies: 'قائمتي: الأفلام',
     serverError: 'الخادم غير متاح',
     serverErrorMessage: 'تحقق من اتصالك بالإنترنت وتأكد من أن الخادم متصل',
     apiKey: 'مفتاح API',

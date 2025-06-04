@@ -13,6 +13,8 @@ export const ko = {
     errorImageUpload: '이미지 업로드 중 오류 발생',
     invalidImageError: '유효한 이미지 파일을 선택하세요',
 
+    watchListShows: '내 목록: 시리즈',
+    watchListMovies: '내 목록: 영화',
     serverError: '서버를 사용할 수 없습니다',
     serverErrorMessage: '인터넷 연결과 서버가 연결되어 있는지 확인하세요',
     apiKey: 'API 키',

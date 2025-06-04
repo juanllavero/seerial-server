@@ -28,8 +28,8 @@ function LibraryContent({ library }: LibraryContentProps) {
   return (
     <Grid
       columns={
-        isMobile || isTablet
-          ? `repeat(auto-fit, minmax(${cardWidth}px, 1fr))`
+        isMobile
+          ? `repeat(auto-fit, minmax(${cardWidth * 0.8}px, 1fr))`
           : `repeat(auto-fit, minmax(${cardWidth * 0.8}px, ${cardWidth * 1.2}px))`
       }
       rows="0fr"

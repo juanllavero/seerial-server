@@ -1,5 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton'
 import { useServerStore } from '@/context/server.context'
+import { useCardWidth } from '@/hooks/useCardWidth'
 import { useEffect, useState } from 'react'
 
 interface LazyImageProps {
@@ -12,6 +13,7 @@ interface LazyImageProps {
   aspectRatio?: string
   rounded?: boolean
   errorSrc?: string
+  onLoad?: () => void
   className?: string
 }
 
@@ -25,6 +27,7 @@ export default function LazyImage({
   maxHeight,
   rounded = false,
   errorSrc = '/img/fileNotFound.jpg',
+  onLoad,
   className,
 }: LazyImageProps) {
   const { selectedServer } = useServerStore()
@@ -60,7 +63,14 @@ export default function LazyImage({
 
   return (
     <div style={containerStyles} className={`relative ${className}`}>
-      {!loaded && <Skeleton className="absolute inset-0 h-full w-full" />}
+      {!loaded && (
+        <Skeleton
+          style={{
+            width: typeof width === 'number' ? `${width}px` : '100%',
+            height: typeof maxHeight === 'number' ? `${maxHeight}px` : '100%',
+          }}
+        />
+      )}
       <img
         src={imageSrc}
         alt={alt}
@@ -68,7 +78,10 @@ export default function LazyImage({
         height={maxHeight ? maxHeight : height === 'auto' ? undefined : height}
         loading="lazy"
         style={{ borderRadius: !rounded ? '5px' : undefined }}
-        onLoad={() => setLoaded(true)} // Triggered when the image (original or errorSrc) loads
+        onLoad={() => {
+          setLoaded(true)
+          onLoad?.()
+        }} // Triggered when the image (original or errorSrc) loads
         onError={() => {
           if (!hasError && errorSrc) {
             // Only change to errorSrc if it hasn't failed before

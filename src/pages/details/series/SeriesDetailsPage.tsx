@@ -11,10 +11,10 @@ import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
 import { Series } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
-import { useLoaderData, useNavigate, useParams } from '@tanstack/react-router'
+import { useLoaderData, useParams } from '@tanstack/react-router'
 import { t } from 'i18next'
 import { Edit, Ellipsis } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import useSWR from 'swr'
 import CastList from '../components/CastList'
 import SeasonContent from '../components/SeasonsContent'
@@ -39,7 +39,6 @@ function SeriesDetailsPage() {
   const { selectedServer, selectServer } = useServerStore()
   const { clientSettings } = useSettingsStore()
   const { openSeasonDialog } = useDialogStore()
-  const isMobile = useIsMobile()
   const serverIP = server.ip
 
   // Get series data
@@ -49,7 +48,7 @@ function SeriesDetailsPage() {
     error,
     mutate: mutateSeries,
   } = useSWR<Series>(
-    seriesId ? `https://${serverIP}/details/series?id=${seriesId}` : null,
+    `https://${serverIP}/details/series?id=${seriesId}`,
     fetcher,
   )
 
@@ -58,16 +57,12 @@ function SeriesDetailsPage() {
     ? series.seasons.find((s) => s.id === selectedSeasonId)
     : undefined
 
-  const [currentPoster, setCurrentPoster] = useState<string | undefined>()
-  const [nextPoster, setNextPoster] = useState<string | undefined>()
-  const [showAnimPoster, setShowAnimPoster] = useState(false)
-
-  const posterUrl = series?.coverSrc
+  const isMobile = useIsMobile()
   const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true
 
   // Update selected server
   useEffect(() => {
-    if (server != selectedServer) {
+    if (server !== selectedServer) {
       selectServer(server)
     }
   }, [])
@@ -100,28 +95,15 @@ function SeriesDetailsPage() {
   useEffect(() => {
     if (season && season.backgroundSrc !== currentBackground) {
       setCurrentBackground(season.backgroundSrc)
-    } else if (currentBackground) {
-      setCurrentBackground(undefined)
     }
+    // } else if (currentBackground) {
+    //   setCurrentBackground(undefined)
+    // }
   }, [season, setCurrentBackground, currentBackground])
-
-  useEffect(() => {
-    if (!posterUrl || nextPoster === posterUrl) return
-
-    setNextPoster(posterUrl)
-    setShowAnimPoster(true)
-
-    setTimeout(() => {
-      setCurrentPoster(posterUrl)
-      setTimeout(() => {
-        setShowAnimPoster(false)
-      }, 100)
-    }, 1000)
-  }, [posterUrl, setCurrentPoster, setShowAnimPoster, setNextPoster])
 
   const renderLogoOrText = () => {
     if (isLoading || !series) {
-      return <Skeleton />
+      return <Skeleton className="h-15 w-90" />
     }
 
     const logoUrl = series.logoSrc
@@ -193,35 +175,28 @@ function SeriesDetailsPage() {
       direction="column"
       gap={1}
       wrap="nowrap"
-      padding={isMobile ? '3rem 0' : '2rem 3rem'}
+      padding={isMobile ? '3rem 0' : '2rem 3rem 5rem 3rem'}
       height={'100%'}
     >
       <FlexBox justify="start" align="start" gap={4}>
         {!isMobile && (
           <div className="cover-container">
-            {showPoster && (
-              <FlexBox className="image-container">
-                <LazyImage
-                  url={currentPoster}
-                  width={350}
-                  maxHeight={550}
-                  height={550}
-                  errorSrc={'/img/fileNotFound.jpg'}
-                />
-              </FlexBox>
-            )}
-
-            {showAnimPoster && (
-              <FlexBox className="image-container-animated fade-in">
-                <LazyImage
-                  url={nextPoster}
-                  width={350}
-                  maxHeight={550}
-                  height={550}
-                  errorSrc={'/img/fileNotFound.jpg'}
-                />
-              </FlexBox>
-            )}
+            {showPoster &&
+              (isLoading || !series ? (
+                <FlexBox className="image-container">
+                  <Skeleton style={{ width: '495px', height: '330px' }} />
+                </FlexBox>
+              ) : (
+                <FlexBox className="image-container">
+                  <LazyImage
+                    url={series.coverSrc}
+                    width={330}
+                    maxHeight={495}
+                    height={495}
+                    errorSrc={'/img/fileNotFound.jpg'}
+                  />
+                </FlexBox>
+              ))}
           </div>
         )}
 
@@ -235,7 +210,7 @@ function SeriesDetailsPage() {
 
           {/* Season Title */}
           {isLoading || !series ? (
-            <Skeleton />
+            <Skeleton className="h-8 w-60" />
           ) : series.seasons && series.seasons.length > 1 && season ? (
             <span id="seasonTitle">{season.name}</span>
           ) : null}
@@ -245,7 +220,7 @@ function SeriesDetailsPage() {
             <FlexBox gap={1.3} margin="0 0 0.3rem 0">
               <span id="date">
                 {isLoading || !series ? (
-                  <Skeleton />
+                  <Skeleton className="h-5 w-20" />
                 ) : season ? (
                   new Date(season.year).getFullYear()
                 ) : null}
@@ -253,7 +228,7 @@ function SeriesDetailsPage() {
             </FlexBox>
             <span id="genres">
               {isLoading ? (
-                <Skeleton />
+                <Skeleton className="h-5 w-40" />
               ) : series && series.genres && series.genres.length > 0 ? (
                 series.genres.join(', ') || ''
               ) : null}
@@ -269,7 +244,7 @@ function SeriesDetailsPage() {
             />
             <span className="text-sm font-bold">
               {isLoading ? (
-                <Skeleton />
+                <Skeleton className="h-5 w-8" />
               ) : series ? (
                 series.score.toFixed(2)
               ) : (
@@ -328,13 +303,13 @@ function SeriesDetailsPage() {
           <FlexBox>
             <span className="font-semibold">
               {isLoading ? (
-                <Skeleton />
+                <Skeleton className="h-30 w-90" />
               ) : season ? (
                 season.overview
               ) : series ? (
                 series.overview
               ) : (
-                t('defaultOverview')
+                ''
               )}
             </span>
           </FlexBox>
@@ -343,7 +318,7 @@ function SeriesDetailsPage() {
 
       {/* Season Content */}
       {isLoading || !series || !season ? (
-        <Skeleton />
+        <Skeleton className="h-300 w-200" />
       ) : (
         <SeasonContent
           seasonList={series.seasons}
@@ -354,7 +329,7 @@ function SeriesDetailsPage() {
 
       {/* Cast */}
       {isLoading || !series ? (
-        <Skeleton />
+        <Skeleton className="h-100 w-200" />
       ) : (
         <CastList cast={series.cast ?? []} />
       )}

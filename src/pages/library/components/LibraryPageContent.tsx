@@ -8,6 +8,8 @@ import { MessageType } from '@/data/enums/WSMessage'
 import { useEffect } from 'react'
 import useDataStore from '@/context/data.context'
 import { useWebSocketStore } from '@/context/ws.context'
+import NoContent from '@/pages/home/components/NoContent'
+import Loading from '@/components/Loading'
 
 interface LibraryPageContentProps {
   libraryId: string
@@ -39,8 +41,13 @@ function LibraryPageContent({ libraryId, serverIP }: LibraryPageContentProps) {
     }
   }, [wsMessage, mutate])
 
-  if (!library || isLoading) {
+  if (isLoading) {
     return <LibraryPageSkeleton cardWidth={cardWidth} />
+    //return <Loading />
+  }
+
+  if (!library) {
+    return <NoContent />
   }
 
   return <LibraryContent library={library} />

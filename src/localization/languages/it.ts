@@ -13,6 +13,8 @@ export const it = {
     errorImageUpload: "Errore durante il caricamento dell'immagine",
     invalidImageError: 'Seleziona un file immagine valido',
 
+    watchListShows: 'La mia lista: Serie',
+    watchListMovies: 'La mia lista: Film',
     serverError: 'Il server non è disponibile',
     serverErrorMessage:
       'Verifica la connessione a internet e che il server sia online',

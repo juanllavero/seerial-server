@@ -70,12 +70,15 @@ function HorizontalList({ title, children }: HorizontalListProps) {
     <FlexBox direction="column" gap={isMobile ? 1.5 : 0.5} width={'100%'}>
       <FlexBox
         justify="space-between"
+        align="center"
         gap={1}
         padding={isMobile ? '0 1rem' : '0 0.5rem'}
         width={'100%'}
         height={'3rem'}
       >
-        <span className="text-xl font-semibold">{title}</span>
+        <span className={`text-${isMobile ? 'lg' : 'xl'} font-semibold`}>
+          {title}
+        </span>
         {showButtons && (
           <FlexBox gap={0.5}>
             <Button

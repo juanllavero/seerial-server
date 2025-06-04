@@ -13,7 +13,7 @@ function LibraryPage() {
   console.log('Main')
 
   useEffect(() => {
-    if (server != selectedServer) {
+    if (server !== selectedServer) {
       selectServer(server)
     }
   }, [])

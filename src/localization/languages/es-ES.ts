@@ -13,6 +13,8 @@ export const es = {
     errorImageUpload: 'Error al subir la imagen',
     invalidImageError: 'Selecciona un archivo de imagen válido',
 
+    watchListShows: 'Mi Lista: Series',
+    watchListMovies: 'Mi Lista: Películas',
     serverError: 'El servidor no está disponible',
     serverErrorMessage:
       'Verifique que tenga conexión a internet y que el servidor esté conectado',

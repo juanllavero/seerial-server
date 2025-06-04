@@ -13,6 +13,8 @@ export const hi = {
     errorImageUpload: 'छवि अपलोड करने में त्रुटि',
     invalidImageError: 'कृपया एक वैध छवि फ़ाइल चुनें',
 
+    watchListShows: 'मेरी सूची: शोज़',
+    watchListMovies: 'मेरी सूची: फ़िल्में',
     serverError: 'सर्वर उपलब्ध नहीं है',
     serverErrorMessage:
       'कृपया सुनिश्चित करें कि इंटरनेट कनेक्शन चालू है और सर्वर चालू है',

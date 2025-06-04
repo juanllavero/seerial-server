@@ -13,6 +13,8 @@ export const ja = {
     errorImageUpload: '画像のアップロード中にエラーが発生しました',
     invalidImageError: '有効な画像ファイルを選択してください',
 
+    watchListShows: 'マイリスト：ドラマ',
+    watchListMovies: 'マイリスト：映画',
     serverError: 'サーバーは利用できません',
     serverErrorMessage:
       'インターネット接続とサーバーが接続されていることを確認してください',

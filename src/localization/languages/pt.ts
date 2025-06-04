@@ -13,6 +13,8 @@ export const pt = {
     errorImageUpload: 'Erro ao carregar a imagem',
     invalidImageError: 'Selecione um ficheiro de imagem válido',
 
+    watchListShows: 'A Minha Lista: Séries',
+    watchListMovies: 'A Minha Lista: Filmes',
     serverError: 'O servidor não está disponível',
     serverErrorMessage:
       'Verifique a sua ligação à internet e se o servidor está ligado',

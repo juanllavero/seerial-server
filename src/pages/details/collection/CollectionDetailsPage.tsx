@@ -17,24 +17,23 @@ import SeriesCard from '@/pages/library/components/cards/SeriesCard'
 import { fetcher } from '@/utils/utils'
 import { useLoaderData, useParams } from '@tanstack/react-router'
 import { Edit, Ellipsis } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 import '../DetailsPage.css'
+import { ContentType, CollectionKey } from '@/types/types'
+import { Skeleton } from '@/components/ui/skeleton'
 function CollectionDetailsPage() {
-  const { server } = useLoaderData({ from: '/server/$serverId' })
   const { collectionId, type } = useParams({
     from: '/server/$serverId/details/collection/$collectionId/$type',
   })
-  const { t } = useTranslation()
-  const { setCurrentBackground } = useDataStore()
+  const { server } = useLoaderData({ from: '/server/$serverId' })
   const { wsMessage } = useWebSocketStore()
-  const { selectServer, serverStatus, selectedServer } = useServerStore()
+  const { setCurrentBackground, currentBackground } = useDataStore()
+  const { selectServer, selectedServer } = useServerStore()
+  const { t } = useTranslation()
   const isMobile = useIsMobile()
-
-  if (server && server != selectedServer) {
-    selectServer(server)
-  }
+  const serverIP = server.ip
 
   // Get collection data
   const {
@@ -42,70 +41,41 @@ function CollectionDetailsPage() {
     isLoading,
     mutate,
   } = useSWR<Collection>(
-    collectionId && server && serverStatus
-      ? `https://${server.ip}/details/collection?id=${collectionId}`
-      : null,
+    `https://${serverIP}/details/collection?id=${collectionId}`,
     fetcher,
   )
 
-  const [currentPoster, setCurrentPoster] = useState<string | undefined>()
-  const [nextPoster, setNextPoster] = useState<string | undefined>()
-  const [showAnimPoster, setShowAnimPoster] = useState(false)
-
-  const posterUrl = collection?.coverSrc
+  // Update selected server
+  useEffect(() => {
+    if (server !== selectedServer) {
+      selectServer(server)
+    }
+  }, [])
 
   // Mutate content on ws message
   useEffect(() => {
     if (wsMessage === MessageType.MUTATE_LIBRARY) {
       mutate()
     }
-  }, [wsMessage])
-
-  useEffect(() => {
-    setNextPoster(posterUrl)
-    setShowAnimPoster(true)
-
-    setTimeout(() => {
-      setCurrentPoster(posterUrl)
-      setTimeout(() => {
-        setShowAnimPoster(false)
-      }, 100)
-    }, 1000)
-  }, [posterUrl])
+  }, [wsMessage, mutate])
 
   // Set background image src
   useEffect(() => {
-    if (collection) {
+    if (collection && collection.backgroundSrc !== currentBackground) {
       setCurrentBackground(collection.backgroundSrc)
-    } else {
+    } else if (currentBackground) {
       setCurrentBackground(undefined)
     }
-  }, [collection])
+  }, [collection, currentBackground, setCurrentBackground])
 
-  if (isLoading) {
-    return <Loading />
-  }
-
-  if (!collection) {
-    return <NotFound />
-  }
-
-  type ContentType = 'Music' | 'Shows' | 'Movies'
-  type CollectionKey = keyof CollectionItems
-  type CollectionItems = {
-    albums: Album[]
-    movies: Movie[]
-    shows: Series[]
-  }
-
-  // Define el orden según type
+  // Set order of content
   const orderMap: Record<ContentType, CollectionKey[]> = {
     Music: ['albums', 'movies', 'shows'],
     Shows: ['shows', 'movies', 'albums'],
     Movies: ['movies', 'shows', 'albums'],
   }
 
-  // Componentes de renderizado por tipo
+  // Render content by type
   const renderMap: Record<CollectionKey, (items: any[]) => React.ReactNode> = {
     albums: (items: Album[]) => (
       <FlexBox
@@ -153,41 +123,34 @@ function CollectionDetailsPage() {
       direction="column"
       gap={1}
       wrap="nowrap"
-      padding={isMobile ? '10rem 0' : '10rem 3rem'}
+      padding={isMobile ? '3rem 0' : '2rem 3rem 5rem 3rem'}
       height={'100%'}
     >
       <FlexBox justify="start" align="start" gap={4} padding="0 0 1rem 0">
         {!isMobile && (
           <div className="cover-container">
             <FlexBox className="image-container">
-              <LazyImage
-                url={currentPoster}
-                width={350}
-                maxHeight={550}
-                height={type === 'Music' ? 300 : 550}
-                errorSrc={
-                  type === 'Music'
-                    ? '/img/songDefault.png'
-                    : '/img/fileNotFound.jpg'
-                }
-              />
-            </FlexBox>
-
-            {showAnimPoster && (
-              <FlexBox className="image-container-animated fade-in">
+              {isLoading || !collection ? (
+                <Skeleton
+                  style={{
+                    width: '330px',
+                    height: `${type === 'Music' ? '300' : '495'}px`,
+                  }}
+                />
+              ) : (
                 <LazyImage
-                  url={nextPoster}
-                  width={350}
-                  maxHeight={550}
-                  height={type === 'Music' ? 300 : 550}
+                  url={collection.coverSrc}
+                  width={330}
+                  maxHeight={495}
+                  height={type === 'Music' ? 300 : 495}
                   errorSrc={
                     type === 'Music'
                       ? '/img/songDefault.png'
                       : '/img/fileNotFound.jpg'
                   }
                 />
-              </FlexBox>
-            )}
+              )}
+            </FlexBox>
           </div>
         )}
 
@@ -197,14 +160,18 @@ function CollectionDetailsPage() {
           width={isMobile ? '100%' : '80%'}
           padding={isMobile ? '0 2rem' : '0'}
         >
-          <span
-            id="details-title"
-            style={{
-              textTransform: 'uppercase',
-            }}
-          >
-            {collection.title}
-          </span>
+          {isLoading || !collection ? (
+            <Skeleton className="h-15 w-90" />
+          ) : (
+            <span
+              id="details-title"
+              style={{
+                textTransform: 'uppercase',
+              }}
+            >
+              {collection.title}
+            </span>
+          )}
           <FlexBox gap={1} wrap="wrap">
             <Button variant={'ghost'} title={t('editButton')}>
               <Edit />
@@ -221,17 +188,25 @@ function CollectionDetailsPage() {
           </FlexBox>
           <FlexBox>
             <span className="font-semibold">
-              {collection.description || t('defaultOverview')}
+              {isLoading || !collection ? (
+                <Skeleton className="h-30 w-60" />
+              ) : (
+                (collection.description ?? '')
+              )}
             </span>
           </FlexBox>
         </FlexBox>
       </FlexBox>
 
       {/* Content */}
-      {orderMap[type as ContentType].map((key) => {
-        const items = collection[key]
-        return items.length > 0 ? renderMap[key](items) : null
-      })}
+      {isLoading || !collection ? (
+        <Skeleton className="h-30 w-90" />
+      ) : (
+        orderMap[type as ContentType].map((key) => {
+          const items = collection[key]
+          return items.length > 0 ? renderMap[key](items) : null
+        })
+      )}
     </FlexBox>
   )
 }

@@ -1,3 +1,4 @@
+import { useCardWidth } from '@/hooks/useCardWidth'
 import { useIsMobile } from '../hooks/use-mobile'
 import { useIsTablet } from '../hooks/use-tablet'
 import FlexBox from '../ui/FlexBox'
@@ -7,34 +8,51 @@ import { Skeleton } from '../ui/skeleton'
 interface CardGridSkeletonProps {
   cards: number
   width: number | string
-  aspectRatio: number
 }
 
-function CardGridSkeleton({
-  cards,
-  width,
-  aspectRatio,
-}: CardGridSkeletonProps) {
+function CardGridSkeleton({ cards, width }: CardGridSkeletonProps) {
   const isTablet = useIsTablet()
   const isMobile = useIsMobile()
+  const { cardWidth } = useCardWidth()
   const skeletons = Array.from({ length: cards }, (_, index) => (
-    <Skeleton
-      key={index}
-      style={{ width: isMobile || isTablet ? '100%' : width, height: 'auto' }}
-    />
+    <FlexBox
+      direction="column"
+      justify="center"
+      gap={0.1}
+      width={width}
+      key={'CarGrid Card ' + index}
+    >
+      <div>
+        <Skeleton
+          key={index}
+          style={{
+            width: isMobile || isTablet ? '100%' : cardWidth * 1.2,
+            minWidth: '210px',
+            height: `${cardWidth * (16 / 9)}px`,
+            minHeight: '340px',
+          }}
+        />
+      </div>
+      <div
+        className="grid gap-1 p-2"
+        style={{
+          width: width,
+          textAlign: 'left',
+          justifyItems: 'start',
+          alignItems: 'start',
+          minWidth: 0,
+        }}
+      >
+        <a>
+          <Skeleton className="h-3 w-30" />
+        </a>
+
+        <span>
+          <Skeleton className="h-3 w-10" />
+        </span>
+      </div>
+    </FlexBox>
   ))
-
-  const getCardWidth = () => {
-    const savedWidth = localStorage.getItem('cardWidth')
-    const baseWidth = savedWidth ? Number(savedWidth) * 0.8 : 160
-
-    // Adjust according to the device
-    if (isMobile) return Math.max(baseWidth * 0.8, 120) // Minimum 120px on mobile
-    if (isTablet) return Math.max(baseWidth * 0.9, 150) // Minimum 150px on tablet
-    return Math.max(baseWidth, 180) // Minimum 180px on desktop
-  }
-
-  const cardWidth = getCardWidth()
 
   return (
     <Grid

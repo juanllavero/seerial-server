@@ -1,13 +1,10 @@
 import { useIsMobile } from '@/components/hooks/use-mobile'
-import Loading from '@/components/Loading'
 import NotFound from '@/components/NotFound'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import {
-  AddToListIcon,
   MarkWatchedIcon,
   PlayIcon,
-  RemoveFromListIcon,
   UnmarkWatchedIcon,
 } from '@/components/ui/IconLibrary'
 import LazyImage from '@/components/ui/LazyImage'
@@ -19,97 +16,76 @@ import { MessageType } from '@/data/enums/WSMessage'
 import { Movie } from '@/data/interfaces/Media'
 import { formatTimeForView } from '@/utils/ReactUtils'
 import { fetcher } from '@/utils/utils'
-import { useNavigate, useParams } from '@tanstack/react-router'
+import { useLoaderData, useNavigate, useParams } from '@tanstack/react-router'
 import { t } from 'i18next'
 import { Edit, Ellipsis } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import useSWR from 'swr'
 import CastList from '../components/CastList'
 import MovieContent from '../components/MovieContent'
 import '../DetailsPage.css'
+import { Skeleton } from '@/components/ui/skeleton'
+import MyListButton from './components/MyListButton'
 
 function MovieDetailsPage() {
   const { movieId } = useParams({
     from: '/server/$serverId/details/movie/$movieId',
   })
-  const { setCurrentBackground } = useDataStore()
+  const { server } = useLoaderData({ from: '/server/$serverId' })
+  const { setCurrentBackground, currentBackground } = useDataStore()
   const { clientSettings } = useSettingsStore()
   const { wsMessage } = useWebSocketStore()
-  const { selectedServer } = useServerStore()
+  const { selectedServer, selectServer } = useServerStore()
   const navigate = useNavigate()
+  const serverIP = server.ip
 
   // Get movie data
   const {
     data: movie,
     isLoading,
+    error,
     mutate,
-  } = useSWR<Movie>(
-    movieId && selectedServer
-      ? `https://${selectedServer.ip}/details/movie?id=${movieId}`
-      : null,
-    fetcher,
-  )
-  // Get if movie is in My List
-  const { data: inMyList, mutate: mutateInMyList } = useSWR(
-    movie && selectedServer
-      ? `https://${selectedServer.ip}/isMovieInMyList?movieId=${movie.id}`
-      : null,
-    fetcher,
-  )
+  } = useSWR<Movie>(`https://${serverIP}/details/movie?id=${movieId}`, fetcher)
 
   const isMobile = useIsMobile()
-
-  const [currentPoster, setCurrentPoster] = useState<string | undefined>()
-  const [nextPoster, setNextPoster] = useState<string | undefined>()
-  const [showAnimPoster, setShowAnimPoster] = useState(false)
-
-  const posterUrl = movie?.coverSrc
   const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true
+
+  // Update selected server
+  useEffect(() => {
+    if (server !== selectedServer) {
+      selectServer(server)
+    }
+  }, [])
 
   // Mutate content on ws message
   useEffect(() => {
     if (wsMessage === MessageType.MUTATE_MOVIE) {
       mutate()
     }
-  }, [wsMessage])
-
-  useEffect(() => {
-    setNextPoster(posterUrl)
-    setShowAnimPoster(true)
-
-    setTimeout(() => {
-      setCurrentPoster(posterUrl)
-      setTimeout(() => {
-        setShowAnimPoster(false)
-      }, 100)
-    }, 1000)
-  }, [posterUrl])
+  }, [wsMessage, mutate])
 
   // Set background image src
   useEffect(() => {
-    if (movie) {
+    if (movie && movie.backgroundSrc !== currentBackground) {
       setCurrentBackground(movie.backgroundSrc)
-    } else {
-      setCurrentBackground(undefined)
     }
-  }, [movie])
-
-  if (isLoading) {
-    return <Loading />
-  }
-
-  if (!movie) {
-    return <NotFound />
-  }
+    // } else if (currentBackground) {
+    //   setCurrentBackground(undefined)
+    // }
+  }, [movie, setCurrentBackground, currentBackground])
 
   const renderLogoOrText = () => {
-    const logoUrl = movie?.logoSrc
+    if (isLoading || !movie) {
+      return <Skeleton className="h-15 w-90" />
+    }
+
+    const logoUrl = movie.logoSrc
 
     if (logoUrl && logoUrl !== '') {
       return (
         <LazyImage
           url={logoUrl}
-          maxHeight={isMobile ? '100%' : 300}
+          maxHeight={isMobile ? '100%' : 200}
           width={isMobile ? '100%' : 350}
           errorSrc="/img/Default_video_thumbnail.jpg"
         />
@@ -122,7 +98,7 @@ function MovieDetailsPage() {
             textTransform: 'uppercase',
           }}
         >
-          {movie?.name}
+          {movie.name}
         </span>
       )
     }
@@ -132,57 +108,37 @@ function MovieDetailsPage() {
     return t('playButton')
   }
 
-  const toggleMyList = () => {
-    if (movie) {
-      fetch(`https://${selectedServer?.ip}/updateMovieMyList`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          movieId: movie.id,
-        }),
-      }).then(() => {
-        mutateInMyList()
-      })
-    }
+  if (error) {
+    return <NotFound />
   }
 
   return (
     <FlexBox
       className="details-container"
       direction="column"
-      gap={1}
       wrap="nowrap"
-      padding={isMobile ? '10rem 0' : '10rem 3rem'}
+      padding={isMobile ? '3rem 0' : '2rem 3rem 5rem 3rem'}
       height={'100%'}
     >
       <FlexBox justify="start" align="start" gap={4}>
         {!isMobile && (
           <div className="cover-container">
-            {showPoster && (
-              <FlexBox className="image-container">
-                <LazyImage
-                  url={currentPoster}
-                  width={350}
-                  maxHeight={550}
-                  height={550}
-                  errorSrc={'/img/fileNotFound.jpg'}
-                />
-              </FlexBox>
-            )}
-
-            {showAnimPoster && (
-              <FlexBox className="image-container-animated fade-in">
-                <LazyImage
-                  url={nextPoster}
-                  width={350}
-                  maxHeight={550}
-                  height={550}
-                  errorSrc={'/img/fileNotFound.jpg'}
-                />
-              </FlexBox>
-            )}
+            {showPoster &&
+              (isLoading || !movie ? (
+                <FlexBox className="image-container">
+                  <Skeleton style={{ width: '495px', height: '330px' }} />
+                </FlexBox>
+              ) : (
+                <FlexBox className="image-container">
+                  <LazyImage
+                    url={movie.coverSrc}
+                    width={330}
+                    maxHeight={495}
+                    height={495}
+                    errorSrc={'/img/fileNotFound.jpg'}
+                  />
+                </FlexBox>
+              ))}
           </div>
         )}
 
@@ -195,50 +151,67 @@ function MovieDetailsPage() {
           {renderLogoOrText()}
 
           {/* Info */}
-          <FlexBox direction="column" gap={0.2}>
-            {movie.directedBy && movie.directedBy.length !== 0 ? (
-              <span id="directedBy">
-                {t('directedBy') + ' ' + movie.directedBy || ''}
-              </span>
-            ) : null}
-            <FlexBox gap={1.3} margin="0 0 0.3rem 0">
-              <span id="date">
-                {new Date(movie.year).getFullYear() || null}
-              </span>
-              {movie.videos && movie.videos.length === 1 && (
-                <span>{formatTimeForView(movie.videos[0].runtime)}</span>
-              )}
+          {isLoading || !movie ? (
+            <FlexBox direction="column" gap={0.5}>
+              <Skeleton className="h-8 w-30" />
+              <FlexBox gap={1.3} margin="0 0 0.3rem 0">
+                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-5 w-20" />
+              </FlexBox>
+              <Skeleton className="h-5 w-40" />
             </FlexBox>
-            <span id="genres">
-              {movie.genres ? movie.genres.join(', ') || '' : ''}
-            </span>
-          </FlexBox>
+          ) : (
+            <FlexBox direction="column" gap={0.2}>
+              {movie.directedBy && movie.directedBy.length !== 0 ? (
+                <span id="directedBy">
+                  {t('directedBy') + ' ' + movie.directedBy || ''}
+                </span>
+              ) : null}
+              <FlexBox gap={1.3} margin="0 0 0.3rem 0">
+                <span id="date">
+                  {new Date(movie.year).getFullYear() || null}
+                </span>
+                {movie.videos && movie.videos.length === 1 && (
+                  <span>{formatTimeForView(movie.videos[0].runtime)}</span>
+                )}
+              </FlexBox>
+              <span id="genres">
+                {movie.genres ? movie.genres.join(', ') || '' : ''}
+              </span>
+            </FlexBox>
+          )}
 
           {/* Score */}
           <FlexBox gap={0.5} justify="center" align="center">
-            {movie.imdbScore > 0 ? (
-              <img
-                src="/img/logos/imdb.png"
-                className="h-8 w-8"
-                alt="IMDB logo"
-              />
+            {isLoading || !movie ? (
+              <Skeleton className="h-8 w-25" />
             ) : (
-              <img
-                src="/svg/themoviedb.svg"
-                className="h-8 w-8"
-                alt="TheMovieDB logo"
-              />
+              <>
+                {movie.imdbScore > 0 ? (
+                  <img
+                    src="/img/logos/imdb.png"
+                    className="h-8 w-8"
+                    alt="IMDB logo"
+                  />
+                ) : (
+                  <img
+                    src="/svg/themoviedb.svg"
+                    className="h-8 w-8"
+                    alt="TheMovieDB logo"
+                  />
+                )}
+                <span className="text-sm font-bold">
+                  {movie.imdbScore > 0
+                    ? movie.imdbScore.toFixed(2)
+                    : movie.score.toFixed(2) || 'N/A'}
+                </span>
+              </>
             )}
-            <span className="text-sm font-bold">
-              {movie.imdbScore > 0
-                ? movie.imdbScore.toFixed(2)
-                : movie.score.toFixed(2) || 'N/A'}
-            </span>
           </FlexBox>
           <FlexBox gap={1} wrap="wrap">
             <Button
               onClick={() => {
-                if (movie.videos && movie.videos.length > 0) {
+                if (movie && movie.videos && movie.videos.length > 0) {
                   navigate({
                     to: `/video-player/${movie.videos[0].id}`,
                   })
@@ -254,25 +227,19 @@ function MovieDetailsPage() {
               <>
                 <Button
                   variant={'ghost'}
-                  title={movie.watched ? t('markUnwatched') : t('markWatched')}
-                >
-                  {movie.watched ? <UnmarkWatchedIcon /> : <MarkWatchedIcon />}
-                </Button>
-                <Button
-                  variant={'ghost'}
                   title={
-                    inMyList && inMyList.isInMyList
-                      ? t('removeFromMyList')
-                      : t('addToMyList')
+                    movie && movie.watched
+                      ? t('markUnwatched')
+                      : t('markWatched')
                   }
-                  onClick={toggleMyList}
                 >
-                  {inMyList && inMyList.isInMyList ? (
-                    <RemoveFromListIcon />
+                  {movie && movie.watched ? (
+                    <UnmarkWatchedIcon />
                   ) : (
-                    <AddToListIcon />
+                    <MarkWatchedIcon />
                   )}
                 </Button>
+                <MyListButton movieId={movieId} serverIP={serverIP} />
               </>
             )}
             <Button variant={'ghost'} title={t('editButton')}>
@@ -290,15 +257,27 @@ function MovieDetailsPage() {
           </FlexBox>
           <FlexBox>
             <span className="font-semibold">
-              {movie.overview || t('defaultOverview')}
+              {isLoading ? (
+                <Skeleton className="h-30 w-90" />
+              ) : movie ? (
+                movie.overview
+              ) : (
+                ''
+              )}
             </span>
           </FlexBox>
         </FlexBox>
       </FlexBox>
 
-      <MovieContent movie={movie} />
+      {/* Movie Content */}
+      {!isLoading && movie && <MovieContent movie={movie} />}
 
-      <CastList cast={movie.cast ?? []} />
+      {/* Cast */}
+      {isLoading || !movie ? (
+        <Skeleton className="mt-10 h-50 w-200" />
+      ) : (
+        <CastList cast={movie.cast ?? []} />
+      )}
     </FlexBox>
   )
 }

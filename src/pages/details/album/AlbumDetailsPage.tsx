@@ -11,65 +11,49 @@ import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
 import { Album } from '@/data/interfaces/Music'
 import { fetcher } from '@/utils/utils'
-import { useParams } from '@tanstack/react-router'
+import { useLoaderData, useParams } from '@tanstack/react-router'
 import { t } from 'i18next'
 import { Edit, Ellipsis } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 import AlbumContent from '../components/AlbumContent'
 import '../DetailsPage.css'
+import { Skeleton } from '@/components/ui/skeleton'
 
 function AlbumDetailsPage() {
   const { albumId } = useParams({
     from: '/server/$serverId/details/album/$albumId',
   })
+  const { server } = useLoaderData({ from: '/server/$serverId' })
   const { wsMessage } = useWebSocketStore()
-  const { selectedServer } = useServerStore()
+  const { selectedServer, selectServer } = useServerStore()
   const { selectSong } = useDataStore()
+  const serverIP = server.ip
 
   // Get series data
   const {
     data: album,
     isLoading,
+    error,
     mutate,
-  } = useSWR<Album>(
-    albumId && selectedServer
-      ? `https://${selectedServer.ip}/details/album?id=${albumId}`
-      : null,
-    fetcher,
-  )
+  } = useSWR<Album>(`https://${serverIP}/details/album?id=${albumId}`, fetcher)
 
   const isMobile = useIsMobile()
 
-  const [currentPoster, setCurrentPoster] = useState<string | undefined>()
-  const [nextPoster, setNextPoster] = useState<string | undefined>()
-  const [showAnimPoster, setShowAnimPoster] = useState(false)
-
-  const posterUrl = album?.coverSrc
+  // Update selected server
+  useEffect(() => {
+    if (server !== selectedServer) {
+      selectServer(server)
+    }
+  }, [])
 
   useEffect(() => {
     if (wsMessage === MessageType.MUTATE_ALBUM) {
       mutate()
     }
-  }, [wsMessage])
+  }, [wsMessage, mutate])
 
-  useEffect(() => {
-    setNextPoster(posterUrl)
-    setShowAnimPoster(true)
-
-    setTimeout(() => {
-      setCurrentPoster(posterUrl)
-      setTimeout(() => {
-        setShowAnimPoster(false)
-      }, 100)
-    }, 1000)
-  }, [posterUrl])
-
-  if (isLoading) {
-    return <Loading />
-  }
-
-  if (!album) {
+  if (error) {
     return <NotFound />
   }
 
@@ -79,33 +63,25 @@ function AlbumDetailsPage() {
       direction="column"
       gap={1}
       wrap="nowrap"
-      padding={isMobile ? '10rem 0' : '10rem 3rem'}
+      padding={isMobile ? '3rem 0' : '2rem 3rem 5rem 3rem'}
       height={'100%'}
     >
       <FlexBox justify="start" align="start" gap={4}>
         {!isMobile && (
           <div className="cover-container">
             <FlexBox className="image-container">
-              <LazyImage
-                url={currentPoster}
-                width={350}
-                maxHeight={300}
-                height={300}
-                errorSrc={'/img/songDefault.png'}
-              />
-            </FlexBox>
-
-            {showAnimPoster && (
-              <FlexBox className="image-container-animated fade-in">
+              {isLoading || !album ? (
+                <Skeleton style={{ width: '300px', height: '350px' }} />
+              ) : (
                 <LazyImage
-                  url={nextPoster}
+                  url={album.coverSrc}
                   width={350}
                   maxHeight={300}
                   height={300}
                   errorSrc={'/img/songDefault.png'}
                 />
-              </FlexBox>
-            )}
+              )}
+            </FlexBox>
           </div>
         )}
 
@@ -121,7 +97,11 @@ function AlbumDetailsPage() {
               textTransform: 'capitalize',
             }}
           >
-            {album.title}
+            {isLoading || !album ? (
+              <Skeleton className="h-15 w-90" />
+            ) : (
+              album.title
+            )}
           </span>
           <span
             id="details-subtitle-music"
@@ -134,17 +114,27 @@ function AlbumDetailsPage() {
           <FlexBox direction="column" gap={0.2}>
             <FlexBox gap={1.3} margin="0 0 0.3rem 0">
               <span id="date">
-                {album.year ? new Date(album.year).getFullYear() : null}
+                {isLoading || !album ? (
+                  <Skeleton className="h-5 w-20" />
+                ) : album.year ? (
+                  new Date(album.year).getFullYear()
+                ) : null}
               </span>
             </FlexBox>
             <span id="genres">
-              {album.genres ? album.genres.join(', ') || '' : ''}
+              {isLoading || !album ? (
+                <Skeleton className="h-5 w-40" />
+              ) : album.genres ? (
+                album.genres.join(', ') || ''
+              ) : (
+                ''
+              )}
             </span>
           </FlexBox>
           <FlexBox gap={1} wrap="wrap">
             <Button
               onClick={() => {
-                if (album.songs && album.songs.length > 0)
+                if (album && album.songs && album.songs.length > 0)
                   selectSong(album.songs[0].id)
               }}
             >
@@ -168,13 +158,22 @@ function AlbumDetailsPage() {
           </FlexBox>
           <FlexBox>
             <span className="font-semibold">
-              {album.description || t('defaultOverview')}
+              {isLoading || !album ? (
+                <Skeleton className="h-30 w-90" />
+              ) : (
+                album.description || ''
+              )}
             </span>
           </FlexBox>
         </FlexBox>
       </FlexBox>
 
-      <AlbumContent album={album} />
+      {/* Album Content */}
+      {isLoading || !album ? (
+        <Skeleton className="h-300 w-200" />
+      ) : (
+        <AlbumContent album={album} />
+      )}
     </FlexBox>
   )
 }

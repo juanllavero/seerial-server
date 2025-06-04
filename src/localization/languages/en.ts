@@ -13,6 +13,8 @@ export const en = {
     errorImageUpload: 'Error uploading image',
     invalidImageError: 'Select a valid image file',
 
+    watchListShows: 'My List: Shows',
+    watchListMovies: 'My List: Movies',
     serverError: 'The server is unavailable',
     serverErrorMessage:
       'Please check your internet connection and make sure the server is online',

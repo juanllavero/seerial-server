@@ -13,6 +13,8 @@ export const br = {
     errorImageUpload: 'Erro ao enviar a imagem',
     invalidImageError: 'Selecione um arquivo de imagem válido',
 
+    watchListShows: 'Minha Lista: Séries',
+    watchListMovies: 'Minha Lista: Filmes',
     serverError: 'O servidor não está disponível',
     serverErrorMessage:
       'Verifique sua conexão com a internet e se o servidor está conectado',

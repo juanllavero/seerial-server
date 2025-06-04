@@ -13,6 +13,8 @@ export const cn = {
     errorImageUpload: '上传图片时出错',
     invalidImageError: '请选择有效的图片文件',
 
+    watchListShows: '我的片单：剧集',
+    watchListMovies: '我的片单：电影',
     serverError: '服务器不可用',
     serverErrorMessage: '请检查您的网络连接并确保服务器已连接',
     apiKey: 'API 密钥',

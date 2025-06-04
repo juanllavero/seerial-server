@@ -22,8 +22,8 @@ function CastCard({ index, person }: CastCardProps) {
     >
       <LazyImage
         src={person.profileImage}
-        width={isMobile ? 80 : 150}
-        height={isMobile ? 80 : 150}
+        width={isMobile ? 80 : 120}
+        height={isMobile ? 80 : 120}
         className="rounded-full"
         rounded
         alt={person.name}
