@@ -35,7 +35,7 @@ function LibraryContent({ library }: LibraryContentProps) {
       rows="0fr"
       gap="1rem"
       height="100%"
-      padding={isMobile ? '1rem' : '2rem'}
+      padding={isMobile ? '1rem 1rem 5rem 1rem' : '2rem'}
       scroll="vertical"
       justifyContent="start"
       alignItems="start"

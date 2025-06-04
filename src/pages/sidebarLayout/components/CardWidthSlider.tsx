@@ -1,7 +1,7 @@
 import FlexBox from '@/components/ui/FlexBox'
 import { Slider } from '@/components/ui/slider'
 import { useCardWidth } from '@/hooks/useCardWidth'
-import React, { useEffect } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 interface CardWidthSliderProps {
   onWidthChange?: (width: number) => void
@@ -9,6 +9,12 @@ interface CardWidthSliderProps {
 
 const CardWidthSlider: React.FC<CardWidthSliderProps> = ({ onWidthChange }) => {
   const { cardWidth, updateCardWidth } = useCardWidth()
+  const [localWidth, setLocalWidth] = useState(cardWidth)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    setLocalWidth(cardWidth) // sincroniza el estado local con el global si cambia externamente
+  }, [cardWidth])
 
   useEffect(() => {
     localStorage.setItem('cardWidth', cardWidth.toString())
@@ -18,11 +24,18 @@ const CardWidthSlider: React.FC<CardWidthSliderProps> = ({ onWidthChange }) => {
   }, [cardWidth, onWidthChange])
 
   const handleSliderChange = (value: number[]) => {
-    updateCardWidth(value[0])
+    const newWidth = value[0]
+    setLocalWidth(newWidth)
+
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+    }
+
+    timeoutRef.current = setTimeout(() => {
+      updateCardWidth(newWidth)
+    }, 500)
   }
 
-  // Map the range 120-240 to 0%-100%
-  // 120 -> 0%, 200 -> 100%, 240 -> 133%
   const getPercentage = (width: number): number => {
     return Math.round(((width - 120) / (240 - 120)) * 100)
   }
@@ -31,14 +44,14 @@ const CardWidthSlider: React.FC<CardWidthSliderProps> = ({ onWidthChange }) => {
     <FlexBox align="center" gap={0.5} justify="center">
       <Slider
         id="cardWidth"
-        value={[cardWidth]}
+        value={[localWidth]}
         onValueChange={handleSliderChange}
         max={240}
         min={120}
         step={10}
         className="w-20"
       />
-      <span className="w-[5ch]">{getPercentage(cardWidth)}%</span>
+      <span className="w-[5ch]">{getPercentage(localWidth)}%</span>
     </FlexBox>
   )
 }

@@ -1,82 +1,62 @@
 import { useIsMobile } from '@/components/hooks/use-mobile'
-import Loading from '@/components/Loading'
 import NotFound from '@/components/NotFound'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
-import {
-  AddToListIcon,
-  MarkWatchedIcon,
-  RemoveFromListIcon,
-  UnmarkWatchedIcon,
-} from '@/components/ui/IconLibrary'
+import { MarkWatchedIcon, UnmarkWatchedIcon } from '@/components/ui/IconLibrary'
 import LazyImage from '@/components/ui/LazyImage'
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
-import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
-import { Episode, Season, Series } from '@/data/interfaces/Media'
+import { Series } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
-import { useNavigate, useParams } from '@tanstack/react-router'
+import { useLoaderData, useNavigate, useParams } from '@tanstack/react-router'
 import { t } from 'i18next'
-import { Edit, Ellipsis, PlayIcon } from 'lucide-react'
+import { Edit, Ellipsis } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 import CastList from '../components/CastList'
 import SeasonContent from '../components/SeasonsContent'
 import '../DetailsPage.css'
+import { Skeleton } from '@/components/ui/skeleton'
+import MyListButton from './components/MyListButton'
+import PlayButton from './components/PlayButton'
+import { useServerStore } from '@/context/server.context'
 
 function SeriesDetailsPage() {
   const { seriesId } = useParams({
     from: '/server/$serverId/details/series/$seriesId',
   })
-  const { selectedServer } = useServerStore()
+  const { server } = useLoaderData({ from: '/server/$serverId' })
   const { wsMessage } = useWebSocketStore()
-  const { selectedSeasonId, selectSeason, setCurrentBackground } =
-    useDataStore()
+  const {
+    selectedSeasonId,
+    selectSeason,
+    setCurrentBackground,
+    currentBackground,
+  } = useDataStore()
+  const { selectedServer, selectServer } = useServerStore()
   const { clientSettings } = useSettingsStore()
   const { openSeasonDialog } = useDialogStore()
+  const isMobile = useIsMobile()
+  const serverIP = server.ip
 
   // Get series data
   const {
     data: series,
-    isLoading: loadingSeries,
+    isLoading,
+    error,
     mutate: mutateSeries,
   } = useSWR<Series>(
-    seriesId && selectedServer
-      ? `https://${selectedServer.ip}/details/series?id=${seriesId}`
-      : null,
-    fetcher,
-  )
-  // Get selected season data
-  const {
-    data: season,
-    isLoading: loadingSeason,
-    mutate: mutateSeason,
-  } = useSWR<Season>(
-    selectedSeasonId && selectedServer
-      ? `https://${selectedServer.ip}/details/season?id=${selectedSeasonId}`
-      : null,
-    fetcher,
-  )
-  // Get current episode
-  const { data: episode } = useSWR<Episode>(
-    series && series.currentlyWatchingEpisodeId && selectedServer
-      ? `https://${selectedServer.ip}/details/episode?id=${series.currentlyWatchingEpisodeId}`
-      : null,
-    fetcher,
-  )
-  // Get if show is in My List
-  const { data: inMyList, mutate: mutateInMyList } = useSWR(
-    series && selectedServer
-      ? `https://${selectedServer.ip}/isShowInMyList?seriesId=${series.id}`
-      : null,
+    seriesId ? `https://${serverIP}/details/series?id=${seriesId}` : null,
     fetcher,
   )
 
-  const isMobile = useIsMobile()
-  const navigate = useNavigate()
+  // Get selected season data
+  const season = series
+    ? series.seasons.find((s) => s.id === selectedSeasonId)
+    : undefined
 
   const [currentPoster, setCurrentPoster] = useState<string | undefined>()
   const [nextPoster, setNextPoster] = useState<string | undefined>()
@@ -85,35 +65,49 @@ function SeriesDetailsPage() {
   const posterUrl = series?.coverSrc
   const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true
 
+  // Update selected server
+  useEffect(() => {
+    if (server != selectedServer) {
+      selectServer(server)
+    }
+  }, [])
+
   // Mutate content on ws message
   useEffect(() => {
-    if (wsMessage === MessageType.MUTATE_SERIES) {
+    if (
+      wsMessage === MessageType.MUTATE_SERIES ||
+      wsMessage === MessageType.MUTATE_SEASON
+    ) {
       mutateSeries()
-    } else if (wsMessage === MessageType.MUTATE_SEASON) {
-      mutateSeason()
     }
-  }, [wsMessage])
+  }, [wsMessage, mutateSeries])
 
   useEffect(() => {
-    if (series) {
+    if (
+      !isLoading &&
+      series &&
+      ((season && season.id !== selectedSeasonId) || !season)
+    ) {
       selectSeason(
         series.seasons && series.seasons.length > 0
           ? series.seasons[0].id
           : null,
       )
     }
-  }, [series])
+  }, [series, season, isLoading, selectedSeasonId, selectSeason])
 
   // Set background image src
   useEffect(() => {
-    if (season) {
+    if (season && season.backgroundSrc !== currentBackground) {
       setCurrentBackground(season.backgroundSrc)
-    } else {
+    } else if (currentBackground) {
       setCurrentBackground(undefined)
     }
-  }, [season])
+  }, [season, setCurrentBackground, currentBackground])
 
   useEffect(() => {
+    if (!posterUrl || nextPoster === posterUrl) return
+
     setNextPoster(posterUrl)
     setShowAnimPoster(true)
 
@@ -123,20 +117,14 @@ function SeriesDetailsPage() {
         setShowAnimPoster(false)
       }, 100)
     }, 1000)
-  }, [posterUrl])
-
-  if (loadingSeries || loadingSeason) {
-    return <Loading />
-  }
-
-  if (!series || !season) {
-    return <NotFound />
-  }
-
-  const serverIP = selectedServer?.ip
+  }, [posterUrl, setCurrentPoster, setShowAnimPoster, setNextPoster])
 
   const renderLogoOrText = () => {
-    const logoUrl = series?.logoSrc
+    if (isLoading || !series) {
+      return <Skeleton />
+    }
+
+    const logoUrl = series.logoSrc
 
     if (logoUrl && logoUrl !== '') {
       return (
@@ -155,16 +143,10 @@ function SeriesDetailsPage() {
             textTransform: 'uppercase',
           }}
         >
-          {series?.name}
+          {series.name}
         </span>
       )
     }
-  }
-
-  const getPlayButtonText = () => {
-    return !episode
-      ? t('playButton')
-      : `${t('continueWatching')} — ${t('seasonLetter')}${episode.seasonNumber + 1}${t('episodeLetter')}${episode.episodeNumber + 1}`
   }
 
   const toggleSeriesWatched = async () => {
@@ -180,7 +162,6 @@ function SeriesDetailsPage() {
         }),
       }).then(() => {
         mutateSeries()
-        mutateSeason()
       })
     }
   }
@@ -198,25 +179,12 @@ function SeriesDetailsPage() {
         }),
       }).then(() => {
         mutateSeries()
-        mutateSeason()
       })
     }
   }
 
-  const toggleMyList = () => {
-    if (series) {
-      fetch(`https://${serverIP}/updateSeriesMyList`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          seriesId: series.id,
-        }),
-      }).then(() => {
-        mutateInMyList()
-      })
-    }
+  if (error) {
+    return <NotFound />
   }
 
   return (
@@ -225,7 +193,7 @@ function SeriesDetailsPage() {
       direction="column"
       gap={1}
       wrap="nowrap"
-      padding={isMobile ? '10rem 0' : '10rem 3rem'}
+      padding={isMobile ? '3rem 0' : '2rem 3rem'}
       height={'100%'}
     >
       <FlexBox justify="start" align="start" gap={4}>
@@ -265,19 +233,30 @@ function SeriesDetailsPage() {
         >
           {renderLogoOrText()}
 
-          {series.seasons && series.seasons.length > 1 ? (
+          {/* Season Title */}
+          {isLoading || !series ? (
+            <Skeleton />
+          ) : series.seasons && series.seasons.length > 1 && season ? (
             <span id="seasonTitle">{season.name}</span>
           ) : null}
 
           {/* Info */}
           <FlexBox direction="column" gap={0.2}>
             <FlexBox gap={1.3} margin="0 0 0.3rem 0">
-              <span id="date">{new Date(season.year).getFullYear()}</span>
+              <span id="date">
+                {isLoading || !series ? (
+                  <Skeleton />
+                ) : season ? (
+                  new Date(season.year).getFullYear()
+                ) : null}
+              </span>
             </FlexBox>
             <span id="genres">
-              {series.genres && series.genres.length > 0
-                ? series.genres.join(', ') || ''
-                : ''}
+              {isLoading ? (
+                <Skeleton />
+              ) : series && series.genres && series.genres.length > 0 ? (
+                series.genres.join(', ') || ''
+              ) : null}
             </span>
           </FlexBox>
 
@@ -289,63 +268,50 @@ function SeriesDetailsPage() {
               alt="TheMovieDB logo"
             />
             <span className="text-sm font-bold">
-              {series.score.toFixed(2) || 'N/A'}
+              {isLoading ? (
+                <Skeleton />
+              ) : series ? (
+                series.score.toFixed(2)
+              ) : (
+                'N/A'
+              )}
             </span>
           </FlexBox>
           <FlexBox gap={1} wrap="wrap">
-            <Button
-              onClick={async () => {
-                if (episode) {
-                  const response = await fetch(
-                    `https://${serverIP}/video?id=${episode.id}`,
-                  )
-
-                  if (!response.ok) {
-                    return
-                  }
-
-                  const data = await response.json()
-                  navigate({
-                    to: `/video-player/${data.videoId}`,
-                  })
-                }
-              }}
-            >
-              <FlexBox align="center" gap={0.5} className="text-black">
-                <PlayIcon color="#111111" />
-                {getPlayButtonText()}
-              </FlexBox>
-            </Button>
+            <PlayButton
+              serverIP={serverIP}
+              currentlyWatchingEpisodeId={
+                series ? series.currentlyWatchingEpisodeId : undefined
+              }
+            />
             {!isMobile && (
               <>
                 <Button
                   variant={'ghost'}
-                  title={season.watched ? t('markUnwatched') : t('markWatched')}
+                  title={
+                    season && season.watched
+                      ? t('markUnwatched')
+                      : t('markWatched')
+                  }
                   onClick={toggleSeasonWatched}
                 >
-                  {season.watched ? <UnmarkWatchedIcon /> : <MarkWatchedIcon />}
-                </Button>
-                <Button
-                  variant={'ghost'}
-                  title={
-                    inMyList && inMyList.isInMyList
-                      ? t('addToMyList')
-                      : t('removeFromMyList')
-                  }
-                  onClick={toggleMyList}
-                >
-                  {inMyList && inMyList.isInMyList ? (
-                    <RemoveFromListIcon />
+                  {season && season.watched ? (
+                    <UnmarkWatchedIcon />
                   ) : (
-                    <AddToListIcon />
+                    <MarkWatchedIcon />
                   )}
                 </Button>
+                <MyListButton serverIP={serverIP} seriesId={seriesId} />
               </>
             )}
             <Button
               variant={'ghost'}
               title={t('editButton')}
-              onClick={() => openSeasonDialog(season)}
+              onClick={() => {
+                if (season) {
+                  openSeasonDialog(season)
+                }
+              }}
             >
               <Edit />
             </Button>
@@ -361,15 +327,37 @@ function SeriesDetailsPage() {
           </FlexBox>
           <FlexBox>
             <span className="font-semibold">
-              {season.overview || series.overview || t('defaultOverview')}
+              {isLoading ? (
+                <Skeleton />
+              ) : season ? (
+                season.overview
+              ) : series ? (
+                series.overview
+              ) : (
+                t('defaultOverview')
+              )}
             </span>
           </FlexBox>
         </FlexBox>
       </FlexBox>
 
-      <SeasonContent seasonList={series.seasons} season={season} />
+      {/* Season Content */}
+      {isLoading || !series || !season ? (
+        <Skeleton />
+      ) : (
+        <SeasonContent
+          seasonList={series.seasons}
+          serverIP={serverIP}
+          serverId={server.id}
+        />
+      )}
 
-      <CastList cast={series.cast ?? []} />
+      {/* Cast */}
+      {isLoading || !series ? (
+        <Skeleton />
+      ) : (
+        <CastList cast={series.cast ?? []} />
+      )}
     </FlexBox>
   )
 }

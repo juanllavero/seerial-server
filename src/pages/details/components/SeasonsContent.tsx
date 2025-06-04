@@ -7,39 +7,68 @@ import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { Episode, Season } from '@/data/interfaces/Media'
 import { useNavigate, useParams } from '@tanstack/react-router'
-import React, { useEffect } from 'react'
+import React, { use, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import EpisodeCard from './cards/EpisodeCard'
 import EpisodeCardDetails from './cards/EpisodeCardDetails'
+import { fetcher } from '@/utils/utils'
+import useSWR from 'swr'
+import NotFound from '@/components/NotFound'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useCardWidth } from '@/hooks/useCardWidth'
+import { useIsTablet } from '@/components/hooks/use-tablet'
+import { SelectableOption } from '@/data/interfaces/Utils'
 
 interface SeasonContentProps {
   seasonList: Season[]
-  season: Season
+  serverId: string
+  serverIP: string
 }
 
-function SeasonContent({ seasonList, season }: SeasonContentProps) {
-  const { serverId } = useParams({
-    from: '/server/$serverId/details/series/$seriesId',
-  })
+function SeasonContent({ seasonList, serverId, serverIP }: SeasonContentProps) {
   const navigate = useNavigate()
   const { selectSeason } = useDataStore()
   const { t } = useTranslation()
-  const { selectServer, serverStatus } = useServerStore()
+  const { cardWidth } = useCardWidth()
+  const { selectedSeasonId } = useDataStore()
   const [distribution, setDistribution] = React.useState(0)
+  const prevDistribution = useRef(distribution)
+  const distributionOptions: SelectableOption[] = [
+    {
+      key: '0',
+      value: t('grid'),
+    },
+    {
+      key: '1',
+      value: t('list'),
+    },
+  ]
   const isMobile = useIsMobile()
-  const { user } = useAuth()
+  const isTablet = useIsTablet()
 
-  const server = user?.servers.find((server) => server.id === serverId)
-
-  if (server) {
-    selectServer(server)
-  }
+  const {
+    data: season,
+    isLoading,
+    error,
+  } = useSWR<Season>(
+    selectedSeasonId
+      ? `https://${serverIP}/details/season?id=${selectedSeasonId}`
+      : null,
+    fetcher,
+  )
 
   useEffect(() => {
-    if (isMobile) {
-      setDistribution(0)
+    if ((isTablet || isMobile) && distribution !== 1) {
+      prevDistribution.current = distribution
+      setDistribution(1)
+    } else if (
+      !isTablet &&
+      !isMobile &&
+      distribution !== prevDistribution.current
+    ) {
+      setDistribution(prevDistribution.current)
     }
-  }, [isMobile])
+  }, [isMobile, isTablet, setDistribution, distribution])
 
   const getEpisodeMenu = (episode: Episode) => {
     return {
@@ -65,30 +94,23 @@ function SeasonContent({ seasonList, season }: SeasonContentProps) {
   }
 
   const selectDistributionOption = (key: string, _value: string) => {
+    prevDistribution.current = Number(key)
     setDistribution(Number(key))
   }
 
   const goToEpisodePage = (episode: Episode) => {
-    if (!server || !serverStatus) {
-      return
-    }
-
     navigate({
       to: '/server/$serverId/details/episode/$episodeId',
       params: {
         episodeId: episode.id,
-        serverId: server.id,
+        serverId: serverId,
       },
     })
   }
 
   const playEpisode = async (episodeId: Episode) => {
-    if (!server || !serverStatus) {
-      return
-    }
-
     const response = await fetch(
-      `https://${server.ip}/episode-video?episodeId=${episodeId.id}`,
+      `https://${serverIP}/episode-video?episodeId=${episodeId.id}`,
     )
 
     if (!response.ok) {
@@ -100,17 +122,58 @@ function SeasonContent({ seasonList, season }: SeasonContentProps) {
     navigate({
       to: '/server/$serverId/video-player/$videoId',
       params: {
-        serverId: server.id,
+        serverId: serverId,
         videoId: data.id,
       },
     })
   }
 
-  if (!server || !serverStatus) {
-    navigate({ to: '/home' })
-    return null
+  // Loading Skeleton
+  if (isLoading) {
+    return (
+      <FlexBox
+        direction="column"
+        gap={2}
+        margin="1rem 0 0 0"
+        padding={isMobile ? '1rem 2rem' : '0'}
+        width={'100%'}
+      >
+        <FlexBox width={'100%'} justify="space-between" align="start">
+          <FlexBox direction="column" gap={2}>
+            {seasonList.length > 1 && <Skeleton />}
+
+            <Skeleton />
+          </FlexBox>
+
+          {!isMobile && <Skeleton />}
+        </FlexBox>
+        {distribution === 0 ? (
+          <Grid
+            columns={
+              isMobile
+                ? 'repeat(auto-fill, minmax(200px, 1fr))'
+                : 'repeat(auto-fill, minmax(400px, 1fr))'
+            }
+            gap="1rem"
+            width="100%"
+          >
+            <Skeleton />
+          </Grid>
+        ) : (
+          <FlexBox direction="column" gap={0.5}>
+            <Skeleton />
+          </FlexBox>
+        )}
+      </FlexBox>
+    )
   }
 
+  // No content
+  if (!season || error) {
+    return <NotFound />
+  }
+
+  // Episodes
   return (
     <FlexBox
       direction="column"
@@ -123,7 +186,7 @@ function SeasonContent({ seasonList, season }: SeasonContentProps) {
         <FlexBox direction="column" gap={2}>
           {seasonList.length > 1 && (
             <SelectableWrapper
-              defaultValue={seasonList[0].name}
+              defaultValue={season ? season.name : seasonList[0].name}
               options={seasonList.map((season, index) => {
                 return {
                   key: String(index),
@@ -138,20 +201,12 @@ function SeasonContent({ seasonList, season }: SeasonContentProps) {
           <span>{t('episodes')}</span>
         </FlexBox>
 
-        {!isMobile && (
+        {!isMobile && !isTablet && (
           <SelectableWrapper
-            defaultValue={'Cuadrícula'}
+            key={'Distribution ' + distribution}
+            defaultValue={distributionOptions[distribution].value}
             width="w-fit"
-            options={[
-              {
-                key: '0',
-                value: 'Cuadrícula',
-              },
-              {
-                key: '1',
-                value: 'Detalles',
-              },
-            ]}
+            options={distributionOptions}
             onValueChange={selectDistributionOption}
           />
         )}
@@ -159,14 +214,13 @@ function SeasonContent({ seasonList, season }: SeasonContentProps) {
       {season.episodes && season.episodes.length > 0 && (
         <>
           {distribution === 0 ? (
-            <Grid
-              columns={
-                isMobile
-                  ? 'repeat(auto-fill, minmax(200px, 1fr))'
-                  : 'repeat(auto-fill, minmax(400px, 1fr))'
-              }
-              gap="1rem"
+            <FlexBox
+              gap={1}
+              wrap="wrap"
+              justify="start"
+              align="start"
               width="100%"
+              height={'100%'}
             >
               {season.episodes
                 .sort((a, b) => a.episodeNumber - b.episodeNumber)
@@ -178,7 +232,7 @@ function SeasonContent({ seasonList, season }: SeasonContentProps) {
                     getEpisodeMenu={getEpisodeMenu}
                   />
                 ))}
-            </Grid>
+            </FlexBox>
           ) : (
             <FlexBox direction="column" gap={0.5}>
               {season.episodes

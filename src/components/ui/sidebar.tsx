@@ -340,6 +340,7 @@ const SidebarInset = React.forwardRef<
         !isMobile && state === 'expanded' && 'ml-56',
         !isMobile && state === 'collapsed' && 'ml-14',
         !isMobile && 'transition-[margin-left] duration-200 ease-linear',
+        'max-w-full min-w-0 overflow-x-hidden',
         className,
       )}
       {...props}

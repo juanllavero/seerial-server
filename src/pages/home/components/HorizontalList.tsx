@@ -71,7 +71,7 @@ function HorizontalList({ title, children }: HorizontalListProps) {
       <FlexBox
         justify="space-between"
         gap={1}
-        padding="0 0.5rem"
+        padding={isMobile ? '0 1rem' : '0 0.5rem'}
         width={'100%'}
         height={'3rem'}
       >

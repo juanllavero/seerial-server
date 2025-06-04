@@ -24,7 +24,7 @@ export default function HomePage() {
   const { user } = useAuth()
   const { selectedServer, serverStatus, apiKeyStatus, getServerStatus } =
     useServerStore()
-  const { selectLibrary, loadingContent } = useDataStore()
+  const { selectLibrary } = useDataStore()
 
   // Get Servers
   const { data: servers, isLoading: loadingServers } = useSWR<Server[]>(

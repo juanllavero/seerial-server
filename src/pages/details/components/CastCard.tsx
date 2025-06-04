@@ -1,14 +1,15 @@
+import { useIsMobile } from '@/components/hooks/use-mobile'
 import FlexBox from '@/components/ui/FlexBox'
 import LazyImage from '@/components/ui/LazyImage'
 import { Cast } from '@/data/interfaces/Media'
-import React from 'react'
 
 interface CastCardProps {
-  index: number
+  index: string | number
   person: Cast
 }
 
 function CastCard({ index, person }: CastCardProps) {
+  const isMobile = useIsMobile()
   return (
     <FlexBox
       direction="column"
@@ -21,14 +22,17 @@ function CastCard({ index, person }: CastCardProps) {
     >
       <LazyImage
         src={person.profileImage}
-        width={150}
-        height={150}
+        width={isMobile ? 80 : 150}
+        height={isMobile ? 80 : 150}
         className="rounded-full"
         rounded
         alt={person.name}
       />
-      <span>{person.name}</span>
-      <span className="text-sm" style={{ color: 'lightgray' }}>
+      <span className={isMobile ? 'text-xs' : ''}>{person.name}</span>
+      <span
+        className={isMobile ? 'text-xs' : 'text-sm'}
+        style={{ color: 'lightgray' }}
+      >
         {person.character}
       </span>
     </FlexBox>

@@ -14,7 +14,11 @@ function CastList({ cast }: CastListProps) {
   return (
     <HorizontalList title={t('cast')}>
       {cast.map((person, index) => (
-        <CastCard index={index} person={person} />
+        <CastCard
+          key={person.name + index}
+          index={person.name + index}
+          person={person}
+        />
       ))}
     </HorizontalList>
   )
