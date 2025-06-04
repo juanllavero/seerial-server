@@ -103,7 +103,7 @@ function SeriesDetailsPage() {
 
   const renderLogoOrText = () => {
     if (isLoading || !series) {
-      return <Skeleton className="h-15 w-90" />
+      return <Skeleton style={{ width: '350px', height: '200px' }} />
     }
 
     const logoUrl = series.logoSrc
@@ -112,7 +112,7 @@ function SeriesDetailsPage() {
       return (
         <LazyImage
           url={logoUrl}
-          maxHeight={isMobile ? '100%' : 300}
+          maxHeight={isMobile ? '100%' : 200}
           width={isMobile ? '100%' : 350}
           errorSrc="/img/Default_video_thumbnail.jpg"
         />
@@ -184,7 +184,7 @@ function SeriesDetailsPage() {
             {showPoster &&
               (isLoading || !series ? (
                 <FlexBox className="image-container">
-                  <Skeleton style={{ width: '495px', height: '330px' }} />
+                  <Skeleton style={{ height: '495px', width: '330px' }} />
                 </FlexBox>
               ) : (
                 <FlexBox className="image-container">

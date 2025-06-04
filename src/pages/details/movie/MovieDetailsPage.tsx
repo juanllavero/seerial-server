@@ -76,7 +76,7 @@ function MovieDetailsPage() {
 
   const renderLogoOrText = () => {
     if (isLoading || !movie) {
-      return <Skeleton className="h-15 w-90" />
+      return <Skeleton style={{ width: '350px', height: '200px' }} />
     }
 
     const logoUrl = movie.logoSrc
@@ -126,7 +126,7 @@ function MovieDetailsPage() {
             {showPoster &&
               (isLoading || !movie ? (
                 <FlexBox className="image-container">
-                  <Skeleton style={{ width: '495px', height: '330px' }} />
+                  <Skeleton style={{ height: '495px', width: '330px' }} />
                 </FlexBox>
               ) : (
                 <FlexBox className="image-container">

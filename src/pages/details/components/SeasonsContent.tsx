@@ -239,6 +239,7 @@ function SeasonContent({ seasonList, serverId, serverIP }: SeasonContentProps) {
                 .sort((a, b) => a.episodeNumber - b.episodeNumber)
                 .map((episode) => (
                   <EpisodeCardDetails
+                    key={'Episode details' + episode.id}
                     episode={episode}
                     playEpisode={playEpisode}
                     goToDetails={goToEpisodePage}

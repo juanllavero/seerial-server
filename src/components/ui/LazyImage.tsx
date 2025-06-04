@@ -61,6 +61,17 @@ export default function LazyImage({
     borderRadius: rounded ? '5px' : undefined,
   }
 
+  if (imageSrc === '') {
+    return (
+      <Skeleton
+        style={{
+          width: typeof width === 'number' ? `${width}px` : '100%',
+          height: typeof maxHeight === 'number' ? `${maxHeight}px` : '100%',
+        }}
+      />
+    )
+  }
+
   return (
     <div style={containerStyles} className={`relative ${className}`}>
       {!loaded && (

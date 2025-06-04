@@ -10,8 +10,6 @@ function LibraryPage() {
   })
   const { selectServer, selectedServer } = useServerStore()
 
-  console.log('Main')
-
   useEffect(() => {
     if (server !== selectedServer) {
       selectServer(server)

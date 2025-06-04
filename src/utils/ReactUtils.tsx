@@ -52,9 +52,11 @@ export class ReactUtils {
     serverIP: string,
   ) => {
     if (background) {
-      ReactUtils.getDominantColors(
-        `https://${serverIP}/${background.replace('resources/img', 'img')}`,
-      )
+      const imageUrl = background.startsWith('http')
+        ? background
+        : `https://${serverIP}/${background.replace('resources/img', 'img')}`
+
+      ReactUtils.getDominantColors(imageUrl)
     } else {
       ReactUtils.getDominantColors('/img/songDefault.png')
     }

@@ -26,7 +26,7 @@ function LibraryPageContent({ libraryId, serverIP }: LibraryPageContentProps) {
     mutate,
   } = useSWR<Library>(`https://${serverIP}/library?id=${libraryId}`, fetcher)
 
-  console.log('Content')
+  //console.log('Content')
 
   useEffect(() => {
     if (library && library.id !== selectedLibraryId) {
