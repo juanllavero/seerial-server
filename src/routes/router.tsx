@@ -1,7 +1,7 @@
-import { createBrowserHistory, createRouter } from '@tanstack/react-router'
+import { createBrowserHistory, createRouter } from 'react-router-dom'
 import { rootTree } from './routes'
 
-declare module '@tanstack/react-router' {
+declare module 'react-router-dom' {
   interface Register {
     router: typeof router
   }

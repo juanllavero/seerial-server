@@ -11,7 +11,7 @@ import {
 } from '@/data/interfaces/MediaInfo'
 import { formatDate } from '@/utils/ReactUtils'
 import { fetcher } from '@/utils/utils'
-import { useParams } from '@tanstack/react-router'
+import { useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
@@ -20,9 +20,7 @@ function EpisodeDetailsPage() {
   const { t } = useTranslation()
   const { wsMessage } = useWebSocketStore()
   const { selectedServer } = useServerStore()
-  const { episodeId } = useParams({
-    from: '/server/$serverId/details/episode/$episodeId',
-  })
+  const { episodeId } = useParams()
 
   const {
     data: episode,

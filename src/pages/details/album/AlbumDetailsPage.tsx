@@ -11,24 +11,21 @@ import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
 import { Album } from '@/data/interfaces/Music'
 import { fetcher } from '@/utils/utils'
-import { useLoaderData, useParams } from '@tanstack/react-router'
+import { useParams } from 'react-router-dom'
 import { t } from 'i18next'
 import { Edit, Ellipsis } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import useSWR from 'swr'
 import AlbumContent from '../components/AlbumContent'
 import '../DetailsPage.css'
 import { Skeleton } from '@/components/ui/skeleton'
 
 function AlbumDetailsPage() {
-  const { albumId } = useParams({
-    from: '/server/$serverId/details/album/$albumId',
-  })
-  const { server } = useLoaderData({ from: '/server/$serverId' })
+  const { albumId } = useParams()
   const { wsMessage } = useWebSocketStore()
   const { selectedServer, selectServer } = useServerStore()
   const { selectSong } = useDataStore()
-  const serverIP = server.ip
+  const serverIP = selectedServer?.ip
 
   // Get series data
   const {
@@ -41,11 +38,11 @@ function AlbumDetailsPage() {
   const isMobile = useIsMobile()
 
   // Update selected server
-  useEffect(() => {
-    if (server !== selectedServer) {
-      selectServer(server)
-    }
-  }, [])
+  // useEffect(() => {
+  //   if (server !== selectedServer) {
+  //     selectServer(server)
+  //   }
+  // }, [])
 
   useEffect(() => {
     if (wsMessage === MessageType.MUTATE_ALBUM) {

@@ -12,9 +12,9 @@ import {
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
-import { useNavigate } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { Button } from './ui/button'
+import { useNavigate } from 'react-router-dom'
 
 interface Item {
   id: string
@@ -35,7 +35,7 @@ export function LibrarySwitcher({ libraries }: { libraries: Item[] }) {
     name: t('home'),
     logo: House,
     action: () => {
-      navigate({ to: '/home' })
+      navigate('/home')
     },
   }
 

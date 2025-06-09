@@ -2,7 +2,7 @@ import { useIsMobile } from '@/components/hooks/use-mobile'
 import FlexBox from '@/components/ui/FlexBox'
 import { Movie, Video } from '@/data/interfaces/Media'
 import HorizontalList from '@/pages/home/components/HorizontalList'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate } from 'react-router-dom'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import VideoCard from './cards/VideoCard'
@@ -38,13 +38,7 @@ function MovieContent({ movie }: MovieContentProps) {
   }
 
   const playEpisode = async (video: Video) => {
-    navigate({
-      to: '/server/$serverId/video-player/$videoId',
-      params: {
-        serverId: selectedServer?.id ?? '',
-        videoId: video.id,
-      },
-    })
+    navigate(`/server/${selectedServer?.id}/video-player/${video.id}`)
   }
 
   const onlyMovie = movie.videos.length === 1

@@ -1,5 +1,5 @@
 import FlexBox from '@/components/ui/FlexBox'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate } from 'react-router-dom'
 import MyListShows from './MyListShows'
 import MyListMovies from './MyListMovies'
 import ContinueWatching from './ContinueWatching'
@@ -8,9 +8,7 @@ function HomePageContent() {
   const navigate = useNavigate()
 
   const goToContent = (url: string) => {
-    navigate({
-      to: url,
-    })
+    navigate(url)
   }
 
   return (

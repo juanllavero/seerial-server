@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import FlexBox from '@/components/ui/FlexBox'
 import { getToken } from '@/lib/auth'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate } from 'react-router-dom'
 import Login from './components/Login'
 import { useAuth } from '@/context/auth.context'
 
@@ -10,7 +10,7 @@ function LoginPage() {
   const { user } = useAuth()
   const token = getToken()
 
-  if (token || user) navigate({ to: '/home' })
+  if (token || user) navigate('/home')
 
   return (
     <FlexBox width={'100%'} height={'100dvh'} justify="center" align="center">

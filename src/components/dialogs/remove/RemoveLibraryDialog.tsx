@@ -2,7 +2,7 @@ import AlertWrapper from '@/components/AlertWrapper'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
 
@@ -33,7 +33,7 @@ function RemoveLibraryDialog() {
         // Mutate libraries list
         mutate((key: string) => key.startsWith(`https://${serverIP}/libraries`))
 
-        navigate({ to: '/home' })
+        navigate('/home')
         closeRemoveLibraryDialog()
       }}
       isDeleteAlert

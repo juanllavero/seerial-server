@@ -16,7 +16,7 @@ import { MessageType } from '@/data/enums/WSMessage'
 import { Movie } from '@/data/interfaces/Media'
 import { formatTimeForView } from '@/utils/ReactUtils'
 import { fetcher } from '@/utils/utils'
-import { useLoaderData, useNavigate, useParams } from '@tanstack/react-router'
+import { useNavigate, useParams } from 'react-router-dom'
 import { t } from 'i18next'
 import { Edit, Ellipsis } from 'lucide-react'
 import { useEffect } from 'react'
@@ -28,16 +28,13 @@ import { Skeleton } from '@/components/ui/skeleton'
 import MyListButton from './components/MyListButton'
 
 function MovieDetailsPage() {
-  const { movieId } = useParams({
-    from: '/server/$serverId/details/movie/$movieId',
-  })
-  const { server } = useLoaderData({ from: '/server/$serverId' })
+  const { movieId } = useParams()
   const { setCurrentBackground, currentBackground } = useDataStore()
   const { clientSettings } = useSettingsStore()
   const { wsMessage } = useWebSocketStore()
   const { selectedServer, selectServer } = useServerStore()
   const navigate = useNavigate()
-  const serverIP = server.ip
+  const serverIP = selectedServer?.ip
 
   // Get movie data
   const {
@@ -51,11 +48,11 @@ function MovieDetailsPage() {
   const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true
 
   // Update selected server
-  useEffect(() => {
-    if (server !== selectedServer) {
-      selectServer(server)
-    }
-  }, [])
+  // useEffect(() => {
+  //   if (server !== selectedServer) {
+  //     selectServer(server)
+  //   }
+  // }, [])
 
   // Mutate content on ws message
   useEffect(() => {
@@ -212,9 +209,9 @@ function MovieDetailsPage() {
             <Button
               onClick={() => {
                 if (movie && movie.videos && movie.videos.length > 0) {
-                  navigate({
-                    to: `/video-player/${movie.videos[0].id}`,
-                  })
+                  navigate(
+                    `/server/${selectedServer?.id}/video-player/${movie.videos[0].id}`,
+                  )
                 }
               }}
             >
@@ -239,7 +236,10 @@ function MovieDetailsPage() {
                     <MarkWatchedIcon />
                   )}
                 </Button>
-                <MyListButton movieId={movieId} serverIP={serverIP} />
+                <MyListButton
+                  movieId={movieId ?? ''}
+                  serverIP={serverIP ?? ''}
+                />
               </>
             )}
             <Button variant={'ghost'} title={t('editButton')}>

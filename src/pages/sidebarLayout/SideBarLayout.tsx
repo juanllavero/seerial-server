@@ -5,7 +5,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar'
-import { Outlet, useLocation } from '@tanstack/react-router'
+import { Outlet, useLocation } from 'react-router-dom'
 import CardWidthSlider from './components/CardWidthSlider'
 import { useMemo } from 'react'
 

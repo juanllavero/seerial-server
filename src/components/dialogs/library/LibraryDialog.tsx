@@ -2,7 +2,7 @@ import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Library } from '@/data/interfaces/Media'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
@@ -121,10 +121,7 @@ function LibraryDialog() {
     const libraryId = data.id
 
     // Navigate to new library page
-    navigate({
-      to: '/server/$serverId/library/$libraryId',
-      params: { serverId: selectedServer.id, libraryId },
-    })
+    navigate(`/server/${selectedServer.id}/library/${libraryId}`)
   }
 
   const handleSaveOrNext = () => {

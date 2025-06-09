@@ -6,7 +6,7 @@ import { useAuth } from '@/context/auth.context'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { Episode, Season } from '@/data/interfaces/Media'
-import { useNavigate, useParams } from '@tanstack/react-router'
+import { useNavigate, useParams } from 'react-router-dom'
 import React, { use, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import EpisodeCard from './cards/EpisodeCard'
@@ -99,13 +99,7 @@ function SeasonContent({ seasonList, serverId, serverIP }: SeasonContentProps) {
   }
 
   const goToEpisodePage = (episode: Episode) => {
-    navigate({
-      to: '/server/$serverId/details/episode/$episodeId',
-      params: {
-        episodeId: episode.id,
-        serverId: serverId,
-      },
-    })
+    navigate(`/server/${serverId}/details/episode/${episode.id}`)
   }
 
   const playEpisode = async (episodeId: Episode) => {
@@ -119,13 +113,7 @@ function SeasonContent({ seasonList, serverId, serverIP }: SeasonContentProps) {
     }
 
     const data = await response.json()
-    navigate({
-      to: '/server/$serverId/video-player/$videoId',
-      params: {
-        serverId: serverId,
-        videoId: data.id,
-      },
-    })
+    navigate(`/server/${serverId}/video-player/${data.id}`)
   }
 
   // Loading Skeleton

@@ -1,26 +1,23 @@
 import BaseLayout from '@/layouts/BaseLayout'
 import { getToken } from '@/lib/auth'
-import { Outlet, createRootRoute, redirect } from '@tanstack/react-router'
+import { Navigate, Outlet } from 'react-router-dom'
 import { memo } from 'react'
 
-export const RootRoute = createRootRoute({
-  component: memo(Root),
-  beforeLoad: ({ location }) => {
-    console.log(`Root:beforeLoad [${new Date().toISOString()}]: `, {
-      pathname: location.pathname,
-    })
-    const token = getToken()
-
-    if (!token && location.pathname !== '/login') {
-      throw redirect({ to: '/login' })
-    }
-  },
-})
-
 function Root() {
+  const token = getToken()
+
+  if (!token && window.location.pathname !== '/login') {
+    console.log(`Root:check [${new Date().toISOString()}]: `, {
+      pathname: window.location.pathname,
+    })
+    return <Navigate to="/login" replace />
+  }
+
   return (
     <BaseLayout>
       <Outlet />
     </BaseLayout>
   )
 }
+
+export default memo(Root)

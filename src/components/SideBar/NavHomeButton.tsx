@@ -6,7 +6,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '../ui/sidebar'
-import { useLocation, useNavigate } from '@tanstack/react-router'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useMemo } from 'react'
 
 const NavHomeButton = () => {
@@ -27,7 +27,7 @@ const NavHomeButton = () => {
     name: t('home'),
     logo: House,
     action: () => {
-      navigate({ to: '/home' })
+      navigate('/home')
     },
   }
 
@@ -41,7 +41,7 @@ const NavHomeButton = () => {
               className={`flex items-center gap-2 ${inHome ? 'bg-accent' : ''}`}
               onClick={(e) => {
                 e.preventDefault()
-                navigate({ to: '/home' })
+                navigate('/home')
               }}
               style={{
                 color: inHome ? 'var(--app-color)' : '',

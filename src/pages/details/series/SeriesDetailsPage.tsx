@@ -11,7 +11,7 @@ import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
 import { Series } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
-import { useLoaderData, useParams } from '@tanstack/react-router'
+import { useParams } from 'react-router-dom'
 import { t } from 'i18next'
 import { Edit, Ellipsis } from 'lucide-react'
 import { useEffect } from 'react'
@@ -25,10 +25,7 @@ import PlayButton from './components/PlayButton'
 import { useServerStore } from '@/context/server.context'
 
 function SeriesDetailsPage() {
-  const { seriesId } = useParams({
-    from: '/server/$serverId/details/series/$seriesId',
-  })
-  const { server } = useLoaderData({ from: '/server/$serverId' })
+  const { seriesId } = useParams()
   const { wsMessage } = useWebSocketStore()
   const {
     selectedSeasonId,
@@ -39,7 +36,7 @@ function SeriesDetailsPage() {
   const { selectedServer, selectServer } = useServerStore()
   const { clientSettings } = useSettingsStore()
   const { openSeasonDialog } = useDialogStore()
-  const serverIP = server.ip
+  const serverIP = selectedServer?.ip
 
   // Get series data
   const {
@@ -61,11 +58,11 @@ function SeriesDetailsPage() {
   const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true
 
   // Update selected server
-  useEffect(() => {
-    if (server !== selectedServer) {
-      selectServer(server)
-    }
-  }, [])
+  // useEffect(() => {
+  //   if (server !== selectedServer) {
+  //     selectServer(server)
+  //   }
+  // }, [])
 
   // Mutate content on ws message
   useEffect(() => {
@@ -254,7 +251,7 @@ function SeriesDetailsPage() {
           </FlexBox>
           <FlexBox gap={1} wrap="wrap">
             <PlayButton
-              serverIP={serverIP}
+              serverIP={serverIP ?? ''}
               currentlyWatchingEpisodeId={
                 series ? series.currentlyWatchingEpisodeId : undefined
               }
@@ -276,7 +273,10 @@ function SeriesDetailsPage() {
                     <MarkWatchedIcon />
                   )}
                 </Button>
-                <MyListButton serverIP={serverIP} seriesId={seriesId} />
+                <MyListButton
+                  serverIP={serverIP ?? ''}
+                  seriesId={seriesId ?? ''}
+                />
               </>
             )}
             <Button
@@ -322,8 +322,8 @@ function SeriesDetailsPage() {
       ) : (
         <SeasonContent
           seasonList={series.seasons}
-          serverIP={serverIP}
-          serverId={server.id}
+          serverIP={serverIP ?? ''}
+          serverId={selectedServer?.id ?? ''}
         />
       )}
 

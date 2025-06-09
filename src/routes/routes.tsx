@@ -9,116 +9,101 @@ import LibraryPage from '@/pages/library/LibraryPage'
 import LoginPage from '@/pages/login/LoginPage'
 import SettingsPage from '@/pages/settings/SettingsPage'
 import VideoPlayerPage from '@/pages/videoPlayer/VideoPlayerPage'
-import { createRoute, redirect } from '@tanstack/react-router'
-import { RootRoute } from './__root'
+import Root from './__root'
 import SideBarLayout from '@/pages/sidebarLayout/SideBarLayout'
-import { memo } from 'react'
+import { Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom'
+import { memo, useEffect, useState } from 'react'
+import React from 'react'
+import { Server } from '@/data/interfaces/Users'
+import { useServerStore } from '@/context/server.context'
 
-export const BaseRoute = createRoute({
-  getParentRoute: () => RootRoute,
-  path: '/',
-  beforeLoad: async ({ location }) => {
-    if (location.pathname === '/') {
-      throw redirect({ to: '/home' })
+// Wrapper for BaseRoute to handle redirect from '/' to '/home'
+function BaseRouteWrapper() {
+  if (window.location.pathname === '/') {
+    return <Navigate to="/home" replace />
+  }
+  return <SideBarLayout />
+}
+
+// Wrapper for ServerRoute to handle loader logic
+function ServerRouteWrapper() {
+  const { serverId } = useParams()
+  const { selectedServer, selectServer } = useServerStore()
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadServer() {
+      console.log(`Server/:serverId:loader [${new Date().toISOString()}]: `, {
+        serverId,
+      })
+      const user = await getUser()
+      const foundServer = user?.servers.find((s) => s.id === serverId)
+      console.log(foundServer)
+      selectServer(foundServer ?? null)
+      setLoading(false)
     }
-  },
-  component: memo(SideBarLayout),
-})
+    loadServer()
+  }, [serverId])
 
-export const HomeRoute = createRoute({
-  getParentRoute: () => BaseRoute,
-  path: '/home',
-  component: memo(HomePage),
-})
+  if (loading) {
+    return <div>Loading...</div>
+  }
 
-export const LoginRoute = createRoute({
-  getParentRoute: () => RootRoute,
-  path: '/login',
-  component: memo(LoginPage),
-})
+  if (!selectedServer) {
+    return <Navigate to="/home" replace />
+  }
 
-export const SettingsRoute = createRoute({
-  getParentRoute: () => BaseRoute,
-  path: '/settings',
-  component: memo(SettingsPage),
-})
+  return <Outlet />
+}
 
-export const ServerRoute = createRoute({
-  getParentRoute: () => BaseRoute,
-  path: '/server/$serverId',
-  loader: async ({ params }) => {
-    const { serverId } = params
+export function AppRoutes() {
+  return (
+    <Routes>
+      <Route element={<Root />}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route element={<BaseRouteWrapper />}>
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/server/:serverId/*" element={<ServerRouteWrapper />}>
+            <Route index element={<Navigate to="library" replace />} />
+            <Route path="library/:libraryId" element={<LibraryPage />} />
+            <Route
+              path="details/movie/:movieId"
+              element={<MovieDetailsPage />}
+            />
+            <Route
+              path="details/series/:seriesId"
+              element={<SeriesDetailsPage />}
+            />
+            <Route
+              path="details/album/:albumId"
+              element={<AlbumDetailsPage />}
+            />
+            <Route
+              path="details/collection/:collectionId/:type"
+              element={<CollectionDetailsPage />}
+            />
+            <Route
+              path="details/episode/:episodeId"
+              element={<EpisodeDetailsPage />}
+            />
+            <Route path="video-player/:videoId" element={<VideoPlayerPage />} />
+          </Route>
+        </Route>
+      </Route>
+    </Routes>
+  )
+}
 
-    console.log(`Server/$serverId:loader [${new Date().toISOString()}]: `, {
-      serverId: params.serverId,
-    })
-
-    const user = await getUser()
-    const server = user?.servers.find((server) => server.id === serverId)
-
-    if (!server) {
-      throw redirect({ to: '/home' })
-    }
-
-    return { server }
-  },
-})
-
-export const LibraryRoute = createRoute({
-  getParentRoute: () => ServerRoute,
-  path: '/library/$libraryId',
-  component: memo(LibraryPage),
-})
-
-export const MovieDetailsRoute = createRoute({
-  getParentRoute: () => ServerRoute,
-  path: '/details/movie/$movieId',
-  component: memo(MovieDetailsPage),
-})
-
-export const SeriesDetailsRoute = createRoute({
-  getParentRoute: () => ServerRoute,
-  path: '/details/series/$seriesId',
-  component: memo(SeriesDetailsPage),
-})
-
-export const AlbumDetailsRoute = createRoute({
-  getParentRoute: () => ServerRoute,
-  path: '/details/album/$albumId',
-  component: memo(AlbumDetailsPage),
-})
-
-export const CollectionDetailsRoute = createRoute({
-  getParentRoute: () => ServerRoute,
-  path: '/details/collection/$collectionId/$type',
-  component: memo(CollectionDetailsPage),
-})
-
-export const EpisodeDetailsRoute = createRoute({
-  getParentRoute: () => ServerRoute,
-  path: '/details/episode/$episodeId',
-  component: memo(EpisodeDetailsPage),
-})
-
-export const VideoPlayerRoute = createRoute({
-  getParentRoute: () => ServerRoute,
-  path: '/video-player/$videoId',
-  component: memo(VideoPlayerPage),
-})
-
-export const rootTree = RootRoute.addChildren([
-  LoginRoute,
-  BaseRoute.addChildren([
-    HomeRoute,
-    SettingsRoute,
-    ServerRoute.addChildren([
-      LibraryRoute,
-      MovieDetailsRoute,
-      SeriesDetailsRoute,
-      AlbumDetailsRoute,
-      CollectionDetailsRoute,
-      EpisodeDetailsRoute,
-      VideoPlayerRoute,
-    ]),
-  ]),
-])
+// Export memoized components for consistency
+export const MemoizedHomePage = memo(HomePage)
+export const MemoizedLoginPage = memo(LoginPage)
+export const MemoizedSettingsPage = memo(SettingsPage)
+export const MemoizedLibraryPage = memo(LibraryPage)
+export const MemoizedMovieDetailsPage = memo(MovieDetailsPage)
+export const MemoizedSeriesDetailsPage = memo(SeriesDetailsPage)
+export const MemoizedAlbumDetailsPage = memo(AlbumDetailsPage)
+export const MemoizedCollectionDetailsPage = memo(CollectionDetailsPage)
+export const MemoizedEpisodeDetailsPage = memo(EpisodeDetailsPage)
+export const MemoizedVideoPlayerPage = memo(VideoPlayerPage)
+export const MemoizedSideBarLayout = memo(SideBarLayout)

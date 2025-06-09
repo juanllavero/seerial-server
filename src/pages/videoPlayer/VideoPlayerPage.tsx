@@ -9,7 +9,7 @@ import { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
 import { formatTime, getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
 import { fetcher } from '@/utils/utils'
 import { TrackNextIcon, TrackPreviousIcon } from '@radix-ui/react-icons'
-import { useParams, useRouter } from '@tanstack/react-router'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
   Captions,
   ChevronLeft,
@@ -36,10 +36,8 @@ interface VideoInfo {
 
 function VideoPlayerPage() {
   const { selectedServer } = useServerStore()
-  const router = useRouter()
-  const { videoId } = useParams({
-    from: '/server/$serverId/video-player/$videoId',
-  })
+  const navigate = useNavigate()
+  const { videoId } = useParams()
 
   // Get video data
   const {
@@ -147,7 +145,7 @@ function VideoPlayerPage() {
       }),
     })
 
-    router.history.back()
+    navigate(-1)
   }
 
   const handleVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {

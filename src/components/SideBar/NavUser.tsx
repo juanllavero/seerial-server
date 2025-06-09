@@ -16,7 +16,7 @@ import {
 import { useAuth } from '@/context/auth.context'
 import { Bell, ChevronsUpDown, LogOut, Settings, UserRound } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate } from 'react-router-dom'
 export function NavUser() {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
@@ -25,12 +25,12 @@ export function NavUser() {
   if (!user) return null
 
   const handleGoToSettings = () => {
-    navigate({ to: '/settings' })
+    navigate('/settings')
   }
 
   const handleLogout = () => {
     logout()
-    navigate({ to: '/login' })
+    navigate('/login')
   }
 
   return (

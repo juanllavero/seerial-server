@@ -2,7 +2,7 @@ import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { Album } from '@/data/interfaces/Music'
 import { DropdownContent } from '@/data/interfaces/Utils'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import ParentCard from './ParentCard'
 import { memo } from 'react'
@@ -65,10 +65,7 @@ function AlbumCard({ album }: AlbumCardProps) {
       subtitle={album.year ?? '-'}
       action={() => {
         selectAlbum(album.id)
-        navigate({
-          to: '/server/$serverId/details/album/$albumId',
-          params: { serverId: selectedServer?.id ?? '', albumId: album.id },
-        })
+        navigate(`/server/${selectedServer?.id}/details/album/${album.id}`)
       }}
       hidePlayButton
       menuContent={menuContent}

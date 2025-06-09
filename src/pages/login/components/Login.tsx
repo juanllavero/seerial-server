@@ -1,7 +1,7 @@
 import { useAuth } from '@/context/auth.context'
 import { CENTRAL_SERVER } from '@/utils/constants'
 import { CredentialResponse, GoogleLogin } from '@react-oauth/google'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate } from 'react-router-dom'
 
 const Login = () => {
   const { login } = useAuth()
@@ -26,7 +26,7 @@ const Login = () => {
       if (res.ok && data.token) {
         await login(data.token)
 
-        navigate({ to: '/home' })
+        navigate('/home')
       } else {
         alert(data.error || 'Login fallido')
       }

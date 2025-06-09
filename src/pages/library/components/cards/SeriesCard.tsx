@@ -3,7 +3,7 @@ import { useServerStore } from '@/context/server.context'
 import { Series } from '@/data/interfaces/Media'
 import { DropdownContent } from '@/data/interfaces/Utils'
 import { getOnlyYear } from '@/utils/ReactUtils'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ParentCard from './ParentCard'
@@ -87,10 +87,7 @@ function SeriesCard({ series }: SeriesCardProps) {
       subtitle={getOnlyYear(series.year).toString()}
       action={() => {
         selectSeries(series.id)
-        navigate({
-          to: '/server/$serverId/details/series/$seriesId',
-          params: { serverId: selectedServer?.id ?? '', seriesId: series.id },
-        })
+        navigate(`/server/${selectedServer?.id}/details/series/${series.id}`)
       }}
       hidePlayButton
       cornerNumber={remainingEpisodes}

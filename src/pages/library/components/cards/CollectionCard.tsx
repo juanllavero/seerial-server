@@ -3,7 +3,7 @@ import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { Collection } from '@/data/interfaces/Media'
 import { DropdownContent } from '@/data/interfaces/Utils'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate } from 'react-router-dom'
 import { memo, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ParentCard from './ParentCard'
@@ -95,14 +95,9 @@ function CollectionCard({ collection, type }: CollectionCardProps) {
       subtitle={subtitleText}
       action={() => {
         selectCollection(collection.id)
-        navigate({
-          to: '/server/$serverId/details/collection/$collectionId/$type',
-          params: {
-            serverId: selectedServer?.id ?? '',
-            collectionId: collection.id,
-            type: type,
-          },
-        })
+        navigate(
+          `/server/${selectedServer?.id}/details/collection/${collection.id}/${type}`,
+        )
       }}
       hidePlayButton
       menuContent={menuContent}

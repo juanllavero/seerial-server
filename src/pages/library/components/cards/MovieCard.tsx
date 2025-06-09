@@ -3,7 +3,7 @@ import { useServerStore } from '@/context/server.context'
 import { Movie } from '@/data/interfaces/Media'
 import { DropdownContent } from '@/data/interfaces/Utils'
 import { getOnlyYear } from '@/utils/ReactUtils'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import ParentCard from './ParentCard'
 
@@ -68,10 +68,7 @@ function MovieCard({ movie }: MovieCardProps) {
       watched={movie.watched}
       action={() => {
         selectMovie(movie.id)
-        navigate({
-          to: '/server/$serverId/details/movie/$movieId',
-          params: { serverId: selectedServer?.id ?? '', movieId: movie.id },
-        })
+        navigate(`/server/${selectedServer?.id}/details/movie/${movie.id}`)
       }}
       hidePlayButton
       menuContent={menuContent}

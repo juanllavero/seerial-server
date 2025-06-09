@@ -1,32 +1,24 @@
 import { useServerStore } from '@/context/server.context'
-import { useLoaderData, useParams } from '@tanstack/react-router'
-import { memo, useEffect, useMemo } from 'react'
+import { useParams } from 'react-router-dom'
+import { memo, useMemo } from 'react'
 import LibraryPageContent from './components/LibraryPageContent'
 
 function LibraryPage() {
-  const { server } = useLoaderData({ from: '/server/$serverId' })
-  const { libraryId } = useParams({
-    from: '/server/$serverId/library/$libraryId',
-  })
-  const { selectServer } = useServerStore()
+  const { libraryId } = useParams()
+  const { selectedServer } = useServerStore()
 
   // Memoize serverIP
-  const serverIP = useMemo(() => server.ip, [server.ip])
-
-  useEffect(() => {
-    if (server) {
-      console.log('selectServer triggered: ', server.id)
-      selectServer(server)
-    }
-  }, [])
+  const serverIP = useMemo(() => selectedServer?.ip, [selectedServer?.ip])
 
   console.log(`LibraryPage [${new Date().toISOString()}]: `, {
     libraryId,
     serverIP,
-    serverId: server.id,
+    serverId: selectedServer?.id,
   })
 
-  return <LibraryPageContent libraryId={libraryId} serverIP={serverIP} />
+  return (
+    <LibraryPageContent libraryId={libraryId ?? ''} serverIP={serverIP ?? ''} />
+  )
 }
 
 export default memo(LibraryPage)

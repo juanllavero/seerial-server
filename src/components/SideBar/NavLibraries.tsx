@@ -20,7 +20,7 @@ import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { Library } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate } from 'react-router-dom'
 import { t } from 'i18next'
 import {
   EditIcon,
@@ -88,13 +88,7 @@ export function NavLibraries() {
 
             if (!selectedServer || !serverStatus) return
 
-            navigate({
-              to: '/server/$serverId/library/$libraryId',
-              params: {
-                serverId: selectedServer.id,
-                libraryId: library.id,
-              },
-            })
+            navigate(`/server/${selectedServer.id}/library/${library.id}`)
           },
         })),
       ]
@@ -127,13 +121,9 @@ export function NavLibraries() {
 
                         if (!selectedServer || !serverStatus) return
 
-                        navigate({
-                          to: '/server/$serverId/library/$libraryId',
-                          params: {
-                            serverId: selectedServer.id,
-                            libraryId: item.id,
-                          },
-                        })
+                        navigate(
+                          `/server/${selectedServer.id}/library/${item.id}`,
+                        )
                       }}
                       style={{
                         color:

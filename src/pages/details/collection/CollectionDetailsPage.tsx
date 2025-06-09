@@ -15,7 +15,7 @@ import AlbumCard from '@/pages/library/components/cards/AlbumCard'
 import MovieCard from '@/pages/library/components/cards/MovieCard'
 import SeriesCard from '@/pages/library/components/cards/SeriesCard'
 import { fetcher } from '@/utils/utils'
-import { useLoaderData, useParams } from '@tanstack/react-router'
+import { useParams } from 'react-router-dom'
 import { Edit, Ellipsis } from 'lucide-react'
 import React, { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -24,16 +24,13 @@ import '../DetailsPage.css'
 import { ContentType, CollectionKey } from '@/types/types'
 import { Skeleton } from '@/components/ui/skeleton'
 function CollectionDetailsPage() {
-  const { collectionId, type } = useParams({
-    from: '/server/$serverId/details/collection/$collectionId/$type',
-  })
-  const { server } = useLoaderData({ from: '/server/$serverId' })
+  const { collectionId, type } = useParams()
   const { wsMessage } = useWebSocketStore()
   const { setCurrentBackground, currentBackground } = useDataStore()
-  const { selectServer, selectedServer } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { t } = useTranslation()
   const isMobile = useIsMobile()
-  const serverIP = server.ip
+  const serverIP = selectedServer?.ip
 
   // Get collection data
   const {
@@ -46,11 +43,11 @@ function CollectionDetailsPage() {
   )
 
   // Update selected server
-  useEffect(() => {
-    if (server !== selectedServer) {
-      selectServer(server)
-    }
-  }, [])
+  // useEffect(() => {
+  //   if (server !== selectedServer) {
+  //     selectServer(server)
+  //   }
+  // }, [])
 
   // Mutate content on ws message
   useEffect(() => {
