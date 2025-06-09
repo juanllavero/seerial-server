@@ -4,7 +4,7 @@ import { useServerStore } from '@/context/server.context'
 import { Collection } from '@/data/interfaces/Media'
 import { DropdownContent } from '@/data/interfaces/Utils'
 import { useNavigate } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
+import { memo, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ParentCard from './ParentCard'
 

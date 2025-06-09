@@ -1,9 +1,11 @@
-import { Settings, ValueOption } from '@/data/interfaces/Utils'
+import { Settings, SettingsSection, ValueOption } from '@/data/interfaces/Utils'
 import { create } from 'zustand'
 
 interface SettingsStore {
   clientSettings: Settings
   serverSettings: Settings
+  settingsSection: SettingsSection
+  setSettingsSection: (section: SettingsSection) => void
   setClientSettings: (settings: Settings) => void
   setServerSettings: (settings: Settings) => void
   getAllServerSettings: (serverIP: string) => Promise<any>
@@ -26,6 +28,11 @@ interface SettingsStore {
 export const useSettingsStore = create<SettingsStore>((set) => ({
   clientSettings: {},
   serverSettings: {},
+  settingsSection: SettingsSection.ClientGeneral,
+  setSettingsSection: (section: SettingsSection) =>
+    set((state) => ({
+      settingsSection: section,
+    })),
   setClientSettings: (settings: Settings) =>
     set((state) => ({
       clientSettings: settings,

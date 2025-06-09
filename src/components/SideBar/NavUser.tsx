@@ -16,11 +16,22 @@ import {
 import { useAuth } from '@/context/auth.context'
 import { Bell, ChevronsUpDown, LogOut, Settings, UserRound } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
+import { useNavigate } from '@tanstack/react-router'
 export function NavUser() {
-  const { user } = useAuth()
+  const navigate = useNavigate()
+  const { user, logout } = useAuth()
   const { isMobile } = useSidebar()
 
   if (!user) return null
+
+  const handleGoToSettings = () => {
+    navigate({ to: '/settings' })
+  }
+
+  const handleLogout = () => {
+    logout()
+    navigate({ to: '/login' })
+  }
 
   return (
     <SidebarMenu>
@@ -62,7 +73,7 @@ export function NavUser() {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleGoToSettings}>
                 <Settings />
                 Settings
               </DropdownMenuItem>
@@ -80,7 +91,7 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <LogOut />
               Log out
             </DropdownMenuItem>

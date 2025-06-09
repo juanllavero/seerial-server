@@ -1,7 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton'
 import { useServerStore } from '@/context/server.context'
-import { useCardWidth } from '@/hooks/useCardWidth'
-import { useEffect, useState } from 'react'
+import { memo, useEffect, useMemo, useState } from 'react'
 
 interface LazyImageProps {
   src?: string
@@ -17,7 +16,7 @@ interface LazyImageProps {
   className?: string
 }
 
-export default function LazyImage({
+function LazyImage({
   src,
   url,
   alt = '',
@@ -31,12 +30,14 @@ export default function LazyImage({
   className,
 }: LazyImageProps) {
   const { selectedServer } = useServerStore()
+  const serverIP = useMemo(() => selectedServer?.ip, [selectedServer?.ip])
+
   const [loaded, setLoaded] = useState(false)
   const [imageSrc, setImageSrc] = useState(
     url
       ? url.startsWith('http2')
         ? url
-        : `https://${selectedServer?.ip}/${url.replace('resources/img', 'img')}`
+        : `https://${serverIP}/${url.replace('resources/img', 'img')}`
       : (src ?? errorSrc),
   )
   const [hasError, setHasError] = useState(false) // New state to track errors
@@ -45,9 +46,9 @@ export default function LazyImage({
     const newSrc = url
       ? url.startsWith('http2')
         ? url
-        : `https://${selectedServer?.ip}/${url.replace('resources/img', 'img')}`
+        : `https://${serverIP}/${url.replace('resources/img', 'img')}`
       : src
-    setImageSrc(newSrc ?? errorSrc)
+    if (imageSrc !== newSrc) setImageSrc(newSrc ?? errorSrc)
     setLoaded(false) // Reset loaded to show skeleton while loading new image
     setHasError(false) // Reset error state
   }, [url, src, selectedServer])
@@ -107,3 +108,21 @@ export default function LazyImage({
     </div>
   )
 }
+
+function areEqual(prevProps: LazyImageProps, nextProps: LazyImageProps) {
+  return (
+    prevProps.src === nextProps.src &&
+    prevProps.url === nextProps.url &&
+    prevProps.alt === nextProps.alt &&
+    prevProps.width === nextProps.width &&
+    prevProps.height === nextProps.height &&
+    prevProps.maxHeight === nextProps.maxHeight &&
+    prevProps.aspectRatio === nextProps.aspectRatio &&
+    prevProps.rounded === nextProps.rounded &&
+    prevProps.errorSrc === nextProps.errorSrc &&
+    prevProps.className === nextProps.className &&
+    prevProps.onLoad === nextProps.onLoad
+  )
+}
+
+export default memo(LazyImage, areEqual)

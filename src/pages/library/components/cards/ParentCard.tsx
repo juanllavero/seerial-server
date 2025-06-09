@@ -3,8 +3,7 @@ import { useIsMobile } from '@/components/hooks/use-mobile'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import { DropdownContent } from '@/data/interfaces/Utils'
 import { useCardWidth } from '@/hooks/useCardWidth'
-import { title } from 'process'
-import React from 'react'
+import React, { memo } from 'react'
 
 interface CardProps {
   type: string
@@ -39,7 +38,9 @@ function ParentCard({
 }: CardProps) {
   const { cardWidth } = useCardWidth()
   const isMobile = useIsMobile()
-  const isTablet = useIsTablet()
+
+  // console.log('Loaded ParentCard: ', itemKey)
+
   return (
     <Card
       itemKey={itemKey}
@@ -61,4 +62,4 @@ function ParentCard({
   )
 }
 
-export default ParentCard
+export default memo(ParentCard)

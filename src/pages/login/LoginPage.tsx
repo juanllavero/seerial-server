@@ -3,12 +3,14 @@ import FlexBox from '@/components/ui/FlexBox'
 import { getToken } from '@/lib/auth'
 import { useNavigate } from '@tanstack/react-router'
 import Login from './components/Login'
+import { useAuth } from '@/context/auth.context'
 
 function LoginPage() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const token = getToken()
 
-  if (token) navigate({ to: '/home' })
+  if (token || user) navigate({ to: '/home' })
 
   return (
     <FlexBox width={'100%'} height={'100dvh'} justify="center" align="center">

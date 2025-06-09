@@ -9,7 +9,6 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Toaster } from 'sonner'
 import '../styles/utils.css'
 import './BaseLayout.css'
-import { useAuth } from '@/context/auth.context'
 
 export default function BaseLayout({
   children,

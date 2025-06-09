@@ -5,11 +5,10 @@ import useSWR from 'swr'
 import LibraryContent from './LibraryContent'
 import LibraryPageSkeleton from './LibraryPageSkeleton'
 import { MessageType } from '@/data/enums/WSMessage'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import useDataStore from '@/context/data.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import NoContent from '@/pages/home/components/NoContent'
-import Loading from '@/components/Loading'
 
 interface LibraryPageContentProps {
   libraryId: string
@@ -26,16 +25,22 @@ function LibraryPageContent({ libraryId, serverIP }: LibraryPageContentProps) {
     mutate,
   } = useSWR<Library>(`https://${serverIP}/library?id=${libraryId}`, fetcher)
 
-  //console.log('Content')
+  // Memoize library to prevent unnecessary re-renders
+  const memoizedLibrary = useMemo(() => library, [library?.id])
 
   useEffect(() => {
     if (library && library.id !== selectedLibraryId) {
+      console.log('selectLibrary triggered:', {
+        libraryId: library.id,
+        selectedLibraryId,
+      })
       selectLibrary(library.id)
     }
-  }, [library, selectLibrary, selectedLibraryId])
+  }, [library?.id, selectedLibraryId, selectLibrary])
 
   // Mutate content on ws message
   useEffect(() => {
+    console.log('wsMessage:', wsMessage)
     if (wsMessage === MessageType.MUTATE_LIBRARY) {
       mutate()
     }
@@ -46,11 +51,11 @@ function LibraryPageContent({ libraryId, serverIP }: LibraryPageContentProps) {
     //return <Loading />
   }
 
-  if (!library) {
+  if (!memoizedLibrary) {
     return <NoContent />
   }
 
-  return <LibraryContent library={library} />
+  return <LibraryContent library={memoizedLibrary} />
 }
 
 export default LibraryPageContent

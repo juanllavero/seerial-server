@@ -7,7 +7,6 @@ import { useEffect, useState } from 'react'
 import ClientGeneral from './components/ClientGeneral'
 import ClientPlayer from './components/ClientPlayer'
 import ClientQuality from './components/ClientQuality'
-import LeftPanel from './components/leftPanel/LeftPanel'
 import ServerGeneral from './components/ServerGeneral'
 import ServerLanguages from './components/ServerLanguages'
 import ServerLibraries from './components/ServerLibraries'
@@ -21,9 +20,7 @@ function SettingsPage() {
     clientSettings,
     serverSettings,
   } = useSettingsStore()
-  const [currentSection, setCurrentSection] = useState<SettingsSection>(
-    SettingsSection.ServerGeneral,
-  )
+  const { settingsSection } = useSettingsStore()
   const isMobile = useIsMobile()
 
   useEffect(() => {
@@ -39,33 +36,22 @@ function SettingsPage() {
     Object.keys(clientSettings).length > 0
 
   return (
-    <FlexBox
-      gap={isMobile ? 0.5 : 4}
-      padding={isMobile ? '8rem 1rem' : '10rem 3rem'}
-    >
-      {/* Left Panel */}
-      <LeftPanel
-        isLoaded={isLoaded}
-        currentSection={currentSection}
-        setCurrentSection={setCurrentSection}
-      />
-
-      {/* Right Panel */}
+    <FlexBox gap={isMobile ? 0.5 : 4} padding={isMobile ? '1rem' : '2rem'}>
       {!isLoaded ? (
         <ServerGeneral isLoaded={isLoaded} />
       ) : (
         <FlexBox scroll="vertical">
-          {currentSection === SettingsSection.ClientGeneral ? (
+          {settingsSection === SettingsSection.ClientGeneral ? (
             <ClientGeneral />
-          ) : currentSection === SettingsSection.ClientQuality ? (
+          ) : settingsSection === SettingsSection.ClientQuality ? (
             <ClientQuality />
-          ) : currentSection === SettingsSection.ClientPlayer ? (
+          ) : settingsSection === SettingsSection.ClientPlayer ? (
             <ClientPlayer />
-          ) : currentSection === SettingsSection.ServerGeneral ? (
+          ) : settingsSection === SettingsSection.ServerGeneral ? (
             <ServerGeneral isLoaded={isLoaded} />
-          ) : currentSection === SettingsSection.ServerLanguages ? (
+          ) : settingsSection === SettingsSection.ServerLanguages ? (
             <ServerLanguages />
-          ) : currentSection === SettingsSection.ServerTranscode ? (
+          ) : settingsSection === SettingsSection.ServerTranscode ? (
             <ServerTranscode />
           ) : (
             <ServerLibraries />

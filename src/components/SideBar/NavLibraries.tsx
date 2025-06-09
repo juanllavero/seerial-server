@@ -62,23 +62,12 @@ export function NavLibraries() {
     },
   )
 
-  const home = {
-    id: '0',
-    name: t('home'),
-    logo: House,
-    action: () => {
-      navigate({ to: '/home' })
-    },
-  }
-
-  const [activeItem, setActiveItem] = React.useState<Item>(home)
+  const [activeItem, setActiveItem] = React.useState<Item | null>(null)
 
   React.useEffect(() => {
-    if (!selectedLibraryId) {
-      setActiveItem(home)
-    } else if (librariesItems) {
+    if (librariesItems) {
       setActiveItem(
-        librariesItems.find((item) => item.id === selectedLibraryId) || home,
+        librariesItems.find((item) => item.id === selectedLibraryId) || null,
       )
     }
   }, [selectedLibraryId])
@@ -113,40 +102,6 @@ export function NavLibraries() {
 
   return (
     <>
-      {/* Home */}
-      <SidebarGroup>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip={home.name}>
-              <a
-                href={''}
-                className={`flex items-center gap-2 ${
-                  activeItem.id === home.id ? 'bg-accent' : ''
-                }`}
-                onClick={(e) => {
-                  e.preventDefault()
-                  setActiveItem(home)
-                  navigate({ to: '/home' })
-                }}
-                style={{
-                  color: activeItem.id === home.id ? 'var(--app-color)' : '',
-                }}
-              >
-                <home.logo />
-                <span
-                  className="font-semibold"
-                  style={{
-                    color: activeItem.id === home.id ? 'var(--app-color)' : '',
-                  }}
-                >
-                  {home.name}
-                </span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarGroup>
-
       {isLoading || !libraries ? null : (
         <>
           {/* Separator */}
@@ -162,7 +117,9 @@ export function NavLibraries() {
                     <a
                       href={''}
                       className={`flex items-center gap-2 ${
-                        activeItem.id === item.id ? 'bg-accent' : ''
+                        activeItem && activeItem.id === item.id
+                          ? 'bg-accent'
+                          : ''
                       }`}
                       onClick={(e) => {
                         e.preventDefault()
@@ -180,7 +137,9 @@ export function NavLibraries() {
                       }}
                       style={{
                         color:
-                          activeItem.id === item.id ? 'var(--app-color)' : '',
+                          activeItem && activeItem.id === item.id
+                            ? 'var(--app-color)'
+                            : '',
                       }}
                     >
                       <item.logo />
@@ -188,7 +147,9 @@ export function NavLibraries() {
                         className="font-semibold"
                         style={{
                           color:
-                            activeItem.id === item.id ? 'var(--app-color)' : '',
+                            activeItem && activeItem.id === item.id
+                              ? 'var(--app-color)'
+                              : '',
                         }}
                       >
                         {item.name}

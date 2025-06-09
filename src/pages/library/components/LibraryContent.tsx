@@ -1,5 +1,4 @@
 import { useIsMobile } from '@/components/hooks/use-mobile'
-import { useIsTablet } from '@/components/hooks/use-tablet'
 import { Library } from '@/data/interfaces/Media'
 import { useCardWidth } from '@/hooks/useCardWidth'
 import AlbumList from './lists/AlbumList'
@@ -13,7 +12,6 @@ interface LibraryContentProps {
 
 function LibraryContent({ library }: LibraryContentProps) {
   const isMobile = useIsMobile()
-  const isTablet = useIsTablet()
   const { cardWidth } = useCardWidth()
 
   const ItemsList = () =>
@@ -24,6 +22,8 @@ function LibraryContent({ library }: LibraryContentProps) {
     ) : (
       <MoviesList library={library} />
     )
+
+  console.log('LibraryContent: ', library.id)
 
   return (
     <Grid

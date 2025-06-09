@@ -6,7 +6,6 @@ import { getOnlyYear } from '@/utils/ReactUtils'
 import { useNavigate } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import ParentCard from './ParentCard'
-import { useCardWidth } from '@/hooks/useCardWidth'
 
 interface MovieCardProps {
   movie: Movie
@@ -56,6 +55,8 @@ function MovieCard({ movie }: MovieCardProps) {
       },
     ],
   }
+
+  // console.log('MovieCard: ', movie.id)
 
   return (
     <ParentCard

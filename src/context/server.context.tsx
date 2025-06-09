@@ -22,7 +22,12 @@ export const useServerStore = create<ServerState>((set, get) => ({
   gettingApiKeyStatus: false,
 
   selectServer: (server) => {
-    set({ selectedServer: server })
+    set((state) => {
+      if (server?.id === state.selectedServer?.id) {
+        return state
+      }
+      return { selectedServer: server }
+    })
     get().getServerStatus()
   },
 
