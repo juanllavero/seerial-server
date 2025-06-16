@@ -1,16 +1,14 @@
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
-import { Library } from '@/data/interfaces/Media'
-import { useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import { mutate } from 'swr'
 import { ModalWrapper } from '../../ModalWrapper'
 import AdvancedTabContent from './AdvancedTabContent'
 import FoldersTabContent from './FoldersTabContent'
 import GeneralTabContent from './GeneralTabContent'
-import { set } from 'video.js/dist/types/tech/middleware'
 
 function LibraryDialog() {
   const { t } = useTranslation()
@@ -188,6 +186,7 @@ function LibraryDialog() {
           ),
         },
       ]}
+      width={'30rem'}
       isOpen={libraryDialog.isOpen}
       close={closeLibraryDialog}
       hideButtons

@@ -116,6 +116,7 @@ function AlbumDialog() {
           ),
         },
       ]}
+      width="50rem"
       isOpen={albumDialog.isOpen}
       close={closeAlbumDialog}
       onAccept={handleEditAlbum}

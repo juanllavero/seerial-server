@@ -1,10 +1,10 @@
 import { useIsMobile } from '@/components/hooks/use-mobile'
-import Loading from '@/components/Loading'
-import NotFound from '@/components/NotFound'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import LazyImage from '@/components/ui/LazyImage'
+import { Skeleton } from '@/components/ui/skeleton'
 import useDataStore from '@/context/data.context'
+import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
@@ -14,18 +14,18 @@ import HorizontalList from '@/pages/home/components/HorizontalList'
 import AlbumCard from '@/pages/library/components/cards/AlbumCard'
 import MovieCard from '@/pages/library/components/cards/MovieCard'
 import SeriesCard from '@/pages/library/components/cards/SeriesCard'
+import { CollectionKey, ContentType } from '@/types/types'
 import { fetcher } from '@/utils/utils'
-import { useParams } from 'react-router-dom'
 import { Edit, Ellipsis } from 'lucide-react'
 import React, { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useParams } from 'react-router-dom'
 import useSWR from 'swr'
 import '../DetailsPage.css'
-import { ContentType, CollectionKey } from '@/types/types'
-import { Skeleton } from '@/components/ui/skeleton'
 function CollectionDetailsPage() {
   const { collectionId, type } = useParams()
   const { wsMessage } = useWebSocketStore()
+  const { openCollectionDialog } = useDialogStore()
   const { setCurrentBackground, currentBackground } = useDataStore()
   const { selectedServer } = useServerStore()
   const { t } = useTranslation()
@@ -170,7 +170,15 @@ function CollectionDetailsPage() {
             </span>
           )}
           <FlexBox gap={1} wrap="wrap">
-            <Button variant={'ghost'} title={t('editButton')}>
+            <Button
+              variant={'ghost'}
+              title={t('editButton')}
+              onClick={() => {
+                if (collection) {
+                  openCollectionDialog(collection)
+                }
+              }}
+            >
               <Edit />
             </Button>
             <Button

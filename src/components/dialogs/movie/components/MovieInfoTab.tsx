@@ -2,7 +2,6 @@ import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import FlexBox from '@/components/ui/FlexBox'
 import TagInput from '@/components/ui/tags-input'
-import React from 'react'
 import { useTranslation } from 'react-i18next'
 import LockInput from '../../components/LockInput'
 
@@ -69,7 +68,6 @@ function MovieInfoTab({
       justify="start"
       align="center"
       height={isTablet ? '25rem' : '35rem'}
-      width={isTablet ? '100%' : '50rem'}
       hideScrollbar={isTablet}
       scroll="vertical"
     >

@@ -2,34 +2,29 @@ import { ModalWrapper } from '@/components/ModalWrapper'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
-import { Movie } from '@/data/interfaces/Media'
+import { Series } from '@/data/interfaces/Media'
 import { showToast } from '@/utils/ReactUtils'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
 import ImageListTab from '../components/ImageListTab'
-import MovieInfoTab from './components/MovieInfoTab'
-import MovieMediaTab from './components/MovieMediaTab'
-import MovieTagsTab from './components/MovieTagsTab'
+import SeriesInfoTab from './components/SeriesInfoTab'
+import SeriesMediaTab from './components/SeriesMediaTab'
+import SeriesTagsTab from './components/SeriesTagsTab'
 
-function MovieDialog() {
+function SeriesDialog() {
   const { t } = useTranslation()
   const { selectedServer } = useServerStore()
   const { connectWS } = useWebSocketStore()
-  const { movieDialog, closeMovieDialog } = useDialogStore()
+  const { seriesDialog, closeSeriesDialog } = useDialogStore()
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 
-  const [movie, setMovie] = useState<Movie | undefined>(undefined)
+  const [series, setSeries] = useState<Series | undefined>(undefined)
 
   // Logos
   const [logos, setLogos] = useState<string[]>([])
   const [localLogoFolder, setLocalLogoFolder] = useState<string>('')
   const [selectedLogo, setSelectedLogo] = useState<string>('')
-
-  // Background
-  const [backgrounds, setBackgrounds] = useState<string[]>([])
-  const [localBackgroundFolder, setLocalBackgroundFolder] = useState<string>('')
-  const [selectedBackground, setSelectedBackground] = useState<string>('')
 
   // Posters
   const [posters, setPosters] = useState<string[]>([])
@@ -46,8 +41,6 @@ function MovieDialog() {
   const [genresLock, setGenresLock] = useState<boolean>(false)
   const [creatorLock, setCreatorLock] = useState<boolean>(false)
   const [musicLock, setMusicLock] = useState<boolean>(false)
-  const [directedByLock, setDirectedByLock] = useState<boolean>(false)
-  const [writtenByLock, setWrittenByLock] = useState<boolean>(false)
 
   const [name, setName] = useState<string>('')
   const [order, setOrder] = useState<string>('')
@@ -58,8 +51,6 @@ function MovieDialog() {
   const [genres, setGenres] = useState<string[]>([''])
   const [creator, setCreator] = useState<string[]>([''])
   const [music, setMusic] = useState<string[]>([''])
-  const [directedBy, setDirectedBy] = useState<string[]>([''])
-  const [writtenBy, setWrittenBy] = useState<string[]>([''])
   const [videoSrc, setVideoSrc] = useState<string>('')
   const [musicSrc, setMusicSrc] = useState<string>('')
   const [extVideoSrc, setExtVideoSrc] = useState<string>('')
@@ -67,44 +58,37 @@ function MovieDialog() {
   //#endregion
 
   useEffect(() => {
-    if (movieDialog && movieDialog.movieToEdit) {
-      setNameLock(movieDialog.movieToEdit.nameLock || false)
-      setYearLock(movieDialog.movieToEdit.yearLock || false)
-      setOverviewLock(movieDialog.movieToEdit.overviewLock || false)
-      setTaglineLock(movieDialog.movieToEdit.taglineLock || false)
-      setStudiosLock(movieDialog.movieToEdit.productionStudiosLock || false)
-      setGenresLock(movieDialog.movieToEdit.genresLock || false)
-      setCreatorLock(movieDialog.movieToEdit.creatorLock || false)
-      setMusicLock(movieDialog.movieToEdit.musicComposerLock || false)
-      setDirectedByLock(movieDialog.movieToEdit.directedByLock || false)
-      setWrittenByLock(movieDialog.movieToEdit.writtenByLock || false)
-      setName(movieDialog.movieToEdit.name)
-      setYear(movieDialog.movieToEdit.year)
-      setOrder(movieDialog.movieToEdit.order.toString())
-      setOverview(movieDialog.movieToEdit.overview)
-      setTagline(movieDialog.movieToEdit.tagline)
-      setStudios(movieDialog.movieToEdit.productionStudios || [])
-      setGenres(movieDialog.movieToEdit.genres || [])
-      setCreator(movieDialog.movieToEdit.creator || [])
-      setMusic(movieDialog.movieToEdit.musicComposer || [])
-      setDirectedBy(movieDialog.movieToEdit.directedBy || [])
-      setWrittenBy(movieDialog.movieToEdit.writtenBy || [])
+    if (seriesDialog && seriesDialog.seriesToEdit) {
+      setNameLock(seriesDialog.seriesToEdit.nameLock || false)
+      setYearLock(seriesDialog.seriesToEdit.yearLock || false)
+      setOverviewLock(seriesDialog.seriesToEdit.overviewLock || false)
+      setTaglineLock(seriesDialog.seriesToEdit.taglineLock || false)
+      setStudiosLock(seriesDialog.seriesToEdit.productionStudiosLock || false)
+      setGenresLock(seriesDialog.seriesToEdit.genresLock || false)
+      setCreatorLock(seriesDialog.seriesToEdit.creatorLock || false)
+      setMusicLock(seriesDialog.seriesToEdit.musicComposerLock || false)
+      setName(seriesDialog.seriesToEdit.name)
+      setYear(seriesDialog.seriesToEdit.year)
+      setOrder(seriesDialog.seriesToEdit.order.toString())
+      setOverview(seriesDialog.seriesToEdit.overview)
+      setTagline(seriesDialog.seriesToEdit.tagline)
+      setStudios(seriesDialog.seriesToEdit.productionStudios || [])
+      setGenres(seriesDialog.seriesToEdit.genres || [])
+      setCreator(seriesDialog.seriesToEdit.creator || [])
+      setMusic(seriesDialog.seriesToEdit.musicComposer || [])
 
-      setMovie(movieDialog.movieToEdit)
-      setLogos(movieDialog.movieToEdit.logosUrls || [])
-      setBackgrounds(movieDialog.movieToEdit.backgroundsUrls || [])
-      setPosters(movieDialog.movieToEdit.coversUrls || [])
-      setSelectedLogo(movieDialog.movieToEdit.logoSrc || '')
-      setSelectedPoster(movieDialog.movieToEdit.coverSrc || '')
-      setSelectedBackground(movieDialog.movieToEdit.backgroundSrc || '')
-      setLocalLogoFolder(`img/logos/${movieDialog.movieToEdit.id}`)
-      setLocalBackgroundFolder(`img/backgrounds/${movieDialog.movieToEdit.id}`)
-      setLocalPosterFolder(`img/posters/${movieDialog.movieToEdit.id}`)
+      setSeries(seriesDialog.seriesToEdit)
+      setLogos(seriesDialog.seriesToEdit.logosUrls || [])
+      setPosters(seriesDialog.seriesToEdit.coversUrls || [])
+      setSelectedLogo(seriesDialog.seriesToEdit.logoSrc || '')
+      setSelectedPoster(seriesDialog.seriesToEdit.coverSrc || '')
+      setLocalLogoFolder(`img/logos/${seriesDialog.seriesToEdit.id}`)
+      setLocalPosterFolder(`img/posters/${seriesDialog.seriesToEdit.id}`)
       setSelectedTab(t('generalButton'))
     }
-  }, [movieDialog])
+  }, [seriesDialog])
 
-  if (!movie) return null
+  if (!series) return null
 
   const handleEditMovie = async () => {
     if (!selectedServer) return
@@ -113,19 +97,18 @@ function MovieDialog() {
 
     await connectWS(serverIP)
 
-    const response = await fetch(`https://${serverIP}/movie`, {
+    const response = await fetch(`https://${serverIP}/series`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         updatedMovie: {
-          ...movie,
+          ...series,
           name: name,
           year: year,
           overview: overview,
-          directedBy: directedBy,
-          writtenBy: writtenBy,
+          studios: studios,
           nameLock: nameLock,
           yearLock: yearLock,
           overviewLock: overviewLock,
@@ -134,17 +117,19 @@ function MovieDialog() {
     })
 
     if (!response.ok) {
-      showToast('error', 'Error updating movie')
+      showToast('error', 'Error updating series')
       return
     }
 
-    mutate((key: string) => key.startsWith(`https://${serverIP}/details/movie`))
+    mutate((key: string) =>
+      key.startsWith(`https://${serverIP}/details/series`),
+    )
 
-    closeMovieDialog()
+    closeSeriesDialog()
   }
 
   const getWindowTitle = () => {
-    return `${t('editButton')} ${movie.name}`
+    return `${t('editButton')} ${series.name}`
   }
 
   return (
@@ -154,7 +139,7 @@ function MovieDialog() {
         {
           title: t('generalButton'),
           content: (
-            <MovieInfoTab
+            <SeriesInfoTab
               name={name}
               setName={setName}
               year={year}
@@ -185,15 +170,13 @@ function MovieDialog() {
         {
           title: t('tags'),
           content: (
-            <MovieTagsTab
+            <SeriesTagsTab
               genres={genres}
               setGenres={setGenres}
               creator={creator}
               setCreator={setCreator}
-              directedBy={directedBy}
-              setDirectedBy={setDirectedBy}
-              writtenBy={writtenBy}
-              setWrittenBy={setWrittenBy}
+              studios={studios}
+              setStudios={setStudios}
               music={music}
               setMusic={setMusic}
             />
@@ -201,7 +184,7 @@ function MovieDialog() {
         },
         {
           title: t('media'),
-          content: <MovieMediaTab />,
+          content: <SeriesMediaTab />,
         },
         {
           title: t('logosButton'),
@@ -211,17 +194,6 @@ function MovieDialog() {
               localFolder={localLogoFolder}
               selectImage={setSelectedLogo}
               selectedImage={selectedLogo}
-            />
-          ),
-        },
-        {
-          title: t('backgroundsButton'),
-          content: (
-            <ImageListTab
-              imagesList={backgrounds}
-              localFolder={localBackgroundFolder}
-              selectImage={setSelectedBackground}
-              selectedImage={selectedBackground}
             />
           ),
         },
@@ -239,8 +211,8 @@ function MovieDialog() {
         },
       ]}
       width="50rem"
-      isOpen={movieDialog.isOpen}
-      close={closeMovieDialog}
+      isOpen={seriesDialog.isOpen}
+      close={closeSeriesDialog}
       onAccept={handleEditMovie}
       activeTab={selectedTab}
       onTabChange={(newTab) => setSelectedTab(newTab)}
@@ -248,4 +220,4 @@ function MovieDialog() {
   )
 }
 
-export default MovieDialog
+export default SeriesDialog

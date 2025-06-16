@@ -1,4 +1,3 @@
-import React from 'react'
 import AlbumDialog from './album/AlbumDialog'
 import CollectionDialog from './collection/CollectionDialog'
 import EpisodeDialog from './episode/EpisodeDialog'
@@ -8,6 +7,7 @@ import LibraryDialog from './library/LibraryDialog'
 import MovieDialog from './movie/MovieDialog'
 import RemoveLibraryDialog from './remove/RemoveLibraryDialog'
 import SeasonDialog from './season/SeasonDialog'
+import SeriesDialog from './series/SeriesDialog'
 
 function DialogManager() {
   return (
@@ -23,6 +23,7 @@ function DialogManager() {
       <MovieDialog />
 
       {/* Series Dialogs */}
+      <SeriesDialog />
 
       {/* Season Dialogs */}
       <SeasonDialog />

@@ -155,7 +155,7 @@ function FoldersDialogContent({
   }
 
   return (
-    <FlexBox direction="column" gap={1} width={'30rem'} height={'32rem'}>
+    <FlexBox direction="column" gap={1} height={'32rem'}>
       <FlexBox width={'100%'}>
         <LabeledInputWrapper label={t('addFolder')}>
           <Input

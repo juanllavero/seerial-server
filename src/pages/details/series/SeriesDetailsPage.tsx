@@ -4,25 +4,25 @@ import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { MarkWatchedIcon, UnmarkWatchedIcon } from '@/components/ui/IconLibrary'
 import LazyImage from '@/components/ui/LazyImage'
+import { Skeleton } from '@/components/ui/skeleton'
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
+import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
 import { Series } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
-import { useParams } from 'react-router-dom'
 import { t } from 'i18next'
 import { Edit, Ellipsis } from 'lucide-react'
 import { useEffect } from 'react'
+import { useParams } from 'react-router-dom'
 import useSWR from 'swr'
 import CastList from '../components/CastList'
 import SeasonContent from '../components/SeasonsContent'
 import '../DetailsPage.css'
-import { Skeleton } from '@/components/ui/skeleton'
 import MyListButton from './components/MyListButton'
 import PlayButton from './components/PlayButton'
-import { useServerStore } from '@/context/server.context'
 
 function SeriesDetailsPage() {
   const { seriesId } = useParams()
@@ -33,7 +33,7 @@ function SeriesDetailsPage() {
     setCurrentBackground,
     currentBackground,
   } = useDataStore()
-  const { selectedServer, selectServer } = useServerStore()
+  const { selectedServer } = useServerStore()
   const { clientSettings } = useSettingsStore()
   const { openSeasonDialog } = useDialogStore()
   const serverIP = selectedServer?.ip

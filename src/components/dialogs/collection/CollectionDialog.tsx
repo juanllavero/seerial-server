@@ -109,7 +109,7 @@ function CollectionDialog() {
           ),
         },
         {
-          title: t('coversButton'),
+          title: t('postersButton'),
           content: (
             <ImageListTab
               imagesList={covers}
@@ -131,6 +131,7 @@ function CollectionDialog() {
           ),
         },
       ]}
+      width="50rem"
       isOpen={collectionDialog.isOpen}
       close={closeCollectionDialog}
       onAccept={handleEditCollection}

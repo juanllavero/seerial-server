@@ -1,11 +1,14 @@
+import { Button } from '@/components/ui/button'
 import useDataStore from '@/context/data.context'
+import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { Series } from '@/data/interfaces/Media'
 import { DropdownContent } from '@/data/interfaces/Utils'
 import { getOnlyYear } from '@/utils/ReactUtils'
-import { useNavigate } from 'react-router-dom'
+import { Pencil } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import ParentCard from './ParentCard'
 
 interface SeriesCardProps {
@@ -16,6 +19,7 @@ function SeriesCard({ series }: SeriesCardProps) {
   const { t } = useTranslation()
   const { selectedServer } = useServerStore()
   const { selectSeries } = useDataStore()
+  const { openSeriesDialog } = useDialogStore()
   const [remainingEpisodes, setRemainingEpisodes] = useState<
     number | undefined
   >(undefined)
@@ -92,7 +96,18 @@ function SeriesCard({ series }: SeriesCardProps) {
       hidePlayButton
       cornerNumber={remainingEpisodes}
       menuContent={menuContent}
-      editModal={<></>}
+      editModal={
+        <Button
+          variant={'ghost'}
+          size={'icon'}
+          onClick={(e) => {
+            e.stopPropagation()
+            openSeriesDialog(series)
+          }}
+        >
+          <Pencil size={16} />
+        </Button>
+      }
       errorSrc="/img/fileNotFound.jpg"
     />
   )

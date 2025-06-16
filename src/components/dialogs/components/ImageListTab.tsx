@@ -1,5 +1,6 @@
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { useIsTablet } from '@/components/hooks/use-tablet'
+import Loading from '@/components/Loading'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import Grid from '@/components/ui/Grid'
@@ -7,9 +8,16 @@ import { Input } from '@/components/ui/input'
 import LazyImage from '@/components/ui/LazyImage'
 import { useServerStore } from '@/context/server.context'
 import { generateRandoumUUID, showToast } from '@/utils/ReactUtils'
+import { fetcher } from '@/utils/utils'
 import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import useSWR from 'swr'
 import './ImageListTab.css'
+
+interface LocalImage {
+  name: string
+  url: string
+}
 
 interface ImageListTabProps {
   imagesList: string[]
@@ -29,9 +37,7 @@ function ImageListTab({
   const { t } = useTranslation()
   const { selectedServer } = useServerStore()
   const [loaded, setLoaded] = useState(false)
-  const [localImages, setLocalImages] = useState<
-    { name: string; url: string }[]
-  >([])
+  //const [localImages, setLocalImages] = useState<LocalImage[]>([])
   const [pastingUrl, setPastingUrl] = useState<boolean>(false)
   const [urlToDownload, setUrlToDownload] = useState<string>('')
   const isTablet = useIsTablet()
@@ -44,23 +50,30 @@ function ImageListTab({
   // Reference to hidden file input
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    const fetchLocalImages = async () => {
-      try {
-        const response = await fetch(
-          `https://${selectedServer?.ip}/images?path=${localFolder}`,
-        )
-        const data = await response.json()
-        setLocalImages(data)
-        setLoaded(true)
-      } catch (error) {
-        setLocalImages([])
-        setLoaded(true)
-      }
-    }
+  const { data: localImages, isLoading } = useSWR<LocalImage[]>(
+    localFolder
+      ? `https://${selectedServer?.ip}/images?path=${localFolder}`
+      : null,
+    fetcher,
+  )
 
-    if (localFolder && !isUploading) fetchLocalImages()
-  }, [selectedServer, localFolder, isUploading])
+  // useEffect(() => {
+  //   const fetchLocalImages = async () => {
+  //     try {
+  //       const response = await fetch(
+  //         `https://${selectedServer?.ip}/images?path=${localFolder}`,
+  //       )
+  //       const data = await response.json()
+  //       setLocalImages(data)
+  //       setLoaded(true)
+  //     } catch (error) {
+  //       setLocalImages([])
+  //       setLoaded(true)
+  //     }
+  //   }
+
+  //   if (localFolder && !isUploading) fetchLocalImages()
+  // }, [selectedServer, localFolder, isUploading])
 
   const handleImageUpload = () => {
     setImageUrl(null)
@@ -161,13 +174,16 @@ function ImageListTab({
     }
   }, [imageUrl])
 
+  if (isLoading) {
+    return (
+      <FlexBox direction="column" gap={1} height={isTablet ? '25rem' : '35rem'}>
+        <Loading />
+      </FlexBox>
+    )
+  }
+
   return (
-    <FlexBox
-      direction="column"
-      gap={1}
-      height={isTablet ? '25rem' : '35rem'}
-      width={isTablet ? '100%' : '50rem'}
-    >
+    <FlexBox direction="column" gap={1} height={isTablet ? '25rem' : '35rem'}>
       <FlexBox
         gap={1}
         justify="center"

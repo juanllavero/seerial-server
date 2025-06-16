@@ -39,6 +39,7 @@ interface ModalWrapperProps {
   onAccept?: () => void
   openDialog?: () => void
   activeTab?: string
+  width?: string
   onTabChange?: (tab: string) => void
 }
 
@@ -53,6 +54,7 @@ export function ModalWrapper({
   openDialog,
   activeTab,
   onTabChange,
+  width = 'auto',
 }: ModalWrapperProps) {
   const { t } = useTranslation()
   const [open, setOpen] = React.useState(false)
@@ -75,7 +77,7 @@ export function ModalWrapper({
     }
   }
 
-  if (isTablet) {
+  if (isTablet || isMobile) {
     return (
       <Drawer
         open={isOpen ?? open}
@@ -119,6 +121,10 @@ export function ModalWrapper({
                     key={tab.title}
                     value={tab.title}
                     className="py-4"
+                    style={{
+                      width: '100%',
+                      justifyContent: 'center',
+                    }}
                   >
                     {Array.isArray(tab.content)
                       ? tab.content.map((item, index) => (
@@ -213,7 +219,15 @@ export function ModalWrapper({
             {tabs
               .filter((tab) => !tab.hidden)
               .map((tab) => (
-                <TabsContent key={tab.title} value={tab.title} className="py-4">
+                <TabsContent
+                  key={tab.title}
+                  value={tab.title}
+                  className="py-4"
+                  style={{
+                    width: width,
+                    justifyContent: 'left',
+                  }}
+                >
                   {Array.isArray(tab.content)
                     ? tab.content.map((item, index) => (
                         <div key={index}>{item}</div>

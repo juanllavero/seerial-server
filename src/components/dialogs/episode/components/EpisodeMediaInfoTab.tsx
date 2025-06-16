@@ -241,7 +241,6 @@ function EpisodeMediaInfoTab({ video, setEpisode }: EpisodeMediaInfoTabProps) {
         gap={1}
         justify="space-between"
         height={isTablet ? '25rem' : '35rem'}
-        width={isTablet ? '100%' : '50rem'}
         hideScrollbar={isTablet}
         scroll="vertical"
       >

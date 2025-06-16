@@ -1,11 +1,13 @@
+import { Button } from '@/components/ui/button'
 import useDataStore from '@/context/data.context'
+import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { Album } from '@/data/interfaces/Music'
 import { DropdownContent } from '@/data/interfaces/Utils'
-import { useNavigate } from 'react-router-dom'
+import { Pencil } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import ParentCard from './ParentCard'
-import { memo } from 'react'
 
 interface AlbumCardProps {
   album: Album
@@ -15,6 +17,7 @@ function AlbumCard({ album }: AlbumCardProps) {
   const { t } = useTranslation()
   const { selectAlbum } = useDataStore()
   const { selectedServer } = useServerStore()
+  const { openAlbumDialog } = useDialogStore()
   const navigate = useNavigate()
 
   const menuContent: DropdownContent = {
@@ -69,7 +72,18 @@ function AlbumCard({ album }: AlbumCardProps) {
       }}
       hidePlayButton
       menuContent={menuContent}
-      editModal={<></>}
+      editModal={
+        <Button
+          variant={'ghost'}
+          size={'icon'}
+          onClick={(e) => {
+            e.stopPropagation()
+            openAlbumDialog(album)
+          }}
+        >
+          <Pencil size={16} />
+        </Button>
+      }
       errorSrc="/img/songDefault.png"
     />
   )

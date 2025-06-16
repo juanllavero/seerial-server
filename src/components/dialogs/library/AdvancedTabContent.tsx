@@ -103,9 +103,10 @@ function AdvancedTabContent({
     <FlexBox
       direction="column"
       gap={1}
+      align="stretch"
       justify="space-between"
       height={'25rem'}
-      width={'30rem'}
+      width={'100%'}
     >
       <FlexBox direction="column" gap={1}>
         <LabeledInputWrapper direction="row" label={t('preferAudio')}>

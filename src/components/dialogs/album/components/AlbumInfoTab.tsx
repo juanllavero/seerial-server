@@ -3,7 +3,6 @@ import { useIsTablet } from '@/components/hooks/use-tablet'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
 import TagInput from '@/components/ui/tags-input'
-import React from 'react'
 import { useTranslation } from 'react-i18next'
 
 interface AlbumInfoTabProps {
@@ -37,7 +36,6 @@ function AlbumInfoTab({
       justify="start"
       align="center"
       height={isTablet ? '25rem' : '35rem'}
-      width={isTablet ? '100%' : '50rem'}
       hideScrollbar={isTablet}
       scroll="vertical"
     >

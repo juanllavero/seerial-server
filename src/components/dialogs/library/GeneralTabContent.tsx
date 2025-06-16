@@ -2,12 +2,12 @@ import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
-import React, { useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
-import LibraryTypeButton from './LibraryTypeButton'
-import ISO6391 from 'iso-639-1'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
 import { themdbLanguages } from '@/utils/TheMovieDBLanguages'
+import ISO6391 from 'iso-639-1'
+import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
+import LibraryTypeButton from './LibraryTypeButton'
 
 interface GeneralTabContentProps {
   type: string | undefined
@@ -41,11 +41,12 @@ function GeneralTabContent({
     <FlexBox
       direction="column"
       gap={1}
+      align="stretch"
       justify="space-between"
       height={'25rem'}
-      width={'30rem'}
+      width={'100%'}
     >
-      <FlexBox direction="column" gap={1}>
+      <FlexBox direction="column" gap={1} align="stretch">
         <span>{t('type')}</span>
         <FlexBox>
           <LibraryTypeButton

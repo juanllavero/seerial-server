@@ -1,7 +1,7 @@
 import BaseLayout from '@/layouts/BaseLayout'
 import { getToken } from '@/lib/auth'
-import { Navigate, Outlet } from 'react-router-dom'
 import { memo } from 'react'
+import { Navigate, Outlet } from 'react-router-dom'
 
 function Root() {
   const token = getToken()

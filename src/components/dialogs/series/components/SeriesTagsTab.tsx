@@ -4,31 +4,27 @@ import FlexBox from '@/components/ui/FlexBox'
 import TagInput from '@/components/ui/tags-input'
 import { useTranslation } from 'react-i18next'
 
-interface MovieTagsTabProps {
+interface SeriesTagsTabProps {
   genres: string[]
   setGenres: (genres: string[]) => void
   creator: string[]
   setCreator: (creator: string[]) => void
-  directedBy: string[]
-  setDirectedBy: (directedBy: string[]) => void
-  writtenBy: string[]
-  setWrittenBy: (writtenBy: string[]) => void
+  studios: string[]
+  setStudios: (studios: string[]) => void
   music: string[]
   setMusic: (music: string[]) => void
 }
 
-function MovieTagsTab({
+function SeriesTagsTab({
   genres,
   setGenres,
   creator,
   setCreator,
-  directedBy,
-  setDirectedBy,
-  writtenBy,
-  setWrittenBy,
+  studios,
+  setStudios,
   music,
   setMusic,
-}: MovieTagsTabProps) {
+}: SeriesTagsTabProps) {
   const { t } = useTranslation()
   const isTablet = useIsTablet()
   return (
@@ -55,18 +51,11 @@ function MovieTagsTab({
           placeholder="Añadir creador..."
         />
       </LabeledInputWrapper>
-      <LabeledInputWrapper label={t('directedBy')}>
+      <LabeledInputWrapper label={t('studios')}>
         <TagInput
-          value={directedBy}
-          onChange={setDirectedBy}
-          placeholder="Añadir director..."
-        />
-      </LabeledInputWrapper>
-      <LabeledInputWrapper label={t('writtenBy')}>
-        <TagInput
-          value={writtenBy}
-          onChange={setWrittenBy}
-          placeholder="Añadir escrito por..."
+          value={studios}
+          onChange={setStudios}
+          placeholder="Añadir estudio..."
         />
       </LabeledInputWrapper>
       <LabeledInputWrapper label={t('musicBy')}>
@@ -80,4 +69,4 @@ function MovieTagsTab({
   )
 }
 
-export default MovieTagsTab
+export default SeriesTagsTab

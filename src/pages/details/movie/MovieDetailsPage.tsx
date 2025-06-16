@@ -8,7 +8,9 @@ import {
   UnmarkWatchedIcon,
 } from '@/components/ui/IconLibrary'
 import LazyImage from '@/components/ui/LazyImage'
+import { Skeleton } from '@/components/ui/skeleton'
 import useDataStore from '@/context/data.context'
+import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import { useWebSocketStore } from '@/context/ws.context'
@@ -16,15 +18,14 @@ import { MessageType } from '@/data/enums/WSMessage'
 import { Movie } from '@/data/interfaces/Media'
 import { formatTimeForView } from '@/utils/ReactUtils'
 import { fetcher } from '@/utils/utils'
-import { useNavigate, useParams } from 'react-router-dom'
 import { t } from 'i18next'
 import { Edit, Ellipsis } from 'lucide-react'
 import { useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
 import useSWR from 'swr'
 import CastList from '../components/CastList'
 import MovieContent from '../components/MovieContent'
 import '../DetailsPage.css'
-import { Skeleton } from '@/components/ui/skeleton'
 import MyListButton from './components/MyListButton'
 
 function MovieDetailsPage() {
@@ -32,7 +33,8 @@ function MovieDetailsPage() {
   const { setCurrentBackground, currentBackground } = useDataStore()
   const { clientSettings } = useSettingsStore()
   const { wsMessage } = useWebSocketStore()
-  const { selectedServer, selectServer } = useServerStore()
+  const { openMovieDialog } = useDialogStore()
+  const { selectedServer } = useServerStore()
   const navigate = useNavigate()
   const serverIP = selectedServer?.ip
 
@@ -242,7 +244,15 @@ function MovieDetailsPage() {
                 />
               </>
             )}
-            <Button variant={'ghost'} title={t('editButton')}>
+            <Button
+              variant={'ghost'}
+              title={t('editButton')}
+              onClick={() => {
+                if (movie) {
+                  openMovieDialog(movie)
+                }
+              }}
+            >
               <Edit />
             </Button>
             <Button

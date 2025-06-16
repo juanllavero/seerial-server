@@ -1,29 +1,30 @@
 import { useIsMobile } from '@/components/hooks/use-mobile'
-import Loading from '@/components/Loading'
 import NotFound from '@/components/NotFound'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { PlayIcon } from '@/components/ui/IconLibrary'
 import LazyImage from '@/components/ui/LazyImage'
+import { Skeleton } from '@/components/ui/skeleton'
 import useDataStore from '@/context/data.context'
+import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
 import { Album } from '@/data/interfaces/Music'
 import { fetcher } from '@/utils/utils'
-import { useParams } from 'react-router-dom'
 import { t } from 'i18next'
 import { Edit, Ellipsis } from 'lucide-react'
 import { useEffect } from 'react'
+import { useParams } from 'react-router-dom'
 import useSWR from 'swr'
 import AlbumContent from '../components/AlbumContent'
 import '../DetailsPage.css'
-import { Skeleton } from '@/components/ui/skeleton'
 
 function AlbumDetailsPage() {
   const { albumId } = useParams()
   const { wsMessage } = useWebSocketStore()
-  const { selectedServer, selectServer } = useServerStore()
+  const { openAlbumDialog } = useDialogStore()
+  const { selectedServer } = useServerStore()
   const { selectSong } = useDataStore()
   const serverIP = selectedServer?.ip
 
@@ -140,7 +141,15 @@ function AlbumDetailsPage() {
                 {t('playButton')}
               </FlexBox>
             </Button>
-            <Button variant={'ghost'} title={t('editButton')}>
+            <Button
+              variant={'ghost'}
+              title={t('editButton')}
+              onClick={() => {
+                if (album) {
+                  openAlbumDialog(album)
+                }
+              }}
+            >
               <Edit />
             </Button>
             <Button

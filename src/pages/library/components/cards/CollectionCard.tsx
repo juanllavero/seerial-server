@@ -1,11 +1,13 @@
-import Loading from '@/components/Loading'
+import { Button } from '@/components/ui/button'
 import useDataStore from '@/context/data.context'
+import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { Collection } from '@/data/interfaces/Media'
 import { DropdownContent } from '@/data/interfaces/Utils'
-import { useNavigate } from 'react-router-dom'
-import { memo, useEffect, useState } from 'react'
+import { Pencil } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import ParentCard from './ParentCard'
 
 interface CollectionCardProps {
@@ -17,6 +19,7 @@ function CollectionCard({ collection, type }: CollectionCardProps) {
   const { t } = useTranslation()
   const { selectCollection } = useDataStore()
   const { selectedServer } = useServerStore()
+  const { openCollectionDialog } = useDialogStore()
   const [subtitleText, setSubtitleText] = useState<string>('')
   const navigate = useNavigate()
 
@@ -101,7 +104,18 @@ function CollectionCard({ collection, type }: CollectionCardProps) {
       }}
       hidePlayButton
       menuContent={menuContent}
-      editModal={<></>}
+      editModal={
+        <Button
+          variant={'ghost'}
+          size={'icon'}
+          onClick={(e) => {
+            e.stopPropagation()
+            openCollectionDialog(collection)
+          }}
+        >
+          <Pencil size={16} />
+        </Button>
+      }
       errorSrc={
         type === 'Music' ? '/img/songDefault.png' : '/img/fileNotFound.jpg'
       }

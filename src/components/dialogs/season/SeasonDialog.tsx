@@ -143,6 +143,7 @@ function SeasonDialog() {
           ),
         },
       ]}
+      width="50rem"
       isOpen={seasonDialog.isOpen}
       close={closeSeasonDialog}
       onAccept={handleEditSeason}

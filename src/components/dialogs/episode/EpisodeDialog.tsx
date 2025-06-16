@@ -158,6 +158,7 @@ function EpisodeDialog() {
           ),
         },
       ]}
+      width="50rem"
       isOpen={episodeDialog.isOpen}
       close={closeEpisodeDialog}
       onAccept={handleEditEpisode}

@@ -1,3 +1,5 @@
+import Loading from '@/components/Loading'
+import { useServerStore } from '@/context/server.context'
 import { getUser } from '@/lib/auth'
 import AlbumDetailsPage from '@/pages/details/album/AlbumDetailsPage'
 import CollectionDetailsPage from '@/pages/details/collection/CollectionDetailsPage'
@@ -8,14 +10,11 @@ import HomePage from '@/pages/home/HomePage'
 import LibraryPage from '@/pages/library/LibraryPage'
 import LoginPage from '@/pages/login/LoginPage'
 import SettingsPage from '@/pages/settings/SettingsPage'
-import VideoPlayerPage from '@/pages/videoPlayer/VideoPlayerPage'
-import Root from './__root'
 import SideBarLayout from '@/pages/sidebarLayout/SideBarLayout'
-import { Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom'
+import VideoPlayerPage from '@/pages/videoPlayer/VideoPlayerPage'
 import { memo, useEffect, useState } from 'react'
-import React from 'react'
-import { Server } from '@/data/interfaces/Users'
-import { useServerStore } from '@/context/server.context'
+import { Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom'
+import Root from './__root'
 
 // Wrapper for BaseRoute to handle redirect from '/' to '/home'
 function BaseRouteWrapper() {
@@ -46,7 +45,7 @@ function ServerRouteWrapper() {
   }, [serverId])
 
   if (loading) {
-    return <div>Loading...</div>
+    return <Loading />
   }
 
   if (!selectedServer) {
@@ -59,7 +58,7 @@ function ServerRouteWrapper() {
 export function AppRoutes() {
   return (
     <Routes>
-      <Route element={<Root />}>
+      <Route path="/" element={<Root />}>
         <Route path="/login" element={<LoginPage />} />
         <Route element={<BaseRouteWrapper />}>
           <Route path="/home" element={<HomePage />} />
