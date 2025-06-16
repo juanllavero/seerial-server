@@ -13,17 +13,39 @@ import ParentCard from './ParentCard'
 
 interface SeriesCardProps {
   series: Series
+  mutateLibrary: () => void
 }
 
-function SeriesCard({ series }: SeriesCardProps) {
+function SeriesCard({ series, mutateLibrary }: SeriesCardProps) {
   const { t } = useTranslation()
   const { selectedServer } = useServerStore()
   const { selectSeries } = useDataStore()
-  const { openSeriesDialog } = useDialogStore()
+  const {
+    openSeriesDialog,
+    openIdentificationDialog,
+    openEpisodesGroupDialog,
+  } = useDialogStore()
   const [remainingEpisodes, setRemainingEpisodes] = useState<
     number | undefined
   >(undefined)
   const navigate = useNavigate()
+
+  const toggleSeriesWatched = async () => {
+    if (series) {
+      fetch(`https://${selectedServer?.ip}/setSeriesWatched`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          seriesId: series.id,
+          watched: !series.watched,
+        }),
+      }).then(() => {
+        mutateLibrary()
+      })
+    }
+  }
 
   const menuContent: DropdownContent = {
     items: [
@@ -34,21 +56,18 @@ function SeriesCard({ series }: SeriesCardProps) {
             title: t('updateMetadata'),
             action: () => console.log('Profile clicked'),
           },
-          //   {
-          //     title: t('correctIdentification'),
-          //     action: () => openIdentificationDialog(series, undefined),
-          //     hidden: library.type !== 'Shows',
-          //   },
-          //   {
-          //     title: t('changeEpisodesGroup'),
-          //     action: () => openEpisodesGroupDialog(series),
-          //     hidden: library.type !== 'Shows',
-          //   },
-          //   {
-          //     title: series.watched ? t('markUnwatched') : t('markWatched'),
-          //     action: () => console.log('Log out clicked'),
-          //     hidden: library.type === 'Music',
-          //   },
+          {
+            title: t('correctIdentification'),
+            action: () => openIdentificationDialog(series, undefined),
+          },
+          {
+            title: t('changeEpisodesGroup'),
+            action: () => openEpisodesGroupDialog(series),
+          },
+          {
+            title: series.watched ? t('markUnwatched') : t('markWatched'),
+            action: toggleSeriesWatched,
+          },
         ],
       },
       { separator: true, items: [] },

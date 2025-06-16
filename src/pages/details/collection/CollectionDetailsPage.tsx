@@ -98,7 +98,7 @@ function CollectionDetailsPage() {
       >
         <HorizontalList key="movies" title={t('movies')}>
           {items.map((movie) => (
-            <MovieCard key={movie.id} movie={movie} />
+            <MovieCard key={movie.id} movie={movie} mutateLibrary={mutate} />
           ))}
         </HorizontalList>
       </FlexBox>
@@ -107,7 +107,11 @@ function CollectionDetailsPage() {
       <FlexBox key={'Shows'}>
         <HorizontalList key="shows" title={t('shows')}>
           {items.map((series) => (
-            <SeriesCard key={series.id} series={series} />
+            <SeriesCard
+              key={series.id}
+              series={series}
+              mutateLibrary={mutate}
+            />
           ))}
         </HorizontalList>
       </FlexBox>

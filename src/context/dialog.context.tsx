@@ -47,11 +47,18 @@ interface DialogState {
   identificationDialog: {
     isOpen: boolean
     seriesToEdit?: Series
-    seasonToEdit?: Season
+    movieToEdit?: Movie
   }
   episodesGroupDialog: {
     isOpen: boolean
     seriesToEdit?: Series
+  }
+  downloadMediaDialog: {
+    isOpen: boolean
+    type: 'music' | 'video'
+    seriesToEdit?: Series
+    seasonToEdit?: Season
+    movieToEdit?: Movie
   }
   // Functions to open and close dialogs
   openLibraryDialog: (libraryToEdit?: Library) => void
@@ -72,11 +79,18 @@ interface DialogState {
   closeAlbumDialog: () => void
   openIdentificationDialog: (
     series: Series | undefined,
-    season: Season | undefined,
+    movie: Movie | undefined,
   ) => void
   closeIdentificationDialog: () => void
   openEpisodesGroupDialog: (series: Series) => void
   closeEpisodesGroupDialog: () => void
+  openDownloadMediaDialog: (
+    type: 'music' | 'video',
+    series: Series | undefined,
+    season: Season | undefined,
+    movie: Movie | undefined,
+  ) => void
+  closeDownloadMediaDialog: () => void
 }
 
 // Create the store with Zustand
@@ -117,10 +131,18 @@ export const useDialogStore = create<DialogState>((set) => ({
   identificationDialog: {
     isOpen: false,
     seriesToEdit: undefined,
+    movieToEdit: undefined,
   },
   episodesGroupDialog: {
     isOpen: false,
     seriesToEdit: undefined,
+  },
+  downloadMediaDialog: {
+    isOpen: false,
+    type: 'music',
+    seriesToEdit: undefined,
+    seasonToEdit: undefined,
+    movieToEdit: undefined,
   },
 
   // Functions for LibraryDialog
@@ -253,20 +275,21 @@ export const useDialogStore = create<DialogState>((set) => ({
 
   openIdentificationDialog: (
     series: Series | undefined,
-    season: Season | undefined,
+    movie: Movie | undefined,
   ) =>
     set({
       identificationDialog: {
         isOpen: true,
         seriesToEdit: series,
-        seasonToEdit: season,
+        movieToEdit: movie,
       },
     }),
   closeIdentificationDialog: () =>
     set({
       identificationDialog: {
         isOpen: false,
-        seriesToEdit: undefined, // Clear when closing
+        seriesToEdit: undefined,
+        movieToEdit: undefined,
       },
     }),
   openEpisodesGroupDialog: (series: Series) =>
@@ -280,7 +303,32 @@ export const useDialogStore = create<DialogState>((set) => ({
     set({
       episodesGroupDialog: {
         isOpen: false,
-        seriesToEdit: undefined, // Clear when closing
+        seriesToEdit: undefined,
+      },
+    }),
+  openDownloadMediaDialog: (
+    type: 'music' | 'video',
+    series: Series | undefined,
+    season: Season | undefined,
+    movie: Movie | undefined,
+  ) =>
+    set({
+      downloadMediaDialog: {
+        isOpen: true,
+        type: type,
+        seriesToEdit: series,
+        seasonToEdit: season,
+        movieToEdit: movie,
+      },
+    }),
+  closeDownloadMediaDialog: () =>
+    set({
+      downloadMediaDialog: {
+        isOpen: false,
+        type: 'music',
+        seriesToEdit: undefined,
+        seasonToEdit: undefined,
+        movieToEdit: undefined,
       },
     }),
 }))

@@ -7,52 +7,45 @@ import LazyImage from '@/components/ui/LazyImage'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
-import { IdentificationResult } from '@/data/interfaces/Utils'
+import {
+  IdentificationResult,
+  MediaSearchResult,
+} from '@/data/interfaces/Utils'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import './CorrectIdentificationSearch.css'
 
-function CorrectIdentificationSearch() {
+function DownloadMediaSearch() {
   const { t } = useTranslation()
   const { selectedServer } = useServerStore()
   const { connectWS } = useWebSocketStore()
-  const { identificationDialog, closeIdentificationDialog } = useDialogStore()
-  const [identificationResults, setIdentificationResults] = useState<
-    IdentificationResult[]
-  >([])
-  const [name, setName] = useState('')
-  const [year, setYear] = useState('')
+  const { downloadMediaDialog, closeDownloadMediaDialog } = useDialogStore()
+  const [searchResults, setSearchResults] = useState<MediaSearchResult[]>([])
+  const [searchText, setSearchText] = useState<string>('')
 
-  const isShow = identificationDialog.seriesToEdit
+  const isShow = downloadMediaDialog.seriesToEdit
 
   useEffect(() => {
-    setName(
-      isShow
-        ? (identificationDialog.seriesToEdit?.name ?? '')
-        : (identificationDialog.movieToEdit?.name ?? ''),
-    )
-    setYear(
-      isShow
-        ? (identificationDialog.movieToEdit?.year ?? '')
-        : (identificationDialog.seriesToEdit?.year ?? ''),
-    )
-    search(
-      isShow
-        ? (identificationDialog.seriesToEdit?.name ?? '')
-        : (identificationDialog.movieToEdit?.name ?? ''),
-      isShow
-        ? (identificationDialog.movieToEdit?.year ?? '')
-        : (identificationDialog.seriesToEdit?.year ?? ''),
-    )
+    const baseText = isShow
+      ? `${downloadMediaDialog.seriesToEdit?.name} ${downloadMediaDialog.seasonToEdit?.name}`
+      : (downloadMediaDialog.movieToEdit?.name ?? '')
+
+    if (baseText === '') return
+
+    const searchText =
+      baseText + downloadMediaDialog.type === 'music' ? ' ost' : ' trailer'
+
+    setSearchText(searchText)
+    search(searchText)
   }, [])
 
-  const search = (name: string, year: string) => {
+  const search = (text: string) => {
     fetch(
-      `https://${selectedServer?.ip}/${isShow ? 'shows' : 'movies'}/search?name=${name}&year=${year}`,
+      `https://${selectedServer?.ip}/${isShow ? 'shows' : 'movies'}/search?text=${text}`,
     )
       .then((response) => response.json())
       .then((data) => {
-        setIdentificationResults(data)
+        setSearchResults(data)
       })
       .catch((error) => console.error(error))
   }
@@ -71,18 +64,18 @@ function CorrectIdentificationSearch() {
       body: JSON.stringify(
         isShow
           ? {
-              showId: identificationDialog.seriesToEdit?.id,
+              showId: downloadMediaDialog.seriesToEdit?.id,
               themdbId: id,
             }
           : {
-              collectionId: identificationDialog.seriesToEdit?.id,
-              movieId: identificationDialog.movieToEdit?.id,
+              collectionId: downloadMediaDialog.seriesToEdit?.id,
+              movieId: downloadMediaDialog.movieToEdit?.id,
               themdbId: id,
             },
       ),
     })
 
-    closeIdentificationDialog()
+    closeDownloadMediaDialog()
   }
 
   return (
@@ -168,4 +161,4 @@ function CorrectIdentificationSearch() {
   )
 }
 
-export default CorrectIdentificationSearch
+export default DownloadMediaSearch

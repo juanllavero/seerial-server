@@ -1,6 +1,5 @@
 import { ModalWrapper } from '@/components/ModalWrapper'
 import { useDialogStore } from '@/context/dialog.context'
-import React from 'react'
 import { useTranslation } from 'react-i18next'
 import CorrectIdentificationSearch from './CorrectIdentificationSearch'
 

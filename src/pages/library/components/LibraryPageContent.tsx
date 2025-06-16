@@ -1,14 +1,14 @@
+import useDataStore from '@/context/data.context'
+import { useWebSocketStore } from '@/context/ws.context'
+import { MessageType } from '@/data/enums/WSMessage'
 import { Library } from '@/data/interfaces/Media'
 import { useCardWidth } from '@/hooks/useCardWidth'
+import NoContent from '@/pages/home/components/NoContent'
 import { fetcher } from '@/utils/utils'
+import { useEffect, useMemo } from 'react'
 import useSWR from 'swr'
 import LibraryContent from './LibraryContent'
 import LibraryPageSkeleton from './LibraryPageSkeleton'
-import { MessageType } from '@/data/enums/WSMessage'
-import { useEffect, useMemo } from 'react'
-import useDataStore from '@/context/data.context'
-import { useWebSocketStore } from '@/context/ws.context'
-import NoContent from '@/pages/home/components/NoContent'
 
 interface LibraryPageContentProps {
   libraryId: string
@@ -55,7 +55,7 @@ function LibraryPageContent({ libraryId, serverIP }: LibraryPageContentProps) {
     return <NoContent />
   }
 
-  return <LibraryContent library={memoizedLibrary} />
+  return <LibraryContent library={memoizedLibrary} mutateLibrary={mutate} />
 }
 
 export default LibraryPageContent

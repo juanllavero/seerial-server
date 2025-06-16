@@ -1,12 +1,13 @@
-import { Library, Collection, Series } from '@/data/interfaces/Media'
+import { Collection, Library, Series } from '@/data/interfaces/Media'
 import CollectionCard from '../cards/CollectionCard'
 import SeriesCard from '../cards/SeriesCard'
 
 interface SeriesListProps {
   library: Library
+  mutateLibrary: () => void
 }
 
-function SeriesList({ library }: SeriesListProps) {
+function SeriesList({ library, mutateLibrary }: SeriesListProps) {
   // Get all series IDs that are in any collection
   const collectionSeriesIds = new Set(
     (library.collections || []).flatMap((collection: Collection) =>
@@ -32,7 +33,11 @@ function SeriesList({ library }: SeriesListProps) {
         ))}
       {standaloneSeries.length > 0 &&
         standaloneSeries.map((series) => (
-          <SeriesCard key={series.id} series={series} />
+          <SeriesCard
+            key={series.id}
+            series={series}
+            mutateLibrary={mutateLibrary}
+          />
         ))}
     </>
   )

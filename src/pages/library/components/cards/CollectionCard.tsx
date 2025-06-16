@@ -28,10 +28,10 @@ function CollectionCard({ collection, type }: CollectionCardProps) {
       {
         separator: false,
         items: [
-          {
-            title: t('updateMetadata'),
-            action: () => console.log('Profile clicked'),
-          },
+          // {
+          //   title: t('updateMetadata'),
+          //   action: () => console.log('Profile clicked'),
+          // },
           //   {
           //     title: t('correctIdentification'),
           //     action: () => openIdentificationDialog(series, undefined),

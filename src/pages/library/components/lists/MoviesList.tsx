@@ -1,13 +1,14 @@
 import { Collection, Library, Movie } from '@/data/interfaces/Media'
+import { useMemo } from 'react'
 import CollectionCard from '../cards/CollectionCard'
 import MovieCard from '../cards/MovieCard'
-import { useMemo } from 'react'
 
 interface MoviesListProps {
   library: Library
+  mutateLibrary: () => void
 }
 
-function MoviesList({ library }: MoviesListProps) {
+function MoviesList({ library, mutateLibrary }: MoviesListProps) {
   // Get all movie IDs that are in any collection
   const collectionMovieIds = useMemo(
     () =>
@@ -43,7 +44,11 @@ function MoviesList({ library }: MoviesListProps) {
         ))}
       {standaloneMovies.length > 0 &&
         standaloneMovies.map((movie) => (
-          <MovieCard key={movie.id} movie={movie} />
+          <MovieCard
+            key={movie.id}
+            movie={movie}
+            mutateLibrary={mutateLibrary}
+          />
         ))}
     </>
   )

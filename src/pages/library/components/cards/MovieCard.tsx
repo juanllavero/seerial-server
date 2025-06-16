@@ -12,14 +12,32 @@ import ParentCard from './ParentCard'
 
 interface MovieCardProps {
   movie: Movie
+  mutateLibrary: () => void
 }
 
-function MovieCard({ movie }: MovieCardProps) {
+function MovieCard({ movie, mutateLibrary }: MovieCardProps) {
   const { t } = useTranslation()
   const { selectMovie } = useDataStore()
   const { selectedServer } = useServerStore()
-  const { openMovieDialog } = useDialogStore()
+  const { openMovieDialog, openIdentificationDialog } = useDialogStore()
   const navigate = useNavigate()
+
+  const toggleMovieWatched = async () => {
+    if (movie) {
+      fetch(`https://${selectedServer?.ip}/setMovieWatched`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          movieId: movie.id,
+          watched: !movie.watched,
+        }),
+      }).then(() => {
+        mutateLibrary()
+      })
+    }
+  }
 
   const menuContent: DropdownContent = {
     items: [
@@ -30,21 +48,14 @@ function MovieCard({ movie }: MovieCardProps) {
             title: t('updateMetadata'),
             action: () => console.log('Profile clicked'),
           },
-          //   {
-          //     title: t('correctIdentification'),
-          //     action: () => openIdentificationDialog(series, undefined),
-          //     hidden: library.type !== 'Shows',
-          //   },
-          //   {
-          //     title: t('changeEpisodesGroup'),
-          //     action: () => openEpisodesGroupDialog(series),
-          //     hidden: library.type !== 'Shows',
-          //   },
-          //   {
-          //     title: series.watched ? t('markUnwatched') : t('markWatched'),
-          //     action: () => console.log('Log out clicked'),
-          //     hidden: library.type === 'Music',
-          //   },
+          {
+            title: t('correctIdentification'),
+            action: () => openIdentificationDialog(undefined, movie),
+          },
+          {
+            title: movie.watched ? t('markUnwatched') : t('markWatched'),
+            action: toggleMovieWatched,
+          },
         ],
       },
       { separator: true, items: [] },
@@ -59,8 +70,6 @@ function MovieCard({ movie }: MovieCardProps) {
       },
     ],
   }
-
-  // console.log('MovieCard: ', movie.id)
 
   return (
     <ParentCard
