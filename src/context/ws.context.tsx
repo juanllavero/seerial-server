@@ -14,6 +14,7 @@ interface WebSocketState {
   wsMessage: MessageType
   errorDownloading: boolean
   downloading: boolean
+  downloaded: boolean
   downloadingElementId: string | null
   downloadPercentage: number
   analyzing: boolean
@@ -21,6 +22,7 @@ interface WebSocketState {
   wsConnected: boolean
   messageQueue: WebSocketMessage[]
   setDownloading: (value: boolean) => void
+  setDownloaded: (value: boolean) => void
   setDownloadPercentage: (value: number) => void
   setAnalyzing: (value: boolean) => void
   setSeriesReceived: (value: Series | null) => void
@@ -29,11 +31,15 @@ interface WebSocketState {
     elementId: string,
     url: string,
     serverIP: string,
+    libraryId: string,
+    fileName: string,
   ) => Promise<void>
   downloadVideo: (
     elementId: string,
     url: string,
     serverIP: string,
+    libraryId: string,
+    fileName: string,
   ) => Promise<void>
   addMessageToQueue: (message: WebSocketMessage) => void
   clearMessageQueue: () => void
@@ -45,12 +51,14 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
   wsConnected: false,
   messageQueue: [],
   analyzing: false,
+  downloaded: false,
   downloadingElementId: null,
   errorDownloading: false,
   downloading: false,
   downloadPercentage: 0,
   seriesReceived: null,
 
+  setDownloaded: (value) => set({ downloaded: value }),
   setDownloading: (value) => set({ downloading: value }),
   setDownloadPercentage: (value) => set({ downloadPercentage: value }),
   setAnalyzing: (value) => set({ analyzing: value }),
@@ -62,6 +70,7 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
   clearMessageQueue: () => set({ messageQueue: [] }),
 
   connectWS: async (ip: string) => {
+    set({ downloaded: false })
     if (!get().wsConnected) {
       return new Promise<void>((resolve, reject) => {
         const websocket = new WebSocket(`ws://${ip}/ws`)
@@ -82,6 +91,7 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
           set({
             wsConnected: false,
             ws: null,
+            downloaded: true,
             errorDownloading: false,
             downloading: false,
             downloadingElementId: null,
@@ -104,6 +114,7 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
             case MessageType.DOWNLOAD_ERROR:
               set({
                 downloading: false,
+                downloaded: false,
                 errorDownloading: true,
                 downloadPercentage: 0,
               })
@@ -111,6 +122,7 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
             case MessageType.DOWNLOAD_COMPLETE:
               set({
                 downloading: false,
+                downloaded: true,
                 errorDownloading: false,
                 downloadingElementId: null,
                 downloadPercentage: 0,
@@ -127,7 +139,7 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
     }
   },
 
-  downloadVideo: async (elementId, url, serverIP) => {
+  downloadVideo: async (elementId, url, serverIP, libraryId, fileName) => {
     set({
       downloadingElementId: elementId,
       downloadPercentage: 0,
@@ -144,9 +156,9 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          url: url,
-          downloadFolder: 'resources/video/',
-          fileName: elementId,
+          url,
+          downloadFolder: `resources/video/${libraryId}/`,
+          fileName,
         }),
       })
       const data = await response.json()
@@ -156,7 +168,7 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
     }
   },
 
-  downloadAudio: async (elementId, url, serverIP) => {
+  downloadAudio: async (elementId, url, serverIP, libraryId, fileName) => {
     set({
       downloadingElementId: elementId,
       downloadPercentage: 0,
@@ -173,9 +185,9 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          url: url,
-          downloadFolder: 'resources/music/',
-          fileName: elementId,
+          url,
+          downloadFolder: `resources/music/${libraryId}/`,
+          fileName,
         }),
       })
       const data = await response.json()

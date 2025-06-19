@@ -8,7 +8,7 @@ import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { IdentificationResult } from '@/data/interfaces/Utils'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import './CorrectIdentificationSearch.css'
 
@@ -22,6 +22,7 @@ function CorrectIdentificationSearch() {
   >([])
   const [name, setName] = useState('')
   const [year, setYear] = useState('')
+  const searchButtonRef = useRef<HTMLButtonElement>(null)
 
   const isShow = identificationDialog.seriesToEdit
 
@@ -44,7 +45,12 @@ function CorrectIdentificationSearch() {
         ? (identificationDialog.movieToEdit?.year ?? '')
         : (identificationDialog.seriesToEdit?.year ?? ''),
     )
-  }, [])
+
+    // Focus the search button when the dialog is opened
+    setTimeout(() => {
+      searchButtonRef.current?.focus()
+    }, 0)
+  }, [identificationDialog])
 
   const search = (name: string, year: string) => {
     fetch(
@@ -109,7 +115,7 @@ function CorrectIdentificationSearch() {
           </LabeledInputWrapper>
         </FlexBox>
         <FlexBox align="end" justify="end" height={'85%'}>
-          <Button onClick={() => search(name, year)}>
+          <Button onClick={() => search(name, year)} ref={searchButtonRef}>
             {t('searchButton')}
           </Button>
         </FlexBox>

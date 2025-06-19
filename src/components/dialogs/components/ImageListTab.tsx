@@ -13,6 +13,9 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 import './ImageListTab.css'
+import CardGridSkeleton from '@/components/skeletons/CardGridSkeleton'
+import { Skeleton } from '@/components/ui/skeleton'
+import Image from '@/components/ui/Image'
 
 interface LocalImage {
   name: string
@@ -174,14 +177,6 @@ function ImageListTab({
     }
   }, [imageUrl])
 
-  if (isLoading) {
-    return (
-      <FlexBox direction="column" gap={1} height={isTablet ? '25rem' : '35rem'}>
-        <Loading />
-      </FlexBox>
-    )
-  }
-
   return (
     <FlexBox direction="column" gap={1} height={isTablet ? '25rem' : '35rem'}>
       <FlexBox
@@ -237,16 +232,26 @@ function ImageListTab({
           </>
         )}
       </FlexBox>
-      <Grid
+      {/* <Grid
         gap={'1rem'}
         columns={`repeat(${isPoster ? (isMobile ? 3 : 4) : isMobile ? 2 : 3}, 1fr)`}
         scroll="vertical"
         hideScrollbar={isTablet}
         padding="0 0.5rem"
       >
+        
+      </Grid> */}
+      <FlexBox
+        gap={1}
+        direction="row"
+        wrap="wrap"
+        scroll="vertical"
+        hideScrollbar={isTablet}
+        padding="0 0.5rem"
+      >
         {imagesList &&
           imagesList.map((image) => (
-            <div
+            <Image
               key={image}
               onClick={() =>
                 selectImage(
@@ -255,46 +260,44 @@ function ImageListTab({
                     : `http://image.tmdb.org/t/p/original/${image}`,
                 )
               }
-            >
-              <LazyImage
-                className={`image-list-img ${selectedImage === image || selectedImage.endsWith(image) ? 'selected-image' : ''}`}
-                url={
-                  image.startsWith('http')
-                    ? image
-                    : `http://image.tmdb.org/t/p/original/${image}`
-                }
-                alt={image}
-                errorSrc={
-                  isPoster
-                    ? '/img/fileNotFound.jpg'
-                    : '/img/Default_video_thumbnail.jpg'
-                }
-              />
-            </div>
+              className={`image-list-img ${selectedImage === image || selectedImage.endsWith(image) ? 'selected-image' : ''}`}
+              src={
+                image.startsWith('http')
+                  ? image
+                  : `http://image.tmdb.org/t/p/original/${image}`
+              }
+              fallbackSrc={
+                isPoster
+                  ? '/img/fileNotFound.jpg'
+                  : '/img/Default_video_thumbnail.jpg'
+              }
+              alt={image}
+              aspectRatio={isPoster ? 2 / 3 : 16 / 9}
+              width={50}
+            />
           ))}
 
         {loaded &&
           localImages &&
           localImages.map(
             (image: { name: string; url: string }, index: number) => (
-              <div
+              <Image
                 key={image.url ?? 'Image ' + index}
                 onClick={() => selectImage(image.url)}
-              >
-                <LazyImage
-                  className={`image-list-img ${selectedImage === image.url ? 'selected-image' : ''}`}
-                  url={image.url}
-                  alt={image.name}
-                  errorSrc={
-                    isPoster
-                      ? '/img/fileNotFound.jpg'
-                      : '/img/Default_video_thumbnail.jpg'
-                  }
-                />
-              </div>
+                className={`image-list-img ${selectedImage === image.url || selectedImage.endsWith(image.url) ? 'selected-image' : ''}`}
+                src={image.url}
+                fallbackSrc={
+                  isPoster
+                    ? '/img/fileNotFound.jpg'
+                    : '/img/Default_video_thumbnail.jpg'
+                }
+                alt={image.name}
+                aspectRatio={isPoster ? 2 / 3 : 16 / 9}
+                width={25}
+              />
             ),
           )}
-      </Grid>
+      </FlexBox>
     </FlexBox>
   )
 }

@@ -1,5 +1,4 @@
-import { ChevronsUpDown } from 'lucide-react'
-
+import { ChevronRight } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,10 +17,14 @@ import { useServerStore } from '@/context/server.context'
 import { Server } from '@/data/interfaces/Users'
 import { useEffect, useState } from 'react'
 import { ServerIcon } from '../ui/IconLibrary'
+import { cn } from '@/utils/tailwind'
 
 export function ServerSwitcher() {
   const { user } = useAuth()
   const { selectServer, selectedServer } = useServerStore()
+
+  const [open, setOpen] = useState(false)
+  const [hover, setHover] = useState(false)
 
   const servers = user && user.servers ? user.servers : []
 
@@ -45,14 +48,20 @@ export function ServerSwitcher() {
     return null
   }
 
+  const handleOpenChange = (open: boolean) => {
+    setOpen(open)
+  }
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
+        <DropdownMenu onOpenChange={handleOpenChange}>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size={'lg'}
               className="data-[state=open]:bg-accent data-[state=open]:text-accent-foreground"
+              onMouseEnter={() => setHover(true)}
+              onMouseLeave={() => setHover(false)}
             >
               <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                 <ServerIcon />
@@ -63,7 +72,13 @@ export function ServerSwitcher() {
                 </span>
                 <span className="truncate text-xs">{activeServer.ip}</span>
               </div>
-              <ChevronsUpDown className="ml-auto" />
+              <ChevronRight
+                className={cn(
+                  'ml-auto size-4 opacity-0 transition-transform duration-150 ease-in-out',
+                  open && 'scale-x-[-1]',
+                  (hover || open) && 'opacity-100',
+                )}
+              />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent

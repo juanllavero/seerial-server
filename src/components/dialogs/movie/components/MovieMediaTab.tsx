@@ -116,7 +116,7 @@ function MovieMediaTab({ movie }: MovieInfoTabProps) {
         <video
           controls
           className={`w-full ${isTablet ? 'h-48' : 'h-64'} rounded-lg`}
-          src={video}
+          src={`https://${selectedServer?.ip}${video.url}`}
           onError={(e) => {
             console.error('Video loading error:', e)
           }}
@@ -195,7 +195,7 @@ function MovieMediaTab({ movie }: MovieInfoTabProps) {
         <audio
           controls
           className="w-full"
-          src={music}
+          src={`https://${selectedServer?.ip}${music.url}`}
           onError={(e) => {
             console.error('Audio loading error:', e)
           }}

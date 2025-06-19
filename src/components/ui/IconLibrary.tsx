@@ -1,21 +1,18 @@
 export const ServerIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
-    width="512"
-    height="512"
-    viewBox="0 0 512 512"
+    width={24}
+    height={24}
+    viewBox="0 0 24 24"
   >
-    <g
+    <path
       fill="none"
-      stroke="currentColor"
+      stroke="#ffffff"
       strokeLinecap="round"
       strokeLinejoin="round"
-      strokeWidth="32"
-    >
-      <ellipse cx="256" cy="112" rx="176" ry="80" />
-      <path d="M432 112v288c0 44.183-78.798 80-176 80S80 444.183 80 400V112" />
-      <path d="M432 256c0 44.183-78.798 80-176 80S80 300.183 80 256" />
-    </g>
+      strokeWidth={2}
+      d="M5 12a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1M5 12h14M5 12a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1m-2 3h.01M14 15h.01M17 9h.01M14 9h.01"
+    ></path>
   </svg>
 )
 

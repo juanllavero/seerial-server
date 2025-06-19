@@ -14,13 +14,24 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { useAuth } from '@/context/auth.context'
-import { Bell, ChevronsUpDown, LogOut, Settings, UserRound } from 'lucide-react'
+import {
+  Bell,
+  ChevronRight,
+  ChevronsUpDown,
+  LogOut,
+  Settings,
+  UserRound,
+} from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 import { useNavigate } from 'react-router-dom'
+import { cn } from '@/utils/tailwind'
+import { useState } from 'react'
 export function NavUser() {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
   const { isMobile } = useSidebar()
+  const [open, setOpen] = useState(false)
+  const [hover, setHover] = useState(false)
 
   if (!user) return null
 
@@ -33,14 +44,20 @@ export function NavUser() {
     navigate('/login')
   }
 
+  const handleOpenChange = (open: boolean) => {
+    setOpen(open)
+  }
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
+        <DropdownMenu onOpenChange={handleOpenChange}>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
               className="data-[state=open]:bg-accent data-[state=open]:text-accent-foreground"
+              onMouseEnter={() => setHover(true)}
+              onMouseLeave={() => setHover(false)}
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={user.image} alt={user.name} />
@@ -50,7 +67,13 @@ export function NavUser() {
                 <span className="truncate font-semibold">{user.name}</span>
                 <span className="truncate text-xs">{user.email}</span>
               </div>
-              <ChevronsUpDown className="ml-auto size-4" />
+              <ChevronRight
+                className={cn(
+                  'ml-auto size-4 opacity-0 transition-all duration-150 ease-in-out',
+                  open && 'scale-x-[-1]',
+                  (hover || open) && 'opacity-100',
+                )}
+              />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent

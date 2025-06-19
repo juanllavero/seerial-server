@@ -16,6 +16,7 @@ function DownloadMediaDialog() {
           content: <DownloadMediaSearch />,
         },
       ]}
+      width={'35rem'}
       isOpen={downloadMediaDialog.isOpen}
       close={closeDownloadMediaDialog}
       hideButtons

@@ -109,20 +109,4 @@ function LazyImage({
   )
 }
 
-function areEqual(prevProps: LazyImageProps, nextProps: LazyImageProps) {
-  return (
-    prevProps.src === nextProps.src &&
-    prevProps.url === nextProps.url &&
-    prevProps.alt === nextProps.alt &&
-    prevProps.width === nextProps.width &&
-    prevProps.height === nextProps.height &&
-    prevProps.maxHeight === nextProps.maxHeight &&
-    prevProps.aspectRatio === nextProps.aspectRatio &&
-    prevProps.rounded === nextProps.rounded &&
-    prevProps.errorSrc === nextProps.errorSrc &&
-    prevProps.className === nextProps.className &&
-    prevProps.onLoad === nextProps.onLoad
-  )
-}
-
-export default memo(LazyImage, areEqual)
+export default memo(LazyImage)
