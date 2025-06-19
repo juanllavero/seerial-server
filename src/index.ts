@@ -37,6 +37,10 @@ appServer.use(
 appServer.use(express.json({ limit: "50mb" }));
 appServer.use(express.urlencoded({ limit: "50mb", extended: true }));
 
+// Serve files (for video and audio folders)
+const videoPath = FilesManager.getExternalPath("resources");
+appServer.use("/media", express.static(videoPath));
+
 // Create HTTP Server
 export const server = http.createServer(appServer);
 

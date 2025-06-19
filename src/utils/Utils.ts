@@ -983,6 +983,25 @@ export class Utils {
     }
   };
 
+  public static getFileInFolder = (folder: string, fileName: string) => {
+    try {
+      const files = fs.readdirSync(folder);
+
+      const matchedFile = files.find((file) => {
+        const fileNameWithoutExt = path.parse(file).name;
+        return fileNameWithoutExt === fileName;
+      });
+
+      if (!matchedFile) {
+        return "";
+      }
+
+      return path.join(folder, matchedFile);
+    } catch (err) {
+      return "";
+    }
+  };
+
   //#region WEBSOCKET CONTENT MESSAGES
   public static mutateLibraries = (ws: WebSocketManager) => {
     const message = {

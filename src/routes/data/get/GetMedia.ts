@@ -1,4 +1,5 @@
 import express from "express";
+import path from "path";
 import { Video } from "../../../data/models/Media/Video.model";
 import {
   getAlbumById,
@@ -298,11 +299,19 @@ router.get("/movieVideo", async (req: any, res: any) => {
     return res.status(404).json({ error: "Movie not found" });
   }
 
-  if (movie.videoSrc === "") {
-    return res.status(404).json({ error: "Video not found" });
+  const folder = FilesManager.getExternalPath(
+    `resources/video/${movie.libraryId}/`
+  );
+
+  const filename = Utils.getFileInFolder(folder, movie.id);
+  if (!filename) {
+    return res.status(404).json({ error: "File not found" });
   }
 
-  res.json(FilesManager.getExternalPath(movie.videoSrc));
+  const basename = path.basename(filename);
+  const url = `/media/video/${movie.libraryId}/${basename}`;
+
+  res.json({ url });
 });
 
 // Get movie background music
@@ -317,11 +326,19 @@ router.get("/movieMusic", async (req: any, res: any) => {
     return res.status(404).json({ error: "Movie not found" });
   }
 
-  if (movie.musicSrc === "") {
-    return res.status(404).json({ error: "Music not found" });
+  const folder = FilesManager.getExternalPath(
+    `resources/music/${movie.libraryId}/`
+  );
+
+  const filename = Utils.getFileInFolder(folder, movie.id);
+  if (!filename) {
+    return res.status(404).json({ error: "File not found" });
   }
 
-  res.json(FilesManager.getExternalPath(movie.musicSrc));
+  const basename = path.basename(filename);
+  const url = `/media/music/${movie.libraryId}/${basename}`;
+
+  res.json({ url });
 });
 
 // Get season background video
@@ -336,11 +353,19 @@ router.get("/seasonVideo", async (req: any, res: any) => {
     return res.status(404).json({ error: "Season not found" });
   }
 
-  if (season.videoSrc === "") {
-    return res.status(404).json({ error: "Video not found" });
+  const folder = FilesManager.getExternalPath(
+    `resources/video/${season.series.libraryId}/`
+  );
+
+  const filename = Utils.getFileInFolder(folder, season.id);
+  if (!filename) {
+    return res.status(404).json({ error: "File not found" });
   }
 
-  res.json(FilesManager.getExternalPath(season.musicSrc));
+  const basename = path.basename(filename);
+  const url = `/media/video/${season.series.libraryId}/${basename}`;
+
+  res.json({ url });
 });
 
 // Get season background music
@@ -355,11 +380,19 @@ router.get("/seasonMusic", async (req: any, res: any) => {
     return res.status(404).json({ error: "Season not found" });
   }
 
-  if (season.musicSrc === "") {
-    return res.status(404).json({ error: "Music not found" });
+  const folder = FilesManager.getExternalPath(
+    `resources/music/${season.series.libraryId}/`
+  );
+
+  const filename = Utils.getFileInFolder(folder, season.id);
+  if (!filename) {
+    return res.status(404).json({ error: "File not found" });
   }
 
-  res.json(FilesManager.getExternalPath(season.musicSrc));
+  const basename = path.basename(filename);
+  const url = `/media/music/${season.series.libraryId}/${basename}`;
+
+  res.json({ url });
 });
 
 export default router;
