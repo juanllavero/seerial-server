@@ -1,7 +1,226 @@
-import React from 'react'
+import { useIsTablet } from '@/components/hooks/use-tablet'
+import { Button } from '@/components/ui/button'
+import FlexBox from '@/components/ui/FlexBox'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useDialogStore } from '@/context/dialog.context'
+import { useServerStore } from '@/context/server.context'
+import { Movie } from '@/data/interfaces/Media'
+import { fetcher } from '@/utils/utils'
+import { Download, Trash2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import useSWR from 'swr'
 
-function MovieMediaTab() {
-  return <div>MovieMediaTab</div>
+interface MovieInfoTabProps {
+  movie: Movie
+}
+
+function MovieMediaTab({ movie }: MovieInfoTabProps) {
+  const { t } = useTranslation()
+  const isTablet = useIsTablet()
+  const { selectedServer } = useServerStore()
+  const { openDownloadMediaDialog } = useDialogStore()
+
+  // Background video
+  const {
+    data: video,
+    isLoading: loadingVideo,
+    error: videoError,
+  } = useSWR(`https://${selectedServer?.ip}/movieVideo?id=${movie.id}`, fetcher)
+
+  // Background music
+  const {
+    data: music,
+    isLoading: loadingMusic,
+    error: musicError,
+  } = useSWR(`https://${selectedServer?.ip}/movieMusic?id=${movie.id}`, fetcher)
+
+  const openDownloadDialog = (type: 'music' | 'video') => {
+    openDownloadMediaDialog(type, undefined, undefined, movie)
+  }
+
+  const removeVideo = () => {
+    //Handles remove video
+  }
+
+  const removeMusic = () => {
+    //Handles remove music
+  }
+
+  const renderVideoSection = () => {
+    if (loadingVideo) {
+      return (
+        <div className="w-full space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">{t('video')}</h3>
+            <div className="flex gap-2">
+              <Skeleton className="h-9 w-20" />
+              <Skeleton className="h-9 w-20" />
+            </div>
+          </div>
+          <Skeleton className={`w-full ${isTablet ? 'h-48' : 'h-64'}`} />
+        </div>
+      )
+    }
+
+    if (videoError || !video) {
+      return (
+        <div className="w-full space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">{t('video')}</h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openDownloadDialog('video')}
+              className="flex items-center gap-2"
+            >
+              <Download className="h-4 w-4" />
+              {t('downloadButton')}
+            </Button>
+          </div>
+          <div
+            className={`w-full ${isTablet ? 'h-48' : 'h-64'} bg-muted flex items-center justify-center rounded-lg`}
+          >
+            <p className="text-muted-foreground px-4 text-center">
+              {videoError ? t('errorLoadingVideo') : t('noVideoAvailable')}
+            </p>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div className="w-full space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">{t('video')}</h3>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openDownloadDialog('video')}
+              className="flex items-center gap-2"
+            >
+              <Download className="h-4 w-4" />
+              {t('downloadButton')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={removeVideo}
+              className="text-destructive hover:text-destructive flex items-center gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              {t('removeButton')}
+            </Button>
+          </div>
+        </div>
+        <video
+          controls
+          className={`w-full ${isTablet ? 'h-48' : 'h-64'} rounded-lg`}
+          src={video}
+          onError={(e) => {
+            console.error('Video loading error:', e)
+          }}
+        >
+          {t('videoNotSupported')}
+        </video>
+      </div>
+    )
+  }
+
+  const renderMusicSection = () => {
+    if (loadingMusic) {
+      return (
+        <div className="w-full space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">{t('music')}</h3>
+            <div className="flex gap-2">
+              <Skeleton className="h-9 w-20" />
+              <Skeleton className="h-9 w-20" />
+            </div>
+          </div>
+          <Skeleton className="h-12 w-full" />
+        </div>
+      )
+    }
+
+    if (musicError || !music) {
+      return (
+        <div className="w-full space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">{t('music')}</h3>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openDownloadDialog('music')}
+              className="flex items-center gap-2"
+            >
+              <Download className="h-4 w-4" />
+              {t('downloadButton')}
+            </Button>
+          </div>
+          <div className="bg-muted flex h-12 w-full items-center justify-center rounded-lg">
+            <p className="text-muted-foreground text-sm">
+              {musicError ? t('errorLoadingMusic') : t('noMusicAvailable')}
+            </p>
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <div className="w-full space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold">{t('music')}</h3>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openDownloadDialog('music')}
+              className="flex items-center gap-2"
+            >
+              <Download className="h-4 w-4" />
+              {t('downloadButton')}
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={removeMusic}
+              className="text-destructive hover:text-destructive flex items-center gap-2"
+            >
+              <Trash2 className="h-4 w-4" />
+              {t('removeButton')}
+            </Button>
+          </div>
+        </div>
+        <audio
+          controls
+          className="w-full"
+          src={music}
+          onError={(e) => {
+            console.error('Audio loading error:', e)
+          }}
+        >
+          {t('audioNotSupported')}
+        </audio>
+      </div>
+    )
+  }
+
+  return (
+    <FlexBox
+      direction="column"
+      gap={6}
+      justify="start"
+      align="center"
+      height={isTablet ? '25rem' : '35rem'}
+      hideScrollbar={isTablet}
+      scroll="vertical"
+      className="p-4"
+    >
+      {renderVideoSection()}
+      {renderMusicSection()}
+    </FlexBox>
+  )
 }
 
 export default MovieMediaTab

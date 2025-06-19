@@ -201,7 +201,7 @@ function MovieDialog() {
         },
         {
           title: t('media'),
-          content: <MovieMediaTab />,
+          content: <MovieMediaTab movie={movie} />,
         },
         {
           title: t('logosButton'),

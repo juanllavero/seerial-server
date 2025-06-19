@@ -12,7 +12,9 @@ interface WebSocketMessage {
 interface WebSocketState {
   ws: WebSocket | null
   wsMessage: MessageType
+  errorDownloading: boolean
   downloading: boolean
+  downloadingElementId: string | null
   downloadPercentage: number
   analyzing: boolean
   seriesReceived: Series | null
@@ -43,6 +45,8 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
   wsConnected: false,
   messageQueue: [],
   analyzing: false,
+  downloadingElementId: null,
+  errorDownloading: false,
   downloading: false,
   downloadPercentage: 0,
   seriesReceived: null,
@@ -78,7 +82,9 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
           set({
             wsConnected: false,
             ws: null,
+            errorDownloading: false,
             downloading: false,
+            downloadingElementId: null,
             analyzing: false,
           })
         }
@@ -96,10 +102,19 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
               set({ downloadPercentage: message.body })
               break
             case MessageType.DOWNLOAD_ERROR:
-              set({ downloading: false })
+              set({
+                downloading: false,
+                errorDownloading: true,
+                downloadPercentage: 0,
+              })
               break
             case MessageType.DOWNLOAD_COMPLETE:
-              set({ downloading: false })
+              set({
+                downloading: false,
+                errorDownloading: false,
+                downloadingElementId: null,
+                downloadPercentage: 0,
+              })
               break
             default:
               set({ wsMessage: message.header })
@@ -113,7 +128,11 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
   },
 
   downloadVideo: async (elementId, url, serverIP) => {
-    set({ downloadPercentage: 0, downloading: true })
+    set({
+      downloadingElementId: elementId,
+      downloadPercentage: 0,
+      downloading: true,
+    })
 
     const { connectWS } = get()
     await connectWS(serverIP)
@@ -138,7 +157,11 @@ export const useWebSocketStore = create<WebSocketState>((set, get) => ({
   },
 
   downloadAudio: async (elementId, url, serverIP) => {
-    set({ downloadPercentage: 0, downloading: true })
+    set({
+      downloadingElementId: elementId,
+      downloadPercentage: 0,
+      downloading: true,
+    })
 
     const { connectWS } = get()
     await connectWS(serverIP)

@@ -1,5 +1,6 @@
 import AlbumDialog from './album/AlbumDialog'
 import CollectionDialog from './collection/CollectionDialog'
+import DownloadMediaDialog from './downloadMedia/DownloadMediaDialog'
 import EpisodeDialog from './episode/EpisodeDialog'
 import ChangeEpisodesGroupDialog from './episodesGroup/ChangeEpisodesGroupDialog'
 import ChangeIdentificationDialog from './identification/ChangeIdentificationDialog'
@@ -33,6 +34,9 @@ function DialogManager() {
 
       {/* Album Dialogs */}
       <AlbumDialog />
+
+      {/* Download Media Dialog */}
+      <DownloadMediaDialog />
 
       {/* Identification And Episodes Group Dialogs */}
       <ChangeIdentificationDialog />
