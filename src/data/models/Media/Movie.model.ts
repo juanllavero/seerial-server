@@ -292,6 +292,22 @@ export class Movie extends Model {
   @Column({
     type: DataType.STRING,
     allowNull: false,
+    field: "video_src",
+    defaultValue: "",
+  })
+  videoSrc!: string;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+    field: "music_src",
+    defaultValue: "",
+  })
+  musicSrc!: string;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
     defaultValue: "",
   })
   folder!: string;
