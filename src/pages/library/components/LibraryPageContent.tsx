@@ -5,7 +5,7 @@ import { Library } from '@/data/interfaces/Media'
 import { useCardWidth } from '@/hooks/useCardWidth'
 import NoContent from '@/pages/home/components/NoContent'
 import { fetcher } from '@/utils/utils'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import useSWR from 'swr'
 import LibraryContent from './LibraryContent'
 import LibraryPageSkeleton from './LibraryPageSkeleton'
@@ -13,9 +13,14 @@ import LibraryPageSkeleton from './LibraryPageSkeleton'
 interface LibraryPageContentProps {
   libraryId: string
   serverIP: string
+  type: string
 }
 
-function LibraryPageContent({ libraryId, serverIP }: LibraryPageContentProps) {
+function LibraryPageContent({
+  libraryId,
+  serverIP,
+  type,
+}: LibraryPageContentProps) {
   const { cardWidth } = useCardWidth()
   const { wsMessage } = useWebSocketStore()
   const { selectedLibraryId, selectLibrary } = useDataStore()
@@ -28,6 +33,8 @@ function LibraryPageContent({ libraryId, serverIP }: LibraryPageContentProps) {
   // Memoize library to prevent unnecessary re-renders
   const memoizedLibrary = useMemo(() => library, [library?.id])
 
+  const [minimumLoading, setMinimumLoading] = useState<boolean>(true)
+
   useEffect(() => {
     if (library && library.id !== selectedLibraryId) {
       console.log('selectLibrary triggered:', {
@@ -36,6 +43,14 @@ function LibraryPageContent({ libraryId, serverIP }: LibraryPageContentProps) {
       })
       selectLibrary(library.id)
     }
+
+    // Minimum Loading for Skeleton
+    setMinimumLoading(true)
+    const timer = setTimeout(() => {
+      setMinimumLoading(false)
+    }, 0)
+
+    return () => clearTimeout(timer)
   }, [library?.id, selectedLibraryId, selectLibrary])
 
   // Mutate content on ws message
@@ -46,9 +61,10 @@ function LibraryPageContent({ libraryId, serverIP }: LibraryPageContentProps) {
     }
   }, [wsMessage, mutate])
 
-  if (isLoading) {
-    return <LibraryPageSkeleton cardWidth={cardWidth} />
-    //return <Loading />
+  const stillLoading = isLoading || minimumLoading
+
+  if (stillLoading) {
+    return <LibraryPageSkeleton cardWidth={cardWidth} type={type} />
   }
 
   if (!memoizedLibrary) {

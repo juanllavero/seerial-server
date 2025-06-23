@@ -65,7 +65,7 @@ export function AppRoutes() {
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/server/:serverId/*" element={<ServerRouteWrapper />}>
             <Route index element={<Navigate to="library" replace />} />
-            <Route path="library/:libraryId" element={<LibraryPage />} />
+            <Route path="library/:libraryId/:type" element={<LibraryPage />} />
             <Route
               path="details/movie/:movieId"
               element={<MovieDetailsPage />}

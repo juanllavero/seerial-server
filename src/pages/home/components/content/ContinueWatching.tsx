@@ -1,18 +1,22 @@
 import Card from '@/components/cards/Card'
+import { useIsMobile } from '@/components/hooks/use-mobile'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useServerStore } from '@/context/server.context'
 import { Video } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 import HorizontalList from '../HorizontalList'
-import { Skeleton } from '@/components/ui/skeleton'
-import { useIsMobile } from '@/components/hooks/use-mobile'
 
 interface ContinueWatchingProps {
   goToContent: (url: string) => void
+  minimumLoading: boolean
 }
 
-function ContinueWatching({ goToContent }: ContinueWatchingProps) {
+function ContinueWatching({
+  goToContent,
+  minimumLoading,
+}: ContinueWatchingProps) {
   const { t } = useTranslation()
   const { selectedServer } = useServerStore()
   const isMobile = useIsMobile()
@@ -49,7 +53,7 @@ function ContinueWatching({ goToContent }: ContinueWatchingProps) {
               }
             />
           ))
-        : !isLoading
+        : !isLoading || minimumLoading
           ? skeletons
           : t('noContent')}
     </HorizontalList>

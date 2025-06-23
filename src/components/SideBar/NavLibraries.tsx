@@ -18,16 +18,13 @@ import {
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
+import { LibraryTypes } from '@/data/enums/LibraryTypes'
 import { Library } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
-import { useNavigate } from 'react-router-dom'
 import { t } from 'i18next'
 import {
   EditIcon,
   Film,
-  Folder,
-  Forward,
-  House,
   MoreVertical,
   Music,
   Plus,
@@ -36,11 +33,13 @@ import {
   TvMinimal,
 } from 'lucide-react'
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import useSWR from 'swr'
 
 interface Item {
   id: string
   name: string
+  type: string
   logo: React.ElementType
   action: () => void
 }
@@ -77,10 +76,11 @@ export function NavLibraries() {
         ...libraries.map((library) => ({
           id: library.id,
           name: library.name,
+          type: library.type,
           logo:
-            library.type === 'Shows'
+            library.type === LibraryTypes.SHOWS
               ? TvMinimal
-              : library.type === 'Movies'
+              : library.type === LibraryTypes.MOVIES
                 ? Film
                 : Music,
           action: () => {
@@ -88,7 +88,9 @@ export function NavLibraries() {
 
             if (!selectedServer || !serverStatus) return
 
-            navigate(`/server/${selectedServer.id}/library/${library.id}`)
+            navigate(
+              `/server/${selectedServer.id}/library/${library.id}/${library.type}`,
+            )
           },
         })),
       ]
@@ -122,7 +124,7 @@ export function NavLibraries() {
                         if (!selectedServer || !serverStatus) return
 
                         navigate(
-                          `/server/${selectedServer.id}/library/${item.id}`,
+                          `/server/${selectedServer.id}/library/${item.id}/${item.type}`,
                         )
                       }}
                       style={{

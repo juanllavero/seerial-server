@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { CSSProperties } from 'react'
 
 interface GridProps {
   columns?: string
@@ -16,6 +16,7 @@ interface GridProps {
   className?: string
   onClick?: () => void
   children: React.ReactNode
+  css?: CSSProperties
 }
 
 function Grid({
@@ -34,6 +35,7 @@ function Grid({
   className = '',
   onClick,
   children,
+  css,
 }: GridProps) {
   return (
     <div
@@ -50,6 +52,7 @@ function Grid({
         margin: margin,
         width: width,
         height: height,
+        ...css,
       }}
       onClick={onClick}
     >

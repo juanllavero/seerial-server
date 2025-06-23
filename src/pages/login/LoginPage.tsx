@@ -1,12 +1,27 @@
-import { getToken } from '@/lib/auth'
-import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/context/auth.context'
+import { getToken } from '@/lib/auth'
 import { CENTRAL_SERVER } from '@/utils/constants'
 import { showToast } from '@/utils/ReactUtils'
 import { useGoogleLogin } from '@react-oauth/google'
-import { Play, Film, Music, Video, Tv, Loader2 } from 'lucide-react'
-import { useState } from 'react'
+import { Film, Loader2, Music, Play, Tv, Video } from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
+
+interface IconConfig {
+  Component: React.ComponentType<{
+    size?: number
+    className?: string
+    style?: React.CSSProperties
+  }>
+  size: number
+}
+
+interface IconPosition {
+  top: number
+  left: number
+  animationDelay: number
+}
 
 function LoginPage() {
   const { t } = useTranslation()
@@ -19,6 +34,102 @@ function LoginPage() {
 
   const [isHovering, setIsHovering] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+
+  const icons: IconConfig[] = [
+    { Component: Film, size: 40 },
+    { Component: Music, size: 35 },
+    { Component: Tv, size: 45 },
+    { Component: Video, size: 38 },
+    { Component: Play, size: 30 },
+    { Component: Film, size: 40 },
+    { Component: Music, size: 35 },
+    { Component: Tv, size: 45 },
+    { Component: Video, size: 38 },
+    { Component: Play, size: 30 },
+    { Component: Film, size: 40 },
+    { Component: Music, size: 35 },
+    { Component: Tv, size: 45 },
+    { Component: Video, size: 38 },
+    { Component: Play, size: 30 },
+  ]
+
+  const [iconPositions, setIconPositions] = useState<IconPosition[]>([])
+  const [isAnimating, setIsAnimating] = useState<boolean>(false)
+
+  // Función para generar posiciones aleatorias en los bordes
+  const generateRandomPositions = (): IconPosition[] => {
+    const positions: IconPosition[] = []
+    const minDistance = 15 // Distancia mínima entre iconos (en porcentaje)
+
+    // Definir zonas específicas para mejor distribución
+    const zones = [
+      // Esquinas
+      { top: 10, left: 10 }, // Esquina superior izquierda
+      { top: 10, left: 90 }, // Esquina superior derecha
+      { top: 90, left: 10 }, // Esquina inferior izquierda
+      { top: 90, left: 90 }, // Esquina inferior derecha
+      // Bordes medios
+      { top: 10, left: 50 }, // Borde superior centro
+      { top: 50, left: 10 }, // Borde izquierdo centro
+      { top: 90, left: 50 }, // Borde inferior centro
+      { top: 50, left: 90 }, // Borde derecho centro
+      // Posiciones intermedias en bordes
+      { top: 30, left: 10 }, // Borde izquierdo superior
+      { top: 70, left: 10 }, // Borde izquierdo inferior
+      { top: 10, left: 30 }, // Borde superior izquierdo
+      { top: 10, left: 70 }, // Borde superior derecho
+      { top: 30, left: 90 }, // Borde derecho superior
+      { top: 70, left: 90 }, // Borde derecho inferior
+      { top: 90, left: 30 }, // Borde inferior izquierdo
+      { top: 90, left: 70 }, // Borde inferior derecho
+    ]
+
+    // Mezclar las zonas aleatoriamente
+    const shuffledZones = [...zones].sort(() => Math.random() - 0.5)
+
+    return icons.map((_, index) => {
+      // Usar una zona específica para cada icono
+      const zone = shuffledZones[index % shuffledZones.length]
+
+      // Añadir una pequeña variación aleatoria a la posición base
+      const randomVariation = 8 // Variación máxima en porcentaje
+      const top = Math.max(
+        2,
+        Math.min(90, zone.top + (Math.random() - 0.5) * randomVariation),
+      )
+      const left = Math.max(
+        2,
+        Math.min(90, zone.left + (Math.random() - 0.5) * randomVariation),
+      )
+
+      return {
+        top,
+        left,
+        animationDelay: Math.random() * 2000, // Delay aleatorio para el pulse
+      }
+    })
+  }
+
+  // Inicializar posiciones al montar el componente
+  useEffect(() => {
+    setIconPositions(generateRandomPositions())
+  }, [])
+
+  // Cambiar posiciones cada 4 segundos
+  useEffect(() => {
+    const interval: number = window.setInterval(() => {
+      // Iniciar fadeOut
+      setIsAnimating(true)
+
+      // Después de 500ms (fadeOut completo), cambiar posiciones y hacer fadeIn
+      setTimeout(() => {
+        setIconPositions(generateRandomPositions())
+        setIsAnimating(false)
+      }, 500)
+    }, 4000)
+
+    return () => clearInterval(interval)
+  }, [])
 
   const handleGoogleLogin = async (tokenResponse: { access_token: string }) => {
     const accessToken = tokenResponse.access_token
@@ -67,25 +178,31 @@ function LoginPage() {
     <div className="bg-background relative min-h-screen overflow-hidden">
       {/* Elementos decorativos de fondo */}
       <div className="absolute inset-0 opacity-25">
-        <div className="absolute top-10 left-10 animate-pulse">
-          <Film
-            size={40}
-            className="text-white"
-            style={{ color: 'white !important' }}
-          />
-        </div>
-        <div className="absolute top-32 right-20 animate-pulse delay-1000">
-          <Music size={35} className="text-white" style={{ color: 'white' }} />
-        </div>
-        <div className="absolute bottom-40 left-20 animate-pulse delay-500">
-          <Tv size={45} className="text-white" style={{ color: 'white' }} />
-        </div>
-        <div className="absolute right-32 bottom-20 animate-pulse delay-700">
-          <Video size={38} className="text-white" style={{ color: 'white' }} />
-        </div>
-        <div className="absolute top-1/2 left-1/4 animate-pulse delay-300">
-          <Play size={30} className="text-white" style={{ color: 'white' }} />
-        </div>
+        {icons.map((icon: IconConfig, index: number) => {
+          const IconComponent = icon.Component
+          const position: IconPosition | undefined = iconPositions[index]
+
+          if (!position) return null
+
+          return (
+            <div
+              key={index}
+              className={`ease absolute transition-all duration-500 ${
+                isAnimating ? 'opacity-0' : 'opacity-100'
+              }`}
+              style={{
+                top: `${position.top}%`,
+                left: `${position.left}%`,
+              }}
+            >
+              <IconComponent
+                size={icon.size}
+                className="text-white"
+                style={{ color: 'white' }}
+              />
+            </div>
+          )
+        })}
       </div>
 
       {/* Contenido principal */}

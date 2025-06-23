@@ -119,7 +119,9 @@ function LibraryDialog() {
     const libraryId = data.id
 
     // Navigate to new library page
-    navigate(`/server/${selectedServer.id}/library/${libraryId}`)
+    navigate(
+      `/server/${selectedServer.id}/library/${libraryId}/${type ?? 'Shows'}`,
+    )
   }
 
   const handleSaveOrNext = () => {

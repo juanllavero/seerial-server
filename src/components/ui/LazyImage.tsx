@@ -35,7 +35,7 @@ function LazyImage({
   const [loaded, setLoaded] = useState(false)
   const [imageSrc, setImageSrc] = useState(
     url
-      ? url.startsWith('http2')
+      ? url.startsWith('http')
         ? url
         : `https://${serverIP}/${url.replace('resources/img', 'img')}`
       : (src ?? errorSrc),
@@ -44,7 +44,7 @@ function LazyImage({
 
   useEffect(() => {
     const newSrc = url
-      ? url.startsWith('http2')
+      ? url.startsWith('http')
         ? url
         : `https://${serverIP}/${url.replace('resources/img', 'img')}`
       : src

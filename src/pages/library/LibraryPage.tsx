@@ -1,10 +1,10 @@
 import { useServerStore } from '@/context/server.context'
-import { useParams } from 'react-router-dom'
 import { memo, useMemo } from 'react'
+import { useParams } from 'react-router-dom'
 import LibraryPageContent from './components/LibraryPageContent'
 
 function LibraryPage() {
-  const { libraryId } = useParams()
+  const { libraryId, type } = useParams()
   const { selectedServer } = useServerStore()
 
   // Memoize serverIP
@@ -17,7 +17,11 @@ function LibraryPage() {
   })
 
   return (
-    <LibraryPageContent libraryId={libraryId ?? ''} serverIP={serverIP ?? ''} />
+    <LibraryPageContent
+      libraryId={libraryId ?? ''}
+      serverIP={serverIP ?? ''}
+      type={type ?? ''}
+    />
   )
 }
 
