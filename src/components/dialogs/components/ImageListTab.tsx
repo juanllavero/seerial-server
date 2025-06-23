@@ -1,21 +1,15 @@
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { useIsTablet } from '@/components/hooks/use-tablet'
-import Loading from '@/components/Loading'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
-import Grid from '@/components/ui/Grid'
 import { Input } from '@/components/ui/input'
-import LazyImage from '@/components/ui/LazyImage'
 import { useServerStore } from '@/context/server.context'
 import { generateRandoumUUID, showToast } from '@/utils/ReactUtils'
 import { fetcher } from '@/utils/utils'
 import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
-import './ImageListTab.css'
-import CardGridSkeleton from '@/components/skeletons/CardGridSkeleton'
-import { Skeleton } from '@/components/ui/skeleton'
-import Image from '@/components/ui/Image'
+import ImageButton from './ImageButton'
 
 interface LocalImage {
   name: string
@@ -232,15 +226,7 @@ function ImageListTab({
           </>
         )}
       </FlexBox>
-      {/* <Grid
-        gap={'1rem'}
-        columns={`repeat(${isPoster ? (isMobile ? 3 : 4) : isMobile ? 2 : 3}, 1fr)`}
-        scroll="vertical"
-        hideScrollbar={isTablet}
-        padding="0 0.5rem"
-      >
-        
-      </Grid> */}
+
       <FlexBox
         gap={1}
         direction="row"
@@ -251,52 +237,26 @@ function ImageListTab({
       >
         {imagesList &&
           imagesList.map((image) => (
-            <Image
+            <ImageButton
               key={image}
-              onClick={() =>
-                selectImage(
-                  image.startsWith('http')
-                    ? image
-                    : `http://image.tmdb.org/t/p/original/${image}`,
-                )
-              }
-              className={`image-list-img ${selectedImage === image || selectedImage.endsWith(image) ? 'selected-image' : ''}`}
-              src={
-                image.startsWith('http')
-                  ? image
-                  : `http://image.tmdb.org/t/p/original/${image}`
-              }
-              fallbackSrc={
-                isPoster
-                  ? '/img/fileNotFound.jpg'
-                  : '/img/Default_video_thumbnail.jpg'
-              }
-              alt={image}
-              aspectRatio={isPoster ? 2 / 3 : 16 / 9}
-              width={50}
+              image={image}
+              isPoster={isPoster}
+              selectedImage={selectedImage}
+              selectImage={selectImage}
             />
           ))}
 
         {loaded &&
           localImages &&
-          localImages.map(
-            (image: { name: string; url: string }, index: number) => (
-              <Image
-                key={image.url ?? 'Image ' + index}
-                onClick={() => selectImage(image.url)}
-                className={`image-list-img ${selectedImage === image.url || selectedImage.endsWith(image.url) ? 'selected-image' : ''}`}
-                src={image.url}
-                fallbackSrc={
-                  isPoster
-                    ? '/img/fileNotFound.jpg'
-                    : '/img/Default_video_thumbnail.jpg'
-                }
-                alt={image.name}
-                aspectRatio={isPoster ? 2 / 3 : 16 / 9}
-                width={25}
-              />
-            ),
-          )}
+          localImages.map((image: { name: string; url: string }) => (
+            <ImageButton
+              key={image.name + ' ' + image.url}
+              image={image.url}
+              isPoster={isPoster}
+              selectedImage={selectedImage}
+              selectImage={selectImage}
+            />
+          ))}
       </FlexBox>
     </FlexBox>
   )

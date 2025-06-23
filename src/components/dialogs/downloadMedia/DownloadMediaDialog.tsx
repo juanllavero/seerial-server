@@ -9,7 +9,7 @@ function DownloadMediaDialog() {
 
   return (
     <ModalWrapper
-      title={t('downloadContent')}
+      title={t('downloadButton')}
       tabs={[
         {
           title: t('generalButton'),

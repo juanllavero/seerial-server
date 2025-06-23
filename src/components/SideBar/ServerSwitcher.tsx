@@ -1,4 +1,3 @@
-import { ChevronRight } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,9 +14,10 @@ import {
 import { useAuth } from '@/context/auth.context'
 import { useServerStore } from '@/context/server.context'
 import { Server } from '@/data/interfaces/Users'
+import { cn } from '@/utils/tailwind'
+import { ChevronRight } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { ServerIcon } from '../ui/IconLibrary'
-import { cn } from '@/utils/tailwind'
 
 export function ServerSwitcher() {
   const { user } = useAuth()
@@ -72,13 +72,15 @@ export function ServerSwitcher() {
                 </span>
                 <span className="truncate text-xs">{activeServer.ip}</span>
               </div>
-              <ChevronRight
-                className={cn(
-                  'ml-auto size-4 opacity-0 transition-transform duration-150 ease-in-out',
-                  open && 'scale-x-[-1]',
-                  (hover || open) && 'opacity-100',
-                )}
-              />
+              <div className="h-6 w-6">
+                <ChevronRight
+                  className={cn(
+                    'ml-auto opacity-0 transition-transform duration-150 ease-in-out',
+                    open && 'scale-x-[-1]',
+                    (hover || open) && 'opacity-100',
+                  )}
+                />
+              </div>
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent

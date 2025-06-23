@@ -1,4 +1,6 @@
-import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
+import { useIsMobile } from '@/components/hooks/use-mobile'
+import { useIsTablet } from '@/components/hooks/use-tablet'
+import { ModalWrapper } from '@/components/ModalWrapper'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
@@ -9,10 +11,7 @@ import { MediaSearchResult } from '@/data/interfaces/Utils'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import DownloadMediaCard from './DownloadMediaCard'
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import { useIsTablet } from '@/components/hooks/use-tablet'
 import DownloadMediaCardSkeleton from './DownloadMediaCardSkeleton'
-import { ModalWrapper } from '@/components/ModalWrapper'
 
 function DownloadMediaSearch() {
   const { t } = useTranslation()
@@ -35,14 +34,6 @@ function DownloadMediaSearch() {
   const searchButtonRef = useRef<HTMLButtonElement>(null)
 
   const isShow: boolean = seriesToEdit !== undefined
-
-  console.log({
-    type,
-    isShow,
-    seriesToEdit,
-    seasonToEdit,
-    movieToEdit,
-  })
 
   useEffect(() => {
     if (!seasonToEdit && !movieToEdit) return
@@ -131,16 +122,13 @@ function DownloadMediaSearch() {
     >
       {/* Content */}
       <FlexBox gap={1} justify="center" align="center" width={'100%'}>
-        <LabeledInputWrapper label={t('text')}>
-          <Input
-            type="text"
-            placeholder={t('text')}
-            value={searchText}
-            width={'100%'}
-            onChange={(e) => setSearchText(e.target.value)}
-          />
-        </LabeledInputWrapper>
-        <FlexBox align="end" justify="end" height={'85%'}>
+        <Input
+          type="text"
+          value={searchText}
+          width={'100%'}
+          onChange={(e) => setSearchText(e.target.value)}
+        />
+        <FlexBox align="end" justify="end">
           <Button onClick={() => search(searchText)} ref={searchButtonRef}>
             {t('searchButton')}
           </Button>

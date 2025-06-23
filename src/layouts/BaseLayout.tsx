@@ -1,11 +1,10 @@
 import DialogManager from '@/components/dialogs/DialogManager'
-import MusicPlayer from '@/components/musicPlayer/MusicPlayer'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { getToken } from '@/lib/auth'
 import { ReactUtils } from '@/utils/ReactUtils'
-import { useLocation } from 'react-router-dom'
 import React, { useEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import '../styles/utils.css'
 import './BaseLayout.css'
@@ -146,8 +145,7 @@ export default function BaseLayout({
       {getToken() !== null && (
         <>
           <DialogManager />
-          <MusicPlayer />
-          {/* <DragWindowRegion /> */}
+          {/* <MusicPlayer /> */}
         </>
       )}
 

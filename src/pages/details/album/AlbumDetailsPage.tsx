@@ -73,9 +73,9 @@ function AlbumDetailsPage() {
               ) : (
                 <LazyImage
                   url={album.coverSrc}
-                  width={350}
-                  maxHeight={300}
-                  height={300}
+                  width={380}
+                  maxHeight={380}
+                  height={380}
                   errorSrc={'/img/songDefault.png'}
                 />
               )}
