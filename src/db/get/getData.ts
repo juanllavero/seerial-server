@@ -31,7 +31,15 @@ export const getLibraryById = async (id: string) => {
         { model: Series, as: "series" },
         { model: Movie, as: "movies" },
         { model: Album, as: "albums" },
-        { model: Collection, as: "collections" },
+        {
+          model: Collection,
+          as: "collections",
+          include: [
+            { model: Series, as: "shows" },
+            { model: Movie, as: "movies" },
+            { model: Album, as: "albums" },
+          ],
+        },
       ],
     });
 

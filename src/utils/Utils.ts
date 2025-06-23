@@ -225,22 +225,44 @@ export class Utils {
   //#endregion
 
   //#region MEDIA INFO
+  /**
+   * Retrieves the duration of a music file and sets it on the provided Song object.
+   *
+   * Uses ffprobe to extract the duration of the given music file and assigns
+   * the duration (in minutes) to the Song object's `duration` property.
+   * Logs an error if the duration cannot be determined.
+   *
+   * @param song - The Song object whose duration property will be set.
+   * @param musicFile - The path to the music file to probe for duration.
+   * @returns A Promise that resolves when the operation is complete.
+   * @throws Will rethrow any error encountered during probing.
+   */
   public static async getOnlyRuntime(
     song: Song,
     musicFile: string
   ): Promise<void> {
+    if (!musicFile || typeof musicFile !== "string") {
+      console.error("getOnlyRuntime: Invalid music file path provided.");
+      return;
+    }
+
     try {
       const data = await this.probeMediaFile(musicFile);
-      const format = data?.format;
+      const duration = data?.format?.duration;
 
-      if (format && format.duration) {
-        song.duration = format.duration / 60;
+      if (typeof duration === "number" && !isNaN(duration)) {
+        song.duration = duration / 60;
       } else {
-        console.log("Failed to get runtime for song:", musicFile);
+        console.error(
+          `getOnlyRuntime: Failed to get valid runtime for song: ${musicFile}`
+        );
       }
     } catch (err) {
-      console.log("Failed to get runtime", { error: err });
-      throw err; // Re-lanzar el error para que el llamador lo maneje si es necesario
+      console.error("getOnlyRuntime: Error while getting runtime", {
+        error: err,
+        musicFile,
+      });
+      throw err; // Rethrow for the caller to handle if necessary
     }
   }
 
@@ -961,6 +983,25 @@ export class Utils {
     }
   };
 
+  public static getFileInFolder = (folder: string, fileName: string) => {
+    try {
+      const files = fs.readdirSync(folder);
+
+      const matchedFile = files.find((file) => {
+        const fileNameWithoutExt = path.parse(file).name;
+        return fileNameWithoutExt === fileName;
+      });
+
+      if (!matchedFile) {
+        return "";
+      }
+
+      return path.join(folder, matchedFile);
+    } catch (err) {
+      return "";
+    }
+  };
+
   //#region WEBSOCKET CONTENT MESSAGES
   public static mutateLibraries = (ws: WebSocketManager) => {
     const message = {
@@ -1017,72 +1058,5 @@ export class Utils {
     };
     ws.broadcast(JSON.stringify(message));
   };
-  //#endregion
-
-  //#region BACKGROUND PROCESSING
-  // public static async saveBackground(season: Season, imageToCopy: string) {
-  // 	const baseDir = `resources/img/backgrounds/${season.getId()}/`;
-  // 	await fsExtra.ensureDir(baseDir);
-
-  // 	try {
-  // 		// Copy the original image
-  // 		await fsExtra.copy(imageToCopy, path.join(baseDir, "background.jpg"));
-  // 		season.setBackgroundSrc(path.join(baseDir, "background.jpg"));
-
-  // 		// Process blur and save
-  // 		this.processBlurAndSave(
-  // 			this.getExternalPath(season.getBackgroundSrc()),
-  // 			path.join(baseDir, "fullBlur.jpg")
-  // 		);
-  // 	} catch (e) {
-  // 		console.error("saveBackground: error processing image with blur");
-  // 	}
-  // }
-
-  // public static async saveBackgroundNoSeason(
-  // 	seasonId: string,
-  // 	imageToCopy: string
-  // ) {
-  // 	const baseDir = `resources/img/backgrounds/${seasonId}/`;
-  // 	await fsExtra.ensureDir(baseDir);
-
-  // 	try {
-  // 		// Copy the original image
-  // 		await fsExtra.copy(imageToCopy, path.join(baseDir, "background.jpg"));
-
-  // 		// Process blur and save
-  // 		await this.processBlurAndSave(
-  // 			this.getExternalPath(baseDir + "background.jpg"),
-  // 			path.join(baseDir, "fullBlur.jpg")
-  // 		);
-  // 	} catch (e) {
-  // 		console.error("saveBackground: error processing image with blur");
-  // 	}
-  // }
-
-  // public static processBlurAndSave = async (
-  // 	imagePath: string,
-  // 	outputPath: string
-  // ) => {
-  // 	return new Promise<void>(async (resolve, reject) => {
-  // 		let imageMagickPath = await this.getInternalPath("lib/magick.exe");
-  // 		// Comando de ImageMagick usando la versión portable, añadiendo compresión
-  // 		const command = `"${imageMagickPath}" "${imagePath}" -blur 0x${25} -quality ${75} "${outputPath}"`;
-
-  // 		exec(command, (error, _stdout, stderr) => {
-  // 			if (error) {
-  // 				console.error(
-  // 					`Error al aplicar blur a la imagen: ${error.message}`
-  // 				);
-  // 				reject(error);
-  // 			} else if (stderr) {
-  // 				console.error(`stderr: ${stderr}`);
-  // 				reject();
-  // 			} else {
-  // 				resolve();
-  // 			}
-  // 		});
-  // 	});
-  // };
   //#endregion
 }

@@ -1,4 +1,5 @@
 import express from "express";
+import path from "path";
 import { Video } from "../../../data/models/Media/Video.model";
 import {
   getAlbumById,
@@ -22,11 +23,11 @@ import {
   getVideoById,
   getVideoByMovieId,
 } from "../../../db/get/getData";
-import { SequelizeManager } from "../../../db/SequelizeManager";
 import { Downloader } from "../../../downloaders/Downloader";
 import { FileSearch } from "../../../fileSearch/FileSearch";
 import { clearLibrary } from "../../../fileSearch/utils";
 import { MovieDBWrapper } from "../../../theMovieDB/MovieDB";
+import { FilesManager } from "../../../utils/FilesManager";
 import { IMDBScores } from "../../../utils/IMDBScores";
 import { Utils } from "../../../utils/Utils";
 import { WebSocketManager } from "../../../WebSockets/WebSocketManager";
@@ -37,21 +38,15 @@ router.get("/library", async (req, res) => {
 
   if (!id || id === "") return;
 
-  await SequelizeManager.initializeDB();
-
   res.json(await getLibraryById(id as string));
 });
 
 //#region LISTS
 router.get("/libraries", async (_req, res) => {
-  await SequelizeManager.initializeDB();
-
   res.json(await getLibraries());
 });
 
 router.get("/collections", async (req, res) => {
-  await SequelizeManager.initializeDB();
-
   res.json(await getCollections());
 });
 
@@ -59,8 +54,6 @@ router.get("/series", async (req, res) => {
   const { libraryId } = req.query;
 
   if (!libraryId || libraryId === "") return;
-
-  await SequelizeManager.initializeDB();
 
   res.json(await getSeries(libraryId as string));
 });
@@ -70,8 +63,6 @@ router.get("/movies", async (req, res) => {
 
   if (!libraryId || libraryId === "") return;
 
-  await SequelizeManager.initializeDB();
-
   res.json(await getMovies(libraryId as string));
 });
 
@@ -79,8 +70,6 @@ router.get("/seasons", async (req, res) => {
   const { seriesId } = req.query;
 
   if (!seriesId || seriesId === "") return;
-
-  await SequelizeManager.initializeDB();
 
   res.json(await getSeasons(seriesId as string));
 });
@@ -90,8 +79,6 @@ router.get("/episodes", async (req, res) => {
 
   if (!seasonId || seasonId === "") return;
 
-  await SequelizeManager.initializeDB();
-
   res.json(await getEpisodes(seasonId as string));
 });
 
@@ -100,26 +87,18 @@ router.get("/albums", async (req, res) => {
 
   if (!libraryId || libraryId === "") return;
 
-  await SequelizeManager.initializeDB();
-
   res.json(await getAlbums(libraryId as string));
 });
 
 router.get("/myListSeries", async (req, res) => {
-  await SequelizeManager.initializeDB();
-
   res.json(await getSeriesInMyList());
 });
 
 router.get("/myListMovies", async (req, res) => {
-  await SequelizeManager.initializeDB();
-
   res.json(await getMoviesInMyList());
 });
 
 router.get("/continueWatching", async (req, res) => {
-  await SequelizeManager.initializeDB();
-
   res.json(await getContinueWatchingVideos());
 });
 
@@ -132,8 +111,6 @@ router.get("/details/collection", async (req, res) => {
 
   if (!id || id === "") return;
 
-  await SequelizeManager.initializeDB();
-
   res.json(await getCollectionById(id as string));
 });
 
@@ -142,8 +119,6 @@ router.get("/details/series", async (req, res) => {
 
   if (!id || id === "") return;
 
-  await SequelizeManager.initializeDB();
-
   res.json(await getSeriesById(id as string));
 });
 
@@ -151,8 +126,6 @@ router.get("/details/seriesBySeasonId", async (req, res) => {
   const { seasonId } = req.query;
 
   if (!seasonId || seasonId === "") return;
-
-  await SequelizeManager.initializeDB();
 
   const season = await getSeasonById(seasonId as string);
 
@@ -166,8 +139,6 @@ router.get("/details/season", async (req, res) => {
 
   if (!id || id === "") return;
 
-  await SequelizeManager.initializeDB();
-
   res.json(await getSeasonById(id as string));
 });
 
@@ -175,8 +146,6 @@ router.get("/details/episode", async (req, res) => {
   const { id } = req.query;
 
   if (!id || id === "") return;
-
-  await SequelizeManager.initializeDB();
 
   res.json(await getEpisodeById(id as string));
 });
@@ -186,8 +155,6 @@ router.get("/details/video", async (req, res) => {
 
   if (!id || id === "") return;
 
-  await SequelizeManager.initializeDB();
-
   res.json(await getVideoById(id as string));
 });
 
@@ -195,8 +162,6 @@ router.get("/details/movie", async (req, res) => {
   const { id } = req.query;
 
   if (!id || id === "") return;
-
-  await SequelizeManager.initializeDB();
 
   res.json(await getMovieById(id as string));
 });
@@ -206,8 +171,6 @@ router.get("/details/album", async (req, res) => {
 
   if (!id || id === "") return;
 
-  await SequelizeManager.initializeDB();
-
   res.json(await getAlbumById(id as string));
 });
 
@@ -216,8 +179,6 @@ router.get("/episode-video", async (req, res) => {
 
   if (!episodeId || episodeId === "") return;
 
-  await SequelizeManager.initializeDB();
-
   res.json(await getVideoByEpisodeId(episodeId as string));
 });
 
@@ -225,8 +186,6 @@ router.get("/movie-video", async (req, res) => {
   const { movieId } = req.query;
 
   if (!movieId || movieId === "") return;
-
-  await SequelizeManager.initializeDB();
 
   res.json(await getVideoByMovieId(movieId as string));
 });
@@ -326,6 +285,114 @@ router.get("/shows/search", (req: any, res: any) => {
   }
 
   MovieDBWrapper.searchTVShows(name, year, 1).then((data) => res.json(data));
+});
+
+// Get movie background video
+router.get("/movieVideo", async (req: any, res: any) => {
+  const { id } = req.query;
+
+  if (!id || id === "") return;
+
+  const movie = await getMovieById(id as string);
+
+  if (!movie) {
+    return res.status(404).json({ error: "Movie not found" });
+  }
+
+  const folder = FilesManager.getExternalPath(
+    `resources/video/${movie.libraryId}/`
+  );
+
+  const filename = Utils.getFileInFolder(folder, movie.id);
+  if (!filename) {
+    return res.status(404).json({ error: "File not found" });
+  }
+
+  const basename = path.basename(filename);
+  const url = `/media/video/${movie.libraryId}/${basename}`;
+
+  res.json({ url });
+});
+
+// Get movie background music
+router.get("/movieMusic", async (req: any, res: any) => {
+  const { id } = req.query;
+
+  if (!id || id === "") return;
+
+  const movie = await getMovieById(id as string);
+
+  if (!movie) {
+    return res.status(404).json({ error: "Movie not found" });
+  }
+
+  const folder = FilesManager.getExternalPath(
+    `resources/music/${movie.libraryId}/`
+  );
+
+  const filename = Utils.getFileInFolder(folder, movie.id);
+  if (!filename) {
+    return res.status(404).json({ error: "File not found" });
+  }
+
+  const basename = path.basename(filename);
+  const url = `/media/music/${movie.libraryId}/${basename}`;
+
+  res.json({ url });
+});
+
+// Get season background video
+router.get("/seasonVideo", async (req: any, res: any) => {
+  const { id } = req.query;
+
+  if (!id || id === "") return;
+
+  const season = await getSeasonById(id as string);
+
+  if (!season) {
+    return res.status(404).json({ error: "Season not found" });
+  }
+
+  const folder = FilesManager.getExternalPath(
+    `resources/video/${season.series.libraryId}/`
+  );
+
+  const filename = Utils.getFileInFolder(folder, season.id);
+  if (!filename) {
+    return res.status(404).json({ error: "File not found" });
+  }
+
+  const basename = path.basename(filename);
+  const url = `/media/video/${season.series.libraryId}/${basename}`;
+
+  res.json({ url });
+});
+
+// Get season background music
+router.get("/seasonMusic", async (req: any, res: any) => {
+  const { id } = req.query;
+
+  if (!id || id === "") return;
+
+  const season = await getSeasonById(id as string);
+
+  if (!season) {
+    return res.status(404).json({ error: "Season not found" });
+  }
+
+  const folder = FilesManager.getExternalPath(
+    `resources/music/${season.series.libraryId}/`
+  );
+
+  const filename = Utils.getFileInFolder(folder, season.id);
+  if (!filename) {
+    return res.status(404).json({ error: "File not found" });
+  }
+
+  const basename = path.basename(filename);
+  const url = `/media/music/${season.series.libraryId}/${basename}`;
+
+  res.json({ url });
 });
 
 export default router;

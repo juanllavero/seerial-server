@@ -166,6 +166,9 @@ export interface Movie {
   musicComposerLock: boolean;
   cast: Cast[];
 
+  videoSrc: string;
+  musicSrc: string;
+
   folder: string;
 
   logoSrc: string;

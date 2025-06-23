@@ -42,7 +42,7 @@ router.post("/api-key", (req, res) => {
   if (apiKey) {
     const moviedb = new MovieDb(String(apiKey));
 
-    MovieDBWrapper.THEMOVIEDB_API_KEY = apiKey;
+    MovieDBWrapper.THEMOVIEDB_API_TOKEN = apiKey;
 
     res.json({
       status: moviedb ? "VALID_API_KEY" : "INVALID_API_KEY",

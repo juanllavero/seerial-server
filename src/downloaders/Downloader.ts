@@ -1,4 +1,5 @@
 import { exec, spawn } from "child_process";
+import ffmpegPath from "ffmpeg-static";
 import fs from "fs";
 import path from "path";
 import { promisify } from "util";
@@ -14,9 +15,9 @@ export class Downloader {
     query: string,
     numberOfResults: number
   ): Promise<MediaSearchResult[]> {
-    const searchQuery = `${ytDlpPath} "ytsearch${
+    const searchQuery = `"${ytDlpPath}" "ytsearch${
       numberOfResults > 0 ? numberOfResults : 1
-    }:${query}" --dump-json --default-search ytsearch --no-playlist --no-check-certificate --geo-bypass --flat-playlist --skip-download --quiet --ignore-errors`;
+    }:${query}" --dump-json --default-search ytsearch --no-playlist --no-check-certificate --geo-bypass --flat-playlist --skip-download --quiet --ignore-errors --ffmpeg-location ${ffmpegPath}`;
 
     try {
       const { stdout } = await execAsync(searchQuery);
@@ -51,9 +52,6 @@ export class Downloader {
     fileName: string,
     wsManager: WebSocketManager
   ): Promise<void> {
-    // Get the absolute path of yt-dlp.exe based on the current directory
-    const ytDlpPath = FilesManager.getInternalPath("lib/yt-dlp.exe"); // Change
-
     const folder = FilesManager.getExternalPath(downloadFolder);
 
     // Make sure the download path has a trailing slash
@@ -69,7 +67,7 @@ export class Downloader {
     }
 
     // Prepare yt-dlp command
-    const command = `${ytDlpPath} -f "bestvideo[ext=webm]+bestaudio[ext=webm]" -o "${outputPath}" ${url} -q --progress --force-overwrite`;
+    const command = `"${ytDlpPath}" -f "bestvideo[ext=webm]+bestaudio[ext=webm]" -o "${outputPath}" ${url} -q --progress --force-overwrite --ffmpeg-location ${ffmpegPath}`;
 
     this.downloadContent(command, fileName, wsManager);
   }
@@ -80,9 +78,6 @@ export class Downloader {
     fileName: string,
     wsManager: WebSocketManager
   ): Promise<void> {
-    // Get the absolute path of yt-dlp.exe based on the current directory
-    const ytDlpPath = FilesManager.getInternalPath("lib/yt-dlp.exe");
-
     // Make sure the download path has a trailing slash
     const outputPath = path.join(downloadFolder, `${fileName}.opus`);
 
@@ -96,7 +91,7 @@ export class Downloader {
     }
 
     // Prepare the yt-dlp command to download only the audio (the best audio available)
-    const command = `${ytDlpPath} -f "bestaudio[ext=webm]" -o "${outputPath}" ${url} -q --progress --force-overwrite`;
+    const command = `"${ytDlpPath}" -f "bestaudio[ext=webm]" -o "${outputPath}" ${url} -q --progress --force-overwrite --ffmpeg-location ${ffmpegPath}`;
 
     this.downloadContent(command, fileName, wsManager);
   }

@@ -1,16 +1,14 @@
 import express from "express";
-import { MovieDb } from "moviedb-promise";
 import { MovieDBWrapper } from "../../../theMovieDB/MovieDB";
 const router = express.Router();
 
 // Check server status
-router.get("/", (_req, res) => {
-  console.log({ moviedb: MovieDBWrapper.THEMOVIEDB_API_KEY });
-  if (MovieDBWrapper.THEMOVIEDB_API_KEY) {
-    const moviedb = new MovieDb(String(MovieDBWrapper.THEMOVIEDB_API_KEY));
+router.get("/", async (_req, res) => {
+  if (MovieDBWrapper.THEMOVIEDB_API_TOKEN) {
+    const apiKeyStatus = await MovieDBWrapper.getAPIKeyStatus();
 
     res.json({
-      status: moviedb ? "VALID_API_KEY" : "INVALID_API_KEY",
+      status: apiKeyStatus ? "VALID_API_KEY" : "INVALID_API_KEY",
     });
   } else {
     res.json({
