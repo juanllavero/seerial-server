@@ -1,0 +1,33 @@
+import { Button } from '@/components/ui/button'
+import { Minimize2 } from 'lucide-react'
+
+interface MusicPlayerHeaderProps {
+  isExpanded: boolean
+  handleMinimize: () => void
+}
+
+function MusicPlayerHeader({
+  isExpanded,
+  handleMinimize,
+}: MusicPlayerHeaderProps) {
+  return (
+    <div
+      className={`flex items-center justify-end p-6 transition-all duration-500 ${
+        isExpanded
+          ? 'translate-y-0 opacity-100'
+          : 'pointer-events-none absolute -translate-y-4 opacity-0'
+      }`}
+    >
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleMinimize}
+        className="text-white hover:bg-white/20"
+      >
+        <Minimize2 className="h-6 w-6" />
+      </Button>
+    </div>
+  )
+}
+
+export default MusicPlayerHeader

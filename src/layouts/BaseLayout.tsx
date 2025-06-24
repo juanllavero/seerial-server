@@ -8,6 +8,8 @@ import { useLocation } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import '../styles/utils.css'
 import './BaseLayout.css'
+import useMusicStore from '@/context/music.context'
+import MusicPlayer2 from '@/components/musicPlayer/Test'
 
 export default function BaseLayout({
   children,
@@ -16,6 +18,7 @@ export default function BaseLayout({
 }) {
   const { currentBackground: selectedBackground } = useDataStore()
   const { selectedServer } = useServerStore()
+  const { musicPlayerContracted } = useMusicStore()
   const prevBackground = useRef<string | undefined>(undefined)
   const prevGradient = useRef<string | undefined>(undefined)
   const [currentBackground, setCurrentBackground] = useState<
@@ -146,6 +149,7 @@ export default function BaseLayout({
         <>
           <DialogManager />
           {/* <MusicPlayer /> */}
+          <MusicPlayer2 />
         </>
       )}
 

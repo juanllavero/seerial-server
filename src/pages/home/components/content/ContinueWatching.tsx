@@ -10,13 +10,9 @@ import HorizontalList from '../HorizontalList'
 
 interface ContinueWatchingProps {
   goToContent: (url: string) => void
-  minimumLoading: boolean
 }
 
-function ContinueWatching({
-  goToContent,
-  minimumLoading,
-}: ContinueWatchingProps) {
+function ContinueWatching({ goToContent }: ContinueWatchingProps) {
   const { t } = useTranslation()
   const { selectedServer } = useServerStore()
   const isMobile = useIsMobile()
@@ -53,7 +49,7 @@ function ContinueWatching({
               }
             />
           ))
-        : !isLoading || minimumLoading
+        : !isLoading
           ? skeletons
           : t('noContent')}
     </HorizontalList>

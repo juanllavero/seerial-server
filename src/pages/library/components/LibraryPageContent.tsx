@@ -33,8 +33,6 @@ function LibraryPageContent({
   // Memoize library to prevent unnecessary re-renders
   const memoizedLibrary = useMemo(() => library, [library?.id])
 
-  const [minimumLoading, setMinimumLoading] = useState<boolean>(true)
-
   useEffect(() => {
     if (library && library.id !== selectedLibraryId) {
       console.log('selectLibrary triggered:', {
@@ -43,14 +41,6 @@ function LibraryPageContent({
       })
       selectLibrary(library.id)
     }
-
-    // Minimum Loading for Skeleton
-    setMinimumLoading(true)
-    const timer = setTimeout(() => {
-      setMinimumLoading(false)
-    }, 0)
-
-    return () => clearTimeout(timer)
   }, [library?.id, selectedLibraryId, selectLibrary])
 
   // Mutate content on ws message
@@ -61,9 +51,7 @@ function LibraryPageContent({
     }
   }, [wsMessage, mutate])
 
-  const stillLoading = isLoading || minimumLoading
-
-  if (stillLoading) {
+  if (isLoading) {
     return <LibraryPageSkeleton cardWidth={cardWidth} type={type} />
   }
 

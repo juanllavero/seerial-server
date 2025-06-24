@@ -10,10 +10,9 @@ import HorizontalListSkeleton from './HorizontalListSkeleton'
 
 interface MyListMoviesProps {
   goToContent: (url: string) => void
-  minimumLoading: boolean
 }
 
-function MyListMovies({ goToContent, minimumLoading }: MyListMoviesProps) {
+function MyListMovies({ goToContent }: MyListMoviesProps) {
   const { t } = useTranslation()
   const { selectedServer } = useServerStore()
   const isMobile = useIsMobile()
@@ -26,7 +25,7 @@ function MyListMovies({ goToContent, minimumLoading }: MyListMoviesProps) {
 
   return (
     <HorizontalList title={t('watchListMovies')}>
-      {isLoading || minimumLoading ? (
+      {isLoading ? (
         <HorizontalListSkeleton listType="MyListMovies" />
       ) : moviesInMyList && moviesInMyList.length > 0 ? (
         moviesInMyList.map((movie: Movie) => (

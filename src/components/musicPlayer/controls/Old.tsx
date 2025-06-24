@@ -115,7 +115,7 @@ function MusicControls() {
     <FlexBox
       direction="column"
       width={'100%'}
-      className="fixed"
+      className="fixed bottom-0 z-50"
       css={{ height: '5rem' }}
       onClick={() => setMusicPlayerContracted(!musicPlayerContracted)}
     >

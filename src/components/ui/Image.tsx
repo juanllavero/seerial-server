@@ -2,10 +2,12 @@ import { useState, useRef, useEffect } from 'react'
 import { useIsMobile } from '../hooks/use-mobile'
 import { useIsTablet } from '../hooks/use-tablet'
 import { Skeleton } from './skeleton'
+import { useServerStore } from '@/context/server.context'
 
 interface ImageProps {
-  src: string
-  fallbackSrc: string
+  url?: string
+  src?: string
+  fallbackSrc?: string
   alt: string
   aspectRatio: number
   width?: number
@@ -15,6 +17,7 @@ interface ImageProps {
 }
 
 const Image: React.FC<ImageProps> = ({
+  url,
   src,
   fallbackSrc,
   alt,
@@ -24,6 +27,7 @@ const Image: React.FC<ImageProps> = ({
   className = '',
   onClick,
 }) => {
+  const { selectedServer } = useServerStore()
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
   const [isInView, setIsInView] = useState(false)
@@ -33,7 +37,15 @@ const Image: React.FC<ImageProps> = ({
   const isTablet = useIsTablet()
   const isMobile = useIsMobile()
 
-  // Intersection Observer para lazy loading
+  const [imageSrc, setImageSrc] = useState(
+    url
+      ? url.startsWith('http')
+        ? url
+        : `https://${selectedServer?.ip}/${url.replace('resources/img', 'img')}`
+      : (src ?? fallbackSrc),
+  )
+
+  // Intersection Observer for lazy loading
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -54,9 +66,7 @@ const Image: React.FC<ImageProps> = ({
     return () => observer.disconnect()
   }, [])
 
-  // Calcular dimensiones
   const calculateDimensions = () => {
-    // En móvil y tablet, usar 100% manteniendo aspect ratio
     if (isMobile || isTablet) {
       return {
         containerClass: 'w-full',
@@ -64,29 +74,24 @@ const Image: React.FC<ImageProps> = ({
       }
     }
 
-    // En desktop, usar las dimensiones especificadas
     if (width && !height) {
-      // Se proporcionó width, calcular height
       const calculatedHeight = Math.round(width / aspectRatio)
       return {
         containerClass: `w-${width} h-${calculatedHeight}`,
         aspectRatioStyle: {},
       }
     } else if (height && !width) {
-      // Se proporcionó height, calcular width
       const calculatedWidth = Math.round(height * aspectRatio)
       return {
         containerClass: `w-${calculatedWidth} h-${height}`,
         aspectRatioStyle: {},
       }
     } else if (width && height) {
-      // Se proporcionaron ambos, usar tal como están
       return {
         containerClass: `w-${width} h-${height}`,
         aspectRatioStyle: {},
       }
     } else {
-      // Fallback: usar aspect ratio solamente
       return {
         containerClass: 'w-full',
         aspectRatioStyle: { aspectRatio: aspectRatio.toString() },
@@ -103,12 +108,10 @@ const Image: React.FC<ImageProps> = ({
   const handleImageError = () => {
     if (!hasError) {
       setHasError(true)
-      // Intentar cargar la imagen de fallback
       if (imgRef.current) {
-        imgRef.current.src = fallbackSrc
+        imgRef.current.src = fallbackSrc ?? ''
       }
     } else {
-      // Si la imagen de fallback también falla
       setIsLoading(false)
     }
   }
@@ -125,7 +128,7 @@ const Image: React.FC<ImageProps> = ({
       {isInView && (
         <img
           ref={imgRef}
-          src={src}
+          src={imageSrc}
           alt={alt}
           onLoad={handleImageLoad}
           onError={handleImageError}
@@ -134,7 +137,7 @@ const Image: React.FC<ImageProps> = ({
         />
       )}
 
-      {/* Fallback cuando todas las imágenes fallan */}
+      {/* Fallback when every image fails */}
       {!isLoading && hasError && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400">
           <svg

@@ -1,58 +1,58 @@
 // import useMusicStore from '@/context/music.context'
-// import { motion } from 'framer-motion'
 // import { useIsMobile } from '../hooks/use-mobile'
 // import FlexBox from '../ui/FlexBox'
 // import MusicControls from './controls/MusicControls'
 // import MusicControlsMobile from './controls/MusicControlsMobile'
 // import CoverImage from './CoverImage'
+// import { motion } from 'framer-motion' // Usamos framer-motion
 // import Menu from './menu/Menu'
 
 // function MusicPlayer() {
 //   const { musicPlayerShown, musicPlayerContracted } = useMusicStore()
 //   const isMobile = useIsMobile()
 
-//   // Variantes para el contenedor principal con altura dinámica
+//   // Variantes para el contenedor principal
 //   const containerVariants = {
 //     hidden: {
 //       y: '100%',
 //       opacity: 0,
 //       transition: {
 //         duration: 0.5,
-//         ease: 'easeOut',
+//         ease: [0.43, 0.13, 0.23, 0.96], // Curva de easing moderna
 //       },
 //     },
 //     visible: {
 //       y: 0,
 //       opacity: 1,
-//       height: musicPlayerContracted ? 'auto' : 'auto', // Ajustaremos esto dinámicamente
+//       height: 'auto', // Simplificamos, ya que 'auto' funciona en ambos estados
 //       transition: {
 //         duration: 0.5,
-//         ease: 'easeOut',
-//         height: { duration: 0.3 }, // Animación específica para la altura
+//         ease: [0.43, 0.13, 0.23, 0.96],
+//         height: { duration: 0.3 },
 //       },
 //     },
 //   }
 
-//   // Variantes para los componentes internos (CoverImage y Menu)
+//   // Variantes para los componentes internos
 //   const itemVariants = {
 //     hidden: {
 //       y: 20,
 //       opacity: 0,
-//       height: 0, // Colapsamos la altura cuando se oculta
-//       margin: 0, // Evitamos márgenes residuales
+//       height: 0,
+//       margin: 0,
 //       transition: {
 //         duration: 0.3,
-//         ease: 'easeOut',
+//         ease: [0.43, 0.13, 0.23, 0.96],
 //       },
 //     },
 //     visible: {
 //       y: 0,
 //       opacity: 1,
-//       height: 'auto', // Restauramos la altura natural
-//       margin: 'initial', // Restauramos márgenes por defecto
+//       height: 'auto',
+//       margin: 'initial',
 //       transition: {
 //         duration: 0.3,
-//         ease: 'easeOut',
+//         ease: [0.43, 0.13, 0.23, 0.96],
 //       },
 //     },
 //   }
@@ -62,8 +62,8 @@
 //       <motion.div
 //         variants={containerVariants}
 //         initial="hidden"
-//         className="z-100 flex w-full flex-col justify-end"
 //         animate={musicPlayerShown ? 'visible' : 'hidden'}
+//         className="z-[100] flex w-full flex-col justify-end"
 //         style={{
 //           position: 'absolute',
 //           bottom: 0,
@@ -73,18 +73,16 @@
 //           backgroundColor: 'var(--background)',
 //         }}
 //       >
-//         {/* Animamos el FlexBox que contiene CoverImage y Menu */}
 //         <motion.div
 //           variants={itemVariants}
-//           initial="hidden"
 //           animate={musicPlayerContracted ? 'hidden' : 'visible'}
 //         >
 //           <FlexBox
 //             direction="row"
 //             justify="center"
 //             align="center"
-//             width={'100%'}
-//             height={'100dvh'}
+//             width="100%"
+//             height="100dvh"
 //           >
 //             <CoverImage isMobile={isMobile} />
 //             <Menu />
@@ -100,8 +98,8 @@
 //     <motion.div
 //       variants={containerVariants}
 //       initial="hidden"
-//       className="z-100 bg-black"
 //       animate={musicPlayerShown ? 'visible' : 'hidden'}
+//       className="z-[100] bg-black"
 //       style={{
 //         position: 'absolute',
 //         bottom: 0,
@@ -110,10 +108,8 @@
 //       }}
 //     >
 //       <FlexBox direction="column">
-//         {/* Animamos CoverImage y Menu individualmente */}
 //         <motion.div
 //           variants={itemVariants}
-//           initial="hidden"
 //           animate={musicPlayerContracted ? 'hidden' : 'visible'}
 //         >
 //           <CoverImage isMobile={isMobile} />
@@ -123,7 +119,6 @@
 
 //         <motion.div
 //           variants={itemVariants}
-//           initial="hidden"
 //           animate={musicPlayerContracted ? 'hidden' : 'visible'}
 //         >
 //           <Menu />

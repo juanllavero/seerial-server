@@ -7,21 +7,10 @@ import MyListShows from './MyListShows'
 
 function HomePageContent() {
   const navigate = useNavigate()
-  const [minimumLoading, setMinimumLoading] = useState<boolean>(true)
 
   const goToContent = (url: string) => {
     navigate(url)
   }
-
-  useEffect(() => {
-    // Minimum Loading for Skeleton
-    setMinimumLoading(true)
-    const timer = setTimeout(() => {
-      setMinimumLoading(false)
-    }, 500)
-
-    return () => clearTimeout(timer)
-  }, [])
 
   return (
     <FlexBox
@@ -32,16 +21,13 @@ function HomePageContent() {
       height="100%"
     >
       {/* Continue Watching */}
-      <ContinueWatching
-        goToContent={goToContent}
-        minimumLoading={minimumLoading}
-      />
+      <ContinueWatching goToContent={goToContent} />
 
       {/* User's Shows in WatchList */}
-      <MyListShows goToContent={goToContent} minimumLoading={minimumLoading} />
+      <MyListShows goToContent={goToContent} />
 
       {/* User's Movies in WatchList */}
-      <MyListMovies goToContent={goToContent} minimumLoading={minimumLoading} />
+      <MyListMovies goToContent={goToContent} />
     </FlexBox>
   )
 }

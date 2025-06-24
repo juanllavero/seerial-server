@@ -16,6 +16,12 @@ function MusicCard({ index, song, action }: MusicCardProps) {
   const { currentSong, selectSong, setMusicPlayerShown, setSongQueue } =
     useMusicStore()
 
+  const playSong = () => {
+    selectSong(song)
+    setMusicPlayerShown(true)
+    setSongQueue([song])
+  }
+
   return (
     <FlexBox
       key={index}
@@ -38,7 +44,7 @@ function MusicCard({ index, song, action }: MusicCardProps) {
           <div id="index">
             <span>{index + 1}</span>
           </div>
-          <div className="playButtonContainer">
+          <div className="playButtonContainer" onClick={playSong}>
             <PlayIcon />
           </div>
         </FlexBox>

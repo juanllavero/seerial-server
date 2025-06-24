@@ -10,8 +10,8 @@ function Menu() {
     <FlexBox
       direction="column"
       className="menu"
-      width={'40%'}
-      height={'70%'}
+      width={'100%'}
+      height={'100%'}
       margin="0 2rem 0 0"
       gap={1}
     >
