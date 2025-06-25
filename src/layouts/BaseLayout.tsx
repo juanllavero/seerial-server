@@ -8,8 +8,8 @@ import { useLocation } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import '../styles/utils.css'
 import './BaseLayout.css'
-import useMusicStore from '@/context/music.context'
 import MusicPlayer2 from '@/components/musicPlayer/Test'
+import GradientBackground from './backgrounds/GradientBackground'
 
 export default function BaseLayout({
   children,
@@ -18,47 +18,19 @@ export default function BaseLayout({
 }) {
   const { currentBackground: selectedBackground } = useDataStore()
   const { selectedServer } = useServerStore()
-  const { musicPlayerContracted } = useMusicStore()
   const prevBackground = useRef<string | undefined>(undefined)
-  const prevGradient = useRef<string | undefined>(undefined)
   const [currentBackground, setCurrentBackground] = useState<
     string | undefined
   >(undefined)
-  const [currentGradient, setCurrentGradient] = useState<string | undefined>(
-    undefined,
-  ) // State for the current gradient
   const [showNewImage, setShowNewImage] = useState(false)
-  const [showNewGradient, setShowNewGradient] = useState(false) // State for the new gradient
 
   const location = useLocation()
-  const inDetailsPage =
-    location.pathname.startsWith('/details/') ||
-    location.pathname.startsWith('/episodeDetails/')
+  const inDetailsPage = location.pathname.includes('/details/')
+  const inMusicPage = location.pathname.includes('/album/')
 
   useEffect(() => {
     if (selectedBackground && selectedServer) {
-      ReactUtils.generateGradient(selectedBackground, selectedServer.ip)
-
-      setTimeout(() => {
-        const newGradient = ReactUtils.getGradientBackground()
-
-        // If there is no previous gradient or it is different, activate the transition
-        if (!prevGradient.current || newGradient !== prevGradient.current) {
-          setShowNewGradient(true)
-
-          const timeout = setTimeout(() => {
-            setCurrentGradient(newGradient)
-            prevGradient.current = newGradient
-            setShowNewGradient(false)
-          }, 500)
-
-          return () => clearTimeout(timeout)
-        }
-      }, 500)
-    } else {
-      setCurrentGradient(undefined)
-      prevGradient.current = undefined
-      setShowNewGradient(false)
+      ReactUtils.generateGradient(selectedBackground, selectedServer.ip, false)
     }
 
     if (!selectedBackground) {
@@ -101,7 +73,7 @@ export default function BaseLayout({
         className="background-layer"
         style={{
           backgroundImage:
-            inDetailsPage && currentBackground
+            !inMusicPage && inDetailsPage && currentBackground
               ? `url(${currentBackground.startsWith('http') ? getSafeURL(currentBackground) : `https://${selectedServer?.ip}/${getSafeURL(currentBackground)}`})`
               : 'none',
           opacity: inDetailsPage && currentBackground ? 1 : 0,
@@ -109,7 +81,7 @@ export default function BaseLayout({
       />
 
       {/* New background that fades in */}
-      {showNewImage && selectedBackground && (
+      {!inMusicPage && showNewImage && selectedBackground && (
         <div
           className="background-layer fade-in"
           style={{
@@ -118,28 +90,7 @@ export default function BaseLayout({
         />
       )}
 
-      {/* Current gradient */}
-      {!selectedBackground && (
-        <div
-          className="background-gradient"
-          style={{
-            background:
-              inDetailsPage && !currentBackground ? currentGradient : 'none',
-          }}
-        />
-      )}
-
-      {/* New gradient that fades in */}
-      {showNewGradient && !selectedBackground && (
-        <div
-          className="background-gradient fade-in-slow"
-          style={{
-            background: inDetailsPage
-              ? ReactUtils.getGradientBackground()
-              : 'none',
-          }}
-        />
-      )}
+      <GradientBackground showGradient={inMusicPage} />
 
       {/* Toaster root */}
       <Toaster theme="dark" richColors />

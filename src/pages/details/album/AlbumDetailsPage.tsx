@@ -25,7 +25,7 @@ function AlbumDetailsPage() {
   const { wsMessage } = useWebSocketStore()
   const { openAlbumDialog } = useDialogStore()
   const { selectedServer } = useServerStore()
-  const { selectSong } = useDataStore()
+  const { selectSong, setCurrentBackground } = useDataStore()
   const serverIP = selectedServer?.ip
 
   // Get series data
@@ -44,6 +44,12 @@ function AlbumDetailsPage() {
   //     selectServer(server)
   //   }
   // }, [])
+
+  useEffect(() => {
+    if (album) {
+      setCurrentBackground(album.coverSrc)
+    }
+  }, [album])
 
   useEffect(() => {
     if (wsMessage === MessageType.MUTATE_ALBUM) {

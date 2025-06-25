@@ -45,6 +45,18 @@ const Image: React.FC<ImageProps> = ({
       : (src ?? fallbackSrc),
   )
 
+  // Update imageSrc when url, src, or selectedServer changes
+  useEffect(() => {
+    setIsLoading(true)
+    setHasError(false)
+    const newSrc = url
+      ? url.startsWith('http')
+        ? url
+        : `https://${selectedServer?.ip}/${url.replace('resources/img', 'img')}`
+      : (src ?? fallbackSrc)
+    setImageSrc(newSrc)
+  }, [url, src, selectedServer, fallbackSrc])
+
   // Intersection Observer for lazy loading
   useEffect(() => {
     const observer = new IntersectionObserver(

@@ -32,7 +32,7 @@ import {
   Trash2,
   TvMinimal,
 } from 'lucide-react'
-import React from 'react'
+import React, { memo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useSWR from 'swr'
 
@@ -44,7 +44,7 @@ interface Item {
   action: () => void
 }
 
-export function NavLibraries() {
+const NavLibraries = () => {
   const { isMobile } = useSidebar()
   const navigate = useNavigate()
 
@@ -224,3 +224,5 @@ export function NavLibraries() {
     </>
   )
 }
+
+export default memo(NavLibraries)

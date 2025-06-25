@@ -3,7 +3,8 @@ import { extractColors } from 'extract-colors'
 import { toast } from 'sonner'
 
 export class ReactUtils {
-  static colors: string[] = []
+  static contentColors: string[] = []
+  static songColors: string[] = []
 
   public static extractColorsFromImage = async (imgSrc: string) => {
     try {
@@ -27,38 +28,32 @@ export class ReactUtils {
     }
   }
 
-  public static getDominantColors = async (imgSrc: string) => {
+  public static getDominantColors = async (imgSrc: string, isSong: boolean) => {
     const dominantColors = await this.extractColorsFromImage(imgSrc)
 
-    if (dominantColors) this.colors = dominantColors
-  }
-
-  public static getGradientBackground = () => {
-    if (this.colors.length >= 4) {
-      //return `linear-gradient(to top right, ${this.colors.join(", ")})`;
-      //return `linear-gradient(to bottom, ${this.colors[0]} 0%, ${this.colors[1]} 100%)`;
-      return `radial-gradient(circle farthest-side at 0% 100%, ${this.colors[1]} 0%, rgba(48, 66, 66, 0) 100%),
-                radial-gradient(circle farthest-side at 100% 100%, ${this.colors[0]} 0%, rgba(63, 77, 69, 0) 100%),
-                radial-gradient(circle farthest-side at 100% 0%, ${this.colors[2]} 0%, rgba(33, 36, 33, 0) 100%),
-                radial-gradient(circle farthest-side at 0% 0%, ${this.colors[3]} 0%, rgba(65, 77, 66, 0) 100%),
-                black
-                `
+    if (dominantColors) {
+      if (isSong) {
+        this.songColors = dominantColors
+      } else {
+        this.contentColors = dominantColors
+      }
     }
-    return 'none'
   }
 
   public static generateGradient = (
     background: string | undefined,
     serverIP: string,
+    isSong: boolean,
   ) => {
+    console.log({ background })
     if (background) {
       const imageUrl = background.startsWith('http')
         ? background
         : `https://${serverIP}/${background.replace('resources/img', 'img')}`
 
-      ReactUtils.getDominantColors(imageUrl)
+      ReactUtils.getDominantColors(imageUrl, isSong)
     } else {
-      ReactUtils.getDominantColors('/img/songDefault.png')
+      ReactUtils.getDominantColors('/img/songDefault.png', isSong)
     }
   }
 

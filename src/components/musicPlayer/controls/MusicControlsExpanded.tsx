@@ -48,10 +48,10 @@ function MusicControlsExpanded({
 
   return (
     <div
-      className={`transition-all delay-200 duration-700 ease-in-out ${
+      className={`transition-all delay-200 duration-600 ease-in-out ${
         isExpanded
           ? 'h-[30dvh] translate-y-0 bg-black/30 p-6 opacity-100 backdrop-blur-sm'
-          : 'pointer-events-none absolute translate-y-8 opacity-0'
+          : 'pointer-events-none absolute translate-y-8 opacity-0 transition-none'
       }`}
     >
       {/* Slider de progreso expandido */}

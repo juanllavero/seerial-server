@@ -7,7 +7,7 @@ import {
   SidebarMenuItem,
 } from '../ui/sidebar'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 
 const NavHomeButton = () => {
   const navigate = useNavigate()
@@ -64,4 +64,4 @@ const NavHomeButton = () => {
   )
 }
 
-export default NavHomeButton
+export default memo(NavHomeButton)

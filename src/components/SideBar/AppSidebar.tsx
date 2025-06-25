@@ -3,17 +3,16 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarRail,
 } from '@/components/ui/sidebar'
-import { NavLibraries } from './NavLibraries'
+import NavLibraries from './NavLibraries'
 import { NavUser } from './NavUser'
 import { ServerSwitcher } from './ServerSwitcher'
 import NavHomeButton from './NavHomeButton'
 import NavSettings from './settings/NavSettings'
 import { useLocation } from 'react-router-dom'
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation()
   const inSettings = useMemo(
     () => location.pathname.includes('/settings'),
@@ -36,7 +35,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <ServerSwitcher />
         <NavUser />
       </SidebarFooter>
-      <SidebarRail />
     </Sidebar>
   )
 }
+
+export default memo(AppSidebar)

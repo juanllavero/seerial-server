@@ -252,14 +252,14 @@ const Sidebar = React.forwardRef<
             // Adjust the padding for floating and inset variants.
             variant === 'floating' || variant === 'inset'
               ? 'p-2 group-data-[collapsible=icon]:w-[calc(var(--3.5rem)_+_theme(spacing.4)_+2px)]'
-              : 'group-data-[collapsible=icon]:w-[3.5rem] group-data-[side=left]:border-r group-data-[side=right]:border-l',
+              : 'group-data-[collapsible=icon]:w-[3.5rem]',
             className,
           )}
           {...props}
         >
           <div
             data-sidebar="sidebar"
-            className="bg-sidebar group-data-[variant=floating]:border-border flex h-full w-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow"
+            className="group-data-[variant=floating]:border-border flex h-full w-full flex-col bg-black/10 group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:border group-data-[variant=floating]:shadow"
           >
             {children}
           </div>
@@ -335,7 +335,7 @@ const SidebarInset = React.forwardRef<
     <main
       ref={ref}
       className={cn(
-        'bg-background relative flex min-h-svh flex-1 flex-col',
+        'relative flex min-h-svh flex-1 flex-col bg-transparent',
         'peer-data-[variant=inset]:min-h-[calc(100svh-theme(spacing.4))] md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[state=collapsed]:peer-data-[variant=inset]:ml-2',
         !isMobile && state === 'expanded' && 'ml-56',
         !isMobile && state === 'collapsed' && 'ml-14',
@@ -405,7 +405,7 @@ const SidebarSeparator = React.forwardRef<
     <Separator
       ref={ref}
       data-sidebar="separator"
-      className={cn('bg-border mx-2 w-auto', className)}
+      className={cn('mx-2 w-auto bg-white/20', className)}
       {...props}
     />
   )

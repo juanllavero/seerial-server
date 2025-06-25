@@ -24,24 +24,24 @@ function MusicPlayerCover({
 }: MusicPlayerCoverProps) {
   return (
     <div
-      className={`transition-all duration-700 ease-in-out ${
+      className={`transition-all duration-500 ease-in-out ${
         isExpanded
           ? 'flex w-3/5 items-center justify-center'
-          : 'mb-3 flex items-center space-x-4'
+          : 'mb-0 flex items-center space-x-4'
       }`}
     >
       <div
-        className={`relative transition-all duration-700 ease-in-out ${isExpanded ? '' : ''}`}
+        className={`relative transition-all duration-500 ease-in-out ${isExpanded ? '' : ''}`}
         onMouseEnter={() => !isExpanded && setIsCoverHovered(true)}
         onMouseLeave={() => !isExpanded && setIsCoverHovered(false)}
       >
         <Image
           url={cover}
           alt={'Song Cover Image'}
-          className={`shadow-lg transition-all duration-700 ease-in-out ${
+          className={`shadow-lg transition-all duration-500 ease-in-out ${
             isExpanded
               ? 'h-96 w-96 rounded-2xl shadow-2xl'
-              : 'h-16 w-16 rounded-xl'
+              : 'h-18 w-18 rounded-xl'
           }`}
           fallbackSrc={''}
           aspectRatio={1}
@@ -70,11 +70,15 @@ function MusicPlayerCover({
       {/* Song info - Compact Mode */}
       <div
         className={`min-w-0 flex-1 transition-all duration-500 ${
-          isExpanded ? 'pointer-events-none absolute opacity-0' : 'opacity-100'
+          isExpanded
+            ? 'pointer-events-none absolute opacity-0 transition-none'
+            : 'opacity-100'
         }`}
       >
-        <h3 className="truncate font-semibold text-gray-900">{title}</h3>
-        <p className="truncate text-sm text-gray-600">{subtitle}</p>
+        <h3 className="truncate font-semibold text-white text-shadow-lg">
+          {title}
+        </h3>
+        <p className="truncate text-sm text-white text-shadow-lg">{subtitle}</p>
       </div>
     </div>
   )
