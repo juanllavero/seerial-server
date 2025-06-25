@@ -12,13 +12,28 @@ import MusicControlsExpanded from './controls/MusicControlsExpanded'
 import { ReactUtils } from '@/utils/ReactUtils'
 import GradientBackground from '@/layouts/backgrounds/GradientBackground'
 import { Button } from '../ui/button'
-import { Cross, X } from 'lucide-react'
+import { Repeat, X } from 'lucide-react'
+import { useIsMobile } from '../hooks/use-mobile'
+import { useIsTablet } from '../hooks/use-tablet'
+import { RepeateMode } from '@/data/enums/Music'
 
 export default function MusicPlayer2() {
-  const [isExpanded, setIsExpanded] = useState(false)
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [progress, setProgress] = useState([30])
-  const [volume, setVolume] = useState([75])
+  const isMobile = useIsMobile()
+  const isTablet = useIsTablet()
+  const {
+    progress,
+    setVolume,
+    isExpanded,
+    setIsExpanded,
+    isPlaying,
+    setIsPlaying,
+    repeateMode,
+    setRepeateMode,
+  } = useMusicStore()
+  const timelineRef = useRef<HTMLDivElement>(null)
+  const [previewTime, setPreviewTime] = useState(0)
+  const [isScrubbing, setIsScrubbing] = useState(false)
+
   const [isHovered, setIsHovered] = useState(false)
   const [isCoverHovered, setIsCoverHovered] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
@@ -28,6 +43,8 @@ export default function MusicPlayer2() {
   const { selectedServer } = useServerStore()
   const { currentSong, songQueue, selectSong } = useMusicStore()
 
+  const duration = currentSong ? currentSong.duration : 0
+
   // Get Album details
   const { data: album } = useSWR<Album>(
     currentSong && currentSong.albumId && selectedServer
@@ -35,6 +52,43 @@ export default function MusicPlayer2() {
       : null,
     fetcher,
   )
+
+  const handleTimelineUpdate = (e: any) => {
+    if (!timelineRef.current) return
+
+    const rect = timelineRef.current.getBoundingClientRect()
+    const percent =
+      Math.min(Math.max(0, e.clientX - rect.left), rect.width) / rect.width
+
+    setPreviewTime(duration * percent)
+    timelineRef.current.style.setProperty(
+      '--preview-position',
+      percent.toString(),
+    )
+
+    if (isScrubbing) {
+      e.preventDefault()
+      timelineRef.current.style.setProperty(
+        '--progress-position',
+        percent.toString(),
+      )
+    }
+  }
+
+  const handleVolumeChange = (value: number[]) => {
+    setVolume(value[0])
+  }
+
+  const handleChangeRepeatState = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setRepeateMode(
+      repeateMode === RepeateMode.NONE
+        ? RepeateMode.REPEAT_ALL
+        : repeateMode === RepeateMode.REPEAT_ALL
+          ? RepeateMode.REPEAT_ONE
+          : RepeateMode.NONE,
+    )
+  }
 
   const handlePlayPause = () => {
     setIsPlaying(!isPlaying)
@@ -106,15 +160,15 @@ export default function MusicPlayer2() {
 
   if (!album || !currentSong) return null
 
-  const currentTime = Math.floor((progress[0] / 100) * currentSong.duration)
+  const currentTime = Math.floor((progress / 100) * currentSong.duration)
   const cover = album.coverSrc
 
   return (
     <div
-      className={`fixed z-40 ${isDragging ? 'cursor-grabbing transition-none' : 'cursor-grab transition-all duration-500 ease-in-out'} ${
+      className={`fixed z-40 ${isDragging ? 'cursor-grabbing transition-none' : `transition-all duration-500 ease-in-out ${isExpanded ? 'cursor-default' : 'cursor-grab'}`} ${
         isExpanded
           ? 'inset-0 cursor-default bg-gray-700'
-          : 'right-4 w-80 rounded-2xl border border-white/20 bg-white/10 shadow-2xl backdrop-blur-sm'
+          : 'right-4 w-80 rounded-2xl border border-white/20 bg-white/10 shadow-2xl backdrop-blur-sm transition-none'
       }`}
       style={{
         top: isExpanded ? 0 : `${currentY}px`,
@@ -124,25 +178,42 @@ export default function MusicPlayer2() {
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => !isExpanded && setIsHovered(false)}
     >
-      <div
-        className={`transition-all duration-150 ease-in-out ${isHovered ? 'opacity-100' : 'opacity-0'}`}
-      >
-        <Button
-          className="absolute top-[-0.3rem] right-[-0.3rem] z-1 rounded-full p-3"
-          onClick={() => selectSong(null)}
+      {!isExpanded && (
+        <div
+          className={`transition-all duration-150 ease-in-out ${isHovered ? 'opacity-100' : 'opacity-0'}`}
         >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
+          <Button
+            className="absolute top-[-0.3rem] right-[-0.3rem] z-1 rounded-full p-3"
+            onClick={() => selectSong(null)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
 
       {/* Background Gradient */}
-      <GradientBackground showGradient={isExpanded} isSong={true} />
+      {isExpanded && (
+        <GradientBackground showGradient={isExpanded} isSong={true} />
+      )}
 
       {/* Header - Expanded Mode */}
       <MusicPlayerHeader
         isExpanded={isExpanded}
         handleMinimize={handleMinimize}
       />
+
+      {/* {
+        isTablet ? (
+          <>
+          </>
+        ) : isMobile ? (
+          <>
+          </>
+        ) : (
+          <>
+          </>
+        )
+      } */}
 
       {/* Content */}
       <div
@@ -174,27 +245,20 @@ export default function MusicPlayer2() {
 
       {/* Compact Controls */}
       <DesktopCompactControls
-        isPlaying={isPlaying}
         isHovered={isHovered}
         handlePrevious={handlePrevious}
         handlePlayPause={handlePlayPause}
         handleNext={handleNext}
-        isExpanded={isExpanded}
-        duration={currentSong.duration}
-        currentTime={currentTime}
       />
 
       {/* Expanded Controls */}
       <MusicControlsExpanded
-        isExpanded={isExpanded}
-        currentTime={currentTime}
         title={currentSong.title}
         subtitle={album.title}
-        duration={currentSong.duration}
-        isPlaying={isPlaying}
         handlePrevious={handlePrevious}
         handlePlayPause={handlePlayPause}
         handleNext={handleNext}
+        handleChangeRepeatState={handleChangeRepeatState}
       />
     </div>
   )

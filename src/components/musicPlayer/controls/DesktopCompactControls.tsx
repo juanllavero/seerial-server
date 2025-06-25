@@ -2,32 +2,31 @@ import { Button } from '@/components/ui/button'
 import { formatTime } from '@/utils/ReactUtils'
 import { Slider } from '@/components/ui/slider'
 import { SkipBack, Pause, Play, SkipForward, Volume2 } from 'lucide-react'
-import { useState } from 'react'
+import useMusicStore from '@/context/music.context'
 
 interface DesktopCompactControlsProps {
-  isPlaying: boolean
   isHovered: boolean
   handlePrevious: () => void
   handlePlayPause: () => void
   handleNext: () => void
-  isExpanded: boolean
-  duration: number
-  currentTime: number
 }
 
 function DesktopCompactControls({
-  isPlaying,
+  isHovered,
   handlePrevious,
   handlePlayPause,
   handleNext,
-  isHovered,
-  isExpanded,
-  duration,
-  currentTime,
 }: DesktopCompactControlsProps) {
-  const [volume, setVolume] = useState(75)
-  const [progress, setProgress] = useState(0)
-
+  const {
+    isPlaying,
+    progress,
+    setProgress,
+    volume,
+    setVolume,
+    isExpanded,
+    currentSong,
+    currentTime,
+  } = useMusicStore()
   const handleVolumeChange = (volume: number[]) => {
     setVolume(volume[0])
   }
@@ -102,7 +101,7 @@ function DesktopCompactControls({
           />
           <div className="mt-1 flex justify-between text-xs text-gray-500">
             <span>{formatTime(currentTime)}</span>
-            <span>{formatTime(duration)}</span>
+            <span>{formatTime(currentSong ? currentSong.duration : 0)}</span>
           </div>
         </div>
       </div>

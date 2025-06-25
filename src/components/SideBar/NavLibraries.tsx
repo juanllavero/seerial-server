@@ -114,7 +114,7 @@ const NavLibraries = () => {
                       href={''}
                       className={`flex items-center gap-2 ${
                         activeItem && activeItem.id === item.id
-                          ? 'bg-accent'
+                          ? 'bg-transparent'
                           : ''
                       }`}
                       onClick={(e) => {

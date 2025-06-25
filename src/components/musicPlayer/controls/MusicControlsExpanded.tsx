@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { formatTime } from '@/utils/ReactUtils'
-import { Slider } from '@radix-ui/react-slider'
+import { Slider } from '@/components/ui/slider'
 import {
   Shuffle,
   SkipBack,
@@ -9,34 +9,51 @@ import {
   SkipForward,
   Repeat,
   Volume2,
+  Repeat1,
+  VolumeOff,
 } from 'lucide-react'
 import { useState } from 'react'
+import {
+  NextTrackIcon,
+  PauseIcon,
+  PlayIcon,
+  PrevTrackIcon,
+} from '@/components/ui/IconLibrary'
+import useMusicStore from '@/context/music.context'
+import { RepeateMode } from '@/data/enums/Music'
 
 interface MusicControlsExpandedProps {
-  isExpanded: boolean
-  currentTime: number
   title: string
   subtitle: string
-  duration: number
-  isPlaying: boolean
   handlePrevious: () => void
   handlePlayPause: () => void
   handleNext: () => void
+  handleChangeRepeatState: (e: React.MouseEvent) => void
 }
 
 function MusicControlsExpanded({
-  isExpanded,
-  currentTime,
   title,
   subtitle,
-  duration,
-  isPlaying,
   handlePrevious,
   handlePlayPause,
   handleNext,
+  handleChangeRepeatState,
 }: MusicControlsExpandedProps) {
-  const [progress, setProgress] = useState(0)
-  const [volume, setVolume] = useState(75)
+  const {
+    isPlaying,
+    isShuffling,
+    repeateMode,
+    prevVolume,
+    volume,
+    progress,
+    currentTime,
+    isExpanded,
+    setProgress,
+    setVolume,
+    setIsShuffling,
+    setPrevVolume,
+    currentSong,
+  } = useMusicStore()
 
   const handleProgressChange = (progress: number[]) => {
     setProgress(progress[0])
@@ -65,7 +82,7 @@ function MusicControlsExpanded({
         />
         <div className="mt-1 flex justify-between text-sm text-white/70">
           <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(duration)}</span>
+          <span>{formatTime(currentSong ? currentSong.duration : 0)}</span>
         </div>
       </div>
 
@@ -84,50 +101,71 @@ function MusicControlsExpanded({
           <Button
             variant="ghost"
             size="icon"
-            className="text-white hover:bg-white/20"
+            className="rounded-full text-white hover:bg-white/20"
+            onClick={() => setIsShuffling(!isShuffling)}
           >
-            <Shuffle className="h-5 w-5" />
+            <Shuffle
+              className="h-5 w-5"
+              style={{ color: isShuffling ? 'var(--app-color)' : '' }}
+            />
           </Button>
           <Button
             variant="ghost"
             size="icon"
             onClick={handlePrevious}
-            className="text-white hover:bg-white/20"
+            className="rounded-full text-white hover:bg-white/20"
           >
-            <SkipBack className="h-6 w-6" />
+            <PrevTrackIcon />
           </Button>
           <Button
             variant="ghost"
             size="icon"
             onClick={handlePlayPause}
-            className="h-12 w-12 text-white hover:bg-white/20"
+            className="h-15 w-15 rounded-full text-white hover:bg-white/20"
           >
-            {isPlaying ? (
-              <Pause className="h-8 w-8" />
-            ) : (
-              <Play className="h-8 w-8" />
-            )}
+            {isPlaying ? <PauseIcon size={44} /> : <PlayIcon size={44} />}
           </Button>
           <Button
             variant="ghost"
             size="icon"
             onClick={handleNext}
-            className="text-white hover:bg-white/20"
+            className="rounded-full text-white hover:bg-white/20"
           >
-            <SkipForward className="h-6 w-6" />
+            <NextTrackIcon />
           </Button>
           <Button
             variant="ghost"
-            size="icon"
-            className="text-white hover:bg-white/20"
+            size={'icon'}
+            onClick={handleChangeRepeatState}
+            className="rounded-full"
           >
-            <Repeat className="h-5 w-5" />
+            {repeateMode === RepeateMode.NONE ? (
+              <Repeat size={20} />
+            ) : repeateMode === RepeateMode.REPEAT_ALL ? (
+              <Repeat size={20} style={{ color: 'var(--app-color)' }} />
+            ) : (
+              <Repeat1 size={20} style={{ color: 'var(--app-color)' }} />
+            )}
           </Button>
         </div>
 
         {/* Control de volumen */}
         <div className="flex flex-1 items-center justify-end space-x-2">
-          <Volume2 className="h-5 w-5 text-white" />
+          <Button
+            variant="ghost"
+            size={'icon'}
+            onClick={(e) => {
+              e.stopPropagation()
+              setVolume(volume === 0 ? prevVolume : 0)
+              setPrevVolume(volume)
+            }}
+          >
+            {volume === 0 ? (
+              <VolumeOff size={20} className="h-5 w-5" />
+            ) : (
+              <Volume2 className="h-5 w-5" size={20} />
+            )}
+          </Button>
           <Slider
             value={[volume]}
             onValueChange={handleVolumeChange}
