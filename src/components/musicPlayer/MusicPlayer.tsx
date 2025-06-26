@@ -1,131 +1,267 @@
-// import useMusicStore from '@/context/music.context'
-// import { useIsMobile } from '../hooks/use-mobile'
-// import FlexBox from '../ui/FlexBox'
-// import MusicControls from './controls/MusicControls'
-// import MusicControlsMobile from './controls/MusicControlsMobile'
-// import CoverImage from './CoverImage'
-// import { motion } from 'framer-motion' // Usamos framer-motion
-// import Menu from './menu/Menu'
+import useMusicStore from '@/context/music.context'
+import { useServerStore } from '@/context/server.context'
+import { RepeateMode } from '@/data/enums/Music'
+import { Album } from '@/data/interfaces/Music'
+import GradientBackground from '@/layouts/backgrounds/GradientBackground'
+import { ReactUtils } from '@/utils/ReactUtils'
+import { fetcher } from '@/utils/utils'
+import { X } from 'lucide-react'
+import { memo, useEffect, useRef, useState } from 'react'
+import useSWR from 'swr'
+import { useIsMobile } from '../hooks/use-mobile'
+import { useIsTablet } from '../hooks/use-tablet'
+import { Button } from '../ui/button'
+import DesktopCompactControls from './controls/DesktopCompactControls'
+import MusicControlsExpanded from './controls/MusicControlsExpanded'
+import MusicPlayerCover from './cover/Cover'
+import MusicPlayerHeader from './header/Header'
+import Menu from './menu/Menu'
 
-// function MusicPlayer() {
-//   const { musicPlayerShown, musicPlayerContracted } = useMusicStore()
-//   const isMobile = useIsMobile()
+function MusicPlayer() {
+  const isMobile = useIsMobile()
+  const isTablet = useIsTablet()
+  const {
+    progress,
+    setVolume,
+    isExpanded,
+    setIsExpanded,
+    isPlaying,
+    setIsPlaying,
+    repeateMode,
+    setRepeateMode,
+  } = useMusicStore()
+  const timelineRef = useRef<HTMLDivElement>(null)
+  const [previewTime, setPreviewTime] = useState(0)
+  const [isScrubbing, setIsScrubbing] = useState(false)
 
-//   // Variantes para el contenedor principal
-//   const containerVariants = {
-//     hidden: {
-//       y: '100%',
-//       opacity: 0,
-//       transition: {
-//         duration: 0.5,
-//         ease: [0.43, 0.13, 0.23, 0.96], // Curva de easing moderna
-//       },
-//     },
-//     visible: {
-//       y: 0,
-//       opacity: 1,
-//       height: 'auto', // Simplificamos, ya que 'auto' funciona en ambos estados
-//       transition: {
-//         duration: 0.5,
-//         ease: [0.43, 0.13, 0.23, 0.96],
-//         height: { duration: 0.3 },
-//       },
-//     },
-//   }
+  const [isHovered, setIsHovered] = useState(false)
+  const [isCoverHovered, setIsCoverHovered] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
+  const [startY, setStartY] = useState(0)
+  const [currentY, setCurrentY] = useState(16) // 16px = top-4 inicial
 
-//   // Variantes para los componentes internos
-//   const itemVariants = {
-//     hidden: {
-//       y: 20,
-//       opacity: 0,
-//       height: 0,
-//       margin: 0,
-//       transition: {
-//         duration: 0.3,
-//         ease: [0.43, 0.13, 0.23, 0.96],
-//       },
-//     },
-//     visible: {
-//       y: 0,
-//       opacity: 1,
-//       height: 'auto',
-//       margin: 'initial',
-//       transition: {
-//         duration: 0.3,
-//         ease: [0.43, 0.13, 0.23, 0.96],
-//       },
-//     },
-//   }
+  const { selectedServer } = useServerStore()
+  const { currentSong, songQueue, selectSong } = useMusicStore()
 
-//   if (!isMobile) {
-//     return (
-//       <motion.div
-//         variants={containerVariants}
-//         initial="hidden"
-//         animate={musicPlayerShown ? 'visible' : 'hidden'}
-//         className="z-[100] flex w-full flex-col justify-end"
-//         style={{
-//           position: 'absolute',
-//           bottom: 0,
-//           width: '100%',
-//           height: '100dvh',
-//           overflow: 'hidden',
-//           backgroundColor: 'var(--background)',
-//         }}
-//       >
-//         <motion.div
-//           variants={itemVariants}
-//           animate={musicPlayerContracted ? 'hidden' : 'visible'}
-//         >
-//           <FlexBox
-//             direction="row"
-//             justify="center"
-//             align="center"
-//             width="100%"
-//             height="100dvh"
-//           >
-//             <CoverImage isMobile={isMobile} />
-//             <Menu />
-//           </FlexBox>
-//         </motion.div>
+  const duration = currentSong ? currentSong.duration : 0
 
-//         <MusicControls />
-//       </motion.div>
-//     )
-//   }
+  // Get Album details
+  const { data: album } = useSWR<Album>(
+    currentSong && currentSong.albumId && selectedServer
+      ? `https://${selectedServer.ip}/details/album?id=${currentSong.albumId}`
+      : null,
+    fetcher,
+  )
 
-//   return (
-//     <motion.div
-//       variants={containerVariants}
-//       initial="hidden"
-//       animate={musicPlayerShown ? 'visible' : 'hidden'}
-//       className="z-[100] bg-black"
-//       style={{
-//         position: 'absolute',
-//         bottom: 0,
-//         width: '100%',
-//         overflow: 'hidden',
-//       }}
-//     >
-//       <FlexBox direction="column">
-//         <motion.div
-//           variants={itemVariants}
-//           animate={musicPlayerContracted ? 'hidden' : 'visible'}
-//         >
-//           <CoverImage isMobile={isMobile} />
-//         </motion.div>
+  const handleTimelineUpdate = (e: any) => {
+    if (!timelineRef.current) return
 
-//         <MusicControlsMobile />
+    const rect = timelineRef.current.getBoundingClientRect()
+    const percent =
+      Math.min(Math.max(0, e.clientX - rect.left), rect.width) / rect.width
 
-//         <motion.div
-//           variants={itemVariants}
-//           animate={musicPlayerContracted ? 'hidden' : 'visible'}
-//         >
-//           <Menu />
-//         </motion.div>
-//       </FlexBox>
-//     </motion.div>
-//   )
-// }
+    setPreviewTime(duration * percent)
+    timelineRef.current.style.setProperty(
+      '--preview-position',
+      percent.toString(),
+    )
 
-// export default MusicPlayer
+    if (isScrubbing) {
+      e.preventDefault()
+      timelineRef.current.style.setProperty(
+        '--progress-position',
+        percent.toString(),
+      )
+    }
+  }
+
+  const handleVolumeChange = (value: number[]) => {
+    setVolume(value[0])
+  }
+
+  const handleChangeRepeatState = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setRepeateMode(
+      repeateMode === RepeateMode.NONE
+        ? RepeateMode.REPEAT_ALL
+        : repeateMode === RepeateMode.REPEAT_ALL
+          ? RepeateMode.REPEAT_ONE
+          : RepeateMode.NONE,
+    )
+  }
+
+  const handlePlayPause = () => {
+    setIsPlaying(!isPlaying)
+  }
+
+  const handlePrevious = () => {
+    //selectSong((prev) => (prev > 0 ? prev - 1 : playlist.length - 1))
+  }
+
+  const handleNext = () => {
+    //setCurrentSong((prev) => (prev < playlist.length - 1 ? prev + 1 : 0))
+  }
+
+  const handleSongSelect = (index: number) => {
+    //setCurrentSong(index)
+    setIsPlaying(true)
+  }
+
+  const handleExpand = () => {
+    setIsExpanded(true)
+  }
+
+  const handleMinimize = () => {
+    setIsExpanded(false)
+  }
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (isExpanded) return // No permitir arrastrar en modo expandido
+
+    setIsDragging(true)
+    setStartY(e.clientY - currentY)
+    e.preventDefault()
+  }
+
+  useEffect(() => {
+    if (album && selectedServer) {
+      ReactUtils.generateGradient(album.coverSrc, selectedServer.ip, true)
+    }
+  }, [album])
+
+  useEffect(() => {
+    const handleMouseMoveWrapper = (e: MouseEvent) => {
+      if (!isDragging || isExpanded) return
+
+      const newY = e.clientY - startY
+      const maxY = window.innerHeight - 200
+      const minY = 16
+
+      const clampedY = Math.max(minY, Math.min(maxY, newY))
+      setCurrentY(clampedY)
+    }
+
+    const handleMouseUpWrapper = () => {
+      setIsDragging(false)
+    }
+
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMoveWrapper)
+      document.addEventListener('mouseup', handleMouseUpWrapper)
+      document.body.style.userSelect = 'none'
+
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMoveWrapper)
+        document.removeEventListener('mouseup', handleMouseUpWrapper)
+        document.body.style.userSelect = ''
+      }
+    }
+  }, [isDragging, startY, isExpanded])
+
+  if (!album || !currentSong) return null
+
+  const currentTime = Math.floor((progress / 100) * currentSong.duration)
+  const cover = album.coverSrc
+
+  return (
+    <div
+      className={`fixed z-40 ${isDragging ? 'cursor-grabbing transition-none' : `transition-all duration-500 ease-in-out ${isExpanded ? 'cursor-default' : 'cursor-grab'}`} ${
+        isExpanded
+          ? 'inset-0 cursor-default bg-gray-700'
+          : 'right-4 w-80 rounded-2xl border border-white/20 bg-white/10 shadow-2xl backdrop-blur-sm transition-none'
+      }`}
+      style={{
+        top: isExpanded ? 0 : `${currentY}px`,
+        transform: isDragging ? 'scale(1.02)' : 'scale(1)',
+      }}
+      onMouseDown={handleMouseDown}
+      onMouseEnter={() => !isExpanded && setIsHovered(true)}
+      onMouseLeave={() => !isExpanded && setIsHovered(false)}
+    >
+      {!isExpanded && (
+        <div
+          className={`transition-all duration-150 ease-in-out ${isHovered ? 'opacity-100' : 'opacity-0'}`}
+        >
+          <Button
+            className="absolute top-[-0.3rem] right-[-0.3rem] z-1 rounded-full p-3"
+            onClick={() => selectSong(null)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+
+      {/* Background Gradient */}
+      {isExpanded && (
+        <GradientBackground showGradient={isExpanded} isSong={true} />
+      )}
+
+      {/* Header - Expanded Mode */}
+      <MusicPlayerHeader
+        isExpanded={isExpanded}
+        handleMinimize={handleMinimize}
+      />
+
+      {/* {
+        isTablet ? (
+          <>
+          </>
+        ) : isMobile ? (
+          <>
+          </>
+        ) : (
+          <>
+          </>
+        )
+      } */}
+
+      {/* Content */}
+      <div
+        className={`transition-all duration-500 ease-in-out ${isExpanded ? 'flex h-full max-h-[70dvh] flex-1 px-8 pb-8' : 'p-4'}`}
+      >
+        {/* Cover */}
+        <MusicPlayerCover
+          cover={cover}
+          isExpanded={isExpanded}
+          title={currentSong.title}
+          subtitle={album.title}
+          handleMinimize={handleMinimize}
+          handleExpand={handleExpand}
+          isCoverHovered={isCoverHovered}
+          setIsCoverHovered={setIsCoverHovered}
+        />
+
+        {/* Right Menu Section - Expanded Mode */}
+        <div
+          className={`transition-all delay-300 duration-600 ease-in-out ${
+            isExpanded
+              ? 'w-2/5 translate-x-0 pl-8 opacity-100'
+              : 'pointer-events-none absolute translate-x-8 opacity-0 transition-none'
+          }`}
+        >
+          <Menu />
+        </div>
+      </div>
+
+      {/* Compact Controls */}
+      <DesktopCompactControls
+        isHovered={isHovered}
+        handlePrevious={handlePrevious}
+        handlePlayPause={handlePlayPause}
+        handleNext={handleNext}
+      />
+
+      {/* Expanded Controls */}
+      <MusicControlsExpanded
+        title={currentSong.title}
+        subtitle={album.title}
+        handlePrevious={handlePrevious}
+        handlePlayPause={handlePlayPause}
+        handleNext={handleNext}
+        handleChangeRepeatState={handleChangeRepeatState}
+      />
+    </div>
+  )
+}
+
+export default memo(MusicPlayer)

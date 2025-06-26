@@ -1,5 +1,5 @@
 import { ReactUtils } from '@/utils/ReactUtils'
-import { useRef, useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 interface GradientBackgroundProps {
   showGradient?: boolean
@@ -62,8 +62,9 @@ const GradientBackground = ({
       !showGradient ||
       (isSong && ReactUtils.songColors.length < 4) ||
       (!isSong && ReactUtils.contentColors.length < 4)
-    )
-      return
+    ) {
+      ReactUtils.restoreGradient(isSong)
+    }
 
     const colors = isSong ? ReactUtils.songColors : ReactUtils.contentColors
 
@@ -75,7 +76,7 @@ const GradientBackground = ({
 
     const timeout = setTimeout(() => {
       setActiveIndex(newIndex)
-    }, 50)
+    }, 100)
 
     return () => clearTimeout(timeout)
   }, [ReactUtils.songColors, ReactUtils.contentColors, showGradient])

@@ -2,9 +2,19 @@ import { Video } from '@/data/interfaces/Media'
 import { extractColors } from 'extract-colors'
 import { toast } from 'sonner'
 
+const BLACK_GRADIENT = [' #000000', ' #000000', ' #000000', ' #000000']
+
 export class ReactUtils {
-  static contentColors: string[] = []
-  static songColors: string[] = []
+  static contentColors: string[] = BLACK_GRADIENT
+  static songColors: string[] = BLACK_GRADIENT
+
+  public static restoreGradient = (isSong: boolean) => {
+    if (isSong) {
+      this.songColors = BLACK_GRADIENT
+    } else {
+      this.contentColors = BLACK_GRADIENT
+    }
+  }
 
   public static extractColorsFromImage = async (imgSrc: string) => {
     try {
@@ -24,7 +34,7 @@ export class ReactUtils {
       return dominantColors
     } catch (error) {
       console.error('Error al extraer colores:', error)
-      return undefined
+      return BLACK_GRADIENT
     }
   }
 
@@ -37,6 +47,12 @@ export class ReactUtils {
       } else {
         this.contentColors = dominantColors
       }
+    } else {
+      if (isSong) {
+        this.songColors = BLACK_GRADIENT
+      } else {
+        this.contentColors = BLACK_GRADIENT
+      }
     }
   }
 
@@ -45,7 +61,6 @@ export class ReactUtils {
     serverIP: string,
     isSong: boolean,
   ) => {
-    console.log({ background })
     if (background) {
       const imageUrl = background.startsWith('http')
         ? background

@@ -1,4 +1,5 @@
 import DialogManager from '@/components/dialogs/DialogManager'
+import MusicPlayer from '@/components/musicPlayer/MusicPlayer'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { getToken } from '@/lib/auth'
@@ -7,9 +8,8 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Toaster } from 'sonner'
 import '../styles/utils.css'
-import './BaseLayout.css'
-import MusicPlayer2 from '@/components/musicPlayer/Test'
 import GradientBackground from './backgrounds/GradientBackground'
+import './BaseLayout.css'
 
 export default function BaseLayout({
   children,
@@ -99,8 +99,7 @@ export default function BaseLayout({
       {getToken() !== null && (
         <>
           <DialogManager />
-          {/* <MusicPlayer /> */}
-          <MusicPlayer2 />
+          <MusicPlayer />
         </>
       )}
 
