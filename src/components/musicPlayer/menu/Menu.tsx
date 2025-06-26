@@ -1,10 +1,12 @@
+import { useIsMobile } from '@/components/hooks/use-mobile'
 import FlexBox from '@/components/ui/FlexBox'
-import React, { useState } from 'react'
+import { useState } from 'react'
 import './Menu.css'
 import NextSongs from './NextSongs'
 
 function Menu() {
-  const [section, setSection] = useState<number>(1)
+  const isMobile = useIsMobile()
+  const [section, setSection] = useState<number>(isMobile ? 0 : 1)
 
   return (
     <FlexBox
@@ -12,7 +14,6 @@ function Menu() {
       className="menu"
       width={'100%'}
       height={'100%'}
-      margin="0 2rem 0 0"
       gap={1}
     >
       <FlexBox width={'100%'}>
@@ -29,9 +30,11 @@ function Menu() {
           <span>Letras</span>
         </div>
       </FlexBox>
-      <FlexBox width={'100%'} padding="1rem">
-        {section === 1 ? <NextSongs /> : <span>Letras</span>}
-      </FlexBox>
+      {!isMobile && (
+        <FlexBox width={'100%'} padding="1rem">
+          {section === 1 ? <NextSongs /> : <span>Letras</span>}
+        </FlexBox>
+      )}
     </FlexBox>
   )
 }

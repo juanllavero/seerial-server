@@ -1,6 +1,9 @@
+import { useIsMobile } from '@/components/hooks/use-mobile'
+import { useIsTablet } from '@/components/hooks/use-tablet'
 import { Button } from '@/components/ui/button'
-import { Maximize2 } from 'lucide-react'
 import Image from '@/components/ui/Image'
+import { Maximize2 } from 'lucide-react'
+import { useEffect, useRef } from 'react'
 
 interface MusicPlayerCoverProps {
   cover: string
@@ -22,16 +25,46 @@ function MusicPlayerCover({
   isCoverHovered,
   setIsCoverHovered,
 }: MusicPlayerCoverProps) {
+  const isMobile = useIsMobile()
+  const isTablet = useIsTablet()
+  const imgRef = useRef<HTMLDivElement | null>(null)
+  const containerRef = useRef<HTMLDivElement | null>(null)
+
+  const adjustImageSize = () => {
+    if (containerRef.current && imgRef.current) {
+      if (!isExpanded) {
+        imgRef.current.style.width = '5rem'
+        imgRef.current.style.height = '5rem'
+      } else {
+        const parentWidth = containerRef.current.offsetWidth
+        const parentHeight = containerRef.current.offsetHeight
+        const minDimension = Math.min(parentWidth, parentHeight)
+        const imageSize = minDimension * 0.7
+
+        imgRef.current.style.width = `${imageSize}px`
+        imgRef.current.style.height = `${imageSize}px`
+      }
+    }
+  }
+
+  useEffect(() => {
+    adjustImageSize()
+    window.addEventListener('resize', adjustImageSize)
+    return () => window.removeEventListener('resize', adjustImageSize)
+  }, [isExpanded])
+
   return (
     <div
+      ref={containerRef}
       className={`transition-all duration-500 ease-in-out ${
         isExpanded
-          ? 'flex w-3/5 items-center justify-center'
+          ? `flex items-center justify-center p-10 ${isTablet ? 'h-[50dvh] max-h-[50dvh] w-[50dvh]' : isMobile ? 'h-[20dvh] max-h-[20dvh] w-full' : 'w-3/5'}`
           : 'mb-0 flex items-center space-x-4'
       }`}
     >
       <div
-        className={`relative transition-all duration-500 ease-in-out ${isExpanded ? '' : ''}`}
+        ref={imgRef}
+        className={`relative transition-all duration-500 ease-in-out`}
         onMouseEnter={() => !isExpanded && setIsCoverHovered(true)}
         onMouseLeave={() => !isExpanded && setIsCoverHovered(false)}
       >
@@ -40,8 +73,8 @@ function MusicPlayerCover({
           alt={'Song Cover Image'}
           className={`shadow-lg transition-all duration-500 ease-in-out ${
             isExpanded
-              ? 'h-96 w-96 rounded-2xl shadow-2xl'
-              : 'h-18 w-18 rounded-xl'
+              ? 'h-full w-full rounded-2xl shadow-2xl'
+              : 'h-[5rem] w-[5rem] rounded-xl'
           }`}
           fallbackSrc={''}
           aspectRatio={1}

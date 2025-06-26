@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button'
-import { formatTime } from '@/utils/ReactUtils'
 import { Slider } from '@/components/ui/slider'
-import { SkipBack, Pause, Play, SkipForward, Volume2 } from 'lucide-react'
 import useMusicStore from '@/context/music.context'
+import { formatTime } from '@/utils/ReactUtils'
+import { Pause, Play, SkipBack, SkipForward, Volume2 } from 'lucide-react'
 
 interface DesktopCompactControlsProps {
   isHovered: boolean
@@ -24,7 +24,7 @@ function DesktopCompactControls({
     volume,
     setVolume,
     isExpanded,
-    currentSong,
+    duration,
     currentTime,
   } = useMusicStore()
   const handleVolumeChange = (volume: number[]) => {
@@ -101,7 +101,7 @@ function DesktopCompactControls({
           />
           <div className="mt-1 flex justify-between text-xs text-gray-500">
             <span>{formatTime(currentTime)}</span>
-            <span>{formatTime(currentSong ? currentSong.duration : 0)}</span>
+            <span>{formatTime(duration)}</span>
           </div>
         </div>
       </div>

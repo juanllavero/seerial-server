@@ -13,7 +13,9 @@ interface MusicState {
   volume: number
   isMute: boolean
   progress: number
+  buffered: number
   currentTime: number
+  duration: number
 
   isShown: boolean
   isExpanded: boolean
@@ -34,7 +36,9 @@ interface MusicState {
   setVolume: (volume: number) => void
   setIsMute: (isMute: boolean) => void
   setProgress: (progress: number) => void
+  setBuffered: (buffered: number) => void
   setCurrentTime: (currentTime: number) => void
+  setDuration: (duration: number) => void
 
   // Utils
   setSongQueue: (queue: Song[]) => void
@@ -52,14 +56,22 @@ const useMusicStore = create<MusicState>((set) => ({
   volume: 75,
   isMute: false,
   progress: 0,
+  buffered: 0,
   currentTime: 0,
+  duration: 0,
 
   isShown: false,
   isExpanded: false,
 
   // Set Current Song
   selectSong: (song) =>
-    set({ currentSong: song, progress: 0, currentTime: 0, isShown: true }),
+    set({
+      currentSong: song,
+      progress: 0,
+      duration: song?.duration ?? 0,
+      currentTime: 0,
+      isShown: true,
+    }),
 
   // Queue
   addSong: (song) =>
@@ -78,7 +90,9 @@ const useMusicStore = create<MusicState>((set) => ({
   setVolume: (volume) => set({ volume: volume }),
   setIsMute: (isMute) => set({ isMute }),
   setProgress: (progress) => set({ progress }),
+  setBuffered: (buffered) => set({ buffered }),
   setCurrentTime: (currentTime) => set({ currentTime }),
+  setDuration: (duration) => set({ duration }),
 
   // Utils
   setSongQueue: (queue) => set({ songQueue: queue }),

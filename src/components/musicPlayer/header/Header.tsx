@@ -14,7 +14,7 @@ function MusicPlayerHeader({
     <div
       className={`flex items-center justify-end p-6 transition-all duration-500 ${
         isExpanded
-          ? 'translate-y-0 opacity-100'
+          ? 'h-18 translate-y-0 opacity-100'
           : 'pointer-events-none absolute -translate-y-4 opacity-0'
       }`}
     >

@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect } from 'react'
+import { useServerStore } from '@/context/server.context'
+import { useEffect, useRef, useState } from 'react'
 import { useIsMobile } from '../hooks/use-mobile'
 import { useIsTablet } from '../hooks/use-tablet'
 import { Skeleton } from './skeleton'
-import { useServerStore } from '@/context/server.context'
 
 interface ImageProps {
   url?: string

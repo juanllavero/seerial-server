@@ -87,13 +87,13 @@ export const StopIcon = () => (
   </svg>
 )
 
-export const PrevTrackIcon = () => (
+export const PrevTrackIcon = ({ size }: { size?: number }) => (
   <svg
     aria-hidden="true"
     fill="currentColor"
-    height="18"
+    height={size ?? 18}
     viewBox="0 0 48 48"
-    width="18"
+    width={size ?? 18}
     xmlns="http://www.w3.org/2000/svg"
   >
     <path d="M3 6H6V42H3V6Z" fill="#FFFFFF"></path>
@@ -104,13 +104,13 @@ export const PrevTrackIcon = () => (
   </svg>
 )
 
-export const NextTrackIcon = () => (
+export const NextTrackIcon = ({ size }: { size?: number }) => (
   <svg
     aria-hidden="true"
     fill="currentColor"
-    height="18"
+    height={size ?? 18}
     viewBox="0 0 48 48"
-    width="18"
+    width={size ?? 18}
     xmlns="http://www.w3.org/2000/svg"
   >
     <path d="M42 6H45V42H42V6Z" fill="#FFFFFF"></path>

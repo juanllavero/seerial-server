@@ -5,6 +5,7 @@ import { Album } from '@/data/interfaces/Music'
 import GradientBackground from '@/layouts/backgrounds/GradientBackground'
 import { ReactUtils } from '@/utils/ReactUtils'
 import { fetcher } from '@/utils/utils'
+import { t } from 'i18next'
 import { X } from 'lucide-react'
 import { memo, useEffect, useRef, useState } from 'react'
 import useSWR from 'swr'
@@ -22,28 +23,34 @@ function MusicPlayer() {
   const isTablet = useIsTablet()
   const {
     progress,
+    setProgress,
     setVolume,
     isExpanded,
+    buffered,
+    setBuffered,
+    duration,
+    setDuration,
     setIsExpanded,
+    setCurrentTime,
     isPlaying,
     setIsPlaying,
+    volume,
+    setPrevVolume,
     repeateMode,
     setRepeateMode,
   } = useMusicStore()
+  const audioRef = useRef<HTMLAudioElement>(null) // Reference to the audio element
   const timelineRef = useRef<HTMLDivElement>(null)
   const [previewTime, setPreviewTime] = useState(0)
   const [isScrubbing, setIsScrubbing] = useState(false)
-
   const [isHovered, setIsHovered] = useState(false)
   const [isCoverHovered, setIsCoverHovered] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [startY, setStartY] = useState(0)
-  const [currentY, setCurrentY] = useState(16) // 16px = top-4 inicial
+  const [currentY, setCurrentY] = useState(16)
 
   const { selectedServer } = useServerStore()
   const { currentSong, songQueue, selectSong } = useMusicStore()
-
-  const duration = currentSong ? currentSong.duration : 0
 
   // Get Album details
   const { data: album } = useSWR<Album>(
@@ -53,30 +60,115 @@ function MusicPlayer() {
     fetcher,
   )
 
-  const handleTimelineUpdate = (e: any) => {
-    if (!timelineRef.current) return
-
-    const rect = timelineRef.current.getBoundingClientRect()
-    const percent =
-      Math.min(Math.max(0, e.clientX - rect.left), rect.width) / rect.width
-
-    setPreviewTime(duration * percent)
-    timelineRef.current.style.setProperty(
-      '--preview-position',
-      percent.toString(),
-    )
-
-    if (isScrubbing) {
-      e.preventDefault()
-      timelineRef.current.style.setProperty(
-        '--progress-position',
-        percent.toString(),
-      )
+  // Controlar reproducción/pausa con spacebar
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.code === 'Space' && e.target === document.body) {
+        e.preventDefault()
+        togglePlayPause()
+      }
     }
-  }
 
-  const handleVolumeChange = (value: number[]) => {
-    setVolume(value[0])
+    document.addEventListener('keydown', handleKeyPress)
+    return () => document.removeEventListener('keydown', handleKeyPress)
+  }, [isPlaying])
+
+  // Sync audio element with isPlaying state
+  useEffect(() => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current
+          .play()
+          .catch((e) => console.error('Playback error:', e))
+      } else {
+        audioRef.current.pause()
+      }
+    }
+  }, [isPlaying, currentSong])
+
+  // Update progress based on audio timeupdate
+  useEffect(() => {
+    const audio = audioRef.current
+    if (!audio) return
+
+    const updateBuffer = () => {
+      if (audio.buffered.length > 0) {
+        const bufferedEnd = audio.buffered.end(audio.buffered.length - 1)
+        const total = audio.duration || 0
+        if (total > 0) {
+          setBuffered((bufferedEnd / total) * 100)
+        }
+      }
+    }
+
+    const handleLoadedMetadata = () => {
+      setDuration(audio.duration)
+    }
+
+    const handleCanPlay = () => {
+      updateBuffer()
+    }
+
+    const updateProgress = () => {
+      const progressPercent = (audio.currentTime / audio.duration) * 100
+      setProgress(progressPercent)
+      setCurrentTime((progressPercent / 100) * duration)
+    }
+
+    audio.addEventListener('timeupdate', updateProgress)
+    audio.addEventListener('progress', updateBuffer)
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata)
+    audio.addEventListener('canplay', handleCanPlay)
+
+    return () => {
+      audio.removeEventListener('timeupdate', updateProgress)
+      audio.removeEventListener('progress', updateBuffer)
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata)
+      audio.removeEventListener('canplay', handleCanPlay)
+    }
+  }, [setProgress])
+
+  // Handle song end (for repeat and queue)
+  useEffect(() => {
+    const audio = audioRef.current
+    if (!audio) return
+
+    const handleEnded = () => {
+      if (repeateMode === RepeateMode.REPEAT_ONE) {
+        audio.currentTime = 0
+        audio.play()
+      } else if (
+        repeateMode === RepeateMode.REPEAT_ALL &&
+        songQueue.length > 1
+      ) {
+        handleNext()
+      } else {
+        setIsPlaying(false)
+        selectSong(null)
+      }
+    }
+
+    audio.addEventListener('ended', handleEnded)
+    return () => audio.removeEventListener('ended', handleEnded)
+  }, [repeateMode, songQueue, selectSong, setIsPlaying])
+
+  // Update audio volume
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume / 100
+    }
+  }, [volume])
+
+  const togglePlayPause = () => {
+    const audio = audioRef.current
+    if (!audio) return
+
+    if (isPlaying) {
+      audio.pause()
+    } else {
+      audio.play()
+    }
+    setIsPlaying(!isPlaying)
   }
 
   const handleChangeRepeatState = (e: React.MouseEvent) => {
@@ -90,20 +182,35 @@ function MusicPlayer() {
     )
   }
 
-  const handlePlayPause = () => {
-    setIsPlaying(!isPlaying)
-  }
-
   const handlePrevious = () => {
-    //selectSong((prev) => (prev > 0 ? prev - 1 : playlist.length - 1))
+    const currentIndex = songQueue.findIndex(
+      (song) => song.id === currentSong?.id,
+    )
+    if (currentIndex > 0) {
+      selectSong(songQueue[currentIndex - 1])
+    } else if (repeateMode === RepeateMode.REPEAT_ALL) {
+      selectSong(songQueue[songQueue.length - 1])
+    }
+    setIsPlaying(true)
   }
 
   const handleNext = () => {
-    //setCurrentSong((prev) => (prev < playlist.length - 1 ? prev + 1 : 0))
+    const currentIndex = songQueue.findIndex(
+      (song) => song.id === currentSong?.id,
+    )
+    if (currentIndex < songQueue.length - 1) {
+      selectSong(songQueue[currentIndex + 1])
+    } else if (repeateMode === RepeateMode.REPEAT_ALL) {
+      selectSong(songQueue[0])
+    } else {
+      setIsPlaying(false)
+      selectSong(null)
+    }
+    setIsPlaying(true)
   }
 
   const handleSongSelect = (index: number) => {
-    //setCurrentSong(index)
+    selectSong(songQueue[index])
     setIsPlaying(true)
   }
 
@@ -116,8 +223,7 @@ function MusicPlayer() {
   }
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (isExpanded) return // No permitir arrastrar en modo expandido
-
+    if (isExpanded) return
     setIsDragging(true)
     setStartY(e.clientY - currentY)
     e.preventDefault()
@@ -127,7 +233,7 @@ function MusicPlayer() {
     if (album && selectedServer) {
       ReactUtils.generateGradient(album.coverSrc, selectedServer.ip, true)
     }
-  }, [album])
+  }, [album, selectedServer])
 
   useEffect(() => {
     const handleMouseMoveWrapper = (e: MouseEvent) => {
@@ -136,7 +242,6 @@ function MusicPlayer() {
       const newY = e.clientY - startY
       const maxY = window.innerHeight - 200
       const minY = 16
-
       const clampedY = Math.max(minY, Math.min(maxY, newY))
       setCurrentY(clampedY)
     }
@@ -149,7 +254,6 @@ function MusicPlayer() {
       document.addEventListener('mousemove', handleMouseMoveWrapper)
       document.addEventListener('mouseup', handleMouseUpWrapper)
       document.body.style.userSelect = 'none'
-
       return () => {
         document.removeEventListener('mousemove', handleMouseMoveWrapper)
         document.removeEventListener('mouseup', handleMouseUpWrapper)
@@ -167,7 +271,7 @@ function MusicPlayer() {
     <div
       className={`fixed z-40 ${isDragging ? 'cursor-grabbing transition-none' : `transition-all duration-500 ease-in-out ${isExpanded ? 'cursor-default' : 'cursor-grab'}`} ${
         isExpanded
-          ? 'inset-0 cursor-default bg-gray-700'
+          ? 'inset-0 flex h-[100%] cursor-default flex-col bg-gray-700'
           : 'right-4 w-80 rounded-2xl border border-white/20 bg-white/10 shadow-2xl backdrop-blur-sm transition-none'
       }`}
       style={{
@@ -191,35 +295,18 @@ function MusicPlayer() {
         </div>
       )}
 
-      {/* Background Gradient */}
       {isExpanded && (
         <GradientBackground showGradient={isExpanded} isSong={true} />
       )}
 
-      {/* Header - Expanded Mode */}
       <MusicPlayerHeader
         isExpanded={isExpanded}
         handleMinimize={handleMinimize}
       />
 
-      {/* {
-        isTablet ? (
-          <>
-          </>
-        ) : isMobile ? (
-          <>
-          </>
-        ) : (
-          <>
-          </>
-        )
-      } */}
-
-      {/* Content */}
       <div
-        className={`transition-all duration-500 ease-in-out ${isExpanded ? 'flex h-full max-h-[70dvh] flex-1 px-8 pb-8' : 'p-4'}`}
+        className={`transition-all duration-500 ease-in-out ${isExpanded ? 'flex h-[100%] max-h-[100%] flex-1 px-8 pb-8' : 'p-4'} ${isTablet ? 'flex-col items-center' : ''}`}
       >
-        {/* Cover */}
         <MusicPlayerCover
           cover={cover}
           isExpanded={isExpanded}
@@ -231,35 +318,57 @@ function MusicPlayer() {
           setIsCoverHovered={setIsCoverHovered}
         />
 
-        {/* Right Menu Section - Expanded Mode */}
-        <div
-          className={`transition-all delay-300 duration-600 ease-in-out ${
-            isExpanded
-              ? 'w-2/5 translate-x-0 pl-8 opacity-100'
-              : 'pointer-events-none absolute translate-x-8 opacity-0 transition-none'
-          }`}
-        >
-          <Menu />
-        </div>
+        {!isMobile && (
+          <div
+            className={`transition-all delay-300 duration-600 ease-in-out ${
+              isExpanded
+                ? `translate-x-0 opacity-100 ${isTablet ? 'h-[30dvh] max-h-[30dvh] min-h-[30dvh] w-full' : 'w-2/5'}`
+                : 'pointer-events-none absolute translate-x-8 opacity-0 transition-none'
+            }`}
+          >
+            <Menu />
+          </div>
+        )}
       </div>
 
-      {/* Compact Controls */}
       <DesktopCompactControls
         isHovered={isHovered}
         handlePrevious={handlePrevious}
-        handlePlayPause={handlePlayPause}
+        handlePlayPause={togglePlayPause}
         handleNext={handleNext}
       />
 
-      {/* Expanded Controls */}
-      <MusicControlsExpanded
-        title={currentSong.title}
-        subtitle={album.title}
-        handlePrevious={handlePrevious}
-        handlePlayPause={handlePlayPause}
-        handleNext={handleNext}
-        handleChangeRepeatState={handleChangeRepeatState}
-      />
+      <div
+        className={
+          isExpanded
+            ? `${isMobile ? 'h-fit w-full' : 'h-35 w-full'}`
+            : 'h-fit w-fit'
+        }
+      >
+        <MusicControlsExpanded
+          title={currentSong.title}
+          subtitle={album.title}
+          handlePrevious={handlePrevious}
+          handlePlayPause={togglePlayPause}
+          handleNext={handleNext}
+          handleChangeRepeatState={handleChangeRepeatState}
+        />
+      </div>
+
+      {isExpanded && isMobile && (
+        <div>
+          <Menu />
+        </div>
+      )}
+
+      <audio
+        ref={audioRef}
+        src={`https://${selectedServer?.ip}/audio?path=${currentSong.fileSrc}`}
+        onError={(e) => console.error('Audio loading error:', e)}
+        autoPlay
+      >
+        {t('audioNotSupported')}
+      </audio>
     </div>
   )
 }

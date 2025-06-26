@@ -3,7 +3,6 @@ import { PlayIcon } from '@/components/ui/IconLibrary'
 import useMusicStore from '@/context/music.context'
 import { Song } from '@/data/interfaces/Music'
 import { formatTime } from '@/utils/ReactUtils'
-import React from 'react'
 import './MusicCard.css'
 
 interface MusicCardProps {
@@ -13,12 +12,11 @@ interface MusicCardProps {
 }
 
 function MusicCard({ index, song, action }: MusicCardProps) {
-  const { currentSong, selectSong, setMusicPlayerShown, setSongQueue } =
-    useMusicStore()
+  const { currentSong, selectSong, setIsShown, setSongQueue } = useMusicStore()
 
   const playSong = () => {
     selectSong(song)
-    setMusicPlayerShown(true)
+    setIsShown(true)
     setSongQueue([song])
   }
 
