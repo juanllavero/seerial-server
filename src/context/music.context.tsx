@@ -32,6 +32,7 @@ interface MusicState {
   clearQueue: () => void
 
   // Player Controls
+  seekTo: (time: number) => void
   setShowLyrics: (showLyrics: boolean) => void
   setShowQueue: (showQueue: boolean) => void
   setIsPlaying: (isPlaying: boolean) => void
@@ -101,6 +102,17 @@ const useMusicStore = create<MusicState>((set, get) => ({
   clearQueue: () => set({ songQueue: [] }),
 
   // Player Controls
+  seekTo: (time) => {
+    const { audioRef, duration, setCurrentTime, setProgress } = get()
+    if (audioRef?.current && duration > 0) {
+      const newTime = Math.max(0, Math.min(time, duration))
+
+      audioRef.current.currentTime = newTime
+
+      setCurrentTime(newTime)
+      setProgress((newTime / duration) * 100)
+    }
+  },
   setShowLyrics: (showLyrics) => set({ showLyrics }),
   setShowQueue: (showQueue) => set({ showQueue }),
   setIsPlaying: (isPlaying) => set({ isPlaying }),

@@ -1,11 +1,15 @@
 import useMusicStore from '@/context/music.context'
 import { useServerStore } from '@/context/server.context'
-import { LRCLine } from '@/data/interfaces/Music'
+import { LRCFile, LRCLine } from '@/data/interfaces/Music'
+import { fetcher } from '@/utils/utils'
 import { useState, useEffect, useRef, memo } from 'react'
+import useSWR from 'swr'
+import Loading from '@/components/Loading'
 
 const LRCVisualizer = () => {
   const { selectedServer } = useServerStore()
-  const { currentSong, currentTime, setCurrentTime } = useMusicStore()
+  const { currentSong, currentTime, seekTo } = useMusicStore()
+  const [selectedLRCFile, setSelectedLRCFile] = useState<LRCFile | null>(null)
   const [lines, setLines] = useState<LRCLine[]>([])
   const [currentLineIndex, setCurrentLineIndex] = useState(0)
   const [isUserScrolling, setIsUserScrolling] = useState(false)
@@ -13,57 +17,21 @@ const LRCVisualizer = () => {
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // Get LRC Lyrics if exists
-  //   const { data: lyrics, isLoading } = useSWR(
-  //     selectedServer && currentSong
-  //       ? `https://${selectedServer.ip}/lyrics/id=${currentSong.id}`
-  //       : null,
-  //     fetcher,
-  //   )
+  const { data: lyrics, isLoading } = useSWR<LRCFile[]>(
+    selectedServer && currentSong
+      ? `https://${selectedServer.ip}/lyrics?id=${currentSong.id}`
+      : null,
+    fetcher,
+  )
 
-  const lyrics = `[ar:Dio]
-[ti:Holy Diver]
-[al:Holy Diver]
-[length:05:40.69]
-[by:Hechmanic]
-[re:www.megalobiz.com/lrc/maker]
-[ve:v1.2.3]
-
-[00:12.50]Holy Diver
-[00:16.80]You've been down too long in the midnight sea
-[00:21.20]Oh what's becoming of me
-[00:25.60]Ride the tiger
-[00:30.10]You can see his stripes but you know he's clean
-[00:34.40]Oh don't you see what I mean
-[00:38.70]♪
-[00:43.10]Gotta get away
-[00:47.50]Holy Diver
-[00:52.00]Sole survivor
-[00:56.30]You're the one who's clean
-[01:00.60]♪
-[01:05.00]Shiny diamonds
-[01:09.40]Like the eyes of a cat in the black and blue
-[01:13.80]Something is coming for you
-[01:18.20]Race for the morning
-[01:22.50]You can hide in the sun 'till you see the light
-[01:26.90]Oh we will pray it's all right
-[01:31.30]♪
-[01:35.70]Gotta get away
-[01:40.10]Get away
-[01:44.40]Holy Diver, yeah
-[01:48.80]Sole survivor
-[01:53.20]You're the one who's clean
-[01:57.60]♪
-[02:02.00]Between the velvet lies
-[02:06.30]There's a truth that's hard as steel
-[02:10.70]The vision never dies
-[02:15.10]Life's a neverending wheel`
-
-  const isLoading = false
+  useEffect(() => {
+    if (lyrics && lyrics.length > 0) setSelectedLRCFile(lyrics[0])
+  }, [lyrics])
 
   // Parse LRC content
   useEffect(() => {
     const parseLrc = (content: string): LRCLine[] => {
-      const lines = content.split('\n')
+      const lines = content.split(/\r\n?|\n/)
       const lrcLines: LRCLine[] = []
 
       lines.forEach((line) => {
@@ -99,8 +67,10 @@ const LRCVisualizer = () => {
       return lrcLines.sort((a, b) => a.time - b.time)
     }
 
-    setLines(parseLrc(lyrics))
-  }, [lyrics])
+    if (selectedLRCFile) {
+      setLines(parseLrc(selectedLRCFile.content))
+    }
+  }, [selectedLRCFile])
 
   // Find current line
   useEffect(() => {
@@ -144,7 +114,7 @@ const LRCVisualizer = () => {
   }
 
   const handleLineClick = (time: number) => {
-    setCurrentTime(time)
+    seekTo(time)
   }
 
   const getLineOpacity = (index: number): string => {
@@ -160,17 +130,35 @@ const LRCVisualizer = () => {
     return index === currentLineIndex ? 'scale-105' : 'scale-100'
   }
 
+  if (!lyrics || isLoading) return <Loading />
+
   return (
     <div
       ref={containerRef}
       className="w-full overflow-x-hidden overflow-y-auto px-6 py-8"
       onScroll={handleScroll}
     >
+      <select
+        className="absolute z-100 mb-4 w-fit rounded-lg border-2 border-gray-300 p-2 text-lg"
+        value={selectedLRCFile?.language}
+        onChange={(e) =>
+          setSelectedLRCFile(
+            lyrics.find((l) => l.language === e.target.value) ?? null,
+          )
+        }
+      >
+        <option value="">Select a lyrics file</option>
+        {lyrics?.map((lrcFile) => (
+          <option key={lrcFile.language} value={lrcFile.language}>
+            {lrcFile.language}
+          </option>
+        ))}
+      </select>
       <div className="space-y-4">
         {lines.map((line, index) => (
           <div
             key={index}
-            className={`cursor-pointer text-center font-black transition-all duration-300 ease-out ${getLineOpacity(index)} ${getLineScale(index)} ${index === currentLineIndex ? 'text-4xl text-white' : 'text-3xl text-gray-300'} rounded-lg px-4 py-2 hover:text-white hover:opacity-100`}
+            className={`cursor-pointer text-center font-black transition-all duration-300 ease-out ${getLineOpacity(index)} ${getLineScale(index)} ${index === currentLineIndex ? 'text-4xl text-white' : 'text-3xl text-gray-400'} rounded-lg px-4 py-2 hover:text-white hover:opacity-100`}
             onClick={() => handleLineClick(line.time)}
           >
             {line.text}

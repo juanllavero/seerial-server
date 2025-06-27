@@ -28,6 +28,11 @@ export interface Song {
   fileSrc: string
 }
 
+export interface LRCFile {
+  content: string
+  language: string
+}
+
 export interface LRCLine {
   time: number
   text: string

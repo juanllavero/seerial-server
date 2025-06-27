@@ -23,9 +23,6 @@ const CustomSlider: React.FC<SliderProps> = ({
   const sliderRef = useRef<HTMLDivElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  // Extended area to improve accessibility (in pixels)
-  const EXTENDED_AREA = 50
-
   const calculateValue = useCallback((clientX: number) => {
     if (!sliderRef.current) return 0
 
@@ -63,57 +60,15 @@ const CustomSlider: React.FC<SliderProps> = ({
     onInteractionEnd?.()
   }, [onInteractionEnd])
 
-  const checkIfInExtendedArea = useCallback(
-    (clientX: number, clientY: number) => {
-      if (!containerRef.current || !sliderRef.current) return false
-
-      const containerRect = containerRef.current.getBoundingClientRect()
-      const sliderRect = sliderRef.current.getBoundingClientRect()
-
-      return (
-        clientY >= containerRect.top - EXTENDED_AREA &&
-        clientY <= containerRect.bottom + EXTENDED_AREA &&
-        clientX >= sliderRect.left &&
-        clientX <= sliderRect.right
-      )
-    },
-    [],
-  )
-
   const handleMouseEnter = useCallback(() => {
     setIsHovering(true)
   }, [])
 
-  const handleMouseLeave = useCallback(
-    (e: React.MouseEvent) => {
-      if (isDragging) return
+  const handleMouseLeave = useCallback(() => {
+    if (isDragging) return
 
-      const isInArea = checkIfInExtendedArea(e.clientX, e.clientY)
-      if (!isInArea) {
-        setIsHovering(false)
-      }
-    },
-    [isDragging, checkIfInExtendedArea],
-  )
-
-  const handleContainerMouseMove = useCallback(
-    (e: React.MouseEvent) => {
-      const isInArea = checkIfInExtendedArea(e.clientX, e.clientY)
-
-      // Only change over state if not dragging
-      if (!isDragging) {
-        setIsHovering(isInArea)
-      }
-
-      //Update value if it is dragging and in extended area
-      if (isDragging && isInArea) {
-        const newValue = calculateValue(e.clientX)
-        setTempValue(newValue)
-        onChange(newValue)
-      }
-    },
-    [isDragging, calculateValue, onChange, checkIfInExtendedArea],
-  )
+    setIsHovering(false)
+  }, [isDragging])
 
   // Event listeners for dragging
   useEffect(() => {
@@ -127,29 +82,6 @@ const CustomSlider: React.FC<SliderProps> = ({
       }
     }
   }, [isDragging, handleMouseMove, handleMouseUp])
-
-  // Clean hover state when drag is finished
-  useEffect(() => {
-    if (!isDragging) {
-      const handleGlobalMouseMove = (e: MouseEvent) => {
-        const isInArea = checkIfInExtendedArea(e.clientX, e.clientY)
-        setIsHovering(isInArea)
-        document.removeEventListener('mousemove', handleGlobalMouseMove)
-      }
-
-      document.addEventListener('mousemove', handleGlobalMouseMove)
-
-      // Clean if no movement is detected
-      const timeout = setTimeout(() => {
-        document.removeEventListener('mousemove', handleGlobalMouseMove)
-      }, 100)
-
-      return () => {
-        clearTimeout(timeout)
-        document.removeEventListener('mousemove', handleGlobalMouseMove)
-      }
-    }
-  }, [isDragging, checkIfInExtendedArea])
 
   // Sync tempValue and value when not dragging
   useEffect(() => {
@@ -166,26 +98,26 @@ const CustomSlider: React.FC<SliderProps> = ({
       className={`relative w-full cursor-pointer py-2 ${className}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      onMouseMove={handleContainerMouseMove}
       onMouseDown={handleMouseDown}
     >
       {/* Slider Bar */}
       <div
         ref={sliderRef}
-        className={`bg-opacity-50 relative rounded-full bg-gray-600 transition-all duration-200 ${
-          isHovering || isDragging ? 'h-1' : 'h-0.5'
-        }`}
+        className={`bg-opacity-50 relative h-1 rounded-full bg-gray-700 transition-all duration-200`}
       >
         {/* Buffer Progress */}
         <div
-          className="bg-opacity-60 absolute top-0 left-0 h-full rounded-full bg-gray-400 transition-all duration-200"
+          className="bg-opacity-60 absolute top-0 left-0 h-full rounded-full bg-gray-500 transition-all duration-200"
           style={{ width: `${Math.min(buffered, 100)}%` }}
         />
 
         {/* Current Progress */}
         <div
-          className="absolute top-0 left-0 h-full rounded-full bg-red-600 transition-all duration-200"
-          style={{ width: `${Math.min(currentValue, 100)}%` }}
+          className="rounded-ful absolute top-0 left-0 h-full transition-all duration-200"
+          style={{
+            width: `${Math.min(currentValue, 100)}%`,
+            backgroundColor: 'var(--app-color)',
+          }}
         />
 
         {/* Circle */}

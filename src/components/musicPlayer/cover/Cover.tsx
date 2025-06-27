@@ -2,6 +2,8 @@ import { Button } from '@/components/ui/button'
 import Image from '@/components/ui/Image'
 import { Maximize2 } from 'lucide-react'
 import useMusicStore from '@/context/music.context'
+import { useEffect } from 'react'
+import { set } from 'react-hook-form'
 
 interface MusicPlayerCoverProps {
   cover: string
@@ -24,6 +26,13 @@ function MusicPlayerCover({
   setIsCoverHovered,
 }: MusicPlayerCoverProps) {
   const { isPlaying } = useMusicStore()
+
+  useEffect(() => {
+    if (isExpanded) {
+      setIsCoverHovered(false)
+    }
+  }, [isExpanded])
+
   return (
     <div
       className={`transition-all duration-500 ease-in-out ${
@@ -45,11 +54,29 @@ function MusicPlayerCover({
           aspectRatio={1}
           width={isExpanded ? undefined : 80}
           height={isExpanded ? undefined : 80}
-          className={`h-full w-full rounded-2xl object-cover shadow-lg transition-all duration-500 ease-in-out ${
+          className={`h-full w-full rounded-2xl object-cover shadow-xl shadow-black/20 transition-all duration-500 ease-in-out ${
             isExpanded ? 'shadow-2xl' : 'rounded-xl'
           }`}
           fallbackSrc={''}
         />
+
+        {isPlaying && !isExpanded && (
+          <div className="bg-opacity-40 absolute inset-0 flex items-center justify-center rounded-lg bg-black/10">
+            <div className="flex space-x-1">
+              {[...Array(5)].map((_, i) => (
+                <div
+                  key={i}
+                  className="w-1 animate-pulse rounded-full bg-white"
+                  style={{
+                    height: `${20 + Math.random() * 30}px`,
+                    animationDelay: `${i * 0.1}s`,
+                    animationDuration: `${0.5 + Math.random() * 0.5}s`,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Maximize button - Compact Mode */}
         {isCoverHovered && !isExpanded && (

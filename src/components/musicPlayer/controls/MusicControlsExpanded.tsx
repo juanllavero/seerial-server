@@ -12,7 +12,6 @@ import useMusicStore from '@/context/music.context'
 import { RepeateMode } from '@/data/enums/Music'
 import { formatTime } from '@/utils/ReactUtils'
 import {
-  Heart,
   ListMusic,
   MicVocal,
   Repeat,
@@ -55,14 +54,17 @@ function MusicControlsExpanded({
     currentTime,
     duration,
     isExpanded,
-    setProgress,
+    seekTo,
     setVolume,
     setIsShuffling,
     setPrevVolume,
   } = useMusicStore()
 
-  const handleProgressChange = (progress: number) => {
-    setProgress(progress)
+  const handleProgressChange = (progressValue: number) => {
+    if (duration > 0) {
+      const timeInSeconds = (progressValue / 100) * duration
+      seekTo(timeInSeconds)
+    }
   }
 
   const handleVolumeChange = (volume: number[]) => {
@@ -145,7 +147,9 @@ function MusicControlsExpanded({
 
         {/* Progress Slider */}
         <div className="flex w-full items-center gap-2 text-sm">
-          <span>{formatTime(currentTime)}</span>
+          <span className="w-12 text-right">
+            {currentTime ? formatTime(currentTime) : '00:00'}
+          </span>
           <CustomSlider
             value={progress}
             buffered={buffered}

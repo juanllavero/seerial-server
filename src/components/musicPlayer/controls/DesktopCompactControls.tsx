@@ -20,7 +20,7 @@ function DesktopCompactControls({
   const {
     isPlaying,
     progress,
-    setProgress,
+    seekTo,
     volume,
     setVolume,
     isExpanded,
@@ -31,8 +31,11 @@ function DesktopCompactControls({
     setVolume(volume[0])
   }
 
-  const handleProgressChange = (progress: number[]) => {
-    setProgress(progress[0])
+  const handleProgressChange = (progressValue: number[]) => {
+    if (duration > 0) {
+      const timeInSeconds = (progressValue[0] / 100) * duration
+      seekTo(timeInSeconds)
+    }
   }
 
   return (
