@@ -1,4 +1,5 @@
 import express from "express";
+import { promises as fs } from "fs";
 import path from "path";
 import { Video } from "../../../data/models/Media/Video.model";
 import {
@@ -19,6 +20,7 @@ import {
   getSeries,
   getSeriesById,
   getSeriesInMyList,
+  getSongById,
   getVideoByEpisodeId,
   getVideoById,
   getVideoByMovieId,
@@ -394,5 +396,79 @@ router.get("/seasonMusic", async (req: any, res: any) => {
 
   res.json({ url });
 });
+
+//#region LRC Lyrics
+/**
+ * Searches for lrc files that matches the name of the song which id has been given
+ */
+router.get("/lyrics", async (req: any, res: any) => {
+  const { id } = req.query;
+
+  if (!id || id === "") {
+    return res.status(400).json({ error: "Song ID is required" });
+  }
+
+  try {
+    const song = await getSongById(id as string);
+
+    if (!song) {
+      return res.status(404).json({ error: "Song not found" });
+    }
+
+    const songDirectory = path.dirname(song.fileSrc);
+    const songBaseName = path.basename(
+      song.fileSrc,
+      path.extname(song.fileSrc)
+    );
+
+    // Usamos la versión asíncrona para no bloquear el servidor
+    const filesInDir = await fs.readdir(songDirectory);
+
+    // 1. Filtramos primero para obtener solo los nombres de archivo relevantes
+    const lyricFileNames = filesInDir.filter(
+      (currentFile) =>
+        currentFile.startsWith(songBaseName) && currentFile.endsWith(".lrc")
+    );
+
+    // 2. Mapeamos cada nombre de archivo a una promesa que lee su contenido
+    const promises = lyricFileNames.map(async (fileName) => {
+      // La lógica para extraer el idioma es la misma
+      const potentialLangPart = fileName.substring(
+        songBaseName.length,
+        fileName.length - ".lrc".length
+      );
+
+      let language = "original";
+      if (potentialLangPart.startsWith(".")) {
+        language = potentialLangPart.substring(1);
+      } else if (potentialLangPart !== "") {
+        // Si el archivo no coincide con el patrón exacto (ej: song-copia.lrc),
+        // devolvemos null para filtrarlo más tarde.
+        return null;
+      }
+
+      // Construimos la ruta completa para poder leer el archivo
+      const fullPath = path.join(songDirectory, fileName);
+
+      // Leemos el contenido del archivo como un string en formato UTF-8
+      const content = await fs.readFile(fullPath, "utf-8");
+
+      // Devolvemos el objeto con el contenido y el idioma
+      return { content, language };
+    });
+
+    // 3. Esperamos a que todas las promesas de lectura se completen
+    const results = await Promise.all(promises);
+
+    // 4. Filtramos cualquier resultado nulo y devolvemos el array final
+    const lyricsData = results.filter((result) => result !== null);
+
+    res.json(lyricsData);
+  } catch (error) {
+    console.error("Error searching for lyrics:", error);
+    res.status(500).json({ error: "An internal error occurred" });
+  }
+});
+//#endregion
 
 export default router;

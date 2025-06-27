@@ -1,4 +1,5 @@
 import express from "express";
+import { promises as fs } from "fs";
 import { MovieDb } from "moviedb-promise";
 import path from "path";
 import propertiesReader from "properties-reader";
@@ -9,6 +10,7 @@ import {
   getSeasonById,
   getSeriesById,
   getSeriesFromMyList,
+  getSongById,
   getVideoById,
 } from "../../db/get/getData";
 import {
@@ -324,6 +326,57 @@ router.post("/updateMovieMyList", async (req: any, res: any) => {
   }
 
   res.json({ message: "MY_LIST_UPDATED" });
+});
+
+/**
+ * Creates a new .lrc file for a given song.
+ * Expects { songId: string, language: string, content: string } in the request body.
+ */
+router.post("/lyrics", async (req: any, res: any) => {
+  const { songId, language, content } = req.body;
+
+  if (!songId || !language || !content) {
+    return res.status(400).json({
+      error: "Missing required fields. Required: songId, language, content.",
+    });
+  }
+
+  try {
+    const song = await getSongById(songId as string);
+
+    if (!song) {
+      return res
+        .status(404)
+        .json({ error: `Song with id ${songId} not found` });
+    }
+
+    const songDirectory = path.dirname(song.fileSrc);
+    const baseFilename = path.basename(
+      song.fileSrc,
+      path.extname(song.fileSrc)
+    );
+
+    // If original language, avoid adding the language code to the file name
+    const languageSuffix =
+      language.toLowerCase() === "original" || language === ""
+        ? ""
+        : `.${language}`;
+
+    const finalFilename = `${baseFilename}${languageSuffix}.lrc`;
+    const fullSavePath = path.join(songDirectory, finalFilename);
+
+    await fs.writeFile(fullSavePath, content, "utf-8");
+
+    return res.status(201).json({
+      message: "Lyrics file created successfully",
+      path: fullSavePath,
+    });
+  } catch (error) {
+    console.error("Error creating LRC file:", error);
+    return res.status(500).json({
+      error: "An internal server error occurred while trying to save the file.",
+    });
+  }
 });
 
 export default router;
