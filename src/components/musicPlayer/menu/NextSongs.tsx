@@ -25,10 +25,12 @@ function NextSongs() {
       direction="column"
       gap={1}
       scroll="vertical"
-      height="58dvh"
+      width={'100%'}
+      height="100%"
       padding="0 0.5rem"
-      width="100%"
+      className="rounded-lg bg-black"
     >
+      <span className="p-2 pb-0 text-2xl font-black">Queue</span>
       {songQueue.map((item, index) => (
         <FlexBox
           key={index}
@@ -52,7 +54,7 @@ function NextSongs() {
               </div>
             </div>
             <FlexBox direction="column">
-              <span>{item.title}</span>
+              <span className="truncate">{item.title}</span>
               <span>{album.name}</span>
             </FlexBox>
           </FlexBox>

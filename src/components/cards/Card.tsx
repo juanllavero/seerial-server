@@ -29,6 +29,7 @@ interface CardProps {
   hidePlayButton?: boolean
   progress?: number
   cornerNumber?: number
+  collageComponent?: React.ReactNode
   watched?: boolean
   errorSrc?: string
 }
@@ -52,6 +53,7 @@ function Card({
   progress,
   cornerNumber,
   watched,
+  collageComponent,
   errorSrc,
 }: CardProps) {
   return (
@@ -151,15 +153,19 @@ function Card({
             </FlexBox>
           )}
         </FlexBox>
-        <LazyImage
-          key={itemKey}
-          url={imgSrc}
-          width={width}
-          height={typeof width === 'number' ? width / aspectRatio : undefined}
-          alt={title}
-          aspectRatio={String(aspectRatio)}
-          errorSrc={errorSrc}
-        />
+        {collageComponent ? (
+          collageComponent
+        ) : (
+          <LazyImage
+            key={itemKey}
+            url={imgSrc}
+            width={width}
+            height={typeof width === 'number' ? width / aspectRatio : undefined}
+            alt={title}
+            aspectRatio={String(aspectRatio)}
+            errorSrc={errorSrc}
+          />
+        )}
       </div>
       <div
         className="grid gap-1 p-2"

@@ -9,6 +9,8 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import ParentCard from './ParentCard'
+import Image from '@/components/ui/Image'
+import { getPosterImage, getFirstImage } from '@/utils/ReactUtils'
 
 interface CollectionCardProps {
   collection: Collection
@@ -89,11 +91,18 @@ function CollectionCard({ collection, type }: CollectionCardProps) {
     }
   }, [])
 
+  const posterImage = getPosterImage(collection, type)
+
   return (
     <ParentCard
       itemKey={collection.id}
       type={type}
-      imgSrc={collection.coverSrc}
+      imgSrc={
+        collection.coverSrc
+          ? collection.coverSrc
+          : getFirstImage(collection, type)
+      }
+      collageComponent={posterImage}
       title={collection.title}
       subtitle={subtitleText}
       action={() => {

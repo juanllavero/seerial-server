@@ -1,9 +1,7 @@
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import { useIsTablet } from '@/components/hooks/use-tablet'
 import { Button } from '@/components/ui/button'
 import Image from '@/components/ui/Image'
 import { Maximize2 } from 'lucide-react'
-import { useEffect, useRef } from 'react'
+import useMusicStore from '@/context/music.context'
 
 interface MusicPlayerCoverProps {
   cover: string
@@ -25,59 +23,32 @@ function MusicPlayerCover({
   isCoverHovered,
   setIsCoverHovered,
 }: MusicPlayerCoverProps) {
-  const isMobile = useIsMobile()
-  const isTablet = useIsTablet()
-  const imgRef = useRef<HTMLDivElement | null>(null)
-  const containerRef = useRef<HTMLDivElement | null>(null)
-
-  const adjustImageSize = () => {
-    if (containerRef.current && imgRef.current) {
-      if (!isExpanded) {
-        imgRef.current.style.width = '5rem'
-        imgRef.current.style.height = '5rem'
-      } else {
-        const parentWidth = containerRef.current.offsetWidth
-        const parentHeight = containerRef.current.offsetHeight
-        const minDimension = Math.min(parentWidth, parentHeight)
-        const imageSize = minDimension * 0.7
-
-        imgRef.current.style.width = `${imageSize}px`
-        imgRef.current.style.height = `${imageSize}px`
-      }
-    }
-  }
-
-  useEffect(() => {
-    adjustImageSize()
-    window.addEventListener('resize', adjustImageSize)
-    return () => window.removeEventListener('resize', adjustImageSize)
-  }, [isExpanded])
-
+  const { isPlaying } = useMusicStore()
   return (
     <div
-      ref={containerRef}
       className={`transition-all duration-500 ease-in-out ${
         isExpanded
-          ? `flex items-center justify-center p-10 ${isTablet ? 'h-[50dvh] max-h-[50dvh] w-[50dvh]' : isMobile ? 'h-[20dvh] max-h-[20dvh] w-full' : 'w-3/5'}`
+          ? `flex w-full items-center justify-center pt-20 pb-10`
           : 'mb-0 flex items-center space-x-4'
       }`}
     >
       <div
-        ref={imgRef}
-        className={`relative transition-all duration-500 ease-in-out`}
+        className={`relative transition-all duration-500 ease-in-out ${
+          isExpanded ? 'max-h-[60dvh] max-w-[60dvh]' : 'h-[5rem] w-[5rem]'
+        }`}
         onMouseEnter={() => !isExpanded && setIsCoverHovered(true)}
         onMouseLeave={() => !isExpanded && setIsCoverHovered(false)}
       >
         <Image
           url={cover}
           alt={'Song Cover Image'}
-          className={`shadow-lg transition-all duration-500 ease-in-out ${
-            isExpanded
-              ? 'h-full w-full rounded-2xl shadow-2xl'
-              : 'h-[5rem] w-[5rem] rounded-xl'
+          aspectRatio={1}
+          width={isExpanded ? undefined : 80}
+          height={isExpanded ? undefined : 80}
+          className={`h-full w-full rounded-2xl object-cover shadow-lg transition-all duration-500 ease-in-out ${
+            isExpanded ? 'shadow-2xl' : 'rounded-xl'
           }`}
           fallbackSrc={''}
-          aspectRatio={1}
         />
 
         {/* Maximize button - Compact Mode */}

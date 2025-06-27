@@ -12,10 +12,10 @@ function MusicPlayerHeader({
 }: MusicPlayerHeaderProps) {
   return (
     <div
-      className={`flex items-center justify-end p-6 transition-all duration-500 ${
+      className={`fixed z-100 flex items-center justify-end p-6 transition-all duration-500 ${
         isExpanded
-          ? 'h-18 translate-y-0 opacity-100'
-          : 'pointer-events-none absolute -translate-y-4 opacity-0'
+          ? 'h-18 w-full translate-y-0 opacity-100'
+          : 'transform-translate-y-4 pointer-events-none absolute opacity-0 transition-none'
       }`}
     >
       <Button

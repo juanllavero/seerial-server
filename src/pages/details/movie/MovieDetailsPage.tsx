@@ -266,7 +266,7 @@ function MovieDetailsPage() {
             </Button>
           </FlexBox>
           <FlexBox>
-            <span className="font-semibold">
+            <span className="max-w-300 font-semibold">
               {isLoading ? (
                 <Skeleton className="h-30 w-90" />
               ) : movie ? (

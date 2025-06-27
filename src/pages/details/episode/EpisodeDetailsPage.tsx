@@ -13,14 +13,15 @@ import { formatDate } from '@/utils/ReactUtils'
 import { fetcher } from '@/utils/utils'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import useSWR from 'swr'
 
 function EpisodeDetailsPage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const { wsMessage } = useWebSocketStore()
   const { selectedServer } = useServerStore()
-  const { episodeId } = useParams()
+  const { serverId, episodeId } = useParams()
 
   const {
     data: episode,
@@ -29,6 +30,20 @@ function EpisodeDetailsPage() {
   } = useSWR(
     episodeId && selectedServer
       ? `https://${selectedServer.ip}/details/episode?id=${episodeId}`
+      : null,
+    fetcher,
+  )
+
+  const { data: season } = useSWR(
+    episode && selectedServer
+      ? `https://${selectedServer.ip}/details/season?id=${episode.seasonId}`
+      : null,
+    fetcher,
+  )
+
+  const { data: series } = useSWR(
+    season && selectedServer
+      ? `https://${selectedServer.ip}/details/series?id=${season.seriesId}`
       : null,
     fetcher,
   )
@@ -215,7 +230,7 @@ function EpisodeDetailsPage() {
       className="details-container"
       gap={2}
       wrap="nowrap"
-      padding="10rem 3rem"
+      padding="3rem"
       height={'100%'}
     >
       <FlexBox>
@@ -230,25 +245,28 @@ function EpisodeDetailsPage() {
 
       <FlexBox direction="column" gap={1}>
         <FlexBox direction="column">
-          {/* <span
-            onClick={() => navigate({ to: `/details/series/${seriesId}` })}
-            className="cursor-pointer text-4xl font-bold uppercase"
+          <span
+            onClick={() =>
+              navigate(`/server/${serverId}/details/series/${series?.id}`)
+            }
+            className="a_text cursor-pointer text-4xl font-black uppercase"
           >
-            {selectedSeries.name}
-          </span> */}
+            {series ? series.name : 'None'}
+          </span>
           <span className="text-2xl font-semibold">{episode.name}</span>
         </FlexBox>
         <FlexBox gap={1}>
           <span>
             {t('seasonLetter')}
             {episode.seasonNumber}
+            {' · '}
             {t('episodeLetter')}
             {episode.episodeNumber}
           </span>
           <span>{formatDate(episode.year)}</span>
           <span>{episode.video.runtime.toFixed()}min</span>
         </FlexBox>
-        <span>{episode.overview}</span>
+        <span className="max-w-300">{episode.overview}</span>
 
         <FlexBox gap={1} padding="0 0 0 1rem">
           <FlexBox

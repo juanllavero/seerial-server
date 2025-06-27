@@ -41,7 +41,9 @@ const Image: React.FC<ImageProps> = ({
     url
       ? url.startsWith('http')
         ? url
-        : `https://${selectedServer?.ip}/${url.replace('resources/img', 'img')}`
+        : url.startsWith('local')
+          ? url.replace('local', '')
+          : `https://${selectedServer?.ip}/${url.replace('resources/img', 'img')}`
       : (src ?? fallbackSrc),
   )
 
@@ -52,7 +54,9 @@ const Image: React.FC<ImageProps> = ({
     const newSrc = url
       ? url.startsWith('http')
         ? url
-        : `https://${selectedServer?.ip}/${url.replace('resources/img', 'img')}`
+        : url.startsWith('local')
+          ? url.replace('local', '')
+          : `https://${selectedServer?.ip}/${url.replace('resources/img', 'img')}`
       : (src ?? fallbackSrc)
     setImageSrc(newSrc)
   }, [url, src, selectedServer, fallbackSrc])
@@ -131,7 +135,7 @@ const Image: React.FC<ImageProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`relative overflow-hidden ${containerClass} ${className}`}
+      className={`relative overflow-hidden ${containerClass} ${className} transition-all duration-500 ease-in-out`}
       style={aspectRatioStyle}
       onClick={onClick}
     >

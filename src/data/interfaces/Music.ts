@@ -10,6 +10,7 @@ export interface Album {
   year?: string
   genres: string[]
   description?: string
+  collectionId: string
   coverSrc: string
 
   songs: Song[]
@@ -25,4 +26,10 @@ export interface Song {
   composers: string[]
   duration: number
   fileSrc: string
+}
+
+export interface LRCLine {
+  time: number
+  text: string
+  originalLine: string
 }

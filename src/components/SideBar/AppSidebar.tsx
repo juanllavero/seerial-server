@@ -3,6 +3,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
+  SidebarMenuButton,
 } from '@/components/ui/sidebar'
 import NavLibraries from './NavLibraries'
 import { NavUser } from './NavUser'

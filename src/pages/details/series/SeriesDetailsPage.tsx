@@ -209,7 +209,9 @@ function SeriesDetailsPage() {
           {isLoading || !series ? (
             <Skeleton className="h-8 w-60" />
           ) : series.seasons && series.seasons.length > 1 && season ? (
-            <span id="seasonTitle">{season.name}</span>
+            <span id="seasonTitle" className="text-2xl font-bold">
+              {season.name}
+            </span>
           ) : null}
 
           {/* Info */}
@@ -301,7 +303,7 @@ function SeriesDetailsPage() {
             </Button>
           </FlexBox>
           <FlexBox>
-            <span className="font-semibold">
+            <span className="max-w-300 font-semibold">
               {isLoading ? (
                 <Skeleton className="h-30 w-90" />
               ) : season ? (

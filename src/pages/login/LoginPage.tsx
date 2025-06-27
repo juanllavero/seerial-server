@@ -7,6 +7,7 @@ import { Film, Loader2, Music, Play, Tv, Video } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
+import Image from '@/components/ui/Image'
 
 interface IconConfig {
   Component: React.ComponentType<{
@@ -212,9 +213,10 @@ function LoginPage() {
           <div className="text-center">
             <div className="flex flex-row justify-center">
               {/* <img src="/img/icon.png" alt="Logo" className="mx-2 w-16" /> */}
-              <h1 className="title-font mb-4 text-5xl text-white sm:text-6xl">
+              {/* <h1 className="title-font mb-4 text-5xl text-white sm:text-6xl">
                 Seerial
-              </h1>
+              </h1> */}
+              <Image src="/img/banner.svg" alt="Logo" aspectRatio={21 / 9} />
             </div>
             <p className="mx-auto max-w-sm text-sm leading-relaxed text-gray-500 sm:text-base">
               Organiza y disfruta tu biblioteca multimedia personal como nunca

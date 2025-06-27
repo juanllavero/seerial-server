@@ -1,5 +1,6 @@
-import { Video } from '@/data/interfaces/Media'
+import { Collection, Video } from '@/data/interfaces/Media'
 import { extractColors } from 'extract-colors'
+import Image from '@/components/ui/Image'
 import { toast } from 'sonner'
 
 const BLACK_GRADIENT = [' #000000', ' #000000', ' #000000', ' #000000']
@@ -272,4 +273,91 @@ export const showPromiseToast = (
     },
     error: errorMessage,
   })
+}
+
+export const getFirstImage = (collection: Collection, type: string) => {
+  if (type === 'Movies' && collection.movies && collection.movies.length > 0) {
+    return collection.movies[0].coverSrc
+  } else if (
+    type === 'Series' &&
+    collection.shows &&
+    collection.shows.length > 0
+  ) {
+    return collection.shows[0].coverSrc
+  } else if (
+    type === 'Music' &&
+    collection.albums &&
+    collection.albums.length > 0
+  ) {
+    return collection.albums[0].coverSrc
+  }
+  return ''
+}
+
+export const getPosterImage = (collection: Collection, type: string) => {
+  let images: string[] = []
+
+  // Collect up to 4 images based on collection type
+  if (type === 'Movies' && collection.movies && collection.movies.length > 0) {
+    images = collection.movies.slice(0, 4).map((movie) => movie.coverSrc)
+  } else if (
+    type === 'Series' &&
+    collection.shows &&
+    collection.shows.length > 0
+  ) {
+    images = collection.shows.slice(0, 4).map((show) => show.coverSrc)
+  } else if (
+    type === 'Music' &&
+    collection.albums &&
+    collection.albums.length > 0
+  ) {
+    images = collection.albums.slice(0, 4).map((album) => album.coverSrc)
+  }
+
+  // If no images, return null or a placeholder
+  if (images.length === 0) {
+    return (
+      <div className="flex h-full w-full items-center justify-center bg-gray-200">
+        <span className="text-gray-500">No images available</span>
+      </div>
+    )
+  }
+
+  // Fill with placeholder images if 1 < images < 4
+  if (images.length > 1 && images.length < 4) {
+    const placeholdersNeeded = 4 - images.length
+    for (let i = 0; i < placeholdersNeeded; i++) {
+      images.push(
+        `local/img/${type === 'Music' ? 'songDefault.png' : 'fileNotFound.jpg'}`,
+      )
+    }
+  }
+
+  // Determine grid layout based on number of images
+  const gridClass = 'grid-cols-2'
+
+  if (images.length === 1) {
+    return undefined
+  }
+
+  return (
+    <div className={`grid ${gridClass} h-full w-full gap-1`}>
+      {images.map((src, index) => {
+        return (
+          <Image
+            key={index}
+            url={src}
+            alt={`Collection item ${index + 1}`}
+            className="h-full w-full object-cover"
+            fallbackSrc={
+              type === 'Music'
+                ? '/img/songDefault.png'
+                : '/img/fileNotFound.jpg'
+            }
+            aspectRatio={type === 'Music' ? 1 : 2 / 3}
+          />
+        )
+      })}
+    </div>
+  )
 }

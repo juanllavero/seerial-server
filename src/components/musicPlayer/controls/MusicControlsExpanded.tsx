@@ -11,7 +11,16 @@ import { Slider } from '@/components/ui/slider'
 import useMusicStore from '@/context/music.context'
 import { RepeateMode } from '@/data/enums/Music'
 import { formatTime } from '@/utils/ReactUtils'
-import { Repeat, Repeat1, Shuffle, Volume2, VolumeOff } from 'lucide-react'
+import {
+  Heart,
+  ListMusic,
+  MicVocal,
+  Repeat,
+  Repeat1,
+  Shuffle,
+  Volume2,
+  VolumeOff,
+} from 'lucide-react'
 
 interface MusicControlsExpandedProps {
   title: string
@@ -36,6 +45,10 @@ function MusicControlsExpanded({
     isShuffling,
     repeateMode,
     prevVolume,
+    showLyrics,
+    showQueue,
+    setShowQueue,
+    setShowLyrics,
     volume,
     progress,
     buffered,
@@ -60,50 +73,17 @@ function MusicControlsExpanded({
     <div
       className={`transition-all delay-200 duration-600 ease-in-out ${
         isExpanded
-          ? `h-full translate-y-0 px-6 ${isMobile ? 'pb-6' : 'bg-black/30 opacity-100 backdrop-blur-sm'}`
+          ? `flex h-30 min-h-30 w-full translate-y-0 items-center justify-between gap-5 bg-black/100 px-6 opacity-100 backdrop-blur-sm`
           : 'pointer-events-none absolute translate-y-8 opacity-0 transition-none'
       }`}
     >
-      {isExpanded && isMobile && (
-        <div className="flex flex-1 items-center space-x-4 pb-4">
-          <div>
-            <div className="text-2xl font-semibold text-white">{title}</div>
-            <div className="text-lg text-white/70">{subtitle}</div>
-          </div>
-        </div>
-      )}
-
-      {/* Slider de progreso expandido */}
-      <div className="mb-4">
-        <CustomSlider
-          value={progress}
-          buffered={buffered}
-          onChange={handleProgressChange}
-        />
-        <div className="mt-1 flex justify-between text-sm text-white/70">
-          <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(duration)}</span>
-        </div>
+      {/* Info de la canción */}
+      <div className="flex flex-1 flex-col items-start space-x-4">
+        <div className="truncate font-semibold text-white">{title}</div>
+        <div className="text-sm text-white/70">{subtitle}</div>
       </div>
 
-      {/* Controles principales expandidos */}
-      <div
-        className={
-          isMobile
-            ? 'flex items-center justify-center'
-            : 'flex items-center justify-between'
-        }
-      >
-        {/* Info de la canción */}
-        {!isMobile && (
-          <div className="flex flex-1 items-center space-x-4">
-            <div>
-              <div className="font-semibold text-white">{title}</div>
-              <div className="text-sm text-white/70">{subtitle}</div>
-            </div>
-          </div>
-        )}
-
+      <div className="flex w-full max-w-150 flex-col items-center gap-1">
         {/* Controles centrales */}
         <div
           className={`flex items-center ${isMobile ? 'space-x-7' : 'space-x-4'}`}
@@ -163,33 +143,53 @@ function MusicControlsExpanded({
           </Button>
         </div>
 
-        {/* Control de volumen */}
-        {!isMobile && (
-          <div className="flex flex-1 items-center justify-end space-x-2">
-            <Button
-              variant="ghost"
-              size={'icon'}
-              onClick={(e) => {
-                e.stopPropagation()
-                setVolume(volume === 0 ? prevVolume : 0)
-                setPrevVolume(volume)
-              }}
-            >
-              {volume === 0 ? (
-                <VolumeOff size={20} className="h-5 w-5" />
-              ) : (
-                <Volume2 className="h-5 w-5" size={20} />
-              )}
-            </Button>
-            <Slider
-              value={[volume]}
-              onValueChange={handleVolumeChange}
-              max={100}
-              step={1}
-              className="w-24 [&_[role=slider]]:h-3 [&_[role=slider]]:w-3 [&_[role=slider]]:border-0 [&_[role=slider]]:bg-white [&>span:first-child]:h-1 [&>span:first-child]:bg-white/30 [&>span:first-child_span]:bg-white"
-            />
-          </div>
-        )}
+        {/* Progress Slider */}
+        <div className="flex w-full items-center gap-2 text-sm">
+          <span>{formatTime(currentTime)}</span>
+          <CustomSlider
+            value={progress}
+            buffered={buffered}
+            onChange={handleProgressChange}
+          />
+          <span>{formatTime(duration)}</span>
+        </div>
+      </div>
+
+      <div className="flex flex-1 items-center justify-end space-x-2">
+        <Button variant="ghost" onClick={() => setShowLyrics(!showLyrics)}>
+          <MicVocal
+            className="h-5 w-5"
+            style={{ color: showLyrics ? 'var(--app-color)' : '' }}
+          />
+        </Button>
+        <Button variant="ghost" onClick={() => setShowQueue(!showQueue)}>
+          <ListMusic
+            className="h-5 w-5"
+            style={{ color: showQueue ? 'var(--app-color)' : '' }}
+          />
+        </Button>
+        <Button
+          variant="ghost"
+          size={'icon'}
+          onClick={(e) => {
+            e.stopPropagation()
+            setVolume(volume === 0 ? prevVolume : 0)
+            setPrevVolume(volume)
+          }}
+        >
+          {volume === 0 ? (
+            <VolumeOff size={20} className="h-5 w-5" />
+          ) : (
+            <Volume2 className="h-5 w-5" size={20} />
+          )}
+        </Button>
+        <Slider
+          value={[volume]}
+          onValueChange={handleVolumeChange}
+          max={100}
+          step={1}
+          className="w-24 [&_[role=slider]]:h-3 [&_[role=slider]]:w-3 [&_[role=slider]]:border-0 [&_[role=slider]]:bg-white [&>span:first-child]:h-1 [&>span:first-child]:bg-white/30 [&>span:first-child_span]:bg-white"
+        />
       </div>
     </div>
   )

@@ -55,13 +55,6 @@
     font-weight: bold;
   }
 
-  & #details-title-music {
-    font-size: 3rem;
-    font-weight: bold;
-
-    line-height: 0.5;
-  }
-
   & #details-subtitle-music {
     font-size: 1.5rem;
     font-weight: bold;

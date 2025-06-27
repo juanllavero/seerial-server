@@ -18,6 +18,7 @@ interface CardProps {
   hidePlayButton?: boolean
   menuContent?: DropdownContent
   editModal?: React.ReactNode
+  collageComponent?: React.ReactNode
   errorSrc?: string
 }
 
@@ -34,6 +35,7 @@ function ParentCard({
   hidePlayButton,
   menuContent,
   editModal,
+  collageComponent,
   errorSrc,
 }: CardProps) {
   const { cardWidth } = useCardWidth()
@@ -46,6 +48,7 @@ function ParentCard({
       itemKey={itemKey}
       width={isMobile ? '100%' : cardWidth * 1.2}
       imgSrc={imgSrc}
+      collageComponent={collageComponent}
       aspectRatio={type === 'Music' ? 1 : 2 / 3}
       title={title}
       subtitle={subtitle}

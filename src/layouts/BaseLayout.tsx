@@ -10,6 +10,7 @@ import { Toaster } from 'sonner'
 import '../styles/utils.css'
 import GradientBackground from './backgrounds/GradientBackground'
 import './BaseLayout.css'
+import DesktopMusicPlayer from '@/components/musicPlayer/desktop/DesktopMusicPlayer'
 
 export default function BaseLayout({
   children,
@@ -100,6 +101,7 @@ export default function BaseLayout({
         <>
           <DialogManager />
           <MusicPlayer />
+          <DesktopMusicPlayer />
         </>
       )}
 

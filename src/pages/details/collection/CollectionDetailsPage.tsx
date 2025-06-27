@@ -22,6 +22,7 @@ import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import useSWR from 'swr'
 import '../DetailsPage.css'
+import CollectionImage from './CollectionImage'
 function CollectionDetailsPage() {
   const { collectionId, type } = useParams()
   const { wsMessage } = useWebSocketStore()
@@ -139,17 +140,7 @@ function CollectionDetailsPage() {
                   }}
                 />
               ) : (
-                <LazyImage
-                  url={collection.coverSrc}
-                  width={330}
-                  maxHeight={495}
-                  height={type === 'Music' ? 300 : 495}
-                  errorSrc={
-                    type === 'Music'
-                      ? '/img/songDefault.png'
-                      : '/img/fileNotFound.jpg'
-                  }
-                />
+                <CollectionImage collection={collection} type={type ?? ''} />
               )}
             </FlexBox>
           </div>
@@ -164,14 +155,7 @@ function CollectionDetailsPage() {
           {isLoading || !collection ? (
             <Skeleton className="h-15 w-90" />
           ) : (
-            <span
-              id="details-title"
-              style={{
-                textTransform: 'uppercase',
-              }}
-            >
-              {collection.title}
-            </span>
+            <span className="text-6xl font-black">{collection.title}</span>
           )}
           <FlexBox gap={1} wrap="wrap">
             <Button

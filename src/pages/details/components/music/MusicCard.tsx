@@ -12,12 +12,14 @@ interface MusicCardProps {
 }
 
 function MusicCard({ index, song, action }: MusicCardProps) {
-  const { currentSong, selectSong, setIsShown, setSongQueue } = useMusicStore()
+  const { currentSong, selectSong, togglePlayPause, setIsShown, setSongQueue } =
+    useMusicStore()
 
   const playSong = () => {
     selectSong(song)
     setIsShown(true)
     setSongQueue([song])
+    togglePlayPause()
   }
 
   return (

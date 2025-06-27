@@ -19,6 +19,7 @@ import { useParams } from 'react-router-dom'
 import useSWR from 'swr'
 import AlbumContent from '../components/AlbumContent'
 import '../DetailsPage.css'
+import { Collection } from '@/data/interfaces/Media'
 
 function AlbumDetailsPage() {
   const { albumId } = useParams()
@@ -96,7 +97,7 @@ function AlbumDetailsPage() {
           padding={isMobile ? '0 2rem' : '0'}
         >
           <span
-            id="details-title-music"
+            className="text-5xl font-black"
             style={{
               textTransform: 'capitalize',
             }}
@@ -106,14 +107,6 @@ function AlbumDetailsPage() {
             ) : (
               album.title
             )}
-          </span>
-          <span
-            id="details-subtitle-music"
-            style={{
-              textTransform: 'capitalize',
-            }}
-          >
-            {/* {collection.name} */}
           </span>
           <FlexBox direction="column" gap={0.2}>
             <FlexBox gap={1.3} margin="0 0 0.3rem 0">
