@@ -12,6 +12,7 @@ interface ImageProps {
   aspectRatio: number
   width?: number
   height?: number
+  style?: React.CSSProperties
   className?: string
   onClick?: () => void
 }
@@ -24,6 +25,7 @@ const Image: React.FC<ImageProps> = ({
   aspectRatio,
   width,
   height,
+  style,
   className = '',
   onClick,
 }) => {
@@ -150,6 +152,7 @@ const Image: React.FC<ImageProps> = ({
           onError={handleImageError}
           className={`h-full w-full object-cover transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'} `}
           loading="lazy"
+          style={style}
         />
       )}
 

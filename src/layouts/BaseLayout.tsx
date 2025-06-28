@@ -11,6 +11,9 @@ import '../styles/utils.css'
 import GradientBackground from './backgrounds/GradientBackground'
 import './BaseLayout.css'
 import DesktopMusicPlayer from '@/components/musicPlayer/desktop/DesktopMusicPlayer'
+import DesktopMusicPlayerExpanded from '@/components/musicPlayer/desktop/DesktopMusicPlayerExpanded'
+import MobileMusicPlayer from '@/components/musicPlayer/mobile/MobileMusicPlayer'
+import { useIsMobile } from '@/components/hooks/use-mobile'
 
 export default function BaseLayout({
   children,
@@ -23,6 +26,7 @@ export default function BaseLayout({
   const [currentBackground, setCurrentBackground] = useState<
     string | undefined
   >(undefined)
+  const isMobile = useIsMobile()
   const [showNewImage, setShowNewImage] = useState(false)
 
   const location = useLocation()
@@ -101,7 +105,17 @@ export default function BaseLayout({
         <>
           <DialogManager />
           <MusicPlayer />
-          <DesktopMusicPlayer />
+
+          {isMobile ? (
+            <>
+              <MobileMusicPlayer />
+            </>
+          ) : (
+            <>
+              <DesktopMusicPlayer />
+              <DesktopMusicPlayerExpanded />
+            </>
+          )}
         </>
       )}
 

@@ -1,15 +1,9 @@
 import { Button } from '@/components/ui/button'
+import useMusicStore from '@/context/music.context'
 import { Minimize2 } from 'lucide-react'
 
-interface MusicPlayerHeaderProps {
-  isExpanded: boolean
-  handleMinimize: () => void
-}
-
-function MusicPlayerHeader({
-  isExpanded,
-  handleMinimize,
-}: MusicPlayerHeaderProps) {
+function MusicPlayerHeader() {
+  const { isExpanded, setIsExpanded } = useMusicStore()
   return (
     <div
       className={`fixed z-100 flex items-center justify-end p-6 transition-all duration-500 ${
@@ -21,7 +15,7 @@ function MusicPlayerHeader({
       <Button
         variant="ghost"
         size="icon"
-        onClick={handleMinimize}
+        onClick={() => setIsExpanded(false)}
         className="text-white hover:bg-white/20"
       >
         <Minimize2 className="h-6 w-6" />

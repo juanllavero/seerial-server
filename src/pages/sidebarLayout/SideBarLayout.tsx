@@ -7,6 +7,7 @@ import {
 import { Outlet, useLocation } from 'react-router-dom'
 import CardWidthSlider from './components/CardWidthSlider'
 import { useMemo } from 'react'
+import useMusicStore from '@/context/music.context'
 
 const SideBarLayout = () => {
   const location = useLocation()
@@ -14,6 +15,7 @@ const SideBarLayout = () => {
     () => location.pathname.includes('/settings'),
     [location.pathname],
   )
+  const { currentSong } = useMusicStore()
 
   console.log(`SideBarLayout [${new Date().toISOString()}]: `, {
     pathname: location.pathname,
@@ -34,7 +36,9 @@ const SideBarLayout = () => {
             )}
             {/* <DisplayCollectionsSelector /> */}
           </header>
-          <div className="h-screen">
+          <div
+            className={`h-screen transition-all duration-500 ease-in-out ${currentSong ? 'pb-30' : 'pb-0'}`}
+          >
             <Outlet />
           </div>
         </SidebarInset>

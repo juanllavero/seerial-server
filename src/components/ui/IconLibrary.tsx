@@ -51,10 +51,16 @@ export const PlayIcon = ({
   </svg>
 )
 
-export const PauseIcon = ({ size }: { size?: number }) => (
+export const PauseIcon = ({
+  size,
+  color,
+}: {
+  size?: number
+  color?: string
+}) => (
   <svg
     aria-hidden="true"
-    fill="currentColor"
+    fill={color ?? '#FFFFFF'}
     height={size ?? 22}
     viewBox="0 0 48 48"
     width={size ?? 22}
@@ -62,27 +68,33 @@ export const PauseIcon = ({ size }: { size?: number }) => (
   >
     <path
       d="M13 8C13 6.89543 13.8954 6 15 6H17C18.1046 6 19 6.89543 19 8V40C19 41.1046 18.1046 42 17 42H15C13.8954 42 13 41.1046 13 40V8Z"
-      fill="#FFFFFF"
+      fill={color ?? '#FFFFFF'}
     ></path>
     <path
       d="M29 8C29 6.89543 29.8954 6 31 6H33C34.1046 6 35 6.89543 35 8V40C35 41.1046 34.1046 42 33 42H31C29.8954 42 29 41.1046 29 40V8Z"
-      fill="#FFFFFF"
+      fill={color ?? '#FFFFFF'}
     ></path>
   </svg>
 )
 
-export const StopIcon = () => (
+export const StopIcon = ({
+  size,
+  color,
+}: {
+  size?: number
+  color?: string
+}) => (
   <svg
     aria-hidden="true"
-    fill="currentColor"
-    height="18"
+    fill={color ?? '#FFFFFF'}
+    height={size ?? 18}
     viewBox="0 0 48 48"
-    width="18"
+    width={size ?? 18}
     xmlns="http://www.w3.org/2000/svg"
   >
     <path
       d="M36 9H12C11.2044 9 10.4413 9.31607 9.87868 9.87868C9.31607 10.4413 9 11.2044 9 12V36C9 36.7956 9.31607 37.5587 9.87868 38.1213C10.4413 38.6839 11.2044 39 12 39H36C36.7956 39 37.5587 38.6839 38.1213 38.1213C38.6839 37.5587 39 36.7956 39 36V12C39 11.2044 38.6839 10.4413 38.1213 9.87868C37.5587 9.31607 36.7956 9 36 9Z"
-      fill="#FFFFFF"
+      fill={color ?? '#FFFFFF'}
     ></path>
   </svg>
 )

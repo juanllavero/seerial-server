@@ -6,6 +6,8 @@ interface SliderProps {
   onChange: (value: number) => void
   onInteractionStart?: () => void
   onInteractionEnd?: () => void
+  accentColor?: string
+  showKnob?: boolean
   className?: string
 }
 
@@ -15,6 +17,8 @@ const CustomSlider: React.FC<SliderProps> = ({
   onChange,
   onInteractionStart,
   onInteractionEnd,
+  accentColor = 'var(--app-color)',
+  showKnob = false,
   className = '',
 }) => {
   const [isHovering, setIsHovering] = useState(false)
@@ -116,14 +120,16 @@ const CustomSlider: React.FC<SliderProps> = ({
           className="rounded-ful absolute top-0 left-0 h-full transition-all duration-200"
           style={{
             width: `${Math.min(currentValue, 100)}%`,
-            backgroundColor: 'var(--app-color)',
+            backgroundColor: accentColor,
           }}
         />
 
         {/* Circle */}
-        {(isHovering || isDragging) && (
+        {(isHovering || isDragging || showKnob) && (
           <div
-            className="absolute top-1/2 h-3 w-3 -translate-y-1/2 transform rounded-full bg-white shadow-lg transition-all duration-200"
+            className={`absolute top-1/2 h-3 w-3 -translate-y-1/2 transform rounded-full bg-white shadow-lg transition-all duration-200 ${
+              isDragging ? 'scale-[1.5]' : 'scale-100'
+            }`}
             style={{
               left: `calc(${Math.min(currentValue, 100)}% - 6px)`,
             }}

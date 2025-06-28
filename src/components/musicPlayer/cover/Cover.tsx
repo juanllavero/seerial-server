@@ -1,37 +1,8 @@
-import { Button } from '@/components/ui/button'
 import Image from '@/components/ui/Image'
-import { Maximize2 } from 'lucide-react'
 import useMusicStore from '@/context/music.context'
-import { useEffect } from 'react'
-import { set } from 'react-hook-form'
 
-interface MusicPlayerCoverProps {
-  cover: string
-  title: string
-  subtitle: string
-  isExpanded: boolean
-  handleMinimize: () => void
-  handleExpand: () => void
-  isCoverHovered: boolean
-  setIsCoverHovered: (isCoverHovered: boolean) => void
-}
-
-function MusicPlayerCover({
-  cover,
-  title,
-  subtitle,
-  isExpanded,
-  handleExpand,
-  isCoverHovered,
-  setIsCoverHovered,
-}: MusicPlayerCoverProps) {
-  const { isPlaying } = useMusicStore()
-
-  useEffect(() => {
-    if (isExpanded) {
-      setIsCoverHovered(false)
-    }
-  }, [isExpanded])
+function MusicPlayerCover() {
+  const { album, isExpanded } = useMusicStore()
 
   return (
     <div
@@ -45,11 +16,9 @@ function MusicPlayerCover({
         className={`relative transition-all duration-500 ease-in-out ${
           isExpanded ? 'max-h-[60dvh] max-w-[60dvh]' : 'h-[5rem] w-[5rem]'
         }`}
-        onMouseEnter={() => !isExpanded && setIsCoverHovered(true)}
-        onMouseLeave={() => !isExpanded && setIsCoverHovered(false)}
       >
         <Image
-          url={cover}
+          url={album?.coverSrc ?? ''}
           alt={'Song Cover Image'}
           aspectRatio={1}
           width={isExpanded ? undefined : 80}
@@ -60,56 +29,10 @@ function MusicPlayerCover({
           fallbackSrc={''}
         />
 
-        {isPlaying && !isExpanded && (
-          <div className="bg-opacity-40 absolute inset-0 flex items-center justify-center rounded-lg bg-black/10">
-            <div className="flex space-x-1">
-              {[...Array(5)].map((_, i) => (
-                <div
-                  key={i}
-                  className="w-1 animate-pulse rounded-full bg-white"
-                  style={{
-                    height: `${20 + Math.random() * 30}px`,
-                    animationDelay: `${i * 0.1}s`,
-                    animationDuration: `${0.5 + Math.random() * 0.5}s`,
-                  }}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Maximize button - Compact Mode */}
-        {isCoverHovered && !isExpanded && (
-          <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/50 transition-all duration-200">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleExpand}
-              className="text-white hover:bg-white/20"
-            >
-              <Maximize2 className="h-5 w-5" />
-            </Button>
-          </div>
-        )}
-
         {/* Gradient overlay for expanded mode */}
-        {isExpanded && (
+        {/* {isExpanded && (
           <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/20 to-transparent" />
-        )}
-      </div>
-
-      {/* Song info - Compact Mode */}
-      <div
-        className={`min-w-0 flex-1 transition-all duration-500 ${
-          isExpanded
-            ? 'pointer-events-none absolute opacity-0 transition-none'
-            : 'opacity-100'
-        }`}
-      >
-        <h3 className="truncate font-semibold text-white text-shadow-lg">
-          {title}
-        </h3>
-        <p className="truncate text-sm text-white text-shadow-lg">{subtitle}</p>
+        )} */}
       </div>
     </div>
   )

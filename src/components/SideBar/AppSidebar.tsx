@@ -12,6 +12,7 @@ import NavHomeButton from './NavHomeButton'
 import NavSettings from './settings/NavSettings'
 import { useLocation } from 'react-router-dom'
 import { memo, useMemo } from 'react'
+import useMusicStore from '@/context/music.context'
 
 function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation()
@@ -19,6 +20,7 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     () => location.pathname.includes('/settings'),
     [location.pathname],
   )
+  const { currentSong } = useMusicStore()
 
   console.log(`AppSidebar [${new Date().toISOString()}]: `, {
     pathname: location.pathname,
@@ -32,7 +34,9 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavHomeButton />
         {inSettings ? <NavSettings /> : <NavLibraries />}
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter
+        className={`transition-all duration-500 ease-in-out ${currentSong ? 'pb-30' : 'pb-0'}`}
+      >
         <ServerSwitcher />
         <NavUser />
       </SidebarFooter>
