@@ -24,3 +24,11 @@ export const authenticatedFetcher = async (url: string) => {
   })
   return await res.json()
 }
+
+export const getLanguageName = (code: string, locale: string) => {
+  if (typeof Intl.DisplayNames === 'function') {
+    const displayNames = new Intl.DisplayNames([locale], { type: 'language' })
+    return displayNames.of(code)
+  }
+  return code
+}

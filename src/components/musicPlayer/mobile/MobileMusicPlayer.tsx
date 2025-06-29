@@ -14,11 +14,11 @@ const MobileMusicPlayer = () => {
   const controlsRef = useRef<HTMLDivElement | null>(null)
   const startY = useRef(0)
 
-  // NUEVO: Estado para guardar los estilos calculados de la carátula maximizada.
-  const [maximizedCoverStyle, setMaximizedCoverStyle] = useState({
-    width: 0,
-    top: 0,
-    left: 0,
+  // Estado para las dimensiones calculadas de la carátula
+  const [coverStyles, setCoverStyles] = useState({
+    size: 56,
+    left: 16,
+    top: 12,
   })
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -59,12 +59,7 @@ const MobileMusicPlayer = () => {
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (isExpanded) return
-
     setIsExpanded(true)
-    //  setDragStart(e.clientY)
-    //  setIsDragging(true)
-    //  startY.current = e.clientY
-    //  setDragOffset(0)
   }
 
   const handleMouseMove = (e: any) => {
@@ -109,69 +104,143 @@ const MobileMusicPlayer = () => {
     }
   }, [isDragging, dragStart, dragOffset])
 
-  // NUEVO: useEffect para calcular las dimensiones cuando se expande o cambia el tamaño de la ventana.
-  useEffect(() => {
-    const calculateStyles = () => {
-      if (!isExpanded) return
+  // Función para calcular las dimensiones correctas de la carátula expandida
+  const calculateExpandedCoverStyles = () => {
+    if (!isExpanded) return coverStyles
 
-      const controlsHeight = controlsRef.current?.offsetHeight || 280 // Un valor por defecto razonable
-      const viewportWidth = window.innerWidth
-      const viewportHeight = window.innerHeight
+    const viewportWidth = window.innerWidth
+    const viewportHeight = window.innerHeight
 
-      // Márgenes para que la imagen no toque los bordes
-      const horizontalMargin = 32 // 16px a cada lado
-      const topMargin = window.screen.height - viewportHeight > 0 ? 60 : 40 // Espacio para la barra de estado superior
-      const bottomMargin = 20 // Espacio entre la imagen y los controles
+    // Esperamos un frame para que el DOM se actualice
+    requestAnimationFrame(() => {
+      // Altura del header (botones de cerrar)
+      const headerHeight = 80
 
-      const availableWidth = viewportWidth - horizontalMargin
+      // Obtenemos la altura real de los controles desde el DOM
+      let controlsHeight = 320 // Fallback
+      if (controlsRef.current) {
+        // Medimos solo la parte de controles (excluyendo el header)
+        const controlsContent = controlsRef.current.querySelector(
+          '[data-controls-content]',
+        ) as HTMLElement
+        if (controlsContent) {
+          controlsHeight = controlsContent.offsetHeight
+        }
+      }
+
+      // Márgenes
+      const horizontalMargin = 32 // Margen total (16px cada lado)
+      const verticalMargin = 20
+
+      // PRIORIZAR ANCHO: Calculamos el ancho máximo disponible
+      const maxWidth = viewportWidth - horizontalMargin
+
+      // Espacio vertical disponible para la imagen
       const availableHeight =
-        viewportHeight - controlsHeight - topMargin - bottomMargin
+        viewportHeight - headerHeight - controlsHeight - verticalMargin * 2
 
-      // El tamaño de la carátula (es un cuadrado) será el menor entre el ancho y alto disponible
-      const size = Math.min(availableWidth, availableHeight)
+      // La imagen es cuadrada, por lo que el tamaño será el menor entre:
+      // 1. El ancho máximo disponible
+      // 2. La altura máxima disponible
+      let size = Math.min(maxWidth, availableHeight)
 
-      const top = topMargin + (availableHeight - size) / 2
+      // Establecemos límites razonables
+      const minSize = 180
+      const maxSize = viewportWidth * 0.9 // Aumentamos el límite máximo
+      size = Math.max(minSize, Math.min(size, maxSize))
+
+      // Verificación final: asegurar que cabe verticalmente
+      const totalVerticalSpace =
+        headerHeight + size + controlsHeight + verticalMargin * 2
+      if (totalVerticalSpace > viewportHeight) {
+        // Si no cabe, reducimos el tamaño para que quepa
+        const excessHeight = totalVerticalSpace - viewportHeight
+        size = Math.max(minSize, size - excessHeight - 20) // 20px de margen adicional
+      }
+
+      // Posicionamiento: centrado horizontalmente
       const left = (viewportWidth - size) / 2
 
-      setMaximizedCoverStyle({ width: size, top, left })
+      // Posicionamiento vertical: centrado en el espacio disponible
+      const availableVerticalSpace =
+        viewportHeight - headerHeight - controlsHeight
+      const top = headerHeight + (availableVerticalSpace - size) / 2
+
+      // Asegurar que está dentro de los límites con márgenes mínimos
+      const minTopWithMargin = headerHeight + 10
+      const maxTopWithMargin = viewportHeight - controlsHeight - size - 10
+
+      const finalTop = Math.max(
+        minTopWithMargin,
+        Math.min(top, maxTopWithMargin),
+      )
+
+      const newStyles = {
+        size: size,
+        left: left,
+        top: finalTop,
+      }
+
+      setCoverStyles(newStyles)
+    })
+
+    return coverStyles // Retornamos el estado actual mientras se calcula
+  }
+
+  // useLayoutEffect para recalcular cuando sea necesario
+  useLayoutEffect(() => {
+    if (isExpanded) {
+      // Pequeño delay para asegurar que el DOM esté actualizado
+      const timeoutId = setTimeout(() => {
+        calculateExpandedCoverStyles()
+      }, 10)
+
+      return () => clearTimeout(timeoutId)
+    } else {
+      // Valores para estado minimizado
+      setCoverStyles({
+        size: 56,
+        left: 16,
+        top: 12,
+      })
     }
-
-    calculateStyles() // Calcular al cambiar isExpanded
-
-    window.addEventListener('resize', calculateStyles)
-    return () => window.removeEventListener('resize', calculateStyles)
   }, [isExpanded])
 
+  // Listener para redimensionamiento de ventana
+  useEffect(() => {
+    const handleResize = () => {
+      if (isExpanded) {
+        calculateExpandedCoverStyles()
+      }
+    }
+
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [isExpanded])
+
+  // Calcular el progreso de expansión
   const expandProgress = isExpanded
     ? 1
     : dragOffset
       ? Math.min(dragOffset / (window.innerHeight * 0.8), 1)
       : 0
+
   const barOpacity = Math.max(0, 1 - expandProgress * 2)
   const controlsOpacity = Math.max(0, expandProgress)
   const controlsTransform = `translateY(${(1 - expandProgress) * 40}px)`
 
-  // --- MODIFICADO: Cálculo de posición y tamaño de la carátula ---
+  // Dimensiones actuales de la carátula
+  const minimizedSize = 56
+  const minimizedLeft = 16
+  const minimizedTop = 12
 
-  // Valores cuando está minimizado
-  const minSize = 56
-  const minLeft = 16
-  // El top inicial es (altura_barra / 2) - (altura_imagen / 2) => (80 / 2) - (56 / 2) = 12
-  const minTop = 12
-
-  // Valores finales (maximizados) desde nuestro estado dinámico
-  // Usamos los valores mínimos como fallback por si el cálculo aún no ha terminado.
-  const finalSize = maximizedCoverStyle.width || minSize
-  const finalTop = maximizedCoverStyle.top || minTop
-  const finalLeft = maximizedCoverStyle.left || minLeft
-
-  // Interpolamos todos los valores basándonos en el progreso de la expansión
-  const coverSize = minSize + (finalSize - minSize) * expandProgress
-  const coverLeft = minLeft + (finalLeft - minLeft) * expandProgress
-  const coverTop = minTop + (finalTop - minTop) * expandProgress
-
-  // Ya no necesitamos un transform condicional, ya que el 'top' es absoluto.
-  const coverTransform = 'translateY(0)'
+  // Interpolación entre estados
+  const currentSize =
+    minimizedSize + (coverStyles.size - minimizedSize) * expandProgress
+  const currentLeft =
+    minimizedLeft + (coverStyles.left - minimizedLeft) * expandProgress
+  const currentTop =
+    minimizedTop + (coverStyles.top - minimizedTop) * expandProgress
 
   const handleBarClick = (e: any) => {
     if (!isDragging && !isExpanded) {
@@ -209,15 +278,12 @@ const MobileMusicPlayer = () => {
 
         {/* Animated Cover */}
         <div
-          // La transición se aplica a todos los cambios de propiedades
-          className="absolute rounded-lg object-cover shadow-lg transition-all duration-300"
+          className="absolute overflow-hidden rounded-lg shadow-lg transition-all duration-300 ease-out"
           style={{
-            // Usamos nuestras nuevas variables interpoladas
-            width: `${coverSize}px`,
-            height: `${coverSize}px`,
-            left: `${coverLeft}px`,
-            top: `${coverTop}px`, // transform: coverTransform,
-            // Ya no es necesario el transform condicional
+            width: `${currentSize}px`,
+            height: `${currentSize}px`,
+            left: `${currentLeft}px`,
+            top: `${currentTop}px`,
             zIndex: isExpanded || (dragOffset && dragOffset > 0) ? 60 : 10,
           }}
         >
@@ -225,7 +291,6 @@ const MobileMusicPlayer = () => {
             url={album?.coverSrc ?? ''}
             alt={'Music Player Cover'}
             aspectRatio={1}
-            // Clases para asegurar que la imagen llene su contenedor
             className="h-full w-full rounded-lg object-cover"
           />
         </div>

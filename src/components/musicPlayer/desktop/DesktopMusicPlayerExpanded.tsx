@@ -1,10 +1,10 @@
 import GradientBackground from '@/layouts/backgrounds/GradientBackground'
 import { memo } from 'react'
 import useMusicStore from '@/context/music.context'
-import MusicPlayerCover from '../cover/Cover'
-import MusicPlayerHeader from '../header/Header'
+import MusicPlayerCover from './cover/Cover'
+import MusicPlayerHeader from './header/Header'
 import NextSongs from '../menu/NextSongs'
-import Lyrics from '../menu/Lyrics'
+import LRCVisualizer from '../lyrics/LRCVisualizer'
 
 function DesktopMusicPlayerExpanded() {
   const { album, isExpanded, currentSong, showLyrics, showQueue } =
@@ -13,10 +13,8 @@ function DesktopMusicPlayerExpanded() {
 
   return (
     <div
-      className={`absolute bottom-0 z-199 transition-all duration-200 ease-in-out ${
-        isExpanded
-          ? 'flex h-full cursor-default flex-col bg-gray-700'
-          : 'flex h-0 w-screen translate-y-50 flex-row bg-black'
+      className={`absolute bottom-0 z-199 flex w-screen flex-col transition-all duration-200 ease-in-out ${
+        isExpanded ? 'h-full bg-gray-700' : 'h-0 translate-y-50 bg-black'
       }`}
     >
       <GradientBackground showGradient={true} isSong />
@@ -24,16 +22,36 @@ function DesktopMusicPlayerExpanded() {
       <MusicPlayerHeader />
 
       <div
-        className={`transition-all duration-500 ease-in-out ${isExpanded ? `flex max-h-full min-h-0 flex-1 justify-between gap-10 p-10 pt-0 pb-0 ${showQueue ? '' : 'pr-0'}` : 'p-4'}`}
+        className={`flex max-h-full min-h-0 flex-1 justify-between gap-10 p-10 pt-0 pb-0 transition-all duration-100 ease-in-out ${showQueue ? '' : 'pr-0'}`}
       >
-        {!showLyrics || !isExpanded ? <MusicPlayerCover /> : <Lyrics />}
+        <div className="relative flex-1 overflow-hidden">
+          <div
+            className={`flex h-full w-full transition-transform duration-500 ease-in-out ${
+              showLyrics ? '-translate-x-full' : 'translate-x-0'
+            }`}
+          >
+            {/* Music Cover */}
+            <div
+              className={`flex h-full min-w-full flex-shrink-1 items-center justify-center ${isExpanded || showLyrics ? 'translate-x-0' : 'translate-x-full'}`}
+            >
+              <MusicPlayerCover />
+            </div>
+
+            {/* Sync Lyrics */}
+            <div
+              className={`flex h-full min-w-full flex-shrink-0 items-center justify-center ${isExpanded || !showLyrics ? 'translate-x-0' : 'translate-x-full'}`}
+            >
+              <LRCVisualizer />
+            </div>
+          </div>
+        </div>
 
         <div
-          className={`pt-20 pb-10 transition-all delay-0 duration-600 ease-in-out ${
+          className={`pt-20 pb-10 transition-all delay-0 duration-400 ease-in-out ${
             isExpanded
               ? showQueue
-                ? 'w-100 min-w-100 flex-1 translate-x-0 opacity-100'
-                : 'pointer-events-none w-0 min-w-0 translate-x-20 opacity-100 transition-all'
+                ? 'w-100 max-w-100 min-w-100 flex-1 translate-x-0 opacity-100'
+                : 'pointer-events-none w-0 max-w-0 min-w-0 translate-x-20 opacity-100 transition-all'
               : 'pointer-events-none absolute translate-x-8 opacity-0 transition-none'
           }`}
         >

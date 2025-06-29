@@ -1,56 +1,83 @@
 import FlexBox from '@/components/ui/FlexBox'
-import { PlayIcon } from '@/components/ui/IconLibrary'
+import { PauseIcon, PlayIcon } from '@/components/ui/IconLibrary'
 import useMusicStore from '@/context/music.context'
 import { Song } from '@/data/interfaces/Music'
 import { formatTime } from '@/utils/ReactUtils'
+import { useState } from 'react'
 import './MusicCard.css'
+import MusicWave from './MusicWave'
+import { useIsMobile } from '@/components/hooks/use-mobile'
+import { DotsVerticalIcon } from '@radix-ui/react-icons'
+import { Button } from '@/components/ui/button'
 
 interface MusicCardProps {
   index: number
   song: Song
-  action: () => void
+  handlePlaySong: (song: Song) => void
 }
 
-function MusicCard({ index, song, action }: MusicCardProps) {
-  const { currentSong, selectSong, togglePlayPause, setIsShown, setSongQueue } =
-    useMusicStore()
-
-  const playSong = () => {
-    selectSong(song)
-    setIsShown(true)
-    setSongQueue([song])
-    togglePlayPause()
-  }
+function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
+  const { currentSong, isPlaying } = useMusicStore()
+  const [isHovered, setIsHovered] = useState(false)
+  const isMobile = useIsMobile()
 
   return (
     <FlexBox
       key={index}
-      className={`songItem ${currentSong?.id === song.id ? 'activeSong' : ''}`}
+      className={`hover:bg-[#2b2b2b] ${currentSong?.id === song.id ? '' : ''}`}
       justify="space-between"
       align="center"
       gap={1}
-      padding="0.8rem 0.5rem"
+      padding="1rem 0.8rem"
       width={'100%'}
-      css={{ borderRadius: '5px', maxWidth: '1500px' }}
-      onClick={action}
+      css={{ borderRadius: '5px', maxWidth: '1200px' }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
       <FlexBox gap={1} align="center">
-        <FlexBox
-          className="songNumberAndButton"
-          justify="center"
-          align="center"
-          css={{ width: '2rem' }}
+        {!isMobile && (
+          <FlexBox justify="center" align="center" css={{ width: '2rem' }}>
+            {isHovered ? (
+              <div
+                onClick={() => {
+                  handlePlaySong(song)
+                }}
+              >
+                {isPlaying && currentSong?.id === song.id ? (
+                  <PauseIcon size={20} />
+                ) : (
+                  <PlayIcon size={20} />
+                )}
+              </div>
+            ) : currentSong === song && isPlaying ? (
+              <MusicWave />
+            ) : (
+              <span
+                style={{
+                  color:
+                    currentSong === song ? 'var(--app-color)' : 'lightgray',
+                }}
+              >
+                {index + 1}
+              </span>
+            )}
+          </FlexBox>
+        )}
+        <span
+          className="font-semibold"
+          style={{ color: currentSong === song ? 'var(--app-color)' : '' }}
         >
-          <div id="index">
-            <span>{index + 1}</span>
-          </div>
-          <div className="playButtonContainer" onClick={playSong}>
-            <PlayIcon />
-          </div>
-        </FlexBox>
-        <span>{song.title}</span>
+          {song.title}
+        </span>
       </FlexBox>
-      <span>{formatTime(song.duration)}</span>
+      <div className="flex items-center space-x-2">
+        <span>{formatTime(song.duration * 60)}</span>
+        <div className="h-10 w-10">
+          {isHovered && (
+            <DotsVerticalIcon className="h-6 w-6 cursor-pointer opacity-80 transition-opacity duration-150 ease-in-out hover:opacity-100" />
+          )}
+        </div>
+      </div>
     </FlexBox>
   )
 }

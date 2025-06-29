@@ -13,6 +13,15 @@ export const es = {
     errorImageUpload: 'Error al subir la imagen',
     invalidImageError: 'Selecciona un archivo de imagen válido',
 
+    lyricsNotFound:
+      'No se han encontrado letras sincronizadas para esta canción',
+    lyrics: 'Letras',
+    addLyrics: 'Añadir Letras',
+    queue: 'Cola',
+    addToQueue: 'Añadir a la cola',
+    removeFromQueue: 'Quitar de la cola',
+    repeat: 'Repetir',
+    shuffle: 'Aleatorio',
     watchListShows: 'Mi Lista: Series',
     watchListMovies: 'Mi Lista: Películas',
     serverError: 'El servidor no está disponible',

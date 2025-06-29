@@ -8,7 +8,7 @@ import { memo } from 'react'
 import useMusicStore from '@/context/music.context'
 
 function MusicPlayer() {
-  const { audioRef, currentSong, initializeAudioRef, getAudioSrc, setAlbum } =
+  const { currentSong, initializeAudioRef, getAudioSrc, setAlbum } =
     useMusicStore()
   const { selectedServer } = useServerStore()
   const localAudioRef = useRef<HTMLAudioElement>(null)
@@ -21,12 +21,13 @@ function MusicPlayer() {
     fetcher,
   )
 
-  // Initialize audioRef in the store
   useEffect(() => {
-    if (currentSong && localAudioRef.current && !audioRef) {
-      initializeAudioRef(localAudioRef)
+    if (localAudioRef.current) {
+      const cleanup = initializeAudioRef(localAudioRef)
+
+      return cleanup
     }
-  }, [currentSong, audioRef, initializeAudioRef])
+  }, [currentSong, initializeAudioRef])
 
   // Handle gradient background
   useEffect(() => {
@@ -39,14 +40,12 @@ function MusicPlayer() {
   if (!album || !currentSong) return null
 
   return (
-    <>
-      <audio
-        ref={localAudioRef}
-        src={`https://${selectedServer?.ip}${getAudioSrc()}`}
-        onError={(e) => console.error('Audio loading error:', e)}
-        autoPlay
-      />
-    </>
+    <audio
+      ref={localAudioRef}
+      src={`https://${selectedServer?.ip}${getAudioSrc()}`}
+      onError={(e) => console.error('Audio loading error:', e)}
+      autoPlay
+    />
   )
 }
 

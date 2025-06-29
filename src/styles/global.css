@@ -75,6 +75,10 @@
   }
 }
 
+@utility no-scrollbar {
+  @apply [scrollbar-width:none] [&::-webkit-scrollbar]:hidden;
+}
+
 @layer base {
   @font-face {
     font-family: 'Geist';

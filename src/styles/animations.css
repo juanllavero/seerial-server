@@ -31,6 +31,21 @@
   }
 }
 
+@keyframes wave {
+  0% {
+    height: 0%;
+  }
+  50% {
+    height: 90%;
+  }
+  100% {
+    height: 0%;
+  }
+}
+.animate-wave {
+  animation: wave 0.8s ease-in-out infinite;
+}
+
 @keyframes enter {
   0% {
     opacity: var(--tw-enter-opacity, 1);

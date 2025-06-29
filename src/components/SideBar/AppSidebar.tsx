@@ -35,7 +35,7 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {inSettings ? <NavSettings /> : <NavLibraries />}
       </SidebarContent>
       <SidebarFooter
-        className={`transition-all duration-500 ease-in-out ${currentSong ? 'pb-30' : 'pb-0'}`}
+        className={`transition-all duration-500 ease-in-out ${currentSong ? 'pb-30' : 'pb-2'}`}
       >
         <ServerSwitcher />
         <NavUser />

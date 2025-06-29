@@ -15,18 +15,12 @@ import VideoPlayerPage from '@/pages/videoPlayer/VideoPlayerPage'
 import { memo, useEffect, useState } from 'react'
 import { Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom'
 import Root from './__root'
-
-// Wrapper for BaseRoute to handle redirect from '/' to '/home'
-function BaseRouteWrapper() {
-  if (window.location.pathname === '/') {
-    return <Navigate to="/home" replace />
-  }
-  return <SideBarLayout />
-}
+import { useAuth } from '@/context/auth.context'
 
 // Wrapper for ServerRoute to handle loader logic
 function ServerRouteWrapper() {
   const { serverId } = useParams()
+  const { logout } = useAuth()
   const { selectedServer, selectServer } = useServerStore()
   const [loading, setLoading] = useState(true)
 
@@ -36,6 +30,12 @@ function ServerRouteWrapper() {
         serverId,
       })
       const user = await getUser()
+
+      if (!user) {
+        logout()
+        return <Navigate to="/login" replace />
+      }
+
       const foundServer = user?.servers.find((s) => s.id === serverId)
       console.log(foundServer)
       selectServer(foundServer ?? null)
@@ -60,7 +60,8 @@ export function AppRoutes() {
     <Routes>
       <Route path="/" element={<Root />}>
         <Route path="/login" element={<LoginPage />} />
-        <Route element={<BaseRouteWrapper />}>
+        <Route index element={<Navigate to="/home" replace />} />
+        <Route element={<SideBarLayout />}>
           <Route path="/home" element={<HomePage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/server/:serverId/*" element={<ServerRouteWrapper />}>

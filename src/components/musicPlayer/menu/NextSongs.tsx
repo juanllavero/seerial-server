@@ -1,5 +1,5 @@
 import FlexBox from '@/components/ui/FlexBox'
-import { PlayIcon } from '@/components/ui/IconLibrary'
+import { PauseIcon, PlayIcon } from '@/components/ui/IconLibrary'
 import LazyImage from '@/components/ui/LazyImage'
 import useMusicStore from '@/context/music.context'
 import { useServerStore } from '@/context/server.context'
@@ -7,9 +7,13 @@ import { formatTime } from '@/utils/ReactUtils'
 import { fetcher } from '@/utils/utils'
 import useSWR from 'swr'
 import './NextSongs.css'
+import { t } from 'i18next'
+import { useTranslation } from 'react-i18next'
 
 function NextSongs() {
-  const { songQueue, currentSong, selectSong } = useMusicStore()
+  const { t } = useTranslation()
+  const { songQueue, currentSong, selectSong, isPlaying, togglePlayPause } =
+    useMusicStore()
   const { selectedServer } = useServerStore()
   const { data: album } = useSWR(
     currentSong && selectedServer
@@ -28,9 +32,9 @@ function NextSongs() {
       width={'100%'}
       height="100%"
       padding="0 0.5rem"
-      className="rounded-lg bg-black"
+      className="overflow-x-hidden rounded-lg bg-black"
     >
-      <span className="p-2 pb-0 text-2xl font-black">Queue</span>
+      <span className="p-2 pb-0 text-2xl font-black">{t('queue')}</span>
       {songQueue.map((item, index) => (
         <FlexBox
           key={index}
@@ -43,14 +47,23 @@ function NextSongs() {
           css={{ borderRadius: '5px' }}
         >
           <FlexBox gap={1} align="center">
-            <div className="imgContainer" onClick={() => selectSong(item)}>
+            <div
+              className="imgContainer"
+              onClick={() => {
+                if (currentSong === item) {
+                  togglePlayPause()
+                } else {
+                  selectSong(item)
+                }
+              }}
+            >
               <LazyImage
                 url={album.coverSrc}
                 aspectRatio="1"
                 height={'2.5rem'}
               />
               <div className="shadowImage">
-                <PlayIcon />
+                {isPlaying ? <PauseIcon /> : <PlayIcon />}
               </div>
             </div>
             <FlexBox direction="column">

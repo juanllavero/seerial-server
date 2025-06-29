@@ -22,8 +22,9 @@ function MinimizedBar({
     currentSong,
     album,
     togglePlayPause,
-    selectSong,
+    resetPlayerState,
   } = useMusicStore()
+
   return (
     <div
       className="absolute inset-0 cursor-pointer bg-black shadow-lg"
@@ -36,7 +37,8 @@ function MinimizedBar({
       onClick={handleBarClick}
     >
       <div className="flex h-full items-center px-4 text-white">
-        <div className="flex min-w-0 flex-1 items-center pl-20">
+        {/* Contenedor de texto con ancho limitado */}
+        <div className="min-w-0 flex-1 pr-3 pl-18">
           <div className="text-sm">
             <div className="truncate text-lg font-black">
               {currentSong?.title}
@@ -47,12 +49,13 @@ function MinimizedBar({
           </div>
         </div>
 
-        <div className="ml-4 flex items-center space-x-3">
+        {/* Botones con ancho fijo */}
+        <div className="flex flex-shrink-0 items-center space-x-3">
           <Button
             variant={'ghost'}
             onClick={(e) => {
               e.stopPropagation()
-              selectSong(null)
+              resetPlayerState()
             }}
             className="rounded-full"
           >
@@ -63,7 +66,7 @@ function MinimizedBar({
             variant={'ghost'}
             onClick={(e) => {
               e.stopPropagation()
-              togglePlayPause
+              togglePlayPause()
             }}
             className="rounded-full"
           >

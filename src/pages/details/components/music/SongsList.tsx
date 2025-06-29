@@ -1,9 +1,9 @@
 import FlexBox from '@/components/ui/FlexBox'
 import useDataStore from '@/context/data.context'
 import { Album, Song } from '@/data/interfaces/Music'
-import React from 'react'
 import { useTranslation } from 'react-i18next'
 import MusicCard from './MusicCard'
+import useMusicStore from '@/context/music.context'
 
 interface SongsListProps {
   album: Album
@@ -11,7 +11,8 @@ interface SongsListProps {
 
 function SongsList({ album }: SongsListProps) {
   const { t } = useTranslation()
-  const { selectSong } = useDataStore()
+  const { currentSong, selectSong, setSongQueue, togglePlayPause, setIsShown } =
+    useMusicStore()
 
   const hasDiscs = album.songs.some((song) => song.discNumber > 0)
 
@@ -24,7 +25,15 @@ function SongsList({ album }: SongsListProps) {
           <MusicCard
             index={index}
             song={song}
-            action={() => selectSong(song.id)}
+            handlePlaySong={() => {
+              if (currentSong === song) {
+                togglePlayPause()
+              } else {
+                selectSong(song)
+                setIsShown(true)
+                setSongQueue(album.songs)
+              }
+            }}
           />
         ))}
       </FlexBox>
@@ -62,7 +71,15 @@ function SongsList({ album }: SongsListProps) {
             <MusicCard
               index={index}
               song={song}
-              action={() => selectSong(song.id)}
+              handlePlaySong={() => {
+                if (currentSong === song) {
+                  togglePlayPause()
+                } else {
+                  selectSong(song)
+                  setIsShown(true)
+                  setSongQueue(album.songs)
+                }
+              }}
             />
           ))}
         </FlexBox>

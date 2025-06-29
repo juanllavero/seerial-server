@@ -76,14 +76,11 @@ const ExpandedMobileMusicControls = forwardRef<
 
   return (
     <div
-      className="absolute inset-0 content-end p-6 pt-16 text-white"
+      className="absolute inset-0 flex flex-col justify-between text-white"
       ref={ref}
     >
-      {/* Close Button */}
-      <div
-        className="absolute top-0 left-0 flex h-20 w-screen justify-between p-5"
-        onClick={handleCloseExpanded}
-      >
+      {/* Header con botones de cerrar */}
+      <div className="flex h-20 w-full items-center justify-between px-5 pt-2">
         <Button
           variant="ghost"
           size="icon"
@@ -105,39 +102,46 @@ const ExpandedMobileMusicControls = forwardRef<
         </Button>
       </div>
 
-      {/* Song Info */}
+      {/* Espaciador flexible para empujar los controles hacia abajo */}
+      <div className="flex-1" />
+
+      {/* Controles principales - posicionados en la parte inferior */}
       <div
-        className="mt-80 text-left"
+        className="px-6 pb-6"
+        data-controls-content
         style={{
           opacity: controlsOpacity,
           transform: controlsTransform,
         }}
       >
-        <h2 className="mb-2 text-4xl font-black text-white">
-          {currentSong?.title}
-        </h2>
-        <p className="mb-8 text-xl font-semibold text-gray-200">
-          {album?.title}
-        </p>
+        {/* Información de la canción */}
+        <div className="mb-8 text-left">
+          <h2 className="mb-2 text-3xl font-black text-white">
+            {currentSong?.title}
+          </h2>
+          <p className="mb-6 text-lg font-semibold text-gray-200">
+            {album?.title}
+          </p>
 
-        {/* Progress Slider */}
-        <div className="mb-2">
-          <CustomSlider
-            value={progress}
-            buffered={buffered}
-            accentColor="#FFFFFF"
-            showKnob
-            onChange={handleProgressChange}
-          />
+          {/* Progress Slider */}
+          <div className="mb-2">
+            <CustomSlider
+              value={progress}
+              buffered={buffered}
+              accentColor="#FFFFFF"
+              showKnob
+              onChange={handleProgressChange}
+            />
+          </div>
+
+          <div className="mb-8 flex justify-between text-sm text-gray-200">
+            <span>{formatTime(currentTime)}</span>
+            <span>{formatTime(duration)}</span>
+          </div>
         </div>
 
-        <div className="mb-8 flex justify-between text-sm text-gray-200">
-          <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(duration)}</span>
-        </div>
-
-        {/* Controles principales */}
-        <div className="mb-8 flex items-center justify-center space-x-8">
+        {/* Controles principales de reproducción */}
+        <div className="mb-6 flex items-center justify-center space-x-6">
           <Button
             variant="ghost"
             size="icon"
@@ -145,7 +149,7 @@ const ExpandedMobileMusicControls = forwardRef<
             onClick={() => setIsShuffling(!isShuffling)}
           >
             <Shuffle
-              size={32}
+              size={28}
               style={{ color: isShuffling ? 'var(--app-color)' : '' }}
             />
           </Button>
@@ -161,12 +165,12 @@ const ExpandedMobileMusicControls = forwardRef<
 
           <button
             onClick={togglePlayPause}
-            className="rounded-full bg-white p-6"
+            className="rounded-full bg-white p-5"
           >
             {isPlaying ? (
-              <PauseIcon size={40} color="#080808" />
+              <PauseIcon size={36} color="#080808" />
             ) : (
-              <PlayIcon size={40} color="#080808" />
+              <PlayIcon size={36} color="#080808" />
             )}
           </button>
 
@@ -186,20 +190,21 @@ const ExpandedMobileMusicControls = forwardRef<
             className="rounded-full text-white hover:bg-white/20"
           >
             {repeateMode === RepeateMode.NONE ? (
-              <Repeat size={32} />
+              <Repeat size={28} />
             ) : repeateMode === RepeateMode.REPEAT_ALL ? (
-              <Repeat size={32} style={{ color: 'var(--app-color)' }} />
+              <Repeat size={28} style={{ color: 'var(--app-color)' }} />
             ) : (
-              <Repeat1 size={32} style={{ color: 'var(--app-color)' }} />
+              <Repeat1 size={28} style={{ color: 'var(--app-color)' }} />
             )}
           </Button>
         </div>
 
         {/* Controles secundarios */}
-        <div className="flex items-center justify-between py-2">
+        <div className="flex items-center justify-between">
           <Button
             variant="ghost"
-            className="rounded-full"
+            size="icon"
+            className="rounded-full text-white hover:bg-white/20"
             onClick={() => setShowLyrics(!showLyrics)}
           >
             <MicVocal
@@ -208,10 +213,11 @@ const ExpandedMobileMusicControls = forwardRef<
             />
           </Button>
 
-          <div className="flex items-center">
+          <div className="flex items-center space-x-2">
             <Button
               variant="ghost"
               size={'icon'}
+              className="rounded-full text-white hover:bg-white/20"
               onClick={(e) => {
                 e.stopPropagation()
                 setVolume(volume === 0 ? prevVolume : 0)
@@ -219,9 +225,9 @@ const ExpandedMobileMusicControls = forwardRef<
               }}
             >
               {volume === 0 ? (
-                <VolumeOff size={20} className="h-5 w-5" />
+                <VolumeOff size={18} className="h-4 w-4" />
               ) : (
-                <Volume2 className="h-5 w-5" size={20} />
+                <Volume2 className="h-4 w-4" size={18} />
               )}
             </Button>
             <Slider
@@ -229,13 +235,14 @@ const ExpandedMobileMusicControls = forwardRef<
               onValueChange={handleVolumeChange}
               max={100}
               step={1}
-              className="w-10 [&_[role=slider]]:h-3 [&_[role=slider]]:w-3 [&_[role=slider]]:border-0 [&_[role=slider]]:bg-white [&>span:first-child]:h-1 [&>span:first-child]:bg-white/30 [&>span:first-child_span]:bg-white"
+              className="w-16 [&_[role=slider]]:h-3 [&_[role=slider]]:w-3 [&_[role=slider]]:border-0 [&_[role=slider]]:bg-white [&>span:first-child]:h-1 [&>span:first-child]:bg-white/30 [&>span:first-child_span]:bg-white"
             />
           </div>
 
           <Button
             variant="ghost"
-            className="rounded-full"
+            size="icon"
+            className="rounded-full text-white hover:bg-white/20"
             onClick={() => setShowQueue(!showQueue)}
           >
             <ListMusic
@@ -248,5 +255,7 @@ const ExpandedMobileMusicControls = forwardRef<
     </div>
   )
 })
+
+ExpandedMobileMusicControls.displayName = 'ExpandedMobileMusicControls'
 
 export default ExpandedMobileMusicControls

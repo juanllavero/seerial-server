@@ -1,6 +1,6 @@
 import { memo } from 'react'
 import useMusicStore from '@/context/music.context'
-import MusicControlsExpanded from '../controls/MusicControlsExpanded'
+import MusicControlsExpanded from './controls/MusicControlsExpanded'
 
 function DesktopMusicPlayer() {
   const { album, currentSong } = useMusicStore()

@@ -25,6 +25,7 @@ interface MusicState {
   // Set Current Song
   selectSong: (song: Song | null) => void
   setAlbum: (album: Album | null) => void
+  resetPlayerState: () => void
 
   // Queue
   addSong: (song: Song) => void
@@ -91,6 +92,23 @@ const useMusicStore = create<MusicState>((set, get) => ({
       isShown: true,
     }),
   setAlbum: (album) => set({ album, songQueue: album?.songs ?? [] }),
+  resetPlayerState: () => {
+    const { audioRef } = get()
+    if (audioRef?.current) {
+      audioRef.current.pause()
+      audioRef.current.src = ''
+    }
+    set({
+      currentSong: null,
+      isPlaying: false,
+      progress: 0,
+      currentTime: 0,
+      duration: 0,
+      buffered: 0,
+      isShown: false,
+      audioRef: null,
+    })
+  },
 
   // Queue
   addSong: (song) =>
@@ -154,7 +172,7 @@ const useMusicStore = create<MusicState>((set, get) => ({
 
   // Audio Controls
   togglePlayPause: () => {
-    const { audioRef, isPlaying, setIsPlaying } = get()
+    const { audioRef, isPlaying } = get()
     const audio = audioRef?.current
     if (!audio) return
 
@@ -163,7 +181,6 @@ const useMusicStore = create<MusicState>((set, get) => ({
     } else {
       audio.play().catch((e) => console.error('Playback error:', e))
     }
-    setIsPlaying(!isPlaying)
   },
 
   handleChangeRepeatState: (e: React.MouseEvent) => {
@@ -179,8 +196,20 @@ const useMusicStore = create<MusicState>((set, get) => ({
   },
 
   handlePrevious: () => {
-    const { currentSong, songQueue, repeateMode, selectSong, setIsPlaying } =
-      get()
+    const {
+      currentSong,
+      currentTime,
+      songQueue,
+      repeateMode,
+      selectSong,
+      seekTo,
+    } = get()
+
+    if (currentTime >= 3) {
+      seekTo(0)
+      return
+    }
+
     const currentIndex = songQueue.findIndex(
       (song) => song.id === currentSong?.id,
     )
@@ -189,12 +218,12 @@ const useMusicStore = create<MusicState>((set, get) => ({
     } else if (repeateMode === RepeateMode.REPEAT_ALL) {
       selectSong(songQueue[songQueue.length - 1])
     }
-    setIsPlaying(true)
+
+    seekTo(0)
   },
 
   handleNext: () => {
-    const { currentSong, songQueue, repeateMode, selectSong, setIsPlaying } =
-      get()
+    const { currentSong, songQueue, repeateMode, selectSong } = get()
     const currentIndex = songQueue.findIndex(
       (song) => song.id === currentSong?.id,
     )
@@ -203,16 +232,13 @@ const useMusicStore = create<MusicState>((set, get) => ({
     } else if (repeateMode === RepeateMode.REPEAT_ALL) {
       selectSong(songQueue[0])
     } else {
-      setIsPlaying(false)
-      selectSong(null)
+      get().resetPlayerState()
     }
-    setIsPlaying(true)
   },
 
   handleSongSelect: (index: number) => {
-    const { songQueue, selectSong, setIsPlaying } = get()
+    const { songQueue, selectSong } = get()
     selectSong(songQueue[index])
-    setIsPlaying(true)
   },
 
   initializeAudioRef: (ref: React.RefObject<HTMLAudioElement | null>) => {
@@ -221,15 +247,9 @@ const useMusicStore = create<MusicState>((set, get) => ({
     const audio = ref.current
     if (!audio) return
 
-    // Sync audio element with isPlaying state
-    const syncPlayback = () => {
-      const { isPlaying } = get()
-      if (isPlaying) {
-        audio.play().catch((e) => console.error('Playback error:', e))
-      } else {
-        audio.pause()
-      }
-    }
+    // Sync functions
+    const syncIsPlaying = () => get().setIsPlaying(true)
+    const syncIsPaused = () => get().setIsPlaying(false)
 
     // Update progress and buffer
     const updateBuffer = () => {
@@ -259,8 +279,7 @@ const useMusicStore = create<MusicState>((set, get) => ({
 
     // Handle song end
     const handleEnded = () => {
-      const { repeateMode, songQueue, handleNext, setIsPlaying, selectSong } =
-        get()
+      const { repeateMode, songQueue, handleNext, selectSong } = get()
       if (repeateMode === RepeateMode.REPEAT_ONE) {
         audio.currentTime = 0
         audio.play()
@@ -270,8 +289,7 @@ const useMusicStore = create<MusicState>((set, get) => ({
       ) {
         handleNext()
       } else {
-        setIsPlaying(false)
-        selectSong(null)
+        get().resetPlayerState()
       }
     }
 
@@ -290,17 +308,30 @@ const useMusicStore = create<MusicState>((set, get) => ({
     }
 
     // Add event listeners
+    audio.addEventListener('play', syncIsPlaying)
+    audio.addEventListener('playing', syncIsPlaying)
+    audio.addEventListener('pause', syncIsPaused)
     audio.addEventListener('timeupdate', updateProgress)
     audio.addEventListener('progress', updateBuffer)
     audio.addEventListener('loadedmetadata', handleLoadedMetadata)
     audio.addEventListener('canplay', handleCanPlay)
     audio.addEventListener('ended', handleEnded)
     document.addEventListener('keydown', handleKeyPress)
-    syncPlayback()
+
+    // Initial sync
+    if (audio.paused) {
+      syncIsPaused()
+    } else {
+      syncIsPlaying()
+    }
+
     updateVolume()
 
     // Cleanup
     return () => {
+      audio.removeEventListener('play', syncIsPlaying)
+      audio.removeEventListener('playing', syncIsPlaying)
+      audio.removeEventListener('pause', syncIsPaused)
       audio.removeEventListener('timeupdate', updateProgress)
       audio.removeEventListener('progress', updateBuffer)
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata)

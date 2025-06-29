@@ -26,6 +26,7 @@ import {
 import Image from '@/components/ui/Image'
 import { useState } from 'react'
 import { useIsTablet } from '@/components/hooks/use-tablet'
+import { useTranslation } from 'react-i18next'
 
 interface MusicControlsExpandedProps {
   title: string
@@ -51,7 +52,6 @@ function MusicControlsExpanded({
     buffered,
     currentTime,
     duration,
-    selectSong,
     seekTo,
     setVolume,
     setIsShuffling,
@@ -61,8 +61,10 @@ function MusicControlsExpanded({
     handleNext,
     isExpanded,
     setIsExpanded,
+    resetPlayerState,
     handleChangeRepeatState,
   } = useMusicStore()
+  const { t } = useTranslation()
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
   const [coverHover, setCoverHover] = useState<boolean>(false)
@@ -129,7 +131,7 @@ function MusicControlsExpanded({
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => selectSong(null)}
+            onClick={() => resetPlayerState()}
             className="h-15 w-15 rounded-full text-white hover:bg-white/20"
           >
             <StopIcon size={28} />
@@ -155,6 +157,7 @@ function MusicControlsExpanded({
                 variant="ghost"
                 size="icon"
                 className="rounded-full text-white hover:bg-white/20"
+                title={t('shuffle')}
                 onClick={() => setIsShuffling(!isShuffling)}
               >
                 <Shuffle
@@ -165,8 +168,9 @@ function MusicControlsExpanded({
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => selectSong(null)}
+                onClick={() => resetPlayerState()}
                 className="rounded-full text-white hover:bg-white/20"
+                title={t('stop')}
               >
                 <StopIcon />
               </Button>
@@ -175,6 +179,7 @@ function MusicControlsExpanded({
                 size="icon"
                 onClick={handlePrevious}
                 className="rounded-full text-white hover:bg-white/20"
+                title={t('previous')}
               >
                 <PrevTrackIcon size={22} />
               </Button>
@@ -184,6 +189,7 @@ function MusicControlsExpanded({
                 size="icon"
                 onClick={togglePlayPause}
                 className="h-15 w-15 rounded-full text-white hover:bg-white/20"
+                title={isPlaying ? t('pause') : t('play')}
               >
                 {isPlaying ? (
                   <PauseIcon size={isMobile ? 54 : 44} />
@@ -196,6 +202,7 @@ function MusicControlsExpanded({
                 size="icon"
                 onClick={handleNext}
                 className="rounded-full text-white hover:bg-white/20"
+                title={t('next')}
               >
                 <NextTrackIcon size={22} />
               </Button>
@@ -204,6 +211,7 @@ function MusicControlsExpanded({
                 size={'icon'}
                 onClick={handleChangeRepeatState}
                 className="rounded-full text-white hover:bg-white/20"
+                title={t('repeat')}
               >
                 {repeateMode === RepeateMode.NONE ? (
                   <Repeat size={20} />
@@ -231,13 +239,21 @@ function MusicControlsExpanded({
 
           {/* Right Buttons */}
           <div className="flex flex-1 items-center justify-end space-x-2">
-            <Button variant="ghost" onClick={() => setShowLyrics(!showLyrics)}>
+            <Button
+              variant="ghost"
+              onClick={() => setShowLyrics(!showLyrics)}
+              title={t('lyrics')}
+            >
               <MicVocal
                 className="h-5 w-5"
                 style={{ color: showLyrics ? 'var(--app-color)' : '' }}
               />
             </Button>
-            <Button variant="ghost" onClick={() => setShowQueue(!showQueue)}>
+            <Button
+              variant="ghost"
+              onClick={() => setShowQueue(!showQueue)}
+              title={t('queue')}
+            >
               <ListMusic
                 className="h-5 w-5"
                 style={{ color: showQueue ? 'var(--app-color)' : '' }}
@@ -251,6 +267,7 @@ function MusicControlsExpanded({
                 setVolume(volume === 0 ? prevVolume : 0)
                 setPrevVolume(volume)
               }}
+              title={volume === 0 ? t('unmute') : t('mute')}
             >
               {volume === 0 ? (
                 <VolumeOff size={20} className="h-5 w-5" />
