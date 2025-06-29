@@ -14,6 +14,7 @@ function AlbumContent({ album }: AlbumContentProps) {
   return (
     <FlexBox
       direction="column"
+      className="flex-1"
       gap={1}
       scroll={!isMobile && !isTablet ? 'vertical' : undefined}
       justify="start"

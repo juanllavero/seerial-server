@@ -52,7 +52,7 @@ function AlbumDetailsPage() {
 
   return (
     <FlexBox
-      className="details-container"
+      className={`details-container`}
       direction={!isMobile && !isTablet ? 'row' : 'column'}
       gap={1}
       wrap="nowrap"
@@ -60,6 +60,7 @@ function AlbumDetailsPage() {
       align="center"
       width={'100%'}
       height={'100%'}
+      css={{ overflowY: !isMobile && !isTablet ? 'hidden' : 'scroll' }}
     >
       <AlbumInfo isLoading={isLoading} album={album} />
 
