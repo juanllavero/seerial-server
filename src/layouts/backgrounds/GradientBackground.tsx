@@ -1,3 +1,4 @@
+import useMusicStore from '@/context/music.context'
 import { ReactUtils } from '@/utils/ReactUtils'
 import { useEffect, useRef, useState } from 'react'
 
@@ -14,6 +15,7 @@ const GradientBackground = ({
   height = '100%',
   isSong = false,
 }: GradientBackgroundProps) => {
+  const { isExpanded } = useMusicStore()
   const [activeIndex, setActiveIndex] = useState(0)
   const canvasRefs = [
     useRef<HTMLCanvasElement | null>(null),
@@ -79,7 +81,12 @@ const GradientBackground = ({
     }, 100)
 
     return () => clearTimeout(timeout)
-  }, [ReactUtils.songColors, ReactUtils.contentColors, showGradient])
+  }, [
+    ReactUtils.songColors,
+    ReactUtils.contentColors,
+    showGradient,
+    isExpanded,
+  ])
 
   return (
     <div

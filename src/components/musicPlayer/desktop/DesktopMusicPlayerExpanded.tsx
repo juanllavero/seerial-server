@@ -17,7 +17,7 @@ function DesktopMusicPlayerExpanded() {
         isExpanded ? 'h-full bg-gray-700' : 'h-0 translate-y-50 bg-black'
       }`}
     >
-      <GradientBackground showGradient={true} isSong />
+      <GradientBackground showGradient={isExpanded} isSong />
 
       <MusicPlayerHeader />
 
