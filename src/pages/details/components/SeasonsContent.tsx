@@ -15,6 +15,7 @@ import NotFound from '@/components/NotFound'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import { SelectableOption } from '@/data/interfaces/Utils'
+import { shallow } from 'zustand/shallow'
 
 interface SeasonContentProps {
   seasonList: Season[]
@@ -25,10 +26,13 @@ interface SeasonContentProps {
 function SeasonContent({ seasonList, serverId, serverIP }: SeasonContentProps) {
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const { selectedSeasonId, selectSeason } = useDataStore((state) => ({
-    selectedSeasonId: state.selectedSeasonId,
-    selectSeason: state.selectSeason,
-  }))
+  const { selectedSeasonId, selectSeason } = useDataStore(
+    (state) => ({
+      selectedSeasonId: state.selectedSeasonId,
+      selectSeason: state.selectSeason,
+    }),
+    shallow,
+  )
   const [distribution, setDistribution] = React.useState(0)
   const prevDistribution = useRef(distribution)
   const distributionOptions: SelectableOption[] = [

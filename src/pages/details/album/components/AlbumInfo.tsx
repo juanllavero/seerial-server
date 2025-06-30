@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next'
 import { PauseIcon, PlayIcon } from '@/components/ui/IconLibrary'
 import useScreenHeight from '@/components/hooks/use-height'
 import { ScreenHeight } from '@/data/enums/Screen'
+import { shallow } from 'zustand/shallow'
 
 interface AlbumInfoProps {
   isLoading: boolean
@@ -30,10 +31,9 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
       togglePlayPause: state.togglePlayPause,
       selectSong: state.selectSong,
     }),
+    shallow,
   )
-  const { openAlbumDialog } = useDialogStore((state) => ({
-    openAlbumDialog: state.openAlbumDialog,
-  }))
+  const openAlbumDialog = useDialogStore((state) => state.openAlbumDialog)
 
   const getTotalDuration = (songs: Song[]) => {
     return songs.reduce((acc, song) => acc + song.duration, 0).toFixed(0)

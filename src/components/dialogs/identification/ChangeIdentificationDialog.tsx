@@ -2,6 +2,7 @@ import { ModalWrapper } from '@/components/ModalWrapper'
 import { useDialogStore } from '@/context/dialog.context'
 import { useTranslation } from 'react-i18next'
 import CorrectIdentificationSearch from './CorrectIdentificationSearch'
+import { shallow } from 'zustand/shallow'
 
 function ChangeIdentificationDialog() {
   const { identificationDialog, closeIdentificationDialog } = useDialogStore(
@@ -9,6 +10,7 @@ function ChangeIdentificationDialog() {
       identificationDialog: state.identificationDialog,
       closeIdentificationDialog: state.closeIdentificationDialog,
     }),
+    shallow,
   )
   const { t } = useTranslation()
 

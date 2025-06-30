@@ -1,5 +1,5 @@
 import { Server } from '@/data/interfaces/Users'
-import { create } from 'zustand'
+import { createWithEqualityFn } from 'zustand/traditional'
 
 interface ServerState {
   selectedServer: Server | null
@@ -13,7 +13,7 @@ interface ServerState {
   setApiKey: (apiKey: string) => Promise<void>
 }
 
-export const useServerStore = create<ServerState>((set, get) => ({
+export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
   selectedServer: null,
   serverStatus: false,
   serverVersion: '',

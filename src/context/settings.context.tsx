@@ -1,5 +1,5 @@
 import { Settings, SettingsSection, ValueOption } from '@/data/interfaces/Utils'
-import { create } from 'zustand'
+import { createWithEqualityFn } from 'zustand/traditional'
 
 interface SettingsStore {
   clientSettings: Settings
@@ -25,7 +25,7 @@ interface SettingsStore {
   setClientSetting: (serverIP: string, key: string, value: ValueOption) => void
 }
 
-export const useSettingsStore = create<SettingsStore>((set) => ({
+export const useSettingsStore = createWithEqualityFn<SettingsStore>((set) => ({
   clientSettings: {},
   serverSettings: {},
   settingsSection: SettingsSection.ClientGeneral,

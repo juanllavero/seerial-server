@@ -3,6 +3,7 @@ import { Album, Song } from '@/data/interfaces/Music'
 import { useTranslation } from 'react-i18next'
 import MusicCard from './MusicCard'
 import useMusicStore from '@/context/music.context'
+import { shallow } from 'zustand/shallow'
 
 interface SongsListProps {
   album: Album
@@ -11,13 +12,16 @@ interface SongsListProps {
 function SongsList({ album }: SongsListProps) {
   const { t } = useTranslation()
   const { currentSong, selectSong, setSongQueue, togglePlayPause, setIsShown } =
-    useMusicStore((state) => ({
-      currentSong: state.currentSong,
-      selectSong: state.selectSong,
-      setSongQueue: state.setSongQueue,
-      togglePlayPause: state.togglePlayPause,
-      setIsShown: state.setIsShown,
-    }))
+    useMusicStore(
+      (state) => ({
+        currentSong: state.currentSong,
+        selectSong: state.selectSong,
+        setSongQueue: state.setSongQueue,
+        togglePlayPause: state.togglePlayPause,
+        setIsShown: state.setIsShown,
+      }),
+      shallow,
+    )
 
   const hasDiscs = album.songs.some((song) => song.discNumber > 0)
 

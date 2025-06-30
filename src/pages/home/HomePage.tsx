@@ -12,15 +12,19 @@ import NoContent from './components/NoContent'
 import NoServer from './components/NoServer'
 import NotAvailableServer from './components/NotAvailableServer'
 import HomePageContent from './components/content/HomePageContent'
+import { shallow } from 'zustand/shallow'
 
 export default function HomePage() {
   const { selectedServer, serverStatus, apiKeyStatus, getServerStatus } =
-    useServerStore((state) => ({
-      selectedServer: state.selectedServer,
-      serverStatus: state.serverStatus,
-      apiKeyStatus: state.apiKeyStatus,
-      getServerStatus: state.getServerStatus,
-    }))
+    useServerStore(
+      (state) => ({
+        selectedServer: state.selectedServer,
+        serverStatus: state.serverStatus,
+        apiKeyStatus: state.apiKeyStatus,
+        getServerStatus: state.getServerStatus,
+      }),
+      shallow,
+    )
   const selectLibrary = useDataStore((state) => state.selectLibrary)
 
   // Get Servers

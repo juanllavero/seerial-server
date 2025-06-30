@@ -6,6 +6,7 @@ import { useWebSocketStore } from '@/context/ws.context'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { MediaSearchResult } from '@/data/interfaces/Utils'
+import { shallow } from 'zustand/shallow'
 
 interface DownloadMediaCardProps {
   result: MediaSearchResult
@@ -23,12 +24,15 @@ function DownloadMediaCard({
     errorDownloading,
     downloadPercentage,
     downloadingElementId,
-  } = useWebSocketStore((state) => ({
-    downloading: state.downloading,
-    errorDownloading: state.errorDownloading,
-    downloadPercentage: state.downloadPercentage,
-    downloadingElementId: state.downloadingElementId,
-  }))
+  } = useWebSocketStore(
+    (state) => ({
+      downloading: state.downloading,
+      errorDownloading: state.errorDownloading,
+      downloadPercentage: state.downloadPercentage,
+      downloadingElementId: state.downloadingElementId,
+    }),
+    shallow,
+  )
 
   const getDownloadButtonContent = () => {
     if (downloading && downloadingElementId === result.id) {

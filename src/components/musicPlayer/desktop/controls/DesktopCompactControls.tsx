@@ -3,6 +3,7 @@ import { Slider } from '@/components/ui/slider'
 import useMusicStore from '@/context/music.context'
 import { formatTime } from '@/utils/ReactUtils'
 import { Pause, Play, SkipBack, SkipForward, Volume2 } from 'lucide-react'
+import { shallow } from 'zustand/shallow'
 
 interface DesktopCompactControlsProps {
   isHovered: boolean
@@ -26,16 +27,19 @@ function DesktopCompactControls({
     isExpanded,
     duration,
     currentTime,
-  } = useMusicStore((state) => ({
-    isPlaying: state.isPlaying,
-    progress: state.progress,
-    seekTo: state.seekTo,
-    volume: state.volume,
-    isExpanded: state.isExpanded,
-    duration: state.duration,
-    currentTime: state.currentTime,
-    setVolume: state.setVolume,
-  }))
+  } = useMusicStore(
+    (state) => ({
+      isPlaying: state.isPlaying,
+      progress: state.progress,
+      seekTo: state.seekTo,
+      volume: state.volume,
+      isExpanded: state.isExpanded,
+      duration: state.duration,
+      currentTime: state.currentTime,
+      setVolume: state.setVolume,
+    }),
+    shallow,
+  )
   const handleVolumeChange = (volume: number[]) => {
     setVolume(volume[0])
   }

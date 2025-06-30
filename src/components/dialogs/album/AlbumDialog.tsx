@@ -9,15 +9,19 @@ import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
 import ImageListTab from '../components/ImageListTab'
 import AlbumInfoTab from './components/AlbumInfoTab'
+import { shallow } from 'zustand/shallow'
 
 function AlbumDialog() {
   const { t } = useTranslation()
   const selectedServer = useServerStore((state) => state.selectedServer)
   const connectWS = useWebSocketStore((state) => state.connectWS)
-  const { albumDialog, closeAlbumDialog } = useDialogStore((state) => ({
-    albumDialog: state.albumDialog,
-    closeAlbumDialog: state.closeAlbumDialog,
-  }))
+  const { albumDialog, closeAlbumDialog } = useDialogStore(
+    (state) => ({
+      albumDialog: state.albumDialog,
+      closeAlbumDialog: state.closeAlbumDialog,
+    }),
+    shallow,
+  )
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 
   // Posters

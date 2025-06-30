@@ -9,6 +9,7 @@ import { Pencil } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import ParentCard from './ParentCard'
+import { shallow } from 'zustand/shallow'
 
 interface MovieCardProps {
   movie: Movie
@@ -24,6 +25,7 @@ function MovieCard({ movie, mutateLibrary }: MovieCardProps) {
       openMovieDialog: state.openMovieDialog,
       openIdentificationDialog: state.openIdentificationDialog,
     }),
+    shallow,
   )
   const navigate = useNavigate()
 

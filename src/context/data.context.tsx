@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { createWithEqualityFn } from 'zustand/traditional'
 
 interface DataState {
   selectedLibraryId: string | null
@@ -31,7 +31,7 @@ interface DataState {
   setLoadingContent: (loadingContent: boolean) => void
 }
 
-const useDataStore = create<DataState>((set) => ({
+const useDataStore = createWithEqualityFn<DataState>((set) => ({
   selectedLibraryId: null,
   selectedCollectionId: null,
   selectedMovieId: null,

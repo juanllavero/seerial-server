@@ -8,6 +8,7 @@ import { getEpisodeGroupType } from '@/utils/ReactUtils'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import './ChangeEpisodesGroupSearch.css'
+import { shallow } from 'zustand/shallow'
 
 function ChangeEpisodesGroupSearch() {
   const { t } = useTranslation()
@@ -18,6 +19,7 @@ function ChangeEpisodesGroupSearch() {
       episodesGroupDialog: state.episodesGroupDialog,
       closeEpisodesGroupDialog: state.closeEpisodesGroupDialog,
     }),
+    shallow,
   )
   const [episodeGroupsResults, setEpisodeGroupsResults] = useState<
     EpisodeGroupResult[]

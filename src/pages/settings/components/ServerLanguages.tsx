@@ -10,16 +10,20 @@ import ISO6391 from 'iso-639-1'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ContentWrapper from './utils/ContentWrapper'
+import { shallow } from 'zustand/shallow'
 
 function ServerLanguages() {
   const { t, i18n } = useTranslation()
   const selectedServer = useServerStore((state) => state.selectedServer)
   const { setServerSetting, serverSettings, setServerSettings } =
-    useSettingsStore((state) => ({
-      setServerSetting: state.setServerSetting,
-      serverSettings: state.serverSettings,
-      setServerSettings: state.setServerSettings,
-    }))
+    useSettingsStore(
+      (state) => ({
+        setServerSetting: state.setServerSetting,
+        serverSettings: state.serverSettings,
+        setServerSettings: state.setServerSettings,
+      }),
+      shallow,
+    )
   const currentLanguage = i18n.language?.split('-')[0] ?? 'en'
   const [isDirty, setIsDirty] = useState(false)
 

@@ -9,19 +9,26 @@ import { Check, CloudDownload } from 'lucide-react'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ContentWrapper from './utils/ContentWrapper'
+import { shallow } from 'zustand/shallow'
 
 function ServerGeneral({ isLoaded }: { isLoaded: boolean }) {
   const { t } = useTranslation()
-  const { selectedServer, serverVersion } = useServerStore((state) => ({
-    selectedServer: state.selectedServer,
-    serverVersion: state.serverVersion,
-  }))
+  const { selectedServer, serverVersion } = useServerStore(
+    (state) => ({
+      selectedServer: state.selectedServer,
+      serverVersion: state.serverVersion,
+    }),
+    shallow,
+  )
   const { setServerSetting, serverSettings, setServerSettings } =
-    useSettingsStore((state) => ({
-      setServerSetting: state.setServerSetting,
-      serverSettings: state.serverSettings,
-      setServerSettings: state.setServerSettings,
-    }))
+    useSettingsStore(
+      (state) => ({
+        setServerSetting: state.setServerSetting,
+        serverSettings: state.serverSettings,
+        setServerSettings: state.setServerSettings,
+      }),
+      shallow,
+    )
   const [isDirty, setIsDirty] = React.useState(false)
   const [showMessage, setShowMessage] = useState(false)
 

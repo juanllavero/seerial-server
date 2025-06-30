@@ -5,6 +5,7 @@ import { useWebSocketStore } from '@/context/ws.context'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
+import { shallow } from 'zustand/shallow'
 
 function RemoveLibraryDialog() {
   const { t } = useTranslation()
@@ -15,6 +16,7 @@ function RemoveLibraryDialog() {
       removeLibraryDialog: state.removeLibraryDialog,
       closeRemoveLibraryDialog: state.closeRemoveLibraryDialog,
     }),
+    shallow,
   )
   const navigate = useNavigate()
   return (

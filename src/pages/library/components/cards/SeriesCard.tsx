@@ -10,6 +10,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import ParentCard from './ParentCard'
+import { shallow } from 'zustand/shallow'
 
 interface SeriesCardProps {
   series: Series
@@ -24,11 +25,14 @@ function SeriesCard({ series, mutateLibrary }: SeriesCardProps) {
     openSeriesDialog,
     openIdentificationDialog,
     openEpisodesGroupDialog,
-  } = useDialogStore((state) => ({
-    openSeriesDialog: state.openSeriesDialog,
-    openIdentificationDialog: state.openIdentificationDialog,
-    openEpisodesGroupDialog: state.openEpisodesGroupDialog,
-  }))
+  } = useDialogStore(
+    (state) => ({
+      openSeriesDialog: state.openSeriesDialog,
+      openIdentificationDialog: state.openIdentificationDialog,
+      openEpisodesGroupDialog: state.openEpisodesGroupDialog,
+    }),
+    shallow,
+  )
   const [remainingEpisodes, setRemainingEpisodes] = useState<
     number | undefined
   >(undefined)

@@ -5,16 +5,20 @@ import MusicPlayerCover from './cover/Cover'
 import MusicPlayerHeader from './header/Header'
 import NextSongs from '../menu/NextSongs'
 import LRCVisualizer from '../lyrics/LRCVisualizer'
+import { shallow } from 'zustand/shallow'
 
 function DesktopMusicPlayerExpanded() {
   const { album, isExpanded, currentSong, showLyrics, showQueue } =
-    useMusicStore((state) => ({
-      album: state.album,
-      isExpanded: state.isExpanded,
-      currentSong: state.currentSong,
-      showLyrics: state.showLyrics,
-      showQueue: state.showQueue,
-    }))
+    useMusicStore(
+      (state) => ({
+        album: state.album,
+        isExpanded: state.isExpanded,
+        currentSong: state.currentSong,
+        showLyrics: state.showLyrics,
+        showQueue: state.showQueue,
+      }),
+      shallow,
+    )
 
   if (!album || !currentSong) return null
 

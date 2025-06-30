@@ -1,4 +1,4 @@
-import { create } from 'zustand'
+import { createWithEqualityFn } from 'zustand/traditional'
 import { RepeateMode } from '@/data/enums/Music'
 import { Album, Song } from '@/data/interfaces/Music'
 
@@ -62,7 +62,7 @@ interface MusicState {
   getAudioSrc: () => string
 }
 
-const useMusicStore = create<MusicState>((set, get) => ({
+const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
   currentSong: null,
   album: null,
   songQueue: [],

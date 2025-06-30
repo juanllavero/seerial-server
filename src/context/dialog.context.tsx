@@ -8,7 +8,7 @@ import {
   Series,
 } from '@/data/interfaces/Media'
 import { Album } from '@/data/interfaces/Music'
-import { create } from 'zustand'
+import { createWithEqualityFn } from 'zustand/traditional'
 
 // Type of the store state
 interface DialogState {
@@ -94,7 +94,7 @@ interface DialogState {
 }
 
 // Create the store with Zustand
-export const useDialogStore = create<DialogState>((set) => ({
+export const useDialogStore = createWithEqualityFn<DialogState>((set) => ({
   // Initial state of the dialogs
   libraryDialog: {
     isOpen: false,

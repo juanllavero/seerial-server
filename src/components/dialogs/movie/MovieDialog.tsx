@@ -11,15 +11,19 @@ import ImageListTab from '../components/ImageListTab'
 import MovieInfoTab from './components/MovieInfoTab'
 import MovieMediaTab from './components/MovieMediaTab'
 import MovieTagsTab from './components/MovieTagsTab'
+import { shallow } from 'zustand/shallow'
 
 function MovieDialog() {
   const { t } = useTranslation()
   const selectedServer = useServerStore((state) => state.selectedServer)
   const connectWS = useWebSocketStore((state) => state.connectWS)
-  const { movieDialog, closeMovieDialog } = useDialogStore((state) => ({
-    movieDialog: state.movieDialog,
-    closeMovieDialog: state.closeMovieDialog,
-  }))
+  const { movieDialog, closeMovieDialog } = useDialogStore(
+    (state) => ({
+      movieDialog: state.movieDialog,
+      closeMovieDialog: state.closeMovieDialog,
+    }),
+    shallow,
+  )
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 
   const [movie, setMovie] = useState<Movie | undefined>(undefined)

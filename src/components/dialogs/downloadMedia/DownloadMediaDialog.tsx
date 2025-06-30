@@ -2,6 +2,7 @@ import { ModalWrapper } from '@/components/ModalWrapper'
 import { useDialogStore } from '@/context/dialog.context'
 import { useTranslation } from 'react-i18next'
 import DownloadMediaSearch from './DownloadMediaSearch'
+import { shallow } from 'zustand/shallow'
 
 function DownloadMediaDialog() {
   const { downloadMediaDialog, closeDownloadMediaDialog } = useDialogStore(
@@ -9,6 +10,7 @@ function DownloadMediaDialog() {
       downloadMediaDialog: state.downloadMediaDialog,
       closeDownloadMediaDialog: state.closeDownloadMediaDialog,
     }),
+    shallow,
   )
   const { t } = useTranslation()
 

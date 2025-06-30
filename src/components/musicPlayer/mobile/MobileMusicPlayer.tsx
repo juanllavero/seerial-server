@@ -4,6 +4,7 @@ import Image from '@/components/ui/Image'
 import useMusicStore from '@/context/music.context'
 import MinimizedBar from './controls/MinimizedBar'
 import ExpandedMobileMusicControls from './controls/ExpandedMobileMusicControls'
+import { shallow } from 'zustand/shallow'
 
 const MobileMusicPlayer = () => {
   const { album, isExpanded, setIsExpanded, isShown } = useMusicStore(
@@ -13,6 +14,7 @@ const MobileMusicPlayer = () => {
       setIsExpanded: state.setIsExpanded,
       isShown: state.isShown,
     }),
+    shallow,
   )
   const [dragStart, setDragStart] = useState<number | null>(null)
   const [dragOffset, setDragOffset] = useState<number | null>(0)

@@ -16,15 +16,19 @@ import { memo, useEffect, useState } from 'react'
 import { Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom'
 import Root from './__root'
 import { useAuth } from '@/context/auth.context'
+import { shallow } from 'zustand/shallow'
 
 // Wrapper for ServerRoute to handle loader logic
 function ServerRouteWrapper() {
   const { serverId } = useParams()
   const { logout } = useAuth()
-  const { selectedServer, selectServer } = useServerStore((state) => ({
-    selectedServer: state.selectedServer,
-    selectServer: state.selectServer,
-  }))
+  const { selectedServer, selectServer } = useServerStore(
+    (state) => ({
+      selectedServer: state.selectedServer,
+      selectServer: state.selectServer,
+    }),
+    shallow,
+  )
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {

@@ -35,6 +35,7 @@ import {
 import React, { memo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useSWR from 'swr'
+import { shallow } from 'zustand/shallow'
 
 interface Item {
   id: string
@@ -54,17 +55,22 @@ const NavLibraries = () => {
       serverStatus: state.serverStatus,
       apiKeyStatus: state.apiKeyStatus,
     }),
+    shallow,
   )
   const { openLibraryDialog, openRemoveLibraryDialog } = useDialogStore(
     (state) => ({
       openLibraryDialog: state.openLibraryDialog,
       openRemoveLibraryDialog: state.openRemoveLibraryDialog,
     }),
+    shallow,
   )
-  const { selectedLibraryId, selectLibrary } = useDataStore((state) => ({
-    selectedLibraryId: state.selectedLibraryId,
-    selectLibrary: state.selectLibrary,
-  }))
+  const { selectedLibraryId, selectLibrary } = useDataStore(
+    (state) => ({
+      selectedLibraryId: state.selectedLibraryId,
+      selectLibrary: state.selectLibrary,
+    }),
+    shallow,
+  )
 
   const { data: libraries, isLoading } = useSWR<Library[]>(
     selectedServer ? `https://${selectedServer.ip}/libraries/` : null,

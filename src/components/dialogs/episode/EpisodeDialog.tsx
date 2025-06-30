@@ -11,15 +11,19 @@ import { ModalWrapper } from '../../ModalWrapper'
 import ImageListTab from '../components/ImageListTab'
 import EpisodeInfoTab from './components/EpisodeInfoTab'
 import EpisodeMediaInfoTab from './components/EpisodeMediaInfoTab'
+import { shallow } from 'zustand/shallow'
 
 function EpisodeDialog() {
   const { t } = useTranslation()
   const selectedServer = useServerStore((state) => state.selectedServer)
   const connectWS = useWebSocketStore((state) => state.connectWS)
-  const { episodeDialog, closeEpisodeDialog } = useDialogStore((state) => ({
-    episodeDialog: state.episodeDialog,
-    closeEpisodeDialog: state.closeEpisodeDialog,
-  }))
+  const { episodeDialog, closeEpisodeDialog } = useDialogStore(
+    (state) => ({
+      episodeDialog: state.episodeDialog,
+      closeEpisodeDialog: state.closeEpisodeDialog,
+    }),
+    shallow,
+  )
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 
   const [images, setImages] = useState<string[]>([])

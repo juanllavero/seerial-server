@@ -23,6 +23,7 @@ import SeasonContent from '../components/SeasonsContent'
 import '../DetailsPage.css'
 import MyListButton from './components/MyListButton'
 import PlayButton from './components/PlayButton'
+import { shallow } from 'zustand/shallow'
 
 function SeriesDetailsPage() {
   const { seriesId } = useParams()
@@ -31,12 +32,15 @@ function SeriesDetailsPage() {
     selectSeason,
     setCurrentBackground,
     currentBackground,
-  } = useDataStore((state) => ({
-    selectedSeasonId: state.selectedSeasonId,
-    selectSeason: state.selectSeason,
-    setCurrentBackground: state.setCurrentBackground,
-    currentBackground: state.currentBackground,
-  }))
+  } = useDataStore(
+    (state) => ({
+      selectedSeasonId: state.selectedSeasonId,
+      selectSeason: state.selectSeason,
+      setCurrentBackground: state.setCurrentBackground,
+      currentBackground: state.currentBackground,
+    }),
+    shallow,
+  )
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
   const selectedServer = useServerStore((state) => state.selectedServer)
   const clientSettings = useSettingsStore((state) => state.clientSettings)

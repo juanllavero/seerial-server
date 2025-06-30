@@ -16,15 +16,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { shallow } from 'zustand/shallow'
 
 const LRCVisualizer = () => {
   const { t } = useTranslation()
   const selectedServer = useServerStore((state) => state.selectedServer)
-  const { currentSong, currentTime, seekTo } = useMusicStore((state) => ({
-    currentSong: state.currentSong,
-    currentTime: state.currentTime,
-    seekTo: state.seekTo,
-  }))
+  const { currentSong, currentTime, seekTo } = useMusicStore(
+    (state) => ({
+      currentSong: state.currentSong,
+      currentTime: state.currentTime,
+      seekTo: state.seekTo,
+    }),
+    shallow,
+  )
   const [selectedLRCFile, setSelectedLRCFile] = useState<LRCFile | null>(null)
   const [lines, setLines] = useState<LRCLine[]>([])
   const [currentLineIndex, setCurrentLineIndex] = useState(0)

@@ -9,13 +9,17 @@ import {
 import { SidebarMenuButton } from '../../ui/sidebar'
 import { useSettingsStore } from '@/context/settings.context'
 import { SettingsSection } from '@/data/interfaces/Utils'
+import { shallow } from 'zustand/shallow'
 
 const ClientSettings = () => {
   const { t } = useTranslation()
-  const { settingsSection, setSettingsSection } = useSettingsStore((state) => ({
-    settingsSection: state.settingsSection,
-    setSettingsSection: state.setSettingsSection,
-  }))
+  const { settingsSection, setSettingsSection } = useSettingsStore(
+    (state) => ({
+      settingsSection: state.settingsSection,
+      setSettingsSection: state.setSettingsSection,
+    }),
+    shallow,
+  )
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{t('client')}</SidebarGroupLabel>

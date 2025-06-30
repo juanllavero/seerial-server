@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
 import ImageListTab from '../components/ImageListTab'
 import CollectionInfoTab from './components/CollectionInfoTab'
+import { shallow } from 'zustand/shallow'
 
 function CollectionDialog() {
   const { t } = useTranslation()
@@ -19,6 +20,7 @@ function CollectionDialog() {
       collectionDialog: state.collectionDialog,
       closeCollectionDialog: state.closeCollectionDialog,
     }),
+    shallow,
   )
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 

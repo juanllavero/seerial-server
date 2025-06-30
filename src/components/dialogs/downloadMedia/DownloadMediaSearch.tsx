@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import DownloadMediaCard from './DownloadMediaCard'
 import DownloadMediaCardSkeleton from './DownloadMediaCardSkeleton'
+import { shallow } from 'zustand/shallow'
 
 function DownloadMediaSearch() {
   const { t } = useTranslation()
@@ -19,20 +20,26 @@ function DownloadMediaSearch() {
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
   const { connectWS, downloadAudio, downloadVideo, downloaded, setDownloaded } =
-    useWebSocketStore((state) => ({
-      connectWS: state.connectWS,
-      downloadAudio: state.downloadAudio,
-      downloadVideo: state.downloadVideo,
-      downloaded: state.downloaded,
-      setDownloaded: state.setDownloaded,
-    }))
+    useWebSocketStore(
+      (state) => ({
+        connectWS: state.connectWS,
+        downloadAudio: state.downloadAudio,
+        downloadVideo: state.downloadVideo,
+        downloaded: state.downloaded,
+        setDownloaded: state.setDownloaded,
+      }),
+      shallow,
+    )
   const {
     downloadMediaDialog: { type, seriesToEdit, seasonToEdit, movieToEdit },
     closeDownloadMediaDialog,
-  } = useDialogStore((state) => ({
-    downloadMediaDialog: state.downloadMediaDialog,
-    closeDownloadMediaDialog: state.closeDownloadMediaDialog,
-  }))
+  } = useDialogStore(
+    (state) => ({
+      downloadMediaDialog: state.downloadMediaDialog,
+      closeDownloadMediaDialog: state.closeDownloadMediaDialog,
+    }),
+    shallow,
+  )
   const [openPlayer, setOpenPlayer] = useState<boolean>(false)
   const [playerResult, setPlayerResult] = useState<MediaSearchResult | null>(
     null,

@@ -6,15 +6,19 @@ import { fetcher } from '@/utils/utils'
 import useSWR from 'swr'
 import { memo } from 'react'
 import useMusicStore from '@/context/music.context'
+import { shallow } from 'zustand/shallow'
 
 function MusicPlayer() {
   const { currentSong, initializeAudioRef, getAudioSrc, setAlbum } =
-    useMusicStore((state) => ({
-      currentSong: state.currentSong,
-      initializeAudioRef: state.initializeAudioRef,
-      getAudioSrc: state.getAudioSrc,
-      setAlbum: state.setAlbum,
-    }))
+    useMusicStore(
+      (state) => ({
+        currentSong: state.currentSong,
+        initializeAudioRef: state.initializeAudioRef,
+        getAudioSrc: state.getAudioSrc,
+        setAlbum: state.setAlbum,
+      }),
+      shallow,
+    )
   const selectedServer = useServerStore((state) => state.selectedServer)
   const localAudioRef = useRef<HTMLAudioElement>(null)
 

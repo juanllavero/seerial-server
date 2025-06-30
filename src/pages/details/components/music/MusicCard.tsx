@@ -10,6 +10,7 @@ import { useIsMobile } from '@/components/hooks/use-mobile'
 import { DotsVerticalIcon } from '@radix-ui/react-icons'
 import { Button } from '@/components/ui/button'
 import { useIsTablet } from '@/components/hooks/use-tablet'
+import { shallow } from 'zustand/shallow'
 
 interface MusicCardProps {
   index: number
@@ -18,10 +19,13 @@ interface MusicCardProps {
 }
 
 function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
-  const { currentSong, isPlaying } = useMusicStore((state) => ({
-    currentSong: state.currentSong,
-    isPlaying: state.isPlaying,
-  }))
+  const { currentSong, isPlaying } = useMusicStore(
+    (state) => ({
+      currentSong: state.currentSong,
+      isPlaying: state.isPlaying,
+    }),
+    shallow,
+  )
   const [isHovered, setIsHovered] = useState(false)
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()

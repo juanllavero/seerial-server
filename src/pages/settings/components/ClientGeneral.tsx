@@ -10,6 +10,7 @@ import { useSettingsStore } from '@/context/settings.context'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import ContentWrapper from './utils/ContentWrapper'
+import { shallow } from 'zustand/shallow'
 
 const TimeFormatOptions = [
   {
@@ -26,11 +27,14 @@ function ClientGeneral() {
   const { t } = useTranslation()
   const selectedServer = useServerStore((state) => state.selectedServer)
   const { setClientSetting, clientSettings, setClientSettings } =
-    useSettingsStore((state) => ({
-      setClientSetting: state.setClientSetting,
-      clientSettings: state.clientSettings,
-      setClientSettings: state.setClientSettings,
-    }))
+    useSettingsStore(
+      (state) => ({
+        setClientSetting: state.setClientSetting,
+        clientSettings: state.clientSettings,
+        setClientSettings: state.setClientSettings,
+      }),
+      shallow,
+    )
   const [isDirty, setIsDirty] = React.useState(false)
   const [showMessage, setShowMessage] = React.useState(false)
 

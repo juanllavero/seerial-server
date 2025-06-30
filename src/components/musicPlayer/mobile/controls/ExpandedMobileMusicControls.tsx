@@ -22,6 +22,7 @@ import {
   ListMusic,
 } from 'lucide-react'
 import { forwardRef } from 'react'
+import { shallow } from 'zustand/shallow'
 
 interface ExpandedMobileMusicControlsProps {
   controlsOpacity: number
@@ -57,32 +58,35 @@ const ExpandedMobileMusicControls = forwardRef<
     setShowQueue,
     seekTo,
     setIsExpanded,
-  } = useMusicStore((state) => ({
-    album: state.album,
-    currentSong: state.currentSong,
-    isPlaying: state.isPlaying,
-    progress: state.progress,
-    buffered: state.buffered,
-    volume: state.volume,
-    prevVolume: state.prevVolume,
-    showLyrics: state.showLyrics,
-    showQueue: state.showQueue,
-    duration: state.duration,
-    currentTime: state.currentTime,
-    isShuffling: state.isShuffling,
-    repeateMode: state.repeateMode,
-    handleChangeRepeatState: state.handleChangeRepeatState,
-    handleNext: state.handleNext,
-    handlePrevious: state.handlePrevious,
-    togglePlayPause: state.togglePlayPause,
-    setVolume: state.setVolume,
-    setIsShuffling: state.setIsShuffling,
-    setPrevVolume: state.setPrevVolume,
-    setShowLyrics: state.setShowLyrics,
-    setShowQueue: state.setShowQueue,
-    seekTo: state.seekTo,
-    setIsExpanded: state.setIsExpanded,
-  }))
+  } = useMusicStore(
+    (state) => ({
+      album: state.album,
+      currentSong: state.currentSong,
+      isPlaying: state.isPlaying,
+      progress: state.progress,
+      buffered: state.buffered,
+      volume: state.volume,
+      prevVolume: state.prevVolume,
+      showLyrics: state.showLyrics,
+      showQueue: state.showQueue,
+      duration: state.duration,
+      currentTime: state.currentTime,
+      isShuffling: state.isShuffling,
+      repeateMode: state.repeateMode,
+      handleChangeRepeatState: state.handleChangeRepeatState,
+      handleNext: state.handleNext,
+      handlePrevious: state.handlePrevious,
+      togglePlayPause: state.togglePlayPause,
+      setVolume: state.setVolume,
+      setIsShuffling: state.setIsShuffling,
+      setPrevVolume: state.setPrevVolume,
+      setShowLyrics: state.setShowLyrics,
+      setShowQueue: state.setShowQueue,
+      seekTo: state.seekTo,
+      setIsExpanded: state.setIsExpanded,
+    }),
+    shallow,
+  )
 
   const handleVolumeChange = (volume: number[]) => {
     setVolume(volume[0])

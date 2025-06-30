@@ -18,13 +18,17 @@ import { cn } from '@/utils/tailwind'
 import { ChevronRight } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { ServerIcon } from '../ui/IconLibrary'
+import { shallow } from 'zustand/shallow'
 
 export function ServerSwitcher() {
   const { user } = useAuth()
-  const { selectServer, selectedServer } = useServerStore((state) => ({
-    selectServer: state.selectServer,
-    selectedServer: state.selectedServer,
-  }))
+  const { selectServer, selectedServer } = useServerStore(
+    (state) => ({
+      selectServer: state.selectServer,
+      selectedServer: state.selectedServer,
+    }),
+    shallow,
+  )
 
   const [open, setOpen] = useState(false)
   const [hover, setHover] = useState(false)

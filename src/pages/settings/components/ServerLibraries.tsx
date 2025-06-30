@@ -8,6 +8,7 @@ import { useSettingsStore } from '@/context/settings.context'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ContentWrapper from './utils/ContentWrapper'
+import { shallow } from 'zustand/shallow'
 
 function ServerLibraries() {
   const { t } = useTranslation()
@@ -15,11 +16,14 @@ function ServerLibraries() {
   const [showMessage, setShowMessage] = useState(false)
   const selectedServer = useServerStore((state) => state.selectedServer)
   const { setServerSetting, serverSettings, setServerSettings } =
-    useSettingsStore((state) => ({
-      setServerSetting: state.setServerSetting,
-      serverSettings: state.serverSettings,
-      setServerSettings: state.setServerSettings,
-    }))
+    useSettingsStore(
+      (state) => ({
+        setServerSetting: state.setServerSetting,
+        serverSettings: state.serverSettings,
+        setServerSettings: state.setServerSettings,
+      }),
+      shallow,
+    )
 
   const scanOptions = [
     {

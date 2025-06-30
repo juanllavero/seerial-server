@@ -11,15 +11,19 @@ import ImageListTab from '../components/ImageListTab'
 import SeriesInfoTab from './components/SeriesInfoTab'
 import SeriesMediaTab from './components/SeriesMediaTab'
 import SeriesTagsTab from './components/SeriesTagsTab'
+import { shallow } from 'zustand/shallow'
 
 function SeriesDialog() {
   const { t } = useTranslation()
   const selectedServer = useServerStore((state) => state.selectedServer)
   const connectWS = useWebSocketStore((state) => state.connectWS)
-  const { seriesDialog, closeSeriesDialog } = useDialogStore((state) => ({
-    seriesDialog: state.seriesDialog,
-    closeSeriesDialog: state.closeSeriesDialog,
-  }))
+  const { seriesDialog, closeSeriesDialog } = useDialogStore(
+    (state) => ({
+      seriesDialog: state.seriesDialog,
+      closeSeriesDialog: state.closeSeriesDialog,
+    }),
+    shallow,
+  )
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 
   const [series, setSeries] = useState<Series | undefined>(undefined)

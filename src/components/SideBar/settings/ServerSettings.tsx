@@ -10,14 +10,18 @@ import { SidebarMenuButton } from '../../ui/sidebar'
 import { useSettingsStore } from '@/context/settings.context'
 import { SettingsSection } from '@/data/interfaces/Utils'
 import { useServerStore } from '@/context/server.context'
+import { shallow } from 'zustand/shallow'
 
 const ServerSettings = () => {
   const { t } = useTranslation()
   const serverStatus = useServerStore((state) => state.serverStatus)
-  const { settingsSection, setSettingsSection } = useSettingsStore((state) => ({
-    settingsSection: state.settingsSection,
-    setSettingsSection: state.setSettingsSection,
-  }))
+  const { settingsSection, setSettingsSection } = useSettingsStore(
+    (state) => ({
+      settingsSection: state.settingsSection,
+      setSettingsSection: state.setSettingsSection,
+    }),
+    shallow,
+  )
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{t('server')}</SidebarGroupLabel>

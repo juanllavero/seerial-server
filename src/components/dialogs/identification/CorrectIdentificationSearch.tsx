@@ -11,6 +11,7 @@ import { IdentificationResult } from '@/data/interfaces/Utils'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import './CorrectIdentificationSearch.css'
+import { shallow } from 'zustand/shallow'
 
 function CorrectIdentificationSearch() {
   const { t } = useTranslation()
@@ -21,6 +22,7 @@ function CorrectIdentificationSearch() {
       identificationDialog: state.identificationDialog,
       closeIdentificationDialog: state.closeIdentificationDialog,
     }),
+    shallow,
   )
   const [identificationResults, setIdentificationResults] = useState<
     IdentificationResult[]

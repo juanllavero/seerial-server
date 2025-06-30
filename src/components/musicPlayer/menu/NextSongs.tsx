@@ -8,17 +8,21 @@ import { fetcher } from '@/utils/utils'
 import useSWR from 'swr'
 import './NextSongs.css'
 import { useTranslation } from 'react-i18next'
+import { shallow } from 'zustand/shallow'
 
 function NextSongs() {
   const { t } = useTranslation()
   const { songQueue, currentSong, selectSong, isPlaying, togglePlayPause } =
-    useMusicStore((state) => ({
-      songQueue: state.songQueue,
-      currentSong: state.currentSong,
-      selectSong: state.selectSong,
-      isPlaying: state.isPlaying,
-      togglePlayPause: state.togglePlayPause,
-    }))
+    useMusicStore(
+      (state) => ({
+        songQueue: state.songQueue,
+        currentSong: state.currentSong,
+        selectSong: state.selectSong,
+        isPlaying: state.isPlaying,
+        togglePlayPause: state.togglePlayPause,
+      }),
+      shallow,
+    )
   const selectedServer = useServerStore((state) => state.selectedServer)
   const { data: album } = useSWR(
     currentSong && selectedServer

@@ -15,6 +15,7 @@ import { useServerStore } from '@/context/server.context'
 import { useTranslation } from 'react-i18next'
 import { Button } from './ui/button'
 import { useNavigate } from 'react-router-dom'
+import { shallow } from 'zustand/shallow'
 
 interface Item {
   id: string
@@ -26,10 +27,13 @@ interface Item {
 export function LibrarySwitcher({ libraries }: { libraries: Item[] }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { serverStatus, apiKeyStatus } = useServerStore((state) => ({
-    serverStatus: state.serverStatus,
-    apiKeyStatus: state.apiKeyStatus,
-  }))
+  const { serverStatus, apiKeyStatus } = useServerStore(
+    (state) => ({
+      serverStatus: state.serverStatus,
+      apiKeyStatus: state.apiKeyStatus,
+    }),
+    shallow,
+  )
   const openLibraryDialog = useDialogStore((state) => state.openLibraryDialog)
   const selectedLibraryId = useDataStore((state) => state.selectedLibraryId)
 

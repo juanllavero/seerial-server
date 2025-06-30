@@ -28,6 +28,7 @@ import { useState } from 'react'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import { useTranslation } from 'react-i18next'
 import { DotsVerticalIcon } from '@radix-ui/react-icons'
+import { shallow } from 'zustand/shallow'
 
 interface MusicControlsExpandedProps {
   title: string
@@ -64,33 +65,36 @@ function MusicControlsExpanded({
     setIsExpanded,
     resetPlayerState,
     handleChangeRepeatState,
-  } = useMusicStore((state) => ({
-    album: state.album,
-    isPlaying: state.isPlaying,
-    isShuffling: state.isShuffling,
-    repeateMode: state.repeateMode,
-    prevVolume: state.prevVolume,
-    showLyrics: state.showLyrics,
-    showQueue: state.showQueue,
-    setShowQueue: state.setShowQueue,
-    setShowLyrics: state.setShowLyrics,
-    volume: state.volume,
-    progress: state.progress,
-    buffered: state.buffered,
-    currentTime: state.currentTime,
-    duration: state.duration,
-    seekTo: state.seekTo,
-    setVolume: state.setVolume,
-    setIsShuffling: state.setIsShuffling,
-    togglePlayPause: state.togglePlayPause,
-    setPrevVolume: state.setPrevVolume,
-    handlePrevious: state.handlePrevious,
-    handleNext: state.handleNext,
-    isExpanded: state.isExpanded,
-    setIsExpanded: state.setIsExpanded,
-    resetPlayerState: state.resetPlayerState,
-    handleChangeRepeatState: state.handleChangeRepeatState,
-  }))
+  } = useMusicStore(
+    (state) => ({
+      album: state.album,
+      isPlaying: state.isPlaying,
+      isShuffling: state.isShuffling,
+      repeateMode: state.repeateMode,
+      prevVolume: state.prevVolume,
+      showLyrics: state.showLyrics,
+      showQueue: state.showQueue,
+      setShowQueue: state.setShowQueue,
+      setShowLyrics: state.setShowLyrics,
+      volume: state.volume,
+      progress: state.progress,
+      buffered: state.buffered,
+      currentTime: state.currentTime,
+      duration: state.duration,
+      seekTo: state.seekTo,
+      setVolume: state.setVolume,
+      setIsShuffling: state.setIsShuffling,
+      togglePlayPause: state.togglePlayPause,
+      setPrevVolume: state.setPrevVolume,
+      handlePrevious: state.handlePrevious,
+      handleNext: state.handleNext,
+      isExpanded: state.isExpanded,
+      setIsExpanded: state.setIsExpanded,
+      resetPlayerState: state.resetPlayerState,
+      handleChangeRepeatState: state.handleChangeRepeatState,
+    }),
+    shallow,
+  )
   const { t } = useTranslation()
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()

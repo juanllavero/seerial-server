@@ -9,6 +9,7 @@ import { useEffect, useMemo, useState } from 'react'
 import useSWR from 'swr'
 import LibraryContent from './LibraryContent'
 import LibraryPageSkeleton from './LibraryPageSkeleton'
+import { shallow } from 'zustand/shallow'
 
 interface LibraryPageContentProps {
   libraryId: string
@@ -23,10 +24,13 @@ function LibraryPageContent({
 }: LibraryPageContentProps) {
   const { cardWidth } = useCardWidth()
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
-  const { selectedLibraryId, selectLibrary } = useDataStore((state) => ({
-    selectedLibraryId: state.selectedLibraryId,
-    selectLibrary: state.selectLibrary,
-  }))
+  const { selectedLibraryId, selectLibrary } = useDataStore(
+    (state) => ({
+      selectedLibraryId: state.selectedLibraryId,
+      selectLibrary: state.selectLibrary,
+    }),
+    shallow,
+  )
   const {
     data: library,
     isLoading,

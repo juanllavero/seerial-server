@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { mutate } from 'swr'
+import { shallow } from 'zustand/shallow'
 import { ModalWrapper } from '../../ModalWrapper'
 import AdvancedTabContent from './AdvancedTabContent'
 import FoldersTabContent from './FoldersTabContent'
@@ -15,10 +16,13 @@ function LibraryDialog() {
   const navigate = useNavigate()
   const selectedServer = useServerStore((state) => state.selectedServer)
   const connectWS = useWebSocketStore((state) => state.connectWS)
-  const { libraryDialog, closeLibraryDialog } = useDialogStore((state) => ({
-    libraryDialog: state.libraryDialog,
-    closeLibraryDialog: state.closeLibraryDialog,
-  }))
+  const { libraryDialog, closeLibraryDialog } = useDialogStore(
+    (state) => ({
+      libraryDialog: state.libraryDialog,
+      closeLibraryDialog: state.closeLibraryDialog,
+    }),
+    shallow,
+  )
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 
   // Form Data

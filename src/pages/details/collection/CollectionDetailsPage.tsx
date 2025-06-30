@@ -23,16 +23,20 @@ import { useParams } from 'react-router-dom'
 import useSWR from 'swr'
 import '../DetailsPage.css'
 import CollectionImage from './CollectionImage'
+import { shallow } from 'zustand/shallow'
 function CollectionDetailsPage() {
   const { collectionId, type } = useParams()
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
   const openCollectionDialog = useDialogStore(
     (state) => state.openCollectionDialog,
   )
-  const { setCurrentBackground, currentBackground } = useDataStore((state) => ({
-    setCurrentBackground: state.setCurrentBackground,
-    currentBackground: state.currentBackground,
-  }))
+  const { setCurrentBackground, currentBackground } = useDataStore(
+    (state) => ({
+      setCurrentBackground: state.setCurrentBackground,
+      currentBackground: state.currentBackground,
+    }),
+    shallow,
+  )
   const selectedServer = useServerStore((state) => state.selectedServer)
   const { t } = useTranslation()
   const isMobile = useIsMobile()

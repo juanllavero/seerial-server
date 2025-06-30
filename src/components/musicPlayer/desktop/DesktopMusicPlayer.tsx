@@ -1,13 +1,17 @@
 import { memo } from 'react'
 import useMusicStore from '@/context/music.context'
 import MusicControlsExpanded from './controls/MusicControlsExpanded'
+import { shallow } from 'zustand/shallow'
 
 function DesktopMusicPlayer() {
-  const { album, currentSong, isShown } = useMusicStore((state) => ({
-    album: state.album,
-    currentSong: state.currentSong,
-    isShown: state.isShown,
-  }))
+  const { album, currentSong, isShown } = useMusicStore(
+    (state) => ({
+      album: state.album,
+      currentSong: state.currentSong,
+      isShown: state.isShown,
+    }),
+    shallow,
+  )
 
   return (
     <div

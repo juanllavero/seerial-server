@@ -27,13 +27,17 @@ import CastList from '../components/CastList'
 import MovieContent from '../components/MovieContent'
 import '../DetailsPage.css'
 import MyListButton from './components/MyListButton'
+import { shallow } from 'zustand/shallow'
 
 function MovieDetailsPage() {
   const { movieId } = useParams()
-  const { setCurrentBackground, currentBackground } = useDataStore((state) => ({
-    setCurrentBackground: state.setCurrentBackground,
-    currentBackground: state.currentBackground,
-  }))
+  const { setCurrentBackground, currentBackground } = useDataStore(
+    (state) => ({
+      setCurrentBackground: state.setCurrentBackground,
+      currentBackground: state.currentBackground,
+    }),
+    shallow,
+  )
   const clientSettings = useSettingsStore((state) => state.clientSettings)
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
   const openMovieDialog = useDialogStore((state) => state.openMovieDialog)

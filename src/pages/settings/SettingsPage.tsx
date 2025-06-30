@@ -11,6 +11,7 @@ import ServerGeneral from './components/ServerGeneral'
 import ServerLanguages from './components/ServerLanguages'
 import ServerLibraries from './components/ServerLibraries'
 import ServerTranscode from './components/ServerTranscode'
+import { shallow } from 'zustand/shallow'
 
 function SettingsPage() {
   const selectedServer = useServerStore((state) => state.selectedServer)
@@ -19,12 +20,15 @@ function SettingsPage() {
     getAllServerSettings,
     clientSettings,
     serverSettings,
-  } = useSettingsStore((state) => ({
-    getAllClientSettings: state.getAllClientSettings,
-    getAllServerSettings: state.getAllServerSettings,
-    clientSettings: state.clientSettings,
-    serverSettings: state.serverSettings,
-  }))
+  } = useSettingsStore(
+    (state) => ({
+      getAllClientSettings: state.getAllClientSettings,
+      getAllServerSettings: state.getAllServerSettings,
+      clientSettings: state.clientSettings,
+      serverSettings: state.serverSettings,
+    }),
+    shallow,
+  )
   const settingsSection = useSettingsStore((state) => state.settingsSection)
   const isMobile = useIsMobile()
 

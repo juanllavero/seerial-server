@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { PauseIcon, PlayIcon, StopIcon } from '@/components/ui/IconLibrary'
 import useMusicStore from '@/context/music.context'
+import { shallow } from 'zustand/shallow'
 
 interface MinimizedBarProps {
   barOpacity: number
@@ -22,14 +23,17 @@ function MinimizedBar({
     album,
     togglePlayPause,
     resetPlayerState,
-  } = useMusicStore((state) => ({
-    isExpanded: state.isExpanded,
-    isPlaying: state.isPlaying,
-    currentSong: state.currentSong,
-    album: state.album,
-    togglePlayPause: state.togglePlayPause,
-    resetPlayerState: state.resetPlayerState,
-  }))
+  } = useMusicStore(
+    (state) => ({
+      isExpanded: state.isExpanded,
+      isPlaying: state.isPlaying,
+      currentSong: state.currentSong,
+      album: state.album,
+      togglePlayPause: state.togglePlayPause,
+      resetPlayerState: state.resetPlayerState,
+    }),
+    shallow,
+  )
 
   return (
     <div
