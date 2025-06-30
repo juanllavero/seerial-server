@@ -8,7 +8,14 @@ import LRCVisualizer from '../lyrics/LRCVisualizer'
 
 function DesktopMusicPlayerExpanded() {
   const { album, isExpanded, currentSong, showLyrics, showQueue } =
-    useMusicStore()
+    useMusicStore((state) => ({
+      album: state.album,
+      isExpanded: state.isExpanded,
+      currentSong: state.currentSong,
+      showLyrics: state.showLyrics,
+      showQueue: state.showQueue,
+    }))
+
   if (!album || !currentSong) return null
 
   return (

@@ -23,7 +23,12 @@ function DownloadMediaCard({
     errorDownloading,
     downloadPercentage,
     downloadingElementId,
-  } = useWebSocketStore()
+  } = useWebSocketStore((state) => ({
+    downloading: state.downloading,
+    errorDownloading: state.errorDownloading,
+    downloadPercentage: state.downloadPercentage,
+    downloadingElementId: state.downloadingElementId,
+  }))
 
   const getDownloadButtonContent = () => {
     if (downloading && downloadingElementId === result.id) {

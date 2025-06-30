@@ -25,7 +25,7 @@ function EpisodeCard({
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
   const { cardWidth } = useCardWidth()
-  const { openEpisodeDialog } = useDialogStore()
+  const openEpisodeDialog = useDialogStore((state) => state.openEpisodeDialog)
 
   return (
     <Card

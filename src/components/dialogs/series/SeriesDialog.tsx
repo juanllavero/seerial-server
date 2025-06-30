@@ -14,9 +14,12 @@ import SeriesTagsTab from './components/SeriesTagsTab'
 
 function SeriesDialog() {
   const { t } = useTranslation()
-  const { selectedServer } = useServerStore()
-  const { connectWS } = useWebSocketStore()
-  const { seriesDialog, closeSeriesDialog } = useDialogStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
+  const connectWS = useWebSocketStore((state) => state.connectWS)
+  const { seriesDialog, closeSeriesDialog } = useDialogStore((state) => ({
+    seriesDialog: state.seriesDialog,
+    closeSeriesDialog: state.closeSeriesDialog,
+  }))
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 
   const [series, setSeries] = useState<Series | undefined>(undefined)

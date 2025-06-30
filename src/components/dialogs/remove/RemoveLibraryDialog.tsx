@@ -8,9 +8,14 @@ import { mutate } from 'swr'
 
 function RemoveLibraryDialog() {
   const { t } = useTranslation()
-  const { selectedServer } = useServerStore()
-  const { connectWS } = useWebSocketStore()
-  const { removeLibraryDialog, closeRemoveLibraryDialog } = useDialogStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
+  const connectWS = useWebSocketStore((state) => state.connectWS)
+  const { removeLibraryDialog, closeRemoveLibraryDialog } = useDialogStore(
+    (state) => ({
+      removeLibraryDialog: state.removeLibraryDialog,
+      closeRemoveLibraryDialog: state.closeRemoveLibraryDialog,
+    }),
+  )
   const navigate = useNavigate()
   return (
     <AlertWrapper

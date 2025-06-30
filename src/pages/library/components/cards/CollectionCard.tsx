@@ -19,9 +19,11 @@ interface CollectionCardProps {
 
 function CollectionCard({ collection, type }: CollectionCardProps) {
   const { t } = useTranslation()
-  const { selectCollection } = useDataStore()
-  const { selectedServer } = useServerStore()
-  const { openCollectionDialog } = useDialogStore()
+  const selectCollection = useDataStore((state) => state.selectCollection)
+  const selectedServer = useServerStore((state) => state.selectedServer)
+  const openCollectionDialog = useDialogStore(
+    (state) => state.openCollectionDialog,
+  )
   const [subtitleText, setSubtitleText] = useState<string>('')
   const navigate = useNavigate()
 

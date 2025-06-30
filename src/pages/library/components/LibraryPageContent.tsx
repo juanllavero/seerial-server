@@ -22,8 +22,11 @@ function LibraryPageContent({
   type,
 }: LibraryPageContentProps) {
   const { cardWidth } = useCardWidth()
-  const { wsMessage } = useWebSocketStore()
-  const { selectedLibraryId, selectLibrary } = useDataStore()
+  const wsMessage = useWebSocketStore((state) => state.wsMessage)
+  const { selectedLibraryId, selectLibrary } = useDataStore((state) => ({
+    selectedLibraryId: state.selectedLibraryId,
+    selectLibrary: state.selectLibrary,
+  }))
   const {
     data: library,
     isLoading,

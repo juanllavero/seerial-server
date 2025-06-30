@@ -26,7 +26,16 @@ function DesktopCompactControls({
     isExpanded,
     duration,
     currentTime,
-  } = useMusicStore()
+  } = useMusicStore((state) => ({
+    isPlaying: state.isPlaying,
+    progress: state.progress,
+    seekTo: state.seekTo,
+    volume: state.volume,
+    isExpanded: state.isExpanded,
+    duration: state.duration,
+    currentTime: state.currentTime,
+    setVolume: state.setVolume,
+  }))
   const handleVolumeChange = (volume: number[]) => {
     setVolume(volume[0])
   }

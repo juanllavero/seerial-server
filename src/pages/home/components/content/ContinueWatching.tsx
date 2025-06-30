@@ -14,7 +14,7 @@ interface ContinueWatchingProps {
 
 function ContinueWatching({ goToContent }: ContinueWatchingProps) {
   const { t } = useTranslation()
-  const { selectedServer } = useServerStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
   const isMobile = useIsMobile()
 
   // Get Continue Watching items

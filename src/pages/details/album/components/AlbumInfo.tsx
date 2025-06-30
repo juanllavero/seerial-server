@@ -10,6 +10,8 @@ import { Edit, Ellipsis } from 'lucide-react'
 import Image from '@/components/ui/Image'
 import { useTranslation } from 'react-i18next'
 import { PauseIcon, PlayIcon } from '@/components/ui/IconLibrary'
+import useScreenHeight from '@/components/hooks/use-height'
+import { ScreenHeight } from '@/data/enums/Screen'
 
 interface AlbumInfoProps {
   isLoading: boolean
@@ -20,11 +22,48 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
   const { t } = useTranslation()
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
-  const { isPlaying, isShown, togglePlayPause, selectSong } = useMusicStore()
-  const { openAlbumDialog } = useDialogStore()
+  const screenHeight = useScreenHeight()
+  const { isPlaying, isShown, togglePlayPause, selectSong } = useMusicStore(
+    (state) => ({
+      isPlaying: state.isPlaying,
+      isShown: state.isShown,
+      togglePlayPause: state.togglePlayPause,
+      selectSong: state.selectSong,
+    }),
+  )
+  const { openAlbumDialog } = useDialogStore((state) => ({
+    openAlbumDialog: state.openAlbumDialog,
+  }))
 
   const getTotalDuration = (songs: Song[]) => {
     return songs.reduce((acc, song) => acc + song.duration, 0).toFixed(0)
+  }
+
+  const getCoverSize = () => {
+    switch (screenHeight) {
+      case ScreenHeight.HD:
+        return 'w-60 h-60'
+      case ScreenHeight.FHD:
+        return 'w-80 h-80'
+      case ScreenHeight.QHD:
+        return 'w-100 h-100'
+      case ScreenHeight.UHD:
+        return 'w-120 h-120'
+    }
+  }
+
+  const getTitleSize = () => {
+    if (isMobile) return 'text-3xl'
+    switch (screenHeight) {
+      case ScreenHeight.HD:
+        return 'text-3xl'
+      case ScreenHeight.FHD:
+        return 'text-4xl'
+      case ScreenHeight.QHD:
+        return 'text-5xl'
+      case ScreenHeight.UHD:
+        return 'text-6xl'
+    }
   }
 
   return (
@@ -32,9 +71,9 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
       direction="column"
       justify="center"
       align="center"
-      padding="5rem"
+      padding={isMobile ? '0.5rem' : isTablet ? '2rem' : '5rem'}
       width={!isMobile && !isTablet ? 'auto' : '100%'}
-      className={`${!isMobile && !isTablet ? 'w-250 max-w-250 min-w-250 flex-1' : ''}`}
+      className={`${!isMobile && !isTablet ? 'w-[50dvw] max-w-[50dvw] min-w-[50dvw] flex-1' : ''}`}
       gap={2}
     >
       {/* Cover Image */}
@@ -43,7 +82,7 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
           {isLoading || !album ? (
             <Skeleton className="h-100 w-100" />
           ) : (
-            <div className={`${!isMobile ? 'h-100 w-100' : ''}`}>
+            <div className={` ${!isMobile ? getCoverSize() : 'max-w-[55dvw]'}`}>
               <Image
                 url={album.coverSrc}
                 className="h-full w-full rounded-2xl object-cover shadow-2xl shadow-black/20"
@@ -63,11 +102,11 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
         align="center"
         className="text-center"
         gap={1}
-        width={isMobile ? '100%' : '80%'}
-        padding={isMobile ? '0 2rem' : '0'}
+        width={isMobile || isTablet ? '100%' : '80%'}
+        padding={'0'}
       >
         <span
-          className="text-5xl font-black"
+          className={`font-black ${getTitleSize()}`}
           style={{
             textTransform: 'capitalize',
           }}
@@ -100,7 +139,7 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
             </span>
           )}
         </div>
-        <FlexBox gap={1} wrap="wrap" justify="center" align="center">
+        <FlexBox gap={1} justify="center" align="center">
           <Button
             variant={'ghost'}
             title={t('editButton')}

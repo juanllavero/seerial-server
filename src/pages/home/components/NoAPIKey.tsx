@@ -9,7 +9,7 @@ import AlertContent from './AlertContent'
 
 function NoAPIKey() {
   const { t } = useTranslation()
-  const { setApiKey: saveApiKey } = useServerStore()
+  const saveApiKey = useServerStore((state) => state.setApiKey)
   const [disableButton, setDisableButton] = React.useState(false)
   const [apiKey, setApiKey] = React.useState('')
 

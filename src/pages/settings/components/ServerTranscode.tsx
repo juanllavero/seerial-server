@@ -13,9 +13,13 @@ function ServerTranscode() {
   const { t } = useTranslation()
   const [isDirty, setIsDirty] = React.useState(false)
   const [showMessage, setShowMessage] = React.useState(false)
-  const { selectedServer } = useServerStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
   const { setServerSetting, serverSettings, setServerSettings } =
-    useSettingsStore()
+    useSettingsStore((state) => ({
+      setServerSetting: state.setServerSetting,
+      serverSettings: state.serverSettings,
+      setServerSettings: state.setServerSettings,
+    }))
 
   const transcoderOptions = [
     {

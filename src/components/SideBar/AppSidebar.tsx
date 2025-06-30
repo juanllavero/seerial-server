@@ -20,12 +20,7 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     () => location.pathname.includes('/settings'),
     [location.pathname],
   )
-  const { currentSong } = useMusicStore()
-
-  console.log(`AppSidebar [${new Date().toISOString()}]: `, {
-    pathname: location.pathname,
-    inSettings,
-  })
+  const hasSong = useMusicStore((state) => Boolean(state.currentSong))
 
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -35,7 +30,7 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {inSettings ? <NavSettings /> : <NavLibraries />}
       </SidebarContent>
       <SidebarFooter
-        className={`transition-all duration-500 ease-in-out ${currentSong ? 'pb-30' : 'pb-2'}`}
+        className={`transition-all duration-500 ease-in-out ${hasSong ? 'pb-30' : 'pb-2'}`}
       >
         <ServerSwitcher />
         <NavUser />

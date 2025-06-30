@@ -101,6 +101,7 @@ const useMusicStore = create<MusicState>((set, get) => ({
     set({
       currentSong: null,
       isPlaying: false,
+      isExpanded: false,
       progress: 0,
       currentTime: 0,
       duration: 0,

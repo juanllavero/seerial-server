@@ -12,9 +12,14 @@ import CollectionInfoTab from './components/CollectionInfoTab'
 
 function CollectionDialog() {
   const { t } = useTranslation()
-  const { selectedServer } = useServerStore()
-  const { connectWS } = useWebSocketStore()
-  const { collectionDialog, closeCollectionDialog } = useDialogStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
+  const connectWS = useWebSocketStore((state) => state.connectWS)
+  const { collectionDialog, closeCollectionDialog } = useDialogStore(
+    (state) => ({
+      collectionDialog: state.collectionDialog,
+      closeCollectionDialog: state.closeCollectionDialog,
+    }),
+  )
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 
   const [collection, setCollection] = useState<Collection | undefined>(

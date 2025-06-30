@@ -18,13 +18,17 @@ interface SeriesCardProps {
 
 function SeriesCard({ series, mutateLibrary }: SeriesCardProps) {
   const { t } = useTranslation()
-  const { selectedServer } = useServerStore()
-  const { selectSeries } = useDataStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
+  const selectSeries = useDataStore((state) => state.selectSeries)
   const {
     openSeriesDialog,
     openIdentificationDialog,
     openEpisodesGroupDialog,
-  } = useDialogStore()
+  } = useDialogStore((state) => ({
+    openSeriesDialog: state.openSeriesDialog,
+    openIdentificationDialog: state.openIdentificationDialog,
+    openEpisodesGroupDialog: state.openEpisodesGroupDialog,
+  }))
   const [remainingEpisodes, setRemainingEpisodes] = useState<
     number | undefined
   >(undefined)

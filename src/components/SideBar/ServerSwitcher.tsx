@@ -21,7 +21,10 @@ import { ServerIcon } from '../ui/IconLibrary'
 
 export function ServerSwitcher() {
   const { user } = useAuth()
-  const { selectServer, selectedServer } = useServerStore()
+  const { selectServer, selectedServer } = useServerStore((state) => ({
+    selectServer: state.selectServer,
+    selectedServer: state.selectedServer,
+  }))
 
   const [open, setOpen] = useState(false)
   const [hover, setHover] = useState(false)

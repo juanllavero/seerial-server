@@ -12,9 +12,12 @@ import AlbumInfoTab from './components/AlbumInfoTab'
 
 function AlbumDialog() {
   const { t } = useTranslation()
-  const { selectedServer } = useServerStore()
-  const { connectWS } = useWebSocketStore()
-  const { albumDialog, closeAlbumDialog } = useDialogStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
+  const connectWS = useWebSocketStore((state) => state.connectWS)
+  const { albumDialog, closeAlbumDialog } = useDialogStore((state) => ({
+    albumDialog: state.albumDialog,
+    closeAlbumDialog: state.closeAlbumDialog,
+  }))
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 
   // Posters

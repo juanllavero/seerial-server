@@ -32,7 +32,7 @@ function ImageListTab({
   isPoster = false,
 }: ImageListTabProps) {
   const { t } = useTranslation()
-  const { selectedServer } = useServerStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
   const [loaded, setLoaded] = useState(false)
   //const [localImages, setLocalImages] = useState<LocalImage[]>([])
   const [pastingUrl, setPastingUrl] = useState<boolean>(false)

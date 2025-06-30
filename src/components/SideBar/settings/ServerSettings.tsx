@@ -13,8 +13,11 @@ import { useServerStore } from '@/context/server.context'
 
 const ServerSettings = () => {
   const { t } = useTranslation()
-  const { serverStatus } = useServerStore()
-  const { settingsSection, setSettingsSection } = useSettingsStore()
+  const serverStatus = useServerStore((state) => state.serverStatus)
+  const { settingsSection, setSettingsSection } = useSettingsStore((state) => ({
+    settingsSection: state.settingsSection,
+    setSettingsSection: state.setSettingsSection,
+  }))
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{t('server')}</SidebarGroupLabel>

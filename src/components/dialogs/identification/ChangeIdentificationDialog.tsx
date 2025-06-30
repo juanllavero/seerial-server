@@ -4,7 +4,12 @@ import { useTranslation } from 'react-i18next'
 import CorrectIdentificationSearch from './CorrectIdentificationSearch'
 
 function ChangeIdentificationDialog() {
-  const { identificationDialog, closeIdentificationDialog } = useDialogStore()
+  const { identificationDialog, closeIdentificationDialog } = useDialogStore(
+    (state) => ({
+      identificationDialog: state.identificationDialog,
+      closeIdentificationDialog: state.closeIdentificationDialog,
+    }),
+  )
   const { t } = useTranslation()
 
   return (

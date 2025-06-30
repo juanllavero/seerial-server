@@ -29,7 +29,7 @@ function LazyImage({
   onLoad,
   className,
 }: LazyImageProps) {
-  const { selectedServer } = useServerStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
   const serverIP = useMemo(() => selectedServer?.ip, [selectedServer?.ip])
 
   const [loaded, setLoaded] = useState(false)

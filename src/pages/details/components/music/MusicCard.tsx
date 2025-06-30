@@ -9,6 +9,7 @@ import MusicWave from './MusicWave'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { DotsVerticalIcon } from '@radix-ui/react-icons'
 import { Button } from '@/components/ui/button'
+import { useIsTablet } from '@/components/hooks/use-tablet'
 
 interface MusicCardProps {
   index: number
@@ -17,9 +18,13 @@ interface MusicCardProps {
 }
 
 function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
-  const { currentSong, isPlaying } = useMusicStore()
+  const { currentSong, isPlaying } = useMusicStore((state) => ({
+    currentSong: state.currentSong,
+    isPlaying: state.isPlaying,
+  }))
   const [isHovered, setIsHovered] = useState(false)
   const isMobile = useIsMobile()
+  const isTablet = useIsTablet()
 
   return (
     <FlexBox
@@ -33,6 +38,15 @@ function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
       css={{ borderRadius: '5px', maxWidth: '1200px' }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onTouchStart={(e) => {
+        handlePlaySong(song)
+        e?.stopPropagation()
+      }}
+      onClick={() => {
+        if (isMobile) {
+          handlePlaySong(song)
+        }
+      }}
     >
       <FlexBox gap={1} align="center">
         {!isMobile && (
@@ -40,7 +54,9 @@ function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
             {isHovered ? (
               <div
                 onClick={() => {
-                  handlePlaySong(song)
+                  if (!isTablet) {
+                    handlePlaySong(song)
+                  }
                 }}
               >
                 {isPlaying && currentSong?.id === song.id ? (

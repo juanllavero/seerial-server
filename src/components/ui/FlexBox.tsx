@@ -19,7 +19,6 @@ interface FlexBoxProps {
   minHeight?: string | number
   maxWidth?: string | number
   maxHeight?: string | number
-  onClick?: (e?: React.MouseEvent) => void
   gap?: number
   padding?: string
   margin?: string
@@ -28,6 +27,8 @@ interface FlexBoxProps {
   className?: string
   ref?: React.Ref<HTMLDivElement>
   css?: CSSProperties
+  onClick?: (e?: React.MouseEvent) => void
+  onTouchStart?: (e?: React.TouchEvent) => void
   onMouseEnter?: (e?: React.MouseEvent) => void
   onMouseLeave?: (e?: React.MouseEvent) => void
   onMouseDown?: (e?: React.MouseEvent) => void
@@ -49,13 +50,14 @@ function FlexBox({
   maxHeight = 'auto',
   gap = 0,
   padding = '0',
-  onClick,
   margin = '0',
   className = '',
   scroll,
   hideScrollbar,
   ref,
   css,
+  onClick,
+  onTouchStart,
   onMouseEnter,
   onMouseLeave,
   onMouseDown,
@@ -84,6 +86,7 @@ function FlexBox({
         ...css,
       }}
       onClick={onClick}
+      onTouchStart={onTouchStart}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onMouseDown={onMouseDown}

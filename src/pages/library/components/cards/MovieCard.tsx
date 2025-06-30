@@ -17,9 +17,14 @@ interface MovieCardProps {
 
 function MovieCard({ movie, mutateLibrary }: MovieCardProps) {
   const { t } = useTranslation()
-  const { selectMovie } = useDataStore()
-  const { selectedServer } = useServerStore()
-  const { openMovieDialog, openIdentificationDialog } = useDialogStore()
+  const selectMovie = useDataStore((state) => state.selectMovie)
+  const selectedServer = useServerStore((state) => state.selectedServer)
+  const { openMovieDialog, openIdentificationDialog } = useDialogStore(
+    (state) => ({
+      openMovieDialog: state.openMovieDialog,
+      openIdentificationDialog: state.openIdentificationDialog,
+    }),
+  )
   const navigate = useNavigate()
 
   const toggleMovieWatched = async () => {

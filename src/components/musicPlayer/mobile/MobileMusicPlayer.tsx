@@ -6,7 +6,14 @@ import MinimizedBar from './controls/MinimizedBar'
 import ExpandedMobileMusicControls from './controls/ExpandedMobileMusicControls'
 
 const MobileMusicPlayer = () => {
-  const { album, isExpanded, setIsExpanded } = useMusicStore()
+  const { album, isExpanded, setIsExpanded, isShown } = useMusicStore(
+    (state) => ({
+      album: state.album,
+      isExpanded: state.isExpanded,
+      setIsExpanded: state.setIsExpanded,
+      isShown: state.isShown,
+    }),
+  )
   const [dragStart, setDragStart] = useState<number | null>(null)
   const [dragOffset, setDragOffset] = useState<number | null>(0)
   const [isDragging, setIsDragging] = useState(false)
@@ -14,16 +21,37 @@ const MobileMusicPlayer = () => {
   const controlsRef = useRef<HTMLDivElement | null>(null)
   const startY = useRef(0)
 
-  // Estado para las dimensiones calculadas de la carátula
-  const [coverStyles, setCoverStyles] = useState({
+  const [expandedCoverStyles, setExpandedCoverStyles] = useState({
     size: 56,
     left: 16,
     top: 12,
   })
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (isExpanded) return
+  const minimizedHeight = 80 // Height of the minimized player (in pixels)
+  const maxHeight = window.innerHeight // Full screen height
 
+  // Calculate expandProgress
+  const calculateExpandProgress = () => {
+    if (!isDragging) {
+      return isExpanded ? 1 : 0
+    }
+    if (dragOffset === null) return isExpanded ? 1 : 0
+    const maxDrag = window.innerHeight * 0.8
+    if (isExpanded) {
+      // Dragging down when expanded
+      return Math.max(0, 1 - Math.abs(dragOffset) / maxDrag)
+    }
+    // Dragging up when minimized
+    return Math.min(1, Math.abs(dragOffset) / maxDrag)
+  }
+
+  const expandProgress = calculateExpandProgress()
+
+  // Interpolate player height
+  const currentHeight =
+    minimizedHeight + (maxHeight - minimizedHeight) * expandProgress
+
+  const handleTouchStart = (e: React.TouchEvent) => {
     const touch = e.touches[0]
     setDragStart(touch.clientY)
     setIsDragging(true)
@@ -32,24 +60,53 @@ const MobileMusicPlayer = () => {
   }
 
   const handleTouchMove = (e: any) => {
-    if (!isDragging || !dragStart || isExpanded) return
-
+    if (!isDragging || !dragStart) return
     const touch = e.touches[0]
-    const deltaY = dragStart - touch.clientY
+    const deltaY = isExpanded
+      ? touch.clientY - dragStart
+      : dragStart - touch.clientY
     const maxDrag = window.innerHeight * 0.8
-    const clampedDelta = Math.max(0, Math.min(deltaY, maxDrag))
 
-    setDragOffset(clampedDelta)
+    // Verificar si el toque está fuera del viewport (arriba o abajo)
+    if (touch.clientY < 0 || touch.clientY > window.innerHeight + 50) {
+      handleTouchEnd()
+      return
+    }
+
+    // Forzar handleTouchEnd si el arrastre excede maxDrag
+    const absDeltaY = Math.abs(deltaY)
+    if (absDeltaY > maxDrag) {
+      handleTouchEnd()
+      return
+    }
+
+    const clampedDelta = Math.max(0, Math.min(Math.abs(deltaY), maxDrag))
+    setDragOffset(isExpanded ? -clampedDelta : clampedDelta)
     e.preventDefault()
   }
 
   const handleTouchEnd = () => {
-    if (!isDragging || !dragOffset) return
+    if (!isDragging || dragOffset === null) return
+    const maxDrag = window.innerHeight * 0.8
+    const absDragOffset = Math.abs(dragOffset)
 
-    const threshold = window.innerHeight * 0.2
-
-    if (dragOffset > threshold) {
-      setIsExpanded(true)
+    // If dragged beyond maxDrag, set the final state immediately
+    if (absDragOffset >= maxDrag) {
+      if (isExpanded && dragOffset <= 0) {
+        setIsExpanded(false) // Dragged down fully when expanded -> minimize
+      } else if (!isExpanded && dragOffset > 0) {
+        setIsExpanded(true) // Dragged up fully when minimized -> expand
+      }
+    } else {
+      // Existing threshold logic for partial drags
+      const threshold = window.innerHeight * 0.2
+      if (absDragOffset > threshold) {
+        if (isExpanded && dragOffset <= 0) {
+          setIsExpanded(false)
+        } else if (!isExpanded && dragOffset > 0) {
+          setIsExpanded(true)
+        }
+      }
     }
 
     setIsDragging(false)
@@ -58,27 +115,45 @@ const MobileMusicPlayer = () => {
   }
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (isExpanded) return
-    setIsExpanded(true)
+    if (isExpanded) {
+      setDragStart(e.clientY)
+      setIsDragging(true)
+      setDragOffset(0)
+    } else {
+      setIsExpanded(true)
+    }
   }
 
-  const handleMouseMove = (e: any) => {
-    if (!isDragging || !dragStart || isExpanded) return
-
-    const deltaY = dragStart - e.clientY
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging || !dragStart) return
+    const deltaY = isExpanded ? e.clientY - dragStart : dragStart - e.clientY
     const maxDrag = window.innerHeight * 0.8
-    const clampedDelta = Math.max(0, Math.min(deltaY, maxDrag))
-
-    setDragOffset(clampedDelta)
+    const clampedDelta = Math.max(0, Math.min(Math.abs(deltaY), maxDrag))
+    setDragOffset(isExpanded ? -clampedDelta : clampedDelta)
   }
 
   const handleMouseUp = () => {
-    if (!isDragging || !dragOffset) return
+    if (!isDragging || dragOffset === null) return
+    const maxDrag = window.innerHeight * 0.8
+    const absDragOffset = Math.abs(dragOffset)
 
-    const threshold = window.innerHeight * 0.2
-
-    if (dragOffset > threshold) {
-      setIsExpanded(true)
+    // If dragged beyond maxDrag, set the final state immediately
+    if (absDragOffset >= maxDrag) {
+      if (isExpanded && dragOffset < 0) {
+        setIsExpanded(false) // Dragged down fully when expanded -> minimize
+      } else if (!isExpanded && dragOffset > 0) {
+        setIsExpanded(true) // Dragged up fully when minimized -> expand
+      }
+    } else {
+      // Existing threshold logic for partial drags
+      const threshold = window.innerHeight * 0.2
+      if (absDragOffset > threshold) {
+        if (isExpanded && dragOffset < 0) {
+          setIsExpanded(false)
+        } else if (!isExpanded && dragOffset > 0) {
+          setIsExpanded(true)
+        }
+      }
     }
 
     setIsDragging(false)
@@ -90,11 +165,8 @@ const MobileMusicPlayer = () => {
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove)
       document.addEventListener('mouseup', handleMouseUp)
-      document.addEventListener('touchmove', handleTouchMove, {
-        passive: false,
-      })
+      document.addEventListener('touchmove', handleTouchMove)
       document.addEventListener('touchend', handleTouchEnd)
-
       return () => {
         document.removeEventListener('mousemove', handleMouseMove)
         document.removeEventListener('mouseup', handleMouseUp)
@@ -102,147 +174,77 @@ const MobileMusicPlayer = () => {
         document.removeEventListener('touchend', handleTouchEnd)
       }
     }
-  }, [isDragging, dragStart, dragOffset])
+  }, [isDragging, dragStart, dragOffset, isExpanded])
 
-  // Función para calcular las dimensiones correctas de la carátula expandida
   const calculateExpandedCoverStyles = () => {
-    if (!isExpanded) return coverStyles
-
     const viewportWidth = window.innerWidth
     const viewportHeight = window.innerHeight
-
-    // Esperamos un frame para que el DOM se actualice
-    requestAnimationFrame(() => {
-      // Altura del header (botones de cerrar)
-      const headerHeight = 80
-
-      // Obtenemos la altura real de los controles desde el DOM
-      let controlsHeight = 320 // Fallback
-      if (controlsRef.current) {
-        // Medimos solo la parte de controles (excluyendo el header)
-        const controlsContent = controlsRef.current.querySelector(
-          '[data-controls-content]',
-        ) as HTMLElement
-        if (controlsContent) {
-          controlsHeight = controlsContent.offsetHeight
-        }
+    const headerHeight = 80
+    let controlsHeight = 320
+    if (controlsRef.current) {
+      const controlsContent = controlsRef.current.querySelector(
+        '[data-controls-content]',
+      ) as HTMLElement
+      if (controlsContent) {
+        controlsHeight = controlsContent.offsetHeight
       }
+    }
+    const horizontalMargin = 32
+    const verticalMargin = 20
+    const maxWidth = viewportWidth - horizontalMargin
+    const availableHeight =
+      viewportHeight - headerHeight - controlsHeight - verticalMargin * 2
+    let size = Math.min(maxWidth, availableHeight)
+    const minSize = 180
+    const maxSize = viewportWidth * 0.9
+    size = Math.max(minSize, Math.min(size, maxSize))
+    const totalVerticalSpace =
+      headerHeight + size + controlsHeight + verticalMargin * 2
+    if (totalVerticalSpace > viewportHeight) {
+      const excessHeight = totalVerticalSpace - viewportHeight
+      size = Math.max(minSize, size - excessHeight - 20)
+    }
+    const left = (viewportWidth - size) / 2
+    const availableVerticalSpace =
+      viewportHeight - headerHeight - controlsHeight
+    const top = headerHeight + (availableVerticalSpace - size) / 2
+    const minTopWithMargin = headerHeight + 10
+    const maxTopWithMargin = viewportHeight - controlsHeight - size - 10
+    const finalTop = Math.max(minTopWithMargin, Math.min(top, maxTopWithMargin))
 
-      // Márgenes
-      const horizontalMargin = 32 // Margen total (16px cada lado)
-      const verticalMargin = 20
-
-      // PRIORIZAR ANCHO: Calculamos el ancho máximo disponible
-      const maxWidth = viewportWidth - horizontalMargin
-
-      // Espacio vertical disponible para la imagen
-      const availableHeight =
-        viewportHeight - headerHeight - controlsHeight - verticalMargin * 2
-
-      // La imagen es cuadrada, por lo que el tamaño será el menor entre:
-      // 1. El ancho máximo disponible
-      // 2. La altura máxima disponible
-      let size = Math.min(maxWidth, availableHeight)
-
-      // Establecemos límites razonables
-      const minSize = 180
-      const maxSize = viewportWidth * 0.9 // Aumentamos el límite máximo
-      size = Math.max(minSize, Math.min(size, maxSize))
-
-      // Verificación final: asegurar que cabe verticalmente
-      const totalVerticalSpace =
-        headerHeight + size + controlsHeight + verticalMargin * 2
-      if (totalVerticalSpace > viewportHeight) {
-        // Si no cabe, reducimos el tamaño para que quepa
-        const excessHeight = totalVerticalSpace - viewportHeight
-        size = Math.max(minSize, size - excessHeight - 20) // 20px de margen adicional
-      }
-
-      // Posicionamiento: centrado horizontalmente
-      const left = (viewportWidth - size) / 2
-
-      // Posicionamiento vertical: centrado en el espacio disponible
-      const availableVerticalSpace =
-        viewportHeight - headerHeight - controlsHeight
-      const top = headerHeight + (availableVerticalSpace - size) / 2
-
-      // Asegurar que está dentro de los límites con márgenes mínimos
-      const minTopWithMargin = headerHeight + 10
-      const maxTopWithMargin = viewportHeight - controlsHeight - size - 10
-
-      const finalTop = Math.max(
-        minTopWithMargin,
-        Math.min(top, maxTopWithMargin),
-      )
-
-      const newStyles = {
-        size: size,
-        left: left,
-        top: finalTop,
-      }
-
-      setCoverStyles(newStyles)
-    })
-
-    return coverStyles // Retornamos el estado actual mientras se calcula
+    return { size, left, top }
   }
 
-  // useLayoutEffect para recalcular cuando sea necesario
   useLayoutEffect(() => {
-    if (isExpanded) {
-      // Pequeño delay para asegurar que el DOM esté actualizado
-      const timeoutId = setTimeout(() => {
-        calculateExpandedCoverStyles()
-      }, 10)
+    const newExpandedStyles = calculateExpandedCoverStyles()
+    setExpandedCoverStyles(newExpandedStyles)
+  }, [isExpanded, isDragging])
 
-      return () => clearTimeout(timeoutId)
-    } else {
-      // Valores para estado minimizado
-      setCoverStyles({
-        size: 56,
-        left: 16,
-        top: 12,
-      })
-    }
-  }, [isExpanded])
-
-  // Listener para redimensionamiento de ventana
   useEffect(() => {
     const handleResize = () => {
-      if (isExpanded) {
-        calculateExpandedCoverStyles()
-      }
+      const newExpandedStyles = calculateExpandedCoverStyles()
+      setExpandedCoverStyles(newExpandedStyles)
     }
-
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
-  }, [isExpanded])
-
-  // Calcular el progreso de expansión
-  const expandProgress = isExpanded
-    ? 1
-    : dragOffset
-      ? Math.min(dragOffset / (window.innerHeight * 0.8), 1)
-      : 0
+  }, [])
 
   const barOpacity = Math.max(0, 1 - expandProgress * 2)
   const controlsOpacity = Math.max(0, expandProgress)
   const controlsTransform = `translateY(${(1 - expandProgress) * 40}px)`
 
-  // Dimensiones actuales de la carátula
   const minimizedSize = 56
   const minimizedLeft = 16
   const minimizedTop = 12
 
-  // Interpolación entre estados
   const currentSize =
-    minimizedSize + (coverStyles.size - minimizedSize) * expandProgress
+    minimizedSize + (expandedCoverStyles.size - minimizedSize) * expandProgress
   const currentLeft =
-    minimizedLeft + (coverStyles.left - minimizedLeft) * expandProgress
+    minimizedLeft + (expandedCoverStyles.left - minimizedLeft) * expandProgress
   const currentTop =
-    minimizedTop + (coverStyles.top - minimizedTop) * expandProgress
+    minimizedTop + (expandedCoverStyles.top - minimizedTop) * expandProgress
 
-  const handleBarClick = (e: any) => {
+  const handleBarClick = () => {
     if (!isDragging && !isExpanded) {
       setIsExpanded(true)
     }
@@ -252,20 +254,19 @@ const MobileMusicPlayer = () => {
     <div className="absolute h-screen w-full overflow-hidden bg-transparent">
       <div
         ref={playerRef}
-        className={`fixed right-0 bottom-0 left-0 z-50 bg-black transition-all duration-300 ${
-          isExpanded ? 'h-full' : 'h-20'
-        }`}
+        className={`fixed right-0 bottom-0 left-0 z-50 bg-black`}
         style={{
+          height: `${currentHeight}px`,
           pointerEvents: 'auto',
-          transform:
-            isDragging && !isExpanded
-              ? `translateY(-${dragOffset}px)`
-              : 'translateY(0)',
+          transform: isShown ? 'translateY(0)' : 'translateY(100%)',
+          transition: isDragging ? 'none' : 'all 0.3s ease',
         }}
+        onTouchStart={handleTouchStart}
+        onMouseDown={handleMouseDown}
       >
         {/* Background */}
-        {(isExpanded || (dragOffset && dragOffset > 0)) && (
-          <GradientBackground isSong showGradient={isExpanded} />
+        {(isExpanded || expandProgress > 0) && (
+          <GradientBackground isSong showGradient={expandProgress > 0} />
         )}
 
         {/* Minimized Player */}
@@ -278,13 +279,14 @@ const MobileMusicPlayer = () => {
 
         {/* Animated Cover */}
         <div
-          className="absolute overflow-hidden rounded-lg shadow-lg transition-all duration-300 ease-out"
+          className="absolute overflow-hidden rounded-lg shadow-lg"
           style={{
             width: `${currentSize}px`,
             height: `${currentSize}px`,
             left: `${currentLeft}px`,
             top: `${currentTop}px`,
-            zIndex: isExpanded || (dragOffset && dragOffset > 0) ? 60 : 10,
+            zIndex: expandProgress > 0 ? 60 : 10,
+            transition: isDragging ? 'none' : 'all 0.3s ease-out',
           }}
         >
           <Image
@@ -296,7 +298,7 @@ const MobileMusicPlayer = () => {
         </div>
 
         {/* Expanded Player */}
-        {(isExpanded || (dragOffset && dragOffset > 0)) && (
+        {expandProgress > 0 && (
           <ExpandedMobileMusicControls
             ref={controlsRef}
             controlsOpacity={controlsOpacity}

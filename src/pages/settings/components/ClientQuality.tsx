@@ -10,9 +10,13 @@ import ContentWrapper from './utils/ContentWrapper'
 
 function ClientQuality() {
   const { t } = useTranslation()
-  const { selectedServer } = useServerStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
   const { setClientSetting, clientSettings, setClientSettings } =
-    useSettingsStore()
+    useSettingsStore((state) => ({
+      setClientSetting: state.setClientSetting,
+      clientSettings: state.clientSettings,
+      setClientSettings: state.setClientSettings,
+    }))
   const [isDirty, setIsDirty] = React.useState(false)
   const [showMessage, setShowMessage] = React.useState(false)
 

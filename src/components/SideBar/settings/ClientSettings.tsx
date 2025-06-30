@@ -12,7 +12,10 @@ import { SettingsSection } from '@/data/interfaces/Utils'
 
 const ClientSettings = () => {
   const { t } = useTranslation()
-  const { settingsSection, setSettingsSection } = useSettingsStore()
+  const { settingsSection, setSettingsSection } = useSettingsStore((state) => ({
+    settingsSection: state.settingsSection,
+    setSettingsSection: state.setSettingsSection,
+  }))
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{t('client')}</SidebarGroupLabel>

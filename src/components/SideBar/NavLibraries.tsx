@@ -48,9 +48,23 @@ const NavLibraries = () => {
   const { isMobile } = useSidebar()
   const navigate = useNavigate()
 
-  const { selectedServer, serverStatus, apiKeyStatus } = useServerStore()
-  const { openLibraryDialog, openRemoveLibraryDialog } = useDialogStore()
-  const { selectedLibraryId, selectLibrary } = useDataStore()
+  const { selectedServer, serverStatus, apiKeyStatus } = useServerStore(
+    (state) => ({
+      selectedServer: state.selectedServer,
+      serverStatus: state.serverStatus,
+      apiKeyStatus: state.apiKeyStatus,
+    }),
+  )
+  const { openLibraryDialog, openRemoveLibraryDialog } = useDialogStore(
+    (state) => ({
+      openLibraryDialog: state.openLibraryDialog,
+      openRemoveLibraryDialog: state.openRemoveLibraryDialog,
+    }),
+  )
+  const { selectedLibraryId, selectLibrary } = useDataStore((state) => ({
+    selectedLibraryId: state.selectedLibraryId,
+    selectLibrary: state.selectLibrary,
+  }))
 
   const { data: libraries, isLoading } = useSWR<Library[]>(
     selectedServer ? `https://${selectedServer.ip}/libraries/` : null,

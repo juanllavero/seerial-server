@@ -9,8 +9,13 @@ import useMusicStore from '@/context/music.context'
 
 function MusicPlayer() {
   const { currentSong, initializeAudioRef, getAudioSrc, setAlbum } =
-    useMusicStore()
-  const { selectedServer } = useServerStore()
+    useMusicStore((state) => ({
+      currentSong: state.currentSong,
+      initializeAudioRef: state.initializeAudioRef,
+      getAudioSrc: state.getAudioSrc,
+      setAlbum: state.setAlbum,
+    }))
+  const selectedServer = useServerStore((state) => state.selectedServer)
   const localAudioRef = useRef<HTMLAudioElement>(null)
 
   // Get Album details

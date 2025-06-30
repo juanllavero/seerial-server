@@ -27,7 +27,7 @@ interface VideoInfo {
 }
 
 function EpisodeMediaInfoTab({ video, setEpisode }: EpisodeMediaInfoTabProps) {
-  const { selectedServer } = useServerStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
   const isTablet = useIsTablet()
   const [loaded, setLoaded] = useState(false)
 

@@ -14,9 +14,12 @@ import MovieTagsTab from './components/MovieTagsTab'
 
 function MovieDialog() {
   const { t } = useTranslation()
-  const { selectedServer } = useServerStore()
-  const { connectWS } = useWebSocketStore()
-  const { movieDialog, closeMovieDialog } = useDialogStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
+  const connectWS = useWebSocketStore((state) => state.connectWS)
+  const { movieDialog, closeMovieDialog } = useDialogStore((state) => ({
+    movieDialog: state.movieDialog,
+    closeMovieDialog: state.closeMovieDialog,
+  }))
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 
   const [movie, setMovie] = useState<Movie | undefined>(undefined)

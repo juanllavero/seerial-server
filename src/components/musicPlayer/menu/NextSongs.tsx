@@ -7,14 +7,19 @@ import { formatTime } from '@/utils/ReactUtils'
 import { fetcher } from '@/utils/utils'
 import useSWR from 'swr'
 import './NextSongs.css'
-import { t } from 'i18next'
 import { useTranslation } from 'react-i18next'
 
 function NextSongs() {
   const { t } = useTranslation()
   const { songQueue, currentSong, selectSong, isPlaying, togglePlayPause } =
-    useMusicStore()
-  const { selectedServer } = useServerStore()
+    useMusicStore((state) => ({
+      songQueue: state.songQueue,
+      currentSong: state.currentSong,
+      selectSong: state.selectSong,
+      isPlaying: state.isPlaying,
+      togglePlayPause: state.togglePlayPause,
+    }))
+  const selectedServer = useServerStore((state) => state.selectedServer)
   const { data: album } = useSWR(
     currentSong && selectedServer
       ? `https://${selectedServer.ip}/details/album?id=${currentSong.albumId}`

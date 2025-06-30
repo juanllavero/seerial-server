@@ -15,8 +15,13 @@ import HomePageContent from './components/content/HomePageContent'
 
 export default function HomePage() {
   const { selectedServer, serverStatus, apiKeyStatus, getServerStatus } =
-    useServerStore()
-  const { selectLibrary } = useDataStore()
+    useServerStore((state) => ({
+      selectedServer: state.selectedServer,
+      serverStatus: state.serverStatus,
+      apiKeyStatus: state.apiKeyStatus,
+      getServerStatus: state.getServerStatus,
+    }))
+  const selectLibrary = useDataStore((state) => state.selectLibrary)
 
   // Get Servers
   const { data: servers, isLoading: loadingServers } = useSWR<Server[]>(

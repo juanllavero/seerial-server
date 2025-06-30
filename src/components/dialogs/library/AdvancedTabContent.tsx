@@ -34,8 +34,8 @@ function AdvancedTabContent({
   edit,
 }: AdvancedTabContentProps) {
   const { t, i18n } = useTranslation()
-  const { selectedServer } = useServerStore()
-  const { getServerSetting } = useSettingsStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
+  const getServerSetting = useSettingsStore((state) => state.getServerSetting)
   const currentLanguage = i18n.language?.split('-')[0] ?? 'en'
   const languageCodes = ISO6391.getAllCodes()
 

@@ -15,12 +15,7 @@ const SideBarLayout = () => {
     () => location.pathname.includes('/settings'),
     [location.pathname],
   )
-  const { currentSong } = useMusicStore()
-
-  console.log(`SideBarLayout [${new Date().toISOString()}]: `, {
-    pathname: location.pathname,
-    inSettings,
-  })
+  const hasSong = useMusicStore((state) => Boolean(state.currentSong))
 
   return (
     <div className="relative">
@@ -37,7 +32,7 @@ const SideBarLayout = () => {
             {/* <DisplayCollectionsSelector /> */}
           </header>
           <div
-            className={`h-screen transition-all duration-500 ease-in-out ${currentSong ? 'pb-30' : 'pb-0'}`}
+            className={`h-screen transition-all duration-500 ease-in-out ${hasSong ? 'pb-30' : 'pb-0'}`}
           >
             <Outlet />
           </div>

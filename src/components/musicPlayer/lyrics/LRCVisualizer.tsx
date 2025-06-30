@@ -19,8 +19,12 @@ import {
 
 const LRCVisualizer = () => {
   const { t } = useTranslation()
-  const { selectedServer } = useServerStore()
-  const { currentSong, currentTime, seekTo } = useMusicStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
+  const { currentSong, currentTime, seekTo } = useMusicStore((state) => ({
+    currentSong: state.currentSong,
+    currentTime: state.currentTime,
+    seekTo: state.seekTo,
+  }))
   const [selectedLRCFile, setSelectedLRCFile] = useState<LRCFile | null>(null)
   const [lines, setLines] = useState<LRCLine[]>([])
   const [currentLineIndex, setCurrentLineIndex] = useState(0)

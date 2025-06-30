@@ -4,7 +4,12 @@ import { useTranslation } from 'react-i18next'
 import DownloadMediaSearch from './DownloadMediaSearch'
 
 function DownloadMediaDialog() {
-  const { downloadMediaDialog, closeDownloadMediaDialog } = useDialogStore()
+  const { downloadMediaDialog, closeDownloadMediaDialog } = useDialogStore(
+    (state) => ({
+      downloadMediaDialog: state.downloadMediaDialog,
+      closeDownloadMediaDialog: state.closeDownloadMediaDialog,
+    }),
+  )
   const { t } = useTranslation()
 
   return (

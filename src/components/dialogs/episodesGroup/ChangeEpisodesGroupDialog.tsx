@@ -1,11 +1,15 @@
 import { ModalWrapper } from '@/components/ModalWrapper'
 import { useDialogStore } from '@/context/dialog.context'
-import React from 'react'
 import { useTranslation } from 'react-i18next'
 import ChangeEpisodesGroupSearch from './ChangeEpisodesGroupSearch'
 
 function ChangeEpisodesGroupDialog() {
-  const { episodesGroupDialog, closeEpisodesGroupDialog } = useDialogStore()
+  const { episodesGroupDialog, closeEpisodesGroupDialog } = useDialogStore(
+    (state) => ({
+      episodesGroupDialog: state.episodesGroupDialog,
+      closeEpisodesGroupDialog: state.closeEpisodesGroupDialog,
+    }),
+  )
   const { t } = useTranslation()
 
   return (

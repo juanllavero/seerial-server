@@ -14,7 +14,7 @@ function HTMLVideoPlayer({
   audioTrack,
   videoRef,
 }: HTMLVideoPlayerProps) {
-  const { selectedServer } = useServerStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
 
   // const urlsTest = [
   //   'F:\\UHD\\El Caballero Oscuro\\El Caballero Oscuro (2008)\\El Caballero Oscuro (2008).mkv',

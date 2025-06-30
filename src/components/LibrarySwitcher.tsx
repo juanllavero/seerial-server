@@ -26,9 +26,12 @@ interface Item {
 export function LibrarySwitcher({ libraries }: { libraries: Item[] }) {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { serverStatus, apiKeyStatus } = useServerStore()
-  const { openLibraryDialog } = useDialogStore()
-  const { selectedLibraryId } = useDataStore()
+  const { serverStatus, apiKeyStatus } = useServerStore((state) => ({
+    serverStatus: state.serverStatus,
+    apiKeyStatus: state.apiKeyStatus,
+  }))
+  const openLibraryDialog = useDialogStore((state) => state.openLibraryDialog)
+  const selectedLibraryId = useDataStore((state) => state.selectedLibraryId)
 
   const home = {
     id: '0',

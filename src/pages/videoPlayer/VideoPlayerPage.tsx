@@ -35,7 +35,7 @@ interface VideoInfo {
 }
 
 function VideoPlayerPage() {
-  const { selectedServer } = useServerStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
   const navigate = useNavigate()
   const { videoId } = useParams()
 

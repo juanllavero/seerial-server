@@ -13,9 +13,13 @@ function ServerLibraries() {
   const { t } = useTranslation()
   const [isDirty, setIsDirty] = useState<boolean>(false)
   const [showMessage, setShowMessage] = useState(false)
-  const { selectedServer } = useServerStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
   const { setServerSetting, serverSettings, setServerSettings } =
-    useSettingsStore()
+    useSettingsStore((state) => ({
+      setServerSetting: state.setServerSetting,
+      serverSettings: state.serverSettings,
+      setServerSettings: state.setServerSettings,
+    }))
 
   const scanOptions = [
     {

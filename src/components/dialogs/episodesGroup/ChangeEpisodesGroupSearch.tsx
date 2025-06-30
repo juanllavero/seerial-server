@@ -11,9 +11,14 @@ import './ChangeEpisodesGroupSearch.css'
 
 function ChangeEpisodesGroupSearch() {
   const { t } = useTranslation()
-  const { selectedServer } = useServerStore()
-  const { connectWS } = useWebSocketStore()
-  const { episodesGroupDialog, closeEpisodesGroupDialog } = useDialogStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
+  const connectWS = useWebSocketStore((state) => state.connectWS)
+  const { episodesGroupDialog, closeEpisodesGroupDialog } = useDialogStore(
+    (state) => ({
+      episodesGroupDialog: state.episodesGroupDialog,
+      closeEpisodesGroupDialog: state.closeEpisodesGroupDialog,
+    }),
+  )
   const [episodeGroupsResults, setEpisodeGroupsResults] = useState<
     EpisodeGroupResult[]
   >([])

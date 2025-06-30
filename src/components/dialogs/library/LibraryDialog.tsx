@@ -13,10 +13,12 @@ import GeneralTabContent from './GeneralTabContent'
 function LibraryDialog() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { selectedServer } = useServerStore()
-  const { connectWS } = useWebSocketStore()
-  const { libraryDialog, closeLibraryDialog, openLibraryDialog } =
-    useDialogStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
+  const connectWS = useWebSocketStore((state) => state.connectWS)
+  const { libraryDialog, closeLibraryDialog } = useDialogStore((state) => ({
+    libraryDialog: state.libraryDialog,
+    closeLibraryDialog: state.closeLibraryDialog,
+  }))
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 
   // Form Data

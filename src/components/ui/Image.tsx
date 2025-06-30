@@ -29,7 +29,7 @@ const Image: React.FC<ImageProps> = ({
   className = '',
   onClick,
 }) => {
-  const { selectedServer } = useServerStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
   const [isInView, setIsInView] = useState(false)

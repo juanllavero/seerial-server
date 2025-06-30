@@ -13,9 +13,12 @@ import SeasonMediaTab from './components/SeasonMediaTab'
 
 function SeasonDialog() {
   const { t } = useTranslation()
-  const { selectedServer } = useServerStore()
-  const { connectWS } = useWebSocketStore()
-  const { seasonDialog, closeSeasonDialog } = useDialogStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
+  const connectWS = useWebSocketStore((state) => state.connectWS)
+  const { seasonDialog, closeSeasonDialog } = useDialogStore((state) => ({
+    seasonDialog: state.seasonDialog,
+    closeSeasonDialog: state.closeSeasonDialog,
+  }))
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 
   const [season, setSeason] = useState<Season | undefined>(undefined)

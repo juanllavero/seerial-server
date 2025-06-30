@@ -2,12 +2,10 @@ import { useIsMobile } from '@/components/hooks/use-mobile'
 import FlexBox from '@/components/ui/FlexBox'
 import Grid from '@/components/ui/Grid'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
-import { useAuth } from '@/context/auth.context'
 import useDataStore from '@/context/data.context'
-import { useServerStore } from '@/context/server.context'
 import { Episode, Season } from '@/data/interfaces/Media'
-import { useNavigate, useParams } from 'react-router-dom'
-import React, { use, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router-dom'
+import React, { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import EpisodeCard from './cards/EpisodeCard'
 import EpisodeCardDetails from './cards/EpisodeCardDetails'
@@ -15,7 +13,6 @@ import { fetcher } from '@/utils/utils'
 import useSWR from 'swr'
 import NotFound from '@/components/NotFound'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useCardWidth } from '@/hooks/useCardWidth'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import { SelectableOption } from '@/data/interfaces/Utils'
 
@@ -27,10 +24,11 @@ interface SeasonContentProps {
 
 function SeasonContent({ seasonList, serverId, serverIP }: SeasonContentProps) {
   const navigate = useNavigate()
-  const { selectSeason } = useDataStore()
   const { t } = useTranslation()
-  const { cardWidth } = useCardWidth()
-  const { selectedSeasonId } = useDataStore()
+  const { selectedSeasonId, selectSeason } = useDataStore((state) => ({
+    selectedSeasonId: state.selectedSeasonId,
+    selectSeason: state.selectSeason,
+  }))
   const [distribution, setDistribution] = React.useState(0)
   const prevDistribution = useRef(distribution)
   const distributionOptions: SelectableOption[] = [

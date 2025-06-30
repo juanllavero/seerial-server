@@ -5,7 +5,7 @@ import AlertContent from './AlertContent'
 
 function NoContent() {
   const { t } = useTranslation()
-  const { openLibraryDialog } = useDialogStore()
+  const openLibraryDialog = useDialogStore((state) => state.openLibraryDialog)
   return (
     <AlertContent title={t('noLibraries')} message={t('addLibraryMessage')}>
       <Button onClick={() => openLibraryDialog()}>

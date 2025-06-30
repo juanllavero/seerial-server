@@ -17,8 +17,10 @@ interface MovieInfoTabProps {
 function MovieMediaTab({ movie }: MovieInfoTabProps) {
   const { t } = useTranslation()
   const isTablet = useIsTablet()
-  const { selectedServer } = useServerStore()
-  const { openDownloadMediaDialog } = useDialogStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
+  const openDownloadMediaDialog = useDialogStore(
+    (state) => state.openDownloadMediaDialog,
+  )
 
   // Background video
   const {

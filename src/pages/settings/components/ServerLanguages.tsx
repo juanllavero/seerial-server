@@ -13,9 +13,13 @@ import ContentWrapper from './utils/ContentWrapper'
 
 function ServerLanguages() {
   const { t, i18n } = useTranslation()
-  const { selectedServer } = useServerStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
   const { setServerSetting, serverSettings, setServerSettings } =
-    useSettingsStore()
+    useSettingsStore((state) => ({
+      setServerSetting: state.setServerSetting,
+      serverSettings: state.serverSettings,
+      setServerSettings: state.setServerSettings,
+    }))
   const currentLanguage = i18n.language?.split('-')[0] ?? 'en'
   const [isDirty, setIsDirty] = useState(false)
 

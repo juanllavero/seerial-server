@@ -3,7 +3,9 @@ import '@/styles/animations.css'
 import { memo } from 'react'
 
 const MusicWave = () => {
-  const { isPlaying } = useMusicStore()
+  const { isPlaying } = useMusicStore((state) => ({
+    isPlaying: state.isPlaying,
+  }))
   const bars = [0, 1, 2, 3]
   const delays = [0.3, 0.8, 0.5, 0.1]
 

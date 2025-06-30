@@ -26,16 +26,21 @@ import PlayButton from './components/PlayButton'
 
 function SeriesDetailsPage() {
   const { seriesId } = useParams()
-  const { wsMessage } = useWebSocketStore()
   const {
     selectedSeasonId,
     selectSeason,
     setCurrentBackground,
     currentBackground,
-  } = useDataStore()
-  const { selectedServer } = useServerStore()
-  const { clientSettings } = useSettingsStore()
-  const { openSeasonDialog } = useDialogStore()
+  } = useDataStore((state) => ({
+    selectedSeasonId: state.selectedSeasonId,
+    selectSeason: state.selectSeason,
+    setCurrentBackground: state.setCurrentBackground,
+    currentBackground: state.currentBackground,
+  }))
+  const wsMessage = useWebSocketStore((state) => state.wsMessage)
+  const selectedServer = useServerStore((state) => state.selectedServer)
+  const clientSettings = useSettingsStore((state) => state.clientSettings)
+  const openSeasonDialog = useDialogStore((state) => state.openSeasonDialog)
   const serverIP = selectedServer?.ip
 
   // Get series data

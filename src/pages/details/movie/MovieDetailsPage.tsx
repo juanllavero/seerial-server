@@ -30,11 +30,14 @@ import MyListButton from './components/MyListButton'
 
 function MovieDetailsPage() {
   const { movieId } = useParams()
-  const { setCurrentBackground, currentBackground } = useDataStore()
-  const { clientSettings } = useSettingsStore()
-  const { wsMessage } = useWebSocketStore()
-  const { openMovieDialog } = useDialogStore()
-  const { selectedServer } = useServerStore()
+  const { setCurrentBackground, currentBackground } = useDataStore((state) => ({
+    setCurrentBackground: state.setCurrentBackground,
+    currentBackground: state.currentBackground,
+  }))
+  const clientSettings = useSettingsStore((state) => state.clientSettings)
+  const wsMessage = useWebSocketStore((state) => state.wsMessage)
+  const openMovieDialog = useDialogStore((state) => state.openMovieDialog)
+  const selectedServer = useServerStore((state) => state.selectedServer)
   const navigate = useNavigate()
   const serverIP = selectedServer?.ip
 

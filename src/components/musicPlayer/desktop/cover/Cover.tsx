@@ -2,7 +2,7 @@ import Image from '@/components/ui/Image'
 import useMusicStore from '@/context/music.context'
 
 function MusicPlayerCover() {
-  const { album } = useMusicStore()
+  const album = useMusicStore((state) => state.album)
 
   return (
     <div

@@ -18,9 +18,11 @@ import { useIsTablet } from '@/components/hooks/use-tablet'
 
 function AlbumDetailsPage() {
   const { albumId } = useParams()
-  const { wsMessage } = useWebSocketStore()
-  const { selectedServer } = useServerStore()
-  const { setCurrentBackground } = useDataStore()
+  const wsMessage = useWebSocketStore((state) => state.wsMessage)
+  const selectedServer = useServerStore((state) => state.selectedServer)
+  const setCurrentBackground = useDataStore(
+    (state) => state.setCurrentBackground,
+  )
   const serverIP = selectedServer?.ip
 
   // Get series data

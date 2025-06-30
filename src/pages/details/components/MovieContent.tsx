@@ -16,7 +16,7 @@ function MovieContent({ movie }: MovieContentProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const isMobile = useIsMobile()
-  const { selectedServer } = useServerStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
 
   const getEpisodeMenu = () => {
     return {

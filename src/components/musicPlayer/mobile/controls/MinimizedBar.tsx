@@ -1,7 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { PauseIcon, PlayIcon, StopIcon } from '@/components/ui/IconLibrary'
 import useMusicStore from '@/context/music.context'
-import { Square, Pause, Play } from 'lucide-react'
 
 interface MinimizedBarProps {
   barOpacity: number
@@ -23,7 +22,14 @@ function MinimizedBar({
     album,
     togglePlayPause,
     resetPlayerState,
-  } = useMusicStore()
+  } = useMusicStore((state) => ({
+    isExpanded: state.isExpanded,
+    isPlaying: state.isPlaying,
+    currentSong: state.currentSong,
+    album: state.album,
+    togglePlayPause: state.togglePlayPause,
+    resetPlayerState: state.resetPlayerState,
+  }))
 
   return (
     <div
@@ -32,13 +38,25 @@ function MinimizedBar({
         opacity: barOpacity,
         pointerEvents: isExpanded ? 'none' : 'auto',
       }}
-      onMouseDown={handleMouseDown}
-      onTouchStart={handleTouchStart}
-      onClick={handleBarClick}
     >
-      <div className="flex h-full items-center px-4 text-white">
-        {/* Contenedor de texto con ancho limitado */}
-        <div className="min-w-0 flex-1 pr-3 pl-18">
+      <div
+        className="flex h-full items-center px-4 text-white"
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+      >
+        {/* Song info */}
+        <div
+          className="min-w-0 flex-1 pr-3 pl-18"
+          onMouseDown={(e) => {
+            e.stopPropagation()
+            handleMouseDown(e)
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation()
+            handleTouchStart(e)
+          }}
+          onClick={handleBarClick}
+        >
           <div className="text-sm">
             <div className="truncate text-lg font-black">
               {currentSong?.title}
@@ -49,12 +67,17 @@ function MinimizedBar({
           </div>
         </div>
 
-        {/* Botones con ancho fijo */}
-        <div className="flex flex-shrink-0 items-center space-x-3">
+        {/* Control buttons */}
+        <div
+          className="flex flex-shrink-0 items-center space-x-3"
+          onClick={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+        >
           <Button
             variant={'ghost'}
-            onClick={(e) => {
-              e.stopPropagation()
+            onClick={resetPlayerState}
+            onTouchEnd={(e) => {
+              e.preventDefault()
               resetPlayerState()
             }}
             className="rounded-full"
@@ -64,8 +87,9 @@ function MinimizedBar({
 
           <Button
             variant={'ghost'}
-            onClick={(e) => {
-              e.stopPropagation()
+            onClick={togglePlayPause}
+            onTouchEnd={(e) => {
+              e.preventDefault()
               togglePlayPause()
             }}
             className="rounded-full"

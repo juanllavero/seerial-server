@@ -21,7 +21,10 @@ import { useAuth } from '@/context/auth.context'
 function ServerRouteWrapper() {
   const { serverId } = useParams()
   const { logout } = useAuth()
-  const { selectedServer, selectServer } = useServerStore()
+  const { selectedServer, selectServer } = useServerStore((state) => ({
+    selectedServer: state.selectedServer,
+    selectServer: state.selectServer,
+  }))
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {

@@ -13,14 +13,19 @@ import ServerLibraries from './components/ServerLibraries'
 import ServerTranscode from './components/ServerTranscode'
 
 function SettingsPage() {
-  const { selectedServer } = useServerStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
   const {
     getAllClientSettings,
     getAllServerSettings,
     clientSettings,
     serverSettings,
-  } = useSettingsStore()
-  const { settingsSection } = useSettingsStore()
+  } = useSettingsStore((state) => ({
+    getAllClientSettings: state.getAllClientSettings,
+    getAllServerSettings: state.getAllServerSettings,
+    clientSettings: state.clientSettings,
+    serverSettings: state.serverSettings,
+  }))
+  const settingsSection = useSettingsStore((state) => state.settingsSection)
   const isMobile = useIsMobile()
 
   useEffect(() => {

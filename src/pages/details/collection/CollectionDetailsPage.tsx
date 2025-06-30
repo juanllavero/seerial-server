@@ -25,10 +25,15 @@ import '../DetailsPage.css'
 import CollectionImage from './CollectionImage'
 function CollectionDetailsPage() {
   const { collectionId, type } = useParams()
-  const { wsMessage } = useWebSocketStore()
-  const { openCollectionDialog } = useDialogStore()
-  const { setCurrentBackground, currentBackground } = useDataStore()
-  const { selectedServer } = useServerStore()
+  const wsMessage = useWebSocketStore((state) => state.wsMessage)
+  const openCollectionDialog = useDialogStore(
+    (state) => state.openCollectionDialog,
+  )
+  const { setCurrentBackground, currentBackground } = useDataStore((state) => ({
+    setCurrentBackground: state.setCurrentBackground,
+    currentBackground: state.currentBackground,
+  }))
+  const selectedServer = useServerStore((state) => state.selectedServer)
   const { t } = useTranslation()
   const isMobile = useIsMobile()
   const serverIP = selectedServer?.ip

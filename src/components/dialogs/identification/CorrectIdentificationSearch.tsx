@@ -14,9 +14,14 @@ import './CorrectIdentificationSearch.css'
 
 function CorrectIdentificationSearch() {
   const { t } = useTranslation()
-  const { selectedServer } = useServerStore()
-  const { connectWS } = useWebSocketStore()
-  const { identificationDialog, closeIdentificationDialog } = useDialogStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
+  const connectWS = useWebSocketStore((state) => state.connectWS)
+  const { identificationDialog, closeIdentificationDialog } = useDialogStore(
+    (state) => ({
+      identificationDialog: state.identificationDialog,
+      closeIdentificationDialog: state.closeIdentificationDialog,
+    }),
+  )
   const [identificationResults, setIdentificationResults] = useState<
     IdentificationResult[]
   >([])

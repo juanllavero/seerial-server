@@ -12,9 +12,16 @@ import ContentWrapper from './utils/ContentWrapper'
 
 function ServerGeneral({ isLoaded }: { isLoaded: boolean }) {
   const { t } = useTranslation()
-  const { selectedServer, serverVersion, selectServer } = useServerStore()
+  const { selectedServer, serverVersion } = useServerStore((state) => ({
+    selectedServer: state.selectedServer,
+    serverVersion: state.serverVersion,
+  }))
   const { setServerSetting, serverSettings, setServerSettings } =
-    useSettingsStore()
+    useSettingsStore((state) => ({
+      setServerSetting: state.setServerSetting,
+      serverSettings: state.serverSettings,
+      setServerSettings: state.setServerSettings,
+    }))
   const [isDirty, setIsDirty] = React.useState(false)
   const [showMessage, setShowMessage] = useState(false)
 

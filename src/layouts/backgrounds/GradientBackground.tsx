@@ -15,7 +15,7 @@ const GradientBackground = ({
   height = '100%',
   isSong = false,
 }: GradientBackgroundProps) => {
-  const { isExpanded } = useMusicStore()
+  const isExpanded = useMusicStore((state) => state.isExpanded)
   const [activeIndex, setActiveIndex] = useState(0)
   const canvasRefs = [
     useRef<HTMLCanvasElement | null>(null),

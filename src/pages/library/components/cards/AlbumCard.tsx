@@ -15,9 +15,9 @@ interface AlbumCardProps {
 
 function AlbumCard({ album }: AlbumCardProps) {
   const { t } = useTranslation()
-  const { selectAlbum } = useDataStore()
-  const { selectedServer } = useServerStore()
-  const { openAlbumDialog } = useDialogStore()
+  const selectAlbum = useDataStore((state) => state.selectAlbum)
+  const selectedServer = useServerStore((state) => state.selectedServer)
+  const openAlbumDialog = useDialogStore((state) => state.openAlbumDialog)
   const navigate = useNavigate()
 
   const menuContent: DropdownContent = {

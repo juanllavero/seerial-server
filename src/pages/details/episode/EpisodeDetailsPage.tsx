@@ -19,8 +19,8 @@ import useSWR from 'swr'
 function EpisodeDetailsPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const { wsMessage } = useWebSocketStore()
-  const { selectedServer } = useServerStore()
+  const wsMessage = useWebSocketStore((state) => state.wsMessage)
+  const selectedServer = useServerStore((state) => state.selectedServer)
   const { serverId, episodeId } = useParams()
 
   const {

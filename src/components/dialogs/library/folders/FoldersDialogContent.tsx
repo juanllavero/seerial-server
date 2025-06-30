@@ -23,7 +23,7 @@ function FoldersDialogContent({
   close,
 }: FoldersDialogContentProps) {
   const { t } = useTranslation()
-  const { selectedServer } = useServerStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
   const { fetchData, isLoading } = useFetch()
   const [drives, setDrives] = useState<string[]>([]) // Lista de unidades
   const [folderContent, setFolderContent] = useState<Folder[]>([]) // Contenido de la carpeta

@@ -15,15 +15,24 @@ import DownloadMediaCardSkeleton from './DownloadMediaCardSkeleton'
 
 function DownloadMediaSearch() {
   const { t } = useTranslation()
-  const { selectedServer } = useServerStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
   const { connectWS, downloadAudio, downloadVideo, downloaded, setDownloaded } =
-    useWebSocketStore()
+    useWebSocketStore((state) => ({
+      connectWS: state.connectWS,
+      downloadAudio: state.downloadAudio,
+      downloadVideo: state.downloadVideo,
+      downloaded: state.downloaded,
+      setDownloaded: state.setDownloaded,
+    }))
   const {
     downloadMediaDialog: { type, seriesToEdit, seasonToEdit, movieToEdit },
     closeDownloadMediaDialog,
-  } = useDialogStore()
+  } = useDialogStore((state) => ({
+    downloadMediaDialog: state.downloadMediaDialog,
+    closeDownloadMediaDialog: state.closeDownloadMediaDialog,
+  }))
   const [openPlayer, setOpenPlayer] = useState<boolean>(false)
   const [playerResult, setPlayerResult] = useState<MediaSearchResult | null>(
     null,

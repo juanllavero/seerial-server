@@ -14,9 +14,12 @@ import EpisodeMediaInfoTab from './components/EpisodeMediaInfoTab'
 
 function EpisodeDialog() {
   const { t } = useTranslation()
-  const { selectedServer } = useServerStore()
-  const { connectWS } = useWebSocketStore()
-  const { episodeDialog, closeEpisodeDialog } = useDialogStore()
+  const selectedServer = useServerStore((state) => state.selectedServer)
+  const connectWS = useWebSocketStore((state) => state.connectWS)
+  const { episodeDialog, closeEpisodeDialog } = useDialogStore((state) => ({
+    episodeDialog: state.episodeDialog,
+    closeEpisodeDialog: state.closeEpisodeDialog,
+  }))
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 
   const [images, setImages] = useState<string[]>([])

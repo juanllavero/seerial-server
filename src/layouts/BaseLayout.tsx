@@ -20,8 +20,8 @@ export default function BaseLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { currentBackground: selectedBackground } = useDataStore()
-  const { selectedServer } = useServerStore()
+  const selectedBackground = useDataStore((state) => state.currentBackground)
+  const selectedServer = useServerStore((state) => state.selectedServer)
   const prevBackground = useRef<string | undefined>(undefined)
   const [currentBackground, setCurrentBackground] = useState<
     string | undefined
