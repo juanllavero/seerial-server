@@ -58,7 +58,7 @@ function AlbumDetailsPage() {
       direction={!isMobile && !isTablet ? 'row' : 'column'}
       gap={1}
       wrap="nowrap"
-      padding={isMobile ? '3rem 0 3rem 2rem' : '2rem 0 5rem 3rem'}
+      padding={isMobile ? '3rem 0' : '2rem 0 5rem 0'}
       align="center"
       width={'100%'}
       height={'100%'}

@@ -28,7 +28,6 @@ interface FlexBoxProps {
   ref?: React.Ref<HTMLDivElement>
   css?: CSSProperties
   onClick?: (e?: React.MouseEvent) => void
-  onTouchStart?: (e?: React.TouchEvent) => void
   onMouseEnter?: (e?: React.MouseEvent) => void
   onMouseLeave?: (e?: React.MouseEvent) => void
   onMouseDown?: (e?: React.MouseEvent) => void
@@ -57,7 +56,6 @@ function FlexBox({
   ref,
   css,
   onClick,
-  onTouchStart,
   onMouseEnter,
   onMouseLeave,
   onMouseDown,
@@ -86,7 +84,6 @@ function FlexBox({
         ...css,
       }}
       onClick={onClick}
-      onTouchStart={onTouchStart}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onMouseDown={onMouseDown}

@@ -29,7 +29,7 @@ function SongsList({ album }: SongsListProps) {
   if (!hasDiscs) {
     return (
       <FlexBox direction="column" gap={1} width={'100%'}>
-        <span className="text-xl font-semibold">{t('tracks')}</span>
+        <span className="pl-1 text-xl font-semibold">{t('tracks')}</span>
         {album.songs.map((song, index) => (
           <MusicCard
             index={index}

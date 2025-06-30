@@ -42,12 +42,8 @@ function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
       css={{ borderRadius: '5px', maxWidth: '1200px' }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      onTouchStart={(e) => {
-        handlePlaySong(song)
-        e?.stopPropagation()
-      }}
       onClick={() => {
-        if (isMobile) {
+        if (isMobile || isTablet) {
           handlePlaySong(song)
         }
       }}
@@ -92,11 +88,13 @@ function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
       </FlexBox>
       <div className="flex items-center space-x-2">
         <span>{formatTime(song.duration * 60)}</span>
-        <div className="h-10 w-10">
-          {isHovered && (
-            <DotsVerticalIcon className="h-6 w-6 cursor-pointer opacity-80 transition-opacity duration-150 ease-in-out hover:opacity-100" />
-          )}
-        </div>
+        {!isMobile && !isTablet && (
+          <div className="h-10 w-10">
+            {isHovered && (
+              <DotsVerticalIcon className="h-6 w-6 cursor-pointer opacity-80 transition-opacity duration-150 ease-in-out hover:opacity-100" />
+            )}
+          </div>
+        )}
       </div>
     </FlexBox>
   )
