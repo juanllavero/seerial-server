@@ -117,7 +117,7 @@ const CustomSlider: React.FC<SliderProps> = ({
 
         {/* Current Progress */}
         <div
-          className="rounded-ful absolute top-0 left-0 h-full transition-all duration-200"
+          className="absolute top-0 left-0 h-full rounded-full transition-all duration-200"
           style={{
             width: `${Math.min(currentValue, 100)}%`,
             backgroundColor: accentColor,

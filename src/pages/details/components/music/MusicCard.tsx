@@ -50,7 +50,11 @@ function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
     >
       <FlexBox gap={1} align="center">
         {!isMobile && (
-          <FlexBox justify="center" align="center" css={{ width: '2rem' }}>
+          <FlexBox
+            justify="center"
+            align="center"
+            css={{ width: '2rem', cursor: 'pointer' }}
+          >
             {isHovered ? (
               <div
                 onClick={() => {

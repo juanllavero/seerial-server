@@ -13,6 +13,7 @@ import useMusicStore from '@/context/music.context'
 import { RepeateMode } from '@/data/enums/Music'
 import { formatTime } from '@/utils/ReactUtils'
 import {
+  EllipsisVertical,
   ListMusic,
   Maximize2,
   MicVocal,
@@ -114,6 +115,7 @@ function MusicControlsExpanded({
   return (
     <div
       className={`bottom-0 flex h-25 min-h-25 w-screen flex-row items-center justify-between gap-5 bg-black px-6 backdrop-blur-sm`}
+      onClick={() => setIsExpanded(!isExpanded)}
     >
       {/* Info de la canción */}
       <div className="flex flex-1 items-center space-x-4">
@@ -159,46 +161,66 @@ function MusicControlsExpanded({
 
       {/* Central Controls */}
       <div
-        className={`flex w-full flex-col items-center ${isTablet ? 'max-w-80' : 'max-w-150'}`}
+        className={`flex w-full flex-col items-center ${isTablet ? 'max-w-80' : 'max-w-180'}`}
       >
         {/* Controles centrales */}
         <div className={`flex items-center space-x-4`}>
           <Button
-            variant="ghost"
+            variant="fullGhost"
             size="icon"
-            className="rounded-full text-white hover:bg-white/20"
+            className="rounded-full text-white"
             title={t('shuffle')}
-            onClick={() => setIsShuffling(!isShuffling)}
+            onClick={(e) => {
+              e.stopPropagation()
+              setIsShuffling(!isShuffling)
+            }}
           >
-            <Shuffle
-              className="h-5 w-5"
-              style={{ color: isShuffling ? 'var(--app-color)' : '' }}
-            />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => resetPlayerState()}
-            className="rounded-full text-white hover:bg-white/20"
-            title={t('stop')}
-          >
-            <StopIcon />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handlePrevious}
-            className="rounded-full text-white hover:bg-white/20"
-            title={t('previous')}
-          >
-            <PrevTrackIcon size={22} />
+            {isShuffling ? (
+              <Shuffle
+                size={20}
+                style={{
+                  color: 'var(--app-color)',
+                }}
+              />
+            ) : (
+              <Shuffle size={20} className="opacity-75 hover:opacity-100" />
+            )}
           </Button>
 
           <Button
-            variant="ghost"
+            variant="fullGhost"
             size="icon"
-            onClick={togglePlayPause}
-            className="h-15 w-15 rounded-full text-white hover:bg-white/20"
+            onClick={(e) => {
+              e.stopPropagation()
+              resetPlayerState()
+            }}
+            className="rounded-full text-white opacity-75"
+            title={t('stop')}
+          >
+            <StopIcon size={20} />
+          </Button>
+
+          <Button
+            variant="fullGhost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation()
+              handlePrevious()
+            }}
+            className="rounded-full text-white opacity-75"
+            title={t('previous')}
+          >
+            <PrevTrackIcon size={20} />
+          </Button>
+
+          <Button
+            variant="fullGhost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation()
+              togglePlayPause()
+            }}
+            className="h-15 w-15 rounded-full text-white"
             title={isPlaying ? t('pause') : t('play')}
           >
             {isPlaying ? (
@@ -207,33 +229,44 @@ function MusicControlsExpanded({
               <PlayIcon size={isMobile ? 54 : 44} />
             )}
           </Button>
+
           <Button
-            variant="ghost"
+            variant="fullGhost"
             size="icon"
-            onClick={handleNext}
-            className="rounded-full text-white hover:bg-white/20"
+            onClick={(e) => {
+              e.stopPropagation()
+              handleNext()
+            }}
+            className="rounded-full text-white opacity-75"
             title={t('next')}
           >
-            <NextTrackIcon size={22} />
+            <NextTrackIcon size={20} />
           </Button>
+
           <Button
-            variant="ghost"
+            variant="fullGhost"
             size="icon"
-            onClick={() => resetPlayerState()}
-            className="rounded-full text-white hover:bg-white/20"
+            onClick={(e) => {
+              e.stopPropagation()
+              resetPlayerState()
+            }}
+            className="rounded-full text-white opacity-75"
             title={t('stop')}
           >
-            <DotsVerticalIcon />
+            <EllipsisVertical size={20} />
           </Button>
           <Button
-            variant="ghost"
+            variant="fullGhost"
             size={'icon'}
-            onClick={handleChangeRepeatState}
-            className="rounded-full text-white hover:bg-white/20"
+            onClick={(e) => {
+              e.stopPropagation()
+              handleChangeRepeatState(e)
+            }}
+            className="rounded-full text-white"
             title={t('repeat')}
           >
             {repeateMode === RepeateMode.NONE ? (
-              <Repeat size={20} />
+              <Repeat size={20} className="opacity-75 hover:opacity-100" />
             ) : repeateMode === RepeateMode.REPEAT_ALL ? (
               <Repeat size={20} style={{ color: 'var(--app-color)' }} />
             ) : (
@@ -243,7 +276,10 @@ function MusicControlsExpanded({
         </div>
 
         {/* Progress Slider */}
-        <div className="flex w-full items-center gap-2 text-sm">
+        <div
+          className="flex w-full items-center gap-2 text-sm"
+          onClick={(e) => e.stopPropagation()}
+        >
           <span className="w-12 text-right">
             {currentTime ? formatTime(currentTime) : '00:00'}
           </span>
@@ -260,7 +296,10 @@ function MusicControlsExpanded({
       <div className="flex flex-1 items-center justify-end space-x-2">
         <Button
           variant="ghost"
-          onClick={() => setShowLyrics(!showLyrics)}
+          onClick={(e) => {
+            e.stopPropagation()
+            setShowLyrics(!showLyrics)
+          }}
           title={t('lyrics')}
         >
           <MicVocal
@@ -270,7 +309,10 @@ function MusicControlsExpanded({
         </Button>
         <Button
           variant="ghost"
-          onClick={() => setShowQueue(!showQueue)}
+          onClick={(e) => {
+            e.stopPropagation()
+            setShowQueue(!showQueue)
+          }}
           title={t('queue')}
         >
           <ListMusic
@@ -297,6 +339,7 @@ function MusicControlsExpanded({
         <Slider
           value={[volume]}
           onValueChange={handleVolumeChange}
+          onClick={(e) => e.stopPropagation()}
           max={100}
           step={1}
           className="w-24 [&_[role=slider]]:h-3 [&_[role=slider]]:w-3 [&_[role=slider]]:border-0 [&_[role=slider]]:bg-white [&>span:first-child]:h-1 [&>span:first-child]:bg-white/30 [&>span:first-child_span]:bg-white"

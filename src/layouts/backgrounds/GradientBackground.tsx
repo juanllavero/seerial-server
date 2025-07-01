@@ -1,4 +1,3 @@
-import useMusicStore from '@/context/music.context'
 import { ReactUtils } from '@/utils/ReactUtils'
 import { useEffect, useRef, useState } from 'react'
 
@@ -7,6 +6,7 @@ interface GradientBackgroundProps {
   width?: string
   height?: string
   isSong?: boolean
+  index?: number
 }
 
 const GradientBackground = ({
@@ -14,9 +14,10 @@ const GradientBackground = ({
   width = '100%',
   height = '100%',
   isSong = false,
+  index = -1,
 }: GradientBackgroundProps) => {
-  const isExpanded = useMusicStore((state) => state.isExpanded)
   const [activeIndex, setActiveIndex] = useState(0)
+  const [visible, setVisible] = useState(true)
   const canvasRefs = [
     useRef<HTMLCanvasElement | null>(null),
     useRef<HTMLCanvasElement | null>(null),
@@ -25,6 +26,8 @@ const GradientBackground = ({
   const drawGradient = (canvas: HTMLCanvasElement, colors: string[]) => {
     const ctx = canvas.getContext('2d')
     if (!ctx) return
+
+    console.log({ colors })
 
     canvas.width = canvas.offsetWidth
     canvas.height = canvas.offsetHeight
@@ -65,8 +68,17 @@ const GradientBackground = ({
       (isSong && ReactUtils.songColors.length < 4) ||
       (!isSong && ReactUtils.contentColors.length < 4)
     ) {
-      ReactUtils.restoreGradient(isSong)
+      console.log({
+        showGradient,
+        isSong,
+        songColors: ReactUtils.songColors,
+        contentColors: ReactUtils.contentColors,
+      })
+      console.log('Restoring Gradient...')
+      setVisible(false)
     }
+
+    setVisible(true)
 
     const colors = isSong ? ReactUtils.songColors : ReactUtils.contentColors
 
@@ -77,27 +89,23 @@ const GradientBackground = ({
     drawGradient(newCanvas, colors)
 
     const timeout = setTimeout(() => {
+      console.log({ activeIndex, newIndex, showGradient })
       setActiveIndex(newIndex)
     }, 100)
 
     return () => clearTimeout(timeout)
-  }, [
-    ReactUtils.songColors,
-    ReactUtils.contentColors,
-    showGradient,
-    isExpanded,
-  ])
+  }, [ReactUtils.songColors, ReactUtils.contentColors, showGradient])
 
   return (
     <div
       className="absolute inset-0 overflow-hidden"
-      style={{ zIndex: -1, width, height }}
+      style={{ zIndex: index, width, height }}
     >
       {[0, 1].map((i) => (
         <canvas
           key={i}
           ref={canvasRefs[i]}
-          className={`absolute inset-0 h-full w-full brightness-65 transition-opacity duration-700 ${activeIndex === i && showGradient ? 'opacity-100' : 'opacity-0'} `}
+          className={`absolute inset-0 h-full w-full brightness-65 transition-opacity duration-700 ${activeIndex === i && showGradient && visible ? 'opacity-100' : 'opacity-0'} `}
           style={{ width, height }}
         />
       ))}

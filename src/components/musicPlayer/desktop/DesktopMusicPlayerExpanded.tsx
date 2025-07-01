@@ -24,11 +24,13 @@ function DesktopMusicPlayerExpanded() {
 
   return (
     <div
-      className={`absolute bottom-0 z-199 flex w-screen flex-col transition-all duration-200 ease-in-out ${
-        isExpanded ? 'h-full bg-gray-700' : 'h-0 translate-y-50 bg-black'
+      className={`fixed bottom-0 z-199 flex w-screen flex-col transition-all duration-200 ease-in-out ${
+        isExpanded ? 'h-full bg-neutral-800' : 'h-0 translate-y-50 bg-black'
       }`}
     >
-      {isExpanded && <GradientBackground showGradient={isExpanded} isSong />}
+      <div className="fixed h-screen w-screen">
+        <GradientBackground showGradient={isExpanded} isSong />
+      </div>
 
       <MusicPlayerHeader />
 

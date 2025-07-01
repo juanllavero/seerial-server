@@ -1,6 +1,6 @@
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import FlexBox from '@/components/ui/FlexBox'
-import LazyImage from '@/components/ui/LazyImage'
+import Image from '@/components/ui/Image'
 import { Cast } from '@/data/interfaces/Media'
 
 interface CastCardProps {
@@ -20,12 +20,11 @@ function CastCard({ index, person }: CastCardProps) {
       key={'Cast Person ' + index}
       padding="1rem"
     >
-      <LazyImage
+      <Image
         src={person.profileImage}
-        width={isMobile ? 80 : 120}
-        height={isMobile ? 80 : 120}
-        className="rounded-full"
-        rounded
+        aspectRatio={1}
+        fallbackSrc="local/img/castDefault.png"
+        className={`aspect-square w-${isMobile ? '25' : '40'} h-${isMobile ? '25' : '40'} rounded-full`}
         alt={person.name}
       />
       <span className={isMobile ? 'text-xs' : ''}>{person.name}</span>
