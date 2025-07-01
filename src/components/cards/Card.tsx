@@ -1,6 +1,6 @@
 import { DropdownContent } from '@/data/interfaces/Utils'
 import { Check, EllipsisVertical } from 'lucide-react'
-import React from 'react'
+import React, { useState } from 'react'
 import DropdownWrapper from '../DropdownWrapper'
 import Loading from '../Loading'
 import { Button } from '../ui/button'
@@ -56,6 +56,7 @@ function Card({
   collageComponent,
   errorSrc,
 }: CardProps) {
+  const [playButtonHovered, setPlayButtonHovered] = useState(false)
   return (
     <FlexBox
       direction="column"
@@ -117,13 +118,21 @@ function Card({
             ) : !hidePlayButton ? (
               <Button
                 variant={'ghost'}
-                className="rounded-full"
+                className="bg-accent h-fit w-fit rounded-full p-3"
+                onMouseEnter={() => setPlayButtonHovered(true)}
+                onMouseLeave={() => setPlayButtonHovered(false)}
                 onClick={(e) => {
                   e.stopPropagation()
                   if (playButtonAction) playButtonAction()
                 }}
+                style={{
+                  backgroundColor: playButtonHovered ? 'var(--app-color)' : '',
+                }}
               >
-                <PlayIcon />
+                <PlayIcon
+                  size={35}
+                  color={playButtonHovered ? '#1a1a1a' : 'white'}
+                />
               </Button>
             ) : null}
           </FlexBox>

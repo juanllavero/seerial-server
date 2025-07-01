@@ -44,14 +44,14 @@ function ContinueWatching({ goToContent }: ContinueWatchingProps) {
               subtitle={'Not yet'}
               action={() =>
                 goToContent(
-                  `/details/${video.episodeId ? 'episode' : 'movie'}/${video.episodeId ? video.episodeId : video.movieId}`,
+                  `/server/${selectedServer?.id}/details/${video.episodeId ? 'episode' : 'movie'}/${video.episodeId ? video.episodeId : video.movieId}`,
                 )
               }
             />
           ))
-        : !isLoading
+        : isLoading
           ? skeletons
-          : t('noContent')}
+          : t('continueWatchingEmpty')}
     </HorizontalList>
   )
 }

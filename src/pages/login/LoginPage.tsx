@@ -3,30 +3,17 @@ import { getToken } from '@/lib/auth'
 import { CENTRAL_SERVER } from '@/utils/constants'
 import { showToast } from '@/utils/ReactUtils'
 import { useGoogleLogin } from '@react-oauth/google'
-import { Film, Loader2, Music, Play, Tv, Video } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Film, Loader2, Music, Tv } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import Image from '@/components/ui/Image'
 import BackgroundEffect from './components/BackgroundEffect'
-
-interface IconConfig {
-  Component: React.ComponentType<{
-    size?: number
-    className?: string
-    style?: React.CSSProperties
-  }>
-  size: number
-}
-
-interface IconPosition {
-  top: number
-  left: number
-  animationDelay: number
-}
+import { useIsMobile } from '@/components/hooks/use-mobile'
 
 function LoginPage() {
   const { t } = useTranslation()
+  const isMobile = useIsMobile()
   const { login } = useAuth()
   const navigate = useNavigate()
   const { user } = useAuth()
@@ -36,24 +23,6 @@ function LoginPage() {
 
   const [isHovering, setIsHovering] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-
-  const icons: IconConfig[] = [
-    { Component: Film, size: 40 },
-    { Component: Music, size: 35 },
-    { Component: Tv, size: 45 },
-    { Component: Video, size: 38 },
-    { Component: Play, size: 30 },
-    { Component: Film, size: 40 },
-    { Component: Music, size: 35 },
-    { Component: Tv, size: 45 },
-    { Component: Video, size: 38 },
-    { Component: Play, size: 30 },
-    { Component: Film, size: 40 },
-    { Component: Music, size: 35 },
-    { Component: Tv, size: 45 },
-    { Component: Video, size: 38 },
-    { Component: Play, size: 30 },
-  ]
 
   const handleGoogleLogin = async (tokenResponse: { access_token: string }) => {
     const accessToken = tokenResponse.access_token
@@ -109,10 +78,6 @@ function LoginPage() {
           {/* Logo y título */}
           <div className="text-center">
             <div className="flex flex-row justify-center">
-              {/* <img src="/img/icon.png" alt="Logo" className="mx-2 w-16" /> */}
-              {/* <h1 className="title-font mb-4 text-5xl text-white sm:text-6xl">
-                Seerial
-              </h1> */}
               <Image src="/img/banner.svg" alt="Logo" aspectRatio={21 / 9} />
             </div>
             <p className="mx-auto max-w-sm text-sm leading-relaxed text-gray-500 sm:text-base">
@@ -188,29 +153,31 @@ function LoginPage() {
           </div>
 
           {/* Características destacadas */}
-          <div className="mt-8 grid grid-cols-3 gap-4">
-            <div className="rounded-xl border border-gray-800 bg-gray-600/50 p-4 text-center backdrop-blur-sm">
-              <div className="mb-2 text-blue-400">
-                <Film size={24} className="mx-auto" />
+          {!isMobile && (
+            <div className="mt-8 grid grid-cols-3 gap-4">
+              <div className="rounded-xl border border-gray-800 bg-gray-600/50 p-4 text-center backdrop-blur-sm">
+                <div className="mb-2 text-blue-400">
+                  <Film size={24} className="mx-auto" />
+                </div>
+                <p className="text-sm font-medium text-gray-300">Películas</p>
+                <p className="text-xs text-gray-500">Organiza tu colección</p>
               </div>
-              <p className="text-sm font-medium text-gray-300">Películas</p>
-              <p className="text-xs text-gray-500">Organiza tu colección</p>
-            </div>
-            <div className="rounded-xl border border-gray-800 bg-gray-600/50 p-4 text-center backdrop-blur-sm">
-              <div className="mb-2 text-green-400">
-                <Tv size={24} className="mx-auto" />
+              <div className="rounded-xl border border-gray-800 bg-gray-600/50 p-4 text-center backdrop-blur-sm">
+                <div className="mb-2 text-green-400">
+                  <Tv size={24} className="mx-auto" />
+                </div>
+                <p className="text-sm font-medium text-gray-300">Series</p>
+                <p className="text-xs text-gray-500">Episodios y temporadas</p>
               </div>
-              <p className="text-sm font-medium text-gray-300">Series</p>
-              <p className="text-xs text-gray-500">Episodios y temporadas</p>
-            </div>
-            <div className="rounded-xl border border-gray-800 bg-gray-600/50 p-4 text-center backdrop-blur-sm">
-              <div className="mb-2 text-purple-400">
-                <Music size={24} className="mx-auto" />
+              <div className="rounded-xl border border-gray-800 bg-gray-600/50 p-4 text-center backdrop-blur-sm">
+                <div className="mb-2 text-purple-400">
+                  <Music size={24} className="mx-auto" />
+                </div>
+                <p className="text-sm font-medium text-gray-300">Música</p>
+                <p className="text-xs text-gray-500">Biblioteca personal</p>
               </div>
-              <p className="text-sm font-medium text-gray-300">Música</p>
-              <p className="text-xs text-gray-500">Biblioteca personal</p>
             </div>
-          </div>
+          )}
         </div>
       </div>
 

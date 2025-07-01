@@ -30,7 +30,7 @@ function EpisodeCard({
   return (
     <Card
       itemKey={episode.id}
-      imgSrc={episode.imgSrc}
+      imgSrc={episode.video?.imgSrc}
       aspectRatio={16 / 9}
       width={isMobile || isTablet ? '100%' : cardWidth * 2.2}
       progress={

@@ -3,9 +3,9 @@ import FlexBox from '@/components/ui/FlexBox'
 import { Episode } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
 import { useNavigate } from 'react-router-dom'
-import { PlayIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
+import { PlayIcon } from '@/components/ui/IconLibrary'
 
 interface PlayButtonProps {
   currentlyWatchingEpisodeId?: string

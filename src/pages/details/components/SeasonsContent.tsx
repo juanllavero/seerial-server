@@ -188,7 +188,7 @@ function SeasonContent({ seasonList, serverId, serverIP }: SeasonContentProps) {
             />
           )}
 
-          <span>{t('episodes')}</span>
+          <span className="text-2xl font-semibold">{t('episodes')}</span>
         </FlexBox>
 
         {!isMobile && !isTablet && (

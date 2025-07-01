@@ -37,7 +37,11 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
             title={movie.name}
             subtitle={movie.year}
             hidePlayButton
-            action={() => goToContent(`/details/movie/${movie.id}`)}
+            action={() =>
+              goToContent(
+                `/server/${selectedServer?.id}/details/movie/${movie.id}`,
+              )
+            }
           />
         ))
       ) : (

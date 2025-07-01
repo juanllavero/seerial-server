@@ -24,7 +24,7 @@ function EpisodeCardDetails({
       <div className="w-[40%] max-w-100 min-w-30">
         <Card
           itemKey={episode.id}
-          imgSrc={episode.imgSrc}
+          imgSrc={episode.video?.imgSrc}
           aspectRatio={16 / 9}
           width={'100%'}
           progress={

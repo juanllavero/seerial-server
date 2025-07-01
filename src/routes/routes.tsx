@@ -94,8 +94,10 @@ export function AppRoutes() {
               path="details/episode/:episodeId"
               element={<EpisodeDetailsPage />}
             />
-            <Route path="video-player/:videoId" element={<VideoPlayerPage />} />
           </Route>
+        </Route>
+        <Route path="/server/:serverId/*" element={<ServerRouteWrapper />}>
+          <Route path="video-player/:videoId" element={<VideoPlayerPage />} />
         </Route>
       </Route>
     </Routes>

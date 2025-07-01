@@ -76,7 +76,7 @@ function HorizontalList({ title, children }: HorizontalListProps) {
         width={'100%'}
         height={'3rem'}
       >
-        <span className={`text-${isMobile ? 'lg' : 'xl'} font-semibold`}>
+        <span className={`text-${isMobile ? 'xl' : '2xl'} font-semibold`}>
           {title}
         </span>
         {showButtons && (

@@ -37,7 +37,11 @@ function MyListShows({ goToContent }: MyListShowsProps) {
             title={series.name}
             subtitle={series.year}
             hidePlayButton
-            action={() => goToContent(`/details/series/${series.id}`)}
+            action={() =>
+              goToContent(
+                `/server/${selectedServer?.id}/details/series/${series.id}`,
+              )
+            }
           />
         ))
       ) : (

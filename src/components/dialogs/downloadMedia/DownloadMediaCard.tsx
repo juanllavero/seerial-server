@@ -42,7 +42,7 @@ function DownloadMediaCard({
           <span className="text-sm">{Math.round(downloadPercentage)}%</span>
         </div>
       )
-    } else if (errorDownloading) {
+    } else if (errorDownloading && downloadingElementId === result.id) {
       return <AlertCircle className="h-4 w-4" />
     }
 

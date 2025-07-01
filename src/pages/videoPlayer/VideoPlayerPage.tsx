@@ -411,14 +411,14 @@ function VideoPlayerPage() {
     <>
       {/* Loading Circle */}
       {(!videoLoaded || showLoadingCircle) && (
-        <div className="absolute top-50/100 left-50/100 z-999 flex justify-center">
+        <div className="relative flex h-screen w-screen justify-center">
           <Loading />
         </div>
       )}
 
       {/* Video Player */}
       <div
-        className={`player-container absolute top-0 left-0 z-0 m-0 flex h-full w-full justify-center bg-black p-0 ${!showControls ? 'hide-cursor' : ''}`}
+        className={`player-container relative m-0 flex h-screen w-screen justify-center bg-black p-0 ${!showControls ? 'hide-cursor' : ''}`}
         style={{
           backgroundColor: videoLoaded ? 'black' : 'transparent',
           transition: 'background-color .1s ease-in-out',

@@ -13,6 +13,8 @@ export const es = {
     errorImageUpload: 'Error al subir la imagen',
     invalidImageError: 'Selecciona un archivo de imagen válido',
 
+    continueWatchingEmpty: 'Aquí aparecerán los contenidos que estés viendo',
+    noContent: 'Aún no has añadido contenido a tu lista',
     lyricsNotFound:
       'No se han encontrado letras sincronizadas para esta canción',
     lyrics: 'Letras',

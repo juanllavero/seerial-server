@@ -13,6 +13,8 @@ export const en = {
     errorImageUpload: 'Error uploading image',
     invalidImageError: 'Select a valid image file',
 
+    continueWatchingEmpty: 'Here will be the content you are watching',
+    noContent: 'There is no content in your list yet',
     lyricsNotFound: 'No synchronized lyrics found for this song',
     lyrics: 'Lyrics',
     addLyrics: 'Add Lyrics',

@@ -68,7 +68,7 @@ export default function HomePage() {
     return <NoAPIKey />
   }
 
-  if (!libraries) {
+  if (!libraries || libraries.length === 0) {
     return <NoContent />
   }
 

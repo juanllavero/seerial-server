@@ -23,6 +23,7 @@ function CastCard({ index, person }: CastCardProps) {
       <Image
         src={person.profileImage}
         aspectRatio={1}
+        width={isMobile ? 25 : 40}
         fallbackSrc="local/img/castDefault.png"
         className={`aspect-square w-${isMobile ? '25' : '40'} h-${isMobile ? '25' : '40'} rounded-full`}
         alt={person.name}
