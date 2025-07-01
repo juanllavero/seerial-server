@@ -20,7 +20,7 @@ router.delete("/libraries/:id", async (req, res) => {
     await deleteLibrary(id);
     res.status(200).json({ message: "Library deleted successfully" });
   } catch (error) {
-    res.status(500).json({ error: "Failed to delete library" });
+    res.status(500).json({ error: `Failed to delete library: ${error}` });
   }
 });
 

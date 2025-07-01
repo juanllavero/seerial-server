@@ -199,7 +199,7 @@ export async function processMusicFile(
     if (!song) return;
 
     // Get runtime
-    await Utils.getOnlyRuntime(song, musicFile);
+    song.duration = await Utils.getOnlyRuntime(musicFile);
 
     await library.addAnalyzedFile(musicFile, song.id);
 

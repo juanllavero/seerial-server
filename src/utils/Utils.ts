@@ -16,7 +16,6 @@ import {
 } from "../data/interfaces/MediaInfo";
 import { Episode, Season } from "../data/models";
 import { Video } from "../data/models/Media/Video.model";
-import { Song } from "../data/models/music/Song.model";
 import {
   getEpisodeById,
   getSeasonById,
@@ -226,43 +225,27 @@ export class Utils {
 
   //#region MEDIA INFO
   /**
-   * Retrieves the duration of a music file and sets it on the provided Song object.
-   *
-   * Uses ffprobe to extract the duration of the given music file and assigns
-   * the duration (in minutes) to the Song object's `duration` property.
-   * Logs an error if the duration cannot be determined.
-   *
-   * @param song - The Song object whose duration property will be set.
-   * @param musicFile - The path to the music file to probe for duration.
-   * @returns A Promise that resolves when the operation is complete.
-   * @throws Will rethrow any error encountered during probing.
+   * Retrieves the duration of a video/audio file.
+   * @param mediaFile - The path to the media file to probe for duration.
+   * @returns The duration or 0.
    */
-  public static async getOnlyRuntime(
-    song: Song,
-    musicFile: string
-  ): Promise<void> {
-    if (!musicFile || typeof musicFile !== "string") {
-      console.error("getOnlyRuntime: Invalid music file path provided.");
-      return;
+  public static async getOnlyRuntime(mediaFile: string): Promise<number> {
+    if (!mediaFile || typeof mediaFile !== "string") {
+      console.error("getOnlyRuntime: Invalid media file path provided.");
+      return 0;
     }
 
     try {
-      const data = await this.probeMediaFile(musicFile);
+      const data = await this.probeMediaFile(mediaFile);
       const duration = data?.format?.duration;
 
       if (typeof duration === "number" && !isNaN(duration)) {
-        song.duration = duration / 60;
-      } else {
-        console.error(
-          `getOnlyRuntime: Failed to get valid runtime for song: ${musicFile}`
-        );
+        return duration / 60;
       }
+
+      return 0;
     } catch (err) {
-      console.error("getOnlyRuntime: Error while getting runtime", {
-        error: err,
-        musicFile,
-      });
-      throw err; // Rethrow for the caller to handle if necessary
+      return 0;
     }
   }
 

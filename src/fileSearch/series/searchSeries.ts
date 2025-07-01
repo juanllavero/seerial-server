@@ -565,7 +565,12 @@ export async function setSeasonBackgrounds(show: Series, season: Season) {
     }
   }
 
-  if (backgroundFound) return;
+  if (backgroundFound) {
+    // Save season data in DB
+    season.save();
+
+    return;
+  }
 
   try {
     // Get images
@@ -591,6 +596,9 @@ export async function setSeasonBackgrounds(show: Series, season: Season) {
         }
       }
     }
+
+    // Save season data in DB
+    season.save();
   } catch (error) {
     console.error("Error downloading images:", error);
   }

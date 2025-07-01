@@ -31,6 +31,7 @@ export class Series extends Model {
   @Column({
     type: DataType.INTEGER,
     allowNull: false,
+    onDelete: "CASCADE",
     field: "library_id",
   })
   libraryId!: string;

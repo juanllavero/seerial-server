@@ -179,7 +179,12 @@ export const getSeriesById = (seriesId: string) => {
   if (!SequelizeManager.sequelize) return null;
 
   return Series.findByPk(seriesId, {
-    include: [{ model: Season, as: "seasons" }],
+    include: [
+      {
+        model: Season,
+        as: "seasons",
+      },
+    ],
   });
 };
 
@@ -201,7 +206,13 @@ export const getSeasonById = (seasonId: string) => {
   if (!SequelizeManager.sequelize) return null;
 
   return Season.findByPk(seasonId, {
-    include: [{ model: Episode, as: "episodes" }],
+    include: [
+      {
+        model: Episode,
+        as: "episodes",
+        include: [{ model: Video, as: "video" }],
+      },
+    ],
   });
 };
 

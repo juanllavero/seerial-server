@@ -403,6 +403,7 @@ export async function saveMovieWithoutMetadata(
   if (!video) return;
 
   video.movieId = movie.id;
+  video.runtime = await Utils.getOnlyRuntime(video.fileSrc);
 
   if (filePath in library.analyzedFiles) {
     video = await getVideoById(library.analyzedFiles[filePath] ?? "");
@@ -448,11 +449,11 @@ export async function processVideo(
     if (!video) return;
 
     await library.addAnalyzedFile(filePath, video.id);
-
-    console.log({ filePath, id: video.id, files: library.analyzedFiles });
   }
 
   if (!video) return;
+
+  video.runtime = await Utils.getOnlyRuntime(video.fileSrc);
 
   const images = await MovieDBWrapper.getMovieImages(movie.themdbId);
 
@@ -511,8 +512,12 @@ export async function processVideoAsExtra(
     library.analyzedFiles[filePath] = video.id;
   }
 
+  if (!video) return;
+
+  video.runtime = await Utils.getOnlyRuntime(video.fileSrc);
+
   // Save data in DB
-  video?.save();
+  video.save();
 
   // Update content in clients
   Utils.mutateMovie(wsManager);
