@@ -471,4 +471,178 @@ router.get("/lyrics", async (req: any, res: any) => {
 });
 //#endregion
 
+//#region MUSIC EXTRAS
+/**
+ * @route   GET /musicExtras/:collectionId
+ * @desc    Finds extra video files (concerts, interviews, etc.)
+ * associated with all albums in a collection.
+ */
+router.get("/musicExtras/:collectionId", async (req: any, res: any) => {
+  const { collectionId } = req.params;
+
+  if (!collectionId) {
+    return res.status(400).json({ error: "Collection ID is required" });
+  }
+
+  try {
+    // 1. Get the collection
+    const collection = await getCollectionById(collectionId as string);
+    if (!collection) {
+      return res.status(404).json({ error: "Collection not found" });
+    }
+
+    // 2. Extract the distinct root folders using a Set to avoid duplicates
+    const rootFolders = new Set<string>();
+    collection.albums.forEach((album) => {
+      if (album.folder) {
+        rootFolders.add(album.folder);
+      }
+    });
+
+    console.log({ rootFolders });
+
+    // 3. Search in each root folder concurrently
+    const promises = Array.from(rootFolders).map(async (folder) => {
+      const foundExtras: { title: string; src: string; type: string }[] = [];
+
+      // Check for the existence of 'extras' or 'Extras'
+      const extrasPathCandidates = [
+        path.join(folder, "extras"),
+        path.join(folder, "Extras"),
+      ];
+      let extrasPath: string | undefined;
+
+      for (const candidate of extrasPathCandidates) {
+        try {
+          // fs.stat will throw an error if the directory does not exist
+          const stats = await fs.stat(candidate);
+          if (stats.isDirectory()) {
+            extrasPath = candidate;
+            break; // We found one, no need to search further
+          }
+        } catch (error) {
+          // Ignore the error (ENOENT: file not found) and continue
+        }
+      }
+
+      console.log({ extrasPath });
+
+      if (!extrasPath) {
+        return []; // There is no 'extras' folder in this path, return an empty array
+      }
+
+      // Read the contents of the 'extras' directory
+      const files = await fs.readdir(extrasPath);
+
+      console.log({
+        files,
+      });
+
+      for (const file of files) {
+        const fileExt = path.extname(file).toLowerCase();
+
+        // Only process if it is a known video file
+        if (!Utils.videoExtensions.includes(fileExt)) {
+          continue;
+        }
+
+        const baseName = path.basename(file, fileExt);
+
+        // Check if the filename ends with any of the extra suffixes
+        for (const type of Utils.extraTypes) {
+          const suffix = `-${type}`;
+          if (baseName.endsWith(suffix)) {
+            // 4. Extract the title according to the rules
+            const nameWithoutSuffix = baseName.substring(
+              0,
+              baseName.length - suffix.length
+            );
+            const titleParts = nameWithoutSuffix.split(" - ");
+
+            const title =
+              titleParts.length > 1
+                ? titleParts.slice(1).join(" - ").trim()
+                : nameWithoutSuffix.trim();
+
+            // 5. Create the final object
+            foundExtras.push({
+              title,
+              src: path.join(extrasPath, file), // Full path to the file
+              type: type, // The type of extra without the dash
+            });
+
+            break; // Move to the next file once a type is found
+          }
+        }
+      }
+
+      return foundExtras;
+    });
+
+    // Wait for all folder searches to finish
+    const results = await Promise.all(promises);
+
+    // Flatten the array of arrays ([[], [extra1, extra2], []]) into a single array
+    const allExtras = results.flat();
+
+    res.json(allExtras);
+  } catch (error) {
+    console.error("Error searching for music extras:", error);
+    res
+      .status(500)
+      .json({ error: "An internal error occurred while searching for extras" });
+  }
+});
+//#endregion
+
+/**
+ * @route   GET /hasDolbyAtmos
+ * @desc    Checks if any song in a collection or album has Dolby Atmos
+ */
+router.get("/hasDolbyAtmos", async (req: any, res: any) => {
+  const { collectionId, albumId } = req.query;
+
+  if (!collectionId && !albumId) {
+    return res.status(400).json({ error: "At least 1 ID is required" });
+  }
+
+  if (collectionId) {
+    const collection = await getCollectionById(collectionId as string);
+
+    if (!collection) {
+      return res.status(404).json({ error: "Collection not found" });
+    }
+
+    const albums = collection.albums;
+
+    let hasDolbyAtmos = false;
+
+    for (const album of albums) {
+      const song = album.songs.find((song) => song.hasDolbyAtmos);
+      if (song) {
+        hasDolbyAtmos = true;
+        break;
+      }
+    }
+
+    res.json({ hasDolbyAtmos });
+  } else if (albumId) {
+    const album = await getAlbumById(albumId as string);
+
+    if (!album) {
+      return res.status(404).json({ error: "Album not found" });
+    }
+
+    const song = album.songs.find((song) => song.hasDolbyAtmos);
+
+    if (song) {
+      res.json({ hasDolbyAtmos: true });
+    } else {
+      res.json({ hasDolbyAtmos: false });
+    }
+  }
+
+  res.json({ hasDolbyAtmos: false });
+});
+
 export default router;

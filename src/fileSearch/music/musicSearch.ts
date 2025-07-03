@@ -44,7 +44,7 @@ export async function scanMusic(
   // Process each file
   for (const file of musicFiles) {
     if (!library.analyzedFiles[file]) {
-      await processMusicFile(library, file, collection, wsManager);
+      await processMusicFile(folder, library, file, collection, wsManager);
     }
   }
 
@@ -53,6 +53,7 @@ export async function scanMusic(
 }
 
 export async function processMusicFile(
+  rootFolder: string,
   library: Library,
   musicFile: string,
   collection: Collection,
@@ -70,7 +71,11 @@ export async function processMusicFile(
     });
 
     const artistName = data["album_artist"] ? data["album_artist"] : "";
-    const albumName = data.album ? data.album : collection.title;
+    const albumName = data.album
+      ? data.album
+      : data["ALBUM"]
+      ? data["ALBUM"]
+      : collection.title;
 
     let newAlbum: Album | null = null;
 
@@ -87,15 +92,20 @@ export async function processMusicFile(
 
     if (!newAlbum) {
       newAlbum = await addAlbum({
-        title: albumName ?? "Unknown",
+        title: albumName,
         year: data.date
           ? new Date(data.date).getFullYear().toString()
+          : data["DATE"]
+          ? new Date(data["DATE"]).getFullYear().toString()
           : data["TYER"]
           ? new Date(data["TYER"]).getFullYear().toString()
           : "",
         libraryId: library.id,
+        folder: rootFolder,
         genres: data.genre
           ? data.genre.split(",").map((genre: string) => genre.trim())
+          : data["GENRE"]
+          ? data["GENRE"].split(",").map((genre: string) => genre.trim())
           : [],
       });
 
@@ -107,16 +117,26 @@ export async function processMusicFile(
 
     await addAlbumToCollection(collection.id, newAlbum.id);
 
+    // Variables to check if the song is in Dolby Atmos
+    const brands = data["compatible_brands"];
+    const atmosIdentifiers = ["dby1", "dbac3", "dbec3"];
+
     const song = await addSong({
-      title: data.title ?? Utils.getFileName(musicFile),
+      title: data.title ?? data["TITLE"] ?? Utils.getFileName(musicFile),
       albumId: newAlbum.id,
       trackNumber: data.track ? Number.parseInt(data.track) : 0,
       discNumber: data["disc"] ? Number.parseInt(data["disc"]) : 0,
+      hasDolbyAtmos:
+        brands && atmosIdentifiers.some((id) => brands.includes(id)),
       composers: data.composer
         ? data.composer.split(",").map((composer: string) => composer.trim())
+        : data["COMPOSER"]
+        ? data["COMPOSER"].split(",").map((composer: string) => composer.trim())
         : [],
       artists: data.artist
         ? data.artist.split(",").map((artist: string) => artist.trim())
+        : data["ARTIST"]
+        ? data["ARTIST"].split(",").map((artist: string) => artist.trim())
         : [],
       fileSrc: musicFile,
       duration: 0,

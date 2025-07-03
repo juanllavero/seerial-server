@@ -123,13 +123,13 @@ export class Library extends Model {
   })
   backgroundSrc!: string;
 
-  @HasMany(() => Series)
+  @HasMany(() => Series, { onDelete: "CASCADE", hooks: true })
   series!: Series[];
 
-  @HasMany(() => Movie)
+  @HasMany(() => Movie, { onDelete: "CASCADE", hooks: true })
   movies!: Movie[];
 
-  @HasMany(() => Album)
+  @HasMany(() => Album, { onDelete: "CASCADE", hooks: true })
   albums!: Album[];
 
   @BelongsToMany(() => Collection, {

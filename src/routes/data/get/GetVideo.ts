@@ -74,6 +74,7 @@ router.get("/stream-video", (req: any, res: any) => {
     `-ss ${videoStart}`,
     "-map 0:v:0",
     `-map 0:a:${audioTrack}`,
+    "-c:s mov_text",
     ...(subtitleTrack >= 0 ? [`-map 0:s:${subtitleTrack}`] : ["-sn"]),
     "-copyts", // Copy original timestamps
     "-avoid_negative_ts make_zero", // Adjust negative timestamps

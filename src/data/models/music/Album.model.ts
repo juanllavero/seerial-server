@@ -73,6 +73,13 @@ export class Album extends Model {
   })
   coverSrc!: string;
 
+  @Column({
+    type: DataType.STRING,
+    defaultValue: "",
+    allowNull: false,
+  })
+  folder!: string;
+
   @BelongsTo(() => Library, { onDelete: "CASCADE" })
   library!: Library;
 

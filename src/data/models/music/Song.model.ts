@@ -68,6 +68,13 @@ export class Song extends Model {
   discNumber!: number;
 
   @Column({
+    type: DataType.BOOLEAN,
+    allowNull: true,
+    field: "has_dolby_atmos",
+  })
+  hasDolbyAtmos!: boolean;
+
+  @Column({
     type: DataType.JSON,
     allowNull: false,
     defaultValue: [],

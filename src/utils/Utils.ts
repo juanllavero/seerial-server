@@ -26,6 +26,14 @@ import {
 ffmpeg.setFfprobePath(ffprobePath.path);
 
 export class Utils {
+  static extraTypes = [
+    "behindthescenes",
+    "concert",
+    "interview",
+    "live",
+    "lyrics",
+    "video",
+  ];
   static videoExtensions = [
     ".mp4",
     ".mkv",
@@ -35,6 +43,7 @@ export class Utils {
     ".flv",
     ".mpeg",
     ".m2ts",
+    ".webm",
   ];
   static audioExtensions = [
     ".mp3",

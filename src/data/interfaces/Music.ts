@@ -9,6 +9,7 @@ export interface Album {
   title: string;
   year?: string;
   genres: string[];
+  folder: string;
   description?: string;
   coverSrc: string;
 }
@@ -17,6 +18,7 @@ export interface Song {
   id?: string;
   albumId: string;
   title: string;
+  hasDolbyAtmos: boolean;
   trackNumber: number;
   discNumber: number;
   artists: string[];
