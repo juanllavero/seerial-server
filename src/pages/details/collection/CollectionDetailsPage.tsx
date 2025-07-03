@@ -24,6 +24,7 @@ import useSWR from 'swr'
 import '../DetailsPage.css'
 import CollectionImage from './CollectionImage'
 import { shallow } from 'zustand/shallow'
+import ExtrasList from './components/ExtrasList'
 function CollectionDetailsPage() {
   const { collectionId, type } = useParams()
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
@@ -74,6 +75,40 @@ function CollectionDetailsPage() {
       setCurrentBackground(undefined)
     }
   }, [collection, currentBackground, setCurrentBackground])
+
+  function getYearRange(): string {
+    if (!collection) return 'N/A'
+
+    const years =
+      type === 'Music'
+        ? collection.albums
+            .map((album) => album.year)
+            .filter((year) => year !== '')
+        : type === 'Movies'
+          ? collection.movies
+              .map((movie) => movie.year)
+              .filter((year) => year !== '')
+          : type === 'Shows'
+            ? collection.shows
+                .map((show) => show.year)
+                .filter((year) => year !== '')
+            : []
+
+    if (years.length === 0) {
+      return 'N/A'
+    }
+
+    const numericYears = years.map((year) => (year ? parseInt(year, 10) : 0))
+
+    const minYear = Math.min(...numericYears)
+    const maxYear = Math.max(...numericYears)
+
+    if (minYear === maxYear) {
+      return `${minYear}`
+    } else {
+      return `${minYear} - ${maxYear}`
+    }
+  }
 
   // Set order of content
   const orderMap: Record<ContentType, CollectionKey[]> = {
@@ -135,6 +170,7 @@ function CollectionDetailsPage() {
       gap={1}
       wrap="nowrap"
       padding={isMobile ? '3rem 0' : '2rem 3rem 5rem 3rem'}
+      width={'100%'}
       height={'100%'}
     >
       <FlexBox justify="start" align="start" gap={4} padding="0 0 1rem 0">
@@ -166,6 +202,9 @@ function CollectionDetailsPage() {
           ) : (
             <span className="text-6xl font-black">{collection.title}</span>
           )}
+
+          <span>{getYearRange()}</span>
+
           <FlexBox gap={1} wrap="wrap">
             <Button
               variant={'ghost'}
@@ -209,6 +248,8 @@ function CollectionDetailsPage() {
           return items.length > 0 ? renderMap[key](items) : null
         })
       )}
+
+      {collection && <ExtrasList collection={collection} />}
     </FlexBox>
   )
 }

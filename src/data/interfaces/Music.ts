@@ -9,6 +9,7 @@ export interface Album {
   title: string
   year?: string
   genres: string[]
+  folder: string
   description?: string
   collectionId: string
   coverSrc: string
@@ -20,6 +21,7 @@ export interface Song {
   id: string
   albumId: string
   title: string
+  hasDolbyAtmos: boolean
   trackNumber: number
   discNumber: number
   artists: string[]
@@ -37,4 +39,10 @@ export interface LRCLine {
   time: number
   text: string
   originalLine: string
+}
+
+export interface MusicExtra {
+  title: string
+  src: string
+  type: string
 }

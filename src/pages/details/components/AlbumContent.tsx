@@ -20,7 +20,7 @@ function AlbumContent({ album }: AlbumContentProps) {
       justify="start"
       align="start"
       margin="1rem 0 0 0"
-      padding={isMobile ? '0 1rem' : '0 1.5rem'}
+      padding={isMobile ? '0 1rem 4rem 1rem' : '0 1.5rem 4rem 1.5rem'}
       height={!isMobile && !isTablet ? '100%' : 'auto'}
       width={'100%'}
     >

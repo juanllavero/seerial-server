@@ -13,6 +13,12 @@ export const es = {
     errorImageUpload: 'Error al subir la imagen',
     invalidImageError: 'Selecciona un archivo de imagen válido',
 
+    extras: 'Extras',
+    extraVideo: 'Vídeo musical',
+    extraLyrics: 'Vídeo de letras',
+    extraBehindTheScenes: 'Detrás de las cámaras',
+    extraLive: 'Vídeo en directo',
+    extraInterview: 'Entrevista',
     continueWatchingEmpty: 'Aquí aparecerán los contenidos que estés viendo',
     noContent: 'Aún no has añadido contenido a tu lista',
     lyricsNotFound:

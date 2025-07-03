@@ -24,6 +24,9 @@ import '../DetailsPage.css'
 import MyListButton from './components/MyListButton'
 import PlayButton from './components/PlayButton'
 import { shallow } from 'zustand/shallow'
+import ExpandableText from '@/components/ExpandableText'
+import SelectableWrapper from '@/components/ui/SelectableWrapper'
+import SeasonSelectable from './components/SeasonSelectable'
 
 function SeriesDetailsPage() {
   const { seriesId } = useParams()
@@ -171,6 +174,10 @@ function SeriesDetailsPage() {
     }
   }
 
+  const selectSeasonOption = (key: string, _value: string) => {
+    selectSeason(series?.seasons[Number(key)]?.id || null)
+  }
+
   if (error) {
     return <NotFound />
   }
@@ -218,9 +225,16 @@ function SeriesDetailsPage() {
           {isLoading || !series ? (
             <Skeleton className="h-8 w-60" />
           ) : series.seasons && series.seasons.length > 1 && season ? (
-            <span id="seasonTitle" className="text-2xl font-bold">
-              {season.name}
-            </span>
+            <SeasonSelectable
+              defaultValue={season ? season.name : series.seasons[0].name}
+              options={series.seasons.map((season, index) => {
+                return {
+                  key: String(index),
+                  value: season.name,
+                }
+              })}
+              onValueChange={selectSeasonOption}
+            />
           ) : null}
 
           {/* Info */}
@@ -316,9 +330,9 @@ function SeriesDetailsPage() {
               {isLoading ? (
                 <Skeleton className="h-30 w-90" />
               ) : season ? (
-                season.overview
+                <ExpandableText text={season.overview} />
               ) : series ? (
-                series.overview
+                <ExpandableText text={series.overview} />
               ) : (
                 ''
               )}

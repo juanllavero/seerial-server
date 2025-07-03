@@ -13,6 +13,12 @@ export const en = {
     errorImageUpload: 'Error uploading image',
     invalidImageError: 'Select a valid image file',
 
+    extras: 'Extras',
+    extraVideo: 'Music video',
+    extraLyrics: 'Lyrics video',
+    extraBehindTheScenes: 'Behind the scenes',
+    extraLive: 'Live video',
+    extraInterview: 'Interview',
     continueWatchingEmpty: 'Here will be the content you are watching',
     noContent: 'There is no content in your list yet',
     lyricsNotFound: 'No synchronized lyrics found for this song',

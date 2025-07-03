@@ -28,6 +28,7 @@ import MovieContent from '../components/MovieContent'
 import '../DetailsPage.css'
 import MyListButton from './components/MyListButton'
 import { shallow } from 'zustand/shallow'
+import ExpandableText from '@/components/ExpandableText'
 
 function MovieDetailsPage() {
   const { movieId } = useParams()
@@ -273,11 +274,11 @@ function MovieDetailsPage() {
             </Button>
           </FlexBox>
           <FlexBox>
-            <span className="max-w-300 font-semibold">
+            <span className="max-w-300">
               {isLoading ? (
                 <Skeleton className="h-30 w-90" />
               ) : movie ? (
-                movie.overview
+                <ExpandableText text={movie.overview} />
               ) : (
                 ''
               )}

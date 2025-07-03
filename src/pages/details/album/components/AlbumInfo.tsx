@@ -9,7 +9,11 @@ import { Album, Song } from '@/data/interfaces/Music'
 import { Edit, Ellipsis } from 'lucide-react'
 import Image from '@/components/ui/Image'
 import { useTranslation } from 'react-i18next'
-import { PauseIcon, PlayIcon } from '@/components/ui/IconLibrary'
+import {
+  DolbyAtmosIcon,
+  PauseIcon,
+  PlayIcon,
+} from '@/components/ui/IconLibrary'
 import useScreenHeight from '@/components/hooks/use-height'
 import { ScreenHeight } from '@/data/enums/Screen'
 import { shallow } from 'zustand/shallow'
@@ -64,6 +68,10 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
       case ScreenHeight.UHD:
         return 'text-6xl'
     }
+  }
+
+  const hasDolbyAtmos = () => {
+    return album?.songs.some((song) => song.hasDolbyAtmos)
   }
 
   return (
@@ -139,6 +147,11 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
             </span>
           )}
         </div>
+
+        {hasDolbyAtmos() && (
+          <DolbyAtmosIcon className="w-28 text-neutral-100 shadow-2xl" />
+        )}
+
         <FlexBox gap={1} justify="center" align="center">
           <Button
             variant={'ghost'}

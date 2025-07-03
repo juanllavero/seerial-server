@@ -51,7 +51,7 @@ function SongsList({ album }: SongsListProps) {
 
   const groupedByDisc = album.songs.reduce(
     (acc: { [key: number]: Song[] }, song) => {
-      const discNumber = song.discNumber
+      const discNumber = song.discNumber || 0 // Ensure discNumber is 0 if null/undefined
       if (!acc[discNumber]) {
         acc[discNumber] = []
       }
@@ -61,23 +61,31 @@ function SongsList({ album }: SongsListProps) {
     {},
   )
 
-  // Convert the grouped object into an array sorted by disc number
-  const discEntries = Object.entries(groupedByDisc).sort(
-    ([discA], [discB]) => Number(discA) - Number(discB),
-  )
+  // Convert the grouped object into an array sorted by disc number, with disc 0 at the end
+  const discEntries = Object.entries(groupedByDisc).sort(([discA], [discB]) => {
+    const numA = Number(discA)
+    const numB = Number(discB)
+    if (numA === 0) return 1 // Move disc 0 to the end
+    if (numB === 0) return -1 // Keep other discs before disc 0
+    return numA - numB // Sort other discs numerically
+  })
 
-  // Create a flat list for playback
+  // Create a flat list for playback (it will respect the new order)
   const flatList = discEntries.flatMap(([, songs]) => songs)
 
   return (
     <>
       {discEntries.map(([discNumber, songs]) => (
-        <FlexBox direction="column" gap={1} width={'100%'}>
+        <FlexBox key={discNumber} direction="column" gap={1} width={'100%'}>
           <span className="text-xl font-semibold">
-            {t('disc')} {discNumber}
+            {/* Change title for disc 0 to 'extras' */}
+            {Number(discNumber) === 0
+              ? t('extras')
+              : `${t('disc')} ${discNumber}`}
           </span>
           {songs.map((song, index) => (
             <MusicCard
+              key={song.id}
               index={index}
               song={song}
               handlePlaySong={() => {
@@ -86,7 +94,7 @@ function SongsList({ album }: SongsListProps) {
                 } else {
                   selectSong(song)
                   setIsShown(true)
-                  setSongQueue(album.songs)
+                  setSongQueue(flatList) // Use the correctly ordered flatList
                 }
               }}
             />

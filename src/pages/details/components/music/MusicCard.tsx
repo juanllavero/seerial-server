@@ -1,14 +1,16 @@
 import FlexBox from '@/components/ui/FlexBox'
-import { PauseIcon, PlayIcon } from '@/components/ui/IconLibrary'
+import {
+  DolbyAtmosIcon,
+  PauseIcon,
+  PlayIcon,
+} from '@/components/ui/IconLibrary'
 import useMusicStore from '@/context/music.context'
 import { Song } from '@/data/interfaces/Music'
 import { formatTime } from '@/utils/ReactUtils'
 import { useState } from 'react'
-import './MusicCard.css'
 import MusicWave from './MusicWave'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { DotsVerticalIcon } from '@radix-ui/react-icons'
-import { Button } from '@/components/ui/button'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import { shallow } from 'zustand/shallow'
 
@@ -21,6 +23,7 @@ interface MusicCardProps {
 function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
   const { currentSong, isPlaying } = useMusicStore(
     (state) => ({
+      album: state.album,
       currentSong: state.currentSong,
       isPlaying: state.isPlaying,
     }),
@@ -30,10 +33,12 @@ function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
 
+  const artists = song.artists.join(', ')
+
   return (
     <FlexBox
       key={index}
-      className={`hover:bg-[#2b2b2b] ${currentSong?.id === song.id ? '' : ''}`}
+      className={`hover:bg-black/40 ${currentSong?.id === song.id ? '' : ''}`}
       justify="space-between"
       align="center"
       gap={1}
@@ -83,12 +88,20 @@ function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
             )}
           </FlexBox>
         )}
-        <span
-          className="font-semibold"
-          style={{ color: currentSong === song ? 'var(--app-color)' : '' }}
-        >
-          {song.title}
-        </span>
+        <FlexBox direction="column" gap={0.2}>
+          <span
+            className="font-semibold"
+            style={{ color: currentSong === song ? 'var(--app-color)' : '' }}
+          >
+            {song.title}
+          </span>
+          <FlexBox gap={1} align="center" className="items-center">
+            <span className="self-center text-sm text-gray-400">{artists}</span>
+            {song.hasDolbyAtmos && (
+              <DolbyAtmosIcon className="mt-[0.2rem] w-22 text-neutral-200" />
+            )}
+          </FlexBox>
+        </FlexBox>
       </FlexBox>
       <div className="flex items-center space-x-2">
         <span>{formatTime(song.duration * 60)}</span>

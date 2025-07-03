@@ -91,10 +91,6 @@ function SeasonContent({ seasonList, serverId, serverIP }: SeasonContentProps) {
     }
   }
 
-  const selectSeasonOption = (key: string, _value: string) => {
-    selectSeason(seasonList[Number(key)]?.id || null)
-  }
-
   const selectDistributionOption = (key: string, _value: string) => {
     prevDistribution.current = Number(key)
     setDistribution(Number(key))
@@ -173,23 +169,7 @@ function SeasonContent({ seasonList, serverId, serverIP }: SeasonContentProps) {
       width={'100%'}
     >
       <FlexBox width={'100%'} justify="space-between" align="start">
-        <FlexBox direction="column" gap={2}>
-          {seasonList.length > 1 && (
-            <SelectableWrapper
-              defaultValue={season ? season.name : seasonList[0].name}
-              options={seasonList.map((season, index) => {
-                return {
-                  key: String(index),
-                  value: season.name,
-                }
-              })}
-              width="fit-content"
-              onValueChange={selectSeasonOption}
-            />
-          )}
-
-          <span className="text-2xl font-semibold">{t('episodes')}</span>
-        </FlexBox>
+        <span className="text-2xl font-semibold">{t('episodes')}</span>
 
         {!isMobile && !isTablet && (
           <SelectableWrapper
