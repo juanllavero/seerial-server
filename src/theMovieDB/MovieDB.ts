@@ -448,7 +448,9 @@ export class MovieDBWrapper {
     if (movieID < 1) return null;
 
     try {
-      const queryParams = {};
+      const queryParams = {
+        include_image_language: "es,en,null,ja",
+      };
       const data = await this.makeApiRequest(
         `movie/${movieID}/images`,
         queryParams
@@ -480,7 +482,9 @@ export class MovieDBWrapper {
     if (showID < 1) return null;
 
     try {
-      const queryParams = {};
+      const queryParams = {
+        include_image_language: "es,en,null,ja",
+      };
       const data = await this.makeApiRequest(
         `tv/${showID}/images`,
         queryParams
@@ -513,7 +517,9 @@ export class MovieDBWrapper {
     if (showID < 1 || seasonNumber < 0) return null;
 
     try {
-      const queryParams = {};
+      const queryParams = {
+        include_image_language: "es,en,null,ja",
+      };
       const data = await this.makeApiRequest(
         `tv/${showID}/season/${seasonNumber}/images`,
         queryParams
@@ -543,7 +549,9 @@ export class MovieDBWrapper {
     if (showID < 1 || seasonNumber < 0 || episodeNumber < 1) return null;
 
     try {
-      const queryParams = {};
+      const queryParams = {
+        include_image_language: "es,en,null,ja",
+      };
       const data = await this.makeApiRequest(
         `tv/${showID}/season/${seasonNumber}/episode/${episodeNumber}/images`,
         queryParams
