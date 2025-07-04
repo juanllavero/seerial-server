@@ -42,8 +42,6 @@ export class ReactUtils {
   public static getDominantColors = async (imgSrc: string, isSong: boolean) => {
     const dominantColors = await this.extractColorsFromImage(imgSrc)
 
-    console.log({ dominantColors })
-
     if (dominantColors) {
       if (isSong) {
         this.songColors = dominantColors

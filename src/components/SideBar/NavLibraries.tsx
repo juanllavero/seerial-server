@@ -118,7 +118,7 @@ const NavLibraries = () => {
 
   return (
     <>
-      {isLoading || !libraries ? null : (
+      {isLoading || !libraries || libraries.length === 0 ? null : (
         <>
           {/* Separator */}
           <SidebarSeparator />

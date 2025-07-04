@@ -33,9 +33,6 @@ function ServerRouteWrapper() {
 
   useEffect(() => {
     async function loadServer() {
-      console.log(`Server/:serverId:loader [${new Date().toISOString()}]: `, {
-        serverId,
-      })
       const user = await getUser()
 
       if (!user) {
@@ -44,7 +41,6 @@ function ServerRouteWrapper() {
       }
 
       const foundServer = user?.servers.find((s) => s.id === serverId)
-      console.log(foundServer)
       selectServer(foundServer ?? null)
       setLoading(false)
     }

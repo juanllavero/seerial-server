@@ -18,6 +18,7 @@ export const es = {
     extraLyrics: 'Vídeo de letras',
     extraBehindTheScenes: 'Detrás de las cámaras',
     extraLive: 'Vídeo en directo',
+    extraConcert: 'Concierto',
     extraInterview: 'Entrevista',
     continueWatchingEmpty: 'Aquí aparecerán los contenidos que estés viendo',
     noContent: 'Aún no has añadido contenido a tu lista',

@@ -60,7 +60,6 @@ function Card({
 }: CardProps) {
   const [playButtonHovered, setPlayButtonHovered] = useState(false)
 
-  console.log({ hasDolbyAtmos })
   return (
     <FlexBox
       direction="column"

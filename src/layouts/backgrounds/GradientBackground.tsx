@@ -27,8 +27,6 @@ const GradientBackground = ({
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    console.log({ colors })
-
     canvas.width = canvas.offsetWidth
     canvas.height = canvas.offsetHeight
 
@@ -68,13 +66,6 @@ const GradientBackground = ({
       (isSong && ReactUtils.songColors.length < 4) ||
       (!isSong && ReactUtils.contentColors.length < 4)
     ) {
-      console.log({
-        showGradient,
-        isSong,
-        songColors: ReactUtils.songColors,
-        contentColors: ReactUtils.contentColors,
-      })
-      console.log('Restoring Gradient...')
       setVisible(false)
     }
 
@@ -89,7 +80,6 @@ const GradientBackground = ({
     drawGradient(newCanvas, colors)
 
     const timeout = setTimeout(() => {
-      console.log({ activeIndex, newIndex, showGradient })
       setActiveIndex(newIndex)
     }, 100)
 

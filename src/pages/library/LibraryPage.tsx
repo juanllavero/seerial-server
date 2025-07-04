@@ -10,12 +10,6 @@ function LibraryPage() {
   // Memoize serverIP
   const serverIP = useMemo(() => selectedServer?.ip, [selectedServer?.ip])
 
-  console.log(`LibraryPage [${new Date().toISOString()}]: `, {
-    libraryId,
-    serverIP,
-    serverId: selectedServer?.id,
-  })
-
   return (
     <LibraryPageContent
       libraryId={libraryId ?? ''}

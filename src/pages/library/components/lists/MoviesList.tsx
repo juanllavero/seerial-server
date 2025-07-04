@@ -29,8 +29,6 @@ function MoviesList({ library, mutateLibrary }: MoviesListProps) {
     [library.movies, collectionMovieIds],
   )
 
-  console.log('MoviesList: ', library.id)
-
   return (
     <>
       {library.collections &&

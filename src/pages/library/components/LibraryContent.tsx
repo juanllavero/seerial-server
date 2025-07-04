@@ -24,8 +24,6 @@ function LibraryContent({ library, mutateLibrary }: LibraryContentProps) {
       <MoviesList library={library} mutateLibrary={mutateLibrary} />
     )
 
-  console.log('LibraryContent: ', library.id)
-
   return (
     <Grid
       columns={

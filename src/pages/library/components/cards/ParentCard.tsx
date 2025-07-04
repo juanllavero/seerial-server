@@ -43,8 +43,6 @@ function ParentCard({
   const { cardWidth } = useCardWidth()
   const isMobile = useIsMobile()
 
-  console.log({ hasDolbyAtmos })
-
   return (
     <Card
       itemKey={itemKey}

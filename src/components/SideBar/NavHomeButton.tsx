@@ -17,11 +17,6 @@ const NavHomeButton = () => {
     [location.pathname],
   )
 
-  console.log(`NavHomeButton [${new Date().toISOString()}]: `, {
-    pathname: location.pathname,
-    inHome,
-  })
-
   const home = {
     id: '0',
     name: t('home'),

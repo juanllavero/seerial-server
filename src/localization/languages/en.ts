@@ -18,6 +18,7 @@ export const en = {
     extraLyrics: 'Lyrics video',
     extraBehindTheScenes: 'Behind the scenes',
     extraLive: 'Live video',
+    extraConcert: 'Concert',
     extraInterview: 'Interview',
     continueWatchingEmpty: 'Here will be the content you are watching',
     noContent: 'There is no content in your list yet',

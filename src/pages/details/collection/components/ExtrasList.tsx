@@ -35,6 +35,10 @@ function ExtrasList({ collection }: ExtrasListProps) {
         return t('extraLive')
       case 'interview':
         return t('extraInterview')
+      case 'concert':
+        return t('extraConcert')
+      default:
+        return ''
     }
   }
 

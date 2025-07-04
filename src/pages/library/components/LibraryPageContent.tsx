@@ -37,23 +37,16 @@ function LibraryPageContent({
     mutate,
   } = useSWR<Library>(`https://${serverIP}/library?id=${libraryId}`, fetcher)
 
-  // Memoize library to prevent unnecessary re-renders
-  const memoizedLibrary = useMemo(() => library, [library?.id])
-
   useEffect(() => {
     if (library && library.id !== selectedLibraryId) {
-      console.log('selectLibrary triggered:', {
-        libraryId: library.id,
-        selectedLibraryId,
-      })
       selectLibrary(library.id)
     }
   }, [library?.id, selectedLibraryId, selectLibrary])
 
   // Mutate content on ws message
   useEffect(() => {
-    console.log('wsMessage:', wsMessage)
     if (wsMessage === MessageType.MUTATE_LIBRARY) {
+      console.log('wsMessage:', wsMessage)
       mutate()
     }
   }, [wsMessage, mutate])
@@ -62,11 +55,11 @@ function LibraryPageContent({
     return <LibraryPageSkeleton cardWidth={cardWidth} type={type} />
   }
 
-  if (!memoizedLibrary) {
+  if (!library) {
     return <NoContent />
   }
 
-  return <LibraryContent library={memoizedLibrary} mutateLibrary={mutate} />
+  return <LibraryContent library={library} mutateLibrary={mutate} />
 }
 
 export default LibraryPageContent

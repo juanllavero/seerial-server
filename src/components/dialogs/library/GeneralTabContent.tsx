@@ -51,7 +51,7 @@ function GeneralTabContent({
         <FlexBox>
           <LibraryTypeButton
             selectedType={type}
-            type="Movies"
+            type="movies"
             onClick={() => {
               setType('Movies')
               setName(t('movies'))
@@ -61,7 +61,7 @@ function GeneralTabContent({
 
           <LibraryTypeButton
             selectedType={type}
-            type="Shows"
+            type="shows"
             onClick={() => {
               setType('Shows')
               setName(t('shows'))
@@ -71,7 +71,7 @@ function GeneralTabContent({
 
           <LibraryTypeButton
             selectedType={type}
-            type="Music"
+            type="music"
             onClick={() => {
               setType('Music')
               setName(t('music'))
