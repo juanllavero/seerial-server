@@ -78,7 +78,7 @@ export class SequelizeManager {
 
       // Sync models to db
       await SequelizeManager.sequelize.sync({
-        alter: true,
+        // alter: true,
         // force: true
       });
 

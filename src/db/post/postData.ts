@@ -113,7 +113,6 @@ export const addCollection = async (collection: Partial<Collection>) => {
       });
 
       if (existingCollection) {
-        console.log(`Colección con título "${collection.title}" ya existe`);
         return existingCollection;
       }
     }
@@ -152,9 +151,6 @@ export const addLibraryToCollection = async (
     });
 
     if (existingElement) {
-      console.log(
-        `La biblioteca ${libraryId} ya está en la colección ${collectionId}`
-      );
       return existingElement;
     }
 
@@ -193,9 +189,6 @@ export const addSeriesToCollection = async (
     });
 
     if (existingElement) {
-      console.log(
-        `La serie ${seriesId} ya está en la colección ${collectionId}`
-      );
       return existingElement;
     }
 
@@ -234,9 +227,6 @@ export const addMovieToCollection = async (
     });
 
     if (existingElement) {
-      console.log(
-        `La película ${movieId} ya está en la colección ${collectionId}`
-      );
       return existingElement;
     }
 
@@ -275,9 +265,6 @@ export const addAlbumToCollection = async (
     });
 
     if (existingElement) {
-      console.log(
-        `El álbum ${albumId} ya está en la colección ${collectionId}`
-      );
       return existingElement;
     }
 
@@ -312,7 +299,6 @@ export const addSeries = async (series: Partial<SeriesData>) => {
     if (series.id) {
       const existingSeries = await getSeriesById(series.id);
       if (existingSeries) {
-        console.log(`La serie con ID ${series.id} ya existe`);
         return existingSeries;
       }
     }
@@ -343,7 +329,6 @@ export const addMovie = async (movie: Partial<MovieData>) => {
     if (movie.id) {
       const existingMovie = await getMovieById(movie.id);
       if (existingMovie) {
-        console.log(`La película con ID ${movie.id} ya existe`);
         return existingMovie;
       }
     }
@@ -374,7 +359,6 @@ export const addSeason = async (season: Partial<SeasonData>) => {
     if (season.id) {
       const existingSeason = await getSeasonById(season.id);
       if (existingSeason) {
-        console.log(`La temporada con ID ${season.id} ya existe`);
         return existingSeason;
       }
     }
@@ -405,7 +389,6 @@ export const addEpisode = async (episode: Partial<EpisodeData>) => {
     if (episode.id) {
       const existingEpisode = await getEpisodeById(episode.id);
       if (existingEpisode) {
-        console.log(`El episodio con ID ${episode.id} ya existe`);
         return existingEpisode;
       }
     }
@@ -439,7 +422,6 @@ export const addVideoAsMovie = async (
     if (video && video.id) {
       const existingVideo = await getVideoById(video.id);
       if (existingVideo) {
-        console.log(`El video con ID ${video.id} ya existe`);
         return existingVideo;
       }
     }
@@ -474,7 +456,6 @@ export const addVideoAsMovieExtra = async (
     if (video && video.id) {
       const existingVideo = await getVideoById(video.id);
       if (existingVideo) {
-        console.log(`El video con ID ${video.id} ya existe`);
         return existingVideo;
       }
     }
@@ -509,7 +490,6 @@ export const addVideoAsEpisode = async (
     if (video && video.id) {
       const existingVideo = await getVideoById(video.id);
       if (existingVideo) {
-        console.log(`El video con ID ${video.id} ya existe`);
         return existingVideo;
       }
     }
@@ -545,7 +525,6 @@ export const addAlbum = async (album: Partial<AlbumData>) => {
     if (album.id) {
       const existingAlbum = await getAlbumById(album.id);
       if (existingAlbum) {
-        console.log(`El álbum con ID ${album.id} ya existe`);
         return existingAlbum;
       }
     }
@@ -581,7 +560,6 @@ export const addArtist = async (artist: Partial<ArtistData>) => {
       });
 
       if (existingArtist) {
-        console.log(`El artista con nombre "${artist.name}" ya existe`);
         return existingArtist;
       }
     }
@@ -617,9 +595,6 @@ export const addArtistToAlbum = async (artistId: string, albumId: string) => {
     });
 
     if (existingElement) {
-      console.log(
-        `El artista ${artistId} ya está asociado al álbum ${albumId}`
-      );
       return existingElement;
     }
 
@@ -650,7 +625,6 @@ export const addSong = async (song: Partial<SongData>) => {
     if (song.id) {
       const existingSong = await getSongById(song.id);
       if (existingSong) {
-        console.log(`La canción con ID ${song.id} ya existe`);
         return existingSong;
       }
     }
