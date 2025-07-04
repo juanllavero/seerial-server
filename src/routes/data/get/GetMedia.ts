@@ -499,8 +499,6 @@ router.get("/musicExtras/:collectionId", async (req: any, res: any) => {
       }
     });
 
-    console.log({ rootFolders });
-
     // 3. Search in each root folder concurrently
     const promises = Array.from(rootFolders).map(async (folder) => {
       const foundExtras: { title: string; src: string; type: string }[] = [];
@@ -525,18 +523,12 @@ router.get("/musicExtras/:collectionId", async (req: any, res: any) => {
         }
       }
 
-      console.log({ extrasPath });
-
       if (!extrasPath) {
         return []; // There is no 'extras' folder in this path, return an empty array
       }
 
       // Read the contents of the 'extras' directory
       const files = await fs.readdir(extrasPath);
-
-      console.log({
-        files,
-      });
 
       for (const file of files) {
         const fileExt = path.extname(file).toLowerCase();
