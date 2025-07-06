@@ -65,6 +65,7 @@
     "axios": "^1.7.9",
     "cheerio": "^1.0.0",
     "cors": "^2.8.5",
+    "execa": "^9.6.0",
     "express": "^4.21.2",
     "ffmetadata": "^1.7.0",
     "ffmpeg-static": "^5.2.0",

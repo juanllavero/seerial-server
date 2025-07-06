@@ -75,6 +75,13 @@ export class Song extends Model {
   hasDolbyAtmos!: boolean;
 
   @Column({
+    type: DataType.STRING,
+    allowNull: false,
+    defaultValue: "",
+  })
+  codec!: string;
+
+  @Column({
     type: DataType.JSON,
     allowNull: false,
     defaultValue: [],

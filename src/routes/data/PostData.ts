@@ -31,7 +31,7 @@ import { FilesManager } from "../../utils/FilesManager";
 import { Utils } from "../../utils/Utils";
 const router = express.Router();
 
-router.post("/api-key", (req, res) => {
+router.post("/api-key", (req: any, res: any) => {
   const { apiKey } = req.body;
 
   const properties =

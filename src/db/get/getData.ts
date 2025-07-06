@@ -25,23 +25,12 @@ export const getLibraries = () => {
 export const getLibraryById = async (id: string) => {
   if (!SequelizeManager.sequelize) return null;
 
+  console.log("Trying to obtain lbrary");
+
   try {
-    const library = await Library.findByPk(id, {
-      include: [
-        { model: Series, as: "series" },
-        { model: Movie, as: "movies" },
-        { model: Album, as: "albums" },
-        {
-          model: Collection,
-          as: "collections",
-          include: [
-            { model: Series, as: "shows" },
-            { model: Movie, as: "movies" },
-            { model: Album, as: "albums" },
-          ],
-        },
-      ],
-    });
+    const library = await Library.findByPk(id);
+
+    console.log("Library obtained");
 
     if (!library) {
       console.log(`Library with id ${id} not found`);
@@ -135,6 +124,35 @@ export const getCollections = async () => {
   if (!SequelizeManager.sequelize) return null;
 
   return Collection.findAll();
+};
+
+export const getCollectionsInLibrary = async (libraryId: string) => {
+  if (!SequelizeManager.sequelize) return null;
+
+  try {
+    const library = await Library.findByPk(libraryId, {
+      include: [
+        {
+          model: Collection,
+          as: "collections",
+          include: [
+            { model: Series, as: "shows" },
+            { model: Movie, as: "movies" },
+            { model: Album, as: "albums" },
+          ],
+        },
+      ],
+    });
+
+    if (!library) {
+      console.log("Library not found");
+      return [];
+    }
+    return library.collections;
+  } catch (error) {
+    console.error("Error fetching collections:", error);
+    return null;
+  }
 };
 
 export const getCollectionById = async (id: string) => {

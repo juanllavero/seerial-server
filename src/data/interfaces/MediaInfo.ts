@@ -1,3 +1,27 @@
+export interface MediaInfoData {
+  mediaInfo: MediaInfo | undefined;
+  videoTracks: VideoTrack[];
+  subtitleTracks: SubtitleTrack[];
+  audioTracks: AudioTrack[];
+  chapters: Chapter[];
+  duration: number;
+}
+
+export interface AudioInfo {
+  artist: string;
+  album: string;
+  genres: string[];
+  composers: string[];
+  artists: string[];
+  trackNumber: number;
+  discNumber: number;
+  date: string;
+  title: string;
+  codec: string;
+  duration: number;
+  hasDolbyAtmos: boolean;
+}
+
 export interface MediaInfo {
   file: string;
   location: string;

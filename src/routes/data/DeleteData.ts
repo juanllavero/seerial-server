@@ -13,7 +13,7 @@ import {
 const router = express.Router();
 
 // Delete Library
-router.delete("/libraries/:id", async (req, res) => {
+router.delete("/libraries/:id", async (req: any, res: any) => {
   const { id } = req.params;
 
   try {
@@ -25,7 +25,7 @@ router.delete("/libraries/:id", async (req, res) => {
 });
 
 // Delete Movie
-router.delete("/movie/:id", async (req, res) => {
+router.delete("/movie/:id", async (req: any, res: any) => {
   const { id } = req.params;
 
   try {
@@ -37,7 +37,7 @@ router.delete("/movie/:id", async (req, res) => {
 });
 
 // Delete Show
-router.delete("/series/:id", async (req, res) => {
+router.delete("/series/:id", async (req: any, res: any) => {
   const { id } = req.params;
 
   try {
@@ -49,7 +49,7 @@ router.delete("/series/:id", async (req, res) => {
 });
 
 // Delete Season
-router.delete("/season/:id", async (req, res) => {
+router.delete("/season/:id", async (req: any, res: any) => {
   const { id } = req.params;
 
   try {
@@ -61,7 +61,7 @@ router.delete("/season/:id", async (req, res) => {
 });
 
 // Delete Episode
-router.delete("/episode/:id", async (req, res) => {
+router.delete("/episode/:id", async (req: any, res: any) => {
   const { id } = req.params;
 
   try {
@@ -73,7 +73,7 @@ router.delete("/episode/:id", async (req, res) => {
 });
 
 // Delete Video
-router.delete("/video/:id", async (req, res) => {
+router.delete("/video/:id", async (req: any, res: any) => {
   const { id } = req.params;
 
   try {
@@ -85,7 +85,7 @@ router.delete("/video/:id", async (req, res) => {
 });
 
 // Delete collection
-router.delete("/collection/:id", async (req, res) => {
+router.delete("/collection/:id", async (req: any, res: any) => {
   const { id } = req.params;
 
   try {
@@ -97,7 +97,7 @@ router.delete("/collection/:id", async (req, res) => {
 });
 
 // Delete album
-router.delete("/album/:id", async (req, res) => {
+router.delete("/album/:id", async (req: any, res: any) => {
   const { id } = req.params;
 
   try {
@@ -109,7 +109,7 @@ router.delete("/album/:id", async (req, res) => {
 });
 
 // Delete song
-router.delete("/song/:id", async (req, res) => {
+router.delete("/song/:id", async (req: any, res: any) => {
   const { id } = req.params;
 
   try {

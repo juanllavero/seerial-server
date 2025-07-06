@@ -26,7 +26,7 @@ appServer.use(
   })
 );
 
-// appServer.use((_req, res) => {
+// appServer.use((_req: any, res: any) => {
 //   res.header("Access-Control-Allow-Origin", "*");
 //   res.header("Access-Control-Expose-Headers", "x-total-count");
 //   res.header("Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,PATCH");

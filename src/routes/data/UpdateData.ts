@@ -14,11 +14,12 @@ import {
   updateSeries,
   updateVideo,
 } from "../../db/update/updateData";
+import { getMediaInfo } from "../../ffmpeg/mediaInfo";
 import { Utils } from "../../utils/Utils";
 const router = express.Router();
 
 // Update Library
-router.put("/library", (req, res) => {
+router.put("/library", (req: any, res: any) => {
   const { libraryId, updatedLibrary } = req.body;
 
   try {
@@ -30,7 +31,7 @@ router.put("/library", (req, res) => {
 });
 
 // Update Collection
-router.put("/collection", (req, res) => {
+router.put("/collection", (req: any, res: any) => {
   const { collectionId, updatedCollection } = req.body;
 
   try {
@@ -42,7 +43,7 @@ router.put("/collection", (req, res) => {
 });
 
 // Update Show
-router.put("/show", (req, res) => {
+router.put("/show", (req: any, res: any) => {
   const { showId, updatedShow } = req.body;
 
   try {
@@ -54,7 +55,7 @@ router.put("/show", (req, res) => {
 });
 
 // Update Season
-router.put("/season", (req, res) => {
+router.put("/season", (req: any, res: any) => {
   const { seasonId, updatedSeason } = req.body;
 
   try {
@@ -66,7 +67,7 @@ router.put("/season", (req, res) => {
 });
 
 // Update Episode
-router.put("/episode", (req, res) => {
+router.put("/episode", (req: any, res: any) => {
   const { episodeId, updatedEpisode } = req.body;
 
   try {
@@ -78,7 +79,7 @@ router.put("/episode", (req, res) => {
 });
 
 // Update Video
-router.put("/video", (req, res) => {
+router.put("/video", (req: any, res: any) => {
   const { videoId, updatedVideo } = req.body;
 
   try {
@@ -90,7 +91,7 @@ router.put("/video", (req, res) => {
 });
 
 // Update Movie
-router.put("/movie", (req, res) => {
+router.put("/movie", (req: any, res: any) => {
   const { movieId, updatedMovie } = req.body;
 
   try {
@@ -102,7 +103,7 @@ router.put("/movie", (req, res) => {
 });
 
 // Update Album
-router.put("/album", (req, res) => {
+router.put("/album", (req: any, res: any) => {
   const { albumId, updatedAlbum } = req.body;
 
   try {
@@ -114,7 +115,7 @@ router.put("/album", (req, res) => {
 });
 
 // Update Song
-router.put("/song", (req, res) => {
+router.put("/song", (req: any, res: any) => {
   const { songId, updatedSong } = req.body;
 
   try {
@@ -139,7 +140,22 @@ router.put("/updateMediaInfo", async (req: any, res: any) => {
     return res.status(404).json({ error: "Video not found" });
   }
 
-  res.json(await Utils.getMediaInfo(video));
+  const mediaInfo = await getMediaInfo(video.fileSrc);
+
+  if (!mediaInfo) {
+    return res.status(404).json({ error: "Media info not found" });
+  }
+
+  video.mediaInfo = mediaInfo.mediaInfo;
+  video.videoTracks = mediaInfo.videoTracks;
+  video.subtitleTracks = mediaInfo.subtitleTracks;
+  video.audioTracks = mediaInfo.audioTracks;
+  video.chapters = mediaInfo.chapters;
+  video.runtime = mediaInfo.duration;
+
+  await video.save();
+
+  res.json(mediaInfo);
 });
 
 router.put("/updateWatchState", async (req: any, res: any) => {

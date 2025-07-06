@@ -1,6 +1,6 @@
-import ffmetadata from "ffmetadata";
-import ffmpegPath from "ffmpeg-static";
-import fs from "fs";
+import ffprobePath from "ffprobe-static";
+import ffmpeg from "fluent-ffmpeg";
+import { promises as fsPromises } from "fs";
 import path from "path";
 import { Collection } from "../../data/models/Collections/Collection.model";
 import { Library } from "../../data/models/Media/Library.model";
@@ -15,6 +15,7 @@ import {
   addLibraryToCollection,
   addSong,
 } from "../../db/post/postData";
+import { getAudioInfo } from "../../ffmpeg/audioInfo";
 import { FilesManager } from "../../utils/FilesManager";
 import { Utils } from "../../utils/Utils";
 import { WebSocketManager } from "../../WebSockets/WebSocketManager";
@@ -27,7 +28,8 @@ export async function scanMusic(
 ) {
   if (!(await Utils.isFolder(folder))) return;
 
-  ffmetadata.setFfmpegPath(ffmpegPath || "");
+  // Establece la ruta para fluent-ffmpeg
+  ffmpeg.setFfprobePath(ffprobePath.path); // Es buena práctica establecer también la ruta de ffprobe
 
   // Add collection or retrieve existing one
   const collection = await addCollection({
@@ -41,10 +43,21 @@ export async function scanMusic(
   // Get music files inside folder (4 folders of depth)
   const musicFiles = await Utils.getMusicFiles(folder);
 
-  // Process each file
+  // Cache albums to avoid heap overflow
+  const allAlbums = (await getAlbums(library.id)) || [];
+  const albumMap = new Map(allAlbums.map((album) => [album.title, album]));
+
+  //Process each file
   for (const file of musicFiles) {
     if (!library.analyzedFiles[file]) {
-      await processMusicFile(folder, library, file, collection, wsManager);
+      await processMusicFile(
+        folder,
+        library,
+        file,
+        collection,
+        wsManager,
+        albumMap
+      );
     }
   }
 
@@ -57,57 +70,46 @@ export async function processMusicFile(
   library: Library,
   musicFile: string,
   collection: Collection,
-  wsManager: WebSocketManager
+  wsManager: WebSocketManager,
+  albumMap: Map<string, Album>
 ) {
   try {
-    const data = await new Promise<any>((resolve, reject) => {
-      ffmetadata.read(musicFile, (err: any, data: any) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve(data);
-        }
-      });
-    });
+    const metadata = await getAudioInfo(musicFile);
 
-    const artistName = data["album_artist"] ? data["album_artist"] : "";
-    const albumName = data.album
-      ? data.album
-      : data["ALBUM"]
-      ? data["ALBUM"]
-      : collection.title;
+    if (!metadata) return;
+
+    const {
+      album,
+      date,
+      duration,
+      genres,
+      title,
+      trackNumber,
+      discNumber,
+      hasDolbyAtmos,
+      codec,
+      composers,
+      artists,
+    } = metadata;
 
     let newAlbum: Album | null = null;
 
-    const albums = await getAlbums(library.id);
-
-    if (albums) {
-      for (const album of albums) {
-        if (album.title === albumName) {
-          newAlbum = album;
-          break;
-        }
-      }
+    if (albumMap.has(album)) {
+      newAlbum = albumMap.get(album)!;
     }
 
     if (!newAlbum) {
       newAlbum = await addAlbum({
-        title: albumName,
-        year: data.date
-          ? new Date(data.date).getFullYear().toString()
-          : data["DATE"]
-          ? new Date(data["DATE"]).getFullYear().toString()
-          : data["TYER"]
-          ? new Date(data["TYER"]).getFullYear().toString()
-          : "",
+        title: album !== "" ? album : collection.title,
+        year: date ? new Date(date).getFullYear().toString() : "",
         libraryId: library.id,
         folder: rootFolder,
-        genres: data.genre
-          ? data.genre.split(",").map((genre: string) => genre.trim())
-          : data["GENRE"]
-          ? data["GENRE"].split(",").map((genre: string) => genre.trim())
-          : [],
+        genres,
       });
+
+      if (newAlbum) {
+        albumMap.set(newAlbum.title, newAlbum);
+      }
 
       // Update content in clients
       Utils.mutateLibrary(wsManager);
@@ -117,38 +119,25 @@ export async function processMusicFile(
 
     await addAlbumToCollection(collection.id, newAlbum.id);
 
-    // Variables to check if the song is in Dolby Atmos
-    const brands = data["compatible_brands"];
-    const atmosIdentifiers = ["dby1", "dbac3", "dbec3"];
-
     const song = await addSong({
-      title: data.title ?? data["TITLE"] ?? Utils.getFileName(musicFile),
+      title: title !== "" ? title : Utils.getFileName(musicFile),
       albumId: newAlbum.id,
-      trackNumber: data.track ? Number.parseInt(data.track) : 0,
-      discNumber: data["disc"] ? Number.parseInt(data["disc"]) : 0,
-      hasDolbyAtmos:
-        brands && atmosIdentifiers.some((id) => brands.includes(id)),
-      composers: data.composer
-        ? data.composer.split(",").map((composer: string) => composer.trim())
-        : data["COMPOSER"]
-        ? data["COMPOSER"].split(",").map((composer: string) => composer.trim())
-        : [],
-      artists: data.artist
-        ? data.artist.split(",").map((artist: string) => artist.trim())
-        : data["ARTIST"]
-        ? data["ARTIST"].split(",").map((artist: string) => artist.trim())
-        : [],
+      trackNumber,
+      discNumber,
+      hasDolbyAtmos,
+      composers,
+      artists,
       fileSrc: musicFile,
-      duration: 0,
+      duration: duration * 60,
     });
 
-    if (artistName) {
-      const artist = await addArtist({
-        name: artistName,
+    for (const artist of artists) {
+      const newArtist = await addArtist({
+        name: artist,
       });
 
-      if (artist) {
-        addArtistToAlbum(artist.id, newAlbum.id);
+      if (newArtist) {
+        addArtistToAlbum(newArtist.id, newAlbum.id);
       }
     }
 
@@ -172,12 +161,12 @@ export async function processMusicFile(
             "/" +
             imageSrc.split("\\").pop()
         );
-        fs.copyFile(imageSrc, destPath, (err: any) => {
-          if (err) {
-            console.error("Error copying image:", err);
-            return;
-          }
-        });
+
+        try {
+          await fsPromises.copyFile(imageSrc, destPath);
+        } catch (err) {
+          console.error("Error copying image:", err);
+        }
 
         newAlbum.coverSrc =
           "resources/img/posters/" +
@@ -197,12 +186,12 @@ export async function processMusicFile(
               "/" +
               imageSrc.split("\\").pop()
           );
-          fs.copyFile(imageSrc, destPath, (err: any) => {
-            if (err) {
-              console.error("Error copying image:", err);
-              return;
-            }
-          });
+
+          try {
+            await fsPromises.copyFile(imageSrc, destPath);
+          } catch (err) {
+            console.error("Error copying image:", err);
+          }
 
           collection.musicPosterSrc =
             "resources/img/posters/" +
@@ -212,25 +201,21 @@ export async function processMusicFile(
         }
       }
 
+      await newAlbum.save();
+
       // Update content in clients
       Utils.mutateLibrary(wsManager);
     }
 
     if (!song) return;
 
-    // Get runtime
-    song.duration = await Utils.getOnlyRuntime(musicFile);
-
     await library.addAnalyzedFile(musicFile, song.id);
 
     // Save data in DB
-    library.save();
-    collection.save();
-    newAlbum.save();
-    song.save();
-
-    // Update content in clients
-    Utils.mutateAlbum(wsManager);
+    await library.save();
+    await collection.save();
+    await newAlbum.save();
+    await song.save();
   } catch (error) {
     console.error("Error processing music file", error);
   }

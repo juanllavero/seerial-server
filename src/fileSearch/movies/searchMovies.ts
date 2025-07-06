@@ -13,6 +13,7 @@ import {
   addMovieToCollection,
   addVideoAsMovie,
 } from "../../db/post/postData";
+import { getOnlyRuntime } from "../../ffmpeg/mediaInfo";
 import { MovieDBWrapper } from "../../theMovieDB/MovieDB";
 import { FilesManager } from "../../utils/FilesManager";
 import { IMDBScores } from "../../utils/IMDBScores";
@@ -403,7 +404,7 @@ export async function saveMovieWithoutMetadata(
   if (!video) return;
 
   video.movieId = movie.id;
-  video.runtime = await Utils.getOnlyRuntime(video.fileSrc);
+  video.runtime = await getOnlyRuntime(video.fileSrc);
 
   if (filePath in library.analyzedFiles) {
     video = await getVideoById(library.analyzedFiles[filePath] ?? "");
@@ -453,7 +454,7 @@ export async function processVideo(
 
   if (!video) return;
 
-  video.runtime = await Utils.getOnlyRuntime(video.fileSrc);
+  video.runtime = await getOnlyRuntime(video.fileSrc);
 
   const images = await MovieDBWrapper.getMovieImages(movie.themdbId);
 
@@ -514,7 +515,7 @@ export async function processVideoAsExtra(
 
   if (!video) return;
 
-  video.runtime = await Utils.getOnlyRuntime(video.fileSrc);
+  video.runtime = await getOnlyRuntime(video.fileSrc);
 
   // Save data in DB
   video.save();

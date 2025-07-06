@@ -1,8 +1,8 @@
 import express from "express";
-const router = express.Router();
 import fs from "fs";
 import os from "os";
 import path from "path";
+const router = express.Router();
 
 // Function to get drives in the system
 const getDrives = () => {
@@ -37,7 +37,7 @@ const getDrives = () => {
 };
 
 // Endpoint to get drives
-router.get("/drives", (req, res) => {
+router.get("/drives", (req: any, res: any) => {
   const drives = getDrives();
   res.json(drives);
 });
