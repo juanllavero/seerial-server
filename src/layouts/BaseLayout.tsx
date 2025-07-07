@@ -3,7 +3,6 @@ import MusicPlayer from '@/components/musicPlayer/MusicPlayer'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { getToken } from '@/lib/auth'
-import { ReactUtils } from '@/utils/ReactUtils'
 import React, { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Toaster } from 'sonner'
@@ -14,6 +13,7 @@ import DesktopMusicPlayer from '@/components/musicPlayer/desktop/DesktopMusicPla
 import DesktopMusicPlayerExpanded from '@/components/musicPlayer/desktop/DesktopMusicPlayerExpanded'
 import MobileMusicPlayer from '@/components/musicPlayer/mobile/MobileMusicPlayer'
 import { useIsMobile } from '@/components/hooks/use-mobile'
+import { useGradientStore } from '@/context/gradientBackground.context'
 
 export default function BaseLayout({
   children,
@@ -22,6 +22,7 @@ export default function BaseLayout({
 }) {
   const selectedBackground = useDataStore((state) => state.currentBackground)
   const selectedServer = useServerStore((state) => state.selectedServer)
+  const generateGradient = useGradientStore((state) => state.generateGradient)
   const prevBackground = useRef<string | undefined>(undefined)
   const [currentBackground, setCurrentBackground] = useState<
     string | undefined
@@ -35,7 +36,7 @@ export default function BaseLayout({
 
   useEffect(() => {
     if (selectedBackground && selectedServer) {
-      ReactUtils.generateGradient(selectedBackground, selectedServer.ip, false)
+      generateGradient(selectedBackground, selectedServer.ip, false)
     }
 
     if (!selectedBackground) {

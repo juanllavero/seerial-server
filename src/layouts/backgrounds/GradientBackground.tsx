@@ -1,5 +1,6 @@
-import { ReactUtils } from '@/utils/ReactUtils'
+import { useGradientStore } from '@/context/gradientBackground.context'
 import { useEffect, useRef, useState } from 'react'
+import { shallow } from 'zustand/shallow'
 
 interface GradientBackgroundProps {
   showGradient?: boolean
@@ -17,6 +18,13 @@ const GradientBackground = ({
   index = -1,
 }: GradientBackgroundProps) => {
   const [activeIndex, setActiveIndex] = useState(0)
+  const { songColors, contentColors } = useGradientStore(
+    (state) => ({
+      songColors: state.songColors,
+      contentColors: state.contentColors,
+    }),
+    shallow,
+  )
   const [visible, setVisible] = useState(true)
   const canvasRefs = [
     useRef<HTMLCanvasElement | null>(null),
@@ -63,15 +71,15 @@ const GradientBackground = ({
   useEffect(() => {
     if (
       !showGradient ||
-      (isSong && ReactUtils.songColors.length < 4) ||
-      (!isSong && ReactUtils.contentColors.length < 4)
+      (isSong && songColors.length < 4) ||
+      (!isSong && contentColors.length < 4)
     ) {
       setVisible(false)
     }
 
     setVisible(true)
 
-    const colors = isSong ? ReactUtils.songColors : ReactUtils.contentColors
+    const colors = isSong ? songColors : contentColors
 
     const newIndex = (activeIndex + 1) % 2
     const newCanvas = canvasRefs[newIndex].current
@@ -84,7 +92,7 @@ const GradientBackground = ({
     }, 100)
 
     return () => clearTimeout(timeout)
-  }, [ReactUtils.songColors, ReactUtils.contentColors, showGradient])
+  }, [songColors, contentColors, showGradient])
 
   return (
     <div
