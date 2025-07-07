@@ -6,7 +6,7 @@ import { Video } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
-import HorizontalList from '../HorizontalList'
+import HorizontalList from '../../../../components/lists/HorizontalList'
 
 interface ContinueWatchingProps {
   goToContent: (url: string) => void

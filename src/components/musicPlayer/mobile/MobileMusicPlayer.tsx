@@ -84,7 +84,6 @@ const MobileMusicPlayer = () => {
 
     const clampedDelta = Math.max(0, Math.min(Math.abs(deltaY), maxDrag))
     setDragOffset(isExpanded ? -clampedDelta : clampedDelta)
-    e.preventDefault()
   }
 
   const handleTouchEnd = () => {
@@ -210,9 +209,6 @@ const MobileMusicPlayer = () => {
     const availableVerticalSpace =
       viewportHeight - headerHeight - controlsHeight
     const top = headerHeight + (availableVerticalSpace - size) / 2
-    const minTopWithMargin = headerHeight + 10
-    const maxTopWithMargin = viewportHeight - controlsHeight - size - 10
-    const finalTop = Math.max(minTopWithMargin, Math.min(top, maxTopWithMargin))
 
     return { size, left, top }
   }
@@ -233,7 +229,7 @@ const MobileMusicPlayer = () => {
 
   const barOpacity = Math.max(0, 1 - expandProgress * 2)
   const controlsOpacity = Math.max(0, expandProgress)
-  const controlsTransform = `translateY(${(1 - expandProgress) * 40}px)`
+  const controlsTransform = `translateY(${(1 - expandProgress) * 500}px)`
 
   const minimizedSize = 56
   const minimizedLeft = 16

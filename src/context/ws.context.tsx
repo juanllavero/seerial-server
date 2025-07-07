@@ -17,13 +17,14 @@ interface WebSocketState {
   downloadingElementId: string | null
   downloadPercentage: number
   analyzing: boolean
+  analyzingLibraryId: string | null
   seriesReceived: Series | null
   wsConnected: boolean
   messageQueue: WebSocketMessage[]
   setDownloading: (value: boolean) => void
   setDownloaded: (value: boolean) => void
   setDownloadPercentage: (value: number) => void
-  setAnalyzing: (value: boolean) => void
+  setAnalyzing: (value: boolean, libraryId: string) => void
   setSeriesReceived: (value: Series | null) => void
   connectWS: (ip: string) => Promise<void>
   downloadAudio: (
@@ -53,6 +54,7 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
     analyzing: false,
     downloaded: false,
     downloadingElementId: null,
+    analyzingLibraryId: null,
     errorDownloading: false,
     downloading: false,
     downloadPercentage: 0,
@@ -61,7 +63,8 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
     setDownloaded: (value) => set({ downloaded: value }),
     setDownloading: (value) => set({ downloading: value }),
     setDownloadPercentage: (value) => set({ downloadPercentage: value }),
-    setAnalyzing: (value) => set({ analyzing: value }),
+    setAnalyzing: (value, libraryId) =>
+      set({ analyzing: value, analyzingLibraryId: libraryId }),
     setSeriesReceived: (value) => set({ seriesReceived: value }),
     addMessageToQueue: (message) =>
       set((state) => ({
@@ -127,6 +130,12 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
                   downloadingElementId: null,
                   downloadPercentage: 0,
                 })
+                break
+              case MessageType.SCAN_STARTED:
+                set({ analyzing: true, analyzingLibraryId: message.body })
+                break
+              case MessageType.SCAN_COMPLETE:
+                set({ analyzing: false, analyzingLibraryId: null })
                 break
               default:
                 set({ wsMessage: message.header })

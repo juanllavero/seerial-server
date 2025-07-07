@@ -1,6 +1,9 @@
 import Image from '@/components/ui/Image'
+import { useServerStore } from '@/context/server.context'
 import { Collection } from '@/data/interfaces/Media'
 import { getFirstImage, getPosterImage } from '@/utils/ReactUtils'
+import { fetcher } from '@/utils/utils'
+import useSWR from 'swr'
 
 interface CollectionImageProps {
   collection: Collection
@@ -8,11 +11,17 @@ interface CollectionImageProps {
 }
 
 function CollectionImage({ collection, type }: CollectionImageProps) {
+  const selectedServer = useServerStore((state) => state.selectedServer)
+  const { data: collectionImages } = useSWR<string[]>(
+    `https://${selectedServer?.ip}/collection-images?collectionId=${collection.id}&&type=${type}`,
+    fetcher,
+  )
+
   const posterImage = collection.coverSrc
     ? collection.coverSrc
     : getFirstImage(collection, type)
 
-  const collage = getPosterImage(collection, type)
+  const collage = getPosterImage(collection.id, collectionImages || [], type)
   if (collage) {
     return (
       <div className={`aspect-[${type == 'Music' ? '1' : '2/3'}] w-100`}>

@@ -28,8 +28,8 @@ import Image from '@/components/ui/Image'
 import { useState } from 'react'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import { useTranslation } from 'react-i18next'
-import { DotsVerticalIcon } from '@radix-ui/react-icons'
 import { shallow } from 'zustand/shallow'
+import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
 
 interface MusicControlsExpandedProps {
   title: string
@@ -43,6 +43,7 @@ function MusicControlsExpanded({
   const {
     album,
     isPlaying,
+    isLoading,
     isShuffling,
     repeateMode,
     prevVolume,
@@ -70,6 +71,7 @@ function MusicControlsExpanded({
     (state) => ({
       album: state.album,
       isPlaying: state.isPlaying,
+      isLoading: state.isLoading,
       isShuffling: state.isShuffling,
       repeateMode: state.repeateMode,
       prevVolume: state.prevVolume,
@@ -223,7 +225,9 @@ function MusicControlsExpanded({
             className="h-15 w-15 rounded-full text-white"
             title={isPlaying ? t('pause') : t('play')}
           >
-            {isPlaying ? (
+            {isLoading ? (
+              <SmallSpinner />
+            ) : isPlaying ? (
               <PauseIcon size={isMobile ? 54 : 44} />
             ) : (
               <PlayIcon size={isMobile ? 54 : 44} />

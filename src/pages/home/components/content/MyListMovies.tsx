@@ -5,7 +5,7 @@ import { Movie } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
-import HorizontalList from '../HorizontalList'
+import HorizontalList from '../../../../components/lists/HorizontalList'
 import HorizontalListSkeleton from './HorizontalListSkeleton'
 
 interface MyListMoviesProps {
@@ -35,7 +35,9 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
             width={isMobile ? 130 : 180}
             aspectRatio={2 / 3}
             title={movie.name}
-            subtitle={movie.year}
+            subtitle={
+              movie.year ? new Date(movie.year).getFullYear().toString() : 'N/A'
+            }
             hidePlayButton
             action={() =>
               goToContent(

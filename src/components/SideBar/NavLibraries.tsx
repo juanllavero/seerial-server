@@ -18,6 +18,7 @@ import {
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
+import { useWebSocketStore } from '@/context/ws.context'
 import { LibraryTypes } from '@/data/enums/LibraryTypes'
 import { Library } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
@@ -36,6 +37,8 @@ import React, { memo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
+import Loading from '../Loading'
+import SmallSpinner from './loading/SmallSpinner'
 
 interface Item {
   id: string
@@ -47,6 +50,13 @@ interface Item {
 
 const NavLibraries = () => {
   const { isMobile } = useSidebar()
+  const { analyzing, analyzingLibraryId } = useWebSocketStore(
+    (state) => ({
+      analyzing: state.analyzing,
+      analyzingLibraryId: state.analyzingLibraryId,
+    }),
+    shallow,
+  )
   const navigate = useNavigate()
 
   const { selectedServer, serverStatus, apiKeyStatus } = useServerStore(
@@ -154,7 +164,11 @@ const NavLibraries = () => {
                             : '',
                       }}
                     >
-                      <item.logo />
+                      {analyzingLibraryId === item.id && analyzing ? (
+                        <SmallSpinner />
+                      ) : (
+                        <item.logo />
+                      )}
                       <span
                         className="font-semibold"
                         style={{
@@ -225,15 +239,25 @@ const NavLibraries = () => {
                 <SidebarMenuButton
                   asChild
                   tooltip={t('libraryWindowTitle')}
-                  onClick={() => openLibraryDialog()}
+                  onClick={() => {
+                    if (!analyzing) {
+                      openLibraryDialog()
+                    }
+                  }}
                 >
                   <a
                     href={''}
                     className="flex items-center gap-2"
+                    style={{
+                      color: !analyzing ? '' : '#999999',
+                      cursor: !analyzing ? '' : 'not-allowed',
+                    }}
                     onClick={(e) => e.preventDefault()}
                   >
                     <Plus />
-                    <span>{t('libraryWindowTitle')}</span>
+                    <span style={{ color: !analyzing ? '' : '#999999' }}>
+                      {t('libraryWindowTitle')}
+                    </span>
                   </a>
                 </SidebarMenuButton>
               </SidebarMenuItem>

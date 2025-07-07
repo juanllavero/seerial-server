@@ -15,6 +15,7 @@ interface GeneralTabContentProps {
   name: string
   setName: (name: string) => void
   setLanguage: (language: string | undefined) => void
+  disableButton: boolean
   onSave: () => void
   close: () => void
   edit?: boolean
@@ -26,6 +27,7 @@ function GeneralTabContent({
   name,
   setName,
   setLanguage,
+  disableButton,
   onSave,
   close,
   edit,
@@ -114,7 +116,7 @@ function GeneralTabContent({
         <Button variant={'secondary'} onClick={close}>
           {t('cancelButton')}
         </Button>
-        <Button onClick={onSave} disabled={!type}>
+        <Button onClick={onSave} disabled={!type || disableButton}>
           {t(edit ? 'saveButton' : 'next')}
         </Button>
       </FlexBox>

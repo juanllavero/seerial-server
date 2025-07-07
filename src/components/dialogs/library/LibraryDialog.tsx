@@ -23,6 +23,7 @@ function LibraryDialog() {
     }),
     shallow,
   )
+  const [loading, setLoading] = useState<boolean>(false)
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 
   // Form Data
@@ -59,6 +60,8 @@ function LibraryDialog() {
   const handleAddEditLibrary = async () => {
     if (!selectedServer) return
 
+    setLoading(true)
+
     const serverIP = selectedServer.ip
 
     await connectWS(serverIP)
@@ -92,6 +95,7 @@ function LibraryDialog() {
 
       closeLibraryDialog()
 
+      setLoading(false)
       return
     }
 
@@ -116,13 +120,18 @@ function LibraryDialog() {
 
     closeLibraryDialog()
 
-    if (!response.ok) return
+    if (!response.ok) {
+      setLoading(false)
+      return
+    }
 
     // Mutate libraries list
     mutate((key: string) => key.startsWith(`https://${serverIP}/libraries`))
 
     const data = await response.json()
     const libraryId = data.id
+
+    setLoading(false)
 
     // Navigate to new library page
     navigate(
@@ -153,6 +162,7 @@ function LibraryDialog() {
               type={type}
               setType={setType}
               name={name}
+              disableButton={loading}
               setName={setName}
               setLanguage={setLanguage}
               onSave={handleSaveOrNext}
@@ -170,7 +180,7 @@ function LibraryDialog() {
               setFolders={setFolders}
               close={closeLibraryDialog}
               handleAddLibrary={handleAddEditLibrary}
-              buttonDisabled={!folders || folders.length === 0}
+              buttonDisabled={!folders || folders.length === 0 || loading}
               edit={libraryDialog.libraryToEdit !== undefined}
             />
           ),
@@ -187,7 +197,7 @@ function LibraryDialog() {
               subsMode={subsMode}
               setSubsMode={setSubsMode}
               close={closeLibraryDialog}
-              buttonDisabled={!folders || folders.length === 0}
+              buttonDisabled={!folders || folders.length === 0 || loading}
               handleAddLibrary={handleAddEditLibrary}
               edit={libraryDialog.libraryToEdit !== undefined}
             />

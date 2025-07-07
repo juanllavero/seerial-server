@@ -20,6 +20,7 @@ interface MusicState {
   duration: number
   isShown: boolean
   isExpanded: boolean
+  isLoading: boolean
   audioRef: React.RefObject<HTMLAudioElement | null> | null
 
   // Set Current Song
@@ -46,6 +47,7 @@ interface MusicState {
   setBuffered: (buffered: number) => void
   setCurrentTime: (currentTime: number) => void
   setDuration: (duration: number) => void
+  setIsLoading: (isLoading: boolean) => void
 
   // Utils
   setSongQueue: (queue: Song[]) => void
@@ -80,6 +82,7 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
   duration: 0,
   isShown: false,
   isExpanded: false,
+  isLoading: false,
   audioRef: null,
 
   // Set Current Song
@@ -90,6 +93,7 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
       duration: song?.duration ?? 0,
       currentTime: 0,
       isShown: true,
+      isLoading: !!song,
     }),
   setAlbum: (album) => set({ album, songQueue: album?.songs ?? [] }),
   resetPlayerState: () => {
@@ -107,6 +111,7 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
       duration: 0,
       buffered: 0,
       isShown: false,
+      isLoading: false,
       audioRef: null,
     })
   },
@@ -164,6 +169,7 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
   setBuffered: (buffered) => set({ buffered }),
   setCurrentTime: (currentTime) => set({ currentTime }),
   setDuration: (duration) => set({ duration }),
+  setIsLoading: (isLoading) => set({ isLoading }),
 
   // Utils
   setSongQueue: (queue) => set({ songQueue: queue }),
@@ -251,6 +257,8 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
     // Sync functions
     const syncIsPlaying = () => get().setIsPlaying(true)
     const syncIsPaused = () => get().setIsPlaying(false)
+    const syncIsLoading = () => get().setIsLoading(true)
+    const syncIsNotLoading = () => get().setIsLoading(false)
 
     // Update progress and buffer
     const updateBuffer = () => {
@@ -269,6 +277,11 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
 
     const handleCanPlay = () => {
       updateBuffer()
+      syncIsNotLoading()
+    }
+
+    const handleWaiting = () => {
+      syncIsLoading()
     }
 
     const updateProgress = () => {
@@ -315,6 +328,7 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
     audio.addEventListener('timeupdate', updateProgress)
     audio.addEventListener('progress', updateBuffer)
     audio.addEventListener('loadedmetadata', handleLoadedMetadata)
+    audio.addEventListener('waiting', handleWaiting)
     audio.addEventListener('canplay', handleCanPlay)
     audio.addEventListener('ended', handleEnded)
     document.addEventListener('keydown', handleKeyPress)
@@ -336,6 +350,7 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
       audio.removeEventListener('timeupdate', updateProgress)
       audio.removeEventListener('progress', updateBuffer)
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata)
+      audio.removeEventListener('waiting', handleWaiting)
       audio.removeEventListener('canplay', handleCanPlay)
       audio.removeEventListener('ended', handleEnded)
       document.removeEventListener('keydown', handleKeyPress)
@@ -345,7 +360,9 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
   getAudioSrc: () => {
     const { currentSong } = get()
     // Note: selectedServer is not available in the store, so this assumes it's passed or handled elsewhere
-    return currentSong ? `/audio?path=${currentSong.fileSrc}` : ''
+    return currentSong
+      ? `/audio-stream?path=${currentSong.fileSrc}&isWeb=true`
+      : ''
   },
 }))
 

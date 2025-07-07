@@ -75,7 +75,7 @@ const GradientBackground = ({
 
     const newIndex = (activeIndex + 1) % 2
     const newCanvas = canvasRefs[newIndex].current
-    if (!newCanvas) return
+    if (!newCanvas || !colors || colors.length < 4) return
 
     drawGradient(newCanvas, colors)
 

@@ -11,21 +11,33 @@ import { useNavigate } from 'react-router-dom'
 import ParentCard from './ParentCard'
 import Image from '@/components/ui/Image'
 import { getPosterImage, getFirstImage } from '@/utils/ReactUtils'
+import useSWR from 'swr'
+import { fetcher } from '@/utils/utils'
 
 interface CollectionCardProps {
+  libraryId: string
   collection: Collection
   type: string
 }
 
-function CollectionCard({ collection, type }: CollectionCardProps) {
+function CollectionCard({ libraryId, collection, type }: CollectionCardProps) {
   const { t } = useTranslation()
   const selectCollection = useDataStore((state) => state.selectCollection)
   const selectedServer = useServerStore((state) => state.selectedServer)
   const openCollectionDialog = useDialogStore(
     (state) => state.openCollectionDialog,
   )
-  const [subtitleText, setSubtitleText] = useState<string>('')
   const navigate = useNavigate()
+
+  const { data: elementsInCollection } = useSWR<number>(
+    `https://${selectedServer?.ip}/collection-items?collectionId=${collection.id}&libraryId=${libraryId}&type=${type}`,
+    fetcher,
+  )
+
+  const { data: collectionImages } = useSWR<string[]>(
+    `https://${selectedServer?.ip}/collection-images?collectionId=${collection.id}&&type=${type}`,
+    fetcher,
+  )
 
   const menuContent: DropdownContent = {
     items: [
@@ -66,34 +78,11 @@ function CollectionCard({ collection, type }: CollectionCardProps) {
     ],
   }
 
-  useEffect(() => {
-    if (
-      type === 'Movies' &&
-      collection.movies &&
-      collection.movies.length > 0
-    ) {
-      let text = collection.movies.length > 1 ? t('movies') : t('movie')
-      setSubtitleText(`${collection.movies.length} ${text}`)
-    } else if (
-      type === 'Series' &&
-      collection.shows &&
-      collection.shows.length > 0
-    ) {
-      let text = collection.shows.length > 1 ? t('shows') : t('show')
-      setSubtitleText(`${collection.shows.length} ${text}`)
-    } else if (
-      type === 'Music' &&
-      collection.albums &&
-      collection.albums.length > 0
-    ) {
-      let text = collection.albums.length > 1 ? t('albums') : t('album')
-      setSubtitleText(`${collection.albums.length} ${text}`)
-    } else {
-      setSubtitleText('')
-    }
-  }, [])
-
-  const posterImage = getPosterImage(collection, type)
+  const posterImage = getPosterImage(
+    collection.id,
+    collectionImages ?? [],
+    type,
+  )
 
   return (
     <ParentCard
@@ -102,11 +91,15 @@ function CollectionCard({ collection, type }: CollectionCardProps) {
       imgSrc={
         collection.coverSrc
           ? collection.coverSrc
-          : getFirstImage(collection, type)
+          : collectionImages && collectionImages.length > 0
+            ? collectionImages[0]
+            : type === 'Music'
+              ? '/img/songDefault.png'
+              : '/img/fileNotFound.jpg'
       }
       collageComponent={posterImage}
       title={collection.title}
-      subtitle={subtitleText}
+      subtitle={`${elementsInCollection ?? 0} ${t('elements')}`}
       action={() => {
         selectCollection(collection.id)
         navigate(

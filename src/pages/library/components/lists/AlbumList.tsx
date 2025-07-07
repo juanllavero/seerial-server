@@ -1,41 +1,75 @@
-import { Library, Collection } from '@/data/interfaces/Media'
+import { Collection, Library, LibraryItem } from '@/data/interfaces/Media'
 import AlbumCard from '../cards/AlbumCard'
 import CollectionCard from '../cards/CollectionCard'
 import { Album } from '@/data/interfaces/Music'
+import useSWR from 'swr'
+import { fetcher } from '@/utils/utils'
+import { useServerStore } from '@/context/server.context'
+import { SortableItem } from '@/components/lists/SortableItem'
+import { useReorderableList } from '@/hooks/useReorderableList'
+import {
+  useSensors,
+  useSensor,
+  PointerSensor,
+  DndContext,
+  closestCenter,
+} from '@dnd-kit/core'
+import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable'
 
 interface AlbumListProps {
   library: Library
+  mutateLibrary: () => void
 }
 
-function AlbumList({ library }: AlbumListProps) {
-  // Get all album IDs that are in any collection
-  const collectionAlbumIds = new Set(
-    (library.collections || []).flatMap((collection: Collection) =>
-      (collection.albums || []).map((album: Album) => album.id),
-    ),
+function AlbumList({ library, mutateLibrary }: AlbumListProps) {
+  const selectedServer = useServerStore((state) => state.selectedServer)
+  const { data, isLoading } = useSWR(
+    selectedServer
+      ? `https://${selectedServer.ip}/library-content?libraryId=${library.id}&type=Music`
+      : null,
+    fetcher,
   )
 
-  // Filter albums to only include those not in any collection
-  const standaloneAlbums = (library.albums || []).filter(
-    (album: Album) => !collectionAlbumIds.has(album.id),
+  // Hook to reorderable list
+  const { items, handleDragEnd } = useReorderableList(
+    data,
+    library.id,
+    mutateLibrary,
   )
+
+  // Configure dnd sensor
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+  )
+
+  if (isLoading) return null
 
   return (
-    <>
-      {library.collections &&
-        library.collections.length > 0 &&
-        library.collections.map((collection) => (
-          <CollectionCard
-            key={collection.id}
-            collection={collection}
-            type={'Music'}
-          />
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext
+        items={items.map((item) => item.data.id)}
+        strategy={rectSortingStrategy}
+      >
+        {items.map((item: LibraryItem) => (
+          <SortableItem key={item.data.id} id={item.data.id}>
+            {item.type === 'collection' ? (
+              <CollectionCard
+                key={item.data.id}
+                libraryId={library.id}
+                collection={item.data as Collection}
+                type={'Music'}
+              />
+            ) : (
+              <AlbumCard key={item.data.id} album={item.data as Album} />
+            )}
+          </SortableItem>
         ))}
-      {standaloneAlbums.length > 0 &&
-        standaloneAlbums.map((album) => (
-          <AlbumCard key={album.id} album={album} />
-        ))}
-    </>
+      </SortableContext>
+    </DndContext>
   )
 }
 

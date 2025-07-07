@@ -1,6 +1,24 @@
-import { Collection, Library, Series } from '@/data/interfaces/Media'
+import {
+  Collection,
+  Library,
+  LibraryItem,
+  Series,
+} from '@/data/interfaces/Media'
 import CollectionCard from '../cards/CollectionCard'
 import SeriesCard from '../cards/SeriesCard'
+import { useServerStore } from '@/context/server.context'
+import { fetcher } from '@/utils/utils'
+import useSWR from 'swr'
+import { SortableItem } from '@/components/lists/SortableItem'
+import { useReorderableList } from '@/hooks/useReorderableList'
+import {
+  useSensors,
+  useSensor,
+  PointerSensor,
+  DndContext,
+  closestCenter,
+} from '@dnd-kit/core'
+import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable'
 
 interface SeriesListProps {
   library: Library
@@ -8,38 +26,58 @@ interface SeriesListProps {
 }
 
 function SeriesList({ library, mutateLibrary }: SeriesListProps) {
-  // Get all series IDs that are in any collection
-  const collectionSeriesIds = new Set(
-    (library.collections || []).flatMap((collection: Collection) =>
-      (collection.shows || []).map((series: Series) => series.id),
-    ),
+  const selectedServer = useServerStore((state) => state.selectedServer)
+  const { data, isLoading } = useSWR(
+    selectedServer
+      ? `https://${selectedServer.ip}/library-content?libraryId=${library.id}&type=Shows`
+      : null,
+    fetcher,
   )
 
-  // Filter series to only include those not in any collection
-  const standaloneSeries = (library.series || []).filter(
-    (series: Series) => !collectionSeriesIds.has(series.id),
+  // Hook to reorderable list
+  const { items, handleDragEnd } = useReorderableList(
+    data,
+    library.id,
+    mutateLibrary,
   )
+
+  // Configure dnd sensor
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+  )
+
+  if (isLoading) return null
 
   return (
-    <>
-      {library.collections &&
-        library.collections.length > 0 &&
-        library.collections.map((collection) => (
-          <CollectionCard
-            key={collection.id}
-            collection={collection}
-            type={'Shows'}
-          />
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext
+        items={items.map((item) => item.data.id)}
+        strategy={rectSortingStrategy}
+      >
+        {items.map((item: LibraryItem) => (
+          <SortableItem key={item.data.id} id={item.data.id}>
+            {item.type === 'collection' ? (
+              <CollectionCard
+                key={item.data.id}
+                libraryId={library.id}
+                collection={item.data as Collection}
+                type={'Shows'}
+              />
+            ) : (
+              <SeriesCard
+                key={item.data.id}
+                series={item.data as Series}
+                mutateLibrary={mutateLibrary}
+              />
+            )}
+          </SortableItem>
         ))}
-      {standaloneSeries.length > 0 &&
-        standaloneSeries.map((series) => (
-          <SeriesCard
-            key={series.id}
-            series={series}
-            mutateLibrary={mutateLibrary}
-          />
-        ))}
-    </>
+      </SortableContext>
+    </DndContext>
   )
 }
 

@@ -17,7 +17,7 @@ function LibraryContent({ library, mutateLibrary }: LibraryContentProps) {
 
   const ItemsList = () =>
     library.type === 'Music' ? (
-      <AlbumList library={library} />
+      <AlbumList library={library} mutateLibrary={mutateLibrary} />
     ) : library.type === 'Shows' ? (
       <SeriesList library={library} mutateLibrary={mutateLibrary} />
     ) : (
@@ -34,7 +34,7 @@ function LibraryContent({ library, mutateLibrary }: LibraryContentProps) {
       rows="0fr"
       gap="1rem"
       height="100%"
-      padding={isMobile ? '1rem 1rem 5rem 1rem' : '2rem'}
+      padding={isMobile ? '1rem 1rem 5rem 1rem' : '2rem 2rem 5rem 2rem'}
       scroll="vertical"
       justifyContent="start"
       alignItems="start"

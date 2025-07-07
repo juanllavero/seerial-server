@@ -1,4 +1,5 @@
 import CustomSlider from '@/components/CustomSlider'
+import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
 import { Button } from '@/components/ui/button'
 import {
   PrevTrackIcon,
@@ -37,6 +38,7 @@ const ExpandedMobileMusicControls = forwardRef<
     album,
     currentSong,
     isPlaying,
+    isLoading,
     progress,
     buffered,
     volume,
@@ -63,6 +65,7 @@ const ExpandedMobileMusicControls = forwardRef<
       album: state.album,
       currentSong: state.currentSong,
       isPlaying: state.isPlaying,
+      isLoading: state.isLoading,
       progress: state.progress,
       buffered: state.buffered,
       volume: state.volume,
@@ -196,7 +199,9 @@ const ExpandedMobileMusicControls = forwardRef<
             onClick={togglePlayPause}
             className="rounded-full bg-white p-5"
           >
-            {isPlaying ? (
+            {isLoading ? (
+              <SmallSpinner size={36} />
+            ) : isPlaying ? (
               <PauseIcon size={36} color="#080808" />
             ) : (
               <PlayIcon size={36} color="#080808" />

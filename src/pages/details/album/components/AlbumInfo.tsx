@@ -17,6 +17,7 @@ import {
 import useScreenHeight from '@/components/hooks/use-height'
 import { ScreenHeight } from '@/data/enums/Screen'
 import { shallow } from 'zustand/shallow'
+import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
 
 interface AlbumInfoProps {
   isLoading: boolean
@@ -28,9 +29,16 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
   const screenHeight = useScreenHeight()
-  const { isPlaying, isShown, togglePlayPause, selectSong } = useMusicStore(
+  const {
+    isPlaying,
+    isLoaidng: loadingSong,
+    isShown,
+    togglePlayPause,
+    selectSong,
+  } = useMusicStore(
     (state) => ({
       isPlaying: state.isPlaying,
+      isLoaidng: state.isLoading,
       isShown: state.isShown,
       togglePlayPause: state.togglePlayPause,
       selectSong: state.selectSong,
@@ -175,7 +183,9 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
               }
             }}
           >
-            {isPlaying ? (
+            {loadingSong ? (
+              <SmallSpinner size={30} />
+            ) : isPlaying ? (
               <PauseIcon color="#111111" size={30} />
             ) : (
               <PlayIcon color="#111111" size={30} />

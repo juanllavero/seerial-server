@@ -1,7 +1,7 @@
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import FlexBox from '@/components/ui/FlexBox'
 import { Movie, Video } from '@/data/interfaces/Media'
-import HorizontalList from '@/pages/home/components/HorizontalList'
+import HorizontalList from '@/components/lists/HorizontalList'
 import { useNavigate } from 'react-router-dom'
 import React from 'react'
 import { useTranslation } from 'react-i18next'

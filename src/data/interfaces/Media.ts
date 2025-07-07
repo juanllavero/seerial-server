@@ -13,6 +13,12 @@ export interface Cast {
   profileImage: string
 }
 
+export interface LibraryItem {
+  type: string
+  order: number
+  data: Collection | Series | Movie | Album
+}
+
 export interface Library {
   id: string
   name: string

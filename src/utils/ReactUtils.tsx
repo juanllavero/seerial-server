@@ -294,31 +294,24 @@ export const getFirstImage = (collection: Collection, type: string) => {
   return ''
 }
 
-export const getPosterImage = (collection: Collection, type: string) => {
-  let images: string[] = []
-
-  // Collect up to 4 images based on collection type
-  if (type === 'Movies' && collection.movies && collection.movies.length > 0) {
-    images = collection.movies.slice(0, 4).map((movie) => movie.coverSrc)
-  } else if (
-    type === 'Series' &&
-    collection.shows &&
-    collection.shows.length > 0
-  ) {
-    images = collection.shows.slice(0, 4).map((show) => show.coverSrc)
-  } else if (
-    type === 'Music' &&
-    collection.albums &&
-    collection.albums.length > 0
-  ) {
-    images = collection.albums.slice(0, 4).map((album) => album.coverSrc)
-  }
-
+export const getPosterImage = (
+  collectionId: string,
+  images: string[],
+  type: string,
+) => {
   // If no images, return null or a placeholder
   if (images.length === 0) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-gray-200">
-        <span className="text-gray-500">No images available</span>
+      <div className="flex h-full w-full items-center justify-center">
+        <Image
+          key={'Placeholder image for ' + type + ' collection' + collectionId}
+          src={
+            type === 'Music' ? '/img/songDefault.png' : '/img/fileNotFound.jpg'
+          }
+          alt={`Collection item ${collectionId}`}
+          className="h-full w-full object-cover"
+          aspectRatio={type === 'Music' ? 1 : 2 / 3}
+        />
       </div>
     )
   }

@@ -5,7 +5,7 @@ import { Series } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
-import HorizontalList from '../HorizontalList'
+import HorizontalList from '../../../../components/lists/HorizontalList'
 import HorizontalListSkeleton from './HorizontalListSkeleton'
 
 interface MyListShowsProps {
@@ -35,7 +35,11 @@ function MyListShows({ goToContent }: MyListShowsProps) {
             width={isMobile ? 130 : 180}
             aspectRatio={2 / 3}
             title={series.name}
-            subtitle={series.year}
+            subtitle={
+              series.year
+                ? new Date(series.year).getFullYear().toString()
+                : 'N/A'
+            }
             hidePlayButton
             action={() =>
               goToContent(

@@ -13,6 +13,7 @@ import { useIsMobile } from '@/components/hooks/use-mobile'
 import { DotsVerticalIcon } from '@radix-ui/react-icons'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import { shallow } from 'zustand/shallow'
+import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
 
 interface MusicCardProps {
   index: number
@@ -21,11 +22,12 @@ interface MusicCardProps {
 }
 
 function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
-  const { currentSong, isPlaying } = useMusicStore(
+  const { currentSong, isPlaying, isLoading } = useMusicStore(
     (state) => ({
       album: state.album,
       currentSong: state.currentSong,
       isPlaying: state.isPlaying,
+      isLoading: state.isLoading,
     }),
     shallow,
   )
@@ -68,7 +70,9 @@ function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
                   }
                 }}
               >
-                {isPlaying && currentSong?.id === song.id ? (
+                {isLoading ? (
+                  <SmallSpinner />
+                ) : isPlaying && currentSong?.id === song.id ? (
                   <PauseIcon size={20} />
                 ) : (
                   <PlayIcon size={20} />

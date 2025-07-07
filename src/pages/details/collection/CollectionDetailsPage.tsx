@@ -10,14 +10,14 @@ import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
 import { Collection, Movie, Series } from '@/data/interfaces/Media'
 import { Album } from '@/data/interfaces/Music'
-import HorizontalList from '@/pages/home/components/HorizontalList'
+import HorizontalList from '@/components/lists/HorizontalList'
 import AlbumCard from '@/pages/library/components/cards/AlbumCard'
 import MovieCard from '@/pages/library/components/cards/MovieCard'
 import SeriesCard from '@/pages/library/components/cards/SeriesCard'
 import { CollectionKey, ContentType } from '@/types/types'
 import { fetcher } from '@/utils/utils'
 import { Edit, Ellipsis } from 'lucide-react'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import useSWR from 'swr'
@@ -25,8 +25,17 @@ import '../DetailsPage.css'
 import CollectionImage from './CollectionImage'
 import { shallow } from 'zustand/shallow'
 import ExtrasList from './components/ExtrasList'
+import { SortableHorizontalList } from '@/components/lists/SortableHorizontalList'
+import { arrayMove } from '@dnd-kit/sortable'
 function CollectionDetailsPage() {
   const { collectionId, type } = useParams()
+  const { selectedServer: server, selectServer } = useServerStore(
+    (state) => ({
+      selectedServer: state.selectedServer,
+      selectServer: state.selectServer,
+    }),
+    shallow,
+  )
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
   const openCollectionDialog = useDialogStore(
     (state) => state.openCollectionDialog,
@@ -53,12 +62,22 @@ function CollectionDetailsPage() {
     fetcher,
   )
 
+  const [localCollection, setLocalCollection] = useState<Collection | null>(
+    null,
+  )
+
+  useEffect(() => {
+    if (collection) {
+      setLocalCollection(collection)
+    }
+  }, [collection])
+
   // Update selected server
-  // useEffect(() => {
-  //   if (server !== selectedServer) {
-  //     selectServer(server)
-  //   }
-  // }, [])
+  useEffect(() => {
+    if (server !== selectedServer) {
+      selectServer(server)
+    }
+  }, [])
 
   // Mutate content on ws message
   useEffect(() => {
@@ -75,6 +94,91 @@ function CollectionDetailsPage() {
       setCurrentBackground(undefined)
     }
   }, [collection, currentBackground, setCurrentBackground])
+
+  async function handleDragEnd(
+    event: any,
+    listKey: 'movies' | 'shows' | 'albums',
+  ) {
+    const { active, over } = event
+
+    if (over && active.id !== over.id) {
+      if (!localCollection) return
+
+      let reorderedList: Movie[] | Series[] | Album[] = []
+
+      switch (listKey) {
+        case 'movies': {
+          const list = localCollection.movies
+          const oldIndex = list.findIndex((item) => item.id === active.id)
+          const newIndex = list.findIndex((item) => item.id === over.id)
+
+          reorderedList = arrayMove(list, oldIndex, newIndex)
+
+          setLocalCollection((prev) => ({
+            ...prev!,
+            movies: reorderedList as Movie[],
+          }))
+          break
+        }
+
+        case 'shows': {
+          const list = localCollection.shows
+          const oldIndex = list.findIndex((item) => item.id === active.id)
+          const newIndex = list.findIndex((item) => item.id === over.id)
+
+          reorderedList = arrayMove(list, oldIndex, newIndex)
+
+          setLocalCollection((prev) => ({
+            ...prev!,
+            shows: reorderedList as Series[],
+          }))
+          break
+        }
+
+        case 'albums': {
+          const list = localCollection.albums
+          const oldIndex = list.findIndex((item) => item.id === active.id)
+          const newIndex = list.findIndex((item) => item.id === over.id)
+
+          reorderedList = arrayMove(list, oldIndex, newIndex)
+
+          setLocalCollection((prev) => ({
+            ...prev!,
+            albums: reorderedList as Album[],
+          }))
+          break
+        }
+
+        default:
+          return
+      }
+
+      const orderedItemsForApi = reorderedList.map((item) => ({
+        id: item.id,
+        type: listKey.slice(0, -1),
+      }))
+
+      try {
+        await fetch(
+          `https://${selectedServer?.ip}/collections/reorder-content`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              collectionId: collectionId,
+              orderedItems: orderedItemsForApi,
+            }),
+          },
+        )
+      } catch (error) {
+        if (collection) {
+          setLocalCollection(collection)
+        }
+      } finally {
+        mutate()
+      }
+    }
+  }
 
   function getYearRange(): string {
     if (!collection) return 'N/A'
@@ -125,40 +229,45 @@ function CollectionDetailsPage() {
         direction="column"
         justify="center"
         align="center"
+        width={'100%'}
       >
-        <HorizontalList key="albums" title={t('albums')}>
-          {items.map((album) => (
-            <AlbumCard key={album.id} album={album} />
-          ))}
-        </HorizontalList>
+        <SortableHorizontalList
+          title={t('albums')}
+          items={items}
+          onDragEnd={(event) => handleDragEnd(event, 'albums')}
+          renderItem={(item: Album) => <AlbumCard key={item.id} album={item} />}
+        />
       </FlexBox>
     ),
     movies: (items: Movie[]) => (
       <FlexBox
         key={'Movies'}
         direction="column"
+        width={'100%'}
         justify="start"
         align="start"
         gap={0}
       >
-        <HorizontalList key="movies" title={t('movies')}>
-          {items.map((movie) => (
-            <MovieCard key={movie.id} movie={movie} mutateLibrary={mutate} />
-          ))}
-        </HorizontalList>
+        <SortableHorizontalList
+          title={t('movies')}
+          items={items}
+          onDragEnd={(event) => handleDragEnd(event, 'movies')}
+          renderItem={(item: Movie) => (
+            <MovieCard key={item.id} movie={item} mutateLibrary={mutate} />
+          )}
+        />
       </FlexBox>
     ),
     shows: (items: Series[]) => (
-      <FlexBox key={'Shows'}>
-        <HorizontalList key="shows" title={t('shows')}>
-          {items.map((series) => (
-            <SeriesCard
-              key={series.id}
-              series={series}
-              mutateLibrary={mutate}
-            />
-          ))}
-        </HorizontalList>
+      <FlexBox key={'Shows'} width={'100%'}>
+        <SortableHorizontalList
+          title={t('shows')}
+          items={items}
+          onDragEnd={(event) => handleDragEnd(event, 'shows')}
+          renderItem={(item: Series) => (
+            <SeriesCard key={item.id} series={item} mutateLibrary={mutate} />
+          )}
+        />
       </FlexBox>
     ),
   }

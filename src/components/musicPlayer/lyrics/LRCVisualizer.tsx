@@ -21,10 +21,11 @@ import { shallow } from 'zustand/shallow'
 const LRCVisualizer = () => {
   const { t } = useTranslation()
   const selectedServer = useServerStore((state) => state.selectedServer)
-  const { currentSong, currentTime, seekTo } = useMusicStore(
+  const { currentSong, currentTime, isShown, seekTo } = useMusicStore(
     (state) => ({
       currentSong: state.currentSong,
       currentTime: state.currentTime,
+      isShown: state.isShown,
       seekTo: state.seekTo,
     }),
     shallow,
@@ -37,7 +38,7 @@ const LRCVisualizer = () => {
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const { data: lyrics, isLoading } = useSWR<LRCFile[]>(
-    selectedServer && currentSong
+    selectedServer && currentSong && isShown
       ? `https://${selectedServer.ip}/lyrics?id=${currentSong.id}`
       : null,
     fetcher,

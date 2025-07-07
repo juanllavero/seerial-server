@@ -1,3 +1,4 @@
+import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
 import { Button } from '@/components/ui/button'
 import { PauseIcon, PlayIcon, StopIcon } from '@/components/ui/IconLibrary'
 import useMusicStore from '@/context/music.context'
@@ -19,6 +20,7 @@ function MinimizedBar({
   const {
     isExpanded,
     isPlaying,
+    isLoading,
     currentSong,
     album,
     togglePlayPause,
@@ -27,6 +29,7 @@ function MinimizedBar({
     (state) => ({
       isExpanded: state.isExpanded,
       isPlaying: state.isPlaying,
+      isLoading: state.isLoading,
       currentSong: state.currentSong,
       album: state.album,
       togglePlayPause: state.togglePlayPause,
@@ -98,7 +101,13 @@ function MinimizedBar({
             }}
             className="rounded-full"
           >
-            {isPlaying ? <PauseIcon size={18} /> : <PlayIcon size={18} />}
+            {isLoading ? (
+              <SmallSpinner size={18} />
+            ) : isPlaying ? (
+              <PauseIcon size={18} />
+            ) : (
+              <PlayIcon size={18} />
+            )}
           </Button>
         </div>
       </div>

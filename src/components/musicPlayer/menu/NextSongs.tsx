@@ -9,20 +9,28 @@ import useSWR from 'swr'
 import './NextSongs.css'
 import { useTranslation } from 'react-i18next'
 import { shallow } from 'zustand/shallow'
+import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
 
 function NextSongs() {
   const { t } = useTranslation()
-  const { songQueue, currentSong, selectSong, isPlaying, togglePlayPause } =
-    useMusicStore(
-      (state) => ({
-        songQueue: state.songQueue,
-        currentSong: state.currentSong,
-        selectSong: state.selectSong,
-        isPlaying: state.isPlaying,
-        togglePlayPause: state.togglePlayPause,
-      }),
-      shallow,
-    )
+  const {
+    songQueue,
+    currentSong,
+    selectSong,
+    isPlaying,
+    isLoading,
+    togglePlayPause,
+  } = useMusicStore(
+    (state) => ({
+      songQueue: state.songQueue,
+      currentSong: state.currentSong,
+      selectSong: state.selectSong,
+      isPlaying: state.isPlaying,
+      isLoading: state.isLoading,
+      togglePlayPause: state.togglePlayPause,
+    }),
+    shallow,
+  )
   const selectedServer = useServerStore((state) => state.selectedServer)
   const { data: album } = useSWR(
     currentSong && selectedServer
@@ -72,7 +80,13 @@ function NextSongs() {
                 height={'2.5rem'}
               />
               <div className="shadowImage">
-                {isPlaying ? <PauseIcon /> : <PlayIcon />}
+                {isLoading ? (
+                  <SmallSpinner />
+                ) : isPlaying ? (
+                  <PauseIcon />
+                ) : (
+                  <PlayIcon />
+                )}
               </div>
             </div>
             <FlexBox direction="column">

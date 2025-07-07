@@ -1,5 +1,5 @@
 import { Cast } from '@/data/interfaces/Media'
-import HorizontalList from '@/pages/home/components/HorizontalList'
+import HorizontalList from '@/components/lists/HorizontalList'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import CastCard from './CastCard'
