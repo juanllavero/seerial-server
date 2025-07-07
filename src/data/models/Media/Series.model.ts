@@ -279,6 +279,10 @@ export class Series extends Model {
   @HasMany(() => Season)
   seasons!: Season[];
 
+  CollectionSeries?: {
+    custom_order: number;
+  };
+
   @BeforeDestroy
   static async beforeDestroyHook(instance: Series): Promise<void> {
     try {

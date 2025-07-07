@@ -4,6 +4,16 @@ import { MovieDb } from "moviedb-promise";
 import path from "path";
 import propertiesReader from "properties-reader";
 import {
+  Album,
+  CollectionAlbum,
+  CollectionMovie,
+  CollectionSeries,
+  Library,
+  LibraryCollection,
+  Movie,
+  Series,
+} from "../../data/models";
+import {
   getEpisodeById,
   getMovieById,
   getMovieFromMyList,
@@ -19,6 +29,7 @@ import {
   removeMovieFromMyList,
   removeSeriesFromMyList,
 } from "../../db/post/postData";
+import { SequelizeManager } from "../../db/SequelizeManager";
 import { Downloader } from "../../downloaders/Downloader";
 import { FileSearch } from "../../fileSearch/FileSearch";
 import {
@@ -63,6 +74,216 @@ router.post("/addLibrary", async (req: any, res: any) => {
   const library = await FileSearch.scanFiles(libraryData, wsManager, true);
 
   return res.status(200).json(library);
+});
+
+// Reorder libraries
+router.post("/libraries/reorder", async (req: any, res: any) => {
+  const { orderedLibraryIds } = req.body;
+
+  if (!Array.isArray(orderedLibraryIds)) {
+    return res.status(400).json({ error: "Se requiere un array de IDs" });
+  }
+
+  if (!SequelizeManager.sequelize) {
+    return res.status(500).json({ error: "Sequelize no está inicializado" });
+  }
+
+  const t = await SequelizeManager.sequelize.transaction();
+
+  try {
+    await Library.update(
+      { order: 9999 },
+      {
+        where: {},
+        transaction: t,
+      }
+    );
+
+    for (const [index, libraryId] of orderedLibraryIds.entries()) {
+      const newOrder = index;
+
+      await Library.update(
+        { order: newOrder },
+        {
+          where: { id: libraryId },
+          transaction: t,
+        }
+      );
+    }
+
+    await t.commit();
+    res.status(200).json({ message: "Bibliotecas reordenadas correctamente" });
+  } catch (error) {
+    await t.rollback();
+    res
+      .status(500)
+      .json({ error: "Error interno al reordenar las bibliotecas" });
+  }
+});
+
+// Reorder library
+router.post("/library/reorder", async (req: any, res: any) => {
+  const { libraryId, orderedItems } = req.body;
+
+  if (!libraryId || !Array.isArray(orderedItems)) {
+    return res.status(400).json({ error: "Invalid data" });
+  }
+
+  if (!SequelizeManager.sequelize) {
+    return res.status(500).json({ error: "Sequelize not initialized" });
+  }
+
+  const t = await SequelizeManager.sequelize.transaction();
+
+  try {
+    const tempOrder = 9999;
+
+    // Get the library
+    const library = await Library.findByPk(libraryId);
+    if (!library) {
+      await t.rollback();
+      return res.status(404).json({ error: "Library not found" });
+    }
+
+    // Restore the order of the collections
+    await LibraryCollection.update(
+      { customOrder: tempOrder },
+      { where: { libraryId: libraryId }, transaction: t }
+    );
+
+    // Restore the order of the items
+    if (library.type === "Movies") {
+      await Movie.update(
+        { order: tempOrder },
+        { where: { libraryId: libraryId }, transaction: t }
+      );
+    } else if (library.type === "Shows") {
+      await Series.update(
+        { order: tempOrder },
+        { where: { libraryId: libraryId }, transaction: t }
+      );
+    } else if (library.type === "Music") {
+      await Album.update(
+        { order: tempOrder },
+        { where: { libraryId: libraryId }, transaction: t }
+      );
+    }
+
+    // Assign the new order to the items
+    for (let i = 0; i < orderedItems.length; i++) {
+      const item = orderedItems[i];
+      const newOrder = i;
+
+      if (item.type === "collection") {
+        await LibraryCollection.update(
+          { customOrder: newOrder },
+          {
+            where: { libraryId: libraryId, collectionId: item.id },
+            transaction: t,
+          }
+        );
+      } else if (item.type === "movies") {
+        await Movie.update(
+          { order: newOrder },
+          { where: { libraryId: libraryId, id: item.id }, transaction: t }
+        );
+      } else if (item.type === "shows") {
+        await Series.update(
+          { order: newOrder },
+          { where: { libraryId: libraryId, id: item.id }, transaction: t }
+        );
+      } else if (item.type === "albums") {
+        await Album.update(
+          { order: newOrder },
+          { where: { libraryId: libraryId, id: item.id }, transaction: t }
+        );
+      }
+    }
+
+    await t.commit();
+    res.status(200).json({ message: "Order updated successfully" });
+  } catch (error) {
+    await t.rollback();
+    console.error("Error reordering:", error);
+    res.status(500).json({ error: "Error updating order" });
+  }
+});
+
+router.post("/collections/reorder-content", async (req: any, res: any) => {
+  const { collectionId, orderedItems } = req.body;
+
+  if (!collectionId || !Array.isArray(orderedItems)) {
+    return res.status(400).json({ error: "Datos inválidos" });
+  }
+
+  if (!SequelizeManager.sequelize) {
+    return res.status(500).json({ error: "Sequelize no inicializado" });
+  }
+
+  const t = await SequelizeManager.sequelize.transaction();
+
+  try {
+    const tempOrder = 9999;
+
+    // Restore the order of the items
+    await CollectionMovie.update(
+      { customOrder: tempOrder },
+      { where: { collectionId }, transaction: t }
+    );
+    await CollectionSeries.update(
+      { customOrder: tempOrder },
+      { where: { collectionId }, transaction: t }
+    );
+    await CollectionAlbum.update(
+      { customOrder: tempOrder },
+      { where: { collectionId }, transaction: t }
+    );
+
+    // Assign the new order to the items
+    for (const [index, item] of orderedItems.entries()) {
+      const newOrder = index;
+
+      switch (item.type) {
+        case "movie":
+        case "movies":
+          await CollectionMovie.update(
+            { customOrder: newOrder },
+            {
+              where: { collectionId, movieId: item.id },
+              transaction: t,
+            }
+          );
+          break;
+        case "series":
+        case "show":
+        case "shows":
+          await CollectionSeries.update(
+            { customOrder: newOrder },
+            {
+              where: { collectionId, seriesId: item.id },
+              transaction: t,
+            }
+          );
+          break;
+        case "album":
+        case "albums":
+          await CollectionAlbum.update(
+            { customOrder: newOrder },
+            {
+              where: { collectionId, albumId: item.id },
+              transaction: t,
+            }
+          );
+          break;
+      }
+    }
+
+    await t.commit();
+    res.status(200).json({ message: "Orden de la colección actualizado" });
+  } catch (error) {
+    await t.rollback();
+    res.status(500).json({ error: "Error interno al actualizar el orden" });
+  }
 });
 
 // Upload image

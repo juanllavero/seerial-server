@@ -12,6 +12,7 @@ import { Video } from "../../data/models/Media/Video.model";
 import { Album } from "../../data/models/music/Album.model";
 import { Artist } from "../../data/models/music/Artist.model";
 import { Song } from "../../data/models/music/Song.model";
+import { getCollectionItemsKey, getItemModel } from "../../fileSearch/utils";
 import { SequelizeManager } from "../SequelizeManager";
 
 //#region Libraries
@@ -19,21 +20,64 @@ import { SequelizeManager } from "../SequelizeManager";
 export const getLibraries = () => {
   if (!SequelizeManager.sequelize) return null;
 
-  return Library.findAll();
+  return Library.findAll({
+    order: [["order", "ASC"]],
+  });
 };
+
+/**
+ * Retrieves items for a specific library based on the given type.
+ * @param libraryId - The ID of the library.
+ * @param type - The type of items to retrieve ('Movies', 'Shows', 'Music').
+ * @returns A promise that resolves to an array of items (Movie[], Series[], or Album[]).
+ */
+export async function getItemsForLibrary(libraryId: string, type: string) {
+  try {
+    let items: Movie[] | Series[] | Album[] = [];
+
+    if (type === "Movies") {
+      items = await Movie.findAll({
+        where: { libraryId },
+        order: [
+          ["order", "ASC"],
+          ["name", "ASC"],
+        ],
+      });
+    } else if (type === "Series" || type === "Shows") {
+      items = await Series.findAll({
+        where: { libraryId },
+        order: [
+          ["order", "ASC"],
+          ["name", "ASC"],
+        ],
+      });
+    } else if (type === "Music") {
+      items = await Album.findAll({
+        where: { libraryId },
+        order: [
+          ["order", "ASC"],
+          ["title", "ASC"],
+        ],
+      });
+    }
+
+    return items;
+  } catch (error) {
+    console.error(
+      `Error fetching items for library ${libraryId} (type: ${type}):`,
+      error
+    );
+    return [];
+  }
+}
 
 export const getLibraryById = async (id: string) => {
   if (!SequelizeManager.sequelize) return null;
 
-  console.log("Trying to obtain lbrary");
-
   try {
     const library = await Library.findByPk(id);
 
-    console.log("Library obtained");
-
     if (!library) {
-      console.log(`Library with id ${id} not found`);
       return null;
     }
 
@@ -126,33 +170,31 @@ export const getCollections = async () => {
   return Collection.findAll();
 };
 
-export const getCollectionsInLibrary = async (libraryId: string) => {
-  if (!SequelizeManager.sequelize) return null;
+export const getCollectionsInLibrary = async (
+  libraryId: string,
+  type: string
+) => {
+  const collectionItemsKey = getCollectionItemsKey(type);
+  const ItemModel = getItemModel(type);
 
-  try {
-    const library = await Library.findByPk(libraryId, {
-      include: [
-        {
-          model: Collection,
-          as: "collections",
-          include: [
-            { model: Series, as: "shows" },
-            { model: Movie, as: "movies" },
-            { model: Album, as: "albums" },
-          ],
+  return await Library.findByPk(libraryId, {
+    include: [
+      {
+        model: Collection,
+        as: "collections",
+        include: [
+          {
+            model: ItemModel,
+            as: collectionItemsKey,
+            attributes: ["id"],
+          },
+        ],
+        through: {
+          attributes: ["customOrder"],
         },
-      ],
-    });
-
-    if (!library) {
-      console.log("Library not found");
-      return [];
-    }
-    return library.collections;
-  } catch (error) {
-    console.error("Error fetching collections:", error);
-    return null;
-  }
+      },
+    ],
+  }).then((library) => library?.collections || []);
 };
 
 export const getCollectionById = async (id: string) => {
@@ -161,9 +203,27 @@ export const getCollectionById = async (id: string) => {
   try {
     const colection = await Collection.findByPk(id, {
       include: [
-        { model: Series, as: "shows" },
-        { model: Movie, as: "movies" },
-        { model: Album, as: "albums" },
+        {
+          model: Series,
+          as: "shows",
+          through: {
+            attributes: ["custom_order"],
+          },
+        },
+        {
+          model: Movie,
+          as: "movies",
+          through: {
+            attributes: ["custom_order"],
+          },
+        },
+        {
+          model: Album,
+          as: "albums",
+          through: {
+            attributes: ["custom_order"],
+          },
+        },
       ],
     });
 

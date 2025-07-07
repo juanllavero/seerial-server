@@ -38,6 +38,13 @@ export class Album extends Model {
   libraryId!: string;
 
   @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+  })
+  order!: number;
+
+  @Column({
     type: DataType.STRING,
     defaultValue: "",
     allowNull: false,
@@ -99,6 +106,10 @@ export class Album extends Model {
 
   @HasMany(() => Song)
   songs!: Song[];
+
+  CollectionAlbum?: {
+    custom_order: number;
+  };
 
   @BeforeDestroy
   static async beforeDestroyHook(instance: Album): Promise<void> {

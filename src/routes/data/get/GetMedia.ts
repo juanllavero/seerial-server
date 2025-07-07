@@ -1,6 +1,7 @@
 import express from "express";
 import * as fs from "fs/promises";
 import path from "path";
+import { Album, Movie, Series } from "../../../data/models";
 import {
   getAlbumById,
   getAlbums,
@@ -9,6 +10,7 @@ import {
   getContinueWatchingVideos,
   getEpisodeById,
   getEpisodes,
+  getItemsForLibrary,
   getLibraries,
   getLibraryById,
   getMovieById,
@@ -28,7 +30,7 @@ import { Downloader } from "../../../downloaders/Downloader";
 import { getAudioInfo } from "../../../ffmpeg/audioInfo";
 import { getChapters, getMediaInfo } from "../../../ffmpeg/mediaInfo";
 import { FileSearch } from "../../../fileSearch/FileSearch";
-import { clearLibrary } from "../../../fileSearch/utils";
+import { clearLibrary, getCollectionItemsKey } from "../../../fileSearch/utils";
 import { MovieDBWrapper } from "../../../theMovieDB/MovieDB";
 import { FilesManager } from "../../../utils/FilesManager";
 import { IMDBScores } from "../../../utils/IMDBScores";
@@ -71,113 +73,67 @@ router.get("/libraries", async (_req: any, res: any) => {
 router.get("/library-content", async (req: any, res: any) => {
   const { libraryId, type } = req.query;
 
-  console.log("--- Iniciando Petición a /library-content ---");
-  console.log(`Query Params: libraryId=${libraryId}, type=${type}`);
-
-  if (!libraryId || libraryId === "") {
-    console.error("Error: Falta libraryId.");
+  if (!libraryId) {
     return res.status(400).json({ error: "Library ID is required" });
   }
 
   try {
-    // Determina qué función usar según el tipo
-    let getItemsFunction;
-    let itemsKey: "movies" | "series" | "albums";
-    let collectionItemsKey: "movies" | "shows" | "albums";
-
-    if (type === "Movies") {
-      getItemsFunction = getMovies;
-      itemsKey = "movies";
-      collectionItemsKey = "movies";
-    } else if (type === "Shows") {
-      getItemsFunction = getSeries;
-      itemsKey = "series";
-      collectionItemsKey = "shows";
-    } else {
-      getItemsFunction = getAlbums;
-      itemsKey = "albums";
-      collectionItemsKey = "albums";
-    }
-    console.log(
-      `Función seleccionada: ${getItemsFunction.name}, Clave de items: ${itemsKey}`
-    );
-
-    // Ejecuta ambas funciones en paralelo
-    const [collectionsWithContent, allItems] = await Promise.all([
-      getCollectionsInLibrary(libraryId as string),
-      getItemsFunction(libraryId as string),
+    const [collections, allItems] = await Promise.all([
+      getCollectionsInLibrary(libraryId as string, type),
+      getItemsForLibrary(libraryId as string, type),
     ]);
 
-    console.log("--- Resultados de las Promesas ---");
-    console.log(
-      `Colecciones encontradas: ${collectionsWithContent?.length || 0}`
-    );
-    // Descomenta la siguiente línea para ver el contenido completo de las colecciones
-    // console.log("Contenido de colecciones:", JSON.stringify(collectionsWithContent, null, 2));
-
-    console.log(
-      `Total de items encontrados (antes de filtrar): ${allItems?.length || 0}`
-    );
-    // Descomenta la siguiente línea para ver todos los items
-    // console.log("Todos los items:", JSON.stringify(allItems, null, 2));
-
-    if (!collectionsWithContent || !allItems) {
-      console.error("Error: Fallo al obtener colecciones o items.");
+    if (!collections || !allItems) {
       return res.status(500).json({ error: "Failed to fetch library content" });
     }
 
-    // Crea un Set con los IDs de los items en las colecciones
     const itemIdsInCollections = new Set<string>();
-    for (const collection of collectionsWithContent) {
-      const items = (collection.get(collectionItemsKey) as any[]) || [];
-      for (const item of items) {
-        // Asegúrate de que 'item' y 'item.id' existen antes de añadirlos
-        if (item && item.id) {
-          itemIdsInCollections.add(item.id);
-        }
-      }
-    }
+    collections.forEach((collection) => {
+      const itemsKey = getCollectionItemsKey(type);
+      const items = (collection.get(itemsKey) as { id: string }[]) || [];
+      items.forEach((item) => itemIdsInCollections.add(item.id));
+    });
 
-    console.log("--- Filtrado de Items ---");
-    console.log(
-      `Total de IDs de items DENTRO de colecciones: ${itemIdsInCollections.size}`
-    );
-    console.log("IDs en colecciones:", Array.from(itemIdsInCollections));
-
-    // Filtra los items que ya están en las colecciones
     const itemsNotInCollections = allItems.filter(
       (item) => !itemIdsInCollections.has(item.id)
     );
 
-    console.log(
-      `Items restantes (FUERA de colecciones): ${itemsNotInCollections.length}`
-    );
-    // Descomenta la siguiente línea para ver los items filtrados
-    // console.log("Items fuera de colecciones:", JSON.stringify(itemsNotInCollections, null, 2));
+    const unifiedContent = [];
 
-    // Obtiene la información básica de la colección
-    const cleanCollections = collectionsWithContent.map((collection) => {
-      const { movies, shows, albums, ...collectionData } = collection.get({
-        plain: true,
+    for (const collection of collections) {
+      const collectionData = collection.get({ plain: true });
+
+      if (!collectionData.LibraryCollection) {
+        return res
+          .status(500)
+          .json({ error: "Failed to fetch library content" });
+      }
+
+      unifiedContent.push({
+        type: "collection",
+        order: collectionData.LibraryCollection.customOrder,
+        data: {
+          id: collectionData.id,
+          title: collectionData.title,
+          description: collectionData.description,
+          posterSrc: collectionData.posterSrc,
+          musicPosterSrc: collectionData.musicPosterSrc,
+        },
       });
-      return collectionData;
-    });
+    }
 
-    // Devuelve los items que no están en las colecciones, junto con las colecciones
-    const response = {
-      collections: cleanCollections,
-      [itemsKey]: itemsNotInCollections, // Los items que no están en ninguna colección
-    };
+    for (const item of itemsNotInCollections) {
+      unifiedContent.push({
+        type: getCollectionItemsKey(type),
+        order: item.order || 0,
+        data: item,
+      });
+    }
 
-    console.log({
-      collections: cleanCollections.length,
-      [itemsKey]: itemsNotInCollections.length,
-    });
-
-    return res.json(response);
+    unifiedContent.sort((a, b) => a.order - b.order);
+    return res.json({ content: unifiedContent });
   } catch (error) {
-    console.error("Error catastrófico en /library-content:", error);
-    return res.status(500).json({ error: "Failed to fetch library content" });
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -240,9 +196,49 @@ router.get("/continueWatching", async (req: any, res: any) => {
 router.get("/details/collection", async (req: any, res: any) => {
   const { id } = req.query;
 
-  if (!id || id === "") return;
+  if (!id || id === "") {
+    return res.status(400).json({ error: "Collection ID is required" });
+  }
 
-  return res.json(await getCollectionById(id as string));
+  const collectionInstance = await getCollectionById(id as string);
+
+  if (!collectionInstance) {
+    return res.status(404).json({ error: "Collection not found" });
+  }
+
+  const collection = collectionInstance.get({ plain: true });
+
+  // Sort movies
+  collection.movies?.sort((a: Movie, b: Movie) => {
+    const orderA = a.CollectionMovie?.custom_order ?? Infinity;
+    const orderB = b.CollectionMovie?.custom_order ?? Infinity;
+    if (orderA !== orderB) {
+      return orderA - orderB;
+    }
+    return parseInt(a.year, 10) - parseInt(b.year, 10);
+  });
+
+  // Sort series
+  collection.shows?.sort((a: Series, b: Series) => {
+    const orderA = a.CollectionSeries?.custom_order ?? Infinity;
+    const orderB = b.CollectionSeries?.custom_order ?? Infinity;
+    if (orderA !== orderB) {
+      return orderA - orderB;
+    }
+    return parseInt(a.year, 10) - parseInt(b.year, 10);
+  });
+
+  // Sort albums
+  collection.albums?.sort((a: Album, b: Album) => {
+    const orderA = a.CollectionAlbum?.custom_order ?? Infinity;
+    const orderB = b.CollectionAlbum?.custom_order ?? Infinity;
+    if (orderA !== orderB) {
+      return orderA - orderB;
+    }
+    return parseInt(b.year ?? "0", 10) - parseInt(a.year ?? "0", 10);
+  });
+
+  return res.json(collection);
 });
 
 router.get("/details/series", async (req: any, res: any) => {

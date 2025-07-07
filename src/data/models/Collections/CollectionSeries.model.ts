@@ -16,6 +16,7 @@ export class CollectionSeries extends Model {
     allowNull: false,
     field: "collection_id",
     onDelete: "CASCADE",
+    primaryKey: true,
   })
   collectionId!: string;
 
@@ -25,6 +26,15 @@ export class CollectionSeries extends Model {
     allowNull: false,
     field: "series_id",
     onDelete: "CASCADE",
+    primaryKey: true,
   })
   seriesId!: string;
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+    field: "custom_order",
+    defaultValue: 0,
+  })
+  customOrder!: number;
 }

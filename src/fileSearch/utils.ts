@@ -1,6 +1,7 @@
 import { existsSync } from "fs-extra";
 import * as path from "path";
 import { parse } from "path";
+import { Album, Movie, Series } from "../data/models";
 import {
   deleteEpisode,
   deleteSeason,
@@ -107,4 +108,44 @@ export async function clearLibrary(
   // Update library in client
   Utils.mutateLibrary(wsManager);
   Utils.mutateSeries(wsManager);
+}
+
+/**
+ * Returns the key to use in the collection of items
+ * @param value model name
+ * @returns key
+ */
+export function getCollectionItemsKey(value: string) {
+  switch (value) {
+    case "Movies":
+      return "movies";
+    case "Series":
+      return "shows";
+    case "Shows":
+      return "shows";
+    case "Music":
+      return "albums";
+    default:
+      throw new Error(`Invalid item value provided: ${value}`);
+  }
+}
+
+/**
+ * Returns the corresponding model for a given item type
+ * @param type item type ('Movies', 'Shows', 'Music').
+ * @returns model (Movie, Series, o Album).
+ */
+export function getItemModel(type: string) {
+  switch (type) {
+    case "Movies":
+      return Movie;
+    case "Series":
+      return Series;
+    case "Shows":
+      return Series;
+    case "Music":
+      return Album;
+    default:
+      throw new Error(`Invalid item type provided: ${type}`);
+  }
 }
