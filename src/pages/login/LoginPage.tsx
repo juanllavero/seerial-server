@@ -18,8 +18,6 @@ function LoginPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const token = getToken()
-  const [searchParams] = useSearchParams()
-  const claimToken = searchParams.get('token')
 
   if (token || user) navigate('/home')
 
@@ -43,20 +41,6 @@ function LoginPage() {
       const data = await res.json()
 
       if (res.ok && data.token) {
-        // If the user has a claim token, we need to send it to the server
-        if (claimToken) {
-          await fetch(`https://${CENTRAL_SERVER}/claim/complete`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              // Use the user token to authenticate the request
-              Authorization: `Bearer ${data.token}`,
-            },
-            body: JSON.stringify({ claim_token: claimToken }),
-          })
-          showToast('success', 'Server registered successfully')
-        }
-
         await login(data.token)
         setIsLoading(false)
         navigate('/home')
