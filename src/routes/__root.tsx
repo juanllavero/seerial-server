@@ -20,9 +20,12 @@ function Root() {
   useEffect(() => {
     const claimToken = searchParams.get('token')
 
+    console.log({ claimToken })
+
     // If the user is logged in and has a claim token, we need to send it to the server
     if (token && claimToken) {
       const completeClaim = async () => {
+        console.log({ claimToken, userId: user?.id })
         try {
           const res = await fetch(`https://${CENTRAL_SERVER}/claim/complete`, {
             method: 'POST',
