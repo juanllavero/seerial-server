@@ -5,15 +5,15 @@ import LibraryPageContent from './components/LibraryPageContent'
 
 function LibraryPage() {
   const { libraryId, type } = useParams()
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const serverIP = useServerStore((state) => state.serverIP)
 
   // Memoize serverIP
-  const serverIP = useMemo(() => selectedServer?.ip, [selectedServer?.ip])
+  const ip = useMemo(() => serverIP, [serverIP])
 
   return (
     <LibraryPageContent
       libraryId={libraryId ?? ''}
-      serverIP={serverIP ?? ''}
+      serverIP={ip ?? ''}
       type={type ?? ''}
     />
   )

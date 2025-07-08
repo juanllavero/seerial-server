@@ -45,10 +45,15 @@ function SeriesDetailsPage() {
     shallow,
   )
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const { selectedServer, serverIP } = useServerStore(
+    (state) => ({
+      selectedServer: state.selectedServer,
+      serverIP: state.serverIP,
+    }),
+    shallow,
+  )
   const clientSettings = useSettingsStore((state) => state.clientSettings)
   const openSeasonDialog = useDialogStore((state) => state.openSeasonDialog)
-  const serverIP = selectedServer?.ip
 
   // Get series data
   const {
@@ -57,7 +62,7 @@ function SeriesDetailsPage() {
     error,
     mutate: mutateSeries,
   } = useSWR<Series>(
-    `https://${serverIP}/details/series?id=${seriesId}`,
+    `http://${serverIP}/details/series?id=${seriesId}`,
     fetcher,
   )
 
@@ -142,7 +147,7 @@ function SeriesDetailsPage() {
 
   const toggleSeriesWatched = async () => {
     if (series) {
-      fetch(`https://${serverIP}/setSeriesWatched`, {
+      fetch(`http://${serverIP}/setSeriesWatched`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -159,7 +164,7 @@ function SeriesDetailsPage() {
 
   const toggleSeasonWatched = async () => {
     if (season) {
-      fetch(`https://${serverIP}/setSeasonWatched`, {
+      fetch(`http://${serverIP}/setSeasonWatched`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

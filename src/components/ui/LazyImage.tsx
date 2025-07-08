@@ -29,7 +29,7 @@ function LazyImage({
   onLoad,
   className,
 }: LazyImageProps) {
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const serverIP = useServerStore((state) => state.serverIP)
 
   const [loaded, setLoaded] = useState(false)
   const [imageSrc, setImageSrc] = useState(
@@ -38,7 +38,7 @@ function LazyImage({
         ? url
         : url.startsWith('local')
           ? url.replace('local', '')
-          : `https://${selectedServer?.ip}/${url.replace('resources/img', 'img')}`
+          : `http://${serverIP}/${url.replace('resources/img', 'img')}`
       : (src ?? errorSrc),
   )
   const [hasError, setHasError] = useState(false) // New state to track errors
@@ -49,12 +49,12 @@ function LazyImage({
         ? url
         : url.startsWith('local')
           ? url.replace('local', '')
-          : `https://${selectedServer?.ip}/${url.replace('resources/img', 'img')}`
+          : `http://${serverIP}/${url.replace('resources/img', 'img')}`
       : (src ?? errorSrc)
     if (imageSrc !== newSrc) setImageSrc(newSrc ?? errorSrc)
     setLoaded(false) // Reset loaded to show skeleton while loading new image
     setHasError(false) // Reset error state
-  }, [url, src, selectedServer])
+  }, [url, src, serverIP])
 
   const containerStyles = {
     width: width,

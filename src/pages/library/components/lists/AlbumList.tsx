@@ -22,10 +22,10 @@ interface AlbumListProps {
 }
 
 function AlbumList({ library, mutateLibrary }: AlbumListProps) {
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const serverIP = useServerStore((state) => state.serverIP)
   const { data, isLoading } = useSWR(
-    selectedServer
-      ? `https://${selectedServer.ip}/library-content?libraryId=${library.id}&type=Music`
+    serverIP !== ''
+      ? `http://${serverIP}/library-content?libraryId=${library.id}&type=Music`
       : null,
     fetcher,
   )

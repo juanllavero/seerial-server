@@ -13,9 +13,9 @@ import { shallow } from 'zustand/shallow'
 
 function ServerGeneral({ isLoaded }: { isLoaded: boolean }) {
   const { t } = useTranslation()
-  const { selectedServer, serverVersion } = useServerStore(
+  const { serverIP, serverVersion } = useServerStore(
     (state) => ({
-      selectedServer: state.selectedServer,
+      serverIP: state.serverIP,
       serverVersion: state.serverVersion,
     }),
     shallow,
@@ -32,15 +32,15 @@ function ServerGeneral({ isLoaded }: { isLoaded: boolean }) {
   const [isDirty, setIsDirty] = React.useState(false)
   const [showMessage, setShowMessage] = useState(false)
 
-  const [ip, setIP] = useState<string>(selectedServer?.ip ?? '')
+  const [ip, setIP] = useState<string>(serverIP ?? '')
   const [autoUpdate, setAutoUpdate] = useState<boolean>(
     (serverSettings['automaticUpdates'] as boolean) ?? false,
   )
 
   const handleSave = () => {
-    if (!selectedServer) return
+    if (serverIP === '') return
 
-    setServerSetting(selectedServer.ip, 'automaticUpdates', autoUpdate)
+    setServerSetting(serverIP, 'automaticUpdates', autoUpdate)
 
     setServerSettings({
       ...serverSettings,

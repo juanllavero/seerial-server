@@ -14,7 +14,7 @@ function ServerTranscode() {
   const { t } = useTranslation()
   const [isDirty, setIsDirty] = React.useState(false)
   const [showMessage, setShowMessage] = React.useState(false)
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const serverIP = useServerStore((state) => state.serverIP)
   const { setServerSetting, serverSettings, setServerSettings } =
     useSettingsStore(
       (state) => ({
@@ -106,11 +106,12 @@ function ServerTranscode() {
   }
 
   const handleSave = () => {
-    if (!selectedServer) return
-    setServerSetting(selectedServer.ip, 'tempTranscodeFolder', tempFolder)
-    setServerSetting(selectedServer.ip, 'transcodePreset', transcoderPreset)
-    setServerSetting(selectedServer.ip, 'transcodeBuffer', defaultBuffer)
-    setServerSetting(selectedServer.ip, 'maxTranscodeProcesses', maxTranscoding)
+    if (serverIP === '') return
+
+    setServerSetting(serverIP, 'tempTranscodeFolder', tempFolder)
+    setServerSetting(serverIP, 'transcodePreset', transcoderPreset)
+    setServerSetting(serverIP, 'transcodeBuffer', defaultBuffer)
+    setServerSetting(serverIP, 'maxTranscodeProcesses', maxTranscoding)
 
     setServerSettings({
       ...serverSettings,

@@ -19,7 +19,7 @@ function PlayButton({ currentlyWatchingEpisodeId, serverIP }: PlayButtonProps) {
   // Get current episode
   const { data: episode } = useSWR<Episode>(
     currentlyWatchingEpisodeId
-      ? `https://${serverIP}/details/episode?id=${currentlyWatchingEpisodeId}`
+      ? `http://${serverIP}/details/episode?id=${currentlyWatchingEpisodeId}`
       : null,
     fetcher,
   )
@@ -35,7 +35,7 @@ function PlayButton({ currentlyWatchingEpisodeId, serverIP }: PlayButtonProps) {
       onClick={async () => {
         if (episode) {
           const response = await fetch(
-            `https://${serverIP}/video?id=${episode.id}`,
+            `http://${serverIP}/video?id=${episode.id}`,
           )
 
           if (!response.ok) {

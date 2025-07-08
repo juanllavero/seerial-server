@@ -7,6 +7,7 @@ import { fetcher } from '@/utils/utils'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 import HorizontalList from '../../../../components/lists/HorizontalList'
+import { shallow } from 'zustand/shallow'
 
 interface ContinueWatchingProps {
   goToContent: (url: string) => void
@@ -14,12 +15,18 @@ interface ContinueWatchingProps {
 
 function ContinueWatching({ goToContent }: ContinueWatchingProps) {
   const { t } = useTranslation()
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const { selectedServer, serverIP } = useServerStore(
+    (state) => ({
+      selectedServer: state.selectedServer,
+      serverIP: state.serverIP,
+    }),
+    shallow,
+  )
   const isMobile = useIsMobile()
 
   // Get Continue Watching items
   const { data: continueWatching, isLoading } = useSWR<Video[]>(
-    selectedServer ? `https://${selectedServer.ip}/continueWatching` : null,
+    selectedServer ? `http://${serverIP}/continueWatching` : null,
     fetcher,
   )
 

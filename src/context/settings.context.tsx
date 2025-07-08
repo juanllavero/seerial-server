@@ -44,7 +44,7 @@ export const useSettingsStore = createWithEqualityFn<SettingsStore>((set) => ({
       clientSettings: state.clientSettings,
     })),
   getAllServerSettings: async (serverIP: string) => {
-    const settings = await fetch(`https://${serverIP}/serverConfig`)
+    const settings = await fetch(`http://${serverIP}/serverConfig`)
     const result = await settings.json()
     set({ serverSettings: result })
   },
@@ -53,7 +53,7 @@ export const useSettingsStore = createWithEqualityFn<SettingsStore>((set) => ({
     key: string,
     defaultValue: ValueOption,
   ) => {
-    const setting = await fetch(`https://${serverIP}/serverConfig/${key}`)
+    const setting = await fetch(`http://${serverIP}/serverConfig/${key}`)
     const result = await setting.json()
 
     return result ? result.value : defaultValue
@@ -63,7 +63,7 @@ export const useSettingsStore = createWithEqualityFn<SettingsStore>((set) => ({
     key: string,
     value: ValueOption,
   ) => {
-    fetch(`https://${serverIP}/serverConfig`, {
+    fetch(`http://${serverIP}/serverConfig`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -73,7 +73,7 @@ export const useSettingsStore = createWithEqualityFn<SettingsStore>((set) => ({
   },
 
   getAllClientSettings: async (serverIP: string) => {
-    const settings = await fetch(`https://${serverIP}/webConfig`)
+    const settings = await fetch(`http://${serverIP}/webConfig`)
     const result = await settings.json()
     set({ clientSettings: result })
   },
@@ -82,7 +82,7 @@ export const useSettingsStore = createWithEqualityFn<SettingsStore>((set) => ({
     key: string,
     defaultValue: ValueOption,
   ) => {
-    const setting = await fetch(`https://${serverIP}/webConfig/${key}`)
+    const setting = await fetch(`http://${serverIP}/webConfig/${key}`)
     const result = await setting.json()
 
     return result ? result.value : defaultValue
@@ -92,7 +92,7 @@ export const useSettingsStore = createWithEqualityFn<SettingsStore>((set) => ({
     key: string,
     value: ValueOption,
   ) => {
-    fetch(`https://${serverIP}/webConfig`, {
+    fetch(`http://${serverIP}/webConfig`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',

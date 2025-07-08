@@ -1,3 +1,4 @@
+import Loading from '@/components/Loading'
 import { useAuth } from '@/context/auth.context'
 import BaseLayout from '@/layouts/BaseLayout'
 import { getToken } from '@/lib/auth'
@@ -52,6 +53,10 @@ function Root() {
       completeClaim()
     }
   }, [token, searchParams, navigate, isLoading])
+
+  if (isLoading) {
+    return <Loading />
+  }
 
   if (!token && window.location.pathname !== '/login') {
     return <Navigate to="/login" replace />

@@ -3,7 +3,7 @@ import FlexBox from '@/components/ui/FlexBox'
 import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import { SettingsSection } from '@/data/interfaces/Utils'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import ClientGeneral from './components/ClientGeneral'
 import ClientPlayer from './components/ClientPlayer'
 import ClientQuality from './components/ClientQuality'
@@ -14,7 +14,7 @@ import ServerTranscode from './components/ServerTranscode'
 import { shallow } from 'zustand/shallow'
 
 function SettingsPage() {
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const serverIP = useServerStore((state) => state.serverIP)
   const {
     getAllClientSettings,
     getAllServerSettings,
@@ -33,12 +33,11 @@ function SettingsPage() {
   const isMobile = useIsMobile()
 
   useEffect(() => {
-    if (selectedServer) {
-      const serverIP = selectedServer.ip
+    if (serverIP) {
       getAllServerSettings(serverIP)
       getAllClientSettings(serverIP)
     }
-  }, [selectedServer])
+  }, [serverIP])
 
   const isLoaded =
     Object.keys(serverSettings).length > 0 &&

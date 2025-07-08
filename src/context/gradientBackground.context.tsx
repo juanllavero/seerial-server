@@ -56,7 +56,7 @@ export const useGradientStore = createWithEqualityFn<GradientState>((set) => ({
     if (background) {
       imageUrl = background.startsWith('http')
         ? background
-        : `https://${serverIP}/${background.replace('resources/img', 'img')}`
+        : `http://${serverIP}/${background.replace('resources/img', 'img')}`
     }
 
     const dominantColors = await extractColorsFromImage(imageUrl)

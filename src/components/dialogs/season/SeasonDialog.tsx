@@ -14,7 +14,7 @@ import { shallow } from 'zustand/shallow'
 
 function SeasonDialog() {
   const { t } = useTranslation()
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const serverIP = useServerStore((state) => state.serverIP)
   const connectWS = useWebSocketStore((state) => state.connectWS)
   const { seasonDialog, closeSeasonDialog } = useDialogStore(
     (state) => ({
@@ -67,13 +67,11 @@ function SeasonDialog() {
   if (!season) return null
 
   const handleEditSeason = async () => {
-    if (!selectedServer) return
-
-    const serverIP = selectedServer.ip
+    if (serverIP === '') return
 
     await connectWS(serverIP)
 
-    const response = await fetch(`https://${serverIP}/season`, {
+    const response = await fetch(`http://${serverIP}/season`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -96,9 +94,7 @@ function SeasonDialog() {
       return
     }
 
-    mutate((key: string) =>
-      key.startsWith(`https://${serverIP}/details/season`),
-    )
+    mutate((key: string) => key.startsWith(`http://${serverIP}/details/season`))
 
     closeSeasonDialog()
   }

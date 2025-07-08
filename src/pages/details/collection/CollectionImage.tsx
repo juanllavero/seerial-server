@@ -11,9 +11,9 @@ interface CollectionImageProps {
 }
 
 function CollectionImage({ collection, type }: CollectionImageProps) {
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const serverIP = useServerStore((state) => state.serverIP)
   const { data: collectionImages } = useSWR<string[]>(
-    `https://${selectedServer?.ip}/collection-images?collectionId=${collection.id}&&type=${type}`,
+    `http://${serverIP}/collection-images?collectionId=${collection.id}&&type=${type}`,
     fetcher,
   )
 

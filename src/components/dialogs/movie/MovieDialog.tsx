@@ -15,7 +15,7 @@ import { shallow } from 'zustand/shallow'
 
 function MovieDialog() {
   const { t } = useTranslation()
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const serverIP = useServerStore((state) => state.serverIP)
   const connectWS = useWebSocketStore((state) => state.connectWS)
   const { movieDialog, closeMovieDialog } = useDialogStore(
     (state) => ({
@@ -114,13 +114,11 @@ function MovieDialog() {
   if (!movie) return null
 
   const handleEditMovie = async () => {
-    if (!selectedServer) return
-
-    const serverIP = selectedServer.ip
+    if (serverIP === '') return
 
     await connectWS(serverIP)
 
-    const response = await fetch(`https://${serverIP}/movie`, {
+    const response = await fetch(`http://${serverIP}/movie`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -145,7 +143,7 @@ function MovieDialog() {
       return
     }
 
-    mutate((key: string) => key.startsWith(`https://${serverIP}/details/movie`))
+    mutate((key: string) => key.startsWith(`http://${serverIP}/details/movie`))
 
     closeMovieDialog()
   }

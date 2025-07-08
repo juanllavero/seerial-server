@@ -54,7 +54,7 @@ function SeasonContent({ seasonList, serverId, serverIP }: SeasonContentProps) {
     error,
   } = useSWR<Season>(
     selectedSeasonId
-      ? `https://${serverIP}/details/season?id=${selectedSeasonId}`
+      ? `http://${serverIP}/details/season?id=${selectedSeasonId}`
       : null,
     fetcher,
   )
@@ -102,7 +102,7 @@ function SeasonContent({ seasonList, serverId, serverIP }: SeasonContentProps) {
 
   const playEpisode = async (episodeId: Episode) => {
     const response = await fetch(
-      `https://${serverIP}/episode-video?episodeId=${episodeId.id}`,
+      `http://${serverIP}/episode-video?episodeId=${episodeId.id}`,
     )
 
     if (!response.ok) {

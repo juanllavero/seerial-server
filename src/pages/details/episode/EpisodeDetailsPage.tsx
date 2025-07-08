@@ -20,7 +20,7 @@ function EpisodeDetailsPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const serverIP = useServerStore((state) => state.serverIP)
   const { serverId, episodeId } = useParams()
 
   const {
@@ -28,22 +28,22 @@ function EpisodeDetailsPage() {
     isLoading,
     mutate,
   } = useSWR(
-    episodeId && selectedServer
-      ? `https://${selectedServer.ip}/details/episode?id=${episodeId}`
+    episodeId && serverIP !== ''
+      ? `http://${serverIP}/details/episode?id=${episodeId}`
       : null,
     fetcher,
   )
 
   const { data: season } = useSWR(
-    episode && selectedServer
-      ? `https://${selectedServer.ip}/details/season?id=${episode.seasonId}`
+    episode && serverIP !== ''
+      ? `http://${serverIP}/details/season?id=${episode.seasonId}`
       : null,
     fetcher,
   )
 
   const { data: series } = useSWR(
-    season && selectedServer
-      ? `https://${selectedServer.ip}/details/series?id=${season.seriesId}`
+    season && serverIP !== ''
+      ? `http://${serverIP}/details/series?id=${season.seriesId}`
       : null,
     fetcher,
   )
@@ -66,18 +66,15 @@ function EpisodeDetailsPage() {
     if (!episode) return
 
     const fetchData = async () => {
-      const result = await fetch(
-        `https://${selectedServer?.ip}/updateMediaInfo`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            videoId: episode.video.id,
-          }),
+      const result = await fetch(`http://${serverIP}/updateMediaInfo`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      )
+        body: JSON.stringify({
+          videoId: episode.video.id,
+        }),
+      })
 
       if (!result.ok) {
         return

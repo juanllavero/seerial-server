@@ -19,7 +19,13 @@ interface SeriesCardProps {
 
 function SeriesCard({ series, mutateLibrary }: SeriesCardProps) {
   const { t } = useTranslation()
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const { selectedServer, serverIP } = useServerStore(
+    (state) => ({
+      selectedServer: state.selectedServer,
+      serverIP: state.serverIP,
+    }),
+    shallow,
+  )
   const selectSeries = useDataStore((state) => state.selectSeries)
   const {
     openSeriesDialog,
@@ -40,7 +46,7 @@ function SeriesCard({ series, mutateLibrary }: SeriesCardProps) {
 
   const toggleSeriesWatched = async () => {
     if (series) {
-      fetch(`https://${selectedServer?.ip}/setSeriesWatched`, {
+      fetch(`http://${serverIP}/setSeriesWatched`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -93,7 +99,7 @@ function SeriesCard({ series, mutateLibrary }: SeriesCardProps) {
 
   const getRemainingEpisodes = async () => {
     const response = await fetch(
-      `https://${selectedServer?.ip}/remaining-episodes?seriesId=${series.id}`,
+      `http://${serverIP}/remaining-episodes?seriesId=${series.id}`,
     )
 
     if (!response.ok) {

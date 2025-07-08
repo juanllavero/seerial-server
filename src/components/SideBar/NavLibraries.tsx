@@ -59,14 +59,16 @@ const NavLibraries = () => {
   )
   const navigate = useNavigate()
 
-  const { selectedServer, serverStatus, apiKeyStatus } = useServerStore(
-    (state) => ({
-      selectedServer: state.selectedServer,
-      serverStatus: state.serverStatus,
-      apiKeyStatus: state.apiKeyStatus,
-    }),
-    shallow,
-  )
+  const { selectedServer, serverIP, serverStatus, apiKeyStatus } =
+    useServerStore(
+      (state) => ({
+        selectedServer: state.selectedServer,
+        serverIP: state.serverIP,
+        serverStatus: state.serverStatus,
+        apiKeyStatus: state.apiKeyStatus,
+      }),
+      shallow,
+    )
   const { openLibraryDialog, openRemoveLibraryDialog } = useDialogStore(
     (state) => ({
       openLibraryDialog: state.openLibraryDialog,
@@ -83,7 +85,7 @@ const NavLibraries = () => {
   )
 
   const { data: libraries, isLoading } = useSWR<Library[]>(
-    selectedServer ? `https://${selectedServer.ip}/libraries/` : null,
+    selectedServer ? `http://${serverIP}/libraries/` : null,
     fetcher,
     {
       revalidateOnFocus: false,

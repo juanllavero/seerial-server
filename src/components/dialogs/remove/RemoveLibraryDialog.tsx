@@ -9,7 +9,7 @@ import { shallow } from 'zustand/shallow'
 
 function RemoveLibraryDialog() {
   const { t } = useTranslation()
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const serverIP = useServerStore((state) => state.serverIP)
   const connectWS = useWebSocketStore((state) => state.connectWS)
   const { removeLibraryDialog, closeRemoveLibraryDialog } = useDialogStore(
     (state) => ({
@@ -26,19 +26,18 @@ function RemoveLibraryDialog() {
       description={t('removeLibraryMessage')}
       actionMessage={t('removeButton')}
       action={async () => {
-        if (!selectedServer) return
+        if (serverIP === '') return
 
-        const serverIP = selectedServer.ip
         connectWS(serverIP)
         await fetch(
-          `https://${serverIP}/libraries/${removeLibraryDialog.libraryToRemove}`,
+          `http://${serverIP}/libraries/${removeLibraryDialog.libraryToRemove}`,
           {
             method: 'DELETE',
           },
         )
 
         // Mutate libraries list
-        mutate((key: string) => key.startsWith(`https://${serverIP}/libraries`))
+        mutate((key: string) => key.startsWith(`http://${serverIP}/libraries`))
 
         navigate('/home')
         closeRemoveLibraryDialog()

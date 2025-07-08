@@ -32,7 +32,7 @@ function ImageListTab({
   isPoster = false,
 }: ImageListTabProps) {
   const { t } = useTranslation()
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const serverIP = useServerStore((state) => state.serverIP)
   const [loaded, setLoaded] = useState(false)
   //const [localImages, setLocalImages] = useState<LocalImage[]>([])
   const [pastingUrl, setPastingUrl] = useState<boolean>(false)
@@ -48,9 +48,7 @@ function ImageListTab({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { data: localImages, isLoading } = useSWR<LocalImage[]>(
-    localFolder
-      ? `https://${selectedServer?.ip}/images?path=${localFolder}`
-      : null,
+    localFolder ? `http://${serverIP}/images?path=${localFolder}` : null,
     fetcher,
   )
 
@@ -58,7 +56,7 @@ function ImageListTab({
   //   const fetchLocalImages = async () => {
   //     try {
   //       const response = await fetch(
-  //         `https://${selectedServer?.ip}/images?path=${localFolder}`,
+  //         `http://${serverIP}/images?path=${localFolder}`,
   //       )
   //       const data = await response.json()
   //       setLocalImages(data)
@@ -111,13 +109,10 @@ function ImageListTab({
     formData.append('image', file)
 
     try {
-      const response = await fetch(
-        `https://${selectedServer?.ip}/uploadImage`,
-        {
-          method: 'POST',
-          body: formData,
-        },
-      )
+      const response = await fetch(`http://${serverIP}/uploadImage`, {
+        method: 'POST',
+        body: formData,
+      })
 
       if (!response.ok) {
         throw new Error()
@@ -135,20 +130,17 @@ function ImageListTab({
     setIsUploading(true)
 
     try {
-      const response = await fetch(
-        `https://${selectedServer?.ip}/downloadImage`,
-        {
-          method: 'POST',
-          body: JSON.stringify({
-            url: url,
-            downloadFolder: localFolder,
-            fileName: generateRandoumUUID(),
-          }),
-          headers: {
-            'Content-Type': 'application/json',
-          },
+      const response = await fetch(`http://${serverIP}/downloadImage`, {
+        method: 'POST',
+        body: JSON.stringify({
+          url: url,
+          downloadFolder: localFolder,
+          fileName: generateRandoumUUID(),
+        }),
+        headers: {
+          'Content-Type': 'application/json',
         },
-      )
+      })
 
       if (!response.ok) {
         throw new Error()

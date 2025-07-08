@@ -15,7 +15,7 @@ import { shallow } from 'zustand/shallow'
 
 function CorrectIdentificationSearch() {
   const { t } = useTranslation()
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const serverIP = useServerStore((state) => state.serverIP)
   const connectWS = useWebSocketStore((state) => state.connectWS)
   const { identificationDialog, closeIdentificationDialog } = useDialogStore(
     (state) => ({
@@ -61,7 +61,7 @@ function CorrectIdentificationSearch() {
 
   const search = (name: string, year: string) => {
     fetch(
-      `https://${selectedServer?.ip}/${isShow ? 'shows' : 'movies'}/search?name=${name}&year=${year}`,
+      `http://${serverIP}/${isShow ? 'shows' : 'movies'}/search?name=${name}&year=${year}`,
     )
       .then((response) => response.json())
       .then((data) => {
@@ -71,12 +71,10 @@ function CorrectIdentificationSearch() {
   }
 
   const saveIdentification = async (id: number) => {
-    if (!selectedServer) return
-
-    const serverIP = selectedServer?.ip
+    if (serverIP === '') return
 
     await connectWS(serverIP)
-    fetch(`https://${serverIP}/${isShow ? 'updateShowId' : 'updateMovieId'}`, {
+    fetch(`http://${serverIP}/${isShow ? 'updateShowId' : 'updateMovieId'}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

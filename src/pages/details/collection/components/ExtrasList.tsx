@@ -14,12 +14,10 @@ interface ExtrasListProps {
 
 function ExtrasList({ collection }: ExtrasListProps) {
   const { t } = useTranslation()
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const serverIP = useServerStore((state) => state.serverIP)
 
   const { data: extras, isLoading } = useSWR<MusicExtra[]>(
-    selectedServer
-      ? `https://${selectedServer.ip}/musicExtras/${collection.id}`
-      : null,
+    serverIP !== '' ? `http://${serverIP}/musicExtras/${collection.id}` : null,
     fetcher,
   )
 
@@ -53,7 +51,7 @@ function ExtrasList({ collection }: ExtrasListProps) {
           <div className="w-100">
             <VideoThumbnail
               key={index}
-              videoUrl={`https://${selectedServer?.ip}/video-file?path=${extra.src}`}
+              videoUrl={`http://${serverIP}/video-file?path=${extra.src}`}
             />
           </div>
           <div className="flex flex-col">

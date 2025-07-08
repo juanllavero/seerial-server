@@ -11,7 +11,7 @@ import { shallow } from 'zustand/shallow'
 
 function ClientPlayer() {
   const { t } = useTranslation()
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const serverIP = useServerStore((state) => state.serverIP)
   const { setClientSetting, clientSettings, setClientSettings } =
     useSettingsStore(
       (state) => ({
@@ -112,12 +112,12 @@ function ClientPlayer() {
   )
 
   const handleSave = () => {
-    if (!selectedServer) return
+    if (serverIP === '') return
 
-    setClientSetting(selectedServer.ip, 'subtitleColor', subtitleColor)
-    setClientSetting(selectedServer.ip, 'subtitleSize', subtitleSize)
-    setClientSetting(selectedServer.ip, 'subtitlePosition', subtitlePosition)
-    setClientSetting(selectedServer.ip, 'burntSubtitles', subtitleBurn)
+    setClientSetting(serverIP, 'subtitleColor', subtitleColor)
+    setClientSetting(serverIP, 'subtitleSize', subtitleSize)
+    setClientSetting(serverIP, 'subtitlePosition', subtitlePosition)
+    setClientSetting(serverIP, 'burntSubtitles', subtitleBurn)
 
     setClientSettings({
       ...clientSettings,

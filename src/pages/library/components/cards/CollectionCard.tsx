@@ -13,6 +13,7 @@ import Image from '@/components/ui/Image'
 import { getPosterImage, getFirstImage } from '@/utils/ReactUtils'
 import useSWR from 'swr'
 import { fetcher } from '@/utils/utils'
+import { shallow } from 'zustand/shallow'
 
 interface CollectionCardProps {
   libraryId: string
@@ -23,19 +24,25 @@ interface CollectionCardProps {
 function CollectionCard({ libraryId, collection, type }: CollectionCardProps) {
   const { t } = useTranslation()
   const selectCollection = useDataStore((state) => state.selectCollection)
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const { selectedServer, serverIP } = useServerStore(
+    (state) => ({
+      selectedServer: state.selectedServer,
+      serverIP: state.serverIP,
+    }),
+    shallow,
+  )
   const openCollectionDialog = useDialogStore(
     (state) => state.openCollectionDialog,
   )
   const navigate = useNavigate()
 
   const { data: elementsInCollection } = useSWR<number>(
-    `https://${selectedServer?.ip}/collection-items?collectionId=${collection.id}&libraryId=${libraryId}&type=${type}`,
+    `http://${serverIP}/collection-items?collectionId=${collection.id}&libraryId=${libraryId}&type=${type}`,
     fetcher,
   )
 
   const { data: collectionImages } = useSWR<string[]>(
-    `https://${selectedServer?.ip}/collection-images?collectionId=${collection.id}&&type=${type}`,
+    `http://${serverIP}/collection-images?collectionId=${collection.id}&&type=${type}`,
     fetcher,
   )
 

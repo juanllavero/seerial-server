@@ -19,11 +19,10 @@ import { useIsTablet } from '@/components/hooks/use-tablet'
 function AlbumDetailsPage() {
   const { albumId } = useParams()
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const serverIP = useServerStore((state) => state.serverIP)
   const setCurrentBackground = useDataStore(
     (state) => state.setCurrentBackground,
   )
-  const serverIP = selectedServer?.ip
 
   // Get series data
   const {
@@ -31,7 +30,7 @@ function AlbumDetailsPage() {
     isLoading,
     error,
     mutate,
-  } = useSWR<Album>(`https://${serverIP}/details/album?id=${albumId}`, fetcher)
+  } = useSWR<Album>(`http://${serverIP}/details/album?id=${albumId}`, fetcher)
 
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()

@@ -13,7 +13,7 @@ import { shallow } from 'zustand/shallow'
 
 function AlbumDialog() {
   const { t } = useTranslation()
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const serverIP = useServerStore((state) => state.serverIP)
   const connectWS = useWebSocketStore((state) => state.connectWS)
   const { albumDialog, closeAlbumDialog } = useDialogStore(
     (state) => ({
@@ -56,12 +56,11 @@ function AlbumDialog() {
   if (!album) return null
 
   const handleEditAlbum = async () => {
-    if (!selectedServer) return
+    if (serverIP === '') return
 
-    const serverIP = selectedServer.ip
     await connectWS(serverIP)
 
-    const response = await fetch(`https://${serverIP}/album`, {
+    const response = await fetch(`http://${serverIP}/album`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -82,7 +81,7 @@ function AlbumDialog() {
       return
     }
 
-    mutate((key: string) => key.startsWith(`https://${serverIP}/details/album`))
+    mutate((key: string) => key.startsWith(`http://${serverIP}/details/album`))
 
     closeAlbumDialog()
   }

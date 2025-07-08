@@ -14,7 +14,7 @@ import GeneralTabContent from './GeneralTabContent'
 function LibraryDialog() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const serverIP = useServerStore((state) => state.serverIP)
   const connectWS = useWebSocketStore((state) => state.connectWS)
   const { libraryDialog, closeLibraryDialog } = useDialogStore(
     (state) => ({
@@ -58,11 +58,9 @@ function LibraryDialog() {
   }, [libraryDialog])
 
   const handleAddEditLibrary = async () => {
-    if (!selectedServer) return
+    if (serverIP === '') return
 
     setLoading(true)
-
-    const serverIP = selectedServer.ip
 
     await connectWS(serverIP)
 
@@ -79,7 +77,7 @@ function LibraryDialog() {
         subsMode,
       }
 
-      await fetch(`https://${serverIP}/library`, {
+      await fetch(`http://${serverIP}/library`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -91,7 +89,7 @@ function LibraryDialog() {
       })
 
       // Mutate libraries list
-      mutate((key: string) => key.startsWith(`https://${serverIP}/libraries`))
+      mutate((key: string) => key.startsWith(`http://${serverIP}/libraries`))
 
       closeLibraryDialog()
 
@@ -110,7 +108,7 @@ function LibraryDialog() {
       subsMode,
     }
 
-    const response = await fetch(`https://${serverIP}/addLibrary`, {
+    const response = await fetch(`http://${serverIP}/addLibrary`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -126,7 +124,7 @@ function LibraryDialog() {
     }
 
     // Mutate libraries list
-    mutate((key: string) => key.startsWith(`https://${serverIP}/libraries`))
+    mutate((key: string) => key.startsWith(`http://${serverIP}/libraries`))
 
     const data = await response.json()
     const libraryId = data.id
@@ -134,9 +132,7 @@ function LibraryDialog() {
     setLoading(false)
 
     // Navigate to new library page
-    navigate(
-      `/server/${selectedServer.id}/library/${libraryId}/${type ?? 'Shows'}`,
-    )
+    navigate(`/server/${serverIP}/library/${libraryId}/${type ?? 'Shows'}`)
   }
 
   const handleSaveOrNext = () => {

@@ -159,7 +159,7 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
       await connectWS(serverIP)
 
       try {
-        const response = await fetch(`https://${serverIP}/downloadVideo`, {
+        const response = await fetch(`http://${serverIP}/downloadVideo`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -188,7 +188,7 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
       await connectWS(serverIP)
 
       try {
-        const response = await fetch(`https://${serverIP}/downloadMusic`, {
+        const response = await fetch(`http://${serverIP}/downloadMusic`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

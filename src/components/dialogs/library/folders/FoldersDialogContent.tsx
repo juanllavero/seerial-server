@@ -23,7 +23,7 @@ function FoldersDialogContent({
   close,
 }: FoldersDialogContentProps) {
   const { t } = useTranslation()
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const serverIP = useServerStore((state) => state.serverIP)
   const { fetchData, isLoading } = useFetch()
   const [drives, setDrives] = useState<string[]>([]) // Lista de unidades
   const [folderContent, setFolderContent] = useState<Folder[]>([]) // Contenido de la carpeta
@@ -32,7 +32,7 @@ function FoldersDialogContent({
   // Fetch para obtener las unidades de disco
   useEffect(() => {
     fetchData(
-      `https://${selectedServer?.ip}/drives`,
+      `http://${serverIP}/drives`,
       (data) => setDrives(data as string[]),
       (err) => console.error('Error fetching drives:', err),
     )
@@ -41,7 +41,7 @@ function FoldersDialogContent({
   // Fetch para obtener el contenido de una carpeta
   const fetchFolderContent = async (path: string) => {
     fetchData(
-      `https://${selectedServer?.ip}/folder/${encodeURIComponent(path)}`,
+      `http://${serverIP}/folder/${encodeURIComponent(path)}`,
       (data) => {
         setFolderContent(data as Folder[])
         setCurrentPath(path)

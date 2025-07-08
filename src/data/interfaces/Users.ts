@@ -9,6 +9,8 @@ export interface User {
 export interface Server {
   id: string
   ip: string
+  publicIp: string
+  port: number
   ownerId: string
   name: string
 }

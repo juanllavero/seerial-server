@@ -19,7 +19,13 @@ interface MovieCardProps {
 function MovieCard({ movie, mutateLibrary }: MovieCardProps) {
   const { t } = useTranslation()
   const selectMovie = useDataStore((state) => state.selectMovie)
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const { selectedServer, serverIP } = useServerStore(
+    (state) => ({
+      selectedServer: state.selectedServer,
+      serverIP: state.serverIP,
+    }),
+    shallow,
+  )
   const { openMovieDialog, openIdentificationDialog } = useDialogStore(
     (state) => ({
       openMovieDialog: state.openMovieDialog,
@@ -31,7 +37,7 @@ function MovieCard({ movie, mutateLibrary }: MovieCardProps) {
 
   const toggleMovieWatched = async () => {
     if (movie) {
-      fetch(`https://${selectedServer?.ip}/setMovieWatched`, {
+      fetch(`http://${serverIP}/setMovieWatched`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

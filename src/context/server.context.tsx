@@ -3,6 +3,7 @@ import { createWithEqualityFn } from 'zustand/traditional'
 
 interface ServerState {
   selectedServer: Server | null
+  serverIP: string
   serverStatus: boolean
   serverVersion: string
   gettingServerStatus: boolean
@@ -16,6 +17,7 @@ interface ServerState {
 export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
   selectedServer: null,
   serverStatus: false,
+  serverIP: '',
   serverVersion: '',
   gettingServerStatus: false,
   apiKeyStatus: false,
@@ -26,7 +28,10 @@ export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
       if (server?.id === state.selectedServer?.id) {
         return state
       }
-      return { selectedServer: server }
+      return {
+        selectedServer: server,
+        serverIP: `${server?.ip}:${server?.port}`,
+      }
     })
     get().getServerStatus()
   },
@@ -44,9 +49,9 @@ export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
       ),
     )
 
-    const fetchPromise = fetch(`https://${selectedServer.ip}/`).then((res) =>
-      res.json(),
-    )
+    const fetchPromise = fetch(
+      `http://${selectedServer.ip}:${selectedServer.port}/`,
+    ).then((res) => res.json())
 
     try {
       const data = await Promise.race([fetchPromise, timeoutPromise])
@@ -68,11 +73,14 @@ export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
 
     set({ gettingApiKeyStatus: true })
 
-    const response = await fetch(`https://${selectedServer.ip}/api-key`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ apiKey }),
-    })
+    const response = await fetch(
+      `http://${selectedServer.ip}:${selectedServer.port}/api-key`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ apiKey }),
+      },
+    )
     const data = await response.json()
 
     set({

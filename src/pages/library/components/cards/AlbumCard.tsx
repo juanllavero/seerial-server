@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import ParentCard from './ParentCard'
 import { useEffect, useState } from 'react'
+import { shallow } from 'zustand/shallow'
 
 interface AlbumCardProps {
   album: Album
@@ -17,7 +18,13 @@ interface AlbumCardProps {
 function AlbumCard({ album }: AlbumCardProps) {
   const { t } = useTranslation()
   const selectAlbum = useDataStore((state) => state.selectAlbum)
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const { selectedServer, serverIP } = useServerStore(
+    (state) => ({
+      selectedServer: state.selectedServer,
+      serverIP: state.serverIP,
+    }),
+    shallow,
+  )
   const openAlbumDialog = useDialogStore((state) => state.openAlbumDialog)
   const [hasDolbyAtmos, setHasDolbyAtmos] = useState<boolean>(false)
   const navigate = useNavigate()
@@ -64,7 +71,7 @@ function AlbumCard({ album }: AlbumCardProps) {
   useEffect(() => {
     const getDolbyAtmosState = async () => {
       const res = await fetch(
-        `https://${selectedServer?.ip}/hasDolbyAtmos?albumId=${album.id}`,
+        `http://${serverIP}/hasDolbyAtmos?albumId=${album.id}`,
       )
       const data = await res.json()
       setHasDolbyAtmos(data.hasDolbyAtmos)

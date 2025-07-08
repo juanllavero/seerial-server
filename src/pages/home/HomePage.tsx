@@ -15,10 +15,10 @@ import HomePageContent from './components/content/HomePageContent'
 import { shallow } from 'zustand/shallow'
 
 export default function HomePage() {
-  const { selectedServer, serverStatus, apiKeyStatus, getServerStatus } =
+  const { serverIP, serverStatus, apiKeyStatus, getServerStatus } =
     useServerStore(
       (state) => ({
-        selectedServer: state.selectedServer,
+        serverIP: state.serverIP,
         serverStatus: state.serverStatus,
         apiKeyStatus: state.apiKeyStatus,
         getServerStatus: state.getServerStatus,
@@ -39,7 +39,7 @@ export default function HomePage() {
 
   // Get Libraries
   const { data: libraries, isLoading: loadingLibraries } = useSWR<Library[]>(
-    selectedServer ? `https://${selectedServer.ip}/libraries/` : null,
+    serverIP !== '' ? `http://${serverIP}/libraries/` : null,
     authenticatedFetcher,
     {
       revalidateOnFocus: false,

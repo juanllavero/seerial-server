@@ -42,9 +42,14 @@ function MovieDetailsPage() {
   const clientSettings = useSettingsStore((state) => state.clientSettings)
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
   const openMovieDialog = useDialogStore((state) => state.openMovieDialog)
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const { selectedServer, serverIP } = useServerStore(
+    (state) => ({
+      selectedServer: state.selectedServer,
+      serverIP: state.serverIP,
+    }),
+    shallow,
+  )
   const navigate = useNavigate()
-  const serverIP = selectedServer?.ip
 
   // Get movie data
   const {
@@ -52,7 +57,7 @@ function MovieDetailsPage() {
     isLoading,
     error,
     mutate,
-  } = useSWR<Movie>(`https://${serverIP}/details/movie?id=${movieId}`, fetcher)
+  } = useSWR<Movie>(`http://${serverIP}/details/movie?id=${movieId}`, fetcher)
 
   const isMobile = useIsMobile()
   const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true

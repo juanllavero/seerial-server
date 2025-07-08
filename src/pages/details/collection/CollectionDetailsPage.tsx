@@ -29,10 +29,9 @@ import { SortableHorizontalList } from '@/components/lists/SortableHorizontalLis
 import { arrayMove } from '@dnd-kit/sortable'
 function CollectionDetailsPage() {
   const { collectionId, type } = useParams()
-  const { selectedServer: server, selectServer } = useServerStore(
+  const { serverIP } = useServerStore(
     (state) => ({
-      selectedServer: state.selectedServer,
-      selectServer: state.selectServer,
+      serverIP: state.serverIP,
     }),
     shallow,
   )
@@ -47,10 +46,8 @@ function CollectionDetailsPage() {
     }),
     shallow,
   )
-  const selectedServer = useServerStore((state) => state.selectedServer)
   const { t } = useTranslation()
   const isMobile = useIsMobile()
-  const serverIP = selectedServer?.ip
 
   // Get collection data
   const {
@@ -58,7 +55,7 @@ function CollectionDetailsPage() {
     isLoading,
     mutate,
   } = useSWR<Collection>(
-    `https://${serverIP}/details/collection?id=${collectionId}`,
+    `http://${serverIP}/details/collection?id=${collectionId}`,
     fetcher,
   )
 
@@ -71,13 +68,6 @@ function CollectionDetailsPage() {
       setLocalCollection(collection)
     }
   }, [collection])
-
-  // Update selected server
-  useEffect(() => {
-    if (server !== selectedServer) {
-      selectServer(server)
-    }
-  }, [])
 
   // Mutate content on ws message
   useEffect(() => {
@@ -159,17 +149,14 @@ function CollectionDetailsPage() {
       }))
 
       try {
-        await fetch(
-          `https://${selectedServer?.ip}/collections/reorder-content`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              collectionId: collectionId,
-              orderedItems: orderedItemsForApi,
-            }),
-          },
-        )
+        await fetch(`http://${serverIP}/collections/reorder-content`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            collectionId: collectionId,
+            orderedItems: orderedItemsForApi,
+          }),
+        })
       } catch (error) {
         if (collection) {
           setLocalCollection(collection)

@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 import HorizontalList from '../../../../components/lists/HorizontalList'
 import HorizontalListSkeleton from './HorizontalListSkeleton'
+import { shallow } from 'zustand/shallow'
 
 interface MyListShowsProps {
   goToContent: (url: string) => void
@@ -14,12 +15,18 @@ interface MyListShowsProps {
 
 function MyListShows({ goToContent }: MyListShowsProps) {
   const { t } = useTranslation()
-  const selectedServer = useServerStore((state) => state.selectedServer)
+  const { selectedServer, serverIP } = useServerStore(
+    (state) => ({
+      selectedServer: state.selectedServer,
+      serverIP: state.serverIP,
+    }),
+    shallow,
+  )
   const isMobile = useIsMobile()
 
   // Get Shows in My List
   const { data: showsInMyList, isLoading } = useSWR<Series[]>(
-    selectedServer ? `https://${selectedServer.ip}/myListSeries` : null,
+    selectedServer ? `http://${serverIP}/myListSeries` : null,
     fetcher,
   )
 
