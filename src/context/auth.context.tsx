@@ -5,6 +5,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react'
 type AuthContextType = {
   token: string | null
   user: User | null
+  isLoading: boolean
   login: (token: string) => Promise<void>
   logout: () => void
 }
@@ -18,15 +19,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     localStorage.getItem('token'),
   )
   const [user, setUser] = useState<AuthContextType['user']>(null)
+  const [isLoading, setIsLoading] = useState<boolean>(true)
 
   useEffect(() => {
     if (token) {
+      setIsLoading(true)
       fetch(`https://${CENTRAL_SERVER}/users/me`, {
         headers: { Authorization: `Bearer ${token}` },
       })
         .then((res) => (res.ok ? res.json() : null))
         .then((data) => data && setUser(data))
         .catch(() => logout())
+        .finally(() => setIsLoading(false))
+    } else {
+      setIsLoading(false)
     }
   }, [token])
 
@@ -42,7 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }
 
   return (
-    <AuthContext.Provider value={{ token, user, login, logout }}>
+    <AuthContext.Provider value={{ token, user, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   )

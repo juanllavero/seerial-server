@@ -14,18 +14,15 @@ import {
 function Root() {
   const token = getToken()
   const [searchParams] = useSearchParams()
-  const { user } = useAuth()
+  const { isLoading } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
     const claimToken = searchParams.get('token')
 
-    console.log({ claimToken })
-
     // If the user is logged in and has a claim token, we need to send it to the server
-    if (token && claimToken) {
+    if (!isLoading && token && claimToken) {
       const completeClaim = async () => {
-        console.log({ claimToken, userId: user?.id })
         try {
           const res = await fetch(`https://${CENTRAL_SERVER}/claim/complete`, {
             method: 'POST',
@@ -33,7 +30,7 @@ function Root() {
               'Content-Type': 'application/json',
               Authorization: `Bearer ${token}`, // Use the user token to authenticate the request
             },
-            body: JSON.stringify({ claim_token: claimToken, userId: user?.id }),
+            body: JSON.stringify({ claim_token: claimToken }),
           })
 
           if (res.ok) {
@@ -54,7 +51,7 @@ function Root() {
 
       completeClaim()
     }
-  }, [token, searchParams, navigate])
+  }, [token, searchParams, navigate, isLoading])
 
   if (!token && window.location.pathname !== '/login') {
     return <Navigate to="/login" replace />
