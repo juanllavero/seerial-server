@@ -6,7 +6,7 @@ import { useGoogleLogin } from '@react-oauth/google'
 import { Film, Loader2, Music, Tv } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import Image from '@/components/ui/Image'
 import BackgroundEffect from './components/BackgroundEffect'
 import { useIsMobile } from '@/components/hooks/use-mobile'
@@ -18,6 +18,8 @@ function LoginPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const token = getToken()
+  const [searchParams] = useSearchParams()
+  const claimToken = searchParams.get('token')
 
   if (token || user) navigate('/home')
 
@@ -41,6 +43,20 @@ function LoginPage() {
       const data = await res.json()
 
       if (res.ok && data.token) {
+        // If the user has a claim token, we need to send it to the server
+        if (claimToken) {
+          await fetch(`https://${CENTRAL_SERVER}/claim/complete`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              // Use the user token to authenticate the request
+              Authorization: `Bearer ${data.token}`,
+            },
+            body: JSON.stringify({ claim_token: claimToken }),
+          })
+          showToast('success', 'Server registered successfully')
+        }
+
         await login(data.token)
         setIsLoading(false)
         navigate('/home')

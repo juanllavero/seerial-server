@@ -74,7 +74,7 @@ function EpisodeDetailsPage() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            episode: episode,
+            videoId: episode.video.id,
           }),
         },
       )

@@ -159,7 +159,7 @@ function EpisodeDialog() {
           title: t('details'),
           content: (
             <EpisodeMediaInfoTab
-              video={episode as any}
+              video={episode.video}
               setEpisode={setEpisode}
             />
           ),

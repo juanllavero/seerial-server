@@ -74,7 +74,7 @@ function EpisodeMediaInfoTab({ video, setEpisode }: EpisodeMediaInfoTabProps) {
 
         // If the second attempt fails, wait 4 seconds and set loaded as true
         if (!data) {
-          await new Promise((resolve) => setTimeout(resolve, 4000)) // Wait 4 seconds
+          await new Promise((resolve) => setTimeout(resolve, 2000)) // Wait 4 seconds
           setLoaded(true)
           return
         }
