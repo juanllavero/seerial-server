@@ -1,3 +1,4 @@
+import { useAuth } from '@/context/auth.context'
 import BaseLayout from '@/layouts/BaseLayout'
 import { getToken } from '@/lib/auth'
 import { CENTRAL_SERVER } from '@/utils/constants'
@@ -13,6 +14,7 @@ import {
 function Root() {
   const token = getToken()
   const [searchParams] = useSearchParams()
+  const { user } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -28,7 +30,7 @@ function Root() {
               'Content-Type': 'application/json',
               Authorization: `Bearer ${token}`, // Use the user token to authenticate the request
             },
-            body: JSON.stringify({ claim_token: claimToken }),
+            body: JSON.stringify({ claim_token: claimToken, userId: user?.id }),
           })
 
           if (res.ok) {
