@@ -9,9 +9,22 @@ interface ServerState {
   gettingServerStatus: boolean
   apiKeyStatus: boolean
   gettingApiKeyStatus: boolean
-  selectServer: (server: Server | null) => void
+  selectServer: (server: Server | null) => Promise<void>
   getServerStatus: () => Promise<void>
   setApiKey: (apiKey: string) => Promise<void>
+}
+
+// Aux function to check server connectivity
+const checkServerConnectivity = async (url: string): Promise<boolean> => {
+  try {
+    const response = await fetch(url)
+    const data = await response.json()
+
+    // If the server returns an ID and a status, it's accessible
+    return typeof data.id !== 'undefined' && typeof data.status !== 'undefined'
+  } catch (error) {
+    return false
+  }
 }
 
 export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
@@ -23,17 +36,40 @@ export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
   apiKeyStatus: false,
   gettingApiKeyStatus: false,
 
-  selectServer: (server) => {
-    set((state) => {
-      if (server?.id === state.selectedServer?.id) {
-        return state
-      }
-      return {
-        selectedServer: server,
-        serverIP: `${server?.ip}:${server?.port}`,
-      }
+  selectServer: async (server) => {
+    if (server?.id === get().selectedServer?.id) {
+      return
+    }
+
+    set({
+      selectedServer: server,
+      serverIP: '',
+      serverStatus: false,
+      apiKeyStatus: false,
     })
-    get().getServerStatus()
+
+    if (!server) {
+      return
+    }
+
+    console.log(`Trying to connect to ${server.ip}:${server.port}`)
+
+    // Try to connect to the local IP
+    const localUrl = `http://${server.ip}:${server.port}/`
+    const isLocalReachable = await checkServerConnectivity(localUrl)
+
+    if (isLocalReachable) {
+      console.log(`Connected to ${server.ip}:${server.port}`)
+      set({ serverIP: `${server.ip}:${server.port}` })
+    } else {
+      // Fallback to public IP
+      console.log(
+        `Connected to ${server.ip}:${server.port} or ${server.publicIp}:${server.port}`,
+      )
+      set({ serverIP: `${server.publicIp}:${server.port}` })
+    }
+
+    await get().getServerStatus()
   },
 
   getServerStatus: async () => {

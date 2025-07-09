@@ -7,6 +7,7 @@ import { fetcher } from '@/utils/utils'
 import useSWR from 'swr'
 import VideoThumbnail from './VideoThumbnail'
 import { useTranslation } from 'react-i18next'
+import { useIsMobile } from '@/components/hooks/use-mobile'
 
 interface ExtrasListProps {
   collection: Collection
@@ -14,6 +15,7 @@ interface ExtrasListProps {
 
 function ExtrasList({ collection }: ExtrasListProps) {
   const { t } = useTranslation()
+  const isMobile = useIsMobile()
   const serverIP = useServerStore((state) => state.serverIP)
 
   const { data: extras, isLoading } = useSWR<MusicExtra[]>(
@@ -48,7 +50,7 @@ function ExtrasList({ collection }: ExtrasListProps) {
     <HorizontalList title="Extras">
       {extras.map((extra, index) => (
         <div key={'Extra media ' + index} className="space-y-2">
-          <div className="w-100">
+          <div className={isMobile ? 'w-80' : 'w-100'}>
             <VideoThumbnail
               key={index}
               videoUrl={`http://${serverIP}/video-file?path=${extra.src}`}

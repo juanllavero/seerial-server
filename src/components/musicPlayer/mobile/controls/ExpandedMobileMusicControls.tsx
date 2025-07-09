@@ -6,20 +6,19 @@ import {
   NextTrackIcon,
   PauseIcon,
   PlayIcon,
+  DolbyAtmosIcon,
 } from '@/components/ui/IconLibrary'
 import useMusicStore from '@/context/music.context'
 import { RepeateMode } from '@/data/enums/Music'
+import { LRCFile } from '@/data/interfaces/Music'
 import { formatTime } from '@/utils/ReactUtils'
 import { DotsVerticalIcon } from '@radix-ui/react-icons'
-import { Slider } from '@radix-ui/react-slider'
 import {
   ChevronDown,
   Shuffle,
   Repeat,
   Repeat1,
   MicVocal,
-  VolumeOff,
-  Volume2,
   ListMusic,
 } from 'lucide-react'
 import { forwardRef } from 'react'
@@ -28,12 +27,13 @@ import { shallow } from 'zustand/shallow'
 interface ExpandedMobileMusicControlsProps {
   controlsOpacity: number
   controlsTransform: string
+  lyrics: LRCFile[]
 }
 
 const ExpandedMobileMusicControls = forwardRef<
   HTMLDivElement,
   ExpandedMobileMusicControlsProps
->(({ controlsOpacity, controlsTransform }, ref) => {
+>(({ controlsOpacity, controlsTransform, lyrics }, ref) => {
   const {
     album,
     currentSong,
@@ -41,8 +41,6 @@ const ExpandedMobileMusicControls = forwardRef<
     isLoading,
     progress,
     buffered,
-    volume,
-    prevVolume,
     showLyrics,
     showQueue,
     duration,
@@ -53,9 +51,7 @@ const ExpandedMobileMusicControls = forwardRef<
     handleNext,
     handlePrevious,
     togglePlayPause,
-    setVolume,
     setIsShuffling,
-    setPrevVolume,
     setShowLyrics,
     setShowQueue,
     seekTo,
@@ -68,8 +64,6 @@ const ExpandedMobileMusicControls = forwardRef<
       isLoading: state.isLoading,
       progress: state.progress,
       buffered: state.buffered,
-      volume: state.volume,
-      prevVolume: state.prevVolume,
       showLyrics: state.showLyrics,
       showQueue: state.showQueue,
       duration: state.duration,
@@ -80,7 +74,6 @@ const ExpandedMobileMusicControls = forwardRef<
       handleNext: state.handleNext,
       handlePrevious: state.handlePrevious,
       togglePlayPause: state.togglePlayPause,
-      setVolume: state.setVolume,
       setIsShuffling: state.setIsShuffling,
       setPrevVolume: state.setPrevVolume,
       setShowLyrics: state.setShowLyrics,
@@ -90,10 +83,6 @@ const ExpandedMobileMusicControls = forwardRef<
     }),
     shallow,
   )
-
-  const handleVolumeChange = (volume: number[]) => {
-    setVolume(volume[0])
-  }
 
   const handleProgressChange = (progressValue: number) => {
     if (duration > 0) {
@@ -168,6 +157,7 @@ const ExpandedMobileMusicControls = forwardRef<
 
           <div className="mb-8 flex justify-between text-sm text-gray-200">
             <span>{formatTime(currentTime)}</span>
+            {currentSong?.hasDolbyAtmos && <DolbyAtmosIcon className="w-25" />}
             <span>{formatTime(duration)}</span>
           </div>
         </div>
@@ -238,6 +228,7 @@ const ExpandedMobileMusicControls = forwardRef<
           <Button
             variant="ghost"
             size="icon"
+            disabled={lyrics.length === 0}
             className="rounded-full text-white hover:bg-white/20"
             onClick={() => setShowLyrics(!showLyrics)}
           >
@@ -246,32 +237,6 @@ const ExpandedMobileMusicControls = forwardRef<
               style={{ color: showLyrics ? 'var(--app-color)' : '' }}
             />
           </Button>
-
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="ghost"
-              size={'icon'}
-              className="rounded-full text-white hover:bg-white/20"
-              onClick={(e) => {
-                e.stopPropagation()
-                setVolume(volume === 0 ? prevVolume : 0)
-                setPrevVolume(volume)
-              }}
-            >
-              {volume === 0 ? (
-                <VolumeOff size={18} className="h-4 w-4" />
-              ) : (
-                <Volume2 className="h-4 w-4" size={18} />
-              )}
-            </Button>
-            <Slider
-              value={[volume]}
-              onValueChange={handleVolumeChange}
-              max={100}
-              step={1}
-              className="w-16 [&_[role=slider]]:h-3 [&_[role=slider]]:w-3 [&_[role=slider]]:border-0 [&_[role=slider]]:bg-white [&>span:first-child]:h-1 [&>span:first-child]:bg-white/30 [&>span:first-child_span]:bg-white"
-            />
-          </div>
 
           <Button
             variant="ghost"

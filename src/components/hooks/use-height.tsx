@@ -3,7 +3,9 @@ import { useState, useEffect } from 'react'
 import { debounce } from 'lodash'
 
 const useScreenHeight = () => {
-  const [screenHeight, setScreenHeight] = useState(ScreenHeight.QHD)
+  const [screenHeight, setScreenHeight] = useState<ScreenHeight>(
+    ScreenHeight.QHD,
+  )
 
   const updateSize = () => {
     const height = window.innerHeight

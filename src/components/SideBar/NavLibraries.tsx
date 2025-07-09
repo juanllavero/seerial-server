@@ -85,7 +85,7 @@ const NavLibraries = () => {
   )
 
   const { data: libraries, isLoading } = useSWR<Library[]>(
-    selectedServer ? `http://${serverIP}/libraries/` : null,
+    serverIP !== '' ? `http://${serverIP}/libraries/` : null,
     fetcher,
     {
       revalidateOnFocus: false,

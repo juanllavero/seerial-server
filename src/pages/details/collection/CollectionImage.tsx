@@ -1,7 +1,9 @@
+import useScreenHeight from '@/components/hooks/use-height'
+import { useIsMobile } from '@/components/hooks/use-mobile'
 import Image from '@/components/ui/Image'
 import { useServerStore } from '@/context/server.context'
 import { Collection } from '@/data/interfaces/Media'
-import { getFirstImage, getPosterImage } from '@/utils/ReactUtils'
+import { getCoverSize, getFirstImage, getPosterImage } from '@/utils/ReactUtils'
 import { fetcher } from '@/utils/utils'
 import useSWR from 'swr'
 
@@ -12,6 +14,8 @@ interface CollectionImageProps {
 
 function CollectionImage({ collection, type }: CollectionImageProps) {
   const serverIP = useServerStore((state) => state.serverIP)
+  const screenHeight = useScreenHeight()
+  const isMobile = useIsMobile()
   const { data: collectionImages } = useSWR<string[]>(
     `http://${serverIP}/collection-images?collectionId=${collection.id}&&type=${type}`,
     fetcher,
@@ -24,22 +28,27 @@ function CollectionImage({ collection, type }: CollectionImageProps) {
   const collage = getPosterImage(collection.id, collectionImages || [], type)
   if (collage) {
     return (
-      <div className={`aspect-[${type == 'Music' ? '1' : '2/3'}] w-100`}>
+      <div
+        className={`${!isMobile ? getCoverSize(screenHeight, type !== 'Music', false) : `h-screen ${type === 'Music' ? 'max-h-[55dvw]' : 'max-h-[80dvw]'} w-screen max-w-[55dvw]`}`}
+      >
         {collage}
       </div>
     )
   }
 
   return (
-    <Image
-      url={posterImage}
-      width={100}
-      aspectRatio={type === 'Music' ? 1 : 2 / 3}
-      fallbackSrc={
-        type === 'Music' ? '/img/songDefault.png' : '/img/fileNotFound.jpg'
-      }
-      alt={'Collection Image'}
-    />
+    <div
+      className={`${!isMobile ? getCoverSize(screenHeight, type !== 'Music', false) : `h-screen ${type === 'Music' ? 'max-h-[55dvw]' : 'max-h-[80dvw]'} w-screen max-w-[55dvw]`}`}
+    >
+      <Image
+        url={posterImage}
+        aspectRatio={type === 'Music' ? 1 : 2 / 3}
+        fallbackSrc={
+          type === 'Music' ? '/img/songDefault.png' : '/img/fileNotFound.jpg'
+        }
+        alt={'Collection Image'}
+      />
+    </div>
   )
 }
 

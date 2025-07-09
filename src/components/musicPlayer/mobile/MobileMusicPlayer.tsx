@@ -5,17 +5,34 @@ import useMusicStore from '@/context/music.context'
 import MinimizedBar from './controls/MinimizedBar'
 import ExpandedMobileMusicControls from './controls/ExpandedMobileMusicControls'
 import { shallow } from 'zustand/shallow'
+import LRCVisualizer from '../lyrics/LRCVisualizer'
+import { useServerStore } from '@/context/server.context'
+import { LRCFile } from '@/data/interfaces/Music'
+import { fetcher } from '@/utils/utils'
+import useSWR from 'swr'
 
 const MobileMusicPlayer = () => {
-  const { album, isExpanded, setIsExpanded, isShown } = useMusicStore(
+  const {
+    currentSong,
+    album,
+    isExpanded,
+    setIsExpanded,
+    isShown,
+    showLyrics,
+    setShowLyrics,
+  } = useMusicStore(
     (state) => ({
+      currentSong: state.currentSong,
       album: state.album,
       isExpanded: state.isExpanded,
       setIsExpanded: state.setIsExpanded,
+      setShowLyrics: state.setShowLyrics,
       isShown: state.isShown,
+      showLyrics: state.showLyrics,
     }),
     shallow,
   )
+  const serverIP = useServerStore((state) => state.serverIP)
   const [dragStart, setDragStart] = useState<number | null>(null)
   const [dragOffset, setDragOffset] = useState<number | null>(0)
   const [isDragging, setIsDragging] = useState(false)
@@ -28,6 +45,14 @@ const MobileMusicPlayer = () => {
     left: 16,
     top: 12,
   })
+
+  // Get Lyrics in order to show lyrics button
+  const { data: lyrics } = useSWR<LRCFile[]>(
+    serverIP !== '' && currentSong && isShown
+      ? `http://${serverIP}/lyrics?id=${currentSong.id}`
+      : null,
+    fetcher,
+  )
 
   const minimizedHeight = 80 // Height of the minimized player (in pixels)
   const maxHeight = window.innerHeight // Full screen height
@@ -55,6 +80,15 @@ const MobileMusicPlayer = () => {
 
   const handleTouchStart = (e: React.TouchEvent) => {
     const touch = e.touches[0]
+    const DRAG_HANDLE_AREA_HEIGHT = 100
+
+    // Prevent dragging outside the top when lyrics are shown
+    if (showLyrics && isExpanded) {
+      if (touch.clientY > DRAG_HANDLE_AREA_HEIGHT) {
+        return
+      }
+    }
+
     setDragStart(touch.clientY)
     setIsDragging(true)
     startY.current = touch.clientY
@@ -177,6 +211,10 @@ const MobileMusicPlayer = () => {
     }
   }, [isDragging, dragStart, dragOffset, isExpanded])
 
+  useEffect(() => {
+    setShowLyrics(showLyrics && lyrics !== undefined && lyrics.length > 0)
+  }, [lyrics])
+
   const calculateExpandedCoverStyles = () => {
     const viewportWidth = window.innerWidth
     const viewportHeight = window.innerHeight
@@ -267,6 +305,12 @@ const MobileMusicPlayer = () => {
           <GradientBackground isSong showGradient={expandProgress > 0} />
         )}
 
+        <div
+          className={`absolute z-999 h-[60dvh] w-full transition-all duration-200 ease-in-out ${showLyrics && isExpanded ? 'opacity-100' : 'z-[-1] opacity-0'}`}
+        >
+          <LRCVisualizer />
+        </div>
+
         {/* Minimized Player */}
         <MinimizedBar
           barOpacity={barOpacity}
@@ -277,7 +321,7 @@ const MobileMusicPlayer = () => {
 
         {/* Animated Cover */}
         <div
-          className="absolute overflow-hidden rounded-lg shadow-lg"
+          className={`absolute overflow-hidden rounded-lg shadow-lg ${showLyrics && isExpanded ? 'opacity-0' : 'opacity-100'}`}
           style={{
             width: `${currentSize}px`,
             height: `${currentSize}px`,
@@ -299,6 +343,7 @@ const MobileMusicPlayer = () => {
         {expandProgress > 0 && (
           <ExpandedMobileMusicControls
             ref={controlsRef}
+            lyrics={lyrics ?? []}
             controlsOpacity={controlsOpacity}
             controlsTransform={controlsTransform}
           />

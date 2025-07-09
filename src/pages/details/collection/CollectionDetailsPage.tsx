@@ -1,7 +1,6 @@
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
-import LazyImage from '@/components/ui/LazyImage'
 import { Skeleton } from '@/components/ui/skeleton'
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
@@ -10,7 +9,6 @@ import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
 import { Collection, Movie, Series } from '@/data/interfaces/Media'
 import { Album } from '@/data/interfaces/Music'
-import HorizontalList from '@/components/lists/HorizontalList'
 import AlbumCard from '@/pages/library/components/cards/AlbumCard'
 import MovieCard from '@/pages/library/components/cards/MovieCard'
 import SeriesCard from '@/pages/library/components/cards/SeriesCard'
@@ -27,6 +25,8 @@ import { shallow } from 'zustand/shallow'
 import ExtrasList from './components/ExtrasList'
 import { SortableHorizontalList } from '@/components/lists/SortableHorizontalList'
 import { arrayMove } from '@dnd-kit/sortable'
+import { getCoverSize, getTitleSize } from '@/utils/ReactUtils'
+import useScreenHeight from '@/components/hooks/use-height'
 function CollectionDetailsPage() {
   const { collectionId, type } = useParams()
   const { serverIP } = useServerStore(
@@ -48,6 +48,7 @@ function CollectionDetailsPage() {
   )
   const { t } = useTranslation()
   const isMobile = useIsMobile()
+  const screenHeight = useScreenHeight()
 
   // Get collection data
   const {
@@ -222,7 +223,11 @@ function CollectionDetailsPage() {
           title={t('albums')}
           items={items}
           onDragEnd={(event) => handleDragEnd(event, 'albums')}
-          renderItem={(item: Album) => <AlbumCard key={item.id} album={item} />}
+          renderItem={(item: Album) => (
+            <div key={item.id} className={isMobile ? 'w-45' : ''}>
+              <AlbumCard album={item} />
+            </div>
+          )}
         />
       </FlexBox>
     ),
@@ -240,7 +245,9 @@ function CollectionDetailsPage() {
           items={items}
           onDragEnd={(event) => handleDragEnd(event, 'movies')}
           renderItem={(item: Movie) => (
-            <MovieCard key={item.id} movie={item} mutateLibrary={mutate} />
+            <div key={item.id} className={isMobile ? 'w-45' : ''}>
+              <MovieCard movie={item} mutateLibrary={mutate} />
+            </div>
           )}
         />
       </FlexBox>
@@ -252,7 +259,9 @@ function CollectionDetailsPage() {
           items={items}
           onDragEnd={(event) => handleDragEnd(event, 'shows')}
           renderItem={(item: Series) => (
-            <SeriesCard key={item.id} series={item} mutateLibrary={mutate} />
+            <div key={item.id} className={isMobile ? 'w-45' : ''}>
+              <SeriesCard series={item} mutateLibrary={mutate} />
+            </div>
           )}
         />
       </FlexBox>
@@ -265,30 +274,33 @@ function CollectionDetailsPage() {
       direction="column"
       gap={1}
       wrap="nowrap"
-      padding={isMobile ? '3rem 0' : '2rem 3rem 5rem 3rem'}
+      padding={isMobile ? '3rem 0 5rem 0' : '2rem 3rem 5rem 3rem'}
       width={'100%'}
       height={'100%'}
     >
-      <FlexBox justify="start" align="start" gap={4} padding="0 0 1rem 0">
-        {!isMobile && (
-          <div className="cover-container">
-            <FlexBox className="image-container">
-              {isLoading || !collection ? (
-                <Skeleton
-                  style={{
-                    width: '330px',
-                    height: `${type === 'Music' ? '300' : '495'}px`,
-                  }}
-                />
-              ) : (
-                <CollectionImage collection={collection} type={type ?? ''} />
-              )}
-            </FlexBox>
-          </div>
-        )}
+      <FlexBox
+        direction={isMobile ? 'column' : 'row'}
+        justify="start"
+        align={isMobile ? 'center' : 'start'}
+        width={'100%'}
+        gap={4}
+        padding="0 0 1rem 0"
+      >
+        <div className="cover-container">
+          <FlexBox className="image-container">
+            {isLoading || !collection ? (
+              <Skeleton
+                className={`${!isMobile ? getCoverSize(screenHeight, type !== 'Music', false) : `h-screen ${type === 'Music' ? 'max-h-[55dvw]' : 'max-h-[80dvw]'} w-screen max-w-[55dvw]`}`}
+              />
+            ) : (
+              <CollectionImage collection={collection} type={type ?? ''} />
+            )}
+          </FlexBox>
+        </div>
 
         <FlexBox
           direction="column"
+          align={isMobile ? 'center' : 'start'}
           gap={1}
           width={isMobile ? '100%' : '80%'}
           padding={isMobile ? '0 2rem' : '0'}
@@ -296,7 +308,11 @@ function CollectionDetailsPage() {
           {isLoading || !collection ? (
             <Skeleton className="h-15 w-90" />
           ) : (
-            <span className="text-6xl font-black">{collection.title}</span>
+            <span
+              className={`${getTitleSize(screenHeight, isMobile)} font-black`}
+            >
+              {collection.title}
+            </span>
           )}
 
           <span>{getYearRange()}</span>

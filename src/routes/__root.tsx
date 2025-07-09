@@ -1,5 +1,6 @@
 import Loading from '@/components/Loading'
 import { useAuth } from '@/context/auth.context'
+import { useServerStore } from '@/context/server.context'
 import BaseLayout from '@/layouts/BaseLayout'
 import { getToken } from '@/lib/auth'
 import { CENTRAL_SERVER } from '@/utils/constants'
@@ -15,7 +16,8 @@ import {
 function Root() {
   const token = getToken()
   const [searchParams] = useSearchParams()
-  const { isLoading } = useAuth()
+  const selectServer = useServerStore((state) => state.selectServer)
+  const { isLoading, user } = useAuth()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -55,14 +57,23 @@ function Root() {
   }, [token, searchParams, navigate, isLoading])
 
   if (isLoading) {
-    return <Loading />
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loading />
+      </div>
+    )
   }
 
-  if (!token && window.location.pathname !== '/login') {
+  if (!user && window.location.pathname !== '/login') {
     return <Navigate to="/login" replace />
   }
 
-  if (token && window.location.pathname === '/login') {
+  // Select first server if user is logged in
+  if (user && user.servers.length > 0) {
+    selectServer(user.servers[0])
+  }
+
+  if (user && window.location.pathname === '/login') {
     return <Navigate to="/home" replace />
   }
 

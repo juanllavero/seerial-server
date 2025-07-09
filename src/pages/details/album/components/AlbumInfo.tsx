@@ -18,6 +18,7 @@ import useScreenHeight from '@/components/hooks/use-height'
 import { ScreenHeight } from '@/data/enums/Screen'
 import { shallow } from 'zustand/shallow'
 import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
+import { getCoverSize, getTitleSize } from '@/utils/ReactUtils'
 
 interface AlbumInfoProps {
   isLoading: boolean
@@ -51,33 +52,6 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
     return songs.reduce((acc, song) => acc + song.duration, 0).toFixed(0)
   }
 
-  const getCoverSize = () => {
-    switch (screenHeight) {
-      case ScreenHeight.HD:
-        return 'w-60 h-60'
-      case ScreenHeight.FHD:
-        return 'w-80 h-80'
-      case ScreenHeight.QHD:
-        return 'w-100 h-100'
-      case ScreenHeight.UHD:
-        return 'w-120 h-120'
-    }
-  }
-
-  const getTitleSize = () => {
-    if (isMobile) return 'text-3xl'
-    switch (screenHeight) {
-      case ScreenHeight.HD:
-        return 'text-3xl'
-      case ScreenHeight.FHD:
-        return 'text-4xl'
-      case ScreenHeight.QHD:
-        return 'text-5xl'
-      case ScreenHeight.UHD:
-        return 'text-6xl'
-    }
-  }
-
   const hasDolbyAtmos = () => {
     return album?.songs.some((song) => song.hasDolbyAtmos)
   }
@@ -96,9 +70,13 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
       <div className="cover-container">
         <FlexBox className="image-container">
           {isLoading || !album ? (
-            <Skeleton className="h-100 w-100" />
+            <Skeleton
+              className={`${!isMobile ? getCoverSize(screenHeight, false, false) : 'h-screen max-h-[55dvw] w-screen max-w-[55dvw]'}`}
+            />
           ) : (
-            <div className={` ${!isMobile ? getCoverSize() : 'max-w-[55dvw]'}`}>
+            <div
+              className={`${!isMobile ? getCoverSize(screenHeight, false, false) : 'max-w-[55dvw]'}`}
+            >
               <Image
                 url={album.coverSrc}
                 className="h-full w-full rounded-2xl object-cover shadow-2xl shadow-black/20"
@@ -122,7 +100,7 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
         padding={'0'}
       >
         <span
-          className={`font-black ${getTitleSize()}`}
+          className={`font-black ${getTitleSize(screenHeight, isMobile)}`}
           style={{
             textTransform: 'capitalize',
           }}

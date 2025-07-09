@@ -51,7 +51,7 @@ export function ServerSwitcher() {
     setActiveServer(servers[0])
   }
 
-  if (!activeServer) {
+  if (!activeServer || servers.length <= 1) {
     return null
   }
 

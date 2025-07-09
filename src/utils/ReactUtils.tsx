@@ -1,7 +1,67 @@
 import { Collection, Video } from '@/data/interfaces/Media'
-import { extractColors } from 'extract-colors'
+import { ScreenHeight } from '@/data/enums/Screen'
 import Image from '@/components/ui/Image'
+
 import { toast } from 'sonner'
+
+const tailwindSizes = [
+  40, 48, 56, 60, 64, 72, 80, 96, 100, 112, 120, 128, 144, 160, 192,
+]
+
+//#region IMAGES AND TITLES
+export const getCoverSize = (
+  screenHeight: ScreenHeight,
+  isPoster: boolean,
+  isBackground: boolean,
+) => {
+  let height: number
+
+  switch (screenHeight) {
+    case ScreenHeight.HD:
+      height = 60
+      break
+    case ScreenHeight.FHD:
+      height = 80
+      break
+    case ScreenHeight.QHD:
+      height = 100
+      break
+    case ScreenHeight.UHD:
+      height = 120
+      break
+    default:
+      return 'w-60 h-60'
+  }
+
+  let aspectRatio = 1
+
+  if (isPoster) aspectRatio = 2 / 3
+  else if (isBackground) aspectRatio = 16 / 9
+
+  const idealWidth = height * aspectRatio
+
+  // Get closest width from tailwind
+  const closestWidth = tailwindSizes.reduce((prev, curr) =>
+    Math.abs(curr - idealWidth) < Math.abs(prev - idealWidth) ? curr : prev,
+  )
+
+  return `w-${closestWidth} h-${height}`
+}
+
+export const getTitleSize = (screenHeight: ScreenHeight, isMobile: boolean) => {
+  if (isMobile) return 'text-3xl'
+  switch (screenHeight) {
+    case ScreenHeight.HD:
+      return 'text-3xl'
+    case ScreenHeight.FHD:
+      return 'text-4xl'
+    case ScreenHeight.QHD:
+      return 'text-5xl'
+    case ScreenHeight.UHD:
+      return 'text-6xl'
+  }
+}
+//#endregion
 
 //#region DATETIME
 export const formatDate = (dateString: string): string => {

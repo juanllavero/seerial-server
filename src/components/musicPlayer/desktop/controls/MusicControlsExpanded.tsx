@@ -30,6 +30,11 @@ import { useIsTablet } from '@/components/hooks/use-tablet'
 import { useTranslation } from 'react-i18next'
 import { shallow } from 'zustand/shallow'
 import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
+import { LRCFile } from '@/data/interfaces/Music'
+import { fetcher } from '@/utils/utils'
+import useSWR from 'swr'
+import { useServerStore } from '@/context/server.context'
+import { stat } from 'fs'
 
 interface MusicControlsExpandedProps {
   title: string
@@ -42,6 +47,8 @@ function MusicControlsExpanded({
 }: MusicControlsExpandedProps) {
   const {
     album,
+    currentSong,
+    isShown,
     isPlaying,
     isLoading,
     isShuffling,
@@ -70,6 +77,8 @@ function MusicControlsExpanded({
   } = useMusicStore(
     (state) => ({
       album: state.album,
+      currentSong: state.currentSong,
+      isShown: state.isShown,
       isPlaying: state.isPlaying,
       isLoading: state.isLoading,
       isShuffling: state.isShuffling,
@@ -98,10 +107,19 @@ function MusicControlsExpanded({
     }),
     shallow,
   )
+  const serverIP = useServerStore((state) => state.serverIP)
   const { t } = useTranslation()
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
   const [coverHover, setCoverHover] = useState<boolean>(false)
+
+  // Get Lyrics in order to show lyrics button
+  const { data: lyrics } = useSWR<LRCFile[]>(
+    serverIP !== '' && currentSong && isShown
+      ? `http://${serverIP}/lyrics?id=${currentSong.id}`
+      : null,
+    fetcher,
+  )
 
   const handleProgressChange = (progressValue: number) => {
     if (duration > 0) {
@@ -120,7 +138,7 @@ function MusicControlsExpanded({
       onClick={() => setIsExpanded(!isExpanded)}
     >
       {/* Info de la canción */}
-      <div className="flex flex-1 items-center space-x-4">
+      <div className={`flex flex-1 items-center space-x-4`}>
         <div
           className="relative"
           onMouseEnter={() => setCoverHover(true)}
@@ -155,9 +173,9 @@ function MusicControlsExpanded({
           )}
         </div>
 
-        <div className="flex flex-1 flex-col items-start space-x-4">
-          <div className="truncate font-semibold text-white">{title}</div>
-          <div className="text-sm text-white/70">{subtitle}</div>
+        <div className={`flex flex-1 flex-col items-start space-x-4`}>
+          <span className="line-clamp-2 font-semibold text-white">{title}</span>
+          <div className="line-clamp-1 text-sm text-white/70">{subtitle}</div>
         </div>
       </div>
 
@@ -297,13 +315,15 @@ function MusicControlsExpanded({
       </div>
 
       {/* Right Buttons */}
-      <div className="flex flex-1 items-center justify-end space-x-2">
+      <div className="flex flex-1 items-center justify-end space-x-1">
         <Button
-          variant="ghost"
+          variant="fullGhost"
           onClick={(e) => {
             e.stopPropagation()
             setShowLyrics(!showLyrics)
           }}
+          disabled={!lyrics || lyrics.length === 0}
+          size={'icon'}
           title={t('lyrics')}
         >
           <MicVocal
@@ -312,11 +332,12 @@ function MusicControlsExpanded({
           />
         </Button>
         <Button
-          variant="ghost"
+          variant="fullGhost"
           onClick={(e) => {
             e.stopPropagation()
             setShowQueue(!showQueue)
           }}
+          size={'icon'}
           title={t('queue')}
         >
           <ListMusic
@@ -325,7 +346,7 @@ function MusicControlsExpanded({
           />
         </Button>
         <Button
-          variant="ghost"
+          variant="fullGhost"
           size={'icon'}
           onClick={(e) => {
             e.stopPropagation()

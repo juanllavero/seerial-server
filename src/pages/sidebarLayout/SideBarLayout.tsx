@@ -8,6 +8,8 @@ import { Outlet, useLocation } from 'react-router-dom'
 import CardWidthSlider from './components/CardWidthSlider'
 import { useMemo } from 'react'
 import useMusicStore from '@/context/music.context'
+import { useIsTablet } from '@/components/hooks/use-tablet'
+import { useIsMobile } from '@/components/hooks/use-mobile'
 
 const SideBarLayout = () => {
   const location = useLocation()
@@ -15,6 +17,8 @@ const SideBarLayout = () => {
     () => location.pathname.includes('/settings'),
     [location.pathname],
   )
+  const isMobile = useIsMobile()
+  const isTablet = useIsTablet()
   const hasSong = useMusicStore((state) => Boolean(state.currentSong))
 
   return (
@@ -22,10 +26,14 @@ const SideBarLayout = () => {
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
-          <header className="flex h-16 shrink-0 items-end gap-2 p-2 pb-3 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+          <header className="flex h-16 shrink-0 items-end gap-2 p-2 pb-3 transition-[width,height] ease-linear">
             {!inSettings && (
               <>
-                <SidebarTrigger className="mr-3 ml-3" />
+                {isMobile || !isTablet ? (
+                  <SidebarTrigger className="mr-3 ml-3" />
+                ) : (
+                  <div className="w-5"></div>
+                )}
                 <CardWidthSlider />
               </>
             )}
