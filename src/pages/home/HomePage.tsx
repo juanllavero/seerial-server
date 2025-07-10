@@ -13,6 +13,7 @@ import NoServer from './components/NoServer'
 import NotAvailableServer from './components/NotAvailableServer'
 import HomePageContent from './components/content/HomePageContent'
 import { shallow } from 'zustand/shallow'
+import { useAuth } from '@/context/auth.context'
 
 export default function HomePage() {
   const { serverIP, serverStatus, apiKeyStatus, getServerStatus } =
@@ -26,16 +27,6 @@ export default function HomePage() {
       shallow,
     )
   const selectLibrary = useDataStore((state) => state.selectLibrary)
-
-  // Get Servers
-  const { data: servers, isLoading: loadingServers } = useSWR<Server[]>(
-    `https://${CENTRAL_SERVER}/servers/`,
-    authenticatedFetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-    },
-  )
 
   // Get Libraries
   const { data: libraries, isLoading: loadingLibraries } = useSWR<Library[]>(
@@ -52,11 +43,11 @@ export default function HomePage() {
     selectLibrary(null)
   }, [])
 
-  if (loadingServers || loadingLibraries) {
+  if (loadingLibraries) {
     return <Loading />
   }
 
-  if (!servers) {
+  if (!serverIP) {
     return <NoServer />
   }
 
