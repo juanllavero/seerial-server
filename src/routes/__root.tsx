@@ -73,10 +73,6 @@ function Root() {
     selectServer(user.servers[0])
   }
 
-  if (user && window.location.pathname === '/login') {
-    return <Navigate to="/home" replace />
-  }
-
   return (
     <BaseLayout>
       <Outlet />

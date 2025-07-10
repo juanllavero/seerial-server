@@ -31,20 +31,27 @@ function ServerRouteWrapper() {
   )
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    async function loadServer() {
-      const user = await getUser()
+  async function loadServer(loadFirst: boolean) {
+    const user = await getUser()
 
-      if (!user) {
-        logout()
-        return <Navigate to="/login" replace />
-      }
-
-      const foundServer = user?.servers.find((s) => s.id === serverId)
-      selectServer(foundServer ?? null)
-      setLoading(false)
+    if (!user) {
+      logout()
+      return <Navigate to="/login" replace />
     }
-    loadServer()
+
+    const foundServer = user.servers.find((s) => s.id === serverId)
+    selectServer(
+      (foundServer ?? loadFirst)
+        ? user.servers && user.servers.length > 0
+          ? user.servers[0]
+          : null
+        : null,
+    )
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    loadServer(false)
   }, [serverId])
 
   if (loading) {
@@ -52,6 +59,7 @@ function ServerRouteWrapper() {
   }
 
   if (!selectedServer) {
+    loadServer(true)
     return <Navigate to="/home" replace />
   }
 
