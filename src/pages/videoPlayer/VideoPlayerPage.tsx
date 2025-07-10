@@ -21,7 +21,7 @@ import {
   Volume2,
   VolumeOff,
 } from 'lucide-react'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import useSWR from 'swr'
 import HTMLVideoPlayer from './components/HTMLVideoPlayer'
 import './VideoPlayerPage.css'
@@ -69,6 +69,10 @@ function VideoPlayerPage() {
   const [videoStart, setVideoStart] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
   const [previewTime, setPreviewTime] = useState(0)
+  const [buffered, setBuffered] = useState(0)
+
+  // State for triggering stream reload
+  const [streamStartTime, setStreamStartTime] = useState(0)
 
   // Controls
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -89,6 +93,56 @@ function VideoPlayerPage() {
       video?.subtitleTracks?.find((track) => track.selected) || null,
     )
 
+  // This hook reconstructs the video source URL whenever a dependency changes.
+  const videoSrc = useMemo(() => {
+    if (!video?.fileSrc || !serverIP) return ''
+
+    const params = new URLSearchParams({
+      path: video.fileSrc,
+    })
+    if (streamStartTime > 0) {
+      params.append('start', Math.floor(streamStartTime).toString())
+    }
+
+    if (selectedAudioTrack) {
+      params.append(
+        'audio',
+        selectedAudioTrack.id && selectedAudioTrack.id > 0
+          ? String(selectedAudioTrack.id - 1)
+          : '0',
+      )
+    }
+    if (selectedSubtitleTrack) {
+      params.append(
+        'subs',
+        selectedSubtitleTrack.id && selectedSubtitleTrack.id > 0
+          ? String(selectedSubtitleTrack.id - 1)
+          : '0',
+      )
+    }
+
+    return `http://${serverIP}/stream-video?${params.toString()}`
+  }, [
+    serverIP,
+    video,
+    streamStartTime,
+    selectedAudioTrack,
+    selectedSubtitleTrack,
+  ])
+
+  // These functions now correctly update the state to trigger the 'videoSrc' recalculation.
+  const handleAudioTrackChange = (track: AudioTrack) => {
+    if (!videoRef.current) return
+    setStreamStartTime(videoRef.current.currentTime)
+    setSelectedAudioTrack(track)
+  }
+
+  const handleSubtitleTrackChange = (track: SubtitleTrack | null) => {
+    if (!videoRef.current) return
+    setStreamStartTime(videoRef.current.currentTime)
+    setSelectedSubtitleTrack(track)
+  }
+
   //#region Player Controls
   const getVolumeIcon = () => {
     const volume = videoRef.current?.volume
@@ -103,27 +157,27 @@ function VideoPlayerPage() {
   }
 
   const togglePlay = () => {
-    const video = videoRef.current
-    if (!video) return
-    if (video.paused) {
-      video.play()
+    const videoPlayer = videoRef.current
+    if (!videoPlayer) return
+    if (videoPlayer.paused) {
+      videoPlayer.play()
       setIsPlaying(true)
     } else {
-      video.pause()
+      videoPlayer.pause()
       setIsPlaying(false)
     }
   }
 
   const toggleMute = () => {
-    const video = videoRef.current
-    if (!video) return
+    const videoPlayer = videoRef.current
+    if (!videoPlayer) return
 
-    video.muted = !video.muted
+    videoPlayer.muted = !videoPlayer.muted
 
-    if (video.muted) {
+    if (videoPlayer.muted) {
       setVolume(0)
     } else {
-      setVolume(video.volume)
+      setVolume(videoPlayer.volume)
     }
   }
 
@@ -149,22 +203,22 @@ function VideoPlayerPage() {
   }
 
   const handleVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const video = videoRef.current
-    if (!video) return
+    const videoPlayer = videoRef.current
+    if (!videoPlayer) return
 
     const newVolume = Number(event.target.value)
 
     setVolume(newVolume)
-    video.volume = newVolume
+    videoPlayer.volume = newVolume
 
     const percent = newVolume * 100
     event.target.style.background = `linear-gradient(to right, var(--app-color) ${percent}%, white ${percent}%)`
   }
 
   const handleFullscreen = () => {
-    const video = videoRef.current
+    const videoPlayer = videoRef.current
 
-    if (!video) return
+    if (!videoPlayer) return
 
     if (!isFullscreen) {
       document.documentElement.requestFullscreen()
@@ -176,17 +230,15 @@ function VideoPlayerPage() {
   }
 
   const skip = (duration: number) => {
-    const video = videoRef.current
-    if (!video) return
+    const videoPlayer = videoRef.current
+    if (!videoPlayer) return
 
-    video.currentTime += duration
+    videoPlayer.currentTime += duration
   }
   //#endregion
 
   // Gets the end time of the video
   const getEndTime = (currentSecond: number) => {
-    const duration = videoRef.current?.duration || 0
-
     const remainingTime = duration - currentSecond
     const now = new Date()
     const endTime = new Date(now.getTime() + remainingTime * 1000)
@@ -199,8 +251,8 @@ function VideoPlayerPage() {
 
   //#region Timeline
   const handleTimelineUpdate = (e: any) => {
-    const video = videoRef.current
-    if (!video || !e.target || !timelineRef.current) return
+    const videoPlayer = videoRef.current
+    if (!videoPlayer || !e.target || !timelineRef.current) return
 
     const rect = timelineRef.current.getBoundingClientRect()
     const percent =
@@ -222,8 +274,8 @@ function VideoPlayerPage() {
   }
 
   const toggleScrubbing = (e: any) => {
-    const video = videoRef.current
-    if (!video || !e.target || !timelineRef.current) return
+    const videoPlayer = videoRef.current
+    if (!videoPlayer || !e.target || !timelineRef.current) return
 
     const rect = timelineRef.current.getBoundingClientRect()
     const percent =
@@ -233,11 +285,11 @@ function VideoPlayerPage() {
     setIsScrubbing(scrubbing)
 
     if (scrubbing) {
-      setWasPaused(video.paused)
+      setWasPaused(videoPlayer.paused)
       videoRef.current?.pause()
     } else {
-      video.currentTime = percent * duration
-      if (!wasPaused) video.play()
+      videoPlayer.currentTime = percent * duration
+      if (!wasPaused) videoPlayer.play()
     }
 
     handleTimelineUpdate(e)
@@ -269,78 +321,83 @@ function VideoPlayerPage() {
 
   // On video loaded
   useEffect(() => {
-    const video = videoRef.current
-    if (!video) return
+    const videoPlayer = videoRef.current
+    if (!videoPlayer) return
 
-    // Listen to time update
-    video.addEventListener('timeupdate', () => {
-      setCurrentTime(video.currentTime)
-      const percent = video.currentTime / duration
-      timelineRef.current?.style.setProperty(
-        '--progress-position',
-        percent.toString(),
-      )
-
-      // Calcular el porcentaje del buffer
-      if (video.buffered.length > 0) {
-        const bufferedEnd = video.buffered.end(video.buffered.length - 1)
-        const bufferPercent = bufferedEnd / duration
+    const onPlay = () => setIsPlaying(true)
+    const onPause = () => setIsPlaying(false)
+    const onTimeUpdate = () => {
+      if (!isScrubbing) {
+        setCurrentTime(videoPlayer.currentTime)
         timelineRef.current?.style.setProperty(
-          '--preview-position',
-          bufferPercent.toString(),
+          '--progress-position',
+          (videoPlayer.currentTime / duration).toString(),
         )
       }
-    })
-
-    // Set Play/Pause state
-    setIsPlaying(!video.paused)
-
-    // Show video player
-    const handlePlay = () => {
-      setVideoLoaded(true)
-      setIsPlaying(true)
+      // Update buffer bar
+      if (videoPlayer.buffered.length > 0 && duration > 0) {
+        const bufferedEnd = videoPlayer.buffered.end(
+          videoPlayer.buffered.length - 1,
+        )
+        timelineRef.current?.style.setProperty(
+          '--buffer-position',
+          (bufferedEnd / duration).toString(),
+        )
+      }
     }
+    const onLoadedData = () => {
+      setShowLoadingCircle(false)
+      setDuration(video ? video.runtime / 60 : 0)
+    }
+    const onWaiting = () => setShowLoadingCircle(true)
+    const onPlaying = () => setShowLoadingCircle(false)
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      switch (event.key) {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if ((e.target as HTMLElement).matches('input, textarea')) return
+      switch (e.key) {
         case ' ':
-          event.preventDefault()
+          e.preventDefault()
           togglePlay()
           break
         case 'ArrowLeft':
-          event.preventDefault()
+          e.preventDefault()
           skip(-5)
           break
         case 'ArrowRight':
-          event.preventDefault()
+          e.preventDefault()
           skip(10)
           break
-        default:
+        case 'f':
+          e.preventDefault()
+          handleFullscreen()
+          break
+        case 'm':
+          e.preventDefault()
+          toggleMute()
           break
       }
     }
 
-    window.addEventListener('keydown', handleKeyDown)
-    video.addEventListener('play', handlePlay)
-    video.addEventListener('seeking', () => setShowLoadingCircle(true))
-    video.addEventListener('seeked', () => setShowLoadingCircle(false))
-    video.addEventListener('waiting', () => setShowLoadingCircle(true))
-    video.addEventListener('playing', () => setShowLoadingCircle(false))
+    videoPlayer.addEventListener('play', onPlay)
+    videoPlayer.addEventListener('pause', onPause)
+    videoPlayer.addEventListener('timeupdate', onTimeUpdate)
+    videoPlayer.addEventListener('loadeddata', onLoadedData)
+    videoPlayer.addEventListener('waiting', onWaiting)
+    videoPlayer.addEventListener('playing', onPlaying)
+    window.addEventListener('keydown', onKeyDown)
 
-    // Clean listeners on unmount
+    // Cleanup function
     return () => {
-      video.removeEventListener('play', handlePlay)
-      video.addEventListener('seeking', () => setShowLoadingCircle(true))
-      video.addEventListener('seeked', () => setShowLoadingCircle(false))
-      video.addEventListener('waiting', () => setShowLoadingCircle(true))
-      video.addEventListener('playing', () => setShowLoadingCircle(false))
-      window.removeEventListener('keydown', handleKeyDown)
-
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current)
-      }
+      videoPlayer.removeEventListener('play', onPlay)
+      videoPlayer.removeEventListener('pause', onPause)
+      videoPlayer.removeEventListener('timeupdate', onTimeUpdate)
+      videoPlayer.removeEventListener('loadeddata', onLoadedData)
+      videoPlayer.removeEventListener('waiting', onWaiting)
+      videoPlayer.removeEventListener('playing', onPlaying)
+      window.removeEventListener('keydown', onKeyDown)
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
     }
-  }, [])
+  }, [duration, isScrubbing, skip, togglePlay])
 
   useEffect(() => {
     if (!video || !videoInfo) return
@@ -407,11 +464,11 @@ function VideoPlayerPage() {
   return (
     <>
       {/* Loading Circle */}
-      {(!videoLoaded || showLoadingCircle) && (
+      {/* {(!videoLoaded || showLoadingCircle) && (
         <div className="relative flex h-screen w-screen justify-center">
           <Loading />
         </div>
-      )}
+      )} */}
 
       {/* Video Player */}
       <div
@@ -467,14 +524,7 @@ function VideoPlayerPage() {
         </FlexBox>
 
         {/* Video Player */}
-        <HTMLVideoPlayer
-          url={video.fileSrc}
-          start={videoStart}
-          audioTrack={
-            selectedAudioTrack ? selectedAudioTrack.id - 1 : undefined
-          }
-          videoRef={videoRef}
-        />
+        <HTMLVideoPlayer url={videoSrc} videoRef={videoRef} />
 
         {/* Controls */}
         <FlexBox

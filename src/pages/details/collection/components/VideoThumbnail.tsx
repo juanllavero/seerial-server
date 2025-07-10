@@ -1,5 +1,5 @@
 import { Skeleton } from '@/components/ui/skeleton'
-import React, { useState, useRef } from 'react'
+import { useState, useRef } from 'react'
 
 function VideoPlayer({
   videoUrl,
@@ -8,20 +8,13 @@ function VideoPlayer({
   videoUrl: string
   snapshotAtTime?: number
 }) {
-  // --- Estados ---
-  // Almacena la URL de la miniatura generada
   const [thumbnail, setThumbnail] = useState<string | null>(null)
-  // Controla si el cursor está sobre el componente
   const [isHovering, setIsHovering] = useState(false)
-  // Para saber si es la primera vez que se reproduce
   const [hasPlayedOnce, setHasPlayedOnce] = useState(false)
-  // Manejo de errores (p. ej., por CORS)
   const [error, setError] = useState<string | null>(null)
 
-  // --- Referencias a elementos del DOM ---
   const videoRef = useRef<HTMLVideoElement>(null)
 
-  // --- Lógica para Generar la Miniatura ---
   const generateThumbnail = () => {
     if (thumbnail) return
 
@@ -49,22 +42,18 @@ function VideoPlayer({
   const handleVideoLoad = () => {
     const video = videoRef.current
     if (video) {
-      // Busca el instante de tiempo para la captura
       video.currentTime = snapshotAtTime
     }
   }
 
-  // --- Manejadores de Eventos para el Hover ---
   const handleMouseEnter = () => {
     setIsHovering(true)
     const video = videoRef.current
     if (video) {
-      // Si es la primera vez, nos aseguramos de que empiece desde el segundo 0
       if (!hasPlayedOnce) {
         video.currentTime = 0
         setHasPlayedOnce(true)
       }
-      // El método play() devuelve una promesa, es buena práctica capturar errores
       video
         .play()
         .catch((err) => console.error('Error al intentar reproducir:', err))
@@ -85,20 +74,19 @@ function VideoPlayer({
       onMouseLeave={handleMouseLeave}
       className="rounded-xl"
       style={{
-        position: 'relative', // Contenedor base para posicionar la imagen y el vídeo
+        position: 'relative',
         width: '100%',
-        maxWidth: '400px', // Ancho máximo de ejemplo
-        aspectRatio: '16 / 9', // Mantiene la proporción del vídeo
+        maxWidth: '400px',
+        aspectRatio: '16 / 9',
         cursor: 'pointer',
         backgroundColor: '#000',
       }}
     >
-      {/* El elemento de vídeo ahora es visible y se controla con opacidad */}
       <video
         ref={videoRef}
         src={videoUrl}
         onLoadedData={handleVideoLoad}
-        onSeeked={generateThumbnail} // Genera la miniatura cuando la búsqueda de fotograma termina
+        onSeeked={generateThumbnail}
         className="rounded-xl"
         style={{
           position: 'absolute',
@@ -106,16 +94,16 @@ function VideoPlayer({
           height: '100%',
           top: 0,
           left: 0,
-          opacity: isHovering ? 1 : 0, // Controla la visibilidad
-          transition: 'opacity 0.4s ease-in-out', // La magia de la transición
+          opacity: isHovering ? 1 : 0,
+          transition: 'opacity 0.4s ease-in-out',
         }}
         crossOrigin="anonymous"
-        muted // Esencial para el autoplay en la mayoría de navegadores
-        loop // Para que el vídeo se repita si llega al final
-        playsInline // Importante para la reproducción en iOS
+        muted
+        loop
+        playsInline // Important for iOS playback
       />
 
-      {/* La imagen de la miniatura */}
+      {/* Thumbnail Image */}
       {thumbnail && (
         <img
           src={thumbnail}
@@ -127,14 +115,14 @@ function VideoPlayer({
             height: '100%',
             top: 0,
             left: 0,
-            opacity: isHovering ? 0 : 1, // Se oculta al hacer hover
+            opacity: isHovering ? 0 : 1,
             transition: 'opacity 0.4s ease-in-out',
             objectFit: 'cover',
           }}
         />
       )}
 
-      {/* Mensaje de carga o error */}
+      {/* Skeleton and Error message */}
       {!thumbnail && !error && (
         <Skeleton className="h-full w-full rounded-xl" />
       )}
