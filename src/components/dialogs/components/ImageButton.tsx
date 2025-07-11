@@ -15,7 +15,7 @@ function ImageButton({
 }: ImageButtonProps) {
   const imageUrl = image.startsWith('http')
     ? image
-    : `http://image.tmdb.org/t/p/original/${image}`
+    : `https://image.tmdb.org/t/p/original/${image}`
 
   const isSelected = imageUrl === selectedImage
 

@@ -11,7 +11,7 @@ import { shallow } from 'zustand/shallow'
 
 function ClientQuality() {
   const { t } = useTranslation()
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const { setClientSetting, clientSettings, setClientSettings } =
     useSettingsStore(
       (state) => ({
@@ -54,10 +54,10 @@ function ClientQuality() {
   )
 
   const handleSave = () => {
-    if (serverIP === '') return
+    if (serverUrl === '') return
 
-    setClientSetting(serverIP, 'localVideoQuality', localQuality)
-    setClientSetting(serverIP, 'onlineVideoQuality', onlineQuality)
+    setClientSetting(serverUrl, 'localVideoQuality', localQuality)
+    setClientSetting(serverUrl, 'onlineVideoQuality', onlineQuality)
 
     setClientSettings({
       ...clientSettings,

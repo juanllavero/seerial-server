@@ -13,13 +13,13 @@ import { shallow } from 'zustand/shallow'
 
 interface LibraryPageContentProps {
   libraryId: string
-  serverIP: string
+  serverUrl: string
   type: string
 }
 
 function LibraryPageContent({
   libraryId,
-  serverIP,
+  serverUrl,
   type,
 }: LibraryPageContentProps) {
   const { cardWidth } = useCardWidth()
@@ -35,7 +35,7 @@ function LibraryPageContent({
     data: library,
     isLoading,
     mutate,
-  } = useSWR<Library>(`http://${serverIP}/library?id=${libraryId}`, fetcher)
+  } = useSWR<Library>(`${serverUrl}/library?id=${libraryId}`, fetcher)
 
   useEffect(() => {
     if (library && library.id !== selectedLibraryId) {

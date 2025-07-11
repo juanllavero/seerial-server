@@ -10,7 +10,7 @@ function SmallSpinner({ size }: { size?: number }) {
         className="animate-spin text-gray-300"
         viewBox="0 0 64 64"
         fill="none"
-        xmlns="http://www.w3.org/2000/svg"
+        xmlns="https://www.w3.org/2000/svg"
         width="24"
         height="24"
       >

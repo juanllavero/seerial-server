@@ -15,7 +15,7 @@ import { shallow } from 'zustand/shallow'
 
 function CorrectIdentificationSearch() {
   const { t } = useTranslation()
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const connectWS = useWebSocketStore((state) => state.connectWS)
   const { identificationDialog, closeIdentificationDialog } = useDialogStore(
     (state) => ({
@@ -61,7 +61,7 @@ function CorrectIdentificationSearch() {
 
   const search = (name: string, year: string) => {
     fetch(
-      `http://${serverIP}/${isShow ? 'shows' : 'movies'}/search?name=${name}&year=${year}`,
+      `${serverUrl}/${isShow ? 'shows' : 'movies'}/search?name=${name}&year=${year}`,
     )
       .then((response) => response.json())
       .then((data) => {
@@ -71,10 +71,10 @@ function CorrectIdentificationSearch() {
   }
 
   const saveIdentification = async (id: number) => {
-    if (serverIP === '') return
+    if (serverUrl === '') return
 
-    await connectWS(serverIP)
-    fetch(`http://${serverIP}/${isShow ? 'updateShowId' : 'updateMovieId'}`, {
+    await connectWS(serverUrl)
+    fetch(`${serverUrl}/${isShow ? 'updateShowId' : 'updateMovieId'}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -160,7 +160,7 @@ function CorrectIdentificationSearch() {
 
                 <FlexBox width={'25%'}>
                   <LazyImage
-                    src={`http://image.tmdb.org/t/p/original/${result.poster_path}`}
+                    src={`https://image.tmdb.org/t/p/original/${result.poster_path}`}
                     alt={result.name ?? result.title ?? 'Poster'}
                     width={'100%'}
                     height={'auto'}

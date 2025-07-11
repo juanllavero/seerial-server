@@ -34,7 +34,7 @@ function AdvancedTabContent({
   edit,
 }: AdvancedTabContentProps) {
   const { t, i18n } = useTranslation()
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const getServerSetting = useSettingsStore((state) => state.getServerSetting)
   const currentLanguage = i18n.language?.split('-')[0] ?? 'en'
   const languageCodes = ISO6391.getAllCodes()
@@ -61,7 +61,7 @@ function AdvancedTabContent({
 
   const getPrefAudioLan = async () => {
     const prefAudio = await getServerSetting(
-      serverIP,
+      serverUrl,
       'preferAudioLan',
       currentLanguage,
     )
@@ -70,7 +70,7 @@ function AdvancedTabContent({
 
   const getPrefSubLan = async () => {
     const prefSub = await getServerSetting(
-      serverIP,
+      serverUrl,
       'preferSubsLan',
       currentLanguage,
     )
@@ -78,7 +78,7 @@ function AdvancedTabContent({
   }
 
   const getSubsMode = async () => {
-    const subs = await getServerSetting(serverIP, 'subsMode', 'autoSubs')
+    const subs = await getServerSetting(serverUrl, 'subsMode', 'autoSubs')
     return t(subs)
   }
 
@@ -93,7 +93,7 @@ function AdvancedTabContent({
     }
 
     setValues()
-  }, [serverIP])
+  }, [serverUrl])
 
   return (
     <FlexBox

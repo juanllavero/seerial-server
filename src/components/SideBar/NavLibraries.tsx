@@ -59,11 +59,11 @@ const NavLibraries = () => {
   )
   const navigate = useNavigate()
 
-  const { selectedServer, serverIP, serverStatus, apiKeyStatus } =
+  const { selectedServer, serverUrl, serverStatus, apiKeyStatus } =
     useServerStore(
       (state) => ({
         selectedServer: state.selectedServer,
-        serverIP: state.serverIP,
+        serverUrl: state.serverUrl,
         serverStatus: state.serverStatus,
         apiKeyStatus: state.apiKeyStatus,
       }),
@@ -85,7 +85,7 @@ const NavLibraries = () => {
   )
 
   const { data: libraries, isLoading } = useSWR<Library[]>(
-    serverIP !== '' ? `http://${serverIP}/libraries/` : null,
+    serverUrl !== '' ? `${serverUrl}/libraries/` : null,
     fetcher,
     {
       revalidateOnFocus: false,

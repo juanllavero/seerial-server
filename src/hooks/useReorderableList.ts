@@ -8,7 +8,7 @@ export function useReorderableList(
   libraryId: string,
   mutate: () => void,
 ) {
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const [items, setItems] = useState<LibraryItem[]>([])
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export function useReorderableList(
       }))
 
       try {
-        await fetch(`http://${serverIP}/library/reorder`, {
+        await fetch(`${serverUrl}/library/reorder`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -20,10 +20,14 @@ import { shallow } from 'zustand/shallow'
 interface SeasonContentProps {
   seasonList: Season[]
   serverId: string
-  serverIP: string
+  serverUrl: string
 }
 
-function SeasonContent({ seasonList, serverId, serverIP }: SeasonContentProps) {
+function SeasonContent({
+  seasonList,
+  serverId,
+  serverUrl,
+}: SeasonContentProps) {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const { selectedSeasonId, selectSeason } = useDataStore(
@@ -54,7 +58,7 @@ function SeasonContent({ seasonList, serverId, serverIP }: SeasonContentProps) {
     error,
   } = useSWR<Season>(
     selectedSeasonId
-      ? `http://${serverIP}/details/season?id=${selectedSeasonId}`
+      ? `${serverUrl}/details/season?id=${selectedSeasonId}`
       : null,
     fetcher,
   )
@@ -102,7 +106,7 @@ function SeasonContent({ seasonList, serverId, serverIP }: SeasonContentProps) {
 
   const playEpisode = async (episodeId: Episode) => {
     const response = await fetch(
-      `http://${serverIP}/episode-video?episodeId=${episodeId.id}`,
+      `${serverUrl}/episode-video?episodeId=${episodeId.id}`,
     )
 
     if (!response.ok) {

@@ -7,18 +7,18 @@ import useSWR from 'swr'
 
 interface MyListButtonProps {
   movieId: string
-  serverIP: string
+  serverUrl: string
 }
 
-function MyListButton({ movieId, serverIP }: MyListButtonProps) {
+function MyListButton({ movieId, serverUrl }: MyListButtonProps) {
   // Get if movie is in My List
   const { data: inMyList, mutate: mutateInMyList } = useSWR(
-    `http://${serverIP}/isMovieInMyList?movieId=${movieId}`,
+    `${serverUrl}/isMovieInMyList?movieId=${movieId}`,
     fetcher,
   )
 
   const toggleMyList = () => {
-    fetch(`http://${serverIP}/updateMovieMyList`, {
+    fetch(`${serverUrl}/updateMovieMyList`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

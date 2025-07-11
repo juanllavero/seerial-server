@@ -16,7 +16,7 @@ import { shallow } from 'zustand/shallow'
 
 function DownloadMediaSearch() {
   const { t } = useTranslation()
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
   const { connectWS, downloadAudio, downloadVideo, downloaded, setDownloaded } =
@@ -80,7 +80,7 @@ function DownloadMediaSearch() {
 
   const search = (text: string) => {
     setSearching(true)
-    fetch(`http://${serverIP}/media/search?query=${text}`)
+    fetch(`${serverUrl}/media/search?query=${text}`)
       .then((response) => response.json())
       .then((data) => {
         setSearchResults(data)
@@ -93,15 +93,15 @@ function DownloadMediaSearch() {
   }
 
   const downloadMedia = async (media: MediaSearchResult) => {
-    if (serverIP === '') return
+    if (serverUrl === '') return
 
-    await connectWS(serverIP)
+    await connectWS(serverUrl)
 
     if (type === 'music') {
       await downloadAudio(
         media.id,
         media.url,
-        serverIP,
+        serverUrl,
         isShow
           ? (seriesToEdit?.libraryId ?? '')
           : (movieToEdit?.libraryId ?? ''),
@@ -111,7 +111,7 @@ function DownloadMediaSearch() {
       await downloadVideo(
         media.id,
         media.url,
-        serverIP,
+        serverUrl,
         isShow
           ? (seriesToEdit?.libraryId ?? '')
           : (movieToEdit?.libraryId ?? ''),

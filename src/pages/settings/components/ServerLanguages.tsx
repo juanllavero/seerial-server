@@ -14,7 +14,7 @@ import { shallow } from 'zustand/shallow'
 
 function ServerLanguages() {
   const { t, i18n } = useTranslation()
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const { setServerSetting, serverSettings, setServerSettings } =
     useSettingsStore(
       (state) => ({
@@ -71,16 +71,16 @@ function ServerLanguages() {
   }))
 
   const handleSave = () => {
-    if (serverIP === '') return
+    if (serverUrl === '') return
 
-    setServerSetting(serverIP, 'autoSelectTracks', autoSelectTracks)
+    setServerSetting(serverUrl, 'autoSelectTracks', autoSelectTracks)
     setServerSetting(
-      serverIP,
+      serverUrl,
       'preferAudioLan',
       ISO6391.getCode(preferAudioLan),
     )
-    setServerSetting(serverIP, 'subsMode', subsMode)
-    setServerSetting(serverIP, 'preferSubsLan', ISO6391.getCode(preferSubLan))
+    setServerSetting(serverUrl, 'subsMode', subsMode)
+    setServerSetting(serverUrl, 'preferSubsLan', ISO6391.getCode(preferSubLan))
 
     setServerSettings({
       ...serverSettings,

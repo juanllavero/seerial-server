@@ -73,7 +73,7 @@ export const en = {
     downloadUpdate: 'Download update',
     updated: 'Updated',
     updateFound: 'Update found',
-    serverIPMessage:
+    serverUrlMessage:
       'Introduce the server IP and port of your server. The server has to be running Seerial Media Server and the port has to be within 32400-32450',
     autoUpdate: 'Update automatically',
     autoUpdateMessage:
@@ -320,8 +320,8 @@ export const en = {
     languages: 'Languages',
     libraries: 'Libraries',
     transcode: 'Transcode',
-    serverIP: 'Server IP',
-    serverIPText: 'The port has to be 3000',
+    serverUrl: 'Server IP',
+    serverUrlText: 'The port has to be 3000',
     noResults: 'No results found',
   },
 }

@@ -29,9 +29,9 @@ import { getCoverSize, getTitleSize } from '@/utils/ReactUtils'
 import useScreenHeight from '@/components/hooks/use-height'
 function CollectionDetailsPage() {
   const { collectionId, type } = useParams()
-  const { serverIP } = useServerStore(
+  const { serverUrl } = useServerStore(
     (state) => ({
-      serverIP: state.serverIP,
+      serverUrl: state.serverUrl,
     }),
     shallow,
   )
@@ -56,7 +56,7 @@ function CollectionDetailsPage() {
     isLoading,
     mutate,
   } = useSWR<Collection>(
-    `http://${serverIP}/details/collection?id=${collectionId}`,
+    `${serverUrl}/details/collection?id=${collectionId}`,
     fetcher,
   )
 
@@ -150,7 +150,7 @@ function CollectionDetailsPage() {
       }))
 
       try {
-        await fetch(`http://${serverIP}/collections/reorder-content`, {
+        await fetch(`${serverUrl}/collections/reorder-content`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

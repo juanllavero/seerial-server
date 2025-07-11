@@ -13,9 +13,9 @@ import { shallow } from 'zustand/shallow'
 
 function ServerGeneral({ isLoaded }: { isLoaded: boolean }) {
   const { t } = useTranslation()
-  const { serverIP, serverVersion } = useServerStore(
+  const { serverUrl, serverVersion } = useServerStore(
     (state) => ({
-      serverIP: state.serverIP,
+      serverUrl: state.serverUrl,
       serverVersion: state.serverVersion,
     }),
     shallow,
@@ -32,15 +32,15 @@ function ServerGeneral({ isLoaded }: { isLoaded: boolean }) {
   const [isDirty, setIsDirty] = React.useState(false)
   const [showMessage, setShowMessage] = useState(false)
 
-  const [ip, setIP] = useState<string>(serverIP ?? '')
+  const [ip, setIP] = useState<string>(serverUrl ?? '')
   const [autoUpdate, setAutoUpdate] = useState<boolean>(
     (serverSettings['automaticUpdates'] as boolean) ?? false,
   )
 
   const handleSave = () => {
-    if (serverIP === '') return
+    if (serverUrl === '') return
 
-    setServerSetting(serverIP, 'automaticUpdates', autoUpdate)
+    setServerSetting(serverUrl, 'automaticUpdates', autoUpdate)
 
     setServerSettings({
       ...serverSettings,
@@ -65,7 +65,7 @@ function ServerGeneral({ isLoaded }: { isLoaded: boolean }) {
   }
 
   const changeIP = (ip: string) => {
-    //setServerIP(ip)
+    //setserverUrl(ip)
   }
 
   const handleAutoUpdateChange = (checked: boolean) => {
@@ -93,7 +93,7 @@ function ServerGeneral({ isLoaded }: { isLoaded: boolean }) {
         </FlexBox>
       </FlexBox>
 
-      <LabeledInputWrapper label={t('serverIP')} text={t('serverIPMessage')}>
+      <LabeledInputWrapper label={t('serverUrl')} text={t('serverUrlMessage')}>
         <FlexBox align="center" gap={1}>
           <Input
             placeholder="192.168.1.10:34200..."

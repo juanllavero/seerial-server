@@ -74,7 +74,7 @@ export const es = {
     downloadUpdate: 'Descargar actualización',
     updated: 'Actualizado',
     updateFound: 'Actualización encontrada',
-    serverIPMessage:
+    serverUrlMessage:
       'Introduce la IP del servidor y el puerto de tu servidor. El servidor debe estar ejecutando Seerial Media Server y el puerto debe estar entre 32400-32450',
     autoUpdate: 'Actualizar automáticamente',
     autoUpdateMessage:
@@ -324,8 +324,8 @@ export const es = {
     languages: 'Idiomas',
     libraries: 'Bibliotecas',
     transcode: 'Transcodificación',
-    serverIP: 'IP del servidor',
-    serverIPText: 'El puerto ha de ser el 3000',
+    serverUrl: 'IP del servidor',
+    serverUrlText: 'El puerto ha de ser el 3000',
     noResults: 'No se han encontrado resultados',
   },
 }

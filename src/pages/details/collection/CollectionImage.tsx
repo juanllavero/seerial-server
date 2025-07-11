@@ -13,11 +13,11 @@ interface CollectionImageProps {
 }
 
 function CollectionImage({ collection, type }: CollectionImageProps) {
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const screenHeight = useScreenHeight()
   const isMobile = useIsMobile()
   const { data: collectionImages } = useSWR<string[]>(
-    `http://${serverIP}/collection-images?collectionId=${collection.id}&&type=${type}`,
+    `${serverUrl}/collection-images?collectionId=${collection.id}&&type=${type}`,
     fetcher,
   )
 

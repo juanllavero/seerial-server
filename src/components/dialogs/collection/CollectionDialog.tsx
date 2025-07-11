@@ -13,7 +13,7 @@ import { shallow } from 'zustand/shallow'
 
 function CollectionDialog() {
   const { t } = useTranslation()
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const connectWS = useWebSocketStore((state) => state.connectWS)
   const { collectionDialog, closeCollectionDialog } = useDialogStore(
     (state) => ({
@@ -65,11 +65,11 @@ function CollectionDialog() {
   if (!collection) return null
 
   const handleEditCollection = async () => {
-    if (serverIP === '') return
+    if (serverUrl === '') return
 
-    await connectWS(serverIP)
+    await connectWS(serverUrl)
 
-    const response = await fetch(`http://${serverIP}/season`, {
+    const response = await fetch(`${serverUrl}/season`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -88,7 +88,7 @@ function CollectionDialog() {
       return
     }
 
-    mutate((key: string) => key.startsWith(`http://${serverIP}/details/season`))
+    mutate((key: string) => key.startsWith(`${serverUrl}/details/season`))
 
     closeCollectionDialog()
   }

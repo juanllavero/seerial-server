@@ -20,13 +20,13 @@ function MusicPlayer() {
       shallow,
     )
   const generateGradient = useGradientStore((state) => state.generateGradient)
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const localAudioRef = useRef<HTMLAudioElement>(null)
 
   // Get Album details
   const { data: album } = useSWR<Album>(
-    currentSong && currentSong.albumId && serverIP !== ''
-      ? `http://${serverIP}/details/album?id=${currentSong.albumId}`
+    currentSong && currentSong.albumId && serverUrl !== ''
+      ? `${serverUrl}/details/album?id=${currentSong.albumId}`
       : null,
     fetcher,
   )
@@ -41,18 +41,18 @@ function MusicPlayer() {
 
   // Handle gradient background
   useEffect(() => {
-    if (album && serverIP !== '') {
+    if (album && serverUrl !== '') {
       setAlbum(album)
-      generateGradient(album.coverSrc, serverIP, true)
+      generateGradient(album.coverSrc, serverUrl, true)
     }
-  }, [album, serverIP])
+  }, [album, serverUrl])
 
   if (!album || !currentSong) return null
 
   return (
     <audio
       ref={localAudioRef}
-      src={`http://${serverIP}${getAudioSrc()}`}
+      src={`${serverUrl}${getAudioSrc()}`}
       onError={(e) => console.error('Audio loading error:', e)}
       autoPlay
     />

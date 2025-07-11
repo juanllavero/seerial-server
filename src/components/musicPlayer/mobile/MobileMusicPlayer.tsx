@@ -32,7 +32,7 @@ const MobileMusicPlayer = () => {
     }),
     shallow,
   )
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const [dragStart, setDragStart] = useState<number | null>(null)
   const [dragOffset, setDragOffset] = useState<number | null>(0)
   const [isDragging, setIsDragging] = useState(false)
@@ -48,8 +48,8 @@ const MobileMusicPlayer = () => {
 
   // Get Lyrics in order to show lyrics button
   const { data: lyrics } = useSWR<LRCFile[]>(
-    serverIP !== '' && currentSong && isShown
-      ? `http://${serverIP}/lyrics?id=${currentSong.id}`
+    serverUrl !== '' && currentSong && isShown
+      ? `${serverUrl}/lyrics?id=${currentSong.id}`
       : null,
     fetcher,
   )

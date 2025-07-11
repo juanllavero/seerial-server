@@ -9,17 +9,20 @@ import { PlayIcon } from '@/components/ui/IconLibrary'
 
 interface PlayButtonProps {
   currentlyWatchingEpisodeId?: string
-  serverIP: string
+  serverUrl: string
 }
 
-function PlayButton({ currentlyWatchingEpisodeId, serverIP }: PlayButtonProps) {
+function PlayButton({
+  currentlyWatchingEpisodeId,
+  serverUrl,
+}: PlayButtonProps) {
   const navigate = useNavigate()
   const { t } = useTranslation()
 
   // Get current episode
   const { data: episode } = useSWR<Episode>(
     currentlyWatchingEpisodeId
-      ? `http://${serverIP}/details/episode?id=${currentlyWatchingEpisodeId}`
+      ? `${serverUrl}/details/episode?id=${currentlyWatchingEpisodeId}`
       : null,
     fetcher,
   )
@@ -34,16 +37,14 @@ function PlayButton({ currentlyWatchingEpisodeId, serverIP }: PlayButtonProps) {
     <Button
       onClick={async () => {
         if (episode) {
-          const response = await fetch(
-            `http://${serverIP}/video?id=${episode.id}`,
-          )
+          const response = await fetch(`${serverUrl}/video?id=${episode.id}`)
 
           if (!response.ok) {
             return
           }
 
           const data = await response.json()
-          navigate(`/server/${serverIP}/video-player/${data.videoId}`)
+          navigate(`/server/${serverUrl}/video-player/${data.videoId}`)
         }
       }}
     >

@@ -14,7 +14,7 @@ import ServerTranscode from './components/ServerTranscode'
 import { shallow } from 'zustand/shallow'
 
 function SettingsPage() {
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const {
     getAllClientSettings,
     getAllServerSettings,
@@ -33,11 +33,11 @@ function SettingsPage() {
   const isMobile = useIsMobile()
 
   useEffect(() => {
-    if (serverIP) {
-      getAllServerSettings(serverIP)
-      getAllClientSettings(serverIP)
+    if (serverUrl) {
+      getAllServerSettings(serverUrl)
+      getAllClientSettings(serverUrl)
     }
-  }, [serverIP])
+  }, [serverUrl])
 
   const isLoaded =
     Object.keys(serverSettings).length > 0 &&

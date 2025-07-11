@@ -27,14 +27,14 @@ interface VideoInfo {
 }
 
 function EpisodeMediaInfoTab({ video, setEpisode }: EpisodeMediaInfoTabProps) {
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const isTablet = useIsTablet()
   const [loaded, setLoaded] = useState(false)
 
   // Get video info
   const { data: videoInfo } = useSWR<VideoInfo>(
-    video.id && serverIP !== ''
-      ? `http://${serverIP}/videoInfo?id=${video.id}`
+    video.id && serverUrl !== ''
+      ? `${serverUrl}/videoInfo?id=${video.id}`
       : null,
     fetcher,
   )
@@ -46,9 +46,9 @@ function EpisodeMediaInfoTab({ video, setEpisode }: EpisodeMediaInfoTabProps) {
       setLoaded(false)
 
       const attemptFetch = async () => {
-        if (serverIP === '') return
+        if (serverUrl === '') return
 
-        const result = await fetch(`http://${serverIP}/updateMediaInfo`, {
+        const result = await fetch(`${serverUrl}/updateMediaInfo`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',

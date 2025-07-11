@@ -22,7 +22,7 @@ import { useIsMobile } from '@/components/hooks/use-mobile'
 const LRCVisualizer = () => {
   const { t } = useTranslation()
   const isMobile = useIsMobile()
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const { currentSong, currentTime, isShown, seekTo } = useMusicStore(
     (state) => ({
       currentSong: state.currentSong,
@@ -36,12 +36,12 @@ const LRCVisualizer = () => {
   const [lines, setLines] = useState<LRCLine[]>([])
   const [currentLineIndex, setCurrentLineIndex] = useState(0)
   const [isUserScrolling, setIsUserScrolling] = useState(false)
-  const containerRef = useRef<HTMLDivElement>(null) // Solo necesitamos esta ref
+  const containerRef = useRef<HTMLDivElement>(null)
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const { data: lyrics, isLoading } = useSWR<LRCFile[]>(
-    serverIP !== '' && currentSong && isShown
-      ? `http://${serverIP}/lyrics?id=${currentSong.id}`
+    serverUrl !== '' && currentSong && isShown
+      ? `${serverUrl}/lyrics?id=${currentSong.id}`
       : null,
     fetcher,
   )
@@ -51,7 +51,6 @@ const LRCVisualizer = () => {
   }, [lyrics])
 
   useEffect(() => {
-    // ... (sin cambios en la función parseLrc)
     const parseLrc = (content: string): LRCLine[] => {
       const lines = content.split(/\r\n?|\n/)
       const lrcLines: LRCLine[] = []
@@ -93,11 +92,9 @@ const LRCVisualizer = () => {
     setCurrentLineIndex(newCurrentIndex)
   }, [currentTime, lines])
 
-  // MODIFICADO: useEffect de scroll simplificado
   useEffect(() => {
     if (!isUserScrolling && containerRef.current && lines.length > 0) {
       const container = containerRef.current
-      // El hijo directo de 'container' ahora es el que tiene los elementos de las letras
       const currentLineElement = container.children[0]?.children[
         currentLineIndex
       ] as HTMLElement
@@ -105,7 +102,7 @@ const LRCVisualizer = () => {
       if (!currentLineElement) return
 
       const lineHeight = currentLineElement.offsetHeight
-      const containerHeight = container.clientHeight // Esto ahora es la altura completa
+      const containerHeight = container.clientHeight
 
       const targetScrollTop =
         currentLineElement.offsetTop - containerHeight / 2 + lineHeight / 2
@@ -115,7 +112,6 @@ const LRCVisualizer = () => {
         behavior: 'smooth',
       })
     }
-    // Ya no necesitamos 'isMobile' como dependencia aquí
   }, [currentLineIndex, isUserScrolling, lines])
 
   const handleScroll = () => {
@@ -128,34 +124,36 @@ const LRCVisualizer = () => {
     }, 2000)
   }
 
-  // ... (sin cambios en handleLineClick, getLineOpacity, getLineScale, capitalize)
   const handleLineClick = (time: number) => seekTo(time)
   const getLineOpacity = (index: number) => {
-    const distance = Math.abs(index - currentLineIndex)
-    if (distance === 0) return 'opacity-100'
-    if (distance === 1) return 'opacity-70'
-    if (distance === 2) return 'opacity-50'
-    if (distance <= 4) return 'opacity-30'
-    return 'opacity-20'
+    if (isUserScrolling) {
+      if (index === currentLineIndex) return 'opacity-100'
+      return 'opacity-50'
+    }
+
+    if (index === currentLineIndex) return 'opacity-100'
+    if (index < currentLineIndex) return 'opacity-0'
+    return 'opacity-50'
   }
   const getLineScale = (index: number) =>
     index === currentLineIndex ? 'scale-105' : 'scale-100'
+  const getLineBlur = (index: number) => {
+    if (isUserScrolling) return '' // No blur on scroll
+    return index === currentLineIndex ? '' : 'blur-[2px]'
+  }
   const capitalize = (text: string) =>
     text.charAt(0).toUpperCase() + text.slice(1)
 
   if (isLoading) return <Loading />
 
   return (
-    // MODIFICADO: El contenedor principal ya no tiene ref ni overflow
     <div className="p-x-[0.5rem] @container flex h-full w-full flex-col gap-1 rounded-lg">
-      {/* MODIFICADO: El contenedor de scroll ya no tiene padding vertical */}
       <div
         ref={containerRef}
         className="no-scrollbar w-full flex-grow overflow-x-hidden overflow-y-auto"
         onScroll={handleScroll}
       >
-        {/* MODIFICADO: El contenido de las letras ahora está envuelto en un div con padding */}
-        <div className="space-y-4 px-6 py-8">
+        <div className="space-y-10 px-6 py-8">
           {!isMobile && (
             <div className="absolute z-200 mt-20 flex flex-col gap-2 rounded-xl bg-black/50 p-5">
               {lyrics && lyrics.length > 1 && (
@@ -200,17 +198,17 @@ const LRCVisualizer = () => {
               </Button>
             </div>
           )}
-          {lyrics && lyrics.length > 1 ? (
+          {lyrics && lyrics.length > 0 ? (
             lines.map((line, index) => {
               const isCurrentLine = index === currentLineIndex
-              const lineClasses = isCurrentLine
-                ? 'text-2xl @lg:text-4xl @2xl:text-5xl text-white'
-                : 'text-xl @lg:text-3xl @2xl:text-4xl text-gray-400'
+              const lineClasses = isCurrentLine ? 'text-white' : 'text-gray-400'
               return (
                 <div key={index} className="rounded-lg px-4 py-2 text-center">
                   <span
                     onClick={() => handleLineClick(line.time)}
-                    className={`cursor-pointer font-black transition-all duration-300 ease-out ${getLineOpacity(index)} ${getLineScale(index)} ${lineClasses} hover:text-white hover:opacity-100`}
+                    className={`cursor-pointer font-black transition-all duration-300 ease-out ${getLineOpacity(index)} ${getLineScale(index)} ${getLineBlur(
+                      index,
+                    )} text-2xl @lg:text-4xl @2xl:text-5xl ${lineClasses} hover:text-white hover:opacity-100`}
                   >
                     {line.text}
                   </span>

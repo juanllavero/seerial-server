@@ -31,10 +31,10 @@ function NextSongs() {
     }),
     shallow,
   )
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const { data: album } = useSWR(
-    currentSong && serverIP !== ''
-      ? `http://${serverIP}/details/album?id=${currentSong.albumId}`
+    currentSong && serverUrl !== ''
+      ? `${serverUrl}/details/album?id=${currentSong.albumId}`
       : null,
     fetcher,
   )

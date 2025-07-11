@@ -27,7 +27,7 @@ interface GradientState {
   restoreGradient: (isSong: boolean) => void
   generateGradient: (
     background: string | undefined,
-    serverIP: string,
+    serverUrl: string,
     isSong: boolean,
   ) => Promise<void>
 }
@@ -50,13 +50,13 @@ export const useGradientStore = createWithEqualityFn<GradientState>((set) => ({
   /**
    * Generates an array of dominant colors from an image
    */
-  generateGradient: async (background, serverIP, isSong) => {
+  generateGradient: async (background, serverUrl, isSong) => {
     let imageUrl = '/img/songDefault.png'
 
     if (background) {
       imageUrl = background.startsWith('http')
         ? background
-        : `http://${serverIP}/${background.replace('resources/img', 'img')}`
+        : `${serverUrl}/${background.replace('resources/img', 'img')}`
     }
 
     const dominantColors = await extractColorsFromImage(imageUrl)

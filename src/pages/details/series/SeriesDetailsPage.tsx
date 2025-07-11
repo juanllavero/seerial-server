@@ -45,10 +45,10 @@ function SeriesDetailsPage() {
     shallow,
   )
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
-  const { selectedServer, serverIP } = useServerStore(
+  const { selectedServer, serverUrl } = useServerStore(
     (state) => ({
       selectedServer: state.selectedServer,
-      serverIP: state.serverIP,
+      serverUrl: state.serverUrl,
     }),
     shallow,
   )
@@ -61,10 +61,7 @@ function SeriesDetailsPage() {
     isLoading,
     error,
     mutate: mutateSeries,
-  } = useSWR<Series>(
-    `http://${serverIP}/details/series?id=${seriesId}`,
-    fetcher,
-  )
+  } = useSWR<Series>(`${serverUrl}/details/series?id=${seriesId}`, fetcher)
 
   // Get selected season data
   const season = series
@@ -147,7 +144,7 @@ function SeriesDetailsPage() {
 
   const toggleSeriesWatched = async () => {
     if (series) {
-      fetch(`http://${serverIP}/setSeriesWatched`, {
+      fetch(`${serverUrl}/setSeriesWatched`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -164,7 +161,7 @@ function SeriesDetailsPage() {
 
   const toggleSeasonWatched = async () => {
     if (season) {
-      fetch(`http://${serverIP}/setSeasonWatched`, {
+      fetch(`${serverUrl}/setSeasonWatched`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -281,7 +278,7 @@ function SeriesDetailsPage() {
           </FlexBox>
           <FlexBox gap={1} wrap="wrap">
             <PlayButton
-              serverIP={serverIP ?? ''}
+              serverUrl={serverUrl ?? ''}
               currentlyWatchingEpisodeId={
                 series ? series.currentlyWatchingEpisodeId : undefined
               }
@@ -304,7 +301,7 @@ function SeriesDetailsPage() {
                   )}
                 </Button>
                 <MyListButton
-                  serverIP={serverIP ?? ''}
+                  serverUrl={serverUrl ?? ''}
                   seriesId={seriesId ?? ''}
                 />
               </>
@@ -352,7 +349,7 @@ function SeriesDetailsPage() {
       ) : (
         <SeasonContent
           seasonList={series.seasons}
-          serverIP={serverIP ?? ''}
+          serverUrl={serverUrl ?? ''}
           serverId={selectedServer?.id ?? ''}
         />
       )}

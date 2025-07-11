@@ -8,21 +8,21 @@ interface SettingsStore {
   setSettingsSection: (section: SettingsSection) => void
   setClientSettings: (settings: Settings) => void
   setServerSettings: (settings: Settings) => void
-  getAllServerSettings: (serverIP: string) => Promise<any>
+  getAllServerSettings: (serverUrl: string) => Promise<any>
   getServerSetting: (
-    serverIP: string,
+    serverUrl: string,
     key: string,
     defaultValue: ValueOption,
   ) => any
-  setServerSetting: (serverIP: string, key: string, value: ValueOption) => void
+  setServerSetting: (serverUrl: string, key: string, value: ValueOption) => void
 
-  getAllClientSettings: (serverIP: string) => Promise<any>
+  getAllClientSettings: (serverUrl: string) => Promise<any>
   getClientSetting: (
-    serverIP: string,
+    serverUrl: string,
     key: string,
     defaultValue: ValueOption,
   ) => any
-  setClientSetting: (serverIP: string, key: string, value: ValueOption) => void
+  setClientSetting: (serverUrl: string, key: string, value: ValueOption) => void
 }
 
 export const useSettingsStore = createWithEqualityFn<SettingsStore>((set) => ({
@@ -43,27 +43,27 @@ export const useSettingsStore = createWithEqualityFn<SettingsStore>((set) => ({
       serverSettings: settings,
       clientSettings: state.clientSettings,
     })),
-  getAllServerSettings: async (serverIP: string) => {
-    const settings = await fetch(`http://${serverIP}/serverConfig`)
+  getAllServerSettings: async (serverUrl: string) => {
+    const settings = await fetch(`${serverUrl}/serverConfig`)
     const result = await settings.json()
     set({ serverSettings: result })
   },
   getServerSetting: async (
-    serverIP: string,
+    serverUrl: string,
     key: string,
     defaultValue: ValueOption,
   ) => {
-    const setting = await fetch(`http://${serverIP}/serverConfig/${key}`)
+    const setting = await fetch(`${serverUrl}/serverConfig/${key}`)
     const result = await setting.json()
 
     return result ? result.value : defaultValue
   },
   setServerSetting: async (
-    serverIP: string,
+    serverUrl: string,
     key: string,
     value: ValueOption,
   ) => {
-    fetch(`http://${serverIP}/serverConfig`, {
+    fetch(`${serverUrl}/serverConfig`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -72,27 +72,27 @@ export const useSettingsStore = createWithEqualityFn<SettingsStore>((set) => ({
     })
   },
 
-  getAllClientSettings: async (serverIP: string) => {
-    const settings = await fetch(`http://${serverIP}/webConfig`)
+  getAllClientSettings: async (serverUrl: string) => {
+    const settings = await fetch(`${serverUrl}/webConfig`)
     const result = await settings.json()
     set({ clientSettings: result })
   },
   getClientSetting: async (
-    serverIP: string,
+    serverUrl: string,
     key: string,
     defaultValue: ValueOption,
   ) => {
-    const setting = await fetch(`http://${serverIP}/webConfig/${key}`)
+    const setting = await fetch(`${serverUrl}/webConfig/${key}`)
     const result = await setting.json()
 
     return result ? result.value : defaultValue
   },
   setClientSetting: async (
-    serverIP: string,
+    serverUrl: string,
     key: string,
     value: ValueOption,
   ) => {
-    fetch(`http://${serverIP}/webConfig`, {
+    fetch(`${serverUrl}/webConfig`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',

@@ -1,6 +1,6 @@
 export const DolbyAtmosLogoIcon = (props: any) => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="https://www.w3.org/2000/svg"
     width="24"
     height="24"
     viewBox="0 0 24 24"
@@ -15,7 +15,7 @@ export const DolbyAtmosLogoIcon = (props: any) => (
 
 export const DolbyAtmosIcon = (props: any) => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="https://www.w3.org/2000/svg"
     xmlSpace="preserve"
     viewBox="0 0 110.76 15.643"
     {...props}
@@ -29,7 +29,7 @@ export const DolbyAtmosIcon = (props: any) => (
 
 export const ServerIcon = () => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="https://www.w3.org/2000/svg"
     width={24}
     height={24}
     viewBox="0 0 24 24"
@@ -47,7 +47,7 @@ export const ServerIcon = () => (
 
 export const WarningIcon = () => (
   <svg
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="https://www.w3.org/2000/svg"
     width="80"
     height="80"
     viewBox="0 0 512 512"
@@ -71,7 +71,7 @@ export const PlayIcon = ({
     height={size ?? 22}
     viewBox="0 0 48 48"
     width={size ?? 22}
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="https://www.w3.org/2000/svg"
   >
     <path
       d="M13.5 42C13.1022 42 12.7206 41.842 12.4393 41.5607C12.158 41.2794 12 40.8978 12 40.5V7.49999C12 7.23932 12.0679 6.98314 12.197 6.75671C12.3262 6.53028 12.5121 6.34141 12.7365 6.20873C12.9609 6.07605 13.216 6.00413 13.4766 6.00006C13.7372 5.99599 13.9944 6.05992 14.2229 6.18554L44.2228 22.6855C44.4582 22.815 44.6545 23.0052 44.7912 23.2364C44.9279 23.4676 45.0001 23.7313 45.0001 23.9999C45.0001 24.2685 44.9279 24.5322 44.7912 24.7634C44.6545 24.9946 44.4582 25.1849 44.2228 25.3143L14.2229 41.8143C14.0014 41.9361 13.7527 41.9999 13.5 42Z"
@@ -93,7 +93,7 @@ export const PauseIcon = ({
     height={size ?? 22}
     viewBox="0 0 48 48"
     width={size ?? 22}
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="https://www.w3.org/2000/svg"
   >
     <path
       d="M13 8C13 6.89543 13.8954 6 15 6H17C18.1046 6 19 6.89543 19 8V40C19 41.1046 18.1046 42 17 42H15C13.8954 42 13 41.1046 13 40V8Z"
@@ -119,7 +119,7 @@ export const StopIcon = ({
     height={size ?? 18}
     viewBox="0 0 48 48"
     width={size ?? 18}
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="https://www.w3.org/2000/svg"
   >
     <path
       d="M36 9H12C11.2044 9 10.4413 9.31607 9.87868 9.87868C9.31607 10.4413 9 11.2044 9 12V36C9 36.7956 9.31607 37.5587 9.87868 38.1213C10.4413 38.6839 11.2044 39 12 39H36C36.7956 39 37.5587 38.6839 38.1213 38.1213C38.6839 37.5587 39 36.7956 39 36V12C39 11.2044 38.6839 10.4413 38.1213 9.87868C37.5587 9.31607 36.7956 9 36 9Z"
@@ -135,7 +135,7 @@ export const PrevTrackIcon = ({ size }: { size?: number }) => (
     height={size ?? 18}
     viewBox="0 0 48 48"
     width={size ?? 18}
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="https://www.w3.org/2000/svg"
   >
     <path d="M3 6H6V42H3V6Z" fill="#FFFFFF"></path>
     <path
@@ -152,7 +152,7 @@ export const NextTrackIcon = ({ size }: { size?: number }) => (
     height={size ?? 18}
     viewBox="0 0 48 48"
     width={size ?? 18}
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="https://www.w3.org/2000/svg"
   >
     <path d="M42 6H45V42H42V6Z" fill="#FFFFFF"></path>
     <path
@@ -168,7 +168,7 @@ export const AddToListIcon = () => (
     height="22"
     viewBox="0 0 48 48"
     width="22"
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="https://www.w3.org/2000/svg"
   >
     <path
       d="M38 6V40.125L24.85 33.74L23.5 33.065L22.15 33.74L9 40.125V6H38ZM38 3H9C8.20435 3 7.44129 3.31607 6.87868 3.87868C6.31607 4.44129 6 5.20435 6 6V45L23.5 36.5L41 45V6C41 5.20435 40.6839 4.44129 40.1213 3.87868C39.5587 3.31607 38.7957 3 38 3Z"
@@ -184,7 +184,7 @@ export const RemoveFromListIcon = () => (
     height="22"
     viewBox="0 0 48 48"
     width="22"
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="https://www.w3.org/2000/svg"
   >
     <path
       d="M38 3H9C8.20435 3 7.44129 3.31607 6.87868 3.87868C6.31607 4.44129 6 5.20435 6 6V45L23.5 36.5L41 45V6C41 5.20435 40.6839 4.44129 40.1213 3.87868C39.5587 3.31607 38.7957 3 38 3Z"
@@ -200,7 +200,7 @@ export const MarkWatchedIcon = () => (
     height="22"
     viewBox="0 0 48 48"
     width="22"
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="https://www.w3.org/2000/svg"
   >
     <path
       d="M13.5 24.6195L21 32.121L34.5 18.6225L32.3775 16.5L21 27.879L15.6195 22.5L13.5 24.6195Z"
@@ -222,7 +222,7 @@ export const UnmarkWatchedIcon = () => (
     height="22"
     viewBox="0 0 48 48"
     width="22"
-    xmlns="http://www.w3.org/2000/svg"
+    xmlns="https://www.w3.org/2000/svg"
   >
     <path
       clipRule="evenodd"

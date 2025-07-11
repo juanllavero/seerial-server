@@ -107,7 +107,7 @@ function MusicControlsExpanded({
     }),
     shallow,
   )
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const { t } = useTranslation()
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
@@ -115,8 +115,8 @@ function MusicControlsExpanded({
 
   // Get Lyrics in order to show lyrics button
   const { data: lyrics } = useSWR<LRCFile[]>(
-    serverIP !== '' && currentSong && isShown
-      ? `http://${serverIP}/lyrics?id=${currentSong.id}`
+    serverUrl !== '' && currentSong && isShown
+      ? `${serverUrl}/lyrics?id=${currentSong.id}`
       : null,
     fetcher,
   )

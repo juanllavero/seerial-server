@@ -15,10 +15,10 @@ interface MyListShowsProps {
 
 function MyListShows({ goToContent }: MyListShowsProps) {
   const { t } = useTranslation()
-  const { selectedServer, serverIP } = useServerStore(
+  const { selectedServer, serverUrl } = useServerStore(
     (state) => ({
       selectedServer: state.selectedServer,
-      serverIP: state.serverIP,
+      serverUrl: state.serverUrl,
     }),
     shallow,
   )
@@ -26,7 +26,7 @@ function MyListShows({ goToContent }: MyListShowsProps) {
 
   // Get Shows in My List
   const { data: showsInMyList, isLoading } = useSWR<Series[]>(
-    selectedServer ? `http://${serverIP}/myListSeries` : null,
+    selectedServer ? `${serverUrl}/myListSeries` : null,
     fetcher,
   )
 

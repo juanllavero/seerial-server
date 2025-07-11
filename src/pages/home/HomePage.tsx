@@ -16,10 +16,10 @@ import { shallow } from 'zustand/shallow'
 import { useAuth } from '@/context/auth.context'
 
 export default function HomePage() {
-  const { serverIP, serverStatus, apiKeyStatus, getServerStatus } =
+  const { serverUrl, serverStatus, apiKeyStatus, getServerStatus } =
     useServerStore(
       (state) => ({
-        serverIP: state.serverIP,
+        serverUrl: state.serverUrl,
         serverStatus: state.serverStatus,
         apiKeyStatus: state.apiKeyStatus,
         getServerStatus: state.getServerStatus,
@@ -30,7 +30,7 @@ export default function HomePage() {
 
   // Get Libraries
   const { data: libraries, isLoading: loadingLibraries } = useSWR<Library[]>(
-    serverIP !== '' ? `http://${serverIP}/libraries/` : null,
+    serverUrl !== '' ? `${serverUrl}/libraries/` : null,
     authenticatedFetcher,
     {
       revalidateOnFocus: false,
@@ -47,7 +47,7 @@ export default function HomePage() {
     return <Loading />
   }
 
-  if (!serverIP) {
+  if (!serverUrl) {
     return <NoServer />
   }
 

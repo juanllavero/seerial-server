@@ -19,10 +19,10 @@ interface MovieCardProps {
 function MovieCard({ movie, mutateLibrary }: MovieCardProps) {
   const { t } = useTranslation()
   const selectMovie = useDataStore((state) => state.selectMovie)
-  const { selectedServer, serverIP } = useServerStore(
+  const { selectedServer, serverUrl } = useServerStore(
     (state) => ({
       selectedServer: state.selectedServer,
-      serverIP: state.serverIP,
+      serverUrl: state.serverUrl,
     }),
     shallow,
   )
@@ -37,7 +37,7 @@ function MovieCard({ movie, mutateLibrary }: MovieCardProps) {
 
   const toggleMovieWatched = async () => {
     if (movie) {
-      fetch(`http://${serverIP}/setMovieWatched`, {
+      fetch(`${serverUrl}/setMovieWatched`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

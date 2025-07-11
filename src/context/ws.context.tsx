@@ -30,14 +30,14 @@ interface WebSocketState {
   downloadAudio: (
     elementId: string,
     url: string,
-    serverIP: string,
+    serverUrl: string,
     libraryId: string,
     fileName: string,
   ) => Promise<void>
   downloadVideo: (
     elementId: string,
     url: string,
-    serverIP: string,
+    serverUrl: string,
     libraryId: string,
     fileName: string,
   ) => Promise<void>
@@ -148,7 +148,7 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
       }
     },
 
-    downloadVideo: async (elementId, url, serverIP, libraryId, fileName) => {
+    downloadVideo: async (elementId, url, serverUrl, libraryId, fileName) => {
       set({
         downloadingElementId: elementId,
         downloadPercentage: 0,
@@ -156,10 +156,10 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
       })
 
       const { connectWS } = get()
-      await connectWS(serverIP)
+      await connectWS(serverUrl)
 
       try {
-        const response = await fetch(`http://${serverIP}/downloadVideo`, {
+        const response = await fetch(`${serverUrl}/downloadVideo`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -177,7 +177,7 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
       }
     },
 
-    downloadAudio: async (elementId, url, serverIP, libraryId, fileName) => {
+    downloadAudio: async (elementId, url, serverUrl, libraryId, fileName) => {
       set({
         downloadingElementId: elementId,
         downloadPercentage: 0,
@@ -185,10 +185,10 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
       })
 
       const { connectWS } = get()
-      await connectWS(serverIP)
+      await connectWS(serverUrl)
 
       try {
-        const response = await fetch(`http://${serverIP}/downloadMusic`, {
+        const response = await fetch(`${serverUrl}/downloadMusic`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

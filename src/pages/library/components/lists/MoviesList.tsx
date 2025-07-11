@@ -26,10 +26,10 @@ interface MoviesListProps {
 }
 
 function MoviesList({ library, mutateLibrary }: MoviesListProps) {
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const { data, isLoading } = useSWR(
-    serverIP !== ''
-      ? `http://${serverIP}/library-content?libraryId=${library.id}&type=Movies`
+    serverUrl !== ''
+      ? `${serverUrl}/library-content?libraryId=${library.id}&type=Movies`
       : null,
     fetcher,
   )

@@ -5,19 +5,19 @@ import { t } from 'i18next'
 import useSWR from 'swr'
 
 interface MyListButtonProps {
-  serverIP: string
+  serverUrl: string
   seriesId: string
 }
 
-function MyListButton({ serverIP, seriesId }: MyListButtonProps) {
+function MyListButton({ serverUrl, seriesId }: MyListButtonProps) {
   // Get if show is in My List
   const { data: inMyList, mutate: mutateInMyList } = useSWR(
-    `http://${serverIP}/isShowInMyList?seriesId=${seriesId}`,
+    `${serverUrl}/isShowInMyList?seriesId=${seriesId}`,
     fetcher,
   )
 
   const toggleMyList = () => {
-    fetch(`http://${serverIP}/updateSeriesMyList`, {
+    fetch(`${serverUrl}/updateSeriesMyList`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

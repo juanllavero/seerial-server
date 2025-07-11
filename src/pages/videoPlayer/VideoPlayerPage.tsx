@@ -35,7 +35,7 @@ interface VideoInfo {
 }
 
 function VideoPlayerPage() {
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const navigate = useNavigate()
   const { videoId } = useParams()
 
@@ -45,17 +45,15 @@ function VideoPlayerPage() {
     isLoading: loadingVideo,
     mutate,
   } = useSWR<Video>(
-    videoId && serverIP !== ''
-      ? `http://${serverIP}/details/video?id=${videoId}`
+    videoId && serverUrl !== ''
+      ? `${serverUrl}/details/video?id=${videoId}`
       : null,
     fetcher,
   )
 
   // Get video info
   const { data: videoInfo, isLoading: loadingVideoInfo } = useSWR<VideoInfo>(
-    videoId && serverIP !== ''
-      ? `http://${serverIP}/videoInfo?id=${videoId}`
-      : null,
+    videoId && serverUrl !== '' ? `${serverUrl}/videoInfo?id=${videoId}` : null,
     fetcher,
   )
 
@@ -95,7 +93,7 @@ function VideoPlayerPage() {
 
   // This hook reconstructs the video source URL whenever a dependency changes.
   const videoSrc = useMemo(() => {
-    if (!video?.fileSrc || !serverIP) return ''
+    if (!video?.fileSrc || !serverUrl) return ''
 
     const params = new URLSearchParams({
       path: video.fileSrc,
@@ -121,9 +119,9 @@ function VideoPlayerPage() {
       )
     }
 
-    return `http://${serverIP}/stream-video?${params.toString()}`
+    return `${serverUrl}/stream-video?${params.toString()}`
   }, [
-    serverIP,
+    serverUrl,
     video,
     streamStartTime,
     selectedAudioTrack,
@@ -187,7 +185,7 @@ function VideoPlayerPage() {
     setVideoLoaded(false)
     setIsPlaying(false)
 
-    await fetch(`http://${serverIP}/updateWatchState`, {
+    await fetch(`${serverUrl}/updateWatchState`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -403,7 +401,7 @@ function VideoPlayerPage() {
     if (!video || !videoInfo) return
 
     const fetchData = async () => {
-      const result = await fetch(`http://${serverIP}/updateMediaInfo`, {
+      const result = await fetch(`${serverUrl}/updateMediaInfo`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -21,7 +21,7 @@ export default function BaseLayout({
   children: React.ReactNode
 }) {
   const selectedBackground = useDataStore((state) => state.currentBackground)
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const generateGradient = useGradientStore((state) => state.generateGradient)
   const prevBackground = useRef<string | undefined>(undefined)
   const [currentBackground, setCurrentBackground] = useState<
@@ -35,8 +35,8 @@ export default function BaseLayout({
   const inMusicPage = location.pathname.includes('/album/')
 
   useEffect(() => {
-    if (selectedBackground && serverIP !== '') {
-      generateGradient(selectedBackground, serverIP, false)
+    if (selectedBackground && serverUrl !== '') {
+      generateGradient(selectedBackground, serverUrl, false)
     }
 
     if (!selectedBackground) {
@@ -80,7 +80,7 @@ export default function BaseLayout({
         style={{
           backgroundImage:
             !inMusicPage && inDetailsPage && currentBackground
-              ? `url(${currentBackground.startsWith('http') ? getSafeURL(currentBackground) : `http://${serverIP}/${getSafeURL(currentBackground)}`})`
+              ? `url(${currentBackground.startsWith('http') ? getSafeURL(currentBackground) : `${serverUrl}/${getSafeURL(currentBackground)}`})`
               : 'none',
           opacity: inDetailsPage && currentBackground ? 1 : 0,
         }}
@@ -91,7 +91,7 @@ export default function BaseLayout({
         <div
           className="background-layer fade-in"
           style={{
-            backgroundImage: `url(${selectedBackground.startsWith('http') ? getSafeURL(selectedBackground) : `http://${serverIP}/${getSafeURL(selectedBackground)}`})`,
+            backgroundImage: `url(${selectedBackground.startsWith('http') ? getSafeURL(selectedBackground) : `${serverUrl}/${getSafeURL(selectedBackground)}`})`,
           }}
         />
       )}

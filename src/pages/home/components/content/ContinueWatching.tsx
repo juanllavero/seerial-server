@@ -15,10 +15,10 @@ interface ContinueWatchingProps {
 
 function ContinueWatching({ goToContent }: ContinueWatchingProps) {
   const { t } = useTranslation()
-  const { selectedServer, serverIP } = useServerStore(
+  const { selectedServer, serverUrl } = useServerStore(
     (state) => ({
       selectedServer: state.selectedServer,
-      serverIP: state.serverIP,
+      serverUrl: state.serverUrl,
     }),
     shallow,
   )
@@ -26,7 +26,7 @@ function ContinueWatching({ goToContent }: ContinueWatchingProps) {
 
   // Get Continue Watching items
   const { data: continueWatching, isLoading } = useSWR<Video[]>(
-    selectedServer ? `http://${serverIP}/continueWatching` : null,
+    selectedServer ? `${serverUrl}/continueWatching` : null,
     fetcher,
   )
 

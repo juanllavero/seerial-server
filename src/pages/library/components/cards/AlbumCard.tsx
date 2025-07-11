@@ -18,10 +18,10 @@ interface AlbumCardProps {
 function AlbumCard({ album }: AlbumCardProps) {
   const { t } = useTranslation()
   const selectAlbum = useDataStore((state) => state.selectAlbum)
-  const { selectedServer, serverIP } = useServerStore(
+  const { selectedServer, serverUrl } = useServerStore(
     (state) => ({
       selectedServer: state.selectedServer,
-      serverIP: state.serverIP,
+      serverUrl: state.serverUrl,
     }),
     shallow,
   )
@@ -70,9 +70,7 @@ function AlbumCard({ album }: AlbumCardProps) {
 
   useEffect(() => {
     const getDolbyAtmosState = async () => {
-      const res = await fetch(
-        `http://${serverIP}/hasDolbyAtmos?albumId=${album.id}`,
-      )
+      const res = await fetch(`${serverUrl}/hasDolbyAtmos?albumId=${album.id}`)
       const data = await res.json()
       setHasDolbyAtmos(data.hasDolbyAtmos)
     }

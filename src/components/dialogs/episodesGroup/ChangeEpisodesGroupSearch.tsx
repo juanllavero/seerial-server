@@ -12,7 +12,7 @@ import { shallow } from 'zustand/shallow'
 
 function ChangeEpisodesGroupSearch() {
   const { t } = useTranslation()
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const connectWS = useWebSocketStore((state) => state.connectWS)
   const { episodesGroupDialog, closeEpisodesGroupDialog } = useDialogStore(
     (state) => ({
@@ -31,7 +31,7 @@ function ChangeEpisodesGroupSearch() {
 
   const search = () => {
     fetch(
-      `http://${serverIP}/episodeGroups/search?id=${episodesGroupDialog.seriesToEdit?.id}`,
+      `${serverUrl}/episodeGroups/search?id=${episodesGroupDialog.seriesToEdit?.id}`,
     )
       .then((response) => response.json())
       .then((data) => {
@@ -41,10 +41,10 @@ function ChangeEpisodesGroupSearch() {
   }
 
   const saveIdentification = async (id: string) => {
-    if (serverIP === '') return
+    if (serverUrl === '') return
 
-    await connectWS(serverIP)
-    fetch(`http://${serverIP}/updateEpisodeGroup`, {
+    await connectWS(serverUrl)
+    fetch(`${serverUrl}/updateEpisodeGroup`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

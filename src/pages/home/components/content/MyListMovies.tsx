@@ -15,10 +15,10 @@ interface MyListMoviesProps {
 
 function MyListMovies({ goToContent }: MyListMoviesProps) {
   const { t } = useTranslation()
-  const { selectedServer, serverIP } = useServerStore(
+  const { selectedServer, serverUrl } = useServerStore(
     (state) => ({
       selectedServer: state.selectedServer,
-      serverIP: state.serverIP,
+      serverUrl: state.serverUrl,
     }),
     shallow,
   )
@@ -26,7 +26,7 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
 
   // Get Movies in My List
   const { data: moviesInMyList, isLoading } = useSWR<Movie[]>(
-    selectedServer ? `http://${serverIP}/myListMovies` : null,
+    selectedServer ? `${serverUrl}/myListMovies` : null,
     fetcher,
   )
 

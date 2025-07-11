@@ -24,10 +24,10 @@ interface CollectionCardProps {
 function CollectionCard({ libraryId, collection, type }: CollectionCardProps) {
   const { t } = useTranslation()
   const selectCollection = useDataStore((state) => state.selectCollection)
-  const { selectedServer, serverIP } = useServerStore(
+  const { selectedServer, serverUrl } = useServerStore(
     (state) => ({
       selectedServer: state.selectedServer,
-      serverIP: state.serverIP,
+      serverUrl: state.serverUrl,
     }),
     shallow,
   )
@@ -37,12 +37,12 @@ function CollectionCard({ libraryId, collection, type }: CollectionCardProps) {
   const navigate = useNavigate()
 
   const { data: elementsInCollection } = useSWR<number>(
-    `http://${serverIP}/collection-items?collectionId=${collection.id}&libraryId=${libraryId}&type=${type}`,
+    `${serverUrl}/collection-items?collectionId=${collection.id}&libraryId=${libraryId}&type=${type}`,
     fetcher,
   )
 
   const { data: collectionImages } = useSWR<string[]>(
-    `http://${serverIP}/collection-images?collectionId=${collection.id}&&type=${type}`,
+    `${serverUrl}/collection-images?collectionId=${collection.id}&&type=${type}`,
     fetcher,
   )
 

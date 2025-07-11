@@ -29,7 +29,7 @@ const Image: React.FC<ImageProps> = ({
   className = '',
   onClick,
 }) => {
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
   const [isInView, setIsInView] = useState(false)
@@ -45,11 +45,11 @@ const Image: React.FC<ImageProps> = ({
         ? url
         : url.startsWith('local')
           ? url.replace('local', '')
-          : `http://${serverIP}/${url.replace('resources/img', 'img')}`
+          : `${serverUrl}/${url.replace('resources/img', 'img')}`
       : (src ?? fallbackSrc),
   )
 
-  // Update imageSrc when url, src, or serverIP changes
+  // Update imageSrc when url, src, or serverUrl changes
   useEffect(() => {
     setIsLoading(true)
     setHasError(false)
@@ -58,10 +58,10 @@ const Image: React.FC<ImageProps> = ({
         ? url
         : url.startsWith('local')
           ? url.replace('local', '')
-          : `http://${serverIP}/${url.replace('resources/img', 'img')}`
+          : `${serverUrl}/${url.replace('resources/img', 'img')}`
       : (src ?? fallbackSrc)
     setImageSrc(newSrc)
-  }, [url, src, serverIP, fallbackSrc])
+  }, [url, src, serverUrl, fallbackSrc])
 
   // Intersection Observer for lazy loading
   useEffect(() => {

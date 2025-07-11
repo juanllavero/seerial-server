@@ -15,7 +15,7 @@ import { shallow } from 'zustand/shallow'
 
 function EpisodeDialog() {
   const { t } = useTranslation()
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const connectWS = useWebSocketStore((state) => state.connectWS)
   const { episodeDialog, closeEpisodeDialog } = useDialogStore(
     (state) => ({
@@ -48,8 +48,8 @@ function EpisodeDialog() {
   //#endregion
 
   const { data: series } = useSWR(
-    episode && serverIP !== ''
-      ? `http://${serverIP}/details/seriesBySeasonId?seasonId=${episode.seasonId}`
+    episode && serverUrl !== ''
+      ? `${serverUrl}/details/seriesBySeasonId?seasonId=${episode.seasonId}`
       : null,
     fetcher,
   )
@@ -73,11 +73,11 @@ function EpisodeDialog() {
   if (!episode || !series) return null
 
   const handleEditEpisode = async () => {
-    if (serverIP === '') return
+    if (serverUrl === '') return
 
-    await connectWS(serverIP)
+    await connectWS(serverUrl)
 
-    const response = await fetch(`http://${serverIP}/episode`, {
+    const response = await fetch(`${serverUrl}/episode`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',

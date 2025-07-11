@@ -32,7 +32,7 @@ function ImageListTab({
   isPoster = false,
 }: ImageListTabProps) {
   const { t } = useTranslation()
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const [loaded, setLoaded] = useState(false)
   //const [localImages, setLocalImages] = useState<LocalImage[]>([])
   const [pastingUrl, setPastingUrl] = useState<boolean>(false)
@@ -48,7 +48,7 @@ function ImageListTab({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { data: localImages, isLoading } = useSWR<LocalImage[]>(
-    localFolder ? `http://${serverIP}/images?path=${localFolder}` : null,
+    localFolder ? `${serverUrl}/images?path=${localFolder}` : null,
     fetcher,
   )
 
@@ -56,7 +56,7 @@ function ImageListTab({
   //   const fetchLocalImages = async () => {
   //     try {
   //       const response = await fetch(
-  //         `http://${serverIP}/images?path=${localFolder}`,
+  //         `${serverUrl}/images?path=${localFolder}`,
   //       )
   //       const data = await response.json()
   //       setLocalImages(data)
@@ -109,7 +109,7 @@ function ImageListTab({
     formData.append('image', file)
 
     try {
-      const response = await fetch(`http://${serverIP}/uploadImage`, {
+      const response = await fetch(`${serverUrl}/uploadImage`, {
         method: 'POST',
         body: formData,
       })
@@ -130,7 +130,7 @@ function ImageListTab({
     setIsUploading(true)
 
     try {
-      const response = await fetch(`http://${serverIP}/downloadImage`, {
+      const response = await fetch(`${serverUrl}/downloadImage`, {
         method: 'POST',
         body: JSON.stringify({
           url: url,

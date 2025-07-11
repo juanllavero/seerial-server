@@ -3,7 +3,8 @@ import { createWithEqualityFn } from 'zustand/traditional'
 
 interface ServerState {
   selectedServer: Server | null
-  serverIP: string
+  // The final, reachable URL of the server (can be local or public)
+  serverUrl: string
   serverStatus: boolean
   serverVersion: string
   gettingServerStatus: boolean
@@ -14,23 +15,43 @@ interface ServerState {
   setApiKey: (apiKey: string) => Promise<void>
 }
 
-// Aux function to check server connectivity
-const checkServerConnectivity = async (url: string): Promise<boolean> => {
-  try {
-    const response = await fetch(url)
-    const data = await response.json()
+/**
+ * Pings a server URL with a short timeout to see if it's reachable.
+ * Resolves with the URL if successful, otherwise rejects.
+ * @param url The URL to ping.
+ * @param timeout Milliseconds to wait before aborting.
+ */
+const pingServer = (url: string, timeout: number = 3000): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => {
+      controller.abort()
+      reject(new Error(`Timeout after ${timeout}ms`))
+    }, timeout)
 
-    // If the server returns an ID and a status, it's accessible
-    return typeof data.id !== 'undefined' && typeof data.status !== 'undefined'
-  } catch (error) {
-    return false
-  }
+    fetch(url, { signal: controller.signal, cache: 'no-store' })
+      .then((res) => {
+        // Any response, even an error status code, means the server is reachable.
+        // We just need to know if we can talk to it.
+        if (res) {
+          clearTimeout(timeoutId)
+          resolve(url)
+        } else {
+          throw new Error('Empty response')
+        }
+      })
+      .catch((err) => {
+        clearTimeout(timeoutId)
+        // This will catch network errors, timeouts, and SSL certificate errors.
+        reject(err)
+      })
+  })
 }
 
 export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
   selectedServer: null,
   serverStatus: false,
-  serverIP: '',
+  serverUrl: '', // Changed from serverUrl to serverUrl for clarity
   serverVersion: '',
   gettingServerStatus: false,
   apiKeyStatus: false,
@@ -41,9 +62,10 @@ export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
       return
     }
 
+    // Reset state immediately for better UX
     set({
       selectedServer: server,
-      serverIP: '',
+      serverUrl: '',
       serverStatus: false,
       apiKeyStatus: false,
     })
@@ -52,48 +74,52 @@ export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
       return
     }
 
-    console.log(`Trying to connect to ${server.ip}:${server.port}`)
+    // IMPORTANT: Your API must return the server's local IP in the 'ip' field.
+    const localUrl = `https://${server.ip}:${server.port}/`
+    const publicUrl = `https://${server.id}.seerial.es:${server.port}/`
 
-    // Try to connect to the local IP
-    const localUrl = `http://${server.ip}:${server.port}/`
-    const isLocalReachable = await checkServerConnectivity(localUrl)
+    console.log(`[Connection]: Pinging local URL: ${localUrl}`)
+    console.log(`[Connection]: Pinging public URL: ${publicUrl}`)
 
-    if (isLocalReachable) {
-      console.log(`Connected to ${server.ip}:${server.port}`)
-      set({ serverIP: `${server.ip}:${server.port}` })
-    } else {
-      // Fallback to public IP
-      console.log(
-        `Connected to ${server.ip}:${server.port} or ${server.publicIp}:${server.port}`,
+    try {
+      // Promise.any resolves as soon as the FIRST promise resolves.
+      // We race the local connection against the public one.
+      const reachableUrl = await Promise.any([
+        pingServer(localUrl),
+        pingServer(publicUrl),
+      ])
+
+      console.log(`[Connection]: Success! Using reachable URL: ${reachableUrl}`)
+      // Set the URL that won the race. Remove the trailing slash.
+      set({ serverUrl: reachableUrl.slice(0, -1) })
+      // Now get the full status from the confirmed reachable URL.
+      await get().getServerStatus()
+    } catch (error) {
+      console.error(
+        '[Connection]: Server is unreachable on both local and public URLs.',
+        error,
       )
-      set({ serverIP: `${server.publicIp}:${server.port}` })
+      set({ serverStatus: false, serverUrl: '' })
     }
-
-    await get().getServerStatus()
   },
 
   getServerStatus: async () => {
-    const { selectedServer } = get()
-    if (!selectedServer) return
+    // Use the dynamically set serverUrl from the state
+    const { serverUrl } = get()
+    if (!serverUrl) return
 
     set({ gettingServerStatus: true })
 
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(
-        () => reject(new Error('Timeout: The request took too long')),
-        10000,
-      ),
-    )
-
-    const fetchPromise = fetch(
-      `http://${selectedServer.ip}:${selectedServer.port}/`,
-    ).then((res) => res.json())
-
     try {
-      const data = await Promise.race([fetchPromise, timeoutPromise])
+      // Use a standard 10-second timeout for regular requests
+      const response = await pingServer(`${serverUrl}/`, 10000)
+      // We need to actually get the data this time
+      const data = await (await fetch(response)).json()
+
       set({
         serverStatus: data.status !== undefined,
         apiKeyStatus: data.status === 'VALID_API_KEY',
+        serverVersion: data.version || '', // Assuming your server returns a version
         gettingApiKeyStatus: false,
       })
     } catch {
@@ -104,24 +130,27 @@ export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
   },
 
   setApiKey: async (apiKey) => {
-    const { selectedServer } = get()
-    if (!selectedServer) return
+    // Use the dynamically set serverUrl from the state
+    const { serverUrl } = get()
+    if (!serverUrl) return
 
     set({ gettingApiKeyStatus: true })
 
-    const response = await fetch(
-      `http://${selectedServer.ip}:${selectedServer.port}/api-key`,
-      {
+    try {
+      const response = await fetch(`${serverUrl}/api-key`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ apiKey }),
-      },
-    )
-    const data = await response.json()
+      })
+      const data = await response.json()
 
-    set({
-      apiKeyStatus: data.status === 'VALID_API_KEY',
-      gettingApiKeyStatus: false,
-    })
+      set({
+        apiKeyStatus: data.status === 'VALID_API_KEY',
+        gettingApiKeyStatus: false,
+      })
+    } catch (error) {
+      console.error('Failed to set API Key', error)
+      set({ apiKeyStatus: false, gettingApiKeyStatus: false })
+    }
   },
 }))

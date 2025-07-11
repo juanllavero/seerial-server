@@ -25,7 +25,7 @@ const TimeFormatOptions = [
 
 function ClientGeneral() {
   const { t } = useTranslation()
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const { setClientSetting, clientSettings, setClientSettings } =
     useSettingsStore(
       (state) => ({
@@ -64,11 +64,11 @@ function ClientGeneral() {
   }
 
   const handleSave = () => {
-    if (serverIP === '') return
+    if (serverUrl === '') return
 
-    setClientSetting(serverIP, 'playBackgroundMusic', playMusic)
-    setClientSetting(serverIP, 'backgroundMusicVolume', musicVolume)
-    setClientSetting(serverIP, 'timeFormat', timeFormat)
+    setClientSetting(serverUrl, 'playBackgroundMusic', playMusic)
+    setClientSetting(serverUrl, 'backgroundMusicVolume', musicVolume)
+    setClientSetting(serverUrl, 'timeFormat', timeFormat)
 
     setClientSettings({
       ...clientSettings,

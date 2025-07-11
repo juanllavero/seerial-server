@@ -14,7 +14,7 @@ function ServerLibraries() {
   const { t } = useTranslation()
   const [isDirty, setIsDirty] = useState<boolean>(false)
   const [showMessage, setShowMessage] = useState(false)
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const { setServerSetting, serverSettings, setServerSettings } =
     useSettingsStore(
       (state) => ({
@@ -105,11 +105,11 @@ function ServerLibraries() {
   }
 
   const handleSave = () => {
-    if (serverIP === '') return
+    if (serverUrl === '') return
 
-    setServerSetting(serverIP, 'autoScan', autoScan)
-    setServerSetting(serverIP, 'autoScanPeriod', autoScanPeriod)
-    setServerSetting(serverIP, 'generateChapters', generateChapters)
+    setServerSetting(serverUrl, 'autoScan', autoScan)
+    setServerSetting(serverUrl, 'autoScanPeriod', autoScanPeriod)
+    setServerSetting(serverUrl, 'generateChapters', generateChapters)
 
     setServerSettings({
       ...serverSettings,

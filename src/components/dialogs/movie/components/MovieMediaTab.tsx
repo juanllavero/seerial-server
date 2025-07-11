@@ -17,7 +17,7 @@ interface MovieInfoTabProps {
 function MovieMediaTab({ movie }: MovieInfoTabProps) {
   const { t } = useTranslation()
   const isTablet = useIsTablet()
-  const serverIP = useServerStore((state) => state.serverIP)
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const openDownloadMediaDialog = useDialogStore(
     (state) => state.openDownloadMediaDialog,
   )
@@ -27,14 +27,14 @@ function MovieMediaTab({ movie }: MovieInfoTabProps) {
     data: video,
     isLoading: loadingVideo,
     error: videoError,
-  } = useSWR(`http://${serverIP}/movieVideo?id=${movie.id}`, fetcher)
+  } = useSWR(`${serverUrl}/movieVideo?id=${movie.id}`, fetcher)
 
   // Background music
   const {
     data: music,
     isLoading: loadingMusic,
     error: musicError,
-  } = useSWR(`http://${serverIP}/movieMusic?id=${movie.id}`, fetcher)
+  } = useSWR(`${serverUrl}/movieMusic?id=${movie.id}`, fetcher)
 
   const openDownloadDialog = (type: 'music' | 'video') => {
     openDownloadMediaDialog(type, undefined, undefined, movie)
@@ -118,7 +118,7 @@ function MovieMediaTab({ movie }: MovieInfoTabProps) {
         <video
           controls
           className={`w-full ${isTablet ? 'h-48' : 'h-64'} rounded-lg`}
-          src={`http://${serverIP}${video.url}`}
+          src={`${serverUrl}${video.url}`}
           onError={(e) => {
             console.error('Video loading error:', e)
           }}
@@ -197,7 +197,7 @@ function MovieMediaTab({ movie }: MovieInfoTabProps) {
         <audio
           controls
           className="w-full"
-          src={`http://${serverIP}${music.url}`}
+          src={`${serverUrl}${music.url}`}
           onError={(e) => {
             console.error('Audio loading error:', e)
           }}
