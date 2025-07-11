@@ -108,7 +108,7 @@ function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
         </FlexBox>
       </FlexBox>
       <div className="flex items-center space-x-2">
-        <span>{formatTime(song.duration * 60)}</span>
+        <span>{formatTime(song.duration)}</span>
         {!isMobile && !isTablet && (
           <div className="h-10 w-10">
             {isHovered && (

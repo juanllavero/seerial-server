@@ -99,6 +99,7 @@ function HorizontalList({ title, children }: HorizontalListProps) {
       <FlexBox
         justify="space-between"
         align="center"
+        width={'100%'}
         padding={`0 ${paddingValue}`}
         height={'3rem'}
       >
