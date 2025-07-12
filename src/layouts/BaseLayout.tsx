@@ -14,14 +14,18 @@ import DesktopMusicPlayerExpanded from '@/components/musicPlayer/desktop/Desktop
 import MobileMusicPlayer from '@/components/musicPlayer/mobile/MobileMusicPlayer'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { useGradientStore } from '@/context/gradientBackground.context'
+import { isAbsolutePath } from '@/utils/ReactUtils'
 
 export default function BaseLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const selectedBackground = useDataStore((state) => state.currentBackground)
   const serverUrl = useServerStore((state) => state.serverUrl)
+  const selectedBackground = useDataStore((state) => state.currentBackground)
+  const selectedBackgroundForGradient = useGradientStore(
+    (state) => state.selectedBackground,
+  )
   const generateGradient = useGradientStore((state) => state.generateGradient)
   const prevBackground = useRef<string | undefined>(undefined)
   const [currentBackground, setCurrentBackground] = useState<
@@ -35,8 +39,8 @@ export default function BaseLayout({
   const inMusicPage = location.pathname.includes('/album/')
 
   useEffect(() => {
-    if (selectedBackground && serverUrl !== '') {
-      generateGradient(selectedBackground, serverUrl, false)
+    if (selectedBackgroundForGradient && serverUrl !== '') {
+      generateGradient(selectedBackgroundForGradient, serverUrl, false)
     }
 
     if (!selectedBackground) {
@@ -66,7 +70,7 @@ export default function BaseLayout({
 
       return () => clearTimeout(timeout)
     }
-  }, [selectedBackground])
+  }, [selectedBackground, selectedBackgroundForGradient])
 
   const getSafeURL = (url: string | undefined) => {
     return url ? url.replace(/\\/g, '/home') : ''
@@ -74,29 +78,29 @@ export default function BaseLayout({
 
   return (
     <div className="relative">
+      <GradientBackground showGradient={inMusicPage} />
+
       {/* Current background */}
       <div
         className="background-layer"
         style={{
           backgroundImage:
-            !inMusicPage && inDetailsPage && currentBackground
-              ? `url(${currentBackground.startsWith('http') ? getSafeURL(currentBackground) : `${serverUrl}/${getSafeURL(currentBackground)}`})`
+            (inMusicPage || inDetailsPage) && currentBackground
+              ? `url(${currentBackground.startsWith('http') ? getSafeURL(currentBackground) : isAbsolutePath(currentBackground) ? `${serverUrl}/image?path=${encodeURIComponent(currentBackground)}` : `${serverUrl}/${getSafeURL(currentBackground)}`})`
               : 'none',
           opacity: inDetailsPage && currentBackground ? 1 : 0,
         }}
       />
 
       {/* New background that fades in */}
-      {!inMusicPage && showNewImage && selectedBackground && (
+      {(inMusicPage || inDetailsPage) && showNewImage && selectedBackground && (
         <div
           className="background-layer fade-in"
           style={{
-            backgroundImage: `url(${selectedBackground.startsWith('http') ? getSafeURL(selectedBackground) : `${serverUrl}/${getSafeURL(selectedBackground)}`})`,
+            backgroundImage: `url(${selectedBackground.startsWith('http') ? getSafeURL(selectedBackground) : isAbsolutePath(selectedBackground) ? `${serverUrl}/image?path=${encodeURIComponent(selectedBackground)}` : `${serverUrl}/${getSafeURL(selectedBackground)}`})`,
           }}
         />
       )}
-
-      <GradientBackground showGradient={inMusicPage} />
 
       {/* Toaster root */}
       <Toaster theme="dark" richColors />

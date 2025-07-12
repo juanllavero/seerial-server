@@ -15,14 +15,13 @@ import AlbumContent from '../components/AlbumContent'
 import '../DetailsPage.css'
 import AlbumInfo from './components/AlbumInfo'
 import { useIsTablet } from '@/components/hooks/use-tablet'
+import { useGradientStore } from '@/context/gradientBackground.context'
 
 function AlbumDetailsPage() {
   const { albumId } = useParams()
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
   const serverUrl = useServerStore((state) => state.serverUrl)
-  const setCurrentBackground = useDataStore(
-    (state) => state.setCurrentBackground,
-  )
+  const selectBackground = useGradientStore((state) => state.selectBackground)
 
   // Get series data
   const {
@@ -37,7 +36,7 @@ function AlbumDetailsPage() {
 
   useEffect(() => {
     if (album) {
-      setCurrentBackground(album.coverSrc)
+      selectBackground(album.coverSrc)
     }
   }, [album])
 

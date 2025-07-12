@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useIsMobile } from '../hooks/use-mobile'
 import { useIsTablet } from '../hooks/use-tablet'
 import { Skeleton } from './skeleton'
+import { isAbsolutePath } from '@/utils/ReactUtils'
 
 interface ImageProps {
   url?: string
@@ -45,7 +46,9 @@ const Image: React.FC<ImageProps> = ({
         ? url
         : url.startsWith('local')
           ? url.replace('local', '')
-          : `${serverUrl}/${url.replace('resources/img', 'img')}`
+          : isAbsolutePath(url)
+            ? `${serverUrl}/image?path=${encodeURIComponent(url)}`
+            : `${serverUrl}/${url.replace('resources/img', 'img')}`
       : (src ?? fallbackSrc),
   )
 
@@ -58,7 +61,9 @@ const Image: React.FC<ImageProps> = ({
         ? url
         : url.startsWith('local')
           ? url.replace('local', '')
-          : `${serverUrl}/${url.replace('resources/img', 'img')}`
+          : isAbsolutePath(url)
+            ? `${serverUrl}/image?path=${encodeURIComponent(url)}`
+            : `${serverUrl}/${url.replace('resources/img', 'img')}`
       : (src ?? fallbackSrc)
     setImageSrc(newSrc)
   }, [url, src, serverUrl, fallbackSrc])

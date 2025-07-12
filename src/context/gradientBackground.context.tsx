@@ -1,4 +1,6 @@
+import { isAbsolutePath } from '@/utils/ReactUtils'
 import { extractColors } from 'extract-colors'
+import { isAbsolute } from 'path'
 import { createWithEqualityFn } from 'zustand/traditional'
 
 const BLACK_GRADIENT = ['#000000', '#000000', '#000000', '#000000']
@@ -22,8 +24,10 @@ const extractColorsFromImage = async (imgSrc: string) => {
 }
 
 interface GradientState {
+  selectedBackground: string
   contentColors: string[]
   songColors: string[]
+  selectBackground: (selectedBackground: string) => void
   restoreGradient: (isSong: boolean) => void
   generateGradient: (
     background: string | undefined,
@@ -33,8 +37,13 @@ interface GradientState {
 }
 
 export const useGradientStore = createWithEqualityFn<GradientState>((set) => ({
+  selectedBackground: '',
   contentColors: BLACK_GRADIENT,
   songColors: BLACK_GRADIENT,
+
+  selectBackground: (selectedBackground) => {
+    set({ selectedBackground })
+  },
 
   /**
    * Restore gradient to default one
@@ -56,7 +65,9 @@ export const useGradientStore = createWithEqualityFn<GradientState>((set) => ({
     if (background) {
       imageUrl = background.startsWith('http')
         ? background
-        : `${serverUrl}/${background.replace('resources/img', 'img')}`
+        : isAbsolutePath(background)
+          ? `${serverUrl}/image?path=${background}`
+          : `${serverUrl}/${background.replace('resources/img', 'img')}`
     }
 
     const dominantColors = await extractColorsFromImage(imageUrl)

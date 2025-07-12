@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button'
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
-import { Collection } from '@/data/interfaces/Media'
+import { Collection, CollectionImages } from '@/data/interfaces/Media'
 import { DropdownContent } from '@/data/interfaces/Utils'
 import { Pencil } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -23,7 +23,13 @@ interface CollectionCardProps {
 
 function CollectionCard({ libraryId, collection, type }: CollectionCardProps) {
   const { t } = useTranslation()
-  const selectCollection = useDataStore((state) => state.selectCollection)
+  const { selectCollection, setCurrentBackground } = useDataStore(
+    (state) => ({
+      selectCollection: state.selectCollection,
+      setCurrentBackground: state.setCurrentBackground,
+    }),
+    shallow,
+  )
   const { selectedServer, serverUrl } = useServerStore(
     (state) => ({
       selectedServer: state.selectedServer,
@@ -41,10 +47,20 @@ function CollectionCard({ libraryId, collection, type }: CollectionCardProps) {
     fetcher,
   )
 
-  const { data: collectionImages } = useSWR<string[]>(
+  const { data: collectionImages } = useSWR<CollectionImages>(
     `${serverUrl}/collection-images?collectionId=${collection.id}&&type=${type}`,
     fetcher,
   )
+
+  useEffect(() => {
+    if (collectionImages && collectionImages.background) {
+      setCurrentBackground(
+        collection.backgroundSrc !== ''
+          ? collection.backgroundSrc
+          : collectionImages.background,
+      )
+    }
+  }, [collectionImages])
 
   const menuContent: DropdownContent = {
     items: [
@@ -85,24 +101,37 @@ function CollectionCard({ libraryId, collection, type }: CollectionCardProps) {
     ],
   }
 
-  const posterImage = getPosterImage(
-    collection.id,
-    collectionImages ?? [],
-    type,
-  )
+  const posterImage =
+    collectionImages &&
+    collectionImages.images &&
+    collectionImages.images.length > 1
+      ? getPosterImage(
+          collection.id,
+          collectionImages && collectionImages.images
+            ? collectionImages.images
+            : [],
+          type,
+        )
+      : undefined
 
   return (
     <ParentCard
       itemKey={collection.id}
       type={type}
       imgSrc={
-        collection.coverSrc
+        collection.coverSrc && collection.coverSrc !== ''
           ? collection.coverSrc
-          : collectionImages && collectionImages.length > 0
-            ? collectionImages[0]
-            : type === 'Music'
-              ? '/img/songDefault.png'
-              : '/img/fileNotFound.jpg'
+          : collectionImages &&
+              collectionImages.poster &&
+              collectionImages.poster !== ''
+            ? collectionImages.poster
+            : collectionImages &&
+                collectionImages.images &&
+                collectionImages.images.length > 0
+              ? collectionImages.images[0]
+              : type === 'Music'
+                ? '/img/songDefault.png'
+                : '/img/fileNotFound.jpg'
       }
       collageComponent={posterImage}
       title={collection.title}

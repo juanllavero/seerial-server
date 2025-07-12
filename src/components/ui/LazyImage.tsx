@@ -1,5 +1,6 @@
 import { Skeleton } from '@/components/ui/skeleton'
 import { useServerStore } from '@/context/server.context'
+import { isAbsolutePath } from '@/utils/ReactUtils'
 import { memo, useEffect, useMemo, useState } from 'react'
 
 interface LazyImageProps {
@@ -38,7 +39,9 @@ function LazyImage({
         ? url
         : url.startsWith('local')
           ? url.replace('local', '')
-          : `${serverUrl}/${url.replace('resources/img', 'img')}`
+          : isAbsolutePath(url)
+            ? `${serverUrl}/image?path=${encodeURIComponent(url)}`
+            : `${serverUrl}/${url.replace('resources/img', 'img')}`
       : (src ?? errorSrc),
   )
   const [hasError, setHasError] = useState(false) // New state to track errors
@@ -49,7 +52,9 @@ function LazyImage({
         ? url
         : url.startsWith('local')
           ? url.replace('local', '')
-          : `${serverUrl}/${url.replace('resources/img', 'img')}`
+          : isAbsolutePath(url)
+            ? `${serverUrl}/image?path=${encodeURIComponent(url)}`
+            : `${serverUrl}/${url.replace('resources/img', 'img')}`
       : (src ?? errorSrc)
     if (imageSrc !== newSrc) setImageSrc(newSrc ?? errorSrc)
     setLoaded(false) // Reset loaded to show skeleton while loading new image

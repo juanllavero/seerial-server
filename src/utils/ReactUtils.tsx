@@ -256,6 +256,13 @@ export const showPromiseToast = (
   })
 }
 
+export const isAbsolutePath = (pathString: string): boolean => {
+  const windowsPathRegex = /^[a-zA-Z]:[\\/]/
+  const unixPathRegex = /^\//
+
+  return windowsPathRegex.test(pathString) || unixPathRegex.test(pathString)
+}
+
 export const getFirstImage = (collection: Collection, type: string) => {
   if (type === 'Movies' && collection.movies && collection.movies.length > 0) {
     return collection.movies[0].coverSrc

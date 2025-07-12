@@ -49,7 +49,7 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
   const openAlbumDialog = useDialogStore((state) => state.openAlbumDialog)
 
   const getTotalDuration = (songs: Song[]) => {
-    return songs.reduce((acc, song) => acc + song.duration, 0).toFixed(0)
+    return songs.reduce((acc, song) => acc + song.duration / 60, 0).toFixed(0)
   }
 
   const hasDolbyAtmos = () => {

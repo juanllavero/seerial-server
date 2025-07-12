@@ -7,7 +7,12 @@ import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
-import { Collection, Movie, Series } from '@/data/interfaces/Media'
+import {
+  Collection,
+  CollectionImages,
+  Movie,
+  Series,
+} from '@/data/interfaces/Media'
 import { Album } from '@/data/interfaces/Music'
 import AlbumCard from '@/pages/library/components/cards/AlbumCard'
 import MovieCard from '@/pages/library/components/cards/MovieCard'
@@ -60,6 +65,14 @@ function CollectionDetailsPage() {
     fetcher,
   )
 
+  // Get collection images
+  const { data: collectionImages } = useSWR<CollectionImages>(
+    collection
+      ? `${serverUrl}/collection-images?collectionId=${collection.id}&&type=${type}`
+      : null,
+    fetcher,
+  )
+
   const [localCollection, setLocalCollection] = useState<Collection | null>(
     null,
   )
@@ -79,12 +92,24 @@ function CollectionDetailsPage() {
 
   // Set background image src
   useEffect(() => {
-    if (collection && collection.backgroundSrc !== currentBackground) {
-      setCurrentBackground(collection.backgroundSrc)
-    } else if (currentBackground) {
-      setCurrentBackground(undefined)
+    console.log({
+      collection,
+      collectionImages,
+      currentBackground,
+      setCurrentBackground,
+    })
+    const image =
+      collection && collection.backgroundSrc && collection.backgroundSrc !== ''
+        ? collection.backgroundSrc
+        : collectionImages &&
+            collectionImages.background &&
+            collectionImages.background !== ''
+          ? collectionImages.background
+          : currentBackground
+    if (collection && image !== currentBackground) {
+      setCurrentBackground(image)
     }
-  }, [collection, currentBackground, setCurrentBackground])
+  }, [collection, collectionImages, setCurrentBackground])
 
   async function handleDragEnd(
     event: any,
@@ -361,7 +386,7 @@ function CollectionDetailsPage() {
         })
       )}
 
-      {collection && <ExtrasList collection={collection} />}
+      {/* {collection && <ExtrasList collection={collection} />} */}
     </FlexBox>
   )
 }

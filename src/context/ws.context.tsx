@@ -76,7 +76,9 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
       set({ downloaded: false })
       if (!get().wsConnected) {
         return new Promise<void>((resolve, reject) => {
-          const websocket = new WebSocket(`ws://${ip}/ws`)
+          const websocket = new WebSocket(
+            `${ip.replace('http://', 'ws://')}/ws`,
+          )
 
           websocket.onopen = () => {
             set({

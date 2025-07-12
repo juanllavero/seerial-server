@@ -13,6 +13,12 @@ export interface Cast {
   profileImage: string
 }
 
+export interface CollectionImages {
+  poster: string
+  background: string
+  images: string[]
+}
+
 export interface LibraryItem {
   type: string
   order: number

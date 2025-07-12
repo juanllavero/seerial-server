@@ -50,6 +50,7 @@ interface Item {
 
 const NavLibraries = () => {
   const { isMobile } = useSidebar()
+  const connectWS = useWebSocketStore((state) => state.connectWS)
   const { analyzing, analyzingLibraryId } = useWebSocketStore(
     (state) => ({
       analyzing: state.analyzing,
@@ -92,6 +93,12 @@ const NavLibraries = () => {
       revalidateIfStale: false,
     },
   )
+
+  const searchFiles = async (libraryId: string) => {
+    await connectWS(serverUrl)
+
+    fetch(`${serverUrl}/library/search?libraryId=${libraryId}`)
+  }
 
   const [activeItem, setActiveItem] = React.useState<Item | null>(null)
 
@@ -210,7 +217,7 @@ const NavLibraries = () => {
                         <EditIcon className="text-muted-foreground" />
                         <span>{t('editButton')}</span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => searchFiles(item.id)}>
                         <SearchIcon className="text-muted-foreground" />
                         <span>{t('searchFiles')}</span>
                       </DropdownMenuItem>
