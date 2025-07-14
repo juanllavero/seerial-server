@@ -1,49 +1,128 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+// app/_layout.tsx (Este sería tu AppLayout)
+import { useFonts } from 'expo-font'
+import { Stack, useRouter, useSegments } from 'expo-router' // Añade useRouter y useSegments
+import * as SplashScreen from 'expo-splash-screen'
+import { shallow } from 'zustand/shallow'
+import { useEffect } from 'react'
 import {
-  configureReanimatedLogger,
-  ReanimatedLogLevel,
-} from 'react-native-reanimated';
+	configureReanimatedLogger,
+	ReanimatedLogLevel,
+} from 'react-native-reanimated'
+import '../global.css'
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useAuth } from '@/context/auth.context'
+import { Platform, StyleSheet } from 'react-native'
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+SplashScreen.preventAutoHideAsync()
 
-// Disable reanimated warnings
 configureReanimatedLogger({
-  level: ReanimatedLogLevel.warn,
-  strict: false,
-});
+	level: ReanimatedLogLevel.warn,
+	strict: false,
+})
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+// Este es el componente que envuelve todo el stack de rutas.
+// Aquí se gestionará la lógica de redirección.
+function AuthRedirectController() {
+	const { user, isInitialized } = useAuth(
+		(state) => ({
+			user: state.user,
+			isInitialized: state.isInitialized,
+		}),
+		shallow
+	)
+	const segments = useSegments() // Obtiene los segmentos de la ruta actual
+	const router = useRouter() // Acceso al objeto router
 
-  useEffect(() => {
-    if (loaded || error) {
-      SplashScreen.hideAsync();
-      if (error) {
-        console.warn(`Error in loading fonts: ${error}`);
-      }
-    }
-  }, [loaded, error]);
+	useEffect(() => {
+		// Si la inicialización aún no ha terminado, no hacemos nada.
+		if (!isInitialized) {
+			console.log('AuthRedirectController: No inicializado, esperando...')
+			return
+		}
 
-  if (!loaded && !error) {
-    return null;
-  }
+		// `(auth)` es el grupo de rutas no autenticadas.
+		// Comprobamos si la ruta actual está dentro del grupo de autenticación.
+		const inAuthGroup = segments[0] === '(auth)'
 
-  return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-    </ThemeProvider>
-  );
+		if (isInitialized) {
+			// Solo actuamos si la autenticación ya ha terminado de cargar.
+			if (user && inAuthGroup) {
+				// Si ya hay usuario Y estamos en el grupo de autenticación (ej: /login),
+				// redirigimos a la aplicación principal (tabs)
+				console.log(
+					'AuthRedirectController: Usuario autenticado en ruta de auth. Redirigiendo a /.'
+				)
+				router.replace('/') // Redirige sin añadir al historial de navegación
+			} else if (!user && !inAuthGroup) {
+				// Si NO hay usuario Y NO estamos en el grupo de autenticación (ej: /tabs/home),
+				// redirigimos al login.
+				console.log(
+					'AuthRedirectController: Usuario NO autenticado fuera de ruta de auth. Redirigiendo a /login.'
+				)
+				router.replace('/(auth)/login') // Redirige al login
+			}
+		}
+	}, [user, isInitialized, segments]) // Dependencias: el estado de auth y los segmentos de la ruta
+
+	return null // Este componente no renderiza nada visible, solo maneja la redirección.
+}
+
+export default function AppLayout() {
+	const { initializeAuth, isInitialized } = useAuth(
+		(state) => ({
+			initializeAuth: state.initializeAuth,
+			isInitialized: state.isInitialized,
+		}),
+		shallow
+	)
+
+	const [loadedFonts, fontError] = useFonts({
+		Satoshi: require('../assets/fonts/Satoshi-Variable.ttf'),
+	})
+
+	// Asegura que initializeAuth se llame solo una vez al inicio del ciclo de vida de la app.
+	useEffect(() => {
+		if (!isInitialized) {
+			console.log(
+				'AppLayout: useEffect [initializeAuth] -> Llamando initializeAuth() por primera vez.'
+			)
+			initializeAuth()
+		} else {
+			console.log(
+				'AppLayout: useEffect [initializeAuth] -> Ya inicializado, no se llama de nuevo.'
+			)
+		}
+	}, [initializeAuth, isInitialized])
+
+	// Efecto para ocultar la splash screen
+	useEffect(() => {
+		if ((loadedFonts || fontError) && isInitialized) {
+			// Espera que isInitialized sea true
+			SplashScreen.hideAsync()
+			if (fontError) {
+				console.warn(`Error in loading fonts: ${fontError}`)
+			}
+			console.log('AppLayout: Splash screen oculta. Carga inicial completa.')
+		}
+	}, [loadedFonts, fontError, isInitialized])
+
+	if ((!loadedFonts && !fontError) || !isInitialized) {
+		return null
+	}
+
+	return (
+		<>
+			<AuthRedirectController />
+			<Stack
+				screenOptions={{
+					headerShown: false,
+					contentStyle: { backgroundColor: 'transparent' },
+				}}
+			>
+				<Stack.Screen name='(tabs)' options={{ headerShown: false }} />
+				<Stack.Screen name='(auth)' options={{ headerShown: false }} />
+				<Stack.Screen name='(no-tabs)' options={{ headerShown: false }} />
+			</Stack>
+		</>
+	)
 }

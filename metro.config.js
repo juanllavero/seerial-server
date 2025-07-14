@@ -1,8 +1,9 @@
 // Learn more https://docs.expo.io/guides/customizing-metro
-const { getDefaultConfig } = require('expo/metro-config');
+const { getDefaultConfig } = require('expo/metro-config')
+const { withNativeWind } = require('nativewind/metro')
 
 /** @type {import('expo/metro-config').MetroConfig} */
-const config = getDefaultConfig(__dirname); // eslint-disable-line no-undef
+const config = getDefaultConfig(__dirname) // eslint-disable-line no-undef
 
 // When enabled, the optional code below will allow Metro to resolve
 // and bundle source files with TV-specific extensions
@@ -12,12 +13,12 @@ const config = getDefaultConfig(__dirname); // eslint-disable-line no-undef
 // as usual if TV-specific files are not found for a module.
 //
 if (process.env?.EXPO_TV === '1') {
-  const originalSourceExts = config.resolver.sourceExts;
-  const tvSourceExts = [
-    ...originalSourceExts.map((e) => `tv.${e}`),
-    ...originalSourceExts,
-  ];
-  config.resolver.sourceExts = tvSourceExts;
+	const originalSourceExts = config.resolver.sourceExts
+	const tvSourceExts = [
+		...originalSourceExts.map((e) => `tv.${e}`),
+		...originalSourceExts,
+	]
+	config.resolver.sourceExts = tvSourceExts
 }
 
-module.exports = config;
+module.exports = withNativeWind(config, { input: './global.css' })
