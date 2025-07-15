@@ -18,6 +18,7 @@ import Subtitle from '../text/Subtitle'
 import Title from '../text/Title'
 import ListTitle from '../text/ListTitle'
 import AlignedImage from '../images/AlignedImage'
+import HomeBackground from '../backgrounds/HomeBackground'
 
 function ContinueWatchingContent() {
 	const user = useAuth((state) => state.user)
@@ -56,100 +57,102 @@ function ContinueWatchingContent() {
 	const imageHeight = height * 0.4
 	const imageWidth = imageHeight * aspectRatio
 
-	console.log({ continueWatching })
 	return (
-		<View className='w-screen h-full justify-end bg-gray-950'>
-			<View className='h-[45dvh] justify-end px-10'>
-				{selectedElement ? (
-					<>
-						{selectedElement.logoImage &&
-						selectedElement.logoImage !== '' ? (
-							<AlignedImage
-								className='pb-10'
-								height={225}
-								imageUrl={selectedElement.logoImage}
-							/>
-						) : (
-							<Title>{selectedElement.title}</Title>
-						)}
+		<View className='w-screen h-full justify-end bg-black'>
+			<HomeBackground background={selectedElement?.backgroundImage || ''} />
+			<View className='pl-44'>
+				<View className='h-[52dvh] justify-end px-10 bg-transparent'>
+					{selectedElement ? (
+						<>
+							{selectedElement.logoImage &&
+							selectedElement.logoImage !== '' ? (
+								<AlignedImage
+									className='pb-10'
+									height={215}
+									imageUrl={selectedElement.logoImage}
+								/>
+							) : (
+								<Title>{selectedElement.title}</Title>
+							)}
 
-						{selectedElement.subtitle && (
-							<Subtitle>{selectedElement.subtitle}</Subtitle>
-						)}
+							{selectedElement.subtitle && (
+								<Subtitle>{selectedElement.subtitle}</Subtitle>
+							)}
 
-						<View className='flex-row gap-2 pb-3'>
-							{selectedElement.seasonNumber &&
-								selectedElement.episodeNumber && (
-									<Secondary>
-										S{selectedElement.seasonNumber}E
-										{selectedElement.episodeNumber}
-									</Secondary>
-								)}
+							<View className='flex-row gap-2 pb-3'>
+								{selectedElement.seasonNumber &&
+									selectedElement.episodeNumber && (
+										<Secondary>
+											S{selectedElement.seasonNumber}E
+											{selectedElement.episodeNumber}
+										</Secondary>
+									)}
 
-							<Secondary>{selectedElement.date}</Secondary>
-							<Secondary>
-								{(
-									selectedElement.duration -
-									selectedElement.timeWatched
-								).toFixed(0)}{' '}
-								minutes remaining
+								<Secondary>{selectedElement.date}</Secondary>
+								<Secondary>
+									{(
+										selectedElement.duration -
+										selectedElement.timeWatched
+									).toFixed(0)}{' '}
+									minutes remaining
+								</Secondary>
+							</View>
+
+							<Secondary className='pb-5'>
+								{selectedElement.genres
+									? selectedElement.genres.join(', ')
+									: ''}
 							</Secondary>
-						</View>
 
-						<Secondary className='pb-5'>
-							{selectedElement.genres
-								? selectedElement.genres.join(', ')
-								: ''}
-						</Secondary>
-
-						<View className='h-[10dvh] max-h-[10dvh] w-[50dvw] max-w-[100dvh]'>
-							<Secondary className='line-clamp-3'>
-								{selectedElement.overview}
-							</Secondary>
-						</View>
-					</>
-				) : (
-					<>
-						<Title>Nope</Title>
-					</>
-				)}
-			</View>
-
-			<View className='h-[55dvh] justify-center pb-10'>
-				<ListTitle className='text-2xl px-10 font-bold'>
-					Continue Watching
-				</ListTitle>
-
-				<FlatList
-					horizontal
-					showsHorizontalScrollIndicator={false}
-					contentContainerStyle={{
-						gap: 15,
-						paddingHorizontal: 40,
-					}}
-					className='items-center h-full flex-grow-0'
-					scrollEnabled={true}
-					data={continueWatching}
-					renderItem={({ item: element, index }) => (
-						<TouchableOpacity
-							onPress={() => setSelectedElement(element)}
-							accessible={true}
-							className={`w-fit h-fit transition-all duration-150 ease-in-out border-4 border-transparent rounded-xl ${selectedElement === element ? ' border-white scale-105' : ''} `}
-							hasTVPreferredFocus={index === 0}
-						>
-							<Image
-								source={{ uri: element.posterImage }}
-								resizeMode='cover'
-								style={{
-									width: imageWidth,
-									height: imageHeight,
-									borderRadius: 10,
-									overflow: 'visible',
-								}}
-							/>
-						</TouchableOpacity>
+							<View className='h-[10dvh] max-h-[10dvh] w-[50dvw] max-w-[100dvh]'>
+								<Secondary className='line-clamp-3'>
+									{selectedElement.overview}
+								</Secondary>
+							</View>
+						</>
+					) : (
+						<>
+							<Title>Nope</Title>
+						</>
 					)}
-				></FlatList>
+				</View>
+
+				<View className='h-[48dvh] justify-center'>
+					<ListTitle className='text-2xl px-10 font-bold'>
+						Continue Watching
+					</ListTitle>
+
+					<FlatList
+						horizontal
+						showsHorizontalScrollIndicator={false}
+						contentContainerStyle={{
+							gap: 15,
+							paddingHorizontal: 40,
+						}}
+						className='items-center h-full flex-grow-0'
+						scrollEnabled={true}
+						data={continueWatching}
+						renderItem={({ item: element, index }) => (
+							<TouchableOpacity
+								onPress={() => setSelectedElement(element)}
+								accessible={true}
+								className={`w-fit h-fit transition-all duration-150 ease-in-out border-4 border-transparent rounded-xl ${selectedElement === element ? ' border-white scale-105' : ''} `}
+								hasTVPreferredFocus={index === 0}
+							>
+								<Image
+									source={{ uri: element.posterImage }}
+									resizeMode='cover'
+									style={{
+										width: imageWidth,
+										height: imageHeight,
+										borderRadius: 10,
+										overflow: 'hidden',
+									}}
+								/>
+							</TouchableOpacity>
+						)}
+					></FlatList>
+				</View>
 			</View>
 		</View>
 	)

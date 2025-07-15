@@ -4,14 +4,22 @@ import AppText from './AppText'
 interface AppTextProps {
 	className?: string
 	style?: any
+	onTextLayout?: any
 	children: React.ReactNode
 }
 
-const Tertiary = ({ className, style, children, ...props }: AppTextProps) => {
+const Tertiary = ({
+	className,
+	style,
+	onTextLayout,
+	children,
+	...props
+}: AppTextProps) => {
 	return (
 		<AppText
 			className={`${className} font-medium text-2xl sm:text-lg md:text-xl lg:text-2xl text-neutral-200`}
 			style={style}
+			onTextLayout={onTextLayout}
 			{...props}
 		>
 			{children}

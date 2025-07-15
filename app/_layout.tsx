@@ -11,7 +11,6 @@ import {
 import '../global.css'
 
 import { useAuth } from '@/context/auth.context'
-import { Platform, StyleSheet } from 'react-native'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -116,7 +115,7 @@ export default function AppLayout() {
 			<Stack
 				screenOptions={{
 					headerShown: false,
-					contentStyle: { backgroundColor: 'transparent' },
+					contentStyle: { backgroundColor: 'trasnparent' },
 				}}
 			>
 				<Stack.Screen name='(tabs)' options={{ headerShown: false }} />

@@ -4,12 +4,24 @@ import { Text, StyleSheet, Platform } from 'react-native'
 interface AppTextProps {
 	className?: string
 	style?: any
+	onTextLayout?: any
 	children: React.ReactNode
 }
 
-const AppText = ({ className, style, children, ...props }: AppTextProps) => {
+const AppText = ({
+	className,
+	style,
+	onTextLayout,
+	children,
+	...props
+}: AppTextProps) => {
 	return (
-		<Text className={className} style={[styles.text, style]} {...props}>
+		<Text
+			className={className}
+			onTextLayout={onTextLayout}
+			style={[styles.text, style]}
+			{...props}
+		>
 			{children}
 		</Text>
 	)
