@@ -10,6 +10,7 @@ import { useServerStore } from '@/context/server.context'
 import { LRCFile } from '@/data/interfaces/Music'
 import { fetcher } from '@/utils/utils'
 import useSWR from 'swr'
+import MusicGradient from '@/layouts/backgrounds/MusicGradient'
 
 const MobileMusicPlayer = () => {
   const {
@@ -302,7 +303,8 @@ const MobileMusicPlayer = () => {
       >
         {/* Background */}
         {(isExpanded || expandProgress > 0) && (
-          <GradientBackground isSong showGradient={expandProgress > 0} />
+          // <GradientBackground isSong showGradient={expandProgress > 0} />
+          <MusicGradient imageUrl={album?.coverSrc ?? ''} />
         )}
 
         <div

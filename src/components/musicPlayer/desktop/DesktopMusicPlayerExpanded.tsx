@@ -6,6 +6,7 @@ import MusicPlayerHeader from './header/Header'
 import NextSongs from '../menu/NextSongs'
 import LRCVisualizer from '../lyrics/LRCVisualizer'
 import { shallow } from 'zustand/shallow'
+import MusicGradient from '@/layouts/backgrounds/MusicGradient'
 
 function DesktopMusicPlayerExpanded() {
   const { album, isExpanded, currentSong, showLyrics, showQueue } =
@@ -29,7 +30,8 @@ function DesktopMusicPlayerExpanded() {
       }`}
     >
       <div className="fixed h-screen w-screen">
-        <GradientBackground showGradient={isExpanded} isSong />
+        {/* <GradientBackground showGradient={isExpanded} isSong /> */}
+        <MusicGradient imageUrl={album.coverSrc} />
       </div>
 
       <MusicPlayerHeader />

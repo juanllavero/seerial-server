@@ -42,11 +42,6 @@ function CollectionCard({ libraryId, collection, type }: CollectionCardProps) {
   )
   const navigate = useNavigate()
 
-  const { data: elementsInCollection } = useSWR<number>(
-    `${serverUrl}/collection-items?collectionId=${collection.id}&libraryId=${libraryId}&type=${type}`,
-    fetcher,
-  )
-
   const { data: collectionImages } = useSWR<CollectionImages>(
     `${serverUrl}/collection-images?collectionId=${collection.id}&&type=${type}`,
     fetcher,
@@ -135,7 +130,7 @@ function CollectionCard({ libraryId, collection, type }: CollectionCardProps) {
       }
       collageComponent={posterImage}
       title={collection.title}
-      subtitle={`${elementsInCollection ?? 0} ${t('elements')}`}
+      subtitle={`${collection.numberOfItems ?? 0} ${t('elements')}`}
       action={() => {
         selectCollection(collection.id)
         navigate(

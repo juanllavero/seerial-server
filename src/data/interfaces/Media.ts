@@ -54,6 +54,7 @@ export interface Collection {
   backgroundsUrls: string[]
   coverSrc: string
   coversUrls: string[]
+  numberOfItems?: number
 
   shows: Series[]
   movies: Movie[]

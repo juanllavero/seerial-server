@@ -15,6 +15,7 @@ import MobileMusicPlayer from '@/components/musicPlayer/mobile/MobileMusicPlayer
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { useGradientStore } from '@/context/gradientBackground.context'
 import { isAbsolutePath } from '@/utils/ReactUtils'
+import MusicGradient from './backgrounds/MusicGradient'
 
 export default function BaseLayout({
   children,
