@@ -1,0 +1,81 @@
+import useMusicStore from '@/context/music.context'
+import { useServerStore } from '@/context/server.context'
+import { Album } from '@/data/interfaces/Music'
+import { fetcher } from '@/utils/utils'
+import React, { useRef, useEffect, memo } from 'react'
+import Video, { VideoRef } from 'react-native-video'
+import useSWR from 'swr'
+import { shallow } from 'zustand/shallow'
+
+const AudioPlayer = () => {
+	const serverUrl = useServerStore((state) => state.serverUrl)
+	const playerRef = useRef<VideoRef>(null)
+
+	const {
+		currentSong,
+		isPlaying,
+		volume,
+		setAlbum,
+		setPlayerRef,
+		handleOnLoad,
+		handleOnProgress,
+		handleOnEnd,
+	} = useMusicStore(
+		(state) => ({
+			currentSong: state.currentSong,
+			isPlaying: state.isPlaying,
+			volume: state.volume,
+			setAlbum: state.setAlbum,
+			setPlayerRef: state.setPlayerRef,
+			handleOnLoad: state.handleOnLoad,
+			handleOnProgress: state.handleOnProgress,
+			handleOnEnd: state.handleOnEnd,
+		}),
+		shallow
+	)
+
+	// Get Album details
+	const { data: album } = useSWR<Album>(
+		currentSong && currentSong.albumId && serverUrl !== ''
+			? `${serverUrl}/details/album?id=${currentSong.albumId}`
+			: null,
+		fetcher
+	)
+
+	useEffect(() => {
+		if (album && serverUrl !== '') {
+			setAlbum(album)
+		}
+	}, [album, serverUrl])
+
+	useEffect(() => {
+		setPlayerRef(playerRef)
+	}, [setPlayerRef])
+
+	if (!currentSong) {
+		return null
+	}
+
+	return (
+		<Video
+			ref={playerRef}
+			source={{
+				uri: `${serverUrl}/audio-stream?path=${currentSong.fileSrc}&isWeb=true`,
+			}} // URL del audio
+			paused={!isPlaying} // El store controla si está pausado
+			volume={volume} // El store controla el volumen
+			className='display-none'
+			playInBackground={true} // Permite reproducción en segundo plano
+			// 4. Conectar los eventos del reproductor a los handlers del store
+			onLoad={handleOnLoad}
+			onProgress={handleOnProgress}
+			onEnd={handleOnEnd}
+			// Manejo de errores
+			onError={(error) => {
+				console.error('Player Error:', error)
+			}}
+		/>
+	)
+}
+
+export default memo(AudioPlayer)

@@ -11,6 +11,10 @@ import {
 import '../global.css'
 
 import { useAuth } from '@/context/auth.context'
+import AudioPlayer from '@/components/music/AudioPlayer'
+import { View } from 'react-native'
+import Title from '@/components/text/Title'
+import MusicPlayer from '@/components/music/MusicPlayer'
 
 SplashScreen.preventAutoHideAsync()
 
@@ -112,6 +116,7 @@ export default function AppLayout() {
 	return (
 		<>
 			<AuthRedirectController />
+			<AudioPlayer />
 			<Stack
 				screenOptions={{
 					headerShown: false,
@@ -122,6 +127,7 @@ export default function AppLayout() {
 				<Stack.Screen name='(auth)' options={{ headerShown: false }} />
 				<Stack.Screen name='(no-tabs)' options={{ headerShown: false }} />
 			</Stack>
+			<MusicPlayer />
 		</>
 	)
 }

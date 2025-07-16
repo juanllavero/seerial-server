@@ -53,7 +53,7 @@ function AlbumInfo({ album, isLoading }: AlbumInfoProps) {
 	if (!album) return null
 
 	return (
-		<View className='items-center gap-5 justify-center'>
+		<View className='items-center gap-5 justify-center w-[40dvw]'>
 			<Animated.Image
 				source={{ uri: getImageUrl(serverUrl, album.coverSrc ?? '') }}
 				style={{

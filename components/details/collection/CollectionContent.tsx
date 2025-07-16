@@ -28,6 +28,7 @@ function CollectionContent({ collection, type }: CollectionContentProps) {
 	const renderMap: Record<CollectionKey, (items: any[]) => React.ReactNode> = {
 		albums: (items: Album[]) => (
 			<HorizontalList<Album>
+				key={'Albums List'}
 				title={'Albums'}
 				items={items}
 				renderItem={({ item }) => (
@@ -48,6 +49,7 @@ function CollectionContent({ collection, type }: CollectionContentProps) {
 		),
 		movies: (items: Movie[]) => (
 			<HorizontalList<Movie>
+				key={'Movies List'}
 				title={'Movies'}
 				items={items}
 				renderItem={({ item }) => (
@@ -68,6 +70,7 @@ function CollectionContent({ collection, type }: CollectionContentProps) {
 		),
 		shows: (items: Series[]) => (
 			<HorizontalList<Series>
+				key={'Shows List'}
 				title={'Shows'}
 				items={items}
 				renderItem={({ item }) => (

@@ -21,7 +21,7 @@ function SongsList({ album }: SongsListProps) {
 		(state) => ({
 			currentSong: state.currentSong,
 			selectSong: state.selectSong,
-			setSongQueue: state.setSongQueue,
+			setSongQueue: state.initializeQueue,
 			togglePlayPause: state.togglePlayPause,
 			setIsShown: state.setIsShown,
 		}),
