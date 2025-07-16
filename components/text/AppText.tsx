@@ -31,7 +31,9 @@ const styles = StyleSheet.create({
 	text: {
 		fontFamily: 'Satoshi',
 		color: 'white',
-		fontFeatureSettings: '"ss01" 1, "ss03" 1, "ss04" 1',
+		textShadowColor: 'black',
+		textShadowOffset: { width: -1, height: 1 },
+		textShadowRadius: 10,
 		...Platform.select({
 			ios: {
 				fontVariant: ['stylistic-one', 'stylistic-three', 'stylistic-four'],

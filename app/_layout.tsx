@@ -76,7 +76,7 @@ export default function AppLayout() {
 	)
 
 	const [loadedFonts, fontError] = useFonts({
-		Satoshi: require('../assets/fonts/Satoshi-Variable.ttf'),
+		Satoshi: require('@/assets/fonts/Satoshi-Variable.ttf'),
 	})
 
 	// Asegura que initializeAuth se llame solo una vez al inicio del ciclo de vida de la app.

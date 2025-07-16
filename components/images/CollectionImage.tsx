@@ -25,8 +25,8 @@ const CollectionImage: React.FC<CollectionImageProps> = ({
 	if (imageCount === 0) {
 		const defaultImageSource =
 			type === LibraryTypes.MUSIC
-				? require('../../assets/images/default/music.png')
-				: require('../../assets/images/default/movie.jpg')
+				? require('@/assets/images/default/music.png')
+				: require('@/assets/images/default/movie.jpg')
 
 		return (
 			<View className={className}>

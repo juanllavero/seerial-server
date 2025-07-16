@@ -1,265 +1,150 @@
+import { useServerStore } from '@/context/server.context'
 import { LinearGradient } from 'expo-linear-gradient'
-import React, { useState, useEffect, useRef } from 'react'
-import {
-	Platform,
-	View,
-	StyleSheet,
-	ActivityIndicator,
-	ViewStyle,
-} from 'react-native'
-import { getColors } from 'react-native-image-colors'
-import {
-	AndroidImageColors,
-	IOSImageColors,
-} from 'react-native-image-colors/build/types'
+import React, { useEffect, useState, useRef } from 'react'
+import { View, StyleSheet, Animated } from 'react-native'
 
-// --- HOOK UNIVERSAL PARA EXTRAER COLORES ---
-const useImageColors = (imageUrl: string) => {
-	const [colors, setColors] = useState<string[]>([])
-	const [isLoading, setIsLoading] = useState(true)
-	const [error, setError] = useState<string | null>(null)
-
-	useEffect(() => {
-		if (!imageUrl) {
-			setIsLoading(false)
-			return
-		}
-
-		const extractColors = async () => {
-			setIsLoading(true)
-			setError(null)
-			setColors([])
-
-			// --- Lógica para la WEB ---
-			if (Platform.OS === 'web') {
-				const image = new Image()
-				image.crossOrigin = 'Anonymous'
-				image.src = imageUrl
-
-				image.onload = () => {
-					const canvas = document.createElement('canvas')
-					canvas.width = image.width
-					canvas.height = image.height
-					const ctx = canvas.getContext('2d')
-					if (!ctx) {
-						setError('No se pudo obtener el contexto del canvas.')
-						setIsLoading(false)
-						return
-					}
-					ctx.drawImage(image, 0, 0)
-					try {
-						const imageData = ctx.getImageData(
-							0,
-							0,
-							canvas.width,
-							canvas.height
-						).data
-						const colorCounts: { [key: string]: number } = {}
-						const quality = 10
-						for (let i = 0; i < imageData.length; i += 4 * quality) {
-							const key = `${imageData[i]},${imageData[i + 1]},${imageData[i + 2]}`
-							colorCounts[key] = (colorCounts[key] || 0) + 1
-						}
-						const sortedColors = Object.keys(colorCounts)
-							.sort((a, b) => colorCounts[b] - colorCounts[a])
-							.slice(0, 4)
-							.map((key) => `rgb(${key})`)
-						while (sortedColors.length < 4)
-							sortedColors.push('rgb(23,23,23)')
-						setColors(sortedColors)
-					} catch (e) {
-						setError('Error de CORS al procesar la imagen.')
-					} finally {
-						setIsLoading(false)
-					}
-				}
-				image.onerror = () => {
-					setError('No se pudo cargar la imagen.')
-					setIsLoading(false)
-				}
-				// --- Lógica para NATIVO (iOS/Android) ---
-			} else {
-				try {
-					const result = await getColors(imageUrl, {
-						fallback: '#171717',
-						cache: true,
-						key: imageUrl,
-					})
-
-					const platformColors =
-						Platform.select({
-							android: [
-								(result as AndroidImageColors).dominant,
-								(result as AndroidImageColors).average,
-								(result as AndroidImageColors).vibrant,
-								(result as AndroidImageColors).darkVibrant,
-							],
-							ios: [
-								(result as IOSImageColors).primary,
-								(result as IOSImageColors).secondary,
-								(result as IOSImageColors).background,
-								(result as IOSImageColors).detail,
-							],
-						}) || []
-
-					const finalColors = platformColors.filter((c) => !!c) as string[]
-					while (finalColors.length < 4) finalColors.push('#171717')
-					setColors(finalColors)
-				} catch (e) {
-					setError('Error al obtener colores de la imagen.')
-					console.error(e)
-				} finally {
-					setIsLoading(false)
-				}
-			}
-		}
-
-		extractColors()
-	}, [imageUrl])
-
-	return { colors, isLoading, error }
+interface GradientBackgroundProps {
+	showGradient?: boolean
+	imageSrc?: string
 }
 
-// --- COMPONENTE GRADIENTBACKGROUND UNIVERSAL ---
-interface GradientBackgroundProps {
-	imageUrl: string
-	children?: React.ReactNode
-	width?: number | string
-	height?: number | string
-	zIndex?: number
+// Componente interno para renderizar la pila de gradientes (VERSIÓN CORREGIDA)
+const GradientStack = ({ colors }: { colors: string[] }) => {
+	if (colors.length < 4) {
+		return (
+			<View style={[styles.absoluteFill, { backgroundColor: 'black' }]} />
+		)
+	}
+
+	// ✅ CORRECCIÓN: Definimos las posiciones de inicio y fin para cada gradiente LINEAL
+	// para que se comporte como un gradiente de esquina a esquina opuesta.
+	const cornerVectors = [
+		// De inferior-izquierda (0,1) a superior-derecha (1,0)
+		{ start: { x: 0, y: 1 }, end: { x: 1, y: 0 } },
+		// De inferior-derecha (1,1) a superior-izquierda (0,0)
+		{ start: { x: 1, y: 1 }, end: { x: 0, y: 0 } },
+		// De superior-derecha (1,0) a inferior-izquierda (0,1)
+		{ start: { x: 1, y: 0 }, end: { x: 0, y: 1 } },
+		// De superior-izquierda (0,0) a inferior-derecha (1,1)
+		{ start: { x: 0, y: 0 }, end: { x: 1, y: 1 } },
+	]
+
+	return (
+		<View style={styles.absoluteFill}>
+			{/* Fondo negro base */}
+			<View style={[styles.absoluteFill, { backgroundColor: 'black' }]} />
+
+			{/* Renderizamos los 4 gradientes lineales en diagonal */}
+			{cornerVectors.map((vectors, index) => (
+				<LinearGradient
+					key={index}
+					colors={[colors[index], 'transparent']}
+					// Usamos las props correctas: start y end
+					start={vectors.start}
+					end={vectors.end}
+					style={styles.absoluteFill}
+				/>
+			))}
+		</View>
+	)
 }
 
 const GradientBackground = ({
-	imageUrl,
-	children,
-	width = '100%',
-	height = '100%',
-	zIndex = -1,
+	showGradient = true,
+	imageSrc,
 }: GradientBackgroundProps) => {
-	const { colors, isLoading } = useImageColors(imageUrl)
-	const [activeIndex, setActiveIndex] = useState(0)
-	const [visible, setVisible] = useState(false)
+	// const serverUrl = useServerStore((state) => state.serverUrl);
+	const serverUrl = useServerStore((state) => state.serverUrl)
 
-	// --- Lógica para dibujar en el canvas (solo para web) ---
-	const canvasRefs = [
-		useRef<HTMLCanvasElement | null>(null),
-		useRef<HTMLCanvasElement | null>(null),
-	]
-	const drawGradientOnCanvas = (
-		canvas: HTMLCanvasElement,
-		gradientColors: string[]
-	) => {
-		// ... (la misma lógica de dibujo que ya tenías)
-		const ctx = canvas.getContext('2d')
-		if (!ctx) return
-		canvas.width = canvas.offsetWidth
-		canvas.height = canvas.offsetHeight
-		const points = [
-			{ x: 0, y: canvas.height, color: gradientColors[0] },
-			{ x: canvas.width, y: canvas.height, color: gradientColors[1] },
-			{ x: canvas.width, y: 0, color: gradientColors[2] },
-			{ x: 0, y: 0, color: gradientColors[3] },
-		]
-		points.forEach(({ x, y, color }) => {
-			const gradient = ctx.createRadialGradient(
-				x,
-				y,
-				0,
-				x,
-				y,
-				Math.max(canvas.width, canvas.height)
-			)
-			gradient.addColorStop(0, color)
-			gradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
-			ctx.fillStyle = gradient
-			ctx.fillRect(0, 0, canvas.width, canvas.height)
-		})
-		ctx.globalCompositeOperation = 'destination-over'
-		ctx.fillStyle = 'black'
-		ctx.fillRect(0, 0, canvas.width, canvas.height)
-		ctx.globalCompositeOperation = 'source-over'
-	}
+	// Usamos un estado para almacenar los dos sets de colores para la transición
+	const [colors, setColors] = useState<string[][]>([[], []])
+	const [activeIndex, setActiveIndex] = useState(0)
+
+	// Usamos la API Animated para controlar las opacidades de los dos "buffers"
+	const opacityAnims = useRef([
+		new Animated.Value(0),
+		new Animated.Value(0),
+	]).current
 
 	useEffect(() => {
-		if (isLoading || colors.length < 4) {
-			setVisible(false)
+		if (!showGradient || !imageSrc) {
+			// Si no hay imagen, fundimos a negro
+			Animated.timing(opacityAnims[activeIndex], {
+				toValue: 0,
+				duration: 700,
+				useNativeDriver: true, // Importante para el rendimiento
+			}).start()
 			return
 		}
-		setVisible(true)
 
-		const newIndex = (activeIndex + 1) % 2
-		// Si es web, dibuja en el canvas
-		if (Platform.OS === 'web' && canvasRefs[newIndex].current) {
-			drawGradientOnCanvas(canvasRefs[newIndex].current!, colors)
+		const fetchAndAnimateGradient = async () => {
+			try {
+				const response = await fetch(
+					`${serverUrl}/image-colors?${imageSrc.startsWith('http') ? `url=${imageSrc}` : `localPath=${imageSrc}`}`
+				)
+				const data = await response.json()
+
+				if (data.colors && data.colors.length >= 4) {
+					// El índice del buffer que está oculto y que vamos a actualizar
+					const newIndex = (activeIndex + 1) % 2
+
+					// Actualizamos el array de colores con los nuevos valores en el buffer oculto
+					const newColors = [...colors]
+					newColors[newIndex] = data.colors
+					setColors(newColors)
+
+					// Iniciamos la animación de fundido cruzado (crossfade)
+					Animated.parallel([
+						// El buffer antiguo se desvanece
+						Animated.timing(opacityAnims[activeIndex], {
+							toValue: 0,
+							duration: 700,
+							useNativeDriver: true,
+						}),
+						// El nuevo buffer aparece
+						Animated.timing(opacityAnims[newIndex], {
+							toValue: 1,
+							duration: 700,
+							useNativeDriver: true,
+						}),
+					]).start(() => {
+						// Cuando la animación termina, actualizamos el índice activo
+						setActiveIndex(newIndex)
+					})
+				}
+			} catch (error) {
+				console.error('Error fetching gradient:', error)
+			}
 		}
 
-		const timeout = setTimeout(() => setActiveIndex(newIndex), 100)
-		return () => clearTimeout(timeout)
-	}, [colors, isLoading])
-
-	const containerStyle = { width, height, zIndex }
+		fetchAndAnimateGradient()
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [showGradient, imageSrc]) // El efecto se dispara cuando cambia la imagen
 
 	return (
-		<View style={[styles.container, containerStyle as ViewStyle]}>
-			{isLoading ? (
-				<ActivityIndicator
-					style={StyleSheet.absoluteFill}
-					size='large'
-					color='#FFF'
-				/>
-			) : (
-				<>
-					{Platform.OS === 'web'
-						? // --- Renderizado para WEB ---
-							[0, 1].map((i) => (
-								<canvas
-									key={i}
-									ref={canvasRefs[i]}
-									className=''
-									style={{
-										...StyleSheet.absoluteFillObject,
-										transition: 'opacity 700ms ease-in-out',
-										opacity: activeIndex === i && visible ? 1 : 0,
-										filter: 'brightness(75%)',
-									}}
-								/>
-							))
-						: // --- Renderizado para NATIVO ---
-							[0, 1].map((i) => (
-								<LinearGradient
-									key={i}
-									colors={[colors[0], colors[1], colors[2], colors[3]]}
-									style={[
-										styles.gradient,
-										{ opacity: activeIndex === i && visible ? 1 : 0 },
-									]}
-								/>
-							))}
-				</>
-			)}
-			{/* El contenido de tu componente se renderiza encima */}
-			<View style={styles.childrenContainer}>{children}</View>
+		<View style={styles.container}>
+			{/* Renderizamos los dos "buffers" de gradiente. Uno siempre estará visible y el otro oculto. */}
+			{colors.map((colorSet, i) => (
+				<Animated.View
+					key={i}
+					style={[styles.absoluteFill, { opacity: opacityAnims[i] }]}
+				>
+					<GradientStack colors={colorSet} />
+				</Animated.View>
+			))}
 		</View>
 	)
 }
 
 const styles = StyleSheet.create({
 	container: {
-		overflow: 'hidden',
-		position: 'absolute',
-		top: 0,
-		left: 0,
-		right: 0,
-		bottom: 0,
-	},
-	gradient: {
 		...StyleSheet.absoluteFillObject,
-		// La transición de opacidad se maneja con el estado, no con CSS
+		zIndex: -1, // Se asegura de que el fondo esté siempre detrás de otros contenidos
+		overflow: 'hidden',
+		backgroundColor: 'black', // Fondo por defecto mientras carga
 	},
-	childrenContainer: {
-		flex: 1,
-		position: 'relative',
-		zIndex: 1,
+	absoluteFill: {
+		...StyleSheet.absoluteFillObject,
 	},
 })
 

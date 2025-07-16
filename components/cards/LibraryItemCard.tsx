@@ -8,6 +8,7 @@ import { Marquee } from '@animatereactnative/marquee'
 import useSWR from 'swr'
 import { CollectionImages } from '@/data/interfaces/Media'
 import CollectionImage from '../images/CollectionImage'
+import { Link } from 'expo-router'
 
 interface LibraryItemCardProps {
 	type: string
@@ -67,64 +68,80 @@ function LibraryItemCard({
 				selectedItem === id ? 'scale-105' : ''
 			}`}
 		>
-			<Pressable
-				className='flex flex-col items-center'
-				onPress={() => setSelectedItem(id)}
+			<Link
+				asChild
+				href={{
+					pathname: '/details/[id]',
+					params: {
+						id,
+						type,
+						isCollection: isCollection ? 'true' : 'false',
+					},
+				}}
 			>
-				{(!url || url === '') &&
-				collectionImages &&
-				collectionImages.images &&
-				collectionImages.images.length > 0 ? (
-					<CollectionImage
-						images={collectionImages.images}
-						type={type}
-						width={width - 8}
-						className={`border-4 border-transparent transition-all duration-150 ease-in-out ${
-							selectedItem === id ? 'border-white' : ''
-						}`}
-						height={width * (aspectRatio || 1) - 8}
-					/>
-				) : (
-					<Image
-						source={
-							url && url !== ''
-								? { uri: url }
-								: type === LibraryTypes.MUSIC
-									? require('../../assets/images/default/music.png')
-									: require('../../assets/images/default/movie.jpg')
-						}
-						className={`border-4 border-transparent transition-all duration-150 ease-in-out ${
-							selectedItem === id ? 'border-white' : ''
-						}`}
-						style={{
-							width,
-							height: width * (aspectRatio || 1),
-							borderRadius: 10,
-						}}
-					/>
-				)}
-
-				{/* Measurement component (not working) */}
-				<Tertiary
-					onTextLayout={handleTextLayout}
-					className='absolute opacity-0 z-[-1]'
-					style={{ width }}
+				<Pressable
+					className='flex flex-col items-center'
+					onPress={() => setSelectedItem(id)}
 				>
-					{title}
-				</Tertiary>
+					{(!url || url === '') &&
+					collectionImages &&
+					collectionImages.images &&
+					collectionImages.images.length > 0 ? (
+						<CollectionImage
+							images={collectionImages.images}
+							type={type}
+							width={width - 8}
+							className={`border-4 border-transparent transition-all duration-150 ease-in-out ${
+								selectedItem === id ? 'border-white' : ''
+							}`}
+							height={width * (aspectRatio || 1) - 8}
+						/>
+					) : (
+						<Image
+							source={
+								url && url !== ''
+									? { uri: url }
+									: type === LibraryTypes.MUSIC
+										? require('@/assets/images/default/music.png')
+										: require('@/assets/images/default/movie.jpg')
+							}
+							className={`border-4 border-transparent transition-all duration-150 ease-in-out ${
+								selectedItem === id ? 'border-white' : ''
+							}`}
+							style={{
+								width,
+								height: width * (aspectRatio || 1),
+								borderRadius: 10,
+							}}
+						/>
+					)}
 
-				{selectedItem === id && !isTitleOverflowing ? (
-					<Marquee spacing={100} speed={0.4}>
-						<Tertiary className='truncate text-center'>{title}</Tertiary>
-					</Marquee>
-				) : (
-					<Tertiary className='line-clamp-1 text-center'>{title}</Tertiary>
-				)}
+					{/* Measurement component (not working) */}
+					<Tertiary
+						onTextLayout={handleTextLayout}
+						className='absolute opacity-0 z-[-1]'
+						style={{ width }}
+					>
+						{title}
+					</Tertiary>
 
-				<Tertiary className='line-clamp-1 text-center text-xl sm:text-md md:text-lg lg:text-xl'>
-					{subtitle}
-				</Tertiary>
-			</Pressable>
+					{selectedItem === id && !isTitleOverflowing ? (
+						<Marquee spacing={100} speed={0.4}>
+							<Tertiary className='truncate text-center'>
+								{title}
+							</Tertiary>
+						</Marquee>
+					) : (
+						<Tertiary className='line-clamp-1 text-center'>
+							{title}
+						</Tertiary>
+					)}
+
+					<Tertiary className='line-clamp-1 text-center text-xl sm:text-md md:text-lg lg:text-xl'>
+						{subtitle}
+					</Tertiary>
+				</Pressable>
+			</Link>
 		</View>
 	)
 }
