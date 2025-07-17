@@ -8,6 +8,7 @@ import LibraryItemCard from '@/components/cards/LibraryItemCard'
 import { LibraryTypes } from '@/data/enums/LibraryTypes'
 import { useEffect, useState } from 'react'
 import useDataStore from '@/context/data.context'
+import { shallow } from 'zustand/shallow'
 
 const CONTAINER_PADDING = 30 + 100 // p-5 + pl-44
 const NUM_COLUMNS = 7
@@ -15,12 +16,16 @@ const ITEM_SPACING = 30
 
 export default function LibrariesScreen() {
 	const { id, serverIP, type } = useLocalSearchParams()
-	const setCurrentBackground = useDataStore(
-		(state) => state.setCurrentBackground
+	const { sidebarOpen, setCurrentBackground } = useDataStore(
+		(state) => ({
+			sidebarOpen: state.sidebarOpen,
+			setCurrentBackground: state.setCurrentBackground,
+		}),
+		shallow
 	)
 	const [selectedItem, setSelectedItem] = useState<string | null>(null)
 
-	const { width: screenWidth } = useWindowDimensions()
+	const { width: screenWidth, height } = useWindowDimensions()
 
 	const { data: content, isLoading } = useSWR<LibraryItem[]>(
 		serverIP
@@ -52,7 +57,10 @@ export default function LibrariesScreen() {
 	if (!content) return <AppText>Library not found</AppText>
 
 	return (
-		<View className='flex-1 bg-black pl-44'>
+		<View
+			className='flex-1 bg-black transition-all duration-300 ease-in-out'
+			style={{ paddingLeft: sidebarOpen ? height * 0.3 : height * 0.08 }}
+		>
 			<FlatList
 				data={content}
 				numColumns={NUM_COLUMNS}

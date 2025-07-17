@@ -19,9 +19,11 @@ import Title from '../text/Title'
 import ListTitle from '../text/ListTitle'
 import AlignedImage from '../images/AlignedImage'
 import HomeBackground from '../backgrounds/HomeBackground'
+import useDataStore from '@/context/data.context'
 
 function ContinueWatchingContent() {
 	const user = useAuth((state) => state.user)
+	const sidebarOpen = useDataStore((state) => state.sidebarOpen)
 	const { selectedServer, selectServer, serverUrl } = useServerStore(
 		(state) => ({
 			selectedServer: state.selectedServer,
@@ -60,7 +62,10 @@ function ContinueWatchingContent() {
 	return (
 		<View className='w-screen h-full justify-end bg-black'>
 			<HomeBackground background={selectedElement?.backgroundImage || ''} />
-			<View className='pl-44'>
+			<View
+				className='transition-all duration-300 ease-in-out'
+				style={{ paddingLeft: sidebarOpen ? height * 0.3 : height * 0.08 }}
+			>
 				<View className='h-[52dvh] justify-end px-10 bg-transparent'>
 					{selectedElement ? (
 						<>

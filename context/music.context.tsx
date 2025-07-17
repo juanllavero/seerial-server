@@ -19,18 +19,21 @@ interface MusicState {
 	isLoading: boolean
 	isShuffling: boolean
 	repeateMode: RepeateMode
-	volume: number // react-native-video usa de 0 a 1
-	progress: number // Porcentaje de 0 a 100
-	currentTime: number // Segundos
-	duration: number // Segundos
+	showLyrics: boolean
+	showQueue: boolean
+	volume: number
+	progress: number
+	currentTime: number
+	duration: number
 	isShown: boolean
 	isExpanded: boolean
+	sliderFocused: boolean
 
 	// Conexión con el componente
 	setPlayerRef: (ref: React.RefObject<VideoRef | null>) => void
 
 	// Acciones principales
-	initializeQueue: (songs: Song[], startIndex?: number) => void
+	initializeQueue: (songs: Song[]) => void
 	selectSong: (song: Song | null) => void
 	setAlbum: (album: Album | null) => void
 	resetPlayerState: () => void
@@ -38,10 +41,15 @@ interface MusicState {
 	// Controles del reproductor
 	togglePlayPause: () => void
 	seekTo: (time: number) => void
+	skipForward: () => void
+	skipBackward: () => void
 	setVolume: (volume: number) => void
 	handleNext: () => void
 	handlePrevious: () => void
 	handleChangeRepeatState: () => void
+	setShowLyrics: (show: boolean) => void
+	setShowQueue: (show: boolean) => void
+	setFocusSlider: (focused: boolean) => void
 
 	// Handlers para los eventos del componente <Video>
 	handleOnLoad: (data: OnLoadData) => void
@@ -62,6 +70,8 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
 	isPlaying: false,
 	isLoading: false,
 	isShuffling: false,
+	showLyrics: false,
+	showQueue: false,
 	repeateMode: RepeateMode.NONE,
 	volume: 100,
 	progress: 0,
@@ -69,14 +79,14 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
 	duration: 0,
 	isShown: false,
 	isExpanded: false,
+	sliderFocused: false,
 
 	// Conexión
 	setPlayerRef: (ref) => set({ playerRef: ref }),
 
 	// Acciones
-	initializeQueue: (songs, startIndex = 0) => {
+	initializeQueue: (songs) => {
 		set({ songQueue: songs, isShown: true })
-		get().selectSong(songs[startIndex])
 	},
 
 	selectSong: (song) => {
@@ -85,8 +95,8 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
 			progress: 0,
 			currentTime: 0,
 			duration: 0,
-			isLoading: !!song, // Mostrar carga al seleccionar nueva canción
-			isPlaying: !!song, // Empezar a reproducir automáticamente
+			isLoading: !!song,
+			isPlaying: !!song,
 		})
 	},
 
@@ -97,6 +107,7 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
 			currentSong: null,
 			isPlaying: false,
 			isShown: false,
+			isExpanded: false,
 			songQueue: [],
 			progress: 0,
 			currentTime: 0,
@@ -114,6 +125,17 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
 	seekTo: (time) => {
 		get().playerRef?.current?.seek(time)
 		set({ currentTime: time })
+	},
+
+	skipForward: () => {
+		const { duration } = get()
+		const currentTime = get().currentTime + 5
+		get().seekTo(Math.min(duration, currentTime))
+	},
+
+	skipBackward: () => {
+		const currentTime = get().currentTime - 5
+		get().seekTo(Math.max(0, currentTime))
 	},
 
 	setVolume: (volume) => {
@@ -157,12 +179,23 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
 		set({ repeateMode: nextMode })
 	},
 
+	setShowLyrics: (show) => set({ showLyrics: show }),
+	setShowQueue: (show) => set({ showQueue: show }),
+
+	setFocusSlider: (focused) => set({ sliderFocused: focused }),
+
 	// Handlers de eventos del <Video>
 	handleOnLoad: (data) => {
 		set({
 			duration: data.duration,
 			isLoading: false,
-			isPlaying: true, // Asegurarse de que reproduzca al cargar
+			isPlaying: true,
+			progress: 0,
+			currentTime: 0,
+			volume: 100,
+			showLyrics: false,
+			showQueue: false,
+			isShown: true,
 		})
 	},
 
@@ -186,7 +219,8 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
 
 	// UI State
 	setIsShown: (shown) => set({ isShown: shown }),
-	setIsExpanded: (expanded) => set({ isExpanded: expanded }),
+	setIsExpanded: (expanded) =>
+		set({ isExpanded: expanded, sliderFocused: true }),
 }))
 
 export default useMusicStore

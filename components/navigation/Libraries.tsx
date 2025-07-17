@@ -1,13 +1,28 @@
 import { useServerStore } from '@/context/server.context'
 import { fetcher } from '@/utils/utils'
 import React from 'react'
-import { FlatList, Pressable } from 'react-native'
+import {
+	FlatList,
+	Pressable,
+	ScrollView,
+	TouchableOpacity,
+	View,
+} from 'react-native'
 import useSWR from 'swr'
 import Tertiary from '../text/Tertiary'
 import { Link } from 'expo-router'
 import { Library } from '@/data/interfaces/Media'
+import Button from '../buttons/Button'
+import { LibraryTypes } from '@/data/enums/LibraryTypes'
+import SeriesIcon from '../svg/SeriesIcon'
+import MusicIcon from '../svg/MusicIcon'
+import MovieIcon from '../svg/MovieIcon'
 
-function Libraries() {
+interface LibrariesProps {
+	isExpanded: boolean
+}
+
+function Libraries({ isExpanded }: LibrariesProps) {
 	const serverUrl = useServerStore((state) => state.serverUrl)
 	const { data: libraries } = useSWR<Library[]>(
 		serverUrl ? `${serverUrl}/libraries` : null,
@@ -15,13 +30,15 @@ function Libraries() {
 	)
 
 	if (!libraries) {
-		return <div>Loading...</div>
+		return null
 	}
 
 	return (
 		<FlatList
 			data={libraries}
-			style={{ padding: 10 }}
+			scrollEnabled={false}
+			className='w-full'
+			keyExtractor={(item, index) => item.id + index}
 			renderItem={({ item }) => (
 				<Link
 					asChild
@@ -34,11 +51,21 @@ function Libraries() {
 						},
 					}}
 				>
-					<Pressable>
-						<Tertiary style={{ color: 'white', padding: 10 }}>
-							{item.name}
-						</Tertiary>
-					</Pressable>
+					<Button
+						text={item.name}
+						transparent
+						leftAlign
+						iconSize={35}
+						fullWidth
+						hideText={!isExpanded}
+						icon={
+							item.type === LibraryTypes.SHOWS
+								? SeriesIcon
+								: item.type === LibraryTypes.MUSIC
+									? MusicIcon
+									: MovieIcon
+						}
+					/>
 				</Link>
 			)}
 		/>

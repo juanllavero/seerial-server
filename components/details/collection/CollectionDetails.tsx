@@ -27,13 +27,16 @@ function CollectionDetails({ id, type }: CollectionDetailsProps) {
 	}
 
 	return (
-		<>
+		<ScrollView
+			showsHorizontalScrollIndicator={false}
+			className='w-full h-full p-20'
+		>
 			{/* Collection Info */}
 			<CollectionInfo collection={collection} type={type} />
 
 			{/* Collection Content */}
 			<CollectionContent collection={collection} type={type} />
-		</>
+		</ScrollView>
 	)
 }
 

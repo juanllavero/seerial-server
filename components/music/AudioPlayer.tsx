@@ -61,16 +61,14 @@ const AudioPlayer = () => {
 			ref={playerRef}
 			source={{
 				uri: `${serverUrl}/audio-stream?path=${currentSong.fileSrc}&isWeb=true`,
-			}} // URL del audio
-			paused={!isPlaying} // El store controla si está pausado
-			volume={volume} // El store controla el volumen
-			className='display-none'
-			playInBackground={true} // Permite reproducción en segundo plano
-			// 4. Conectar los eventos del reproductor a los handlers del store
+			}}
+			paused={!isPlaying}
+			volume={volume}
+			style={{ position: 'absolute', top: '-100%' }}
+			playInBackground={true}
 			onLoad={handleOnLoad}
 			onProgress={handleOnProgress}
 			onEnd={handleOnEnd}
-			// Manejo de errores
 			onError={(error) => {
 				console.error('Player Error:', error)
 			}}

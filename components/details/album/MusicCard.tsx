@@ -4,7 +4,7 @@ import useMusicStore from '@/context/music.context'
 import { Song } from '@/data/interfaces/Music'
 import { formatTime } from '@/utils/utils'
 import React from 'react'
-import { Pressable, View } from 'react-native'
+import { TouchableOpacity, View } from 'react-native'
 import { shallow } from 'zustand/shallow'
 
 interface MusicCardProps {
@@ -14,6 +14,7 @@ interface MusicCardProps {
 }
 
 function MusicCard({ song, index, handlePlaySong }: MusicCardProps) {
+	const [focused, setFocused] = React.useState(false)
 	const { isPlaying, currentSong } = useMusicStore(
 		(state) => ({
 			isPlaying: state.isPlaying,
@@ -22,8 +23,16 @@ function MusicCard({ song, index, handlePlaySong }: MusicCardProps) {
 		shallow
 	)
 	return (
-		<Pressable
-			className='p-10 bg-neutral-700 flex-row rounded-md justify-between'
+		<TouchableOpacity
+			focusable
+			onFocus={() => setFocused(true)}
+			onBlur={() => setFocused(false)}
+			style={{
+				backgroundColor: focused ? 'white' : '',
+				outline: 'none',
+				transform: focused ? 'scale(1.03)' : 'scale(1)',
+			}}
+			className={`p-7 bg-neutral-500/30 flex-row rounded-lg justify-between`}
 			onPress={handlePlaySong}
 		>
 			<View className='flex-row items-center justify-start gap-5'>
@@ -31,19 +40,25 @@ function MusicCard({ song, index, handlePlaySong }: MusicCardProps) {
 					{isPlaying && song.id === currentSong?.id ? (
 						<MusicWave />
 					) : (
-						<Secondary>{index + 1}</Secondary>
+						<Secondary style={{ color: focused ? 'black' : 'white' }}>
+							{index + 1}
+						</Secondary>
 					)}
 				</View>
-				<Secondary className='line-clamp-1 ellipsis max-w-[25dvw]'>
+				<Secondary
+					className='line-clamp-1 ellipsis max-w-[25dvw]'
+					style={{ color: focused ? 'black' : 'white' }}
+				>
 					{song.title}
 				</Secondary>
-				<MusicWave />
 			</View>
 
 			<View>
-				<Secondary>{formatTime(song.duration ?? 0 / 60)}</Secondary>
+				<Secondary style={{ color: focused ? 'black' : 'white' }}>
+					{formatTime(song.duration ?? 0 / 60)}
+				</Secondary>
 			</View>
-		</Pressable>
+		</TouchableOpacity>
 	)
 }
 

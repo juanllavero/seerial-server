@@ -1,6 +1,7 @@
 import { createWithEqualityFn } from 'zustand/traditional'
 
 interface DataState {
+	sidebarOpen: boolean
 	selectedLibraryId: string | null
 	selectedCollectionId: string | null
 	selectedMovieId: string | null
@@ -13,6 +14,8 @@ interface DataState {
 	currentBackground: string | undefined
 	isContent: boolean
 	loadingContent: boolean
+
+	setSidebarOpen: (open: boolean) => void
 
 	// GET
 	selectLibrary: (libraryId: string | null) => void
@@ -32,6 +35,7 @@ interface DataState {
 }
 
 const useDataStore = createWithEqualityFn<DataState>((set) => ({
+	sidebarOpen: false,
 	selectedLibraryId: null,
 	selectedCollectionId: null,
 	selectedMovieId: null,
@@ -44,6 +48,12 @@ const useDataStore = createWithEqualityFn<DataState>((set) => ({
 	currentBackground: undefined,
 	isContent: false,
 	loadingContent: true,
+
+	setSidebarOpen(open: boolean) {
+		set(() => ({
+			sidebarOpen: open,
+		}))
+	},
 
 	selectLibrary(libraryId: string | null) {
 		set(() => ({

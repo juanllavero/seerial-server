@@ -5,6 +5,7 @@ interface AppTextProps {
 	className?: string
 	style?: any
 	onTextLayout?: any
+	noShadow?: boolean
 	children: React.ReactNode
 }
 
@@ -12,6 +13,7 @@ const AppText = ({
 	className,
 	style,
 	onTextLayout,
+	noShadow,
 	children,
 	...props
 }: AppTextProps) => {
@@ -19,7 +21,7 @@ const AppText = ({
 		<Text
 			className={className}
 			onTextLayout={onTextLayout}
-			style={[styles.text, style]}
+			style={[styles.text, !noShadow && styles.shadow, style]}
 			{...props}
 		>
 			{children}
@@ -31,9 +33,6 @@ const styles = StyleSheet.create({
 	text: {
 		fontFamily: 'Satoshi',
 		color: 'white',
-		textShadowColor: 'black',
-		textShadowOffset: { width: -1, height: 1 },
-		textShadowRadius: 10,
 		...Platform.select({
 			ios: {
 				fontVariant: ['stylistic-one', 'stylistic-three', 'stylistic-four'],
@@ -42,6 +41,11 @@ const styles = StyleSheet.create({
 				textShadowSettings: "'ss01' 1, 'ss03' 1, 'ss04' 1",
 			},
 		}),
+	},
+	shadow: {
+		textShadowColor: 'black',
+		textShadowOffset: { width: -1, height: 1 },
+		textShadowRadius: 10,
 	},
 })
 

@@ -1,3 +1,4 @@
+import Button from '@/components/buttons/Button'
 import EditIcon from '@/components/svg/EditIcon'
 import HorizontalDotsIcon from '@/components/svg/HorizontalDotsIcon'
 import PauseIcon from '@/components/svg/player/controls/PauseIcon'
@@ -6,15 +7,13 @@ import DolbyAtmosIcon from '@/components/svg/player/DolbyAtmosIcon'
 import SmallSpinner from '@/components/svg/SmallSpinner'
 import AppText from '@/components/text/AppText'
 import Secondary from '@/components/text/Secondary'
-import Subtitle from '@/components/text/Subtitle'
+import Tertiary from '@/components/text/Tertiary'
 import Title from '@/components/text/Title'
 import useMusicStore from '@/context/music.context'
-import { useServerStore } from '@/context/server.context'
 import { Album, Song } from '@/data/interfaces/Music'
-import { getImageUrl } from '@/utils/utils'
+import { Ellipsis, Shuffle, ShuffleIcon } from 'lucide-react-native'
 import React from 'react'
-import { Dimensions, Pressable, View } from 'react-native'
-import Animated from 'react-native-reanimated'
+import { Pressable, TouchableOpacity, View } from 'react-native'
 import { shallow } from 'zustand/shallow'
 
 interface AlbumInfoProps {
@@ -23,8 +22,6 @@ interface AlbumInfoProps {
 }
 
 function AlbumInfo({ album, isLoading }: AlbumInfoProps) {
-	const serverUrl = useServerStore((state) => state.serverUrl)
-	const { height } = Dimensions.get('window')
 	const {
 		isPlaying,
 		isLoaidng: loadingSong,
@@ -53,21 +50,25 @@ function AlbumInfo({ album, isLoading }: AlbumInfoProps) {
 	if (!album) return null
 
 	return (
-		<View className='items-center gap-5 justify-center w-[40dvw]'>
-			<Animated.Image
-				source={{ uri: getImageUrl(serverUrl, album.coverSrc ?? '') }}
-				style={{
-					width: height * 0.4,
-					height: height * 0.4,
-					borderRadius: 10,
-				}}
-			/>
-
+		<View className='items-start gap-5 justify-center'>
 			<Title>{album.title}</Title>
-			<Secondary>
-				{album.year ? new Date(album.year).getFullYear() : null}
-				{album.genres ? ' • ' + album.genres.join(', ') : ''}
-			</Secondary>
+			<View className='flex-row items-center justify-center'>
+				<Secondary>
+					{album.year ? new Date(album.year).getFullYear() : null}
+					{album.genres ? ' • ' + album.genres.join(', ') : ''}
+				</Secondary>
+
+				{hasDolbyAtmos() && (
+					<>
+						<Secondary> • </Secondary>
+						<DolbyAtmosIcon
+							size={25}
+							color='lightgray'
+							className='w-18 shadow-2xl translate-y-1 pl-2'
+						/>
+					</>
+				)}
+			</View>
 			<Secondary>
 				{album.songs.length} {'songs'}
 				{' • '}
@@ -75,27 +76,20 @@ function AlbumInfo({ album, isLoading }: AlbumInfoProps) {
 				{` ${'min'}`}
 			</Secondary>
 
-			{hasDolbyAtmos() && (
-				<DolbyAtmosIcon
-					size={25}
-					color='lightgray'
-					className='w-18 shadow-2xl'
-				/>
+			{album.description && album.description !== '' && (
+				<TouchableOpacity focusable={true}>
+					<Secondary className='line-clamp-3'>
+						{album.description}
+					</Secondary>
+				</TouchableOpacity>
 			)}
 
-			<View className='flex-row justify-center gap-10'>
-				<Pressable
-					className='rounded-full'
-					onPress={() => {
-						// if (album) {
-						// 	openAlbumDialog(album)
-						// }
-					}}
-				>
-					<EditIcon color='#ffffff' size={30} />
-				</Pressable>
-				<Pressable
-					className='h-15 rounded-full'
+			<View className='flex-row justify-center pt-5 gap-10'>
+				<Button
+					text={isPlaying ? 'Pause' : 'Play'}
+					icon={
+						loadingSong ? SmallSpinner : isPlaying ? PauseIcon : PlayIcon
+					}
 					onPress={() => {
 						if (isShown) {
 							togglePlayPause()
@@ -103,24 +97,19 @@ function AlbumInfo({ album, isLoading }: AlbumInfoProps) {
 							selectSong(album.songs[0])
 						}
 					}}
-				>
-					{loadingSong ? (
-						<SmallSpinner size={60} />
-					) : isPlaying ? (
-						<PauseIcon color='#ffffff' size={60} />
-					) : (
-						<PlayIcon color='#ffffff' size={60} />
-					)}
-				</Pressable>
-				<Pressable
-					className='rounded-full'
-					// onPress={(e) => {
-					//   dispatch(toggleSeasonMenu())
-					//   if (!seasonMenuOpen) cm.current?.show(e)
-					// }}
-				>
-					<HorizontalDotsIcon color='#ffffff' size={40} />
-				</Pressable>
+				/>
+				<Button
+					text={'Shuffle'}
+					icon={ShuffleIcon}
+					onPress={() => {
+						if (isShown) {
+							togglePlayPause()
+						} else if (album && album.songs && album.songs.length > 0) {
+							selectSong(album.songs[0])
+						}
+					}}
+				/>
+				<Button icon={Ellipsis} iconSize={40} onPress={() => {}} />
 			</View>
 			<View>
 				<span className='font-semibold'>

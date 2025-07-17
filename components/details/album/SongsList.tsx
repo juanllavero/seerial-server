@@ -1,10 +1,11 @@
 import { Album, Song } from '@/data/interfaces/Music'
 import useMusicStore from '@/context/music.context'
 import { shallow } from 'zustand/shallow'
-import { View } from 'react-native'
+import { FlatList, View } from 'react-native'
 import Secondary from '@/components/text/Secondary'
 import MusicCard from './MusicCard'
 import Subtitle from '@/components/text/Subtitle'
+import Animated from 'react-native-reanimated'
 
 interface SongsListProps {
 	album: Album
@@ -17,6 +18,7 @@ function SongsList({ album }: SongsListProps) {
 		setSongQueue,
 		togglePlayPause,
 		setIsShown,
+		setIsExpanded,
 	} = useMusicStore(
 		(state) => ({
 			currentSong: state.currentSong,
@@ -24,6 +26,7 @@ function SongsList({ album }: SongsListProps) {
 			setSongQueue: state.initializeQueue,
 			togglePlayPause: state.togglePlayPause,
 			setIsShown: state.setIsShown,
+			setIsExpanded: state.setIsExpanded,
 		}),
 		shallow
 	)
@@ -34,22 +37,32 @@ function SongsList({ album }: SongsListProps) {
 	if (!hasDiscs) {
 		return (
 			<View className='gap-5'>
-				<Subtitle className='font-bold'>{'Tracks'}</Subtitle>
-				{album.songs.map((song, index) => (
-					<MusicCard
-						index={index}
-						song={song}
-						handlePlaySong={() => {
-							if (currentSong === song) {
-								togglePlayPause()
-							} else {
-								selectSong(song)
-								setIsShown(true)
-								setSongQueue(album.songs)
-							}
-						}}
-					/>
-				))}
+				<Animated.FlatList
+					data={album.songs}
+					showsHorizontalScrollIndicator={false}
+					contentContainerStyle={{
+						gap: 8,
+						paddingHorizontal: 20,
+						paddingVertical: 10,
+					}}
+					renderItem={({ item, index }) => (
+						<MusicCard
+							key={item.id}
+							index={index}
+							song={item}
+							handlePlaySong={() => {
+								if (currentSong && currentSong.id === item.id) {
+									setIsExpanded(true)
+								} else {
+									selectSong(item)
+									setIsShown(true)
+									setIsExpanded(true)
+									setSongQueue(album.songs)
+								}
+							}}
+						/>
+					)}
+				/>
 			</View>
 		)
 	}
@@ -90,22 +103,32 @@ function SongsList({ album }: SongsListProps) {
 							? 'Extras'
 							: `${'Disc'} ${discNumber}`}
 					</Subtitle>
-					{songs.map((song, index) => (
-						<MusicCard
-							key={song.id}
-							index={index}
-							song={song}
-							handlePlaySong={() => {
-								if (currentSong === song) {
-									togglePlayPause()
-								} else {
-									selectSong(song)
-									setIsShown(true)
-									setSongQueue(flatList) // Use the correctly ordered flatList
-								}
-							}}
-						/>
-					))}
+					<Animated.FlatList
+						data={songs}
+						showsHorizontalScrollIndicator={false}
+						contentContainerStyle={{
+							gap: 8,
+							paddingHorizontal: 20,
+							paddingVertical: 10,
+						}}
+						renderItem={({ item, index }) => (
+							<MusicCard
+								key={item.id}
+								index={index}
+								song={item}
+								handlePlaySong={() => {
+									if (currentSong && currentSong.id === item.id) {
+										setIsExpanded(true)
+									} else {
+										selectSong(item)
+										setIsShown(true)
+										setIsExpanded(true)
+										setSongQueue(flatList)
+									}
+								}}
+							/>
+						)}
+					/>
 				</View>
 			))}
 		</>

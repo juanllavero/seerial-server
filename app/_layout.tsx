@@ -1,6 +1,5 @@
-// app/_layout.tsx (Este sería tu AppLayout)
 import { useFonts } from 'expo-font'
-import { Stack, useRouter, useSegments } from 'expo-router' // Añade useRouter y useSegments
+import { Stack, useRouter, useSegments } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { shallow } from 'zustand/shallow'
 import { useEffect } from 'react'
@@ -12,8 +11,6 @@ import '../global.css'
 
 import { useAuth } from '@/context/auth.context'
 import AudioPlayer from '@/components/music/AudioPlayer'
-import { View } from 'react-native'
-import Title from '@/components/text/Title'
 import MusicPlayer from '@/components/music/MusicPlayer'
 
 SplashScreen.preventAutoHideAsync()
@@ -23,8 +20,6 @@ configureReanimatedLogger({
 	strict: false,
 })
 
-// Este es el componente que envuelve todo el stack de rutas.
-// Aquí se gestionará la lógica de redirección.
 function AuthRedirectController() {
 	const { user, isInitialized } = useAuth(
 		(state) => ({
@@ -33,18 +28,15 @@ function AuthRedirectController() {
 		}),
 		shallow
 	)
-	const segments = useSegments() // Obtiene los segmentos de la ruta actual
-	const router = useRouter() // Acceso al objeto router
+	const segments = useSegments()
+	const router = useRouter()
 
 	useEffect(() => {
-		// Si la inicialización aún no ha terminado, no hacemos nada.
 		if (!isInitialized) {
 			console.log('AuthRedirectController: No inicializado, esperando...')
 			return
 		}
 
-		// `(auth)` es el grupo de rutas no autenticadas.
-		// Comprobamos si la ruta actual está dentro del grupo de autenticación.
 		const inAuthGroup = segments[0] === '(auth)'
 
 		if (isInitialized) {
@@ -116,7 +108,7 @@ export default function AppLayout() {
 	return (
 		<>
 			<AuthRedirectController />
-			<AudioPlayer />
+
 			<Stack
 				screenOptions={{
 					headerShown: false,
@@ -127,6 +119,9 @@ export default function AppLayout() {
 				<Stack.Screen name='(auth)' options={{ headerShown: false }} />
 				<Stack.Screen name='(no-tabs)' options={{ headerShown: false }} />
 			</Stack>
+
+			{/* Audio Player and Music Player UI */}
+			<AudioPlayer />
 			<MusicPlayer />
 		</>
 	)
