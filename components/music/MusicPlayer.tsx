@@ -231,7 +231,7 @@ function MusicPlayer() {
 			<MusicGradient imageUrl={album.coverSrc ?? ''} />
 
 			<View className='flex-row justify-center items-center h-[82dvh] gap-6 pb-20'>
-				<View className='justify-end items-center bg-black h-[82dvh] w-fit gap-6 pb-5 px-64'>
+				<View className='justify-end items-center  h-[82dvh] w-fit gap-6 pb-5 px-64'>
 					<Animated.Image
 						source={{ uri: getImageUrl(serverUrl, album.coverSrc) }}
 						style={{

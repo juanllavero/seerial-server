@@ -1,5 +1,5 @@
 import { useServerStore } from '@/context/server.context'
-import React, { useState, useRef, useEffect, memo } from 'react'
+import React, { useState, useRef, memo } from 'react'
 import {
 	View,
 	StyleSheet,
@@ -47,17 +47,14 @@ const VideoThumbnail = ({
 
 	return (
 		<View style={[styles.container, style]}>
-			{/* El esqueleto se muestra solo durante la carga inicial */}
 			{/* {isLoading && <Skeleton style={styles.absoluteFill} />} */}
 
-			{/* Mensaje de error si la carga de la imagen falla */}
 			{hasError && (
 				<View style={[styles.absoluteFill, styles.errorContainer]}>
 					<Text style={styles.errorText}>Error al cargar</Text>
 				</View>
 			)}
 
-			{/* La imagen de la miniatura, inicialmente transparente */}
 			<Animated.Image
 				source={{ uri: thumbnailUrl }}
 				style={[{ opacity: opacityAnim, height, width: (16 / 9) * height }]}
@@ -73,9 +70,10 @@ const styles = StyleSheet.create({
 	container: {
 		width: '100%',
 		aspectRatio: 16 / 9,
-		backgroundColor: '#222', // Un color de fondo mientras carga
+		backgroundColor: 'transparent',
 		borderRadius: 12,
-		overflow: 'hidden', // Necesario para que el borderRadius afecte a la imagen
+		borderWidth: 4,
+		overflow: 'hidden',
 		justifyContent: 'center',
 		alignItems: 'center',
 	},

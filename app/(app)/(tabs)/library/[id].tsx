@@ -10,21 +10,11 @@ import { useEffect, useState } from 'react'
 import useDataStore from '@/context/data.context'
 import { shallow } from 'zustand/shallow'
 
-const CONTAINER_PADDING = 30 + 100 // p-5 + pl-44
 const NUM_COLUMNS = 7
 const ITEM_SPACING = 30
 
 export default function LibrariesScreen() {
 	const { id, serverIP, type } = useLocalSearchParams()
-	const { sidebarOpen, setCurrentBackground } = useDataStore(
-		(state) => ({
-			sidebarOpen: state.sidebarOpen,
-			setCurrentBackground: state.setCurrentBackground,
-		}),
-		shallow
-	)
-	const [selectedItem, setSelectedItem] = useState<string | null>(null)
-
 	const { width: screenWidth, height } = useWindowDimensions()
 
 	const { data: content, isLoading } = useSWR<LibraryItem[]>(
@@ -34,21 +24,8 @@ export default function LibrariesScreen() {
 		fetcher
 	)
 
-	useEffect(() => {
-		if (content && selectedItem) {
-			const item = content.find(
-				(item) => item.data && item.data.id === selectedItem
-			)
-
-			if (item) {
-				setCurrentBackground(
-					item.data.posterSrc ?? item.data.musicPosterSrc ?? ''
-				)
-			}
-		}
-	}, [selectedItem, content])
-
-	const availableWidth = screenWidth - CONTAINER_PADDING * 2
+	const containerPadding = height * 0.08
+	const availableWidth = screenWidth - containerPadding * 2
 	const totalWidthPerColumn = availableWidth / NUM_COLUMNS
 	const itemWidth = totalWidthPerColumn - ITEM_SPACING
 
@@ -59,7 +36,7 @@ export default function LibrariesScreen() {
 	return (
 		<View
 			className='flex-1 bg-black transition-all duration-300 ease-in-out'
-			style={{ paddingLeft: sidebarOpen ? height * 0.3 : height * 0.08 }}
+			style={{ paddingLeft: height * 0.08 }}
 		>
 			<FlatList
 				data={content}
@@ -83,8 +60,6 @@ export default function LibrariesScreen() {
 							imgSrc={
 								item.data.posterSrc ?? item.data.musicPosterSrc ?? ''
 							}
-							selectedItem={selectedItem}
-							setSelectedItem={setSelectedItem}
 							width={itemWidth}
 							aspectRatio={type === LibraryTypes.MUSIC ? 1 : 1.5}
 						/>

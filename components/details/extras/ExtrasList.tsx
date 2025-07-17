@@ -5,10 +5,11 @@ import HorizontalList from '@/components/lists/HorizontalList'
 import { fetcher } from '@/utils/utils'
 import useSWR from 'swr'
 import AppText from '@/components/text/AppText'
-import { Dimensions, FlatList, Pressable, View } from 'react-native'
+import { Dimensions, TouchableOpacity, View } from 'react-native'
 import VideoThumbnail from './VideoThumbnail'
 import Tertiary from '@/components/text/Tertiary'
-import Secondary from '@/components/text/Secondary'
+import { useState } from 'react'
+import ExtraVideo from './ExtraVideo'
 
 interface ExtrasListProps {
 	collection: Collection
@@ -16,31 +17,13 @@ interface ExtrasListProps {
 
 function ExtrasList({ collection }: ExtrasListProps) {
 	const serverUrl = useServerStore((state) => state.serverUrl)
+	const [itemFocused, setItemFocused] = useState<MusicExtra | null>(null)
 	const { height } = Dimensions.get('window')
 
 	const { data: extras, isLoading } = useSWR<MusicExtra[]>(
 		serverUrl !== '' ? `${serverUrl}/musicExtras/${collection.id}` : null,
 		fetcher
 	)
-
-	const getExtraTypeTranslation = (type: string) => {
-		switch (type) {
-			case 'lyrics':
-				return 'Lyrics Video'
-			case 'video':
-				return 'Music Video'
-			case 'behindTheScenes':
-				return 'Behind the scenes'
-			case 'live':
-				return 'Live'
-			case 'interview':
-				return 'Interview'
-			case 'concert':
-				return 'Concert'
-			default:
-				return ''
-		}
-	}
 
 	if (isLoading) return <AppText>Loading...</AppText>
 
@@ -50,22 +33,10 @@ function ExtrasList({ collection }: ExtrasListProps) {
 		<HorizontalList
 			title='Extras'
 			items={extras}
+			contentContainerStyle={{ padding: 15, gap: 35 }}
 			renderItem={({ item }) => (
-				<Pressable key={'Extra media ' + item.src} className='space-y-2'>
-					<VideoThumbnail
-						key={item.src}
-						height={height * 0.25}
-						videoUrl={`${serverUrl}/video-file?path=${item.src}`}
-					/>
-					<View className='flex flex-col'>
-						<Tertiary>{item.title}</Tertiary>
-						<Tertiary className='text-xl sm:text-md md:text-lg lg:text-xl'>
-							{getExtraTypeTranslation(item.type)}
-						</Tertiary>
-					</View>
-				</Pressable>
+				<ExtraVideo key={'Extra Video: ' + item.src} item={item} />
 			)}
-			contentContainerStyle={{ gap: 10 }}
 		/>
 	)
 }

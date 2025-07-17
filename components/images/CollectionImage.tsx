@@ -10,6 +10,7 @@ interface CollectionImageProps {
 	width: number
 	height: number
 	className?: string
+	style?: StyleSheet
 }
 
 const CollectionImage: React.FC<CollectionImageProps> = ({
@@ -18,6 +19,7 @@ const CollectionImage: React.FC<CollectionImageProps> = ({
 	width,
 	height,
 	className,
+	style,
 }) => {
 	const serverUrl = useServerStore((state) => state.serverUrl)
 	const imageCount = images.length
@@ -29,7 +31,7 @@ const CollectionImage: React.FC<CollectionImageProps> = ({
 				: require('@/assets/images/default/movie.jpg')
 
 		return (
-			<View className={className}>
+			<View className={className} style={{ borderRadius: 10, ...style }}>
 				<Image
 					source={defaultImageSource}
 					style={[styles.singleImage, { width, height, borderRadius: 10 }]}
@@ -43,7 +45,10 @@ const CollectionImage: React.FC<CollectionImageProps> = ({
 			<Image
 				source={{ uri: getImageUrl(serverUrl, images[0]) }}
 				className={className}
-				style={[styles.singleImage, { width, height, borderRadius: 10 }]}
+				style={[
+					styles.singleImage,
+					{ width, height, borderRadius: 10, ...style },
+				]}
 			/>
 		)
 	}
@@ -54,7 +59,7 @@ const CollectionImage: React.FC<CollectionImageProps> = ({
 	}
 
 	return (
-		<View className={className} style={{ borderRadius: 10 }}>
+		<View className={className} style={{ borderRadius: 10, ...style }}>
 			<View style={[styles.gridContainer, { width, height }]}>
 				{gridImages.map((uri, index) => (
 					<Image

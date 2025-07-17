@@ -136,7 +136,7 @@ const LRCVisualizer = () => {
 	if (isLoading) return <AppText>Loading...</AppText>
 
 	return (
-		<View className='p-x-[0.5rem] @container flex h-full bg-black flex-col gap-1 rounded-lg'>
+		<View className='p-x-[0.5rem] @container flex h-full flex-col gap-1 rounded-lg'>
 			{/* ---- COMPONENTE SCROLLVIEW MODIFICADO ---- */}
 			<ScrollView
 				ref={scrollViewRef}

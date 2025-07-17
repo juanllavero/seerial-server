@@ -1,10 +1,14 @@
 import * as React from 'react'
 import Svg, { SvgProps, Rect, Path } from 'react-native-svg'
 import { memo } from 'react'
-const MovieIcon = (props: SvgProps) => (
+const MovieIcon = ({
+	color,
+	size,
+	...props
+}: SvgProps & { color?: string; size?: number }) => (
 	<Svg
-		width={24}
-		height={24}
+		width={size ?? 24}
+		height={size ?? 24}
 		fill='none'
 		stroke='currentColor'
 		strokeLinecap='round'
@@ -13,8 +17,11 @@ const MovieIcon = (props: SvgProps) => (
 		className='lucide lucide-film-icon lucide-film'
 		{...props}
 	>
-		<Rect width={18} height={18} x={3} y={3} rx={2} />
-		<Path d='M7 3v18M3 7.5h4M3 12h18M3 16.5h4M17 3v18M17 7.5h4M17 16.5h4' />
+		<Rect color={color} width={18} height={18} x={3} y={3} rx={2} />
+		<Path
+			color={color}
+			d='M7 3v18M3 7.5h4M3 12h18M3 16.5h4M17 3v18M17 7.5h4M17 16.5h4'
+		/>
 	</Svg>
 )
 export default memo(MovieIcon)

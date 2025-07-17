@@ -35,13 +35,15 @@ function NavBar() {
 		}, 10)
 	}
 
+	const relativeSize = sidebarOpen ? height * 0.3 : height * 0.1
+
 	return (
 		<View
 			focusable
 			onFocus={handleFocus}
 			onBlur={handleBlur}
 			className={`transition-all duration-300 ease-in-out absolute top-0 z-999 h-screen justify-between items-start space-y-5  pt-5 ${sidebarOpen ? 'px-5' : ''}`}
-			style={{ width: sidebarOpen ? height * 0.3 : height * 0.08 }}
+			style={{ width: relativeSize }}
 		>
 			<Button
 				text={user?.name}
@@ -83,7 +85,7 @@ function NavBar() {
 						<Button
 							text='My List'
 							leftAlign
-							iconSize={35}
+							iconSize={24}
 							fullWidth
 							transparent
 							hideText={!sidebarOpen}
@@ -94,7 +96,7 @@ function NavBar() {
 						<Button
 							text='Home'
 							leftAlign
-							iconSize={35}
+							iconSize={24}
 							fullWidth
 							transparent
 							hideText={!sidebarOpen}
@@ -109,7 +111,7 @@ function NavBar() {
 					transparent
 					leftAlign
 					fullWidth
-					iconSize={35}
+					iconSize={24}
 					hideText={!sidebarOpen}
 					icon={SettingsIcon}
 				/>

@@ -95,11 +95,27 @@ function CollectionInfo({ collection, type }: CollectionInfoProps) {
 			) : (
 				<Image
 					source={
-						collectionImages && collectionImages.poster
-							? { uri: getImageUrl(serverUrl, collectionImages.poster) }
-							: type === LibraryTypes.MUSIC
-								? require('@/assets/images/default/music.png')
-								: require('@/assets/images/default/movie.jpg')
+						collectionImages &&
+						collectionImages.images &&
+						collectionImages.images.length === 1
+							? {
+									uri: getImageUrl(
+										serverUrl,
+										collectionImages.images[0]
+									),
+								}
+							: collectionImages &&
+								  collectionImages.poster &&
+								  collectionImages.poster !== ''
+								? {
+										uri: getImageUrl(
+											serverUrl,
+											collectionImages.poster
+										),
+									}
+								: type === LibraryTypes.MUSIC
+									? require('@/assets/images/default/music.png')
+									: require('@/assets/images/default/movie.jpg')
 					}
 					style={{
 						width: imageWidth,

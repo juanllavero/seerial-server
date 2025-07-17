@@ -37,7 +37,11 @@ function HorizontalList<T>({
 
 	return (
 		<View style={style} className='gap-5'>
-			{title && <Subtitle className='font-semibold'>{title}</Subtitle>}
+			{title && (
+				<Secondary className='font-semibold text-4xl sm:text-2xl md:text-3xl lg:text-4xl'>
+					{title}
+				</Secondary>
+			)}
 			<AnimatedFlatList
 				horizontal
 				showsHorizontalScrollIndicator={false}

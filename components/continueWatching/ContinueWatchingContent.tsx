@@ -139,8 +139,9 @@ function ContinueWatchingContent() {
 						data={continueWatching}
 						renderItem={({ item: element, index }) => (
 							<TouchableOpacity
-								onPress={() => setSelectedElement(element)}
-								accessible={true}
+								onFocus={() => setSelectedElement(element)}
+								focusable
+								style={{ outline: 'none' }}
 								className={`w-fit h-fit transition-all duration-150 ease-in-out border-4 border-transparent rounded-xl ${selectedElement === element ? ' border-white scale-105' : ''} `}
 								hasTVPreferredFocus={index === 0}
 							>

@@ -5,7 +5,7 @@ import { Collection, Movie, Series } from '@/data/interfaces/Media'
 import { Album } from '@/data/interfaces/Music'
 import { ContentType, CollectionKey } from '@/types/types'
 import { getOnlyYear } from '@/utils/utils'
-import React from 'react'
+import React, { useState } from 'react'
 import { Dimensions, View } from 'react-native'
 import ExtrasList from '../extras/ExtrasList'
 
@@ -31,18 +31,16 @@ function CollectionContent({ collection, type }: CollectionContentProps) {
 				key={'Albums List'}
 				title={'Albums'}
 				items={items}
+				contentContainerStyle={{ padding: 10, gap: 15 }}
 				renderItem={({ item }) => (
 					<LibraryItemCard
 						type={LibraryTypes.MUSIC}
 						id={item.id}
 						title={item.title}
+						updateImage={false}
 						subtitle={String(getOnlyYear(item.year ?? ''))}
 						imgSrc={item.coverSrc ?? ''}
-						width={height * 0.3}
-						selectedItem={null}
-						setSelectedItem={function (
-							value: React.SetStateAction<string | null>
-						): void {}}
+						width={height * 0.25}
 					/>
 				)}
 			/>
@@ -52,18 +50,16 @@ function CollectionContent({ collection, type }: CollectionContentProps) {
 				key={'Movies List'}
 				title={'Movies'}
 				items={items}
+				contentContainerStyle={{ padding: 10, gap: 15 }}
 				renderItem={({ item }) => (
 					<LibraryItemCard
 						type={LibraryTypes.MOVIES}
 						id={item.id}
 						title={item.name}
+						updateImage={false}
 						subtitle={String(getOnlyYear(item.year ?? ''))}
 						imgSrc={item.coverSrc ?? ''}
-						width={height * 0.3}
-						selectedItem={null}
-						setSelectedItem={function (
-							value: React.SetStateAction<string | null>
-						): void {}}
+						width={height * 0.25}
 					/>
 				)}
 			/>
@@ -73,18 +69,16 @@ function CollectionContent({ collection, type }: CollectionContentProps) {
 				key={'Shows List'}
 				title={'Shows'}
 				items={items}
+				contentContainerStyle={{ padding: 10, gap: 15 }}
 				renderItem={({ item }) => (
 					<LibraryItemCard
 						type={LibraryTypes.SHOWS}
 						id={item.id}
 						title={item.name}
+						updateImage={false}
 						subtitle={String(getOnlyYear(item.year ?? ''))}
 						imgSrc={item.coverSrc ?? ''}
-						width={height * 0.3}
-						selectedItem={null}
-						setSelectedItem={function (
-							value: React.SetStateAction<string | null>
-						): void {}}
+						width={height * 0.25}
 					/>
 				)}
 			/>

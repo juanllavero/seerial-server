@@ -8,7 +8,7 @@ import { LibraryTypes } from '@/data/enums/LibraryTypes'
 import { getImageUrl } from '@/utils/utils'
 import { useLocalSearchParams } from 'expo-router'
 import React from 'react'
-import { Dimensions, ScrollView, View } from 'react-native'
+import { Dimensions, View } from 'react-native'
 import Animated from 'react-native-reanimated'
 import { shallow } from 'zustand/shallow'
 

@@ -1,5 +1,5 @@
 import React, { memo, useCallback, useState } from 'react' // --> 1. Importar useState
-import { Image, Pressable, View } from 'react-native'
+import { Image, Pressable, TouchableOpacity, View } from 'react-native'
 import Tertiary from '../text/Tertiary'
 import { useServerStore } from '@/context/server.context'
 import { fetcher, getImageUrl } from '@/utils/utils'
@@ -9,6 +9,7 @@ import useSWR from 'swr'
 import { CollectionImages } from '@/data/interfaces/Media'
 import CollectionImage from '../images/CollectionImage'
 import { Link } from 'expo-router'
+import useDataStore from '@/context/data.context'
 
 interface LibraryItemCardProps {
 	type: string
@@ -18,10 +19,9 @@ interface LibraryItemCardProps {
 	imgSrc: string
 	width: number
 	aspectRatio?: number
+	updateImage?: boolean
 	link?: string
 	isCollection?: boolean
-	selectedItem: string | null
-	setSelectedItem: React.Dispatch<React.SetStateAction<string | null>>
 }
 
 function LibraryItemCard({
@@ -32,13 +32,16 @@ function LibraryItemCard({
 	imgSrc,
 	width,
 	aspectRatio,
+	updateImage = true,
 	link,
-	selectedItem,
-	setSelectedItem,
 	isCollection = false,
 }: LibraryItemCardProps) {
 	const serverUrl = useServerStore((state) => state.serverUrl)
+	const [isFocused, setIsFocused] = useState<boolean>(false)
 	const [isTitleOverflowing, setIsTitleOverflowing] = useState(false)
+	const setCurrentBackground = useDataStore(
+		(state) => state.setCurrentBackground
+	)
 
 	const { data: collectionImages } = useSWR<CollectionImages>(
 		serverUrl && isCollection
@@ -63,10 +66,13 @@ function LibraryItemCard({
 
 	return (
 		<View
-			style={{ width, overflow: 'hidden' }}
-			className={`items-center transition-all duration-150 ease-in-out ${
-				selectedItem === id ? 'scale-105' : ''
-			}`}
+			style={{
+				width,
+				overflow: 'hidden',
+				outline: 'none',
+				transform: isFocused ? 'scale(1.05)' : 'scale(1)',
+			}}
+			className={`items-center transition-all duration-150 ease-in-out`}
 		>
 			<Link
 				asChild
@@ -79,9 +85,16 @@ function LibraryItemCard({
 					},
 				}}
 			>
-				<Pressable
+				<TouchableOpacity
+					focusable
 					className='flex flex-col items-center'
-					onPress={() => setSelectedItem(id)}
+					onFocus={() => {
+						setIsFocused(true)
+
+						if (updateImage) setCurrentBackground(imageSrc ?? '')
+					}}
+					style={{ outline: 'none' }}
+					onBlur={() => setIsFocused(false)}
 				>
 					{(!url || url === '') &&
 					collectionImages &&
@@ -92,7 +105,7 @@ function LibraryItemCard({
 							type={type}
 							width={width - 8}
 							className={`border-4 border-transparent transition-all duration-150 ease-in-out ${
-								selectedItem === id ? 'border-white' : ''
+								isFocused ? 'border-white' : ''
 							}`}
 							height={width * (aspectRatio || 1) - 8}
 						/>
@@ -105,13 +118,12 @@ function LibraryItemCard({
 										? require('@/assets/images/default/music.png')
 										: require('@/assets/images/default/movie.jpg')
 							}
-							className={`border-4 border-transparent transition-all duration-150 ease-in-out ${
-								selectedItem === id ? 'border-white' : ''
-							}`}
+							className={`border-4 border-transparent transition-all duration-150 ease-in-out`}
 							style={{
 								width,
 								height: width * (aspectRatio || 1),
 								borderRadius: 10,
+								borderColor: isFocused ? 'white' : 'transparent',
 							}}
 						/>
 					)}
@@ -125,7 +137,7 @@ function LibraryItemCard({
 						{title}
 					</Tertiary>
 
-					{selectedItem === id && !isTitleOverflowing ? (
+					{isFocused && !isTitleOverflowing ? (
 						<Marquee spacing={100} speed={0.4}>
 							<Tertiary className='truncate text-center'>
 								{title}
@@ -140,7 +152,7 @@ function LibraryItemCard({
 					<Tertiary className='line-clamp-1 text-center text-xl sm:text-md md:text-lg lg:text-xl'>
 						{subtitle}
 					</Tertiary>
-				</Pressable>
+				</TouchableOpacity>
 			</Link>
 		</View>
 	)

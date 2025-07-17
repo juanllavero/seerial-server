@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
 	},
 	shadow: {
 		textShadowColor: 'black',
-		textShadowOffset: { width: -1, height: 1 },
+		textShadowOffset: { width: 0, height: 0 },
 		textShadowRadius: 10,
 	},
 })

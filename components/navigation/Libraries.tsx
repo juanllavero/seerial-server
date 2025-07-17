@@ -2,6 +2,7 @@ import { useServerStore } from '@/context/server.context'
 import { fetcher } from '@/utils/utils'
 import React from 'react'
 import {
+	Dimensions,
 	FlatList,
 	Pressable,
 	ScrollView,
@@ -17,6 +18,7 @@ import { LibraryTypes } from '@/data/enums/LibraryTypes'
 import SeriesIcon from '../svg/SeriesIcon'
 import MusicIcon from '../svg/MusicIcon'
 import MovieIcon from '../svg/MovieIcon'
+import useDataStore from '@/context/data.context'
 
 interface LibrariesProps {
 	isExpanded: boolean
@@ -24,6 +26,8 @@ interface LibrariesProps {
 
 function Libraries({ isExpanded }: LibrariesProps) {
 	const serverUrl = useServerStore((state) => state.serverUrl)
+	const { height } = Dimensions.get('screen')
+
 	const { data: libraries } = useSWR<Library[]>(
 		serverUrl ? `${serverUrl}/libraries` : null,
 		fetcher
@@ -55,7 +59,7 @@ function Libraries({ isExpanded }: LibrariesProps) {
 						text={item.name}
 						transparent
 						leftAlign
-						iconSize={35}
+						iconSize={24}
 						fullWidth
 						hideText={!isExpanded}
 						icon={
