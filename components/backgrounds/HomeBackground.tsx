@@ -1,8 +1,9 @@
 import { useServerStore } from '@/context/server.context'
 import { getImageUrl } from '@/utils/utils'
-import React, { memo, useState, useEffect, useRef } from 'react'
-import { Dimensions, View, Animated } from 'react-native'
+import React, { memo, useState, useEffect } from 'react'
+import { Dimensions, View } from 'react-native'
 import ColorGradient from './ColorGradient'
+import OptimizedImage from '../images/OptimizedImage'
 
 interface HomeBackgroundProps {
 	background: string
@@ -17,9 +18,9 @@ function HomeBackground({ background }: HomeBackgroundProps) {
 	useEffect(() => {
 		if (background) {
 			setProcessedImageUrl('')
+			setUrl(getImageUrl(serverUrl, background))
 
 			const timeout = setTimeout(() => {
-				setUrl(getImageUrl(serverUrl, background))
 				setProcessedImageUrl(
 					`${serverUrl}/transparent-image-effect?${background.startsWith('http') ? `url=${encodeURIComponent(background)}` : `localPath=${background}`}&width=${imageWidth}&height=${imageHeight}`
 				)
@@ -35,34 +36,24 @@ function HomeBackground({ background }: HomeBackgroundProps) {
 	const imageWidth = width * 0.55
 	const imageHeight = (9 / 16) * imageWidth
 
-	const [imageLoaded, setImageLoaded] = useState(false)
-
-	const opacityAnim = useRef(new Animated.Value(0)).current
-
-	useEffect(() => {
-		if (imageLoaded) {
-			Animated.timing(opacityAnim, {
-				toValue: 0.8,
-				duration: 500,
-				useNativeDriver: true,
-			}).start()
-		}
-	}, [imageLoaded, opacityAnim])
-
 	return (
 		<View className='absolute top-0 w-screen flex-row h-screen items-start justify-end'>
-			<ColorGradient showGradient imageSrc={url} />
+			{/* <ColorGradient showGradient imageSrc={url} /> */}
 
-			<Animated.Image
-				source={{ uri: processedImageUrl }}
-				resizeMode='cover'
-				onLoad={() => setImageLoaded(true)}
-				style={{
-					width: imageWidth,
-					height: imageHeight,
-					opacity: opacityAnim,
-				}}
-			/>
+			{processedImageUrl && processedImageUrl !== '' && (
+				<OptimizedImage
+					source={
+						processedImageUrl && processedImageUrl !== ''
+							? { uri: processedImageUrl }
+							: undefined
+					}
+					resizeMode='cover'
+					style={{
+						width: imageWidth,
+						height: imageHeight,
+					}}
+				/>
+			)}
 		</View>
 	)
 }

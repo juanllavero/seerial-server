@@ -1,14 +1,7 @@
-import React, { useEffect, useRef } from 'react'
-import {
-	StyleSheet,
-	View,
-	Animated,
-	Easing,
-	Dimensions,
-	ImageBackground,
-} from 'react-native'
+import React, { memo, useEffect, useRef } from 'react'
+import { StyleSheet, View, Animated, Easing, Dimensions } from 'react-native'
 import { useServerStore } from '@/context/server.context'
-import BlurEffect from './blur/BlurEffect.web'
+import OptimizedImage from '../images/OptimizedImage'
 
 interface MusicGradientProps {
 	imageUrl: string
@@ -56,7 +49,7 @@ const MusicGradient: React.FC<MusicGradientProps> = ({ imageUrl }) => {
 	return (
 		<View style={styles.container}>
 			{/* 1. Imagen base de fondo */}
-			<ImageBackground
+			<OptimizedImage
 				source={{ uri: url }}
 				style={styles.baseImage}
 				resizeMode='cover'
@@ -77,11 +70,10 @@ const MusicGradient: React.FC<MusicGradientProps> = ({ imageUrl }) => {
 						animatedStyle,
 					]}
 				>
-					<ImageBackground
+					<OptimizedImage
 						source={{ uri: url }}
-						style={StyleSheet.absoluteFill}
+						style={(StyleSheet.absoluteFill, styles.imageStyle)}
 						resizeMode='cover'
-						imageStyle={styles.imageStyle}
 					/>
 				</Animated.View>
 				<Animated.View
@@ -96,11 +88,10 @@ const MusicGradient: React.FC<MusicGradientProps> = ({ imageUrl }) => {
 						animatedStyle,
 					]}
 				>
-					<ImageBackground
+					<OptimizedImage
 						source={{ uri: url }}
-						style={StyleSheet.absoluteFill}
+						style={(StyleSheet.absoluteFill, styles.imageStyle)}
 						resizeMode='cover'
-						imageStyle={styles.imageStyle}
 					/>
 				</Animated.View>
 				<Animated.View
@@ -117,11 +108,10 @@ const MusicGradient: React.FC<MusicGradientProps> = ({ imageUrl }) => {
 						animatedStyle,
 					]}
 				>
-					<ImageBackground
+					<OptimizedImage
 						source={{ uri: url }}
-						style={StyleSheet.absoluteFill}
+						style={(StyleSheet.absoluteFill, styles.imageStyle)}
 						resizeMode='cover'
-						imageStyle={styles.imageStyle}
 					/>
 				</Animated.View>
 				<Animated.View
@@ -136,11 +126,10 @@ const MusicGradient: React.FC<MusicGradientProps> = ({ imageUrl }) => {
 						animatedStyle,
 					]}
 				>
-					<ImageBackground
+					<OptimizedImage
 						source={{ uri: url }}
-						style={StyleSheet.absoluteFill}
+						style={(StyleSheet.absoluteFill, styles.imageStyle)}
 						resizeMode='cover'
-						imageStyle={styles.imageStyle}
 					/>
 				</Animated.View>
 				<Animated.View
@@ -155,23 +144,22 @@ const MusicGradient: React.FC<MusicGradientProps> = ({ imageUrl }) => {
 						animatedStyle,
 					]}
 				>
-					<ImageBackground
+					<OptimizedImage
 						source={{ uri: url }}
-						style={StyleSheet.absoluteFill}
+						style={(StyleSheet.absoluteFill, styles.imageStyle)}
 						resizeMode='cover'
-						imageStyle={styles.imageStyle}
 					/>
 				</Animated.View>
 			</View>
 
 			{/* 3. Capa de desenfoque y brillo */}
-			<BlurEffect
+			{/* <BlurEffect
 				style={styles.blurOverlay}
 				blurType='dark'
 				blurAmount={100}
 			>
 				<View style={styles.brightnessOverlay} />
-			</BlurEffect>
+			</BlurEffect> */}
 		</View>
 	)
 }
@@ -216,4 +204,4 @@ const styles = StyleSheet.create({
 	},
 })
 
-export default MusicGradient
+export default memo(MusicGradient)

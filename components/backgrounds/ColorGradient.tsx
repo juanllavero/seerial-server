@@ -1,147 +1,142 @@
 import { useServerStore } from '@/context/server.context'
 import { LinearGradient } from 'expo-linear-gradient'
-import React, { useEffect, useState, useRef } from 'react'
-import { View, StyleSheet, Animated } from 'react-native'
+import React, { memo, useEffect, useRef, useState } from 'react'
+import { Animated, StyleSheet, View } from 'react-native'
 
-interface GradientBackgroundProps {
-	showGradient?: boolean
-	imageSrc?: string
-}
+// --- Componente GradientStack (sin cambios) ---
+const cornerVectors = [
+	{ start: { x: 0, y: 1 }, end: { x: 1, y: 0 } },
+	{ start: { x: 1, y: 1 }, end: { x: 0, y: 0 } },
+	{ start: { x: 1, y: 0 }, end: { x: 0, y: 1 } },
+	{ start: { x: 0, y: 0 }, end: { x: 1, y: 1 } },
+]
 
-// Componente interno para renderizar la pila de gradientes (VERSIÓN CORREGIDA)
-const GradientStack = ({ colors }: { colors: string[] }) => {
+const GradientStack = memo(({ colors }: { colors: string[] }) => {
 	if (colors.length < 4) {
-		return (
-			<View style={[styles.absoluteFill, { backgroundColor: 'black' }]} />
-		)
+		return null
 	}
-
-	// ✅ CORRECCIÓN: Definimos las posiciones de inicio y fin para cada gradiente LINEAL
-	// para que se comporte como un gradiente de esquina a esquina opuesta.
-	const cornerVectors = [
-		// De inferior-izquierda (0,1) a superior-derecha (1,0)
-		{ start: { x: 0, y: 1 }, end: { x: 1, y: 0 } },
-		// De inferior-derecha (1,1) a superior-izquierda (0,0)
-		{ start: { x: 1, y: 1 }, end: { x: 0, y: 0 } },
-		// De superior-derecha (1,0) a inferior-izquierda (0,1)
-		{ start: { x: 1, y: 0 }, end: { x: 0, y: 1 } },
-		// De superior-izquierda (0,0) a inferior-derecha (1,1)
-		{ start: { x: 0, y: 0 }, end: { x: 1, y: 1 } },
-	]
-
 	return (
-		<View style={styles.absoluteFill}>
-			{/* Fondo negro base */}
-			<View style={[styles.absoluteFill, { backgroundColor: 'black' }]} />
-
-			{/* Renderizamos los 4 gradientes lineales en diagonal */}
+		<>
 			{cornerVectors.map((vectors, index) => (
 				<LinearGradient
 					key={index}
 					colors={[colors[index], 'transparent']}
-					// Usamos las props correctas: start y end
 					start={vectors.start}
 					end={vectors.end}
 					style={styles.absoluteFill}
 				/>
 			))}
-		</View>
+		</>
 	)
+})
+
+// --- Componente principal con la lógica de Debounce ---
+interface GradientBackgroundProps {
+	showGradient?: boolean
+	imageSrc?: string
 }
 
-const GradientBackground = ({
+const GradientBackground = memo(function GradientBackground({
 	showGradient = true,
 	imageSrc,
-}: GradientBackgroundProps) => {
-	// const serverUrl = useServerStore((state) => state.serverUrl);
+}: GradientBackgroundProps) {
 	const serverUrl = useServerStore((state) => state.serverUrl)
+	const [currentColors, setCurrentColors] = useState<string[]>([])
+	const [previousColors, setPreviousColors] = useState<string[]>([])
+	const fadeAnim = useRef(new Animated.Value(0)).current
 
-	// Usamos un estado para almacenar los dos sets de colores para la transición
-	const [colors, setColors] = useState<string[][]>([[], []])
-	const [activeIndex, setActiveIndex] = useState(0)
+	// ✨ Ref para guardar el identificador del temporizador del debounce
+	const debounceTimer = useRef<number | null>(null)
 
-	// Usamos la API Animated para controlar las opacidades de los dos "buffers"
-	const opacityAnims = useRef([
-		new Animated.Value(0),
-		new Animated.Value(0),
-	]).current
-
+	// 1. Efecto para obtener los colores con Debounce
 	useEffect(() => {
-		if (!showGradient || !imageSrc) {
-			// Si no hay imagen, fundimos a negro
-			Animated.timing(opacityAnims[activeIndex], {
-				toValue: 0,
-				duration: 700,
-				useNativeDriver: true, // Importante para el rendimiento
-			}).start()
-			return
+		// Cancela cualquier temporizador pendiente anterior.
+		// Esto es clave: si imageSrc cambia rápidamente, la actualización anterior nunca se ejecuta.
+		if (debounceTimer.current) {
+			clearTimeout(debounceTimer.current)
 		}
 
-		const fetchAndAnimateGradient = async () => {
+		// Inicia un nuevo temporizador. La lógica solo se ejecutará si pasan 300ms
+		// sin que este efecto se vuelva a disparar (es decir, sin que imageSrc cambie).
+		debounceTimer.current = setTimeout(async () => {
+			if (!showGradient || !imageSrc || !serverUrl) {
+				setPreviousColors(currentColors)
+				setCurrentColors([])
+				return
+			}
+
 			try {
 				const response = await fetch(
-					`${serverUrl}/image-colors?${imageSrc.startsWith('http') ? `url=${imageSrc}` : `localPath=${imageSrc}`}`
+					`${serverUrl}/image-colors?${
+						imageSrc.startsWith('http')
+							? `url=${encodeURIComponent(imageSrc)}`
+							: `localPath=${imageSrc}`
+					}`
 				)
 				const data = await response.json()
 
 				if (data.colors && data.colors.length >= 4) {
-					// El índice del buffer que está oculto y que vamos a actualizar
-					const newIndex = (activeIndex + 1) % 2
-
-					// Actualizamos el array de colores con los nuevos valores en el buffer oculto
-					const newColors = [...colors]
-					newColors[newIndex] = data.colors
-					setColors(newColors)
-
-					// Iniciamos la animación de fundido cruzado (crossfade)
-					Animated.parallel([
-						// El buffer antiguo se desvanece
-						Animated.timing(opacityAnims[activeIndex], {
-							toValue: 0,
-							duration: 700,
-							useNativeDriver: true,
-						}),
-						// El nuevo buffer aparece
-						Animated.timing(opacityAnims[newIndex], {
-							toValue: 1,
-							duration: 700,
-							useNativeDriver: true,
-						}),
-					]).start(() => {
-						// Cuando la animación termina, actualizamos el índice activo
-						setActiveIndex(newIndex)
-					})
+					setPreviousColors(currentColors)
+					setCurrentColors(data.colors)
 				}
 			} catch (error) {
 				console.error('Error fetching gradient:', error)
 			}
-		}
+		}, 300) // 👈 Tiempo de espera en milisegundos. ¡Puedes ajustarlo!
 
-		fetchAndAnimateGradient()
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [showGradient, imageSrc]) // El efecto se dispara cuando cambia la imagen
+		// Función de limpieza: se ejecuta si el componente se desmonta.
+		// Asegura que no queden temporizadores activos que puedan causar errores.
+		return () => {
+			if (debounceTimer.current) {
+				clearTimeout(debounceTimer.current)
+			}
+		}
+	}, [imageSrc, showGradient, serverUrl, currentColors]) // Añadimos currentColors por ser usado en el closure
+
+	// 2. Efecto para la animación (sin cambios)
+	useEffect(() => {
+		fadeAnim.setValue(0)
+		Animated.timing(fadeAnim, {
+			toValue: 1,
+			duration: 1200,
+			useNativeDriver: true,
+		}).start()
+	}, [currentColors])
 
 	return (
 		<View style={styles.container}>
-			{/* Renderizamos los dos "buffers" de gradiente. Uno siempre estará visible y el otro oculto. */}
-			{colors.map((colorSet, i) => (
+			{/* Fondo Anterior */}
+			{previousColors.length > 0 && (
 				<Animated.View
-					key={i}
-					style={[styles.absoluteFill, { opacity: opacityAnims[i] }]}
+					style={[
+						styles.absoluteFill,
+						{
+							opacity: fadeAnim.interpolate({
+								inputRange: [0, 1],
+								outputRange: [1, 0],
+							}),
+						},
+					]}
 				>
-					<GradientStack colors={colorSet} />
+					<GradientStack colors={previousColors} />
 				</Animated.View>
-			))}
+			)}
+
+			{/* Fondo Nuevo */}
+			{currentColors.length > 0 && (
+				<Animated.View style={[styles.absoluteFill, { opacity: fadeAnim }]}>
+					<GradientStack colors={currentColors} />
+				</Animated.View>
+			)}
 		</View>
 	)
-}
+})
 
+// --- Estilos (sin cambios) ---
 const styles = StyleSheet.create({
 	container: {
 		...StyleSheet.absoluteFillObject,
-		zIndex: -1, // Se asegura de que el fondo esté siempre detrás de otros contenidos
-		overflow: 'hidden',
-		backgroundColor: 'black', // Fondo por defecto mientras carga
+		backgroundColor: 'black',
 	},
 	absoluteFill: {
 		...StyleSheet.absoluteFillObject,

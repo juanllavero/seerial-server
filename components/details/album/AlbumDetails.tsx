@@ -1,11 +1,12 @@
 import { useServerStore } from '@/context/server.context'
 import { Album } from '@/data/interfaces/Music'
 import { fetcher, getImageUrl } from '@/utils/utils'
-import React from 'react'
-import { Animated, Dimensions, ScrollView, View } from 'react-native'
+import React, { memo } from 'react'
+import { Dimensions, ScrollView, View } from 'react-native'
 import useSWR from 'swr'
 import AlbumInfo from './AlbumInfo'
 import SongsList from './SongsList'
+import OptimizedImage from '@/components/images/OptimizedImage'
 
 interface AlbumDetailsProps {
 	id: string
@@ -24,7 +25,7 @@ function AlbumDetails({ id }: AlbumDetailsProps) {
 
 	return (
 		<View className='flex-row h-screen pt-20 pl-10 gap-0'>
-			<Animated.Image
+			<OptimizedImage
 				source={{ uri: getImageUrl(serverUrl, album.coverSrc ?? '') }}
 				style={{
 					width: width * 0.3,
@@ -35,16 +36,16 @@ function AlbumDetails({ id }: AlbumDetailsProps) {
 				}}
 			/>
 
-			<ScrollView
-				className='px-20 pb-20'
-				showsHorizontalScrollIndicator={false}
-				contentContainerStyle={{ gap: 40 }}
+			<View
+				className='px-20 pb-20 gap-10'
+				// showsHorizontalScrollIndicator={false}
+				// contentContainerStyle={{ gap: 40 }}
 			>
 				<AlbumInfo album={album} isLoading={isLoading} />
 				<SongsList album={album} />
-			</ScrollView>
+			</View>
 		</View>
 	)
 }
 
-export default AlbumDetails
+export default memo(AlbumDetails)

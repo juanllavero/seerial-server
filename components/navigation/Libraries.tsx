@@ -1,79 +1,70 @@
 import { useServerStore } from '@/context/server.context'
 import { fetcher } from '@/utils/utils'
-import React from 'react'
-import {
-	Dimensions,
-	FlatList,
-	Pressable,
-	ScrollView,
-	TouchableOpacity,
-	View,
-} from 'react-native'
+import React, { memo, useCallback } from 'react'
 import useSWR from 'swr'
-import Tertiary from '../text/Tertiary'
-import { Link } from 'expo-router'
+import { router } from 'expo-router'
 import { Library } from '@/data/interfaces/Media'
-import Button from '../buttons/Button'
+import Button from '../buttons/NavBarButton'
 import { LibraryTypes } from '@/data/enums/LibraryTypes'
-import SeriesIcon from '../svg/SeriesIcon'
-import MusicIcon from '../svg/MusicIcon'
-import MovieIcon from '../svg/MovieIcon'
 import useDataStore from '@/context/data.context'
+import { shallow } from 'zustand/shallow'
+import { scaledPixels } from '@/hooks/useScale'
+import { FilmIcon, Music, TvMinimal } from 'lucide-react-native'
 
-interface LibrariesProps {
-	isExpanded: boolean
-}
-
-function Libraries({ isExpanded }: LibrariesProps) {
+function Libraries() {
+	const { sidebarOpen, setSidebarOpen } = useDataStore(
+		(state) => ({
+			sidebarOpen: state.sidebarOpen,
+			setSidebarOpen: state.setSidebarOpen,
+		}),
+		shallow
+	)
 	const serverUrl = useServerStore((state) => state.serverUrl)
-	const { height } = Dimensions.get('screen')
 
 	const { data: libraries } = useSWR<Library[]>(
 		serverUrl ? `${serverUrl}/libraries` : null,
 		fetcher
 	)
 
-	if (!libraries) {
+	const handlePress = useCallback(
+		(item: Library) => {
+			setSidebarOpen(false)
+			router.push({
+				pathname: '/library/[id]',
+				params: {
+					id: item.id,
+					serverIP: serverUrl,
+					type: item.type,
+				},
+			})
+		},
+		[serverUrl]
+	)
+
+	if (!libraries || libraries.length === 0) {
 		return null
 	}
 
 	return (
-		<FlatList
-			data={libraries}
-			scrollEnabled={false}
-			className='w-full'
-			keyExtractor={(item, index) => item.id + index}
-			renderItem={({ item }) => (
-				<Link
-					asChild
-					href={{
-						pathname: '/library/[id]',
-						params: {
-							id: item.id,
-							serverIP: serverUrl,
-							type: item.type,
-						},
-					}}
-				>
-					<Button
-						text={item.name}
-						transparent
-						leftAlign
-						iconSize={24}
-						fullWidth
-						hideText={!isExpanded}
-						icon={
-							item.type === LibraryTypes.SHOWS
-								? SeriesIcon
-								: item.type === LibraryTypes.MUSIC
-									? MusicIcon
-									: MovieIcon
-						}
-					/>
-				</Link>
-			)}
-		/>
+		<>
+			{libraries.map((library) => (
+				<Button
+					text={library.name}
+					key={library.id}
+					iconSize={scaledPixels(70)}
+					onPress={() => handlePress(library)}
+					hideText={!sidebarOpen}
+					icon={
+						library.type === LibraryTypes.SHOWS
+							? TvMinimal
+							: library.type === LibraryTypes.MUSIC
+								? Music
+								: FilmIcon
+					}
+				/>
+			))}
+		</>
 	)
 }
 
-export default Libraries
+export default memo(Libraries)

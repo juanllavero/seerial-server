@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { memo } from 'react'
 import AppText from './AppText'
 
 interface AppTextProps {
@@ -17,7 +17,7 @@ const Secondary = ({
 }: AppTextProps) => {
 	return (
 		<AppText
-			className={`${className} font-medium text-3xl sm:text-xl md:text-2xl lg:text-3xl text-neutral-200`}
+			className={`${className} font-medium text-[2.5vh] text-neutral-200`}
 			style={style}
 			noShadow
 			{...props}
@@ -27,4 +27,4 @@ const Secondary = ({
 	)
 }
 
-export default Secondary
+export default memo(Secondary)

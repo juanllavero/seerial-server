@@ -1,11 +1,16 @@
-import React from 'react'
-import { TouchableOpacity, View } from 'react-native'
+import React, { memo } from 'react'
+import { View } from 'react-native'
 import Secondary from '../text/Secondary'
 import Tertiary from '../text/Tertiary'
+import {
+	SpatialNavigationFocusableView,
+	SpatialNavigationNode,
+} from 'react-tv-space-navigation'
 
 interface ButtonProps {
 	icon?: React.ComponentType<{ [key: string]: any }> | React.ReactElement
 	iconSize?: number
+	ref?: any
 	text?: string
 	color?: string
 	leftAlign?: boolean
@@ -18,8 +23,9 @@ interface ButtonProps {
 
 function Button({
 	icon,
-	iconSize = 30,
+	iconSize = 20,
 	text,
+	ref,
 	color,
 	textSmall,
 	leftAlign,
@@ -28,55 +34,65 @@ function Button({
 	transparent,
 	onPress,
 }: ButtonProps) {
-	const [isFocused, setIsFocused] = React.useState(false)
 	const Icon = icon
 	return (
-		<TouchableOpacity
-			focusable={true}
-			onFocus={() => setIsFocused(true)}
-			onBlur={() => setIsFocused(false)}
-			onPress={onPress}
-			style={{
-				backgroundColor: isFocused
-					? 'white'
-					: transparent
-						? 'transparent'
-						: '',
-				transform: isFocused && !textSmall ? 'scale(1.05)' : 'scale(1)',
-				width: fullWidth ? '100%' : 'auto',
-				outline: 'none',
-			}}
-			className={`rounded-md bg-neutral-600/80  py-5 ${text && !textSmall ? 'px-10' : 'px-5'}`}
-		>
-			<View
-				className={`flex-row items-center gap-5 ${leftAlign ? 'justify-start' : 'justify-center'}`}
-			>
-				{Icon &&
-					(React.isValidElement(Icon) ? (
-						Icon
-					) : (
-						<Icon size={iconSize} color={isFocused ? 'black' : 'white'} />
-					))}
-				{text &&
-					!hideText &&
-					(textSmall ? (
-						<Tertiary
-							noShadow
-							className={`truncate ${isFocused ? 'text-black' : 'text-white'}`}
+		<SpatialNavigationNode>
+			<SpatialNavigationFocusableView ref={ref} onSelect={onPress}>
+				{({ isFocused }) => (
+					<View
+						style={{
+							backgroundColor: isFocused
+								? 'white'
+								: transparent
+									? 'transparent'
+									: '#2b2b2b',
+							transform:
+								isFocused && !textSmall && !transparent
+									? [{ scale: 1.05 }]
+									: [{ scale: 1 }],
+							opacity: isFocused && !transparent ? 1 : 0.8,
+							width: fullWidth ? '100%' : 'auto',
+							outline: 'none',
+						}}
+						className={`rounded-md py-2  justify-center ${text && !transparent ? 'px-10' : 'px-5'}`}
+					>
+						<View
+							className={`flex-row items-center gap-3 ${leftAlign ? 'justify-start' : 'justify-center'}`}
 						>
-							{text}
-						</Tertiary>
-					) : (
-						<Secondary
-							noShadow
-							className={`truncate ${isFocused ? 'text-black' : 'text-white'}`}
-						>
-							{text}
-						</Secondary>
-					))}
-			</View>
-		</TouchableOpacity>
+							{Icon &&
+								(React.isValidElement(Icon) ? (
+									Icon
+								) : (
+									<Icon
+										size={iconSize}
+										color={isFocused ? 'black' : 'white'}
+									/>
+								))}
+							{text &&
+								!hideText &&
+								(textSmall ? (
+									<Tertiary
+										noShadow
+										style={{ color: isFocused ? 'black' : 'white' }}
+										className={`truncate`}
+									>
+										{text}
+									</Tertiary>
+								) : (
+									<Secondary
+										noShadow
+										style={{ color: isFocused ? 'black' : 'white' }}
+										className={`truncate`}
+									>
+										{text}
+									</Secondary>
+								))}
+						</View>
+					</View>
+				)}
+			</SpatialNavigationFocusableView>
+		</SpatialNavigationNode>
 	)
 }
 
-export default Button
+export default memo(Button)

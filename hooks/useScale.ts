@@ -1,6 +1,8 @@
-import { Platform, useWindowDimensions } from 'react-native';
+import { create } from 'react-native-pixel-perfect'
 
-export function useScale(): number {
-  const { width } = useWindowDimensions();
-  return Platform.isTV ? width / 1000 : 1;
+const designResolution = {
+	width: 3840,
+	height: 2160,
 }
+
+export const scaledPixels = create(designResolution)

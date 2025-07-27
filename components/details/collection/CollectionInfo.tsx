@@ -1,6 +1,5 @@
 import CollectionImage from '@/components/images/CollectionImage'
-import Secondary from '@/components/text/Secondary'
-import Subtitle from '@/components/text/Subtitle'
+import OptimizedImage from '@/components/images/OptimizedImage'
 import Tertiary from '@/components/text/Tertiary'
 import Title from '@/components/text/Title'
 import useDataStore from '@/context/data.context'
@@ -8,8 +7,8 @@ import { useServerStore } from '@/context/server.context'
 import { LibraryTypes } from '@/data/enums/LibraryTypes'
 import { Collection, CollectionImages } from '@/data/interfaces/Media'
 import { fetcher, getImageUrl } from '@/utils/utils'
-import React, { use, useEffect } from 'react'
-import { Dimensions, Image, View } from 'react-native'
+import React, { memo, useMemo, useEffect } from 'react'
+import { Dimensions, View } from 'react-native'
 import useSWR from 'swr'
 
 interface CollectionInfoProps {
@@ -17,7 +16,10 @@ interface CollectionInfoProps {
 	type: string
 }
 
-function CollectionInfo({ collection, type }: CollectionInfoProps) {
+const CollectionInfo = memo(function CollectionInfo({
+	collection,
+	type,
+}: CollectionInfoProps) {
 	const serverUrl = useServerStore((state) => state.serverUrl)
 	const setCurrentBackground = useDataStore(
 		(state) => state.setCurrentBackground
@@ -32,81 +34,66 @@ function CollectionInfo({ collection, type }: CollectionInfoProps) {
 	)
 
 	useEffect(() => {
-		if (
-			collectionImages &&
-			collectionImages.background &&
-			collectionImages.background !== ''
-		) {
+		if (collectionImages?.background) {
 			setCurrentBackground(collectionImages.background)
 		}
-	}, [collectionImages])
+	}, [collectionImages, setCurrentBackground])
 
-	function getYearRange(): string {
+	const yearRange = useMemo(() => {
 		if (!collection) return 'N/A'
 
-		const years =
-			type === LibraryTypes.MUSIC
-				? collection.albums &&
-					collection.albums
-						.map((album) => album.year)
-						.filter((year) => year !== '')
-				: type === LibraryTypes.MOVIES
-					? collection.movies &&
-						collection.movies
-							.map((movie) => movie.year)
-							.filter((year) => year !== '')
-					: type === LibraryTypes.SHOWS
-						? collection.shows &&
-							collection.shows
-								.map((show) => show.year)
-								.filter((year) => year !== '')
-						: []
+		const getYears = (items: any[] | undefined) =>
+			items?.map((item) => item.year).filter(Boolean) || []
 
-		if (!years || years.length === 0) {
-			return 'N/A'
+		let years: (string | undefined)[] = []
+		switch (type) {
+			case LibraryTypes.MUSIC:
+				years = getYears(collection.albums)
+				break
+			case LibraryTypes.MOVIES:
+				years = getYears(collection.movies)
+				break
+			case LibraryTypes.SHOWS:
+				years = getYears(collection.shows)
+				break
 		}
 
-		const numericYears = years.map((year) => (year ? parseInt(year, 10) : 0))
+		if (years.length === 0) return 'N/A'
 
+		const numericYears = years.map((year) => parseInt(year!, 10))
 		const minYear = Math.min(...numericYears)
 		const maxYear = Math.max(...numericYears)
 
-		if (minYear === maxYear) {
-			return `${minYear}`
-		} else {
-			return `${minYear} - ${maxYear}`
-		}
-	}
+		return minYear === maxYear ? `${minYear}` : `${minYear} - ${maxYear}`
+	}, [collection, type])
 
-	const imageHeight = height * 0.4
-	const imageWidth = (type === LibraryTypes.MUSIC ? 1 : 9 / 16) * imageHeight
+	const imageDimensions = useMemo(() => {
+		const imageHeight = height * 0.4
+		const imageWidth =
+			(type === LibraryTypes.MUSIC ? 1 : 16 / 9) * imageHeight
+		return { width: imageWidth, height: imageHeight }
+	}, [height, type])
 
 	return (
 		<View className='flex-row gap-20 pb-10'>
-			{collectionImages &&
-			collectionImages.images &&
-			collectionImages.images.length > 1 ? (
+			{collectionImages?.images && collectionImages.images.length > 1 ? (
 				<CollectionImage
 					images={collectionImages.images}
 					type={type}
-					width={imageWidth}
-					height={imageHeight}
+					width={imageDimensions.width}
+					height={imageDimensions.height}
 				/>
 			) : (
-				<Image
+				<OptimizedImage
 					source={
-						collectionImages &&
-						collectionImages.images &&
-						collectionImages.images.length === 1
+						collectionImages?.images?.length === 1
 							? {
 									uri: getImageUrl(
 										serverUrl,
 										collectionImages.images[0]
 									),
 								}
-							: collectionImages &&
-								  collectionImages.poster &&
-								  collectionImages.poster !== ''
+							: collectionImages?.poster
 								? {
 										uri: getImageUrl(
 											serverUrl,
@@ -118,8 +105,8 @@ function CollectionInfo({ collection, type }: CollectionInfoProps) {
 									: require('@/assets/images/default/movie.jpg')
 					}
 					style={{
-						width: imageWidth,
-						height: imageHeight,
+						width: imageDimensions.width,
+						height: imageDimensions.height,
 						resizeMode: 'contain',
 						borderRadius: 10,
 					}}
@@ -128,11 +115,11 @@ function CollectionInfo({ collection, type }: CollectionInfoProps) {
 
 			<View>
 				<Title className='mb-5'>{collection.title}</Title>
-				<Tertiary>{getYearRange()}</Tertiary>
+				<Tertiary>{yearRange}</Tertiary>
 				<Tertiary>{collection.description}</Tertiary>
 			</View>
 		</View>
 	)
-}
+})
 
 export default CollectionInfo

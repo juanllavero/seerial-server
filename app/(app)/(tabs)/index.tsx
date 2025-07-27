@@ -1,6 +1,13 @@
 import ContinueWatchingContent from '@/components/continueWatching/ContinueWatchingContent'
-import React from 'react'
+import { Page } from '@/components/Page'
+import React, { memo } from 'react'
 
-export default function HomeScreen() {
-	return <ContinueWatchingContent />
+function HomeScreen() {
+	return (
+		<Page>
+			<ContinueWatchingContent />
+		</Page>
+	)
 }
+
+export default memo(HomeScreen)

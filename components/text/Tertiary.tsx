@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { memo } from 'react'
 import AppText from './AppText'
 
 interface AppTextProps {
@@ -19,7 +19,7 @@ const Tertiary = ({
 }: AppTextProps) => {
 	return (
 		<AppText
-			className={`${className} font-medium text-2xl sm:text-lg md:text-xl lg:text-2xl text-neutral-200`}
+			className={`${className} font-medium text-[2vh] text-neutral-200`}
 			style={style}
 			noShadow
 			onTextLayout={onTextLayout}
@@ -30,4 +30,4 @@ const Tertiary = ({
 	)
 }
 
-export default Tertiary
+export default memo(Tertiary)

@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { memo } from 'react'
 import { Text, StyleSheet, Platform } from 'react-native'
 
 interface AppTextProps {
@@ -31,8 +31,10 @@ const AppText = ({
 
 const styles = StyleSheet.create({
 	text: {
-		fontFamily: 'Satoshi',
+		fontFamily: 'Satoshi-Variable',
 		color: 'white',
+		fontVariant: ['stylistic-one', 'stylistic-three', 'stylistic-four'],
+		fontFeatureSettings: '"ss01" on, "ss03" on, "ss04" on',
 		...Platform.select({
 			ios: {
 				fontVariant: ['stylistic-one', 'stylistic-three', 'stylistic-four'],
@@ -49,4 +51,4 @@ const styles = StyleSheet.create({
 	},
 })
 
-export default AppText
+export default memo(AppText)

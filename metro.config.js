@@ -1,9 +1,24 @@
 // Learn more https://docs.expo.io/guides/customizing-metro
 const { getDefaultConfig } = require('expo/metro-config')
 const { withNativeWind } = require('nativewind/metro')
+const path = require('path')
 
 /** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(__dirname) // eslint-disable-line no-undef
+
+const ALIASES = {
+	tslib: path.resolve(__dirname, 'node_modules/tslib/tslib.es6.js'),
+}
+
+config.resolver.resolveRequest = (context, moduleName, platform) => {
+	// Ensure you call the default resolver.
+	return context.resolveRequest(
+		context,
+		// Use an alias if one exists.
+		ALIASES[moduleName] ?? moduleName,
+		platform
+	)
+}
 
 // When enabled, the optional code below will allow Metro to resolve
 // and bundle source files with TV-specific extensions

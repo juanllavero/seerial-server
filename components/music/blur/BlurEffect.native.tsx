@@ -1,5 +1,4 @@
-import React from 'react'
-// Este import SÓLO se ejecutará en builds nativas (iOS/Android)
+import React, { memo } from 'react'
 import { BlurView, BlurViewProps } from '@react-native-community/blur'
 
 type BlurEffectProps = BlurViewProps & {
@@ -11,4 +10,4 @@ const BlurEffect: React.FC<BlurEffectProps> = ({ children, ...props }) => {
 	return <BlurView {...props}>{children}</BlurView>
 }
 
-export default BlurEffect
+export default memo(BlurEffect)

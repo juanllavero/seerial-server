@@ -1,19 +1,18 @@
 import AppText from '@/components/text/AppText'
 import { useAuth } from '@/context/auth.context'
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, memo, useCallback } from 'react'
 import { View } from 'react-native'
 
 const API_URL = 'https://api.seerial.es'
 
-export default function LoginScreen() {
+function LoginScreen() {
 	const [userCode, setUserCode] = useState<string | null>(null)
 	const [error, setError] = useState<string | null>(null)
-	const { setToken } = useAuth() // Función para guardar el token globalmente
+	const { setToken } = useAuth()
 
 	const deviceCodeRef = useRef<string | null>(null)
 	const intervalRef = useRef<number | null>(null)
 
-	// 1. Iniciar el flujo al cargar la pantalla
 	useEffect(() => {
 		const initiateDeviceAuth = async () => {
 			try {
@@ -30,7 +29,6 @@ export default function LoginScreen() {
 				setUserCode(data.user_code)
 				deviceCodeRef.current = data.device_code
 
-				// Iniciar el sondeo (polling)
 				intervalRef.current = setInterval(() => {
 					pollForToken(data.device_code)
 				}, data.interval * 1000)
@@ -41,7 +39,6 @@ export default function LoginScreen() {
 
 		initiateDeviceAuth()
 
-		// Limpieza al desmontar el componente
 		return () => {
 			if (intervalRef.current) {
 				clearInterval(intervalRef.current)
@@ -49,8 +46,7 @@ export default function LoginScreen() {
 		}
 	}, [])
 
-	// 2. Función de sondeo
-	const pollForToken = async (deviceCode: string) => {
+	const pollForToken = useCallback(async (deviceCode: string) => {
 		try {
 			const res = await fetch(`https://${API_URL}/device/token`, {
 				method: 'POST',
@@ -59,7 +55,6 @@ export default function LoginScreen() {
 			})
 
 			if (res.status === 202) {
-				// Aún pendiente, no hacemos nada.
 				console.log('Authorization pending...')
 				return
 			}
@@ -67,19 +62,17 @@ export default function LoginScreen() {
 			const data = await res.json()
 
 			if (res.ok && data.token) {
-				// ¡ÉXITO!
 				if (intervalRef.current) clearInterval(intervalRef.current)
 				console.log('Login successful!')
-				setToken(data.token) // Guardar token y navegar a la home
+				setToken(data.token)
 			} else {
-				// Error (código expirado, etc.)
 				throw new Error(data.error || 'An error occurred')
 			}
 		} catch (err: any) {
 			setError(err.message)
 			if (intervalRef.current) clearInterval(intervalRef.current)
 		}
-	}
+	}, [])
 
 	return (
 		<View>
@@ -96,3 +89,5 @@ export default function LoginScreen() {
 		</View>
 	)
 }
+
+export default memo(LoginScreen)

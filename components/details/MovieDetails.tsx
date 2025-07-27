@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { memo } from 'react'
 import { View } from 'react-native'
 
 interface MovieDetailsProps {
@@ -9,4 +9,4 @@ function MovieDetails({ id }: MovieDetailsProps) {
 	return <View>Movie</View>
 }
 
-export default MovieDetails
+export default memo(MovieDetails)

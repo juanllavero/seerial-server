@@ -1,15 +1,19 @@
-import React, { memo, useCallback, useState } from 'react' // --> 1. Importar useState
-import { Image, Pressable, TouchableOpacity, View } from 'react-native'
+import React, { memo, useCallback, useState } from 'react'
+import { Pressable, View } from 'react-native'
 import Tertiary from '../text/Tertiary'
 import { useServerStore } from '@/context/server.context'
 import { fetcher, getImageUrl } from '@/utils/utils'
 import { LibraryTypes } from '@/data/enums/LibraryTypes'
-import { Marquee } from '@animatereactnative/marquee'
 import useSWR from 'swr'
 import { CollectionImages } from '@/data/interfaces/Media'
 import CollectionImage from '../images/CollectionImage'
-import { Link } from 'expo-router'
+import { router } from 'expo-router'
 import useDataStore from '@/context/data.context'
+import OptimizedImage from '../images/OptimizedImage'
+import {
+	SpatialNavigationFocusableView,
+	SpatialNavigationNode,
+} from 'react-tv-space-navigation'
 
 interface LibraryItemCardProps {
 	type: string
@@ -20,8 +24,8 @@ interface LibraryItemCardProps {
 	width: number
 	aspectRatio?: number
 	updateImage?: boolean
-	link?: string
 	isCollection?: boolean
+	onFocus?: () => void
 }
 
 function LibraryItemCard({
@@ -33,12 +37,10 @@ function LibraryItemCard({
 	width,
 	aspectRatio,
 	updateImage = true,
-	link,
 	isCollection = false,
+	onFocus,
 }: LibraryItemCardProps) {
 	const serverUrl = useServerStore((state) => state.serverUrl)
-	const [isFocused, setIsFocused] = useState<boolean>(false)
-	const [isTitleOverflowing, setIsTitleOverflowing] = useState(false)
 	const setCurrentBackground = useDataStore(
 		(state) => state.setCurrentBackground
 	)
@@ -51,110 +53,92 @@ function LibraryItemCard({
 	)
 
 	const imageSrc = imgSrc || collectionImages?.poster || ''
-
 	const url = serverUrl ? getImageUrl(serverUrl, imageSrc) : ''
 
-	const handleTextLayout = useCallback(
-		(event: any) => {
-			console.log({ event })
-			if (event.nativeEvent.lines.length > 1 && !isTitleOverflowing) {
-				setIsTitleOverflowing(true)
-			}
-		},
-		[isTitleOverflowing]
-	)
+	const handlePress = useCallback(() => {
+		router.push({
+			pathname: `/details/[id]`,
+			params: {
+				id,
+				type,
+				isCollection: String(isCollection),
+			},
+		})
+	}, [id, type, isCollection])
+
+	const handleFocus = useCallback(() => {
+		onFocus?.()
+
+		if (updateImage) {
+			setCurrentBackground(imageSrc ?? '')
+		}
+	}, [updateImage, setCurrentBackground, imageSrc])
+
+	const handleBlur = useCallback(() => {}, [])
 
 	return (
-		<View
-			style={{
-				width,
-				overflow: 'hidden',
-				outline: 'none',
-				transform: isFocused ? 'scale(1.05)' : 'scale(1)',
-			}}
-			className={`items-center transition-all duration-150 ease-in-out`}
-		>
-			<Link
-				asChild
-				href={{
-					pathname: '/details/[id]',
-					params: {
-						id,
-						type,
-						isCollection: isCollection ? 'true' : 'false',
-					},
-				}}
+		<SpatialNavigationNode>
+			<SpatialNavigationFocusableView
+				onSelect={handlePress}
+				onFocus={handleFocus}
+				onBlur={handleBlur}
 			>
-				<TouchableOpacity
-					focusable
-					className='flex flex-col items-center'
-					onFocus={() => {
-						setIsFocused(true)
-
-						if (updateImage) setCurrentBackground(imageSrc ?? '')
-					}}
-					style={{ outline: 'none' }}
-					onBlur={() => setIsFocused(false)}
-				>
-					{(!url || url === '') &&
-					collectionImages &&
-					collectionImages.images &&
-					collectionImages.images.length > 0 ? (
-						<CollectionImage
-							images={collectionImages.images}
-							type={type}
-							width={width - 8}
-							className={`border-4 border-transparent transition-all duration-150 ease-in-out ${
-								isFocused ? 'border-white' : ''
-							}`}
-							height={width * (aspectRatio || 1) - 8}
-						/>
-					) : (
-						<Image
-							source={
-								url && url !== ''
-									? { uri: url }
-									: type === LibraryTypes.MUSIC
-										? require('@/assets/images/default/music.png')
-										: require('@/assets/images/default/movie.jpg')
-							}
-							className={`border-4 border-transparent transition-all duration-150 ease-in-out`}
-							style={{
-								width,
-								height: width * (aspectRatio || 1),
-								borderRadius: 10,
-								borderColor: isFocused ? 'white' : 'transparent',
-							}}
-						/>
-					)}
-
-					{/* Measurement component (not working) */}
-					<Tertiary
-						onTextLayout={handleTextLayout}
-						className='absolute opacity-0 z-[-1]'
-						style={{ width }}
+				{({ isFocused }) => (
+					<View
+						style={{
+							width,
+							overflow: 'hidden',
+							outline: 'none',
+							transform: isFocused ? [{ scale: 1.05 }] : [{ scale: 1 }],
+						}}
+						className={`items-center`}
 					>
-						{title}
-					</Tertiary>
-
-					{isFocused && !isTitleOverflowing ? (
-						<Marquee spacing={100} speed={0.4}>
-							<Tertiary className='truncate text-center'>
+						<View
+							className='flex flex-col items-center'
+							style={{ outline: 'none' }}
+						>
+							{(!url || url === '') &&
+							collectionImages &&
+							collectionImages.images &&
+							collectionImages.images.length > 0 ? (
+								<CollectionImage
+									images={collectionImages.images}
+									type={type}
+									width={width - 8}
+									className={`border-2 border-transparent ${
+										isFocused ? 'border-white' : ''
+									}`}
+									height={width * (aspectRatio || 1) - 8}
+								/>
+							) : (
+								<OptimizedImage
+									source={
+										url && url !== ''
+											? { uri: url }
+											: type === LibraryTypes.MUSIC
+												? require('@/assets/images/default/music.png')
+												: require('@/assets/images/default/movie.jpg')
+									}
+									className={`border-2 border-transparent`}
+									style={{
+										width,
+										height: width * (aspectRatio || 1),
+										borderRadius: 5,
+										borderColor: isFocused ? 'white' : 'transparent',
+									}}
+								/>
+							)}
+							<Tertiary className='line-clamp-1 text-center'>
 								{title}
 							</Tertiary>
-						</Marquee>
-					) : (
-						<Tertiary className='line-clamp-1 text-center'>
-							{title}
-						</Tertiary>
-					)}
-
-					<Tertiary className='line-clamp-1 text-center text-xl sm:text-md md:text-lg lg:text-xl'>
-						{subtitle}
-					</Tertiary>
-				</TouchableOpacity>
-			</Link>
-		</View>
+							<Tertiary className='line-clamp-1 text-center'>
+								{subtitle}
+							</Tertiary>
+						</View>
+					</View>
+				)}
+			</SpatialNavigationFocusableView>
+		</SpatialNavigationNode>
 	)
 }
 

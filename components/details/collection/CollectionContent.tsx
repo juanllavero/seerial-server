@@ -3,9 +3,9 @@ import HorizontalList from '@/components/lists/HorizontalList'
 import { LibraryTypes } from '@/data/enums/LibraryTypes'
 import { Collection, Movie, Series } from '@/data/interfaces/Media'
 import { Album } from '@/data/interfaces/Music'
-import { ContentType, CollectionKey } from '@/types/types'
+import { CollectionKey, ContentType } from '@/types/types'
 import { getOnlyYear } from '@/utils/utils'
-import React, { useState } from 'react'
+import React, { memo, useCallback, useMemo } from 'react'
 import { Dimensions, View } from 'react-native'
 import ExtrasList from '../extras/ExtrasList'
 
@@ -14,87 +14,123 @@ interface CollectionContentProps {
 	type: string
 }
 
+const orderMap: Record<ContentType, CollectionKey[]> = {
+	Music: ['albums', 'movies', 'shows'],
+	Shows: ['shows', 'movies', 'albums'],
+	Movies: ['movies', 'shows', 'albums'],
+}
+
 function CollectionContent({ collection, type }: CollectionContentProps) {
 	const { height } = Dimensions.get('window')
 
-	// Set order of content
-	const orderMap: Record<ContentType, CollectionKey[]> = {
-		Music: ['albums', 'movies', 'shows'],
-		Shows: ['shows', 'movies', 'albums'],
-		Movies: ['movies', 'shows', 'albums'],
-	}
+	const renderAlbumItem = useCallback(
+		({ item }: { item: Album }) => (
+			<LibraryItemCard
+				type={LibraryTypes.MUSIC}
+				id={item.id}
+				title={item.title}
+				updateImage={false}
+				subtitle={String(getOnlyYear(item.year ?? ''))}
+				imgSrc={item.coverSrc ?? ''}
+				width={height * 0.25}
+			/>
+		),
+		[height]
+	)
 
-	// Render content by type
-	const renderMap: Record<CollectionKey, (items: any[]) => React.ReactNode> = {
-		albums: (items: Album[]) => (
-			<HorizontalList<Album>
-				key={'Albums List'}
-				title={'Albums'}
-				items={items}
-				contentContainerStyle={{ padding: 10, gap: 15 }}
-				renderItem={({ item }) => (
-					<LibraryItemCard
-						type={LibraryTypes.MUSIC}
-						id={item.id}
-						title={item.title}
-						updateImage={false}
-						subtitle={String(getOnlyYear(item.year ?? ''))}
-						imgSrc={item.coverSrc ?? ''}
-						width={height * 0.25}
-					/>
-				)}
+	const renderMovieItem = useCallback(
+		({ item }: { item: Movie }) => (
+			<LibraryItemCard
+				type={LibraryTypes.MOVIES}
+				id={item.id}
+				title={item.name}
+				updateImage={false}
+				subtitle={String(getOnlyYear(item.year ?? ''))}
+				imgSrc={item.coverSrc ?? ''}
+				width={height * 0.25}
 			/>
 		),
-		movies: (items: Movie[]) => (
-			<HorizontalList<Movie>
-				key={'Movies List'}
-				title={'Movies'}
-				items={items}
-				contentContainerStyle={{ padding: 10, gap: 15 }}
-				renderItem={({ item }) => (
-					<LibraryItemCard
-						type={LibraryTypes.MOVIES}
-						id={item.id}
-						title={item.name}
-						updateImage={false}
-						subtitle={String(getOnlyYear(item.year ?? ''))}
-						imgSrc={item.coverSrc ?? ''}
-						width={height * 0.25}
-					/>
-				)}
+		[height]
+	)
+
+	const renderShowItem = useCallback(
+		({ item }: { item: Series }) => (
+			<LibraryItemCard
+				type={LibraryTypes.SHOWS}
+				id={item.id}
+				title={item.name}
+				updateImage={false}
+				subtitle={String(getOnlyYear(item.year ?? ''))}
+				imgSrc={item.coverSrc ?? ''}
+				width={height * 0.25}
 			/>
 		),
-		shows: (items: Series[]) => (
-			<HorizontalList<Series>
-				key={'Shows List'}
-				title={'Shows'}
-				items={items}
-				contentContainerStyle={{ padding: 10, gap: 15 }}
-				renderItem={({ item }) => (
-					<LibraryItemCard
-						type={LibraryTypes.SHOWS}
-						id={item.id}
-						title={item.name}
-						updateImage={false}
-						subtitle={String(getOnlyYear(item.year ?? ''))}
-						imgSrc={item.coverSrc ?? ''}
-						width={height * 0.25}
-					/>
-				)}
-			/>
-		),
-	}
+		[height]
+	)
+
+	const renderMap = useMemo(
+		() => ({
+			albums: (items: Album[]) => (
+				<HorizontalList<Album>
+					key={'Albums List'}
+					title={'Albums'}
+					items={items}
+					contentContainerStyle={{ padding: 10, gap: 15 }}
+					renderItem={renderAlbumItem}
+				/>
+			),
+			movies: (items: Movie[]) => (
+				<HorizontalList<Movie>
+					key={'Movies List'}
+					title={'Movies'}
+					items={items}
+					contentContainerStyle={{ padding: 10, gap: 15 }}
+					renderItem={renderMovieItem}
+				/>
+			),
+			shows: (items: Series[]) => (
+				<HorizontalList<Series>
+					key={'Shows List'}
+					title={'Shows'}
+					items={items}
+					contentContainerStyle={{ padding: 10, gap: 15 }}
+					renderItem={renderShowItem}
+				/>
+			),
+		}),
+		[renderAlbumItem, renderMovieItem, renderShowItem]
+	)
+
 	return (
 		<View className='gap-5'>
-			{orderMap &&
-				orderMap[type as ContentType].map((key) => {
-					const items = collection[key]
-					return items.length > 0 ? renderMap[key](items) : null
-				})}
+			{orderMap[type as ContentType]?.map((key) => {
+				if (
+					key === 'albums' &&
+					collection.albums &&
+					collection.albums.length > 0
+				) {
+					return renderMap.albums(collection.albums)
+				}
+				if (
+					key === 'movies' &&
+					collection.movies &&
+					collection.movies.length > 0
+				) {
+					return renderMap.movies(collection.movies)
+				}
+				if (
+					key === 'shows' &&
+					collection.shows &&
+					collection.shows.length > 0
+				) {
+					return renderMap.shows(collection.shows)
+				}
+				return null
+			})}
 
 			<ExtrasList collection={collection} />
 		</View>
 	)
 }
 
-export default CollectionContent
+export default memo(CollectionContent)

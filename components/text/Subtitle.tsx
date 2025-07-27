@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { memo } from 'react'
 import AppText from './AppText'
 
 interface AppTextProps {
@@ -10,7 +10,7 @@ interface AppTextProps {
 const Subtitle = ({ className, style, children, ...props }: AppTextProps) => {
 	return (
 		<AppText
-			className={`${className} font-black text-5xl sm:text-3xl md:text-4xl lg:text-5xl pb-5 text-neutral-200`}
+			className={`${className} font-black text-[5vh] pb-5 text-neutral-200`}
 			style={style}
 			{...props}
 		>
@@ -19,4 +19,4 @@ const Subtitle = ({ className, style, children, ...props }: AppTextProps) => {
 	)
 }
 
-export default Subtitle
+export default memo(Subtitle)

@@ -1,13 +1,24 @@
-import { Link } from 'expo-router'
-import React, { useState, useRef } from 'react'
-import { View, Image, Dimensions, ScrollView, ViewProps } from 'react-native'
+import { router, usePathname } from 'expo-router'
+import React, { useRef, memo, useCallback, useEffect } from 'react'
+import { View, Dimensions, Animated } from 'react-native'
 import Libraries from './Libraries'
 import { useAuth } from '@/context/auth.context'
-import { BookmarkIcon, SettingsIcon } from 'lucide-react-native'
-import HomeIcon from '../svg/HomeIcon'
-import Button from '../buttons/Button'
+import { BookmarkIcon, LucideHome, SettingsIcon } from 'lucide-react-native'
+import Button from '../buttons/NavBarButton'
 import useDataStore from '@/context/data.context'
 import { shallow } from 'zustand/shallow'
+import OptimizedImage from '../images/OptimizedImage'
+import {
+	DefaultFocus,
+	SpatialNavigationRoot,
+	SpatialNavigationScrollView,
+	SpatialNavigationView,
+} from 'react-tv-space-navigation'
+import { scaledPixels } from '@/hooks/useScale'
+import {
+	collapsedSidebarWidth,
+	expandedSidebarWidth,
+} from '@/constants/SidebarSizes'
 
 function NavBar() {
 	const user = useAuth((state) => state.user)
@@ -18,106 +29,145 @@ function NavBar() {
 		}),
 		shallow
 	)
-	const { height } = Dimensions.get('screen')
+	const pathname = usePathname()
+	const { width } = Dimensions.get('screen')
+	const animatedWidth = useRef(
+		new Animated.Value(
+			sidebarOpen
+				? scaledPixels(expandedSidebarWidth)
+				: scaledPixels(collapsedSidebarWidth)
+		)
+	).current
 
-	const blurTimeout = useRef<number | null>(null)
+	// Refs
+	const homeButtonRef = useRef<View | null>(null)
+	const profileButtonRef = useRef<View | null>(null)
+	const settingsButtonRef = useRef<View | null>(null)
 
-	const handleFocus: ViewProps['onFocus'] = () => {
-		if (blurTimeout.current) {
-			clearTimeout(blurTimeout.current)
-		}
-		setSidebarOpen(true)
-	}
+	// Right press behavior
+	const onDirectionHandledWithoutMovement = useCallback(
+		(movement: string) => {
+			if (movement === 'right') {
+				setSidebarOpen(false)
+			}
+		},
+		[setSidebarOpen]
+	)
 
-	const handleBlur: ViewProps['onBlur'] = () => {
-		blurTimeout.current = setTimeout(() => {
-			setSidebarOpen(false)
-		}, 10)
-	}
+	// Animation
+	useEffect(() => {
+		Animated.timing(animatedWidth, {
+			toValue: sidebarOpen
+				? scaledPixels(expandedSidebarWidth)
+				: scaledPixels(collapsedSidebarWidth),
+			duration: 150,
+			useNativeDriver: false,
+		}).start()
+	}, [animatedWidth, sidebarOpen])
 
-	const relativeSize = sidebarOpen ? height * 0.3 : height * 0.1
+	const handleProfilePress = useCallback(() => console.log('profile'), [])
+	const handleSettingsPress = useCallback(() => console.log('settings'), [])
+
+	const handleMyListPress = useCallback(() => {
+		if (pathname === '/myList') return
+
+		setSidebarOpen(false)
+		router.push('/myList')
+	}, [setSidebarOpen])
+
+	const handleHomePress = useCallback(() => {
+		setSidebarOpen(false)
+		router.push('/')
+	}, [setSidebarOpen])
+
+	const imageSize = scaledPixels(70)
 
 	return (
-		<View
-			focusable
-			onFocus={handleFocus}
-			onBlur={handleBlur}
-			className={`transition-all duration-300 ease-in-out absolute top-0 z-999 h-screen justify-between items-start space-y-5  pt-5 ${sidebarOpen ? 'px-5' : ''}`}
-			style={{ width: relativeSize }}
+		<SpatialNavigationRoot
+			isActive={sidebarOpen}
+			onDirectionHandledWithoutMovement={onDirectionHandledWithoutMovement}
 		>
-			<Button
-				text={user?.name}
-				transparent
-				leftAlign
-				fullWidth
-				hideText={!sidebarOpen}
-				icon={
-					user && user.image && user.image !== '' ? (
-						<Image
-							source={{ uri: user.image }}
-							className='rounded-full'
-							style={{ width: height * 0.025, height: height * 0.025 }}
-						/>
-					) : (
-						<Image
-							source={require('@/assets/images/default/person.jpg')}
-							className='rounded-full'
-							style={{ width: height * 0.025, height: height * 0.025 }}
-						/>
-					)
-				}
-			/>
-
-			<ScrollView
-				showsHorizontalScrollIndicator={false}
-				className='w-full'
-				contentContainerStyle={{
-					gap: 10,
-					alignItems: 'center',
-					height: '100%',
-					justifyContent: 'space-between',
-					paddingBottom: 10,
-				}}
-			>
-				<View></View>
-				<View className='justify-center items-start w-full space-y-2'>
-					<Link asChild href='/myList'>
+			<View className={`absolute top-0 z-999 h-screen`}>
+				<SpatialNavigationView direction='vertical'>
+					<Animated.View
+						className={`top-0 z-999 h-screen justify-between bg-white/10 items-start space-y-5 pt-5 ${sidebarOpen ? 'px-0' : ''}`}
+						style={{ width: animatedWidth }}
+					>
 						<Button
-							text='My List'
-							leftAlign
-							iconSize={24}
-							fullWidth
-							transparent
+							text={user?.name}
+							ref={profileButtonRef}
 							hideText={!sidebarOpen}
-							icon={BookmarkIcon}
+							onPress={handleProfilePress}
+							icon={
+								user && user.image && user.image !== '' ? (
+									<OptimizedImage
+										source={{ uri: user.image }}
+										style={{
+											width: imageSize,
+											height: imageSize,
+											borderRadius: 100,
+										}}
+									/>
+								) : (
+									<OptimizedImage
+										source={require('@/assets/images/default/person.jpg')}
+										className='rounded-full'
+										style={{
+											width: imageSize,
+											height: imageSize,
+										}}
+									/>
+								)
+							}
 						/>
-					</Link>
-					<Link asChild href='/'>
-						<Button
-							text='Home'
-							leftAlign
-							iconSize={24}
-							fullWidth
-							transparent
-							hideText={!sidebarOpen}
-							icon={HomeIcon}
-						/>
-					</Link>
-					<Libraries isExpanded={sidebarOpen} />
-				</View>
 
-				<Button
-					text='Settings'
-					transparent
-					leftAlign
-					fullWidth
-					iconSize={24}
-					hideText={!sidebarOpen}
-					icon={SettingsIcon}
-				/>
-			</ScrollView>
-		</View>
+						<SpatialNavigationScrollView
+							contentContainerStyle={{
+								gap: 10,
+								alignItems: 'center',
+								height: '100%',
+								justifyContent: 'space-between',
+								paddingBottom: 10,
+							}}
+						>
+							<View></View>
+							<View className='justify-start items-start w-full gap-1'>
+								<Button
+									text='My List'
+									iconSize={scaledPixels(70)}
+									onPress={handleMyListPress}
+									hideText={!sidebarOpen}
+									icon={BookmarkIcon}
+								/>
+
+								<DefaultFocus>
+									<Button
+										text='Home'
+										ref={homeButtonRef}
+										iconSize={scaledPixels(70)}
+										onPress={handleHomePress}
+										hideText={!sidebarOpen}
+										icon={LucideHome}
+									/>
+								</DefaultFocus>
+
+								<Libraries />
+							</View>
+
+							<Button
+								text='Settings'
+								ref={settingsButtonRef}
+								iconSize={scaledPixels(70)}
+								onPress={handleSettingsPress}
+								hideText={!sidebarOpen}
+								icon={SettingsIcon}
+							/>
+						</SpatialNavigationScrollView>
+					</Animated.View>
+				</SpatialNavigationView>
+			</View>
+		</SpatialNavigationRoot>
 	)
 }
 
-export default NavBar
+export default memo(NavBar)

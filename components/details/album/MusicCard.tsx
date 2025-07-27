@@ -3,8 +3,8 @@ import Secondary from '@/components/text/Secondary'
 import useMusicStore from '@/context/music.context'
 import { Song } from '@/data/interfaces/Music'
 import { formatTime } from '@/utils/utils'
-import React from 'react'
-import { TouchableOpacity, View } from 'react-native'
+import React, { memo, useCallback } from 'react'
+import { Pressable, View } from 'react-native'
 import { shallow } from 'zustand/shallow'
 
 interface MusicCardProps {
@@ -22,21 +22,24 @@ function MusicCard({ song, index, handlePlaySong }: MusicCardProps) {
 		}),
 		shallow
 	)
+
+	const handleFocus = useCallback(() => setFocused(true), [])
+	const handleBlur = useCallback(() => setFocused(false), [])
+
 	return (
-		<TouchableOpacity
-			focusable
-			onFocus={() => setFocused(true)}
-			onBlur={() => setFocused(false)}
+		<Pressable
+			onFocus={handleFocus}
+			onBlur={handleBlur}
 			style={{
-				backgroundColor: focused ? 'white' : '',
+				backgroundColor: focused ? 'white' : 'transparent',
 				outline: 'none',
-				transform: focused ? 'scale(1.03)' : 'scale(1)',
+				transform: focused ? [{ scale: 1.03 }] : [{ scale: 1 }],
 			}}
-			className={`p-7 bg-neutral-500/30 flex-row rounded-lg justify-between`}
+			className={`p-7 flex-row rounded-lg justify-between`}
 			onPress={handlePlaySong}
 		>
 			<View className='flex-row items-center justify-start gap-5'>
-				<View className='w-10 justify-center items-center'>
+				<View className='w-8 justify-center items-center'>
 					{isPlaying && song.id === currentSong?.id ? (
 						<MusicWave />
 					) : (
@@ -58,8 +61,8 @@ function MusicCard({ song, index, handlePlaySong }: MusicCardProps) {
 					{formatTime(song.duration ?? 0 / 60)}
 				</Secondary>
 			</View>
-		</TouchableOpacity>
+		</Pressable>
 	)
 }
 
-export default MusicCard
+export default memo(MusicCard)

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, memo } from 'react'
 import { View, Image, Dimensions } from 'react-native'
+import OptimizedImage from './OptimizedImage'
 
 const { width } = Dimensions.get('window')
 
@@ -31,7 +32,7 @@ const AlignedImage = ({
 				alignItems: 'flex-start',
 			}}
 		>
-			<Image
+			<OptimizedImage
 				source={{ uri: imageUrl }}
 				style={{
 					height: '100%',

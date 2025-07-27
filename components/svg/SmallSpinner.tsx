@@ -1,9 +1,10 @@
 import { memo } from 'react'
+import { View } from 'react-native'
 import Svg, { Path } from 'react-native-svg'
 
 function SmallSpinner({ size }: { size?: number }) {
 	return (
-		<div
+		<View
 			className='flex items-center justify-center overflow-hidden rounded-lg'
 			style={{ width: size, height: size }}
 		>
@@ -20,7 +21,7 @@ function SmallSpinner({ size }: { size?: number }) {
 				/>
 				<Path stroke='currentColor' d='M32 3a29 29 0 0 1 27.576 37.976' />
 			</Svg>
-		</div>
+		</View>
 	)
 }
 

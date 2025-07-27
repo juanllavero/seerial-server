@@ -2,28 +2,27 @@ import { useAuth } from '@/context/auth.context'
 import { useServerStore } from '@/context/server.context'
 import { ContinueWatchingElement } from '@/data/interfaces/Lists'
 import { fetcher } from '@/utils/utils'
-import React, { useEffect } from 'react'
-import {
-	Dimensions,
-	FlatList,
-	Image,
-	TouchableOpacity,
-	View,
-} from 'react-native'
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react'
+import { Dimensions, View } from 'react-native'
 import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
 import AppText from '../text/AppText'
 import Secondary from '../text/Secondary'
 import Subtitle from '../text/Subtitle'
 import Title from '../text/Title'
-import ListTitle from '../text/ListTitle'
 import AlignedImage from '../images/AlignedImage'
 import HomeBackground from '../backgrounds/HomeBackground'
-import useDataStore from '@/context/data.context'
+import OptimizedImage from '../images/OptimizedImage'
+import {
+	SpatialNavigationFocusableView,
+	SpatialNavigationNode,
+} from 'react-tv-space-navigation'
+import HorizontalList from '../lists/HorizontalList'
+import { scaledPixels } from '@/hooks/useScale'
+import AnimatedTabContentView from '../AnimatedTabContentView'
 
 function ContinueWatchingContent() {
 	const user = useAuth((state) => state.user)
-	const sidebarOpen = useDataStore((state) => state.sidebarOpen)
 	const { selectedServer, selectServer, serverUrl } = useServerStore(
 		(state) => ({
 			selectedServer: state.selectedServer,
@@ -33,10 +32,10 @@ function ContinueWatchingContent() {
 		shallow
 	)
 	const { height } = Dimensions.get('screen')
-	const [selectedElement, setSelectedElement] =
-		React.useState<ContinueWatchingElement | null>(null)
 
-	// Get Continue Watching items
+	const [selectedElement, setSelectedElement] =
+		useState<ContinueWatchingElement | null>(null)
+
 	const { data: continueWatching, isLoading } = useSWR<
 		ContinueWatchingElement[]
 	>(selectedServer ? `${serverUrl}/continueWatching` : null, fetcher)
@@ -45,35 +44,75 @@ function ContinueWatchingContent() {
 		if (user && user.servers.length > 0) {
 			selectServer(user.servers[0])
 		}
-	}, [user])
+	}, [user, selectServer])
 
-	useEffect(() => {
-		if (continueWatching && continueWatching.length > 0) {
-			setSelectedElement(continueWatching[0])
-		}
-	}, [continueWatching])
+	const aspectRatio = 2 / 3
+	const imageHeight = height * 0.33
+	const imageWidth = imageHeight * aspectRatio
+
+	const renderItem = useCallback(
+		({
+			item: element,
+			index,
+		}: {
+			item: ContinueWatchingElement
+			index: number
+		}) => (
+			<SpatialNavigationNode key={element.id}>
+				<SpatialNavigationFocusableView
+					onFocus={() => {
+						setSelectedElement(element)
+					}}
+					onSelect={() => {}}
+				>
+					{({ isFocused }) => (
+						<View
+							style={{
+								outline: 'none',
+
+								transform: isFocused
+									? [{ scale: 1.05 }]
+									: [{ scale: 1 }],
+							}}
+							className={`w-fit h-fit border-transparent rounded-lg border-2 ${
+								isFocused ? 'border-white' : ''
+							}`}
+						>
+							<OptimizedImage
+								source={
+									element.posterImage && element.posterImage !== ''
+										? { uri: element.posterImage }
+										: require('@/assets/images/default/movie.jpg')
+								}
+								style={{
+									width: imageWidth,
+									height: imageHeight,
+									borderRadius: 5,
+									overflow: 'hidden',
+								}}
+							/>
+						</View>
+					)}
+				</SpatialNavigationFocusableView>
+			</SpatialNavigationNode>
+		),
+		[selectedElement, imageHeight, imageWidth]
+	)
 
 	if (isLoading) return <AppText>Loading...</AppText>
 
-	const aspectRatio = 2 / 3
-	const imageHeight = height * 0.4
-	const imageWidth = imageHeight * aspectRatio
-
 	return (
-		<View className='w-screen h-full justify-end bg-black'>
+		<View className='w-screen h-full justify-end bg-black' focusable={true}>
 			<HomeBackground background={selectedElement?.backgroundImage || ''} />
-			<View
-				className='transition-all duration-300 ease-in-out'
-				style={{ paddingLeft: sidebarOpen ? height * 0.3 : height * 0.08 }}
-			>
-				<View className='h-[52dvh] justify-end px-10 bg-transparent'>
+			<AnimatedTabContentView>
+				<View className='justify-end pr-64 bg-transparent'>
 					{selectedElement ? (
 						<>
 							{selectedElement.logoImage &&
 							selectedElement.logoImage !== '' ? (
 								<AlignedImage
-									className='pb-10'
-									height={215}
+									className='pb-5'
+									height={height * 0.17}
 									imageUrl={selectedElement.logoImage}
 								/>
 							) : (
@@ -122,46 +161,18 @@ function ContinueWatchingContent() {
 					)}
 				</View>
 
-				<View className='h-[48dvh] justify-center'>
-					<ListTitle className='text-2xl px-10 font-bold'>
-						Continue Watching
-					</ListTitle>
-
-					<FlatList
-						horizontal
-						showsHorizontalScrollIndicator={false}
-						contentContainerStyle={{
-							gap: 15,
-							paddingHorizontal: 40,
-						}}
-						className='items-center h-full flex-grow-0'
-						scrollEnabled={true}
-						data={continueWatching}
-						renderItem={({ item: element, index }) => (
-							<TouchableOpacity
-								onFocus={() => setSelectedElement(element)}
-								focusable
-								style={{ outline: 'none' }}
-								className={`w-fit h-fit transition-all duration-150 ease-in-out border-4 border-transparent rounded-xl ${selectedElement === element ? ' border-white scale-105' : ''} `}
-								hasTVPreferredFocus={index === 0}
-							>
-								<Image
-									source={{ uri: element.posterImage }}
-									resizeMode='cover'
-									style={{
-										width: imageWidth,
-										height: imageHeight,
-										borderRadius: 10,
-										overflow: 'hidden',
-									}}
-								/>
-							</TouchableOpacity>
-						)}
-					></FlatList>
-				</View>
-			</View>
+				{continueWatching && continueWatching.length > 0 ? (
+					<HorizontalList<ContinueWatchingElement>
+						itemSize={scaledPixels(2200)}
+						title={'Continue Watching'}
+						items={continueWatching}
+						renderItem={renderItem}
+						style={{ height: height * 0.45 }}
+					/>
+				) : null}
+			</AnimatedTabContentView>
 		</View>
 	)
 }
 
-export default ContinueWatchingContent
+export default memo(ContinueWatchingContent)

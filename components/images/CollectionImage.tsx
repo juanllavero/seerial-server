@@ -2,7 +2,8 @@ import { useServerStore } from '@/context/server.context'
 import { LibraryTypes } from '@/data/enums/LibraryTypes'
 import { getImageUrl } from '@/utils/utils'
 import React, { memo } from 'react'
-import { View, Image, StyleSheet } from 'react-native'
+import { View, StyleSheet } from 'react-native'
+import OptimizedImage from './OptimizedImage'
 
 interface CollectionImageProps {
 	images: string[]
@@ -31,10 +32,10 @@ const CollectionImage: React.FC<CollectionImageProps> = ({
 				: require('@/assets/images/default/movie.jpg')
 
 		return (
-			<View className={className} style={{ borderRadius: 10, ...style }}>
-				<Image
+			<View className={className} style={{ borderRadius: 5, ...style }}>
+				<OptimizedImage
 					source={defaultImageSource}
-					style={[styles.singleImage, { width, height, borderRadius: 10 }]}
+					style={[styles.singleImage, { width, height, borderRadius: 5 }]}
 				/>
 			</View>
 		)
@@ -42,12 +43,12 @@ const CollectionImage: React.FC<CollectionImageProps> = ({
 
 	if (imageCount === 1) {
 		return (
-			<Image
+			<OptimizedImage
 				source={{ uri: getImageUrl(serverUrl, images[0]) }}
 				className={className}
 				style={[
 					styles.singleImage,
-					{ width, height, borderRadius: 10, ...style },
+					{ width, height, borderRadius: 5, ...style },
 				]}
 			/>
 		)
@@ -59,10 +60,10 @@ const CollectionImage: React.FC<CollectionImageProps> = ({
 	}
 
 	return (
-		<View className={className} style={{ borderRadius: 10, ...style }}>
+		<View className={className} style={{ borderRadius: 5, ...style }}>
 			<View style={[styles.gridContainer, { width, height }]}>
 				{gridImages.map((uri, index) => (
-					<Image
+					<OptimizedImage
 						key={`${uri}-${index}`}
 						source={{ uri: getImageUrl(serverUrl, uri) }}
 						style={{
@@ -83,7 +84,7 @@ const styles = StyleSheet.create({
 	gridContainer: {
 		flexDirection: 'row',
 		flexWrap: 'wrap',
-		borderRadius: 10,
+		borderRadius: 5,
 		overflow: 'hidden',
 	},
 })

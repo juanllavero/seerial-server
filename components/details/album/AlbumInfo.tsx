@@ -1,19 +1,16 @@
 import Button from '@/components/buttons/Button'
-import EditIcon from '@/components/svg/EditIcon'
-import HorizontalDotsIcon from '@/components/svg/HorizontalDotsIcon'
 import PauseIcon from '@/components/svg/player/controls/PauseIcon'
 import PlayIcon from '@/components/svg/player/controls/PlayIcon'
 import DolbyAtmosIcon from '@/components/svg/player/DolbyAtmosIcon'
 import SmallSpinner from '@/components/svg/SmallSpinner'
 import AppText from '@/components/text/AppText'
 import Secondary from '@/components/text/Secondary'
-import Tertiary from '@/components/text/Tertiary'
 import Title from '@/components/text/Title'
 import useMusicStore from '@/context/music.context'
-import { Album, Song } from '@/data/interfaces/Music'
-import { Ellipsis, Shuffle, ShuffleIcon } from 'lucide-react-native'
-import React from 'react'
-import { Pressable, TouchableOpacity, View } from 'react-native'
+import { Album } from '@/data/interfaces/Music'
+import { Ellipsis, ShuffleIcon } from 'lucide-react-native'
+import React, { memo, useCallback, useMemo } from 'react'
+import { TouchableOpacity, View } from 'react-native'
 import { shallow } from 'zustand/shallow'
 
 interface AlbumInfoProps {
@@ -21,7 +18,10 @@ interface AlbumInfoProps {
 	isLoading: boolean
 }
 
-function AlbumInfo({ album, isLoading }: AlbumInfoProps) {
+const AlbumInfo = memo(function AlbumInfo({
+	album,
+	isLoading,
+}: AlbumInfoProps) {
 	const {
 		isPlaying,
 		isLoaidng: loadingSong,
@@ -39,13 +39,35 @@ function AlbumInfo({ album, isLoading }: AlbumInfoProps) {
 		shallow
 	)
 
-	const getTotalDuration = (songs: Song[]) => {
-		return songs.reduce((acc, song) => acc + song.duration / 60, 0).toFixed(0)
-	}
+	const totalDuration = useMemo(() => {
+		if (!album?.songs) return '0'
+		return album.songs
+			.reduce((acc, song) => acc + song.duration / 60, 0)
+			.toFixed(0)
+	}, [album?.songs])
 
-	const hasDolbyAtmos = () => {
-		return album?.songs.some((song) => song.hasDolbyAtmos)
-	}
+	const dolbyAtmosAvailable = useMemo(
+		() => album?.songs.some((song) => song.hasDolbyAtmos),
+		[album?.songs]
+	)
+
+	const handlePlayPause = useCallback(() => {
+		if (isShown) {
+			togglePlayPause()
+		} else if (album?.songs?.length) {
+			selectSong(album.songs[0])
+		}
+	}, [isShown, togglePlayPause, selectSong, album?.songs])
+
+	const handleShuffle = useCallback(() => {
+		if (isShown) {
+			togglePlayPause()
+		} else if (album?.songs?.length) {
+			selectSong(album.songs[0])
+		}
+	}, [isShown, togglePlayPause, selectSong, album?.songs])
+
+	const handleMoreOptions = useCallback(() => {}, [])
 
 	if (!album) return null
 
@@ -56,27 +78,25 @@ function AlbumInfo({ album, isLoading }: AlbumInfoProps) {
 				<Secondary>
 					{album.year ? new Date(album.year).getFullYear() : null}
 					{album.genres ? ' • ' + album.genres.join(', ') : ''}
+					{dolbyAtmosAvailable ? ' • ' : ''}
 				</Secondary>
 
-				{hasDolbyAtmos() && (
-					<>
-						<Secondary> • </Secondary>
-						<DolbyAtmosIcon
-							size={25}
-							color='lightgray'
-							className='w-18 shadow-2xl translate-y-1 pl-2'
-						/>
-					</>
+				{dolbyAtmosAvailable && (
+					<DolbyAtmosIcon
+						size={25}
+						color='lightgray'
+						className='w-18 shadow-2xl translate-y-1 pl-2'
+					/>
 				)}
 			</View>
 			<Secondary>
 				{album.songs.length} {'songs'}
 				{' • '}
-				{getTotalDuration(album.songs) || '0'}
+				{totalDuration}
 				{` ${'min'}`}
 			</Secondary>
 
-			{album.description && album.description !== '' && (
+			{album.description && (
 				<TouchableOpacity focusable={true}>
 					<Secondary className='line-clamp-3'>
 						{album.description}
@@ -90,38 +110,22 @@ function AlbumInfo({ album, isLoading }: AlbumInfoProps) {
 					icon={
 						loadingSong ? SmallSpinner : isPlaying ? PauseIcon : PlayIcon
 					}
-					onPress={() => {
-						if (isShown) {
-							togglePlayPause()
-						} else if (album && album.songs && album.songs.length > 0) {
-							selectSong(album.songs[0])
-						}
-					}}
+					onPress={handlePlayPause}
 				/>
 				<Button
 					text={'Shuffle'}
 					icon={ShuffleIcon}
-					onPress={() => {
-						if (isShown) {
-							togglePlayPause()
-						} else if (album && album.songs && album.songs.length > 0) {
-							selectSong(album.songs[0])
-						}
-					}}
+					onPress={handleShuffle}
 				/>
-				<Button icon={Ellipsis} iconSize={40} onPress={() => {}} />
+				<Button icon={Ellipsis} iconSize={40} onPress={handleMoreOptions} />
 			</View>
 			<View>
-				<span className='font-semibold'>
-					{isLoading || !album ? (
-						<AppText>Loading...</AppText>
-					) : (
-						album.description || ''
-					)}
-				</span>
+				<AppText className='font-semibold'>
+					{isLoading || !album ? 'Loading...' : album.description || ''}
+				</AppText>
 			</View>
 		</View>
 	)
-}
+})
 
 export default AlbumInfo

@@ -14,6 +14,7 @@ export interface PlayList {
 }
 
 export interface ContinueWatchingElement {
+	id: string
 	title: string
 	subtitle?: string
 	episodeNumber?: number

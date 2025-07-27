@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { memo } from 'react'
 import { View, type ViewProps } from 'react-native'
 
 // Definimos las props para la versión web
@@ -30,4 +30,4 @@ const BlurEffect: React.FC<BlurEffecProps> = ({
 	)
 }
 
-export default BlurEffect
+export default memo(BlurEffect)

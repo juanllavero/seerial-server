@@ -1,8 +1,8 @@
 import { useServerStore } from '@/context/server.context'
-import { Collection, CollectionImages } from '@/data/interfaces/Media'
+import { Collection } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
-import React from 'react'
-import { ScrollView, View } from 'react-native'
+import React, { memo } from 'react'
+import { ScrollView } from 'react-native'
 import useSWR from 'swr'
 import CollectionInfo from './CollectionInfo'
 import CollectionContent from './CollectionContent'
@@ -40,4 +40,4 @@ function CollectionDetails({ id, type }: CollectionDetailsProps) {
 	)
 }
 
-export default CollectionDetails
+export default memo(CollectionDetails)

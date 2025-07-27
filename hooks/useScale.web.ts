@@ -1,3 +1,1 @@
-export function useScale(): number {
-  return 1.0;
-}
+export const scaledPixels = (x: number) => x

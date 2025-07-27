@@ -2,7 +2,7 @@ import useMusicStore from '@/context/music.context'
 import { useServerStore } from '@/context/server.context'
 import { Album } from '@/data/interfaces/Music'
 import { fetcher } from '@/utils/utils'
-import React, { useRef, useEffect, memo } from 'react'
+import React, { useRef, useEffect, memo, useCallback } from 'react'
 import Video, { VideoRef } from 'react-native-video'
 import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
@@ -52,6 +52,10 @@ const AudioPlayer = () => {
 		setPlayerRef(playerRef)
 	}, [setPlayerRef])
 
+	const handleError = useCallback((error: any) => {
+		console.log(error)
+	}, [])
+
 	if (!currentSong) {
 		return null
 	}
@@ -69,9 +73,7 @@ const AudioPlayer = () => {
 			onLoad={handleOnLoad}
 			onProgress={handleOnProgress}
 			onEnd={handleOnEnd}
-			onError={(error) => {
-				console.error('Player Error:', error)
-			}}
+			onError={handleError}
 		/>
 	)
 }

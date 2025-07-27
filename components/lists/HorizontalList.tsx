@@ -1,20 +1,18 @@
-import React from 'react'
+import React, { JSX, memo } from 'react'
+import { StyleProp, View, ViewStyle } from 'react-native'
 import {
-	FlatList,
-	ListRenderItem,
-	StyleProp,
-	View,
-	ViewStyle,
-} from 'react-native'
-import Secondary from '../text/Secondary'
-import Animated from 'react-native-reanimated'
-import Subtitle from '../text/Subtitle'
+	SpatialNavigationNode,
+	SpatialNavigationVirtualizedList,
+} from 'react-tv-space-navigation'
+import ListTitle from '../text/ListTitle'
+import { scaledPixels } from '@/hooks/useScale'
+import AppText from '../text/AppText'
 
 interface HorizontalListProps<T> {
 	title?: string
 	items: T[]
-	renderItem: ListRenderItem<T>
-	keyExtractor?: (item: T, index: number) => string
+	itemSize?: number
+	renderItem: (args: { item: T; index: number }) => JSX.Element
 	style?: StyleProp<ViewStyle>
 	contentContainerStyle?: StyleProp<ViewStyle>
 	ListEmptyComponent?: React.ReactElement | null
@@ -24,36 +22,37 @@ interface HorizontalListProps<T> {
 function HorizontalList<T>({
 	title,
 	items,
+	itemSize = 250,
 	renderItem,
-	keyExtractor,
 	style,
 	contentContainerStyle,
 	ListEmptyComponent,
 	...rest
 }: HorizontalListProps<T>) {
-	const AnimatedFlatList = Animated.createAnimatedComponent(
-		FlatList as new () => FlatList<T>
-	)
-
 	return (
 		<View style={style} className='gap-5'>
-			{title && (
-				<Secondary className='font-semibold text-4xl sm:text-2xl md:text-3xl lg:text-4xl'>
-					{title}
-				</Secondary>
+			{title && <ListTitle>{title}</ListTitle>}
+			{items.length > 0 ? (
+				<SpatialNavigationNode>
+					<SpatialNavigationVirtualizedList
+						itemSize={scaledPixels(itemSize)}
+						orientation='horizontal'
+						style={{
+							gap: 10,
+						}}
+						scrollBehavior='jump-on-scroll'
+						data={items}
+						renderItem={renderItem}
+						{...rest}
+					/>
+				</SpatialNavigationNode>
+			) : (
+				<AppText>No items</AppText>
 			)}
-			<AnimatedFlatList
-				horizontal
-				showsHorizontalScrollIndicator={false}
-				data={items}
-				renderItem={renderItem}
-				keyExtractor={keyExtractor}
-				contentContainerStyle={contentContainerStyle || { gap: 15 }}
-				ListEmptyComponent={ListEmptyComponent}
-				{...rest}
-			/>
 		</View>
 	)
 }
 
-export default HorizontalList
+export default memo(HorizontalList) as <T>(
+	props: HorizontalListProps<T>
+) => React.ReactElement

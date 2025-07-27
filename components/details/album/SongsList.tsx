@@ -1,39 +1,100 @@
 import { Album, Song } from '@/data/interfaces/Music'
 import useMusicStore from '@/context/music.context'
 import { shallow } from 'zustand/shallow'
-import { FlatList, View } from 'react-native'
-import Secondary from '@/components/text/Secondary'
+import { View } from 'react-native'
 import MusicCard from './MusicCard'
 import Subtitle from '@/components/text/Subtitle'
 import Animated from 'react-native-reanimated'
+import { memo, useCallback, useMemo } from 'react'
 
 interface SongsListProps {
 	album: Album
 }
 
-function SongsList({ album }: SongsListProps) {
-	const {
-		currentSong,
-		selectSong,
-		setSongQueue,
-		togglePlayPause,
-		setIsShown,
-		setIsExpanded,
-	} = useMusicStore(
-		(state) => ({
-			currentSong: state.currentSong,
-			selectSong: state.selectSong,
-			setSongQueue: state.initializeQueue,
-			togglePlayPause: state.togglePlayPause,
-			setIsShown: state.setIsShown,
-			setIsExpanded: state.setIsExpanded,
-		}),
-		shallow
+const SongsList = memo(function SongsList({ album }: SongsListProps) {
+	const { currentSong, selectSong, setSongQueue, setIsShown, setIsExpanded } =
+		useMusicStore(
+			(state) => ({
+				currentSong: state.currentSong,
+				selectSong: state.selectSong,
+				setSongQueue: state.initializeQueue,
+				setIsShown: state.setIsShown,
+				setIsExpanded: state.setIsExpanded,
+			}),
+			shallow
+		)
+
+	const { hasDiscs, discEntries, flatListForQueue } = useMemo(() => {
+		const localHasDiscs = album.songs.some((song) => song.discNumber > 0)
+
+		if (!localHasDiscs) {
+			return {
+				hasDiscs: false,
+				discEntries: [],
+				flatListForQueue: album.songs,
+			}
+		}
+
+		const groupedByDisc = album.songs.reduce(
+			(acc: { [key: number]: Song[] }, song) => {
+				const discNumber = song.discNumber || 0
+				if (!acc[discNumber]) acc[discNumber] = []
+				acc[discNumber].push(song)
+				return acc
+			},
+			{}
+		)
+
+		const localDiscEntries = Object.entries(groupedByDisc).sort(
+			([a], [b]) => {
+				const numA = Number(a)
+				const numB = Number(b)
+				if (numA === 0) return 1
+				if (numB === 0) return -1
+				return numA - numB
+			}
+		)
+
+		const localFlatList = localDiscEntries.flatMap(([, songs]) => songs)
+
+		return {
+			hasDiscs: true,
+			discEntries: localDiscEntries,
+			flatListForQueue: localFlatList,
+		}
+	}, [album.songs])
+
+	const renderSongItem = useCallback(
+		({ item, index }: { item: Song; index: number }) => {
+			const handlePlaySong = () => {
+				if (currentSong?.id === item.id) {
+					setIsExpanded(true)
+				} else {
+					selectSong(item)
+					setIsShown(true)
+					setIsExpanded(true)
+					setSongQueue(flatListForQueue)
+				}
+			}
+			return (
+				<MusicCard
+					key={item.id}
+					index={index}
+					song={item}
+					handlePlaySong={handlePlaySong}
+				/>
+			)
+		},
+		[
+			currentSong,
+			flatListForQueue,
+			selectSong,
+			setSongQueue,
+			setIsExpanded,
+			setIsShown,
+		]
 	)
 
-	const hasDiscs = album.songs.some((song) => song.discNumber > 0)
-
-	// Show all songs if there are no discs
 	if (!hasDiscs) {
 		return (
 			<View className='gap-5'>
@@ -45,63 +106,18 @@ function SongsList({ album }: SongsListProps) {
 						paddingHorizontal: 20,
 						paddingVertical: 10,
 					}}
-					renderItem={({ item, index }) => (
-						<MusicCard
-							key={item.id}
-							index={index}
-							song={item}
-							handlePlaySong={() => {
-								if (currentSong && currentSong.id === item.id) {
-									setIsExpanded(true)
-								} else {
-									selectSong(item)
-									setIsShown(true)
-									setIsExpanded(true)
-									setSongQueue(album.songs)
-								}
-							}}
-						/>
-					)}
+					renderItem={renderSongItem}
 				/>
 			</View>
 		)
 	}
-
-	const groupedByDisc = album.songs.reduce(
-		(acc: { [key: number]: Song[] }, song) => {
-			const discNumber = song.discNumber || 0 // Ensure discNumber is 0 if null/undefined
-			if (!acc[discNumber]) {
-				acc[discNumber] = []
-			}
-			acc[discNumber].push(song)
-			return acc
-		},
-		{}
-	)
-
-	// Convert the grouped object into an array sorted by disc number, with disc 0 at the end
-	const discEntries = Object.entries(groupedByDisc).sort(
-		([discA], [discB]) => {
-			const numA = Number(discA)
-			const numB = Number(discB)
-			if (numA === 0) return 1 // Move disc 0 to the end
-			if (numB === 0) return -1 // Keep other discs before disc 0
-			return numA - numB // Sort other discs numerically
-		}
-	)
-
-	// Create a flat list for playback (it will respect the new order)
-	const flatList = discEntries.flatMap(([, songs]) => songs)
 
 	return (
 		<>
 			{discEntries.map(([discNumber, songs]) => (
 				<View key={discNumber} className='gap-5'>
 					<Subtitle className='font-bold'>
-						{/* Change title for disc 0 to 'extras' */}
-						{Number(discNumber) === 0
-							? 'Extras'
-							: `${'Disc'} ${discNumber}`}
+						{Number(discNumber) === 0 ? 'Extras' : `Disc ${discNumber}`}
 					</Subtitle>
 					<Animated.FlatList
 						data={songs}
@@ -111,28 +127,12 @@ function SongsList({ album }: SongsListProps) {
 							paddingHorizontal: 20,
 							paddingVertical: 10,
 						}}
-						renderItem={({ item, index }) => (
-							<MusicCard
-								key={item.id}
-								index={index}
-								song={item}
-								handlePlaySong={() => {
-									if (currentSong && currentSong.id === item.id) {
-										setIsExpanded(true)
-									} else {
-										selectSong(item)
-										setIsShown(true)
-										setIsExpanded(true)
-										setSongQueue(flatList)
-									}
-								}}
-							/>
-						)}
+						renderItem={renderSongItem}
 					/>
 				</View>
 			))}
 		</>
 	)
-}
+})
 
 export default SongsList
