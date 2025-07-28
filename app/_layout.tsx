@@ -2,22 +2,15 @@ import { useFonts } from 'expo-font'
 import { Stack, useRouter, useSegments } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { shallow } from 'zustand/shallow'
-import { memo, useEffect, useRef } from 'react'
+import { memo, useEffect } from 'react'
 import {
 	configureReanimatedLogger,
 	ReanimatedLogLevel,
 } from 'react-native-reanimated'
 import '../global.css'
-import {
-	TVEventHandler,
-	Platform,
-	HWEvent,
-	EventSubscription,
-} from 'react-native'
 import { useAuth } from '@/context/auth.context'
 import AudioPlayer from '@/components/music/AudioPlayer'
 import MusicPlayer from '@/components/music/MusicPlayer'
-import { SpatialNavigationRoot } from 'react-tv-space-navigation'
 import { useTVRemoteHandler } from '@/hooks/useTVRemoteHandler'
 
 SplashScreen.preventAutoHideAsync()
@@ -26,60 +19,6 @@ configureReanimatedLogger({
 	level: ReanimatedLogLevel.warn,
 	strict: false,
 })
-
-// --- Nuevo Componente para Manejar Eventos del Mando ---
-// Este componente encapsula la lógica para escuchar los eventos del mando a distancia.
-function TVEventHandlerComponent() {
-	// Usamos useRef para mantener una referencia a la suscripción del evento,
-	// para poder eliminarla cuando el componente se desmonte.
-	const eventSubscription = useRef<EventSubscription | undefined>(undefined)
-
-	// La función que se ejecutará cada vez que se reciba un evento del mando.
-	// Añadimos el tipo HWEvent para mayor seguridad con TypeScript.
-	const handleTVRemoteEvent = (event: HWEvent) => {
-		// `event` es un objeto que contiene detalles sobre la pulsación.
-		// - eventType: El tipo de evento (e.g., 'select', 'playPause', 'up', 'down', 'left', 'right').
-		// - eventKeyAction: (Solo para Android) La acción del teclado (0 para key-down, 1 para key-up, 2 para key-long-press).
-		// - body: Contiene información adicional si es necesario.
-		console.log('Evento del Mando Recibido:', {
-			eventType: event.eventType,
-			eventKeyAction: event.eventKeyAction, // Muy útil para diferenciar entre pulsación y liberación
-			tag: event.tag, // El tag del componente enfocado
-		})
-	}
-
-	useEffect(() => {
-		// Este efecto se ejecuta solo una vez, cuando el componente se monta.
-
-		// Verificamos si la plataforma es Android TV o Apple TV.
-		if (Platform.isTV) {
-			console.log(
-				'Plataforma de TV detectada. Adjuntando listener de eventos...'
-			)
-
-			// La API moderna no usa 'new'. Se llama directamente a addListener.
-			// Esto devuelve un objeto de suscripción que usamos para limpiar.
-			eventSubscription.current =
-				TVEventHandler.addListener(handleTVRemoteEvent)
-			console.log('Listener de TVEventHandler adjuntado.')
-		}
-
-		// La función de limpieza de useEffect es crucial.
-		// Se ejecuta cuando el componente se desmonta.
-		return () => {
-			console.log(
-				'Desmontando el componente. Eliminando suscripción de eventos...'
-			)
-			// Si la suscripción existe, la eliminamos para liberar recursos
-			// y evitar fugas de memoria.
-			eventSubscription.current?.remove()
-			console.log('Suscripción de TVEventHandler eliminada.')
-		}
-	}, []) // El array de dependencias vacío asegura que se ejecute solo al montar/desmontar.
-
-	// Este componente no renderiza nada en la interfaz de usuario.
-	return null
-}
 
 function TVNavigationSetup() {
 	useTVRemoteHandler()

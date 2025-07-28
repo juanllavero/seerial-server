@@ -1,12 +1,9 @@
-import React, { memo, useCallback, useState } from 'react'
-import { Pressable, View } from 'react-native'
+import React, { memo, useCallback } from 'react'
+import { View } from 'react-native'
 import Tertiary from '../text/Tertiary'
 import { useServerStore } from '@/context/server.context'
-import { fetcher, getImageUrl } from '@/utils/utils'
+import { getImageUrl } from '@/utils/utils'
 import { LibraryTypes } from '@/data/enums/LibraryTypes'
-import useSWR from 'swr'
-import { CollectionImages } from '@/data/interfaces/Media'
-import CollectionImage from '../images/CollectionImage'
 import { router } from 'expo-router'
 import useDataStore from '@/context/data.context'
 import OptimizedImage from '../images/OptimizedImage'
@@ -14,6 +11,9 @@ import {
 	SpatialNavigationFocusableView,
 	SpatialNavigationNode,
 } from 'react-tv-space-navigation'
+import { CollectionImages } from '@/data/interfaces/Media'
+import CollectionImage from '../images/CollectionImage'
+import AnimatedCard from './AnimatedCard'
 
 interface LibraryItemCardProps {
 	type: string
@@ -22,6 +22,7 @@ interface LibraryItemCardProps {
 	subtitle: string
 	imgSrc: string
 	width: number
+	collectionImages?: CollectionImages
 	aspectRatio?: number
 	updateImage?: boolean
 	isCollection?: boolean
@@ -36,6 +37,7 @@ function LibraryItemCard({
 	imgSrc,
 	width,
 	aspectRatio,
+	collectionImages,
 	updateImage = true,
 	isCollection = false,
 	onFocus,
@@ -45,15 +47,9 @@ function LibraryItemCard({
 		(state) => state.setCurrentBackground
 	)
 
-	const { data: collectionImages } = useSWR<CollectionImages>(
-		serverUrl && isCollection
-			? `${serverUrl}/collection-images?collectionId=${id}&&type=${type}`
-			: null,
-		fetcher
-	)
-
-	const imageSrc = imgSrc || collectionImages?.poster || ''
-	const url = serverUrl ? getImageUrl(serverUrl, imageSrc) : ''
+	const url = serverUrl
+		? getImageUrl(serverUrl, imgSrc, width, width * (aspectRatio || 1.5))
+		: ''
 
 	const handlePress = useCallback(() => {
 		router.push({
@@ -68,74 +64,65 @@ function LibraryItemCard({
 
 	const handleFocus = useCallback(() => {
 		onFocus?.()
-
-		if (updateImage) {
-			setCurrentBackground(imageSrc ?? '')
+		if (updateImage && imgSrc && imgSrc !== '') {
+			setCurrentBackground(imgSrc)
 		}
-	}, [updateImage, setCurrentBackground, imageSrc])
-
-	const handleBlur = useCallback(() => {}, [])
+	}, [updateImage, setCurrentBackground, imgSrc, onFocus])
 
 	return (
 		<SpatialNavigationNode>
 			<SpatialNavigationFocusableView
 				onSelect={handlePress}
 				onFocus={handleFocus}
-				onBlur={handleBlur}
 			>
 				{({ isFocused }) => (
-					<View
-						style={{
-							width,
-							overflow: 'hidden',
-							outline: 'none',
-							transform: isFocused ? [{ scale: 1.05 }] : [{ scale: 1 }],
-						}}
-						className={`items-center`}
-					>
+					<AnimatedCard isFocused={isFocused} width={width}>
 						<View
 							className='flex flex-col items-center'
 							style={{ outline: 'none' }}
 						>
-							{(!url || url === '') &&
-							collectionImages &&
+							{collectionImages &&
+							!collectionImages.poster &&
 							collectionImages.images &&
 							collectionImages.images.length > 0 ? (
 								<CollectionImage
 									images={collectionImages.images}
 									type={type}
-									width={width - 8}
-									className={`border-2 border-transparent ${
-										isFocused ? 'border-white' : ''
-									}`}
-									height={width * (aspectRatio || 1) - 8}
+									width={width}
+									height={width * (aspectRatio || 1.5)}
+									style={{
+										borderRadius: 5,
+										borderWidth: 1,
+										borderColor: isFocused ? 'white' : 'transparent',
+									}}
 								/>
 							) : (
 								<OptimizedImage
 									source={
-										url && url !== ''
-											? { uri: url }
-											: type === LibraryTypes.MUSIC
-												? require('@/assets/images/default/music.png')
-												: require('@/assets/images/default/movie.jpg')
+										url ||
+										(type === LibraryTypes.MUSIC
+											? require('@/assets/images/default/music.png')
+											: require('@/assets/images/default/movie.jpg'))
 									}
-									className={`border-2 border-transparent`}
+									resizeMode='cover'
 									style={{
 										width,
-										height: width * (aspectRatio || 1),
+										height: width * (aspectRatio || 1.5),
 										borderRadius: 5,
+										borderWidth: 1,
 										borderColor: isFocused ? 'white' : 'transparent',
 									}}
 								/>
 							)}
-							<Tertiary className='line-clamp-1 text-center'>
+
+							<Tertiary className='line-clamp-1 text-center mt-1'>
 								{title}
 							</Tertiary>
-							<Tertiary className='line-clamp-1 text-center'>
+							<Tertiary className='line-clamp-1 text-center text-gray-400'>
 								{subtitle}
 							</Tertiary>
 						</View>
-					</View>
+					</AnimatedCard>
 				)}
 			</SpatialNavigationFocusableView>
 		</SpatialNavigationNode>

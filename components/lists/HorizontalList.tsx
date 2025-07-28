@@ -40,7 +40,7 @@ function HorizontalList<T>({
 						style={{
 							gap: 10,
 						}}
-						scrollBehavior='jump-on-scroll'
+						scrollBehavior='stick-to-start'
 						data={items}
 						renderItem={renderItem}
 						{...rest}

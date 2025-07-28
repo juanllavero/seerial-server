@@ -1,43 +1,35 @@
-import { useWindowDimensions } from 'react-native'
+import { Dimensions, useWindowDimensions } from 'react-native'
 import AppText from '@/components/text/AppText'
 import { useLocalSearchParams } from 'expo-router'
-import { LibraryItem } from '@/data/interfaces/Media'
+import { CollectionImages, LibraryItem } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
 import useSWR from 'swr'
 import LibraryItemCard from '@/components/cards/LibraryItemCard'
 import { LibraryTypes } from '@/data/enums/LibraryTypes'
-import { memo, useCallback, useEffect, useMemo } from 'react'
+import { memo, useCallback, useMemo, useState, useEffect } from 'react'
 import { SpatialNavigationVirtualizedGrid } from 'react-tv-space-navigation'
 import { scaledPixels } from '@/hooks/useScale'
 import { Page } from '@/components/Page'
 import AnimatedTabContentView from '@/components/AnimatedTabContentView'
 
-const NUM_COLUMNS = 6
-const ITEM_SPACING = 15
+const NUMBER_OF_COLUMNS = 6
+const INFINITE_SCROLL_ROW_THRESHOLD = 2
 
 function LibrariesScreen() {
 	const { id, serverIP, type } = useLocalSearchParams()
-	const { width: screenWidth, height } = useWindowDimensions()
+	const { height } = Dimensions.get('screen')
 
-	const { data: content, isLoading } = useSWR<LibraryItem[]>(
+	const { data: libraryContent, isLoading } = useSWR<LibraryItem[]>(
 		serverIP
 			? `${serverIP}/library-content-flat?libraryId=${id}&type=${type}`
 			: null,
 		fetcher
 	)
 
-	const itemWidth = useMemo(() => {
-		const containerPadding = height * 0.08
-		const availableWidth = screenWidth - containerPadding
-		const totalWidthPerColumn = availableWidth / NUM_COLUMNS
-		return totalWidthPerColumn - ITEM_SPACING
-	}, [screenWidth, height])
+	const itemWidth = scaledPixels(137)
 	const itemHeight = useMemo(
-		() =>
-			scaledPixels(
-				type === LibraryTypes.MUSIC ? itemWidth * 1.3 : itemWidth * 2
-			),
-		[]
+		() => (type === LibraryTypes.MUSIC ? itemWidth * 1.3 : itemWidth * 2),
+		[type, itemWidth]
 	)
 
 	const renderLibraryItem = useCallback(
@@ -53,7 +45,14 @@ function LibrariesScreen() {
 						? `${item.data.numberOfItems} items`
 						: (item.data.year ?? '')
 				}
-				imgSrc={item.data.posterSrc ?? item.data.musicPosterSrc ?? ''}
+				collectionImages={
+					item.type === 'collection' ? item.data.images : undefined
+				}
+				imgSrc={
+					type === LibraryTypes.MUSIC
+						? (item.data.musicPosterSrc ?? '')
+						: (item.data.posterSrc ?? '')
+				}
 				width={itemWidth}
 				aspectRatio={type === LibraryTypes.MUSIC ? 1 : 1.5}
 			/>
@@ -61,21 +60,35 @@ function LibrariesScreen() {
 		[type, itemWidth]
 	)
 
-	if (!isLoading && !content) return <AppText>Library not found</AppText>
+	if (isLoading && libraryContent && libraryContent.length === 0) {
+		return <AppText>Loading...</AppText>
+	}
+
+	if (!isLoading && !libraryContent)
+		return <AppText>Library not found</AppText>
+
+	console.log({ libraryContent })
 
 	return (
 		<Page>
 			<AnimatedTabContentView>
 				<SpatialNavigationVirtualizedGrid
-					data={content ?? []}
+					data={libraryContent ?? []}
 					renderItem={renderLibraryItem}
 					itemHeight={itemHeight}
-					nbMaxOfItems={12}
-					rowContainerStyle={{
-						gap: ITEM_SPACING,
-						marginBottom: 20,
+					numberOfColumns={NUMBER_OF_COLUMNS}
+					onEndReachedThresholdRowsNumber={INFINITE_SCROLL_ROW_THRESHOLD}
+					scrollInterval={150}
+					scrollBehavior='jump-on-scroll'
+					scrollDuration={200}
+					style={{
+						padding: scaledPixels(25),
+						height: height,
+						paddingLeft: 0,
 					}}
-					numberOfColumns={NUM_COLUMNS}
+					rowContainerStyle={{
+						gap: scaledPixels(10),
+					}}
 				/>
 			</AnimatedTabContentView>
 		</Page>

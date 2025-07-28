@@ -15,10 +15,6 @@ export const useTVRemoteHandler = () => {
 			return
 		}
 
-		console.log(
-			'Configurando el control remoto para react-tv-space-navigation...'
-		)
-
 		SpatialNavigation.configureRemoteControl({
 			// remoteControlSubscriber se encarga de "suscribir" nuestra lógica de eventos.
 			// Recibe un callback que debemos llamar con la dirección correcta.
@@ -36,16 +32,11 @@ export const useTVRemoteHandler = () => {
 				}
 
 				const tvEventHandler = (event: HWEvent) => {
-					console.log('Evento de TVEventHandler recibido (crudo):', event)
 					// La comprobación ahora funciona sin errores de tipo.
 					if (event && event.eventType && mapping[event.eventType]) {
 						// CORRECCIÓN: Cambiado de 0 a 1 para que coincida con los logs (key-up).
 						// El mando del emulador/dispositivo está enviando el evento al soltar la tecla.
 						if (event.eventKeyAction === 1) {
-							// key-up
-							console.log(
-								`Mando: ${event.eventType} -> Navegación: ${mapping[event.eventType]}`
-							)
 							callback(mapping[event.eventType])
 						}
 					}

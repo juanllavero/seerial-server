@@ -1,4 +1,4 @@
-const expandedSidebarWidth = 600
-const collapsedSidebarWidth = 210
+const expandedSidebarWidth = 180
+const collapsedSidebarWidth = 50
 
 export { expandedSidebarWidth, collapsedSidebarWidth }

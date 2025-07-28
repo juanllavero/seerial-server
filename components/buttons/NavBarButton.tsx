@@ -35,7 +35,7 @@ function Button({
 	const sidebarOpen = useDataStore((state) => state.sidebarOpen)
 
 	const buttonWidth = sidebarOpen
-		? scaledPixels(expandedSidebarWidth - 80)
+		? scaledPixels(expandedSidebarWidth - 20)
 		: scaledPixels(collapsedSidebarWidth - 80)
 	return (
 		<SpatialNavigationNode>

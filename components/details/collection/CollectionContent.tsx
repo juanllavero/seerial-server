@@ -8,6 +8,7 @@ import { getOnlyYear } from '@/utils/utils'
 import React, { memo, useCallback, useMemo } from 'react'
 import { Dimensions, View } from 'react-native'
 import ExtrasList from '../extras/ExtrasList'
+import { scaledPixels } from '@/hooks/useScale'
 
 interface CollectionContentProps {
 	collection: Collection
@@ -21,7 +22,7 @@ const orderMap: Record<ContentType, CollectionKey[]> = {
 }
 
 function CollectionContent({ collection, type }: CollectionContentProps) {
-	const { height } = Dimensions.get('window')
+	const itemWidth = scaledPixels(130)
 
 	const renderAlbumItem = useCallback(
 		({ item }: { item: Album }) => (
@@ -32,10 +33,10 @@ function CollectionContent({ collection, type }: CollectionContentProps) {
 				updateImage={false}
 				subtitle={String(getOnlyYear(item.year ?? ''))}
 				imgSrc={item.coverSrc ?? ''}
-				width={height * 0.25}
+				width={itemWidth}
 			/>
 		),
-		[height]
+		[]
 	)
 
 	const renderMovieItem = useCallback(
@@ -47,10 +48,10 @@ function CollectionContent({ collection, type }: CollectionContentProps) {
 				updateImage={false}
 				subtitle={String(getOnlyYear(item.year ?? ''))}
 				imgSrc={item.coverSrc ?? ''}
-				width={height * 0.25}
+				width={itemWidth}
 			/>
 		),
-		[height]
+		[]
 	)
 
 	const renderShowItem = useCallback(
@@ -62,10 +63,10 @@ function CollectionContent({ collection, type }: CollectionContentProps) {
 				updateImage={false}
 				subtitle={String(getOnlyYear(item.year ?? ''))}
 				imgSrc={item.coverSrc ?? ''}
-				width={height * 0.25}
+				width={itemWidth}
 			/>
 		),
-		[height]
+		[]
 	)
 
 	const renderMap = useMemo(
@@ -75,7 +76,7 @@ function CollectionContent({ collection, type }: CollectionContentProps) {
 					key={'Albums List'}
 					title={'Albums'}
 					items={items}
-					contentContainerStyle={{ padding: 10, gap: 15 }}
+					itemSize={itemWidth + 15}
 					renderItem={renderAlbumItem}
 				/>
 			),
@@ -84,7 +85,7 @@ function CollectionContent({ collection, type }: CollectionContentProps) {
 					key={'Movies List'}
 					title={'Movies'}
 					items={items}
-					contentContainerStyle={{ padding: 10, gap: 15 }}
+					itemSize={itemWidth + 15}
 					renderItem={renderMovieItem}
 				/>
 			),
@@ -93,7 +94,7 @@ function CollectionContent({ collection, type }: CollectionContentProps) {
 					key={'Shows List'}
 					title={'Shows'}
 					items={items}
-					contentContainerStyle={{ padding: 10, gap: 15 }}
+					itemSize={itemWidth + 15}
 					renderItem={renderShowItem}
 				/>
 			),

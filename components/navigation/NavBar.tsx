@@ -80,7 +80,7 @@ function NavBar() {
 		router.push('/')
 	}, [setSidebarOpen])
 
-	const imageSize = scaledPixels(70)
+	const imageSize = scaledPixels(17)
 
 	return (
 		<SpatialNavigationRoot
@@ -134,7 +134,7 @@ function NavBar() {
 							<View className='justify-start items-start w-full gap-1'>
 								<Button
 									text='My List'
-									iconSize={scaledPixels(70)}
+									iconSize={scaledPixels(17)}
 									onPress={handleMyListPress}
 									hideText={!sidebarOpen}
 									icon={BookmarkIcon}
@@ -144,7 +144,7 @@ function NavBar() {
 									<Button
 										text='Home'
 										ref={homeButtonRef}
-										iconSize={scaledPixels(70)}
+										iconSize={scaledPixels(17)}
 										onPress={handleHomePress}
 										hideText={!sidebarOpen}
 										icon={LucideHome}
@@ -154,14 +154,16 @@ function NavBar() {
 								<Libraries />
 							</View>
 
-							<Button
-								text='Settings'
-								ref={settingsButtonRef}
-								iconSize={scaledPixels(70)}
-								onPress={handleSettingsPress}
-								hideText={!sidebarOpen}
-								icon={SettingsIcon}
-							/>
+							<View>
+								<Button
+									text='Settings'
+									ref={settingsButtonRef}
+									iconSize={scaledPixels(17)}
+									onPress={handleSettingsPress}
+									hideText={!sidebarOpen}
+									icon={SettingsIcon}
+								/>
+							</View>
 						</SpatialNavigationScrollView>
 					</Animated.View>
 				</SpatialNavigationView>

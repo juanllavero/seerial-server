@@ -20,6 +20,7 @@ import {
 import HorizontalList from '../lists/HorizontalList'
 import { scaledPixels } from '@/hooks/useScale'
 import AnimatedTabContentView from '../AnimatedTabContentView'
+import AnimatedCard from '../cards/AnimatedCard'
 
 function ContinueWatchingContent() {
 	const user = useAuth((state) => state.user)
@@ -46,18 +47,18 @@ function ContinueWatchingContent() {
 		}
 	}, [user, selectServer])
 
+	useEffect(() => {
+		if (continueWatching && continueWatching.length > 0) {
+			setSelectedElement(continueWatching[0])
+		}
+	}, [continueWatching])
+
 	const aspectRatio = 2 / 3
 	const imageHeight = height * 0.33
 	const imageWidth = imageHeight * aspectRatio
 
 	const renderItem = useCallback(
-		({
-			item: element,
-			index,
-		}: {
-			item: ContinueWatchingElement
-			index: number
-		}) => (
+		({ item: element }: { item: ContinueWatchingElement }) => (
 			<SpatialNavigationNode key={element.id}>
 				<SpatialNavigationFocusableView
 					onFocus={() => {
@@ -66,18 +67,7 @@ function ContinueWatchingContent() {
 					onSelect={() => {}}
 				>
 					{({ isFocused }) => (
-						<View
-							style={{
-								outline: 'none',
-
-								transform: isFocused
-									? [{ scale: 1.05 }]
-									: [{ scale: 1 }],
-							}}
-							className={`w-fit h-fit border-transparent rounded-lg border-2 ${
-								isFocused ? 'border-white' : ''
-							}`}
-						>
+						<AnimatedCard isFocused={isFocused} width={imageWidth}>
 							<OptimizedImage
 								source={
 									element.posterImage && element.posterImage !== ''
@@ -88,10 +78,12 @@ function ContinueWatchingContent() {
 									width: imageWidth,
 									height: imageHeight,
 									borderRadius: 5,
+									borderWidth: 1,
+									borderColor: isFocused ? 'white' : 'transparent',
 									overflow: 'hidden',
 								}}
 							/>
-						</View>
+						</AnimatedCard>
 					)}
 				</SpatialNavigationFocusableView>
 			</SpatialNavigationNode>
@@ -104,8 +96,12 @@ function ContinueWatchingContent() {
 	return (
 		<View className='w-screen h-full justify-end bg-black' focusable={true}>
 			<HomeBackground background={selectedElement?.backgroundImage || ''} />
-			<AnimatedTabContentView>
-				<View className='justify-end pr-64 bg-transparent'>
+			<AnimatedTabContentView
+				containerStyles={{
+					gap: scaledPixels(10),
+				}}
+			>
+				<View className='justify-end pr-64'>
 					{selectedElement ? (
 						<>
 							{selectedElement.logoImage &&
@@ -161,15 +157,17 @@ function ContinueWatchingContent() {
 					)}
 				</View>
 
-				{continueWatching && continueWatching.length > 0 ? (
-					<HorizontalList<ContinueWatchingElement>
-						itemSize={scaledPixels(2200)}
-						title={'Continue Watching'}
-						items={continueWatching}
-						renderItem={renderItem}
-						style={{ height: height * 0.45 }}
-					/>
-				) : null}
+				<View>
+					{continueWatching && continueWatching.length > 0 ? (
+						<HorizontalList<ContinueWatchingElement>
+							itemSize={imageWidth * 1.1}
+							title={'Continue Watching'}
+							items={continueWatching}
+							renderItem={renderItem}
+							style={{ height: height * 0.45 }}
+						/>
+					) : null}
+				</View>
 			</AnimatedTabContentView>
 		</View>
 	)

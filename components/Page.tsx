@@ -8,7 +8,6 @@ import {
 import { Keyboard } from 'react-native'
 import { shallow } from 'zustand/shallow'
 import useDataStore from '@/context/data.context'
-import { GoBackConfiguration } from './GoBackConfiguration'
 
 type Props = { children: ReactNode }
 
@@ -62,7 +61,7 @@ export const Page = ({ children }: Props) => {
 			isActive={isActive}
 			onDirectionHandledWithoutMovement={onDirectionHandledWithoutMovement}
 		>
-			<GoBackConfiguration />
+			{/* <GoBackConfiguration /> */}
 			<SpatialNavigationKeyboardLocker />
 			{children}
 		</SpatialNavigationRoot>

@@ -6,8 +6,8 @@ const LONG_PRESS_DURATION = 500
 
 class RemoteControlManager implements RemoteControlManagerInterface {
 	constructor() {
-		window.addEventListener('keydown', this.handleKeyDown)
-		window.addEventListener('keyup', this.handleKeyUp)
+		// window.addEventListener('keydown', this.handleKeyDown)
+		// window.addEventListener('keyup', this.handleKeyUp)
 	}
 
 	private eventEmitter = new CustomEventEmitter<{ keyDown: SupportedKeys }>()

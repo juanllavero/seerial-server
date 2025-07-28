@@ -51,7 +51,7 @@ function Libraries() {
 				<Button
 					text={library.name}
 					key={library.id}
-					iconSize={scaledPixels(70)}
+					iconSize={scaledPixels(17)}
 					onPress={() => handlePress(library)}
 					hideText={!sidebarOpen}
 					icon={

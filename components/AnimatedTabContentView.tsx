@@ -5,9 +5,15 @@ import {
 import useDataStore from '@/context/data.context'
 import { scaledPixels } from '@/hooks/useScale'
 import React, { useEffect, useRef } from 'react'
-import { Animated } from 'react-native'
+import { Animated, ViewStyle } from 'react-native'
 
-function AnimatedTabContentView({ children }: { children: React.ReactNode }) {
+function AnimatedTabContentView({
+	children,
+	containerStyles,
+}: {
+	children: React.ReactNode
+	containerStyles?: ViewStyle
+}) {
 	const sidebarOpen = useDataStore((state) => state.sidebarOpen)
 	const SIDEBAR_CLOSED_WIDTH = scaledPixels(collapsedSidebarWidth)
 	const PADDING_LEFT = SIDEBAR_CLOSED_WIDTH + 20
@@ -28,8 +34,9 @@ function AnimatedTabContentView({ children }: { children: React.ReactNode }) {
 		<Animated.View
 			style={{
 				paddingLeft: PADDING_LEFT,
-				gap: scaledPixels(40),
+				gap: scaledPixels(10),
 				transform: [{ translateX: animatedPosition }],
+				...containerStyles,
 			}}
 		>
 			{children}

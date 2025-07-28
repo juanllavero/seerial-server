@@ -29,6 +29,7 @@ export interface LibraryItemData {
 	id: string
 	title: string
 	year?: string
+	images?: CollectionImages
 	posterSrc?: string
 	musicPosterSrc?: string
 	numberOfItems?: number

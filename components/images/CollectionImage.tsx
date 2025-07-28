@@ -2,8 +2,15 @@ import { useServerStore } from '@/context/server.context'
 import { LibraryTypes } from '@/data/enums/LibraryTypes'
 import { getImageUrl } from '@/utils/utils'
 import React, { memo } from 'react'
-import { View, StyleSheet } from 'react-native'
+import {
+	View,
+	StyleSheet,
+	StyleProp,
+	RegisteredStyle,
+	ViewStyle,
+} from 'react-native'
 import OptimizedImage from './OptimizedImage'
+import { ImageStyle } from 'expo-image'
 
 interface CollectionImageProps {
 	images: string[]
@@ -11,7 +18,7 @@ interface CollectionImageProps {
 	width: number
 	height: number
 	className?: string
-	style?: StyleSheet
+	style?: RegisteredStyle<ViewStyle> | StyleProp<ImageStyle>
 }
 
 const CollectionImage: React.FC<CollectionImageProps> = ({
@@ -32,7 +39,7 @@ const CollectionImage: React.FC<CollectionImageProps> = ({
 				: require('@/assets/images/default/movie.jpg')
 
 		return (
-			<View className={className} style={{ borderRadius: 5, ...style }}>
+			<View className={className} style={[style, { borderRadius: 5 }]}>
 				<OptimizedImage
 					source={defaultImageSource}
 					style={[styles.singleImage, { width, height, borderRadius: 5 }]}
@@ -48,7 +55,8 @@ const CollectionImage: React.FC<CollectionImageProps> = ({
 				className={className}
 				style={[
 					styles.singleImage,
-					{ width, height, borderRadius: 5, ...style },
+					style as StyleProp<ImageStyle>,
+					{ width, height, borderRadius: 5 },
 				]}
 			/>
 		)
@@ -60,7 +68,7 @@ const CollectionImage: React.FC<CollectionImageProps> = ({
 	}
 
 	return (
-		<View className={className} style={{ borderRadius: 5, ...style }}>
+		<View className={className} style={[style, { borderRadius: 5 }]}>
 			<View style={[styles.gridContainer, { width, height }]}>
 				{gridImages.map((uri, index) => (
 					<OptimizedImage

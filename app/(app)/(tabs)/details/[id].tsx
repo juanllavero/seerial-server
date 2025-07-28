@@ -11,7 +11,7 @@ import { LibraryTypes } from '@/data/enums/LibraryTypes'
 import { getImageUrl } from '@/utils/utils'
 import { useLocalSearchParams } from 'expo-router'
 import React, { memo } from 'react'
-import { Dimensions } from 'react-native'
+import { View } from 'react-native'
 import { shallow } from 'zustand/shallow'
 
 function DetailsScreen() {
@@ -23,11 +23,10 @@ function DetailsScreen() {
 		}),
 		shallow
 	)
-	const { height } = Dimensions.get('screen')
 
 	return (
 		<Page>
-			<AnimatedTabContentView>
+			<View>
 				<OptimizedImage
 					source={{
 						uri: getImageUrl(serverUrl, currentBackground ?? ''),
@@ -38,24 +37,24 @@ function DetailsScreen() {
 					}}
 					className='absolute top-0 left-0 w-screen h-screen'
 				/>
-
-				{/* <OptimizedImage
-				source={require('@/assets/images/noise.png')}
-				className='absolute top-0 left-0 w-screen h-screen'
-				style={{ opacity: 0.01, zIndex: 0 }}
-			/> */}
-
-				{/* Details Content */}
-				{isCollection === 'true' ? (
-					<CollectionDetails id={id as string} type={type as string} />
-				) : type === LibraryTypes.SHOWS ? (
-					<SeriesDetails id={id as string} />
-				) : type === LibraryTypes.MOVIES ? (
-					<MovieDetails id={id as string} />
-				) : type === LibraryTypes.MUSIC ? (
-					<AlbumDetails id={id as string} />
-				) : null}
-			</AnimatedTabContentView>
+				<OptimizedImage
+					source={require('@/assets/images/noise.png')}
+					className='absolute top-0 left-0 w-screen h-screen'
+					style={{ opacity: 0.01, zIndex: 0 }}
+				/>
+				<AnimatedTabContentView>
+					{/* Details Content */}
+					{isCollection === 'true' ? (
+						<CollectionDetails id={id as string} type={type as string} />
+					) : type === LibraryTypes.SHOWS ? (
+						<SeriesDetails id={id as string} />
+					) : type === LibraryTypes.MOVIES ? (
+						<MovieDetails id={id as string} />
+					) : type === LibraryTypes.MUSIC ? (
+						<AlbumDetails id={id as string} />
+					) : null}
+				</AnimatedTabContentView>
+			</View>
 		</Page>
 	)
 }

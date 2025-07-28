@@ -13,7 +13,12 @@ export const isAbsolutePath = (pathString: string): boolean => {
 	return windowsPathRegex.test(pathString) || unixPathRegex.test(pathString)
 }
 
-export const getImageUrl = (serverUrl: string, imageSrc: string) => {
+export const getImageUrl = (
+	serverUrl: string,
+	imageSrc: string,
+	width?: number,
+	height?: number
+) => {
 	return imageSrc
 		? imageSrc.startsWith('http')
 			? imageSrc
