@@ -1,14 +1,14 @@
-import LibraryItemCard from '@/components/cards/LibraryItemCard'
 import HorizontalList from '@/components/lists/HorizontalList'
 import { LibraryTypes } from '@/data/enums/LibraryTypes'
-import { Collection, Movie, Series } from '@/data/interfaces/Media'
+import { Collection, LibraryItem, Movie, Series } from '@/data/interfaces/Media'
 import { Album } from '@/data/interfaces/Music'
 import { CollectionKey, ContentType } from '@/types/types'
 import { getOnlyYear } from '@/utils/utils'
 import React, { memo, useCallback, useMemo } from 'react'
-import { Dimensions, View } from 'react-native'
+import { View } from 'react-native'
 import ExtrasList from '../extras/ExtrasList'
 import { scaledPixels } from '@/hooks/useScale'
+import FocusableLibraryItem from '@/components/cards/FocusableLibraryItem'
 
 interface CollectionContentProps {
 	collection: Collection
@@ -25,48 +25,75 @@ function CollectionContent({ collection, type }: CollectionContentProps) {
 	const itemWidth = scaledPixels(130)
 
 	const renderAlbumItem = useCallback(
-		({ item }: { item: Album }) => (
-			<LibraryItemCard
-				type={LibraryTypes.MUSIC}
-				id={item.id}
-				title={item.title}
-				updateImage={false}
-				subtitle={String(getOnlyYear(item.year ?? ''))}
-				imgSrc={item.coverSrc ?? ''}
-				width={itemWidth}
-			/>
-		),
-		[]
+		({ item }: { item: Album }) => {
+			const libraryItem: LibraryItem = {
+				type: 'item',
+				order: 0,
+				data: {
+					id: item.id,
+					title: item.title,
+					year: String(getOnlyYear(item.year ?? '')),
+					musicPosterSrc: item.coverSrc ?? '',
+				},
+			}
+			return (
+				<FocusableLibraryItem
+					item={libraryItem}
+					type={LibraryTypes.MUSIC}
+					itemWidth={itemWidth}
+					updateBackgroundOnFocus={false}
+				/>
+			)
+		},
+		[itemWidth]
 	)
 
 	const renderMovieItem = useCallback(
-		({ item }: { item: Movie }) => (
-			<LibraryItemCard
-				type={LibraryTypes.MOVIES}
-				id={item.id}
-				title={item.name}
-				updateImage={false}
-				subtitle={String(getOnlyYear(item.year ?? ''))}
-				imgSrc={item.coverSrc ?? ''}
-				width={itemWidth}
-			/>
-		),
-		[]
+		({ item }: { item: Movie }) => {
+			const libraryItem: LibraryItem = {
+				type: 'item',
+				order: 0,
+				data: {
+					id: item.id,
+					title: item.name,
+					year: String(getOnlyYear(item.year ?? '')),
+					posterSrc: item.coverSrc ?? '',
+				},
+			}
+			return (
+				<FocusableLibraryItem
+					item={libraryItem}
+					type={LibraryTypes.MOVIES}
+					itemWidth={itemWidth}
+					updateBackgroundOnFocus={false}
+				/>
+			)
+		},
+		[itemWidth]
 	)
 
 	const renderShowItem = useCallback(
-		({ item }: { item: Series }) => (
-			<LibraryItemCard
-				type={LibraryTypes.SHOWS}
-				id={item.id}
-				title={item.name}
-				updateImage={false}
-				subtitle={String(getOnlyYear(item.year ?? ''))}
-				imgSrc={item.coverSrc ?? ''}
-				width={itemWidth}
-			/>
-		),
-		[]
+		({ item }: { item: Series }) => {
+			const libraryItem: LibraryItem = {
+				type: 'item',
+				order: 0,
+				data: {
+					id: item.id,
+					title: item.name,
+					year: String(getOnlyYear(item.year ?? '')),
+					posterSrc: item.coverSrc ?? '',
+				},
+			}
+			return (
+				<FocusableLibraryItem
+					item={libraryItem}
+					type={LibraryTypes.SHOWS}
+					itemWidth={itemWidth}
+					updateBackgroundOnFocus={false}
+				/>
+			)
+		},
+		[itemWidth]
 	)
 
 	const renderMap = useMemo(
@@ -99,36 +126,23 @@ function CollectionContent({ collection, type }: CollectionContentProps) {
 				/>
 			),
 		}),
-		[renderAlbumItem, renderMovieItem, renderShowItem]
+		[renderAlbumItem, renderMovieItem, renderShowItem, itemWidth]
 	)
 
 	return (
 		<View className='gap-5'>
 			{orderMap[type as ContentType]?.map((key) => {
-				if (
-					key === 'albums' &&
-					collection.albums &&
-					collection.albums.length > 0
-				) {
+				if (key === 'albums' && collection.albums?.length > 0) {
 					return renderMap.albums(collection.albums)
 				}
-				if (
-					key === 'movies' &&
-					collection.movies &&
-					collection.movies.length > 0
-				) {
+				if (key === 'movies' && collection.movies?.length > 0) {
 					return renderMap.movies(collection.movies)
 				}
-				if (
-					key === 'shows' &&
-					collection.shows &&
-					collection.shows.length > 0
-				) {
+				if (key === 'shows' && collection.shows?.length > 0) {
 					return renderMap.shows(collection.shows)
 				}
 				return null
 			})}
-
 			<ExtrasList collection={collection} />
 		</View>
 	)

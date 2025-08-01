@@ -1,6 +1,6 @@
 import { useServerStore } from '@/context/server.context'
 import { fetcher } from '@/utils/utils'
-import React, { memo, useCallback } from 'react'
+import React, { memo, useCallback, useEffect } from 'react'
 import useSWR from 'swr'
 import { router } from 'expo-router'
 import { Library } from '@/data/interfaces/Media'
@@ -11,7 +11,11 @@ import { shallow } from 'zustand/shallow'
 import { scaledPixels } from '@/hooks/useScale'
 import { FilmIcon, Music, TvMinimal } from 'lucide-react-native'
 
-function Libraries() {
+interface LibrariesProps {
+	onReady?: () => void
+}
+
+function Libraries({ onReady }: LibrariesProps) {
 	const { sidebarOpen, setSidebarOpen } = useDataStore(
 		(state) => ({
 			sidebarOpen: state.sidebarOpen,
@@ -40,6 +44,12 @@ function Libraries() {
 		},
 		[serverUrl]
 	)
+
+	useEffect(() => {
+		if (libraries && onReady) {
+			onReady()
+		}
+	}, [libraries, onReady])
 
 	if (!libraries || libraries.length === 0) {
 		return null

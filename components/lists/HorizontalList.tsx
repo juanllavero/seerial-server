@@ -16,6 +16,7 @@ interface HorizontalListProps<T> {
 	style?: StyleProp<ViewStyle>
 	contentContainerStyle?: StyleProp<ViewStyle>
 	ListEmptyComponent?: React.ReactElement | null
+	scrollBehavior?: 'stick-to-start' | 'stick-to-end' | 'jump-on-scroll'
 	[key: string]: any
 }
 
@@ -27,6 +28,7 @@ function HorizontalList<T>({
 	style,
 	contentContainerStyle,
 	ListEmptyComponent,
+	scrollBehavior = 'stick-to-start',
 	...rest
 }: HorizontalListProps<T>) {
 	return (
@@ -40,7 +42,7 @@ function HorizontalList<T>({
 						style={{
 							gap: 10,
 						}}
-						scrollBehavior='stick-to-start'
+						scrollBehavior={scrollBehavior}
 						data={items}
 						renderItem={renderItem}
 						{...rest}

@@ -1,9 +1,9 @@
 import AnimatedTabContentView from '@/components/AnimatedTabContentView'
 import AlbumDetails from '@/components/details/album/AlbumDetails'
 import CollectionDetails from '@/components/details/collection/CollectionDetails'
-import MovieDetails from '@/components/details/MovieDetails'
-import SeriesDetails from '@/components/details/SeriesDetails'
-import OptimizedImage from '@/components/images/OptimizedImage'
+import MovieDetails from '@/components/details/movie/MovieDetails'
+import SeriesDetails from '@/components/details/series/SeriesDetails'
+import { AnimatedImage } from '@/components/images/AnimatedImage'
 import { Page } from '@/components/Page'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
@@ -27,21 +27,19 @@ function DetailsScreen() {
 	return (
 		<Page>
 			<View>
-				<OptimizedImage
-					source={{
-						uri: getImageUrl(serverUrl, currentBackground ?? ''),
-					}}
+				<AnimatedImage
+					uri={getImageUrl(serverUrl, currentBackground ?? '')}
+					toValue={0.2}
 					style={{
-						opacity: 0.3,
 						zIndex: 0,
+						position: 'absolute',
+						top: 0,
+						left: 0,
+						width: '100%',
+						height: '100%',
 					}}
-					className='absolute top-0 left-0 w-screen h-screen'
 				/>
-				<OptimizedImage
-					source={require('@/assets/images/noise.png')}
-					className='absolute top-0 left-0 w-screen h-screen'
-					style={{ opacity: 0.01, zIndex: 0 }}
-				/>
+
 				<AnimatedTabContentView>
 					{/* Details Content */}
 					{isCollection === 'true' ? (

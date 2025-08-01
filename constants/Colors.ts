@@ -4,6 +4,8 @@
  */
 
 export const appColor = '#8edce6'
+export const greyButtonColor = '#2b2b2b'
+export const greyButtonColorTransparent = 'rgba(43, 43, 43, 0.5)'
 
 const tintColorLight = '#0a7ea4'
 const tintColorDark = '#aaa'

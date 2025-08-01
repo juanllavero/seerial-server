@@ -114,7 +114,7 @@ const CollectionInfo = memo(function CollectionInfo({
 			)}
 
 			<View>
-				<Title className='mb-5'>{collection.title}</Title>
+				<Title>{collection.title}</Title>
 				<Tertiary>{yearRange}</Tertiary>
 				<Tertiary>{collection.description}</Tertiary>
 			</View>

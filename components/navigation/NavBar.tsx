@@ -1,6 +1,6 @@
 import { router, usePathname } from 'expo-router'
-import React, { useRef, memo, useCallback, useEffect } from 'react'
-import { View, Dimensions, Animated } from 'react-native'
+import React, { useRef, memo, useCallback, useEffect, useState } from 'react'
+import { View, Animated } from 'react-native'
 import Libraries from './Libraries'
 import { useAuth } from '@/context/auth.context'
 import { BookmarkIcon, LucideHome, SettingsIcon } from 'lucide-react-native'
@@ -30,7 +30,6 @@ function NavBar() {
 		shallow
 	)
 	const pathname = usePathname()
-	const { width } = Dimensions.get('screen')
 	const animatedWidth = useRef(
 		new Animated.Value(
 			sidebarOpen
@@ -65,6 +64,12 @@ function NavBar() {
 		}).start()
 	}, [animatedWidth, sidebarOpen])
 
+	const [navigationKey, setNavigationKey] = useState('loading')
+
+	const handleLibrariesReady = useCallback(() => {
+		setNavigationKey('loaded')
+	}, [])
+
 	const handleProfilePress = useCallback(() => console.log('profile'), [])
 	const handleSettingsPress = useCallback(() => console.log('settings'), [])
 
@@ -87,10 +92,15 @@ function NavBar() {
 			isActive={sidebarOpen}
 			onDirectionHandledWithoutMovement={onDirectionHandledWithoutMovement}
 		>
-			<View className={`absolute top-0 z-999 h-screen`}>
-				<SpatialNavigationView direction='vertical'>
+			<View
+				className={`absolute top-0 z-999 h-screen`}
+				style={{
+					opacity: sidebarOpen ? 1 : 0.4,
+				}}
+			>
+				<SpatialNavigationView direction='vertical' key={navigationKey}>
 					<Animated.View
-						className={`top-0 z-999 h-screen justify-between bg-white/10 items-start space-y-5 pt-5 ${sidebarOpen ? 'px-0' : ''}`}
+						className={`top-0 z-999 h-screen justify-between  items-start space-y-5 pt-5 ${sidebarOpen ? 'px-0' : ''}`}
 						style={{ width: animatedWidth }}
 					>
 						<Button
@@ -151,20 +161,21 @@ function NavBar() {
 									/>
 								</DefaultFocus>
 
-								<Libraries />
+								<Libraries onReady={handleLibrariesReady} />
 							</View>
 
-							<View>
-								<Button
-									text='Settings'
-									ref={settingsButtonRef}
-									iconSize={scaledPixels(17)}
-									onPress={handleSettingsPress}
-									hideText={!sidebarOpen}
-									icon={SettingsIcon}
-								/>
-							</View>
+							<View></View>
 						</SpatialNavigationScrollView>
+						<View style={{ paddingBottom: 10 }}>
+							<Button
+								text='Settings'
+								ref={settingsButtonRef}
+								iconSize={scaledPixels(17)}
+								onPress={handleSettingsPress}
+								hideText={!sidebarOpen}
+								icon={SettingsIcon}
+							/>
+						</View>
 					</Animated.View>
 				</SpatialNavigationView>
 			</View>

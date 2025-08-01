@@ -6,6 +6,7 @@ import {
 	SpatialNavigationFocusableView,
 	SpatialNavigationNode,
 } from 'react-tv-space-navigation'
+import { greyButtonColor } from '@/constants/Colors'
 
 interface ButtonProps {
 	icon?: React.ComponentType<{ [key: string]: any }> | React.ReactElement
@@ -45,7 +46,7 @@ function Button({
 								? 'white'
 								: transparent
 									? 'transparent'
-									: '#2b2b2b',
+									: greyButtonColor,
 							transform:
 								isFocused && !textSmall && !transparent
 									? [{ scale: 1.05 }]

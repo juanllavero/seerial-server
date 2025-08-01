@@ -11,6 +11,7 @@ import { Album } from '@/data/interfaces/Music'
 import { Ellipsis, ShuffleIcon } from 'lucide-react-native'
 import React, { memo, useCallback, useMemo } from 'react'
 import { TouchableOpacity, View } from 'react-native'
+import { DefaultFocus, SpatialNavigationView } from 'react-tv-space-navigation'
 import { shallow } from 'zustand/shallow'
 
 interface AlbumInfoProps {
@@ -104,21 +105,34 @@ const AlbumInfo = memo(function AlbumInfo({
 				</TouchableOpacity>
 			)}
 
-			<View className='flex-row justify-center pt-5 gap-10'>
-				<Button
-					text={isPlaying ? 'Pause' : 'Play'}
-					icon={
-						loadingSong ? SmallSpinner : isPlaying ? PauseIcon : PlayIcon
-					}
-					onPress={handlePlayPause}
-				/>
+			<SpatialNavigationView
+				style={{
+					justifyContent: 'center',
+					paddingTop: 5,
+					gap: 10,
+				}}
+				direction='horizontal'
+			>
+				<DefaultFocus>
+					<Button
+						text={isPlaying ? 'Pause' : 'Play'}
+						icon={
+							loadingSong
+								? SmallSpinner
+								: isPlaying
+									? PauseIcon
+									: PlayIcon
+						}
+						onPress={handlePlayPause}
+					/>
+				</DefaultFocus>
 				<Button
 					text={'Shuffle'}
 					icon={ShuffleIcon}
 					onPress={handleShuffle}
 				/>
-				<Button icon={Ellipsis} iconSize={40} onPress={handleMoreOptions} />
-			</View>
+				<Button icon={Ellipsis} iconSize={22} onPress={handleMoreOptions} />
+			</SpatialNavigationView>
 			<View>
 				<AppText className='font-semibold'>
 					{isLoading || !album ? 'Loading...' : album.description || ''}

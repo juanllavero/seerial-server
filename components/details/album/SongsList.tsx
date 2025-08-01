@@ -4,8 +4,7 @@ import { shallow } from 'zustand/shallow'
 import { View } from 'react-native'
 import MusicCard from './MusicCard'
 import Subtitle from '@/components/text/Subtitle'
-import Animated from 'react-native-reanimated'
-import { memo, useCallback, useMemo } from 'react'
+import { memo, useMemo } from 'react'
 
 interface SongsListProps {
 	album: Album
@@ -64,50 +63,29 @@ const SongsList = memo(function SongsList({ album }: SongsListProps) {
 		}
 	}, [album.songs])
 
-	const renderSongItem = useCallback(
-		({ item, index }: { item: Song; index: number }) => {
-			const handlePlaySong = () => {
-				if (currentSong?.id === item.id) {
-					setIsExpanded(true)
-				} else {
-					selectSong(item)
-					setIsShown(true)
-					setIsExpanded(true)
-					setSongQueue(flatListForQueue)
-				}
-			}
-			return (
-				<MusicCard
-					key={item.id}
-					index={index}
-					song={item}
-					handlePlaySong={handlePlaySong}
-				/>
-			)
-		},
-		[
-			currentSong,
-			flatListForQueue,
-			selectSong,
-			setSongQueue,
-			setIsExpanded,
-			setIsShown,
-		]
-	)
-
 	if (!hasDiscs) {
 		return (
 			<View className='gap-5'>
-				<Animated.FlatList
-					data={album.songs}
-					showsHorizontalScrollIndicator={false}
-					contentContainerStyle={{
-						gap: 8,
-						paddingHorizontal: 20,
-						paddingVertical: 10,
-					}}
-					renderItem={renderSongItem}
-				/>
+				{album.songs.map((song, index) => {
+					const handlePlaySong = () => {
+						if (currentSong?.id === song.id) {
+							setIsExpanded(true)
+						} else {
+							selectSong(song)
+							setIsShown(true)
+							setIsExpanded(true)
+							setSongQueue(flatListForQueue)
+						}
+					}
+					return (
+						<MusicCard
+							key={song.id}
+							index={index}
+							song={song}
+							handlePlaySong={handlePlaySong}
+						/>
+					)
+				})}
 			</View>
 		)
 	}
@@ -115,20 +93,30 @@ const SongsList = memo(function SongsList({ album }: SongsListProps) {
 	return (
 		<>
 			{discEntries.map(([discNumber, songs]) => (
-				<View key={discNumber} className='gap-5'>
+				<View key={discNumber} className='gap-5 mb-10'>
 					<Subtitle className='font-bold'>
 						{Number(discNumber) === 0 ? 'Extras' : `Disc ${discNumber}`}
 					</Subtitle>
-					<Animated.FlatList
-						data={songs}
-						showsHorizontalScrollIndicator={false}
-						contentContainerStyle={{
-							gap: 8,
-							paddingHorizontal: 20,
-							paddingVertical: 10,
-						}}
-						renderItem={renderSongItem}
-					/>
+					{songs.map((song, index) => {
+						const handlePlaySong = () => {
+							if (currentSong?.id === song.id) {
+								setIsExpanded(true)
+							} else {
+								selectSong(song)
+								setIsShown(true)
+								setIsExpanded(true)
+								setSongQueue(flatListForQueue)
+							}
+						}
+						return (
+							<MusicCard
+								key={song.id}
+								index={index}
+								song={song}
+								handlePlaySong={handlePlaySong}
+							/>
+						)
+					})}
 				</View>
 			))}
 		</>

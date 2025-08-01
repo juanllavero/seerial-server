@@ -7,6 +7,8 @@ import useSWR from 'swr'
 import AlbumInfo from './AlbumInfo'
 import SongsList from './SongsList'
 import OptimizedImage from '@/components/images/OptimizedImage'
+import { SpatialNavigationScrollView } from 'react-tv-space-navigation'
+import { scaledPixels } from '@/hooks/useScale'
 
 interface AlbumDetailsProps {
 	id: string
@@ -36,14 +38,17 @@ function AlbumDetails({ id }: AlbumDetailsProps) {
 				}}
 			/>
 
-			<View
-				className='px-20 pb-20 gap-10'
-				// showsHorizontalScrollIndicator={false}
-				// contentContainerStyle={{ gap: 40 }}
+			<SpatialNavigationScrollView
+				style={{
+					paddingHorizontal: 20,
+					paddingVertical: 10,
+				}}
+				offsetFromStart={scaledPixels(300)}
 			>
 				<AlbumInfo album={album} isLoading={isLoading} />
 				<SongsList album={album} />
-			</View>
+				<View style={{ height: scaledPixels(40) }} />
+			</SpatialNavigationScrollView>
 		</View>
 	)
 }
