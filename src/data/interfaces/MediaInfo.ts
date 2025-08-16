@@ -19,7 +19,6 @@ export interface AudioInfo {
   title: string;
   codec: string;
   duration: number;
-  hasDolbyAtmos: boolean;
 }
 
 export interface MediaInfo {

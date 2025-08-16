@@ -1,4 +1,5 @@
 import http from "http";
+import https from "https";
 import WebSocket, { WebSocketServer } from "ws";
 
 interface Client {
@@ -24,7 +25,7 @@ export class WebSocketManager {
     });
 
     console.log(
-      `[WebSocket Manager]: server running using the same HTTP server`
+      `[WebSocket Manager]: server running using the same HTTP/HTTPS server`
     );
 
     // Handle new WebSocket connections
@@ -55,7 +56,9 @@ export class WebSocketManager {
   }
 
   // Static method to get the single instance
-  public static getInstance(server?: http.Server): WebSocketManager {
+  public static getInstance(
+    server?: http.Server | https.Server
+  ): WebSocketManager {
     if (!WebSocketManager.instance && server) {
       WebSocketManager.instance = new WebSocketManager(server);
     }

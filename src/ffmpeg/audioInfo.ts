@@ -1,9 +1,5 @@
-import { exec } from "child_process";
-import { promisify } from "util";
 import { AudioInfo } from "../data/interfaces/MediaInfo";
 import { probeMediaFile } from "./execCommand";
-
-const execAsync = promisify(exec);
 
 export async function getAudioInfo(
   audioPath: string
@@ -46,16 +42,6 @@ export async function getAudioInfo(
       tags.ARTIST?.split(",").map((a: string) => a.trim()) ??
       [];
 
-    const hasEac3 = streams.some(
-      (stream: any) =>
-        stream.codec_type === "audio" && stream.codec_name === "eac3"
-    );
-
-    let hasDolbyAtmos = false;
-    if (hasEac3) {
-      hasDolbyAtmos = await checkForAtmos(audioPath);
-    }
-
     return {
       codec,
       duration,
@@ -68,24 +54,9 @@ export async function getAudioInfo(
       trackNumber,
       composers,
       artists,
-      hasDolbyAtmos,
     };
   } catch (err) {
     console.log("Failed to get media info", { error: err });
     return undefined;
-  }
-}
-
-async function checkForAtmos(filePath: string): Promise<boolean> {
-  try {
-    const { stderr } = await execAsync(`ffprobe -i "${filePath}"`);
-
-    const output = stderr.toLowerCase();
-
-    return output.includes("e-ac-3 joc") || output.includes("dolby atmos");
-  } catch (error: any) {
-    const stderr = error.stderr || "";
-    const output = stderr.toLowerCase();
-    return output.includes("e-ac-3 joc") || output.includes("dolby atmos");
   }
 }

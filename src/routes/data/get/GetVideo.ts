@@ -3,6 +3,7 @@ import ffmpegPath from "ffmpeg-static";
 import ffmpeg from "fluent-ffmpeg";
 import fs from "fs-extra";
 import path from "path";
+import { FilesManager } from "../../../utils/FilesManager";
 const router = express.Router();
 
 // Types for resolutions and configurations
@@ -154,6 +155,40 @@ router.get("/video-file", (req: any, res: any) => {
     };
     res.writeHead(200, head);
     fs.createReadStream(videoPath).pipe(res);
+  }
+});
+
+// Get video thumbnail
+router.get("/video-thumbnail", (req: any, res: any) => {
+  const videoUrl = req.query.url;
+  const time = req.query.time || "10"; // 10 seconds by default
+
+  if (!videoUrl) {
+    return res.status(400).send("No video url provided.");
+  }
+
+  const videoSrc = videoUrl.startsWith("resources")
+    ? FilesManager.getExternalPath(videoUrl)
+    : videoUrl;
+
+  try {
+    res.setHeader("Content-Type", "image/jpeg");
+
+    ffmpeg(videoSrc)
+      .seekInput(time)
+      .frames(1)
+      .toFormat("mjpeg")
+      .on("error", (err) => {
+        console.error("FFMPEG error:", err.message);
+        if (!res.headersSent) {
+          res.status(500).send("The video could not be processed.");
+        }
+      })
+      .pipe(res, { end: true });
+  } catch (error: any) {
+    if (!res.headersSent) {
+      res.status(500).send("Internal server error.");
+    }
   }
 });
 

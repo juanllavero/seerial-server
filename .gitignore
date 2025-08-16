@@ -15,6 +15,9 @@ prod
 *.local
 .env
 out
+*.pem
+*.token
+*.id
 
 # Editor directories and files
 .vscode/.debug.env

@@ -1,7 +1,7 @@
 import express from "express";
 import * as fs from "fs/promises";
 import path from "path";
-import { Album, Movie, Series } from "../../../data/models";
+import { Album, Collection, Movie, Series } from "../../../data/models";
 import {
   getAlbumById,
   getAlbums,
@@ -101,6 +101,14 @@ router.get("/library-content", async (req: any, res: any) => {
     const unifiedContent = [];
 
     for (const collection of collections) {
+      if (
+        (!collection.shows || collection.shows.length === 0) &&
+        (!collection.movies || collection.movies.length === 0) &&
+        (!collection.albums || collection.albums.length === 0)
+      ) {
+        continue;
+      }
+
       const collectionData = collection.get({ plain: true });
 
       if (!collectionData.LibraryCollection) {
@@ -118,6 +126,14 @@ router.get("/library-content", async (req: any, res: any) => {
           description: collectionData.description,
           posterSrc: collectionData.posterSrc,
           musicPosterSrc: collectionData.musicPosterSrc,
+          numberOfItems:
+            type === "Movies"
+              ? collectionData.movies.length
+              : type === "Shows" || type === "Series"
+              ? collectionData.shows.length
+              : type === "Music"
+              ? collectionData.albums.length
+              : 0,
         },
       });
     }
@@ -132,6 +148,118 @@ router.get("/library-content", async (req: any, res: any) => {
 
     unifiedContent.sort((a, b) => a.order - b.order);
     return res.json({ content: unifiedContent });
+  } catch (error) {
+    return res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+/**
+ * Get the content of a library optimized for non manager clients (only the needed data)
+ * @route GET /library-content-flat
+ */
+router.get("/library-content-flat", async (req: any, res: any) => {
+  const { libraryId, type } = req.query;
+
+  if (!libraryId) {
+    return res.status(400).json({ error: "Library ID is required" });
+  }
+
+  try {
+    const [collections, allItems] = await Promise.all([
+      getCollectionsInLibrary(libraryId as string, type),
+      getItemsForLibrary(libraryId as string, type),
+    ]);
+
+    if (!collections || !allItems) {
+      return res.status(500).json({ error: "Failed to fetch library content" });
+    }
+
+    const itemIdsInCollections = new Set<string>();
+    collections.forEach((collection) => {
+      const itemsKey = getCollectionItemsKey(type);
+      const items = (collection.get(itemsKey) as { id: string }[]) || [];
+      items.forEach((item) => itemIdsInCollections.add(item.id));
+    });
+
+    const itemsNotInCollections = allItems.filter(
+      (item) => !itemIdsInCollections.has(item.id)
+    );
+
+    const unifiedContent = [];
+
+    for (const collection of collections) {
+      if (
+        (!collection.shows || collection.shows.length === 0) &&
+        (!collection.movies || collection.movies.length === 0) &&
+        (!collection.albums || collection.albums.length === 0)
+      ) {
+        continue;
+      }
+
+      const collectionData = collection.get({ plain: true });
+
+      if (!collectionData.LibraryCollection) {
+        return res
+          .status(500)
+          .json({ error: "Failed to fetch library content" });
+      }
+
+      const collectionImages = await getCollectionImages(collection, type);
+
+      unifiedContent.push({
+        type: "collection",
+        order: collectionData.LibraryCollection.customOrder,
+        data: {
+          id: collectionData.id,
+          title: collectionData.title,
+          images: collectionImages,
+          posterSrc:
+            collectionData.posterSrc ??
+            (type === "Movies" &&
+              collectionData.movies &&
+              collectionData.movies.length === 1)
+              ? collectionData.movies[0].coverSrc ?? undefined
+              : collectionData.shows && collectionData.shows.length === 1
+              ? collectionData.shows[0].coverSrc ?? undefined
+              : undefined,
+          musicPosterSrc:
+            collectionData.musicPosterSrc ??
+            (collectionData.albums && collectionData.albums.length === 1)
+              ? collectionData.albums[0].coverSrc ?? undefined
+              : undefined,
+          numberOfItems:
+            type === "Movies"
+              ? collectionData.movies.length
+              : type === "Shows" || type === "Series"
+              ? collectionData.shows.length
+              : type === "Music"
+              ? collectionData.albums.length
+              : 0,
+        },
+      });
+    }
+
+    for (const item of itemsNotInCollections) {
+      const itemType = getCollectionItemsKey(type);
+      unifiedContent.push({
+        type: itemType,
+        order: item.order || 0,
+        data: {
+          id: item.id,
+          year: item.year,
+          title:
+            itemType === "albums"
+              ? (item as Album).title
+              : itemType === "movies"
+              ? (item as Movie).name
+              : (item as Series).name,
+          posterSrc: item.coverSrc,
+        },
+      });
+    }
+
+    unifiedContent.sort((a, b) => a.order - b.order);
+    return res.json(unifiedContent);
   } catch (error) {
     return res.status(500).json({ error: "Internal server error" });
   }
@@ -177,15 +305,15 @@ router.get("/albums", async (req: any, res: any) => {
   return res.json(await getAlbums(libraryId as string));
 });
 
-router.get("/myListSeries", async (req: any, res: any) => {
+router.get("/myListSeries", async (_req: any, res: any) => {
   return res.json(await getSeriesInMyList());
 });
 
-router.get("/myListMovies", async (req: any, res: any) => {
+router.get("/myListMovies", async (_req: any, res: any) => {
   return res.json(await getMoviesInMyList());
 });
 
-router.get("/continueWatching", async (req: any, res: any) => {
+router.get("/continueWatching", async (_req: any, res: any) => {
   return res.json(await getContinueWatchingVideos());
 });
 
@@ -325,7 +453,11 @@ router.get("/library/search", async (req: any, res: any) => {
 
   const library = await getLibraryById(libraryId);
 
-  if (!library) return;
+  if (!library) {
+    return res
+      .status(404)
+      .json({ message: `Library with ID ${libraryId} not found.` });
+  }
 
   await clearLibrary(libraryId, WebSocketManager.getInstance());
 
@@ -747,6 +879,16 @@ router.get("/collection-images", async (req: any, res: any) => {
     return res.status(404).json({ error: "Collection not found" });
   }
 
+  return res.json(await getCollectionImages(collection, type));
+});
+
+async function getCollectionImages(collection: Collection, type: string) {
+  if (!collection) {
+    return {
+      images: [],
+    };
+  }
+
   let items: any[] = [];
 
   if (type === "Movies") {
@@ -755,67 +897,54 @@ router.get("/collection-images", async (req: any, res: any) => {
     items = collection.shows || [];
   } else if (type === "Music") {
     items = collection.albums || [];
-  } else {
-    return res.status(400).json({ error: "Invalid type" });
   }
 
-  const imagePaths = items
-    .map((item) => item.coverSrc)
-    .filter(Boolean)
-    .slice(0, 4);
+  let posterPath: string | null = null;
+  let backgroundPath: string | null = null;
+  let baseFolder: string | null = null;
 
-  return res.json(imagePaths);
-});
+  // Get the folder of the first item (root folder of the collection in this library)
+  if (items.length > 0 && items[0].folder) {
+    baseFolder = items[0].folder ?? "";
+    if (baseFolder !== null) {
+      try {
+        const filesInFolder = await fs.readdir(baseFolder);
 
-/**
- * @route   GET /hasDolbyAtmos
- * @desc    Checks if any song in a collection or album has Dolby Atmos
- */
-router.get("/hasDolbyAtmos", async (req: any, res: any) => {
-  const { collectionId, albumId } = req.query;
-
-  if (!collectionId && !albumId) {
-    return res.status(400).json({ error: "At least 1 ID is required" });
-  }
-
-  if (collectionId) {
-    const collection = await getCollectionById(collectionId as string);
-
-    if (!collection) {
-      return res.status(404).json({ error: "Collection not found" });
-    }
-
-    const albums = collection.albums;
-
-    let hasDolbyAtmos = false;
-
-    for (const album of albums) {
-      const song = album.songs.find((song) => song.hasDolbyAtmos);
-      if (song) {
-        hasDolbyAtmos = true;
-        break;
+        // Search poster.ext and background.ext
+        for (const file of filesInFolder) {
+          const fileNameWithoutExt = path.parse(file).name.toLowerCase();
+          if (
+            Utils.imageExtensions.includes(path.extname(file).toLowerCase())
+          ) {
+            if (fileNameWithoutExt === "poster") {
+              posterPath = path.join(baseFolder, file);
+            } else if (fileNameWithoutExt === "background") {
+              backgroundPath = path.join(baseFolder, file);
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`Error reading folder ${baseFolder}:`, error);
       }
     }
-
-    return res.json({ hasDolbyAtmos });
-  } else if (albumId) {
-    const album = await getAlbumById(albumId as string);
-
-    if (!album) {
-      return res.status(404).json({ error: "Album not found" });
-    }
-
-    const song = album.songs.find((song) => song.hasDolbyAtmos);
-
-    if (song) {
-      return res.json({ hasDolbyAtmos: true });
-    } else {
-      return res.json({ hasDolbyAtmos: false });
-    }
   }
 
-  return res.json({ hasDolbyAtmos: false });
-});
+  let imagePaths: string[] = [];
+
+  // If no poster found, return the first 4 covers
+  if (!posterPath && items) {
+    imagePaths = items
+      .map((item) => item.coverSrc)
+      .filter(Boolean)
+      .slice(0, 4);
+  }
+
+  return {
+    poster: posterPath,
+    background: backgroundPath,
+    images: imagePaths,
+  };
+}
 
 router.get("/music-metadata", async (req: any, res: any) => {
   const { file } = req.query;

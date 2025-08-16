@@ -155,7 +155,7 @@ router.put("/updateMediaInfo", async (req: any, res: any) => {
 
   await video.save();
 
-  res.json(mediaInfo);
+  return res.json(mediaInfo);
 });
 
 router.put("/updateWatchState", async (req: any, res: any) => {

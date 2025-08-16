@@ -186,7 +186,7 @@ export const getCollectionsInLibrary = async (
           {
             model: ItemModel,
             as: collectionItemsKey,
-            attributes: ["id"],
+            attributes: ["id", "coverSrc"],
           },
         ],
         through: {
@@ -327,19 +327,17 @@ export const getEpisodeByPath = async (videoSrc: string) => {
 
   if (!video || !video.episodeId) return null;
 
-  return Episode.findByPk(video.episodeId, {
-    include: [{ model: Video, as: "video" }],
-  });
+  return Episode.findByPk(video.episodeId);
 };
 
 //#endregion
 
 //#region Videos
 
-export const getVideoById = (id: string) => {
+export const getVideoById = async (id: string) => {
   if (!SequelizeManager.sequelize) return null;
 
-  return Video.findByPk(id);
+  return await Video.findByPk(id);
 };
 
 export const getVideoByEpisodeId = (episodeId: string) => {
@@ -397,6 +395,20 @@ export const getMovieById = (movieId: string) => {
   });
 };
 
+export const getMovieByPath = async (videoSrc: string) => {
+  if (!SequelizeManager.sequelize) return null;
+
+  const video: Video | null = await Video.findOne({
+    where: {
+      videoSrc: videoSrc,
+    },
+  });
+
+  if (!video || !video.episodeId) return null;
+
+  return Movie.findByPk(video.movieId);
+};
+
 //#endregion
 
 //#region Music
@@ -444,6 +456,16 @@ export const getSongById = (songId: string) => {
   if (!SequelizeManager.sequelize) return null;
 
   return Song.findByPk(songId);
+};
+
+export const getSongByPath = async (fileSrc: string) => {
+  if (!SequelizeManager.sequelize) return null;
+
+  return Song.findOne({
+    where: {
+      fileSrc: fileSrc,
+    },
+  });
 };
 
 //#endregion
@@ -572,14 +594,85 @@ export const getContinueWatchingVideos = async () => {
           model: Video,
           as: "video",
           required: true,
+          include: [
+            {
+              model: Episode,
+              as: "episode",
+              include: [
+                {
+                  model: Season,
+                  as: "season",
+                  include: [{ model: Series, as: "series" }],
+                },
+              ],
+            },
+            { model: Movie, as: "movie" },
+          ],
         },
       ],
     });
 
-    // Map to extract only the Video instances
+    // Map to extract the videos with the necessary data
     const videos = elements
-      .map((item) => item.video)
-      .filter((video): video is Video => video !== null);
+      .map((item) => {
+        const itemVideo = item?.video;
+        if (!itemVideo) return null;
+
+        // Validate episode
+        if (itemVideo.episode) {
+          const episode = itemVideo.episode;
+          const season = episode?.season;
+          const series = season?.series;
+
+          if (!episode || !season || !series) return null;
+
+          return {
+            id: item.id,
+            title: series.name ?? "Not found",
+            subtitle: episode.name,
+            episodeNumber: episode.episodeNumber ?? 0,
+            seasonNumber: episode.seasonNumber ?? 0,
+            date: episode.year ?? "",
+            duration: itemVideo.runtime ?? 0,
+            timeWatched: itemVideo.timeWatched ?? 0,
+            genres: series.genres ?? [],
+            overview:
+              episode.overview ?? season.overview ?? series.overview ?? "",
+            backgroundImage: season.backgroundSrc,
+            posterImage: series.coverSrc,
+            logoImage: series.logoSrc,
+            videoImage: itemVideo.imgSrc,
+            episodeId: episode.id,
+            videoId: itemVideo.id,
+          };
+        }
+
+        // Validate movie
+        if (itemVideo.movie) {
+          const movie = itemVideo.movie;
+
+          if (!movie) return null;
+
+          return {
+            id: item.id,
+            title: movie.name ?? "Not found",
+            date: movie.year ?? "",
+            duration: itemVideo.runtime ?? 0,
+            timeWatched: itemVideo.timeWatched ?? 0,
+            genres: movie.genres ?? [],
+            overview: movie.overview,
+            backgroundImage: movie.backgroundSrc,
+            posterImage: movie.coverSrc,
+            logoImage: movie.logoSrc,
+            videoImage: itemVideo.imgSrc,
+            movieId: movie.id,
+            videoId: itemVideo.id,
+          };
+        }
+
+        return null;
+      })
+      .filter((video) => video !== null); // Filter nulls
 
     return videos;
   } catch (error: any) {

@@ -51,7 +51,15 @@ export class Utils {
     ".webm",
     ".caf",
   ];
-  static imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"];
+  static imageExtensions = [
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".gif",
+    ".bmp",
+    ".webp",
+    ".svg",
+  ];
 
   //#region FILE SEARCH
   public static extractNameAndYear(source: string) {
