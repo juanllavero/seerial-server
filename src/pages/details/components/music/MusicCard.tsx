@@ -101,9 +101,6 @@ function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
           </span>
           <FlexBox gap={1} align="center" className="items-center">
             <span className="self-center text-sm text-gray-400">{artists}</span>
-            {song.hasDolbyAtmos && (
-              <DolbyAtmosIcon className="mt-[0.2rem] w-22 text-neutral-200" />
-            )}
           </FlexBox>
         </FlexBox>
       </FlexBox>

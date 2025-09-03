@@ -9,8 +9,8 @@ import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
 import ImageListTab from '../components/ImageListTab'
 import SeasonInfoTab from './components/SeasonInfoTab'
-import SeasonMediaTab from './components/SeasonMediaTab'
 import { shallow } from 'zustand/shallow'
+import MediaTab from '../MediaTab'
 
 function SeasonDialog() {
   const { t } = useTranslation()
@@ -132,7 +132,7 @@ function SeasonDialog() {
         },
         {
           title: t('media'),
-          content: <SeasonMediaTab />,
+          content: <MediaTab season={season} />,
         },
         {
           title: t('backgroundsButton'),

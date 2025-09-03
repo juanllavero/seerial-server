@@ -13,6 +13,8 @@ import { useTranslation } from 'react-i18next'
 import DownloadMediaCard from './DownloadMediaCard'
 import DownloadMediaCardSkeleton from './DownloadMediaCardSkeleton'
 import { shallow } from 'zustand/shallow'
+import useSWR from 'swr'
+import { fetcher } from '@/utils/utils'
 
 function DownloadMediaSearch() {
   const { t } = useTranslation()
@@ -49,14 +51,26 @@ function DownloadMediaSearch() {
   const [searchText, setSearchText] = useState<string>('')
   const searchButtonRef = useRef<HTMLButtonElement>(null)
 
-  const isShow: boolean = seriesToEdit !== undefined
+  const isShow: boolean =
+    seriesToEdit !== undefined && seasonToEdit === undefined
+  const isSeason: boolean =
+    seasonToEdit !== undefined && seriesToEdit === undefined
+
+  const { data: series } = useSWR(
+    seasonToEdit
+      ? `${serverUrl}/details/series?id=${seasonToEdit.seriesId}`
+      : null,
+    fetcher,
+  )
 
   useEffect(() => {
-    if (!seasonToEdit && !movieToEdit) return
+    if (!seriesToEdit && !seasonToEdit && !movieToEdit) return
 
     const baseText = isShow
-      ? `${seriesToEdit?.name} ${seasonToEdit?.name}`
-      : (movieToEdit?.name ?? '')
+      ? `${seriesToEdit?.name}`
+      : isSeason
+        ? `${series?.name} ${seasonToEdit?.name}`
+        : (movieToEdit?.name ?? '')
 
     if (baseText === '') return
 
@@ -69,7 +83,7 @@ function DownloadMediaSearch() {
     setTimeout(() => {
       searchButtonRef.current?.focus()
     }, 0)
-  }, [seasonToEdit, movieToEdit])
+  }, [seriesToEdit, seasonToEdit, movieToEdit])
 
   useEffect(() => {
     if (downloaded) {
@@ -104,8 +118,14 @@ function DownloadMediaSearch() {
         serverUrl,
         isShow
           ? (seriesToEdit?.libraryId ?? '')
-          : (movieToEdit?.libraryId ?? ''),
-        isShow ? (seasonToEdit?.id ?? '') : (movieToEdit?.id ?? ''),
+          : isSeason
+            ? (series?.libraryId ?? '')
+            : (movieToEdit?.libraryId ?? ''),
+        isShow
+          ? (seriesToEdit?.id ?? '')
+          : isSeason
+            ? (seasonToEdit?.id ?? '')
+            : (movieToEdit?.id ?? ''),
       )
     } else {
       await downloadVideo(
@@ -114,8 +134,14 @@ function DownloadMediaSearch() {
         serverUrl,
         isShow
           ? (seriesToEdit?.libraryId ?? '')
-          : (movieToEdit?.libraryId ?? ''),
-        isShow ? (seasonToEdit?.id ?? '') : (movieToEdit?.id ?? ''),
+          : isSeason
+            ? (series?.libraryId ?? '')
+            : (movieToEdit?.libraryId ?? ''),
+        isShow
+          ? (seriesToEdit?.id ?? '')
+          : isSeason
+            ? (seasonToEdit?.id ?? '')
+            : (movieToEdit?.id ?? ''),
       )
     }
   }

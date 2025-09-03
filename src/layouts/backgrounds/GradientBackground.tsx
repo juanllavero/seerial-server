@@ -1,98 +1,57 @@
-import { useGradientStore } from '@/context/gradientBackground.context'
+import { useServerStore } from '@/context/server.context'
 import { useEffect, useRef, useState } from 'react'
-import { shallow } from 'zustand/shallow'
 
 interface GradientBackgroundProps {
   showGradient?: boolean
+  imageSrc?: string
   width?: string
   height?: string
-  isSong?: boolean
   index?: number
 }
 
 const GradientBackground = ({
   showGradient = true,
+  imageSrc,
   width = '100%',
   height = '100%',
-  isSong = false,
   index = -1,
 }: GradientBackgroundProps) => {
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const [activeIndex, setActiveIndex] = useState(0)
-  const { songColors, contentColors } = useGradientStore(
-    (state) => ({
-      songColors: state.songColors,
-      contentColors: state.contentColors,
-    }),
-    shallow,
-  )
   const [visible, setVisible] = useState(true)
+  const [gradientCSS, setGradientCSS] = useState<string | undefined>('')
   const canvasRefs = [
     useRef<HTMLCanvasElement | null>(null),
     useRef<HTMLCanvasElement | null>(null),
   ]
 
-  const drawGradient = (canvas: HTMLCanvasElement, colors: string[]) => {
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
-
-    canvas.width = canvas.offsetWidth
-    canvas.height = canvas.offsetHeight
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-    const gradients = [
-      { x: 0, y: canvas.height, color: colors[0] },
-      { x: canvas.width, y: canvas.height, color: colors[1] },
-      { x: canvas.width, y: 0, color: colors[2] },
-      { x: 0, y: 0, color: colors[3] },
-    ]
-
-    gradients.forEach(({ x, y, color }) => {
-      const gradient = ctx.createRadialGradient(
-        x,
-        y,
-        0,
-        x,
-        y,
-        Math.max(canvas.width, canvas.height),
-      )
-      gradient.addColorStop(0, color)
-      gradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
-      ctx.fillStyle = gradient
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
-    })
-
-    ctx.globalCompositeOperation = 'destination-over'
-    ctx.fillStyle = 'black'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
-    ctx.globalCompositeOperation = 'source-over'
-  }
-
   useEffect(() => {
-    if (
-      !showGradient ||
-      (isSong && songColors.length < 4) ||
-      (!isSong && contentColors.length < 4)
-    ) {
+    if (!showGradient || !imageSrc || imageSrc === '') {
       setVisible(false)
     }
 
-    setVisible(true)
+    const generateGradient = async () => {
+      setVisible(true)
 
-    const colors = isSong ? songColors : contentColors
+      const response = await fetch(
+        `${serverUrl}/image-colors?${imageSrc?.startsWith('http') ? `url=${imageSrc}` : `localPath=${imageSrc}`}`,
+      )
 
-    const newIndex = (activeIndex + 1) % 2
-    const newCanvas = canvasRefs[newIndex].current
-    if (!newCanvas || !colors || colors.length < 4) return
+      const data = await response.json()
+      const css = data.css
 
-    drawGradient(newCanvas, colors)
+      const newIndex = (activeIndex + 1) % 2
+      setGradientCSS(css)
 
-    const timeout = setTimeout(() => {
-      setActiveIndex(newIndex)
-    }, 100)
+      const timeout = setTimeout(() => {
+        setActiveIndex(newIndex)
+      }, 100)
 
-    return () => clearTimeout(timeout)
-  }, [songColors, contentColors, showGradient])
+      return () => clearTimeout(timeout)
+    }
+
+    generateGradient()
+  }, [showGradient, imageSrc])
 
   return (
     <div
@@ -103,8 +62,14 @@ const GradientBackground = ({
         <canvas
           key={i}
           ref={canvasRefs[i]}
-          className={`absolute inset-0 h-full w-full brightness-65 transition-opacity duration-700 ${activeIndex === i && showGradient && visible ? 'opacity-100' : 'opacity-0'} `}
-          style={{ width, height }}
+          className={`absolute inset-0 h-full w-full transition-opacity duration-700 ${activeIndex === i && showGradient && visible ? 'opacity-100' : 'opacity-0'} `}
+          style={{
+            width,
+            height,
+            background: gradientCSS
+              ? gradientCSS.replace('background: ', '').replace(';', '')
+              : '',
+          }}
         />
       ))}
     </div>

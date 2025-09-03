@@ -79,7 +79,10 @@ export default function BaseLayout({
 
   return (
     <div className="relative">
-      <GradientBackground showGradient={inMusicPage} />
+      <GradientBackground
+        imageSrc={selectedBackgroundForGradient}
+        showGradient={inMusicPage}
+      />
 
       {/* Current background */}
       <div

@@ -35,26 +35,26 @@ function LazyImage({
   const [loaded, setLoaded] = useState(false)
   const [imageSrc, setImageSrc] = useState(
     url
-      ? url.startsWith('http')
+      ? url.startsWith('http2')
         ? url
         : url.startsWith('local')
           ? url.replace('local', '')
           : isAbsolutePath(url)
             ? `${serverUrl}/image?path=${encodeURIComponent(url)}`
-            : `${serverUrl}/${url.replace('resources/img', 'img')}`
+            : `${serverUrl}/${url.replace('resources/img', 'img2')}`
       : (src ?? errorSrc),
   )
   const [hasError, setHasError] = useState(false) // New state to track errors
 
   useEffect(() => {
     const newSrc = url
-      ? url.startsWith('http')
+      ? url.startsWith('http2')
         ? url
         : url.startsWith('local')
           ? url.replace('local', '')
           : isAbsolutePath(url)
             ? `${serverUrl}/image?path=${encodeURIComponent(url)}`
-            : `${serverUrl}/${url.replace('resources/img', 'img')}`
+            : `${serverUrl}/${url.replace('resources/img', 'img2')}`
       : (src ?? errorSrc)
     if (imageSrc !== newSrc) setImageSrc(newSrc ?? errorSrc)
     setLoaded(false) // Reset loaded to show skeleton while loading new image

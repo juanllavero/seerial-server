@@ -17,7 +17,6 @@ interface CardProps {
   cornerNumber?: number
   hidePlayButton?: boolean
   menuContent?: DropdownContent
-  hasDolbyAtmos?: boolean
   editModal?: React.ReactNode
   collageComponent?: React.ReactNode
   errorSrc?: string
@@ -35,7 +34,6 @@ function ParentCard({
   cornerNumber,
   hidePlayButton,
   menuContent,
-  hasDolbyAtmos = false,
   editModal,
   collageComponent,
   errorSrc,
@@ -54,7 +52,6 @@ function ParentCard({
       subtitle={subtitle}
       cornerData=""
       cornerNumber={cornerNumber}
-      hasDolbyAtmos={hasDolbyAtmos}
       action={action}
       watched={watched}
       loading={loading}

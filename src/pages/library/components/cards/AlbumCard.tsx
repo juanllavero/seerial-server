@@ -26,7 +26,6 @@ function AlbumCard({ album }: AlbumCardProps) {
     shallow,
   )
   const openAlbumDialog = useDialogStore((state) => state.openAlbumDialog)
-  const [hasDolbyAtmos, setHasDolbyAtmos] = useState<boolean>(false)
   const navigate = useNavigate()
 
   const menuContent: DropdownContent = {
@@ -68,16 +67,6 @@ function AlbumCard({ album }: AlbumCardProps) {
     ],
   }
 
-  useEffect(() => {
-    const getDolbyAtmosState = async () => {
-      const res = await fetch(`${serverUrl}/hasDolbyAtmos?albumId=${album.id}`)
-      const data = await res.json()
-      setHasDolbyAtmos(data.hasDolbyAtmos)
-    }
-
-    if (selectedServer) getDolbyAtmosState()
-  }, [selectedServer])
-
   return (
     <ParentCard
       itemKey={album.id}
@@ -85,7 +74,6 @@ function AlbumCard({ album }: AlbumCardProps) {
       imgSrc={album.coverSrc}
       title={album.title}
       subtitle={album.year ?? '-'}
-      hasDolbyAtmos={hasDolbyAtmos}
       action={() => {
         selectAlbum(album.id)
         navigate(`/server/${selectedServer?.id}/details/album/${album.id}`)

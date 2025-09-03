@@ -157,7 +157,6 @@ const ExpandedMobileMusicControls = forwardRef<
 
           <div className="mb-8 flex justify-between text-sm text-gray-200">
             <span>{formatTime(currentTime)}</span>
-            {currentSong?.hasDolbyAtmos && <DolbyAtmosIcon className="w-25" />}
             <span>{formatTime(duration)}</span>
           </div>
         </div>

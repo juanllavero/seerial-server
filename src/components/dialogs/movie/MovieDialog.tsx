@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
 import ImageListTab from '../components/ImageListTab'
 import MovieInfoTab from './components/MovieInfoTab'
-import MovieMediaTab from './components/MovieMediaTab'
+import MediaTab from '../MediaTab'
 import MovieTagsTab from './components/MovieTagsTab'
 import { shallow } from 'zustand/shallow'
 
@@ -206,7 +206,7 @@ function MovieDialog() {
         },
         {
           title: t('media'),
-          content: <MovieMediaTab movie={movie} />,
+          content: <MediaTab movie={movie} />,
         },
         {
           title: t('logosButton'),

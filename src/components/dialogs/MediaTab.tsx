@@ -4,17 +4,20 @@ import FlexBox from '@/components/ui/FlexBox'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
-import { Movie } from '@/data/interfaces/Media'
+import { Movie, Season, Series } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
 import { Download, Trash2 } from 'lucide-react'
+import { memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 
-interface MovieInfoTabProps {
-  movie: Movie
+interface MediaTabProps {
+  series?: Series
+  season?: Season
+  movie?: Movie
 }
 
-function MovieMediaTab({ movie }: MovieInfoTabProps) {
+function MediaTab({ series, season, movie }: MediaTabProps) {
   const { t } = useTranslation()
   const isTablet = useIsTablet()
   const serverUrl = useServerStore((state) => state.serverUrl)
@@ -22,22 +25,31 @@ function MovieMediaTab({ movie }: MovieInfoTabProps) {
     (state) => state.openDownloadMediaDialog,
   )
 
+  const type = series ? 'series' : season ? 'season' : 'movie'
+  const id = series ? series.id : season ? season.id : movie?.id
+
   // Background video
   const {
     data: video,
     isLoading: loadingVideo,
     error: videoError,
-  } = useSWR(`${serverUrl}/movieVideo?id=${movie.id}`, fetcher)
+  } = useSWR(`${serverUrl}/${type}Video?id=${id}`, fetcher, {
+    revalidateAll: true,
+    refreshInterval: 1000,
+  })
 
   // Background music
   const {
     data: music,
     isLoading: loadingMusic,
     error: musicError,
-  } = useSWR(`${serverUrl}/movieMusic?id=${movie.id}`, fetcher)
+  } = useSWR(`${serverUrl}/${type}Music?id=${id}`, fetcher, {
+    revalidateAll: true,
+    refreshInterval: 1000,
+  })
 
   const openDownloadDialog = (type: 'music' | 'video') => {
-    openDownloadMediaDialog(type, undefined, undefined, movie)
+    openDownloadMediaDialog(type, series, season, movie)
   }
 
   const removeVideo = () => {
@@ -225,4 +237,4 @@ function MovieMediaTab({ movie }: MovieInfoTabProps) {
   )
 }
 
-export default MovieMediaTab
+export default memo(MediaTab)

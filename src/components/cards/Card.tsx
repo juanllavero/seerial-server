@@ -30,7 +30,6 @@ interface CardProps {
   progress?: number
   cornerNumber?: number
   collageComponent?: React.ReactNode
-  hasDolbyAtmos?: boolean
   watched?: boolean
   errorSrc?: string
 }
@@ -53,7 +52,6 @@ function Card({
   hidePlayButton,
   progress,
   cornerNumber,
-  hasDolbyAtmos = false,
   watched,
   collageComponent,
   errorSrc,
@@ -87,14 +85,6 @@ function Card({
         {(cornerNumber || watched) && (
           <div className="rightCorner">
             <span>{!watched ? cornerNumber : <Check size={20} />}</span>
-          </div>
-        )}
-        {hasDolbyAtmos === true && (
-          <div
-            className="rightCorner"
-            style={{ top: '0.4rem', right: '0.4rem', padding: '0' }}
-          >
-            <DolbyAtmosLogoIcon className="w-8" />
           </div>
         )}
         <FlexBox

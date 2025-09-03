@@ -9,9 +9,9 @@ import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
 import ImageListTab from '../components/ImageListTab'
 import SeriesInfoTab from './components/SeriesInfoTab'
-import SeriesMediaTab from './components/SeriesMediaTab'
 import SeriesTagsTab from './components/SeriesTagsTab'
 import { shallow } from 'zustand/shallow'
+import MediaTab from '../MediaTab'
 
 function SeriesDialog() {
   const { t } = useTranslation()
@@ -187,7 +187,7 @@ function SeriesDialog() {
         },
         {
           title: t('media'),
-          content: <SeriesMediaTab />,
+          content: <MediaTab series={series} />,
         },
         {
           title: t('logosButton'),

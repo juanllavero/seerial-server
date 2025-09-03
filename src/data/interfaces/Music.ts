@@ -22,7 +22,6 @@ export interface Song {
   albumId: string
   title: string
   codec: string
-  hasDolbyAtmos: boolean
   trackNumber: number
   discNumber: number
   artists: string[]

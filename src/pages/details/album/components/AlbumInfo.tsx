@@ -52,10 +52,6 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
     return songs.reduce((acc, song) => acc + song.duration / 60, 0).toFixed(0)
   }
 
-  const hasDolbyAtmos = () => {
-    return album?.songs.some((song) => song.hasDolbyAtmos)
-  }
-
   return (
     <FlexBox
       direction="column"
@@ -133,10 +129,6 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
             </span>
           )}
         </div>
-
-        {hasDolbyAtmos() && (
-          <DolbyAtmosIcon className="w-28 text-neutral-100 shadow-2xl" />
-        )}
 
         <FlexBox gap={1} justify="center" align="center">
           <Button
