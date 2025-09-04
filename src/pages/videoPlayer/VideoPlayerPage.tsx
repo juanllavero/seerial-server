@@ -1,30 +1,16 @@
-import DropdownWrapper from '@/components/DropdownWrapper'
 import Loading from '@/components/Loading'
-import { Button } from '@/components/ui/button'
-import FlexBox from '@/components/ui/FlexBox'
-import { PlayIcon } from '@/components/ui/IconLibrary'
 import { useServerStore } from '@/context/server.context'
 import { Video } from '@/data/interfaces/Media'
 import { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
-import { formatTime, getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
+import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
 import { fetcher } from '@/utils/utils'
-import { TrackNextIcon, TrackPreviousIcon } from '@radix-ui/react-icons'
-import { useNavigate, useParams } from 'react-router-dom'
-import {
-  Captions,
-  ChevronLeft,
-  Maximize2,
-  Minimize2,
-  Music2,
-  Pause,
-  Volume1,
-  Volume2,
-  VolumeOff,
-} from 'lucide-react'
-import React, { useEffect, useMemo, useRef, useState } from 'react'
+import { useParams } from 'react-router-dom'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import useSWR from 'swr'
 import HTMLVideoPlayer from './components/HTMLVideoPlayer'
 import './VideoPlayerPage.css'
+import Controls from './components/Controls'
+import TopBar from './components/TopBar'
 
 interface VideoInfo {
   title: string
@@ -36,7 +22,6 @@ interface VideoInfo {
 
 function VideoPlayerPage() {
   const serverUrl = useServerStore((state) => state.serverUrl)
-  const navigate = useNavigate()
   const { videoId } = useParams()
 
   // Get video data
@@ -63,11 +48,10 @@ function VideoPlayerPage() {
   const [videoLoaded, setVideoLoaded] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [volume, setVolume] = useState(1)
-  const [duration, setDuration] = useState(video ? video.runtime / 60 : 0)
-  const [videoStart, setVideoStart] = useState(0)
+  const [duration, setDuration] = useState(video ? video.runtime * 60 : 0)
+  const [timeOffset, setTimeOffset] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
   const [previewTime, setPreviewTime] = useState(0)
-  const [buffered, setBuffered] = useState(0)
 
   // State for triggering stream reload
   const [streamStartTime, setStreamStartTime] = useState(0)
@@ -75,7 +59,6 @@ function VideoPlayerPage() {
   // Controls
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   const [showControls, setShowControls] = useState(false)
-  const [inControls, setInControls] = useState(false)
 
   // Timeline
   const timelineRef = useRef<HTMLDivElement>(null)
@@ -110,14 +93,6 @@ function VideoPlayerPage() {
           : '0',
       )
     }
-    if (selectedSubtitleTrack) {
-      params.append(
-        'subs',
-        selectedSubtitleTrack.id && selectedSubtitleTrack.id > 0
-          ? String(selectedSubtitleTrack.id - 1)
-          : '0',
-      )
-    }
 
     return `${serverUrl}/stream-video?${params.toString()}`
   }, [
@@ -142,17 +117,6 @@ function VideoPlayerPage() {
   }
 
   //#region Player Controls
-  const getVolumeIcon = () => {
-    const volume = videoRef.current?.volume
-
-    if (!volume || volume === 0 || videoRef.current?.muted) {
-      return <VolumeOff />
-    } else if (volume < 0.5) {
-      return <Volume1 />
-    } else {
-      return <Volume2 />
-    }
-  }
 
   const togglePlay = () => {
     const videoPlayer = videoRef.current
@@ -179,73 +143,15 @@ function VideoPlayerPage() {
     }
   }
 
-  const handleGoBack = async () => {
-    if (!video) return
+  const skip = (offset: number) => {
+    if (!videoRef.current) return
+    const newTime = currentTime + offset
+    if (newTime < 0) return
 
-    setVideoLoaded(false)
-    setIsPlaying(false)
-
-    await fetch(`${serverUrl}/updateWatchState`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        videoId: video.id,
-        timeWatched: currentTime,
-        watched: currentTime > (video.runtime / 60) * 0.9,
-      }),
-    })
-
-    navigate(-1)
-  }
-
-  const handleVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const videoPlayer = videoRef.current
-    if (!videoPlayer) return
-
-    const newVolume = Number(event.target.value)
-
-    setVolume(newVolume)
-    videoPlayer.volume = newVolume
-
-    const percent = newVolume * 100
-    event.target.style.background = `linear-gradient(to right, var(--app-color) ${percent}%, white ${percent}%)`
-  }
-
-  const handleFullscreen = () => {
-    const videoPlayer = videoRef.current
-
-    if (!videoPlayer) return
-
-    if (!isFullscreen) {
-      document.documentElement.requestFullscreen()
-      setIsFullscreen(true)
-    } else {
-      document.exitFullscreen()
-      setIsFullscreen(false)
-    }
-  }
-
-  const skip = (duration: number) => {
-    const videoPlayer = videoRef.current
-    if (!videoPlayer) return
-
-    videoPlayer.currentTime += duration
+    setTimeOffset(newTime)
+    setStreamStartTime(newTime)
   }
   //#endregion
-
-  // Gets the end time of the video
-  const getEndTime = (currentSecond: number) => {
-    const remainingTime = duration - currentSecond
-    const now = new Date()
-    const endTime = new Date(now.getTime() + remainingTime * 1000)
-
-    const hours = endTime.getHours().toString().padStart(2, '0')
-    const minutes = endTime.getMinutes().toString().padStart(2, '0')
-
-    return `${hours}:${minutes}`
-  }
 
   //#region Timeline
   const handleTimelineUpdate = (e: any) => {
@@ -272,22 +178,23 @@ function VideoPlayerPage() {
   }
 
   const toggleScrubbing = (e: any) => {
-    const videoPlayer = videoRef.current
-    if (!videoPlayer || !e.target || !timelineRef.current) return
+    if (!videoRef.current || !timelineRef.current) return
 
     const rect = timelineRef.current.getBoundingClientRect()
     const percent =
-      Math.min(Math.max(0, e.clientX - rect.x), rect.width) / rect.width
+      Math.min(Math.max(0, e.clientX - rect.left), rect.width) / rect.width
 
     const scrubbing = (e.buttons & 1) === 1
     setIsScrubbing(scrubbing)
 
     if (scrubbing) {
-      setWasPaused(videoPlayer.paused)
-      videoRef.current?.pause()
+      setWasPaused(videoRef.current.paused)
+      videoRef.current.pause()
     } else {
-      videoPlayer.currentTime = percent * duration
-      if (!wasPaused) videoPlayer.play()
+      const seekTarget = percent * duration
+      setTimeOffset(seekTarget)
+      setStreamStartTime(seekTarget)
+      if (!wasPaused) videoRef.current.play()
     }
 
     handleTimelineUpdate(e)
@@ -305,7 +212,7 @@ function VideoPlayerPage() {
 
     // Create new timeout to hide controls after 2 seconds
     timeoutRef.current = setTimeout(() => {
-      if (!inControls) setShowControls(false)
+      if (!showControls) setShowControls(false)
     }, 2000)
   }
 
@@ -317,6 +224,20 @@ function VideoPlayerPage() {
   }
   //#endregion
 
+  const handleFullscreen = () => {
+    const videoPlayer = videoRef.current
+
+    if (!videoPlayer) return
+
+    if (!isFullscreen) {
+      document.documentElement.requestFullscreen()
+      setIsFullscreen(true)
+    } else {
+      document.exitFullscreen()
+      setIsFullscreen(false)
+    }
+  }
+
   // On video loaded
   useEffect(() => {
     const videoPlayer = videoRef.current
@@ -326,10 +247,12 @@ function VideoPlayerPage() {
     const onPause = () => setIsPlaying(false)
     const onTimeUpdate = () => {
       if (!isScrubbing) {
-        setCurrentTime(videoPlayer.currentTime)
+        const relativeTime = videoPlayer.currentTime
+        const currentTime = timeOffset + relativeTime
+        setCurrentTime(currentTime)
         timelineRef.current?.style.setProperty(
           '--progress-position',
-          (videoPlayer.currentTime / duration).toString(),
+          (currentTime / duration).toString(),
         )
       }
       // Update buffer bar
@@ -345,10 +268,23 @@ function VideoPlayerPage() {
     }
     const onLoadedData = () => {
       setShowLoadingCircle(false)
-      setDuration(video ? video.runtime / 60 : 0)
+      setDuration(video ? video.runtime * 60 : 0)
     }
-    const onWaiting = () => setShowLoadingCircle(true)
-    const onPlaying = () => setShowLoadingCircle(false)
+    const onLoadStart = () => {
+      setShowLoadingCircle(true)
+    }
+
+    const onWaiting = () => {
+      setShowLoadingCircle(true)
+    }
+
+    const onCanPlay = () => {
+      setShowLoadingCircle(false)
+    }
+
+    const onPlaying = () => {
+      setShowLoadingCircle(false)
+    }
 
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.target as HTMLElement).matches('input, textarea')) return
@@ -378,6 +314,8 @@ function VideoPlayerPage() {
 
     videoPlayer.addEventListener('play', onPlay)
     videoPlayer.addEventListener('pause', onPause)
+    videoPlayer.addEventListener('loadstart', onLoadStart)
+    videoPlayer.addEventListener('canplay', onCanPlay)
     videoPlayer.addEventListener('timeupdate', onTimeUpdate)
     videoPlayer.addEventListener('loadeddata', onLoadedData)
     videoPlayer.addEventListener('waiting', onWaiting)
@@ -388,6 +326,8 @@ function VideoPlayerPage() {
     return () => {
       videoPlayer.removeEventListener('play', onPlay)
       videoPlayer.removeEventListener('pause', onPause)
+      videoPlayer.removeEventListener('loadstart', onLoadStart)
+      videoPlayer.removeEventListener('canplay', onCanPlay)
       videoPlayer.removeEventListener('timeupdate', onTimeUpdate)
       videoPlayer.removeEventListener('loadeddata', onLoadedData)
       videoPlayer.removeEventListener('waiting', onWaiting)
@@ -455,18 +395,54 @@ function VideoPlayerPage() {
     fetchData()
   }, [videoId])
 
+  useEffect(() => {
+    const handleMouseUp = (e: MouseEvent) => {
+      if (isScrubbing) toggleScrubbing(e)
+    }
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isScrubbing) handleTimelineUpdate(e)
+    }
+
+    if (isScrubbing) {
+      window.addEventListener('mouseup', handleMouseUp)
+      window.addEventListener('mousemove', handleMouseMove)
+    }
+
+    return () => {
+      window.removeEventListener('mouseup', handleMouseUp)
+      window.removeEventListener('mousemove', handleMouseMove)
+    }
+  }, [isScrubbing])
+
+  useEffect(() => {
+    if (!videoRef.current || !selectedSubtitleTrack) return
+    const videoPlayer = videoRef.current
+
+    // Limpiar pistas previas
+    Array.from(videoPlayer.querySelectorAll('track')).forEach((t) => t.remove())
+
+    const track = document.createElement('track')
+    track.kind = 'subtitles'
+    track.label = selectedSubtitleTrack.displayTitle
+    track.srclang = selectedSubtitleTrack.language
+    track.src = `${serverUrl}/subs-from-video?path=${encodeURIComponent(video?.fileSrc ?? '')}&trackId=${selectedSubtitleTrack.id - (video?.subtitleTracks?.length ?? 0)}`
+    track.default = true
+
+    videoPlayer.appendChild(track)
+  }, [selectedSubtitleTrack, video])
+
   if (!video || loadingVideo || loadingVideoInfo) {
-    return <Loading />
+    return null
   }
 
   return (
     <>
       {/* Loading Circle */}
-      {/* {(!videoLoaded || showLoadingCircle) && (
-        <div className="relative flex h-screen w-screen justify-center">
+      {showLoadingCircle && (
+        <div className="absolute z-50 flex h-screen w-screen justify-center">
           <Loading />
         </div>
-      )} */}
+      )}
 
       {/* Video Player */}
       <div
@@ -494,194 +470,43 @@ function VideoPlayerPage() {
         }}
       >
         {/* Top Bar */}
-        <FlexBox
-          justify="space-between"
-          align="center"
-          width={'100%'}
-          gap={0.5}
-          padding="1rem 1rem 2.5rem 1rem"
-          className={`top-shadow fixed top-0 z-1 gap-4 ${isPlaying && !showControls ? '' : 'active'}`}
-        >
-          <FlexBox gap={1} align="center" justify="center">
-            <Button variant={'ghost'} onClick={handleGoBack}>
-              <ChevronLeft />
-            </Button>
-            <span className="text-xl font-semibold">
-              {videoInfo?.title} {videoInfo?.subtitle}
-            </span>
-          </FlexBox>
-          <Button
-            variant={'ghost'}
-            onClick={(e) => {
-              e.stopPropagation()
-              handleFullscreen()
-            }}
-          >
-            {isFullscreen ? <Minimize2 /> : <Maximize2 />}
-          </Button>
-        </FlexBox>
+        <TopBar
+          video={video}
+          videoRef={videoRef}
+          videoInfo={videoInfo}
+          isPlaying={isPlaying}
+          isFullscreen={isFullscreen}
+          showControls={showControls}
+          serverUrl={serverUrl}
+          currentTime={currentTime}
+          setVideoLoaded={setVideoLoaded}
+          setIsPlaying={setIsPlaying}
+          handleFullscreen={handleFullscreen}
+        />
 
         {/* Video Player */}
         <HTMLVideoPlayer url={videoSrc} videoRef={videoRef} />
 
         {/* Controls */}
-        <FlexBox
-          direction="column"
-          justify="center"
-          align="center"
-          width={'100%'}
-          gap={0.8}
-          onClick={(e) => e?.stopPropagation()}
-          onMouseEnter={() => setInControls(true)}
-          onMouseLeave={() => setInControls(false)}
-          padding="5rem 1rem 1rem 1rem"
-          className={`bottom-shadow fixed bottom-0 z-1 gap-4 ${isPlaying && !showControls ? '' : 'active'}`}
-        >
-          <FlexBox gap={1} width={'100%'} justify="start" align="center">
-            <span>{formatTime(currentTime)}</span>
-
-            {/* Timeline */}
-            <div
-              className="timeline-container w-full"
-              ref={timelineRef}
-              onMouseMove={handleTimelineUpdate}
-              onMouseDown={toggleScrubbing}
-            >
-              <div className="timeline">
-                <div className="preview-time">
-                  <span>{formatTime(previewTime)}</span>
-                </div>
-                <div className="thumb-indicator"></div>
-              </div>
-            </div>
-
-            <span>{formatTime(duration - currentTime)}</span>
-          </FlexBox>
-          <FlexBox width={'100%'} justify="space-between" gap={1}>
-            <FlexBox gap={0.5} align="center">
-              <Button
-                variant={'ghost'}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  togglePlay()
-                }}
-                size={'icon'}
-              >
-                {isPlaying ? <Pause /> : <PlayIcon />}
-              </Button>
-              <FlexBox gap={0.1}>
-                <Button
-                  variant={'ghost'}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                  }}
-                  size={'icon'}
-                >
-                  <TrackPreviousIcon />
-                </Button>
-                <Button
-                  variant={'ghost'}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                  }}
-                  size={'icon'}
-                >
-                  <TrackNextIcon />
-                </Button>
-              </FlexBox>
-
-              <span className="ml-2 text-sm">
-                Ends at {getEndTime(currentTime)}
-              </span>
-            </FlexBox>
-            <FlexBox gap={0.5}>
-              {video.audioTracks && video.subtitleTracks && (
-                <>
-                  <DropdownWrapper
-                    content={{
-                      items: [
-                        {
-                          items: video.audioTracks.map((track) => ({
-                            title: `${track.displayTitle} (${track.language})`,
-                            action: () => {
-                              setSelectedAudioTrack(track)
-                              setVideoStart(currentTime)
-                            },
-                          })),
-                        },
-                      ],
-                    }}
-                    button={
-                      <Button
-                        variant={'ghost'}
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                        }}
-                      >
-                        <Music2 />
-                      </Button>
-                    }
-                  />
-                  <DropdownWrapper
-                    content={{
-                      items: [
-                        {
-                          items: video.subtitleTracks.map((track) => ({
-                            title: `${track.displayTitle} (${track.language})`,
-                            action: () => {
-                              setSelectedSubtitleTrack(track)
-                            },
-                          })),
-                        },
-                      ],
-                    }}
-                    button={
-                      <Button
-                        className="show-controls"
-                        variant={'ghost'}
-                        size="icon"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                        }}
-                      >
-                        <Captions />
-                      </Button>
-                    }
-                  />
-                </>
-              )}
-              <FlexBox align="center" justify="center">
-                <Button
-                  className="show-controls"
-                  variant={'ghost'}
-                  size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    toggleMute()
-                  }}
-                >
-                  {getVolumeIcon()}
-                </Button>
-                <input
-                  type="range"
-                  className="vertical-slider"
-                  min={0}
-                  max={1}
-                  step={0.05}
-                  value={volume}
-                  onChange={(e) => {
-                    e.stopPropagation()
-                    handleVolumeChange(e)
-                  }}
-                  style={{
-                    background: `linear-gradient(to right, var(--app-color) ${volume * 100}%, white ${volume * 100}%)`,
-                  }}
-                />
-              </FlexBox>
-            </FlexBox>
-          </FlexBox>
-        </FlexBox>
+        <Controls
+          videoRef={videoRef}
+          timelineRef={timelineRef}
+          video={video}
+          isPlaying={isPlaying}
+          togglePlay={togglePlay}
+          showControls={showControls}
+          setInControls={setShowControls}
+          toggleScrubbing={toggleScrubbing}
+          handleTimelineUpdate={handleTimelineUpdate}
+          currentTime={currentTime}
+          duration={duration}
+          previewTime={previewTime}
+          volume={volume}
+          setVolume={setVolume}
+          toggleMute={toggleMute}
+          setSelectedAudioTrack={setSelectedAudioTrack}
+          setSelectedSubtitleTrack={setSelectedSubtitleTrack}
+        />
       </div>
     </>
   )
