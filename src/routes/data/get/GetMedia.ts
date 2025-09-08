@@ -576,6 +576,60 @@ router.get("/movieMusic", async (req: any, res: any) => {
   return res.json({ url });
 });
 
+// Get series background video
+router.get("/seriesVideo", async (req: any, res: any) => {
+  const { id } = req.query;
+
+  if (!id || id === "") return;
+
+  const series = await getSeriesById(id as string);
+
+  if (!series) {
+    return res.status(404).json({ error: "Series not found" });
+  }
+
+  const folder = FilesManager.getExternalPath(
+    `resources/video/${series.libraryId}/`
+  );
+
+  const filename = Utils.getFileInFolder(folder, series.id);
+  if (!filename) {
+    return res.status(404).json({ error: "File not found" });
+  }
+
+  const basename = path.basename(filename);
+  const url = `/media/video/${series.libraryId}/${basename}`;
+
+  return res.json({ url });
+});
+
+// Get series background music
+router.get("/seriesMusic", async (req: any, res: any) => {
+  const { id } = req.query;
+
+  if (!id || id === "") return;
+
+  const series = await getSeriesById(id as string);
+
+  if (!series) {
+    return res.status(404).json({ error: "Series not found" });
+  }
+
+  const folder = FilesManager.getExternalPath(
+    `resources/music/${series.libraryId}/`
+  );
+
+  const filename = Utils.getFileInFolder(folder, series.id);
+  if (!filename) {
+    return res.status(404).json({ error: "File not found" });
+  }
+
+  const basename = path.basename(filename);
+  const url = `/media/music/${series.libraryId}/${basename}`;
+
+  return res.json({ url });
+});
+
 // Get season background video
 router.get("/seasonVideo", async (req: any, res: any) => {
   const { id } = req.query;
@@ -588,8 +642,14 @@ router.get("/seasonVideo", async (req: any, res: any) => {
     return res.status(404).json({ error: "Season not found" });
   }
 
+  const series = await getSeriesById(season.seriesId);
+
+  if (!series) {
+    return res.status(404).json({ error: "Series not found" });
+  }
+
   const folder = FilesManager.getExternalPath(
-    `resources/video/${season.series.libraryId}/`
+    `resources/video/${series.libraryId}/`
   );
 
   const filename = Utils.getFileInFolder(folder, season.id);
@@ -598,7 +658,7 @@ router.get("/seasonVideo", async (req: any, res: any) => {
   }
 
   const basename = path.basename(filename);
-  const url = `/media/video/${season.series.libraryId}/${basename}`;
+  const url = `/media/video/${series.libraryId}/${basename}`;
 
   return res.json({ url });
 });
@@ -615,8 +675,14 @@ router.get("/seasonMusic", async (req: any, res: any) => {
     return res.status(404).json({ error: "Season not found" });
   }
 
+  const series = await getSeriesById(season.seriesId);
+
+  if (!series) {
+    return res.status(404).json({ error: "Series not found" });
+  }
+
   const folder = FilesManager.getExternalPath(
-    `resources/music/${season.series.libraryId}/`
+    `resources/music/${series.libraryId}/`
   );
 
   const filename = Utils.getFileInFolder(folder, season.id);
@@ -625,7 +691,7 @@ router.get("/seasonMusic", async (req: any, res: any) => {
   }
 
   const basename = path.basename(filename);
-  const url = `/media/music/${season.series.libraryId}/${basename}`;
+  const url = `/media/music/${series.libraryId}/${basename}`;
 
   return res.json({ url });
 });

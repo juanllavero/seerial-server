@@ -78,8 +78,10 @@ export class Downloader {
     fileName: string,
     wsManager: WebSocketManager
   ): Promise<void> {
+    const folder = FilesManager.getExternalPath(downloadFolder);
+
     // Make sure the download path has a trailing slash
-    const outputPath = path.join(downloadFolder, `${fileName}.opus`);
+    const outputPath = path.join(folder, `${fileName}.opus`);
 
     // Remove if exists
     if (fs.existsSync(outputPath)) {
