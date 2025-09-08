@@ -2,6 +2,7 @@ import DropdownWrapper from '@/components/DropdownWrapper'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Video } from '@/data/interfaces/Media'
+import { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
 import { formatTime } from '@/utils/ReactUtils'
 import { TrackPreviousIcon, TrackNextIcon } from '@radix-ui/react-icons'
 import {
@@ -24,8 +25,8 @@ interface ControlsProps {
   toggleMute: () => void
   volume: number
   setVolume: (value: number) => void
-  setSelectedAudioTrack: (track: any) => void
-  setSelectedSubtitleTrack: (track: any) => void
+  handleSubtitleTrackChange: (track: SubtitleTrack | null) => void
+  handleAudioTrackChange: (track: AudioTrack) => void
   currentTime: number
   duration: number
   previewTime: number
@@ -44,8 +45,8 @@ function Controls({
   toggleMute,
   volume,
   setVolume,
-  setSelectedAudioTrack,
-  setSelectedSubtitleTrack,
+  handleSubtitleTrackChange,
+  handleAudioTrackChange,
   currentTime,
   duration,
   previewTime,
@@ -169,9 +170,9 @@ function Controls({
                   items: [
                     {
                       items: video.audioTracks.map((track) => ({
-                        title: `${track.displayTitle} (${track.language}) ${track.id}`,
+                        title: `${track.displayTitle} (${track.language ?? track.languageTag}) ${track.id}`,
                         action: () => {
-                          setSelectedAudioTrack(track)
+                          handleAudioTrackChange(track)
                         },
                       })),
                     },
@@ -194,9 +195,9 @@ function Controls({
                   items: [
                     {
                       items: video.subtitleTracks.map((track) => ({
-                        title: `${track.displayTitle} (${track.language}) ${track.id}`,
+                        title: `${track.displayTitle} (${track.language ?? track.languageTag}) ${track.id}`,
                         action: () => {
-                          setSelectedSubtitleTrack(track)
+                          handleSubtitleTrackChange(track)
                         },
                       })),
                     },

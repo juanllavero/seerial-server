@@ -106,13 +106,13 @@ function VideoPlayerPage() {
   // These functions now correctly update the state to trigger the 'videoSrc' recalculation.
   const handleAudioTrackChange = (track: AudioTrack) => {
     if (!videoRef.current) return
-    setStreamStartTime(videoRef.current.currentTime)
+    setStreamStartTime(currentTime)
     setSelectedAudioTrack(track)
   }
 
   const handleSubtitleTrackChange = (track: SubtitleTrack | null) => {
     if (!videoRef.current) return
-    setStreamStartTime(videoRef.current.currentTime)
+    setStreamStartTime(currentTime)
     setSelectedSubtitleTrack(track)
   }
 
@@ -418,17 +418,22 @@ function VideoPlayerPage() {
     if (!videoRef.current || !selectedSubtitleTrack) return
     const videoPlayer = videoRef.current
 
-    // Limpiar pistas previas
+    const currentTime = videoPlayer.currentTime
+
+    // Clear existing tracks
     Array.from(videoPlayer.querySelectorAll('track')).forEach((t) => t.remove())
 
     const track = document.createElement('track')
     track.kind = 'subtitles'
     track.label = selectedSubtitleTrack.displayTitle
     track.srclang = selectedSubtitleTrack.language
-    track.src = `${serverUrl}/subs-from-video?path=${encodeURIComponent(video?.fileSrc ?? '')}&trackId=${selectedSubtitleTrack.id - (video?.subtitleTracks?.length ?? 0)}`
+    track.src = `${serverUrl}/subs-from-video?path=${encodeURIComponent(video?.fileSrc ?? '')}&trackId=${selectedSubtitleTrack.id - (video?.subtitleTracks?.length ?? 0)}&startTime=${streamStartTime}`
     track.default = true
 
     videoPlayer.appendChild(track)
+
+    // Forzar reanudar en el mismo tiempo
+    videoPlayer.currentTime = currentTime
   }, [selectedSubtitleTrack, video])
 
   if (!video || loadingVideo || loadingVideoInfo) {
@@ -504,8 +509,8 @@ function VideoPlayerPage() {
           volume={volume}
           setVolume={setVolume}
           toggleMute={toggleMute}
-          setSelectedAudioTrack={setSelectedAudioTrack}
-          setSelectedSubtitleTrack={setSelectedSubtitleTrack}
+          handleSubtitleTrackChange={handleSubtitleTrackChange}
+          handleAudioTrackChange={handleAudioTrackChange}
         />
       </div>
     </>
