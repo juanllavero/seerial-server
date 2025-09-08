@@ -6,11 +6,12 @@ import { Season } from '@/data/interfaces/Media'
 import { showToast } from '@/utils/ReactUtils'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { mutate } from 'swr'
+import useSWR, { mutate } from 'swr'
 import ImageListTab from '../components/ImageListTab'
 import SeasonInfoTab from './components/SeasonInfoTab'
 import { shallow } from 'zustand/shallow'
 import MediaTab from '../MediaTab'
+import { fetcher } from '@/utils/utils'
 
 function SeasonDialog() {
   const { t } = useTranslation()
@@ -27,6 +28,13 @@ function SeasonDialog() {
 
   const [season, setSeason] = useState<Season | undefined>(undefined)
 
+  const { data: series } = useSWR(
+    seasonDialog.seasonToEdit && serverUrl !== ''
+      ? `${serverUrl}/details/series?id=${seasonDialog.seasonToEdit.seriesId}`
+      : null,
+    fetcher,
+  )
+
   // Background
   const [backgrounds, setBackgrounds] = useState<string[]>([])
   const [localBackgroundFolder, setLocalBackgroundFolder] = useState<string>('')
@@ -34,12 +42,10 @@ function SeasonDialog() {
 
   //#region ATTRIBUTES
   const [nameLock, setNameLock] = useState<boolean>(false)
-  const [orderLock, setOrderLock] = useState<boolean>(false)
   const [yearLock, setYearLock] = useState<boolean>(false)
   const [overviewLock, setOverviewLock] = useState<boolean>(false)
 
   const [name, setName] = useState<string>('')
-  const [order, setOrder] = useState<string>('')
   const [year, setYear] = useState<string>('')
   const [overview, setOverview] = useState<string>('')
   //#endregion
@@ -51,7 +57,6 @@ function SeasonDialog() {
       setOverviewLock(seasonDialog.seasonToEdit.overviewLock || false)
       setName(seasonDialog.seasonToEdit.name)
       setYear(seasonDialog.seasonToEdit.year)
-      setOrder(seasonDialog.seasonToEdit.order.toString())
       setOverview(seasonDialog.seasonToEdit.overview)
 
       setSeason(seasonDialog.seasonToEdit)
@@ -71,21 +76,20 @@ function SeasonDialog() {
 
     await connectWS(serverUrl)
 
-    const response = await fetch(`${serverUrl}/season`, {
+    const response = await fetch(`${serverUrl}/season/${season.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        updatedSeason: {
-          ...season,
-          name: name,
-          year: year,
-          overview: overview,
-          nameLock: nameLock,
-          yearLock: yearLock,
-          overviewLock: overviewLock,
-        },
+        ...season,
+        backgroundSrc: selectedBackground ?? season.backgroundSrc,
+        name: name,
+        year: year,
+        overview: overview,
+        nameLock: nameLock,
+        yearLock: yearLock,
+        overviewLock: overviewLock,
       }),
     })
 
@@ -94,13 +98,14 @@ function SeasonDialog() {
       return
     }
 
+    mutate((key: string) => key.startsWith(`${serverUrl}/details/series`))
     mutate((key: string) => key.startsWith(`${serverUrl}/details/season`))
 
     closeSeasonDialog()
   }
 
   const getWindowTitle = () => {
-    return `${t('editButton')} ${season.name}`
+    return `${t('editButton')} ${series?.name} - ${season.name}`
   }
 
   return (
@@ -123,10 +128,6 @@ function SeasonDialog() {
               setNameLock={setNameLock}
               setYearLock={setYearLock}
               setOverviewLock={setOverviewLock}
-              order={order}
-              setOrder={setOrder}
-              orderLock={orderLock}
-              setOrderLock={setOrderLock}
             />
           ),
         },

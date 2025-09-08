@@ -17,10 +17,6 @@ interface SeasonInfoTabProps {
   setNameLock: (nameLock: boolean) => void
   setYearLock: (yearLock: boolean) => void
   setOverviewLock: (overviewLock: boolean) => void
-  orderLock: boolean
-  setOrderLock: (orderLock: boolean) => void
-  order: string
-  setOrder: (order: string) => void
 }
 
 function SeasonInfoTab({
@@ -36,10 +32,6 @@ function SeasonInfoTab({
   setNameLock,
   setYearLock,
   setOverviewLock,
-  orderLock,
-  setOrderLock,
-  order,
-  setOrder,
 }: SeasonInfoTabProps) {
   const { t } = useTranslation()
   const isTablet = useIsTablet()
@@ -64,15 +56,6 @@ function SeasonInfoTab({
           />
         </LabeledInputWrapper>
 
-        <LabeledInputWrapper label={t('order')}>
-          <LockInput
-            lock={orderLock}
-            setLock={setOrderLock}
-            value={order}
-            setValue={setOrder}
-          />
-        </LabeledInputWrapper>
-
         <LabeledInputWrapper label={t('year')}>
           <LockInput
             lock={yearLock}
@@ -89,7 +72,7 @@ function SeasonInfoTab({
           setLock={setOverviewLock}
           value={overview}
           setValue={setOverview}
-          isTextArea
+          type="textarea"
         />
       </LabeledInputWrapper>
     </FlexBox>

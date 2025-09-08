@@ -15,7 +15,6 @@ import useSWR from 'swr'
 
 interface EpisodeMediaInfoTabProps {
   video: Video
-  setEpisode: (episode: Episode) => void
 }
 
 interface VideoInfo {
@@ -26,10 +25,11 @@ interface VideoInfo {
   subsMode: string
 }
 
-function EpisodeMediaInfoTab({ video, setEpisode }: EpisodeMediaInfoTabProps) {
+function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
   const serverUrl = useServerStore((state) => state.serverUrl)
   const isTablet = useIsTablet()
   const [loaded, setLoaded] = useState(false)
+  const [mediaInfo, setMediaInfo] = useState<Video | null>(null)
 
   // Get video info
   const { data: videoInfo } = useSWR<VideoInfo>(
@@ -107,7 +107,7 @@ function EpisodeMediaInfoTab({ video, setEpisode }: EpisodeMediaInfoTabProps) {
         subtitleTrack.selected = true
       }
 
-      setEpisode({
+      setMediaInfo({
         ...data,
         videoTracks: data.videoTracks
           ? data.videoTracks.map((track: VideoTrack) =>
@@ -231,7 +231,7 @@ function EpisodeMediaInfoTab({ video, setEpisode }: EpisodeMediaInfoTabProps) {
     )
   }
 
-  if (!loaded || !video) {
+  if (!loaded || !mediaInfo) {
     return (
       <FlexBox
         direction="column"
@@ -261,51 +261,57 @@ function EpisodeMediaInfoTab({ video, setEpisode }: EpisodeMediaInfoTabProps) {
         <span className="mb-1 text-lg font-semibold">Media info</span>
         <FlexBox gap={0.5}>
           <span style={{ color: 'lightgray' }}>Duration</span>
-          <span className="font-semibold">{video.mediaInfo?.duration}</span>
+          <span className="font-semibold">{mediaInfo.mediaInfo?.duration}</span>
         </FlexBox>
         <FlexBox gap={0.5}>
           <span style={{ color: 'lightgray' }}>File</span>
-          <span className="font-semibold">{video.mediaInfo?.file}</span>
+          <span className="font-semibold">{mediaInfo.mediaInfo?.file}</span>
         </FlexBox>
         <FlexBox gap={0.5}>
           <span style={{ color: 'lightgray' }}>Location</span>
-          <span className="font-semibold">{video.mediaInfo?.location}</span>
+          <span className="font-semibold">{mediaInfo.mediaInfo?.location}</span>
         </FlexBox>
         <FlexBox gap={0.5}>
           <span style={{ color: 'lightgray' }}>Bitrate</span>
-          <span className="font-semibold">{video.mediaInfo?.bitrate}</span>
+          <span className="font-semibold">{mediaInfo.mediaInfo?.bitrate}</span>
         </FlexBox>
         <FlexBox gap={0.5}>
           <span style={{ color: 'lightgray' }}>Size</span>
-          <span className="font-semibold">{video.mediaInfo?.size}</span>
+          <span className="font-semibold">{mediaInfo.mediaInfo?.size}</span>
         </FlexBox>
         <FlexBox gap={0.5}>
           <span style={{ color: 'lightgray' }}>Container</span>
-          <span className="font-semibold">{video.mediaInfo?.container}</span>
+          <span className="font-semibold">
+            {mediaInfo.mediaInfo?.container}
+          </span>
         </FlexBox>
       </FlexBox>
       <FlexBox direction="column" gap={1}>
-        {video.videoTracks &&
-          video.videoTracks.map((track: VideoTrack) => (
+        {mediaInfo.videoTracks &&
+          mediaInfo.videoTracks.map((track: VideoTrack) => (
             <div key={track.id + '-video'}>
               <span className="mt-2 mb-1 text-lg font-semibold">Video</span>
               {getVideoInfo(track)}
             </div>
           ))}
-        {video.audioTracks &&
-          video.audioTracks.map((audioTrack: AudioTrack, index: number) => (
+        {mediaInfo.audioTracks &&
+          mediaInfo.audioTracks.map((audioTrack: AudioTrack, index: number) => (
             <div key={index + '-audio'}>
               <span className="mt-2 mb-1 text-lg font-semibold">Audio</span>
               {getAudioInfo(audioTrack)}
             </div>
           ))}
-        {video.subtitleTracks &&
-          video.subtitleTracks.map((track: SubtitleTrack, index: number) => (
-            <div key={index + '-subs'}>
-              <span className="mt-2 mb-1 text-lg font-semibold">Subtitle</span>
-              {getSubtitleInfo(track)}
-            </div>
-          ))}
+        {mediaInfo.subtitleTracks &&
+          mediaInfo.subtitleTracks.map(
+            (track: SubtitleTrack, index: number) => (
+              <div key={index + '-subs'}>
+                <span className="mt-2 mb-1 text-lg font-semibold">
+                  Subtitle
+                </span>
+                {getSubtitleInfo(track)}
+              </div>
+            ),
+          )}
       </FlexBox>
     </FlexBox>
   )

@@ -1,7 +1,6 @@
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import FlexBox from '@/components/ui/FlexBox'
-import TagInput from '@/components/ui/tags-input'
 import { useTranslation } from 'react-i18next'
 import LockInput from '../../components/LockInput'
 
@@ -18,8 +17,6 @@ interface MovieInfoTabProps {
   setNameLock: (nameLock: boolean) => void
   setYearLock: (yearLock: boolean) => void
   setOverviewLock: (overviewLock: boolean) => void
-  orderLock: boolean
-  setOrderLock: (orderLock: boolean) => void
   studios: string[]
   setStudios: (studios: string[]) => void
   studiosLock: boolean
@@ -28,8 +25,6 @@ interface MovieInfoTabProps {
   setTagline: (tagline: string) => void
   taglineLock: boolean
   setTaglineLock: (taglineLock: boolean) => void
-  order: string
-  setOrder: (order: string) => void
 }
 
 function MovieInfoTab({
@@ -45,8 +40,6 @@ function MovieInfoTab({
   setNameLock,
   setYearLock,
   setOverviewLock,
-  orderLock,
-  setOrderLock,
   studios,
   setStudios,
   studiosLock,
@@ -55,8 +48,6 @@ function MovieInfoTab({
   setTagline,
   taglineLock,
   setTaglineLock,
-  order,
-  setOrder,
 }: MovieInfoTabProps) {
   const { t } = useTranslation()
   const isTablet = useIsTablet()
@@ -81,15 +72,6 @@ function MovieInfoTab({
           />
         </LabeledInputWrapper>
 
-        <LabeledInputWrapper label={t('order')}>
-          <LockInput
-            lock={orderLock}
-            setLock={setOrderLock}
-            value={order}
-            setValue={setOrder}
-          />
-        </LabeledInputWrapper>
-
         <LabeledInputWrapper label={t('year')}>
           <LockInput
             lock={yearLock}
@@ -101,10 +83,12 @@ function MovieInfoTab({
       </FlexBox>
 
       <LabeledInputWrapper label={t('studios')}>
-        <TagInput
-          value={studios}
-          onChange={setStudios}
-          placeholder="Añadir estudio..."
+        <LockInput
+          lock={studiosLock}
+          setLock={setStudiosLock}
+          values={studios}
+          setValues={setStudios}
+          placeholder={`${t('studios')}...`}
         />
       </LabeledInputWrapper>
       <LabeledInputWrapper label={t('tagline')}>
@@ -122,7 +106,7 @@ function MovieInfoTab({
           setLock={setOverviewLock}
           value={overview}
           setValue={setOverview}
-          isTextArea
+          type="textarea"
         />
       </LabeledInputWrapper>
     </FlexBox>

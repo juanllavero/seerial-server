@@ -40,7 +40,6 @@ function SeriesDialog() {
 
   //#region ATTRIBUTES
   const [nameLock, setNameLock] = useState<boolean>(false)
-  const [orderLock, setOrderLock] = useState<boolean>(false)
   const [yearLock, setYearLock] = useState<boolean>(false)
   const [overviewLock, setOverviewLock] = useState<boolean>(false)
   const [taglineLock, setTaglineLock] = useState<boolean>(false)
@@ -50,7 +49,6 @@ function SeriesDialog() {
   const [musicLock, setMusicLock] = useState<boolean>(false)
 
   const [name, setName] = useState<string>('')
-  const [order, setOrder] = useState<string>('')
   const [year, setYear] = useState<string>('')
   const [overview, setOverview] = useState<string>('')
   const [tagline, setTagline] = useState<string>('')
@@ -58,10 +56,6 @@ function SeriesDialog() {
   const [genres, setGenres] = useState<string[]>([''])
   const [creator, setCreator] = useState<string[]>([''])
   const [music, setMusic] = useState<string[]>([''])
-  const [videoSrc, setVideoSrc] = useState<string>('')
-  const [musicSrc, setMusicSrc] = useState<string>('')
-  const [extVideoSrc, setExtVideoSrc] = useState<string>('')
-  const [extMusicSrc, setExtMusicSrc] = useState<string>('')
   //#endregion
 
   useEffect(() => {
@@ -76,9 +70,8 @@ function SeriesDialog() {
       setMusicLock(seriesDialog.seriesToEdit.musicComposerLock || false)
       setName(seriesDialog.seriesToEdit.name)
       setYear(seriesDialog.seriesToEdit.year)
-      setOrder(seriesDialog.seriesToEdit.order.toString())
       setOverview(seriesDialog.seriesToEdit.overview)
-      setTagline(seriesDialog.seriesToEdit.tagline)
+      setTagline(seriesDialog.seriesToEdit.tagline || '')
       setStudios(seriesDialog.seriesToEdit.productionStudios || [])
       setGenres(seriesDialog.seriesToEdit.genres || [])
       setCreator(seriesDialog.seriesToEdit.creator || [])
@@ -102,22 +95,31 @@ function SeriesDialog() {
 
     await connectWS(serverUrl)
 
-    const response = await fetch(`${serverUrl}/series`, {
+    const response = await fetch(`${serverUrl}/show/${series.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        updatedMovie: {
-          ...series,
-          name: name,
-          year: year,
-          overview: overview,
-          studios: studios,
-          nameLock: nameLock,
-          yearLock: yearLock,
-          overviewLock: overviewLock,
-        },
+        ...series,
+        name: name,
+        year: year,
+        overview: overview,
+        tagline: tagline,
+        productionStudios: studios,
+        genres: genres,
+        creator: creator,
+        musicComposer: music,
+        nameLock: nameLock,
+        yearLock: yearLock,
+        overviewLock: overviewLock,
+        taglineLock: taglineLock,
+        productionStudiosLock: studiosLock,
+        genresLock: genresLock,
+        creatorLock: creatorLock,
+        musicComposerLock: musicLock,
+        logoSrc: selectedLogo ?? series.logoSrc,
+        coverSrc: selectedPoster ?? series.coverSrc,
       }),
     })
 
@@ -127,6 +129,7 @@ function SeriesDialog() {
     }
 
     mutate((key: string) => key.startsWith(`${serverUrl}/details/series`))
+    mutate((key: string) => key.startsWith(`${serverUrl}/library-content`))
 
     closeSeriesDialog()
   }
@@ -155,14 +158,6 @@ function SeriesDialog() {
               setNameLock={setNameLock}
               setYearLock={setYearLock}
               setOverviewLock={setOverviewLock}
-              order={order}
-              setOrder={setOrder}
-              orderLock={orderLock}
-              setOrderLock={setOrderLock}
-              studios={studios}
-              setStudios={setStudios}
-              studiosLock={studiosLock}
-              setStudiosLock={setStudiosLock}
               tagline={tagline}
               setTagline={setTagline}
               taglineLock={taglineLock}
@@ -182,6 +177,14 @@ function SeriesDialog() {
               setStudios={setStudios}
               music={music}
               setMusic={setMusic}
+              genresLock={genresLock}
+              setGenresLock={setGenresLock}
+              studiosLock={studiosLock}
+              setStudiosLock={setStudiosLock}
+              creatorLock={creatorLock}
+              setCreatorLock={setCreatorLock}
+              musicLock={musicLock}
+              setMusicLock={setMusicLock}
             />
           ),
         },

@@ -6,12 +6,13 @@ import { showToast } from '@/utils/ReactUtils'
 import { fetcher } from '@/utils/utils'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
+import useSWR, { mutate } from 'swr'
 import { ModalWrapper } from '../../ModalWrapper'
 import ImageListTab from '../components/ImageListTab'
 import EpisodeInfoTab from './components/EpisodeInfoTab'
 import EpisodeMediaInfoTab from './components/EpisodeMediaInfoTab'
 import { shallow } from 'zustand/shallow'
+import { set } from 'lodash'
 
 function EpisodeDialog() {
   const { t } = useTranslation()
@@ -65,6 +66,8 @@ function EpisodeDialog() {
       setDirectedBy(episodeDialog.episodeToEdit.directedBy)
       setWrittenBy(episodeDialog.episodeToEdit.writtenBy)
       setEpisode(episodeDialog.episodeToEdit)
+      setImages(episodeDialog.episodeToEdit.video.imgUrls || [])
+      setSelectedImage(episodeDialog.episodeToEdit.video.imgSrc || '')
       setLocalFolder(`img/thumbnails/video/${episodeDialog.episodeToEdit.id}`)
       setSelectedTab(t('generalButton'))
     }
@@ -77,26 +80,24 @@ function EpisodeDialog() {
 
     await connectWS(serverUrl)
 
-    const response = await fetch(`${serverUrl}/episode`, {
+    const response = await fetch(`${serverUrl}/episode/${episode.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        updatedEpisode: {
-          ...episode,
-          imgSrc: selectedImage,
-          name: name,
-          year: year,
-          overview: overview,
-          directedBy: directedBy,
-          writtenBy: writtenBy,
-          nameLock: nameLock,
-          yearLock: yearLock,
-          overviewLock: overviewLock,
-          directedLock: directedLock,
-          writtenLock: writtenLock,
-        },
+        ...episode,
+        imgSrc: selectedImage ?? episode.video.imgSrc,
+        name: name,
+        year: year,
+        overview: overview,
+        directedBy: directedBy,
+        writtenBy: writtenBy,
+        nameLock: nameLock,
+        yearLock: yearLock,
+        overviewLock: overviewLock,
+        directedLock: directedLock,
+        writtenLock: writtenLock,
       }),
     })
 
@@ -104,6 +105,9 @@ function EpisodeDialog() {
       showToast('error', 'Error updating episode')
       return
     }
+
+    mutate((key: string) => key.startsWith(`${serverUrl}/details/season`))
+    mutate((key: string) => key.startsWith(`${serverUrl}/details/episode`))
 
     closeEpisodeDialog()
   }
@@ -156,12 +160,7 @@ function EpisodeDialog() {
         },
         {
           title: t('details'),
-          content: (
-            <EpisodeMediaInfoTab
-              video={episode.video}
-              setEpisode={setEpisode}
-            />
-          ),
+          content: <EpisodeMediaInfoTab video={episode.video} />,
         },
       ]}
       width="50rem"

@@ -3,6 +3,7 @@ import { useIsTablet } from '@/components/hooks/use-tablet'
 import FlexBox from '@/components/ui/FlexBox'
 import TagInput from '@/components/ui/tags-input'
 import { useTranslation } from 'react-i18next'
+import LockInput from '../../components/LockInput'
 
 interface SeriesTagsTabProps {
   genres: string[]
@@ -13,6 +14,14 @@ interface SeriesTagsTabProps {
   setStudios: (studios: string[]) => void
   music: string[]
   setMusic: (music: string[]) => void
+  genresLock: boolean
+  setGenresLock: (genresLock: boolean) => void
+  creatorLock: boolean
+  setCreatorLock: (creatorLock: boolean) => void
+  studiosLock: boolean
+  setStudiosLock: (studiosLock: boolean) => void
+  musicLock: boolean
+  setMusicLock: (musicLock: boolean) => void
 }
 
 function SeriesTagsTab({
@@ -24,6 +33,14 @@ function SeriesTagsTab({
   setStudios,
   music,
   setMusic,
+  genresLock,
+  setGenresLock,
+  studiosLock,
+  setStudiosLock,
+  creatorLock,
+  setCreatorLock,
+  musicLock,
+  setMusicLock,
 }: SeriesTagsTabProps) {
   const { t } = useTranslation()
   const isTablet = useIsTablet()
@@ -38,31 +55,39 @@ function SeriesTagsTab({
       scroll="vertical"
     >
       <LabeledInputWrapper label={t('genres')}>
-        <TagInput
-          value={genres}
-          onChange={setGenres}
-          placeholder="Añadir género..."
+        <LockInput
+          lock={genresLock}
+          setLock={setGenresLock}
+          values={genres}
+          setValues={setGenres}
+          placeholder={`${t('genres')}...`}
         />
       </LabeledInputWrapper>
       <LabeledInputWrapper label={t('createdBy')}>
-        <TagInput
-          value={creator}
-          onChange={setCreator}
-          placeholder="Añadir creador..."
+        <LockInput
+          lock={creatorLock}
+          setLock={setCreatorLock}
+          values={creator}
+          setValues={setCreator}
+          placeholder={`${t('createdBy')}...`}
         />
       </LabeledInputWrapper>
       <LabeledInputWrapper label={t('studios')}>
-        <TagInput
-          value={studios}
-          onChange={setStudios}
-          placeholder="Añadir estudio..."
+        <LockInput
+          lock={studiosLock}
+          setLock={setStudiosLock}
+          values={studios}
+          setValues={setStudios}
+          placeholder={`${t('studios')}...`}
         />
       </LabeledInputWrapper>
       <LabeledInputWrapper label={t('musicBy')}>
-        <TagInput
-          value={music}
-          onChange={setMusic}
-          placeholder="Añadir música por..."
+        <LockInput
+          lock={musicLock}
+          setLock={setMusicLock}
+          values={music}
+          setValues={setMusic}
+          placeholder={`${t('musicBy')}...`}
         />
       </LabeledInputWrapper>
     </FlexBox>

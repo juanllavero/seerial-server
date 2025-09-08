@@ -89,7 +89,7 @@ function EpisodeInfoTab({
           setLock={setOverviewLock}
           value={overview}
           setValue={setOverview}
-          isTextArea
+          type="textarea"
         />
       </LabeledInputWrapper>
 

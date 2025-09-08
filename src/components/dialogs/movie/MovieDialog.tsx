@@ -45,7 +45,6 @@ function MovieDialog() {
 
   //#region ATTRIBUTES
   const [nameLock, setNameLock] = useState<boolean>(false)
-  const [orderLock, setOrderLock] = useState<boolean>(false)
   const [yearLock, setYearLock] = useState<boolean>(false)
   const [overviewLock, setOverviewLock] = useState<boolean>(false)
   const [taglineLock, setTaglineLock] = useState<boolean>(false)
@@ -57,7 +56,6 @@ function MovieDialog() {
   const [writtenByLock, setWrittenByLock] = useState<boolean>(false)
 
   const [name, setName] = useState<string>('')
-  const [order, setOrder] = useState<string>('')
   const [year, setYear] = useState<string>('')
   const [overview, setOverview] = useState<string>('')
   const [tagline, setTagline] = useState<string>('')
@@ -67,10 +65,6 @@ function MovieDialog() {
   const [music, setMusic] = useState<string[]>([''])
   const [directedBy, setDirectedBy] = useState<string[]>([''])
   const [writtenBy, setWrittenBy] = useState<string[]>([''])
-  const [videoSrc, setVideoSrc] = useState<string>('')
-  const [musicSrc, setMusicSrc] = useState<string>('')
-  const [extVideoSrc, setExtVideoSrc] = useState<string>('')
-  const [extMusicSrc, setExtMusicSrc] = useState<string>('')
   //#endregion
 
   useEffect(() => {
@@ -87,7 +81,6 @@ function MovieDialog() {
       setWrittenByLock(movieDialog.movieToEdit.writtenByLock || false)
       setName(movieDialog.movieToEdit.name)
       setYear(movieDialog.movieToEdit.year)
-      setOrder(movieDialog.movieToEdit.order.toString())
       setOverview(movieDialog.movieToEdit.overview)
       setTagline(movieDialog.movieToEdit.tagline)
       setStudios(movieDialog.movieToEdit.productionStudios || [])
@@ -118,23 +111,36 @@ function MovieDialog() {
 
     await connectWS(serverUrl)
 
-    const response = await fetch(`${serverUrl}/movie`, {
+    const response = await fetch(`${serverUrl}/movie/${movie.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        updatedMovie: {
-          ...movie,
-          name: name,
-          year: year,
-          overview: overview,
-          directedBy: directedBy,
-          writtenBy: writtenBy,
-          nameLock: nameLock,
-          yearLock: yearLock,
-          overviewLock: overviewLock,
-        },
+        ...movie,
+        name,
+        year,
+        overview,
+        tagline,
+        productionStudios: studios,
+        genres,
+        creator,
+        musicComposer: music,
+        directedBy,
+        writtenBy,
+        nameLock,
+        yearLock,
+        overviewLock,
+        taglineLock,
+        productionStudiosLock: studiosLock,
+        genresLock,
+        creatorLock,
+        musicComposerLock: musicLock,
+        directedByLock,
+        writtenByLock,
+        logoSrc: selectedLogo ?? movie.logoSrc,
+        coverSrc: selectedPoster ?? movie.coverSrc,
+        backgroundSrc: selectedBackground ?? movie.backgroundSrc,
       }),
     })
 
@@ -144,6 +150,7 @@ function MovieDialog() {
     }
 
     mutate((key: string) => key.startsWith(`${serverUrl}/details/movie`))
+    mutate((key: string) => key.startsWith(`${serverUrl}/library-content`))
 
     closeMovieDialog()
   }
@@ -172,10 +179,6 @@ function MovieDialog() {
               setNameLock={setNameLock}
               setYearLock={setYearLock}
               setOverviewLock={setOverviewLock}
-              order={order}
-              setOrder={setOrder}
-              orderLock={orderLock}
-              setOrderLock={setOrderLock}
               studios={studios}
               setStudios={setStudios}
               studiosLock={studiosLock}
@@ -201,6 +204,16 @@ function MovieDialog() {
               setWrittenBy={setWrittenBy}
               music={music}
               setMusic={setMusic}
+              genresLock={genresLock}
+              setGenresLock={setGenresLock}
+              creatorLock={creatorLock}
+              setCreatorLock={setCreatorLock}
+              directedLock={directedByLock}
+              setDirectedLock={setDirectedByLock}
+              writtenLock={writtenByLock}
+              setWrittenLock={setWrittenByLock}
+              musicLock={musicLock}
+              setMusicLock={setMusicLock}
             />
           ),
         },

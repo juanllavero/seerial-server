@@ -17,18 +17,10 @@ interface SeriesInfoTabProps {
   setNameLock: (nameLock: boolean) => void
   setYearLock: (yearLock: boolean) => void
   setOverviewLock: (overviewLock: boolean) => void
-  orderLock: boolean
-  setOrderLock: (orderLock: boolean) => void
-  studios: string[]
-  setStudios: (studios: string[]) => void
-  studiosLock: boolean
-  setStudiosLock: (studiosLock: boolean) => void
   tagline: string
   setTagline: (tagline: string) => void
   taglineLock: boolean
   setTaglineLock: (taglineLock: boolean) => void
-  order: string
-  setOrder: (order: string) => void
 }
 
 function SeriesInfoTab({
@@ -44,18 +36,10 @@ function SeriesInfoTab({
   setNameLock,
   setYearLock,
   setOverviewLock,
-  orderLock,
-  setOrderLock,
-  studios,
-  setStudios,
-  studiosLock,
-  setStudiosLock,
   tagline,
   setTagline,
   taglineLock,
   setTaglineLock,
-  order,
-  setOrder,
 }: SeriesInfoTabProps) {
   const { t } = useTranslation()
   const isTablet = useIsTablet()
@@ -77,15 +61,7 @@ function SeriesInfoTab({
             setLock={setNameLock}
             value={name}
             setValue={setName}
-          />
-        </LabeledInputWrapper>
-
-        <LabeledInputWrapper label={t('order')}>
-          <LockInput
-            lock={orderLock}
-            setLock={setOrderLock}
-            value={order}
-            setValue={setOrder}
+            placeholder={`${t('name')}...`}
           />
         </LabeledInputWrapper>
 
@@ -95,6 +71,7 @@ function SeriesInfoTab({
             setLock={setYearLock}
             value={year}
             setValue={setYear}
+            placeholder={`${t('year')}...`}
           />
         </LabeledInputWrapper>
       </FlexBox>
@@ -105,6 +82,7 @@ function SeriesInfoTab({
           setLock={setTaglineLock}
           value={tagline}
           setValue={setTagline}
+          placeholder={`${t('tagline')}...`}
         />
       </LabeledInputWrapper>
 
@@ -114,7 +92,8 @@ function SeriesInfoTab({
           setLock={setOverviewLock}
           value={overview}
           setValue={setOverview}
-          isTextArea
+          placeholder={`${t('overview')}...`}
+          type="textarea"
         />
       </LabeledInputWrapper>
     </FlexBox>
