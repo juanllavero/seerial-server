@@ -47,8 +47,15 @@ function ContinueWatching({ goToContent }: ContinueWatchingProps) {
               imgSrc={video.imgSrc}
               aspectRatio={16 / 9}
               width={isMobile ? 280 : 380}
-              title={video.title}
-              subtitle={'Not yet'}
+              hideButtons
+              title={`${video.title}`}
+              subtitle={`${video.subtitle ? `${video.subtitle} - ` : ''} ${
+                video.seasonNumber && video.episodeNumber
+                  ? `${t('seasonLetter')}${video.seasonNumber} ${t('episodeLetter')}${
+                      video.episodeNumber
+                    }`
+                  : ''
+              }`}
               action={() =>
                 goToContent(
                   `/server/${selectedServer?.id}/details/${video.episodeId ? 'episode' : 'movie'}/${video.episodeId ? video.episodeId : video.movieId}`,

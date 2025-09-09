@@ -211,6 +211,10 @@ export interface Video {
   timeWatched: number
   lastWatched: string
 
+  subtitle?: string
+  seasonNumber?: number
+  episodeNumber?: number
+
   mediaInfo?: MediaInfo
   videoTracks?: VideoTrack[]
   subtitleTracks?: SubtitleTrack[]

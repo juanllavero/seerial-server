@@ -230,12 +230,14 @@ function SeriesDetailsPage() {
           ) : series.seasons && series.seasons.length > 1 && season ? (
             <SeasonSelectable
               defaultValue={season ? season.name : series.seasons[0].name}
-              options={series.seasons.map((season, index) => {
-                return {
-                  key: String(index),
-                  value: season.name,
-                }
-              })}
+              options={series.seasons
+                .sort((a, b) => a.seasonNumber - b.seasonNumber)
+                .map((season, index) => {
+                  return {
+                    key: String(index),
+                    value: season.name,
+                  }
+                })}
               onValueChange={selectSeasonOption}
             />
           ) : null}
