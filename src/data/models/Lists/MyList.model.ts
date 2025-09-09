@@ -29,19 +29,19 @@ export class MyList extends Model {
 
   @ForeignKey(() => Series)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.STRING,
     allowNull: true,
     field: "series_id",
     onDelete: "CASCADE",
   })
-  seriesId?: number;
+  seriesId?: string;
 
   @ForeignKey(() => Movie)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.STRING,
     allowNull: true,
     field: "movie_id",
     onDelete: "CASCADE",
   })
-  movieId?: number;
+  movieId?: string;
 }

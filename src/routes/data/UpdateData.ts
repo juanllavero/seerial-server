@@ -7,9 +7,11 @@ import {
 } from "../../db/get/getData";
 import { addVideoToContinueWatching } from "../../db/post/postData";
 import {
+  updateAlbum,
   updateCollection,
   updateEpisode,
   updateLibrary,
+  updateMovie,
   updateSeason,
   updateSeries,
   updateVideo,
@@ -19,11 +21,16 @@ import { Utils } from "../../utils/Utils";
 const router = express.Router();
 
 // Update Library
-router.put("/library", (req: any, res: any) => {
-  const { libraryId, updatedLibrary } = req.body;
+router.put("/library/:id", async (req: any, res: any) => {
+  const updatedLibrary = req.body;
+  const id = req.params.id;
+
+  if (!id || typeof id !== "string" || id === "") {
+    return res.status(400).json({ message: "No ID provided or invalid ID." });
+  }
 
   try {
-    updateLibrary(libraryId, updatedLibrary);
+    await updateLibrary(id, updatedLibrary);
     res.status(200).json({ message: "Library updated successfully" });
   } catch (error) {
     res.status(500).json({ error: "Failed to update library" });
@@ -31,11 +38,16 @@ router.put("/library", (req: any, res: any) => {
 });
 
 // Update Collection
-router.put("/collection", (req: any, res: any) => {
-  const { collectionId, updatedCollection } = req.body;
+router.put("/collection/:id", async (req: any, res: any) => {
+  const updatedCollection = req.body;
+  const id = req.params.id;
+
+  if (!id || typeof id !== "string" || id === "") {
+    return res.status(400).json({ message: "No ID provided or invalid ID." });
+  }
 
   try {
-    updateCollection(collectionId, updatedCollection);
+    await updateCollection(id, updatedCollection);
     res.status(200).json({ message: "Collection updated successfully" });
   } catch (error) {
     res.status(500).json({ error: "Failed to update collection" });
@@ -43,11 +55,16 @@ router.put("/collection", (req: any, res: any) => {
 });
 
 // Update Show
-router.put("/show", (req: any, res: any) => {
-  const { showId, updatedShow } = req.body;
+router.put("/show/:id", async (req: any, res: any) => {
+  const updatedShow = req.body;
+  const id = req.params.id;
+
+  if (!id || typeof id !== "string" || id === "") {
+    return res.status(400).json({ message: "No ID provided or invalid ID." });
+  }
 
   try {
-    updateSeries(showId, updatedShow);
+    await updateSeries(id, updatedShow);
     res.status(200).json({ message: "Show updated successfully" });
   } catch (error) {
     res.status(500).json({ error: "Failed to update show" });
@@ -55,11 +72,16 @@ router.put("/show", (req: any, res: any) => {
 });
 
 // Update Season
-router.put("/season", (req: any, res: any) => {
-  const { seasonId, updatedSeason } = req.body;
+router.put("/season/:id", async (req: any, res: any) => {
+  const updatedSeason = req.body;
+  const id = req.params.id;
+
+  if (!id || typeof id !== "string" || id === "") {
+    return res.status(400).json({ message: "No ID provided or invalid ID." });
+  }
 
   try {
-    updateSeason(seasonId, updatedSeason);
+    await updateSeason(id, updatedSeason);
     res.status(200).json({ message: "Season updated successfully" });
   } catch (error) {
     res.status(500).json({ error: "Failed to update season" });
@@ -67,11 +89,16 @@ router.put("/season", (req: any, res: any) => {
 });
 
 // Update Episode
-router.put("/episode", (req: any, res: any) => {
-  const { episodeId, updatedEpisode } = req.body;
+router.put("/episode/:id", async (req: any, res: any) => {
+  const updatedEpisode = req.body;
+  const id = req.params.id;
+
+  if (!id || typeof id !== "string" || id === "") {
+    return res.status(400).json({ message: "No ID provided or invalid ID." });
+  }
 
   try {
-    updateEpisode(episodeId, updatedEpisode);
+    await updateEpisode(id, updatedEpisode);
     res.status(200).json({ message: "Episode updated successfully" });
   } catch (error) {
     res.status(500).json({ error: "Failed to update episode" });
@@ -79,11 +106,16 @@ router.put("/episode", (req: any, res: any) => {
 });
 
 // Update Video
-router.put("/video", (req: any, res: any) => {
-  const { videoId, updatedVideo } = req.body;
+router.put("/video:id", async (req: any, res: any) => {
+  const updatedVideo = req.body;
+  const id = req.params.id;
+
+  if (!id || typeof id !== "string" || id === "") {
+    return res.status(400).json({ message: "No ID provided or invalid ID." });
+  }
 
   try {
-    updateVideo(videoId, updatedVideo);
+    await updateVideo(id, updatedVideo);
     res.status(200).json({ message: "Video updated successfully" });
   } catch (error) {
     res.status(500).json({ error: "Failed to update video" });
@@ -91,11 +123,16 @@ router.put("/video", (req: any, res: any) => {
 });
 
 // Update Movie
-router.put("/movie", (req: any, res: any) => {
-  const { movieId, updatedMovie } = req.body;
+router.put("/movie/:id", async (req: any, res: any) => {
+  const updatedMovie = req.body;
+  const id = req.params.id;
+
+  if (!id || typeof id !== "string" || id === "") {
+    return res.status(400).json({ message: "No ID provided or invalid ID." });
+  }
 
   try {
-    updateVideo(movieId, updatedMovie);
+    await updateMovie(id, updatedMovie);
     res.status(200).json({ message: "Movie updated successfully" });
   } catch (error) {
     res.status(500).json({ error: "Failed to update movie" });
@@ -103,11 +140,16 @@ router.put("/movie", (req: any, res: any) => {
 });
 
 // Update Album
-router.put("/album", (req: any, res: any) => {
-  const { albumId, updatedAlbum } = req.body;
+router.put("/album/:id", async (req: any, res: any) => {
+  const updatedAlbum = req.body;
+  const id = req.params.id;
+
+  if (!id || typeof id !== "string" || id === "") {
+    return res.status(400).json({ message: "No ID provided or invalid ID." });
+  }
 
   try {
-    updateVideo(albumId, updatedAlbum);
+    await updateAlbum(id, updatedAlbum);
     res.status(200).json({ message: "Album updated successfully" });
   } catch (error) {
     res.status(500).json({ error: "Failed to update album" });
@@ -115,11 +157,16 @@ router.put("/album", (req: any, res: any) => {
 });
 
 // Update Song
-router.put("/song", (req: any, res: any) => {
-  const { songId, updatedSong } = req.body;
+router.put("/song/:id", async (req: any, res: any) => {
+  const updatedSong = req.body;
+  const id = req.params.id;
+
+  if (!id || typeof id !== "string" || id === "") {
+    return res.status(400).json({ message: "No ID provided or invalid ID." });
+  }
 
   try {
-    updateVideo(songId, updatedSong);
+    await updateVideo(id, updatedSong);
     res.status(200).json({ message: "Song updated successfully" });
   } catch (error) {
     res.status(500).json({ error: "Failed to update song" });
@@ -161,7 +208,7 @@ router.put("/updateMediaInfo", async (req: any, res: any) => {
 router.put("/updateWatchState", async (req: any, res: any) => {
   const { videoId, timeWatched, watched } = req.body;
 
-  if (!videoId || !timeWatched || !watched) {
+  if (videoId == null || timeWatched == null || watched == null) {
     return res.status(400).json({ error: "Not enough parameters" });
   }
 
@@ -204,6 +251,8 @@ router.put("/updateWatchState", async (req: any, res: any) => {
   await video.save();
 
   await addVideoToContinueWatching(videoId);
+
+  return res.status(200).json({ message: "Watch state updated" });
 });
 
 export default router;

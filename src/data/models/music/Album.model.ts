@@ -30,7 +30,7 @@ export class Album extends Model {
 
   @ForeignKey(() => Library)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.STRING,
     allowNull: false,
     onDelete: "CASCADE",
     field: "library_id",

@@ -117,15 +117,29 @@ router.get("/library-content", async (req: any, res: any) => {
           .json({ error: "Failed to fetch library content" });
       }
 
+      const collectionImages = await getCollectionImages(collection, type);
+
       unifiedContent.push({
         type: "collection",
         order: collectionData.LibraryCollection.customOrder,
         data: {
           id: collectionData.id,
           title: collectionData.title,
-          description: collectionData.description,
-          posterSrc: collectionData.posterSrc,
-          musicPosterSrc: collectionData.musicPosterSrc,
+          images: collectionImages,
+          posterSrc:
+            collectionData.posterSrc ??
+            (type === "Movies" &&
+              collectionData.movies &&
+              collectionData.movies.length === 1)
+              ? collectionData.movies[0].coverSrc ?? undefined
+              : collectionData.shows && collectionData.shows.length === 1
+              ? collectionData.shows[0].coverSrc ?? undefined
+              : undefined,
+          musicPosterSrc:
+            collectionData.musicPosterSrc ??
+            (collectionData.albums && collectionData.albums.length === 1)
+              ? collectionData.albums[0].coverSrc ?? undefined
+              : undefined,
           numberOfItems:
             type === "Movies"
               ? collectionData.movies.length
@@ -139,10 +153,17 @@ router.get("/library-content", async (req: any, res: any) => {
     }
 
     for (const item of itemsNotInCollections) {
+      const remainingItems =
+        getCollectionItemsKey(type) === "movies"
+          ? await getRemainingVideos(item.id)
+          : getCollectionItemsKey(type) === "shows"
+          ? await getRemainingEpisodes(item.id)
+          : 0;
       unifiedContent.push({
         type: getCollectionItemsKey(type),
         order: item.order || 0,
         data: item,
+        remainingItems,
       });
     }
 
@@ -152,6 +173,47 @@ router.get("/library-content", async (req: any, res: any) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+
+const getRemainingVideos = async (itemId: string) => {
+  const movie = await getMovieById(itemId);
+
+  if (!movie) {
+    return 0;
+  }
+
+  let remainingVideos = 0;
+  for (const video of movie.videos) {
+    if (!video.watched) {
+      remainingVideos++;
+    }
+  }
+
+  return remainingVideos;
+};
+
+const getRemainingEpisodes = async (itemId: string) => {
+  const series = await getSeriesById(itemId);
+
+  if (!series) {
+    return 0;
+  }
+
+  let remainingEpisodes = 0;
+  for (const s of series.seasons) {
+    const season = await getSeasonById(s.id);
+
+    if (!season) continue;
+
+    for (const episode of season.episodes) {
+      const video = await getVideoByEpisodeId(episode.id);
+      if (video && !video.watched) {
+        remainingEpisodes++;
+      }
+    }
+  }
+
+  return remainingEpisodes;
+};
 
 /**
  * Get the content of a library optimized for non manager clients (only the needed data)

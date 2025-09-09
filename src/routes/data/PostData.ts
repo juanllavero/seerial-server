@@ -21,6 +21,7 @@ import {
   getSeriesById,
   getSeriesFromMyList,
   getSongById,
+  getVideoByEpisodeId,
   getVideoById,
 } from "../../db/get/getData";
 import {
@@ -418,7 +419,7 @@ router.post("/setMovieWatched", async (req: any, res: any) => {
   movie.watched = watched;
   await movie.save();
 
-  res.json({ message: "WATCH_STATE_UPDATED" });
+  return res.json({ message: "WATCH_STATE_UPDATED" });
 });
 
 // Set video watched state
@@ -438,7 +439,7 @@ router.post("/setVideoWatched", async (req: any, res: any) => {
   video.watched = watched;
   await video.save();
 
-  res.json({ message: "WATCH_STATE_UPDATED" });
+  return res.json({ message: "WATCH_STATE_UPDATED" });
 });
 
 // Set show watched state
@@ -455,11 +456,35 @@ router.post("/setSeriesWatched", async (req: any, res: any) => {
     return res.status(404).json({ error: "Series not found" });
   }
 
+  for (const season of series.seasons) {
+    const seasonWithEpisodes = await getSeasonById(season.id);
+
+    if (!seasonWithEpisodes) continue;
+
+    for (const episode of seasonWithEpisodes.episodes) {
+      const episodeDB = await getEpisodeById(episode.id);
+
+      if (!episodeDB) continue;
+
+      const video = await getVideoByEpisodeId(episodeDB.id);
+
+      if (!video) continue;
+
+      video.watched = watched;
+      video.lastWatched = "";
+      video.timeWatched = 0;
+      await video.save();
+    }
+
+    seasonWithEpisodes.watched = watched;
+    await seasonWithEpisodes.save();
+  }
+
   series.watched = watched;
   series.currentlyWatchingEpisodeId = "";
   await series.save();
 
-  res.json({ message: "WATCH_STATE_UPDATED" });
+  return res.json({ message: "WATCH_STATE_UPDATED" });
 });
 
 // Set season watched state
@@ -476,15 +501,17 @@ router.post("/setSeasonWatched", async (req: any, res: any) => {
     return res.status(404).json({ error: "Season not found" });
   }
 
-  // Get last episode in order to set its watched state
-  const lastEpisode = season.episodes.sort(
+  // Get first or last episode
+  const episodeIndex = watched === true ? season.episodes.length - 1 : 0;
+
+  const episode = season.episodes.sort(
     (a, b) => a.episodeNumber - b.episodeNumber
-  )[season.episodes.length - 1];
+  )[episodeIndex];
 
-  // Set last episode watched state
-  await Utils.setEpisodeWatchState(season, lastEpisode, watched);
+  // Set episode watched state
+  await Utils.setEpisodeWatchState(season, episode, watched);
 
-  res.json({ message: "WATCH_STATE_UPDATED" });
+  return res.json({ message: "WATCH_STATE_UPDATED" });
 });
 
 // Set episode watched state
@@ -509,7 +536,7 @@ router.post("/setEpisodeWatched", async (req: any, res: any) => {
 
   await Utils.setEpisodeWatchState(season, episode, watched);
 
-  res.json({ message: "WATCH_STATE_UPDATED" });
+  return res.json({ message: "WATCH_STATE_UPDATED" });
 });
 
 // Add/remove series from My List

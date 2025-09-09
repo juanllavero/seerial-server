@@ -83,9 +83,9 @@ export interface Series {
   subsMode?: string;
 
   folder: string;
-  episodeGroupId: string;
+  episodeGroupId: string | null;
   analyzingFiles: boolean;
-  currentlyWatchingEpisodeId: string;
+  currentlyWatchingEpisodeId: string | null;
   watched: boolean;
 
   seasons: Season[];

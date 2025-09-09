@@ -21,7 +21,7 @@ export class AlbumArtist extends Model {
 
   @ForeignKey(() => Artist)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.STRING,
     allowNull: false,
     field: "artist_id",
     onDelete: "CASCADE",
@@ -30,7 +30,7 @@ export class AlbumArtist extends Model {
 
   @ForeignKey(() => Album)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.STRING,
     allowNull: false,
     field: "album_id",
     onDelete: "CASCADE",

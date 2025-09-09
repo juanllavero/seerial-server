@@ -37,18 +37,18 @@ export async function scanTVShow(
   if (videoFiles.length === 0) return undefined;
 
   let showData;
-  let show: Series | null;
+  let show: Series | null = null;
 
   let exists: boolean = false;
 
-  // Get existing data or create a new Series
   if (folder in library.analyzedFolders) {
     show = await getSeriesById(library.analyzedFolders[folder] ?? "");
 
-    if (show === null) return undefined;
+    if (show !== null) exists = true;
+  }
 
-    exists = true;
-  } else {
+  // Get existing data or create a new Series
+  if (show === null) {
     show = await addSeries({
       folder,
       libraryId: library.id,
@@ -131,7 +131,7 @@ export async function scanTVShow(
   // Download Episodes Group Metadata
   let episodesGroup =
     show.episodeGroupId !== ""
-      ? await MovieDBWrapper.getEpisodeGroup(show.episodeGroupId)
+      ? await MovieDBWrapper.getEpisodeGroup(show.episodeGroupId ?? "")
       : undefined;
 
   await processEpisodes(
@@ -270,7 +270,7 @@ export async function processEpisode(
     if (toFindMetadata && show.episodeGroupId !== "") {
       if (!episodesGroup) {
         episodesGroup = await MovieDBWrapper.getEpisodeGroup(
-          show.episodeGroupId
+          show.episodeGroupId ?? ""
         );
       }
 

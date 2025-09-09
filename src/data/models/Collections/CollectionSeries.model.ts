@@ -12,7 +12,7 @@ import { Collection } from "./Collection.model";
 export class CollectionSeries extends Model {
   @ForeignKey(() => Collection)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.STRING,
     allowNull: false,
     field: "collection_id",
     onDelete: "CASCADE",
@@ -22,7 +22,7 @@ export class CollectionSeries extends Model {
 
   @ForeignKey(() => Series)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.STRING,
     allowNull: false,
     field: "series_id",
     onDelete: "CASCADE",
