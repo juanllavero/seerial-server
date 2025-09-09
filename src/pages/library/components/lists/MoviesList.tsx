@@ -68,11 +68,7 @@ function MoviesList({ library, mutateLibrary }: MoviesListProps) {
                 type={'Movies'}
               />
             ) : (
-              <MovieCard
-                key={item.data.id}
-                movie={item.data as Movie}
-                mutateLibrary={mutateLibrary}
-              />
+              <MovieCard key={item.data.id} movie={item.data as Movie} />
             )}
           </SortableItem>
         ))}

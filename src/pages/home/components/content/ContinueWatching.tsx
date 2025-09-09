@@ -61,6 +61,11 @@ function ContinueWatching({ goToContent }: ContinueWatchingProps) {
                   `/server/${selectedServer?.id}/details/${video.episodeId ? 'episode' : 'movie'}/${video.episodeId ? video.episodeId : video.movieId}`,
                 )
               }
+              playButtonAction={() =>
+                goToContent(
+                  `/server/${selectedServer?.id}/video-player/${video.videoId}`,
+                )
+              }
             />
           ))
         : isLoading

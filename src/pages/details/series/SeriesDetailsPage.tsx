@@ -141,24 +141,6 @@ function SeriesDetailsPage() {
     }
   }
 
-  const toggleSeriesWatched = async () => {
-    if (series) {
-      fetch(`${serverUrl}/setSeriesWatched`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          seriesId: series.id,
-          watched: !series.watched,
-        }),
-      }).then(() => {
-        mutate((key: string) => key.startsWith(`${serverUrl}/details/series`))
-        mutate((key: string) => key.startsWith(`${serverUrl}/details/season`))
-      })
-    }
-  }
-
   const toggleSeasonWatched = async () => {
     if (season) {
       fetch(`${serverUrl}/setSeasonWatched`, {

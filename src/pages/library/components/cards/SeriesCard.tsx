@@ -4,14 +4,12 @@ import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { Series } from '@/data/interfaces/Media'
 import { DropdownContent } from '@/data/interfaces/Utils'
-import { getOnlyYear } from '@/utils/ReactUtils'
+import { getOnlyYear, toggleSeriesWatched } from '@/utils/ReactUtils'
 import { Pencil } from 'lucide-react'
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import ParentCard from './ParentCard'
 import { shallow } from 'zustand/shallow'
-import { mutate } from 'swr'
 
 interface SeriesCardProps {
   series: Series
@@ -42,24 +40,6 @@ function SeriesCard({ series, remainingEpisodes }: SeriesCardProps) {
   )
   const navigate = useNavigate()
 
-  const toggleSeriesWatched = async () => {
-    if (series) {
-      fetch(`${serverUrl}/setSeriesWatched`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          seriesId: series.id,
-          watched: !series.watched,
-        }),
-      }).then(() => {
-        mutate((key: string) => key.startsWith(`${serverUrl}/library-content`))
-        mutate((key: string) => key.startsWith(`${serverUrl}/details/series`))
-      })
-    }
-  }
-
   const menuContent: DropdownContent = {
     items: [
       {
@@ -79,7 +59,7 @@ function SeriesCard({ series, remainingEpisodes }: SeriesCardProps) {
           },
           {
             title: series.watched ? t('markUnwatched') : t('markWatched'),
-            action: toggleSeriesWatched,
+            action: () => toggleSeriesWatched(serverUrl, series),
           },
         ],
       },

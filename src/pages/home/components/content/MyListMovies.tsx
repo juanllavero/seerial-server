@@ -4,10 +4,14 @@ import { useServerStore } from '@/context/server.context'
 import { Movie } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
 import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
+import useSWR, { mutate } from 'swr'
 import HorizontalList from '../../../../components/lists/HorizontalList'
 import HorizontalListSkeleton from './HorizontalListSkeleton'
 import { shallow } from 'zustand/shallow'
+import { toggleMovieWatched } from '@/utils/ReactUtils'
+import { useDialogStore } from '@/context/dialog.context'
+import { Button } from '@/components/ui/button'
+import { Pencil } from 'lucide-react'
 
 interface MyListMoviesProps {
   goToContent: (url: string) => void
@@ -15,6 +19,13 @@ interface MyListMoviesProps {
 
 function MyListMovies({ goToContent }: MyListMoviesProps) {
   const { t } = useTranslation()
+  const { openIdentificationDialog, openMovieDialog } = useDialogStore(
+    (state) => ({
+      openIdentificationDialog: state.openIdentificationDialog,
+      openMovieDialog: state.openMovieDialog,
+    }),
+    shallow,
+  )
   const { selectedServer, serverUrl } = useServerStore(
     (state) => ({
       selectedServer: state.selectedServer,
@@ -44,6 +55,70 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
             title={movie.name}
             subtitle={
               movie.year ? new Date(movie.year).getFullYear().toString() : 'N/A'
+            }
+            watched={movie.watched}
+            menu={{
+              items: [
+                {
+                  separator: false,
+                  items: [
+                    {
+                      title: t('removeFromMyList'),
+                      action: () => {
+                        fetch(`${serverUrl}/updateMovieMyList`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({
+                            movieId: movie.id,
+                          }),
+                        }).then(() => {
+                          mutate((key: string) =>
+                            key.startsWith(`${serverUrl}/myListMovies`),
+                          )
+                        })
+                      },
+                    },
+                    {
+                      title: t('updateMetadata'),
+                      action: () => console.log('Profile clicked'),
+                    },
+                    {
+                      title: t('correctIdentification'),
+                      action: () => openIdentificationDialog(undefined, movie),
+                    },
+                    {
+                      title: movie.watched
+                        ? t('markUnwatched')
+                        : t('markWatched'),
+                      action: () => toggleMovieWatched(serverUrl, movie),
+                    },
+                  ],
+                },
+                { separator: true, items: [] },
+                {
+                  separator: false,
+                  items: [
+                    {
+                      title: t('removeButton'),
+                      action: () => console.log('Log out clicked'),
+                    },
+                  ],
+                },
+              ],
+            }}
+            editModal={
+              <Button
+                variant={'ghost'}
+                size={'icon'}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  openMovieDialog(movie)
+                }}
+              >
+                <Pencil size={16} />
+              </Button>
             }
             hidePlayButton
             action={() =>

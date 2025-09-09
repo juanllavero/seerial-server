@@ -271,7 +271,7 @@ function CollectionDetailsPage() {
           onDragEnd={(event) => handleDragEnd(event, 'movies')}
           renderItem={(item: Movie) => (
             <div key={item.id} className={isMobile ? 'w-45' : ''}>
-              <MovieCard movie={item} mutateLibrary={mutate} />
+              <MovieCard movie={item} />
             </div>
           )}
         />

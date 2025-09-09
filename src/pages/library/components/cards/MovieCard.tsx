@@ -4,7 +4,7 @@ import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { Movie } from '@/data/interfaces/Media'
 import { DropdownContent } from '@/data/interfaces/Utils'
-import { getOnlyYear } from '@/utils/ReactUtils'
+import { getOnlyYear, toggleMovieWatched } from '@/utils/ReactUtils'
 import { Pencil } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
@@ -13,10 +13,9 @@ import { shallow } from 'zustand/shallow'
 
 interface MovieCardProps {
   movie: Movie
-  mutateLibrary: () => void
 }
 
-function MovieCard({ movie, mutateLibrary }: MovieCardProps) {
+function MovieCard({ movie }: MovieCardProps) {
   const { t } = useTranslation()
   const selectMovie = useDataStore((state) => state.selectMovie)
   const { selectedServer, serverUrl } = useServerStore(
@@ -35,23 +34,6 @@ function MovieCard({ movie, mutateLibrary }: MovieCardProps) {
   )
   const navigate = useNavigate()
 
-  const toggleMovieWatched = async () => {
-    if (movie) {
-      fetch(`${serverUrl}/setMovieWatched`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          movieId: movie.id,
-          watched: !movie.watched,
-        }),
-      }).then(() => {
-        mutateLibrary()
-      })
-    }
-  }
-
   const menuContent: DropdownContent = {
     items: [
       {
@@ -67,7 +49,7 @@ function MovieCard({ movie, mutateLibrary }: MovieCardProps) {
           },
           {
             title: movie.watched ? t('markUnwatched') : t('markWatched'),
-            action: toggleMovieWatched,
+            action: () => toggleMovieWatched(serverUrl, movie),
           },
         ],
       },

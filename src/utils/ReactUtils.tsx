@@ -1,12 +1,51 @@
-import { Collection, Video } from '@/data/interfaces/Media'
+import { Collection, Movie, Series, Video } from '@/data/interfaces/Media'
 import { ScreenHeight } from '@/data/enums/Screen'
 import Image from '@/components/ui/Image'
 
 import { toast } from 'sonner'
+import { mutate } from 'swr'
 
 const tailwindSizes = [
   40, 48, 56, 60, 64, 72, 80, 96, 100, 112, 120, 128, 144, 160, 192,
 ]
+
+export const toggleMovieWatched = (serverUrl: string, movie: Movie) => {
+  if (movie) {
+    fetch(`${serverUrl}/setMovieWatched`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        movieId: movie.id,
+        watched: !movie.watched,
+      }),
+    }).then(() => {
+      mutate((key: string) => key.startsWith(`${serverUrl}/myListMovies`))
+      mutate((key: string) => key.startsWith(`${serverUrl}/library-content`))
+      mutate((key: string) => key.startsWith(`${serverUrl}/details/movie`))
+    })
+  }
+}
+
+export const toggleSeriesWatched = (serverUrl: string, series: Series) => {
+  if (series) {
+    fetch(`${serverUrl}/setSeriesWatched`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        seriesId: series.id,
+        watched: !series.watched,
+      }),
+    }).then(() => {
+      mutate((key: string) => key.startsWith(`${serverUrl}/myListSeries`))
+      mutate((key: string) => key.startsWith(`${serverUrl}/library-content`))
+      mutate((key: string) => key.startsWith(`${serverUrl}/details/series`))
+    })
+  }
+}
 
 //#region IMAGES AND TITLES
 export const getCoverSize = (
