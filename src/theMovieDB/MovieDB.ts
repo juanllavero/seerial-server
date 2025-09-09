@@ -223,7 +223,7 @@ export class MovieDBWrapper {
     try {
       const queryParams = {};
       const data = await this.makeApiRequest(
-        `tv/episode_group/${id}`,
+        `tv/${id}/episode_groups`,
         queryParams
       );
 
