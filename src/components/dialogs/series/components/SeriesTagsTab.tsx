@@ -1,7 +1,6 @@
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import FlexBox from '@/components/ui/FlexBox'
-import TagInput from '@/components/ui/tags-input'
 import { useTranslation } from 'react-i18next'
 import LockInput from '../../components/LockInput'
 

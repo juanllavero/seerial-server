@@ -37,7 +37,6 @@ import React, { memo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
-import Loading from '../Loading'
 import SmallSpinner from './loading/SmallSpinner'
 
 interface Item {

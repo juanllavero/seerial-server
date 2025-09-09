@@ -116,6 +116,23 @@ function MovieDetailsPage() {
     }
   }
 
+  const toggleMovieWatched = async () => {
+    if (movie) {
+      fetch(`${serverUrl}/setMovieWatched`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          movieId: movie.id,
+          watched: !movie.watched,
+        }),
+      }).then(() => {
+        mutate()
+      })
+    }
+  }
+
   const getPlayButtonText = () => {
     return t('playButton')
   }
@@ -244,6 +261,7 @@ function MovieDetailsPage() {
                       ? t('markUnwatched')
                       : t('markWatched')
                   }
+                  onClick={toggleMovieWatched}
                 >
                   {movie && movie.watched ? (
                     <UnmarkWatchedIcon />

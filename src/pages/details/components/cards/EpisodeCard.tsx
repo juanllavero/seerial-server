@@ -5,7 +5,6 @@ import { Button } from '@/components/ui/button'
 import { useDialogStore } from '@/context/dialog.context'
 import { useCardWidth } from '@/hooks/useCardWidth'
 import { Pencil } from 'lucide-react'
-import React from 'react'
 import { useTranslation } from 'react-i18next'
 
 interface EpisodeCardProps {
@@ -39,6 +38,7 @@ function EpisodeCard({
           : undefined
       }
       title={episode.name}
+      watched={episode.video.watched}
       subtitle={`${t('episode')} ${episode.episodeNumber.toString()}`}
       action={() => goToDetails(episode)}
       playButtonAction={() => playEpisode(episode)}

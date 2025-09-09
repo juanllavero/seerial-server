@@ -71,7 +71,7 @@ function SeriesList({ library, mutateLibrary }: SeriesListProps) {
               <SeriesCard
                 key={item.data.id}
                 series={item.data as Series}
-                mutateLibrary={mutateLibrary}
+                remainingEpisodes={item.remainingItems ?? 0}
               />
             )}
           </SortableItem>

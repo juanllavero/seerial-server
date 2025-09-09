@@ -34,8 +34,8 @@ function MyListButton({ serverUrl, seriesId }: MyListButtonProps) {
       variant={'ghost'}
       title={
         inMyList && inMyList.isInMyList
-          ? t('addToMyList')
-          : t('removeFromMyList')
+          ? t('removeFromMyList')
+          : t('addToMyList')
       }
       onClick={toggleMyList}
     >

@@ -285,7 +285,7 @@ function CollectionDetailsPage() {
           onDragEnd={(event) => handleDragEnd(event, 'shows')}
           renderItem={(item: Series) => (
             <div key={item.id} className={isMobile ? 'w-45' : ''}>
-              <SeriesCard series={item} mutateLibrary={mutate} />
+              <SeriesCard series={item} remainingEpisodes={0} />
             </div>
           )}
         />

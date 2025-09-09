@@ -11,13 +11,14 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import ParentCard from './ParentCard'
 import { shallow } from 'zustand/shallow'
+import { mutate } from 'swr'
 
 interface SeriesCardProps {
   series: Series
-  mutateLibrary: () => void
+  remainingEpisodes: number
 }
 
-function SeriesCard({ series, mutateLibrary }: SeriesCardProps) {
+function SeriesCard({ series, remainingEpisodes }: SeriesCardProps) {
   const { t } = useTranslation()
   const { selectedServer, serverUrl } = useServerStore(
     (state) => ({
@@ -39,9 +40,6 @@ function SeriesCard({ series, mutateLibrary }: SeriesCardProps) {
     }),
     shallow,
   )
-  const [remainingEpisodes, setRemainingEpisodes] = useState<
-    number | undefined
-  >(undefined)
   const navigate = useNavigate()
 
   const toggleSeriesWatched = async () => {
@@ -56,7 +54,8 @@ function SeriesCard({ series, mutateLibrary }: SeriesCardProps) {
           watched: !series.watched,
         }),
       }).then(() => {
-        mutateLibrary()
+        mutate((key: string) => key.startsWith(`${serverUrl}/library-content`))
+        mutate((key: string) => key.startsWith(`${serverUrl}/details/series`))
       })
     }
   }
@@ -97,24 +96,6 @@ function SeriesCard({ series, mutateLibrary }: SeriesCardProps) {
     ],
   }
 
-  const getRemainingEpisodes = async () => {
-    const response = await fetch(
-      `${serverUrl}/remaining-episodes?seriesId=${series.id}`,
-    )
-
-    if (!response.ok) {
-      return undefined
-    }
-
-    const data = await response.json()
-    return data.remainingEpisodes
-  }
-
-  // Get remaining episodes
-  getRemainingEpisodes().then((data) => {
-    setRemainingEpisodes(data)
-  })
-
   return (
     <ParentCard
       itemKey={series.id}
@@ -127,6 +108,7 @@ function SeriesCard({ series, mutateLibrary }: SeriesCardProps) {
         navigate(`/server/${selectedServer?.id}/details/series/${series.id}`)
       }}
       hidePlayButton
+      watched={series.watched}
       cornerNumber={remainingEpisodes}
       menuContent={menuContent}
       editModal={

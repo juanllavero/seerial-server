@@ -14,7 +14,13 @@ import GeneralTabContent from './GeneralTabContent'
 function LibraryDialog() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const serverUrl = useServerStore((state) => state.serverUrl)
+  const { serverUrl, selectedServer } = useServerStore(
+    (state) => ({
+      serverUrl: state.serverUrl,
+      selectedServer: state.selectedServer,
+    }),
+    shallow,
+  )
   const connectWS = useWebSocketStore((state) => state.connectWS)
   const { libraryDialog, closeLibraryDialog } = useDialogStore(
     (state) => ({
@@ -132,7 +138,9 @@ function LibraryDialog() {
     setLoading(false)
 
     // Navigate to new library page
-    navigate(`/server/${serverUrl}/library/${libraryId}/${type ?? 'Shows'}`)
+    navigate(
+      `/server/${selectedServer?.id}/library/${libraryId}/${type ?? 'Shows'}`,
+    )
   }
 
   const handleSaveOrNext = () => {

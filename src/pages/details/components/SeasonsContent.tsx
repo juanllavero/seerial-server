@@ -10,12 +10,13 @@ import { useTranslation } from 'react-i18next'
 import EpisodeCard from './cards/EpisodeCard'
 import EpisodeCardDetails from './cards/EpisodeCardDetails'
 import { fetcher } from '@/utils/utils'
-import useSWR from 'swr'
+import useSWR, { mutate } from 'swr'
 import NotFound from '@/components/NotFound'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import { SelectableOption } from '@/data/interfaces/Utils'
 import { shallow } from 'zustand/shallow'
+import { watch } from 'fs'
 
 interface SeasonContentProps {
   seasonList: Season[]
@@ -88,6 +89,50 @@ function SeasonContent({
             {
               title: 'Eliminar',
               action: () => {},
+            },
+            {
+              title: t('markWatched'),
+              action: () => {
+                fetch(`${serverUrl}/setEpisodeWatched`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    episodeId: episode.id,
+                    watched: true,
+                  }),
+                }).finally(() => {
+                  mutate((key: string) =>
+                    key.startsWith(`${serverUrl}/details/series`),
+                  )
+                  mutate((key: string) =>
+                    key.startsWith(`${serverUrl}/details/season`),
+                  )
+                })
+              },
+            },
+            {
+              title: t('markUnwatched'),
+              action: () => {
+                fetch(`${serverUrl}/setEpisodeWatched`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    episodeId: episode.id,
+                    watched: false,
+                  }),
+                }).finally(() => {
+                  mutate((key: string) =>
+                    key.startsWith(`${serverUrl}/details/series`),
+                  )
+                  mutate((key: string) =>
+                    key.startsWith(`${serverUrl}/details/season`),
+                  )
+                })
+              },
             },
           ],
         },

@@ -17,7 +17,7 @@ import { t } from 'i18next'
 import { Edit, Ellipsis } from 'lucide-react'
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import useSWR from 'swr'
+import useSWR, { mutate } from 'swr'
 import CastList from '../components/CastList'
 import SeasonContent from '../components/SeasonsContent'
 import '../DetailsPage.css'
@@ -25,7 +25,6 @@ import MyListButton from './components/MyListButton'
 import PlayButton from './components/PlayButton'
 import { shallow } from 'zustand/shallow'
 import ExpandableText from '@/components/ExpandableText'
-import SelectableWrapper from '@/components/ui/SelectableWrapper'
 import SeasonSelectable from './components/SeasonSelectable'
 
 function SeriesDetailsPage() {
@@ -154,7 +153,8 @@ function SeriesDetailsPage() {
           watched: !series.watched,
         }),
       }).then(() => {
-        mutateSeries()
+        mutate((key: string) => key.startsWith(`${serverUrl}/details/series`))
+        mutate((key: string) => key.startsWith(`${serverUrl}/details/season`))
       })
     }
   }
@@ -171,7 +171,8 @@ function SeriesDetailsPage() {
           watched: !season.watched,
         }),
       }).then(() => {
-        mutateSeries()
+        mutate((key: string) => key.startsWith(`${serverUrl}/details/series`))
+        mutate((key: string) => key.startsWith(`${serverUrl}/details/season`))
       })
     }
   }
@@ -279,6 +280,7 @@ function SeriesDetailsPage() {
           <FlexBox gap={1} wrap="wrap">
             <PlayButton
               serverUrl={serverUrl ?? ''}
+              selectedSeasonId={selectedSeasonId}
               currentlyWatchingEpisodeId={
                 series ? series.currentlyWatchingEpisodeId : undefined
               }

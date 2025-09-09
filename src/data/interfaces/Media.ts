@@ -23,6 +23,7 @@ export interface LibraryItem {
   type: string
   order: number
   data: Collection | Series | Movie | Album
+  remainingItems?: number
 }
 
 export interface Library {
