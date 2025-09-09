@@ -31,7 +31,7 @@ function ChangeEpisodesGroupSearch() {
 
   const search = () => {
     fetch(
-      `${serverUrl}/episodeGroups/search?id=${episodesGroupDialog.seriesToEdit?.id}`,
+      `${serverUrl}/episodeGroups/search?id=${episodesGroupDialog.seriesToEdit?.themdbId}`,
     )
       .then((response) => response.json())
       .then((data) => {

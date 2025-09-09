@@ -14,7 +14,7 @@ import {
   Volume2,
   VolumeOff,
 } from 'lucide-react'
-import { MouseEventHandler } from 'react'
+import { MouseEventHandler, useState } from 'react'
 
 interface ControlsProps {
   videoRef: React.RefObject<HTMLVideoElement | null>
@@ -55,6 +55,8 @@ function Controls({
   showControls,
   setInControls,
 }: ControlsProps) {
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+
   // Gets the end time of the video
   const getEndTime = (currentSecond: number) => {
     const remainingTime = duration - currentSecond
@@ -101,7 +103,9 @@ function Controls({
       gap={0.8}
       onClick={(e) => e?.stopPropagation()}
       onMouseEnter={() => setInControls(true)}
-      onMouseLeave={() => setInControls(false)}
+      onMouseLeave={() => {
+        if (!dropdownOpen) setInControls(false)
+      }}
       padding="5rem 1rem 1rem 1rem"
       className={`bottom-shadow fixed bottom-0 z-1 gap-4 ${isPlaying && !showControls ? '' : 'active'}`}
     >
@@ -166,6 +170,7 @@ function Controls({
           {video.audioTracks && video.subtitleTracks && (
             <>
               <DropdownWrapper
+                onOpenChange={setDropdownOpen}
                 content={{
                   items: [
                     {
@@ -191,6 +196,7 @@ function Controls({
                 }
               />
               <DropdownWrapper
+                onOpenChange={setDropdownOpen}
                 content={{
                   items: [
                     {

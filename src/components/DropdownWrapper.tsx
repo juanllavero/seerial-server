@@ -16,18 +16,25 @@ import {
 } from './ui/dropdown-menu'
 
 interface DropdownWrapperProps {
+  onOpenChange?: (open: boolean) => void
   content: DropdownContent
   width?: string
   button: React.ReactNode
 }
 
 function DropdownWrapper({
+  onOpenChange,
   content,
   button,
   width = 'w-56',
 }: DropdownWrapperProps) {
   return (
-    <DropdownMenu>
+    <DropdownMenu
+      onOpenChange={(open) => {
+        console.log('dropdown open?', open)
+        onOpenChange?.(open)
+      }}
+    >
       <DropdownMenuTrigger asChild>{button}</DropdownMenuTrigger>
       <DropdownMenuContent className={width}>
         {/* Title */}

@@ -464,7 +464,7 @@ function VideoPlayerPage() {
 
           if (isScrubbing) handleTimelineUpdate(e)
         }}
-        onMouseLeave={handleMouseLeave}
+        // onMouseLeave={handleMouseLeave}
         onClick={(e) => {
           e.stopPropagation()
           togglePlay()
