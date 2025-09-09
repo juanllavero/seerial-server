@@ -610,6 +610,7 @@ export const getContinueWatchingVideos = async () => {
           ],
         },
       ],
+      order: [["createdAt", "DESC"]],
     });
 
     // Map to extract the videos with the necessary data
