@@ -878,6 +878,16 @@ export const removeMovieFromMyList = async (movieId: string) => {
   }
 };
 
+export const removeVideoFromContinueWatching = async (videoId: string) => {
+  if (!SequelizeManager.sequelize) return;
+
+  try {
+    await ContinueWatching.destroy({ where: { videoId } });
+  } catch (error) {
+    console.error("Error al eliminar video de Continue Watching:", error);
+  }
+};
+
 export const addVideoToContinueWatching = async (videoId: string) => {
   if (!SequelizeManager.sequelize) {
     console.error("Error: Sequelize no está inicializado");

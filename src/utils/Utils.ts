@@ -10,6 +10,10 @@ import {
   getSeriesById,
   getVideoByEpisodeId,
 } from "../db/get/getData";
+import {
+  addVideoToContinueWatching,
+  removeVideoFromContinueWatching,
+} from "../db/post/postData";
 
 export class Utils {
   static extraTypes = [
@@ -203,17 +207,18 @@ export class Utils {
     const series = await getSeriesById(season.seriesId);
     if (!series || series.seasons.length === 0) return;
 
-    // Load and sort actual seasons
+    // Store previous episode marked as 'currently watching'
+    const previousEpisodeId = series.currentlyWatchingEpisodeId;
+    let nextEpisodeId: string | null = null;
+
+    // Sort seasons
     const seasons = (
       await Promise.all(series.seasons.map((s) => getSeasonById(s.id)))
     )
       .filter((s): s is Season => !!s)
       .sort((a, b) => a.seasonNumber - b.seasonNumber);
 
-    let nextEpisodeId: string | null = null;
-
     for (const s of seasons) {
-      // Load and sort actual episodes for the season
       const episodes = (
         await Promise.all(s.episodes.map((e) => getEpisodeById(e.id)))
       )
@@ -221,7 +226,6 @@ export class Utils {
         .sort((a, b) => a.episodeNumber - b.episodeNumber);
 
       if (s.seasonNumber < season.seasonNumber) {
-        // Previous seasons -> all watched
         for (const e of episodes) {
           const video = await getVideoByEpisodeId(e.id);
           if (!video) continue;
@@ -236,7 +240,6 @@ export class Utils {
       }
 
       if (s.seasonNumber > season.seasonNumber) {
-        // Subsequent seasons -> all unwatched
         for (const e of episodes) {
           const video = await getVideoByEpisodeId(e.id);
           if (!video) continue;
@@ -250,7 +253,8 @@ export class Utils {
         continue;
       }
 
-      let allWatchedThisSeason = true; // we calculate it on the fly
+      // Current season
+      let allWatchedThisSeason = true;
 
       for (let i = 0; i < episodes.length; i++) {
         const e = episodes[i];
@@ -258,21 +262,16 @@ export class Utils {
         if (!video) continue;
 
         if (e.episodeNumber < episodeToUpdate.episodeNumber) {
-          // Previous episodes -> watched
           video.watched = true;
         } else if (e.episodeNumber === episodeToUpdate.episodeNumber) {
-          // Current -> based on 'state'
           video.watched = state;
 
           if (state === false) {
-            // if it is marked as NOT watched, I stay on this one
             nextEpisodeId = e.id;
           } else {
-            // if it is marked as watched, point to the next one
             if (i < episodes.length - 1) {
               nextEpisodeId = episodes[i + 1].id;
             } else {
-              // last episode of the season
               const seasonIdx = seasons.findIndex((ss) => ss.id === s.id);
               if (seasonIdx < seasons.length - 1) {
                 const nextSeason = await getSeasonById(
@@ -286,40 +285,46 @@ export class Utils {
                   )
                     .filter((ne): ne is Episode => !!ne)
                     .sort((a, b) => a.episodeNumber - b.episodeNumber);
-
                   nextEpisodeId = nextSeasonEpisodes[0]?.id ?? null;
-                } else {
-                  nextEpisodeId = null;
                 }
               } else {
-                // last episode of the series
-                nextEpisodeId = null;
+                nextEpisodeId = null; // last episode
               }
             }
           }
         } else {
-          // Subsequent episodes -> unwatched
           video.watched = false;
         }
 
-        // normalize metadata
         video.lastWatched = "";
         video.timeWatched = 0;
         await video.save();
 
-        // update season accumulator
         if (!video.watched) allWatchedThisSeason = false;
       }
 
-      // Set 'watched' for the current season based on what we just did
       s.watched = allWatchedThisSeason;
       await s.save();
     }
 
-    // Update the series at the end, just once
+    // Update series and continue watching
+    if (previousEpisodeId) {
+      const prevVideo = await getVideoByEpisodeId(previousEpisodeId);
+      if (prevVideo) {
+        await removeVideoFromContinueWatching(prevVideo.id);
+      }
+    }
+
     series.currentlyWatchingEpisodeId = nextEpisodeId ?? "";
-    series.watched = !nextEpisodeId; // true if there is no next episode
+    series.watched = !nextEpisodeId;
     await series.save();
+
+    if (nextEpisodeId) {
+      const nextVideo = await getVideoByEpisodeId(nextEpisodeId);
+      if (nextVideo) {
+        await addVideoToContinueWatching(nextVideo.id);
+      }
+    }
   };
   //#endregion
 

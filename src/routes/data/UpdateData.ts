@@ -5,7 +5,10 @@ import {
   getSeasonById,
   getVideoById,
 } from "../../db/get/getData";
-import { addVideoToContinueWatching } from "../../db/post/postData";
+import {
+  addVideoToContinueWatching,
+  removeVideoFromContinueWatching,
+} from "../../db/post/postData";
 import {
   updateAlbum,
   updateCollection,
@@ -234,24 +237,28 @@ router.put("/updateWatchState", async (req: any, res: any) => {
     await Utils.setEpisodeWatchState(season, episode, watched);
   } else if (video.movieId) {
     const movie = await getMovieById(video.movieId);
-
-    if (!movie) {
-      return res.status(404).json({ error: "Movie not found" });
-    }
+    if (!movie) return res.status(404).json({ error: "Movie not found" });
 
     video.watched = watched;
+
+    // If all video versions of the movie are watched → movie.watched = true
     movie.watched =
       movie.videos.filter((v) => (v.id === video.id ? watched : v.watched))
         .length === movie.videos.length;
+
     await movie.save();
+
+    // Manage continue watching
+    if (watched === false) {
+      await addVideoToContinueWatching(video.id);
+    } else {
+      await removeVideoFromContinueWatching(video.id);
+    }
   }
 
   video.timeWatched = timeWatched;
   video.lastWatched = new Date().toLocaleString();
   await video.save();
-
-  await addVideoToContinueWatching(videoId);
-
   return res.status(200).json({ message: "Watch state updated" });
 });
 
