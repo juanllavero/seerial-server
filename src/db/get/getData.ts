@@ -498,6 +498,7 @@ export const getSeriesInMyList = async () => {
         },
       },
       attributes: ["seriesId"], // Only the ID
+      order: [["addedAt", "DESC"]],
     });
 
     const seriesIds = myListSeries.map((item) => item.seriesId);
@@ -532,6 +533,7 @@ export const getMoviesInMyList = async () => {
         },
       },
       attributes: ["movieId"], // Only the ID
+      order: [["addedAt", "DESC"]],
     });
 
     const movieIds = myListMovies.map((item) => item.movieId);
