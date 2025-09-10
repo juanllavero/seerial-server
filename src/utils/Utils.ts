@@ -103,11 +103,11 @@ export class Utils {
    */
   public static extractEpisodeSeason(filename: string): [number, number?] {
     const regexPatterns = [
-      /[Ss](\d{1,4})[Ee](\d{1,4})/i, // S01E02, s1e2, S1.E2
-      /[Ss](\d{1,4})[\.]?E(\d{1,4})/i, // S1.E2
-      /[Ss](\d{1,4})[\s\-]+Ep?(\d{1,4})/i, // S01 E02, S1 E2
-      /-\s?(\d{1,4})(?!p)/, // - 01 (anime style)
-      /(?:\b|^)(\d{1,4})(?:[^\d]+(\d{1,4}))?/i, // General case, exclude the first number for episodes
+      /[Ss](\d{1,4})[Ee](\d{1,4})(?:v\d+)?/i, // S01E02, s1e2, S1.E2, S01E01v2
+      /[Ss](\d{1,4})[\.]?E(\d{1,4})(?:v\d+)?/i, // S1.E2, S1.E2v1
+      /[Ss](\d{1,4})[\s\-]+Ep?(\d{1,4})(?:v\d+)?/i, // S01 E02, S1 E2, con v2 opcional
+      /-\s?(\d{1,4})(?:v\d+)?(?!p)/, // - 01, - 01v1 (anime style)
+      /(?:\b|^)(\d{1,4})(?:[^\d]+(\d{1,4}))?/i, // General case
     ];
 
     for (const regex of regexPatterns) {
