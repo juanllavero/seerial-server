@@ -14,6 +14,10 @@ import { DotsVerticalIcon } from '@radix-ui/react-icons'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import { shallow } from 'zustand/shallow'
 import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
+import DropdownWrapper from '@/components/DropdownWrapper'
+import { useTranslation } from 'react-i18next'
+import { useDialogStore } from '@/context/dialog.context'
+import { Button } from '@/components/ui/button'
 
 interface MusicCardProps {
   index: number
@@ -22,15 +26,18 @@ interface MusicCardProps {
 }
 
 function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
-  const { currentSong, isPlaying, isLoading } = useMusicStore(
+  const { t } = useTranslation()
+  const { currentSong, isPlaying, isLoading, addToQueue } = useMusicStore(
     (state) => ({
       album: state.album,
       currentSong: state.currentSong,
       isPlaying: state.isPlaying,
       isLoading: state.isLoading,
+      addToQueue: state.addSong,
     }),
     shallow,
   )
+  const openEditSongDialog = useDialogStore((state) => state.openSongDialog)
   const [isHovered, setIsHovered] = useState(false)
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
@@ -104,12 +111,45 @@ function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
           </FlexBox>
         </FlexBox>
       </FlexBox>
-      <div className="flex items-center space-x-2">
+      <div
+        className="flex items-center space-x-2"
+        onClick={(e) => {
+          e.stopPropagation()
+        }}
+      >
         <span>{formatTime(song.duration)}</span>
         {!isMobile && !isTablet && (
           <div className="h-10 w-10">
             {isHovered && (
-              <DotsVerticalIcon className="h-6 w-6 cursor-pointer opacity-80 transition-opacity duration-150 ease-in-out hover:opacity-100" />
+              <DropdownWrapper
+                content={{
+                  items: [
+                    {
+                      items: [
+                        {
+                          title: t('addToQueue'),
+                          action: () => addToQueue(song),
+                        },
+                        {
+                          title: t('editButton'),
+                          action: () => openEditSongDialog(song),
+                        },
+                      ],
+                    },
+                  ],
+                }}
+                button={
+                  <Button
+                    variant={'ghost'}
+                    size="icon"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                    }}
+                  >
+                    <DotsVerticalIcon className="h-6 w-6 cursor-pointer opacity-80 transition-opacity duration-150 ease-in-out hover:opacity-100" />
+                  </Button>
+                }
+              />
             )}
           </div>
         )}

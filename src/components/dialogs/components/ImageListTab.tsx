@@ -1,4 +1,3 @@
-import { useIsMobile } from '@/components/hooks/use-mobile'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
@@ -8,7 +7,7 @@ import { generateRandoumUUID, showToast } from '@/utils/ReactUtils'
 import { fetcher } from '@/utils/utils'
 import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
+import useSWR, { mutate } from 'swr'
 import ImageButton from './ImageButton'
 
 interface LocalImage {
@@ -33,12 +32,9 @@ function ImageListTab({
 }: ImageListTabProps) {
   const { t } = useTranslation()
   const serverUrl = useServerStore((state) => state.serverUrl)
-  const [loaded, setLoaded] = useState(false)
-  //const [localImages, setLocalImages] = useState<LocalImage[]>([])
   const [pastingUrl, setPastingUrl] = useState<boolean>(false)
   const [urlToDownload, setUrlToDownload] = useState<string>('')
   const isTablet = useIsTablet()
-  const isMobile = useIsMobile()
 
   // Upload image
   const [imageUrl, setImageUrl] = useState<string | null>(null)
@@ -51,24 +47,6 @@ function ImageListTab({
     localFolder ? `${serverUrl}/images?path=${localFolder}` : null,
     fetcher,
   )
-
-  // useEffect(() => {
-  //   const fetchLocalImages = async () => {
-  //     try {
-  //       const response = await fetch(
-  //         `${serverUrl}/images?path=${localFolder}`,
-  //       )
-  //       const data = await response.json()
-  //       setLocalImages(data)
-  //       setLoaded(true)
-  //     } catch (error) {
-  //       setLocalImages([])
-  //       setLoaded(true)
-  //     }
-  //   }
-
-  //   if (localFolder && !isUploading) fetchLocalImages()
-  // }, [selectedServer, localFolder, isUploading])
 
   const handleImageUpload = () => {
     setImageUrl(null)
@@ -118,6 +96,8 @@ function ImageListTab({
         throw new Error()
       }
 
+      mutate(`${serverUrl}/images?path=${localFolder}`)
+
       showToast('success', t('imageLoaded'))
     } catch (err) {
       showToast('error', t('errorImageUpload'))
@@ -145,6 +125,8 @@ function ImageListTab({
       if (!response.ok) {
         throw new Error()
       }
+
+      mutate(`${serverUrl}/images?path=${localFolder}`)
 
       showToast('success', t('imageLoaded'))
     } catch (err) {

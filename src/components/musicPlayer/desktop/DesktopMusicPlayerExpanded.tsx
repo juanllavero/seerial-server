@@ -25,7 +25,7 @@ function DesktopMusicPlayerExpanded() {
 
   return (
     <div
-      className={`fixed bottom-0 z-199 flex w-screen flex-col transition-all duration-200 ease-in-out ${
+      className={`fixed bottom-0 z-199 flex w-screen flex-col transition-all duration-400 ease-in-out ${
         isExpanded ? 'h-full bg-neutral-800' : 'h-0 translate-y-50 bg-black'
       }`}
     >

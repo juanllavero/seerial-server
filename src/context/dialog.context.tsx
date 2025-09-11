@@ -7,7 +7,7 @@ import {
   Season,
   Series,
 } from '@/data/interfaces/Media'
-import { Album } from '@/data/interfaces/Music'
+import { Album, Song } from '@/data/interfaces/Music'
 import { createWithEqualityFn } from 'zustand/traditional'
 
 // Type of the store state
@@ -44,6 +44,10 @@ interface DialogState {
     isOpen: boolean
     albumToEdit?: Album
   }
+  songDialog: {
+    isOpen: boolean
+    songToEdit?: Song
+  }
   identificationDialog: {
     isOpen: boolean
     seriesToEdit?: Series
@@ -77,6 +81,8 @@ interface DialogState {
   closeEpisodeDialog: () => void
   openAlbumDialog: (album: Album) => void
   closeAlbumDialog: () => void
+  openSongDialog: (song: Song) => void
+  closeSongDialog: () => void
   openIdentificationDialog: (
     series: Series | undefined,
     movie: Movie | undefined,
@@ -127,6 +133,10 @@ export const useDialogStore = createWithEqualityFn<DialogState>((set) => ({
   albumDialog: {
     isOpen: false,
     albumToEdit: undefined,
+  },
+  songDialog: {
+    isOpen: false,
+    songToEdit: undefined,
   },
   identificationDialog: {
     isOpen: false,
@@ -270,6 +280,22 @@ export const useDialogStore = createWithEqualityFn<DialogState>((set) => ({
       albumDialog: {
         isOpen: false,
         albumToEdit: undefined, // Clear when closing
+      },
+    }),
+
+  // Functions for SongDialog
+  openSongDialog: (songToEdit: Song) =>
+    set({
+      songDialog: {
+        isOpen: true,
+        songToEdit,
+      },
+    }),
+  closeSongDialog: () =>
+    set({
+      songDialog: {
+        isOpen: false,
+        songToEdit: undefined, // Clear when closing
       },
     }),
 

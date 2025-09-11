@@ -60,19 +60,18 @@ function AlbumDialog() {
 
     await connectWS(serverUrl)
 
-    const response = await fetch(`${serverUrl}/album`, {
+    const response = await fetch(`${serverUrl}/album/${album.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        updatedSeason: {
-          ...album,
-          title: title,
-          year: year,
-          description: description,
-          genres: genres,
-        },
+        ...album,
+        title: title,
+        year: year,
+        description: description,
+        coverSrc: selectedPoster ?? '',
+        genres: genres,
       }),
     })
 

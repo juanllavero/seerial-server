@@ -116,6 +116,7 @@ function CollectionDialog() {
           title: t('postersButton'),
           content: (
             <ImageListTab
+              isPoster
               imagesList={covers}
               localFolder={localCoverFolder}
               selectImage={setSelectedCover}
