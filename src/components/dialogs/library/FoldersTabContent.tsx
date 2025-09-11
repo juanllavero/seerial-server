@@ -35,7 +35,7 @@ function FoldersTabContent({
       direction="column"
       gap={1}
       justify="space-between"
-      height={'25rem'}
+      height={'27rem'}
       width={'100%'}
     >
       <FlexBox

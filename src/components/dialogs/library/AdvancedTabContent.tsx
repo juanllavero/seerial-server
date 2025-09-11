@@ -101,7 +101,7 @@ function AdvancedTabContent({
       gap={1}
       align="stretch"
       justify="space-between"
-      height={'25rem'}
+      height={'27rem'}
       width={'100%'}
     >
       <FlexBox direction="column" gap={1}>

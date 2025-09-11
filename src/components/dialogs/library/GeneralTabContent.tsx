@@ -5,9 +5,11 @@ import { Input } from '@/components/ui/input'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
 import { themdbLanguages } from '@/utils/TheMovieDBLanguages'
 import ISO6391 from 'iso-639-1'
-import { useEffect } from 'react'
+import { use, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import LibraryTypeButton from './LibraryTypeButton'
+import { useIsTablet } from '@/components/hooks/use-tablet'
+import { useIsMobile } from '@/components/hooks/use-mobile'
 
 interface GeneralTabContentProps {
   type: string | undefined
@@ -34,6 +36,8 @@ function GeneralTabContent({
 }: GeneralTabContentProps) {
   const { t, i18n } = useTranslation()
   const currentLanguage = i18n.language?.split('-')[0] ?? 'en'
+  const isTablet = useIsTablet()
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     setLanguage(currentLanguage)
@@ -45,12 +49,12 @@ function GeneralTabContent({
       gap={1}
       align="stretch"
       justify="space-between"
-      height={'25rem'}
+      height={'27rem'}
       width={'100%'}
     >
-      <FlexBox direction="column" gap={1} align="stretch">
+      <FlexBox direction="column" gap={1} align="center">
         <span>{t('type')}</span>
-        <FlexBox>
+        <FlexBox align="center" justify="center">
           <LibraryTypeButton
             selectedType={type}
             type="movies"
@@ -83,7 +87,13 @@ function GeneralTabContent({
         </FlexBox>
 
         {type && (
-          <FlexBox gap={1} margin="1rem 0 0 0">
+          <FlexBox
+            gap={1}
+            margin="1rem 0 0 0"
+            align="center"
+            width={isTablet ? '80%' : isMobile ? '70%' : '100%'}
+            direction="column"
+          >
             <LabeledInputWrapper label={t('name')}>
               <Input
                 type="text"
