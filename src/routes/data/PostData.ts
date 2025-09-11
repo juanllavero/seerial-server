@@ -309,7 +309,7 @@ router.post("/uploadImage", FilesManager.upload, (req: any, res: any) => {
 
 // Download image
 router.post("/downloadImage", async (req: any, res: any) => {
-  const { url, downloadFolder, fileName } = req.body;
+  let { url, downloadFolder, fileName } = req.body;
 
   if (!url || !downloadFolder || !fileName) {
     return res.status(400).json({ error: "Not enough parameters" });
@@ -317,6 +317,11 @@ router.post("/downloadImage", async (req: any, res: any) => {
 
   if (!Utils.isValidURL(url)) {
     return res.status(400).json({ error: "Invalid URL" });
+  }
+
+  // If the file name doesn't have an extension, add .jpg
+  if (!path.extname(fileName)) {
+    fileName += ".jpg";
   }
 
   try {
