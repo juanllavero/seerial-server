@@ -21,7 +21,7 @@ export class PlayListItem extends Model {
 
   @ForeignKey(() => PlayList)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.STRING,
     allowNull: false,
     field: "playlist_id",
     onDelete: "CASCADE",
@@ -30,7 +30,7 @@ export class PlayListItem extends Model {
 
   @ForeignKey(() => Song)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.STRING,
     allowNull: false,
     field: "song_id",
     onDelete: "CASCADE",

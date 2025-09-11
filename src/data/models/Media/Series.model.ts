@@ -29,8 +29,9 @@ export class Series extends Model {
 
   @ForeignKey(() => Library)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.STRING,
     allowNull: false,
+    onDelete: "CASCADE",
     field: "library_id",
   })
   libraryId!: string;
@@ -227,11 +228,10 @@ export class Series extends Model {
 
   @Column({
     type: DataType.STRING,
-    defaultValue: "",
-    allowNull: false,
+    allowNull: true,
     field: "episode_group_id",
   })
-  episodeGroupId!: string;
+  episodeGroupId!: string | null;
 
   @Column({
     type: DataType.BOOLEAN,
@@ -243,11 +243,10 @@ export class Series extends Model {
 
   @Column({
     type: DataType.STRING,
-    defaultValue: "",
-    allowNull: false,
+    allowNull: true,
     field: "currently_watching_episode_id",
   })
-  currentlyWatchingEpisodeId!: string;
+  currentlyWatchingEpisodeId!: string | null;
 
   @Column({ type: DataType.STRING, allowNull: true, field: "prefer_audio_lan" })
   preferAudioLan?: string;
@@ -277,6 +276,10 @@ export class Series extends Model {
 
   @HasMany(() => Season)
   seasons!: Season[];
+
+  CollectionSeries?: {
+    custom_order: number;
+  };
 
   @BeforeDestroy
   static async beforeDestroyHook(instance: Series): Promise<void> {

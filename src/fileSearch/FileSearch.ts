@@ -14,9 +14,6 @@ import { scanTVShow } from "./series/searchSeries";
 export class FileSearch {
   static BASE_URL: string = "https://image.tmdb.org/t/p/original";
 
-  // Number of threads (1 is already being used by this app)
-  static availableThreads = Math.max(os.cpus().length - 1, 1);
-
   public static async scanFiles(
     newLibrary: Partial<LibraryData>,
     wsManager: WebSocketManager,
@@ -31,10 +28,10 @@ export class FileSearch {
     if (!library) return undefined;
 
     // Get available threads
-    let availableThreads = Math.max(os.cpus().length - 2, 1);
+    let availableThreads = Math.max(os.cpus().length / 2, 1);
 
     if (library.type === "Music") {
-      availableThreads = Math.min(availableThreads, 4);
+      availableThreads = Math.min(availableThreads, 2);
     }
     const limit = pLimit(availableThreads);
 
@@ -59,7 +56,20 @@ export class FileSearch {
       }
     }
 
-    Promise.all(tasks);
+    // Send message to clients
+    const message = {
+      header: "SCAN_STARTED",
+      body: library.id,
+    };
+    wsManager.broadcast(JSON.stringify(message));
+
+    Promise.all(tasks).then(() => {
+      const message = {
+        header: "SCAN_COMPLETE",
+        body: {},
+      };
+      wsManager.broadcast(JSON.stringify(message));
+    });
 
     // Update content in clients
     Utils.mutateLibrary(wsManager);

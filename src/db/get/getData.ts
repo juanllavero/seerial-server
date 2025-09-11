@@ -12,6 +12,7 @@ import { Video } from "../../data/models/Media/Video.model";
 import { Album } from "../../data/models/music/Album.model";
 import { Artist } from "../../data/models/music/Artist.model";
 import { Song } from "../../data/models/music/Song.model";
+import { getCollectionItemsKey, getItemModel } from "../../fileSearch/utils";
 import { SequelizeManager } from "../SequelizeManager";
 
 //#region Libraries
@@ -19,32 +20,64 @@ import { SequelizeManager } from "../SequelizeManager";
 export const getLibraries = () => {
   if (!SequelizeManager.sequelize) return null;
 
-  return Library.findAll();
+  return Library.findAll({
+    order: [["order", "ASC"]],
+  });
 };
+
+/**
+ * Retrieves items for a specific library based on the given type.
+ * @param libraryId - The ID of the library.
+ * @param type - The type of items to retrieve ('Movies', 'Shows', 'Music').
+ * @returns A promise that resolves to an array of items (Movie[], Series[], or Album[]).
+ */
+export async function getItemsForLibrary(libraryId: string, type: string) {
+  try {
+    let items: Movie[] | Series[] | Album[] = [];
+
+    if (type === "Movies") {
+      items = await Movie.findAll({
+        where: { libraryId },
+        order: [
+          ["order", "ASC"],
+          ["name", "ASC"],
+        ],
+      });
+    } else if (type === "Series" || type === "Shows") {
+      items = await Series.findAll({
+        where: { libraryId },
+        order: [
+          ["order", "ASC"],
+          ["name", "ASC"],
+        ],
+      });
+    } else if (type === "Music") {
+      items = await Album.findAll({
+        where: { libraryId },
+        order: [
+          ["order", "ASC"],
+          ["title", "ASC"],
+        ],
+      });
+    }
+
+    return items;
+  } catch (error) {
+    console.error(
+      `Error fetching items for library ${libraryId} (type: ${type}):`,
+      error
+    );
+    return [];
+  }
+}
 
 export const getLibraryById = async (id: string) => {
   if (!SequelizeManager.sequelize) return null;
 
   try {
-    const library = await Library.findByPk(id, {
-      include: [
-        { model: Series, as: "series" },
-        { model: Movie, as: "movies" },
-        { model: Album, as: "albums" },
-        {
-          model: Collection,
-          as: "collections",
-          include: [
-            { model: Series, as: "shows" },
-            { model: Movie, as: "movies" },
-            { model: Album, as: "albums" },
-          ],
-        },
-      ],
-    });
+    const library = await Library.findByPk(id);
 
     if (!library) {
-      console.log(`Library with id ${id} not found`);
       return null;
     }
 
@@ -137,15 +170,60 @@ export const getCollections = async () => {
   return Collection.findAll();
 };
 
+export const getCollectionsInLibrary = async (
+  libraryId: string,
+  type: string
+) => {
+  const collectionItemsKey = getCollectionItemsKey(type);
+  const ItemModel = getItemModel(type);
+
+  return await Library.findByPk(libraryId, {
+    include: [
+      {
+        model: Collection,
+        as: "collections",
+        include: [
+          {
+            model: ItemModel,
+            as: collectionItemsKey,
+            attributes: ["id", "coverSrc"],
+          },
+        ],
+        through: {
+          attributes: ["customOrder"],
+        },
+      },
+    ],
+  }).then((library) => library?.collections || []);
+};
+
 export const getCollectionById = async (id: string) => {
   if (!SequelizeManager.sequelize) return null;
 
   try {
     const colection = await Collection.findByPk(id, {
       include: [
-        { model: Series, as: "shows" },
-        { model: Movie, as: "movies" },
-        { model: Album, as: "albums" },
+        {
+          model: Series,
+          as: "shows",
+          through: {
+            attributes: ["custom_order"],
+          },
+        },
+        {
+          model: Movie,
+          as: "movies",
+          through: {
+            attributes: ["custom_order"],
+          },
+        },
+        {
+          model: Album,
+          as: "albums",
+          through: {
+            attributes: ["custom_order"],
+          },
+        },
       ],
     });
 
@@ -179,7 +257,12 @@ export const getSeriesById = (seriesId: string) => {
   if (!SequelizeManager.sequelize) return null;
 
   return Series.findByPk(seriesId, {
-    include: [{ model: Season, as: "seasons" }],
+    include: [
+      {
+        model: Season,
+        as: "seasons",
+      },
+    ],
   });
 };
 
@@ -201,7 +284,13 @@ export const getSeasonById = (seasonId: string) => {
   if (!SequelizeManager.sequelize) return null;
 
   return Season.findByPk(seasonId, {
-    include: [{ model: Episode, as: "episodes" }],
+    include: [
+      {
+        model: Episode,
+        as: "episodes",
+        include: [{ model: Video, as: "video" }],
+      },
+    ],
   });
 };
 
@@ -232,25 +321,23 @@ export const getEpisodeByPath = async (videoSrc: string) => {
 
   const video: Video | null = await Video.findOne({
     where: {
-      videoSrc: videoSrc,
+      fileSrc: videoSrc,
     },
   });
 
   if (!video || !video.episodeId) return null;
 
-  return Episode.findByPk(video.episodeId, {
-    include: [{ model: Video, as: "video" }],
-  });
+  return Episode.findByPk(video.episodeId);
 };
 
 //#endregion
 
 //#region Videos
 
-export const getVideoById = (id: string) => {
+export const getVideoById = async (id: string) => {
   if (!SequelizeManager.sequelize) return null;
 
-  return Video.findByPk(id);
+  return await Video.findByPk(id);
 };
 
 export const getVideoByEpisodeId = (episodeId: string) => {
@@ -308,6 +395,20 @@ export const getMovieById = (movieId: string) => {
   });
 };
 
+export const getMovieByPath = async (videoSrc: string) => {
+  if (!SequelizeManager.sequelize) return null;
+
+  const video: Video | null = await Video.findOne({
+    where: {
+      fileSrc: videoSrc,
+    },
+  });
+
+  if (!video || !video.movieId) return null;
+
+  return Movie.findByPk(video.movieId);
+};
+
 //#endregion
 
 //#region Music
@@ -357,6 +458,16 @@ export const getSongById = (songId: string) => {
   return Song.findByPk(songId);
 };
 
+export const getSongByPath = async (fileSrc: string) => {
+  if (!SequelizeManager.sequelize) return null;
+
+  return Song.findOne({
+    where: {
+      fileSrc: fileSrc,
+    },
+  });
+};
+
 //#endregion
 
 //#region Lists
@@ -387,6 +498,7 @@ export const getSeriesInMyList = async () => {
         },
       },
       attributes: ["seriesId"], // Only the ID
+      order: [["addedAt", "DESC"]],
     });
 
     const seriesIds = myListSeries.map((item) => item.seriesId);
@@ -421,6 +533,7 @@ export const getMoviesInMyList = async () => {
         },
       },
       attributes: ["movieId"], // Only the ID
+      order: [["addedAt", "DESC"]],
     });
 
     const movieIds = myListMovies.map((item) => item.movieId);
@@ -483,14 +596,86 @@ export const getContinueWatchingVideos = async () => {
           model: Video,
           as: "video",
           required: true,
+          include: [
+            {
+              model: Episode,
+              as: "episode",
+              include: [
+                {
+                  model: Season,
+                  as: "season",
+                  include: [{ model: Series, as: "series" }],
+                },
+              ],
+            },
+            { model: Movie, as: "movie" },
+          ],
         },
       ],
+      order: [["createdAt", "DESC"]],
     });
 
-    // Map to extract only the Video instances
+    // Map to extract the videos with the necessary data
     const videos = elements
-      .map((item) => item.video)
-      .filter((video): video is Video => video !== null);
+      .map((item) => {
+        const itemVideo = item?.video;
+        if (!itemVideo) return null;
+
+        // Validate episode
+        if (itemVideo.episode) {
+          const episode = itemVideo.episode;
+          const season = episode?.season;
+          const series = season?.series;
+
+          if (!episode || !season || !series) return null;
+
+          return {
+            id: item.id,
+            title: series.name ?? "Not found",
+            subtitle: episode.name,
+            episodeNumber: episode.episodeNumber ?? 0,
+            seasonNumber: episode.seasonNumber ?? 0,
+            date: episode.year ?? "",
+            duration: itemVideo.runtime ?? 0,
+            timeWatched: itemVideo.timeWatched ?? 0,
+            genres: series.genres ?? [],
+            overview:
+              episode.overview ?? season.overview ?? series.overview ?? "",
+            backgroundImage: season.backgroundSrc,
+            posterImage: series.coverSrc,
+            logoImage: series.logoSrc,
+            videoImage: itemVideo.imgSrc,
+            episodeId: episode.id,
+            videoId: itemVideo.id,
+          };
+        }
+
+        // Validate movie
+        if (itemVideo.movie) {
+          const movie = itemVideo.movie;
+
+          if (!movie) return null;
+
+          return {
+            id: item.id,
+            title: movie.name ?? "Not found",
+            date: movie.year ?? "",
+            duration: itemVideo.runtime ?? 0,
+            timeWatched: itemVideo.timeWatched ?? 0,
+            genres: movie.genres ?? [],
+            overview: movie.overview,
+            backgroundImage: movie.backgroundSrc,
+            posterImage: movie.coverSrc,
+            logoImage: movie.logoSrc,
+            videoImage: itemVideo.imgSrc,
+            movieId: movie.id,
+            videoId: itemVideo.id,
+          };
+        }
+
+        return null;
+      })
+      .filter((video) => video !== null); // Filter nulls
 
     return videos;
   } catch (error: any) {

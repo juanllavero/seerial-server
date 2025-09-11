@@ -12,7 +12,13 @@ import { Season } from "../../data/models/Media/Season.model";
 import { Series } from "../../data/models/Media/Series.model";
 import { Video } from "../../data/models/Media/Video.model";
 import { deleteSeries } from "../../db/delete/deleteData";
-import { getEpisodes, getSeasons, getSeriesById } from "../../db/get/getData";
+import {
+  getEpisodeByPath,
+  getEpisodes,
+  getSeasons,
+  getSeriesById,
+  getVideoByEpisodeId,
+} from "../../db/get/getData";
 import {
   addEpisode,
   addSeason,
@@ -37,18 +43,18 @@ export async function scanTVShow(
   if (videoFiles.length === 0) return undefined;
 
   let showData;
-  let show: Series | null;
+  let show: Series | null = null;
 
   let exists: boolean = false;
 
-  // Get existing data or create a new Series
   if (folder in library.analyzedFolders) {
     show = await getSeriesById(library.analyzedFolders[folder] ?? "");
 
-    if (show === null) return undefined;
+    if (show !== null) exists = true;
+  }
 
-    exists = true;
-  } else {
+  // Get existing data or create a new Series
+  if (show === null) {
     show = await addSeries({
       folder,
       libraryId: library.id,
@@ -131,7 +137,7 @@ export async function scanTVShow(
   // Download Episodes Group Metadata
   let episodesGroup =
     show.episodeGroupId !== ""
-      ? await MovieDBWrapper.getEpisodeGroup(show.episodeGroupId)
+      ? await MovieDBWrapper.getEpisodeGroup(show.episodeGroupId ?? "")
       : undefined;
 
   await processEpisodes(
@@ -174,7 +180,10 @@ export async function processEpisodes(
 
   // Process each episode
   for (const videoFile of videoFiles) {
-    if (!library.analyzedFiles[videoFile]) {
+    if (
+      !library.analyzedFiles[videoFile] ||
+      (await getEpisodeByPath(videoFile)) === null
+    ) {
       await processEpisode(
         library,
         show,
@@ -270,7 +279,7 @@ export async function processEpisode(
     if (toFindMetadata && show.episodeGroupId !== "") {
       if (!episodesGroup) {
         episodesGroup = await MovieDBWrapper.getEpisodeGroup(
-          show.episodeGroupId
+          show.episodeGroupId ?? ""
         );
       }
 
@@ -378,9 +387,13 @@ export async function processEpisode(
   let video: Video | null = null;
 
   if (episode) {
-    video = await addVideoAsEpisode(episode.id, {
-      fileSrc: videoSrc,
-    });
+    video = await getVideoByEpisodeId(episode.id);
+
+    if (!video) {
+      video = await addVideoAsEpisode(episode.id, {
+        fileSrc: videoSrc,
+      });
+    }
   } else {
     episode = await addEpisode({
       seasonId: season.id,
@@ -565,7 +578,12 @@ export async function setSeasonBackgrounds(show: Series, season: Season) {
     }
   }
 
-  if (backgroundFound) return;
+  if (backgroundFound) {
+    // Save season data in DB
+    season.save();
+
+    return;
+  }
 
   try {
     // Get images
@@ -591,6 +609,9 @@ export async function setSeasonBackgrounds(show: Series, season: Season) {
         }
       }
     }
+
+    // Save season data in DB
+    season.save();
   } catch (error) {
     console.error("Error downloading images:", error);
   }

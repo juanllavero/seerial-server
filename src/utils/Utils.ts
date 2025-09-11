@@ -1,32 +1,29 @@
 import axios from "axios";
-import { spawn } from "child_process";
-import ffmpegPath from "ffmpeg-static";
-import ffprobePath from "ffprobe-static";
-import ffmpeg from "fluent-ffmpeg";
 import * as fs from "fs";
 import { Episode as MovieDBEpisode, TvSeasonResponse } from "moviedb-promise";
 import path from "path";
 import { WebSocketManager } from "../WebSockets/WebSocketManager";
-import {
-  AudioTrack as AudioTrackData,
-  Chapter as ChapterData,
-  MediaInfo as MediaInfoData,
-  SubtitleTrack as SubtitleTrackData,
-  VideoTrack as VideoTrackData,
-} from "../data/interfaces/MediaInfo";
 import { Episode, Season } from "../data/models";
-import { Video } from "../data/models/Media/Video.model";
-import { Song } from "../data/models/music/Song.model";
 import {
   getEpisodeById,
   getSeasonById,
   getSeriesById,
   getVideoByEpisodeId,
 } from "../db/get/getData";
-
-ffmpeg.setFfprobePath(ffprobePath.path);
+import {
+  addVideoToContinueWatching,
+  removeVideoFromContinueWatching,
+} from "../db/post/postData";
 
 export class Utils {
+  static extraTypes = [
+    "behindthescenes",
+    "concert",
+    "interview",
+    "live",
+    "lyrics",
+    "video",
+  ];
   static videoExtensions = [
     ".mp4",
     ".mkv",
@@ -36,6 +33,7 @@ export class Utils {
     ".flv",
     ".mpeg",
     ".m2ts",
+    ".webm",
   ];
   static audioExtensions = [
     ".mp3",
@@ -46,25 +44,26 @@ export class Utils {
     ".aac",
     ".wma",
   ];
-
-  // Function to resize to 1080p
-  public static resizeToMaxResolution = (
-    inputPath: string,
-    outputPath: string
-  ) => {
-    return new Promise<void>((resolve, reject) => {
-      ffmpeg.setFfmpegPath(ffmpegPath || "");
-      ffmpeg(inputPath)
-        .outputOptions(
-          "-vf",
-          "scale='if(gt(iw,720),720,iw)':'if(gt(ih,480),480,ih)'"
-        ) // Resize to 1080p if necessary
-        .output(outputPath)
-        .on("end", () => resolve())
-        .on("error", (err) => reject(err))
-        .run();
-    });
-  };
+  static webCompatibleAudioCodecs = [
+    ".mp3",
+    ".flac",
+    ".wav",
+    ".mp4",
+    ".ogg",
+    ".aac",
+    ".wma",
+    ".webm",
+    ".caf",
+  ];
+  static imageExtensions = [
+    ".jpg",
+    ".jpeg",
+    ".png",
+    ".gif",
+    ".bmp",
+    ".webp",
+    ".svg",
+  ];
 
   //#region FILE SEARCH
   public static extractNameAndYear(source: string) {
@@ -104,10 +103,11 @@ export class Utils {
    */
   public static extractEpisodeSeason(filename: string): [number, number?] {
     const regexPatterns = [
-      /[Ss](\d{1,4})[Ee](\d{1,4})/i, // S01E02, s1e2, S1.E2
-      /[Ss](\d{1,4})[\.]?E(\d{1,4})/i, // S1.E2
-      /[Ss](\d{1,4})[\s\-]+Ep?(\d{1,4})/i, // S01 E02, S1 E2
-      /(?:\b|^)(\d{1,4})(?:[^\d]+(\d{1,4}))?/i, // General case, exclude the first number for episodes
+      /[Ss](\d{1,4})[Ee](\d{1,4})(?:v\d+)?/i, // S01E02, s1e2, S1.E2, S01E01v2
+      /[Ss](\d{1,4})[\.]?E(\d{1,4})(?:v\d+)?/i, // S1.E2, S1.E2v1
+      /[Ss](\d{1,4})[\s\-]+Ep?(\d{1,4})(?:v\d+)?/i, // S01 E02, S1 E2, con v2 opcional
+      /-\s?(\d{1,4})(?:v\d+)?(?!p)/, // - 01, - 01v1 (anime style)
+      /(?:\b|^)(\d{1,4})(?:[^\d]+(\d{1,4}))?/i, // General case
     ];
 
     for (const regex of regexPatterns) {
@@ -198,474 +198,6 @@ export class Utils {
   }
   //#endregion
 
-  //#region FFPROBE
-  public static async probeMediaFile(
-    filePath: string,
-    timeoutMs: number = 10000
-  ): Promise<any> {
-    return new Promise((resolve, reject) => {
-      // Create a timeout to stop execution
-      const timeout = setTimeout(() => {
-        reject(new Error("ffprobe timed out"));
-      }, timeoutMs);
-
-      // Exec ffprobe
-      ffmpeg.ffprobe(filePath, (err, data) => {
-        clearTimeout(timeout); // Clear timeout if ffprobe resolves
-
-        if (err) {
-          reject(err);
-          return;
-        }
-
-        resolve(data);
-      });
-    });
-  }
-  //#endregion
-
-  //#region MEDIA INFO
-  /**
-   * Retrieves the duration of a music file and sets it on the provided Song object.
-   *
-   * Uses ffprobe to extract the duration of the given music file and assigns
-   * the duration (in minutes) to the Song object's `duration` property.
-   * Logs an error if the duration cannot be determined.
-   *
-   * @param song - The Song object whose duration property will be set.
-   * @param musicFile - The path to the music file to probe for duration.
-   * @returns A Promise that resolves when the operation is complete.
-   * @throws Will rethrow any error encountered during probing.
-   */
-  public static async getOnlyRuntime(
-    song: Song,
-    musicFile: string
-  ): Promise<void> {
-    if (!musicFile || typeof musicFile !== "string") {
-      console.error("getOnlyRuntime: Invalid music file path provided.");
-      return;
-    }
-
-    try {
-      const data = await this.probeMediaFile(musicFile);
-      const duration = data?.format?.duration;
-
-      if (typeof duration === "number" && !isNaN(duration)) {
-        song.duration = duration / 60;
-      } else {
-        console.error(
-          `getOnlyRuntime: Failed to get valid runtime for song: ${musicFile}`
-        );
-      }
-    } catch (err) {
-      console.error("getOnlyRuntime: Error while getting runtime", {
-        error: err,
-        musicFile,
-      });
-      throw err; // Rethrow for the caller to handle if necessary
-    }
-  }
-
-  public static async getMediaInfo(
-    video: Video | undefined,
-    getChapters: boolean = true
-  ): Promise<Video | undefined> {
-    if (!video) {
-      console.log("Video is undefined, skipping media info retrieval");
-      return undefined;
-    }
-
-    const videoPath = video.fileSrc;
-
-    if (!videoPath || videoPath === "") {
-      console.log("Video file does not exist or path is empty", { videoPath });
-      return undefined;
-    }
-
-    try {
-      const data = await this.probeMediaFile(videoPath);
-      const format = data.format;
-      const streams = data.streams;
-
-      // Configura la información general del medio
-      let fileSize = format.size ? format.size : 0;
-      let sizeSufix = " GB";
-      fileSize = fileSize / Math.pow(1024, 3);
-
-      if (fileSize < 1) {
-        fileSize = fileSize * Math.pow(1024, 1);
-        sizeSufix = " MB";
-      }
-
-      const mediaInfo: MediaInfoData = {
-        file: path.basename(videoPath),
-        location: videoPath,
-        bitrate: format.bit_rate
-          ? (format.bit_rate / Math.pow(10, 3)).toFixed(2) + " kbps"
-          : "0",
-        duration: format.duration ? Utils.formatTime(format.duration) : "0",
-        size: fileSize.toFixed(2) + sizeSufix,
-        container: path.extname(videoPath).replace(".", "").toUpperCase(),
-      };
-      video.mediaInfo = mediaInfo;
-
-      // Establece la duración real del video
-      if (format.duration) {
-        video.runtime = format.duration / 60;
-      }
-
-      // Limpia las listas anteriores de pistas
-      video.videoTracks = [];
-      video.audioTracks = [];
-      video.subtitleTracks = [];
-
-      for (const stream of streams) {
-        const codecType = stream.codec_type;
-        if (codecType === "video") {
-          Utils.processVideoData(stream, video);
-        } else if (codecType === "audio") {
-          Utils.processAudioData(stream, video);
-        } else if (codecType === "subtitle") {
-          Utils.processSubtitleData(stream, video);
-        }
-      }
-
-      if (getChapters) {
-        video.chapters = await this.getChapters(video);
-      }
-
-      await video.save();
-
-      return video;
-    } catch (err) {
-      console.log("Failed to get media info", { error: err });
-      throw err; // Re-lanzar para manejo externo si es necesario
-    }
-  }
-
-  // Procesa datos de video
-  private static processVideoData(stream: any, video: Video) {
-    const videoTrack: VideoTrackData = {
-      id: stream.index,
-      codec: stream.codec_name?.toUpperCase() || "",
-      displayTitle: "",
-      selected: false,
-      codecExt: "",
-      bitrate: "",
-      framerate: "",
-      codedHeight: "",
-      codedWidth: "",
-      chromaLocation: "",
-      colorSpace: "",
-      aspectRatio: "",
-      profile: "",
-      refFrames: "",
-      colorRange: "",
-    };
-
-    let resolution: string = "";
-    let hdr: string = "";
-
-    if (stream.codec_long_name) videoTrack.codecExt = stream.codec_long_name;
-
-    if (stream.tags && stream.tags["BPS"])
-      videoTrack.bitrate = Math.round(
-        parseFloat(stream.tags["BPS"]) / Math.pow(10, 3)
-      ).toString();
-
-    if (stream.avg_frame_rate) {
-      const [numerator, denominator] = stream.avg_frame_rate
-        .split("/")
-        .map(Number);
-      if (denominator && denominator !== 0) {
-        videoTrack.framerate = (numerator / denominator).toFixed(3) + " fps";
-      } else {
-        videoTrack.framerate = numerator.toFixed(3) + " fps";
-      }
-    }
-
-    videoTrack.codedWidth = stream.width ? stream.width : stream.codedWidth;
-    videoTrack.codedHeight = stream.height ? stream.height : stream.codedHeight;
-
-    resolution = Utils.formatResolution(
-      videoTrack.codedWidth,
-      videoTrack.codedHeight
-    );
-
-    if (stream["chroma_location"])
-      videoTrack.chromaLocation = stream["chroma_location"];
-
-    if (stream["color_space"]) {
-      if (stream["color_space"] == "bt2020nc") hdr = "HDR10";
-      videoTrack.colorSpace = stream["color_space"];
-    }
-
-    if (stream["display_aspect_ratio"])
-      videoTrack.aspectRatio = stream["display_aspect_ratio"];
-
-    if (stream["profile"]) videoTrack.profile = stream["profile"];
-
-    if (stream["refs"]) videoTrack.refFrames = stream["refs"];
-
-    if (stream["color_range"]) videoTrack.colorRange = stream["color_range"];
-
-    // Rellenar otros datos
-    videoTrack.displayTitle = `${resolution} ${hdr} (${videoTrack.codec} ${videoTrack.profile})`;
-    if (video.videoTracks) video.videoTracks.push(videoTrack);
-  }
-
-  // Procesa datos de audio
-  private static processAudioData(stream: any, video: Video) {
-    const audioTrack: AudioTrackData = {
-      id: stream.index,
-      codec: stream.codec_name?.toUpperCase() || "",
-      displayTitle: "",
-      language: "",
-      languageTag: "",
-      selected: false,
-      codecExt: "",
-      channels: "",
-      channelLayout: "",
-      bitrate: "",
-      bitDepth: "",
-      profile: "",
-      samplingRate: "",
-    };
-
-    if (stream.codec_long_name) audioTrack.codecExt = stream.codec_long_name;
-
-    if (stream.channels)
-      audioTrack.channels = Utils.formatAudioChannels(stream.channels);
-
-    if (stream["channel_layout"])
-      audioTrack.channelLayout = stream["channel_layout"];
-
-    if (stream.tags && stream.tags["BPS"])
-      audioTrack.bitrate = Math.round(
-        parseFloat(stream.tags["BPS"]) / Math.pow(10, 3)
-      ).toString();
-
-    if (stream.tags && stream.tags["language"]) {
-      audioTrack.languageTag = stream.tags["language"];
-
-      const languageNames = new Intl.DisplayNames(["en"], {
-        type: "language",
-        languageDisplay: "standard",
-      });
-      const languageName = languageNames.of(audioTrack.languageTag);
-
-      if (languageName) audioTrack.language = languageName;
-    }
-
-    if (stream["bits_per_raw_sample"] != "N/A")
-      audioTrack.bitDepth = stream["bits_per_raw_sample"];
-
-    if (stream["profile"]) {
-      if (stream["profile"] == "DTS-HD MA") audioTrack.profile = "ma";
-      else if (stream.profile == "LC") audioTrack.profile = "lc";
-    }
-
-    if (stream["sample_rate"])
-      audioTrack.samplingRate = stream["sample_rate"] + " hz";
-
-    let codecDisplayName: string = "";
-    if (stream.profile && stream.profile == "DTS-HD MA")
-      codecDisplayName = stream.profile;
-    else codecDisplayName = stream.codec_name.toUpperCase();
-
-    audioTrack.displayTitle = `(${codecDisplayName} ${audioTrack.channels})`;
-    if (video.audioTracks) video.audioTracks.push(audioTrack);
-  }
-
-  // Procesa datos de subtítulos
-  private static processSubtitleData(stream: any, video: Video) {
-    const subtitleTrack: SubtitleTrackData = {
-      id: stream.index,
-      codec: stream.codec_name?.toUpperCase() || "",
-      displayTitle: "",
-      language: "",
-      languageTag: "",
-      selected: false,
-      codecExt: "",
-      title: "",
-    };
-
-    let codecDisplayName: string = "";
-    codecDisplayName = stream.codec_name.toUpperCase();
-
-    if (codecDisplayName == "HDMV_PGS_SUBTITLE") codecDisplayName = "PGS";
-    else if (codecDisplayName == "SUBRIP") codecDisplayName = "SRT";
-
-    if (stream.codec_long_name) {
-      subtitleTrack.codecExt = stream.codec_long_name;
-    }
-
-    if (stream.tags && stream.tags["language"]) {
-      subtitleTrack.languageTag = stream.tags["language"];
-      subtitleTrack.language = stream.language;
-    }
-
-    if (stream.tags && stream.tags["title"]) {
-      subtitleTrack.title = stream.tags["title"];
-    }
-
-    subtitleTrack.displayTitle = `${
-      stream.disposition["forced"] === 1 ? "(Forced)" : ""
-    } (${codecDisplayName})`;
-    if (video.subtitleTracks) video.subtitleTracks.push(subtitleTrack);
-  }
-
-  // Formato de la resolución del video
-  private static formatResolution(width: string, height: string): string {
-    const widthNum = parseInt(width, 10); // Convertir a número
-    switch (widthNum) {
-      case 7680:
-        return "8K";
-      case 3840:
-        return "4K";
-      case 2560:
-        return "QHD";
-      case 1920:
-        return "1080p";
-      case 1280:
-        return "720p";
-      case 854:
-        return "480p";
-      case 640:
-        return "360p";
-      default:
-        return `${height}p`;
-    }
-  }
-
-  // Formato de los canales de audio
-  private static formatAudioChannels(channels: number): string {
-    switch (channels) {
-      case 1:
-        return "MONO";
-      case 2:
-        return "STEREO";
-      case 6:
-        return "5.1";
-      case 8:
-        return "7.1";
-      default:
-        return `${channels} channels`;
-    }
-  }
-
-  public static convertTime(milliseconds: number): string {
-    const seconds = milliseconds / 1000;
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = Math.floor(seconds % 60);
-
-    return `${h.toString().padStart(2, "0")}:${m
-      .toString()
-      .padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-  }
-
-  public static formatTime(time: number): string {
-    const h = Math.floor(time / 3600);
-    const m = Math.floor((time % 3600) / 60);
-    const s = Math.floor(time % 60);
-
-    if (h > 0) {
-      return `${h.toString().padStart(2, "0")}:${m
-        .toString()
-        .padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-    }
-
-    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
-  }
-
-  public static async getChapters(video: Video): Promise<ChapterData[]> {
-    const chaptersArray: ChapterData[] = [];
-    if (!video.fileSrc || video.fileSrc === "") {
-      console.log("No video source provided for chapters extraction", {
-        video,
-      });
-      return chaptersArray;
-    }
-
-    const ffprobeCommand = `${ffprobePath.path} -v error -show_entries chapter -of json -i "${video.fileSrc}"`;
-    const timeoutMs = 10000;
-
-    return new Promise((resolve) => {
-      console.log(`Extracting chapters for episode: ${video.fileSrc}`, {
-        command: ffprobeCommand,
-      });
-
-      const process = spawn(ffprobePath.path, [
-        "-v",
-        "error",
-        "-show_entries",
-        "chapter",
-        "-of",
-        "json",
-        "-i",
-        video.fileSrc,
-      ]);
-
-      let stdout = "";
-      let stderr = "";
-
-      process.stdout.on("data", (data) => (stdout += data));
-      process.stderr.on("data", (data) => (stderr += data));
-
-      const timeout = setTimeout(() => {
-        process.kill("SIGTERM");
-        console.log(`ffprobe timed out after ${timeoutMs}ms`, {
-          file: video.fileSrc,
-        });
-        resolve(chaptersArray);
-      }, timeoutMs);
-
-      process.on("close", (code) => {
-        clearTimeout(timeout);
-        if (code !== 0) {
-          console.log("ffprobe exited with error", {
-            code,
-            stderr,
-            file: video.fileSrc,
-          });
-          resolve(chaptersArray);
-          return;
-        }
-
-        try {
-          const metadata = JSON.parse(stdout);
-          const chapters = metadata.chapters || [];
-          if (chapters.length > 0) {
-            for (const chapter of chapters) {
-              const chapterData: ChapterData = {
-                title: chapter.title || "Sin título",
-                time: chapter.start_time || 0,
-                displayTime: Utils.formatTime(chapter.start_time || 0),
-                thumbnailSrc: "",
-              };
-              chaptersArray.push(chapterData);
-            }
-            console.log("Chapters extracted", {
-              chapterCount: chaptersArray.length,
-            });
-          } else {
-            console.log("No chapters found in the file", {
-              file: video.fileSrc,
-            });
-          }
-        } catch (error: any) {
-          console.log("Error parsing chapters", {
-            error: error.message,
-            file: video.fileSrc,
-          });
-        }
-        resolve(chaptersArray);
-      });
-    });
-  }
-  //#endregion
-
   //#region EPISODE WATCH STATE
   public static setEpisodeWatchState = async (
     season: Season,
@@ -673,129 +205,135 @@ export class Utils {
     state: boolean
   ) => {
     const series = await getSeriesById(season.seriesId);
+    if (!series || series.seasons.length === 0) return;
 
-    if (!series || series.seasons.length === 0) {
-      return;
-    }
+    // Store previous episode marked as 'currently watching'
+    const previousEpisodeId = series.currentlyWatchingEpisodeId;
+    let nextEpisodeId: string | null = null;
 
-    const seasons = series.seasons.sort(
-      (a, b) => a.seasonNumber - b.seasonNumber
-    );
+    // Sort seasons
+    const seasons = (
+      await Promise.all(series.seasons.map((s) => getSeasonById(s.id)))
+    )
+      .filter((s): s is Season => !!s)
+      .sort((a, b) => a.seasonNumber - b.seasonNumber);
 
-    // Sort seasons before updating
-
-    seasons.map(async (s) => {
-      const realSeason = await getSeasonById(s.id);
-
-      if (!realSeason) {
-        return;
-      }
-
-      const episodes = realSeason.episodes.sort(
-        (a, b) => a.episodeNumber - b.episodeNumber
-      );
+    for (const s of seasons) {
+      const episodes = (
+        await Promise.all(s.episodes.map((e) => getEpisodeById(e.id)))
+      )
+        .filter((e): e is Episode => !!e)
+        .sort((a, b) => a.episodeNumber - b.episodeNumber);
 
       if (s.seasonNumber < season.seasonNumber) {
-        for (const episode of episodes) {
-          const episodeDB = await getEpisodeById(episode.id);
-
-          if (!episodeDB) continue;
-
-          const video = await getVideoByEpisodeId(episodeDB.id);
-
-          if (!video || !video.watched) continue;
-
-          // Set episode as watched
+        for (const e of episodes) {
+          const video = await getVideoByEpisodeId(e.id);
+          if (!video) continue;
           video.watched = true;
           video.lastWatched = "";
           video.timeWatched = 0;
           await video.save();
         }
+        s.watched = true;
+        await s.save();
+        continue;
+      }
 
-        realSeason.watched = true;
-        await realSeason.save();
-      } else if (s.seasonNumber === season.seasonNumber) {
-        for (const episode of episodes) {
-          const episodeDB = await getEpisodeById(episode.id);
-
-          if (!episodeDB) continue;
-
-          const video = await getVideoByEpisodeId(episodeDB.id);
-
+      if (s.seasonNumber > season.seasonNumber) {
+        for (const e of episodes) {
+          const video = await getVideoByEpisodeId(e.id);
           if (!video) continue;
-
-          if (episode.episodeNumber < episodeToUpdate.episodeNumber) {
-            video.watched = true;
-          } else if (episode.episodeNumber === episodeToUpdate.episodeNumber) {
-            video.watched = state;
-
-            // Update current episode
-            if (state === false) {
-              series.currentlyWatchingEpisodeId = episodeDB.id;
-              series.watched = false;
-              season.watched = false;
-
-              await series.save();
-              await season.save();
-            } else {
-              const isLastEpisode =
-                episodes.indexOf(episodeDB) === episodes.length - 1;
-
-              if (isLastEpisode) {
-                season.watched = true;
-
-                // If all seasons are watched, mark show as watched
-                if (seasons.indexOf(realSeason) === seasons.length - 1) {
-                  series.currentlyWatchingEpisodeId = "";
-                  series.watched = true;
-                } else {
-                  const nextSeason = seasons[seasons.indexOf(realSeason) + 1];
-
-                  if (!nextSeason) {
-                    series.currentlyWatchingEpisodeId = "";
-                    series.watched = true;
-                  } else {
-                    series.currentlyWatchingEpisodeId =
-                      nextSeason.episodes[0].id;
-                    series.watched = false;
-                  }
-                }
-
-                await season.save();
-                await series.save();
-              }
-            }
-          } else {
-            video.watched = false;
-          }
-
-          video.lastWatched = "";
-          video.timeWatched = 0;
-          await video.save();
-        }
-      } else {
-        for (const episode of episodes) {
-          const episodeDB = await getEpisodeById(episode.id);
-
-          if (!episodeDB) continue;
-
-          const video = await getVideoByEpisodeId(episodeDB.id);
-
-          if (!video || !video.watched) continue;
-
-          // Set episode as watched
           video.watched = false;
           video.lastWatched = "";
           video.timeWatched = 0;
           await video.save();
         }
+        s.watched = false;
+        await s.save();
+        continue;
       }
-    });
+
+      // Current season
+      let allWatchedThisSeason = true;
+
+      for (let i = 0; i < episodes.length; i++) {
+        const e = episodes[i];
+        const video = await getVideoByEpisodeId(e.id);
+        if (!video) continue;
+
+        if (e.episodeNumber < episodeToUpdate.episodeNumber) {
+          video.watched = true;
+        } else if (e.episodeNumber === episodeToUpdate.episodeNumber) {
+          video.watched = state;
+
+          if (state === false) {
+            nextEpisodeId = e.id;
+          } else {
+            if (i < episodes.length - 1) {
+              nextEpisodeId = episodes[i + 1].id;
+            } else {
+              const seasonIdx = seasons.findIndex((ss) => ss.id === s.id);
+              if (seasonIdx < seasons.length - 1) {
+                const nextSeason = await getSeasonById(
+                  seasons[seasonIdx + 1].id
+                );
+                if (nextSeason) {
+                  const nextSeasonEpisodes = (
+                    await Promise.all(
+                      nextSeason.episodes.map((ne) => getEpisodeById(ne.id))
+                    )
+                  )
+                    .filter((ne): ne is Episode => !!ne)
+                    .sort((a, b) => a.episodeNumber - b.episodeNumber);
+                  nextEpisodeId = nextSeasonEpisodes[0]?.id ?? null;
+                }
+              } else {
+                nextEpisodeId = null; // last episode
+              }
+            }
+          }
+        } else {
+          video.watched = false;
+        }
+
+        video.lastWatched = "";
+        video.timeWatched = 0;
+        await video.save();
+
+        if (!video.watched) allWatchedThisSeason = false;
+      }
+
+      s.watched = allWatchedThisSeason;
+      await s.save();
+    }
+
+    // Update series and continue watching
+    if (previousEpisodeId) {
+      const prevVideo = await getVideoByEpisodeId(previousEpisodeId);
+      if (prevVideo) {
+        await removeVideoFromContinueWatching(prevVideo.id);
+      }
+    }
+
+    series.currentlyWatchingEpisodeId = nextEpisodeId ?? "";
+    series.watched = !nextEpisodeId;
+    await series.save();
+
+    if (nextEpisodeId) {
+      const nextVideo = await getVideoByEpisodeId(nextEpisodeId);
+      if (nextVideo) {
+        await addVideoToContinueWatching(nextVideo.id);
+      }
+    }
   };
   //#endregion
 
   public static getImages = async (dirPath: string) => {
     try {
+      if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+      }
+
       const files = fs.readdirSync(dirPath);
       const images = files.filter((file) =>
         [".png", ".jpg", ".jpeg", ".gif"].includes(
@@ -934,7 +472,11 @@ export class Utils {
 
         if (entry.isFile() && this.isAudioFile(entryPath)) {
           musicFiles.push(entryPath);
-        } else if (entry.isDirectory() && currentDepth < searchDepth) {
+        } else if (
+          entry.isDirectory() &&
+          currentDepth < searchDepth &&
+          !entry.name.startsWith("[")
+        ) {
           await exploreDirectory(entryPath, currentDepth + 1);
         }
       }
@@ -954,12 +496,11 @@ export class Utils {
     folderPath: string
   ): Promise<string | null> => {
     const files = await fs.promises.readdir(folderPath);
-    const imageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp"];
 
     for (const file of files) {
       const fileExt = path.extname(file).toLowerCase();
       if (
-        imageExtensions.includes(fileExt) &&
+        this.imageExtensions.includes(fileExt) &&
         file.toLowerCase().includes("cover")
       ) {
         return path.join(folderPath, file);
@@ -985,6 +526,10 @@ export class Utils {
 
   public static getFileInFolder = (folder: string, fileName: string) => {
     try {
+      if (!fs.existsSync(folder)) {
+        fs.mkdirSync(folder, { recursive: true });
+      }
+
       const files = fs.readdirSync(folder);
 
       const matchedFile = files.find((file) => {

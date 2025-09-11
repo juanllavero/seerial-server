@@ -30,12 +30,19 @@ export class Album extends Model {
 
   @ForeignKey(() => Library)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.STRING,
     allowNull: false,
     onDelete: "CASCADE",
     field: "library_id",
   })
   libraryId!: string;
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+  })
+  order!: number;
 
   @Column({
     type: DataType.STRING,
@@ -73,6 +80,13 @@ export class Album extends Model {
   })
   coverSrc!: string;
 
+  @Column({
+    type: DataType.STRING,
+    defaultValue: "",
+    allowNull: false,
+  })
+  folder!: string;
+
   @BelongsTo(() => Library, { onDelete: "CASCADE" })
   library!: Library;
 
@@ -92,6 +106,10 @@ export class Album extends Model {
 
   @HasMany(() => Song)
   songs!: Song[];
+
+  CollectionAlbum?: {
+    custom_order: number;
+  };
 
   @BeforeDestroy
   static async beforeDestroyHook(instance: Album): Promise<void> {

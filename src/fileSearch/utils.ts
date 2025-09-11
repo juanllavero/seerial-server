@@ -1,16 +1,24 @@
 import { existsSync } from "fs-extra";
 import * as path from "path";
 import { parse } from "path";
+import { Album, Movie, Series } from "../data/models";
 import {
+  deleteAlbum,
   deleteEpisode,
+  deleteLibrary,
+  deleteMovie,
   deleteSeason,
   deleteSeries,
+  deleteSong,
 } from "../db/delete/deleteData";
 import {
+  getAlbumById,
   getEpisodeByPath,
   getLibraryById,
+  getMovieByPath,
   getSeasonById,
   getSeriesById,
+  getSongByPath,
 } from "../db/get/getData";
 import { Utils } from "../utils/Utils";
 import { WebSocketManager } from "../WebSockets/WebSocketManager";
@@ -34,6 +42,8 @@ export async function clearLibrary(
     library.folders.length === 0
   )
     return;
+
+  const type = library.type;
 
   // Map to associate each file with its closest root folder
   const fileToRootFolder: Record<string, string> = {};
@@ -74,37 +84,97 @@ export async function clearLibrary(
     const fileExists = existsSync(filePath);
 
     if (!fileExists) {
-      const episode = await getEpisodeByPath(filePath);
+      if (type === "Shows") {
+        const episode = await getEpisodeByPath(filePath);
 
-      if (episode) {
-        const season = await getSeasonById(episode.seasonId);
+        if (!episode) continue;
 
-        if (!season) continue;
-
-        const series = await getSeriesById(season.seriesId);
-
-        if (!series) continue;
-
+        const seasonId = episode.seasonId;
         await deleteEpisode(episode.id);
 
-        if (season.episodes.length === 0) {
-          await deleteSeason(season.id);
+        const season = await getSeasonById(seasonId);
 
-          // Update library in client
-          Utils.mutateSeries(wsManager);
-        }
+        if (!season || (season.episodes && season.episodes.length > 0))
+          continue;
 
-        if (series.seasons.length === 0) {
-          await deleteSeries(series.id);
+        const seriesId = season.seriesId;
+        await deleteSeason(seasonId);
 
-          // Update library in client
-          Utils.mutateLibrary(wsManager);
-        }
+        const series = await getSeriesById(seriesId);
+
+        if (!series || (series.seasons && series.seasons.length > 0)) continue;
+        await deleteSeries(seriesId);
+      } else if (type === "Movies") {
+        const movie = await getMovieByPath(filePath);
+
+        if (!movie) continue;
+
+        await deleteMovie(movie.id);
+      } else {
+        const song = await getSongByPath(filePath);
+
+        if (!song) continue;
+
+        const albumId = song.albumId;
+        await deleteSong(song.id);
+
+        const album = await getAlbumById(albumId);
+
+        if (!album || (album.songs && album.songs.length > 0)) continue;
+
+        await deleteAlbum(albumId);
       }
     }
   }
 
+  if (
+    (type === "Shows" && library.series && library.series.length === 0) ||
+    (type === "Movies" && library.movies && library.movies.length === 0) ||
+    (type === "Music" && library.albums && library.albums.length === 0)
+  ) {
+    await deleteLibrary(libraryId);
+  }
+
   // Update library in client
   Utils.mutateLibrary(wsManager);
-  Utils.mutateSeries(wsManager);
+}
+
+/**
+ * Returns the key to use in the collection of items
+ * @param value model name
+ * @returns key
+ */
+export function getCollectionItemsKey(value: string) {
+  switch (value) {
+    case "Movies":
+      return "movies";
+    case "Series":
+      return "shows";
+    case "Shows":
+      return "shows";
+    case "Music":
+      return "albums";
+    default:
+      throw new Error(`Invalid item value provided: ${value}`);
+  }
+}
+
+/**
+ * Returns the corresponding model for a given item type
+ * @param type item type ('Movies', 'Shows', 'Music').
+ * @returns model (Movie, Series, o Album).
+ */
+export function getItemModel(type: string) {
+  switch (type) {
+    case "Movies":
+      return Movie;
+    case "Series":
+      return Series;
+    case "Shows":
+      return Series;
+    case "Music":
+      return Album;
+    default:
+      throw new Error(`Invalid item type provided: ${type}`);
+  }
 }

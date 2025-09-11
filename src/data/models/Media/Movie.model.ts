@@ -29,8 +29,9 @@ export class Movie extends Model {
 
   @ForeignKey(() => Library)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.STRING,
     allowNull: false,
+    onDelete: "CASCADE",
     field: "library_id",
   })
   libraryId!: string;
@@ -327,6 +328,10 @@ export class Movie extends Model {
 
   @HasMany(() => Video, { foreignKey: "extraId", as: "extras" })
   extras!: Video[];
+
+  CollectionMovie?: {
+    custom_order: number;
+  };
 
   @BeforeDestroy
   static async beforeDestroyHook(instance: Movie): Promise<void> {

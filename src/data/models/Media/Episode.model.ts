@@ -23,7 +23,7 @@ export class Episode extends Model {
 
   @ForeignKey(() => Season)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.STRING,
     allowNull: false,
     field: "season_id",
   })

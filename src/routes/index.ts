@@ -1,5 +1,6 @@
 export { default as deleteDataRoutes } from "./data/DeleteData";
 export { default as getAudioRoutes } from "./data/get/GetAudio";
+export { default as getColorsRoutes } from "./data/get/GetColors";
 export { default as getImagesRoutes } from "./data/get/GetImages";
 export { default as getMediaRoutes } from "./data/get/GetMedia";
 export { default as getMediaInfoRoutes } from "./data/get/GetMediaInfo";

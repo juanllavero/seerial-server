@@ -77,7 +77,10 @@ export class SequelizeManager {
       await SequelizeManager.sequelize.query("PRAGMA foreign_keys = ON;");
 
       // Sync models to db
-      await SequelizeManager.sequelize.sync({ alter: true });
+      await SequelizeManager.sequelize.sync({
+        // alter: true,
+        // force: true
+      });
 
       console.log(
         "[Database Manager]: Database initialized successfully with Sequelize"

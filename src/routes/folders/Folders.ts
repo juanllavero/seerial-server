@@ -1,8 +1,8 @@
 import express from "express";
-const router = express.Router();
 import fs from "fs";
 import os from "os";
 import path from "path";
+const router = express.Router();
 
 // Function to get drives in the system
 const getDrives = () => {
@@ -37,7 +37,7 @@ const getDrives = () => {
 };
 
 // Endpoint to get drives
-router.get("/drives", (req, res) => {
+router.get("/drives", (req: any, res: any) => {
   const drives = getDrives();
   res.json(drives);
 });
@@ -45,6 +45,10 @@ router.get("/drives", (req, res) => {
 // Function to get files and folders within a directory
 const getFolderContent = (dirPath: string) => {
   const contents: { name: string; isFolder: boolean }[] = [];
+
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
   const items = fs.readdirSync(dirPath, { withFileTypes: true });
 
   items.forEach((item) => {

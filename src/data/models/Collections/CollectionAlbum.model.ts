@@ -16,6 +16,7 @@ export class CollectionAlbum extends Model {
     allowNull: false,
     field: "collection_id",
     onDelete: "CASCADE",
+    primaryKey: true,
   })
   collectionId!: string;
 
@@ -25,6 +26,15 @@ export class CollectionAlbum extends Model {
     allowNull: false,
     field: "album_id",
     onDelete: "CASCADE",
+    primaryKey: true,
   })
   albumId!: string;
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+    field: "custom_order",
+    defaultValue: 0,
+  })
+  customOrder!: number;
 }

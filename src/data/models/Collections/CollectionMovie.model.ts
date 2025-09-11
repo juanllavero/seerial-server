@@ -12,19 +12,29 @@ import { Collection } from "./Collection.model";
 export class CollectionMovie extends Model {
   @ForeignKey(() => Collection)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.STRING,
     allowNull: false,
     field: "collection_id",
     onDelete: "CASCADE",
+    primaryKey: true,
   })
   collectionId!: string;
 
   @ForeignKey(() => Movie)
   @Column({
-    type: DataType.INTEGER,
+    type: DataType.STRING,
     allowNull: false,
     field: "movie_id",
     onDelete: "CASCADE",
+    primaryKey: true,
   })
   movieId!: string;
+
+  @Column({
+    type: DataType.INTEGER,
+    allowNull: false,
+    field: "custom_order",
+    defaultValue: 0,
+  })
+  customOrder!: number;
 }

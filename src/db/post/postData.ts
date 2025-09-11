@@ -52,8 +52,6 @@ export const addLibrary = async (library: Partial<LibraryData>) => {
     return null;
   }
 
-  console.log({ library });
-
   let attempts = 0;
   const maxAttempts = 3;
 
@@ -75,9 +73,7 @@ export const addLibrary = async (library: Partial<LibraryData>) => {
       }
 
       const newLibrary = new Library(libraryData);
-      console.log({ newLibrary });
       await newLibrary.save();
-      console.log("Librería guardada:", newLibrary.toJSON());
       return newLibrary;
     } catch (error) {
       console.error(
@@ -117,7 +113,6 @@ export const addCollection = async (collection: Partial<Collection>) => {
       });
 
       if (existingCollection) {
-        console.log(`Colección con título "${collection.title}" ya existe`);
         return existingCollection;
       }
     }
@@ -130,7 +125,6 @@ export const addCollection = async (collection: Partial<Collection>) => {
 
     const newCollection = new Collection(collectionData);
     await newCollection.save();
-    console.log("Colección guardada:", newCollection.toJSON());
     return newCollection;
   } catch (error) {
     console.error("Error al agregar la colección:", error);
@@ -157,9 +151,6 @@ export const addLibraryToCollection = async (
     });
 
     if (existingElement) {
-      console.log(
-        `La biblioteca ${libraryId} ya está en la colección ${collectionId}`
-      );
       return existingElement;
     }
 
@@ -172,7 +163,6 @@ export const addLibraryToCollection = async (
 
     const newElement = new LibraryCollection(newElementData);
     await newElement.save();
-    console.log("Relación biblioteca-colección guardada:", newElement.toJSON());
     return newElement;
   } catch (error) {
     console.error("Error al agregar la biblioteca a la colección:", error);
@@ -199,9 +189,6 @@ export const addSeriesToCollection = async (
     });
 
     if (existingElement) {
-      console.log(
-        `La serie ${seriesId} ya está en la colección ${collectionId}`
-      );
       return existingElement;
     }
 
@@ -214,7 +201,6 @@ export const addSeriesToCollection = async (
 
     const newElement = new CollectionSeries(newElementData);
     await newElement.save();
-    console.log("Relación serie-colección guardada:", newElement.toJSON());
     return newElement;
   } catch (error) {
     console.error("Error al agregar la serie a la colección:", error);
@@ -241,9 +227,6 @@ export const addMovieToCollection = async (
     });
 
     if (existingElement) {
-      console.log(
-        `La película ${movieId} ya está en la colección ${collectionId}`
-      );
       return existingElement;
     }
 
@@ -256,7 +239,6 @@ export const addMovieToCollection = async (
 
     const newElement = new CollectionMovie(newElementData);
     await newElement.save();
-    console.log("Relación película-colección guardada:", newElement.toJSON());
     return newElement;
   } catch (error) {
     console.error("Error al agregar la película a la colección:", error);
@@ -283,9 +265,6 @@ export const addAlbumToCollection = async (
     });
 
     if (existingElement) {
-      console.log(
-        `El álbum ${albumId} ya está en la colección ${collectionId}`
-      );
       return existingElement;
     }
 
@@ -298,7 +277,6 @@ export const addAlbumToCollection = async (
 
     const newElement = new CollectionAlbum(newElementData);
     await newElement.save();
-    console.log("Relación álbum-colección guardada:", newElement.toJSON());
     return newElement;
   } catch (error) {
     console.error("Error al agregar el álbum a la colección:", error);
@@ -321,7 +299,6 @@ export const addSeries = async (series: Partial<SeriesData>) => {
     if (series.id) {
       const existingSeries = await getSeriesById(series.id);
       if (existingSeries) {
-        console.log(`La serie con ID ${series.id} ya existe`);
         return existingSeries;
       }
     }
@@ -334,7 +311,6 @@ export const addSeries = async (series: Partial<SeriesData>) => {
 
     const newSeries = new Series(seriesData);
     await newSeries.save();
-    console.log("Serie guardada:", newSeries.toJSON());
     return newSeries;
   } catch (error) {
     console.error("Error al agregar la serie:", error);
@@ -353,7 +329,6 @@ export const addMovie = async (movie: Partial<MovieData>) => {
     if (movie.id) {
       const existingMovie = await getMovieById(movie.id);
       if (existingMovie) {
-        console.log(`La película con ID ${movie.id} ya existe`);
         return existingMovie;
       }
     }
@@ -366,7 +341,6 @@ export const addMovie = async (movie: Partial<MovieData>) => {
 
     const newMovie = new Movie(movieData);
     await newMovie.save();
-    console.log("Película guardada:", newMovie.toJSON());
     return newMovie;
   } catch (error) {
     console.error("Error al agregar la película:", error);
@@ -385,7 +359,6 @@ export const addSeason = async (season: Partial<SeasonData>) => {
     if (season.id) {
       const existingSeason = await getSeasonById(season.id);
       if (existingSeason) {
-        console.log(`La temporada con ID ${season.id} ya existe`);
         return existingSeason;
       }
     }
@@ -398,7 +371,6 @@ export const addSeason = async (season: Partial<SeasonData>) => {
 
     const newSeason = new Season(seasonData);
     await newSeason.save();
-    console.log("Temporada guardada:", newSeason.toJSON());
     return newSeason;
   } catch (error) {
     console.error("Error al agregar la temporada:", error);
@@ -417,7 +389,6 @@ export const addEpisode = async (episode: Partial<EpisodeData>) => {
     if (episode.id) {
       const existingEpisode = await getEpisodeById(episode.id);
       if (existingEpisode) {
-        console.log(`El episodio con ID ${episode.id} ya existe`);
         return existingEpisode;
       }
     }
@@ -430,7 +401,6 @@ export const addEpisode = async (episode: Partial<EpisodeData>) => {
 
     const newEpisode = new Episode(episodeData);
     await newEpisode.save();
-    console.log("Episodio guardado:", newEpisode.toJSON());
     return newEpisode;
   } catch (error) {
     console.error("Error al agregar el episodio:", error);
@@ -452,7 +422,6 @@ export const addVideoAsMovie = async (
     if (video && video.id) {
       const existingVideo = await getVideoById(video.id);
       if (existingVideo) {
-        console.log(`El video con ID ${video.id} ya existe`);
         return existingVideo;
       }
     }
@@ -466,7 +435,6 @@ export const addVideoAsMovie = async (
 
     const newVideo = new Video(videoData);
     await newVideo.save();
-    console.log("Video como película guardado:", newVideo.toJSON());
     return newVideo;
   } catch (error) {
     console.error("Error al agregar el video como película:", error);
@@ -488,7 +456,6 @@ export const addVideoAsMovieExtra = async (
     if (video && video.id) {
       const existingVideo = await getVideoById(video.id);
       if (existingVideo) {
-        console.log(`El video con ID ${video.id} ya existe`);
         return existingVideo;
       }
     }
@@ -502,7 +469,6 @@ export const addVideoAsMovieExtra = async (
 
     const newVideo = new Video(videoData);
     await newVideo.save();
-    console.log("Video como extra de película guardado:", newVideo.toJSON());
     return newVideo;
   } catch (error) {
     console.error("Error al agregar el video como extra de película:", error);
@@ -524,7 +490,6 @@ export const addVideoAsEpisode = async (
     if (video && video.id) {
       const existingVideo = await getVideoById(video.id);
       if (existingVideo) {
-        console.log(`El video con ID ${video.id} ya existe`);
         return existingVideo;
       }
     }
@@ -538,7 +503,6 @@ export const addVideoAsEpisode = async (
 
     const newVideo = new Video(videoData);
     await newVideo.save();
-    console.log("Video como episodio guardado:", newVideo.toJSON());
     return newVideo;
   } catch (error) {
     console.error("Error al agregar el video como episodio:", error);
@@ -561,7 +525,6 @@ export const addAlbum = async (album: Partial<AlbumData>) => {
     if (album.id) {
       const existingAlbum = await getAlbumById(album.id);
       if (existingAlbum) {
-        console.log(`El álbum con ID ${album.id} ya existe`);
         return existingAlbum;
       }
     }
@@ -574,7 +537,6 @@ export const addAlbum = async (album: Partial<AlbumData>) => {
 
     const newAlbum = new Album(albumData);
     await newAlbum.save();
-    console.log("Álbum guardado:", newAlbum.toJSON());
     return newAlbum;
   } catch (error) {
     console.error("Error al agregar el álbum:", error);
@@ -598,7 +560,6 @@ export const addArtist = async (artist: Partial<ArtistData>) => {
       });
 
       if (existingArtist) {
-        console.log(`El artista con nombre "${artist.name}" ya existe`);
         return existingArtist;
       }
     }
@@ -611,7 +572,6 @@ export const addArtist = async (artist: Partial<ArtistData>) => {
 
     const newArtist = new Artist(artistData);
     await newArtist.save();
-    console.log("Artista guardado:", newArtist.toJSON());
     return newArtist;
   } catch (error) {
     console.error("Error al agregar el artista:", error);
@@ -635,9 +595,6 @@ export const addArtistToAlbum = async (artistId: string, albumId: string) => {
     });
 
     if (existingElement) {
-      console.log(
-        `El artista ${artistId} ya está asociado al álbum ${albumId}`
-      );
       return existingElement;
     }
 
@@ -650,7 +607,6 @@ export const addArtistToAlbum = async (artistId: string, albumId: string) => {
 
     const newElement = new AlbumArtist(newElementData);
     await newElement.save();
-    console.log("Relación artista-álbum guardada:", newElement.toJSON());
     return newElement;
   } catch (error) {
     console.error("Error al agregar el artista al álbum:", error);
@@ -669,7 +625,6 @@ export const addSong = async (song: Partial<SongData>) => {
     if (song.id) {
       const existingSong = await getSongById(song.id);
       if (existingSong) {
-        console.log(`La canción con ID ${song.id} ya existe`);
         return existingSong;
       }
     }
@@ -682,7 +637,6 @@ export const addSong = async (song: Partial<SongData>) => {
 
     const newSong = new Song(songData);
     await newSong.save();
-    console.log("Canción guardada:", newSong.toJSON());
     return newSong;
   } catch (error) {
     console.error("Error al agregar la canción:", error);
@@ -718,7 +672,6 @@ export const addPlaylist = async (playList: Partial<PlayListData>) => {
 
     const newPlayList = new PlayList(playListData);
     await newPlayList.save();
-    console.log("Lista de reproducción guardada:", newPlayList.toJSON());
     return newPlayList;
   } catch (error) {
     console.error("Error al agregar la lista de reproducción:", error);
@@ -757,10 +710,6 @@ export const addSongToPlaylist = async (playlistId: string, songId: string) => {
 
     const newPlayListItem = new PlayListItem(newElementData);
     await newPlayListItem.save();
-    console.log(
-      "Relación canción-lista de reproducción guardada:",
-      newPlayListItem.toJSON()
-    );
     return newPlayListItem;
   } catch (error) {
     console.error(
@@ -797,10 +746,6 @@ export const removeSongFromPlaylist = async (
     }
 
     await existingElement.destroy();
-    console.log(
-      "Relación canción-lista de reproducción eliminada:",
-      existingElement.toJSON()
-    );
     return existingElement;
   } catch (error) {
     console.error(
@@ -838,7 +783,6 @@ export const addSeriesToMyList = async (seriesId: string) => {
 
     const newElement = new MyList(newElementData);
     await newElement.save();
-    console.log("Serie agregada a Mi Lista:", newElement.toJSON());
     return newElement;
   } catch (error) {
     console.error("Error al agregar la serie a Mi Lista:", error);
@@ -866,7 +810,6 @@ export const removeSeriesFromMyList = async (seriesId: string) => {
     }
 
     await existingElement.destroy();
-    console.log("Serie eliminada de Mi Lista:", existingElement.toJSON());
     return existingElement;
   } catch (error) {
     console.error("Error al eliminar la serie de Mi Lista:", error);
@@ -901,7 +844,6 @@ export const addMovieToMyList = async (movieId: string) => {
 
     const newElement = new MyList(newElementData);
     await newElement.save();
-    console.log("Película agregada a Mi Lista:", newElement.toJSON());
     return newElement;
   } catch (error) {
     console.error("Error al agregar la película a Mi Lista:", error);
@@ -929,11 +871,20 @@ export const removeMovieFromMyList = async (movieId: string) => {
     }
 
     await existingElement.destroy();
-    console.log("Película eliminada de Mi Lista:", existingElement.toJSON());
     return existingElement;
   } catch (error) {
     console.error("Error al eliminar la película de Mi Lista:", error);
     return null;
+  }
+};
+
+export const removeVideoFromContinueWatching = async (videoId: string) => {
+  if (!SequelizeManager.sequelize) return;
+
+  try {
+    await ContinueWatching.destroy({ where: { videoId } });
+  } catch (error) {
+    console.error("Error al eliminar video de Continue Watching:", error);
   }
 };
 
@@ -964,7 +915,6 @@ export const addVideoToContinueWatching = async (videoId: string) => {
 
     const newElement = new ContinueWatching(newElementData);
     await newElement.save();
-    console.log("Video agregado a Continue Watching:", newElement.toJSON());
     return newElement;
   } catch (error) {
     console.error("Error al agregar el video a Continue Watching:", error);

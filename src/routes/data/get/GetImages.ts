@@ -1,10 +1,9 @@
-import express from "express";
-import ffmpegPath from "ffmpeg-static";
-import ffmpeg from "fluent-ffmpeg";
+import axios from "axios";
+import express, { Response } from "express";
 import fs from "fs";
 import path from "path";
+import sharp from "sharp";
 import { FilesManager } from "../../../utils/FilesManager";
-import { Utils } from "../../../utils/Utils";
 const router = express.Router();
 
 // Serve images to outside
@@ -20,111 +19,142 @@ router.get("/images", (req: any, res: any) => {
     return res.status(400).send("Invalid images path");
   }
 
-  fs.readdir(
-    path.join(FilesManager.resourcesPath, imagesPath),
-    (err, files) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).send("Error reading images folder");
-      }
+  const dirPath = path.join(FilesManager.resourcesPath, imagesPath);
 
-      const images = files.map((file) => {
-        const filePath = path.join(imagesPath, file);
-        return {
-          name: file,
-          url: filePath,
-        };
-      });
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
 
-      res.json(images);
+  fs.readdir(dirPath, (err, files) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send("Error reading images folder");
     }
-  );
+
+    const images = files.map((file) => {
+      const filePath = path.join(imagesPath, file);
+      return {
+        name: file,
+        url: filePath,
+      };
+    });
+
+    return res.json(images);
+  });
 });
 
-// Endpoint para comprimir y devolver una imagen
-router.get("/compressImage", async (req: any, res: any) => {
-  const { imagePath } = req.query;
+router.get("/image", async (req: any, res: any) => {
+  const { path: imagePath, width, height } = req.query;
 
-  if (!imagePath || typeof imagePath !== "string") {
-    return res
-      .status(400)
-      .json({ error: "Debes proporcionar una ruta válida a la imagen." });
+  if (typeof imagePath !== "string" || imagePath.trim() === "") {
+    return res.status(400).send("Ruta de imagen inválida.");
   }
 
-  // Eliminar los parámetros de la URL (como el timestamp)
-  const cleanedImagePath = imagePath.split("?")[0]; // Obtiene la ruta sin el query string
-
-  const imgPath = path.join(FilesManager.resourcesPath, cleanedImagePath);
-
-  if (!fs.existsSync(imgPath)) {
-    return res.status(404).json({ error: "La imagen especificada no existe." });
-  }
-
-  // Ruta de salida de la imagen comprimida
-  const outputFilePath = path.join(
-    FilesManager.extPath,
-    "cache",
-    cleanedImagePath.replace(path.extname(cleanedImagePath), ".avif")
-  );
-
-  // Verificar si la imagen comprimida ya existe en caché
-  // if (fs.existsSync(outputFilePath)) {
-  //   // Si existe, devolver la imagen desde el caché
-  //   return res.sendFile(outputFilePath, (err: any) => {
-  //     if (err) {
-  //       console.error("Error al enviar el archivo:", err);
-  //       return res
-  //         .status(500)
-  //         .json({ error: "Error al enviar la imagen comprimida." });
-  //     }
-  //   });
-  // }
-
-  // Crear las carpetas necesarias si no existen
-  const outputDir = path.dirname(outputFilePath);
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
-  }
-
-  const compressionQuality = 10; // Calidad de compresión
+  const resolvedPath = path.resolve(decodeURIComponent(imagePath));
 
   try {
-    // Redimensionar la imagen si es necesario
-    const resizedImagePath = path.join(
-      outputDir,
-      "resized-" + path.basename(imgPath)
-    );
-    await Utils.resizeToMaxResolution(imgPath, resizedImagePath);
+    // Verificamos si el archivo existe antes de crear el stream
+    await fs.promises.access(resolvedPath, fs.constants.F_OK);
 
-    // Comprimir la imagen con ffmpeg
-    await new Promise<void>((resolve, reject) => {
-      ffmpeg.setFfmpegPath(ffmpegPath || "");
-      ffmpeg(resizedImagePath)
-        .outputOptions([`-q:v ${Math.round((100 - compressionQuality) / 10)}`]) // Convertir calidad a escala de ffmpeg
-        .output(outputFilePath)
-        .outputFormat("avif")
-        .on("end", () => {
-          // Eliminar la imagen redimensionada temporal después de la compresión
-          fs.unlinkSync(resizedImagePath);
-          resolve();
-        })
-        .on("error", (err) => reject(err))
-        .run();
-    });
+    // Creamos un stream de lectura del archivo local
+    const inputStream = fs.createReadStream(resolvedPath);
 
-    // Enviar la imagen comprimida al cliente
-    res.sendFile(outputFilePath, (err: any) => {
-      if (err) {
-        console.error("Error al enviar el archivo:", err);
-        return res
-          .status(500)
-          .json({ error: "Error al enviar la imagen comprimida." });
-      }
-    });
+    // Llamamos a nuestra función reutilizable
+    compressAndStreamImage(inputStream, res, { width, height });
   } catch (error) {
-    console.error("Error al comprimir la imagen:", error);
-    res.status(500).json({ error: "Error al comprimir la imagen." });
+    console.error(
+      `Archivo no encontrado o inaccesible: ${resolvedPath}`,
+      error
+    );
+    return res.status(404).send("Imagen no encontrada.");
   }
 });
+
+router.get("/compress-image", async (req: any, res: any) => {
+  const { url, width, height } = req.query;
+
+  if (!url || !width || !height) {
+    return res.status(400).send("Faltan los parámetros: url, width y height.");
+  }
+
+  // La validación de width/height se delega a la función `compressAndStreamImage`
+
+  try {
+    // Descargamos la imagen como un stream
+    const response = await axios({
+      method: "get",
+      url: String(url),
+      responseType: "stream",
+    });
+
+    // Llamamos a la misma función reutilizable con el stream de la descarga
+    compressAndStreamImage(response.data, res, { width, height });
+  } catch (error: any) {
+    console.error(
+      "Error al descargar o procesar la imagen desde URL:",
+      error.message
+    );
+    if (!res.headersSent) {
+      res.status(500).send("No se pudo descargar o procesar la imagen.");
+    }
+  }
+});
+
+/**
+ * Procesa un stream de imagen, la redimensiona/comprime con Sharp y la envía como respuesta.
+ * @param inputStream - El stream de datos de la imagen fuente.
+ * @param res - El objeto de respuesta de Express.
+ * @param options - Opciones de compresión como width y height.
+ */
+const compressAndStreamImage = (
+  inputStream: NodeJS.ReadableStream,
+  res: Response,
+  options: { width?: string; height?: string }
+) => {
+  const { width, height } = options;
+
+  const parsedWidth = width ? parseInt(width, 10) : NaN;
+  const parsedHeight = height ? parseInt(height, 10) : NaN;
+
+  // 1. Inicia el transformador de Sharp
+  let transformer = sharp();
+
+  // 2. Aplica redimensión si se proporcionaron dimensiones válidas
+  if (!isNaN(parsedWidth) && !isNaN(parsedHeight)) {
+    transformer = transformer.resize({
+      width: parsedWidth,
+      height: parsedHeight,
+      fit: "inside", // Mantiene la relación de aspecto
+      withoutEnlargement: true, // No agranda la imagen si es más pequeña
+    });
+  }
+
+  // 3. Aplica la compresión a JPEG
+  transformer = transformer.jpeg({
+    quality: 85, // Calidad de compresión (1-100)
+    progressive: true, // Mejora la experiencia de carga
+  });
+
+  // 4. Establece la cabecera de la respuesta
+  res.setHeader("Content-Type", "image/jpeg");
+
+  // 5. Manejo de errores en los streams para evitar que el servidor se caiga
+  inputStream.on("error", (err) => {
+    console.error("Error en el stream de entrada:", err);
+    if (!res.headersSent) {
+      res.status(500).send("Error al leer la imagen de origen.");
+    }
+  });
+
+  transformer.on("error", (err) => {
+    console.error("Error de Sharp al procesar la imagen:", err);
+    if (!res.headersSent) {
+      res.status(500).send("Error al procesar la imagen.");
+    }
+  });
+
+  // 6. Conecta todo: Stream de entrada -> Sharp -> Respuesta HTTP
+  inputStream.pipe(transformer).pipe(res);
+};
 
 export default router;

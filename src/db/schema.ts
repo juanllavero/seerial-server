@@ -1,7 +1,7 @@
 export const schemaSQL = `
 -- Tabla Library
 CREATE TABLE IF NOT EXISTS Library (
-    id INTEGER PRIMARY KEY,
+    id VARCHAR PRIMARY KEY,
     name VARCHAR NOT NULL,
     language VARCHAR NOT NULL,
     type VARCHAR, -- Validado por triggers
@@ -34,15 +34,15 @@ END;
 
 -- Tabla Collection
 CREATE TABLE IF NOT EXISTS Collection (
-    id INTEGER PRIMARY KEY,
+    id VARCHAR PRIMARY KEY,
     title VARCHAR NOT NULL,
     description VARCHAR
 );
 
 -- Tabla Collection_Series
 CREATE TABLE IF NOT EXISTS Collection_Series (
-    collection_id INTEGER NOT NULL,
-    series_id INTEGER NOT NULL,
+    collection_id VARCHAR NOT NULL,
+    series_id VARCHAR NOT NULL,
     PRIMARY KEY (collection_id, series_id),
     FOREIGN KEY (collection_id) REFERENCES Collection(id) ON DELETE CASCADE,
     FOREIGN KEY (series_id) REFERENCES Series(id) ON DELETE CASCADE
@@ -50,8 +50,8 @@ CREATE TABLE IF NOT EXISTS Collection_Series (
 
 -- Tabla Collection_Movie
 CREATE TABLE IF NOT EXISTS Collection_Movie (
-    collection_id INTEGER NOT NULL,
-    movie_id INTEGER NOT NULL,
+    collection_id VARCHAR NOT NULL,
+    movie_id VARCHAR NOT NULL,
     PRIMARY KEY (collection_id, movie_id),
     FOREIGN KEY (collection_id) REFERENCES Collection(id) ON DELETE CASCADE,
     FOREIGN KEY (movie_id) REFERENCES Movie(id) ON DELETE CASCADE
@@ -59,8 +59,8 @@ CREATE TABLE IF NOT EXISTS Collection_Movie (
 
 -- Tabla Collection_Album
 CREATE TABLE IF NOT EXISTS Collection_Album (
-    collection_id INTEGER NOT NULL,
-    album_id INTEGER NOT NULL,
+    collection_id VARCHAR NOT NULL,
+    album_id VARCHAR NOT NULL,
     PRIMARY KEY (collection_id, album_id),
     FOREIGN KEY (collection_id) REFERENCES Collection(id) ON DELETE CASCADE,
     FOREIGN KEY (album_id) REFERENCES Album(id) ON DELETE CASCADE
@@ -68,7 +68,7 @@ CREATE TABLE IF NOT EXISTS Collection_Album (
 
 -- Tabla Movie
 CREATE TABLE IF NOT EXISTS Movie (
-    id INTEGER PRIMARY KEY,
+    id VARCHAR PRIMARY KEY,
     library_id INTEGER NOT NULL,
     imdb_id VARCHAR,
     themdb_id INTEGER,
@@ -108,8 +108,8 @@ CREATE INDEX IF NOT EXISTS idx_movie_library_id ON Movie(library_id);
 
 -- Tabla Series
 CREATE TABLE IF NOT EXISTS Series (
-    id INTEGER PRIMARY KEY,
-    library_id INTEGER NOT NULL,
+    id VARCHAR PRIMARY KEY,
+    library_id VARCHAR NOT NULL,
     themdb_id INTEGER,
     "order" INTEGER,
     name VARCHAR NOT NULL,
@@ -145,8 +145,8 @@ CREATE INDEX IF NOT EXISTS idx_series_library_id ON Series(library_id);
 
 -- Tabla Season
 CREATE TABLE IF NOT EXISTS Season (
-    id INTEGER PRIMARY KEY,
-    series_id INTEGER NOT NULL,
+    id VARCHAR PRIMARY KEY,
+    series_id VARCHAR NOT NULL,
     themdb_id INTEGER,
     "order" INTEGER,
     name VARCHAR NOT NULL,
@@ -175,8 +175,8 @@ CREATE INDEX IF NOT EXISTS idx_season_series_id ON Season(series_id);
 
 -- Tabla Episode
 CREATE TABLE IF NOT EXISTS Episode (
-    id INTEGER PRIMARY KEY,
-    season_id INTEGER NOT NULL,
+    id VARCHAR PRIMARY KEY,
+    season_id VARCHAR NOT NULL,
     name VARCHAR NOT NULL,
     name_lock BOOLEAN,
     year VARCHAR,
@@ -198,7 +198,7 @@ CREATE INDEX IF NOT EXISTS idx_episode_season_id ON Episode(season_id);
 
 -- Tabla Video
 CREATE TABLE IF NOT EXISTS Video (
-    id INTEGER PRIMARY KEY,
+    id VARCHAR PRIMARY KEY,
     file_src VARCHAR NOT NULL,
     runtime INTEGER,
     img_src VARCHAR,
@@ -211,8 +211,8 @@ CREATE TABLE IF NOT EXISTS Video (
     subtitle_tracks TEXT,
     audio_tracks TEXT,
     chapters TEXT,
-    episode_id INTEGER,
-    movie_id INTEGER,
+    episode_id VARCHAR,
+    movie_id VARCHAR,
     is_movie_extra BOOLEAN,
 	extra_type VARCHAR,
     FOREIGN KEY (episode_id) REFERENCES Episode(id) ON DELETE CASCADE,
@@ -224,23 +224,23 @@ CREATE INDEX IF NOT EXISTS idx_video_movie_id ON Video(movie_id);
 
 -- Tabla Artist
 CREATE TABLE IF NOT EXISTS Artist (
-    id INTEGER PRIMARY KEY,
+    id VARCHAR PRIMARY KEY,
     name VARCHAR NOT NULL
 );
 
 -- Tabla Album_Artist
 CREATE TABLE IF NOT EXISTS Album_Artist (
-    id INTEGER PRIMARY KEY,
-    artist_id INTEGER NOT NULL,
-    album_id INTEGER NOT NULL,
+    id VARCHAR PRIMARY KEY,
+    artist_id VARCHAR NOT NULL,
+    album_id VARCHAR NOT NULL,
     FOREIGN KEY (artist_id) REFERENCES Artist(id) ON DELETE CASCADE,
     FOREIGN KEY (album_id) REFERENCES Album(id) ON DELETE CASCADE
 );
 
 -- Tabla Album
 CREATE TABLE IF NOT EXISTS Album (
-    id INTEGER PRIMARY KEY,
-    library_id INTEGER NOT NULL,
+    id VARCHAR PRIMARY KEY,
+    library_id VARCHAR NOT NULL,
     title VARCHAR NOT NULL,
     year VARCHAR,
     description VARCHAR,
@@ -251,8 +251,8 @@ CREATE INDEX IF NOT EXISTS idx_album_library_id ON Album(library_id);
 
 -- Tabla Song
 CREATE TABLE IF NOT EXISTS Song (
-    id INTEGER PRIMARY KEY,
-    album_id INTEGER NOT NULL,
+    id VARCHAR PRIMARY KEY,
+    album_id VARCHAR NOT NULL,
     title VARCHAR NOT NULL,
     track_number INTEGER NOT NULL,
     FOREIGN KEY (album_id) REFERENCES Album(id) ON DELETE CASCADE
@@ -262,16 +262,16 @@ CREATE INDEX IF NOT EXISTS idx_song_album_id ON Song(album_id);
 
 -- Tabla PlayList
 CREATE TABLE IF NOT EXISTS PlayList (
-    id INTEGER PRIMARY KEY,
+    id VARCHAR PRIMARY KEY,
     title VARCHAR NOT NULL,
     description VARCHAR
 );
 
 -- Tabla PlayList_Item
 CREATE TABLE IF NOT EXISTS PlayList_Item (
-    id INTEGER PRIMARY KEY,
-    playlist_id INTEGER NOT NULL,
-    song_id INTEGER NOT NULL,
+    id VARCHAR PRIMARY KEY,
+    playlist_id VARCHAR NOT NULL,
+    song_id VARCHAR NOT NULL,
     FOREIGN KEY (playlist_id) REFERENCES PlayList(id) ON DELETE CASCADE,
     FOREIGN KEY (song_id) REFERENCES Song(id) ON DELETE CASCADE
 );
@@ -283,16 +283,16 @@ CREATE INDEX IF NOT EXISTS idx_playlist_item_song_id ON PlayList_Item(song_id);
 CREATE TABLE IF NOT EXISTS My_List (
     id VARCHAR PRIMARY KEY,
     added_at DATETIME,
-    series_id INTEGER NOT NULL,
-    movie_id INTEGER NOT NULL,
+    series_id VARCHAR NOT NULL,
+    movie_id VARCHAR NOT NULL,
     FOREIGN KEY (series_id) REFERENCES Series(id) ON DELETE CASCADE,
     FOREIGN KEY (movie_id) REFERENCES Movie(id) ON DELETE CASCADE
 );
 
 -- Tabla Continue_Watching
 CREATE TABLE IF NOT EXISTS Continue_Watching (
-    id INTEGER PRIMARY KEY,
-    video_id INTEGER NOT NULL,
+    id VARCHAR PRIMARY KEY,
+    video_id VARCHAR NOT NULL,
     FOREIGN KEY (video_id) REFERENCES Video(id) ON DELETE CASCADE
 );
 `;
