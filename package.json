@@ -1,6 +1,6 @@
 {
   "name": "seerial-server",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "main": "dist/index.js",
   "description": "Media management server for the suite Seerial",
   "author": "Juan Llavero",
