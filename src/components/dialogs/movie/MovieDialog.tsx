@@ -12,6 +12,7 @@ import MovieInfoTab from './components/MovieInfoTab'
 import MediaTab from '../MediaTab'
 import MovieTagsTab from './components/MovieTagsTab'
 import { shallow } from 'zustand/shallow'
+import { ImageType } from '@/utils/constants'
 
 function MovieDialog() {
   const { t } = useTranslation()
@@ -226,6 +227,7 @@ function MovieDialog() {
           content: (
             <ImageListTab
               imagesList={logos}
+              type={ImageType.LOGO}
               localFolder={localLogoFolder}
               selectImage={setSelectedLogo}
               selectedImage={selectedLogo}
@@ -251,7 +253,7 @@ function MovieDialog() {
               localFolder={localPosterFolder}
               selectImage={setSelectedPoster}
               selectedImage={selectedPoster}
-              isPoster
+              type={ImageType.POSTER}
             />
           ),
         },

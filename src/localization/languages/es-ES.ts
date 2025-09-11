@@ -13,6 +13,7 @@ export const es = {
     errorImageUpload: 'Error al subir la imagen',
     invalidImageError: 'Selecciona un archivo de imagen válido',
 
+    addedToQueue: 'Canción añadida a la cola',
     list: 'Lista',
     grid: 'Cuadrícula',
     elements: 'Elementos',

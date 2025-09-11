@@ -12,6 +12,7 @@ import SeriesInfoTab from './components/SeriesInfoTab'
 import SeriesTagsTab from './components/SeriesTagsTab'
 import { shallow } from 'zustand/shallow'
 import MediaTab from '../MediaTab'
+import { ImageType } from '@/utils/constants'
 
 function SeriesDialog() {
   const { t } = useTranslation()
@@ -197,6 +198,7 @@ function SeriesDialog() {
           content: (
             <ImageListTab
               imagesList={logos}
+              type={ImageType.LOGO}
               localFolder={localLogoFolder}
               selectImage={setSelectedLogo}
               selectedImage={selectedLogo}
@@ -211,7 +213,7 @@ function SeriesDialog() {
               localFolder={localPosterFolder}
               selectImage={setSelectedPoster}
               selectedImage={selectedPoster}
-              isPoster
+              type={ImageType.POSTER}
             />
           ),
         },

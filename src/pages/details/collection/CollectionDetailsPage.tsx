@@ -19,7 +19,7 @@ import MovieCard from '@/pages/library/components/cards/MovieCard'
 import SeriesCard from '@/pages/library/components/cards/SeriesCard'
 import { CollectionKey, ContentType } from '@/types/types'
 import { fetcher } from '@/utils/utils'
-import { Edit, Ellipsis } from 'lucide-react'
+import { Ellipsis, Pencil } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
@@ -27,7 +27,6 @@ import useSWR from 'swr'
 import '../DetailsPage.css'
 import CollectionImage from './CollectionImage'
 import { shallow } from 'zustand/shallow'
-import ExtrasList from './components/ExtrasList'
 import { SortableHorizontalList } from '@/components/lists/SortableHorizontalList'
 import { arrayMove } from '@dnd-kit/sortable'
 import { getCoverSize, getTitleSize } from '@/utils/ReactUtils'
@@ -346,7 +345,7 @@ function CollectionDetailsPage() {
                 }
               }}
             >
-              <Edit />
+              <Pencil />
             </Button>
             <Button
               variant={'ghost'}

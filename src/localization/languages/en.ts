@@ -13,6 +13,7 @@ export const en = {
     errorImageUpload: 'Error uploading image',
     invalidImageError: 'Select a valid image file',
 
+    addedToQueue: 'Song added to queue',
     list: 'List',
     grid: 'Grid',
     elements: 'Elements',

@@ -10,6 +10,7 @@ import { mutate } from 'swr'
 import ImageListTab from '../components/ImageListTab'
 import CollectionInfoTab from './components/CollectionInfoTab'
 import { shallow } from 'zustand/shallow'
+import { ImageType } from '@/utils/constants'
 
 function CollectionDialog() {
   const { t } = useTranslation()
@@ -116,7 +117,7 @@ function CollectionDialog() {
           title: t('postersButton'),
           content: (
             <ImageListTab
-              isPoster
+              type={ImageType.POSTER}
               imagesList={covers}
               localFolder={localCoverFolder}
               selectImage={setSelectedCover}

@@ -31,7 +31,6 @@ function DropdownWrapper({
   return (
     <DropdownMenu
       onOpenChange={(open) => {
-        console.log('dropdown open?', open)
         onOpenChange?.(open)
       }}
     >

@@ -14,7 +14,7 @@ import { MessageType } from '@/data/enums/WSMessage'
 import { Series } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
 import { t } from 'i18next'
-import { Edit, Ellipsis } from 'lucide-react'
+import { Edit, Ellipsis, Pencil } from 'lucide-react'
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import useSWR, { mutate } from 'swr'
@@ -301,7 +301,7 @@ function SeriesDetailsPage() {
                 }
               }}
             >
-              <Edit />
+              <Pencil />
             </Button>
             {/* <Button
               variant={'ghost'}

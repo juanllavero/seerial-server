@@ -10,6 +10,7 @@ import { mutate } from 'swr'
 import ImageListTab from '../components/ImageListTab'
 import AlbumInfoTab from './components/AlbumInfoTab'
 import { shallow } from 'zustand/shallow'
+import { ImageType } from '@/utils/constants'
 
 function AlbumDialog() {
   const { t } = useTranslation()
@@ -116,7 +117,7 @@ function AlbumDialog() {
               localFolder={localPosterFolder}
               selectImage={setSelectedPoster}
               selectedImage={selectedPoster}
-              isPoster
+              type={ImageType.SQUARE}
             />
           ),
         },

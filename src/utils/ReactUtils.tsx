@@ -257,27 +257,52 @@ export const showToast = (
     | 'default' = 'default',
   message: string,
   title?: string,
+  duration?: number,
+  position?:
+    | 'top-left'
+    | 'top-center'
+    | 'top-right'
+    | 'bottom-left'
+    | 'bottom-center'
+    | 'bottom-right',
 ) => {
   switch (type) {
     case 'message':
       toast.message(title, {
         description: message,
+        duration: duration,
+        position: position,
       })
       break
     case 'success':
-      toast.success(message)
+      toast.success(message, {
+        duration: duration,
+        position: position,
+      })
       break
     case 'error':
-      toast.error(message)
+      toast.error(message, {
+        duration: duration,
+        position: position,
+      })
       break
     case 'warning':
-      toast.warning(message)
+      toast.warning(message, {
+        duration: duration,
+        position: position,
+      })
       break
     case 'info':
-      toast.info(message)
+      toast.info(message, {
+        duration: duration,
+        position: position,
+      })
       break
     case 'default':
-      toast(message)
+      toast(message, {
+        duration: duration,
+        position: position,
+      })
       break
   }
 }

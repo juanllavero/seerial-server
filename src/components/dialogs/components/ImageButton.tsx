@@ -1,9 +1,10 @@
 import { useServerStore } from '@/context/server.context'
 import Image from '../../ui/Image'
+import { ImageType } from '@/utils/constants'
 
 interface ImageButtonProps {
   image: string
-  isPoster: boolean
+  type: ImageType
   selectedImage: string
   isLocal?: boolean
   selectImage: (image: string) => void
@@ -11,7 +12,7 @@ interface ImageButtonProps {
 
 function ImageButton({
   image,
-  isPoster,
+  type = ImageType.BACKDROP,
   selectedImage,
   isLocal = false,
   selectImage,
@@ -25,13 +26,21 @@ function ImageButton({
 
   const isSelected = imageUrl === selectedImage
 
+  const width = type === ImageType.POSTER ? 60 : 90
+  const height =
+    type === ImageType.POSTER || type === ImageType.SQUARE
+      ? 90
+      : type === ImageType.BACKDROP
+        ? 50
+        : 40
+
   return (
     <div
       className={`relative cursor-pointer overflow-hidden rounded-lg transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-black/20 ${
         isSelected
           ? 'border-2 shadow-lg'
           : 'border-2 border-transparent hover:border-gray-300'
-      } w-${isPoster ? 60 : 90} h-${isPoster ? 90 : 40}`}
+      } w-${width} h-${height}`}
       style={
         isSelected
           ? {
@@ -69,13 +78,23 @@ function ImageButton({
         key={image}
         src={imageUrl}
         fallbackSrc={
-          isPoster
+          type === ImageType.POSTER
             ? '/img/fileNotFound.jpg'
             : '/img/Default_video_thumbnail.jpg'
         }
         alt={image}
-        aspectRatio={isPoster ? 2 / 3 : 16 / 9}
-        width={isPoster ? 60 : 90}
+        aspectRatio={
+          type === ImageType.POSTER
+            ? 2 / 3
+            : type === ImageType.BACKDROP
+              ? 16 / 9
+              : type === ImageType.SQUARE
+                ? 1
+                : 3 / 1
+        }
+        objectFit="contain"
+        width={width}
+        height={height}
       />
     </div>
   )

@@ -6,16 +6,11 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useDialogStore } from '@/context/dialog.context'
 import useMusicStore from '@/context/music.context'
 import { Album, Song } from '@/data/interfaces/Music'
-import { Edit, Ellipsis } from 'lucide-react'
+import { Pencil, Shuffle } from 'lucide-react'
 import Image from '@/components/ui/Image'
 import { useTranslation } from 'react-i18next'
-import {
-  DolbyAtmosIcon,
-  PauseIcon,
-  PlayIcon,
-} from '@/components/ui/IconLibrary'
+import { PauseIcon, PlayIcon } from '@/components/ui/IconLibrary'
 import useScreenHeight from '@/components/hooks/use-height'
-import { ScreenHeight } from '@/data/enums/Screen'
 import { shallow } from 'zustand/shallow'
 import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
 import { getCoverSize, getTitleSize } from '@/utils/ReactUtils'
@@ -36,6 +31,8 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
     isShown,
     togglePlayPause,
     selectSong,
+    setSongQueue,
+    setIsShown,
   } = useMusicStore(
     (state) => ({
       isPlaying: state.isPlaying,
@@ -43,6 +40,8 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
       isShown: state.isShown,
       togglePlayPause: state.togglePlayPause,
       selectSong: state.selectSong,
+      setSongQueue: state.setSongQueue,
+      setIsShown: state.setIsShown,
     }),
     shallow,
   )
@@ -141,7 +140,7 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
               }
             }}
           >
-            <Edit />
+            <Pencil />
           </Button>
           <Button
             className="h-15 rounded-full"
@@ -150,6 +149,8 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
                 togglePlayPause()
               } else if (album && album.songs && album.songs.length > 0) {
                 selectSong(album.songs[0])
+                setIsShown(true)
+                setSongQueue(album.songs)
               }
             }}
           >
@@ -164,12 +165,21 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
           <Button
             variant={'ghost'}
             className="rounded-full"
-            // onClick={(e) => {
-            //   dispatch(toggleSeasonMenu())
-            //   if (!seasonMenuOpen) cm.current?.show(e)
-            // }}
+            onClick={(e) => {
+              e.stopPropagation()
+
+              // Shuffle play
+              if (album && album.songs && album.songs.length > 0) {
+                const randomIndex = Math.floor(
+                  Math.random() * album.songs.length,
+                )
+                selectSong(album.songs[randomIndex])
+                setIsShown(true)
+                setSongQueue([...album.songs].sort(() => Math.random() - 0.5))
+              }
+            }}
           >
-            <Ellipsis />
+            <Shuffle />
           </Button>
         </FlexBox>
         <FlexBox>

@@ -28,6 +28,7 @@ import {
   Film,
   MoreVertical,
   Music,
+  Pencil,
   Plus,
   SearchIcon,
   Trash2,
@@ -213,7 +214,7 @@ const NavLibraries = () => {
                           }
                         }}
                       >
-                        <EditIcon className="text-muted-foreground" />
+                        <Pencil className="text-muted-foreground" />
                         <span>{t('editButton')}</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => searchFiles(item.id)}>

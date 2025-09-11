@@ -19,7 +19,7 @@ import { Movie } from '@/data/interfaces/Media'
 import { formatTimeForView } from '@/utils/ReactUtils'
 import { fetcher } from '@/utils/utils'
 import { t } from 'i18next'
-import { Edit, Ellipsis } from 'lucide-react'
+import { Pencil } from 'lucide-react'
 import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import useSWR from 'swr'
@@ -284,7 +284,7 @@ function MovieDetailsPage() {
                 }
               }}
             >
-              <Edit />
+              <Pencil />
             </Button>
             {/* <Button
               variant={'ghost'}

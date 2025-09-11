@@ -9,6 +9,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import useSWR, { mutate } from 'swr'
 import ImageButton from './ImageButton'
+import { ImageType } from '@/utils/constants'
 
 interface LocalImage {
   name: string
@@ -20,7 +21,7 @@ interface ImageListTabProps {
   localFolder: string
   selectImage: (image: string) => void
   selectedImage: string
-  isPoster?: boolean
+  type?: ImageType
 }
 
 function ImageListTab({
@@ -28,7 +29,7 @@ function ImageListTab({
   localFolder,
   selectImage,
   selectedImage,
-  isPoster = false,
+  type = ImageType.BACKDROP,
 }: ImageListTabProps) {
   const { t } = useTranslation()
   const serverUrl = useServerStore((state) => state.serverUrl)
@@ -206,15 +207,16 @@ function ImageListTab({
         direction="row"
         wrap="wrap"
         scroll="vertical"
+        justify="stretch"
         hideScrollbar={isTablet}
-        padding="0 0.5rem"
+        padding="0 1rem"
       >
         {imagesList &&
           imagesList.map((image) => (
             <ImageButton
               key={image}
               image={image}
-              isPoster={isPoster}
+              type={type}
               selectedImage={selectedImage}
               selectImage={selectImage}
             />
@@ -226,7 +228,7 @@ function ImageListTab({
             <ImageButton
               key={image.name + ' ' + image.url}
               image={image.url}
-              isPoster={isPoster}
+              type={type}
               isLocal
               selectedImage={selectedImage}
               selectImage={selectImage}
