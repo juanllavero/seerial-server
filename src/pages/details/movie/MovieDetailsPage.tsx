@@ -286,7 +286,7 @@ function MovieDetailsPage() {
             >
               <Edit />
             </Button>
-            <Button
+            {/* <Button
               variant={'ghost'}
               // onClick={(e) => {
               //   dispatch(toggleSeasonMenu())
@@ -294,7 +294,7 @@ function MovieDetailsPage() {
               // }}
             >
               <Ellipsis />
-            </Button>
+            </Button> */}
           </FlexBox>
           <FlexBox>
             <span className="max-w-300">

@@ -1,9 +1,11 @@
+import { useServerStore } from '@/context/server.context'
 import Image from '../../ui/Image'
 
 interface ImageButtonProps {
   image: string
   isPoster: boolean
   selectedImage: string
+  isLocal?: boolean
   selectImage: (image: string) => void
 }
 
@@ -11,11 +13,15 @@ function ImageButton({
   image,
   isPoster,
   selectedImage,
+  isLocal = false,
   selectImage,
 }: ImageButtonProps) {
+  const serverUrl = useServerStore((state) => state.serverUrl)
   const imageUrl = image.startsWith('http')
     ? image
-    : `https://image.tmdb.org/t/p/original/${image}`
+    : isLocal
+      ? `${serverUrl}/${image}`
+      : `https://image.tmdb.org/t/p/original/${image}`
 
   const isSelected = imageUrl === selectedImage
 

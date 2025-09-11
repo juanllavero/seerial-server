@@ -135,7 +135,7 @@ function ImageListTab({
         body: JSON.stringify({
           url: url,
           downloadFolder: localFolder,
-          fileName: generateRandoumUUID(),
+          fileName: `${generateRandoumUUID()}.${url.split('.').pop()}`,
         }),
         headers: {
           'Content-Type': 'application/json',
@@ -238,13 +238,14 @@ function ImageListTab({
             />
           ))}
 
-        {loaded &&
+        {!isLoading &&
           localImages &&
           localImages.map((image: { name: string; url: string }) => (
             <ImageButton
               key={image.name + ' ' + image.url}
               image={image.url}
               isPoster={isPoster}
+              isLocal
               selectedImage={selectedImage}
               selectImage={selectImage}
             />

@@ -69,17 +69,17 @@ function CollectionDialog() {
 
     await connectWS(serverUrl)
 
-    const response = await fetch(`${serverUrl}/season`, {
+    const response = await fetch(`${serverUrl}/collection/${collection.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        updatedSeason: {
-          ...collection,
-          title,
-          description,
-        },
+        ...collection,
+        title,
+        description,
+        posterSrc: selectedCover,
+        backgroundSrc: selectedBackground,
       }),
     })
 

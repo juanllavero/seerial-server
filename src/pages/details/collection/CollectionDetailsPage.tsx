@@ -92,12 +92,6 @@ function CollectionDetailsPage() {
 
   // Set background image src
   useEffect(() => {
-    console.log({
-      collection,
-      collectionImages,
-      currentBackground,
-      setCurrentBackground,
-    })
     const image =
       collection && collection.backgroundSrc && collection.backgroundSrc !== ''
         ? collection.backgroundSrc

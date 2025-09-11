@@ -303,7 +303,7 @@ function SeriesDetailsPage() {
             >
               <Edit />
             </Button>
-            <Button
+            {/* <Button
               variant={'ghost'}
               // onClick={(e) => {
               //   dispatch(toggleSeasonMenu())
@@ -311,7 +311,7 @@ function SeriesDetailsPage() {
               // }}
             >
               <Ellipsis />
-            </Button>
+            </Button> */}
           </FlexBox>
           <FlexBox>
             <span className="max-w-300 font-semibold">

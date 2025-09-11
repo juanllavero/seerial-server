@@ -245,6 +245,7 @@ function SeasonContent({
                 .sort((a, b) => a.episodeNumber - b.episodeNumber)
                 .map((episode) => (
                   <EpisodeCard
+                    key={'Episode card' + episode.id}
                     episode={episode}
                     playEpisode={playEpisode}
                     goToDetails={goToEpisodePage}
@@ -262,6 +263,7 @@ function SeasonContent({
                     episode={episode}
                     playEpisode={playEpisode}
                     goToDetails={goToEpisodePage}
+                    getEpisodeMenu={getEpisodeMenu}
                   />
                 ))}
             </FlexBox>

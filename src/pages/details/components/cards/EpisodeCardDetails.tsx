@@ -1,24 +1,31 @@
 import Card from '@/components/cards/Card'
 import EpisodeDialog from '@/components/dialogs/episode/EpisodeDialog'
 import { useIsMobile } from '@/components/hooks/use-mobile'
+import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
+import { useDialogStore } from '@/context/dialog.context'
+import { Episode } from '@/data/interfaces/Media'
 import { getVideoProgress } from '@/utils/ReactUtils'
+import { Pencil } from 'lucide-react'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
 interface EpisodeCardDetailsProps {
   episode: any
-  playEpisode: (episode: any) => void
-  goToDetails: (episode: any) => void
+  playEpisode: (episode: Episode) => void
+  goToDetails: (episode: Episode) => void
+  getEpisodeMenu: (episode: Episode) => any
 }
 
 function EpisodeCardDetails({
   episode,
   playEpisode,
   goToDetails,
+  getEpisodeMenu,
 }: EpisodeCardDetailsProps) {
   const { t } = useTranslation()
   const isMobile = useIsMobile()
+  const openEpisodeDialog = useDialogStore((state) => state.openEpisodeDialog)
 
   return (
     <FlexBox justify="start" align="center" gap={1} width={'100%'}>
@@ -29,12 +36,24 @@ function EpisodeCardDetails({
           aspectRatio={16 / 9}
           width={'100%'}
           progress={getVideoProgress(episode.video)}
-          title=""
-          subtitle=""
+          title={''}
+          watched={episode.video.watched}
+          subtitle={''}
           action={() => goToDetails(episode)}
           playButtonAction={() => playEpisode(episode)}
-          hideButtons
-          editModal={<EpisodeDialog />}
+          menu={getEpisodeMenu(episode)}
+          editModal={
+            <Button
+              variant={'ghost'}
+              size={'icon'}
+              onClick={(e) => {
+                e.stopPropagation()
+                openEpisodeDialog(episode)
+              }}
+            >
+              <Pencil size={16} />
+            </Button>
+          }
           errorSrc="/img/Default_video_thumbnail.jpg"
         />
       </div>
