@@ -321,7 +321,7 @@ export const getEpisodeByPath = async (videoSrc: string) => {
 
   const video: Video | null = await Video.findOne({
     where: {
-      videoSrc: videoSrc,
+      fileSrc: videoSrc,
     },
   });
 
@@ -400,11 +400,11 @@ export const getMovieByPath = async (videoSrc: string) => {
 
   const video: Video | null = await Video.findOne({
     where: {
-      videoSrc: videoSrc,
+      fileSrc: videoSrc,
     },
   });
 
-  if (!video || !video.episodeId) return null;
+  if (!video || !video.movieId) return null;
 
   return Movie.findByPk(video.movieId);
 };

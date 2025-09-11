@@ -12,7 +12,13 @@ import { Season } from "../../data/models/Media/Season.model";
 import { Series } from "../../data/models/Media/Series.model";
 import { Video } from "../../data/models/Media/Video.model";
 import { deleteSeries } from "../../db/delete/deleteData";
-import { getEpisodes, getSeasons, getSeriesById } from "../../db/get/getData";
+import {
+  getEpisodeByPath,
+  getEpisodes,
+  getSeasons,
+  getSeriesById,
+  getVideoByEpisodeId,
+} from "../../db/get/getData";
 import {
   addEpisode,
   addSeason,
@@ -174,7 +180,10 @@ export async function processEpisodes(
 
   // Process each episode
   for (const videoFile of videoFiles) {
-    if (!library.analyzedFiles[videoFile]) {
+    if (
+      !library.analyzedFiles[videoFile] ||
+      (await getEpisodeByPath(videoFile)) === null
+    ) {
       await processEpisode(
         library,
         show,
@@ -378,9 +387,13 @@ export async function processEpisode(
   let video: Video | null = null;
 
   if (episode) {
-    video = await addVideoAsEpisode(episode.id, {
-      fileSrc: videoSrc,
-    });
+    video = await getVideoByEpisodeId(episode.id);
+
+    if (!video) {
+      video = await addVideoAsEpisode(episode.id, {
+        fileSrc: videoSrc,
+      });
+    }
   } else {
     episode = await addEpisode({
       seasonId: season.id,

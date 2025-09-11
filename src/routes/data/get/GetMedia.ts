@@ -1,4 +1,5 @@
 import express from "express";
+import { existsSync } from "fs";
 import * as fs from "fs/promises";
 import path from "path";
 import { Album, Collection, Movie, Series } from "../../../data/models";
@@ -1034,7 +1035,7 @@ async function getCollectionImages(collection: Collection, type: string) {
   // Get the folder of the first item (root folder of the collection in this library)
   if (items.length > 0 && items[0].folder) {
     baseFolder = items[0].folder ?? "";
-    if (baseFolder !== null) {
+    if (baseFolder !== null && existsSync(baseFolder)) {
       try {
         const filesInFolder = await fs.readdir(baseFolder);
 

@@ -5,7 +5,11 @@ import { Collection } from "../../data/models/Collections/Collection.model";
 import { Library } from "../../data/models/Media/Library.model";
 import { Movie } from "../../data/models/Media/Movie.model";
 import { Video } from "../../data/models/Media/Video.model";
-import { getVideoById } from "../../db/get/getData";
+import {
+  getMovieById,
+  getVideoById,
+  getVideoByMovieId,
+} from "../../db/get/getData";
 import {
   addCollection,
   addLibraryToCollection,
@@ -93,18 +97,27 @@ export async function processFolder(
   files: string[],
   collection?: Collection
 ) {
+  let movie: Movie | null = null;
+  if (rootFolder in library.analyzedFolders) {
+    movie = await getMovieById(library.analyzedFolders[rootFolder] ?? "");
+  }
+
+  let movieMetadata: MovieResponse | null | undefined = null;
+
   const fileFullName = Utils.getFileName(rootFolder);
   const nameAndYear = Utils.extractNameAndYear(fileFullName);
 
   let name = nameAndYear[0];
   let year = nameAndYear[1];
 
-  const movieMetadata = await searchMovie(name, year, library.language);
+  movieMetadata = await searchMovie(name, year, library.language);
 
-  let movie = await addMovie({
-    libraryId: library.id,
-    folder: rootFolder,
-  });
+  if (!movie) {
+    movie = await addMovie({
+      libraryId: library.id,
+      folder: rootFolder,
+    });
+  }
 
   if (!movie) return;
 
@@ -125,8 +138,6 @@ export async function processFolder(
 
     await Promise.all(processPromises);
 
-    //show.analyzingFiles = false;
-
     // Update content in clients
     Utils.mutateMovie(wsManager);
     return;
@@ -146,8 +157,6 @@ export async function processFolder(
 
   // Save data in DB
   library.save();
-
-  //show.analyzingFiles = false;
 
   // Update content in clients
   Utils.mutateLibrary(wsManager);
@@ -399,7 +408,11 @@ export async function saveMovieWithoutMetadata(
   filePath: string,
   wsManager: WebSocketManager
 ) {
-  let video = await addVideoAsMovie(movie.id);
+  let videos = await getVideoByMovieId(movie.id);
+
+  let video: Video | null = null;
+  if (!videos?.find((v) => v.fileSrc === filePath))
+    video = await addVideoAsMovie(movie.id);
 
   if (!video) return;
 
@@ -437,15 +450,19 @@ export async function processVideo(
   filePath: string,
   wsManager: WebSocketManager
 ) {
-  let video: Video | null;
+  let video: Video | null = null;
 
   if (filePath in library.analyzedFiles) {
     video = await getVideoById(library.analyzedFiles[filePath] ?? "");
   } else {
-    video = await addVideoAsMovie(movie.id, {
-      fileSrc: filePath,
-      movieId: movie.id,
-    });
+    let videos = await getVideoByMovieId(movie.id);
+
+    if (!videos?.find((v) => v.fileSrc === filePath)) {
+      video = await addVideoAsMovie(movie.id, {
+        fileSrc: filePath,
+        movieId: movie.id,
+      });
+    }
 
     if (!video) return;
 
@@ -498,15 +515,19 @@ export async function processVideoAsExtra(
   filePath: string,
   wsManager: WebSocketManager
 ) {
-  let video: Video | null;
+  let video: Video | null = null;
 
   if (filePath in library.analyzedFiles) {
     video = await getVideoById(library.analyzedFiles[filePath] ?? "");
   } else {
-    video = await addVideoAsMovie(movie.id, {
-      fileSrc: filePath,
-      movieId: movie.id,
-    });
+    let videos = await getVideoByMovieId(movie.id);
+
+    if (!videos?.find((v) => v.fileSrc === filePath)) {
+      video = await addVideoAsMovie(movie.id, {
+        fileSrc: filePath,
+        movieId: movie.id,
+      });
+    }
 
     if (!video) return;
 
