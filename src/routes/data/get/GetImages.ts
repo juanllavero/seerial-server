@@ -19,25 +19,28 @@ router.get("/images", (req: any, res: any) => {
     return res.status(400).send("Invalid images path");
   }
 
-  fs.readdir(
-    path.join(FilesManager.resourcesPath, imagesPath),
-    (err, files) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).send("Error reading images folder");
-      }
+  const dirPath = path.join(FilesManager.resourcesPath, imagesPath);
 
-      const images = files.map((file) => {
-        const filePath = path.join(imagesPath, file);
-        return {
-          name: file,
-          url: filePath,
-        };
-      });
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
 
-      return res.json(images);
+  fs.readdir(dirPath, (err, files) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send("Error reading images folder");
     }
-  );
+
+    const images = files.map((file) => {
+      const filePath = path.join(imagesPath, file);
+      return {
+        name: file,
+        url: filePath,
+      };
+    });
+
+    return res.json(images);
+  });
 });
 
 router.get("/image", async (req: any, res: any) => {

@@ -288,32 +288,24 @@ router.post("/collections/reorder-content", async (req: any, res: any) => {
 });
 
 // Upload image
-router.post(
-  "/uploadImage",
-  FilesManager.upload.single("image"),
-  (req: any, res: any) => {
-    const file = req.file;
-    const destPath = req.body.destPath;
+router.post("/uploadImage", FilesManager.upload, (req: any, res: any) => {
+  const file = req.files?.image?.[0];
+  const destPath = req.body.destPath;
 
-    if (!file) {
-      return res.status(400).send("No file received");
-    }
-
-    if (!destPath) {
-      return res.status(400).send("Destination path not specified");
-    }
-
-    // Success response
-    res
-      .status(200)
-      .send(
-        `Image uploaded successfully to ${path.join(
-          destPath,
-          file.originalname
-        )}`
-      );
+  if (!file) {
+    return res.status(400).send("No file received");
   }
-);
+
+  if (!destPath) {
+    return res.status(400).send("Destination path not specified");
+  }
+
+  res
+    .status(200)
+    .send(
+      `Image uploaded successfully to ${path.join(destPath, file.originalname)}`
+    );
+});
 
 // Download image
 router.post("/downloadImage", async (req: any, res: any) => {

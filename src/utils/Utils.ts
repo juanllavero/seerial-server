@@ -330,6 +330,10 @@ export class Utils {
 
   public static getImages = async (dirPath: string) => {
     try {
+      if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+      }
+
       const files = fs.readdirSync(dirPath);
       const images = files.filter((file) =>
         [".png", ".jpg", ".jpeg", ".gif"].includes(
@@ -522,6 +526,10 @@ export class Utils {
 
   public static getFileInFolder = (folder: string, fileName: string) => {
     try {
+      if (!fs.existsSync(folder)) {
+        fs.mkdirSync(folder, { recursive: true });
+      }
+
       const files = fs.readdirSync(folder);
 
       const matchedFile = files.find((file) => {

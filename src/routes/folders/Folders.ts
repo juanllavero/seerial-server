@@ -45,6 +45,10 @@ router.get("/drives", (req: any, res: any) => {
 // Function to get files and folders within a directory
 const getFolderContent = (dirPath: string) => {
   const contents: { name: string; isFolder: boolean }[] = [];
+
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
   const items = fs.readdirSync(dirPath, { withFileTypes: true });
 
   items.forEach((item) => {

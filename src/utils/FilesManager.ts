@@ -50,8 +50,14 @@ export class FilesManager {
   });
 
   // Function to upload files from client
-  public static upload = multer({ storage: this.storage });
+  public static upload = multer({ storage: this.storage }).fields([
+    { name: "image", maxCount: 1 },
+    { name: "destPath", maxCount: 1 },
+  ]);
 
+  /**
+   * Initializes the folders defined in the class property 'folders' by creating them if they don't exist.
+   */
   public static initFolders() {
     // Initialize folders
     for (const folderPath of this.folders) {
