@@ -8,6 +8,8 @@ import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 import HorizontalList from '../../../../components/lists/HorizontalList'
 import { shallow } from 'zustand/shallow'
+import { get } from 'lodash'
+import { getVideoProgress } from '@/utils/ReactUtils'
 
 interface ContinueWatchingProps {
   goToContent: (url: string) => void
@@ -38,6 +40,7 @@ function ContinueWatching({ goToContent }: ContinueWatchingProps) {
       }
     />
   ))
+
   return (
     <HorizontalList title={t('continueWatching')}>
       {continueWatching && continueWatching.length > 0
@@ -48,6 +51,7 @@ function ContinueWatching({ goToContent }: ContinueWatchingProps) {
               aspectRatio={16 / 9}
               width={isMobile ? 280 : 380}
               hideButtons
+              progress={getVideoProgress(video)}
               title={`${video.title}`}
               subtitle={`${video.subtitle ? `${video.subtitle} - ` : ''} ${
                 video.seasonNumber && video.episodeNumber

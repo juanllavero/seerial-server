@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react'
+import './HTMLVideoPlayer.css'
 
 interface HTMLVideoPlayerProps {
   url: string
@@ -20,7 +21,7 @@ function HTMLVideoPlayer({ url, videoRef }: HTMLVideoPlayerProps) {
   }, [url])
 
   return (
-    <div data-vjs-player>
+    <div data-vjs-player className="hide-video">
       <video
         ref={videoRef}
         src={url}

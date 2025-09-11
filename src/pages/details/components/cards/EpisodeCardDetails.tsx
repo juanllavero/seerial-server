@@ -2,6 +2,7 @@ import Card from '@/components/cards/Card'
 import EpisodeDialog from '@/components/dialogs/episode/EpisodeDialog'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import FlexBox from '@/components/ui/FlexBox'
+import { getVideoProgress } from '@/utils/ReactUtils'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -27,11 +28,7 @@ function EpisodeCardDetails({
           imgSrc={episode.video?.imgSrc}
           aspectRatio={16 / 9}
           width={'100%'}
-          progress={
-            (episode.timeWatched / episode.runtimeInSeconds) * 100 > 0
-              ? (episode.timeWatched / episode.runtimeInSeconds) * 100
-              : undefined
-          }
+          progress={getVideoProgress(episode.video)}
           title=""
           subtitle=""
           action={() => goToDetails(episode)}

@@ -79,7 +79,7 @@ function Card({
             width="100%"
             height={'100%'}
           >
-            <Progress value={35} className="rounded-xs" />
+            <Progress value={progress} className="rounded-xs" />
           </FlexBox>
         )}
         {(cornerNumber || watched) && (

@@ -19,7 +19,6 @@ import { MouseEventHandler, useState } from 'react'
 interface ControlsProps {
   videoRef: React.RefObject<HTMLVideoElement | null>
   timelineRef: React.RefObject<HTMLDivElement | null>
-  video: Video
   isPlaying: boolean
   togglePlay: () => void
   toggleMute: () => void
@@ -30,6 +29,10 @@ interface ControlsProps {
   currentTime: number
   duration: number
   previewTime: number
+  tracks: {
+    audioTracks: AudioTrack[]
+    subtitleTracks: SubtitleTrack[]
+  }
   handleTimelineUpdate: (event: React.MouseEvent<HTMLDivElement>) => void
   toggleScrubbing: MouseEventHandler<HTMLDivElement>
   showControls: boolean
@@ -39,7 +42,6 @@ interface ControlsProps {
 function Controls({
   videoRef,
   timelineRef,
-  video,
   isPlaying,
   togglePlay,
   toggleMute,
@@ -50,6 +52,7 @@ function Controls({
   currentTime,
   duration,
   previewTime,
+  tracks,
   handleTimelineUpdate,
   toggleScrubbing,
   showControls,
@@ -167,45 +170,57 @@ function Controls({
           </span>
         </FlexBox>
         <FlexBox gap={0.5}>
-          {video.audioTracks && video.subtitleTracks && (
-            <>
+          {tracks.audioTracks && tracks.audioTracks.length > 1 && (
+            <DropdownWrapper
+              onOpenChange={setDropdownOpen}
+              content={{
+                items: [
+                  {
+                    items: tracks.audioTracks.map((track) => ({
+                      title: `${track.displayTitle} (${track.language ?? track.languageTag})`,
+                      action: () => {
+                        handleAudioTrackChange(track)
+                      },
+                    })),
+                  },
+                ],
+              }}
+              button={
+                <Button
+                  variant={'ghost'}
+                  size="icon"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                  }}
+                >
+                  <Music2 />
+                </Button>
+              }
+            />
+          )}
+          {tracks.subtitleTracks &&
+            tracks.subtitleTracks.filter(
+              (track) =>
+                track.codec !== 'HDMV_PGS_SUBTITLE' &&
+                track.codec !== 'DVD_SUBTITLE',
+            ).length > 1 && (
               <DropdownWrapper
                 onOpenChange={setDropdownOpen}
                 content={{
                   items: [
                     {
-                      items: video.audioTracks.map((track) => ({
-                        title: `${track.displayTitle} (${track.language ?? track.languageTag}) ${track.id}`,
-                        action: () => {
-                          handleAudioTrackChange(track)
-                        },
-                      })),
-                    },
-                  ],
-                }}
-                button={
-                  <Button
-                    variant={'ghost'}
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                    }}
-                  >
-                    <Music2 />
-                  </Button>
-                }
-              />
-              <DropdownWrapper
-                onOpenChange={setDropdownOpen}
-                content={{
-                  items: [
-                    {
-                      items: video.subtitleTracks.map((track) => ({
-                        title: `${track.displayTitle} (${track.language ?? track.languageTag}) ${track.id}`,
-                        action: () => {
-                          handleSubtitleTrackChange(track)
-                        },
-                      })),
+                      items: tracks.subtitleTracks
+                        .filter(
+                          (track) =>
+                            track.codec !== 'HDMV_PGS_SUBTITLE' &&
+                            track.codec !== 'DVD_SUBTITLE',
+                        )
+                        .map((track) => ({
+                          title: `${track.displayTitle} (${track.language ?? track.languageTag})`,
+                          action: () => {
+                            handleSubtitleTrackChange(track)
+                          },
+                        })),
                     },
                   ],
                 }}
@@ -222,8 +237,7 @@ function Controls({
                   </Button>
                 }
               />
-            </>
-          )}
+            )}
           <FlexBox align="center" justify="center">
             <Button
               className="show-controls"

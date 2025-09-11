@@ -4,6 +4,7 @@ import { useIsTablet } from '@/components/hooks/use-tablet'
 import { Button } from '@/components/ui/button'
 import { useDialogStore } from '@/context/dialog.context'
 import { useCardWidth } from '@/hooks/useCardWidth'
+import { getVideoProgress } from '@/utils/ReactUtils'
 import { Pencil } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -32,11 +33,7 @@ function EpisodeCard({
       imgSrc={episode.video?.imgSrc}
       aspectRatio={16 / 9}
       width={isMobile || isTablet ? '100%' : cardWidth * 2.2}
-      progress={
-        (episode.timeWatched / episode.runtimeInSeconds) * 100 > 0
-          ? (episode.timeWatched / episode.runtimeInSeconds) * 100
-          : undefined
-      }
+      progress={getVideoProgress(episode.video)}
       title={episode.name}
       watched={episode.video.watched}
       subtitle={`${t('episode')} ${episode.episodeNumber.toString()}`}

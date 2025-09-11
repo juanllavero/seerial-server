@@ -204,6 +204,7 @@ export interface Video {
   id: string
   title: string
   fileSrc: string
+  duration: number
   runtime: number
   imgSrc: string
   imgUrls: string[]

@@ -5,7 +5,7 @@ import { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
 import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
 import { fetcher } from '@/utils/utils'
 import { useParams } from 'react-router-dom'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { use, useEffect, useMemo, useRef, useState } from 'react'
 import useSWR from 'swr'
 import HTMLVideoPlayer from './components/HTMLVideoPlayer'
 import './VideoPlayerPage.css'
@@ -54,7 +54,9 @@ function VideoPlayerPage() {
   const [previewTime, setPreviewTime] = useState(0)
 
   // State for triggering stream reload
-  const [streamStartTime, setStreamStartTime] = useState(0)
+  const [streamStartTime, setStreamStartTime] = useState(
+    video?.timeWatched ?? 0,
+  )
 
   // Controls
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -73,6 +75,13 @@ function VideoPlayerPage() {
     useState<SubtitleTrack | null>(
       video?.subtitleTracks?.find((track) => track.selected) || null,
     )
+  const [tracks, setTracks] = useState<{
+    audioTracks: AudioTrack[]
+    subtitleTracks: SubtitleTrack[]
+  }>({
+    audioTracks: video?.audioTracks || [],
+    subtitleTracks: video?.subtitleTracks || [],
+  })
 
   // This hook reconstructs the video source URL whenever a dependency changes.
   const videoSrc = useMemo(() => {
@@ -338,6 +347,20 @@ function VideoPlayerPage() {
   }, [duration, isScrubbing, skip, togglePlay])
 
   useEffect(() => {
+    if (!video) return
+
+    if (video.timeWatched && video.timeWatched > 0) {
+      setStreamStartTime(video.timeWatched)
+      setTimeOffset(video.timeWatched)
+      setCurrentTime(video.timeWatched)
+    } else {
+      setStreamStartTime(0)
+      setTimeOffset(0)
+      setCurrentTime(0)
+    }
+  }, [video])
+
+  useEffect(() => {
     if (!video || !videoInfo) return
 
     const fetchData = async () => {
@@ -357,33 +380,36 @@ function VideoPlayerPage() {
 
       const data = await result.json()
 
+      const { videoTracks, audioTracks, subtitleTracks } = data
+      setTracks({ audioTracks, subtitleTracks })
+
       const audioTrack = getAudioTrack(videoInfo.preferAudioLan, video)
       const subtitleTrack = getSubtitleTrack(
         videoInfo.preferSubtitleLan,
         videoInfo.subsMode,
         video,
       )
-      const videoTrack = data.videoTracks[0] ?? null
+      const videoTrack = videoTracks[0] ?? null
 
       setSelectedAudioTrack(audioTrack)
       setSelectedSubtitleTrack(subtitleTrack)
 
-      if (videoTrack && video.videoTracks) {
-        for (const videoTrack of video.videoTracks) {
+      if (videoTrack && videoTracks) {
+        for (const videoTrack of videoTracks) {
           videoTrack.selected = false
         }
         videoTrack.selected = true
       }
 
-      if (audioTrack && video.audioTracks) {
-        for (const audioTrack of video.audioTracks) {
+      if (audioTrack && audioTracks) {
+        for (const audioTrack of audioTracks) {
           audioTrack.selected = false
         }
         audioTrack.selected = true
       }
 
-      if (subtitleTrack && video.subtitleTracks) {
-        for (const subTrack of video.subtitleTracks) {
+      if (subtitleTrack && subtitleTracks) {
+        for (const subTrack of subtitleTracks) {
           subTrack.selected = false
         }
         subtitleTrack.selected = true
@@ -393,7 +419,7 @@ function VideoPlayerPage() {
     }
 
     fetchData()
-  }, [videoId])
+  }, [videoId, videoInfo])
 
   useEffect(() => {
     const handleMouseUp = (e: MouseEvent) => {
@@ -427,7 +453,7 @@ function VideoPlayerPage() {
     track.kind = 'subtitles'
     track.label = selectedSubtitleTrack.displayTitle
     track.srclang = selectedSubtitleTrack.language
-    track.src = `${serverUrl}/subs-from-video?path=${encodeURIComponent(video?.fileSrc ?? '')}&trackId=${selectedSubtitleTrack.id - (video?.subtitleTracks?.length ?? 0)}&startTime=${streamStartTime}`
+    track.src = `${serverUrl}/subs-from-video?path=${encodeURIComponent(video?.fileSrc ?? '')}&trackId=${tracks.subtitleTracks.indexOf(selectedSubtitleTrack)}&startTime=${streamStartTime}`
     track.default = true
 
     videoPlayer.appendChild(track)
@@ -496,7 +522,7 @@ function VideoPlayerPage() {
         <Controls
           videoRef={videoRef}
           timelineRef={timelineRef}
-          video={video}
+          tracks={tracks}
           isPlaying={isPlaying}
           togglePlay={togglePlay}
           showControls={showControls}
