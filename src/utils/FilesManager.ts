@@ -32,11 +32,9 @@ export class FilesManager {
       console.log({
         storagePath: req.body.destPath,
       });
-      const destPath = this.getExternalPath(
-        req.body.destPath
-          ? path.join(this.resourcesPath, req.body.destPath)
-          : path.join(this.resourcesPath, "img", "DownloadCache")
-      ); // Destination path received from client or default
+      const destPath = req.body.destPath
+        ? path.join(this.resourcesPath, req.body.destPath)
+        : path.join(this.resourcesPath, "img", "DownloadCache"); // Destination path received from client or default
 
       // Create folder if it doesn't exist
       if (!fs.existsSync(destPath)) {
@@ -52,7 +50,6 @@ export class FilesManager {
   // Function to upload files from client
   public static upload = multer({ storage: this.storage }).fields([
     { name: "image", maxCount: 1 },
-    { name: "destPath", maxCount: 1 },
   ]);
 
   /**
