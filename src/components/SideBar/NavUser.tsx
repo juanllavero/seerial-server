@@ -32,6 +32,10 @@ export function NavUser() {
     navigate('/settings')
   }
 
+  const handleGoToProfile = () => {
+    navigate('/profile')
+  }
+
   const handleLogout = () => {
     logout()
     navigate('/login')
@@ -98,7 +102,7 @@ export function NavUser() {
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={handleGoToProfile}>
                 <UserRound />
                 Profile
               </DropdownMenuItem>

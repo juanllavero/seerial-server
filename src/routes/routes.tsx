@@ -17,6 +17,7 @@ import { Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom'
 import Root from './__root'
 import { useAuth } from '@/context/auth.context'
 import { shallow } from 'zustand/shallow'
+import ProfilePage from '@/pages/profile/ProfilePage'
 
 // Wrapper for ServerRoute to handle loader logic
 function ServerRouteWrapper() {
@@ -67,6 +68,7 @@ export function AppRoutes() {
         <Route element={<SideBarLayout />}>
           <Route path="/home" element={<HomePage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/server/:serverId/*" element={<ServerRouteWrapper />}>
             <Route index element={<Navigate to="library" replace />} />
             <Route path="library/:libraryId/:type" element={<LibraryPage />} />

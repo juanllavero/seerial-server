@@ -6,6 +6,12 @@ export interface User {
   servers: Server[]
 }
 
+export interface SearchableUser {
+  id: string
+  email: string
+  name?: string
+}
+
 export interface Server {
   id: string
   ip: string
@@ -13,4 +19,10 @@ export interface Server {
   port: number
   ownerId: string
   name: string
+}
+
+export interface Invitation {
+  id: string
+  fromUser: SearchableUser
+  createdAt: string
 }
