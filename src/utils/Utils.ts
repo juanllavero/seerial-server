@@ -202,7 +202,8 @@ export class Utils {
   public static setEpisodeWatchState = async (
     season: Season,
     episodeToUpdate: Episode,
-    state: boolean
+    state: boolean,
+    userId?: string
   ) => {
     const series = await getSeriesById(season.seriesId);
     if (!series || series.seasons.length === 0) return;
@@ -311,7 +312,7 @@ export class Utils {
     if (previousEpisodeId) {
       const prevVideo = await getVideoByEpisodeId(previousEpisodeId);
       if (prevVideo) {
-        await removeVideoFromContinueWatching(prevVideo.id);
+        await removeVideoFromContinueWatching(prevVideo.id, userId);
       }
     }
 
@@ -322,7 +323,7 @@ export class Utils {
     if (nextEpisodeId) {
       const nextVideo = await getVideoByEpisodeId(nextEpisodeId);
       if (nextVideo) {
-        await addVideoToContinueWatching(nextVideo.id);
+        await addVideoToContinueWatching(nextVideo.id, userId);
       }
     }
   };

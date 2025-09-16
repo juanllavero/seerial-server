@@ -1,6 +1,5 @@
 import { exec } from "child_process";
 import cors from "cors";
-import dns from "dns";
 import { app, Menu, shell, Tray } from "electron";
 import express from "express";
 import fs from "fs";
@@ -400,39 +399,6 @@ async function pollForCompletion(token: any) {
       }
     }, 3000); // Fetch every 3 seconds
   });
-}
-
-/**
- * NEW: Performs a DNS lookup to verify the subdomain points to the correct IP.
- * If not, it forces a DNS update.
- */
-async function verifyAndFixDns() {
-  if (!serverId || !lastKnownPublicIp) {
-    return; // Not enough info to check
-  }
-  const subdomain = `${serverId}.seerial.es`;
-  console.log(`[DNS Check]: Verifying subdomain ${subdomain}...`);
-  try {
-    const { address } = await dns.promises.lookup(subdomain);
-    if (address === lastKnownPublicIp) {
-      console.log(`[DNS Check]: OK. Subdomain correctly points to ${address}.`);
-    } else {
-      console.warn(
-        `[DNS Check]: Mismatch! Subdomain points to ${address}, but our IP is ${lastKnownPublicIp}. Forcing update...`
-      );
-      await updateDnsRecord(true);
-    }
-  } catch (error: any) {
-    if (error.code === "ENOTFOUND") {
-      console.warn(`[DNS Check]: Subdomain not found. Forcing creation...`);
-      await updateDnsRecord(true);
-    } else {
-      console.error(
-        `[DNS Check]: An unexpected error occurred during lookup:`,
-        error
-      );
-    }
-  }
 }
 //#endregion
 

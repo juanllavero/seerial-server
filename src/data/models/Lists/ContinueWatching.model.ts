@@ -19,6 +19,13 @@ export class ContinueWatching extends Model {
   })
   id!: string;
 
+  @Column({
+    type: DataType.STRING,
+    allowNull: true, // Optional for main user
+    field: "user_id",
+  })
+  userId?: string;
+
   @ForeignKey(() => Video)
   @Column({
     type: DataType.STRING,

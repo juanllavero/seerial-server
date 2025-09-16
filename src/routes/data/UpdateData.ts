@@ -209,9 +209,9 @@ router.put("/updateMediaInfo", async (req: any, res: any) => {
 });
 
 router.put("/updateWatchState", async (req: any, res: any) => {
-  const { videoId, timeWatched, watched } = req.body;
+  const { videoId, timeWatched, watched, userId } = req.body;
 
-  if (videoId == null || timeWatched == null || watched == null) {
+  if (videoId == null || timeWatched == null || watched == null || !userId) {
     return res.status(400).json({ error: "Not enough parameters" });
   }
 

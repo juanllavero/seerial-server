@@ -141,25 +141,25 @@ router.get("/remaining-videos", async (req: any, res: any) => {
 
 // Get if a series is in My List
 router.get("/isShowInMyList", async (req: any, res: any) => {
-  const { seriesId } = req.query;
+  const { seriesId, userId } = req.query;
 
-  if (typeof seriesId !== "string") {
+  if (typeof seriesId !== "string" || typeof userId !== "string") {
     return res.status(400).json({ error: "Invalid parameters" });
   }
 
-  const isInMyList = await getSeriesFromMyList(seriesId);
+  const isInMyList = await getSeriesFromMyList(seriesId, userId);
   return res.json({ isInMyList: isInMyList !== null });
 });
 
 // Get if a movie is in My List
 router.get("/isMovieInMyList", async (req: any, res: any) => {
-  const { movieId } = req.query;
+  const { movieId, userId } = req.query;
 
-  if (typeof movieId !== "string") {
+  if (typeof movieId !== "string" || typeof userId !== "string") {
     return res.status(400).json({ error: "Invalid parameters" });
   }
 
-  const isInMyList = await getMovieFromMyList(movieId);
+  const isInMyList = await getMovieFromMyList(movieId, userId);
   return res.json({ isInMyList: isInMyList !== null });
 });
 

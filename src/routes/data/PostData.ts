@@ -27,8 +27,10 @@ import {
 import {
   addMovieToMyList,
   addSeriesToMyList,
+  addVideoToContinueWatching,
   removeMovieFromMyList,
   removeSeriesFromMyList,
+  removeVideoFromContinueWatching,
 } from "../../db/post/postData";
 import { SequelizeManager } from "../../db/SequelizeManager";
 import { Downloader } from "../../downloaders/Downloader";
@@ -401,9 +403,9 @@ router.post("/updateEpisodeGroup", (req: any, res: any) => {
 
 // Set movie watched state
 router.post("/setMovieWatched", async (req: any, res: any) => {
-  const { movieId, watched } = req.body;
+  const { movieId, watched, userId } = req.body;
 
-  if (!movieId) {
+  if (!movieId || !userId) {
     return res.status(400).json({ error: "Not enough parameters" });
   }
 
@@ -416,14 +418,23 @@ router.post("/setMovieWatched", async (req: any, res: any) => {
   movie.watched = watched;
   await movie.save();
 
+  // Manage continue watching for all movie videos
+  for (const video of movie.videos) {
+    if (watched === false && video.timeWatched > 0) {
+      await addVideoToContinueWatching(video.id, userId);
+    } else if (watched === true) {
+      await removeVideoFromContinueWatching(video.id, userId);
+    }
+  }
+
   return res.json({ message: "WATCH_STATE_UPDATED" });
 });
 
 // Set video watched state
 router.post("/setVideoWatched", async (req: any, res: any) => {
-  const { videoId, watched } = req.body;
+  const { videoId, watched, userId } = req.body;
 
-  if (!videoId) {
+  if (!videoId || !userId) {
     return res.status(400).json({ error: "Not enough parameters" });
   }
 
@@ -436,14 +447,21 @@ router.post("/setVideoWatched", async (req: any, res: any) => {
   video.watched = watched;
   await video.save();
 
+  // Manage continue watching
+  if (watched === false && video.timeWatched > 0) {
+    await addVideoToContinueWatching(videoId, userId);
+  } else if (watched === true) {
+    await removeVideoFromContinueWatching(videoId, userId);
+  }
+
   return res.json({ message: "WATCH_STATE_UPDATED" });
 });
 
 // Set show watched state
 router.post("/setSeriesWatched", async (req: any, res: any) => {
-  const { seriesId, watched } = req.body;
+  const { seriesId, watched, userId } = req.body;
 
-  if (!seriesId) {
+  if (!seriesId || !userId) {
     return res.status(400).json({ error: "Not enough parameters" });
   }
 
@@ -471,6 +489,11 @@ router.post("/setSeriesWatched", async (req: any, res: any) => {
       video.lastWatched = "";
       video.timeWatched = 0;
       await video.save();
+
+      // Manage continue watching
+      if (watched === true) {
+        await removeVideoFromContinueWatching(video.id, userId);
+      }
     }
 
     seasonWithEpisodes.watched = watched;
@@ -486,9 +509,9 @@ router.post("/setSeriesWatched", async (req: any, res: any) => {
 
 // Set season watched state
 router.post("/setSeasonWatched", async (req: any, res: any) => {
-  const { seasonId, watched } = req.body;
+  const { seasonId, watched, userId } = req.body;
 
-  if (!seasonId) {
+  if (!userId || !seasonId) {
     return res.status(400).json({ error: "Not enough parameters" });
   }
 
@@ -500,22 +523,20 @@ router.post("/setSeasonWatched", async (req: any, res: any) => {
 
   // Get first or last episode
   const episodeIndex = watched === true ? season.episodes.length - 1 : 0;
-
   const episode = season.episodes.sort(
     (a, b) => a.episodeNumber - b.episodeNumber
   )[episodeIndex];
 
   // Set episode watched state
-  await Utils.setEpisodeWatchState(season, episode, watched);
-
+  await Utils.setEpisodeWatchState(season, episode, watched, userId);
   return res.json({ message: "WATCH_STATE_UPDATED" });
 });
 
 // Set episode watched state
 router.post("/setEpisodeWatched", async (req: any, res: any) => {
-  const { episodeId, watched } = req.body;
+  const { episodeId, watched, userId } = req.body;
 
-  if (!episodeId) {
+  if (!userId || !episodeId) {
     return res.status(400).json({ error: "Not enough parameters" });
   }
 
@@ -531,23 +552,23 @@ router.post("/setEpisodeWatched", async (req: any, res: any) => {
     return res.status(404).json({ error: "Season not found" });
   }
 
-  await Utils.setEpisodeWatchState(season, episode, watched);
+  await Utils.setEpisodeWatchState(season, episode, watched, userId);
 
   return res.json({ message: "WATCH_STATE_UPDATED" });
 });
 
 // Add/remove series from My List
 router.post("/updateSeriesMyList", async (req: any, res: any) => {
-  const { seriesId } = req.body;
+  const { seriesId, userId } = req.body;
 
-  if (!seriesId) {
+  if (!userId || !seriesId) {
     return res.status(400).json({ error: "Not enough parameters" });
   }
 
-  if (await getSeriesFromMyList(seriesId)) {
-    await removeSeriesFromMyList(seriesId);
+  if (await getSeriesFromMyList(seriesId, userId)) {
+    await removeSeriesFromMyList(seriesId, userId);
   } else {
-    await addSeriesToMyList(seriesId);
+    await addSeriesToMyList(seriesId, userId);
   }
 
   res.json({ message: "MY_LIST_UPDATED" });
@@ -555,16 +576,16 @@ router.post("/updateSeriesMyList", async (req: any, res: any) => {
 
 // Add/remove movie from My List
 router.post("/updateMovieMyList", async (req: any, res: any) => {
-  const { movieId } = req.body;
+  const { movieId, userId } = req.body;
 
-  if (!movieId) {
+  if (!userId || !movieId) {
     return res.status(400).json({ error: "Not enough parameters" });
   }
 
-  if (await getMovieFromMyList(movieId)) {
-    await removeMovieFromMyList(movieId);
+  if (await getMovieFromMyList(movieId, userId)) {
+    await removeMovieFromMyList(movieId, userId);
   } else {
-    await addMovieToMyList(movieId);
+    await addMovieToMyList(movieId, userId);
   }
 
   res.json({ message: "MY_LIST_UPDATED" });

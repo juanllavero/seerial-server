@@ -21,6 +21,13 @@ export class PlayList extends Model {
 
   @Column({
     type: DataType.STRING,
+    allowNull: true, // Optional for main user
+    field: "user_id",
+  })
+  userId?: string;
+
+  @Column({
+    type: DataType.STRING,
     allowNull: false,
   })
   title!: string;

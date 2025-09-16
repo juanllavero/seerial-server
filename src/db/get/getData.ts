@@ -486,7 +486,7 @@ export const getPlayListById = (id: string) => {
   });
 };
 
-export const getSeriesInMyList = async () => {
+export const getSeriesInMyList = async (userId: string) => {
   if (!SequelizeManager.sequelize) return null;
 
   try {
@@ -496,6 +496,7 @@ export const getSeriesInMyList = async () => {
         seriesId: {
           [Op.not]: null,
         },
+        userId: userId, // Filter by user ID if provided
       },
       attributes: ["seriesId"], // Only the ID
       order: [["addedAt", "DESC"]],
@@ -521,7 +522,7 @@ export const getSeriesInMyList = async () => {
   }
 };
 
-export const getMoviesInMyList = async () => {
+export const getMoviesInMyList = async (userId: string) => {
   if (!SequelizeManager.sequelize) return null;
 
   try {
@@ -531,6 +532,7 @@ export const getMoviesInMyList = async () => {
         movieId: {
           [Op.not]: null,
         },
+        userId: userId, // Filter by user ID if provided
       },
       attributes: ["movieId"], // Only the ID
       order: [["addedAt", "DESC"]],
@@ -556,13 +558,17 @@ export const getMoviesInMyList = async () => {
   }
 };
 
-export const getSeriesFromMyList = async (seriesId: string) => {
+export const getSeriesFromMyList = async (
+  seriesId: string,
+  userId?: string
+) => {
   if (!SequelizeManager.sequelize) return null;
 
   try {
     return await MyList.findOne({
       where: {
         seriesId: seriesId,
+        userId: userId,
       },
     });
   } catch (error: any) {
@@ -571,13 +577,14 @@ export const getSeriesFromMyList = async (seriesId: string) => {
   }
 };
 
-export const getMovieFromMyList = async (movieId: string) => {
+export const getMovieFromMyList = async (movieId: string, userId?: string) => {
   if (!SequelizeManager.sequelize) return null;
 
   try {
     return await MyList.findOne({
       where: {
         movieId: movieId,
+        userId: userId,
       },
     });
   } catch (error: any) {
@@ -586,11 +593,14 @@ export const getMovieFromMyList = async (movieId: string) => {
   }
 };
 
-export const getContinueWatchingVideos = async () => {
+export const getContinueWatchingVideos = async (userId: string) => {
   if (!SequelizeManager.sequelize) return null;
 
   try {
     const elements = await ContinueWatching.findAll({
+      where: {
+        userId: userId,
+      },
       include: [
         {
           model: Video,

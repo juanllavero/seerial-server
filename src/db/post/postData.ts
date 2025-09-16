@@ -648,7 +648,10 @@ export const addSong = async (song: Partial<SongData>) => {
 
 //#region Lists
 
-export const addPlaylist = async (playList: Partial<PlayListData>) => {
+export const addPlaylist = async (
+  playList: Partial<PlayListData>,
+  userId?: string
+) => {
   if (!SequelizeManager.sequelize) {
     console.error("Error: Sequelize no está inicializado");
     return null;
@@ -668,6 +671,7 @@ export const addPlaylist = async (playList: Partial<PlayListData>) => {
     const playListData = {
       ...playList,
       id: uuidv4().split("-")[0],
+      userId,
     };
 
     const newPlayList = new PlayList(playListData);
@@ -756,7 +760,7 @@ export const removeSongFromPlaylist = async (
   }
 };
 
-export const addSeriesToMyList = async (seriesId: string) => {
+export const addSeriesToMyList = async (seriesId: string, userId?: string) => {
   if (!SequelizeManager.sequelize) {
     console.error("Error: Sequelize no está inicializado");
     return null;
@@ -767,6 +771,7 @@ export const addSeriesToMyList = async (seriesId: string) => {
     const existingElement = await MyList.findOne({
       where: {
         seriesId,
+        userId,
       },
     });
 
@@ -779,6 +784,7 @@ export const addSeriesToMyList = async (seriesId: string) => {
     const newElementData = {
       id: uuidv4().split("-")[0],
       seriesId,
+      userId,
     };
 
     const newElement = new MyList(newElementData);
@@ -790,7 +796,10 @@ export const addSeriesToMyList = async (seriesId: string) => {
   }
 };
 
-export const removeSeriesFromMyList = async (seriesId: string) => {
+export const removeSeriesFromMyList = async (
+  seriesId: string,
+  userId?: string
+) => {
   if (!SequelizeManager.sequelize) {
     console.error("Error: Sequelize no está inicializado");
     return null;
@@ -801,6 +810,7 @@ export const removeSeriesFromMyList = async (seriesId: string) => {
     const existingElement = await MyList.findOne({
       where: {
         seriesId,
+        userId,
       },
     });
 
@@ -817,7 +827,7 @@ export const removeSeriesFromMyList = async (seriesId: string) => {
   }
 };
 
-export const addMovieToMyList = async (movieId: string) => {
+export const addMovieToMyList = async (movieId: string, userId?: string) => {
   if (!SequelizeManager.sequelize) {
     console.error("Error: Sequelize no está inicializado");
     return null;
@@ -828,6 +838,7 @@ export const addMovieToMyList = async (movieId: string) => {
     const existingElement = await MyList.findOne({
       where: {
         movieId,
+        userId,
       },
     });
 
@@ -840,6 +851,7 @@ export const addMovieToMyList = async (movieId: string) => {
     const newElementData = {
       id: uuidv4().split("-")[0],
       movieId,
+      userId,
     };
 
     const newElement = new MyList(newElementData);
@@ -851,7 +863,10 @@ export const addMovieToMyList = async (movieId: string) => {
   }
 };
 
-export const removeMovieFromMyList = async (movieId: string) => {
+export const removeMovieFromMyList = async (
+  movieId: string,
+  userId?: string
+) => {
   if (!SequelizeManager.sequelize) {
     console.error("Error: Sequelize no está inicializado");
     return null;
@@ -862,6 +877,7 @@ export const removeMovieFromMyList = async (movieId: string) => {
     const existingElement = await MyList.findOne({
       where: {
         movieId,
+        userId,
       },
     });
 
@@ -878,17 +894,23 @@ export const removeMovieFromMyList = async (movieId: string) => {
   }
 };
 
-export const removeVideoFromContinueWatching = async (videoId: string) => {
+export const removeVideoFromContinueWatching = async (
+  videoId: string,
+  userId?: string
+) => {
   if (!SequelizeManager.sequelize) return;
 
   try {
-    await ContinueWatching.destroy({ where: { videoId } });
+    await ContinueWatching.destroy({ where: { videoId, userId } });
   } catch (error) {
     console.error("Error al eliminar video de Continue Watching:", error);
   }
 };
 
-export const addVideoToContinueWatching = async (videoId: string) => {
+export const addVideoToContinueWatching = async (
+  videoId: string,
+  userId?: string
+) => {
   if (!SequelizeManager.sequelize) {
     console.error("Error: Sequelize no está inicializado");
     return null;
@@ -899,6 +921,7 @@ export const addVideoToContinueWatching = async (videoId: string) => {
     const existingElement = await ContinueWatching.findOne({
       where: {
         videoId,
+        userId,
       },
     });
 
@@ -911,6 +934,7 @@ export const addVideoToContinueWatching = async (videoId: string) => {
     const newElementData = {
       id: uuidv4().split("-")[0],
       videoId,
+      userId,
     };
 
     const newElement = new ContinueWatching(newElementData);

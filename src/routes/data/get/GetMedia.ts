@@ -368,16 +368,34 @@ router.get("/albums", async (req: any, res: any) => {
   return res.json(await getAlbums(libraryId as string));
 });
 
-router.get("/myListSeries", async (_req: any, res: any) => {
-  return res.json(await getSeriesInMyList());
+router.get("/myListSeries", async (req: any, res: any) => {
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).json({ error: "User ID is required" });
+  }
+
+  return res.json(await getSeriesInMyList(userId));
 });
 
-router.get("/myListMovies", async (_req: any, res: any) => {
-  return res.json(await getMoviesInMyList());
+router.get("/myListMovies", async (req: any, res: any) => {
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).json({ error: "User ID is required" });
+  }
+
+  return res.json(await getMoviesInMyList(userId));
 });
 
-router.get("/continueWatching", async (_req: any, res: any) => {
-  return res.json(await getContinueWatchingVideos());
+router.get("/continueWatching", async (req: any, res: any) => {
+  const { userId } = req.query;
+
+  if (!userId) {
+    return res.status(400).json({ error: "User ID is required" });
+  }
+
+  return res.json(await getContinueWatchingVideos(userId));
 });
 
 //#endregion
