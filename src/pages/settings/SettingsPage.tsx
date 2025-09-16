@@ -35,7 +35,7 @@ function SettingsPage() {
   useEffect(() => {
     if (serverUrl) {
       getAllServerSettings(serverUrl)
-      getAllClientSettings(serverUrl)
+      getAllClientSettings()
     }
   }, [serverUrl])
 

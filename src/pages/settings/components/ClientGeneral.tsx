@@ -5,7 +5,6 @@ import { Checkbox } from '@/components/ui/checkbox'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
-import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
@@ -25,7 +24,6 @@ const TimeFormatOptions = [
 
 function ClientGeneral() {
   const { t } = useTranslation()
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const { setClientSetting, clientSettings, setClientSettings } =
     useSettingsStore(
       (state) => ({
@@ -64,11 +62,9 @@ function ClientGeneral() {
   }
 
   const handleSave = () => {
-    if (serverUrl === '') return
-
-    setClientSetting(serverUrl, 'playBackgroundMusic', playMusic)
-    setClientSetting(serverUrl, 'backgroundMusicVolume', musicVolume)
-    setClientSetting(serverUrl, 'timeFormat', timeFormat)
+    setClientSetting('playBackgroundMusic', playMusic)
+    setClientSetting('backgroundMusicVolume', musicVolume)
+    setClientSetting('timeFormat', timeFormat)
 
     setClientSettings({
       ...clientSettings,

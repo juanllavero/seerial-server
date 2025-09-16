@@ -2,7 +2,6 @@ import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
-import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
@@ -11,7 +10,6 @@ import { shallow } from 'zustand/shallow'
 
 function ClientQuality() {
   const { t } = useTranslation()
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const { setClientSetting, clientSettings, setClientSettings } =
     useSettingsStore(
       (state) => ({
@@ -54,10 +52,8 @@ function ClientQuality() {
   )
 
   const handleSave = () => {
-    if (serverUrl === '') return
-
-    setClientSetting(serverUrl, 'localVideoQuality', localQuality)
-    setClientSetting(serverUrl, 'onlineVideoQuality', onlineQuality)
+    setClientSetting('localVideoQuality', localQuality)
+    setClientSetting('onlineVideoQuality', onlineQuality)
 
     setClientSettings({
       ...clientSettings,

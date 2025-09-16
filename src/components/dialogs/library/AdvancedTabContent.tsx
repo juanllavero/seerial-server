@@ -65,7 +65,10 @@ function AdvancedTabContent({
       'preferAudioLan',
       currentLanguage,
     )
-    return ISO6391.getNativeName(prefAudio.split('-')[0]) || currentLanguage
+    // FIX: Convert prefAudio to a string before calling .split()
+    return (
+      ISO6391.getNativeName(String(prefAudio).split('-')[0]) || currentLanguage
+    )
   }
 
   const getPrefSubLan = async () => {
@@ -74,12 +77,16 @@ function AdvancedTabContent({
       'preferSubsLan',
       currentLanguage,
     )
-    return ISO6391.getNativeName(prefSub.split('-')[0]) || currentLanguage
+    // FIX: Convert prefSub to a string before calling .split()
+    return (
+      ISO6391.getNativeName(String(prefSub).split('-')[0]) || currentLanguage
+    )
   }
 
   const getSubsMode = async () => {
     const subs = await getServerSetting(serverUrl, 'subsMode', 'autoSubs')
-    return t(subs)
+    // FIX: Convert subs to a string before passing to the translation function
+    return t(String(subs))
   }
 
   useEffect(() => {
