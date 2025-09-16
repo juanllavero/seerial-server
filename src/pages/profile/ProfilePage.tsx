@@ -1,7 +1,6 @@
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import FlexBox from '@/components/ui/FlexBox'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useServerStore } from '@/context/server.context'
 import { ReactNode, useState } from 'react'
 import FriendsTab from './components/FriendsTab'
 import ProfileSettingsTab from './components/ProfileSettingsTab'
@@ -17,9 +16,7 @@ interface TabContent {
 }
 
 function ProfilePage() {
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const isMobile = useIsMobile()
-
   const [currentTab, setCurrentTab] = useState('Profile Settings')
 
   const tabs: TabContent[] = [

@@ -1,4 +1,4 @@
-import { User } from '@/data/interfaces/Users'
+import { Server, User } from '@/data/interfaces/Users'
 import { CENTRAL_SERVER } from '@/utils/constants'
 import React, { createContext, useContext, useEffect, useState } from 'react'
 
@@ -8,6 +8,8 @@ type AuthContextType = {
   isLoading: boolean
   login: (token: string) => Promise<void>
   logout: () => void
+  changeUserName: (name: string) => Promise<void>
+  isServerOwner: (server: Server | null) => boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -36,6 +38,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [token])
 
+  const changeUserName = async (newName: string) => {
+    if (!user) return
+
+    const res = await fetch(`https://${CENTRAL_SERVER}/users/name`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      method: 'PUT',
+      body: JSON.stringify({ name: newName }),
+    })
+
+    if (res.ok) setUser({ ...user, name: newName })
+  }
+
   const login = async (newToken: string) => {
     localStorage.setItem('token', newToken)
     setToken(newToken)
@@ -47,8 +64,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     setUser(null)
   }
 
+  const isServerOwner = (server: Server | null) => {
+    if (!user || !server) return false
+    return user.id === (server.owner?.id ?? server.ownerId)
+  }
+
   return (
-    <AuthContext.Provider value={{ token, user, isLoading, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        token,
+        user,
+        isLoading,
+        login,
+        logout,
+        changeUserName,
+        isServerOwner,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )

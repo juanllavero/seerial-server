@@ -24,7 +24,6 @@ import { Library } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
 import { t } from 'i18next'
 import {
-  EditIcon,
   Film,
   MoreVertical,
   Music,
@@ -39,6 +38,8 @@ import { useNavigate } from 'react-router-dom'
 import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
 import SmallSpinner from './loading/SmallSpinner'
+import { useAuth } from '@/context/auth.context'
+import { useIsServerOwner } from '@/hooks/useServerOwner'
 
 interface Item {
   id: string
@@ -60,6 +61,7 @@ const NavLibraries = () => {
   )
   const navigate = useNavigate()
 
+  const isServerOwner = useIsServerOwner()
   const { selectedServer, serverUrl, serverStatus, apiKeyStatus } =
     useServerStore(
       (state) => ({
@@ -110,30 +112,35 @@ const NavLibraries = () => {
     }
   }, [selectedLibraryId])
 
-  const librariesItems = libraries
-    ? [
-        ...libraries.map((library) => ({
-          id: library.id,
-          name: library.name,
-          type: library.type,
-          logo:
-            library.type === LibraryTypes.SHOWS
-              ? TvMinimal
-              : library.type === LibraryTypes.MOVIES
-                ? Film
-                : Music,
-          action: () => {
-            selectLibrary(library.id)
-
-            if (!selectedServer || !serverStatus) return
-
-            navigate(
-              `/server/${selectedServer.id}/library/${library.id}/${library.type}`,
-            )
-          },
-        })),
-      ]
+  const visibleLibraries = libraries
+    ? selectedServer?.shared
+      ? libraries.filter((library) =>
+          selectedServer.libraries?.includes(library.id),
+        )
+      : libraries
     : []
+  const librariesItems = [
+    ...visibleLibraries.map((library) => ({
+      id: library.id,
+      name: library.name,
+      type: library.type,
+      logo:
+        library.type === LibraryTypes.SHOWS
+          ? TvMinimal
+          : library.type === LibraryTypes.MOVIES
+            ? Film
+            : Music,
+      action: () => {
+        selectLibrary(library.id)
+
+        if (!selectedServer || !serverStatus) return
+
+        navigate(
+          `/server/${selectedServer.id}/library/${library.id}/${library.type}`,
+        )
+      },
+    })),
+  ]
 
   return (
     <>
@@ -191,45 +198,47 @@ const NavLibraries = () => {
                       </span>
                     </a>
                   </SidebarMenuButton>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <SidebarMenuAction showOnHover>
-                        <MoreVertical />
-                        <span className="sr-only">More</span>
-                      </SidebarMenuAction>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      className="w-48 rounded-lg"
-                      side={isMobile ? 'bottom' : 'right'}
-                      align={isMobile ? 'end' : 'start'}
-                    >
-                      <DropdownMenuItem
-                        onClick={() => {
-                          const library = libraries.find(
-                            (library) => library.id === item.id,
-                          )
+                  {isServerOwner && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <SidebarMenuAction showOnHover>
+                          <MoreVertical />
+                          <span className="sr-only">More</span>
+                        </SidebarMenuAction>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        className="w-48 rounded-lg"
+                        side={isMobile ? 'bottom' : 'right'}
+                        align={isMobile ? 'end' : 'start'}
+                      >
+                        <DropdownMenuItem
+                          onClick={() => {
+                            const library = libraries.find(
+                              (library) => library.id === item.id,
+                            )
 
-                          if (library) {
-                            openLibraryDialog(library)
-                          }
-                        }}
-                      >
-                        <Pencil className="text-muted-foreground" />
-                        <span>{t('editButton')}</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => searchFiles(item.id)}>
-                        <SearchIcon className="text-muted-foreground" />
-                        <span>{t('searchFiles')}</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => openRemoveLibraryDialog(item.id)}
-                      >
-                        <Trash2 className="text-muted-foreground" />
-                        <span>{t('removeLibrary')}</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                            if (library) {
+                              openLibraryDialog(library)
+                            }
+                          }}
+                        >
+                          <Pencil className="text-muted-foreground" />
+                          <span>{t('editButton')}</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => searchFiles(item.id)}>
+                          <SearchIcon className="text-muted-foreground" />
+                          <span>{t('searchFiles')}</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => openRemoveLibraryDialog(item.id)}
+                        >
+                          <Trash2 className="text-muted-foreground" />
+                          <span>{t('removeLibrary')}</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>
@@ -237,7 +246,7 @@ const NavLibraries = () => {
         </>
       )}
 
-      {serverStatus && apiKeyStatus && (
+      {isServerOwner && serverStatus && apiKeyStatus && (
         <>
           {/* Separator */}
           <SidebarSeparator />

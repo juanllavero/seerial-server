@@ -2,6 +2,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Trash, User } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 interface ServerCardProps {
   name: string
@@ -15,6 +16,7 @@ interface ServerCardProps {
 }
 
 function ServerCard({ name, owner, borrowedLibraries, id }: ServerCardProps) {
+  const { t } = useTranslation()
   return (
     <FlexBox
       padding="1rem"
@@ -38,7 +40,7 @@ function ServerCard({ name, owner, borrowedLibraries, id }: ServerCardProps) {
         </FlexBox>
       </FlexBox>
       <FlexBox>
-        <Button variant="destructive">
+        <Button variant="destructive" title={t('removeButton')}>
           <Trash size={18} />
         </Button>
       </FlexBox>

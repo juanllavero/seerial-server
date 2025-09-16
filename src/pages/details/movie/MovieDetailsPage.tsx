@@ -29,6 +29,7 @@ import '../DetailsPage.css'
 import MyListButton from './components/MyListButton'
 import { shallow } from 'zustand/shallow'
 import ExpandableText from '@/components/ExpandableText'
+import { useIsServerOwner } from '@/hooks/useServerOwner'
 
 function MovieDetailsPage() {
   const { movieId } = useParams()
@@ -49,6 +50,7 @@ function MovieDetailsPage() {
     }),
     shallow,
   )
+  const isServerOwner = useIsServerOwner()
   const navigate = useNavigate()
 
   // Get movie data
@@ -275,17 +277,19 @@ function MovieDetailsPage() {
                 />
               </>
             )}
-            <Button
-              variant={'ghost'}
-              title={t('editButton')}
-              onClick={() => {
-                if (movie) {
-                  openMovieDialog(movie)
-                }
-              }}
-            >
-              <Pencil />
-            </Button>
+            {isServerOwner && (
+              <Button
+                variant={'ghost'}
+                title={t('editButton')}
+                onClick={() => {
+                  if (movie) {
+                    openMovieDialog(movie)
+                  }
+                }}
+              >
+                <Pencil />
+              </Button>
+            )}
             {/* <Button
               variant={'ghost'}
               // onClick={(e) => {

@@ -1,6 +1,7 @@
 import FlexBox from '@/components/ui/FlexBox'
 import { useAuth } from '@/context/auth.context'
 import { Avatar, AvatarImage, AvatarFallback } from '@radix-ui/react-avatar'
+import { User2Icon } from 'lucide-react'
 
 function UserInfo() {
   const { user } = useAuth()
@@ -15,7 +16,9 @@ function UserInfo() {
           src={user.image}
           alt={user.name}
         />
-        <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+        <AvatarFallback className="flex h-full items-center justify-center rounded-full bg-stone-800">
+          <User2Icon size={50} />
+        </AvatarFallback>
       </Avatar>
 
       <FlexBox direction="column" gap={0.5}>

@@ -14,6 +14,7 @@ import useScreenHeight from '@/components/hooks/use-height'
 import { shallow } from 'zustand/shallow'
 import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
 import { getCoverSize, getTitleSize } from '@/utils/ReactUtils'
+import { useIsServerOwner } from '@/hooks/useServerOwner'
 
 interface AlbumInfoProps {
   isLoading: boolean
@@ -24,6 +25,7 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
   const { t } = useTranslation()
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
+  const isServerOwner = useIsServerOwner()
   const screenHeight = useScreenHeight()
   const {
     isPlaying,
@@ -130,18 +132,20 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
         </div>
 
         <FlexBox gap={1} justify="center" align="center">
-          <Button
-            variant={'ghost'}
-            title={t('editButton')}
-            className="rounded-full"
-            onClick={() => {
-              if (album) {
-                openAlbumDialog(album)
-              }
-            }}
-          >
-            <Pencil />
-          </Button>
+          {isServerOwner && (
+            <Button
+              variant={'ghost'}
+              title={t('editButton')}
+              className="rounded-full"
+              onClick={() => {
+                if (album) {
+                  openAlbumDialog(album)
+                }
+              }}
+            >
+              <Pencil />
+            </Button>
+          )}
           <Button
             className="h-15 rounded-full"
             onClick={() => {

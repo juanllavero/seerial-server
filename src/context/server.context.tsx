@@ -74,37 +74,39 @@ export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
       return
     }
 
-    // For development purposes only
-    set({ serverUrl: `https://server.sirjohn.es` })
-    await get().getServerStatus()
+    const localUrl = `https://${server.ip}:${server.port}/`
+    const publicUrl = `https://${server.id}.seerial.es:${server.port}/`
 
-    // IMPORTANT: Your API must return the server's local IP in the 'ip' field.
-    // const localUrl = `https://${server.ip}:${server.port}/`
-    // const publicUrl = `https://${server.id}.seerial.es:${server.port}/`
+    console.log(`[Connection]: Pinging local URL: ${localUrl}`)
+    console.log(`[Connection]: Pinging public URL: ${publicUrl}`)
 
-    // console.log(`[Connection]: Pinging local URL: ${localUrl}`)
-    // console.log(`[Connection]: Pinging public URL: ${publicUrl}`)
+    try {
+      // Promise.any resolves as soon as the FIRST promise resolves.
+      // We race the local connection against the public one.
+      const reachableUrl = await Promise.any([
+        pingServer(localUrl),
+        pingServer(publicUrl),
+      ])
 
-    // try {
-    //   // Promise.any resolves as soon as the FIRST promise resolves.
-    //   // We race the local connection against the public one.
-    //   const reachableUrl = await Promise.any([
-    //     pingServer(localUrl),
-    //     pingServer(publicUrl),
-    //   ])
+      console.log(`[Connection]: Success! Using reachable URL: ${reachableUrl}`)
+      // Set the URL that won the race. Remove the trailing slash.
+      set({ serverUrl: reachableUrl.slice(0, -1) })
+      // Now get the full status from the confirmed reachable URL.
+      await get().getServerStatus()
+    } catch (error) {
+      console.error(
+        '[Connection]: Server is unreachable on both local and public URLs.',
+        error,
+      )
 
-    //   console.log(`[Connection]: Success! Using reachable URL: ${reachableUrl}`)
-    //   // Set the URL that won the race. Remove the trailing slash.
-    //   set({ serverUrl: reachableUrl.slice(0, -1) })
-    //   // Now get the full status from the confirmed reachable URL.
-    //   await get().getServerStatus()
-    // } catch (error) {
-    //   console.error(
-    //     '[Connection]: Server is unreachable on both local and public URLs.',
-    //     error,
-    //   )
-    //   set({ serverStatus: false, serverUrl: '' })
-    // }
+      // If the server has a tunnel, use that.
+      if (server.tunnel && server.tunnel !== '') {
+        set({ serverUrl: server.tunnel })
+        await get().getServerStatus()
+      } else {
+        set({ serverStatus: false, serverUrl: '' })
+      }
+    }
   },
 
   getServerStatus: async () => {

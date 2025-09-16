@@ -7,9 +7,12 @@ import { Input } from '@/components/ui/input'
 import { Invitation, SearchableUser } from '@/data/interfaces/Users'
 import { getInvitations, searchUsers, sendInvitation } from '@/lib/auth'
 import { showToast } from '@/utils/ReactUtils'
+import { Avatar, AvatarImage, AvatarFallback } from '@radix-ui/react-avatar'
 import React, { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 function AddFriendModal() {
+  const { t } = useTranslation()
   const [searchQuery, setSearchQuery] = React.useState<string>('')
   const [users, setUsers] = React.useState<SearchableUser[]>([])
   const isMobile = useIsMobile()
@@ -34,13 +37,13 @@ function AddFriendModal() {
     >
       <FlexBox gap={1} width={'100%'}>
         <Input
-          placeholder="Search user..."
+          placeholder={`${t('searchUser')}...`}
           width={'100%'}
           onChange={(e) => setSearchQuery(e.target.value)}
           value={searchQuery}
         />
         <Button onClick={async () => setUsers(await searchUsers(searchQuery))}>
-          Search
+          {t('searchButton')}
         </Button>
       </FlexBox>
       <FlexBox
@@ -55,12 +58,24 @@ function AddFriendModal() {
             <FlexBox
               key={user.id}
               justify="space-between"
+              className="hover:bg-secondary rounded-md transition-colors"
+              padding="1rem"
               align="center"
               width={'100%'}
             >
-              <FlexBox direction="column" gap={0.1}>
-                <span>{user.name}</span>
-                <span>{user.email}</span>
+              <FlexBox align="center" gap={1}>
+                <Avatar className="h-15 w-15">
+                  <AvatarImage
+                    className="rounded-full"
+                    src={user.image}
+                    alt={user.name}
+                  />
+                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                </Avatar>
+                <FlexBox direction="column" gap={0.1}>
+                  <span>{user.name}</span>
+                  <span>{user.email}</span>
+                </FlexBox>
               </FlexBox>
               <Button
                 disabled={invitations.some(
@@ -72,12 +87,12 @@ function AddFriendModal() {
                   updateInvitations()
                 }}
               >
-                Send Request
+                {t('sendFriendRequest')}
               </Button>
             </FlexBox>
           ))
         ) : (
-          <span>No users found</span>
+          <span>{t('noUsersFound')}</span>
         )}
       </FlexBox>
     </FlexBox>

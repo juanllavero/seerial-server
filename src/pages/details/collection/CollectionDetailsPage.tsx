@@ -31,6 +31,7 @@ import { SortableHorizontalList } from '@/components/lists/SortableHorizontalLis
 import { arrayMove } from '@dnd-kit/sortable'
 import { getCoverSize, getTitleSize } from '@/utils/ReactUtils'
 import useScreenHeight from '@/components/hooks/use-height'
+import { useIsServerOwner } from '@/hooks/useServerOwner'
 function CollectionDetailsPage() {
   const { collectionId, type } = useParams()
   const { serverUrl } = useServerStore(
@@ -39,6 +40,7 @@ function CollectionDetailsPage() {
     }),
     shallow,
   )
+  const isServerOwner = useIsServerOwner()
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
   const openCollectionDialog = useDialogStore(
     (state) => state.openCollectionDialog,
@@ -336,26 +338,30 @@ function CollectionDetailsPage() {
           <span>{getYearRange()}</span>
 
           <FlexBox gap={1} wrap="wrap">
-            <Button
-              variant={'ghost'}
-              title={t('editButton')}
-              onClick={() => {
-                if (collection) {
-                  openCollectionDialog(collection)
-                }
-              }}
-            >
-              <Pencil />
-            </Button>
-            <Button
-              variant={'ghost'}
-              // onClick={(e) => {
-              //   dispatch(toggleSeasonMenu())
-              //   if (!seasonMenuOpen) cm.current?.show(e)
-              // }}
-            >
-              <Ellipsis />
-            </Button>
+            {isServerOwner && (
+              <>
+                <Button
+                  variant={'ghost'}
+                  title={t('editButton')}
+                  onClick={() => {
+                    if (collection) {
+                      openCollectionDialog(collection)
+                    }
+                  }}
+                >
+                  <Pencil />
+                </Button>
+                <Button
+                  variant={'ghost'}
+                  // onClick={(e) => {
+                  //   dispatch(toggleSeasonMenu())
+                  //   if (!seasonMenuOpen) cm.current?.show(e)
+                  // }}
+                >
+                  <Ellipsis />
+                </Button>
+              </>
+            )}
           </FlexBox>
           <FlexBox>
             <span className="font-semibold">

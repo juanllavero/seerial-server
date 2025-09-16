@@ -14,7 +14,7 @@ import { MessageType } from '@/data/enums/WSMessage'
 import { Series } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
 import { t } from 'i18next'
-import { Edit, Ellipsis, Pencil } from 'lucide-react'
+import { Pencil } from 'lucide-react'
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import useSWR, { mutate } from 'swr'
@@ -26,6 +26,7 @@ import PlayButton from './components/PlayButton'
 import { shallow } from 'zustand/shallow'
 import ExpandableText from '@/components/ExpandableText'
 import SeasonSelectable from './components/SeasonSelectable'
+import { useIsServerOwner } from '@/hooks/useServerOwner'
 
 function SeriesDetailsPage() {
   const { seriesId } = useParams()
@@ -43,6 +44,7 @@ function SeriesDetailsPage() {
     }),
     shallow,
   )
+  const isServerOwner = useIsServerOwner()
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
   const { selectedServer, serverUrl } = useServerStore(
     (state) => ({
@@ -292,17 +294,19 @@ function SeriesDetailsPage() {
                 />
               </>
             )}
-            <Button
-              variant={'ghost'}
-              title={t('editButton')}
-              onClick={() => {
-                if (season) {
-                  openSeasonDialog(season)
-                }
-              }}
-            >
-              <Pencil />
-            </Button>
+            {isServerOwner && (
+              <Button
+                variant={'ghost'}
+                title={t('editButton')}
+                onClick={() => {
+                  if (season) {
+                    openSeasonDialog(season)
+                  }
+                }}
+              >
+                <Pencil />
+              </Button>
+            )}
             {/* <Button
               variant={'ghost'}
               // onClick={(e) => {

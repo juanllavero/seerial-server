@@ -75,9 +75,15 @@ export function ServerSwitcher() {
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">
-                  {activeServer.name}
+                  {activeServer.name
+                    ? activeServer.name
+                    : activeServer.user
+                      ? `${activeServer.user.name}'s Server`
+                      : ''}
                 </span>
-                <span className="truncate text-xs">{activeServer.ip}</span>
+                <span className="truncate text-xs">
+                  {activeServer.ip ?? ''}
+                </span>
               </div>
               <div className="h-6 w-6">
                 <ChevronRight

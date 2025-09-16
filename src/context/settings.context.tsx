@@ -1,53 +1,58 @@
 import { Settings, SettingsSection, ValueOption } from '@/data/interfaces/Utils'
+import { defaultWebConfig } from '@/utils/defaults'
 import { createWithEqualityFn } from 'zustand/traditional'
 
 interface SettingsStore {
   clientSettings: Settings
   serverSettings: Settings
   settingsSection: SettingsSection
+
   setSettingsSection: (section: SettingsSection) => void
   setClientSettings: (settings: Settings) => void
   setServerSettings: (settings: Settings) => void
-  getAllServerSettings: (serverUrl: string) => Promise<any>
+
+  getAllServerSettings: (serverUrl: string) => Promise<void>
   getServerSetting: (
     serverUrl: string,
     key: string,
     defaultValue: ValueOption,
-  ) => any
+  ) => Promise<ValueOption>
   setServerSetting: (serverUrl: string, key: string, value: ValueOption) => void
 
-  getAllClientSettings: (serverUrl: string) => Promise<any>
-  getClientSetting: (
-    serverUrl: string,
-    key: string,
-    defaultValue: ValueOption,
-  ) => any
-  setClientSetting: (serverUrl: string, key: string, value: ValueOption) => void
+  getAllClientSettings: () => void
+  getClientSetting: (key: string, defaultValue: ValueOption) => ValueOption
+  setClientSetting: (key: string, value: ValueOption) => void
 }
 
 export const useSettingsStore = createWithEqualityFn<SettingsStore>((set) => ({
-  clientSettings: {},
+  clientSettings: defaultWebConfig,
   serverSettings: {},
   settingsSection: SettingsSection.ClientGeneral,
+
   setSettingsSection: (section: SettingsSection) =>
-    set((state) => ({
-      settingsSection: section,
-    })),
-  setClientSettings: (settings: Settings) =>
+    set(() => ({ settingsSection: section })),
+
+  setClientSettings: (settings: Settings) => {
+    localStorage.setItem('clientSettings', JSON.stringify(settings))
     set((state) => ({
       clientSettings: settings,
       serverSettings: state.serverSettings,
-    })),
+    }))
+  },
+
   setServerSettings: (settings: Settings) =>
     set((state) => ({
       serverSettings: settings,
       clientSettings: state.clientSettings,
     })),
+
+  // --- SERVER SETTINGS ---
   getAllServerSettings: async (serverUrl: string) => {
     const settings = await fetch(`${serverUrl}/serverConfig`)
     const result = await settings.json()
     set({ serverSettings: result })
   },
+
   getServerSetting: async (
     serverUrl: string,
     key: string,
@@ -55,9 +60,9 @@ export const useSettingsStore = createWithEqualityFn<SettingsStore>((set) => ({
   ) => {
     const setting = await fetch(`${serverUrl}/serverConfig/${key}`)
     const result = await setting.json()
-
     return result ? result.value : defaultValue
   },
+
   setServerSetting: async (
     serverUrl: string,
     key: string,
@@ -65,39 +70,31 @@ export const useSettingsStore = createWithEqualityFn<SettingsStore>((set) => ({
   ) => {
     fetch(`${serverUrl}/serverConfig`, {
       method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ [key]: value }),
     })
   },
 
-  getAllClientSettings: async (serverUrl: string) => {
-    const settings = await fetch(`${serverUrl}/webConfig`)
-    const result = await settings.json()
-    set({ clientSettings: result })
+  // --- CLIENT SETTINGS (localStorage + defaults) ---
+  getAllClientSettings: () => {
+    const settingsStr = localStorage.getItem('clientSettings')
+    const savedSettings = settingsStr ? JSON.parse(settingsStr) : {}
+    const merged = { ...defaultWebConfig, ...savedSettings }
+    set({ clientSettings: merged })
   },
-  getClientSetting: async (
-    serverUrl: string,
-    key: string,
-    defaultValue: ValueOption,
-  ) => {
-    const setting = await fetch(`${serverUrl}/webConfig/${key}`)
-    const result = await setting.json()
 
-    return result ? result.value : defaultValue
+  getClientSetting: (key: string, defaultValue: ValueOption) => {
+    const settingsStr = localStorage.getItem('clientSettings')
+    const savedSettings = settingsStr ? JSON.parse(settingsStr) : {}
+    const merged = { ...defaultWebConfig, ...savedSettings }
+    return merged[key] ?? defaultValue
   },
-  setClientSetting: async (
-    serverUrl: string,
-    key: string,
-    value: ValueOption,
-  ) => {
-    fetch(`${serverUrl}/webConfig`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ [key]: value }),
-    })
+
+  setClientSetting: (key: string, value: ValueOption) => {
+    const settingsStr = localStorage.getItem('clientSettings')
+    const savedSettings = settingsStr ? JSON.parse(settingsStr) : {}
+    const newSettings = { ...defaultWebConfig, ...savedSettings, [key]: value }
+    localStorage.setItem('clientSettings', JSON.stringify(newSettings))
+    set({ clientSettings: newSettings })
   },
 }))

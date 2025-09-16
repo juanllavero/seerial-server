@@ -1,4 +1,9 @@
-import { Invitation, SearchableUser, User } from '@/data/interfaces/Users'
+import {
+  Invitation,
+  SearchableUser,
+  SharedServer,
+  User,
+} from '@/data/interfaces/Users'
 import { CENTRAL_SERVER } from '@/utils/constants'
 
 export function getToken(): string | null {
@@ -95,4 +100,55 @@ export async function rejectInvitation(invitationId: string) {
       headers: { Authorization: `Bearer ${token}` },
     },
   )
+}
+
+export async function getFriends(): Promise<SearchableUser[]> {
+  const token = getToken()
+  if (!token) return []
+
+  const res = await fetch(`https://${CENTRAL_SERVER}/friends`, {
+    method: 'GET',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+
+  if (!res.ok) return []
+
+  return await res.json()
+}
+
+export async function shareLibraries(
+  serverId: string,
+  userId: string,
+  libraries: string[],
+) {
+  const token = getToken()
+  if (!token) return null
+
+  await fetch(`https://${CENTRAL_SERVER}/servers/${serverId}/share`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ userId, libraries }),
+  })
+}
+
+export async function getSharedServers(
+  userId: string,
+): Promise<SharedServer[]> {
+  const token = getToken()
+  if (!token) return []
+
+  const res = await fetch(
+    `https://${CENTRAL_SERVER}/servers/shared?userId=${userId}`,
+    {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  )
+
+  if (!res.ok) return []
+
+  return await res.json()
 }

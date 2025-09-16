@@ -16,16 +16,22 @@ import { shallow } from 'zustand/shallow'
 import { useAuth } from '@/context/auth.context'
 
 export default function HomePage() {
-  const { serverUrl, serverStatus, apiKeyStatus, getServerStatus } =
-    useServerStore(
-      (state) => ({
-        serverUrl: state.serverUrl,
-        serverStatus: state.serverStatus,
-        apiKeyStatus: state.apiKeyStatus,
-        getServerStatus: state.getServerStatus,
-      }),
-      shallow,
-    )
+  const {
+    selectedServer,
+    serverUrl,
+    serverStatus,
+    apiKeyStatus,
+    getServerStatus,
+  } = useServerStore(
+    (state) => ({
+      selectedServer: state.selectedServer,
+      serverUrl: state.serverUrl,
+      serverStatus: state.serverStatus,
+      apiKeyStatus: state.apiKeyStatus,
+      getServerStatus: state.getServerStatus,
+    }),
+    shallow,
+  )
   const selectLibrary = useDataStore((state) => state.selectLibrary)
 
   // Get Libraries
@@ -59,7 +65,15 @@ export default function HomePage() {
     return <NoAPIKey />
   }
 
-  if (!libraries || libraries.length === 0) {
+  const visibleLibraries = libraries
+    ? selectedServer?.shared
+      ? libraries.filter((library) =>
+          selectedServer.libraries?.includes(library.id),
+        )
+      : libraries
+    : []
+
+  if (!visibleLibraries || visibleLibraries.length === 0) {
     return <NoContent />
   }
 
