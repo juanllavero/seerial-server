@@ -30,9 +30,11 @@ import MyListButton from './components/MyListButton'
 import { shallow } from 'zustand/shallow'
 import ExpandableText from '@/components/ExpandableText'
 import { useIsServerOwner } from '@/hooks/useServerOwner'
+import { useAuth } from '@/context/auth.context'
 
 function MovieDetailsPage() {
   const { movieId } = useParams()
+  const { user } = useAuth()
   const { setCurrentBackground, currentBackground } = useDataStore(
     (state) => ({
       setCurrentBackground: state.setCurrentBackground,
@@ -128,6 +130,7 @@ function MovieDetailsPage() {
         body: JSON.stringify({
           movieId: movie.id,
           watched: !movie.watched,
+          userId: user?.id,
         }),
       }).then(() => {
         mutate()

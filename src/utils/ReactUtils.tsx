@@ -18,7 +18,11 @@ export const getVideoProgress = (video: Video) => {
   return undefined
 }
 
-export const toggleMovieWatched = (serverUrl: string, movie: Movie) => {
+export const toggleMovieWatched = (
+  serverUrl: string,
+  movie: Movie,
+  userId: string,
+) => {
   if (movie) {
     fetch(`${serverUrl}/setMovieWatched`, {
       method: 'POST',
@@ -28,6 +32,7 @@ export const toggleMovieWatched = (serverUrl: string, movie: Movie) => {
       body: JSON.stringify({
         movieId: movie.id,
         watched: !movie.watched,
+        userId,
       }),
     }).then(() => {
       mutate((key: string) => key.startsWith(`${serverUrl}/myListMovies`))
@@ -37,7 +42,11 @@ export const toggleMovieWatched = (serverUrl: string, movie: Movie) => {
   }
 }
 
-export const toggleSeriesWatched = (serverUrl: string, series: Series) => {
+export const toggleSeriesWatched = (
+  serverUrl: string,
+  series: Series,
+  userId: string,
+) => {
   if (series) {
     fetch(`${serverUrl}/setSeriesWatched`, {
       method: 'POST',
@@ -47,6 +56,7 @@ export const toggleSeriesWatched = (serverUrl: string, series: Series) => {
       body: JSON.stringify({
         seriesId: series.id,
         watched: !series.watched,
+        userId,
       }),
     }).then(() => {
       mutate((key: string) => key.startsWith(`${serverUrl}/myListSeries`))

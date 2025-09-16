@@ -16,7 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import { SelectableOption } from '@/data/interfaces/Utils'
 import { shallow } from 'zustand/shallow'
-import { watch } from 'fs'
+import { useAuth } from '@/context/auth.context'
 
 interface SeasonContentProps {
   seasonList: Season[]
@@ -31,10 +31,10 @@ function SeasonContent({
 }: SeasonContentProps) {
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const { selectedSeasonId, selectSeason } = useDataStore(
+  const { user } = useAuth()
+  const { selectedSeasonId } = useDataStore(
     (state) => ({
       selectedSeasonId: state.selectedSeasonId,
-      selectSeason: state.selectSeason,
     }),
     shallow,
   )
@@ -101,6 +101,7 @@ function SeasonContent({
                   body: JSON.stringify({
                     episodeId: episode.id,
                     watched: true,
+                    userId: user?.id,
                   }),
                 }).finally(() => {
                   mutate((key: string) =>

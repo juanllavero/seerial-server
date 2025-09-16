@@ -97,7 +97,9 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
                       title: movie.watched
                         ? t('markUnwatched')
                         : t('markWatched'),
-                      action: () => toggleMovieWatched(serverUrl, movie),
+
+                      action: () =>
+                        user && toggleMovieWatched(serverUrl, movie, user.id),
                     },
                   ],
                 },

@@ -104,7 +104,8 @@ function MyListShows({ goToContent }: MyListShowsProps) {
                       title: series.watched
                         ? t('markUnwatched')
                         : t('markWatched'),
-                      action: () => toggleSeriesWatched(serverUrl, series),
+                      action: () =>
+                        user && toggleSeriesWatched(serverUrl, series, user.id),
                     },
                   ],
                 },

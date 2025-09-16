@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import ParentCard from './ParentCard'
 import { shallow } from 'zustand/shallow'
+import { useAuth } from '@/context/auth.context'
 
 interface MovieCardProps {
   movie: Movie
@@ -17,6 +18,7 @@ interface MovieCardProps {
 
 function MovieCard({ movie }: MovieCardProps) {
   const { t } = useTranslation()
+  const { user } = useAuth()
   const selectMovie = useDataStore((state) => state.selectMovie)
   const { selectedServer, serverUrl } = useServerStore(
     (state) => ({
@@ -49,7 +51,7 @@ function MovieCard({ movie }: MovieCardProps) {
           },
           {
             title: movie.watched ? t('markUnwatched') : t('markWatched'),
-            action: () => toggleMovieWatched(serverUrl, movie),
+            action: () => user && toggleMovieWatched(serverUrl, movie, user.id),
           },
         ],
       },
