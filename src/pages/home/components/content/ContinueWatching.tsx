@@ -10,6 +10,7 @@ import HorizontalList from '../../../../components/lists/HorizontalList'
 import { shallow } from 'zustand/shallow'
 import { get } from 'lodash'
 import { getVideoProgress } from '@/utils/ReactUtils'
+import { useAuth } from '@/context/auth.context'
 
 interface ContinueWatchingProps {
   goToContent: (url: string) => void
@@ -17,6 +18,7 @@ interface ContinueWatchingProps {
 
 function ContinueWatching({ goToContent }: ContinueWatchingProps) {
   const { t } = useTranslation()
+  const { user } = useAuth()
   const { selectedServer, serverUrl } = useServerStore(
     (state) => ({
       selectedServer: state.selectedServer,
@@ -28,7 +30,9 @@ function ContinueWatching({ goToContent }: ContinueWatchingProps) {
 
   // Get Continue Watching items
   const { data: continueWatching, isLoading } = useSWR<Video[]>(
-    selectedServer ? `${serverUrl}/continueWatching` : null,
+    selectedServer
+      ? `${serverUrl}/continueWatching?userId=${user?.id ?? null}`
+      : null,
     fetcher,
   )
 

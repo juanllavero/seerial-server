@@ -152,3 +152,23 @@ export async function getSharedServers(
 
   return await res.json()
 }
+
+export async function deleteSharedServer(serverId: string, userId: string) {
+  const token = getToken()
+  if (!token) return null
+
+  await fetch(`https://${CENTRAL_SERVER}/servers/${serverId}/share/${userId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+}
+
+export async function deleteOwnServer(serverId: string) {
+  const token = getToken()
+  if (!token) return null
+
+  await fetch(`https://${CENTRAL_SERVER}/servers/${serverId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  })
+}

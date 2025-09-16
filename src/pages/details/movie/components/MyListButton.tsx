@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button'
 import { RemoveFromListIcon, AddToListIcon } from '@/components/ui/IconLibrary'
+import { useAuth } from '@/context/auth.context'
 import { fetcher } from '@/utils/utils'
 import { t } from 'i18next'
-import React from 'react'
 import useSWR from 'swr'
 
 interface MyListButtonProps {
@@ -11,9 +11,10 @@ interface MyListButtonProps {
 }
 
 function MyListButton({ movieId, serverUrl }: MyListButtonProps) {
+  const { user } = useAuth()
   // Get if movie is in My List
   const { data: inMyList, mutate: mutateInMyList } = useSWR(
-    `${serverUrl}/isMovieInMyList?movieId=${movieId}`,
+    `${serverUrl}/isMovieInMyList?movieId=${movieId}&userId=${user?.id}`,
     fetcher,
   )
 
@@ -25,6 +26,7 @@ function MyListButton({ movieId, serverUrl }: MyListButtonProps) {
       },
       body: JSON.stringify({
         movieId: movieId,
+        userId: user?.id,
       }),
     }).then(() => {
       mutateInMyList()

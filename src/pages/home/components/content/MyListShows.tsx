@@ -12,6 +12,7 @@ import { useDialogStore } from '@/context/dialog.context'
 import { toggleSeriesWatched } from '@/utils/ReactUtils'
 import { Button } from '@/components/ui/button'
 import { Pencil } from 'lucide-react'
+import { useAuth } from '@/context/auth.context'
 
 interface MyListShowsProps {
   goToContent: (url: string) => void
@@ -19,6 +20,7 @@ interface MyListShowsProps {
 
 function MyListShows({ goToContent }: MyListShowsProps) {
   const { t } = useTranslation()
+  const { user } = useAuth()
   const {
     openIdentificationDialog,
     openEpisodesGroupDialog,
@@ -42,7 +44,9 @@ function MyListShows({ goToContent }: MyListShowsProps) {
 
   // Get Shows in My List
   const { data: showsInMyList, isLoading } = useSWR<Series[]>(
-    selectedServer ? `${serverUrl}/myListSeries` : null,
+    selectedServer
+      ? `${serverUrl}/myListSeries?userId=${user?.id ?? null}`
+      : null,
     fetcher,
   )
 
@@ -75,6 +79,7 @@ function MyListShows({ goToContent }: MyListShowsProps) {
                           },
                           body: JSON.stringify({
                             seriesId: series.id,
+                            userId: user?.id,
                           }),
                         }).then(() => {
                           mutate((key: string) =>

@@ -26,11 +26,11 @@ function ShareServersModal({ toUserId }: { toUserId: string }) {
   const [alreadyShared, setAlreadyShared] = useState<SharedServer[]>([])
   const updateInterval = 3000
 
-  useEffect(() => {
-    updateSharedServers()
-    const interval = setInterval(updateSharedServers, updateInterval)
-    return () => clearInterval(interval)
-  }, [])
+  // useEffect(() => {
+  //   updateSharedServers()
+  //   const interval = setInterval(updateSharedServers, updateInterval)
+  //   return () => clearInterval(interval)
+  // }, [])
 
   const updateSharedServers = async () => {
     const shared = await getSharedServers(toUserId)

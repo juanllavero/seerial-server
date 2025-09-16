@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
+import { useIsServerOwner } from '@/hooks/useServerOwner'
 import { Trash, User } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 

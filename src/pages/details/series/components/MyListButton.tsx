@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
 import { RemoveFromListIcon, AddToListIcon } from '@/components/ui/IconLibrary'
+import { useAuth } from '@/context/auth.context'
 import { fetcher } from '@/utils/utils'
 import { t } from 'i18next'
 import useSWR from 'swr'
@@ -10,9 +11,10 @@ interface MyListButtonProps {
 }
 
 function MyListButton({ serverUrl, seriesId }: MyListButtonProps) {
+  const { user } = useAuth()
   // Get if show is in My List
   const { data: inMyList, mutate: mutateInMyList } = useSWR(
-    `${serverUrl}/isShowInMyList?seriesId=${seriesId}`,
+    `${serverUrl}/isShowInMyList?seriesId=${seriesId}&userId=${user?.id}`,
     fetcher,
   )
 
@@ -24,6 +26,7 @@ function MyListButton({ serverUrl, seriesId }: MyListButtonProps) {
       },
       body: JSON.stringify({
         seriesId: seriesId,
+        userId: user?.id,
       }),
     }).then(() => {
       mutateInMyList()

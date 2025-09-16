@@ -12,6 +12,7 @@ import { toggleMovieWatched } from '@/utils/ReactUtils'
 import { useDialogStore } from '@/context/dialog.context'
 import { Button } from '@/components/ui/button'
 import { Pencil } from 'lucide-react'
+import { useAuth } from '@/context/auth.context'
 
 interface MyListMoviesProps {
   goToContent: (url: string) => void
@@ -19,6 +20,7 @@ interface MyListMoviesProps {
 
 function MyListMovies({ goToContent }: MyListMoviesProps) {
   const { t } = useTranslation()
+  const { user } = useAuth()
   const { openIdentificationDialog, openMovieDialog } = useDialogStore(
     (state) => ({
       openIdentificationDialog: state.openIdentificationDialog,
@@ -37,7 +39,9 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
 
   // Get Movies in My List
   const { data: moviesInMyList, isLoading } = useSWR<Movie[]>(
-    selectedServer ? `${serverUrl}/myListMovies` : null,
+    selectedServer
+      ? `${serverUrl}/myListMovies?userId=${user?.id ?? null}`
+      : null,
     fetcher,
   )
 
@@ -72,6 +76,7 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
                           },
                           body: JSON.stringify({
                             movieId: movie.id,
+                            userId: user?.id,
                           }),
                         }).then(() => {
                           mutate((key: string) =>
