@@ -10,6 +10,7 @@ import {
   Table,
 } from "sequelize-typescript";
 import { deleteSeasonData } from "../../../db/delete/deleteData";
+import { WatchList } from "../Lists/WatchList";
 import { Episode } from "./Episode.model";
 import { Series } from "./Series.model";
 
@@ -123,18 +124,25 @@ export class Season extends Model {
   })
   musicSrc!: string;
 
-  @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    defaultValue: false,
-  })
-  watched!: boolean;
-
   @BelongsTo(() => Series, { onDelete: "CASCADE" })
   series!: Series;
 
   @HasMany(() => Episode)
   episodes!: Episode[];
+
+  @ForeignKey(() => WatchList)
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    field: "watch_list_id",
+  })
+  watchListId?: string;
+
+  @BelongsTo(() => WatchList, {
+    onDelete: "CASCADE",
+    hooks: true,
+  })
+  watchList?: WatchList;
 
   @BeforeDestroy
   static async beforeDestroyHook(instance: Season): Promise<void> {

@@ -14,6 +14,7 @@ import { deleteSeriesData } from "../../../db/delete/deleteData";
 import { Cast } from "../../interfaces/Media";
 import { Collection } from "../Collections/Collection.model";
 import { CollectionSeries } from "../Collections/CollectionSeries.model";
+import { WatchList } from "../Lists/WatchList";
 import { Library } from "./Library.model";
 import { Season } from "./Season.model";
 
@@ -241,12 +242,19 @@ export class Series extends Model {
   })
   analyzingFiles!: boolean;
 
+  @ForeignKey(() => WatchList)
   @Column({
     type: DataType.STRING,
     allowNull: true,
-    field: "currently_watching_episode_id",
+    field: "watch_list_id",
   })
-  currentlyWatchingEpisodeId!: string | null;
+  watchListId?: string;
+
+  @BelongsTo(() => WatchList, {
+    onDelete: "CASCADE",
+    hooks: true,
+  })
+  watchList?: WatchList;
 
   @Column({ type: DataType.STRING, allowNull: true, field: "prefer_audio_lan" })
   preferAudioLan?: string;
@@ -256,13 +264,6 @@ export class Series extends Model {
 
   @Column({ type: DataType.STRING, allowNull: true, field: "subs_mode" })
   subsMode?: string;
-
-  @Column({
-    type: DataType.BOOLEAN,
-    defaultValue: false,
-    allowNull: false,
-  })
-  watched!: boolean;
 
   @BelongsTo(() => Library, { onDelete: "CASCADE" })
   library!: Library;

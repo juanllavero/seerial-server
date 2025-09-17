@@ -16,6 +16,7 @@ import { Collection } from "../Collections/Collection.model";
 import { CollectionMovie } from "../Collections/CollectionMovie.model";
 import { Library } from "./Library.model";
 import { Video } from "./Video.model";
+import { WatchList } from "../Lists/WatchList";
 
 @Table({ tableName: "Movie", timestamps: false })
 export class Movie extends Model {
@@ -284,13 +285,6 @@ export class Movie extends Model {
   backgroundsUrls!: string[];
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    defaultValue: false,
-  })
-  watched!: boolean;
-
-  @Column({
     type: DataType.STRING,
     allowNull: false,
     field: "video_src",
@@ -332,6 +326,20 @@ export class Movie extends Model {
   CollectionMovie?: {
     custom_order: number;
   };
+
+  @ForeignKey(() => WatchList)
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    field: "watch_list_id",
+  })
+  watchListId?: string;
+
+  @BelongsTo(() => WatchList, {
+    onDelete: "CASCADE",
+    hooks: true,
+  })
+  watchList?: WatchList;
 
   @BeforeDestroy
   static async beforeDestroyHook(instance: Movie): Promise<void> {

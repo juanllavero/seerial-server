@@ -3,6 +3,7 @@ import { Collection } from "../../data/models/Collections/Collection.model";
 import { ContinueWatching } from "../../data/models/Lists/ContinueWatching.model";
 import { MyList } from "../../data/models/Lists/MyList.model";
 import { PlayList } from "../../data/models/Lists/PlayList.model";
+import { WatchList } from "../../data/models/Lists/WatchList";
 import { Episode } from "../../data/models/Media/Episode.model";
 import { Library } from "../../data/models/Media/Library.model";
 import { Movie } from "../../data/models/Media/Movie.model";
@@ -262,6 +263,10 @@ export const getSeriesById = (seriesId: string) => {
         model: Season,
         as: "seasons",
       },
+      {
+        model: WatchList,
+        as: "watchList",
+      },
     ],
   });
 };
@@ -290,6 +295,10 @@ export const getSeasonById = (seasonId: string) => {
         as: "episodes",
         include: [{ model: Video, as: "video" }],
       },
+      {
+        model: WatchList,
+        as: "watchList",
+      },
     ],
   });
 };
@@ -312,7 +321,13 @@ export const getEpisodeById = (episodeId: string) => {
   if (!SequelizeManager.sequelize) return null;
 
   return Episode.findByPk(episodeId, {
-    include: [{ model: Video, as: "video" }],
+    include: [
+      {
+        model: Video,
+        as: "video",
+        include: [{ model: WatchList, as: "watchList" }],
+      },
+    ],
   });
 };
 
@@ -337,7 +352,9 @@ export const getEpisodeByPath = async (videoSrc: string) => {
 export const getVideoById = async (id: string) => {
   if (!SequelizeManager.sequelize) return null;
 
-  return await Video.findByPk(id);
+  return await Video.findByPk(id, {
+    include: [{ model: WatchList, as: "watchList" }],
+  });
 };
 
 export const getVideoByEpisodeId = (episodeId: string) => {
@@ -347,6 +364,7 @@ export const getVideoByEpisodeId = (episodeId: string) => {
     where: {
       episodeId,
     },
+    include: [{ model: WatchList, as: "watchList" }],
   });
 };
 
@@ -389,8 +407,13 @@ export const getMovieById = (movieId: string) => {
 
   return Movie.findByPk(movieId, {
     include: [
-      { model: Video, as: "videos" },
+      {
+        model: Video,
+        as: "videos",
+        include: [{ model: WatchList, as: "watchList" }],
+      },
       { model: Video, as: "extras" },
+      { model: WatchList, as: "watchList" },
     ],
   });
 };
@@ -619,6 +642,10 @@ export const getContinueWatchingVideos = async (userId: string) => {
               ],
             },
             { model: Movie, as: "movie" },
+            {
+              model: WatchList,
+              as: "watchList",
+            },
           ],
         },
       ],
@@ -630,6 +657,8 @@ export const getContinueWatchingVideos = async (userId: string) => {
       .map((item) => {
         const itemVideo = item?.video;
         if (!itemVideo) return null;
+
+        const timeWatched = itemVideo.watchList?.timeWatched ?? 0;
 
         // Validate episode
         if (itemVideo.episode) {
@@ -647,7 +676,7 @@ export const getContinueWatchingVideos = async (userId: string) => {
             seasonNumber: episode.seasonNumber ?? 0,
             date: episode.year ?? "",
             duration: itemVideo.runtime ?? 0,
-            timeWatched: itemVideo.timeWatched ?? 0,
+            timeWatched: timeWatched,
             genres: series.genres ?? [],
             overview:
               episode.overview ?? season.overview ?? series.overview ?? "",
@@ -671,7 +700,7 @@ export const getContinueWatchingVideos = async (userId: string) => {
             title: movie.name ?? "Not found",
             date: movie.year ?? "",
             duration: itemVideo.runtime ?? 0,
-            timeWatched: itemVideo.timeWatched ?? 0,
+            timeWatched: timeWatched,
             genres: movie.genres ?? [],
             overview: movie.overview,
             backgroundImage: movie.backgroundSrc,
@@ -691,6 +720,64 @@ export const getContinueWatchingVideos = async (userId: string) => {
   } catch (error: any) {
     console.log(`Error fetching Continue_Watching videos: ${error.message}`);
     return [];
+  }
+};
+
+export const getWatchListByVideoId = async (
+  videoId: string,
+  userId: string
+) => {
+  if (!SequelizeManager.sequelize) return null;
+
+  try {
+    return await WatchList.findOne({
+      where: {
+        videoId: videoId,
+        userId: userId,
+      },
+    });
+  } catch (error: any) {
+    console.log(`Error fetching WatchList: ${error.message}`);
+    return null;
+  }
+};
+
+export const getWatchListById = async (id: string) => {
+  if (!SequelizeManager.sequelize) return null;
+
+  try {
+    const watchList = await WatchList.findByPk(id);
+
+    if (!watchList) {
+      return null;
+    }
+
+    return watchList;
+  } catch (error: any) {
+    console.log(`Error fetching WatchList: ${error.message}`);
+    return null;
+  }
+};
+
+export const getCurrentlyWatchingEpisodeId = async (seriesId: string) => {
+  if (!SequelizeManager.sequelize) return null;
+
+  try {
+    return await ContinueWatching.findOne({
+      where: {
+        seriesId: seriesId,
+      },
+      include: [
+        {
+          model: Video,
+          as: "video",
+          include: [{ model: Episode, as: "episode" }],
+        },
+      ],
+    });
+  } catch (error: any) {
+    console.log(`Error fetching Currently_Watching: ${error.message}`);
+    return null;
   }
 };
 

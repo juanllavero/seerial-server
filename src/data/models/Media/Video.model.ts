@@ -17,6 +17,7 @@ import {
   VideoTrack,
 } from "../../interfaces/MediaInfo";
 import { ContinueWatching } from "../Lists/ContinueWatching.model";
+import { WatchList } from "../Lists/WatchList";
 import { Episode } from "./Episode.model";
 import { Movie } from "./Movie.model";
 
@@ -67,29 +68,6 @@ export class Video extends Model {
     field: "img_urls",
   })
   imgUrls!: string[];
-
-  @Column({
-    type: DataType.BOOLEAN,
-    defaultValue: false,
-    allowNull: false,
-  })
-  watched!: boolean;
-
-  @Column({
-    type: DataType.INTEGER,
-    defaultValue: 0,
-    allowNull: false,
-    field: "time_watched",
-  })
-  timeWatched!: number;
-
-  @Column({
-    type: DataType.STRING,
-    defaultValue: "",
-    allowNull: false,
-    field: "last_watched",
-  })
-  lastWatched!: string;
 
   @Column({
     type: DataType.JSON,
@@ -210,6 +188,20 @@ export class Video extends Model {
     hooks: true,
   })
   continueWatching?: ContinueWatching;
+
+  @ForeignKey(() => WatchList)
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    field: "watch_list_id",
+  })
+  watchListId?: string;
+
+  @BelongsTo(() => WatchList, {
+    onDelete: "CASCADE",
+    hooks: true,
+  })
+  watchList?: WatchList;
 
   @BeforeDestroy
   static async beforeDestroyHook(instance: Video): Promise<void> {

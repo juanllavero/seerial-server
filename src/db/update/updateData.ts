@@ -6,18 +6,19 @@ import {
   Season as SeasonData,
   Series as SeriesData,
   Video as VideoData,
-} from '../../data/interfaces/Media';
-import { Collection } from '../../data/models/Collections/Collection.model';
-import { PlayList } from '../../data/models/Lists/PlayList.model';
-import { Episode } from '../../data/models/Media/Episode.model';
-import { Library } from '../../data/models/Media/Library.model';
-import { Movie } from '../../data/models/Media/Movie.model';
-import { Season } from '../../data/models/Media/Season.model';
-import { Series } from '../../data/models/Media/Series.model';
-import { Video } from '../../data/models/Media/Video.model';
-import { Album } from '../../data/models/music/Album.model';
-import { Artist } from '../../data/models/music/Artist.model';
-import { Song } from '../../data/models/music/Song.model';
+} from "../../data/interfaces/Media";
+import { Collection } from "../../data/models/Collections/Collection.model";
+import { PlayList } from "../../data/models/Lists/PlayList.model";
+import { WatchList } from "../../data/models/Lists/WatchList";
+import { Episode } from "../../data/models/Media/Episode.model";
+import { Library } from "../../data/models/Media/Library.model";
+import { Movie } from "../../data/models/Media/Movie.model";
+import { Season } from "../../data/models/Media/Season.model";
+import { Series } from "../../data/models/Media/Series.model";
+import { Video } from "../../data/models/Media/Video.model";
+import { Album } from "../../data/models/music/Album.model";
+import { Artist } from "../../data/models/music/Artist.model";
+import { Song } from "../../data/models/music/Song.model";
 import {
   getAlbumById,
   getArtistById,
@@ -30,8 +31,9 @@ import {
   getSeriesById,
   getSongById,
   getVideoById,
-} from '../get/getData';
-import { SequelizeManager } from '../SequelizeManager';
+  getWatchListById,
+} from "../get/getData";
+import { SequelizeManager } from "../SequelizeManager";
 
 //#region Libraries
 
@@ -46,7 +48,7 @@ export async function updateLibrary(
   data: Partial<LibraryData>
 ): Promise<Library> {
   if (!SequelizeManager.sequelize) {
-    throw new Error('Sequelize is not initialized');
+    throw new Error("Sequelize is not initialized");
   }
 
   const [affectedCount] = await Library.update(data, {
@@ -81,7 +83,7 @@ export async function updateCollection(
   data: Partial<CollectionData>
 ): Promise<Collection> {
   if (!SequelizeManager.sequelize) {
-    throw new Error('Sequelize is not initialized');
+    throw new Error("Sequelize is not initialized");
   }
 
   const [affectedCount] = await Collection.update(data, {
@@ -116,7 +118,7 @@ export async function updateMovie(
   data: Partial<MovieData>
 ): Promise<Movie> {
   if (!SequelizeManager.sequelize) {
-    throw new Error('Sequelize is not initialized');
+    throw new Error("Sequelize is not initialized");
   }
 
   const [affectedCount] = await Movie.update(data, {
@@ -147,7 +149,7 @@ export async function updateSeries(
   data: Partial<SeriesData>
 ): Promise<Series> {
   if (!SequelizeManager.sequelize) {
-    throw new Error('Sequelize is not initialized');
+    throw new Error("Sequelize is not initialized");
   }
 
   const [affectedCount] = await Series.update(data, {
@@ -178,7 +180,7 @@ export async function updateSeason(
   data: Partial<SeasonData>
 ): Promise<Season> {
   if (!SequelizeManager.sequelize) {
-    throw new Error('Sequelize is not initialized');
+    throw new Error("Sequelize is not initialized");
   }
 
   const [affectedCount] = await Season.update(data, {
@@ -209,7 +211,7 @@ export async function updateEpisode(
   data: Partial<EpisodeData>
 ): Promise<Episode> {
   if (!SequelizeManager.sequelize) {
-    throw new Error('Sequelize is not initialized');
+    throw new Error("Sequelize is not initialized");
   }
 
   const [affectedCount] = await Episode.update(data, {
@@ -240,7 +242,7 @@ export async function updateVideo(
   data: Partial<VideoData>
 ): Promise<Video> {
   if (!SequelizeManager.sequelize) {
-    throw new Error('Sequelize is not initialized');
+    throw new Error("Sequelize is not initialized");
   }
 
   const [affectedCount] = await Video.update(data, {
@@ -275,7 +277,7 @@ export async function updateAlbum(
   data: Partial<Album>
 ): Promise<Album> {
   if (!SequelizeManager.sequelize) {
-    throw new Error('Sequelize is not initialized');
+    throw new Error("Sequelize is not initialized");
   }
 
   const [affectedCount] = await Album.update(data, {
@@ -306,7 +308,7 @@ export async function updateSong(
   data: Partial<Song>
 ): Promise<Song> {
   if (!SequelizeManager.sequelize) {
-    throw new Error('Sequelize is not initialized');
+    throw new Error("Sequelize is not initialized");
   }
 
   const [affectedCount] = await Song.update(data, {
@@ -337,7 +339,7 @@ export async function updateArtist(
   data: Partial<Artist>
 ): Promise<Artist> {
   if (!SequelizeManager.sequelize) {
-    throw new Error('Sequelize is not initialized');
+    throw new Error("Sequelize is not initialized");
   }
 
   const [affectedCount] = await Artist.update(data, {
@@ -372,7 +374,7 @@ export async function updatePlayList(
   data: Partial<PlayList>
 ): Promise<PlayList> {
   if (!SequelizeManager.sequelize) {
-    throw new Error('Sequelize is not initialized');
+    throw new Error("Sequelize is not initialized");
   }
 
   const [affectedCount] = await PlayList.update(data, {
@@ -390,6 +392,31 @@ export async function updatePlayList(
   }
 
   return updatedPlayList;
+}
+
+export async function updateWatchList(
+  id: string,
+  data: Partial<WatchList>
+): Promise<WatchList> {
+  if (!SequelizeManager.sequelize) {
+    throw new Error("Sequelize is not initialized");
+  }
+
+  const [affectedCount] = await WatchList.update(data, {
+    where: { id },
+  });
+
+  if (affectedCount === 0) {
+    throw new Error(`WatchList with ID ${id} not found`);
+  }
+
+  const updatedWatchList = await getWatchListById(id);
+
+  if (!updatedWatchList) {
+    throw new Error(`Failed to retrieve updated WatchList with ID ${id}`);
+  }
+
+  return updatedWatchList;
 }
 
 //#endregion

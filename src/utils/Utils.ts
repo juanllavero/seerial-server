@@ -4,15 +4,22 @@ import { Episode as MovieDBEpisode, TvSeasonResponse } from "moviedb-promise";
 import path from "path";
 import { WebSocketManager } from "../WebSockets/WebSocketManager";
 import { Episode, Season } from "../data/models";
+import { deleteAllVideosFromContinueWatching } from "../db/delete/deleteData";
 import {
+  getCurrentlyWatchingEpisodeId,
   getEpisodeById,
   getSeasonById,
   getSeriesById,
   getVideoByEpisodeId,
 } from "../db/get/getData";
 import {
+  addSeasonToWatchList,
+  addSeriesToWatchList,
   addVideoToContinueWatching,
-  removeVideoFromContinueWatching,
+  addVideoToWatchList,
+  removeSeasonFromWatchList,
+  removeSeriesFromWatchList,
+  removeVideoFromWatchList,
 } from "../db/post/postData";
 
 export class Utils {
@@ -203,13 +210,13 @@ export class Utils {
     season: Season,
     episodeToUpdate: Episode,
     state: boolean,
-    userId?: string
+    userId: string
   ) => {
     const series = await getSeriesById(season.seriesId);
     if (!series || series.seasons.length === 0) return;
 
     // Store previous episode marked as 'currently watching'
-    const previousEpisodeId = series.currentlyWatchingEpisodeId;
+    const previousEpisodeId = await getCurrentlyWatchingEpisodeId(series.id);
     let nextEpisodeId: string | null = null;
 
     // Sort seasons
@@ -230,12 +237,10 @@ export class Utils {
         for (const e of episodes) {
           const video = await getVideoByEpisodeId(e.id);
           if (!video) continue;
-          video.watched = true;
-          video.lastWatched = "";
-          video.timeWatched = 0;
+          await addVideoToWatchList(video.id, userId);
           await video.save();
         }
-        s.watched = true;
+        await addSeasonToWatchList(s.id, userId);
         await s.save();
         continue;
       }
@@ -244,12 +249,10 @@ export class Utils {
         for (const e of episodes) {
           const video = await getVideoByEpisodeId(e.id);
           if (!video) continue;
-          video.watched = false;
-          video.lastWatched = "";
-          video.timeWatched = 0;
+          await removeVideoFromWatchList(video.id, userId);
           await video.save();
         }
-        s.watched = false;
+        await removeSeasonFromWatchList(s.id, userId);
         await s.save();
         continue;
       }
@@ -263,9 +266,13 @@ export class Utils {
         if (!video) continue;
 
         if (e.episodeNumber < episodeToUpdate.episodeNumber) {
-          video.watched = true;
+          await addVideoToWatchList(video.id, userId);
         } else if (e.episodeNumber === episodeToUpdate.episodeNumber) {
-          video.watched = state;
+          if (state) {
+            await addVideoToWatchList(video.id, userId);
+          } else {
+            await removeVideoFromWatchList(video.id, userId);
+          }
 
           if (state === false) {
             nextEpisodeId = e.id;
@@ -294,36 +301,46 @@ export class Utils {
             }
           }
         } else {
-          video.watched = false;
+          await removeVideoFromWatchList(video.id, userId);
         }
-
-        video.lastWatched = "";
-        video.timeWatched = 0;
         await video.save();
 
-        if (!video.watched) allWatchedThisSeason = false;
+        if (!video.watchList) allWatchedThisSeason = false;
       }
 
-      s.watched = allWatchedThisSeason;
+      if (allWatchedThisSeason) {
+        await addSeasonToWatchList(s.id, userId);
+      } else {
+        await removeSeasonFromWatchList(s.id, userId);
+      }
+
       await s.save();
     }
 
+    await deleteAllVideosFromContinueWatching(userId, series.id);
+
     // Update series and continue watching
-    if (previousEpisodeId) {
-      const prevVideo = await getVideoByEpisodeId(previousEpisodeId);
-      if (prevVideo) {
-        await removeVideoFromContinueWatching(prevVideo.id, userId);
-      }
+    // if (previousEpisodeId && previousEpisodeId.video?.episode?.id) {
+    //   const prevVideo = await getVideoByEpisodeId(
+    //     previousEpisodeId.video?.episode?.id
+    //   );
+    //   if (prevVideo) {
+    //     await removeVideoFromContinueWatching(prevVideo.id, userId);
+    //   }
+    // }
+
+    if (!nextEpisodeId) {
+      await addSeriesToWatchList(series.id, userId);
+    } else {
+      await removeSeriesFromWatchList(series.id, userId);
     }
 
-    series.currentlyWatchingEpisodeId = nextEpisodeId ?? "";
-    series.watched = !nextEpisodeId;
     await series.save();
 
     if (nextEpisodeId) {
       const nextVideo = await getVideoByEpisodeId(nextEpisodeId);
       if (nextVideo) {
-        await addVideoToContinueWatching(nextVideo.id, userId);
+        await addVideoToContinueWatching(nextVideo.id, userId, series.id);
       }
     }
   };

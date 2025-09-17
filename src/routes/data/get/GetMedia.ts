@@ -184,7 +184,7 @@ const getRemainingVideos = async (itemId: string) => {
 
   let remainingVideos = 0;
   for (const video of movie.videos) {
-    if (!video.watched) {
+    if (!video.watchList) {
       remainingVideos++;
     }
   }
@@ -207,7 +207,7 @@ const getRemainingEpisodes = async (itemId: string) => {
 
     for (const episode of season.episodes) {
       const video = await getVideoByEpisodeId(episode.id);
-      if (video && !video.watched) {
+      if (video && !video.watchList) {
         remainingEpisodes++;
       }
     }

@@ -26,11 +26,19 @@ import {
 } from "../../db/get/getData";
 import {
   addMovieToMyList,
+  addMovieToWatchList,
+  addSeasonToWatchList,
   addSeriesToMyList,
+  addSeriesToWatchList,
   addVideoToContinueWatching,
+  addVideoToWatchList,
   removeMovieFromMyList,
+  removeMovieFromWatchList,
+  removeSeasonFromWatchList,
   removeSeriesFromMyList,
+  removeSeriesFromWatchList,
   removeVideoFromContinueWatching,
+  removeVideoFromWatchList,
 } from "../../db/post/postData";
 import { SequelizeManager } from "../../db/SequelizeManager";
 import { Downloader } from "../../downloaders/Downloader";
@@ -415,12 +423,16 @@ router.post("/setMovieWatched", async (req: any, res: any) => {
     return res.status(404).json({ error: "Movie not found" });
   }
 
-  movie.watched = watched;
+  if (watched) {
+    await addMovieToWatchList(movieId, userId);
+  } else {
+    await removeMovieFromWatchList(movieId, userId);
+  }
   await movie.save();
 
   // Manage continue watching for all movie videos
   for (const video of movie.videos) {
-    if (watched === false && video.timeWatched > 0) {
+    if (watched === false && (video.watchList?.timeWatched ?? 0) > 0) {
       await addVideoToContinueWatching(video.id, userId);
     } else if (watched === true) {
       await removeVideoFromContinueWatching(video.id, userId);
@@ -444,15 +456,12 @@ router.post("/setVideoWatched", async (req: any, res: any) => {
     return res.status(404).json({ error: "Video not found" });
   }
 
-  video.watched = watched;
-  await video.save();
-
-  // Manage continue watching
-  if (watched === false && video.timeWatched > 0) {
-    await addVideoToContinueWatching(videoId, userId);
-  } else if (watched === true) {
-    await removeVideoFromContinueWatching(videoId, userId);
+  if (watched) {
+    await addVideoToWatchList(videoId, userId);
+  } else {
+    await removeVideoFromWatchList(videoId, userId);
   }
+  await video.save();
 
   return res.json({ message: "WATCH_STATE_UPDATED" });
 });
@@ -485,9 +494,11 @@ router.post("/setSeriesWatched", async (req: any, res: any) => {
 
       if (!video) continue;
 
-      video.watched = watched;
-      video.lastWatched = "";
-      video.timeWatched = 0;
+      if (watched) {
+        await addVideoToWatchList(video.id, userId);
+      } else {
+        await removeVideoFromWatchList(video.id, userId);
+      }
       await video.save();
 
       // Manage continue watching
@@ -496,12 +507,19 @@ router.post("/setSeriesWatched", async (req: any, res: any) => {
       }
     }
 
-    seasonWithEpisodes.watched = watched;
+    if (watched) {
+      await addSeasonToWatchList(seasonWithEpisodes.id, userId);
+    } else {
+      await removeSeasonFromWatchList(seasonWithEpisodes.id, userId);
+    }
     await seasonWithEpisodes.save();
   }
 
-  series.watched = watched;
-  series.currentlyWatchingEpisodeId = "";
+  if (watched) {
+    await addSeriesToWatchList(seriesId, userId);
+  } else {
+    await removeSeriesFromWatchList(seriesId, userId);
+  }
   await series.save();
 
   return res.json({ message: "WATCH_STATE_UPDATED" });

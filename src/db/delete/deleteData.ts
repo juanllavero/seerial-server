@@ -1,5 +1,6 @@
 import fs from "fs-extra";
 import path from "path";
+import { Op } from "sequelize";
 import {
   Movie as MovieData,
   Season as SeasonData,
@@ -536,6 +537,31 @@ export async function deleteFromContinueWatching(id: string): Promise<boolean> {
 
   if (affectedCount === 0) {
     throw new Error(`ContinueWatching with ID ${id} not found`);
+  }
+
+  return true;
+}
+
+export async function deleteAllVideosFromContinueWatching(
+  userId: string,
+  seriesId?: string,
+  movieId?: string
+): Promise<boolean> {
+  if (!SequelizeManager.sequelize) {
+    throw new Error("Sequelize is not initialized");
+  }
+
+  const affectedCount = await ContinueWatching.destroy({
+    where: {
+      userId,
+      [Op.or]: [{ seriesId }, { movieId }],
+    },
+  });
+
+  if (affectedCount === 0) {
+    throw new Error(
+      `ContinueWatching with seriesId ${seriesId} and movieId ${movieId} not found`
+    );
   }
 
   return true;

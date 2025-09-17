@@ -106,7 +106,7 @@ router.get("/remaining-episodes", async (req: any, res: any) => {
 
     for (const episode of season.episodes) {
       const video = await getVideoByEpisodeId(episode.id);
-      if (video && !video.watched) {
+      if (video && !video.watchList) {
         remainingEpisodes++;
       }
     }
@@ -131,7 +131,7 @@ router.get("/remaining-videos", async (req: any, res: any) => {
 
   let remainingVideos = 0;
   for (const video of movie.videos) {
-    if (!video.watched) {
+    if (!video.watchList) {
       remainingVideos++;
     }
   }

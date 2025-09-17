@@ -85,8 +85,8 @@ export interface Series {
   folder: string;
   episodeGroupId: string | null;
   analyzingFiles: boolean;
-  currentlyWatchingEpisodeId: string | null;
-  watched: boolean;
+  currentlyWatchingEpisodeId?: string | null;
+  watched?: boolean;
 
   seasons: Season[];
 }
@@ -107,7 +107,7 @@ export interface Season {
   backgroundsUrls: string[];
   videoSrc: string;
   musicSrc: string;
-  watched: boolean;
+  watched?: boolean;
 
   episodes: Episode[];
 }
@@ -177,7 +177,7 @@ export interface Movie {
   backgroundsUrls: string[];
   coverSrc: string;
   coversUrls: string[];
-  watched: boolean;
+  watched?: boolean;
 
   videos: Video[];
   extras: Video[];
@@ -190,9 +190,9 @@ export interface Video {
   runtime: number;
   imgSrc: string;
   imgUrls: string[];
-  watched: boolean;
-  timeWatched: number;
-  lastWatched: string;
+  watched?: boolean;
+  timeWatched?: number;
+  lastWatched?: string;
 
   mediaInfo?: MediaInfo;
   videoTracks?: VideoTrack[];

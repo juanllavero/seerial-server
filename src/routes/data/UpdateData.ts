@@ -4,10 +4,14 @@ import {
   getMovieById,
   getSeasonById,
   getVideoById,
+  getWatchListByVideoId,
 } from "../../db/get/getData";
 import {
+  addMovieToWatchList,
   addVideoToContinueWatching,
-  removeVideoFromContinueWatching,
+  addVideoToWatchList,
+  removeMovieFromWatchList,
+  removeVideoFromWatchList,
 } from "../../db/post/postData";
 import {
   updateAlbum,
@@ -18,6 +22,7 @@ import {
   updateSeason,
   updateSeries,
   updateVideo,
+  updateWatchList,
 } from "../../db/update/updateData";
 import { getMediaInfo } from "../../ffmpeg/mediaInfo";
 import { Utils } from "../../utils/Utils";
@@ -234,30 +239,47 @@ router.put("/updateWatchState", async (req: any, res: any) => {
       return res.status(404).json({ error: "Season not found" });
     }
 
-    await Utils.setEpisodeWatchState(season, episode, watched);
+    await Utils.setEpisodeWatchState(season, episode, watched, userId);
   } else if (video.movieId) {
     const movie = await getMovieById(video.movieId);
     if (!movie) return res.status(404).json({ error: "Movie not found" });
 
-    video.watched = watched;
+    if (watched) {
+      await addVideoToWatchList(video.id, userId);
+    } else {
+      await removeVideoFromWatchList(video.id, userId);
+    }
 
-    // If all video versions of the movie are watched → movie.watched = true
-    movie.watched =
-      movie.videos.filter((v) => (v.id === video.id ? watched : v.watched))
-        .length === movie.videos.length;
+    // If all video versions of the movie are watched → mark as watched
+    if (
+      movie.videos.filter((v) => (v.id === video.id ? watched : v.watchList))
+        .length === movie.videos.length
+    ) {
+      await addMovieToWatchList(video.movieId, userId);
+    } else {
+      await removeMovieFromWatchList(video.movieId, userId);
+    }
 
     await movie.save();
 
     // Manage continue watching
-    if (watched === false) {
-      await addVideoToContinueWatching(video.id);
-    } else {
-      await removeVideoFromContinueWatching(video.id);
-    }
+    await addVideoToContinueWatching(video.id, userId, undefined, movie.id);
   }
 
-  video.timeWatched = timeWatched;
-  video.lastWatched = new Date().toLocaleString();
+  if (watched) {
+    await addVideoToWatchList(videoId, userId);
+  } else {
+    await removeVideoFromWatchList(videoId, userId);
+  }
+
+  // Update watch list
+  const watchList = await getWatchListByVideoId(videoId, userId);
+  if (watchList)
+    await updateWatchList(watchList.id, {
+      timeWatched,
+      lastWatched: new Date().toLocaleString(),
+    });
+
   await video.save();
   return res.status(200).json({ message: "Watch state updated" });
 });

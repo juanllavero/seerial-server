@@ -20,6 +20,7 @@ import {
   Series,
   Song,
   Video,
+  WatchList,
 } from "../data/models";
 import { FilesManager } from "../utils/FilesManager";
 
@@ -52,6 +53,7 @@ export class SequelizeManager {
           CollectionSeries,
           LibraryCollection,
           ContinueWatching,
+          WatchList,
           Episode,
           Library,
           Movie,
