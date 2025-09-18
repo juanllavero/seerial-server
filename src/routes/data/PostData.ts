@@ -51,6 +51,7 @@ import { wsManager } from "../../index";
 import { MovieDBWrapper } from "../../theMovieDB/MovieDB";
 import { FilesManager } from "../../utils/FilesManager";
 import { Utils } from "../../utils/Utils";
+
 const router = express.Router();
 
 router.post("/api-key", (req: any, res: any) => {

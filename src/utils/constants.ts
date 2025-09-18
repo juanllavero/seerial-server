@@ -2,6 +2,7 @@ import os from "os";
 import path from "path";
 
 export const APP_NAME = "Seerial Media Server";
+export const API_URL = "https://api.seerial.es";
 export const LOCAL_DATA_PATH = path.join(
   os.homedir(),
   process.platform === "win32"

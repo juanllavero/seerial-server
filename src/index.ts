@@ -11,9 +11,11 @@ import os from "os";
 import path from "path";
 import sudo from "sudo-prompt";
 import { SequelizeManager } from "./db/SequelizeManager";
+import AuthMiddleware from "./middleware/authMiddleware";
 import * as routes from "./routes/index";
 import { MovieDBWrapper } from "./theMovieDB/MovieDB";
 import * as ConfigManager from "./utils/ConfigManager";
+import { API_URL } from "./utils/constants";
 import { FilesManager } from "./utils/FilesManager";
 import { findAvailablePort } from "./utils/PortFinder";
 import { downloadYtDlp } from "./utils/YoutubeDownloader";
@@ -191,20 +193,31 @@ function createTray() {
 //#endregion
 
 function addServerRoutes() {
-  appServer.use("/", routes.folderRoutes);
-  appServer.use("/", routes.deleteDataRoutes);
-  appServer.use("/", routes.postDataRoutes);
-  appServer.use("/", routes.updateDataRoutes);
-  appServer.use("/", routes.getAudioRoutes);
-  appServer.use("/", routes.getColorsRoutes);
-  appServer.use("/", routes.getImagesRoutes);
-  appServer.use("/", routes.getMediaRoutes);
-  appServer.use("/", routes.getMediaInfoRoutes);
-  appServer.use("/", routes.getStatusRoutes);
-  appServer.use("/", routes.getVideoRoutes);
-  appServer.use("/", routes.getHTPCSettings);
-  appServer.use("/", routes.getServerSettings);
-  appServer.use("/", routes.getWebSettings);
+  const authMiddleware = new AuthMiddleware();
+
+  // Access restricted to owner and shared users
+  appServer.use("/", authMiddleware.requireAccess, routes.getMediaRoutes);
+  appServer.use("/", authMiddleware.requireAccess, routes.getStatusRoutes);
+
+  // Fast access routes for shared users and owner
+  appServer.use(
+    "/",
+    authMiddleware.requireAccessFast,
+    routes.getMediaInfoRoutes
+  );
+  appServer.use("/", authMiddleware.requireAccessFast, routes.getVideoRoutes);
+  appServer.use("/", authMiddleware.requireAccessFast, routes.getAudioRoutes);
+  appServer.use("/", authMiddleware.requireAccessFast, routes.getColorsRoutes);
+  appServer.use("/", authMiddleware.requireAccessFast, routes.getImagesRoutes);
+
+  // Authenticated routes (only server owner)
+  appServer.use("/", authMiddleware.requireOwner, routes.folderRoutes);
+  appServer.use("/", authMiddleware.requireOwner, routes.deleteDataRoutes);
+  appServer.use("/", authMiddleware.requireOwner, routes.postDataRoutes);
+  appServer.use("/", authMiddleware.requireOwner, routes.updateDataRoutes);
+  appServer.use("/", authMiddleware.requireOwner, routes.getHTPCSettings);
+  appServer.use("/", authMiddleware.requireOwner, routes.getServerSettings);
+  appServer.use("/", authMiddleware.requireOwner, routes.getWebSettings);
 
   /**
    * Endpoint to restart the server with a specific port
@@ -233,7 +246,6 @@ function addServerRoutes() {
 }
 
 //#region SERVER REGISTRATION & SSL
-const API_URL = "https://api.seerial.es";
 let localIp: string = "127.0.0.1";
 
 async function getServerDetails() {
@@ -353,7 +365,10 @@ async function loginAndRegisterServer(port: number) {
         );
 
         fs.writeFileSync("auth.token", String(finalJwt));
-        fs.writeFileSync("server.id", String(result.id));
+        fs.writeFileSync(
+          FilesManager.getExternalPath("resources/config/server.id"),
+          String(result.id)
+        );
         serverId = result.id;
         authToken = String(finalJwt);
         lastKnownPublicIp = serverDetails.publicIp;
@@ -633,8 +648,11 @@ app.whenReady().then(async () => {
   try {
     if (fs.existsSync("auth.token"))
       authToken = fs.readFileSync("auth.token", "utf-8");
-    if (fs.existsSync("server.id"))
-      serverId = fs.readFileSync("server.id", "utf-8");
+    const serverIdPath = FilesManager.getExternalPath(
+      "resources/config/server.id"
+    );
+    if (fs.existsSync(serverIdPath))
+      serverId = fs.readFileSync(serverIdPath, "utf-8");
 
     // At startup, try to load the SSL certificate from local files.
     if (fs.existsSync("cert.pem") && fs.existsSync("key.pem")) {

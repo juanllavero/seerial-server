@@ -6,15 +6,13 @@ import { FilesManager } from "../../../utils/FilesManager";
 
 const router = express.Router();
 
-// --- INTERFAZ Y TIPOS (AHORA MÁS SIMPLES) ---
 interface Swatch {
-  // Usamos '[number, number, number]' para tipar un array de 3 números (tupla).
   rgb: [number, number, number];
   population: number;
   hex: string;
 }
 
-interface PlexPaletteOptions {
+interface PaletteOptions {
   targetLightness: { min: number; max: number };
   saturationFactor: number;
 }
@@ -25,7 +23,6 @@ interface HSL {
   l: number;
 }
 
-// --- FUNCIONES DE AYUDA (SOLO LAS ESENCIALES) ---
 function rgbToHsl(rgb: number[]): HSL {
   const r = rgb[0] / 255,
     g = rgb[1] / 255,
@@ -81,18 +78,7 @@ function hslToRgb(hsl: HSL): { r: number; g: number; b: number } {
   };
 }
 
-// Una única función para oscurecer, si es necesario
-function darken(rgb: number[]): { r: number; g: number; b: number } {
-  const hsl = rgbToHsl(rgb);
-  hsl.l = Math.max(0.08, Math.min(0.14, hsl.l * 0.5));
-  return hslToRgb(hsl);
-}
-
-// --- FUNCIÓN MAESTRA DE CREACIÓN DE PALETA (VERSIÓN CONFIGURABLE) ---
-function createPlexPalette(
-  palette: any,
-  options: PlexPaletteOptions
-): string[] {
+function createPalette(palette: any, options: PaletteOptions): string[] {
   const profilePriority = ["DarkVibrant", "Muted", "LightVibrant", "Vibrant"];
   const finalRgbColors: { r: number; g: number; b: number }[] = [];
   const usedHex = new Set<string>();
@@ -110,7 +96,6 @@ function createPlexPalette(
 
     let hsl = rgbToHsl(swatch.rgb);
 
-    // Ajuste de tono (Hue)
     const hue = hsl.h * 360;
     if (hue >= 300 && hue <= 350) {
       hsl.h = 280 / 360;
@@ -118,7 +103,6 @@ function createPlexPalette(
       hsl.h = 10 / 360;
     }
 
-    // ✅ Uso de los nuevos parámetros de ajuste
     hsl.s = Math.min(0.95, hsl.s * options.saturationFactor);
     hsl.l = Math.max(
       options.targetLightness.min,
@@ -140,8 +124,7 @@ function createPlexPalette(
   return finalRgbColors.map((c) => `rgb(${c.r}, ${c.g}, ${c.b})`);
 }
 
-// FUNCIÓN PARA GENERAR CSS (SIN CAMBIOS)
-function generatePlexGradientCSS(colors: string[]): string {
+function generateGradientCSS(colors: string[]): string {
   const safeColors = [...colors];
   while (safeColors.length > 0 && safeColors.length < 4) {
     safeColors.push(safeColors[safeColors.length - 1]);
@@ -160,7 +143,7 @@ function generatePlexGradientCSS(colors: string[]): string {
   return `background: ${gradients.join(", ")}, black;`;
 }
 
-// --- ENDPOINT PRINCIPAL (REESCRITO CON NODE-VIBRANT) ---
+// Get image colors
 router.get("/image-colors", async (req: any, res: any) => {
   const { url, localPath, minLight, maxLight, sat } = req.query as {
     url?: string;
@@ -171,10 +154,9 @@ router.get("/image-colors", async (req: any, res: any) => {
   };
 
   if (!url && !localPath) {
-    return res.status(400).json({ error: 'Se requiere "url" o "localPath"' });
+    return res.status(400).json({ error: 'No "url" or "localPath" provided' });
   }
 
-  // `node-vibrant` acepta tanto una URL como una ruta local directamente
   const imageSource = localPath
     ? localPath.startsWith("resources")
       ? FilesManager.getExternalPath(localPath)
@@ -184,9 +166,7 @@ router.get("/image-colors", async (req: any, res: any) => {
   try {
     const palette = await Vibrant.from(imageSource).getPalette();
 
-    // Perfil 1: "Puro y Oscuro" (Ideal para el ejemplo rojo/naranja)
-    // Produce colores muy oscuros y con una saturación más controlada.
-    const options: PlexPaletteOptions = {
+    const options: PaletteOptions = {
       targetLightness: {
         min: minLight ? parseFloat(minLight) : 0.04,
         max: maxLight ? parseFloat(maxLight) : 0.09,
@@ -194,38 +174,29 @@ router.get("/image-colors", async (req: any, res: any) => {
       saturationFactor: sat ? parseFloat(sat) : 1.0,
     };
 
-    // Perfil 2: "Vibrante" (Ideal para el ejemplo púrpura/azul)
-    // Produce colores un poco más brillantes y saturados.
-    /*
-        const options: PlexPaletteOptions = {
-            targetLightness: { min: 0.08, max: 0.14 },
-            saturationFactor: 1.2
-        };
-        */
-
-    const plexColorsRgb = createPlexPalette(palette, options);
-    const cssGradient = generatePlexGradientCSS(plexColorsRgb);
+    const colorsRgb = createPalette(palette, options);
+    const cssGradient = generateGradientCSS(colorsRgb);
 
     res.json({
       originalPallete: palette,
-      colors: plexColorsRgb,
+      colors: colorsRgb,
       css: cssGradient,
     });
   } catch (error) {
-    console.error("Error con node-vibrant:", error);
+    console.error("node-vibrant error:", error);
     res
       .status(500)
-      .json({ error: "No se pudo procesar la imagen con node-vibrant." });
+      .json({ error: "Image could not be processed by node-vibrant" });
   }
 });
 
-// --- FUNCIÓN PARA CREAR LA MÁSCARA SVG ---
+// --- FUNCTION TO CREATE SVG MASK ---
 /**
- * Crea una cadena de texto SVG que representa una máscara con desvanecidos
- * en el lado izquierdo completo y en el lado inferior completo.
- * @param width - Ancho de la máscara.
- * @param height - Alto de la máscara.
- * @returns una cadena de texto con el código SVG.
+ * Creates an SVG string that represents a mask with fades
+ * on the left side and the bottom side.
+ * @param width - Width of the mask.
+ * @param height - Height of the mask.
+ * @returns an SVG string with the mask code.
  */
 const createFadeMaskSvg = (width: number, height: number): string => {
   return `
@@ -233,14 +204,12 @@ const createFadeMaskSvg = (width: number, height: number): string => {
       <defs>
         <linearGradient id="leftFade" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stop-color="black" />
-          {/* CAMBIADO: El degradado desde la izquierda ahora ocupa el 60% del ancho */}
           <stop offset="60%" stop-color="white" /> 
           <stop offset="100%" stop-color="white" />
         </linearGradient>
 
         <linearGradient id="bottomFade" x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" stop-color="white" />
-          {/* CAMBIADO: El degradado desde abajo ahora empieza al 40% de la altura */}
           <stop offset="40%" stop-color="white" />
           <stop offset="100%" stop-color="black" />
         </linearGradient>
@@ -276,7 +245,7 @@ router.get("/transparent-image-effect", async (req: any, res: any) => {
     return res
       .status(400)
       .send(
-        "Faltan parámetros: se requiere (url o localPath), width y height."
+        "Not enough parameters. Please provide 'url' or 'localPath' and 'width' and 'height'."
       );
   }
 
@@ -284,7 +253,7 @@ router.get("/transparent-image-effect", async (req: any, res: any) => {
   const finalHeight = parseInt(height, 10);
 
   if (isNaN(finalWidth) || isNaN(finalHeight)) {
-    return res.status(400).send("Width y height deben ser números válidos.");
+    return res.status(400).send("Width and height must be valid numbers.");
   }
 
   try {
@@ -324,8 +293,8 @@ router.get("/transparent-image-effect", async (req: any, res: any) => {
     res.setHeader("Content-Type", "image/png");
     res.send(finalImageBuffer);
   } catch (error) {
-    console.error("Error procesando la imagen:", error);
-    res.status(500).send("No se pudo procesar la imagen.");
+    console.error("Error processing image:", error);
+    res.status(500).send("Error processing image.");
   }
 });
 
