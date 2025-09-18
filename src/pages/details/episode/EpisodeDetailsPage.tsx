@@ -9,8 +9,9 @@ import {
   SubtitleTrack,
   VideoTrack,
 } from '@/data/interfaces/MediaInfo'
+import { authenticatedFetch } from '@/lib/auth'
 import { formatDate } from '@/utils/ReactUtils'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -31,21 +32,21 @@ function EpisodeDetailsPage() {
     episodeId && serverUrl !== ''
       ? `${serverUrl}/details/episode?id=${episodeId}`
       : null,
-    fetcher,
+    authenticatedFetcher,
   )
 
   const { data: season } = useSWR(
     episode && serverUrl !== ''
       ? `${serverUrl}/details/season?id=${episode.seasonId}`
       : null,
-    fetcher,
+    authenticatedFetcher,
   )
 
   const { data: series } = useSWR(
     season && serverUrl !== ''
       ? `${serverUrl}/details/series?id=${season.seriesId}`
       : null,
-    fetcher,
+    authenticatedFetcher,
   )
 
   const [selectedVideoTrack, setSelectedVideoTrack] =
@@ -66,17 +67,15 @@ function EpisodeDetailsPage() {
     if (!episode) return
 
     const fetchData = async () => {
-      const result = await fetch(`${serverUrl}/updateMediaInfo`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const result = await authenticatedFetch(
+        `${serverUrl}/updateMediaInfo`,
+        'PUT',
+        {
           videoId: episode.video.id,
-        }),
-      })
+        },
+      )
 
-      if (!result.ok) {
+      if (!result || !result.ok) {
         return
       }
 

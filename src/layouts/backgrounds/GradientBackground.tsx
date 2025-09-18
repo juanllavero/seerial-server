@@ -1,4 +1,5 @@
 import { useServerStore } from '@/context/server.context'
+import { authenticatedFetch } from '@/lib/auth'
 import { useEffect, useRef, useState } from 'react'
 
 interface GradientBackgroundProps {
@@ -33,7 +34,7 @@ const GradientBackground = ({
     const generateGradient = async () => {
       setVisible(true)
 
-      const response = await fetch(
+      const response = await authenticatedFetch(
         `${serverUrl}/image-colors?${imageSrc?.startsWith('http') ? `url=${imageSrc}` : `localPath=${imageSrc}`}`,
       )
 

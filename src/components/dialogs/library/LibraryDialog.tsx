@@ -10,6 +10,7 @@ import { ModalWrapper } from '../../ModalWrapper'
 import AdvancedTabContent from './AdvancedTabContent'
 import FoldersTabContent from './FoldersTabContent'
 import GeneralTabContent from './GeneralTabContent'
+import { authenticatedFetch } from '@/lib/auth'
 
 function LibraryDialog() {
   const { t } = useTranslation()
@@ -83,15 +84,9 @@ function LibraryDialog() {
         subsMode,
       }
 
-      await fetch(`${serverUrl}/library`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          libraryId: libraryDialog.libraryToEdit.id,
-          updatedLibrary: newLibrary,
-        }),
+      await authenticatedFetch(`${serverUrl}/library`, 'PUT', {
+        libraryId: libraryDialog.libraryToEdit.id,
+        updatedLibrary: newLibrary,
       })
 
       // Mutate libraries list
@@ -114,17 +109,17 @@ function LibraryDialog() {
       subsMode,
     }
 
-    const response = await fetch(`${serverUrl}/addLibrary`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await authenticatedFetch(
+      `${serverUrl}/addLibrary`,
+      'POST',
+      {
+        library: newLibrary,
       },
-      body: JSON.stringify(newLibrary),
-    })
+    )
 
     closeLibraryDialog()
 
-    if (!response.ok) {
+    if (!response || !response.ok) {
       setLoading(false)
       return
     }

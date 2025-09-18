@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect, memo, useLayoutEffect } from 'react'
-import GradientBackground from '@/layouts/backgrounds/GradientBackground'
 import Image from '@/components/ui/Image'
 import useMusicStore from '@/context/music.context'
 import MinimizedBar from './controls/MinimizedBar'
@@ -8,7 +7,7 @@ import { shallow } from 'zustand/shallow'
 import LRCVisualizer from '../lyrics/LRCVisualizer'
 import { useServerStore } from '@/context/server.context'
 import { LRCFile } from '@/data/interfaces/Music'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
 import useSWR from 'swr'
 import MusicGradient from '@/layouts/backgrounds/MusicGradient'
 
@@ -52,7 +51,7 @@ const MobileMusicPlayer = () => {
     serverUrl !== '' && currentSong && isShown
       ? `${serverUrl}/lyrics?id=${currentSong.id}`
       : null,
-    fetcher,
+    authenticatedFetcher,
   )
 
   const minimizedHeight = 80 // Height of the minimized player (in pixels)

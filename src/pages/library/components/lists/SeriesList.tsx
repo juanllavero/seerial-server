@@ -7,7 +7,7 @@ import {
 import CollectionCard from '../cards/CollectionCard'
 import SeriesCard from '../cards/SeriesCard'
 import { useServerStore } from '@/context/server.context'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
 import useSWR from 'swr'
 import { SortableItem } from '@/components/lists/SortableItem'
 import { useReorderableList } from '@/hooks/useReorderableList'
@@ -31,7 +31,7 @@ function SeriesList({ library, mutateLibrary }: SeriesListProps) {
     serverUrl !== ''
       ? `${serverUrl}/library-content?libraryId=${library.id}&type=Shows`
       : null,
-    fetcher,
+    authenticatedFetcher,
   )
 
   // Hook to reorderable list

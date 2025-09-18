@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/button'
 import { RemoveFromListIcon, AddToListIcon } from '@/components/ui/IconLibrary'
 import { useAuth } from '@/context/auth.context'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetch } from '@/lib/auth'
+import { authenticatedFetcher } from '@/utils/utils'
 import { t } from 'i18next'
 import useSWR from 'swr'
 
@@ -15,19 +16,13 @@ function MyListButton({ serverUrl, seriesId }: MyListButtonProps) {
   // Get if show is in My List
   const { data: inMyList, mutate: mutateInMyList } = useSWR(
     `${serverUrl}/isShowInMyList?seriesId=${seriesId}&userId=${user?.id}`,
-    fetcher,
+    authenticatedFetcher,
   )
 
   const toggleMyList = () => {
-    fetch(`${serverUrl}/updateSeriesMyList`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        seriesId: seriesId,
-        userId: user?.id,
-      }),
+    authenticatedFetch(`${serverUrl}/updateSeriesMyList`, 'POST', {
+      seriesId: seriesId,
+      userId: user?.id,
     }).then(() => {
       mutateInMyList()
     })

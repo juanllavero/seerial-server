@@ -2,12 +2,10 @@ import { useIsMobile } from '@/components/hooks/use-mobile'
 import NotFound from '@/components/NotFound'
 import FlexBox from '@/components/ui/FlexBox'
 import { Skeleton } from '@/components/ui/skeleton'
-import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
 import { Album } from '@/data/interfaces/Music'
-import { fetcher } from '@/utils/utils'
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import useSWR from 'swr'
@@ -16,6 +14,7 @@ import '../DetailsPage.css'
 import AlbumInfo from './components/AlbumInfo'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import { useGradientStore } from '@/context/gradientBackground.context'
+import { authenticatedFetcher } from '@/utils/utils'
 
 function AlbumDetailsPage() {
   const { albumId } = useParams()
@@ -29,7 +28,10 @@ function AlbumDetailsPage() {
     isLoading,
     error,
     mutate,
-  } = useSWR<Album>(`${serverUrl}/details/album?id=${albumId}`, fetcher)
+  } = useSWR<Album>(
+    `${serverUrl}/details/album?id=${albumId}`,
+    authenticatedFetcher,
+  )
 
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()

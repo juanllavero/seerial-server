@@ -3,14 +3,15 @@ import { useServerStore } from '@/context/server.context'
 import { Video } from '@/data/interfaces/Media'
 import { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
 import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
 import { useParams } from 'react-router-dom'
-import { use, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import useSWR from 'swr'
 import HTMLVideoPlayer from './components/HTMLVideoPlayer'
 import './VideoPlayerPage.css'
 import Controls from './components/Controls'
 import TopBar from './components/TopBar'
+import { authenticatedFetch } from '@/lib/auth'
 
 interface VideoInfo {
   title: string
@@ -33,13 +34,13 @@ function VideoPlayerPage() {
     videoId && serverUrl !== ''
       ? `${serverUrl}/details/video?id=${videoId}`
       : null,
-    fetcher,
+    authenticatedFetcher,
   )
 
   // Get video info
   const { data: videoInfo, isLoading: loadingVideoInfo } = useSWR<VideoInfo>(
     videoId && serverUrl !== '' ? `${serverUrl}/videoInfo?id=${videoId}` : null,
-    fetcher,
+    authenticatedFetcher,
   )
 
   const videoRef = useRef<HTMLVideoElement | null>(null)
@@ -55,7 +56,7 @@ function VideoPlayerPage() {
 
   // State for triggering stream reload
   const [streamStartTime, setStreamStartTime] = useState(
-    video?.timeWatched ?? 0,
+    video?.watchStatus?.timeWatched ?? 0,
   )
 
   // Controls
@@ -349,10 +350,10 @@ function VideoPlayerPage() {
   useEffect(() => {
     if (!video) return
 
-    if (video.timeWatched && video.timeWatched > 0) {
-      setStreamStartTime(video.timeWatched)
-      setTimeOffset(video.timeWatched)
-      setCurrentTime(video.timeWatched)
+    if (video.watchStatus?.timeWatched && video.watchStatus.timeWatched > 0) {
+      setStreamStartTime(video.watchStatus.timeWatched)
+      setTimeOffset(video.watchStatus.timeWatched)
+      setCurrentTime(video.watchStatus.timeWatched)
     } else {
       setStreamStartTime(0)
       setTimeOffset(0)
@@ -364,17 +365,13 @@ function VideoPlayerPage() {
     if (!video || !videoInfo) return
 
     const fetchData = async () => {
-      const result = await fetch(`${serverUrl}/updateMediaInfo`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          videoId: video.id,
-        }),
-      })
+      const result = await authenticatedFetch(
+        `${serverUrl}/updateMediaInfo`,
+        'PUT',
+        { videoId: video.id },
+      )
 
-      if (!result.ok) {
+      if (!result || !result.ok) {
         return
       }
 

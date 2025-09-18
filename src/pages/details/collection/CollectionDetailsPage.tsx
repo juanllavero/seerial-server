@@ -18,7 +18,7 @@ import AlbumCard from '@/pages/library/components/cards/AlbumCard'
 import MovieCard from '@/pages/library/components/cards/MovieCard'
 import SeriesCard from '@/pages/library/components/cards/SeriesCard'
 import { CollectionKey, ContentType } from '@/types/types'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
 import { Ellipsis, Pencil } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -32,6 +32,7 @@ import { arrayMove } from '@dnd-kit/sortable'
 import { getCoverSize, getTitleSize } from '@/utils/ReactUtils'
 import useScreenHeight from '@/components/hooks/use-height'
 import { useIsServerOwner } from '@/hooks/useServerOwner'
+import { authenticatedFetch } from '@/lib/auth'
 function CollectionDetailsPage() {
   const { collectionId, type } = useParams()
   const { serverUrl } = useServerStore(
@@ -63,7 +64,7 @@ function CollectionDetailsPage() {
     mutate,
   } = useSWR<Collection>(
     `${serverUrl}/details/collection?id=${collectionId}`,
-    fetcher,
+    authenticatedFetcher,
   )
 
   // Get collection images
@@ -71,7 +72,7 @@ function CollectionDetailsPage() {
     collection
       ? `${serverUrl}/collection-images?collectionId=${collection.id}&&type=${type}`
       : null,
-    fetcher,
+    authenticatedFetcher,
   )
 
   const [localCollection, setLocalCollection] = useState<Collection | null>(
@@ -170,14 +171,14 @@ function CollectionDetailsPage() {
       }))
 
       try {
-        await fetch(`${serverUrl}/collections/reorder-content`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        await authenticatedFetch(
+          `${serverUrl}/collections/reorder-content`,
+          'POST',
+          {
             collectionId: collectionId,
             orderedItems: orderedItemsForApi,
-          }),
-        })
+          },
+        )
       } catch (error) {
         if (collection) {
           setLocalCollection(collection)

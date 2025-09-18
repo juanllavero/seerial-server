@@ -13,6 +13,8 @@ import MediaTab from '../MediaTab'
 import MovieTagsTab from './components/MovieTagsTab'
 import { shallow } from 'zustand/shallow'
 import { ImageType } from '@/utils/constants'
+import { authenticatedFetch } from '@/lib/auth'
+import { t } from 'i18next'
 
 function MovieDialog() {
   const { t } = useTranslation()
@@ -112,12 +114,10 @@ function MovieDialog() {
 
     await connectWS(serverUrl)
 
-    const response = await fetch(`${serverUrl}/movie/${movie.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    const response = await authenticatedFetch(
+      `${serverUrl}/movie/${movie.id}`,
+      'PUT',
+      {
         ...movie,
         name,
         year,
@@ -142,10 +142,10 @@ function MovieDialog() {
         logoSrc: selectedLogo ?? movie.logoSrc,
         coverSrc: selectedPoster ?? movie.coverSrc,
         backgroundSrc: selectedBackground ?? movie.backgroundSrc,
-      }),
-    })
+      },
+    )
 
-    if (!response.ok) {
+    if (!response || !response.ok) {
       showToast('error', 'Error updating movie')
       return
     }

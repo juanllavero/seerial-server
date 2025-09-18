@@ -7,7 +7,7 @@ import {
 import CollectionCard from '../cards/CollectionCard'
 import MovieCard from '../cards/MovieCard'
 import { useServerStore } from '@/context/server.context'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
 import useSWR from 'swr'
 import { useReorderableList } from '@/hooks/useReorderableList'
 import {
@@ -31,7 +31,7 @@ function MoviesList({ library, mutateLibrary }: MoviesListProps) {
     serverUrl !== ''
       ? `${serverUrl}/library-content?libraryId=${library.id}&type=Movies`
       : null,
-    fetcher,
+    authenticatedFetcher,
   )
 
   // Hook to reorderable list

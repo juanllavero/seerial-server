@@ -2,7 +2,7 @@ import Card from '@/components/cards/Card'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { useServerStore } from '@/context/server.context'
 import { Movie } from '@/data/interfaces/Media'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
 import { useTranslation } from 'react-i18next'
 import useSWR, { mutate } from 'swr'
 import HorizontalList from '../../../../components/lists/HorizontalList'
@@ -13,6 +13,7 @@ import { useDialogStore } from '@/context/dialog.context'
 import { Button } from '@/components/ui/button'
 import { Pencil } from 'lucide-react'
 import { useAuth } from '@/context/auth.context'
+import { authenticatedFetch } from '@/lib/auth'
 
 interface MyListMoviesProps {
   goToContent: (url: string) => void
@@ -42,7 +43,7 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
     selectedServer
       ? `${serverUrl}/myListMovies?userId=${user?.id ?? null}`
       : null,
-    fetcher,
+    authenticatedFetcher,
   )
 
   return (
@@ -60,7 +61,7 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
             subtitle={
               movie.year ? new Date(movie.year).getFullYear().toString() : 'N/A'
             }
-            watched={movie.watched}
+            watched={movie.watchStatus !== undefined}
             menu={{
               items: [
                 {
@@ -69,16 +70,14 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
                     {
                       title: t('removeFromMyList'),
                       action: () => {
-                        fetch(`${serverUrl}/updateMovieMyList`, {
-                          method: 'POST',
-                          headers: {
-                            'Content-Type': 'application/json',
-                          },
-                          body: JSON.stringify({
+                        authenticatedFetch(
+                          `${serverUrl}/updateMovieMyList`,
+                          'POST',
+                          {
                             movieId: movie.id,
                             userId: user?.id,
-                          }),
-                        }).then(() => {
+                          },
+                        ).then(() => {
                           mutate((key: string) =>
                             key.startsWith(`${serverUrl}/myListMovies`),
                           )
@@ -94,9 +93,10 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
                       action: () => openIdentificationDialog(undefined, movie),
                     },
                     {
-                      title: movie.watched
-                        ? t('markUnwatched')
-                        : t('markWatched'),
+                      title:
+                        movie.watchStatus !== undefined
+                          ? t('markUnwatched')
+                          : t('markWatched'),
 
                       action: () =>
                         user && toggleMovieWatched(serverUrl, movie, user.id),

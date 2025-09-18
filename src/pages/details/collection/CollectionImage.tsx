@@ -4,7 +4,7 @@ import Image from '@/components/ui/Image'
 import { useServerStore } from '@/context/server.context'
 import { Collection, CollectionImages } from '@/data/interfaces/Media'
 import { getCoverSize, getFirstImage, getPosterImage } from '@/utils/ReactUtils'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 
@@ -20,7 +20,7 @@ function CollectionImage({ collection, type }: CollectionImageProps) {
   const [posterImage, setPosterImage] = useState<string>('')
   const { data: collectionImages } = useSWR<CollectionImages>(
     `${serverUrl}/collection-images?collectionId=${collection.id}&&type=${type}`,
-    fetcher,
+    authenticatedFetcher,
   )
 
   useEffect(() => {

@@ -5,14 +5,13 @@ import { useServerStore } from '@/context/server.context'
 import { Collection, CollectionImages } from '@/data/interfaces/Media'
 import { DropdownContent } from '@/data/interfaces/Utils'
 import { Pencil } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import ParentCard from './ParentCard'
-import Image from '@/components/ui/Image'
-import { getPosterImage, getFirstImage } from '@/utils/ReactUtils'
+import { getPosterImage } from '@/utils/ReactUtils'
 import useSWR from 'swr'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
 import { shallow } from 'zustand/shallow'
 
 interface CollectionCardProps {
@@ -44,7 +43,7 @@ function CollectionCard({ libraryId, collection, type }: CollectionCardProps) {
 
   const { data: collectionImages } = useSWR<CollectionImages>(
     `${serverUrl}/collection-images?collectionId=${collection.id}&&type=${type}`,
-    fetcher,
+    authenticatedFetcher,
   )
 
   useEffect(() => {

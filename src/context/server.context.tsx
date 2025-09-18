@@ -1,4 +1,5 @@
 import { Server } from '@/data/interfaces/Users'
+import { authenticatedFetch } from '@/lib/auth'
 import { createWithEqualityFn } from 'zustand/traditional'
 
 interface ServerState {
@@ -53,7 +54,7 @@ export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
   serverStatus: false,
   serverUrl: '', // Changed from serverUrl to serverUrl for clarity
   serverVersion: '',
-  gettingServerStatus: false,
+  gettingServerStatus: true,
   apiKeyStatus: false,
   gettingApiKeyStatus: false,
 
@@ -66,11 +67,15 @@ export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
     set({
       selectedServer: server,
       serverUrl: '',
+      gettingServerStatus: true,
       serverStatus: false,
       apiKeyStatus: false,
     })
 
     if (!server) {
+      set({
+        gettingServerStatus: false,
+      })
       return
     }
 
@@ -120,7 +125,7 @@ export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
       // Use a standard 10-second timeout for regular requests
       const response = await pingServer(`${serverUrl}/`, 10000)
       // We need to actually get the data this time
-      const data = await (await fetch(response)).json()
+      const data = await (await authenticatedFetch(response)).json()
 
       set({
         serverStatus: data.status !== undefined,
@@ -143,11 +148,14 @@ export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
     set({ gettingApiKeyStatus: true })
 
     try {
-      const response = await fetch(`${serverUrl}/api-key`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ apiKey }),
-      })
+      const response = await authenticatedFetch(
+        `${serverUrl}/api-key`,
+        'POST',
+        { apiKey },
+      )
+      if (!response || !response.ok) {
+        throw new Error()
+      }
       const data = await response.json()
 
       set({

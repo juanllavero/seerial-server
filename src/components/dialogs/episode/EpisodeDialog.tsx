@@ -3,7 +3,7 @@ import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Episode } from '@/data/interfaces/Media'
 import { showToast } from '@/utils/ReactUtils'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import useSWR, { mutate } from 'swr'
@@ -12,7 +12,7 @@ import ImageListTab from '../components/ImageListTab'
 import EpisodeInfoTab from './components/EpisodeInfoTab'
 import EpisodeMediaInfoTab from './components/EpisodeMediaInfoTab'
 import { shallow } from 'zustand/shallow'
-import { set } from 'lodash'
+import { authenticatedFetch } from '@/lib/auth'
 
 function EpisodeDialog() {
   const { t } = useTranslation()
@@ -52,7 +52,7 @@ function EpisodeDialog() {
     episode && serverUrl !== ''
       ? `${serverUrl}/details/seriesBySeasonId?seasonId=${episode.seasonId}`
       : null,
-    fetcher,
+    authenticatedFetcher,
   )
 
   useEffect(() => {
@@ -80,12 +80,10 @@ function EpisodeDialog() {
 
     await connectWS(serverUrl)
 
-    const response = await fetch(`${serverUrl}/episode/${episode.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    const response = await authenticatedFetch(
+      `${serverUrl}/episode/${episode.id}`,
+      'PUT',
+      {
         ...episode,
         imgSrc: selectedImage ?? episode.video.imgSrc,
         name: name,
@@ -98,10 +96,10 @@ function EpisodeDialog() {
         overviewLock: overviewLock,
         directedLock: directedLock,
         writtenLock: writtenLock,
-      }),
-    })
+      },
+    )
 
-    if (!response.ok) {
+    if (!response || !response.ok) {
       showToast('error', 'Error updating episode')
       return
     }

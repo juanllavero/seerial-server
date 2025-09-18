@@ -13,6 +13,7 @@ import SeriesTagsTab from './components/SeriesTagsTab'
 import { shallow } from 'zustand/shallow'
 import MediaTab from '../MediaTab'
 import { ImageType } from '@/utils/constants'
+import { authenticatedFetch } from '@/lib/auth'
 
 function SeriesDialog() {
   const { t } = useTranslation()
@@ -96,12 +97,10 @@ function SeriesDialog() {
 
     await connectWS(serverUrl)
 
-    const response = await fetch(`${serverUrl}/show/${series.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    const response = await authenticatedFetch(
+      `${serverUrl}/show/${series.id}`,
+      'PUT',
+      {
         ...series,
         name: name,
         year: year,
@@ -121,10 +120,10 @@ function SeriesDialog() {
         musicComposerLock: musicLock,
         logoSrc: selectedLogo ?? series.logoSrc,
         coverSrc: selectedPoster ?? series.coverSrc,
-      }),
-    })
+      },
+    )
 
-    if (!response.ok) {
+    if (!response || !response.ok) {
       showToast('error', 'Error updating series')
       return
     }

@@ -3,12 +3,11 @@ import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useServerStore } from '@/context/server.context'
 import { Video } from '@/data/interfaces/Media'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 import HorizontalList from '../../../../components/lists/HorizontalList'
 import { shallow } from 'zustand/shallow'
-import { get } from 'lodash'
 import { getVideoProgress } from '@/utils/ReactUtils'
 import { useAuth } from '@/context/auth.context'
 
@@ -33,7 +32,7 @@ function ContinueWatching({ goToContent }: ContinueWatchingProps) {
     selectedServer
       ? `${serverUrl}/continueWatching?userId=${user?.id ?? null}`
       : null,
-    fetcher,
+    authenticatedFetcher,
   )
 
   const skeletons = Array.from({ length: 10 }, (_, index) => (

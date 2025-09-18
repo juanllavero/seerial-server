@@ -3,7 +3,7 @@ import AlbumCard from '../cards/AlbumCard'
 import CollectionCard from '../cards/CollectionCard'
 import { Album } from '@/data/interfaces/Music'
 import useSWR from 'swr'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
 import { useServerStore } from '@/context/server.context'
 import { SortableItem } from '@/components/lists/SortableItem'
 import { useReorderableList } from '@/hooks/useReorderableList'
@@ -27,7 +27,7 @@ function AlbumList({ library, mutateLibrary }: AlbumListProps) {
     serverUrl !== ''
       ? `${serverUrl}/library-content?libraryId=${library.id}&type=Music`
       : null,
-    fetcher,
+    authenticatedFetcher,
   )
 
   // Hook to reorderable list

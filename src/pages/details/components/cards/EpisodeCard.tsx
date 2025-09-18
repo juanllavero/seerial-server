@@ -35,7 +35,7 @@ function EpisodeCard({
       width={isMobile || isTablet ? '100%' : cardWidth * 2.2}
       progress={getVideoProgress(episode.video)}
       title={episode.name}
-      watched={episode.video.watched}
+      watched={episode.video.watchStatus}
       subtitle={`${t('episode')} ${episode.episodeNumber.toString()}`}
       action={() => goToDetails(episode)}
       playButtonAction={() => playEpisode(episode)}

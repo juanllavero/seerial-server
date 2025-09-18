@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { Movie, Season, Series } from '@/data/interfaces/Media'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
 import { Download, Trash2 } from 'lucide-react'
 import { memo } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -33,7 +33,7 @@ function MediaTab({ series, season, movie }: MediaTabProps) {
     data: video,
     isLoading: loadingVideo,
     error: videoError,
-  } = useSWR(`${serverUrl}/${type}Video?id=${id}`, fetcher, {
+  } = useSWR(`${serverUrl}/${type}Video?id=${id}`, authenticatedFetcher, {
     revalidateAll: true,
     refreshInterval: 1000,
   })
@@ -43,7 +43,7 @@ function MediaTab({ series, season, movie }: MediaTabProps) {
     data: music,
     isLoading: loadingMusic,
     error: musicError,
-  } = useSWR(`${serverUrl}/${type}Music?id=${id}`, fetcher, {
+  } = useSWR(`${serverUrl}/${type}Music?id=${id}`, authenticatedFetcher, {
     revalidateAll: true,
     refreshInterval: 1000,
   })

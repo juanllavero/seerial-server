@@ -1,5 +1,6 @@
 import { MessageType } from '@/data/enums/WSMessage'
 import { Series } from '@/data/interfaces/Media'
+import { authenticatedFetch } from '@/lib/auth'
 import { createWithEqualityFn } from 'zustand/traditional'
 
 // Message interface
@@ -161,17 +162,18 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
       await connectWS(serverUrl)
 
       try {
-        const response = await fetch(`${serverUrl}/downloadVideo`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+        const response = await authenticatedFetch(
+          `${serverUrl}/downloadVideo`,
+          'POST',
+          {
             url,
             downloadFolder: `resources/video/${libraryId}/`,
             fileName,
-          }),
-        })
+          },
+        )
+        if (!response || !response.ok) {
+          throw new Error()
+        }
         const data = await response.json()
         console.log('Download started:', data)
       } catch (error) {
@@ -190,17 +192,18 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
       await connectWS(serverUrl)
 
       try {
-        const response = await fetch(`${serverUrl}/downloadMusic`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+        const response = await authenticatedFetch(
+          `${serverUrl}/downloadMusic`,
+          'POST',
+          {
             url,
             downloadFolder: `resources/music/${libraryId}/`,
             fileName,
-          }),
-        })
+          },
+        )
+        if (!response || !response.ok) {
+          throw new Error()
+        }
         const data = await response.json()
         console.log('Download started:', data)
       } catch (error) {

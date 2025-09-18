@@ -4,7 +4,7 @@ import LazyImage from '@/components/ui/LazyImage'
 import useMusicStore from '@/context/music.context'
 import { useServerStore } from '@/context/server.context'
 import { formatTime } from '@/utils/ReactUtils'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
 import useSWR from 'swr'
 import './NextSongs.css'
 import { useTranslation } from 'react-i18next'
@@ -36,7 +36,7 @@ function NextSongs() {
     currentSong && serverUrl !== ''
       ? `${serverUrl}/details/album?id=${currentSong.albumId}`
       : null,
-    fetcher,
+    authenticatedFetcher,
   )
 
   if (!album) return null

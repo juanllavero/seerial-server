@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useServerStore } from '@/context/server.context'
 import { Album } from '@/data/interfaces/Music'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
 import useSWR from 'swr'
 import { memo } from 'react'
 import useMusicStore from '@/context/music.context'
@@ -28,7 +28,7 @@ function MusicPlayer() {
     currentSong && currentSong.albumId && serverUrl !== ''
       ? `${serverUrl}/details/album?id=${currentSong.albumId}`
       : null,
-    fetcher,
+    authenticatedFetcher,
   )
 
   useEffect(() => {

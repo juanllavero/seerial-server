@@ -4,12 +4,13 @@ import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
 import { useServerStore } from '@/context/server.context'
 import { generateRandoumUUID, showToast } from '@/utils/ReactUtils'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
 import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import useSWR, { mutate } from 'swr'
 import ImageButton from './ImageButton'
 import { ImageType } from '@/utils/constants'
+import { authenticatedFetch } from '@/lib/auth'
 
 interface LocalImage {
   name: string
@@ -46,7 +47,7 @@ function ImageListTab({
 
   const { data: localImages, isLoading } = useSWR<LocalImage[]>(
     localFolder ? `${serverUrl}/images?path=${localFolder}` : null,
-    fetcher,
+    authenticatedFetcher,
   )
 
   const handleImageUpload = () => {
@@ -88,12 +89,13 @@ function ImageListTab({
     formData.append('image', file)
 
     try {
-      const response = await fetch(`${serverUrl}/uploadImage`, {
-        method: 'POST',
-        body: formData,
-      })
+      const response = await authenticatedFetch(
+        `${serverUrl}/uploadImage`,
+        'POST',
+        formData,
+      )
 
-      if (!response.ok) {
+      if (!response || !response.ok) {
         throw new Error()
       }
 
@@ -111,19 +113,17 @@ function ImageListTab({
     setIsUploading(true)
 
     try {
-      const response = await fetch(`${serverUrl}/downloadImage`, {
-        method: 'POST',
-        body: JSON.stringify({
+      const response = await authenticatedFetch(
+        `${serverUrl}/downloadImage`,
+        'POST',
+        {
           url: url,
           downloadFolder: localFolder,
           fileName: `${generateRandoumUUID()}.${url.split('.').pop()}`,
-        }),
-        headers: {
-          'Content-Type': 'application/json',
         },
-      })
+      )
 
-      if (!response.ok) {
+      if (!response || !response.ok) {
         throw new Error()
       }
 

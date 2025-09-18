@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
 import { shallow } from 'zustand/shallow'
+import { authenticatedFetch } from '@/lib/auth'
 
 function RemoveLibraryDialog() {
   const { t } = useTranslation()
@@ -29,11 +30,9 @@ function RemoveLibraryDialog() {
         if (serverUrl === '') return
 
         connectWS(serverUrl)
-        await fetch(
+        await authenticatedFetch(
           `${serverUrl}/libraries/${removeLibraryDialog.libraryToRemove}`,
-          {
-            method: 'DELETE',
-          },
+          'DELETE',
         )
 
         // Mutate libraries list

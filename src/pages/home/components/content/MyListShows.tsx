@@ -2,7 +2,7 @@ import Card from '@/components/cards/Card'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { useServerStore } from '@/context/server.context'
 import { Series } from '@/data/interfaces/Media'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
 import { useTranslation } from 'react-i18next'
 import useSWR, { mutate } from 'swr'
 import HorizontalList from '../../../../components/lists/HorizontalList'
@@ -13,6 +13,7 @@ import { toggleSeriesWatched } from '@/utils/ReactUtils'
 import { Button } from '@/components/ui/button'
 import { Pencil } from 'lucide-react'
 import { useAuth } from '@/context/auth.context'
+import { authenticatedFetch } from '@/lib/auth'
 
 interface MyListShowsProps {
   goToContent: (url: string) => void
@@ -47,7 +48,7 @@ function MyListShows({ goToContent }: MyListShowsProps) {
     selectedServer
       ? `${serverUrl}/myListSeries?userId=${user?.id ?? null}`
       : null,
-    fetcher,
+    authenticatedFetcher,
   )
 
   return (
@@ -63,7 +64,7 @@ function MyListShows({ goToContent }: MyListShowsProps) {
             aspectRatio={2 / 3}
             title={series.name}
             hidePlayButton
-            watched={series.watched}
+            watched={series.watchStatus !== undefined}
             menu={{
               items: [
                 {
@@ -72,16 +73,14 @@ function MyListShows({ goToContent }: MyListShowsProps) {
                     {
                       title: t('removeFromMyList'),
                       action: () => {
-                        fetch(`${serverUrl}/updateSeriesMyList`, {
-                          method: 'POST',
-                          headers: {
-                            'Content-Type': 'application/json',
-                          },
-                          body: JSON.stringify({
+                        authenticatedFetch(
+                          `${serverUrl}/updateSeriesMyList`,
+                          'POST',
+                          {
                             seriesId: series.id,
                             userId: user?.id,
-                          }),
-                        }).then(() => {
+                          },
+                        ).then(() => {
                           mutate((key: string) =>
                             key.startsWith(`${serverUrl}/myListSeries`),
                           )
@@ -101,9 +100,10 @@ function MyListShows({ goToContent }: MyListShowsProps) {
                       action: () => openEpisodesGroupDialog(series),
                     },
                     {
-                      title: series.watched
-                        ? t('markUnwatched')
-                        : t('markWatched'),
+                      title:
+                        series.watchStatus !== undefined
+                          ? t('markUnwatched')
+                          : t('markWatched'),
                       action: () =>
                         user && toggleSeriesWatched(serverUrl, series, user.id),
                     },

@@ -12,7 +12,7 @@ import { useSettingsStore } from '@/context/settings.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
 import { Series } from '@/data/interfaces/Media'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
 import { t } from 'i18next'
 import { Pencil } from 'lucide-react'
 import { useEffect } from 'react'
@@ -27,6 +27,7 @@ import { shallow } from 'zustand/shallow'
 import ExpandableText from '@/components/ExpandableText'
 import SeasonSelectable from './components/SeasonSelectable'
 import { useIsServerOwner } from '@/hooks/useServerOwner'
+import { authenticatedFetch } from '@/lib/auth'
 
 function SeriesDetailsPage() {
   const { seriesId } = useParams()
@@ -62,7 +63,10 @@ function SeriesDetailsPage() {
     isLoading,
     error,
     mutate: mutateSeries,
-  } = useSWR<Series>(`${serverUrl}/details/series?id=${seriesId}`, fetcher)
+  } = useSWR<Series>(
+    `${serverUrl}/details/series?id=${seriesId}`,
+    authenticatedFetcher,
+  )
 
   // Get selected season data
   const season = series
@@ -145,15 +149,9 @@ function SeriesDetailsPage() {
 
   const toggleSeasonWatched = async () => {
     if (season) {
-      fetch(`${serverUrl}/setSeasonWatched`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          seasonId: season.id,
-          watched: !season.watched,
-        }),
+      authenticatedFetch(`${serverUrl}/setSeasonWatched`, 'POST', {
+        seasonId: season.id,
+        watched: !season.watchStatus,
       }).then(() => {
         mutate((key: string) => key.startsWith(`${serverUrl}/details/series`))
         mutate((key: string) => key.startsWith(`${serverUrl}/details/season`))
@@ -276,13 +274,13 @@ function SeriesDetailsPage() {
                 <Button
                   variant={'ghost'}
                   title={
-                    season && season.watched
+                    season && season.watchStatus
                       ? t('markUnwatched')
                       : t('markWatched')
                   }
                   onClick={toggleSeasonWatched}
                 >
-                  {season && season.watched ? (
+                  {season && season.watchStatus ? (
                     <UnmarkWatchedIcon />
                   ) : (
                     <MarkWatchedIcon />

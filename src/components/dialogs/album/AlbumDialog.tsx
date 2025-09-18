@@ -11,6 +11,7 @@ import ImageListTab from '../components/ImageListTab'
 import AlbumInfoTab from './components/AlbumInfoTab'
 import { shallow } from 'zustand/shallow'
 import { ImageType } from '@/utils/constants'
+import { authenticatedFetch } from '@/lib/auth'
 
 function AlbumDialog() {
   const { t } = useTranslation()
@@ -61,22 +62,20 @@ function AlbumDialog() {
 
     await connectWS(serverUrl)
 
-    const response = await fetch(`${serverUrl}/album/${album.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    const response = await authenticatedFetch(
+      `${serverUrl}/album/${album.id}`,
+      'PUT',
+      {
         ...album,
         title: title,
         year: year,
         description: description,
         coverSrc: selectedPoster ?? '',
         genres: genres,
-      }),
-    })
+      },
+    )
 
-    if (!response.ok) {
+    if (!response || !response.ok) {
       showToast('error', 'Error updating episode')
       return
     }

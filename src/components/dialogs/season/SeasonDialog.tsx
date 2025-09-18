@@ -11,7 +11,8 @@ import ImageListTab from '../components/ImageListTab'
 import SeasonInfoTab from './components/SeasonInfoTab'
 import { shallow } from 'zustand/shallow'
 import MediaTab from '../MediaTab'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
+import { authenticatedFetch } from '@/lib/auth'
 
 function SeasonDialog() {
   const { t } = useTranslation()
@@ -32,7 +33,7 @@ function SeasonDialog() {
     seasonDialog.seasonToEdit && serverUrl !== ''
       ? `${serverUrl}/details/series?id=${seasonDialog.seasonToEdit.seriesId}`
       : null,
-    fetcher,
+    authenticatedFetcher,
   )
 
   // Background
@@ -76,12 +77,10 @@ function SeasonDialog() {
 
     await connectWS(serverUrl)
 
-    const response = await fetch(`${serverUrl}/season/${season.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    const response = await authenticatedFetch(
+      `${serverUrl}/season/${season.id}`,
+      'PUT',
+      {
         ...season,
         backgroundSrc: selectedBackground ?? season.backgroundSrc,
         name: name,
@@ -90,10 +89,10 @@ function SeasonDialog() {
         nameLock: nameLock,
         yearLock: yearLock,
         overviewLock: overviewLock,
-      }),
-    })
+      },
+    )
 
-    if (!response.ok) {
+    if (!response || !response.ok) {
       showToast('error', 'Error updating episode')
       return
     }

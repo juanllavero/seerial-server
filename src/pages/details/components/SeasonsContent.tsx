@@ -9,7 +9,6 @@ import React, { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import EpisodeCard from './cards/EpisodeCard'
 import EpisodeCardDetails from './cards/EpisodeCardDetails'
-import { fetcher } from '@/utils/utils'
 import useSWR, { mutate } from 'swr'
 import NotFound from '@/components/NotFound'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -17,6 +16,8 @@ import { useIsTablet } from '@/components/hooks/use-tablet'
 import { SelectableOption } from '@/data/interfaces/Utils'
 import { shallow } from 'zustand/shallow'
 import { useAuth } from '@/context/auth.context'
+import { authenticatedFetch } from '@/lib/auth'
+import { authenticatedFetcher } from '@/utils/utils'
 
 interface SeasonContentProps {
   seasonList: Season[]
@@ -61,7 +62,7 @@ function SeasonContent({
     selectedSeasonId
       ? `${serverUrl}/details/season?id=${selectedSeasonId}`
       : null,
-    fetcher,
+    authenticatedFetcher,
   )
 
   useEffect(() => {
@@ -93,16 +94,10 @@ function SeasonContent({
             {
               title: t('markWatched'),
               action: () => {
-                fetch(`${serverUrl}/setEpisodeWatched`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({
-                    episodeId: episode.id,
-                    watched: true,
-                    userId: user?.id,
-                  }),
+                authenticatedFetch(`${serverUrl}/setEpisodeWatched`, 'POST', {
+                  episodeId: episode.id,
+                  watched: true,
+                  userId: user?.id,
                 }).finally(() => {
                   mutate((key: string) =>
                     key.startsWith(`${serverUrl}/details/series`),
@@ -116,15 +111,9 @@ function SeasonContent({
             {
               title: t('markUnwatched'),
               action: () => {
-                fetch(`${serverUrl}/setEpisodeWatched`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({
-                    episodeId: episode.id,
-                    watched: false,
-                  }),
+                authenticatedFetch(`${serverUrl}/setEpisodeWatched`, 'POST', {
+                  episodeId: episode.id,
+                  watched: false,
                 }).finally(() => {
                   mutate((key: string) =>
                     key.startsWith(`${serverUrl}/details/series`),
@@ -151,7 +140,7 @@ function SeasonContent({
   }
 
   const playEpisode = async (episodeId: Episode) => {
-    const response = await fetch(
+    const response = await authenticatedFetch(
       `${serverUrl}/episode-video?episodeId=${episodeId.id}`,
     )
 

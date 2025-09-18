@@ -3,7 +3,11 @@ import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { Library } from '@/data/interfaces/Media'
 import { Server } from '@/data/interfaces/Users'
-import { CENTRAL_SERVER } from '@/utils/constants'
+import {
+  CENTRAL_SERVER,
+  SIDEBAR_MARGIN,
+  SIDEBAR_MARGIN_COLLAPSED,
+} from '@/utils/constants'
 import { authenticatedFetcher } from '@/utils/utils'
 import { useEffect } from 'react'
 import useSWR from 'swr'
@@ -13,14 +17,18 @@ import NoServer from './components/NoServer'
 import NotAvailableServer from './components/NotAvailableServer'
 import HomePageContent from './components/content/HomePageContent'
 import { shallow } from 'zustand/shallow'
-import { useAuth } from '@/context/auth.context'
+import { useSidebar } from '@/components/ui/sidebar'
+import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
+import LoadingInsideSidebar from '@/components/LoadingInsideSidebar'
 
 export default function HomePage() {
+  const { state: sidebarState } = useSidebar()
   const {
     selectedServer,
     serverUrl,
     serverStatus,
     apiKeyStatus,
+    gettingServerStatus,
     getServerStatus,
   } = useServerStore(
     (state) => ({
@@ -28,6 +36,7 @@ export default function HomePage() {
       serverUrl: state.serverUrl,
       serverStatus: state.serverStatus,
       apiKeyStatus: state.apiKeyStatus,
+      gettingServerStatus: state.gettingServerStatus,
       getServerStatus: state.getServerStatus,
     }),
     shallow,
@@ -49,8 +58,8 @@ export default function HomePage() {
     selectLibrary(null)
   }, [])
 
-  if (loadingLibraries) {
-    return <Loading />
+  if (loadingLibraries || gettingServerStatus) {
+    return <LoadingInsideSidebar />
   }
 
   if (!serverUrl) {

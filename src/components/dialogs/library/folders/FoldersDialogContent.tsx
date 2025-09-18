@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
 import { useServerStore } from '@/context/server.context'
-import useFetch from '@/hooks/useFetch'
+import { authenticatedFetcher } from '@/utils/utils'
 import { ChevronLeft, FileIcon, FolderIcon, HomeIcon } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import useSWR from 'swr'
 
 interface FoldersDialogContentProps {
   folders: string[]
@@ -24,34 +25,23 @@ function FoldersDialogContent({
 }: FoldersDialogContentProps) {
   const { t } = useTranslation()
   const serverUrl = useServerStore((state) => state.serverUrl)
-  const { fetchData, isLoading } = useFetch()
-  const [drives, setDrives] = useState<string[]>([]) // Lista de unidades
-  const [folderContent, setFolderContent] = useState<Folder[]>([]) // Contenido de la carpeta
   const [currentPath, setCurrentPath] = useState<string>('') // Ruta actual
 
-  // Fetch para obtener las unidades de disco
-  useEffect(() => {
-    fetchData(
-      `${serverUrl}/drives`,
-      (data) => setDrives(data as string[]),
-      (err) => console.error('Error fetching drives:', err),
-    )
-  }, [])
+  const { data: drives, isLoading } = useSWR<string[]>(
+    serverUrl !== '' ? `${serverUrl}/drives` : null,
+    authenticatedFetcher,
+  )
 
-  // Fetch para obtener el contenido de una carpeta
-  const fetchFolderContent = async (path: string) => {
-    fetchData(
-      `${serverUrl}/folder/${encodeURIComponent(path)}`,
-      (data) => {
-        setFolderContent(data as Folder[])
-        setCurrentPath(path)
-      },
-      (_err) => setFolderContent([]),
-    )
-  }
+  const { data: folderContent } = useSWR<Folder[]>(
+    currentPath !== '' && serverUrl !== ''
+      ? `${serverUrl}/folder/${encodeURIComponent(currentPath)}`
+      : null,
+    authenticatedFetcher,
+  )
 
   // Manejador para cuando el usuario selecciona una carpeta o unidad
   const handleFolderClick = (folder: string) => {
+    if (!drives) return
     if (folder === '.. [Back]') {
       if (
         drives.includes(currentPath) ||
@@ -68,12 +58,12 @@ function FoldersDialogContent({
         upperPath += '\\'
       }
 
-      fetchFolderContent(upperPath || '') // Si es raíz, reiniciar ruta
+      setCurrentPath(upperPath || '') // Si es raíz, reiniciar ruta
     } else {
       // Verificar si currentPath ya termina con '/home' o '\'
       const separator =
         currentPath.endsWith('/home') || currentPath.endsWith('\\') ? '' : '\\'
-      fetchFolderContent(`${currentPath}${separator}${folder}`)
+      setCurrentPath(`${currentPath}${separator}${folder}`)
     }
   }
 
@@ -168,12 +158,13 @@ function FoldersDialogContent({
       </FlexBox>
       <FlexBox>
         <FlexBox direction="column" width={'10rem'} gap={0.5}>
-          {drives.length > 0 &&
+          {drives &&
+            drives.length > 0 &&
             drives.map((drive, index) => (
               <FlexBox
                 key={index}
                 gap={0.5}
-                onClick={() => fetchFolderContent(drive)}
+                onClick={() => setCurrentPath(drive)}
                 css={{ cursor: 'pointer' }}
               >
                 {index === 0 ? <HomeIcon /> : <FolderIcon />}{' '}

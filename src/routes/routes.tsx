@@ -49,7 +49,11 @@ function ServerRouteWrapper() {
   }, [serverId])
 
   if (loading) {
-    return <Loading />
+    return (
+      <div className="absolute h-full w-full">
+        <Loading />
+      </div>
+    )
   }
 
   if (!selectedServer) {

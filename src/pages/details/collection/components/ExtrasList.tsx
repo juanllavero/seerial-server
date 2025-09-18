@@ -3,7 +3,7 @@ import { useServerStore } from '@/context/server.context'
 import { Collection } from '@/data/interfaces/Media'
 import { MusicExtra } from '@/data/interfaces/Music'
 import HorizontalList from '@/components/lists/HorizontalList'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
 import useSWR from 'swr'
 import VideoThumbnail from './VideoThumbnail'
 import { useTranslation } from 'react-i18next'
@@ -20,7 +20,7 @@ function ExtrasList({ collection }: ExtrasListProps) {
 
   const { data: extras, isLoading } = useSWR<MusicExtra[]>(
     serverUrl !== '' ? `${serverUrl}/musicExtras/${collection.id}` : null,
-    fetcher,
+    authenticatedFetcher,
   )
 
   const getExtraTypeTranslation = (type: string) => {

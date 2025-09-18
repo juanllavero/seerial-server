@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { arrayMove } from '@dnd-kit/sortable'
 import { useServerStore } from '@/context/server.context'
 import { LibraryItem } from '@/data/interfaces/Media'
+import { authenticatedFetch } from '@/lib/auth'
 
 export function useReorderableList(
   swrData: { content: LibraryItem[] } | undefined,
@@ -33,15 +34,9 @@ export function useReorderableList(
       }))
 
       try {
-        await fetch(`${serverUrl}/library/reorder`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            libraryId,
-            orderedItems: orderedItemsForApi,
-          }),
+        await authenticatedFetch(`${serverUrl}/library/reorder`, 'POST', {
+          libraryId,
+          orderedItems: orderedItemsForApi,
         })
       } catch (error) {
         setItems(items)

@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import './ChangeEpisodesGroupSearch.css'
 import { shallow } from 'zustand/shallow'
+import { authenticatedFetch } from '@/lib/auth'
 
 function ChangeEpisodesGroupSearch() {
   const { t } = useTranslation()
@@ -30,7 +31,7 @@ function ChangeEpisodesGroupSearch() {
   }, [])
 
   const search = () => {
-    fetch(
+    authenticatedFetch(
       `${serverUrl}/episodeGroups/search?id=${episodesGroupDialog.seriesToEdit?.themdbId}`,
     )
       .then((response) => response.json())
@@ -44,16 +45,10 @@ function ChangeEpisodesGroupSearch() {
     if (serverUrl === '') return
 
     await connectWS(serverUrl)
-    fetch(`${serverUrl}/updateEpisodeGroup`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        showId: episodesGroupDialog.seriesToEdit?.id,
-        themdbId: episodesGroupDialog.seriesToEdit?.themdbId,
-        episodeGroupId: id,
-      }),
+    authenticatedFetch(`${serverUrl}/updateEpisodeGroup`, 'POST', {
+      showId: episodesGroupDialog.seriesToEdit?.id,
+      themdbId: episodesGroupDialog.seriesToEdit?.themdbId,
+      episodeGroupId: id,
     })
 
     closeEpisodesGroupDialog()

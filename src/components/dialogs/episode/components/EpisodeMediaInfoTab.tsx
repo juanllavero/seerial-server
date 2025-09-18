@@ -2,14 +2,15 @@ import { useIsTablet } from '@/components/hooks/use-tablet'
 import Loading from '@/components/Loading'
 import FlexBox from '@/components/ui/FlexBox'
 import { useServerStore } from '@/context/server.context'
-import { Episode, Video } from '@/data/interfaces/Media'
+import { Video } from '@/data/interfaces/Media'
 import {
   AudioTrack,
   SubtitleTrack,
   VideoTrack,
 } from '@/data/interfaces/MediaInfo'
+import { authenticatedFetch } from '@/lib/auth'
 import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 
@@ -36,7 +37,7 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
     video.id && serverUrl !== ''
       ? `${serverUrl}/videoInfo?id=${video.id}`
       : null,
-    fetcher,
+    authenticatedFetcher,
   )
 
   useEffect(() => {
@@ -48,17 +49,15 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
       const attemptFetch = async () => {
         if (serverUrl === '') return
 
-        const result = await fetch(`${serverUrl}/updateMediaInfo`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+        const result = await authenticatedFetch(
+          `${serverUrl}/updateMediaInfo`,
+          'PUT',
+          {
             videoId: video.id,
-          }),
-        })
+          },
+        )
 
-        return result.ok ? await result.json() : null
+        return result && result.ok ? await result.json() : null
       }
 
       // First attempt

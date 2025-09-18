@@ -1,7 +1,7 @@
 import useMusicStore from '@/context/music.context'
 import { useServerStore } from '@/context/server.context'
 import { LRCFile, LRCLine } from '@/data/interfaces/Music'
-import { fetcher, getLanguageName } from '@/utils/utils'
+import { authenticatedFetcher, getLanguageName } from '@/utils/utils'
 import { useState, useEffect, useRef, memo } from 'react'
 import useSWR from 'swr'
 import Loading from '@/components/Loading'
@@ -43,7 +43,7 @@ const LRCVisualizer = () => {
     serverUrl !== '' && currentSong && isShown
       ? `${serverUrl}/lyrics?id=${currentSong.id}`
       : null,
-    fetcher,
+    authenticatedFetcher,
   )
 
   useEffect(() => {

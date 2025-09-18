@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import './CorrectIdentificationSearch.css'
 import { shallow } from 'zustand/shallow'
+import { authenticatedFetch } from '@/lib/auth'
 
 function CorrectIdentificationSearch() {
   const { t } = useTranslation()
@@ -60,7 +61,7 @@ function CorrectIdentificationSearch() {
   }, [identificationDialog])
 
   const search = (name: string, year: string) => {
-    fetch(
+    authenticatedFetch(
       `${serverUrl}/${isShow ? 'shows' : 'movies'}/search?name=${name}&year=${year}`,
     )
       .then((response) => response.json())
@@ -74,24 +75,20 @@ function CorrectIdentificationSearch() {
     if (serverUrl === '') return
 
     await connectWS(serverUrl)
-    fetch(`${serverUrl}/${isShow ? 'updateShowId' : 'updateMovieId'}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(
-        isShow
-          ? {
-              showId: identificationDialog.seriesToEdit?.id,
-              themdbId: id,
-            }
-          : {
-              collectionId: identificationDialog.seriesToEdit?.id,
-              movieId: identificationDialog.movieToEdit?.id,
-              themdbId: id,
-            },
-      ),
-    })
+    authenticatedFetch(
+      `${serverUrl}/${isShow ? 'updateShowId' : 'updateMovieId'}`,
+      'POST',
+      isShow
+        ? {
+            showId: identificationDialog.seriesToEdit?.id,
+            themdbId: id,
+          }
+        : {
+            collectionId: identificationDialog.seriesToEdit?.id,
+            movieId: identificationDialog.movieToEdit?.id,
+            themdbId: id,
+          },
+    )
 
     closeIdentificationDialog()
   }

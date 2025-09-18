@@ -4,13 +4,16 @@ import Image from '@/components/ui/Image'
 
 import { toast } from 'sonner'
 import { mutate } from 'swr'
+import { authenticatedFetch } from '@/lib/auth'
 
 const tailwindSizes = [
   40, 48, 56, 60, 64, 72, 80, 96, 100, 112, 120, 128, 144, 160, 192,
 ]
 
 export const getVideoProgress = (video: Video) => {
-  const timeWatched = video.timeWatched ? video.timeWatched / 60 : 0
+  const timeWatched = video.watchStatus?.timeWatched
+    ? video.watchStatus.timeWatched / 60
+    : 0
   const duration = video.duration ?? video.runtime ?? 0
   if (duration > 0 && timeWatched > 0) {
     return duration - timeWatched
@@ -24,16 +27,10 @@ export const toggleMovieWatched = (
   userId: string,
 ) => {
   if (movie) {
-    fetch(`${serverUrl}/setMovieWatched`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        movieId: movie.id,
-        watched: !movie.watched,
-        userId,
-      }),
+    authenticatedFetch(`${serverUrl}/setMovieWatched`, 'POST', {
+      movieId: movie.id,
+      watched: movie.watchStatus === undefined,
+      userId,
     }).then(() => {
       mutate((key: string) => key.startsWith(`${serverUrl}/myListMovies`))
       mutate((key: string) => key.startsWith(`${serverUrl}/library-content`))
@@ -48,16 +45,10 @@ export const toggleSeriesWatched = (
   userId: string,
 ) => {
   if (series) {
-    fetch(`${serverUrl}/setSeriesWatched`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        seriesId: series.id,
-        watched: !series.watched,
-        userId,
-      }),
+    authenticatedFetch(`${serverUrl}/setSeriesWatched`, 'POST', {
+      seriesId: series.id,
+      watched: series.watchStatus === undefined,
+      userId,
     }).then(() => {
       mutate((key: string) => key.startsWith(`${serverUrl}/myListSeries`))
       mutate((key: string) => key.startsWith(`${serverUrl}/library-content`))

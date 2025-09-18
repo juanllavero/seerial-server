@@ -100,7 +100,8 @@ export interface Series {
   episodeGroupId: string
   analyzingFiles: boolean
   currentlyWatchingEpisodeId: string
-  watched: boolean
+
+  watchStatus?: WatchStatus
 
   seasons: Season[]
 }
@@ -124,7 +125,7 @@ export interface Season {
   videoSrc: string
   musicSrc: string
 
-  watched: boolean
+  watchStatus?: WatchStatus
 
   episodes: Episode[]
 }
@@ -139,6 +140,8 @@ export interface Episode {
   overview: string
   overviewLock: boolean
   score: number
+
+  watchStatus?: WatchStatus
 
   directedBy: string[]
   directedByLock: boolean
@@ -194,7 +197,8 @@ export interface Movie {
   backgroundsUrls: string[]
   coverSrc: string
   coversUrls: string[]
-  watched: boolean
+
+  watchStatus?: WatchStatus
 
   videos: Video[]
   extras: Video[]
@@ -208,9 +212,8 @@ export interface Video {
   runtime: number
   imgSrc: string
   imgUrls: string[]
-  watched: boolean
-  timeWatched: number
-  lastWatched: string
+
+  watchStatus?: WatchStatus
 
   // Data from Continue Watching
   subtitle?: string
@@ -231,4 +234,9 @@ export interface Video {
 
   episodeId?: string
   movieId?: string
+}
+
+export interface WatchStatus {
+  timeWatched?: number
+  lastWatched?: string
 }

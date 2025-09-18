@@ -17,7 +17,7 @@ import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
 import { Movie } from '@/data/interfaces/Media'
 import { formatTimeForView } from '@/utils/ReactUtils'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
 import { t } from 'i18next'
 import { Pencil } from 'lucide-react'
 import { useEffect } from 'react'
@@ -31,6 +31,7 @@ import { shallow } from 'zustand/shallow'
 import ExpandableText from '@/components/ExpandableText'
 import { useIsServerOwner } from '@/hooks/useServerOwner'
 import { useAuth } from '@/context/auth.context'
+import { authenticatedFetch } from '@/lib/auth'
 
 function MovieDetailsPage() {
   const { movieId } = useParams()
@@ -61,7 +62,10 @@ function MovieDetailsPage() {
     isLoading,
     error,
     mutate,
-  } = useSWR<Movie>(`${serverUrl}/details/movie?id=${movieId}`, fetcher)
+  } = useSWR<Movie>(
+    `${serverUrl}/details/movie?id=${movieId}`,
+    authenticatedFetcher,
+  )
 
   const isMobile = useIsMobile()
   const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true
@@ -122,16 +126,10 @@ function MovieDetailsPage() {
 
   const toggleMovieWatched = async () => {
     if (movie) {
-      fetch(`${serverUrl}/setMovieWatched`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          movieId: movie.id,
-          watched: !movie.watched,
-          userId: user?.id,
-        }),
+      authenticatedFetch(`${serverUrl}/setMovieWatched`, 'POST', {
+        movieId: movie.id,
+        watched: !movie.watchStatus,
+        userId: user?.id,
       }).then(() => {
         mutate()
       })
@@ -262,13 +260,13 @@ function MovieDetailsPage() {
                 <Button
                   variant={'ghost'}
                   title={
-                    movie && movie.watched
+                    movie && movie.watchStatus
                       ? t('markUnwatched')
                       : t('markWatched')
                   }
                   onClick={toggleMovieWatched}
                 >
-                  {movie && movie.watched ? (
+                  {movie && movie.watchStatus ? (
                     <UnmarkWatchedIcon />
                   ) : (
                     <MarkWatchedIcon />

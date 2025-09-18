@@ -1,4 +1,5 @@
 import { Server, User } from '@/data/interfaces/Users'
+import { authenticatedFetch } from '@/lib/auth'
 import { CENTRAL_SERVER } from '@/utils/constants'
 import React, { createContext, useContext, useEffect, useState } from 'react'
 
@@ -41,16 +42,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const changeUserName = async (newName: string) => {
     if (!user) return
 
-    const res = await fetch(`https://${CENTRAL_SERVER}/users/name`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
+    const response = await authenticatedFetch(
+      `https://${CENTRAL_SERVER}/users/name`,
+      'PUT',
+      {
+        name: newName,
       },
-      method: 'PUT',
-      body: JSON.stringify({ name: newName }),
-    })
+    )
 
-    if (res.ok) setUser({ ...user, name: newName })
+    if (response && response.ok) setUser({ ...user, name: newName })
   }
 
   const login = async (newToken: string) => {

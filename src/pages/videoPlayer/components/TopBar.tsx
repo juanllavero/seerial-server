@@ -1,6 +1,8 @@
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
+import { useAuth } from '@/context/auth.context'
 import { Video } from '@/data/interfaces/Media'
+import { authenticatedFetch } from '@/lib/auth'
 import { ChevronLeft, Minimize2, Maximize2 } from 'lucide-react'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -41,6 +43,7 @@ function TopBar({
   setIsPlaying,
 }: TopBarProps) {
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   const handleGoBack = async () => {
     if (!video) return
@@ -48,16 +51,11 @@ function TopBar({
     setVideoLoaded(false)
     setIsPlaying(false)
 
-    await fetch(`${serverUrl}/updateWatchState`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        videoId: video.id,
-        timeWatched: currentTime,
-        watched: currentTime > video.runtime * 60 * 0.9,
-      }),
+    await authenticatedFetch(`${serverUrl}/updateWatchState`, 'PUT', {
+      videoId: video.id,
+      timeWatched: currentTime,
+      watched: currentTime > video.runtime * 60 * 0.9,
+      userId: user?.id,
     })
 
     navigate(-1)

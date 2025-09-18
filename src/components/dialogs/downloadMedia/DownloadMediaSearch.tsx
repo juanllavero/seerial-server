@@ -14,7 +14,8 @@ import DownloadMediaCard from './DownloadMediaCard'
 import DownloadMediaCardSkeleton from './DownloadMediaCardSkeleton'
 import { shallow } from 'zustand/shallow'
 import useSWR from 'swr'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
+import { authenticatedFetch } from '@/lib/auth'
 
 function DownloadMediaSearch() {
   const { t } = useTranslation()
@@ -60,7 +61,7 @@ function DownloadMediaSearch() {
     seasonToEdit
       ? `${serverUrl}/details/series?id=${seasonToEdit.seriesId}`
       : null,
-    fetcher,
+    authenticatedFetcher,
   )
 
   useEffect(() => {
@@ -94,16 +95,17 @@ function DownloadMediaSearch() {
 
   const search = (text: string) => {
     setSearching(true)
-    fetch(`${serverUrl}/media/search?query=${text}`)
-      .then((response) => response.json())
-      .then((data) => {
-        setSearchResults(data)
-        setSearching(false)
+    authenticatedFetch(`${serverUrl}/media/search?query=${text}`)
+      .then(async (response) => {
+        if (response && response.ok) {
+          const data = await response.json()
+          setSearchResults(data)
+        }
       })
       .catch((error) => {
         console.error(error)
-        setSearching(false)
       })
+      .finally(() => setSearching(false))
   }
 
   const downloadMedia = async (media: MediaSearchResult) => {

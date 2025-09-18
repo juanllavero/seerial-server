@@ -11,6 +11,7 @@ import ImageListTab from '../components/ImageListTab'
 import CollectionInfoTab from './components/CollectionInfoTab'
 import { shallow } from 'zustand/shallow'
 import { ImageType } from '@/utils/constants'
+import { authenticatedFetch } from '@/lib/auth'
 
 function CollectionDialog() {
   const { t } = useTranslation()
@@ -70,21 +71,19 @@ function CollectionDialog() {
 
     await connectWS(serverUrl)
 
-    const response = await fetch(`${serverUrl}/collection/${collection.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    const response = await authenticatedFetch(
+      `${serverUrl}/collection/${collection.id}`,
+      'PUT',
+      {
         ...collection,
         title,
         description,
         posterSrc: selectedCover,
         backgroundSrc: selectedBackground,
-      }),
-    })
+      },
+    )
 
-    if (!response.ok) {
+    if (!response || !response.ok) {
       showToast('error', 'Error updating episode')
       return
     }

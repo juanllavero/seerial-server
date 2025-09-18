@@ -4,7 +4,7 @@ import { MessageType } from '@/data/enums/WSMessage'
 import { Library } from '@/data/interfaces/Media'
 import { useCardWidth } from '@/hooks/useCardWidth'
 import NoContent from '@/pages/home/components/NoContent'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
 import { useEffect } from 'react'
 import useSWR from 'swr'
 import LibraryContent from './LibraryContent'
@@ -35,7 +35,10 @@ function LibraryPageContent({
     data: library,
     isLoading,
     mutate,
-  } = useSWR<Library>(`${serverUrl}/library?id=${libraryId}`, fetcher)
+  } = useSWR<Library>(
+    `${serverUrl}/library?id=${libraryId}`,
+    authenticatedFetcher,
+  )
 
   useEffect(() => {
     if (library && library.id !== selectedLibraryId) {

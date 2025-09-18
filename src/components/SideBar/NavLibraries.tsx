@@ -21,7 +21,7 @@ import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { LibraryTypes } from '@/data/enums/LibraryTypes'
 import { Library } from '@/data/interfaces/Media'
-import { fetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/utils/utils'
 import { t } from 'i18next'
 import {
   Film,
@@ -40,6 +40,7 @@ import { shallow } from 'zustand/shallow'
 import SmallSpinner from './loading/SmallSpinner'
 import { useAuth } from '@/context/auth.context'
 import { useIsServerOwner } from '@/hooks/useServerOwner'
+import { authenticatedFetch } from '@/lib/auth'
 
 interface Item {
   id: string
@@ -89,7 +90,7 @@ const NavLibraries = () => {
 
   const { data: libraries, isLoading } = useSWR<Library[]>(
     serverUrl !== '' ? `${serverUrl}/libraries/` : null,
-    fetcher,
+    authenticatedFetcher,
     {
       revalidateOnFocus: false,
       revalidateIfStale: false,
@@ -99,7 +100,7 @@ const NavLibraries = () => {
   const searchFiles = async (libraryId: string) => {
     await connectWS(serverUrl)
 
-    fetch(`${serverUrl}/library/search?libraryId=${libraryId}`)
+    authenticatedFetch(`${serverUrl}/library/search?libraryId=${libraryId}`)
   }
 
   const [activeItem, setActiveItem] = React.useState<Item | null>(null)
