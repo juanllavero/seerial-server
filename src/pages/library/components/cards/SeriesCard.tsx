@@ -60,7 +60,10 @@ function SeriesCard({ series, remainingEpisodes }: SeriesCardProps) {
             action: () => openEpisodesGroupDialog(series),
           },
           {
-            title: series.watched ? t('markUnwatched') : t('markWatched'),
+            title:
+              series.watchStatus !== undefined
+                ? t('markUnwatched')
+                : t('markWatched'),
             action: () =>
               user && toggleSeriesWatched(serverUrl, series, user.id),
           },
@@ -91,7 +94,7 @@ function SeriesCard({ series, remainingEpisodes }: SeriesCardProps) {
         navigate(`/server/${selectedServer?.id}/details/series/${series.id}`)
       }}
       hidePlayButton
-      watched={series.watched}
+      watched={series.watchStatus !== undefined}
       cornerNumber={remainingEpisodes}
       menuContent={menuContent}
       editModal={

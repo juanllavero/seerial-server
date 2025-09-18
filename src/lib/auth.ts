@@ -145,16 +145,27 @@ export async function shareLibraries(
   libraries: string[],
 ) {
   const token = getToken()
-  if (!token) return null
+  if (!token) throw new Error('No token available')
 
-  await fetch(`https://${CENTRAL_SERVER}/servers/${serverId}/share`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
+  const res = await fetch(
+    `https://${CENTRAL_SERVER}/servers/${serverId}/share`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId, libraries }),
     },
-    body: JSON.stringify({ userId, libraries }),
-  })
+  )
+
+  const data = await res.json()
+
+  if (data.error) {
+    throw new Error(data.error)
+  }
+
+  return data
 }
 
 export async function getSharedServers(

@@ -50,7 +50,10 @@ function MovieCard({ movie }: MovieCardProps) {
             action: () => openIdentificationDialog(undefined, movie),
           },
           {
-            title: movie.watched ? t('markUnwatched') : t('markWatched'),
+            title:
+              movie.watchStatus !== undefined
+                ? t('markUnwatched')
+                : t('markWatched'),
             action: () => user && toggleMovieWatched(serverUrl, movie, user.id),
           },
         ],
@@ -75,7 +78,7 @@ function MovieCard({ movie }: MovieCardProps) {
       imgSrc={movie.coverSrc}
       title={movie.name}
       subtitle={getOnlyYear(movie.year).toString()}
-      watched={movie.watched}
+      watched={movie.watchStatus !== undefined}
       action={() => {
         selectMovie(movie.id)
         navigate(`/server/${selectedServer?.id}/details/movie/${movie.id}`)

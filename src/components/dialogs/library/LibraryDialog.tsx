@@ -103,7 +103,9 @@ function LibraryDialog() {
       language: language ?? 'en',
       type: type ?? 'Shows',
       order: 0,
+      hidden: false,
       folders: folders ?? [],
+      backgroundSrc: '',
       preferAudioLan,
       preferSubLan,
       subsMode,
@@ -112,9 +114,7 @@ function LibraryDialog() {
     const response = await authenticatedFetch(
       `${serverUrl}/addLibrary`,
       'POST',
-      {
-        library: newLibrary,
-      },
+      newLibrary,
     )
 
     closeLibraryDialog()

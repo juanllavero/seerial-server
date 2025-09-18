@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import FlexBox from '@/components/ui/FlexBox'
 import { useAuth } from '@/context/auth.context'
-import { Server, SharedServer } from '@/data/interfaces/Users'
+import { Server } from '@/data/interfaces/Users'
 import useSWR from 'swr'
 import { useServerStore } from '@/context/server.context'
 import { authenticatedFetcher } from '@/utils/utils'
@@ -13,47 +13,62 @@ import { useIsTablet } from '@/components/hooks/use-tablet'
 import { getSharedServers, shareLibraries } from '@/lib/auth'
 import { Button } from '@/components/ui/button'
 import { useTranslation } from 'react-i18next'
+import { showToast } from '@/utils/ReactUtils'
+import { isEqual } from 'lodash'
 
 function ShareServersModal({ toUserId }: { toUserId: string }) {
   const { user } = useAuth()
   const { t } = useTranslation()
-  const { serverUrl } = useServerStore()
+  const { serverUrl, selectedServer: server } = useServerStore()
   const servers: Server[] = user ? user.servers.filter((s) => !s.shared) : []
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
 
+  const [prevSelected, setPrevSelected] = useState<Record<string, string[]>>({})
   const [selected, setSelected] = useState<Record<string, string[]>>({})
-  const [alreadyShared, setAlreadyShared] = useState<SharedServer[]>([])
-  const updateInterval = 3000
 
-  // useEffect(() => {
-  //   updateSharedServers()
-  //   const interval = setInterval(updateSharedServers, updateInterval)
-  //   return () => clearInterval(interval)
-  // }, [])
+  useEffect(() => {
+    updateSharedServers()
+  }, [])
 
   const updateSharedServers = async () => {
     const shared = await getSharedServers(toUserId)
-    setAlreadyShared(shared)
 
-    console.log({ shared })
+    console.log({
+      shared: shared.filter(
+        (s) =>
+          s.serverId === server?.id &&
+          s.libraries.length === server.libraries?.length,
+      ),
+    })
 
     // Auto select libraries
     const preselected: Record<string, string[]> = {}
-    shared.forEach((s) => {
-      preselected[s.serverId] = s.libraries
-    })
+    shared
+      .filter((s) => s.serverId === server?.id)
+      .forEach((s) => {
+        preselected[s.serverId] = s.libraries
+      })
     setSelected(preselected)
+    setPrevSelected(preselected)
+  }
+
+  const shareSelectedLibraries = async () => {
+    await Promise.all(
+      Object.entries(selected).map(([serverId, libraries]) => {
+        shareLibraries(serverId, toUserId, libraries)
+          .catch((error) => showToast('error', error.message))
+          .finally(() => updateSharedServers())
+      }),
+    )
   }
 
   const toggleServer = (serverId: string, libraries: Library[]) => {
-    setSelected((prev) => {
-      const allSelected = prev[serverId]?.length === libraries.length
-      return {
-        ...prev,
-        [serverId]: allSelected ? [] : libraries.map((lib) => lib.id),
+    for (const lib of libraries) {
+      if (!selected[serverId]?.includes(lib.id)) {
+        toggleLibrary(serverId, lib.id)
       }
-    })
+    }
   }
 
   const toggleLibrary = (serverId: string, libraryId: string) => {
@@ -67,14 +82,6 @@ function ShareServersModal({ toUserId }: { toUserId: string }) {
           : [...current, libraryId],
       }
     })
-  }
-
-  const shareSelectedLibraries = async () => {
-    await Promise.all(
-      Object.entries(selected).map(([serverId, libraries]) => {
-        shareLibraries(serverId, toUserId, libraries)
-      }),
-    )
   }
 
   return (
@@ -98,6 +105,8 @@ function ShareServersModal({ toUserId }: { toUserId: string }) {
             serverUrl ? `${serverUrl}/libraries/` : null,
             authenticatedFetcher,
           )
+
+          console.log({ selected: selected[server.id], libraries })
 
           const disabled =
             isLoading || error || !libraries || libraries.length === 0
@@ -157,7 +166,9 @@ function ShareServersModal({ toUserId }: { toUserId: string }) {
                           checked={
                             selected[server.id]?.includes(lib.id) || false
                           }
-                          onChange={() => toggleLibrary(server.id, lib.id)}
+                          onChange={() => {
+                            toggleLibrary(server.id, lib.id)
+                          }}
                         />
                       </FlexBox>
                     </label>
@@ -173,10 +184,12 @@ function ShareServersModal({ toUserId }: { toUserId: string }) {
 
       <FlexBox gap={1} justify="end" width={'100%'}>
         <Button
-          disabled={!servers || servers.length <= 0}
+          disabled={
+            !servers || servers.length <= 0 || isEqual(prevSelected, selected)
+          }
           onClick={shareSelectedLibraries}
         >
-          {t('shareButton')}
+          {t('saveButton')}
         </Button>
       </FlexBox>
     </FlexBox>

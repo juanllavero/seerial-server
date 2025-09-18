@@ -29,8 +29,14 @@ function VideoCard({
       aspectRatio={16 / 9}
       width={isMobile ? '100%' : 400}
       progress={
-        (video.timeWatched / (video.runtime * 60)) * 100 > 0
-          ? (video.timeWatched / (video.runtime * 60)) * 100
+        (video.watchStatus?.timeWatched
+          ? video.watchStatus.timeWatched / (video.runtime * 60)
+          : 0) *
+          100 >
+        0
+          ? (video.watchStatus?.timeWatched
+              ? video.watchStatus.timeWatched / (video.runtime * 60)
+              : 0) * 100
           : undefined
       }
       title={title}
