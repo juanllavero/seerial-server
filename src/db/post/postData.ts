@@ -54,6 +54,11 @@ export const addLibrary = async (library: Partial<LibraryData>) => {
     return null;
   }
 
+  if (!library) {
+    console.error("Error: No library data provided");
+    return null;
+  }
+
   let attempts = 0;
   const maxAttempts = 3;
 
