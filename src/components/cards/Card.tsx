@@ -180,7 +180,7 @@ function Card({
         )}
       </div>
       <div
-        className="grid gap-1 p-2"
+        className="grid p-2"
         style={{
           width: width,
           textAlign: centerText ? 'center' : 'left',

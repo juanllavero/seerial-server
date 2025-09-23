@@ -56,7 +56,7 @@ function ContinueWatching({ goToContent }: ContinueWatchingProps) {
               hideButtons
               progress={getVideoProgress(video)}
               title={`${video.title}`}
-              subtitle={`${video.subtitle ? `${video.subtitle} - ` : ''} ${
+              subtitle={`${video.subtitle ? `${video.subtitle} - ` : video.date ? video.date.split('-')[0] : ''} ${
                 video.seasonNumber && video.episodeNumber
                   ? `${t('seasonLetter')}${video.seasonNumber} ${t('episodeLetter')}${
                       video.episodeNumber

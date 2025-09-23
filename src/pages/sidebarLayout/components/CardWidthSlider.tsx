@@ -12,8 +12,12 @@ const CardWidthSlider: React.FC<CardWidthSliderProps> = ({ onWidthChange }) => {
   const [localWidth, setLocalWidth] = useState(cardWidth)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  const hideSlider =
+    window.location.pathname === '/home' ||
+    window.location.pathname === '/profile'
+
   useEffect(() => {
-    setLocalWidth(cardWidth) // sincroniza el estado local con el global si cambia externamente
+    setLocalWidth(cardWidth)
   }, [cardWidth])
 
   useEffect(() => {
@@ -39,6 +43,8 @@ const CardWidthSlider: React.FC<CardWidthSliderProps> = ({ onWidthChange }) => {
   const getPercentage = (width: number): number => {
     return Math.round(((width - 120) / (240 - 120)) * 100)
   }
+
+  if (hideSlider) return null
 
   return (
     <FlexBox align="center" gap={0.5} justify="center">

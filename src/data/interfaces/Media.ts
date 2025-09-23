@@ -213,7 +213,10 @@ export interface Video {
   imgSrc: string
   imgUrls: string[]
 
+  // Continue Watching data
+  date?: string
   watchStatus?: WatchStatus
+  timeWatched?: number
 
   // Data from Continue Watching
   subtitle?: string

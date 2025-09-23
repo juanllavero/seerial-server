@@ -11,7 +11,7 @@ import HTMLVideoPlayer from './components/HTMLVideoPlayer'
 import './VideoPlayerPage.css'
 import Controls from './components/Controls'
 import TopBar from './components/TopBar'
-import { authenticatedFetch } from '@/lib/auth'
+import { authenticatedFetch, getToken } from '@/lib/auth'
 
 interface VideoInfo {
   title: string
@@ -84,34 +84,82 @@ function VideoPlayerPage() {
     subtitleTracks: video?.subtitleTracks || [],
   })
 
-  // This hook reconstructs the video source URL whenever a dependency changes.
-  const videoSrc = useMemo(() => {
-    if (!video?.fileSrc || !serverUrl) return ''
+  const [videoSrc, setVideoSrc] = useState<string>('')
 
-    const params = new URLSearchParams({
-      path: video.fileSrc,
-    })
-    if (streamStartTime > 0) {
-      params.append('start', Math.floor(streamStartTime).toString())
-    }
+  async function getSignedStreamUrl(
+    video: any,
+    serverUrl: string,
+    start = 0,
+    audio = 0,
+  ) {
+    const res = await authenticatedFetch(
+      `${serverUrl}/get-stream-url`,
+      'POST',
+      {
+        filePath: video.fileSrc,
+        start,
+        audio,
+        expiresIn: '2m',
+      },
+    )
 
-    if (selectedAudioTrack) {
-      params.append(
-        'audio',
-        selectedAudioTrack.id && selectedAudioTrack.id > 0
-          ? String(selectedAudioTrack.id - 1)
-          : '0',
-      )
-    }
+    const { url } = await res.json()
+    return `${serverUrl}${url}`
+  }
 
-    return `${serverUrl}/stream-video?${params.toString()}`
+  useEffect(() => {
+    if (!video || !serverUrl) return
+    getSignedStreamUrl(
+      video,
+      serverUrl,
+      streamStartTime ? Math.floor(streamStartTime) : 0,
+      selectedAudioTrack && selectedAudioTrack.id && selectedAudioTrack.id > 0
+        ? selectedAudioTrack.id - 1
+        : 0,
+    ).then(setVideoSrc)
   }, [
-    serverUrl,
     video,
+    serverUrl,
     streamStartTime,
     selectedAudioTrack,
     selectedSubtitleTrack,
   ])
+
+  // This hook reconstructs the video source URL whenever a dependency changes.
+  // const videoSrc = useMemo(async () => {
+  //   if (!video?.fileSrc || !serverUrl) return ''
+
+  //   // const params = new URLSearchParams({
+  //   //   path: video.fileSrc,
+  //   // })
+  //   // if (streamStartTime > 0) {
+  //   //   params.append('start', Math.floor(streamStartTime).toString())
+  //   // }
+
+  //   // if (selectedAudioTrack) {
+  //   //   params.append(
+  //   //     'audio',
+  //   //     selectedAudioTrack.id && selectedAudioTrack.id > 0
+  //   //       ? String(selectedAudioTrack.id - 1)
+  //   //       : '0',
+  //   //   )
+  //   // }
+
+  //   return await getSignedStreamUrl(
+  //     video,
+  //     serverUrl,
+  //     streamStartTime ? Math.floor(streamStartTime) : 0,
+  //     selectedAudioTrack && selectedAudioTrack.id && selectedAudioTrack.id > 0
+  //       ? selectedAudioTrack.id - 1
+  //       : 0,
+  //   ).then(setVideoSrc)
+  // }, [
+  //   video,
+  //   serverUrl,
+  //   streamStartTime,
+  //   selectedAudioTrack,
+  //   selectedSubtitleTrack,
+  // ])
 
   // These functions now correctly update the state to trigger the 'videoSrc' recalculation.
   const handleAudioTrackChange = (track: AudioTrack) => {
