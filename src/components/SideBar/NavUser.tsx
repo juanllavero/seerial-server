@@ -115,8 +115,11 @@ export function NavUser() {
                 <UserRound />
                 Profile
                 {invitations && invitations.length > 0 && (
-                  <FlexBox className="items-center justify-center rounded-full bg-red-700">
-                    <span className="flex w-5 items-center justify-center">
+                  <FlexBox className="items-center justify-center rounded-full bg-white">
+                    <span
+                      className="flex w-5 items-center justify-center"
+                      style={{ color: 'black' }}
+                    >
                       {invitations.length}
                     </span>
                   </FlexBox>
