@@ -9,12 +9,12 @@ import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
 interface AdvancedTabContentProps {
-  preferAudioLan: string | undefined
-  setPreferAudioLan: (language: string | undefined) => void
-  preferSubLan: string | undefined
-  setPreferSubLan: (language: string | undefined) => void
-  subsMode: string | undefined
-  setSubsMode: (mode: string | undefined) => void
+  preferAudioLan: string
+  setPreferAudioLan: (language: string) => void
+  preferSubLan: string
+  setPreferSubLan: (language: string) => void
+  subsMode: string
+  setSubsMode: (mode: string) => void
   buttonDisabled: boolean
   handleAddLibrary: () => void
   close: () => void
@@ -65,7 +65,6 @@ function AdvancedTabContent({
       'preferAudioLan',
       currentLanguage,
     )
-    // FIX: Convert prefAudio to a string before calling .split()
     return (
       ISO6391.getNativeName(String(prefAudio).split('-')[0]) || currentLanguage
     )
@@ -77,7 +76,6 @@ function AdvancedTabContent({
       'preferSubsLan',
       currentLanguage,
     )
-    // FIX: Convert prefSub to a string before calling .split()
     return (
       ISO6391.getNativeName(String(prefSub).split('-')[0]) || currentLanguage
     )
@@ -85,7 +83,6 @@ function AdvancedTabContent({
 
   const getSubsMode = async () => {
     const subs = await getServerSetting(serverUrl, 'subsMode', 'autoSubs')
-    // FIX: Convert subs to a string before passing to the translation function
     return t(String(subs))
   }
 
@@ -115,7 +112,7 @@ function AdvancedTabContent({
         <LabeledInputWrapper direction="row" label={t('preferAudio')}>
           <SelectableWrapper
             options={languagesOptions}
-            defaultValue={preferAudioLan ?? ''}
+            defaultValue={preferAudioLan ?? currentLanguage}
             onValueChange={(_key: string, value: string) =>
               setPreferAudioLan(value)
             }
@@ -125,7 +122,7 @@ function AdvancedTabContent({
         <LabeledInputWrapper direction="row" label={t('subsMode')}>
           <SelectableWrapper
             options={subtitleModeOptions}
-            defaultValue={subsMode ?? ''}
+            defaultValue={subsMode ?? 'autoSubs'}
             onValueChange={(_key: string, value: string) => setSubsMode(value)}
           />
         </LabeledInputWrapper>
@@ -133,7 +130,7 @@ function AdvancedTabContent({
         <LabeledInputWrapper direction="row" label={t('preferSubs')}>
           <SelectableWrapper
             options={languagesOptions}
-            defaultValue={preferSubLan ?? ''}
+            defaultValue={preferSubLan ?? currentLanguage}
             onValueChange={(_key: string, value: string) =>
               setPreferSubLan(value)
             }

@@ -13,11 +13,9 @@ const tailwindSizes = [
 export const getVideoProgress = (video: Video, watchedTime?: number) => {
   const timeWatched = watchedTime
     ? watchedTime / 60
-    : video.watchStatus?.timeWatched
-      ? video.watchStatus.timeWatched / 60
-      : video.timeWatched
-        ? video.timeWatched / 60
-        : 0
+    : video.timeWatched
+      ? video.timeWatched / 60
+      : 0
   const duration = video.duration ?? video.runtime ?? 0
   if (duration > 0 && timeWatched > 0) {
     return duration - timeWatched

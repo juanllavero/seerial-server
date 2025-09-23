@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Video } from '@/data/interfaces/Media'
 import { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
+import { useLanguageName } from '@/localization/TrackLanguages'
 import { formatTime } from '@/utils/ReactUtils'
 import { TrackPreviousIcon, TrackNextIcon } from '@radix-ui/react-icons'
 import {
@@ -15,6 +16,7 @@ import {
   VolumeOff,
 } from 'lucide-react'
 import { MouseEventHandler, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface ControlsProps {
   videoRef: React.RefObject<HTMLVideoElement | null>
@@ -29,6 +31,8 @@ interface ControlsProps {
   currentTime: number
   duration: number
   previewTime: number
+  selectedAudioTrack: AudioTrack | null
+  selectedSubtitleTrack: SubtitleTrack | null
   tracks: {
     audioTracks: AudioTrack[]
     subtitleTracks: SubtitleTrack[]
@@ -53,11 +57,14 @@ function Controls({
   duration,
   previewTime,
   tracks,
+  selectedAudioTrack,
+  selectedSubtitleTrack,
   handleTimelineUpdate,
   toggleScrubbing,
   showControls,
   setInControls,
 }: ControlsProps) {
+  const { i18n } = useTranslation()
   const [dropdownOpen, setDropdownOpen] = useState(false)
 
   // Gets the end time of the video
@@ -177,7 +184,7 @@ function Controls({
                 items: [
                   {
                     items: tracks.audioTracks.map((track) => ({
-                      title: `${track.displayTitle} (${track.language ?? track.languageTag})`,
+                      title: `${useLanguageName(selectedAudioTrack?.languageTag ?? '', i18n.language)} ${selectedAudioTrack?.displayTitle} ${selectedAudioTrack?.id === track.id ? '✔' : ''}`,
                       action: () => {
                         handleAudioTrackChange(track)
                       },
@@ -216,7 +223,7 @@ function Controls({
                             track.codec !== 'DVD_SUBTITLE',
                         )
                         .map((track) => ({
-                          title: `${track.displayTitle} (${track.language ?? track.languageTag})`,
+                          title: `${track.title} ${track.displayTitle} ${selectedSubtitleTrack?.id === track.id ? '✔' : ''}`,
                           action: () => {
                             handleSubtitleTrackChange(track)
                           },

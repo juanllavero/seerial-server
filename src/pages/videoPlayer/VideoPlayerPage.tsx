@@ -181,7 +181,6 @@ function VideoPlayerPage() {
   }
 
   //#region Player Controls
-
   const togglePlay = () => {
     const videoPlayer = videoRef.current
     if (!videoPlayer) return
@@ -580,6 +579,8 @@ function VideoPlayerPage() {
           setInControls={setShowControls}
           toggleScrubbing={toggleScrubbing}
           handleTimelineUpdate={handleTimelineUpdate}
+          selectedAudioTrack={selectedAudioTrack}
+          selectedSubtitleTrack={selectedSubtitleTrack}
           currentTime={currentTime}
           duration={duration}
           previewTime={previewTime}

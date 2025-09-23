@@ -15,7 +15,6 @@ import MobileMusicPlayer from '@/components/musicPlayer/mobile/MobileMusicPlayer
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { useGradientStore } from '@/context/gradientBackground.context'
 import { isAbsolutePath } from '@/utils/ReactUtils'
-import MusicGradient from './backgrounds/MusicGradient'
 
 export default function BaseLayout({
   children,
@@ -85,7 +84,7 @@ export default function BaseLayout({
       />
 
       {/* Current background */}
-      <div
+      {/* <div
         className="background-layer"
         style={{
           backgroundImage:
@@ -94,17 +93,17 @@ export default function BaseLayout({
               : 'none',
           opacity: inDetailsPage && currentBackground ? 1 : 0,
         }}
-      />
+      /> */}
 
       {/* New background that fades in */}
-      {(inMusicPage || inDetailsPage) && showNewImage && selectedBackground && (
+      {/* {(inMusicPage || inDetailsPage) && showNewImage && selectedBackground && (
         <div
           className="background-layer fade-in"
           style={{
             backgroundImage: `url(${selectedBackground.startsWith('http') ? getSafeURL(selectedBackground) : isAbsolutePath(selectedBackground) ? `${serverUrl}/image?path=${encodeURIComponent(selectedBackground)}` : `${serverUrl}/${getSafeURL(selectedBackground)}`})`,
           }}
         />
-      )}
+      )} */}
 
       {/* Toaster root */}
       <Toaster theme="dark" richColors />

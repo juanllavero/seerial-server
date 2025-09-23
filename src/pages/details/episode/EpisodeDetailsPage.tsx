@@ -1,24 +1,23 @@
 import Loading from '@/components/Loading'
+import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import LazyImage from '@/components/ui/LazyImage'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
-import {
-  AudioTrack,
-  SubtitleTrack,
-  VideoTrack,
-} from '@/data/interfaces/MediaInfo'
 import { authenticatedFetch } from '@/lib/auth'
 import { formatDate } from '@/utils/ReactUtils'
 import { authenticatedFetcher } from '@/utils/utils'
-import { useEffect, useState } from 'react'
+import { PlayIcon } from 'lucide-react'
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import useSWR from 'swr'
+import VideoTracks from './components/VideoTracks'
 
 function EpisodeDetailsPage() {
   const { t } = useTranslation()
+  const selectedServer = useServerStore((state) => state.selectedServer)
   const navigate = useNavigate()
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
   const serverUrl = useServerStore((state) => state.serverUrl)
@@ -49,177 +48,16 @@ function EpisodeDetailsPage() {
     authenticatedFetcher,
   )
 
-  const [selectedVideoTrack, setSelectedVideoTrack] =
-    useState<VideoTrack | null>(null)
-  const [selectedAudioTrack, setSelectedAudioTrack] =
-    useState<AudioTrack | null>(null)
-  const [selectedSubtitleTrack, setSelectedSubtitleTrack] =
-    useState<SubtitleTrack | null>(null)
-
   // Mutate content on ws message
   useEffect(() => {
     if (wsMessage === MessageType.MUTATE_SEASON) {
       mutate()
     }
-  })
-
-  useEffect(() => {
-    if (!episode) return
-
-    const fetchData = async () => {
-      const result = await authenticatedFetch(
-        `${serverUrl}/updateMediaInfo`,
-        'PUT',
-        {
-          videoId: episode.video.id,
-        },
-      )
-
-      if (!result || !result.ok) {
-        return
-      }
-
-      const data = await result.json()
-
-      // const audioTrack = getAudioTrack(
-      //   selectedLibrary,
-      //   selectedSeason,
-      //   data.audioTracks,
-      // )
-      // const subtitleTrack = getSubtitleTrack(
-      //   selectedLibrary,
-      //   selectedSeason,
-      //   data.subtitleTracks,
-      // )
-
-      const videoTrack = data.videoTracks[0] ?? null
-
-      // setSelectedVideoTrack(videoTrack)
-      // setSelectedAudioTrack(audioTrack)
-      // setSelectedSubtitleTrack(subtitleTrack)
-
-      // if (videoTrack) {
-      //   for (const videoTrack of selectedEpisode.videoTracks) {
-      //     videoTrack.selected = false
-      //   }
-      //   videoTrack.selected = true
-      // }
-
-      // if (audioTrack) {
-      //   for (const audioTrack of selectedEpisode.audioTracks) {
-      //     audioTrack.selected = false
-      //   }
-      //   audioTrack.selected = true
-      // }
-
-      // if (subtitleTrack) {
-      //   for (const subTrack of selectedEpisode.subtitleTracks) {
-      //     subTrack.selected = false
-      //   }
-      //   subtitleTrack.selected = true
-      // }
-
-      // updateEpisode({
-      //   libraryId: selectedLibrary.id,
-      //   showId: selectedSeries.id,
-      //   episode: {
-      //     ...selectedEpisode,
-      //     videoTracks: selectedEpisode.videoTracks.map((track) =>
-      //       track.id === (videoTrack?.id ?? '') ? (videoTrack ?? track) : track,
-      //     ),
-      //     audioTracks: selectedEpisode.audioTracks.map((track) =>
-      //       track.id === (audioTrack?.id ?? '') ? (audioTrack ?? track) : track,
-      //     ),
-      //     subtitleTracks: selectedEpisode.subtitleTracks.map((track) =>
-      //       track.id === (subtitleTrack?.id ?? '')
-      //         ? (subtitleTrack ?? track)
-      //         : track,
-      //     ),
-      //   },
-      // })
-    }
-
-    fetchData()
-  }, [episode])
+  }, [wsMessage, mutate])
 
   if (isLoading) {
     return <Loading />
   }
-
-  // const handleVideoTrackChange = (key: string) => {
-  //   const trackToSelect = selectedEpisode.videoTracks.find(
-  //     (track) => track.id.toString() === key,
-  //   )
-
-  //   if (trackToSelect) {
-  //     for (const subTrack of selectedEpisode.videoTracks) {
-  //       subTrack.selected = false
-  //     }
-
-  //     trackToSelect.selected = true
-
-  //     updateEpisode({
-  //       libraryId: selectedLibrary.id,
-  //       showId: selectedSeries.id,
-  //       episode: {
-  //         ...selectedEpisode,
-  //         videoTracks: selectedEpisode.videoTracks.map((track) =>
-  //           track.id.toString() === key ? (trackToSelect ?? track) : track,
-  //         ),
-  //       },
-  //     })
-  //   }
-  // }
-
-  // const handleAudioTrackChange = (key: string) => {
-  //   const trackToSelect = selectedEpisode.audioTracks.find(
-  //     (track) => track.id.toString() === key,
-  //   )
-
-  //   if (trackToSelect) {
-  //     for (const audioTrack of selectedEpisode.audioTracks) {
-  //       audioTrack.selected = false
-  //     }
-
-  //     trackToSelect.selected = true
-
-  //     updateEpisode({
-  //       libraryId: selectedLibrary.id,
-  //       showId: selectedSeries.id,
-  //       episode: {
-  //         ...selectedEpisode,
-  //         audioTracks: selectedEpisode.audioTracks.map((track) =>
-  //           track.id.toString() === key ? (trackToSelect ?? track) : track,
-  //         ),
-  //       },
-  //     })
-  //   }
-  // }
-
-  // const handleSubtitleTrackChange = (key: string) => {
-  //   const trackToSelect = selectedEpisode.subtitleTracks.find(
-  //     (track) => track.id.toString() === key,
-  //   )
-
-  //   if (trackToSelect) {
-  //     for (const subTrack of selectedEpisode.subtitleTracks) {
-  //       subTrack.selected = false
-  //     }
-
-  //     trackToSelect.selected = true
-
-  //     updateEpisode({
-  //       libraryId: selectedLibrary.id,
-  //       showId: selectedSeries.id,
-  //       episode: {
-  //         ...selectedEpisode,
-  //         subtitleTracks: selectedEpisode.subtitleTracks.map((track) =>
-  //           track.id.toString() === key ? (trackToSelect ?? track) : track,
-  //         ),
-  //       },
-  //     })
-  //   }
-  // }
 
   return (
     <FlexBox
@@ -229,7 +67,7 @@ function EpisodeDetailsPage() {
       padding="3rem"
       height={'100%'}
     >
-      <FlexBox>
+      <FlexBox direction="column" gap={1}>
         <LazyImage
           url={episode.video.imgSrc}
           width={500}
@@ -237,6 +75,8 @@ function EpisodeDetailsPage() {
           height={300}
           errorSrc={'/img/Default_video_thumbnail.jpg'}
         />
+
+        <VideoTracks video={episode?.video} mutate={mutate} />
       </FlexBox>
 
       <FlexBox direction="column" gap={1}>
@@ -262,105 +102,29 @@ function EpisodeDetailsPage() {
           <span>{formatDate(episode.year)}</span>
           <span>{episode.video.runtime.toFixed()}min</span>
         </FlexBox>
-        <span className="max-w-300">{episode.overview}</span>
+        <span className="w-[80%] max-w-300">{episode.overview}</span>
 
-        <FlexBox gap={1} padding="0 0 0 1rem">
-          <FlexBox
-            direction="column"
-            justify="center"
-            align="start"
-            gap={1}
-            width={'6rem'}
-            height={'10rem'}
-          >
-            <FlexBox justify="center" align="center" height={'2rem'}>
-              <span style={{ color: 'lightgray' }}>{t('video')}</span>
-            </FlexBox>
-            <FlexBox justify="center" align="center" height={'2rem'}>
-              <span style={{ color: 'lightgray' }}>{t('audio')}</span>
-            </FlexBox>
-            <FlexBox justify="center" align="center" height={'2rem'}>
-              <span style={{ color: 'lightgray' }}>{t('subs')}</span>
-            </FlexBox>
+        <Button
+          onClick={async () => {
+            const episodeId = episode ? episode.id : season?.episodes[0].id
+
+            const response = await authenticatedFetch(
+              `${serverUrl}/episode-video?episodeId=${episodeId}`,
+            )
+
+            if (!response.ok) {
+              return
+            }
+
+            const data = await response.json()
+            navigate(`/server/${selectedServer?.id}/video-player/${data.id}`)
+          }}
+        >
+          <FlexBox align="center" gap={0.5} className="text-black">
+            <PlayIcon color="#111111" />
+            {t('playButton')}
           </FlexBox>
-          {/* <FlexBox
-            direction="column"
-            justify="center"
-            align="start"
-            gap={1}
-            width={'100%'}
-            height={'10rem'}
-          >
-            {episode.videoTracks && episode.videoTracks.length > 1 ? (
-              <SelectableWrapper
-                defaultValue={selectedVideoTrack?.displayTitle ?? ''}
-                onValueChange={handleVideoTrackChange}
-                options={
-                  selectedEpisode.videoTracks
-                    ? selectedEpisode.videoTracks.map((track: VideoTrack) => ({
-                        key: track.id.toString(),
-                        value: track.displayTitle,
-                      }))
-                    : []
-                }
-              />
-            ) : (
-              <span className="font-semibold">
-                {selectedVideoTrack?.displayTitle ?? ''}
-              </span>
-            )}
-
-            {selectedEpisode.audioTracks &&
-            selectedEpisode.audioTracks.length > 1 ? (
-              <SelectableWrapper
-                defaultValue={
-                  selectedAudioTrack
-                    ? `${useLanguageName(selectedAudioTrack?.languageTag ?? '', i18n.language)} ${selectedAudioTrack?.displayTitle}`
-                    : ''
-                }
-                onValueChange={handleAudioTrackChange}
-                options={
-                  selectedEpisode.audioTracks
-                    ? selectedEpisode.audioTracks.map((track: AudioTrack) => ({
-                        key: track.id.toString(),
-                        value: `${useLanguageName(track.languageTag, i18n.language)} ${track.displayTitle}`,
-                      }))
-                    : []
-                }
-              />
-            ) : (
-              <span className="font-semibold">
-                {selectedAudioTrack?.displayTitle ?? ''}
-              </span>
-            )}
-
-            {selectedEpisode.subtitleTracks &&
-            selectedEpisode.subtitleTracks.length > 1 ? (
-              <SelectableWrapper
-                defaultValue={
-                  selectedSubtitleTrack
-                    ? `${useLanguageName(selectedSubtitleTrack?.languageTag ?? '', i18n.language)} ${selectedSubtitleTrack?.displayTitle}`
-                    : ''
-                }
-                onValueChange={handleSubtitleTrackChange}
-                options={
-                  selectedEpisode.subtitleTracks
-                    ? selectedEpisode.subtitleTracks.map(
-                        (track: SubtitleTrack) => ({
-                          key: track.id.toString(),
-                          value: `${useLanguageName(track.languageTag, i18n.language)} ${track.displayTitle}`,
-                        }),
-                      )
-                    : []
-                }
-              />
-            ) : (
-              <span className="font-semibold">
-                {selectedSubtitleTrack?.displayTitle ?? ''}
-              </span>
-            )}
-          </FlexBox> */}
-        </FlexBox>
+        </Button>
       </FlexBox>
     </FlexBox>
   )

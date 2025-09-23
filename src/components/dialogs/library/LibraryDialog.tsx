@@ -13,8 +13,9 @@ import GeneralTabContent from './GeneralTabContent'
 import { authenticatedFetch } from '@/lib/auth'
 
 function LibraryDialog() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const navigate = useNavigate()
+  const currentLanguage = i18n.language?.split('-')[0] ?? 'en'
   const { serverUrl, selectedServer } = useServerStore(
     (state) => ({
       serverUrl: state.serverUrl,
@@ -38,9 +39,9 @@ function LibraryDialog() {
   const [name, setName] = useState<string>('')
   const [language, setLanguage] = useState<string | undefined>()
   const [folders, setFolders] = useState<string[]>()
-  const [preferAudioLan, setPreferAudioLan] = useState<string | undefined>()
-  const [preferSubLan, setPreferSubLan] = useState<string | undefined>()
-  const [subsMode, setSubsMode] = useState<string | undefined>()
+  const [preferAudioLan, setPreferAudioLan] = useState<string>(currentLanguage)
+  const [preferSubLan, setPreferSubLan] = useState<string>(currentLanguage)
+  const [subsMode, setSubsMode] = useState<string>('autoSubs')
 
   useEffect(() => {
     if (libraryDialog && !libraryDialog.libraryToEdit) {
@@ -48,18 +49,22 @@ function LibraryDialog() {
       setName('')
       setLanguage(undefined)
       setFolders(undefined)
-      setPreferAudioLan(undefined)
-      setPreferSubLan(undefined)
-      setSubsMode(undefined)
+      setPreferAudioLan(currentLanguage)
+      setPreferSubLan(currentLanguage)
+      setSubsMode('autoSubs')
       setSelectedTab(t('generalButton'))
     } else if (libraryDialog && libraryDialog.libraryToEdit) {
       setType(libraryDialog.libraryToEdit.type)
       setName(libraryDialog.libraryToEdit.name)
       setLanguage(libraryDialog.libraryToEdit.language)
       setFolders(libraryDialog.libraryToEdit.folders)
-      setPreferAudioLan(libraryDialog.libraryToEdit.preferAudioLan)
-      setPreferSubLan(libraryDialog.libraryToEdit.preferSubLan)
-      setSubsMode(libraryDialog.libraryToEdit.subsMode)
+      setPreferAudioLan(
+        libraryDialog.libraryToEdit.preferAudioLan ?? currentLanguage,
+      )
+      setPreferSubLan(
+        libraryDialog.libraryToEdit.preferSubLan ?? currentLanguage,
+      )
+      setSubsMode(libraryDialog.libraryToEdit.subsMode ?? 'autoSubs')
       setSelectedTab(t('generalButton'))
     }
   }, [libraryDialog])
