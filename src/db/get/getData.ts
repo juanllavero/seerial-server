@@ -295,7 +295,18 @@ export const getSeasonById = (seasonId: string) => {
       {
         model: Episode,
         as: "episodes",
-        include: [{ model: Video, as: "video" }],
+        include: [
+          {
+            model: Video,
+            as: "video",
+            include: [
+              {
+                model: WatchList,
+                as: "watchLists",
+              },
+            ],
+          },
+        ],
       },
       {
         model: WatchList,
