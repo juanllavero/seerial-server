@@ -114,6 +114,7 @@ function SeasonContent({
                 authenticatedFetch(`${serverUrl}/setEpisodeWatched`, 'POST', {
                   episodeId: episode.id,
                   watched: false,
+                  userId: user?.id,
                 }).finally(() => {
                   mutate((key: string) =>
                     key.startsWith(`${serverUrl}/details/series`),

@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { SearchableUser } from '@/data/interfaces/Users'
 import { Avatar, AvatarImage, AvatarFallback } from '@radix-ui/react-avatar'
-import { Trash } from 'lucide-react'
+import { Trash, User2Icon } from 'lucide-react'
 import ShareServersModal from './ShareServersModal'
 import { ModalWrapper } from '@/components/ModalWrapper'
 import { useTranslation } from 'react-i18next'
@@ -26,10 +26,12 @@ function UserCard({ user }: { user: SearchableUser }) {
             src={user.image}
             alt={user.name}
           />
-          <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+          <AvatarFallback className="flex h-full items-center justify-center rounded-full bg-stone-800">
+            <User2Icon size={30} />
+          </AvatarFallback>
         </Avatar>
 
-        <FlexBox direction="column" gap={0.5}>
+        <FlexBox direction="column">
           <span className="text-lg font-black">{user.name}</span>
           <span>{user.email}</span>
         </FlexBox>

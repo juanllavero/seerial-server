@@ -45,7 +45,7 @@ function ShareServersModal({ toUserId }: { toUserId: string }) {
     // Auto select libraries
     const preselected: Record<string, string[]> = {}
     shared
-      .filter((s) => s.serverId === server?.id)
+      .filter((s) => s.serverId === server?.id && s.userId === toUserId)
       .forEach((s) => {
         preselected[s.serverId] = s.libraries
       })

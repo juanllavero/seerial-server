@@ -1,13 +1,6 @@
-import Loading from '@/components/Loading'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { Library } from '@/data/interfaces/Media'
-import { Server } from '@/data/interfaces/Users'
-import {
-  CENTRAL_SERVER,
-  SIDEBAR_MARGIN,
-  SIDEBAR_MARGIN_COLLAPSED,
-} from '@/utils/constants'
 import { authenticatedFetcher } from '@/utils/utils'
 import { useEffect } from 'react'
 import useSWR from 'swr'
@@ -17,12 +10,9 @@ import NoServer from './components/NoServer'
 import NotAvailableServer from './components/NotAvailableServer'
 import HomePageContent from './components/content/HomePageContent'
 import { shallow } from 'zustand/shallow'
-import { useSidebar } from '@/components/ui/sidebar'
-import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
 import LoadingInsideSidebar from '@/components/LoadingInsideSidebar'
 
 export default function HomePage() {
-  const { state: sidebarState } = useSidebar()
   const {
     selectedServer,
     serverUrl,

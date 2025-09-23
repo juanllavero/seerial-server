@@ -28,9 +28,11 @@ import ExpandableText from '@/components/ExpandableText'
 import SeasonSelectable from './components/SeasonSelectable'
 import { useIsServerOwner } from '@/hooks/useServerOwner'
 import { authenticatedFetch } from '@/lib/auth'
+import { useAuth } from '@/context/auth.context'
 
 function SeriesDetailsPage() {
   const { seriesId } = useParams()
+  const { user } = useAuth()
   const {
     selectedSeasonId,
     selectSeason,
@@ -152,6 +154,7 @@ function SeriesDetailsPage() {
       authenticatedFetch(`${serverUrl}/setSeasonWatched`, 'POST', {
         seasonId: season.id,
         watched: !season.watchStatus,
+        userId: user?.id,
       }).then(() => {
         mutate((key: string) => key.startsWith(`${serverUrl}/details/series`))
         mutate((key: string) => key.startsWith(`${serverUrl}/details/season`))

@@ -6,7 +6,9 @@ import FriendsTab from './components/FriendsTab'
 import ProfileSettingsTab from './components/ProfileSettingsTab'
 import ServersTab from './components/ServersTab'
 import UserInfo from './components/UserInfo'
-import InvitationsTab from './components/InvitationsTab'
+import { t } from 'i18next'
+import { Button } from '@/components/ui/button'
+import InvitationsDropdown from './components/InvitationsDropdown'
 
 interface TabContent {
   title: string
@@ -17,24 +19,20 @@ interface TabContent {
 
 function ProfilePage() {
   const isMobile = useIsMobile()
-  const [currentTab, setCurrentTab] = useState('Profile Settings')
+  const [currentTab, setCurrentTab] = useState(t('profileSettings'))
 
   const tabs: TabContent[] = [
     {
-      title: 'Profile Settings',
+      title: t('profileSettings'),
       content: <ProfileSettingsTab />,
     },
     {
-      title: 'Servers',
+      title: t('servers'),
       content: <ServersTab />,
     },
     {
-      title: 'Friends',
+      title: t('friends'),
       content: <FriendsTab />,
-    },
-    {
-      title: 'Invitations',
-      content: <InvitationsTab />,
     },
   ]
 
@@ -82,6 +80,8 @@ function ProfilePage() {
           </TabsContent>
         ))}
       </Tabs>
+
+      <InvitationsDropdown />
     </FlexBox>
   )
 }

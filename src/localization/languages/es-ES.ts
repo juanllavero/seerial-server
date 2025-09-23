@@ -13,6 +13,10 @@ export const es = {
     errorImageUpload: 'Error al subir la imagen',
     invalidImageError: 'Selecciona un archivo de imagen válido',
 
+    friends: 'Amigos',
+    servers: 'Servidores',
+    invitations: 'Invitaciones',
+    profileSettings: 'Configuración del perfil',
     noInvitations: 'No tienes ninguna invitación',
     acceptButton: 'Aceptar',
     rejectButton: 'Rechazar',

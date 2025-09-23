@@ -10,6 +10,7 @@ function ProfileSettingsTab() {
   const { t } = useTranslation()
   const { user, changeUserName } = useAuth()
   const [userName, setUserName] = React.useState<string>(user?.name || '')
+  const [disableButton, setDisableButton] = React.useState(false)
   return (
     <FlexBox direction="column" gap={1} width={'100%'} maxWidth={'30rem'}>
       <LabeledInputWrapper label={t('name')}>
@@ -21,9 +22,18 @@ function ProfileSettingsTab() {
         />
       </LabeledInputWrapper>
 
-      <Button onClick={() => changeUserName(userName)}>
-        {t('saveButton')}
-      </Button>
+      {user?.name !== userName && (
+        <Button
+          disabled={disableButton}
+          onClick={async () => {
+            setDisableButton(true)
+            await changeUserName(userName)
+            setDisableButton(false)
+          }}
+        >
+          {t('saveButton')}
+        </Button>
+      )}
     </FlexBox>
   )
 }

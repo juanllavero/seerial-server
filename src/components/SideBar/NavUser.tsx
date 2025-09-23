@@ -16,15 +16,20 @@ import {
 import { useAuth } from '@/context/auth.context'
 import { cn } from '@/utils/tailwind'
 import { Bell, ChevronRight, LogOut, Settings, UserRound } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
+import FlexBox from '../ui/FlexBox'
+import { Invitation } from '@/data/interfaces/Users'
+import { getInvitations } from '@/lib/auth'
 export function NavUser() {
   const navigate = useNavigate()
   const { user, logout } = useAuth()
   const { isMobile } = useSidebar()
   const [open, setOpen] = useState(false)
   const [hover, setHover] = useState(false)
+  const [invitations, setInvitations] = useState<Invitation[]>([])
+  const updateInterval = 5000
 
   if (!user) return null
 
@@ -44,6 +49,16 @@ export function NavUser() {
   const handleOpenChange = (open: boolean) => {
     setOpen(open)
   }
+
+  const updateInvitations = async () => {
+    setInvitations(await getInvitations())
+  }
+
+  useEffect(() => {
+    updateInvitations()
+    const interval = setInterval(updateInvitations, updateInterval)
+    return () => clearInterval(interval)
+  }, [])
 
   return (
     <SidebarMenu>
@@ -94,22 +109,22 @@ export function NavUser() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem onClick={handleGoToSettings}>
-                <Settings />
-                Settings
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
+
             <DropdownMenuGroup>
               <DropdownMenuItem onClick={handleGoToProfile}>
                 <UserRound />
                 Profile
+                {invitations && invitations.length > 0 && (
+                  <FlexBox className="items-center justify-center rounded-full bg-red-700">
+                    <span className="flex w-5 items-center justify-center">
+                      {invitations.length}
+                    </span>
+                  </FlexBox>
+                )}
               </DropdownMenuItem>
-
-              <DropdownMenuItem>
-                <Bell />
-                Notifications
+              <DropdownMenuItem onClick={handleGoToSettings}>
+                <Settings />
+                Settings
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
