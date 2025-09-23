@@ -4,6 +4,7 @@ import {
   Column,
   DataType,
   ForeignKey,
+  HasMany,
   Model,
   PrimaryKey,
   Table,
@@ -175,33 +176,11 @@ export class Video extends Model {
   })
   extraId?: string;
 
-  @ForeignKey(() => ContinueWatching)
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    field: "continue_watching_id",
-  })
-  continueWatchingId?: string;
+  @HasMany(() => ContinueWatching)
+  continueWatching!: ContinueWatching[];
 
-  @BelongsTo(() => ContinueWatching, {
-    onDelete: "CASCADE",
-    hooks: true,
-  })
-  continueWatching?: ContinueWatching;
-
-  @ForeignKey(() => WatchList)
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    field: "watch_list_id",
-  })
-  watchListId?: string;
-
-  @BelongsTo(() => WatchList, {
-    onDelete: "CASCADE",
-    hooks: true,
-  })
-  watchList?: WatchList;
+  @HasMany(() => WatchList)
+  watchLists!: WatchList[];
 
   @BeforeDestroy
   static async beforeDestroyHook(instance: Video): Promise<void> {

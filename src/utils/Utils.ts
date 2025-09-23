@@ -19,6 +19,7 @@ import {
   addVideoToWatchList,
   removeSeasonFromWatchList,
   removeSeriesFromWatchList,
+  removeVideoFromContinueWatching,
   removeVideoFromWatchList,
 } from "../db/post/postData";
 
@@ -270,8 +271,6 @@ export class Utils {
         } else if (e.episodeNumber === episodeToUpdate.episodeNumber) {
           if (state) {
             await addVideoToWatchList(video.id, userId);
-          } else {
-            await removeVideoFromWatchList(video.id, userId);
           }
 
           if (state === false) {
@@ -305,7 +304,10 @@ export class Utils {
         }
         await video.save();
 
-        if (!video.watchList) allWatchedThisSeason = false;
+        const filteredWatchList = video.watchLists.filter(
+          (wl) => wl.userId === userId
+        );
+        if (filteredWatchList.length === 0) allWatchedThisSeason = false;
       }
 
       if (allWatchedThisSeason) {
@@ -319,15 +321,15 @@ export class Utils {
 
     await deleteAllVideosFromContinueWatching(userId, series.id);
 
-    // Update series and continue watching
-    // if (previousEpisodeId && previousEpisodeId.video?.episode?.id) {
-    //   const prevVideo = await getVideoByEpisodeId(
-    //     previousEpisodeId.video?.episode?.id
-    //   );
-    //   if (prevVideo) {
-    //     await removeVideoFromContinueWatching(prevVideo.id, userId);
-    //   }
-    // }
+    //Update series and continue watching
+    if (previousEpisodeId && previousEpisodeId.video?.episode?.id) {
+      const prevVideo = await getVideoByEpisodeId(
+        previousEpisodeId.video?.episode?.id
+      );
+      if (prevVideo) {
+        await removeVideoFromContinueWatching(prevVideo.id, userId);
+      }
+    }
 
     if (!nextEpisodeId) {
       await addSeriesToWatchList(series.id, userId);

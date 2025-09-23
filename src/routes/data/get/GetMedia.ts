@@ -74,6 +74,12 @@ router.get("/libraries", async (_req: any, res: any) => {
 router.get("/library-content", async (req: any, res: any) => {
   const { libraryId, type } = req.query;
 
+  const userId = req.userId;
+
+  if (!userId) {
+    return res.status(400).json({ error: "User ID is required" });
+  }
+
   if (!libraryId) {
     return res.status(400).json({ error: "Library ID is required" });
   }
@@ -156,9 +162,9 @@ router.get("/library-content", async (req: any, res: any) => {
     for (const item of itemsNotInCollections) {
       const remainingItems =
         getCollectionItemsKey(type) === "movies"
-          ? await getRemainingVideos(item.id)
+          ? await getRemainingVideos(item.id, userId)
           : getCollectionItemsKey(type) === "shows"
-          ? await getRemainingEpisodes(item.id)
+          ? await getRemainingEpisodes(item.id, userId)
           : 0;
       unifiedContent.push({
         type: getCollectionItemsKey(type),
@@ -175,7 +181,7 @@ router.get("/library-content", async (req: any, res: any) => {
   }
 });
 
-const getRemainingVideos = async (itemId: string) => {
+const getRemainingVideos = async (itemId: string, userId: string) => {
   const movie = await getMovieById(itemId);
 
   if (!movie) {
@@ -184,7 +190,10 @@ const getRemainingVideos = async (itemId: string) => {
 
   let remainingVideos = 0;
   for (const video of movie.videos) {
-    if (!video.watchList) {
+    const filteredWatchList = video.watchLists.filter(
+      (wl) => wl.userId === userId
+    );
+    if (filteredWatchList.length > 0) {
       remainingVideos++;
     }
   }
@@ -192,7 +201,7 @@ const getRemainingVideos = async (itemId: string) => {
   return remainingVideos;
 };
 
-const getRemainingEpisodes = async (itemId: string) => {
+const getRemainingEpisodes = async (itemId: string, userId: string) => {
   const series = await getSeriesById(itemId);
 
   if (!series) {
@@ -207,7 +216,9 @@ const getRemainingEpisodes = async (itemId: string) => {
 
     for (const episode of season.episodes) {
       const video = await getVideoByEpisodeId(episode.id);
-      if (video && !video.watchList) {
+      const filteredWatchList =
+        video?.watchLists.filter((wl) => wl.userId === userId) ?? [];
+      if (video && filteredWatchList.length === 0) {
         remainingEpisodes++;
       }
     }

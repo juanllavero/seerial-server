@@ -14,9 +14,9 @@ import { deleteMovieData } from "../../../db/delete/deleteData";
 import { Cast } from "../../interfaces/Media";
 import { Collection } from "../Collections/Collection.model";
 import { CollectionMovie } from "../Collections/CollectionMovie.model";
+import { WatchList } from "../Lists/WatchList";
 import { Library } from "./Library.model";
 import { Video } from "./Video.model";
-import { WatchList } from "../Lists/WatchList";
 
 @Table({ tableName: "Movie", timestamps: false })
 export class Movie extends Model {
@@ -327,19 +327,8 @@ export class Movie extends Model {
     custom_order: number;
   };
 
-  @ForeignKey(() => WatchList)
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    field: "watch_list_id",
-  })
-  watchListId?: string;
-
-  @BelongsTo(() => WatchList, {
-    onDelete: "CASCADE",
-    hooks: true,
-  })
-  watchList?: WatchList;
+  @HasMany(() => WatchList)
+  watchLists!: WatchList[];
 
   @BeforeDestroy
   static async beforeDestroyHook(instance: Movie): Promise<void> {

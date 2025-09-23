@@ -1,5 +1,6 @@
 import { exec } from "child_process";
 import cors from "cors";
+import { config } from "dotenv";
 import { app, Menu, shell, Tray } from "electron";
 import express from "express";
 import fs from "fs";
@@ -20,6 +21,8 @@ import { FilesManager } from "./utils/FilesManager";
 import { findAvailablePort } from "./utils/PortFinder";
 import { downloadYtDlp } from "./utils/YoutubeDownloader";
 import { WebSocketManager } from "./WebSockets/WebSocketManager";
+
+config(); // Load environment variables
 
 process.env.APP_ROOT = path.join(__dirname, "../../");
 
@@ -195,9 +198,14 @@ function createTray() {
 function addServerRoutes() {
   const authMiddleware = new AuthMiddleware();
 
+  // Custom authentication with temp token
+  appServer.use("/", routes.getVideoFileRoutes);
+
   // Access restricted to owner and shared users
   appServer.use("/", authMiddleware.requireAccess, routes.getMediaRoutes);
   appServer.use("/", authMiddleware.requireAccess, routes.getStatusRoutes);
+  appServer.use("/", authMiddleware.requireAccess, routes.publicPostRoutes);
+  appServer.use("/", authMiddleware.requireAccess, routes.publicUpdateRoutes);
 
   // Fast access routes for shared users and owner
   appServer.use(

@@ -1,3 +1,4 @@
+import { ContinueWatching, WatchList } from "../models";
 import {
   AudioTrack,
   Chapter,
@@ -85,8 +86,8 @@ export interface Series {
   folder: string;
   episodeGroupId: string | null;
   analyzingFiles: boolean;
-  currentlyWatchingEpisodeId?: string | null;
-  watched?: boolean;
+
+  watchLists: WatchList[];
 
   seasons: Season[];
 }
@@ -107,7 +108,8 @@ export interface Season {
   backgroundsUrls: string[];
   videoSrc: string;
   musicSrc: string;
-  watched?: boolean;
+
+  watchLists: WatchList[];
 
   episodes: Episode[];
 }
@@ -177,7 +179,8 @@ export interface Movie {
   backgroundsUrls: string[];
   coverSrc: string;
   coversUrls: string[];
-  watched?: boolean;
+
+  watchLists: WatchList[];
 
   videos: Video[];
   extras: Video[];
@@ -190,9 +193,9 @@ export interface Video {
   runtime: number;
   imgSrc: string;
   imgUrls: string[];
-  watched?: boolean;
-  timeWatched?: number;
-  lastWatched?: string;
+
+  continueWatching: ContinueWatching[];
+  watchLists: WatchList[];
 
   mediaInfo?: MediaInfo;
   videoTracks?: VideoTrack[];

@@ -1,4 +1,5 @@
 import {
+  BelongsTo,
   Column,
   DataType,
   ForeignKey,
@@ -56,6 +57,12 @@ export class WatchList extends Model {
   })
   episodeId?: string;
 
+  @BelongsTo(() => Episode, {
+    onDelete: "CASCADE",
+    hooks: true,
+  })
+  episode?: Episode;
+
   @ForeignKey(() => Movie)
   @Column({
     type: DataType.STRING,
@@ -65,6 +72,12 @@ export class WatchList extends Model {
   })
   movieId?: string;
 
+  @BelongsTo(() => Movie, {
+    onDelete: "CASCADE",
+    hooks: true,
+  })
+  movie?: Movie;
+
   @ForeignKey(() => Video)
   @Column({
     type: DataType.STRING,
@@ -73,6 +86,12 @@ export class WatchList extends Model {
     onDelete: "CASCADE",
   })
   videoId?: string;
+
+  @BelongsTo(() => Video, {
+    onDelete: "CASCADE",
+    hooks: true,
+  })
+  video?: Video;
 
   @Column({
     type: DataType.INTEGER,

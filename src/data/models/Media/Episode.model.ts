@@ -3,14 +3,15 @@ import {
   Column,
   DataType,
   ForeignKey,
+  HasMany,
   HasOne,
   Model,
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
+import { WatchList } from "../Lists/WatchList";
 import { Season } from "./Season.model";
 import { Video } from "./Video.model";
-import { WatchList } from "../Lists/WatchList";
 
 @Table({ tableName: "Episode", timestamps: false })
 export class Episode extends Model {
@@ -137,19 +138,8 @@ export class Episode extends Model {
   })
   order!: number;
 
-  @ForeignKey(() => WatchList)
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    field: "watch_list_id",
-  })
-  watchListId?: string;
-
-  @BelongsTo(() => WatchList, {
-    onDelete: "CASCADE",
-    hooks: true,
-  })
-  watchList?: WatchList;
+  @HasMany(() => WatchList)
+  watchLists!: WatchList[];
 
   @BelongsTo(() => Season, { onDelete: "CASCADE" })
   season!: Season;

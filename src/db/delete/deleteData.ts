@@ -554,14 +554,12 @@ export async function deleteAllVideosFromContinueWatching(
   const affectedCount = await ContinueWatching.destroy({
     where: {
       userId,
-      [Op.or]: [{ seriesId }, { movieId }],
+      [Op.or]: [{ seriesId: seriesId ?? null }, { movieId: movieId ?? null }],
     },
   });
 
   if (affectedCount === 0) {
-    throw new Error(
-      `ContinueWatching with seriesId ${seriesId} and movieId ${movieId} not found`
-    );
+    return false;
   }
 
   return true;

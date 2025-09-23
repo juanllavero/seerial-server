@@ -43,6 +43,7 @@ export async function getItemsForLibrary(libraryId: string, type: string) {
           ["order", "ASC"],
           ["name", "ASC"],
         ],
+        include: [{ model: WatchList, as: "watchLists" }],
       });
     } else if (type === "Series" || type === "Shows") {
       items = await Series.findAll({
@@ -51,6 +52,7 @@ export async function getItemsForLibrary(libraryId: string, type: string) {
           ["order", "ASC"],
           ["name", "ASC"],
         ],
+        include: [{ model: WatchList, as: "watchLists" }],
       });
     } else if (type === "Music") {
       items = await Album.findAll({
@@ -265,7 +267,7 @@ export const getSeriesById = (seriesId: string) => {
       },
       {
         model: WatchList,
-        as: "watchList",
+        as: "watchLists",
       },
     ],
   });
@@ -297,7 +299,7 @@ export const getSeasonById = (seasonId: string) => {
       },
       {
         model: WatchList,
-        as: "watchList",
+        as: "watchLists",
       },
     ],
   });
@@ -325,7 +327,7 @@ export const getEpisodeById = (episodeId: string) => {
       {
         model: Video,
         as: "video",
-        include: [{ model: WatchList, as: "watchList" }],
+        include: [{ model: WatchList, as: "watchLists" }],
       },
     ],
   });
@@ -353,7 +355,7 @@ export const getVideoById = async (id: string) => {
   if (!SequelizeManager.sequelize) return null;
 
   return await Video.findByPk(id, {
-    include: [{ model: WatchList, as: "watchList" }],
+    include: [{ model: WatchList, as: "watchLists" }],
   });
 };
 
@@ -364,7 +366,7 @@ export const getVideoByEpisodeId = (episodeId: string) => {
     where: {
       episodeId,
     },
-    include: [{ model: WatchList, as: "watchList" }],
+    include: [{ model: WatchList, as: "watchLists" }],
   });
 };
 
@@ -410,10 +412,10 @@ export const getMovieById = (movieId: string) => {
       {
         model: Video,
         as: "videos",
-        include: [{ model: WatchList, as: "watchList" }],
+        include: [{ model: WatchList, as: "watchLists" }],
       },
       { model: Video, as: "extras" },
-      { model: WatchList, as: "watchList" },
+      { model: WatchList, as: "watchLists" },
     ],
   });
 };
@@ -644,7 +646,7 @@ export const getContinueWatchingVideos = async (userId: string) => {
             { model: Movie, as: "movie" },
             {
               model: WatchList,
-              as: "watchList",
+              as: "watchLists",
             },
           ],
         },
@@ -658,7 +660,14 @@ export const getContinueWatchingVideos = async (userId: string) => {
         const itemVideo = item?.video;
         if (!itemVideo) return null;
 
-        const timeWatched = itemVideo.watchList?.timeWatched ?? 0;
+        const filetedWatchList = itemVideo.watchLists.filter(
+          (wl) => wl.userId === userId
+        );
+
+        const timeWatched =
+          filetedWatchList.length > 0
+            ? filetedWatchList[0].timeWatched ?? 0
+            : 0;
 
         // Validate episode
         if (itemVideo.episode) {
