@@ -10,12 +10,14 @@ const tailwindSizes = [
   40, 48, 56, 60, 64, 72, 80, 96, 100, 112, 120, 128, 144, 160, 192,
 ]
 
-export const getVideoProgress = (video: Video) => {
-  const timeWatched = video.watchStatus?.timeWatched
-    ? video.watchStatus.timeWatched / 60
-    : video.timeWatched
-      ? video.timeWatched / 60
-      : 0
+export const getVideoProgress = (video: Video, watchedTime?: number) => {
+  const timeWatched = watchedTime
+    ? watchedTime / 60
+    : video.watchStatus?.timeWatched
+      ? video.watchStatus.timeWatched / 60
+      : video.timeWatched
+        ? video.timeWatched / 60
+        : 0
   const duration = video.duration ?? video.runtime ?? 0
   if (duration > 0 && timeWatched > 0) {
     return duration - timeWatched

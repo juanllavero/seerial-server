@@ -215,7 +215,7 @@ export interface Video {
 
   // Continue Watching data
   date?: string
-  watchStatus?: WatchStatus
+  watchLists?: WatchList[]
   timeWatched?: number
 
   // Data from Continue Watching
@@ -240,6 +240,18 @@ export interface Video {
 }
 
 export interface WatchStatus {
+  timeWatched?: number
+  lastWatched?: string
+}
+
+export interface WatchList {
+  id: string
+  userId: string
+  seriesId?: string
+  seasonId?: string
+  episodeId?: string
+  movieId?: string
+  videoId?: string
   timeWatched?: number
   lastWatched?: string
 }

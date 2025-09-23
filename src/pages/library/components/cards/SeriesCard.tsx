@@ -94,7 +94,7 @@ function SeriesCard({ series, remainingEpisodes }: SeriesCardProps) {
         navigate(`/server/${selectedServer?.id}/details/series/${series.id}`)
       }}
       hidePlayButton
-      watched={series.watchStatus !== undefined}
+      watched={remainingEpisodes === 0}
       cornerNumber={remainingEpisodes}
       menuContent={menuContent}
       editModal={

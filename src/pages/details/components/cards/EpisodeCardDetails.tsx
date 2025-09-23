@@ -3,11 +3,11 @@ import EpisodeDialog from '@/components/dialogs/episode/EpisodeDialog'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
+import { useAuth } from '@/context/auth.context'
 import { useDialogStore } from '@/context/dialog.context'
 import { Episode } from '@/data/interfaces/Media'
 import { getVideoProgress } from '@/utils/ReactUtils'
 import { Pencil } from 'lucide-react'
-import React from 'react'
 import { useTranslation } from 'react-i18next'
 
 interface EpisodeCardDetailsProps {
@@ -23,9 +23,16 @@ function EpisodeCardDetails({
   goToDetails,
   getEpisodeMenu,
 }: EpisodeCardDetailsProps) {
+  const { user } = useAuth()
   const { t } = useTranslation()
   const isMobile = useIsMobile()
   const openEpisodeDialog = useDialogStore((state) => state.openEpisodeDialog)
+
+  const watchedList = episode.video.watchLists.find(
+    (list: any) => list.userId === user?.id,
+  )
+
+  const timeWatched = watchedList?.timeWatched ?? 0
 
   return (
     <FlexBox justify="start" align="center" gap={1} width={'100%'}>
@@ -35,9 +42,9 @@ function EpisodeCardDetails({
           imgSrc={episode.video?.imgSrc}
           aspectRatio={16 / 9}
           width={'100%'}
-          progress={getVideoProgress(episode.video)}
+          progress={getVideoProgress(episode.video, timeWatched)}
           title={''}
-          watched={episode.video.watched}
+          watched={watchedList && timeWatched < episode.video.runtime * 0.9}
           subtitle={''}
           action={() => goToDetails(episode)}
           playButtonAction={() => playEpisode(episode)}

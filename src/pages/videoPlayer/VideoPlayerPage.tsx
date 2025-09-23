@@ -12,6 +12,7 @@ import './VideoPlayerPage.css'
 import Controls from './components/Controls'
 import TopBar from './components/TopBar'
 import { authenticatedFetch, getToken } from '@/lib/auth'
+import { useAuth } from '@/context/auth.context'
 
 interface VideoInfo {
   title: string
@@ -24,6 +25,7 @@ interface VideoInfo {
 function VideoPlayerPage() {
   const serverUrl = useServerStore((state) => state.serverUrl)
   const { videoId } = useParams()
+  const { user } = useAuth()
 
   // Get video data
   const {
@@ -43,6 +45,12 @@ function VideoPlayerPage() {
     authenticatedFetcher,
   )
 
+  const watchedList = video?.watchLists?.find(
+    (list: any) => list.userId === user?.id,
+  )
+
+  const timeWatched = watchedList?.timeWatched ?? 0
+
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [showLoadingCircle, setShowLoadingCircle] = useState(false)
@@ -55,9 +63,7 @@ function VideoPlayerPage() {
   const [previewTime, setPreviewTime] = useState(0)
 
   // State for triggering stream reload
-  const [streamStartTime, setStreamStartTime] = useState(
-    video?.watchStatus?.timeWatched ?? 0,
-  )
+  const [streamStartTime, setStreamStartTime] = useState(timeWatched ?? 0)
 
   // Controls
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -398,10 +404,10 @@ function VideoPlayerPage() {
   useEffect(() => {
     if (!video) return
 
-    if (video.watchStatus?.timeWatched && video.watchStatus.timeWatched > 0) {
-      setStreamStartTime(video.watchStatus.timeWatched)
-      setTimeOffset(video.watchStatus.timeWatched)
-      setCurrentTime(video.watchStatus.timeWatched)
+    if (timeWatched && timeWatched > 0) {
+      setStreamStartTime(timeWatched)
+      setTimeOffset(timeWatched)
+      setCurrentTime(timeWatched)
     } else {
       setStreamStartTime(0)
       setTimeOffset(0)
