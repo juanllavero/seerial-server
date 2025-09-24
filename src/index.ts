@@ -1,6 +1,6 @@
 import { exec } from "child_process";
 import cors from "cors";
-import dns from "dns";
+import { config } from "dotenv";
 import { app, Menu, shell, Tray } from "electron";
 import express from "express";
 import fs from "fs";
@@ -12,13 +12,17 @@ import os from "os";
 import path from "path";
 import sudo from "sudo-prompt";
 import { SequelizeManager } from "./db/SequelizeManager";
+import AuthMiddleware from "./middleware/authMiddleware";
 import * as routes from "./routes/index";
 import { MovieDBWrapper } from "./theMovieDB/MovieDB";
 import * as ConfigManager from "./utils/ConfigManager";
+import { API_URL } from "./utils/constants";
 import { FilesManager } from "./utils/FilesManager";
 import { findAvailablePort } from "./utils/PortFinder";
 import { downloadYtDlp } from "./utils/YoutubeDownloader";
 import { WebSocketManager } from "./WebSockets/WebSocketManager";
+
+config(); // Load environment variables
 
 process.env.APP_ROOT = path.join(__dirname, "../../");
 
@@ -192,20 +196,36 @@ function createTray() {
 //#endregion
 
 function addServerRoutes() {
-  appServer.use("/", routes.folderRoutes);
-  appServer.use("/", routes.deleteDataRoutes);
-  appServer.use("/", routes.postDataRoutes);
-  appServer.use("/", routes.updateDataRoutes);
-  appServer.use("/", routes.getAudioRoutes);
-  appServer.use("/", routes.getColorsRoutes);
-  appServer.use("/", routes.getImagesRoutes);
-  appServer.use("/", routes.getMediaRoutes);
-  appServer.use("/", routes.getMediaInfoRoutes);
-  appServer.use("/", routes.getStatusRoutes);
-  appServer.use("/", routes.getVideoRoutes);
-  appServer.use("/", routes.getHTPCSettings);
-  appServer.use("/", routes.getServerSettings);
-  appServer.use("/", routes.getWebSettings);
+  const authMiddleware = new AuthMiddleware();
+
+  // Custom authentication with temp token
+  appServer.use("/", routes.getVideoFileRoutes);
+
+  // Access restricted to owner and shared users
+  appServer.use("/", authMiddleware.requireAccess, routes.getMediaRoutes);
+  appServer.use("/", authMiddleware.requireAccess, routes.getStatusRoutes);
+  appServer.use("/", authMiddleware.requireAccess, routes.publicPostRoutes);
+  appServer.use("/", authMiddleware.requireAccess, routes.publicUpdateRoutes);
+
+  // Fast access routes for shared users and owner
+  appServer.use(
+    "/",
+    authMiddleware.requireAccessFast,
+    routes.getMediaInfoRoutes
+  );
+  appServer.use("/", authMiddleware.requireAccessFast, routes.getVideoRoutes);
+  appServer.use("/", authMiddleware.requireAccessFast, routes.getAudioRoutes);
+  appServer.use("/", authMiddleware.requireAccessFast, routes.getColorsRoutes);
+  appServer.use("/", authMiddleware.requireAccessFast, routes.getImagesRoutes);
+
+  // Authenticated routes (only server owner)
+  appServer.use("/", authMiddleware.requireOwner, routes.folderRoutes);
+  appServer.use("/", authMiddleware.requireOwner, routes.deleteDataRoutes);
+  appServer.use("/", authMiddleware.requireOwner, routes.postDataRoutes);
+  appServer.use("/", authMiddleware.requireOwner, routes.updateDataRoutes);
+  appServer.use("/", authMiddleware.requireOwner, routes.getHTPCSettings);
+  appServer.use("/", authMiddleware.requireOwner, routes.getServerSettings);
+  appServer.use("/", authMiddleware.requireOwner, routes.getWebSettings);
 
   /**
    * Endpoint to restart the server with a specific port
@@ -234,7 +254,6 @@ function addServerRoutes() {
 }
 
 //#region SERVER REGISTRATION & SSL
-const API_URL = "https://api.seerial.es";
 let localIp: string = "127.0.0.1";
 
 async function getServerDetails() {
@@ -354,7 +373,10 @@ async function loginAndRegisterServer(port: number) {
         );
 
         fs.writeFileSync("auth.token", String(finalJwt));
-        fs.writeFileSync("server.id", String(result.id));
+        fs.writeFileSync(
+          FilesManager.getExternalPath("resources/config/server.id"),
+          String(result.id)
+        );
         serverId = result.id;
         authToken = String(finalJwt);
         lastKnownPublicIp = serverDetails.publicIp;
@@ -400,39 +422,6 @@ async function pollForCompletion(token: any) {
       }
     }, 3000); // Fetch every 3 seconds
   });
-}
-
-/**
- * NEW: Performs a DNS lookup to verify the subdomain points to the correct IP.
- * If not, it forces a DNS update.
- */
-async function verifyAndFixDns() {
-  if (!serverId || !lastKnownPublicIp) {
-    return; // Not enough info to check
-  }
-  const subdomain = `${serverId}.seerial.es`;
-  console.log(`[DNS Check]: Verifying subdomain ${subdomain}...`);
-  try {
-    const { address } = await dns.promises.lookup(subdomain);
-    if (address === lastKnownPublicIp) {
-      console.log(`[DNS Check]: OK. Subdomain correctly points to ${address}.`);
-    } else {
-      console.warn(
-        `[DNS Check]: Mismatch! Subdomain points to ${address}, but our IP is ${lastKnownPublicIp}. Forcing update...`
-      );
-      await updateDnsRecord(true);
-    }
-  } catch (error: any) {
-    if (error.code === "ENOTFOUND") {
-      console.warn(`[DNS Check]: Subdomain not found. Forcing creation...`);
-      await updateDnsRecord(true);
-    } else {
-      console.error(
-        `[DNS Check]: An unexpected error occurred during lookup:`,
-        error
-      );
-    }
-  }
 }
 //#endregion
 
@@ -667,8 +656,11 @@ app.whenReady().then(async () => {
   try {
     if (fs.existsSync("auth.token"))
       authToken = fs.readFileSync("auth.token", "utf-8");
-    if (fs.existsSync("server.id"))
-      serverId = fs.readFileSync("server.id", "utf-8");
+    const serverIdPath = FilesManager.getExternalPath(
+      "resources/config/server.id"
+    );
+    if (fs.existsSync(serverIdPath))
+      serverId = fs.readFileSync(serverIdPath, "utf-8");
 
     // At startup, try to load the SSL certificate from local files.
     if (fs.existsSync("cert.pem") && fs.existsSync("key.pem")) {

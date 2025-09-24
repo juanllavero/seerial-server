@@ -14,6 +14,7 @@ import { deleteMovieData } from "../../../db/delete/deleteData";
 import { Cast } from "../../interfaces/Media";
 import { Collection } from "../Collections/Collection.model";
 import { CollectionMovie } from "../Collections/CollectionMovie.model";
+import { WatchList } from "../Lists/WatchList";
 import { Library } from "./Library.model";
 import { Video } from "./Video.model";
 
@@ -284,13 +285,6 @@ export class Movie extends Model {
   backgroundsUrls!: string[];
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    defaultValue: false,
-  })
-  watched!: boolean;
-
-  @Column({
     type: DataType.STRING,
     allowNull: false,
     field: "video_src",
@@ -332,6 +326,9 @@ export class Movie extends Model {
   CollectionMovie?: {
     custom_order: number;
   };
+
+  @HasMany(() => WatchList)
+  watchLists!: WatchList[];
 
   @BeforeDestroy
   static async beforeDestroyHook(instance: Movie): Promise<void> {

@@ -7,12 +7,14 @@ import {
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
+import { Episode } from "../Media/Episode.model";
 import { Movie } from "../Media/Movie.model";
+import { Season } from "../Media/Season.model";
 import { Series } from "../Media/Series.model";
 import { Video } from "../Media/Video.model";
 
-@Table({ tableName: "Continue_Watching", timestamps: true })
-export class ContinueWatching extends Model {
+@Table({ tableName: "Watch_List", timestamps: true })
+export class WatchList extends Model {
   @PrimaryKey
   @Column({
     type: DataType.STRING,
@@ -33,20 +35,40 @@ export class ContinueWatching extends Model {
     type: DataType.STRING,
     allowNull: true,
     field: "series_id",
+    onDelete: "CASCADE",
   })
   seriesId?: string;
 
-  @BelongsTo(() => Series, {
+  @ForeignKey(() => Season)
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    field: "season_id",
+    onDelete: "CASCADE",
+  })
+  seasonId?: string;
+
+  @ForeignKey(() => Episode)
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+    field: "episode_id",
+    onDelete: "CASCADE",
+  })
+  episodeId?: string;
+
+  @BelongsTo(() => Episode, {
     onDelete: "CASCADE",
     hooks: true,
   })
-  series?: Series;
+  episode?: Episode;
 
   @ForeignKey(() => Movie)
   @Column({
     type: DataType.STRING,
     allowNull: true,
     field: "movie_id",
+    onDelete: "CASCADE",
   })
   movieId?: string;
 
@@ -59,15 +81,31 @@ export class ContinueWatching extends Model {
   @ForeignKey(() => Video)
   @Column({
     type: DataType.STRING,
-    allowNull: false,
+    allowNull: true,
     field: "video_id",
     onDelete: "CASCADE",
   })
-  videoId!: string;
+  videoId?: string;
 
   @BelongsTo(() => Video, {
     onDelete: "CASCADE",
     hooks: true,
   })
-  video!: Video;
+  video?: Video;
+
+  @Column({
+    type: DataType.INTEGER,
+    defaultValue: 0,
+    allowNull: false,
+    field: "time_watched",
+  })
+  timeWatched!: number;
+
+  @Column({
+    type: DataType.STRING,
+    defaultValue: "",
+    allowNull: false,
+    field: "last_watched",
+  })
+  lastWatched!: string;
 }

@@ -4,6 +4,7 @@ import {
   Column,
   DataType,
   ForeignKey,
+  HasMany,
   Model,
   PrimaryKey,
   Table,
@@ -17,6 +18,7 @@ import {
   VideoTrack,
 } from "../../interfaces/MediaInfo";
 import { ContinueWatching } from "../Lists/ContinueWatching.model";
+import { WatchList } from "../Lists/WatchList";
 import { Episode } from "./Episode.model";
 import { Movie } from "./Movie.model";
 
@@ -67,29 +69,6 @@ export class Video extends Model {
     field: "img_urls",
   })
   imgUrls!: string[];
-
-  @Column({
-    type: DataType.BOOLEAN,
-    defaultValue: false,
-    allowNull: false,
-  })
-  watched!: boolean;
-
-  @Column({
-    type: DataType.INTEGER,
-    defaultValue: 0,
-    allowNull: false,
-    field: "time_watched",
-  })
-  timeWatched!: number;
-
-  @Column({
-    type: DataType.STRING,
-    defaultValue: "",
-    allowNull: false,
-    field: "last_watched",
-  })
-  lastWatched!: string;
 
   @Column({
     type: DataType.JSON,
@@ -197,19 +176,11 @@ export class Video extends Model {
   })
   extraId?: string;
 
-  @ForeignKey(() => ContinueWatching)
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    field: "continue_watching_id",
-  })
-  continueWatchingId?: string;
+  @HasMany(() => ContinueWatching)
+  continueWatching!: ContinueWatching[];
 
-  @BelongsTo(() => ContinueWatching, {
-    onDelete: "CASCADE",
-    hooks: true,
-  })
-  continueWatching?: ContinueWatching;
+  @HasMany(() => WatchList)
+  watchLists!: WatchList[];
 
   @BeforeDestroy
   static async beforeDestroyHook(instance: Video): Promise<void> {

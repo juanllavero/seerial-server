@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
 import { PlayList as PlayListData } from "../../data/interfaces/Lists";
 import {
@@ -22,6 +23,7 @@ import { ContinueWatching } from "../../data/models/Lists/ContinueWatching.model
 import { MyList } from "../../data/models/Lists/MyList.model";
 import { PlayList } from "../../data/models/Lists/PlayList.model";
 import { PlayListItem } from "../../data/models/Lists/PlayListItem.model";
+import { WatchList } from "../../data/models/Lists/WatchList";
 import { Episode } from "../../data/models/Media/Episode.model";
 import { Library } from "../../data/models/Media/Library.model";
 import { Movie } from "../../data/models/Media/Movie.model";
@@ -49,6 +51,11 @@ import { SequelizeManager } from "../SequelizeManager";
 export const addLibrary = async (library: Partial<LibraryData>) => {
   if (!SequelizeManager.sequelize) {
     console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
+
+  if (!library) {
+    console.error("Error: No library data provided");
     return null;
   }
 
@@ -648,7 +655,10 @@ export const addSong = async (song: Partial<SongData>) => {
 
 //#region Lists
 
-export const addPlaylist = async (playList: Partial<PlayListData>) => {
+export const addPlaylist = async (
+  playList: Partial<PlayListData>,
+  userId?: string
+) => {
   if (!SequelizeManager.sequelize) {
     console.error("Error: Sequelize no está inicializado");
     return null;
@@ -668,6 +678,7 @@ export const addPlaylist = async (playList: Partial<PlayListData>) => {
     const playListData = {
       ...playList,
       id: uuidv4().split("-")[0],
+      userId,
     };
 
     const newPlayList = new PlayList(playListData);
@@ -756,7 +767,7 @@ export const removeSongFromPlaylist = async (
   }
 };
 
-export const addSeriesToMyList = async (seriesId: string) => {
+export const addSeriesToMyList = async (seriesId: string, userId?: string) => {
   if (!SequelizeManager.sequelize) {
     console.error("Error: Sequelize no está inicializado");
     return null;
@@ -767,6 +778,7 @@ export const addSeriesToMyList = async (seriesId: string) => {
     const existingElement = await MyList.findOne({
       where: {
         seriesId,
+        userId,
       },
     });
 
@@ -779,6 +791,7 @@ export const addSeriesToMyList = async (seriesId: string) => {
     const newElementData = {
       id: uuidv4().split("-")[0],
       seriesId,
+      userId,
     };
 
     const newElement = new MyList(newElementData);
@@ -790,7 +803,10 @@ export const addSeriesToMyList = async (seriesId: string) => {
   }
 };
 
-export const removeSeriesFromMyList = async (seriesId: string) => {
+export const removeSeriesFromMyList = async (
+  seriesId: string,
+  userId?: string
+) => {
   if (!SequelizeManager.sequelize) {
     console.error("Error: Sequelize no está inicializado");
     return null;
@@ -801,6 +817,7 @@ export const removeSeriesFromMyList = async (seriesId: string) => {
     const existingElement = await MyList.findOne({
       where: {
         seriesId,
+        userId,
       },
     });
 
@@ -817,7 +834,7 @@ export const removeSeriesFromMyList = async (seriesId: string) => {
   }
 };
 
-export const addMovieToMyList = async (movieId: string) => {
+export const addMovieToMyList = async (movieId: string, userId?: string) => {
   if (!SequelizeManager.sequelize) {
     console.error("Error: Sequelize no está inicializado");
     return null;
@@ -828,6 +845,7 @@ export const addMovieToMyList = async (movieId: string) => {
     const existingElement = await MyList.findOne({
       where: {
         movieId,
+        userId,
       },
     });
 
@@ -840,6 +858,7 @@ export const addMovieToMyList = async (movieId: string) => {
     const newElementData = {
       id: uuidv4().split("-")[0],
       movieId,
+      userId,
     };
 
     const newElement = new MyList(newElementData);
@@ -851,7 +870,10 @@ export const addMovieToMyList = async (movieId: string) => {
   }
 };
 
-export const removeMovieFromMyList = async (movieId: string) => {
+export const removeMovieFromMyList = async (
+  movieId: string,
+  userId?: string
+) => {
   if (!SequelizeManager.sequelize) {
     console.error("Error: Sequelize no está inicializado");
     return null;
@@ -862,6 +884,7 @@ export const removeMovieFromMyList = async (movieId: string) => {
     const existingElement = await MyList.findOne({
       where: {
         movieId,
+        userId,
       },
     });
 
@@ -878,17 +901,25 @@ export const removeMovieFromMyList = async (movieId: string) => {
   }
 };
 
-export const removeVideoFromContinueWatching = async (videoId: string) => {
+export const removeVideoFromContinueWatching = async (
+  videoId: string,
+  userId?: string
+) => {
   if (!SequelizeManager.sequelize) return;
 
   try {
-    await ContinueWatching.destroy({ where: { videoId } });
+    await ContinueWatching.destroy({ where: { videoId, userId } });
   } catch (error) {
     console.error("Error al eliminar video de Continue Watching:", error);
   }
 };
 
-export const addVideoToContinueWatching = async (videoId: string) => {
+export const addVideoToContinueWatching = async (
+  videoId: string,
+  userId: string,
+  seriesId?: string,
+  movieId?: string
+) => {
   if (!SequelizeManager.sequelize) {
     console.error("Error: Sequelize no está inicializado");
     return null;
@@ -899,6 +930,7 @@ export const addVideoToContinueWatching = async (videoId: string) => {
     const existingElement = await ContinueWatching.findOne({
       where: {
         videoId,
+        userId,
       },
     });
 
@@ -907,10 +939,20 @@ export const addVideoToContinueWatching = async (videoId: string) => {
       return existingElement;
     }
 
+    // Remove every video that has seriesId or movieId in ContinueWatching
+    await ContinueWatching.destroy({
+      where: {
+        [Op.or]: [{ seriesId: seriesId ?? null }, { movieId: movieId ?? null }],
+      },
+    });
+
     // Genera un UUID para el id
     const newElementData = {
       id: uuidv4().split("-")[0],
       videoId,
+      userId,
+      seriesId: seriesId ?? null,
+      movieId: movieId ?? null,
     };
 
     const newElement = new ContinueWatching(newElementData);
@@ -918,6 +960,350 @@ export const addVideoToContinueWatching = async (videoId: string) => {
     return newElement;
   } catch (error) {
     console.error("Error al agregar el video a Continue Watching:", error);
+    return null;
+  }
+};
+
+export const addSeriesToWatchList = async (
+  seriesId: string,
+  userId?: string
+) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
+
+  try {
+    // Verifica si la serie ya estaba en la lista
+    const existingElement = await WatchList.findOne({
+      where: {
+        seriesId,
+        userId,
+      },
+    });
+
+    if (existingElement) {
+      console.log(`La serie ${seriesId} ya estaba en Watch List`);
+      return existingElement;
+    }
+
+    // Genera un UUID para el id
+    const newElementData = {
+      id: uuidv4().split("-")[0],
+      seriesId,
+      userId,
+    };
+
+    const newElement = new WatchList(newElementData);
+    await newElement.save();
+    return newElement;
+  } catch (error) {
+    console.error("Error al agregar la serie a Watch List:", error);
+    return null;
+  }
+};
+
+export const removeSeriesFromWatchList = async (
+  seriesId: string,
+  userId?: string
+) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
+
+  try {
+    // Verifica si la serie ya estaba en la lista
+    const existingElement = await WatchList.findOne({
+      where: {
+        seriesId,
+        userId,
+      },
+    });
+
+    if (!existingElement) {
+      console.log(`La serie ${seriesId} no estaba en Watch List`);
+      return existingElement;
+    }
+
+    await existingElement.destroy();
+    return existingElement;
+  } catch (error) {
+    console.error("Error al eliminar la serie de Watch List:", error);
+    return null;
+  }
+};
+
+export const addSeasonToWatchList = async (
+  seasonId: string,
+  userId?: string
+) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
+
+  try {
+    // Verifica si la temporada ya estaba en la lista
+    const existingElement = await WatchList.findOne({
+      where: {
+        seasonId,
+        userId,
+      },
+    });
+
+    if (existingElement) {
+      console.log(`La temporada ${seasonId} ya estaba en Watch List`);
+      return existingElement;
+    }
+
+    // Genera un UUID para el id
+    const newElementData = {
+      id: uuidv4().split("-")[0],
+      seasonId,
+      userId,
+    };
+
+    const newElement = new WatchList(newElementData);
+    await newElement.save();
+    return newElement;
+  } catch (error) {
+    console.error("Error al agregar la temporada a Watch List:", error);
+    return null;
+  }
+};
+
+export const removeSeasonFromWatchList = async (
+  seasonId: string,
+  userId?: string
+) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
+
+  try {
+    // Verifica si la temporada ya estaba en la lista
+    const existingElement = await WatchList.findOne({
+      where: {
+        seasonId,
+        userId,
+      },
+    });
+
+    if (!existingElement) {
+      console.log(`La temporada ${seasonId} no estaba en Watch List`);
+      return existingElement;
+    }
+
+    await existingElement.destroy();
+    return existingElement;
+  } catch (error) {
+    console.error("Error al eliminar la temporada de Watch List:", error);
+    return null;
+  }
+};
+
+export const addEpisodeToWatchList = async (
+  episodeId: string,
+  userId?: string
+) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
+
+  try {
+    // Verifica si el episodio ya estaba en la lista
+    const existingElement = await WatchList.findOne({
+      where: {
+        episodeId,
+        userId,
+      },
+    });
+
+    if (existingElement) {
+      console.log(`El episodio ${episodeId} ya estaba en Watch List`);
+      return existingElement;
+    }
+
+    // Genera un UUID para el id
+    const newElementData = {
+      id: uuidv4().split("-")[0],
+      episodeId,
+      userId,
+    };
+
+    const newElement = new WatchList(newElementData);
+    await newElement.save();
+    return newElement;
+  } catch (error) {
+    console.error("Error al agregar el episodio a Watch List:", error);
+    return null;
+  }
+};
+
+export const removeEpisodeFromWatchList = async (
+  episodeId: string,
+  userId?: string
+) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
+
+  try {
+    // Verifica si el episodio ya estaba en la lista
+    const existingElement = await WatchList.findOne({
+      where: {
+        episodeId,
+        userId,
+      },
+    });
+
+    if (!existingElement) {
+      console.log(`El episodio ${episodeId} no estaba en Watch List`);
+      return existingElement;
+    }
+
+    await existingElement.destroy();
+    return existingElement;
+  } catch (error) {
+    console.error("Error al eliminar el episodio de Watch List:", error);
+    return null;
+  }
+};
+
+export const addMovieToWatchList = async (movieId: string, userId?: string) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
+
+  try {
+    // Verifica si el episodio ya estaba en la lista
+    const existingElement = await WatchList.findOne({
+      where: {
+        movieId,
+        userId,
+      },
+    });
+
+    if (existingElement) {
+      console.log(`El episodio ${movieId} ya estaba en Watch List`);
+      return existingElement;
+    }
+
+    // Genera un UUID para el id
+    const newElementData = {
+      id: uuidv4().split("-")[0],
+      movieId,
+      userId,
+    };
+
+    const newElement = new WatchList(newElementData);
+    await newElement.save();
+    return newElement;
+  } catch (error) {
+    console.error("Error al agregar el episodio a Watch List:", error);
+    return null;
+  }
+};
+
+export const removeMovieFromWatchList = async (
+  movieId: string,
+  userId?: string
+) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
+
+  try {
+    // Verifica si el episodio ya estaba en la lista
+    const existingElement = await WatchList.findOne({
+      where: {
+        movieId,
+        userId,
+      },
+    });
+
+    if (!existingElement) {
+      console.log(`El episodio ${movieId} no estaba en Watch List`);
+      return existingElement;
+    }
+
+    await existingElement.destroy();
+    return existingElement;
+  } catch (error) {
+    console.error("Error al eliminar el episodio de Watch List:", error);
+    return null;
+  }
+};
+
+export const addVideoToWatchList = async (videoId: string, userId?: string) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
+
+  try {
+    // Verifica si el episodio ya estaba en la lista
+    const existingElement = await WatchList.findOne({
+      where: {
+        videoId,
+        userId,
+      },
+    });
+
+    if (existingElement) {
+      console.log(`El episodio ${videoId} ya estaba en Watch List`);
+      return existingElement;
+    }
+
+    // Genera un UUID para el id
+    const newElementData = {
+      id: uuidv4().split("-")[0],
+      videoId,
+      userId,
+    };
+
+    const newElement = new WatchList(newElementData);
+    await newElement.save();
+    return newElement;
+  } catch (error) {
+    console.error("Error al agregar el episodio a Watch List:", error);
+    return null;
+  }
+};
+
+export const removeVideoFromWatchList = async (
+  videoId: string,
+  userId?: string
+) => {
+  if (!SequelizeManager.sequelize) {
+    console.error("Error: Sequelize no está inicializado");
+    return null;
+  }
+
+  try {
+    // Verifica si el episodio ya estaba en la lista
+    const existingElement = await WatchList.findOne({
+      where: {
+        videoId,
+        userId,
+      },
+    });
+
+    if (!existingElement) {
+      console.log(`El episodio ${videoId} no estaba en Watch List`);
+      return existingElement;
+    }
+
+    await existingElement.destroy();
+    return existingElement;
+  } catch (error) {
+    console.error("Error al eliminar el episodio de Watch List:", error);
     return null;
   }
 };

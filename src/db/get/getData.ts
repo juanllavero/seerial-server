@@ -3,6 +3,7 @@ import { Collection } from "../../data/models/Collections/Collection.model";
 import { ContinueWatching } from "../../data/models/Lists/ContinueWatching.model";
 import { MyList } from "../../data/models/Lists/MyList.model";
 import { PlayList } from "../../data/models/Lists/PlayList.model";
+import { WatchList } from "../../data/models/Lists/WatchList";
 import { Episode } from "../../data/models/Media/Episode.model";
 import { Library } from "../../data/models/Media/Library.model";
 import { Movie } from "../../data/models/Media/Movie.model";
@@ -42,6 +43,7 @@ export async function getItemsForLibrary(libraryId: string, type: string) {
           ["order", "ASC"],
           ["name", "ASC"],
         ],
+        include: [{ model: WatchList, as: "watchLists" }],
       });
     } else if (type === "Series" || type === "Shows") {
       items = await Series.findAll({
@@ -50,6 +52,7 @@ export async function getItemsForLibrary(libraryId: string, type: string) {
           ["order", "ASC"],
           ["name", "ASC"],
         ],
+        include: [{ model: WatchList, as: "watchLists" }],
       });
     } else if (type === "Music") {
       items = await Album.findAll({
@@ -262,6 +265,10 @@ export const getSeriesById = (seriesId: string) => {
         model: Season,
         as: "seasons",
       },
+      {
+        model: WatchList,
+        as: "watchLists",
+      },
     ],
   });
 };
@@ -288,7 +295,22 @@ export const getSeasonById = (seasonId: string) => {
       {
         model: Episode,
         as: "episodes",
-        include: [{ model: Video, as: "video" }],
+        include: [
+          {
+            model: Video,
+            as: "video",
+            include: [
+              {
+                model: WatchList,
+                as: "watchLists",
+              },
+            ],
+          },
+        ],
+      },
+      {
+        model: WatchList,
+        as: "watchLists",
       },
     ],
   });
@@ -312,7 +334,13 @@ export const getEpisodeById = (episodeId: string) => {
   if (!SequelizeManager.sequelize) return null;
 
   return Episode.findByPk(episodeId, {
-    include: [{ model: Video, as: "video" }],
+    include: [
+      {
+        model: Video,
+        as: "video",
+        include: [{ model: WatchList, as: "watchLists" }],
+      },
+    ],
   });
 };
 
@@ -337,7 +365,9 @@ export const getEpisodeByPath = async (videoSrc: string) => {
 export const getVideoById = async (id: string) => {
   if (!SequelizeManager.sequelize) return null;
 
-  return await Video.findByPk(id);
+  return await Video.findByPk(id, {
+    include: [{ model: WatchList, as: "watchLists" }],
+  });
 };
 
 export const getVideoByEpisodeId = (episodeId: string) => {
@@ -347,6 +377,7 @@ export const getVideoByEpisodeId = (episodeId: string) => {
     where: {
       episodeId,
     },
+    include: [{ model: WatchList, as: "watchLists" }],
   });
 };
 
@@ -389,8 +420,13 @@ export const getMovieById = (movieId: string) => {
 
   return Movie.findByPk(movieId, {
     include: [
-      { model: Video, as: "videos" },
+      {
+        model: Video,
+        as: "videos",
+        include: [{ model: WatchList, as: "watchLists" }],
+      },
       { model: Video, as: "extras" },
+      { model: WatchList, as: "watchLists" },
     ],
   });
 };
@@ -486,7 +522,7 @@ export const getPlayListById = (id: string) => {
   });
 };
 
-export const getSeriesInMyList = async () => {
+export const getSeriesInMyList = async (userId: string) => {
   if (!SequelizeManager.sequelize) return null;
 
   try {
@@ -496,6 +532,7 @@ export const getSeriesInMyList = async () => {
         seriesId: {
           [Op.not]: null,
         },
+        userId: userId, // Filter by user ID if provided
       },
       attributes: ["seriesId"], // Only the ID
       order: [["addedAt", "DESC"]],
@@ -521,7 +558,7 @@ export const getSeriesInMyList = async () => {
   }
 };
 
-export const getMoviesInMyList = async () => {
+export const getMoviesInMyList = async (userId: string) => {
   if (!SequelizeManager.sequelize) return null;
 
   try {
@@ -531,6 +568,7 @@ export const getMoviesInMyList = async () => {
         movieId: {
           [Op.not]: null,
         },
+        userId: userId, // Filter by user ID if provided
       },
       attributes: ["movieId"], // Only the ID
       order: [["addedAt", "DESC"]],
@@ -556,13 +594,17 @@ export const getMoviesInMyList = async () => {
   }
 };
 
-export const getSeriesFromMyList = async (seriesId: string) => {
+export const getSeriesFromMyList = async (
+  seriesId: string,
+  userId?: string
+) => {
   if (!SequelizeManager.sequelize) return null;
 
   try {
     return await MyList.findOne({
       where: {
         seriesId: seriesId,
+        userId: userId,
       },
     });
   } catch (error: any) {
@@ -571,13 +613,14 @@ export const getSeriesFromMyList = async (seriesId: string) => {
   }
 };
 
-export const getMovieFromMyList = async (movieId: string) => {
+export const getMovieFromMyList = async (movieId: string, userId?: string) => {
   if (!SequelizeManager.sequelize) return null;
 
   try {
     return await MyList.findOne({
       where: {
         movieId: movieId,
+        userId: userId,
       },
     });
   } catch (error: any) {
@@ -586,11 +629,14 @@ export const getMovieFromMyList = async (movieId: string) => {
   }
 };
 
-export const getContinueWatchingVideos = async () => {
+export const getContinueWatchingVideos = async (userId: string) => {
   if (!SequelizeManager.sequelize) return null;
 
   try {
     const elements = await ContinueWatching.findAll({
+      where: {
+        userId: userId,
+      },
       include: [
         {
           model: Video,
@@ -609,6 +655,10 @@ export const getContinueWatchingVideos = async () => {
               ],
             },
             { model: Movie, as: "movie" },
+            {
+              model: WatchList,
+              as: "watchLists",
+            },
           ],
         },
       ],
@@ -620,6 +670,15 @@ export const getContinueWatchingVideos = async () => {
       .map((item) => {
         const itemVideo = item?.video;
         if (!itemVideo) return null;
+
+        const filetedWatchList = itemVideo.watchLists.filter(
+          (wl) => wl.userId === userId
+        );
+
+        const timeWatched =
+          filetedWatchList.length > 0
+            ? filetedWatchList[0].timeWatched ?? 0
+            : 0;
 
         // Validate episode
         if (itemVideo.episode) {
@@ -637,7 +696,7 @@ export const getContinueWatchingVideos = async () => {
             seasonNumber: episode.seasonNumber ?? 0,
             date: episode.year ?? "",
             duration: itemVideo.runtime ?? 0,
-            timeWatched: itemVideo.timeWatched ?? 0,
+            timeWatched: timeWatched,
             genres: series.genres ?? [],
             overview:
               episode.overview ?? season.overview ?? series.overview ?? "",
@@ -661,7 +720,7 @@ export const getContinueWatchingVideos = async () => {
             title: movie.name ?? "Not found",
             date: movie.year ?? "",
             duration: itemVideo.runtime ?? 0,
-            timeWatched: itemVideo.timeWatched ?? 0,
+            timeWatched: timeWatched,
             genres: movie.genres ?? [],
             overview: movie.overview,
             backgroundImage: movie.backgroundSrc,
@@ -681,6 +740,64 @@ export const getContinueWatchingVideos = async () => {
   } catch (error: any) {
     console.log(`Error fetching Continue_Watching videos: ${error.message}`);
     return [];
+  }
+};
+
+export const getWatchListByVideoId = async (
+  videoId: string,
+  userId: string
+) => {
+  if (!SequelizeManager.sequelize) return null;
+
+  try {
+    return await WatchList.findOne({
+      where: {
+        videoId: videoId,
+        userId: userId,
+      },
+    });
+  } catch (error: any) {
+    console.log(`Error fetching WatchList: ${error.message}`);
+    return null;
+  }
+};
+
+export const getWatchListById = async (id: string) => {
+  if (!SequelizeManager.sequelize) return null;
+
+  try {
+    const watchList = await WatchList.findByPk(id);
+
+    if (!watchList) {
+      return null;
+    }
+
+    return watchList;
+  } catch (error: any) {
+    console.log(`Error fetching WatchList: ${error.message}`);
+    return null;
+  }
+};
+
+export const getCurrentlyWatchingEpisodeId = async (seriesId: string) => {
+  if (!SequelizeManager.sequelize) return null;
+
+  try {
+    return await ContinueWatching.findOne({
+      where: {
+        seriesId: seriesId,
+      },
+      include: [
+        {
+          model: Video,
+          as: "video",
+          include: [{ model: Episode, as: "episode" }],
+        },
+      ],
+    });
+  } catch (error: any) {
+    console.log(`Error fetching Currently_Watching: ${error.message}`);
+    return null;
   }
 };
 

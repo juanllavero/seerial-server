@@ -20,6 +20,13 @@ export class MyList extends Model {
   id!: string;
 
   @Column({
+    type: DataType.STRING,
+    allowNull: false,
+    field: "user_id",
+  })
+  userId!: string;
+
+  @Column({
     type: DataType.DATE,
     defaultValue: DataType.NOW,
     allowNull: false,

@@ -3,11 +3,13 @@ import {
   Column,
   DataType,
   ForeignKey,
+  HasMany,
   HasOne,
   Model,
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
+import { WatchList } from "../Lists/WatchList";
 import { Season } from "./Season.model";
 import { Video } from "./Video.model";
 
@@ -135,6 +137,9 @@ export class Episode extends Model {
     defaultValue: 0,
   })
   order!: number;
+
+  @HasMany(() => WatchList)
+  watchLists!: WatchList[];
 
   @BelongsTo(() => Season, { onDelete: "CASCADE" })
   season!: Season;

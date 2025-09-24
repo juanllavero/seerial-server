@@ -7,6 +7,7 @@ import { ContinueWatching } from "./Lists/ContinueWatching.model";
 import { MyList } from "./Lists/MyList.model";
 import { PlayList } from "./Lists/PlayList.model";
 import { PlayListItem } from "./Lists/PlayListItem.model";
+import { WatchList } from "./Lists/WatchList";
 import { Episode } from "./Media/Episode.model";
 import { Library } from "./Media/Library.model";
 import { Movie } from "./Media/Movie.model";
@@ -38,4 +39,5 @@ export {
   Series,
   Song,
   Video,
+  WatchList,
 };
