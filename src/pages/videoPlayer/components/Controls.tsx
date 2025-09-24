@@ -184,7 +184,7 @@ function Controls({
                 items: [
                   {
                     items: tracks.audioTracks.map((track) => ({
-                      title: `${useLanguageName(selectedAudioTrack?.languageTag ?? '', i18n.language)} ${selectedAudioTrack?.displayTitle} ${selectedAudioTrack?.id === track.id ? '✔' : ''}`,
+                      title: `${useLanguageName(selectedAudioTrack?.languageTag ?? '', i18n.language)} ${selectedAudioTrack?.displayTitle} ${selectedAudioTrack?.id === track.id ? '✓' : ''}`,
                       action: () => {
                         handleAudioTrackChange(track)
                       },
@@ -223,7 +223,7 @@ function Controls({
                             track.codec !== 'DVD_SUBTITLE',
                         )
                         .map((track) => ({
-                          title: `${track.title} ${track.displayTitle} ${selectedSubtitleTrack?.id === track.id ? '✔' : ''}`,
+                          title: `${track.title} ${track.displayTitle} ${selectedSubtitleTrack?.id === track.id ? '✓' : ''}`,
                           action: () => {
                             handleSubtitleTrackChange(track)
                           },

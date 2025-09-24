@@ -92,12 +92,6 @@ function VideoTracks({ video, mutate }: VideoTracksProps) {
       )
       const videoTrack = videoTracks[0] ?? null
 
-      console.log({
-        audioTrack,
-        subtitleTrack,
-        videoTrack,
-      })
-
       setSelectedVideoTrack(videoTrack)
       setSelectedAudioTrack(audioTrack)
       setSelectedSubtitleTrack(subtitleTrack)
@@ -129,21 +123,21 @@ function VideoTracks({ video, mutate }: VideoTracksProps) {
     fetchData()
   }, [video, videoInfo])
 
-  const handleVideoTrackChange = (key: string, value: string) => {
+  const handleVideoTrackChange = (key: string, _value: string) => {
     setSelectedVideoTrack(
-      tracks.videoTracks.find((track) => track.id === Number(value)) ?? null,
+      tracks.videoTracks.find((track) => track.id === Number(key)) ?? null,
     )
   }
 
-  const handleAudioTrackChange = (key: string, value: string) => {
+  const handleAudioTrackChange = (key: string, _value: string) => {
     setSelectedAudioTrack(
-      tracks.audioTracks.find((track) => track.id === Number(value)) ?? null,
+      tracks.audioTracks.find((track) => track.id === Number(key)) ?? null,
     )
   }
 
-  const handleSubtitleTrackChange = (key: string, value: string) => {
+  const handleSubtitleTrackChange = (key: string, _value: string) => {
     setSelectedSubtitleTrack(
-      tracks.subtitleTracks.find((track) => track.id === Number(value)) ?? null,
+      tracks.subtitleTracks.find((track) => track.id === Number(key)) ?? null,
     )
   }
 

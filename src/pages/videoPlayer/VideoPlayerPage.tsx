@@ -5,13 +5,13 @@ import { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
 import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
 import { authenticatedFetcher } from '@/utils/utils'
 import { useParams } from 'react-router-dom'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import useSWR from 'swr'
 import HTMLVideoPlayer from './components/HTMLVideoPlayer'
 import './VideoPlayerPage.css'
 import Controls from './components/Controls'
 import TopBar from './components/TopBar'
-import { authenticatedFetch, getToken } from '@/lib/auth'
+import { authenticatedFetch } from '@/lib/auth'
 import { useAuth } from '@/context/auth.context'
 
 interface VideoInfo {
@@ -130,42 +130,6 @@ function VideoPlayerPage() {
     selectedAudioTrack,
     selectedSubtitleTrack,
   ])
-
-  // This hook reconstructs the video source URL whenever a dependency changes.
-  // const videoSrc = useMemo(async () => {
-  //   if (!video?.fileSrc || !serverUrl) return ''
-
-  //   // const params = new URLSearchParams({
-  //   //   path: video.fileSrc,
-  //   // })
-  //   // if (streamStartTime > 0) {
-  //   //   params.append('start', Math.floor(streamStartTime).toString())
-  //   // }
-
-  //   // if (selectedAudioTrack) {
-  //   //   params.append(
-  //   //     'audio',
-  //   //     selectedAudioTrack.id && selectedAudioTrack.id > 0
-  //   //       ? String(selectedAudioTrack.id - 1)
-  //   //       : '0',
-  //   //   )
-  //   // }
-
-  //   return await getSignedStreamUrl(
-  //     video,
-  //     serverUrl,
-  //     streamStartTime ? Math.floor(streamStartTime) : 0,
-  //     selectedAudioTrack && selectedAudioTrack.id && selectedAudioTrack.id > 0
-  //       ? selectedAudioTrack.id - 1
-  //       : 0,
-  //   ).then(setVideoSrc)
-  // }, [
-  //   video,
-  //   serverUrl,
-  //   streamStartTime,
-  //   selectedAudioTrack,
-  //   selectedSubtitleTrack,
-  // ])
 
   // These functions now correctly update the state to trigger the 'videoSrc' recalculation.
   const handleAudioTrackChange = (track: AudioTrack) => {

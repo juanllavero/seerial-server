@@ -5,6 +5,7 @@ import Image from '@/components/ui/Image'
 import { toast } from 'sonner'
 import { mutate } from 'swr'
 import { authenticatedFetch } from '@/lib/auth'
+import { iso1to3 } from './utils'
 
 const tailwindSizes = [
   40, 48, 56, 60, 64, 72, 80, 96, 100, 112, 120, 128, 144, 160, 192,
@@ -215,18 +216,23 @@ export const getSubtitleTrack = (
   ) {
     return video.subtitleTracks[video.selectedSubtitleTrack]
   } else {
+    // Convert 2-letter code to 3-letter code
+    const targetLang = iso1to3[prefSubsLan] ?? prefSubsLan
+
+    const defaultTrack =
+      subsMode === 'alwaysSubs'
+        ? video.subtitleTracks.length > 0
+          ? video.subtitleTracks[0]
+          : null
+        : null
+
     switch (subsMode) {
       case 'autoSubs':
-        return (
-          video.subtitleTracks.find(
-            (track) => track.language === prefSubsLan,
-          ) ?? null
-        )
       case 'alwaysSubs':
         return (
-          video.subtitleTracks.find(
-            (track) => track.language === prefSubsLan,
-          ) ?? null
+          video.subtitleTracks.findLast(
+            (track) => track.languageTag === targetLang,
+          ) ?? defaultTrack
         )
       default:
         return null
