@@ -2,6 +2,7 @@ import Card from '@/components/cards/Card'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
 import { Video } from '@/data/interfaces/Media'
+import { getVideoProgress } from '@/utils/ReactUtils'
 import { Pencil } from 'lucide-react'
 import React from 'react'
 
@@ -28,17 +29,7 @@ function VideoCard({
       imgSrc={video.imgSrc}
       aspectRatio={16 / 9}
       width={isMobile ? '100%' : 400}
-      progress={
-        (video.watchStatus?.timeWatched
-          ? video.watchStatus.timeWatched / (video.runtime * 60)
-          : 0) *
-          100 >
-        0
-          ? (video.watchStatus?.timeWatched
-              ? video.watchStatus.timeWatched / (video.runtime * 60)
-              : 0) * 100
-          : undefined
-      }
+      progress={getVideoProgress(video, video.timeWatched)}
       title={title}
       subtitle={subtitle}
       action={() => playVideo(video)}

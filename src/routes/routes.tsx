@@ -18,6 +18,7 @@ import Root from './__root'
 import { useAuth } from '@/context/auth.context'
 import { shallow } from 'zustand/shallow'
 import ProfilePage from '@/pages/profile/ProfilePage'
+import TVLinkPage from '@/pages/link/TVLinkPage'
 
 // Wrapper for ServerRoute to handle loader logic
 function ServerRouteWrapper() {
@@ -68,6 +69,7 @@ export function AppRoutes() {
     <Routes>
       <Route path="/" element={<Root />}>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/link" element={<TVLinkPage />} />
         <Route index element={<Navigate to="/home" replace />} />
         <Route element={<SideBarLayout />}>
           <Route path="/home" element={<HomePage />} />

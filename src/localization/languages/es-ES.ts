@@ -13,6 +13,17 @@ export const es = {
     errorImageUpload: 'Error al subir la imagen',
     invalidImageError: 'Selecciona un archivo de imagen válido',
 
+    signedAsMessage: 'Estás conectado como',
+    signAsAnotherUser: 'Conectarse con otro usuario',
+    link: 'Enlazar',
+    linking: 'Enlazando...',
+    linkingDevice: 'Enlazando dispositivo...',
+    linkAccount: 'Enlazar Cuenta',
+    linkAccountMessage:
+      'Para enlazar tu cuenta, introduce el código de 4 caracteres mostrado en tu app.',
+    successfulLink: '!El dispositivo se ha enlazado correctamente!',
+    successfulLinkMessage:
+      'Ya puedes usar tu app TV. Redirigiendo a la pantalla principal...',
     friends: 'Amigos',
     servers: 'Servidores',
     invitations: 'Invitaciones',

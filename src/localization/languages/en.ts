@@ -13,6 +13,17 @@ export const en = {
     errorImageUpload: 'Error uploading image',
     invalidImageError: 'Select a valid image file',
 
+    signedAsMessage: "You're signed in as",
+    signAsAnotherUser: 'Sign in as a different user',
+    link: 'Link',
+    linking: 'Linking...',
+    linkingDevice: 'Linking device...',
+    linkAccount: 'Link Account',
+    linkAccountMessage:
+      'To link your account, please enter the 4-character code displayed on your app.',
+    successfulLink: 'Device successfully linked',
+    successfulLinkMessage:
+      'You can now use your TV app. Redirecting to home...',
     friends: 'Friends',
     servers: 'Servers',
     invitations: 'Invitations',
