@@ -234,6 +234,12 @@ const getRemainingEpisodes = async (itemId: string, userId: string) => {
 router.get("/library-content-flat", async (req: any, res: any) => {
   const { libraryId, type } = req.query;
 
+  const userId = req.userId;
+
+  if (!userId) {
+    return res.status(400).json({ error: "User ID is required" });
+  }
+
   if (!libraryId) {
     return res.status(400).json({ error: "Library ID is required" });
   }
@@ -315,6 +321,12 @@ router.get("/library-content-flat", async (req: any, res: any) => {
 
     for (const item of itemsNotInCollections) {
       const itemType = getCollectionItemsKey(type);
+      const remainingItems =
+        getCollectionItemsKey(type) === "movies"
+          ? await getRemainingVideos(item.id, userId)
+          : getCollectionItemsKey(type) === "shows"
+          ? await getRemainingEpisodes(item.id, userId)
+          : 0;
       unifiedContent.push({
         type: itemType,
         order: item.order || 0,
@@ -329,6 +341,7 @@ router.get("/library-content-flat", async (req: any, res: any) => {
               : (item as Series).name,
           posterSrc: item.coverSrc,
         },
+        remainingItems,
       });
     }
 
