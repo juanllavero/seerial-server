@@ -29,9 +29,8 @@ function CollectionCard({ libraryId, collection, type }: CollectionCardProps) {
     }),
     shallow,
   )
-  const { selectedServer, serverUrl } = useServerStore(
+  const { serverUrl } = useServerStore(
     (state) => ({
-      selectedServer: state.selectedServer,
       serverUrl: state.serverUrl,
     }),
     shallow,
@@ -132,9 +131,7 @@ function CollectionCard({ libraryId, collection, type }: CollectionCardProps) {
       subtitle={`${collection.numberOfItems ?? 0} ${t('elements')}`}
       action={() => {
         selectCollection(collection.id)
-        navigate(
-          `/server/${selectedServer?.id}/details/collection/${collection.id}/${type}`,
-        )
+        navigate(`/details/collection/${collection.id}/${type}`)
       }}
       hidePlayButton
       menuContent={menuContent}

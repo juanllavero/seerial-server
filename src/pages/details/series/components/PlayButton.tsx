@@ -21,7 +21,6 @@ function PlayButton({
   serverUrl,
 }: PlayButtonProps) {
   const navigate = useNavigate()
-  const selectedServer = useServerStore((state) => state.selectedServer)
   const { t } = useTranslation()
 
   const { data: season } = useSWR<Season>(
@@ -59,7 +58,7 @@ function PlayButton({
         }
 
         const data = await response.json()
-        navigate(`/server/${selectedServer?.id}/video-player/${data.id}`)
+        navigate(`/video-player/${data.id}`)
       }}
     >
       <FlexBox align="center" gap={0.5} className="text-black">

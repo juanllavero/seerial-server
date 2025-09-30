@@ -18,9 +18,8 @@ interface ContinueWatchingProps {
 function ContinueWatching({ goToContent }: ContinueWatchingProps) {
   const { t } = useTranslation()
   const { user } = useAuth()
-  const { selectedServer, serverUrl } = useServerStore(
+  const { serverUrl } = useServerStore(
     (state) => ({
-      selectedServer: state.selectedServer,
       serverUrl: state.serverUrl,
     }),
     shallow,
@@ -29,7 +28,7 @@ function ContinueWatching({ goToContent }: ContinueWatchingProps) {
 
   // Get Continue Watching items
   const { data: continueWatching, isLoading } = useSWR<Video[]>(
-    selectedServer
+    serverUrl !== ''
       ? `${serverUrl}/continueWatching?userId=${user?.id ?? null}`
       : null,
     authenticatedFetcher,
@@ -65,13 +64,11 @@ function ContinueWatching({ goToContent }: ContinueWatchingProps) {
               }`}
               action={() =>
                 goToContent(
-                  `/server/${selectedServer?.id}/details/${video.episodeId ? 'episode' : 'movie'}/${video.episodeId ? video.episodeId : video.movieId}`,
+                  `/details/${video.episodeId ? 'episode' : 'movie'}/${video.episodeId ? video.episodeId : video.movieId}`,
                 )
               }
               playButtonAction={() =>
-                goToContent(
-                  `/server/${selectedServer?.id}/video-player/${video.videoId}`,
-                )
+                goToContent(`/video-player/${video.videoId}`)
               }
             />
           ))

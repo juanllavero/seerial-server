@@ -29,9 +29,9 @@ import '../DetailsPage.css'
 import MyListButton from './components/MyListButton'
 import { shallow } from 'zustand/shallow'
 import ExpandableText from '@/components/ExpandableText'
-import { useIsServerOwner } from '@/hooks/useServerOwner'
 import { useAuth } from '@/context/auth.context'
 import { authenticatedFetch } from '@/lib/auth'
+import { useIsAdmin } from '@/hooks/useIsAdmin'
 
 function MovieDetailsPage() {
   const { movieId } = useParams()
@@ -46,14 +46,13 @@ function MovieDetailsPage() {
   const clientSettings = useSettingsStore((state) => state.clientSettings)
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
   const openMovieDialog = useDialogStore((state) => state.openMovieDialog)
-  const { selectedServer, serverUrl } = useServerStore(
+  const { serverUrl } = useServerStore(
     (state) => ({
-      selectedServer: state.selectedServer,
       serverUrl: state.serverUrl,
     }),
     shallow,
   )
-  const isServerOwner = useIsServerOwner()
+  const isAdmin = useIsAdmin()
   const navigate = useNavigate()
 
   // Get movie data
@@ -69,13 +68,6 @@ function MovieDetailsPage() {
 
   const isMobile = useIsMobile()
   const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true
-
-  // Update selected server
-  // useEffect(() => {
-  //   if (server !== selectedServer) {
-  //     selectServer(server)
-  //   }
-  // }, [])
 
   // Mutate content on ws message
   useEffect(() => {
@@ -244,9 +236,7 @@ function MovieDetailsPage() {
             <Button
               onClick={() => {
                 if (movie && movie.videos && movie.videos.length > 0) {
-                  navigate(
-                    `/server/${selectedServer?.id}/video-player/${movie.videos[0].id}`,
-                  )
+                  navigate(`/video-player/${movie.videos[0].id}`)
                 }
               }}
             >
@@ -278,7 +268,7 @@ function MovieDetailsPage() {
                 />
               </>
             )}
-            {isServerOwner && (
+            {isAdmin && (
               <Button
                 variant={'ghost'}
                 title={t('editButton')}

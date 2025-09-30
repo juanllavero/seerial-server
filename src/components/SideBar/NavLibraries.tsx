@@ -38,9 +38,8 @@ import { useNavigate } from 'react-router-dom'
 import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
 import SmallSpinner from './loading/SmallSpinner'
-import { useAuth } from '@/context/auth.context'
-import { useIsServerOwner } from '@/hooks/useServerOwner'
 import { authenticatedFetch } from '@/lib/auth'
+import { useIsAdmin } from '@/hooks/useIsAdmin'
 
 interface Item {
   id: string
@@ -62,17 +61,15 @@ const NavLibraries = () => {
   )
   const navigate = useNavigate()
 
-  const isServerOwner = useIsServerOwner()
-  const { selectedServer, serverUrl, serverStatus, apiKeyStatus } =
-    useServerStore(
-      (state) => ({
-        selectedServer: state.selectedServer,
-        serverUrl: state.serverUrl,
-        serverStatus: state.serverStatus,
-        apiKeyStatus: state.apiKeyStatus,
-      }),
-      shallow,
-    )
+  const isAdmin = useIsAdmin()
+  const { serverUrl, server, apiKeyStatus } = useServerStore(
+    (state) => ({
+      serverUrl: state.serverUrl,
+      server: state.server,
+      apiKeyStatus: state.apiKeyStatus,
+    }),
+    shallow,
+  )
   const { openLibraryDialog, openRemoveLibraryDialog } = useDialogStore(
     (state) => ({
       openLibraryDialog: state.openLibraryDialog,
@@ -113,35 +110,29 @@ const NavLibraries = () => {
     }
   }, [selectedLibraryId])
 
-  const visibleLibraries = libraries
-    ? selectedServer?.shared
-      ? libraries.filter((library) =>
-          selectedServer.libraries?.includes(library.id),
-        )
-      : libraries
-    : []
-  const librariesItems = [
-    ...visibleLibraries.map((library) => ({
-      id: library.id,
-      name: library.name,
-      type: library.type,
-      logo:
-        library.type === LibraryTypes.SHOWS
-          ? TvMinimal
-          : library.type === LibraryTypes.MOVIES
-            ? Film
-            : Music,
-      action: () => {
-        selectLibrary(library.id)
+  const librariesItems =
+    libraries && libraries.length > 0
+      ? [
+          ...libraries.map((library) => ({
+            id: library.id,
+            name: library.name,
+            type: library.type,
+            logo:
+              library.type === LibraryTypes.SHOWS
+                ? TvMinimal
+                : library.type === LibraryTypes.MOVIES
+                  ? Film
+                  : Music,
+            action: () => {
+              selectLibrary(library.id)
 
-        if (!selectedServer || !serverStatus) return
+              if (!server) return
 
-        navigate(
-          `/server/${selectedServer.id}/library/${library.id}/${library.type}`,
-        )
-      },
-    })),
-  ]
+              navigate(`/library/${library.id}/${library.type}`)
+            },
+          })),
+        ]
+      : []
 
   return (
     <>
@@ -168,11 +159,9 @@ const NavLibraries = () => {
                         e.preventDefault()
                         setActiveItem(item)
 
-                        if (!selectedServer || !serverStatus) return
+                        if (!server) return
 
-                        navigate(
-                          `/server/${selectedServer.id}/library/${item.id}/${item.type}`,
-                        )
+                        navigate(`/library/${item.id}/${item.type}`)
                       }}
                       style={{
                         color:
@@ -199,7 +188,7 @@ const NavLibraries = () => {
                       </span>
                     </a>
                   </SidebarMenuButton>
-                  {isServerOwner && (
+                  {isAdmin && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <SidebarMenuAction showOnHover>
@@ -247,7 +236,7 @@ const NavLibraries = () => {
         </>
       )}
 
-      {isServerOwner && serverStatus && apiKeyStatus && (
+      {isAdmin && server && apiKeyStatus && (
         <>
           {/* Separator */}
           <SidebarSeparator />

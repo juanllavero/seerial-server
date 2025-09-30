@@ -1,5 +1,3 @@
-import { getToken } from '@/lib/auth'
-
 /**
  * Fetches data from a given URL and returns the parsed JSON response.
  *
@@ -16,11 +14,8 @@ export const fetcher = (url: string) => fetch(url).then((res) => res.json())
  * @returns A promise that resolves to the parsed JSON data.
  */
 export const authenticatedFetcher = async (url: string) => {
-  const token = getToken()
-  if (!token) return 'No token'
-
   const res = await fetch(url, {
-    headers: { Authorization: `Bearer ${token}` },
+    credentials: 'include',
   })
   return await res.json()
 }

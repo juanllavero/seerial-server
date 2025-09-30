@@ -20,9 +20,8 @@ function MovieCard({ movie }: MovieCardProps) {
   const { t } = useTranslation()
   const { user } = useAuth()
   const selectMovie = useDataStore((state) => state.selectMovie)
-  const { selectedServer, serverUrl } = useServerStore(
+  const { serverUrl } = useServerStore(
     (state) => ({
-      selectedServer: state.selectedServer,
       serverUrl: state.serverUrl,
     }),
     shallow,
@@ -81,7 +80,7 @@ function MovieCard({ movie }: MovieCardProps) {
       watched={movie.watchStatus !== undefined}
       action={() => {
         selectMovie(movie.id)
-        navigate(`/server/${selectedServer?.id}/details/movie/${movie.id}`)
+        navigate(`/details/movie/${movie.id}`)
       }}
       hidePlayButton
       menuContent={menuContent}

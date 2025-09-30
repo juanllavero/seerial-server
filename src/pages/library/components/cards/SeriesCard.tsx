@@ -20,9 +20,8 @@ interface SeriesCardProps {
 function SeriesCard({ series, remainingEpisodes }: SeriesCardProps) {
   const { t } = useTranslation()
   const { user } = useAuth()
-  const { selectedServer, serverUrl } = useServerStore(
+  const { serverUrl } = useServerStore(
     (state) => ({
-      selectedServer: state.selectedServer,
       serverUrl: state.serverUrl,
     }),
     shallow,
@@ -91,7 +90,7 @@ function SeriesCard({ series, remainingEpisodes }: SeriesCardProps) {
       subtitle={getOnlyYear(series.year).toString()}
       action={() => {
         selectSeries(series.id)
-        navigate(`/server/${selectedServer?.id}/details/series/${series.id}`)
+        navigate(`/details/series/${series.id}`)
       }}
       hidePlayButton
       watched={remainingEpisodes === 0}

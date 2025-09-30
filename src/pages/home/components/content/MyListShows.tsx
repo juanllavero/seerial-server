@@ -34,9 +34,8 @@ function MyListShows({ goToContent }: MyListShowsProps) {
     }),
     shallow,
   )
-  const { selectedServer, serverUrl } = useServerStore(
+  const { serverUrl } = useServerStore(
     (state) => ({
-      selectedServer: state.selectedServer,
       serverUrl: state.serverUrl,
     }),
     shallow,
@@ -45,7 +44,7 @@ function MyListShows({ goToContent }: MyListShowsProps) {
 
   // Get Shows in My List
   const { data: showsInMyList, isLoading } = useSWR<Series[]>(
-    selectedServer
+    serverUrl !== ''
       ? `${serverUrl}/myListSeries?userId=${user?.id ?? null}`
       : null,
     authenticatedFetcher,
@@ -138,11 +137,7 @@ function MyListShows({ goToContent }: MyListShowsProps) {
                 <Pencil size={16} />
               </Button>
             }
-            action={() =>
-              goToContent(
-                `/server/${selectedServer?.id}/details/series/${series.id}`,
-              )
-            }
+            action={() => goToContent(`/details/series/${series.id}`)}
           />
         ))
       ) : (

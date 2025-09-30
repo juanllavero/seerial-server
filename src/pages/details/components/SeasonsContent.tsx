@@ -21,15 +21,10 @@ import { authenticatedFetcher } from '@/utils/utils'
 
 interface SeasonContentProps {
   seasonList: Season[]
-  serverId: string
   serverUrl: string
 }
 
-function SeasonContent({
-  seasonList,
-  serverId,
-  serverUrl,
-}: SeasonContentProps) {
+function SeasonContent({ seasonList, serverUrl }: SeasonContentProps) {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const { user } = useAuth()
@@ -137,7 +132,7 @@ function SeasonContent({
   }
 
   const goToEpisodePage = (episode: Episode) => {
-    navigate(`/server/${serverId}/details/episode/${episode.id}`)
+    navigate(`/details/episode/${episode.id}`)
   }
 
   const playEpisode = async (episodeId: Episode) => {
@@ -151,7 +146,7 @@ function SeasonContent({
     }
 
     const data = await response.json()
-    navigate(`/server/${serverId}/video-player/${data.id}`)
+    navigate(`/video-player/${data.id}`)
   }
 
   // Loading Skeleton

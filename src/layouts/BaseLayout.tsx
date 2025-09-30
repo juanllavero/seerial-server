@@ -2,7 +2,6 @@ import DialogManager from '@/components/dialogs/DialogManager'
 import MusicPlayer from '@/components/musicPlayer/MusicPlayer'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
-import { getToken } from '@/lib/auth'
 import React, { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Toaster } from 'sonner'
@@ -15,13 +14,20 @@ import MobileMusicPlayer from '@/components/musicPlayer/mobile/MobileMusicPlayer
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { useGradientStore } from '@/context/gradientBackground.context'
 import { isAbsolutePath } from '@/utils/ReactUtils'
+import { shallow } from 'zustand/shallow'
 
 export default function BaseLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const serverUrl = useServerStore((state) => state.serverUrl)
+  const { user, serverUrl } = useServerStore(
+    (state) => ({
+      user: state.currentUser,
+      serverUrl: state.serverUrl,
+    }),
+    shallow,
+  )
   const selectedBackground = useDataStore((state) => state.currentBackground)
   const selectedBackgroundForGradient = useGradientStore(
     (state) => state.selectedBackground,
@@ -109,7 +115,7 @@ export default function BaseLayout({
       <Toaster theme="dark" richColors />
 
       {/* Load components only if the user is logged in */}
-      {getToken() !== null && (
+      {user && (
         <>
           <DialogManager />
           <MusicPlayer />

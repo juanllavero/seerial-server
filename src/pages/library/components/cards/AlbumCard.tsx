@@ -18,13 +18,6 @@ interface AlbumCardProps {
 function AlbumCard({ album }: AlbumCardProps) {
   const { t } = useTranslation()
   const selectAlbum = useDataStore((state) => state.selectAlbum)
-  const { selectedServer, serverUrl } = useServerStore(
-    (state) => ({
-      selectedServer: state.selectedServer,
-      serverUrl: state.serverUrl,
-    }),
-    shallow,
-  )
   const openAlbumDialog = useDialogStore((state) => state.openAlbumDialog)
   const navigate = useNavigate()
 
@@ -76,7 +69,7 @@ function AlbumCard({ album }: AlbumCardProps) {
       subtitle={album.year ?? '-'}
       action={() => {
         selectAlbum(album.id)
-        navigate(`/server/${selectedServer?.id}/details/album/${album.id}`)
+        navigate(`/details/album/${album.id}`)
       }}
       hidePlayButton
       menuContent={menuContent}

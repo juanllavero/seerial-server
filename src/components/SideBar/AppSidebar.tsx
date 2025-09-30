@@ -3,11 +3,9 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarMenuButton,
 } from '@/components/ui/sidebar'
 import NavLibraries from './NavLibraries'
 import { NavUser } from './NavUser'
-import { ServerSwitcher } from './ServerSwitcher'
 import NavHomeButton from './NavHomeButton'
 import NavSettings from './settings/NavSettings'
 import { useLocation } from 'react-router-dom'
@@ -32,7 +30,6 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarFooter
         className={`transition-all duration-500 ease-in-out ${hasSong ? 'pb-30' : 'pb-2'}`}
       >
-        <ServerSwitcher />
         <NavUser />
       </SidebarFooter>
     </Sidebar>

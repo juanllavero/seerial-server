@@ -16,10 +16,9 @@ function LibraryDialog() {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const currentLanguage = i18n.language?.split('-')[0] ?? 'en'
-  const { serverUrl, selectedServer } = useServerStore(
+  const { serverUrl } = useServerStore(
     (state) => ({
       serverUrl: state.serverUrl,
-      selectedServer: state.selectedServer,
     }),
     shallow,
   )
@@ -138,9 +137,7 @@ function LibraryDialog() {
     setLoading(false)
 
     // Navigate to new library page
-    navigate(
-      `/server/${selectedServer?.id}/library/${libraryId}/${type ?? 'Shows'}`,
-    )
+    navigate(`/library/${libraryId}/${type ?? 'Shows'}`)
   }
 
   const handleSaveOrNext = () => {

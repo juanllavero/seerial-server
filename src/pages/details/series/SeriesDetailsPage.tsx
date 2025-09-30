@@ -26,9 +26,9 @@ import PlayButton from './components/PlayButton'
 import { shallow } from 'zustand/shallow'
 import ExpandableText from '@/components/ExpandableText'
 import SeasonSelectable from './components/SeasonSelectable'
-import { useIsServerOwner } from '@/hooks/useServerOwner'
 import { authenticatedFetch } from '@/lib/auth'
 import { useAuth } from '@/context/auth.context'
+import { useIsAdmin } from '@/hooks/useIsAdmin'
 
 function SeriesDetailsPage() {
   const { seriesId } = useParams()
@@ -47,11 +47,10 @@ function SeriesDetailsPage() {
     }),
     shallow,
   )
-  const isServerOwner = useIsServerOwner()
+  const isAdmin = useIsAdmin()
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
-  const { selectedServer, serverUrl } = useServerStore(
+  const { serverUrl } = useServerStore(
     (state) => ({
-      selectedServer: state.selectedServer,
       serverUrl: state.serverUrl,
     }),
     shallow,
@@ -77,13 +76,6 @@ function SeriesDetailsPage() {
 
   const isMobile = useIsMobile()
   const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true
-
-  // Update selected server
-  // useEffect(() => {
-  //   if (server !== selectedServer) {
-  //     selectServer(server)
-  //   }
-  // }, [])
 
   // Mutate content on ws message
   useEffect(() => {
@@ -295,7 +287,7 @@ function SeriesDetailsPage() {
                 />
               </>
             )}
-            {isServerOwner && (
+            {isAdmin && (
               <Button
                 variant={'ghost'}
                 title={t('editButton')}
@@ -341,7 +333,6 @@ function SeriesDetailsPage() {
         <SeasonContent
           seasonList={series.seasons}
           serverUrl={serverUrl ?? ''}
-          serverId={selectedServer?.id ?? ''}
         />
       )}
 

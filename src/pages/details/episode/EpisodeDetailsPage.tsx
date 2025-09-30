@@ -17,7 +17,6 @@ import VideoTracks from './components/VideoTracks'
 
 function EpisodeDetailsPage() {
   const { t } = useTranslation()
-  const selectedServer = useServerStore((state) => state.selectedServer)
   const navigate = useNavigate()
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
   const serverUrl = useServerStore((state) => state.serverUrl)
@@ -117,7 +116,7 @@ function EpisodeDetailsPage() {
             }
 
             const data = await response.json()
-            navigate(`/server/${selectedServer?.id}/video-player/${data.id}`)
+            navigate(`/video-player/${data.id}`)
           }}
         >
           <FlexBox align="center" gap={0.5} className="text-black">

@@ -16,7 +16,6 @@ function MovieContent({ movie }: MovieContentProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const isMobile = useIsMobile()
-  const selectedServer = useServerStore((state) => state.selectedServer)
 
   const getEpisodeMenu = () => {
     return {
@@ -38,7 +37,7 @@ function MovieContent({ movie }: MovieContentProps) {
   }
 
   const playEpisode = async (video: Video) => {
-    navigate(`/server/${selectedServer?.id}/video-player/${video.id}`)
+    navigate(`/video-player/${video.id}`)
   }
 
   const onlyMovie = movie.videos.length === 1

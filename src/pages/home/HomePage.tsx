@@ -14,7 +14,6 @@ import LoadingInsideSidebar from '@/components/LoadingInsideSidebar'
 
 export default function HomePage() {
   const {
-    selectedServer,
     serverUrl,
     serverStatus,
     apiKeyStatus,
@@ -22,7 +21,6 @@ export default function HomePage() {
     getServerStatus,
   } = useServerStore(
     (state) => ({
-      selectedServer: state.selectedServer,
       serverUrl: state.serverUrl,
       serverStatus: state.serverStatus,
       apiKeyStatus: state.apiKeyStatus,
@@ -64,15 +62,7 @@ export default function HomePage() {
     return <NoAPIKey />
   }
 
-  const visibleLibraries = libraries
-    ? selectedServer?.shared
-      ? libraries.filter((library) =>
-          selectedServer.libraries?.includes(library.id),
-        )
-      : libraries
-    : []
-
-  if (!visibleLibraries || visibleLibraries.length === 0) {
+  if (!libraries || libraries.length === 0) {
     return <NoContent />
   }
 

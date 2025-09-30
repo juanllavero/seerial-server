@@ -29,9 +29,8 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
     }),
     shallow,
   )
-  const { selectedServer, serverUrl } = useServerStore(
+  const { serverUrl } = useServerStore(
     (state) => ({
-      selectedServer: state.selectedServer,
       serverUrl: state.serverUrl,
     }),
     shallow,
@@ -40,7 +39,7 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
 
   // Get Movies in My List
   const { data: moviesInMyList, isLoading } = useSWR<Movie[]>(
-    selectedServer
+    serverUrl !== ''
       ? `${serverUrl}/myListMovies?userId=${user?.id ?? null}`
       : null,
     authenticatedFetcher,
@@ -128,11 +127,7 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
               </Button>
             }
             hidePlayButton
-            action={() =>
-              goToContent(
-                `/server/${selectedServer?.id}/details/movie/${movie.id}`,
-              )
-            }
+            action={() => goToContent(`/details/movie/${movie.id}`)}
           />
         ))
       ) : (

@@ -11,7 +11,7 @@ import { useSettingsStore } from '@/context/settings.context'
 import { SettingsSection } from '@/data/interfaces/Utils'
 import { useServerStore } from '@/context/server.context'
 import { shallow } from 'zustand/shallow'
-import { useIsServerOwner } from '@/hooks/useServerOwner'
+import { useIsAdmin } from '@/hooks/useIsAdmin'
 
 const ServerSettings = () => {
   const { t } = useTranslation()
@@ -23,9 +23,9 @@ const ServerSettings = () => {
     }),
     shallow,
   )
-  const isServerOwner = useIsServerOwner()
+  const isAdmin = useIsAdmin()
 
-  if (!isServerOwner) return null
+  if (!isAdmin) return null
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{t('server')}</SidebarGroupLabel>
