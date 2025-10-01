@@ -1,32 +1,31 @@
-import fs from "fs-extra";
-import path from "path";
-import { Op } from "sequelize";
 import {
   Movie as MovieData,
   Season as SeasonData,
   Series as SeriesData,
   Video as VideoData,
-} from "../../data/interfaces/Media";
-import { Collection } from "../../data/models/Collections/Collection.model";
-import { CollectionAlbum } from "../../data/models/Collections/CollectionAlbum.model";
-import { CollectionMovie } from "../../data/models/Collections/CollectionMovie.model";
-import { CollectionSeries } from "../../data/models/Collections/CollectionSeries.model";
-import { ContinueWatching } from "../../data/models/Lists/ContinueWatching.model";
-import { MyList } from "../../data/models/Lists/MyList.model";
-import { PlayList } from "../../data/models/Lists/PlayList.model";
-import { PlayListItem } from "../../data/models/Lists/PlayListItem.model";
-import { Episode } from "../../data/models/Media/Episode.model";
-import { Library } from "../../data/models/Media/Library.model";
-import { Movie } from "../../data/models/Media/Movie.model";
-import { Season } from "../../data/models/Media/Season.model";
-import { Series } from "../../data/models/Media/Series.model";
-import { Video } from "../../data/models/Media/Video.model";
-import { Album } from "../../data/models/music/Album.model";
-import { AlbumArtist } from "../../data/models/music/AlbumArtist.model";
-import { Artist } from "../../data/models/music/Artist.model";
-import { Song } from "../../data/models/music/Song.model";
-import { SequelizeManager } from "../SequelizeManager";
-import { getLibraryById, getLibraryByVideoId } from "../get/getData";
+} from "@/data/interfaces/Media";
+import { Collection } from "@/data/models/Collections/Collection.model";
+import { CollectionAlbum } from "@/data/models/Collections/CollectionAlbum.model";
+import { CollectionMovie } from "@/data/models/Collections/CollectionMovie.model";
+import { CollectionSeries } from "@/data/models/Collections/CollectionSeries.model";
+import { ContinueWatching } from "@/data/models/Lists/ContinueWatching.model";
+import { MyList } from "@/data/models/Lists/MyList.model";
+import { PlayList } from "@/data/models/Lists/PlayList.model";
+import { PlayListItem } from "@/data/models/Lists/PlayListItem.model";
+import { Episode } from "@/data/models/Media/Episode.model";
+import { Library } from "@/data/models/Media/Library.model";
+import { Movie } from "@/data/models/Media/Movie.model";
+import { Season } from "@/data/models/Media/Season.model";
+import { Series } from "@/data/models/Media/Series.model";
+import { Video } from "@/data/models/Media/Video.model";
+import { Album } from "@/data/models/music/Album.model";
+import { AlbumArtist } from "@/data/models/music/AlbumArtist.model";
+import { Artist } from "@/data/models/music/Artist.model";
+import { Song } from "@/data/models/music/Song.model";
+import { getLibraryById, getLibraryByVideoId } from "@/db/get/getData";
+import fs from "fs-extra";
+import path from "path";
+import { Op } from "sequelize";
 
 /**
  * Deletes a Library record by ID.
@@ -34,10 +33,6 @@ import { getLibraryById, getLibraryByVideoId } from "../get/getData";
  * @returns True if deletion is successful.
  */
 export async function deleteLibrary(id: string): Promise<boolean> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const affectedCount = await Library.destroy({
     where: { id },
   });
@@ -55,10 +50,6 @@ export async function deleteLibrary(id: string): Promise<boolean> {
  * @returns True if deletion is successful.
  */
 export async function deleteMovie(id: string): Promise<boolean> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const affectedCount = await Movie.destroy({
     where: { id },
   });
@@ -95,10 +86,6 @@ export async function deleteMovieData(libraryId: string, movie: MovieData) {
  * @returns True if deletion is successful.
  */
 export async function deleteSeries(id: string): Promise<boolean> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const affectedCount = await Series.destroy({
     where: { id },
   });
@@ -133,10 +120,6 @@ export async function deleteSeriesData(libraryId: string, series: SeriesData) {
  * @returns True if deletion is successful.
  */
 export async function deleteSeason(id: string): Promise<boolean> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const affectedCount = await Season.destroy({
     where: { id },
   });
@@ -177,10 +160,6 @@ export async function deleteSeasonData(season: SeasonData) {
  * @returns True if deletion is successful.
  */
 export async function deleteEpisode(id: string): Promise<boolean> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const affectedCount = await Episode.destroy({
     where: { id },
   });
@@ -198,10 +177,6 @@ export async function deleteEpisode(id: string): Promise<boolean> {
  * @returns True if deletion is successful.
  */
 export async function deleteVideo(id: string): Promise<boolean> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const affectedCount = await Video.destroy({
     where: { id },
   });
@@ -243,10 +218,6 @@ export async function deleteVideoData(video: VideoData) {
  * @returns True if deletion is successful.
  */
 export async function deleteCollection(id: string): Promise<boolean> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const affectedCount = await Collection.destroy({
     where: { id },
   });
@@ -285,10 +256,6 @@ export async function deleteCollectionSeries(
   collectionId: number,
   seriesId: number
 ): Promise<boolean> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const affectedCount = await CollectionSeries.destroy({
     where: { collectionId, seriesId },
   });
@@ -312,10 +279,6 @@ export async function deleteCollectionMovie(
   collectionId: number,
   movieId: number
 ): Promise<boolean> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const affectedCount = await CollectionMovie.destroy({
     where: { collectionId, movieId },
   });
@@ -339,10 +302,6 @@ export async function deleteCollectionAlbum(
   collectionId: number,
   albumId: number
 ): Promise<boolean> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const affectedCount = await CollectionAlbum.destroy({
     where: { collectionId, albumId },
   });
@@ -362,10 +321,6 @@ export async function deleteCollectionAlbum(
  * @returns True if deletion is successful.
  */
 export async function deleteAlbum(id: string): Promise<boolean> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const affectedCount = await Album.destroy({
     where: { id },
   });
@@ -395,10 +350,6 @@ export async function deleteAlbumData(album: Album) {
  * @returns True if deletion is successful.
  */
 export async function deleteSong(id: string): Promise<boolean> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const affectedCount = await Song.destroy({
     where: { id },
   });
@@ -416,10 +367,6 @@ export async function deleteSong(id: string): Promise<boolean> {
  * @returns True if deletion is successful.
  */
 export async function deleteArtist(id: string): Promise<boolean> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const affectedCount = await Artist.destroy({
     where: { id },
   });
@@ -441,10 +388,6 @@ export async function deleteAlbumArtist(
   albumId: number,
   artistId: number
 ): Promise<boolean> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const affectedCount = await AlbumArtist.destroy({
     where: { albumId, artistId },
   });
@@ -464,10 +407,6 @@ export async function deleteAlbumArtist(
  * @returns True if deletion is successful.
  */
 export async function deletePlayList(id: string): Promise<boolean> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const affectedCount = await PlayList.destroy({
     where: { id },
   });
@@ -485,10 +424,6 @@ export async function deletePlayList(id: string): Promise<boolean> {
  * @returns True if deletion is successful.
  */
 export async function deletePlayListItem(id: string): Promise<boolean> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const affectedCount = await PlayListItem.destroy({
     where: { id },
   });
@@ -506,10 +441,6 @@ export async function deletePlayListItem(id: string): Promise<boolean> {
  * @returns True if deletion is successful.
  */
 export async function deleteFromMyList(id: string): Promise<boolean> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const affectedCount = await MyList.destroy({
     where: { id },
   });
@@ -527,10 +458,6 @@ export async function deleteFromMyList(id: string): Promise<boolean> {
  * @returns True if deletion is successful.
  */
 export async function deleteFromContinueWatching(id: string): Promise<boolean> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const affectedCount = await ContinueWatching.destroy({
     where: { id },
   });
@@ -547,10 +474,6 @@ export async function deleteAllVideosFromContinueWatching(
   seriesId?: string,
   movieId?: string
 ): Promise<boolean> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const affectedCount = await ContinueWatching.destroy({
     where: {
       userId,

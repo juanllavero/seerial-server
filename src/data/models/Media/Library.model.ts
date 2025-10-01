@@ -1,16 +1,21 @@
+import { Collection } from "@/data/models/Collections/Collection.model";
+import { LibraryCollection } from "@/data/models/Collections/LibraryCollection";
+import { Server } from "@/data/models/Main/Server.model";
+import { User } from "@/data/models/Main/User.model";
+import { UserLibrary } from "@/data/models/Main/UserLibrary.model";
+import { Album } from "@/data/models/music/Album.model";
 import {
+  BelongsTo,
   BelongsToMany,
   Column,
   DataType,
+  ForeignKey,
   HasMany,
   IsIn,
   Model,
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { Collection } from "../Collections/Collection.model";
-import { LibraryCollection } from "../Collections/LibraryCollection";
-import { Album } from "../music/Album.model";
 import { Movie } from "./Movie.model";
 import { Series } from "./Series.model";
 
@@ -138,4 +143,18 @@ export class Library extends Model {
     hooks: true,
   })
   collections!: Collection[];
+
+  @ForeignKey(() => Server)
+  @Column({ type: DataType.STRING, allowNull: false, field: "server_id" })
+  serverId!: string;
+
+  @BelongsTo(() => Server)
+  server!: Server;
+
+  @BelongsToMany(() => User, {
+    through: () => UserLibrary,
+    onDelete: "CASCADE",
+    hooks: true,
+  })
+  users!: User[];
 }

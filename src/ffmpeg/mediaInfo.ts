@@ -1,6 +1,3 @@
-import { spawn } from "child_process";
-import ffprobePath from "ffprobe-static";
-import path from "path";
 import {
   AudioTrack,
   Chapter as ChapterData,
@@ -8,7 +5,10 @@ import {
   MediaInfoData,
   SubtitleTrack,
   VideoTrack,
-} from "../data/interfaces/MediaInfo";
+} from "@/data/interfaces/MediaInfo";
+import { spawn } from "child_process";
+import ffprobePath from "ffprobe-static";
+import path from "path";
 import { probeMediaFile } from "./execCommand";
 import {
   formatTime,

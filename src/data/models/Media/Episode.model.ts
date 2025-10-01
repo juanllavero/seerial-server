@@ -1,3 +1,4 @@
+import { WatchList } from "@/data/models/Lists/WatchList";
 import {
   BelongsTo,
   Column,
@@ -9,7 +10,6 @@ import {
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { WatchList } from "../Lists/WatchList";
 import { Season } from "./Season.model";
 import { Video } from "./Video.model";
 

@@ -8,6 +8,9 @@ import { MyList } from "./Lists/MyList.model";
 import { PlayList } from "./Lists/PlayList.model";
 import { PlayListItem } from "./Lists/PlayListItem.model";
 import { WatchList } from "./Lists/WatchList";
+import { Server } from "./Main/Server.model";
+import { User } from "./Main/User.model";
+import { UserLibrary } from "./Main/UserLibrary.model";
 import { Episode } from "./Media/Episode.model";
 import { Library } from "./Media/Library.model";
 import { Movie } from "./Media/Movie.model";
@@ -37,7 +40,10 @@ export {
   PlayListItem,
   Season,
   Series,
+  Server,
   Song,
+  User,
+  UserLibrary,
   Video,
   WatchList,
 };

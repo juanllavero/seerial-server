@@ -1,5 +1,3 @@
-import fs from "fs";
-import { Sequelize } from "sequelize-typescript";
 import {
   Album,
   AlbumArtist,
@@ -18,11 +16,16 @@ import {
   PlayListItem,
   Season,
   Series,
+  Server,
   Song,
+  User,
+  UserLibrary,
   Video,
   WatchList,
-} from "../data/models";
-import { FilesManager } from "../utils/FilesManager";
+} from "@/data/models";
+import fs from "fs";
+import { Sequelize } from "sequelize-typescript";
+import { FilesManager } from "./FilesManager";
 
 export class SequelizeManager {
   public static DB_PATH: string = FilesManager.getExternalPath(
@@ -67,6 +70,9 @@ export class SequelizeManager {
           AlbumArtist,
           Artist,
           Song,
+          Server,
+          User,
+          UserLibrary,
         ],
         define: {
           underscored: true, // Map snake_case (DB) to camelCase (Models)

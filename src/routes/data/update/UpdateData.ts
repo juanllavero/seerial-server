@@ -1,4 +1,4 @@
-import express from "express";
+import { messages } from "@/config/messages";
 import {
   updateAlbum,
   updateCollection,
@@ -7,162 +7,193 @@ import {
   updateMovie,
   updateSeason,
   updateSeries,
+  updateSong,
   updateVideo,
-} from "../../../db/update/updateData";
+} from "@/db/update/updateData";
+import ApiError from "@/utils/ApiError";
+import catchAsync from "@/utils/catchAsync";
+import express, { NextFunction, Request, Response } from "express";
 
 const router = express.Router();
 
 // Update Library
-router.put("/library/:id", async (req: any, res: any) => {
-  const updatedLibrary = req.body;
-  const id = req.params.id;
+router.put(
+  "/library/:id",
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const updatedLibraryData = req.body;
+    const id = req.params.id;
 
-  if (!id || typeof id !== "string" || id === "") {
-    return res.status(400).json({ message: "No ID provided or invalid ID." });
-  }
+    if (!id) {
+      return next(new ApiError(400, messages.errors.validation.missingId));
+    }
 
-  try {
-    await updateLibrary(id, updatedLibrary);
-    res.status(200).json({ message: "Library updated successfully" });
-  } catch (error) {
-    res.status(500).json({ error: "Failed to update library" });
-  }
-});
+    const updatedLibrary = await updateLibrary(id, updatedLibraryData);
+    return res.status(200).json({
+      status: "success",
+      message: messages.success.update,
+      data: updatedLibrary,
+    });
+  })
+);
 
 // Update Collection
-router.put("/collection/:id", async (req: any, res: any) => {
-  const updatedCollection = req.body;
-  const id = req.params.id;
+router.put(
+  "/collection/:id",
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const updatedCollectionData = req.body;
+    const id = req.params.id;
 
-  if (!id || typeof id !== "string" || id === "") {
-    return res.status(400).json({ message: "No ID provided or invalid ID." });
-  }
+    if (!id) {
+      return next(new ApiError(400, messages.errors.validation.missingId));
+    }
 
-  try {
-    await updateCollection(id, updatedCollection);
-    res.status(200).json({ message: "Collection updated successfully" });
-  } catch (error) {
-    res.status(500).json({ error: "Failed to update collection" });
-  }
-});
+    const updatedCollection = await updateCollection(id, updatedCollectionData);
+    return res.status(200).json({
+      status: "success",
+      message: messages.success.update,
+      data: updatedCollection,
+    });
+  })
+);
 
 // Update Show
-router.put("/show/:id", async (req: any, res: any) => {
-  const updatedShow = req.body;
-  const id = req.params.id;
+router.put(
+  "/show/:id",
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const updatedShowData = req.body;
+    const id = req.params.id;
 
-  if (!id || typeof id !== "string" || id === "") {
-    return res.status(400).json({ message: "No ID provided or invalid ID." });
-  }
+    if (!id) {
+      return next(new ApiError(400, messages.errors.validation.missingId));
+    }
 
-  try {
-    await updateSeries(id, updatedShow);
-    res.status(200).json({ message: "Show updated successfully" });
-  } catch (error) {
-    res.status(500).json({ error: "Failed to update show" });
-  }
-});
+    const updatedShow = await updateSeries(id, updatedShowData);
+    return res.status(200).json({
+      status: "success",
+      message: messages.success.update,
+      data: updatedShow,
+    });
+  })
+);
 
 // Update Season
-router.put("/season/:id", async (req: any, res: any) => {
-  const updatedSeason = req.body;
-  const id = req.params.id;
+router.put(
+  "/season/:id",
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const updatedSeasonData = req.body;
+    const id = req.params.id;
 
-  if (!id || typeof id !== "string" || id === "") {
-    return res.status(400).json({ message: "No ID provided or invalid ID." });
-  }
+    if (!id) {
+      return next(new ApiError(400, messages.errors.validation.missingId));
+    }
 
-  try {
-    await updateSeason(id, updatedSeason);
-    res.status(200).json({ message: "Season updated successfully" });
-  } catch (error) {
-    res.status(500).json({ error: "Failed to update season" });
-  }
-});
+    const updatedSeason = await updateSeason(id, updatedSeasonData);
+    return res.status(200).json({
+      status: "success",
+      message: messages.success.update,
+      data: updatedSeason,
+    });
+  })
+);
 
 // Update Episode
-router.put("/episode/:id", async (req: any, res: any) => {
-  const updatedEpisode = req.body;
-  const id = req.params.id;
+router.put(
+  "/episode/:id",
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const updatedEpisodeData = req.body;
+    const id = req.params.id;
 
-  if (!id || typeof id !== "string" || id === "") {
-    return res.status(400).json({ message: "No ID provided or invalid ID." });
-  }
+    if (!id) {
+      return next(new ApiError(400, messages.errors.validation.missingId));
+    }
 
-  try {
-    await updateEpisode(id, updatedEpisode);
-    res.status(200).json({ message: "Episode updated successfully" });
-  } catch (error) {
-    res.status(500).json({ error: "Failed to update episode" });
-  }
-});
+    const updatedEpisode = await updateEpisode(id, updatedEpisodeData);
+    return res.status(200).json({
+      status: "success",
+      message: messages.success.update,
+      data: updatedEpisode,
+    });
+  })
+);
 
 // Update Video
-router.put("/video:id", async (req: any, res: any) => {
-  const updatedVideo = req.body;
-  const id = req.params.id;
+router.put(
+  "/video/:id",
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const updatedVideoData = req.body;
+    const id = req.params.id;
 
-  if (!id || typeof id !== "string" || id === "") {
-    return res.status(400).json({ message: "No ID provided or invalid ID." });
-  }
+    if (!id) {
+      return next(new ApiError(400, messages.errors.validation.missingId));
+    }
 
-  try {
-    await updateVideo(id, updatedVideo);
-    res.status(200).json({ message: "Video updated successfully" });
-  } catch (error) {
-    res.status(500).json({ error: "Failed to update video" });
-  }
-});
+    const updatedVideo = await updateVideo(id, updatedVideoData);
+    return res.status(200).json({
+      status: "success",
+      message: messages.success.update,
+      data: updatedVideo,
+    });
+  })
+);
 
 // Update Movie
-router.put("/movie/:id", async (req: any, res: any) => {
-  const updatedMovie = req.body;
-  const id = req.params.id;
+router.put(
+  "/movie/:id",
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const updatedMovieData = req.body;
+    const id = req.params.id;
 
-  if (!id || typeof id !== "string" || id === "") {
-    return res.status(400).json({ message: "No ID provided or invalid ID." });
-  }
+    if (!id) {
+      return next(new ApiError(400, messages.errors.validation.missingId));
+    }
 
-  try {
-    await updateMovie(id, updatedMovie);
-    res.status(200).json({ message: "Movie updated successfully" });
-  } catch (error) {
-    res.status(500).json({ error: "Failed to update movie" });
-  }
-});
+    const updatedMovie = await updateMovie(id, updatedMovieData);
+    return res.status(200).json({
+      status: "success",
+      message: messages.success.update,
+      data: updatedMovie,
+    });
+  })
+);
 
 // Update Album
-router.put("/album/:id", async (req: any, res: any) => {
-  const updatedAlbum = req.body;
-  const id = req.params.id;
+router.put(
+  "/album/:id",
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const updatedAlbumData = req.body;
+    const id = req.params.id;
 
-  if (!id || typeof id !== "string" || id === "") {
-    return res.status(400).json({ message: "No ID provided or invalid ID." });
-  }
+    if (!id) {
+      return next(new ApiError(400, messages.errors.validation.missingId));
+    }
 
-  try {
-    await updateAlbum(id, updatedAlbum);
-    res.status(200).json({ message: "Album updated successfully" });
-  } catch (error) {
-    res.status(500).json({ error: "Failed to update album" });
-  }
-});
+    const updatedAlbum = await updateAlbum(id, updatedAlbumData);
+    return res.status(200).json({
+      status: "success",
+      message: messages.success.update,
+      data: updatedAlbum,
+    });
+  })
+);
 
 // Update Song
-router.put("/song/:id", async (req: any, res: any) => {
-  const updatedSong = req.body;
-  const id = req.params.id;
+router.put(
+  "/song/:id",
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const updatedSongData = req.body;
+    const id = req.params.id;
 
-  if (!id || typeof id !== "string" || id === "") {
-    return res.status(400).json({ message: "No ID provided or invalid ID." });
-  }
+    if (!id) {
+      return next(new ApiError(400, messages.errors.validation.missingId));
+    }
 
-  try {
-    await updateVideo(id, updatedSong);
-    res.status(200).json({ message: "Song updated successfully" });
-  } catch (error) {
-    res.status(500).json({ error: "Failed to update song" });
-  }
-});
+    const updatedSong = await updateSong(id, updatedSongData);
+    return res.status(200).json({
+      status: "success",
+      message: messages.success.update,
+      data: updatedSong,
+    });
+  })
+);
 
 export default router;

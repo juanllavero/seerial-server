@@ -1,169 +1,117 @@
-import express from "express";
-import {
-  getEpisodeById,
-  getLibraryById,
-  getMovieById,
-  getMovieFromMyList,
-  getSeasonById,
-  getSeriesById,
-  getSeriesFromMyList,
-  getVideoByEpisodeId,
-  getVideoById,
-} from "../../../db/get/getData";
+import { messages } from "@/config/messages";
+import { MediaManager } from "@/managers/MediaManager";
+import ApiError from "@/utils/ApiError";
+import catchAsync from "@/utils/catchAsync";
+import express, { NextFunction, Request, Response } from "express";
+
 const router = express.Router();
 
-router.get("/videoInfo", async (req: any, res: any) => {
-  const { id } = req.query;
-
-  if (typeof id !== "string") {
-    return res.status(400).json({ error: "Invalid parameters" });
-  }
-
-  const video = await getVideoById(id);
-
-  if (!video) {
-    return res.status(404).json({ error: "Video not found" });
-  }
-
-  if (video.episodeId) {
-    const episode = await getEpisodeById(video.episodeId);
-
-    if (!episode) {
-      return res.status(404).json({ error: "Episode not found" });
+/**
+ * @route GET /videoInfo
+ * @desc Gets formatted metadata for a given video ID.
+ */
+router.get(
+  "/videoInfo",
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.query;
+    if (typeof id !== "string") {
+      return next(new ApiError(400, messages.errors.validation.invalidData));
     }
 
-    const season = await getSeasonById(episode.seasonId);
+    const videoInfo = await MediaManager.getFormattedVideoInfo(id);
 
-    if (!season) {
-      return res.status(404).json({ error: "Season not found" });
+    res.status(200).json(videoInfo);
+  })
+);
+
+/**
+ * @route GET /remaining-episodes
+ * @desc Counts unwatched episodes for a given series and user.
+ */
+router.get(
+  "/remaining-episodes",
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const { seriesId } = req.query;
+    const userId = (req as any).user?.id; // Assuming user is attached by auth middleware
+
+    if (typeof seriesId !== "string" || !userId) {
+      return next(
+        new ApiError(400, messages.errors.validation.notEnoughParams)
+      );
     }
 
-    const series = await getSeriesById(season.seriesId);
+    const remainingEpisodes = await MediaManager.countRemainingEpisodes(
+      seriesId,
+      userId
+    );
 
-    if (!series) {
-      return res.status(404).json({ error: "Series not found" });
+    res.status(200).json(remainingEpisodes);
+  })
+);
+
+/**
+ * @route GET /remaining-videos
+ * @desc Counts unwatched videos for a given movie and user.
+ */
+router.get(
+  "/remaining-videos",
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const { movieId } = req.query;
+    const userId = (req as any).user?.id; // Assuming user is attached by auth middleware
+
+    if (typeof movieId !== "string" || !userId) {
+      return next(
+        new ApiError(400, messages.errors.validation.notEnoughParams)
+      );
     }
 
-    const library = await getLibraryById(series.libraryId);
+    const remainingVideos = await MediaManager.countRemainingVideos(
+      movieId,
+      userId
+    );
 
-    if (!library) {
-      return res.status(404).json({ error: "Library not found" });
+    res.status(200).json(remainingVideos);
+  })
+);
+
+/**
+ * @route GET /isShowInMyList
+ * @desc Checks if a series is in the user's list.
+ */
+router.get(
+  "/isShowInMyList",
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const { seriesId, userId } = req.query;
+    if (typeof seriesId !== "string" || typeof userId !== "string") {
+      return next(
+        new ApiError(400, messages.errors.validation.notEnoughParams)
+      );
     }
 
-    return res.json({
-      title: series.name,
-      subtitle: `S${episode.seasonNumber}E${episode.episodeNumber}`,
-      preferAudioLan: series.preferAudioLan || library.preferAudioLan,
-      preferSubtitleLan: series.preferSubLan || library.preferSubLan,
-      subsMode: series.subsMode || library.subsMode,
-    });
-  } else if (video.movieId) {
-    const movie = await getMovieById(video.movieId);
+    const isInMyList = await MediaManager.isSeriesInMyList(seriesId, userId);
 
-    if (!movie) {
-      return res.status(404).json({ error: "Movie not found" });
+    res.status(200).json(isInMyList);
+  })
+);
+
+/**
+ * @route GET /isMovieInMyList
+ * @desc Checks if a movie is in the user's list.
+ */
+router.get(
+  "/isMovieInMyList",
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const { movieId, userId } = req.query;
+    if (typeof movieId !== "string" || typeof userId !== "string") {
+      return next(
+        new ApiError(400, messages.errors.validation.notEnoughParams)
+      );
     }
 
-    const library = await getLibraryById(movie.libraryId);
+    const isInMyList = await MediaManager.isMovieInMyList(movieId, userId);
 
-    if (!library) {
-      return res.status(404).json({ error: "Library not found" });
-    }
-
-    const year = new Date(movie.year).getFullYear();
-
-    return res.json({
-      title: movie.name,
-      subtitle: `(${year})`,
-      preferAudioLan: library.preferAudioLan,
-      preferSubtitleLan: library.preferSubLan,
-      subsMode: library.subsMode,
-    });
-  }
-
-  return res.status(404).json({ error: "Video data not found" });
-});
-
-// Get remaining episodes
-router.get("/remaining-episodes", async (req: any, res: any) => {
-  const { seriesId } = req.query;
-
-  if (typeof seriesId !== "string") {
-    return res.status(400).json({ error: "Invalid parameters" });
-  }
-
-  const series = await getSeriesById(seriesId);
-
-  if (!series) {
-    return res.status(404).json({ error: "Series not found" });
-  }
-
-  let remainingEpisodes = 0;
-  for (const s of series.seasons) {
-    const season = await getSeasonById(s.id);
-
-    if (!season) continue;
-
-    for (const episode of season.episodes) {
-      const video = await getVideoByEpisodeId(episode.id);
-      if (
-        video &&
-        video.watchLists.filter((wl) => wl.id === req.user.id).length === 0
-      ) {
-        remainingEpisodes++;
-      }
-    }
-  }
-
-  return res.json({ remainingEpisodes });
-});
-
-// Get remaining videos
-router.get("/remaining-videos", async (req: any, res: any) => {
-  const { movieId } = req.query;
-
-  if (typeof movieId !== "string") {
-    return res.status(400).json({ error: "Invalid parameters" });
-  }
-
-  const movie = await getMovieById(movieId);
-
-  if (!movie) {
-    return res.status(404).json({ error: "Movie not found" });
-  }
-
-  let remainingVideos = 0;
-  for (const video of movie.videos) {
-    if (video.watchLists.filter((wl) => wl.id === req.user.id).length === 0) {
-      remainingVideos++;
-    }
-  }
-
-  return res.json({ remainingVideos });
-});
-
-// Get if a series is in My List
-router.get("/isShowInMyList", async (req: any, res: any) => {
-  const { seriesId, userId } = req.query;
-
-  if (typeof seriesId !== "string" || typeof userId !== "string") {
-    return res.status(400).json({ error: "Invalid parameters" });
-  }
-
-  const isInMyList = await getSeriesFromMyList(seriesId, userId);
-  return res.json({ isInMyList: isInMyList !== null });
-});
-
-// Get if a movie is in My List
-router.get("/isMovieInMyList", async (req: any, res: any) => {
-  const { movieId, userId } = req.query;
-
-  if (typeof movieId !== "string" || typeof userId !== "string") {
-    return res.status(400).json({ error: "Invalid parameters" });
-  }
-
-  const isInMyList = await getMovieFromMyList(movieId, userId);
-  return res.json({ isInMyList: isInMyList !== null });
-});
+    res.status(200).json(isInMyList);
+  })
+);
 
 export default router;

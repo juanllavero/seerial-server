@@ -1,7 +1,4 @@
-import { existsSync } from "fs-extra";
-import * as path from "path";
-import { parse } from "path";
-import { Album, Movie, Series } from "../data/models";
+import { Album, Movie, Series } from "@/data/models";
 import {
   deleteAlbum,
   deleteEpisode,
@@ -10,7 +7,7 @@ import {
   deleteSeason,
   deleteSeries,
   deleteSong,
-} from "../db/delete/deleteData";
+} from "@/db/delete/deleteData";
 import {
   getAlbumById,
   getEpisodeByPath,
@@ -19,9 +16,12 @@ import {
   getSeasonById,
   getSeriesById,
   getSongByPath,
-} from "../db/get/getData";
-import { Utils } from "../utils/Utils";
-import { WebSocketManager } from "../WebSockets/WebSocketManager";
+} from "@/db/get/getData";
+import { WebSocketManager } from "@/managers/WebSocketManager";
+import { Utils } from "@/utils/Utils";
+import { existsSync } from "fs-extra";
+import * as path from "path";
+import { parse } from "path";
 
 /**
  * Delete removed files from library

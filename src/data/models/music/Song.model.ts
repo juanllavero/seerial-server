@@ -1,3 +1,5 @@
+import { PlayList } from "@/data/models/Lists/PlayList.model";
+import { PlayListItem } from "@/data/models/Lists/PlayListItem.model";
 import {
   BelongsTo,
   BelongsToMany,
@@ -8,8 +10,6 @@ import {
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { PlayList } from "../Lists/PlayList.model";
-import { PlayListItem } from "../Lists/PlayListItem.model";
 import { Album } from "./Album.model";
 
 @Table({ tableName: "Song", timestamps: false })

@@ -1,3 +1,6 @@
+import { Movie } from "@/data/models/Media/Movie.model";
+import { Series } from "@/data/models/Media/Series.model";
+import { Video } from "@/data/models/Media/Video.model";
 import {
   BelongsTo,
   Column,
@@ -7,9 +10,6 @@ import {
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { Movie } from "../Media/Movie.model";
-import { Series } from "../Media/Series.model";
-import { Video } from "../Media/Video.model";
 
 @Table({ tableName: "Continue_Watching", timestamps: true })
 export class ContinueWatching extends Model {

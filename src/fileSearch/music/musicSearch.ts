@@ -1,11 +1,7 @@
-import ffprobePath from "ffprobe-static";
-import ffmpeg from "fluent-ffmpeg";
-import { promises as fsPromises } from "fs";
-import path from "path";
-import { Collection } from "../../data/models/Collections/Collection.model";
-import { Library } from "../../data/models/Media/Library.model";
-import { Album } from "../../data/models/music/Album.model";
-import { getAlbums } from "../../db/get/getData";
+import { Collection } from "@/data/models/Collections/Collection.model";
+import { Library } from "@/data/models/Media/Library.model";
+import { Album } from "@/data/models/music/Album.model";
+import { getAlbums } from "@/db/get/getData";
 import {
   addAlbum,
   addAlbumToCollection,
@@ -14,13 +10,23 @@ import {
   addCollection,
   addLibraryToCollection,
   addSong,
-} from "../../db/post/postData";
-import { getAudioInfo } from "../../ffmpeg/audioInfo";
-import { FilesManager } from "../../utils/FilesManager";
-import { Utils } from "../../utils/Utils";
-import { WebSocketManager } from "../../WebSockets/WebSocketManager";
+} from "@/db/post/postData";
+import { getAudioInfo } from "@/ffmpeg/audioInfo";
+import { FilesManager } from "@/managers/FilesManager";
+import { WebSocketManager } from "@/managers/WebSocketManager";
+import { Utils } from "@/utils/Utils";
+import ffprobePath from "ffprobe-static";
+import ffmpeg from "fluent-ffmpeg";
+import { promises as fsPromises } from "fs";
+import path from "path";
 
-//#region MUSIC METADATA EXTRACTION
+/**
+ * Scans a folder for music files and adds them to the library
+ * @param {Library} library Library object
+ * @param {string} folder Folder to scan for music files
+ * @param {WebSocketManager} wsManager WebSocket Manager to update the info in the client apps
+ * @returns {Promise<void>} Promise that resolves when all files have been processed
+ */
 export async function scanMusic(
   library: Library,
   folder: string,
@@ -28,8 +34,7 @@ export async function scanMusic(
 ) {
   if (!(await Utils.isFolder(folder))) return;
 
-  // Establece la ruta para fluent-ffmpeg
-  ffmpeg.setFfprobePath(ffprobePath.path); // Es buena práctica establecer también la ruta de ffprobe
+  ffmpeg.setFfprobePath(ffprobePath.path);
 
   // Add collection or retrieve existing one
   const collection = await addCollection({
@@ -65,6 +70,16 @@ export async function scanMusic(
   Utils.mutateLibrary(wsManager);
 }
 
+/**
+ * Processes a single music file.
+ * @param rootFolder Root folder of the library
+ * @param library Library containing the music file
+ * @param musicFile Music file to process
+ * @param collection Collection that the music file belongs to
+ * @param wsManager WebSocket manager to send updates to client
+ * @param albumMap Cache of albums to avoid heap overflow
+ * @returns Promise that resolves when the music file has been processed
+ */
 export async function processMusicFile(
   rootFolder: string,
   library: Library,
@@ -218,4 +233,3 @@ export async function processMusicFile(
     console.error("Error processing music file", error);
   }
 }
-//#endregion

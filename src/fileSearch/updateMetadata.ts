@@ -3,15 +3,15 @@ import {
   deleteSeriesData,
   deleteVideo,
   deleteVideoData,
-} from "../db/delete/deleteData";
+} from "@/db/delete/deleteData";
 import {
   getLibraryById,
   getMovieById,
   getSeriesById,
   getVideoByMovieId,
-} from "../db/get/getData";
-import { Utils } from "../utils/Utils";
-import { WebSocketManager } from "../WebSockets/WebSocketManager";
+} from "@/db/get/getData";
+import { WebSocketManager } from "@/managers/WebSocketManager";
+import { Utils } from "@/utils/Utils";
 import { scanMovie } from "./movies/searchMovies";
 
 import { scanTVShow } from "./series/searchSeries";

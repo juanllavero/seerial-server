@@ -1,4 +1,7 @@
-import express from "express";
+import { messages } from "@/config/messages";
+import ApiError from "@/utils/ApiError";
+import catchAsync from "@/utils/catchAsync";
+import express, { NextFunction, Request, Response } from "express";
 import fs from "fs";
 import os from "os";
 import path from "path";
@@ -38,10 +41,13 @@ const getDrives = () => {
 };
 
 // Endpoint to get drives
-router.get("/drives", (req: any, res: any) => {
-  const drives = getDrives();
-  res.json(drives);
-});
+router.get(
+  "/drives",
+  catchAsync(async (_req: Request, res: Response, _next: NextFunction) => {
+    const drives = getDrives();
+    return res.status(200).json(drives);
+  })
+);
 
 // Function to get files and folders within a directory
 const getFolderContent = (dirPath: string) => {
@@ -74,21 +80,21 @@ const getFolderContent = (dirPath: string) => {
 };
 
 // Endpoint to get files and folders within a directory
-router.get("/folder/*", (req: any, res: any) => {
-  const folderPath = req.params[0]; // Extract the folder path from the URL
-  const fullPath = path.resolve(folderPath); // Assert the path is absolute
+router.get(
+  "/folder/*",
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const folderPath = req.params[0]; // Extract the folder path from the URL
+    const fullPath = path.resolve(folderPath); // Assert the path is absolute
 
-  // Check if the folder exists
-  if (!fs.existsSync(fullPath) || !fs.lstatSync(fullPath).isDirectory()) {
-    return res.status(400).json({ error: "Invalid folder path" });
-  }
+    // Check if the folder exists
+    if (!fs.existsSync(fullPath) || !fs.lstatSync(fullPath).isDirectory()) {
+      return next(new ApiError(400, messages.errors.notFound.folder));
+    }
 
-  try {
     const content = getFolderContent(fullPath);
-    res.json(content);
-  } catch (error) {
-    res.status(500).json({ error: "Error reading folder" });
-  }
-});
+
+    return res.status(200).json(content);
+  })
+);
 
 export default router;

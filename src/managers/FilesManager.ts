@@ -1,8 +1,8 @@
+import { LOCAL_DATA_PATH } from "@/utils/constants";
 import fs from "fs";
 import multer from "multer";
 import path from "path";
 import PropertiesReader, { Reader } from "properties-reader";
-import { LOCAL_DATA_PATH } from "./constants";
 
 export class FilesManager {
   public static extPath = "/";
@@ -103,7 +103,7 @@ export class FilesManager {
    * @returns Absolute path to the internal file
    */
   public static getInternalPath(relativePath: string): string {
-    return path.join(__dirname, "../", relativePath);
+    return path.join(__dirname, "@/", relativePath);
   }
 
   /**

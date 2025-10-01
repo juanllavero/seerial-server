@@ -1,16 +1,16 @@
+import { MediaSearchResult } from "@/data/interfaces/SearchResults";
+import { ytDlpPath } from "@/utils/YoutubeDownloader";
 import { exec, spawn } from "child_process";
 import ffmpegPath from "ffmpeg-static";
 import fs from "fs";
 import path from "path";
 import { promisify } from "util";
-import { WebSocketManager } from "../WebSockets/WebSocketManager";
-import { MediaSearchResult } from "../data/interfaces/SearchResults";
-import { FilesManager } from "../utils/FilesManager";
-import { ytDlpPath } from "../utils/YoutubeDownloader";
+import { FilesManager } from "./FilesManager";
+import { WebSocketManager } from "./WebSocketManager";
 
 const execAsync = promisify(exec);
 
-export class Downloader {
+export class DownloaderManager {
   public static async searchVideos(
     query: string,
     numberOfResults: number

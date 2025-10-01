@@ -1,6 +1,4 @@
-import { Op } from "sequelize";
-import { v4 as uuidv4 } from "uuid";
-import { PlayList as PlayListData } from "../../data/interfaces/Lists";
+import { PlayList as PlayListData } from "@/data/interfaces/Lists";
 import {
   Episode as EpisodeData,
   Library as LibraryData,
@@ -8,32 +6,32 @@ import {
   Season as SeasonData,
   Series as SeriesData,
   Video as VideoData,
-} from "../../data/interfaces/Media";
+} from "@/data/interfaces/Media";
 import {
   Album as AlbumData,
   Artist as ArtistData,
   Song as SongData,
-} from "../../data/interfaces/Music";
-import { LibraryCollection } from "../../data/models";
-import { Collection } from "../../data/models/Collections/Collection.model";
-import { CollectionAlbum } from "../../data/models/Collections/CollectionAlbum.model";
-import { CollectionMovie } from "../../data/models/Collections/CollectionMovie.model";
-import { CollectionSeries } from "../../data/models/Collections/CollectionSeries.model";
-import { ContinueWatching } from "../../data/models/Lists/ContinueWatching.model";
-import { MyList } from "../../data/models/Lists/MyList.model";
-import { PlayList } from "../../data/models/Lists/PlayList.model";
-import { PlayListItem } from "../../data/models/Lists/PlayListItem.model";
-import { WatchList } from "../../data/models/Lists/WatchList";
-import { Episode } from "../../data/models/Media/Episode.model";
-import { Library } from "../../data/models/Media/Library.model";
-import { Movie } from "../../data/models/Media/Movie.model";
-import { Season } from "../../data/models/Media/Season.model";
-import { Series } from "../../data/models/Media/Series.model";
-import { Video } from "../../data/models/Media/Video.model";
-import { Album } from "../../data/models/music/Album.model";
-import { AlbumArtist } from "../../data/models/music/AlbumArtist.model";
-import { Artist } from "../../data/models/music/Artist.model";
-import { Song } from "../../data/models/music/Song.model";
+} from "@/data/interfaces/Music";
+import { LibraryCollection } from "@/data/models";
+import { Collection } from "@/data/models/Collections/Collection.model";
+import { CollectionAlbum } from "@/data/models/Collections/CollectionAlbum.model";
+import { CollectionMovie } from "@/data/models/Collections/CollectionMovie.model";
+import { CollectionSeries } from "@/data/models/Collections/CollectionSeries.model";
+import { ContinueWatching } from "@/data/models/Lists/ContinueWatching.model";
+import { MyList } from "@/data/models/Lists/MyList.model";
+import { PlayList } from "@/data/models/Lists/PlayList.model";
+import { PlayListItem } from "@/data/models/Lists/PlayListItem.model";
+import { WatchList } from "@/data/models/Lists/WatchList";
+import { Episode } from "@/data/models/Media/Episode.model";
+import { Library } from "@/data/models/Media/Library.model";
+import { Movie } from "@/data/models/Media/Movie.model";
+import { Season } from "@/data/models/Media/Season.model";
+import { Series } from "@/data/models/Media/Series.model";
+import { Video } from "@/data/models/Media/Video.model";
+import { Album } from "@/data/models/music/Album.model";
+import { AlbumArtist } from "@/data/models/music/AlbumArtist.model";
+import { Artist } from "@/data/models/music/Artist.model";
+import { Song } from "@/data/models/music/Song.model";
 import {
   getAlbumById,
   getEpisodeById,
@@ -43,8 +41,10 @@ import {
   getSeriesById,
   getSongById,
   getVideoById,
-} from "../get/getData";
-import { SequelizeManager } from "../SequelizeManager";
+} from "@/db/get/getData";
+import { SequelizeManager } from "@/managers/SequelizeManager";
+import { Op } from "sequelize";
+import { v4 as uuidv4 } from "uuid";
 
 //#region Library
 

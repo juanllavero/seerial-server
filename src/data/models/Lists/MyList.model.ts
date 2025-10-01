@@ -1,3 +1,5 @@
+import { Movie } from "@/data/models/Media/Movie.model";
+import { Series } from "@/data/models/Media/Series.model";
 import {
   Column,
   DataType,
@@ -6,8 +8,6 @@ import {
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { Movie } from "../Media/Movie.model";
-import { Series } from "../Media/Series.model";
 
 @Table({ tableName: "My_List", timestamps: false })
 export class MyList extends Model {

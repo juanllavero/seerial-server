@@ -1,3 +1,4 @@
+import { FilesManager } from "@/managers/FilesManager";
 import * as fs from "fs";
 import {
   CreditsResponse,
@@ -15,7 +16,6 @@ import {
 } from "moviedb-promise";
 import * as path from "path";
 import propertiesReader from "properties-reader";
-import { FilesManager } from "../utils/FilesManager";
 
 export class MovieDBWrapper {
   public static THEMOVIEDB_API_TOKEN: string = "";

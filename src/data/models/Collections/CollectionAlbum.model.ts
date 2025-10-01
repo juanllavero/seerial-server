@@ -1,3 +1,4 @@
+import { Album } from "@/data/models/music/Album.model";
 import {
   Column,
   DataType,
@@ -5,7 +6,6 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { Album } from "../music/Album.model";
 import { Collection } from "./Collection.model";
 
 @Table({ tableName: "Collection_Album", timestamps: false })

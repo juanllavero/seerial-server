@@ -1,3 +1,7 @@
+import { Collection } from "@/data/models/Collections/Collection.model";
+import { CollectionAlbum } from "@/data/models/Collections/CollectionAlbum.model";
+import { Library } from "@/data/models/Media/Library.model";
+import { deleteAlbumData } from "@/db/delete/deleteData";
 import {
   BeforeDestroy,
   BelongsTo,
@@ -10,10 +14,6 @@ import {
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { deleteAlbumData } from "../../../db/delete/deleteData";
-import { Collection } from "../Collections/Collection.model";
-import { CollectionAlbum } from "../Collections/CollectionAlbum.model";
-import { Library } from "../Media/Library.model";
 import { AlbumArtist } from "./AlbumArtist.model";
 import { Artist } from "./Artist.model";
 import { Song } from "./Song.model";

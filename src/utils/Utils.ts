@@ -1,17 +1,12 @@
-import axios from "axios";
-import * as fs from "fs";
-import { Episode as MovieDBEpisode, TvSeasonResponse } from "moviedb-promise";
-import path from "path";
-import { WebSocketManager } from "../WebSockets/WebSocketManager";
-import { Episode, Season } from "../data/models";
-import { deleteAllVideosFromContinueWatching } from "../db/delete/deleteData";
+import { Episode, Season } from "@/data/models";
+import { deleteAllVideosFromContinueWatching } from "@/db/delete/deleteData";
 import {
   getCurrentlyWatchingEpisodeId,
   getEpisodeById,
   getSeasonById,
   getSeriesById,
   getVideoByEpisodeId,
-} from "../db/get/getData";
+} from "@/db/get/getData";
 import {
   addSeasonToWatchList,
   addSeriesToWatchList,
@@ -21,7 +16,12 @@ import {
   removeSeriesFromWatchList,
   removeVideoFromContinueWatching,
   removeVideoFromWatchList,
-} from "../db/post/postData";
+} from "@/db/post/postData";
+import { WebSocketManager } from "@/managers/WebSocketManager";
+import axios from "axios";
+import * as fs from "fs";
+import { Episode as MovieDBEpisode, TvSeasonResponse } from "moviedb-promise";
+import path from "path";
 
 export class Utils {
   static extraTypes = [

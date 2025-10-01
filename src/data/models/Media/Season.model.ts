@@ -1,3 +1,5 @@
+import { WatchList } from "@/data/models/Lists/WatchList";
+import { deleteSeasonData } from "@/db/delete/deleteData";
 import {
   BeforeDestroy,
   BelongsTo,
@@ -9,8 +11,6 @@ import {
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { deleteSeasonData } from "../../../db/delete/deleteData";
-import { WatchList } from "../Lists/WatchList";
 import { Episode } from "./Episode.model";
 import { Series } from "./Series.model";
 

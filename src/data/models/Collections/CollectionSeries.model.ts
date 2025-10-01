@@ -1,3 +1,4 @@
+import { Series } from "@/data/models/Media/Series.model";
 import {
   Column,
   DataType,
@@ -5,7 +6,6 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { Series } from "../Media/Series.model";
 import { Collection } from "./Collection.model";
 
 @Table({ tableName: "Collection_Series", timestamps: false })

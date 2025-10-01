@@ -1,3 +1,4 @@
+import { FilesManager } from "@/managers/FilesManager";
 import { https } from "follow-redirects";
 import {
   chmodSync,
@@ -7,7 +8,6 @@ import {
   unlinkSync,
 } from "fs";
 import path from "path";
-import { FilesManager } from "./FilesManager";
 
 const binDir = FilesManager.getExternalPath(path.join("resources", "lib"));
 export const ytDlpPath = path.join(

@@ -1,3 +1,4 @@
+import { messages } from "@/config/messages";
 import {
   Collection as CollectionData,
   Episode as EpisodeData,
@@ -6,19 +7,19 @@ import {
   Season as SeasonData,
   Series as SeriesData,
   Video as VideoData,
-} from "../../data/interfaces/Media";
-import { Collection } from "../../data/models/Collections/Collection.model";
-import { PlayList } from "../../data/models/Lists/PlayList.model";
-import { WatchList } from "../../data/models/Lists/WatchList";
-import { Episode } from "../../data/models/Media/Episode.model";
-import { Library } from "../../data/models/Media/Library.model";
-import { Movie } from "../../data/models/Media/Movie.model";
-import { Season } from "../../data/models/Media/Season.model";
-import { Series } from "../../data/models/Media/Series.model";
-import { Video } from "../../data/models/Media/Video.model";
-import { Album } from "../../data/models/music/Album.model";
-import { Artist } from "../../data/models/music/Artist.model";
-import { Song } from "../../data/models/music/Song.model";
+} from "@/data/interfaces/Media";
+import { Collection } from "@/data/models/Collections/Collection.model";
+import { PlayList } from "@/data/models/Lists/PlayList.model";
+import { WatchList } from "@/data/models/Lists/WatchList";
+import { Episode } from "@/data/models/Media/Episode.model";
+import { Library } from "@/data/models/Media/Library.model";
+import { Movie } from "@/data/models/Media/Movie.model";
+import { Season } from "@/data/models/Media/Season.model";
+import { Series } from "@/data/models/Media/Series.model";
+import { Video } from "@/data/models/Media/Video.model";
+import { Album } from "@/data/models/music/Album.model";
+import { Artist } from "@/data/models/music/Artist.model";
+import { Song } from "@/data/models/music/Song.model";
 import {
   getAlbumById,
   getArtistById,
@@ -32,14 +33,14 @@ import {
   getSongById,
   getVideoById,
   getWatchListById,
-} from "../get/getData";
-import { SequelizeManager } from "../SequelizeManager";
+} from "@/db/get/getData";
+import ApiError from "@/utils/ApiError";
 
 //#region Libraries
 
 /**
  * Updates a Library record by ID.
- * @param id - The ID of the Library (INTEGER).
+ * @param id - The ID of the Library (String).
  * @param data - Partial data to update.
  * @returns The updated Library record.
  */
@@ -47,22 +48,18 @@ export async function updateLibrary(
   id: string,
   data: Partial<LibraryData>
 ): Promise<Library> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const [affectedCount] = await Library.update(data, {
     where: { id },
   });
 
   if (affectedCount === 0) {
-    throw new Error(`Library with ID ${id} not found`);
+    throw new ApiError(404, messages.errors.notFound.library);
   }
 
   const updatedLibrary = await getLibraryById(id);
 
   if (!updatedLibrary) {
-    throw new Error(`Failed to retrieve updated Library with ID ${id}`);
+    throw new ApiError(500, `Failed to retrieve updated Library with ID ${id}`);
   }
 
   return updatedLibrary;
@@ -74,7 +71,7 @@ export async function updateLibrary(
 
 /**
  * Updates a Collection record by ID.
- * @param id - The ID of the Collection (INTEGER).
+ * @param id - The ID of the Collection (String).
  * @param data - Partial data to update.
  * @returns The updated Collection record.
  */
@@ -82,10 +79,6 @@ export async function updateCollection(
   id: string,
   data: Partial<CollectionData>
 ): Promise<Collection> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const [affectedCount] = await Collection.update(data, {
     where: { id },
   });
@@ -109,7 +102,7 @@ export async function updateCollection(
 
 /**
  * Updates a Movie record by ID.
- * @param id - The ID of the Movie (INTEGER).
+ * @param id - The ID of the Movie (String).
  * @param data - Partial data to update.
  * @returns The updated Movie record.
  */
@@ -117,10 +110,6 @@ export async function updateMovie(
   id: string,
   data: Partial<MovieData>
 ): Promise<Movie> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const [affectedCount] = await Movie.update(data, {
     where: { id },
   });
@@ -140,7 +129,7 @@ export async function updateMovie(
 
 /**
  * Updates a Series record by ID.
- * @param id - The ID of the Series (INTEGER).
+ * @param id - The ID of the Series (String).
  * @param data - Partial data to update.
  * @returns The updated Series record.
  */
@@ -148,10 +137,6 @@ export async function updateSeries(
   id: string,
   data: Partial<SeriesData>
 ): Promise<Series> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const [affectedCount] = await Series.update(data, {
     where: { id },
   });
@@ -171,7 +156,7 @@ export async function updateSeries(
 
 /**
  * Updates a Season record by ID.
- * @param id - The ID of the Season (INTEGER).
+ * @param id - The ID of the Season (String).
  * @param data - Partial data to update.
  * @returns The updated Season record.
  */
@@ -179,10 +164,6 @@ export async function updateSeason(
   id: string,
   data: Partial<SeasonData>
 ): Promise<Season> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const [affectedCount] = await Season.update(data, {
     where: { id },
   });
@@ -202,7 +183,7 @@ export async function updateSeason(
 
 /**
  * Updates an Episode record by ID.
- * @param id - The ID of the Episode (INTEGER).
+ * @param id - The ID of the Episode (String).
  * @param data - Partial data to update.
  * @returns The updated Episode record.
  */
@@ -210,10 +191,6 @@ export async function updateEpisode(
   id: string,
   data: Partial<EpisodeData>
 ): Promise<Episode> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const [affectedCount] = await Episode.update(data, {
     where: { id },
   });
@@ -233,7 +210,7 @@ export async function updateEpisode(
 
 /**
  * Updates a Video record by ID.
- * @param id - The ID of the Video (INTEGER).
+ * @param id - The ID of the Video (String).
  * @param data - Partial data to update.
  * @returns The updated Video record.
  */
@@ -241,10 +218,6 @@ export async function updateVideo(
   id: string,
   data: Partial<VideoData>
 ): Promise<Video> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const [affectedCount] = await Video.update(data, {
     where: { id },
   });
@@ -268,7 +241,7 @@ export async function updateVideo(
 
 /**
  * Updates an Album record by ID.
- * @param id - The ID of the Album (INTEGER).
+ * @param id - The ID of the Album (String).
  * @param data - Partial data to update.
  * @returns The updated Album record.
  */
@@ -276,10 +249,6 @@ export async function updateAlbum(
   id: string,
   data: Partial<Album>
 ): Promise<Album> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const [affectedCount] = await Album.update(data, {
     where: { id },
   });
@@ -299,7 +268,7 @@ export async function updateAlbum(
 
 /**
  * Updates a Song record by ID.
- * @param id - The ID of the Song (INTEGER).
+ * @param id - The ID of the Song (String).
  * @param data - Partial data to update.
  * @returns The updated Song record.
  */
@@ -307,10 +276,6 @@ export async function updateSong(
   id: string,
   data: Partial<Song>
 ): Promise<Song> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const [affectedCount] = await Song.update(data, {
     where: { id },
   });
@@ -330,7 +295,7 @@ export async function updateSong(
 
 /**
  * Updates an Artist record by ID.
- * @param id - The ID of the Artist (INTEGER).
+ * @param id - The ID of the Artist (String).
  * @param data - Partial data to update.
  * @returns The updated Artist record.
  */
@@ -338,10 +303,6 @@ export async function updateArtist(
   id: string,
   data: Partial<Artist>
 ): Promise<Artist> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const [affectedCount] = await Artist.update(data, {
     where: { id },
   });
@@ -365,7 +326,7 @@ export async function updateArtist(
 
 /**
  * Updates a PlayList record by ID.
- * @param id - The ID of the PlayList (INTEGER).
+ * @param id - The ID of the PlayList (String).
  * @param data - Partial data to update.
  * @returns The updated PlayList record.
  */
@@ -373,10 +334,6 @@ export async function updatePlayList(
   id: string,
   data: Partial<PlayList>
 ): Promise<PlayList> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const [affectedCount] = await PlayList.update(data, {
     where: { id },
   });
@@ -398,10 +355,6 @@ export async function updateWatchList(
   id: string,
   data: Partial<WatchList>
 ): Promise<WatchList> {
-  if (!SequelizeManager.sequelize) {
-    throw new Error("Sequelize is not initialized");
-  }
-
   const [affectedCount] = await WatchList.update(data, {
     where: { id },
   });

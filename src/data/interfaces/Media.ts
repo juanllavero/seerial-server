@@ -1,4 +1,4 @@
-import { ContinueWatching, WatchList } from "../models";
+import { ContinueWatching, WatchList } from "@/data/models";
 import {
   AudioTrack,
   Chapter,

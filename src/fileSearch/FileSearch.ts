@@ -1,12 +1,12 @@
+import { Library as LibraryData } from "@/data/interfaces/Media";
+import { Library } from "@/data/models/Media/Library.model";
+import { getLibraryById } from "@/db/get/getData";
+import { addLibrary } from "@/db/post/postData";
+import { WebSocketManager } from "@/managers/WebSocketManager";
+import { Utils } from "@/utils/Utils";
 import os from "os";
 import pLimit from "p-limit";
 import path from "path";
-import { Library as LibraryData } from "../data/interfaces/Media";
-import { Library } from "../data/models/Media/Library.model";
-import { getLibraryById } from "../db/get/getData";
-import { addLibrary } from "../db/post/postData";
-import { Utils } from "../utils/Utils";
-import { WebSocketManager } from "../WebSockets/WebSocketManager";
 import { scanMovie } from "./movies/searchMovies";
 import { scanMusic } from "./music/musicSearch";
 import { scanTVShow } from "./series/searchSeries";

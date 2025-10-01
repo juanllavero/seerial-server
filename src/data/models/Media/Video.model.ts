@@ -1,4 +1,14 @@
 import {
+  AudioTrack,
+  Chapter,
+  MediaInfo,
+  SubtitleTrack,
+  VideoTrack,
+} from "@/data/interfaces/MediaInfo";
+import { ContinueWatching } from "@/data/models/Lists/ContinueWatching.model";
+import { WatchList } from "@/data/models/Lists/WatchList";
+import { deleteVideoData } from "@/db/delete/deleteData";
+import {
   BeforeDestroy,
   BelongsTo,
   Column,
@@ -9,16 +19,6 @@ import {
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { deleteVideoData } from "../../../db/delete/deleteData";
-import {
-  AudioTrack,
-  Chapter,
-  MediaInfo,
-  SubtitleTrack,
-  VideoTrack,
-} from "../../interfaces/MediaInfo";
-import { ContinueWatching } from "../Lists/ContinueWatching.model";
-import { WatchList } from "../Lists/WatchList";
 import { Episode } from "./Episode.model";
 import { Movie } from "./Movie.model";
 

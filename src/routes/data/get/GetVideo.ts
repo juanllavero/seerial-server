@@ -1,118 +1,151 @@
+import { messages } from "@/config/messages";
+import { FilesManager } from "@/managers/FilesManager";
+import ApiError from "@/utils/ApiError";
+import catchAsync from "@/utils/catchAsync";
 import crypto from "crypto";
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 import ffmpeg from "fluent-ffmpeg";
 import fs from "fs-extra";
 import jwt from "jsonwebtoken";
 import os from "os";
 import path from "path";
-import { FilesManager } from "../../../utils/FilesManager";
+
 const router = express.Router();
 
-router.post("/get-stream-url", (req: any, res: any) => {
-  const userId = req.userId;
-  if (!userId) return res.status(401).json({ error: "Unauthorized" });
+/**
+ * @route POST /get-stream-url
+ * @description Generates a JWT-signed URL for video streaming.
+ */
+router.post(
+  "/get-stream-url",
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const userId = (req as any).userId;
+    if (!userId) {
+      return next(
+        new ApiError(401, messages.errors.server.userNotAuthenticated)
+      );
+    }
 
-  const { filePath, start, audio, quality, bitrate, expiresIn } = req.body;
+    const { filePath, start, audio, quality, bitrate, expiresIn } = req.body;
 
-  if (!filePath) {
-    return res.status(400).json({ error: "Missing file path" });
-  }
+    if (!filePath) {
+      return next(new ApiError(400, "El parámetro 'filePath' es requerido."));
+    }
 
-  // Generate temporal token
-  const token = jwt.sign(
-    {
-      userId,
-      path: filePath,
-      start: start || 0,
-      audio: audio || 0,
-      quality: quality || "0",
-      bitrate: bitrate || 0,
-    },
-    process.env.JWT_SECRET!,
-    { expiresIn: expiresIn || "2m" }
-  );
+    const token = jwt.sign(
+      {
+        userId,
+        path: filePath,
+        start: start || 0,
+        audio: audio || 0,
+        quality: quality || "0",
+        bitrate: bitrate || 0,
+      },
+      process.env.JWT_SECRET!,
+      { expiresIn: expiresIn || "2m" }
+    );
 
-  // Generate stream URL
-  const params = new URLSearchParams({ token });
-  const url = `/stream-video?${params.toString()}`;
+    const params = new URLSearchParams({ token });
+    const url = `/stream-video?${params.toString()}`;
 
-  res.json({ url });
-});
+    res.status(200).json(url);
+  })
+);
 
-// Get video thumbnail
-router.get("/video-thumbnail", (req: any, res: any) => {
-  const videoUrl = req.query.url;
-  const time = req.query.time || "10"; // 10 seconds by default
+/**
+ * @route GET /video-thumbnail
+ * @description Extracts a video thumbnail and returns it as a JPEG image.
+ */
+router.get(
+  "/video-thumbnail",
+  (req: Request, res: Response, next: NextFunction) => {
+    const videoUrl = req.query.url as string;
+    const time = (req.query.time as string) || "10";
 
-  if (!videoUrl) {
-    return res.status(400).send("No video url provided.");
-  }
+    if (!videoUrl) {
+      return next(new ApiError(400, "No se proporcionó la URL del vídeo."));
+    }
 
-  const videoSrc = videoUrl.startsWith("resources")
-    ? FilesManager.getExternalPath(videoUrl)
-    : videoUrl;
+    const videoSrc = videoUrl.startsWith("resources")
+      ? FilesManager.getExternalPath(videoUrl)
+      : videoUrl;
 
-  try {
-    res.setHeader("Content-Type", "image/jpeg");
+    try {
+      res.setHeader("Content-Type", "image/jpeg");
 
-    ffmpeg(videoSrc)
-      .seekInput(time)
-      .frames(1)
-      .toFormat("mjpeg")
-      .on("error", (err) => {
-        console.error("FFMPEG error:", err.message);
-        if (!res.headersSent) {
-          res.status(500).send("The video could not be processed.");
-        }
-      })
-      .pipe(res, { end: true });
-  } catch (error: any) {
-    if (!res.headersSent) {
-      res.status(500).send("Internal server error.");
+      ffmpeg(videoSrc)
+        .seekInput(time)
+        .frames(1)
+        .toFormat("mjpeg")
+        .on("error", (err) => {
+          console.error("Error de FFMPEG al generar thumbnail:", err.message);
+          if (!res.headersSent) {
+            res.status(500).send("No se pudo procesar el vídeo.");
+          }
+        })
+        .pipe(res, { end: true });
+    } catch (error) {
+      return next(
+        new ApiError(
+          500,
+          "Error interno al iniciar el procesamiento del thumbnail."
+        )
+      );
     }
   }
-});
+);
 
-// Get subtitles from video
-router.get("/subs-from-video", async (req: any, res: any) => {
-  const videoPath = req.query.path as string;
-  const trackId = parseInt(req.query.trackId as string);
-  const startTime = parseFloat(req.query.startTime as string) || 0;
+/**
+ * @route GET /subs-from-video
+ * @desc Extracts a subtitle track from a video and serves it as a VTT file.
+ */
+router.get(
+  "/subs-from-video",
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const videoPath = req.query.path as string;
+    const trackId = parseInt(req.query.trackId as string);
+    const startTime = parseFloat(req.query.startTime as string) || 0;
 
-  if (!fs.existsSync(videoPath)) {
-    return res.status(404).send("Video not found");
-  }
+    if (isNaN(trackId)) {
+      return next(
+        new ApiError(400, "El parámetro 'trackId' debe ser un número.")
+      );
+    }
 
-  // Generate unique hash for cache (include startTime to avoid mismatched cache)
-  const hash = crypto
-    .createHash("md5")
-    .update(videoPath + trackId + startTime)
-    .digest("hex");
-  const cacheDir = path.join(os.tmpdir(), "video_subs_cache");
-  await fs.ensureDir(cacheDir);
-  const cachedFile = path.join(cacheDir, `${hash}.vtt`);
+    if (!fs.existsSync(videoPath)) {
+      return next(new ApiError(404, "El archivo de vídeo no fue encontrado."));
+    }
 
-  // Serve cached VTT if it exists
-  if (await fs.pathExists(cachedFile)) {
+    const hash = crypto
+      .createHash("md5")
+      .update(videoPath + trackId + startTime)
+      .digest("hex");
+    const cacheDir = path.join(os.tmpdir(), "video_subs_cache");
+    await fs.ensureDir(cacheDir);
+    const cachedFile = path.join(cacheDir, `${hash}.vtt`);
+
+    if (await fs.pathExists(cachedFile)) {
+      res.setHeader("Content-Type", "text/vtt");
+      return fs.createReadStream(cachedFile).pipe(res);
+    }
+
     res.setHeader("Content-Type", "text/vtt");
-    return fs.createReadStream(cachedFile).pipe(res);
-  }
 
-  res.setHeader("Content-Type", "text/vtt");
-
-  ffmpeg(videoPath)
-    .inputOptions(startTime > 0 ? [`-ss ${startTime}`] : [])
-    .outputOptions([`-map 0:s:${trackId}`])
-    .outputFormat("webvtt")
-    .on("error", (err: any) => {
-      console.error("FFmpeg error:", err);
-      if (!res.headersSent) res.status(500).send("Subtitle extraction failed");
-    })
-    .on("end", () => {
-      // stream to client once finished
-      fs.createReadStream(cachedFile).pipe(res);
-    })
-    .save(cachedFile);
-});
+    ffmpeg(videoPath)
+      .inputOptions(startTime > 0 ? [`-ss ${startTime}`] : [])
+      .outputOptions([`-map 0:s:${trackId}`])
+      .outputFormat("webvtt")
+      .on("error", (err: any) => {
+        console.error("Error de FFmpeg al extraer subtítulos:", err);
+        if (!res.headersSent) {
+          res.status(500).send("La extracción de subtítulos falló.");
+        }
+      })
+      .on("end", () => {
+        fs.createReadStream(cachedFile).pipe(res);
+      })
+      .save(cachedFile);
+  })
+);
 
 export default router;

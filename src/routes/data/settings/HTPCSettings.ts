@@ -1,7 +1,7 @@
+import { FilesManager } from "@/managers/FilesManager";
+import { Utils } from "@/utils/Utils";
 import express from "express";
 import fs from "fs";
-import { FilesManager } from "../../../utils/FilesManager";
-import { Utils } from "../../../utils/Utils";
 
 const router = express.Router();
 

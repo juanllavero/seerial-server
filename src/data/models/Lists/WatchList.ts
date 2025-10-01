@@ -1,3 +1,8 @@
+import { Episode } from "@/data/models/Media/Episode.model";
+import { Movie } from "@/data/models/Media/Movie.model";
+import { Season } from "@/data/models/Media/Season.model";
+import { Series } from "@/data/models/Media/Series.model";
+import { Video } from "@/data/models/Media/Video.model";
 import {
   BelongsTo,
   Column,
@@ -7,11 +12,6 @@ import {
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { Episode } from "../Media/Episode.model";
-import { Movie } from "../Media/Movie.model";
-import { Season } from "../Media/Season.model";
-import { Series } from "../Media/Series.model";
-import { Video } from "../Media/Video.model";
 
 @Table({ tableName: "Watch_List", timestamps: true })
 export class WatchList extends Model {

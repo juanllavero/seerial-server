@@ -1,3 +1,8 @@
+import { Cast } from "@/data/interfaces/Media";
+import { Collection } from "@/data/models/Collections/Collection.model";
+import { CollectionMovie } from "@/data/models/Collections/CollectionMovie.model";
+import { WatchList } from "@/data/models/Lists/WatchList";
+import { deleteMovieData } from "@/db/delete/deleteData";
 import {
   BeforeDestroy,
   BelongsTo,
@@ -10,11 +15,6 @@ import {
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { deleteMovieData } from "../../../db/delete/deleteData";
-import { Cast } from "../../interfaces/Media";
-import { Collection } from "../Collections/Collection.model";
-import { CollectionMovie } from "../Collections/CollectionMovie.model";
-import { WatchList } from "../Lists/WatchList";
 import { Library } from "./Library.model";
 import { Video } from "./Video.model";
 

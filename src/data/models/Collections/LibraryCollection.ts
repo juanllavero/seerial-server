@@ -1,3 +1,4 @@
+import { Library } from "@/data/models/Media/Library.model";
 import {
   Column,
   DataType,
@@ -5,7 +6,6 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { Library } from "../Media/Library.model";
 import { Collection } from "./Collection.model";
 
 @Table({ tableName: "Library_Collection", timestamps: false })

@@ -1,20 +1,34 @@
+import { Collection } from "@/data/models/Collections/Collection.model";
+import { ContinueWatching } from "@/data/models/Lists/ContinueWatching.model";
+import { MyList } from "@/data/models/Lists/MyList.model";
+import { PlayList } from "@/data/models/Lists/PlayList.model";
+import { WatchList } from "@/data/models/Lists/WatchList";
+import { User } from "@/data/models/Main/User.model";
+import { Episode } from "@/data/models/Media/Episode.model";
+import { Library } from "@/data/models/Media/Library.model";
+import { Movie } from "@/data/models/Media/Movie.model";
+import { Season } from "@/data/models/Media/Season.model";
+import { Series } from "@/data/models/Media/Series.model";
+import { Video } from "@/data/models/Media/Video.model";
+import { Album } from "@/data/models/music/Album.model";
+import { Artist } from "@/data/models/music/Artist.model";
+import { Song } from "@/data/models/music/Song.model";
+import { getCollectionItemsKey, getItemModel } from "@/fileSearch/utils";
+import { SequelizeManager } from "@/managers/SequelizeManager";
 import { Op } from "sequelize";
-import { Collection } from "../../data/models/Collections/Collection.model";
-import { ContinueWatching } from "../../data/models/Lists/ContinueWatching.model";
-import { MyList } from "../../data/models/Lists/MyList.model";
-import { PlayList } from "../../data/models/Lists/PlayList.model";
-import { WatchList } from "../../data/models/Lists/WatchList";
-import { Episode } from "../../data/models/Media/Episode.model";
-import { Library } from "../../data/models/Media/Library.model";
-import { Movie } from "../../data/models/Media/Movie.model";
-import { Season } from "../../data/models/Media/Season.model";
-import { Series } from "../../data/models/Media/Series.model";
-import { Video } from "../../data/models/Media/Video.model";
-import { Album } from "../../data/models/music/Album.model";
-import { Artist } from "../../data/models/music/Artist.model";
-import { Song } from "../../data/models/music/Song.model";
-import { getCollectionItemsKey, getItemModel } from "../../fileSearch/utils";
-import { SequelizeManager } from "../SequelizeManager";
+
+export const getUsers = async () => {
+  try {
+    const users = await User.findAll({
+      where: { hideInLogin: false },
+      attributes: ["id", "username", "type", "avatar"], // Exclude sensitive fields like password
+    });
+    return users;
+  } catch (err) {
+    console.error("[Users]: Error fetching public user list:", err);
+    return [];
+  }
+};
 
 //#region Libraries
 
@@ -264,6 +278,41 @@ export const getSeriesById = (seriesId: string) => {
       {
         model: Season,
         as: "seasons",
+      },
+      {
+        model: WatchList,
+        as: "watchLists",
+      },
+    ],
+  });
+};
+
+export const getAllSeriesDataById = (seriesId: string) => {
+  if (!SequelizeManager.sequelize) return null;
+
+  return Series.findByPk(seriesId, {
+    include: [
+      {
+        model: Season,
+        as: "seasons",
+        include: [
+          {
+            model: Episode,
+            as: "episodes",
+            include: [
+              {
+                model: Video,
+                as: "video",
+                include: [
+                  {
+                    model: WatchList,
+                    as: "watchLists",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       },
       {
         model: WatchList,
@@ -672,7 +721,7 @@ export const getContinueWatchingVideos = async (userId: string) => {
         if (!itemVideo) return null;
 
         const filetedWatchList = itemVideo.watchLists.filter(
-          (wl) => wl.userId === userId
+          (wl: WatchList) => wl.userId === userId
         );
 
         const timeWatched =

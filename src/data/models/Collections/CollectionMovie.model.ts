@@ -1,3 +1,4 @@
+import { Movie } from "@/data/models/Media/Movie.model";
 import {
   Column,
   DataType,
@@ -5,7 +6,6 @@ import {
   Model,
   Table,
 } from "sequelize-typescript";
-import { Movie } from "../Media/Movie.model";
 import { Collection } from "./Collection.model";
 
 @Table({ tableName: "Collection_Movie", timestamps: false })

@@ -1,3 +1,8 @@
+import { Library } from "@/data/models/Media/Library.model";
+import { Movie } from "@/data/models/Media/Movie.model";
+import { Series } from "@/data/models/Media/Series.model";
+import { Album } from "@/data/models/music/Album.model";
+import { deleteCollectionData } from "@/db/delete/deleteData";
 import {
   BeforeDestroy,
   BelongsToMany,
@@ -7,11 +12,6 @@ import {
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
-import { deleteCollectionData } from "../../../db/delete/deleteData";
-import { Library } from "../Media/Library.model";
-import { Movie } from "../Media/Movie.model";
-import { Series } from "../Media/Series.model";
-import { Album } from "../music/Album.model";
 import { CollectionAlbum } from "./CollectionAlbum.model";
 import { CollectionMovie } from "./CollectionMovie.model";
 import { CollectionSeries } from "./CollectionSeries.model";

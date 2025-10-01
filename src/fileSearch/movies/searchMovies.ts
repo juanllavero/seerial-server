@@ -1,29 +1,26 @@
-import fs from "fs-extra";
-import { MovieResponse } from "moviedb-promise";
-import { wsManager } from "../..";
-import { Collection } from "../../data/models/Collections/Collection.model";
-import { Library } from "../../data/models/Media/Library.model";
-import { Movie } from "../../data/models/Media/Movie.model";
-import { Video } from "../../data/models/Media/Video.model";
+import { Collection } from "@/data/models/Collections/Collection.model";
+import { Library } from "@/data/models/Media/Library.model";
+import { Movie } from "@/data/models/Media/Movie.model";
+import { Video } from "@/data/models/Media/Video.model";
 import {
   getMovieById,
   getVideoById,
   getVideoByMovieId,
-} from "../../db/get/getData";
+} from "@/db/get/getData";
 import {
   addCollection,
   addLibraryToCollection,
   addMovie,
   addMovieToCollection,
   addVideoAsMovie,
-} from "../../db/post/postData";
-import { getOnlyRuntime } from "../../ffmpeg/mediaInfo";
-import { MovieDBWrapper } from "../../theMovieDB/MovieDB";
-import { FilesManager } from "../../utils/FilesManager";
-import { IMDBScores } from "../../utils/IMDBScores";
-import { Utils } from "../../utils/Utils";
-import { WebSocketManager } from "../../WebSockets/WebSocketManager";
-import { FileSearch } from "../FileSearch";
+} from "@/db/post/postData";
+import { getOnlyRuntime } from "@/ffmpeg/mediaInfo";
+import { wsManager } from "@/index";
+import { MetadataManager } from "@/managers/MetadataManager";
+import { WebSocketManager } from "@/managers/WebSocketManager";
+import { MovieDBWrapper } from "@/theMovieDB/MovieDB";
+import { Utils } from "@/utils/Utils";
+import { MovieResponse } from "moviedb-promise";
 
 /**
  * Scans a specific folder for movies and collections
@@ -143,7 +140,12 @@ export async function processFolder(
     return;
   }
 
-  await setMovieMetadata(library, movie, movieMetadata, name, year);
+  await MetadataManager.updateMovieMetadata(
+    movie,
+    movieMetadata,
+    library.language,
+    collection
+  );
 
   // Update content in clients
   Utils.mutateLibrary(wsManager);
@@ -178,222 +180,6 @@ export async function searchMovie(
   return moviesSearch && moviesSearch.length > 0
     ? await MovieDBWrapper.getMovie(moviesSearch[0].id ?? 0, language)
     : undefined;
-}
-
-/**
- * Sets the metadata from TheMovieDB to the Movie object
- * @param movie Movie object
- * @param movieMetadata Metadata from TheMovieDB
- * @param name Name of the movie
- * @param year Release date of the movie
- * @param collection The collection the movie is in, if it is
- */
-export async function setMovieMetadata(
-  library: Library,
-  movie: Movie,
-  movieMetadata: MovieResponse,
-  name: string,
-  year: string,
-  collection?: Collection
-) {
-  movie.name = !movie.nameLock ? movieMetadata.title ?? name : name;
-  movie.year = !movie.yearLock ? movieMetadata.release_date ?? year : year;
-  movie.overview = !movie.overviewLock ? movieMetadata.overview ?? "" : "";
-  movie.tagline = !movie.taglineLock ? movieMetadata.tagline ?? "" : "";
-  movie.themdbId = movieMetadata.id ?? -1;
-  movie.imdbId = movieMetadata.imdb_id ?? "-1";
-  movie.score = movieMetadata.vote_average
-    ? (movieMetadata.vote_average * 10) / 10
-    : 0;
-  movie.genres =
-    movie.genresLock && movie.genres
-      ? movie.genres
-      : movieMetadata.genres
-      ? movieMetadata.genres.map((genre) => genre.name ?? "")
-      : [];
-  movie.productionStudios = movie.productionStudiosLock
-    ? movie.productionStudios
-    : movieMetadata.production_companies
-    ? movieMetadata.production_companies.map((company) => company.name ?? "")
-    : [];
-
-  // Get IMDB Score for Movie
-  movie.imdbScore = await IMDBScores.getIMDBScore(movie.imdbId);
-
-  //#region GET TAGS
-  const credits = await MovieDBWrapper.getMovieCredits(
-    movie.themdbId,
-    library.language
-  );
-
-  if (credits) {
-    if (credits.crew) {
-      if (!movie.directedByLock && movie.directedBy) {
-        movie.directedBy.splice(0, movie.directedBy.length);
-        for (const person of credits.crew) {
-          if (person.name && person.job === "Director" && movie.directedBy)
-            movie.directedBy = [...movie.directedBy, person.name];
-        }
-      }
-
-      if (!movie.writtenByLock && movie.writtenBy) {
-        movie.writtenBy.splice(0, movie.writtenBy.length);
-        for (const person of credits.crew) {
-          if (
-            person.name &&
-            (person.job === "Writer" || person.job === "Novel") &&
-            movie.writtenBy
-          )
-            movie.writtenBy = [...movie.writtenBy, person.name];
-        }
-      }
-
-      if (!movie.creatorLock && movie.creator && movie.creator.length > 0)
-        movie.creator.splice(0, movie.creator.length);
-
-      if (
-        !movie.musicComposerLock &&
-        movie.musicComposer &&
-        movie.musicComposer.length > 0
-      )
-        movie.musicComposer.splice(0, movie.musicComposer.length);
-
-      for (const person of credits.crew) {
-        if (
-          !movie.creatorLock &&
-          person.job &&
-          (person.job === "Author" ||
-            person.job === "Novel" ||
-            person.job === "Original Series Creator" ||
-            person.job === "Comic Book" ||
-            person.job === "Idea" ||
-            person.job === "Original Story" ||
-            person.job === "Story" ||
-            person.job === "Story by" ||
-            person.job === "Book" ||
-            person.job === "Original Concept")
-        )
-          if (person.name && !movie.creatorLock && movie.creator)
-            movie.creator = [...movie.creator, person.name];
-
-        if (
-          !movie.musicComposerLock &&
-          person.job &&
-          person.job === "Original Music Composer"
-        )
-          if (person.name && !movie.musicComposerLock && movie.musicComposer)
-            movie.musicComposer = [...movie.musicComposer, person.name];
-      }
-    }
-
-    if (credits.cast) {
-      if (movie.cast && movie.cast.length > 0)
-        movie.cast.splice(0, movie.cast.length);
-
-      for (const person of credits.cast) {
-        movie.cast = [
-          ...movie.cast,
-          {
-            name: person.name ?? "",
-            character: person.character ?? "",
-            profileImage: person.profile_path
-              ? `${FileSearch.BASE_URL}${person.profile_path}`
-              : "",
-          },
-        ];
-      }
-    }
-  }
-  //#endregion
-
-  //#region IMAGES DOWNLOAD
-  const images = await MovieDBWrapper.getMovieImages(movie.themdbId);
-
-  if (images) {
-    const logos = images.logos || [];
-    const posters = images.posters || [];
-    const backdrops = images.backdrops || [];
-
-    // Create folders if they do not exist
-    const outputLogosDir = FilesManager.getExternalPath(
-      "resources/img/logos/" + movie.id
-    );
-    if (!fs.existsSync(outputLogosDir)) {
-      fs.mkdirSync(outputLogosDir);
-    }
-
-    const outputPostersDir = FilesManager.getExternalPath(
-      "resources/img/posters/" + movie.id
-    );
-    if (!fs.existsSync(outputPostersDir)) {
-      fs.mkdirSync(outputPostersDir);
-    }
-
-    const outputPostersCollectionDir = FilesManager.getExternalPath(
-      "resources/img/posters/" + collection?.id
-    );
-
-    if (collection) {
-      if (!fs.existsSync(outputPostersCollectionDir)) {
-        fs.mkdirSync(outputPostersCollectionDir);
-      }
-    }
-
-    const outputImageDir = FilesManager.getExternalPath(
-      "resources/img/backgrounds/" + movie.id
-    );
-    if (!fs.existsSync(outputImageDir)) {
-      fs.mkdirSync(outputImageDir);
-    }
-
-    // Download backgrounds
-    for (const backdrop of backdrops) {
-      if (backdrop.file_path) {
-        const backgroundUrl = `${FileSearch.BASE_URL}${backdrop.file_path}`;
-        movie.backgroundsUrls = [...movie.backgroundsUrls, backgroundUrl];
-
-        if (movie.backgroundSrc === "") {
-          movie.backgroundSrc = backgroundUrl;
-        }
-      }
-    }
-
-    // Download logos
-    for (const logo of logos) {
-      if (logo.file_path) {
-        const logoUrl = `${FileSearch.BASE_URL}${logo.file_path}`;
-        movie.logosUrls = [...movie.logosUrls, logoUrl];
-
-        if (movie.logoSrc === "") {
-          movie.logoSrc = logoUrl;
-        }
-      }
-    }
-
-    // Download posters
-    for (const poster of posters) {
-      if (poster.file_path) {
-        const posterUrl = `${FileSearch.BASE_URL}${poster.file_path}`;
-        movie.coversUrls = [...movie.coversUrls, posterUrl];
-
-        if (movie.coverSrc === "") {
-          movie.coverSrc = posterUrl;
-        }
-
-        if (collection) {
-          collection.postersUrls = [...collection.postersUrls, posterUrl];
-          if (collection.posterSrc === "") {
-            collection.posterSrc = posterUrl;
-          }
-        }
-      }
-    }
-  }
-  //#endregion
-
-  // Save data in DB
-  collection?.save();
-  movie.save();
 }
 
 /**
@@ -473,31 +259,7 @@ export async function processVideo(
 
   video.runtime = await getOnlyRuntime(video.fileSrc);
 
-  const images = await MovieDBWrapper.getMovieImages(movie.themdbId);
-
-  let thumbnails = images?.backdrops || [];
-
-  const outputDir = FilesManager.getExternalPath(
-    "resources/img/thumbnails/video/" + video.id + "/"
-  );
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir);
-  }
-
-  // Download thumbnails
-  for (const [index, thumbnail] of thumbnails.entries()) {
-    if (thumbnail.file_path) {
-      const url = `${FileSearch.BASE_URL}${thumbnail.file_path}`;
-      video.imgUrls = [...video.imgUrls, url];
-
-      if (index === 0) {
-        video.imgSrc = url;
-      }
-    }
-  }
-
-  // Save data in DB
-  video.save();
+  await MetadataManager.updateVideoMetadataForMovie(video, movie);
 
   // Update content in clients
   Utils.mutateMovie(wsManager);
