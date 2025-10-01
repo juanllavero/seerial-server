@@ -1,13 +1,12 @@
-import { useState } from 'react'
 import Image from '@/components/ui/Image'
-import { ArrowLeft, User, Plus, UserIcon, Server } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { useServerStore } from '@/context/server.context'
-import { shallow } from 'zustand/shallow'
-import useSWR from 'swr'
-import { Navigate, useNavigate } from 'react-router-dom'
 import { BasicUser } from '@/data/interfaces/Users'
 import { authenticatedFetch } from '@/lib/auth'
+import { ArrowLeft, Plus, Server, User, UserIcon } from 'lucide-react'
+import { useState } from 'react'
+import { Navigate, useNavigate } from 'react-router-dom'
+import { shallow } from 'zustand/shallow'
 
 interface User {
   id: number
@@ -40,8 +39,6 @@ export default function UsersPage() {
 
   const hasUsers = server && server.users && server.users?.length > 0
 
-  console.log({ server, servers })
-
   if (!server) return <Navigate to="/login" />
 
   const handleUserClick = (user: any) => {
@@ -55,7 +52,7 @@ export default function UsersPage() {
     setErrorMessage('')
 
     const response = await authenticatedFetch(
-      `${server.url}users/login`,
+      `${server.url}/users/login`,
       'POST',
       {
         username: selectedUser?.username,
@@ -64,8 +61,6 @@ export default function UsersPage() {
     )
 
     if (response.ok) {
-      const data = await response.json()
-      console.log({ data })
       setCurrentUser(selectedUser)
       setIsLoading(false)
       navigate('/home')

@@ -1,9 +1,9 @@
 import { useServerStore } from '@/context/server.context'
+import { isAbsolutePath } from '@/utils/ReactUtils'
 import { useEffect, useRef, useState } from 'react'
 import { useIsMobile } from '../hooks/use-mobile'
 import { useIsTablet } from '../hooks/use-tablet'
 import { Skeleton } from './skeleton'
-import { isAbsolutePath } from '@/utils/ReactUtils'
 
 interface ImageProps {
   url?: string
@@ -44,7 +44,7 @@ const Image: React.FC<ImageProps> = ({
 
   const [imageSrc, setImageSrc] = useState(
     url
-      ? url.startsWith('http2')
+      ? url.startsWith('http')
         ? url
         : url.startsWith('local')
           ? url.replace('local', '')

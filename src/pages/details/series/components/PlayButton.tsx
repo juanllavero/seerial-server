@@ -1,13 +1,12 @@
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
-import { Episode, Season } from '@/data/interfaces/Media'
-import { authenticatedFetcher } from '@/utils/utils'
-import { useNavigate } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
 import { PlayIcon } from '@/components/ui/IconLibrary'
-import { useServerStore } from '@/context/server.context'
+import { Episode, Season } from '@/data/interfaces/Media'
 import { authenticatedFetch } from '@/lib/auth'
+import { authenticatedFetcher } from '@/utils/utils'
+import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
+import useSWR from 'swr'
 
 interface PlayButtonProps {
   currentlyWatchingEpisodeId?: string
@@ -50,7 +49,7 @@ function PlayButton({
         const episodeId = episode ? episode.id : season?.episodes[0].id
 
         const response = await authenticatedFetch(
-          `${serverUrl}/episode-video?episodeId=${episodeId}`,
+          `${serverUrl}/details/episode-video?id=${episodeId}`,
         )
 
         if (!response.ok) {

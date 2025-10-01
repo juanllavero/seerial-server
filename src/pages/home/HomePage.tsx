@@ -1,28 +1,28 @@
+import LoadingInsideSidebar from '@/components/LoadingInsideSidebar'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { Library } from '@/data/interfaces/Media'
 import { authenticatedFetcher } from '@/utils/utils'
 import { useEffect } from 'react'
 import useSWR from 'swr'
+import { shallow } from 'zustand/shallow'
 import NoAPIKey from './components/NoAPIKey'
 import NoContent from './components/NoContent'
 import NoServer from './components/NoServer'
 import NotAvailableServer from './components/NotAvailableServer'
 import HomePageContent from './components/content/HomePageContent'
-import { shallow } from 'zustand/shallow'
-import LoadingInsideSidebar from '@/components/LoadingInsideSidebar'
 
 export default function HomePage() {
   const {
     serverUrl,
-    serverStatus,
+    server,
     apiKeyStatus,
     gettingServerStatus,
     getServerStatus,
   } = useServerStore(
     (state) => ({
       serverUrl: state.serverUrl,
-      serverStatus: state.serverStatus,
+      server: state.server,
       apiKeyStatus: state.apiKeyStatus,
       gettingServerStatus: state.gettingServerStatus,
       getServerStatus: state.getServerStatus,
@@ -42,7 +42,7 @@ export default function HomePage() {
   )
 
   useEffect(() => {
-    getServerStatus()
+    getServerStatus(serverUrl)
     selectLibrary(null)
   }, [])
 
@@ -54,7 +54,7 @@ export default function HomePage() {
     return <NoServer />
   }
 
-  if (!serverStatus) {
+  if (!server) {
     return <NotAvailableServer />
   }
 

@@ -108,7 +108,7 @@ function EpisodeDetailsPage() {
             const episodeId = episode ? episode.id : season?.episodes[0].id
 
             const response = await authenticatedFetch(
-              `${serverUrl}/episode-video?episodeId=${episodeId}`,
+              `${serverUrl}/details/episode-video?id=${episodeId}`,
             )
 
             if (!response.ok) {

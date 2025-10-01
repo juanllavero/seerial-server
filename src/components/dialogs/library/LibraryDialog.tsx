@@ -1,6 +1,7 @@
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
+import { authenticatedFetch } from '@/lib/auth'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
@@ -10,14 +11,14 @@ import { ModalWrapper } from '../../ModalWrapper'
 import AdvancedTabContent from './AdvancedTabContent'
 import FoldersTabContent from './FoldersTabContent'
 import GeneralTabContent from './GeneralTabContent'
-import { authenticatedFetch } from '@/lib/auth'
 
 function LibraryDialog() {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const currentLanguage = i18n.language?.split('-')[0] ?? 'en'
-  const { serverUrl } = useServerStore(
+  const { server, serverUrl } = useServerStore(
     (state) => ({
+      server: state.server,
       serverUrl: state.serverUrl,
     }),
     shallow,
@@ -108,6 +109,7 @@ function LibraryDialog() {
       type: type ?? 'Shows',
       order: 0,
       hidden: false,
+      serverId: server?.id ?? '1',
       folders: folders ?? [],
       backgroundSrc: '',
       preferAudioLan,
@@ -131,7 +133,9 @@ function LibraryDialog() {
     // Mutate libraries list
     mutate((key: string) => key.startsWith(`${serverUrl}/libraries`))
 
+    console.log({ okay: response.ok, response })
     const data = await response.json()
+    console.log({ data })
     const libraryId = data.id
 
     setLoading(false)

@@ -1,3 +1,4 @@
+import ExpandableText from '@/components/ExpandableText'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import NotFound from '@/components/NotFound'
 import { Button } from '@/components/ui/button'
@@ -16,6 +17,8 @@ import { useSettingsStore } from '@/context/settings.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
 import { Movie } from '@/data/interfaces/Media'
+import { useIsAdmin } from '@/hooks/useIsAdmin'
+import { authenticatedFetch } from '@/lib/auth'
 import { formatTimeForView } from '@/utils/ReactUtils'
 import { authenticatedFetcher } from '@/utils/utils'
 import { t } from 'i18next'
@@ -23,19 +26,15 @@ import { Pencil } from 'lucide-react'
 import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import useSWR from 'swr'
+import { shallow } from 'zustand/shallow'
 import CastList from '../components/CastList'
 import MovieContent from '../components/MovieContent'
 import '../DetailsPage.css'
 import MyListButton from './components/MyListButton'
-import { shallow } from 'zustand/shallow'
-import ExpandableText from '@/components/ExpandableText'
-import { useAuth } from '@/context/auth.context'
-import { authenticatedFetch } from '@/lib/auth'
-import { useIsAdmin } from '@/hooks/useIsAdmin'
 
 function MovieDetailsPage() {
   const { movieId } = useParams()
-  const { user } = useAuth()
+  const user = useServerStore((state) => state.currentUser)
   const { setCurrentBackground, currentBackground } = useDataStore(
     (state) => ({
       setCurrentBackground: state.setCurrentBackground,

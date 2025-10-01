@@ -2,17 +2,17 @@ import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Episode } from '@/data/interfaces/Media'
+import { authenticatedFetch } from '@/lib/auth'
 import { showToast } from '@/utils/ReactUtils'
 import { authenticatedFetcher } from '@/utils/utils'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import useSWR, { mutate } from 'swr'
+import { shallow } from 'zustand/shallow'
 import { ModalWrapper } from '../../ModalWrapper'
 import ImageListTab from '../components/ImageListTab'
 import EpisodeInfoTab from './components/EpisodeInfoTab'
 import EpisodeMediaInfoTab from './components/EpisodeMediaInfoTab'
-import { shallow } from 'zustand/shallow'
-import { authenticatedFetch } from '@/lib/auth'
 
 function EpisodeDialog() {
   const { t } = useTranslation()
@@ -50,7 +50,7 @@ function EpisodeDialog() {
 
   const { data: series } = useSWR(
     episode && serverUrl !== ''
-      ? `${serverUrl}/details/seriesBySeasonId?seasonId=${episode.seasonId}`
+      ? `${serverUrl}/details/seriesBySeasonId?id=${episode.seasonId}`
       : null,
     authenticatedFetcher,
   )

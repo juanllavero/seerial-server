@@ -3,14 +3,14 @@ import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
 import { useServerStore } from '@/context/server.context'
+import { authenticatedFetch } from '@/lib/auth'
+import { ImageType } from '@/utils/constants'
 import { generateRandoumUUID, showToast } from '@/utils/ReactUtils'
 import { authenticatedFetcher } from '@/utils/utils'
 import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import useSWR, { mutate } from 'swr'
 import ImageButton from './ImageButton'
-import { ImageType } from '@/utils/constants'
-import { authenticatedFetch } from '@/lib/auth'
 
 interface LocalImage {
   name: string
@@ -145,6 +145,8 @@ function ImageListTab({
       }
     }
   }, [imageUrl])
+
+  console.log({ localImages })
 
   return (
     <FlexBox direction="column" gap={1} height={isTablet ? '25rem' : '35rem'}>

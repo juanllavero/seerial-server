@@ -1,5 +1,4 @@
 import FlexBox from '@/components/ui/FlexBox'
-import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import ContinueWatching from './ContinueWatching'
 import MyListMovies from './MyListMovies'

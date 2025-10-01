@@ -1,6 +1,5 @@
-import { useAuth } from '@/context/auth.context'
+import { useServerStore } from '@/context/server.context'
 import { ChevronsUpDown } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
 import { Button } from './ui/button'
 import {
   DropdownMenu,
@@ -10,8 +9,7 @@ import {
 import LazyImage from './ui/LazyImage'
 
 function UserDropdown() {
-  const { user } = useAuth()
-  const { t } = useTranslation()
+  const user = useServerStore((state) => state.currentUser)
 
   if (!user) return null
 
@@ -23,7 +21,7 @@ function UserDropdown() {
           size="lg"
           className="flex w-45 justify-between gap-3 px-1 focus-visible:ring-0 focus-visible:ring-offset-0"
         >
-          <LazyImage src={user ? user.image : ''} rounded width={40} />
+          <LazyImage src={user ? (user.avatar ?? '') : ''} rounded width={40} />
           <ChevronsUpDown className="ml-auto" />
         </Button>
       </DropdownMenuTrigger>

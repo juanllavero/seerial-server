@@ -1,9 +1,9 @@
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
-import { useAuth } from '@/context/auth.context'
+import { useServerStore } from '@/context/server.context'
 import { Video } from '@/data/interfaces/Media'
 import { authenticatedFetch } from '@/lib/auth'
-import { ChevronLeft, Minimize2, Maximize2 } from 'lucide-react'
+import { ChevronLeft, Maximize2, Minimize2 } from 'lucide-react'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -43,7 +43,7 @@ function TopBar({
   setIsPlaying,
 }: TopBarProps) {
   const navigate = useNavigate()
-  const { user } = useAuth()
+  const user = useServerStore((state) => state.currentUser)
 
   const handleGoBack = async () => {
     if (!video) return

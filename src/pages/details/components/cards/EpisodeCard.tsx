@@ -2,8 +2,8 @@ import Card from '@/components/cards/Card'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import { Button } from '@/components/ui/button'
-import { useAuth } from '@/context/auth.context'
 import { useDialogStore } from '@/context/dialog.context'
+import { useServerStore } from '@/context/server.context'
 import { useCardWidth } from '@/hooks/useCardWidth'
 import { getVideoProgress } from '@/utils/ReactUtils'
 import { t } from 'i18next'
@@ -22,7 +22,7 @@ function EpisodeCard({
   playEpisode,
   getEpisodeMenu,
 }: EpisodeCardProps) {
-  const { user } = useAuth()
+  const user = useServerStore((state) => state.currentUser)
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
   const { cardWidth } = useCardWidth()

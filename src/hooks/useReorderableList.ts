@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react'
-import { arrayMove } from '@dnd-kit/sortable'
 import { useServerStore } from '@/context/server.context'
 import { LibraryItem } from '@/data/interfaces/Media'
 import { authenticatedFetch } from '@/lib/auth'
+import { arrayMove } from '@dnd-kit/sortable'
+import { useEffect, useState } from 'react'
 
 export function useReorderableList(
-  swrData: { content: LibraryItem[] } | undefined,
+  swrData: LibraryItem[] | undefined,
   libraryId: string,
   mutate: () => void,
 ) {
@@ -13,8 +13,8 @@ export function useReorderableList(
   const [items, setItems] = useState<LibraryItem[]>([])
 
   useEffect(() => {
-    if (swrData?.content) {
-      setItems(swrData.content)
+    if (swrData) {
+      setItems(swrData)
     }
   }, [swrData])
 

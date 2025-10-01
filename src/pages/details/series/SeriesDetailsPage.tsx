@@ -1,3 +1,4 @@
+import ExpandableText from '@/components/ExpandableText'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import NotFound from '@/components/NotFound'
 import { Button } from '@/components/ui/button'
@@ -12,27 +13,24 @@ import { useSettingsStore } from '@/context/settings.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
 import { Series } from '@/data/interfaces/Media'
+import { useIsAdmin } from '@/hooks/useIsAdmin'
+import { authenticatedFetch } from '@/lib/auth'
 import { authenticatedFetcher } from '@/utils/utils'
 import { t } from 'i18next'
 import { Pencil } from 'lucide-react'
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import useSWR, { mutate } from 'swr'
+import { shallow } from 'zustand/shallow'
 import CastList from '../components/CastList'
 import SeasonContent from '../components/SeasonsContent'
 import '../DetailsPage.css'
 import MyListButton from './components/MyListButton'
 import PlayButton from './components/PlayButton'
-import { shallow } from 'zustand/shallow'
-import ExpandableText from '@/components/ExpandableText'
 import SeasonSelectable from './components/SeasonSelectable'
-import { authenticatedFetch } from '@/lib/auth'
-import { useAuth } from '@/context/auth.context'
-import { useIsAdmin } from '@/hooks/useIsAdmin'
 
 function SeriesDetailsPage() {
   const { seriesId } = useParams()
-  const { user } = useAuth()
   const {
     selectedSeasonId,
     selectSeason,
@@ -49,8 +47,9 @@ function SeriesDetailsPage() {
   )
   const isAdmin = useIsAdmin()
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
-  const { serverUrl } = useServerStore(
+  const { user, serverUrl } = useServerStore(
     (state) => ({
+      user: state.currentUser,
       serverUrl: state.serverUrl,
     }),
     shallow,

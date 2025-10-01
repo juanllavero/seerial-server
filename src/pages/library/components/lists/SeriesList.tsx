@@ -1,24 +1,24 @@
+import { SortableItem } from '@/components/lists/SortableItem'
+import { useServerStore } from '@/context/server.context'
 import {
   Collection,
   Library,
   LibraryItem,
   Series,
 } from '@/data/interfaces/Media'
-import CollectionCard from '../cards/CollectionCard'
-import SeriesCard from '../cards/SeriesCard'
-import { useServerStore } from '@/context/server.context'
-import { authenticatedFetcher } from '@/utils/utils'
-import useSWR from 'swr'
-import { SortableItem } from '@/components/lists/SortableItem'
 import { useReorderableList } from '@/hooks/useReorderableList'
+import { authenticatedFetcher } from '@/utils/utils'
 import {
-  useSensors,
-  useSensor,
-  PointerSensor,
   DndContext,
+  PointerSensor,
   closestCenter,
+  useSensor,
+  useSensors,
 } from '@dnd-kit/core'
 import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable'
+import useSWR from 'swr'
+import CollectionCard from '../cards/CollectionCard'
+import SeriesCard from '../cards/SeriesCard'
 
 interface SeriesListProps {
   library: Library

@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react'
 import Image from '@/components/ui/Image'
-import { useAuth } from '@/context/auth.context'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import { CENTRAL_SERVER } from '@/utils/constants'
+import { useServerStore } from '@/context/server.context'
 import { authenticatedFetch } from '@/lib/auth'
+import { CENTRAL_SERVER } from '@/utils/constants'
 import { t } from 'i18next'
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 export default function TVLinkPage() {
-  const { user } = useAuth()
+  const user = useServerStore((state) => state.currentUser)
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [code, setCode] = useState('')
@@ -178,7 +178,7 @@ export default function TVLinkPage() {
       {/* Footer */}
       <div className="mt-12 text-center">
         <p className="mb-2 text-sm text-gray-500">
-          {t('signedAsMessage')} {user.name}
+          {t('signedAsMessage')} {user.username}
         </p>
         <button
           onClick={() => navigate('/login')}

@@ -2,17 +2,17 @@ import Loading from '@/components/Loading'
 import { useServerStore } from '@/context/server.context'
 import { Video } from '@/data/interfaces/Media'
 import { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
+import { authenticatedFetch } from '@/lib/auth'
 import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
 import { authenticatedFetcher } from '@/utils/utils'
-import { useParams } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import useSWR from 'swr'
-import HTMLVideoPlayer from './components/HTMLVideoPlayer'
-import './VideoPlayerPage.css'
+import { shallow } from 'zustand/shallow'
 import Controls from './components/Controls'
+import HTMLVideoPlayer from './components/HTMLVideoPlayer'
 import TopBar from './components/TopBar'
-import { authenticatedFetch } from '@/lib/auth'
-import { useAuth } from '@/context/auth.context'
+import './VideoPlayerPage.css'
 
 interface VideoInfo {
   title: string
@@ -23,9 +23,14 @@ interface VideoInfo {
 }
 
 function VideoPlayerPage() {
-  const serverUrl = useServerStore((state) => state.serverUrl)
+  const { user, serverUrl } = useServerStore(
+    (state) => ({
+      user: state.currentUser,
+      serverUrl: state.serverUrl,
+    }),
+    shallow,
+  )
   const { videoId } = useParams()
-  const { user } = useAuth()
 
   // Get video data
   const {

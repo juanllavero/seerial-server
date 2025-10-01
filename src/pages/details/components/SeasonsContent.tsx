@@ -1,23 +1,23 @@
 import { useIsMobile } from '@/components/hooks/use-mobile'
+import { useIsTablet } from '@/components/hooks/use-tablet'
+import NotFound from '@/components/NotFound'
 import FlexBox from '@/components/ui/FlexBox'
 import Grid from '@/components/ui/Grid'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
-import useDataStore from '@/context/data.context'
-import { Episode, Season } from '@/data/interfaces/Media'
-import { useNavigate } from 'react-router-dom'
-import React, { useEffect, useRef } from 'react'
-import { useTranslation } from 'react-i18next'
-import EpisodeCard from './cards/EpisodeCard'
-import EpisodeCardDetails from './cards/EpisodeCardDetails'
-import useSWR, { mutate } from 'swr'
-import NotFound from '@/components/NotFound'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useIsTablet } from '@/components/hooks/use-tablet'
+import useDataStore from '@/context/data.context'
+import { useServerStore } from '@/context/server.context'
+import { Episode, Season } from '@/data/interfaces/Media'
 import { SelectableOption } from '@/data/interfaces/Utils'
-import { shallow } from 'zustand/shallow'
-import { useAuth } from '@/context/auth.context'
 import { authenticatedFetch } from '@/lib/auth'
 import { authenticatedFetcher } from '@/utils/utils'
+import React, { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
+import useSWR, { mutate } from 'swr'
+import { shallow } from 'zustand/shallow'
+import EpisodeCard from './cards/EpisodeCard'
+import EpisodeCardDetails from './cards/EpisodeCardDetails'
 
 interface SeasonContentProps {
   seasonList: Season[]
@@ -27,7 +27,7 @@ interface SeasonContentProps {
 function SeasonContent({ seasonList, serverUrl }: SeasonContentProps) {
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const { user } = useAuth()
+  const user = useServerStore((state) => state.currentUser)
   const { selectedSeasonId } = useDataStore(
     (state) => ({
       selectedSeasonId: state.selectedSeasonId,
@@ -137,7 +137,7 @@ function SeasonContent({ seasonList, serverUrl }: SeasonContentProps) {
 
   const playEpisode = async (episodeId: Episode) => {
     const response = await authenticatedFetch(
-      `${serverUrl}/episode-video?episodeId=${episodeId.id}`,
+      `${serverUrl}/details/episode-video?id=${episodeId.id}`,
     )
 
     if (!response.ok) {

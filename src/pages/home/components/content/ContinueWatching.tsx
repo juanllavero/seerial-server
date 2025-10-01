@@ -3,13 +3,12 @@ import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useServerStore } from '@/context/server.context'
 import { Video } from '@/data/interfaces/Media'
+import { getVideoProgress } from '@/utils/ReactUtils'
 import { authenticatedFetcher } from '@/utils/utils'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
-import HorizontalList from '../../../../components/lists/HorizontalList'
 import { shallow } from 'zustand/shallow'
-import { getVideoProgress } from '@/utils/ReactUtils'
-import { useAuth } from '@/context/auth.context'
+import HorizontalList from '../../../../components/lists/HorizontalList'
 
 interface ContinueWatchingProps {
   goToContent: (url: string) => void
@@ -17,9 +16,9 @@ interface ContinueWatchingProps {
 
 function ContinueWatching({ goToContent }: ContinueWatchingProps) {
   const { t } = useTranslation()
-  const { user } = useAuth()
-  const { serverUrl } = useServerStore(
+  const { user, serverUrl } = useServerStore(
     (state) => ({
+      user: state.currentUser,
       serverUrl: state.serverUrl,
     }),
     shallow,

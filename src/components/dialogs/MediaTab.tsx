@@ -33,7 +33,7 @@ function MediaTab({ series, season, movie }: MediaTabProps) {
     data: video,
     isLoading: loadingVideo,
     error: videoError,
-  } = useSWR(`${serverUrl}/${type}Video?id=${id}`, authenticatedFetcher, {
+  } = useSWR(`${serverUrl}/${type}/video?id=${id}`, authenticatedFetcher, {
     revalidateAll: true,
     refreshInterval: 1000,
   })
@@ -43,7 +43,7 @@ function MediaTab({ series, season, movie }: MediaTabProps) {
     data: music,
     isLoading: loadingMusic,
     error: musicError,
-  } = useSWR(`${serverUrl}/${type}Music?id=${id}`, authenticatedFetcher, {
+  } = useSWR(`${serverUrl}/${type}/music?id=${id}`, authenticatedFetcher, {
     revalidateAll: true,
     refreshInterval: 1000,
   })

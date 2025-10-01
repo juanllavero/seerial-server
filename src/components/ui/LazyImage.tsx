@@ -1,7 +1,7 @@
 import { Skeleton } from '@/components/ui/skeleton'
 import { useServerStore } from '@/context/server.context'
 import { isAbsolutePath } from '@/utils/ReactUtils'
-import { memo, useEffect, useMemo, useState } from 'react'
+import { memo, useEffect, useState } from 'react'
 
 interface LazyImageProps {
   src?: string

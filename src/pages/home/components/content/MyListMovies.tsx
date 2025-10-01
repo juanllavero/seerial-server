@@ -1,19 +1,18 @@
 import Card from '@/components/cards/Card'
 import { useIsMobile } from '@/components/hooks/use-mobile'
+import { Button } from '@/components/ui/button'
+import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { Movie } from '@/data/interfaces/Media'
+import { authenticatedFetch } from '@/lib/auth'
+import { toggleMovieWatched } from '@/utils/ReactUtils'
 import { authenticatedFetcher } from '@/utils/utils'
+import { Pencil } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import useSWR, { mutate } from 'swr'
+import { shallow } from 'zustand/shallow'
 import HorizontalList from '../../../../components/lists/HorizontalList'
 import HorizontalListSkeleton from './HorizontalListSkeleton'
-import { shallow } from 'zustand/shallow'
-import { toggleMovieWatched } from '@/utils/ReactUtils'
-import { useDialogStore } from '@/context/dialog.context'
-import { Button } from '@/components/ui/button'
-import { Pencil } from 'lucide-react'
-import { useAuth } from '@/context/auth.context'
-import { authenticatedFetch } from '@/lib/auth'
 
 interface MyListMoviesProps {
   goToContent: (url: string) => void
@@ -21,7 +20,6 @@ interface MyListMoviesProps {
 
 function MyListMovies({ goToContent }: MyListMoviesProps) {
   const { t } = useTranslation()
-  const { user } = useAuth()
   const { openIdentificationDialog, openMovieDialog } = useDialogStore(
     (state) => ({
       openIdentificationDialog: state.openIdentificationDialog,
@@ -29,8 +27,9 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
     }),
     shallow,
   )
-  const { serverUrl } = useServerStore(
+  const { user, serverUrl } = useServerStore(
     (state) => ({
+      user: state.currentUser,
       serverUrl: state.serverUrl,
     }),
     shallow,

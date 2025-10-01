@@ -8,9 +8,8 @@ import { getOnlyYear, toggleSeriesWatched } from '@/utils/ReactUtils'
 import { Pencil } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import ParentCard from './ParentCard'
 import { shallow } from 'zustand/shallow'
-import { useAuth } from '@/context/auth.context'
+import ParentCard from './ParentCard'
 
 interface SeriesCardProps {
   series: Series
@@ -19,9 +18,9 @@ interface SeriesCardProps {
 
 function SeriesCard({ series, remainingEpisodes }: SeriesCardProps) {
   const { t } = useTranslation()
-  const { user } = useAuth()
-  const { serverUrl } = useServerStore(
+  const { user, serverUrl } = useServerStore(
     (state) => ({
+      user: state.currentUser,
       serverUrl: state.serverUrl,
     }),
     shallow,

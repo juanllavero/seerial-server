@@ -13,13 +13,13 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
+import { useServerStore } from '@/context/server.context'
 import { cn } from '@/utils/tailwind'
 import { ChevronRight, LogOut, Settings, UserRound } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
-import { useServerStore } from '@/context/server.context'
 import { shallow } from 'zustand/shallow'
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 export function NavUser() {
   const navigate = useNavigate()
   const { user } = useServerStore(
@@ -47,8 +47,6 @@ export function NavUser() {
   const handleOpenChange = (open: boolean) => {
     setOpen(open)
   }
-
-  console.log({ user })
 
   if (!user) return null
 
