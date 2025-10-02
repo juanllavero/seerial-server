@@ -1,4 +1,4 @@
-import { BasicServer, BasicUser, User } from '@/data/interfaces/Users'
+import { BasicServer, BasicUser } from '@/data/interfaces/Users'
 import { authenticatedFetch } from '@/lib/auth'
 import { createWithEqualityFn } from 'zustand/traditional'
 

@@ -5,7 +5,7 @@ import { BasicUser } from '@/data/interfaces/Users'
 import { authenticatedFetch } from '@/lib/auth'
 import { ArrowLeft, Plus, Server, User, UserIcon } from 'lucide-react'
 import { useState } from 'react'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { shallow } from 'zustand/shallow'
 
 interface User {
@@ -16,7 +16,6 @@ interface User {
 }
 
 export default function UsersPage() {
-  const [view, setView] = useState('profiles') // 'profiles', 'manual', 'servers'
   const { server, servers, addServer, resetServerSelection, setCurrentUser } =
     useServerStore(
       (state) => ({
@@ -31,15 +30,20 @@ export default function UsersPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [profilePassword, setProfilePassword] = useState('')
+  const [newUserType, setNewUserType] = useState('regular') // 'regular' or 'admin'
   const [selectedUser, setSelectedUser] = useState<BasicUser | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
+  const hasUsers = server && server.users && server.users?.length > 0
+  const defaultSection = hasUsers ? 'profiles' : 'manual'
+  const [view, setView] = useState(defaultSection) // 'profiles', 'manual', 'addUser', 'servers'
   const navigate = useNavigate()
 
-  const hasUsers = server && server.users && server.users?.length > 0
-
-  if (!server) return <Navigate to="/login" />
+  if (!server) {
+    navigate('/login')
+    return null
+  }
 
   const handleUserClick = (user: any) => {
     setSelectedUser(user === selectedUser ? null : user)
@@ -50,7 +54,6 @@ export default function UsersPage() {
   const handleProfileLogin = async () => {
     setIsLoading(true)
     setErrorMessage('')
-
     const response = await authenticatedFetch(
       `${server.url}/users/login`,
       'POST',
@@ -59,36 +62,64 @@ export default function UsersPage() {
         password: profilePassword,
       },
     )
-
     if (response.ok) {
       setCurrentUser(selectedUser)
       setIsLoading(false)
       navigate('/home')
       return
     }
-
     setIsLoading(false)
     setErrorMessage('Contraseña incorrecta')
-
     setTimeout(() => {
       setErrorMessage('')
     }, 5000)
   }
 
-  const handleManualLogin = () => {
-    if (username.trim()) {
-      setIsLoading(true)
-      setErrorMessage('')
-
-      setTimeout(() => {
-        setIsLoading(false)
-        setErrorMessage('Usuario o contraseña incorrectos')
-
-        setTimeout(() => {
-          setErrorMessage('')
-        }, 5000)
-      }, 2000)
+  const handleManualLogin = async () => {
+    setIsLoading(true)
+    setErrorMessage('')
+    const response = await authenticatedFetch(
+      `${server.url}/users/login`,
+      'POST',
+      {
+        username: username,
+        password: password,
+      },
+    )
+    if (response.ok) {
+      const newUser: BasicUser | null = await response.json()
+      setCurrentUser(newUser)
+      setIsLoading(false)
+      navigate('/home')
+      return
     }
+    setIsLoading(false)
+    setErrorMessage('Contraseña incorrecta')
+    setTimeout(() => {
+      setErrorMessage('')
+    }, 5000)
+  }
+
+  const handleAddUser = async () => {
+    setIsLoading(true)
+    setErrorMessage('')
+    const response = await authenticatedFetch(`${server.url}/users`, 'POST', {
+      username: username,
+      password: password,
+      type: newUserType,
+    })
+    if (response.ok) {
+      const newUser: BasicUser | null = await response.json()
+      setCurrentUser(newUser)
+      setIsLoading(false)
+      navigate('/home')
+      return
+    }
+    setIsLoading(false)
+    setErrorMessage('Contraseña incorrecta')
+    setTimeout(() => {
+      setErrorMessage('')
+    }, 5000)
   }
 
   const handleServerClick = (newServer: any) => {
@@ -109,7 +140,6 @@ export default function UsersPage() {
         <div className="absolute top-5 left-5 flex w-[10rem] flex-row justify-center">
           <Image src="/img/banner.svg" alt="Logo" aspectRatio={21 / 9} />
         </div>
-
         {/* Profiles Section */}
         <div
           className={`${
@@ -123,7 +153,6 @@ export default function UsersPage() {
               <h1 className="mb-12 text-center text-4xl font-bold tracking-tight text-white">
                 Perfiles
               </h1>
-
               {/* Users Grid */}
               <div className="mb-8 flex flex-wrap justify-center gap-6">
                 {server?.users.map((user) => (
@@ -158,7 +187,6 @@ export default function UsersPage() {
                   </button>
                 ))}
               </div>
-
               {/* Profile Password Input */}
               {selectedUser && (
                 <div className="animate-in fade-in mx-auto mb-8 max-w-md duration-300">
@@ -176,13 +204,11 @@ export default function UsersPage() {
                     className="mb-5 w-full rounded-md bg-black px-5 py-7 transition-all duration-300 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                     autoFocus
                   />
-
                   {errorMessage && (
                     <div className="mb-3 animate-pulse text-left text-sm font-medium text-red-400">
                       {errorMessage}
                     </div>
                   )}
-
                   <button
                     onClick={handleProfileLogin}
                     disabled={isLoading}
@@ -196,9 +222,8 @@ export default function UsersPage() {
                   </button>
                 </div>
               )}
-
               {/* Action Buttons */}
-              <div className="flex justify-center gap-4">
+              <div className="flex flex-col justify-center gap-4">
                 <button
                   onClick={() => {
                     setView('manual')
@@ -209,11 +234,22 @@ export default function UsersPage() {
                 >
                   Acceder Manualmente
                 </button>
+                <button
+                  onClick={() => {
+                    setView('addUser')
+                    setUsername('')
+                    setPassword('')
+                    setNewUserType('regular')
+                    setErrorMessage('')
+                  }}
+                  className="focus:ring-opacity-50 focus:ring-app-color mx-auto flex w-full max-w-md transform items-center justify-center rounded-lg bg-white bg-gradient-to-r py-5 text-xl font-semibold text-black shadow-lg transition-all duration-300 hover:opacity-95 hover:shadow-2xl focus:ring-4 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+                >
+                  Añadir Usuario
+                </button>
               </div>
             </>
           )}
         </div>
-
         {/* Manual Login Section */}
         <div
           className={`${
@@ -226,7 +262,7 @@ export default function UsersPage() {
           {hasUsers && (
             <button
               onClick={() => {
-                setView('profiles')
+                setView(defaultSection)
                 setErrorMessage('')
               }}
               className="mb-8 flex items-center gap-2 text-white transition-colors duration-300 focus:outline-none"
@@ -235,11 +271,9 @@ export default function UsersPage() {
               <span className="text-lg">Volver</span>
             </button>
           )}
-
           <h1 className="mb-12 text-center text-4xl font-bold tracking-tight text-white">
             Acceder Manualmente
           </h1>
-
           <div className="mx-auto max-w-md space-y-6">
             <div>
               <label className="mb-3 block text-lg font-medium text-white">
@@ -254,7 +288,6 @@ export default function UsersPage() {
                 placeholder="Introduce tu usuario"
               />
             </div>
-
             <div>
               <label className="mb-3 block text-lg font-medium text-white">
                 Contraseña
@@ -272,14 +305,12 @@ export default function UsersPage() {
                 className="w-full rounded-md bg-black px-5 py-7 transition-all duration-300 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                 placeholder="Introduce tu contraseña"
               />
-
               {errorMessage && (
                 <div className="mt-3 animate-pulse text-sm font-medium text-red-400">
                   {errorMessage}
                 </div>
               )}
             </div>
-
             <button
               onClick={handleManualLogin}
               disabled={isLoading || !username.trim()}
@@ -291,9 +322,105 @@ export default function UsersPage() {
                 'Acceder'
               )}
             </button>
+            <button
+              onClick={() => {
+                setView('addUser')
+                setUsername('')
+                setPassword('')
+                setNewUserType('regular')
+                setErrorMessage('')
+              }}
+              className="focus:ring-opacity-50 focus:ring-app-color mx-auto flex w-full max-w-md transform items-center justify-center rounded-lg bg-white bg-gradient-to-r py-5 text-xl font-semibold text-black shadow-lg transition-all duration-300 hover:opacity-95 hover:shadow-2xl focus:ring-4 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+            >
+              Añadir Usuario
+            </button>
           </div>
         </div>
-
+        {/* Add User Section */}
+        <div
+          className={`${
+            view === 'addUser'
+              ? 'opacity-100'
+              : 'pointer-events-none absolute opacity-0'
+          }`}
+        >
+          {/* Back Button */}
+          <button
+            onClick={() => {
+              setView(defaultSection)
+              setErrorMessage('')
+            }}
+            className="mb-8 flex items-center gap-2 text-white transition-colors duration-300 focus:outline-none"
+          >
+            <ArrowLeft size={24} />
+            <span className="text-lg">Volver</span>
+          </button>
+          <h1 className="mb-12 text-center text-4xl font-bold tracking-tight text-white">
+            Añadir Usuario
+          </h1>
+          <div className="mx-auto max-w-md space-y-6">
+            <div>
+              <label className="mb-3 block text-lg font-medium text-white">
+                Usuario
+              </label>
+              <Input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                disabled={isLoading}
+                className="w-full rounded-md bg-black px-5 py-7 transition-all duration-300 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="Introduce el nombre de usuario"
+              />
+            </div>
+            <div>
+              <label className="mb-3 block text-lg font-medium text-white">
+                Contraseña
+              </label>
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+                className="w-full rounded-md bg-black px-5 py-7 transition-all duration-300 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="Introduce la contraseña"
+              />
+            </div>
+            <div>
+              <label className="mb-3 block text-lg font-medium text-white">
+                Tipo de Usuario
+              </label>
+              <select
+                value={newUserType}
+                onChange={(e) => setNewUserType(e.target.value)}
+                disabled={isLoading}
+                className="w-full rounded-md bg-black p-5 text-white transition-all duration-300 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="normal">Usuario Regular</option>
+                <option value="admin">Administrador</option>
+              </select>
+            </div>
+            {errorMessage && (
+              <div className="mt-3 animate-pulse text-sm font-medium text-red-400">
+                {errorMessage}
+              </div>
+            )}
+            <button
+              onClick={handleAddUser}
+              disabled={
+                isLoading ||
+                !username.trim() ||
+                (newUserType === 'admin' && !password.trim())
+              }
+              className="focus:ring-opacity-50 bg-app-color hover:bg-app-color/90 focus:ring-app-color flex w-full transform items-center justify-center rounded-lg bg-gradient-to-r py-5 text-xl font-semibold text-black shadow-lg transition-all duration-300 hover:shadow-2xl focus:ring-4 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+            >
+              {isLoading ? (
+                <div className="h-7 w-7 animate-spin rounded-full border-4 border-white border-t-transparent"></div>
+              ) : (
+                'Añadir'
+              )}
+            </button>
+          </div>
+        </div>
         {/* Servers Section */}
         <div
           className={`${
@@ -304,17 +431,15 @@ export default function UsersPage() {
         >
           {/* Back Button */}
           <button
-            onClick={() => setView(hasUsers ? 'profiles' : 'manual')}
+            onClick={() => setView(defaultSection)}
             className="mb-8 flex items-center gap-2 text-white transition-colors duration-300 focus:outline-none"
           >
             <ArrowLeft size={24} />
             <span className="text-lg">Volver</span>
           </button>
-
           <h1 className="mb-12 text-center text-4xl font-bold tracking-tight text-white">
             Cambiar Servidor
           </h1>
-
           {/* Servers Grid */}
           <div className="mb-12 flex flex-wrap justify-center gap-6">
             {servers.map((server) => (
@@ -332,7 +457,6 @@ export default function UsersPage() {
               </button>
             ))}
           </div>
-
           <div className="flex justify-center">
             <button
               onClick={() => handleAddServer()}
@@ -343,7 +467,6 @@ export default function UsersPage() {
             </button>
           </div>
         </div>
-
         {/* Change Server Button - Always visible */}
         <div
           className={`mt-3 flex justify-center transition-opacity duration-500 ${

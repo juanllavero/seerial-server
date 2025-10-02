@@ -1,9 +1,10 @@
 import { useServerStore } from '@/context/server.context'
 import BaseLayout from '@/layouts/BaseLayout'
-import { Navigate, Outlet } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router-dom'
 import { shallow } from 'zustand/shallow'
 
 function Root() {
+  const navigate = useNavigate()
   const { server, user } = useServerStore(
     (state) => ({
       server: state.server,
@@ -12,13 +13,19 @@ function Root() {
     shallow,
   )
 
-  // if (
-  //   (!server || !user) &&
-  //   window.location.pathname !== '/users' &&
-  //   window.location.pathname !== '/login'
-  // ) {
-  //   return <Navigate to="/users" replace />
-  // }
+  if (!server && window.location.pathname !== '/login') {
+    navigate('/login')
+    return null
+  }
+
+  if (
+    !user &&
+    window.location.pathname !== '/users' &&
+    window.location.pathname !== '/login'
+  ) {
+    navigate('/users')
+    return null
+  }
 
   return (
     <BaseLayout>

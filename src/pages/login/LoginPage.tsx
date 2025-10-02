@@ -1,13 +1,11 @@
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { Navigate, useNavigate } from 'react-router-dom'
 import Image from '@/components/ui/Image'
-import { useServerStore } from '@/context/server.context'
-import { shallow } from 'zustand/shallow'
 import { Input } from '@/components/ui/input'
+import { useServerStore } from '@/context/server.context'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { shallow } from 'zustand/shallow'
 
 function LoginPage() {
-  const { t } = useTranslation()
   const { user, server, servers, addServer } = useServerStore(
     (state) => ({
       user: state.currentUser,
@@ -22,26 +20,45 @@ function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
-  if (servers.length > 0 && server && user) return <Navigate to="/home" />
+  if (servers.length > 0 && server && user) {
+    navigate('/home')
+    return null
+  }
 
   const handleConnect = async () => {
     if (host.trim() && !isLoading) {
       setIsLoading(true)
       setErrorMessage('')
 
-      const response = await fetch(host)
-      if (!response.ok) {
-        setIsLoading(false)
-        setErrorMessage('No ha sido posible conectarse al servidor')
+      let url = host.trim()
 
-        // Eliminar mensaje de error después de 5 segundos
+      // Normalize if not includes HTTP or HTTPS
+      if (!/^https?:\/\//i.test(url)) {
+        // IP or localhost -> HTTP
+        if (/^(\d{1,3}\.){3}\d{1,3}/.test(url) || url.startsWith('localhost')) {
+          url = `http://${url}`
+        } else {
+          // Domain -> HTTPS
+          url = `https://${url}`
+        }
+      }
+
+      try {
+        const response = await fetch(url)
+        if (!response.ok) {
+          throw new Error('No ha sido posible conectarse al servidor')
+        }
+
+        const server = await response.json()
+        await addServer({ ...server, url })
+        navigate('/users')
+      } catch (error) {
+        setErrorMessage('No ha sido posible conectarse al servidor')
         setTimeout(() => {
           setErrorMessage('')
         }, 5000)
-      } else {
-        const server = await response.json()
-        await addServer({ ...server, url: host })
-        navigate('/users')
+      } finally {
+        setIsLoading(false)
       }
     }
   }
