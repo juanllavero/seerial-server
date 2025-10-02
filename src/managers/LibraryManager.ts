@@ -7,7 +7,7 @@ import {
   getLibraryById,
 } from "@/db/get/getData";
 import { FileSearch } from "@/fileSearch/FileSearch";
-import { clearLibrary, getCollectionItemsKey } from "@/fileSearch/utils";
+import { clearLibrary, getCollectionItemsKey } from "@/fileSearch/utils/utils";
 import { WebSocketManager } from "@/managers/WebSocketManager";
 import ApiError from "@/utils/ApiError";
 import { Utils } from "@/utils/Utils";

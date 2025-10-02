@@ -13,7 +13,7 @@ import { Video } from "@/data/models/Media/Video.model";
 import { Album } from "@/data/models/music/Album.model";
 import { Artist } from "@/data/models/music/Artist.model";
 import { Song } from "@/data/models/music/Song.model";
-import { getCollectionItemsKey, getItemModel } from "@/fileSearch/utils";
+import { getCollectionItemsKey, getItemModel } from "@/fileSearch/utils/utils";
 import { SequelizeManager } from "@/managers/SequelizeManager";
 import { Op } from "sequelize";
 

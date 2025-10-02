@@ -1,4 +1,4 @@
-import { AudioInfo } from "@/data/interfaces/MediaInfo";
+import { AudioInfo } from "../data/interfaces/MediaInfo";
 import { probeMediaFile } from "./execCommand";
 
 export async function getAudioInfo(

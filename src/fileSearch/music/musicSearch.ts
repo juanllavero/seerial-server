@@ -15,8 +15,6 @@ import { getAudioInfo } from "@/ffmpeg/audioInfo";
 import { FilesManager } from "@/managers/FilesManager";
 import { WebSocketManager } from "@/managers/WebSocketManager";
 import { Utils } from "@/utils/Utils";
-import ffprobePath from "ffprobe-static";
-import ffmpeg from "fluent-ffmpeg";
 import { promises as fsPromises } from "fs";
 import path from "path";
 
@@ -33,8 +31,6 @@ export async function scanMusic(
   wsManager: WebSocketManager
 ) {
   if (!(await Utils.isFolder(folder))) return;
-
-  ffmpeg.setFfprobePath(ffprobePath.path);
 
   // Add collection or retrieve existing one
   const collection = await addCollection({
@@ -90,7 +86,6 @@ export async function processMusicFile(
 ) {
   try {
     const metadata = await getAudioInfo(musicFile);
-
     if (!metadata) return;
 
     const {
@@ -165,52 +160,9 @@ export async function processMusicFile(
       }
 
       if (imageSrc) {
-        FilesManager.createFolder(
-          FilesManager.getExternalPath("resources/img/posters/" + newAlbum.id)
-        );
-        let destPath = FilesManager.getExternalPath(
-          "resources/img/posters/" +
-            newAlbum.id +
-            "/" +
-            imageSrc.split("\\").pop()
-        );
-
-        try {
-          await fsPromises.copyFile(imageSrc, destPath);
-        } catch (err) {
-          console.error("Error copying image:", err);
-        }
-
-        newAlbum.coverSrc =
-          "resources/img/posters/" +
-          newAlbum.id +
-          "/" +
-          imageSrc.split("\\").pop();
-
+        await setEntityCover(newAlbum, "coverSrc", imageSrc);
         if (collection.musicPosterSrc === "") {
-          FilesManager.createFolder(
-            FilesManager.getExternalPath(
-              "resources/img/posters/" + collection.id
-            )
-          );
-          let destPath = FilesManager.getExternalPath(
-            "resources/img/posters/" +
-              collection.id +
-              "/" +
-              imageSrc.split("\\").pop()
-          );
-
-          try {
-            await fsPromises.copyFile(imageSrc, destPath);
-          } catch (err) {
-            console.error("Error copying image:", err);
-          }
-
-          collection.musicPosterSrc =
-            "resources/img/posters/" +
-            collection.id +
-            "/" +
-            imageSrc.split("\\").pop();
+          await setEntityCover(collection, "musicPosterSrc", imageSrc);
         }
       }
 
@@ -231,5 +183,34 @@ export async function processMusicFile(
     await song.save();
   } catch (error) {
     console.error("Error processing music file", error);
+  }
+}
+
+/**
+ * Helper function to handle cover art logic.
+ * @param entity An object with an ID and a property to store the image path (e.g., Album or Collection)
+ * @param propertyName The name of the property to update (e.g., 'coverSrc')
+ * @param sourceImagePath The path of the image to copy.
+ */
+async function setEntityCover(
+  entity: { id: string; [key: string]: any },
+  propertyName: string,
+  sourceImagePath: string
+) {
+  const imageName = path.basename(sourceImagePath);
+  const destinationFolder = FilesManager.getExternalPath(
+    path.join("resources", "img", "posters", entity.id)
+  );
+  const destinationPath = path.join(destinationFolder, imageName);
+
+  try {
+    FilesManager.createFolder(destinationFolder);
+    await fsPromises.copyFile(sourceImagePath, destinationPath);
+
+    entity[propertyName] = path
+      .join("resources", "img", "posters", entity.id, imageName)
+      .replace(/\\/g, "/");
+  } catch (err) {
+    console.error(`Error copying image for entity ${entity.id}:`, err);
   }
 }

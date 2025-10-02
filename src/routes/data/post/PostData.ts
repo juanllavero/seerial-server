@@ -12,9 +12,13 @@ import {
 import { getSongById } from "@/db/get/getData";
 import { FileSearch } from "@/fileSearch/FileSearch";
 import {
-  updateMovieMetadata,
-  updateShowMetadata,
-} from "@/fileSearch/updateMetadata";
+  changeIdentificationMovie,
+  changeIdentificationShow,
+} from "@/fileSearch/utils/changeIdentification";
+import {
+  refreshMovieMetadata,
+  refreshSeriesMetadata,
+} from "@/fileSearch/utils/refreshMetadata";
 import { wsManager } from "@/index";
 import { DownloaderManager } from "@/managers/DownloaderManager";
 import { FilesManager } from "@/managers/FilesManager";
@@ -397,19 +401,53 @@ router.post(
   })
 );
 
-// Update TheMovieDB id for show
+// Refresh metadata for show
 router.post(
-  "/updateShowId",
+  "/refreshShowMetadata",
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { showId, themdbId } = req.body;
+    const { id } = req.body;
 
-    if (!showId || !themdbId) {
+    if (!id) {
       return next(
         new ApiError(400, messages.errors.validation.notEnoughParams)
       );
     }
 
-    updateShowMetadata(showId, themdbId, wsManager);
+    refreshSeriesMetadata(id, wsManager);
+    return res.status(200).json({ message: messages.success.update });
+  })
+);
+
+// Refresh metadata for movie
+router.post(
+  "/refreshMovieMetadata",
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const { id } = req.body;
+
+    if (!id) {
+      return next(
+        new ApiError(400, messages.errors.validation.notEnoughParams)
+      );
+    }
+
+    refreshMovieMetadata(id, wsManager);
+    return res.status(200).json({ message: messages.success.update });
+  })
+);
+
+// Update TheMovieDB id for show
+router.post(
+  "/updateShowId",
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const { id, themdbId } = req.body;
+
+    if (!id || !themdbId) {
+      return next(
+        new ApiError(400, messages.errors.validation.notEnoughParams)
+      );
+    }
+
+    changeIdentificationShow(id, themdbId, wsManager);
 
     return res.status(200).json({ message: messages.success.update });
   })
@@ -419,15 +457,15 @@ router.post(
 router.post(
   "/updateMovieId",
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { movieId, themdbId } = req.body;
+    const { id, themdbId } = req.body;
 
-    if (!movieId || !themdbId) {
+    if (!id || !themdbId) {
       return next(
         new ApiError(400, messages.errors.validation.notEnoughParams)
       );
     }
 
-    updateMovieMetadata(movieId, themdbId, wsManager);
+    changeIdentificationMovie(id, themdbId, wsManager);
     return res.status(200).json({ message: messages.success.update });
   })
 );
@@ -436,15 +474,15 @@ router.post(
 router.post(
   "/updateEpisodeGroup",
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { showId, themdbId, episodeGroupId } = req.body;
+    const { id, themdbId, episodeGroupId } = req.body;
 
-    if (!showId || !themdbId || !episodeGroupId) {
+    if (!id || !themdbId || !episodeGroupId) {
       return next(
         new ApiError(400, messages.errors.validation.notEnoughParams)
       );
     }
 
-    updateShowMetadata(showId, themdbId, wsManager, episodeGroupId);
+    changeIdentificationShow(id, themdbId, wsManager, episodeGroupId);
     return res.status(200).json({ message: messages.success.update });
   })
 );

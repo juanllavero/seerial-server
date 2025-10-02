@@ -307,6 +307,14 @@ export class Movie extends Model {
   })
   folder!: string;
 
+  @Column({
+    type: DataType.BOOLEAN,
+    defaultValue: false,
+    allowNull: false,
+    field: "analyzing_files",
+  })
+  analyzingFiles!: boolean;
+
   @BelongsTo(() => Library, { onDelete: "CASCADE" })
   library!: Library;
 

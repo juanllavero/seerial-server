@@ -12,10 +12,10 @@ import {
 } from "@/db/get/getData";
 import { WebSocketManager } from "@/managers/WebSocketManager";
 import { Utils } from "@/utils/Utils";
-import { scanMovie } from "./movies/searchMovies";
+import { scanMovie } from "../movies/searchMovies";
+import { scanTVShow } from "../series/searchSeries";
 
-import { scanTVShow } from "./series/searchSeries";
-export async function updateShowMetadata(
+export async function changeIdentificationShow(
   showId: string,
   newTheMovieDBID: number,
   wsManager: WebSocketManager,
@@ -59,7 +59,7 @@ export async function updateShowMetadata(
   await scanTVShow(library, show.folder, wsManager);
 }
 
-export async function updateMovieMetadata(
+export async function changeIdentificationMovie(
   movieId: string,
   newTheMovieDBID: number,
   wsManager: WebSocketManager
