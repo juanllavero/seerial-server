@@ -12,10 +12,15 @@ router.post(
   "/users/login",
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { username, password } = req.body;
-    const token = await UserManager.authenticateUser(
+    const response = await UserManager.authenticateUser(
       username,
       password || null
     );
+
+    if (!response)
+      return next(new ApiError(401, messages.errors.server.credentials));
+
+    const { token, user } = response;
     if (!token)
       return next(new ApiError(401, messages.errors.server.credentials));
 
@@ -26,7 +31,7 @@ router.post(
       sameSite: "strict",
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     });
-    res.status(200).json({ message: messages.success.login });
+    res.status(200).json(user);
   })
 );
 

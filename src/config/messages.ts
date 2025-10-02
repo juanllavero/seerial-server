@@ -39,6 +39,7 @@ export const messages = {
       userDuplicated: "User already exists.",
       noImageReceived: "No image received.",
       invalidData: "Invalid data.",
+      userAdminNoPassword: "Admin user must have a password.",
     },
     token: {
       invalid: "Invalid or expired token.",

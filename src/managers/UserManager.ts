@@ -11,7 +11,7 @@ export class UserManager {
   static async authenticateUser(
     username: string,
     password: string | null
-  ): Promise<string | null> {
+  ): Promise<{ token: string; user: User | null } | null> {
     const user = await User.findOne({ where: { username } });
     if (!user) return null;
 
@@ -29,7 +29,14 @@ export class UserManager {
       process.env.JWT_SECRET || "",
       { expiresIn: "30d" }
     );
-    return token;
+
+    const safeUser = await User.findByPk(user.id, {
+      attributes: { exclude: ["password"] },
+    });
+    return {
+      token,
+      user: safeUser,
+    };
   }
 
   static async createUser(data: {
@@ -44,6 +51,10 @@ export class UserManager {
     maxSessions?: number;
     libraryIds?: string[];
   }) {
+    if (data.type === "admin" && (!data.password || !data.password.trim())) {
+      throw new ApiError(400, messages.errors.validation.userAdminNoPassword);
+    }
+
     try {
       const hashedPassword = data.password
         ? await bcrypt.hash(data.password, 10)
@@ -63,13 +74,17 @@ export class UserManager {
       if (data.libraryIds) {
         await user.$set("libraries", data.libraryIds);
       }
-      return user;
+
+      const safeUser = await User.findByPk(user.id, {
+        attributes: { exclude: ["password"] },
+      });
+      return safeUser;
     } catch (error) {
       if (error instanceof UniqueConstraintError) {
         throw new ApiError(409, messages.errors.validation.userDuplicated);
       }
 
-      throw new ApiError(500, messages.errors.server.internal);
+      throw new ApiError(500, (error as Error).message);
     }
   }
 
@@ -86,7 +101,11 @@ export class UserManager {
       }
 
       await user.update(data);
-      return user;
+
+      const safeUser = await User.findByPk(user.id, {
+        attributes: { exclude: ["password"] },
+      });
+      return safeUser;
     } catch (error) {
       if (error instanceof UniqueConstraintError) {
         throw new ApiError(409, messages.errors.validation.userDuplicated);
