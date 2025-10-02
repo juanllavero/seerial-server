@@ -4,7 +4,11 @@ import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { Movie } from '@/data/interfaces/Media'
 import { DropdownContent } from '@/data/interfaces/Utils'
-import { getOnlyYear, toggleMovieWatched } from '@/utils/ReactUtils'
+import {
+  getOnlyYear,
+  refreshMetadata,
+  toggleMovieWatched,
+} from '@/utils/ReactUtils'
 import { Pencil } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
@@ -41,7 +45,7 @@ function MovieCard({ movie }: MovieCardProps) {
         items: [
           {
             title: t('updateMetadata'),
-            action: () => console.log('Profile clicked'),
+            action: () => refreshMetadata('movie', movie.id),
           },
           {
             title: t('correctIdentification'),

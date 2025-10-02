@@ -4,7 +4,11 @@ import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { Series } from '@/data/interfaces/Media'
 import { DropdownContent } from '@/data/interfaces/Utils'
-import { getOnlyYear, toggleSeriesWatched } from '@/utils/ReactUtils'
+import {
+  getOnlyYear,
+  refreshMetadata,
+  toggleSeriesWatched,
+} from '@/utils/ReactUtils'
 import { Pencil } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
@@ -47,7 +51,7 @@ function SeriesCard({ series, remainingEpisodes }: SeriesCardProps) {
         items: [
           {
             title: t('updateMetadata'),
-            action: () => console.log('Profile clicked'),
+            action: () => refreshMetadata('show', series.id),
           },
           {
             title: t('correctIdentification'),

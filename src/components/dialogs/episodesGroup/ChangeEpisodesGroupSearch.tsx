@@ -4,12 +4,12 @@ import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { EpisodeGroupResult } from '@/data/interfaces/Utils'
+import { authenticatedFetch } from '@/lib/auth'
 import { getEpisodeGroupType } from '@/utils/ReactUtils'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import './ChangeEpisodesGroupSearch.css'
 import { shallow } from 'zustand/shallow'
-import { authenticatedFetch } from '@/lib/auth'
+import './ChangeEpisodesGroupSearch.css'
 
 function ChangeEpisodesGroupSearch() {
   const { t } = useTranslation()
@@ -46,7 +46,7 @@ function ChangeEpisodesGroupSearch() {
 
     await connectWS(serverUrl)
     authenticatedFetch(`${serverUrl}/updateEpisodeGroup`, 'POST', {
-      showId: episodesGroupDialog.seriesToEdit?.id,
+      id: episodesGroupDialog.seriesToEdit?.id,
       themdbId: episodesGroupDialog.seriesToEdit?.themdbId,
       episodeGroupId: id,
     })

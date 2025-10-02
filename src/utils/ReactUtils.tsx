@@ -1,10 +1,13 @@
-import { Collection, Movie, Series, Video } from '@/data/interfaces/Media'
-import { ScreenHeight } from '@/data/enums/Screen'
 import Image from '@/components/ui/Image'
+import { ScreenHeight } from '@/data/enums/Screen'
+import { Collection, Movie, Series, Video } from '@/data/interfaces/Media'
 
+import { useServerStore } from '@/context/server.context'
+import { useWebSocketStore } from '@/context/ws.context'
+import { authenticatedFetch } from '@/lib/auth'
+import { t } from 'i18next'
 import { toast } from 'sonner'
 import { mutate } from 'swr'
-import { authenticatedFetch } from '@/lib/auth'
 import { iso1to3 } from './utils'
 
 const tailwindSizes = [
@@ -58,6 +61,27 @@ export const toggleSeriesWatched = (
       mutate((key: string) => key.startsWith(`${serverUrl}/details/series`))
     })
   }
+}
+
+export const refreshMetadata = async (type: 'show' | 'movie', id: string) => {
+  const connectWS = useWebSocketStore((state) => state.connectWS)
+  const serverUrl = useServerStore((state) => state.serverUrl)
+
+  await connectWS(serverUrl)
+  const response = await authenticatedFetch(
+    `${serverUrl}/${type === 'show' ? 'refreshShowMetadata' : 'refreshMovieMetadata'}`,
+    'POST',
+    {
+      id,
+    },
+  )
+
+  if (!response.ok) {
+    showToast('error', t('refreshMetadataError'))
+    return
+  }
+
+  showToast('info', t('refreshMetadataStart'))
 }
 
 //#region IMAGES AND TITLES

@@ -5,7 +5,7 @@ import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { Movie } from '@/data/interfaces/Media'
 import { authenticatedFetch } from '@/lib/auth'
-import { toggleMovieWatched } from '@/utils/ReactUtils'
+import { refreshMetadata, toggleMovieWatched } from '@/utils/ReactUtils'
 import { authenticatedFetcher } from '@/utils/utils'
 import { Pencil } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -84,7 +84,7 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
                     },
                     {
                       title: t('updateMetadata'),
-                      action: () => console.log('Profile clicked'),
+                      action: () => refreshMetadata('movie', movie.id),
                     },
                     {
                       title: t('correctIdentification'),

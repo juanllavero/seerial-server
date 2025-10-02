@@ -5,7 +5,7 @@ import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { Series } from '@/data/interfaces/Media'
 import { authenticatedFetch } from '@/lib/auth'
-import { toggleSeriesWatched } from '@/utils/ReactUtils'
+import { refreshMetadata, toggleSeriesWatched } from '@/utils/ReactUtils'
 import { authenticatedFetcher } from '@/utils/utils'
 import { Pencil } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -87,7 +87,9 @@ function MyListShows({ goToContent }: MyListShowsProps) {
                     },
                     {
                       title: t('updateMetadata'),
-                      action: () => console.log('Profile clicked'),
+                      action: () => {
+                        refreshMetadata('show', series.id)
+                      },
                     },
                     {
                       title: t('correctIdentification'),
