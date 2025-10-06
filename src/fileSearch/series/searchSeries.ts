@@ -74,8 +74,7 @@ export async function scanTVShow(
   show.analyzingFiles = true;
   await show.save();
 
-  Utils.mutateLibrary(wsManager);
-  Utils.mutateSeries(wsManager);
+  Utils.mutateSeries(wsManager, show);
 
   // Download seasons metadata
   const showData = await MovieDBWrapper.getTVShow(
@@ -119,8 +118,7 @@ export async function scanTVShow(
   show.analyzingFiles = false;
   await show.save();
 
-  Utils.mutateLibrary(wsManager);
-  Utils.mutateSeries(wsManager);
+  Utils.mutateSeries(wsManager, show);
 }
 
 // Process each video file

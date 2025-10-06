@@ -63,7 +63,7 @@ export async function scanMusic(
   }
 
   // Update content in clients
-  Utils.mutateLibrary(wsManager);
+  Utils.mutateLibrary(wsManager, library.id);
 }
 
 /**
@@ -121,7 +121,7 @@ export async function processMusicFile(
       }
 
       // Update content in clients
-      Utils.mutateLibrary(wsManager);
+      Utils.mutateLibrary(wsManager, library.id);
     }
 
     if (!newAlbum) return;
@@ -169,7 +169,7 @@ export async function processMusicFile(
       await newAlbum.save();
 
       // Update content in clients
-      Utils.mutateLibrary(wsManager);
+      Utils.mutateLibrary(wsManager, library.id);
     }
 
     if (!song) return;

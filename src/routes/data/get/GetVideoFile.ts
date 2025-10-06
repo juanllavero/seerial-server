@@ -1,9 +1,6 @@
-import { messages } from "@/config/messages";
 import { VideoManager } from "@/managers/VideoManager";
 import { verifyVideoStreamToken } from "@/middleware/videoMiddleware";
-import ApiError from "@/utils/ApiError";
-import catchAsync from "@/utils/catchAsync";
-import express, { NextFunction, Request, Response } from "express";
+import express, { Request, Response } from "express";
 
 const router = express.Router();
 
@@ -25,15 +22,10 @@ router.get(
  */
 router.get(
   "/video-file",
-  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const videoPath = req.query.path;
-
-    if (typeof videoPath !== "string" || videoPath.trim() === "") {
-      return next(new ApiError(400, messages.errors.validation.invalidData));
-    }
-
-    VideoManager.streamDirectVideoFile(decodeURIComponent(videoPath), req, res);
-  })
+  verifyVideoStreamToken,
+  (req: Request, res: Response) => {
+    VideoManager.streamDirectVideoFile(req, res);
+  }
 );
 
 export default router;

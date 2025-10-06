@@ -51,9 +51,9 @@ export async function changeIdentificationShow(
 
   // Save changes in DB
   show.save();
-  Utils.mutateSeries(wsManager);
+  Utils.mutateSeries(wsManager, show);
   Utils.mutateSeason(wsManager);
-  Utils.mutateLibrary(wsManager);
+  Utils.mutateLibrary(wsManager, library.id);
 
   // Get new data
   await scanTVShow(library, show.folder, wsManager);
@@ -93,8 +93,8 @@ export async function changeIdentificationMovie(
 
   // Save changes in DB
   movie.save();
-  Utils.mutateMovie(wsManager);
-  Utils.mutateLibrary(wsManager);
+  Utils.mutateMovie(wsManager, movie);
+  Utils.mutateLibrary(wsManager, library.id);
 
   // Get new data
   await scanMovie(library, movie.folder, wsManager);

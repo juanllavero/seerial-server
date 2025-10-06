@@ -64,7 +64,7 @@ export async function scanMovie(
       }
 
       // Update content in clients
-      Utils.mutateLibrary(wsManager);
+      Utils.mutateLibrary(wsManager, library.id);
 
       const processPromises = folders.map(async (folder) => {
         const files = await Utils.getValidVideoFiles(folder);
@@ -136,7 +136,7 @@ export async function processFolder(
     await Promise.all(processPromises);
 
     // Update content in clients
-    Utils.mutateMovie(wsManager);
+    Utils.mutateMovie(wsManager, movie);
     return;
   }
 
@@ -148,8 +148,8 @@ export async function processFolder(
   );
 
   // Update content in clients
-  Utils.mutateLibrary(wsManager);
-  Utils.mutateMovie(wsManager);
+  Utils.mutateLibrary(wsManager, library.id);
+  Utils.mutateMovie(wsManager, movie);
 
   const processPromises = files.map(async (file) => {
     await processVideo(library, movie, file, wsManager);
@@ -161,7 +161,7 @@ export async function processFolder(
   library.save();
 
   // Update content in clients
-  Utils.mutateLibrary(wsManager);
+  Utils.mutateLibrary(wsManager, library.id);
 }
 
 /**
@@ -221,7 +221,7 @@ export async function saveMovieWithoutMetadata(
   video.save();
 
   // Update content in clients
-  Utils.mutateMovie(wsManager);
+  Utils.mutateMovie(wsManager, movie);
 }
 
 /**
@@ -262,7 +262,7 @@ export async function processVideo(
   await MetadataManager.updateVideoMetadataForMovie(video, movie);
 
   // Update content in clients
-  Utils.mutateMovie(wsManager);
+  Utils.mutateMovie(wsManager, movie);
 }
 
 /**
@@ -304,5 +304,5 @@ export async function processVideoAsExtra(
   video.save();
 
   // Update content in clients
-  Utils.mutateMovie(wsManager);
+  Utils.mutateMovie(wsManager, movie);
 }

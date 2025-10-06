@@ -1,6 +1,6 @@
 import { messages } from "@/config/messages";
 import ApiError from "@/utils/ApiError";
-import { Request, Response } from "express";
+import { Response } from "express";
 import ffmpegPath from "ffmpeg-static";
 import ffmpeg from "fluent-ffmpeg";
 import fs from "fs-extra";
@@ -87,11 +87,9 @@ export class VideoManager {
    * @param req The Express Request object to read the range headers.
    * @param res The Express Response object.
    */
-  public static streamDirectVideoFile(
-    videoPath: string,
-    req: Request,
-    res: Response
-  ): void {
+  public static streamDirectVideoFile(req: any, res: any): void {
+    const { path: videoPath } = req.videoParams;
+    console.log({ videoPath });
     if (!fs.existsSync(videoPath)) {
       throw new ApiError(404, messages.errors.notFound.video);
     }

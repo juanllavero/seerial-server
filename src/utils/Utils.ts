@@ -1,3 +1,5 @@
+import { Collection, Movie, Series } from "@/data/interfaces/Media";
+import { Album } from "@/data/interfaces/Music";
 import { Episode, Season } from "@/data/models";
 import { deleteAllVideosFromContinueWatching } from "@/db/delete/deleteData";
 import {
@@ -576,18 +578,31 @@ export class Utils {
     ws.broadcast(JSON.stringify(message));
   };
 
-  public static mutateLibrary = (ws: WebSocketManager) => {
+  public static mutateLibrary = (ws: WebSocketManager, libraryId: string) => {
     const message = {
       header: "MUTATE_LIBRARY",
-      body: {},
+      body: {
+        libraryId,
+      },
     };
     ws.broadcast(JSON.stringify(message));
   };
 
-  public static mutateSeries = (ws: WebSocketManager) => {
+  public static mutateCollection = (
+    ws: WebSocketManager,
+    collection: Collection
+  ) => {
+    const message = {
+      header: "MUTATE_COLLECTION",
+      body: collection,
+    };
+    ws.broadcast(JSON.stringify(message));
+  };
+
+  public static mutateSeries = (ws: WebSocketManager, series: Series) => {
     const message = {
       header: "MUTATE_SERIES",
-      body: {},
+      body: series,
     };
     ws.broadcast(JSON.stringify(message));
   };
@@ -608,18 +623,18 @@ export class Utils {
     ws.broadcast(JSON.stringify(message));
   };
 
-  public static mutateMovie = (ws: WebSocketManager) => {
+  public static mutateMovie = (ws: WebSocketManager, movie: Movie) => {
     const message = {
       header: "MUTATE_MOVIE",
-      body: {},
+      body: movie,
     };
     ws.broadcast(JSON.stringify(message));
   };
 
-  public static mutateAlbum = (ws: WebSocketManager) => {
+  public static mutateAlbum = (ws: WebSocketManager, album: Album) => {
     const message = {
       header: "MUTATE_ALBUM",
-      body: {},
+      body: album,
     };
     ws.broadcast(JSON.stringify(message));
   };

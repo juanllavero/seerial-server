@@ -24,19 +24,23 @@ export const appServer = express();
 // Middleware
 appServer.use(
   cors({
+    // origin: (origin, callback) => {
+    //   const allowedOrigins = [
+    //     "http://localhost:5173", // React dev server
+    //     `http://localhost:${ServerConfigManager.serverConfig.httpPort}`,
+    //     `https://localhost:${ServerConfigManager.serverConfig.httpsPort}`,
+    //     ServerConfigManager.serverConfig.customUrl,
+    //     ServerConfigManager.serverConfig.tunnelUrl,
+    //   ].filter(Boolean);
+    //   if (!origin || allowedOrigins.includes(origin)) {
+    //     callback(null, true);
+    //   } else {
+    //     callback(new Error("Not allowed by CORS"));
+    //   }
+    // },
     origin: (origin, callback) => {
-      const allowedOrigins = [
-        "http://localhost:5173", // React dev server
-        `http://localhost:${ServerConfigManager.serverConfig.httpPort}`,
-        `https://localhost:${ServerConfigManager.serverConfig.httpsPort}`,
-        ServerConfigManager.serverConfig.customUrl,
-        ServerConfigManager.serverConfig.tunnelUrl,
-      ].filter(Boolean);
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
+      if (!origin) return callback(null, true); // peticiones tipo curl / server-side
+      callback(null, origin); // Devolver el mismo origen que hace la petición
     },
     credentials: true, // Allow cookies
     exposedHeaders: ["Content-Range", "Accept-Ranges", "Content-Length"],

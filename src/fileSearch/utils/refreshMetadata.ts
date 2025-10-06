@@ -38,7 +38,7 @@ export async function refreshMovieMetadata(
     // Update UI
     movie.analyzingFiles = true;
     await movie.save();
-    Utils.mutateMovie(wsManager);
+    Utils.mutateMovie(wsManager, movie);
 
     // Get metadata from TheMovieDB
     const movieMetadata = await MovieDBWrapper.getMovie(
@@ -71,8 +71,8 @@ export async function refreshMovieMetadata(
     // Update UI
     movie.analyzingFiles = false;
     await movie.save();
-    Utils.mutateMovie(wsManager);
-    Utils.mutateLibrary(wsManager);
+    Utils.mutateMovie(wsManager, movie);
+    Utils.mutateLibrary(wsManager, library.id);
   }
 }
 
@@ -102,7 +102,7 @@ export async function refreshSeriesMetadata(
     // Update UI
     series.analyzingFiles = true;
     await series.save();
-    Utils.mutateSeries(wsManager);
+    Utils.mutateSeries(wsManager, series);
 
     // Update show metadata
     await MetadataManager.updateSeriesMetadata(series, library.language);
@@ -147,8 +147,8 @@ export async function refreshSeriesMetadata(
     // Update UI
     series.analyzingFiles = false;
     await series.save();
-    Utils.mutateSeries(wsManager);
+    Utils.mutateSeries(wsManager, series);
     Utils.mutateSeason(wsManager);
-    Utils.mutateLibrary(wsManager);
+    Utils.mutateLibrary(wsManager, library.id);
   }
 }

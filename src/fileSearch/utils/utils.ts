@@ -136,7 +136,7 @@ export async function clearLibrary(
   }
 
   // Update library in client
-  Utils.mutateLibrary(wsManager);
+  Utils.mutateLibrary(wsManager, libraryId);
 }
 
 /**

@@ -13,15 +13,15 @@ export function addServerRoutes(appServer: Express) {
   appServer.use("/", routes.getStatusRoutes);
   appServer.use("/", routes.userManagementPublicRoutes);
 
+  // Custom authentication with temp token
+  appServer.use("/", routes.getVideoFileRoutes);
+
   // Management routes (require local access or admin access)
   appServer.use(
     "/",
     authMiddleware.requireManagementAccess,
     routes.userManagementRoutes
   );
-
-  // Custom authentication with temp token
-  appServer.use("/", routes.getVideoFileRoutes);
 
   // Access restricted to users
   appServer.use("/", authMiddleware.requireAccess, routes.getMediaRoutes);

@@ -18,8 +18,8 @@ const router = express.Router();
  */
 router.post(
   "/get-stream-url",
-  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const userId = (req as any).userId;
+  catchAsync(async (req: any, res: any, next: NextFunction) => {
+    const userId = req.user.id;
     if (!userId) {
       return next(
         new ApiError(401, messages.errors.server.userNotAuthenticated)
@@ -47,6 +47,42 @@ router.post(
 
     const params = new URLSearchParams({ token });
     const url = `/stream-video?${params.toString()}`;
+
+    res.status(200).json(url);
+  })
+);
+
+/**
+ * @route POST /get-stream-url
+ * @description Generates a JWT-signed URL for video streaming.
+ */
+router.post(
+  "/get-video-url",
+  catchAsync(async (req: any, res: any, next: NextFunction) => {
+    const userId = req.user.id;
+    if (!userId) {
+      return next(
+        new ApiError(401, messages.errors.server.userNotAuthenticated)
+      );
+    }
+
+    const { filePath, expiresIn } = req.body;
+
+    if (!filePath) {
+      return next(new ApiError(400, "El parámetro 'filePath' es requerido."));
+    }
+
+    const token = jwt.sign(
+      {
+        userId,
+        path: filePath,
+      },
+      process.env.JWT_SECRET!,
+      { expiresIn: expiresIn || "2m" }
+    );
+
+    const params = new URLSearchParams({ token });
+    const url = `/video-file?${params.toString()}`;
 
     res.status(200).json(url);
   })

@@ -49,7 +49,7 @@ export async function ensureSeason(
   if (season.seasonNumber === 0) season.order = 100;
   await season.save();
 
-  if (wsManager) Utils.mutateSeries(wsManager);
+  if (wsManager) Utils.mutateSeries(wsManager, show);
   return season;
 }
 

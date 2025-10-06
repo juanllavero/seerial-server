@@ -66,13 +66,15 @@ export class FileSearch {
     Promise.all(tasks).then(() => {
       const message = {
         header: "SCAN_COMPLETE",
-        body: {},
+        body: {
+          libraryId: library.id,
+        },
       };
       wsManager.broadcast(JSON.stringify(message));
     });
 
     // Update content in clients
-    Utils.mutateLibrary(wsManager);
+    Utils.mutateLibrary(wsManager, library.id);
 
     return library;
   }

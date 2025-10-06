@@ -98,7 +98,7 @@ export class MetadataManager {
           .map((p) => p.name ?? "");
 
         // Default creator
-        if (series.creator.length === 0) {
+        if (series.creator && series.creator.length === 0) {
           const showData = await MovieDBWrapper.getTVShow(
             series.themdbId,
             language
@@ -176,7 +176,7 @@ export class MetadataManager {
     }
 
     // If there is another season with background, use its background instead of downloading another one
-    if (series.seasons.length > 1) {
+    if (series.seasons && series.seasons.length > 1) {
       for (let i = 0; i < series.seasons.length; i++) {
         const s = series.seasons[i];
         if (s.backgroundSrc.length > 0) {
