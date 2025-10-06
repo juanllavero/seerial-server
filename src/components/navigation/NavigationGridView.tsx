@@ -2,6 +2,7 @@ import {
 	useFocusable,
 	FocusContext,
 } from '@noriginmedia/norigin-spatial-navigation'
+import '@/styles/utils.css'
 import { memo } from 'react'
 
 interface NavigationScrollViewProps {
@@ -26,7 +27,7 @@ const NavigationGridView = ({
 			<div
 				ref={ref}
 				className={`
-          flex  flex-row flex-wrap overflow-y-auto pb-50 pt-10 px-3 scroll-smooth
+          flex flex-row flex-wrap overflow-y-auto pb-50 pt-10 px-3 scroll-smooth hide-scrollbar
           ${className || ''}
         `}
 			>

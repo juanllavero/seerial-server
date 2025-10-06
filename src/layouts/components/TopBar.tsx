@@ -1,18 +1,16 @@
 import LibrariesList from './LibrariesList'
 import { Settings, User } from 'lucide-react'
-import { useAuth } from '@/context/auth.context'
 import { LibraryType } from '@/utils/constants'
 import { useState } from 'react'
 import { useServerStore } from '@/context/server.context'
 import { Library } from '@/data/interfaces/Media'
-import { authenticatedFetcher } from '@/utils/utils'
 import useSWR from 'swr'
 import FocusableButton from '@/components/navigation/NavigationButton'
 import NavigationContainer from '@/components/navigation/NavigationContainer'
 import { useNavigate } from 'react-router'
+import { authenticatedFetcher } from '@/lib/auth'
 
 function TopBar() {
-	const { logout } = useAuth()
 	const navigate = useNavigate()
 	const [showLibraries, setShowLibraries] = useState(false)
 	const [libraryType, setLibraryType] = useState<LibraryType>(
@@ -22,8 +20,12 @@ function TopBar() {
 	const serverUrl = useServerStore((state) => state.serverUrl)
 
 	const { data: libraries } = useSWR<Library[]>(
-		serverUrl !== '' ? `${serverUrl}/libraries` : null,
-		authenticatedFetcher
+		serverUrl !== '' ? `${serverUrl}/libraries/` : null,
+		authenticatedFetcher,
+		{
+			revalidateOnFocus: false,
+			revalidateIfStale: false,
+		}
 	)
 
 	const showMovies =
@@ -48,7 +50,7 @@ function TopBar() {
 				<FocusableButton
 					customKey='user'
 					title={'User'}
-					icon={<User onClick={logout} />}
+					icon={<User onClick={() => {}} />}
 				/>
 			</div>
 			<div className='flex gap-2'>

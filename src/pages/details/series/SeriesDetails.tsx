@@ -2,12 +2,12 @@ import Loading from '@/components/Loading'
 import Page from '@/components/Page'
 import { useServerStore } from '@/context/server.context'
 import { Season, Series } from '@/data/interfaces/Media'
-import { authenticatedFetcher } from '@/utils/utils'
 import { memo, useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
 import EpisodesList from './components/EpisodesList'
+import { authenticatedFetcher } from '@/lib/auth'
 
 function SeriesDetails() {
 	const { seriesId } = useParams()

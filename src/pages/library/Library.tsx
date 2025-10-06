@@ -4,8 +4,8 @@ import NavigationGridView from '@/components/navigation/NavigationGridView'
 import Page from '@/components/Page'
 import { useServerStore } from '@/context/server.context'
 import { LibraryItem } from '@/data/interfaces/Media'
+import { authenticatedFetcher } from '@/lib/auth'
 import { LibraryType } from '@/utils/constants'
-import { authenticatedFetcher } from '@/utils/utils'
 import { memo } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import useSWR from 'swr'
@@ -20,9 +20,8 @@ const REM_TO_PX = 16
 function LibraryPage() {
 	const { libraryId, type } = useParams()
 	const navigate = useNavigate()
-	const { selectedServer, serverUrl } = useServerStore(
+	const { serverUrl } = useServerStore(
 		(state) => ({
-			selectedServer: state.selectedServer,
 			serverUrl: state.serverUrl,
 		}),
 		shallow
@@ -66,7 +65,7 @@ function LibraryPage() {
 						imgSrc={item.data.posterSrc}
 						action={() => {
 							navigate(
-								`/server/${selectedServer?.id}/details/${type === LibraryType.MOVIES ? 'movie' : type === LibraryType.SHOWS ? 'series' : 'album'}/${item.data.id}`
+								`/details/${type === LibraryType.MOVIES ? 'movie' : type === LibraryType.SHOWS ? 'series' : 'album'}/${item.data.id}`
 							)
 						}}
 					/>

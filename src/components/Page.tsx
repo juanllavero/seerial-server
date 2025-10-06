@@ -39,6 +39,7 @@ function Page({
 			gap={gap}
 			height={'100dvh'}
 			width={'100dvw'}
+			hideScrollbar
 			className={className}
 		>
 			{children}

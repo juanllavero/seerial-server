@@ -17,7 +17,6 @@ import {
 import useDataStore from '../../context/data.context'
 import { useServerStore } from '../../context/server.context'
 import { Library } from '../../data/interfaces/Media'
-import { authenticatedFetcher } from '../../utils/utils'
 import { useNavigate } from 'react-router-dom'
 import { t } from 'i18next'
 import {
@@ -31,6 +30,7 @@ import {
 } from 'lucide-react'
 import React from 'react'
 import useSWR from 'swr'
+import { authenticatedFetcher } from '@/lib/auth'
 
 interface Item {
 	id: string
@@ -42,11 +42,11 @@ interface Item {
 export function NavLibraries() {
 	const navigate = useNavigate()
 
-	const { selectedServer, serverStatus } = useServerStore()
+	const { server } = useServerStore()
 	const { selectedLibraryId, selectLibrary } = useDataStore()
 
 	const { data: libraries, isLoading } = useSWR<Library[]>(
-		selectedServer ? `https://${selectedServer.ip}/libraries/` : null,
+		server ? `https://${server.url}/libraries/` : null,
 		authenticatedFetcher,
 		{
 			revalidateOnFocus: false,
@@ -80,9 +80,9 @@ export function NavLibraries() {
 					action: () => {
 						selectLibrary(library.id)
 
-						if (!selectedServer || !serverStatus) return
+						if (!server) return
 
-						navigate(`/server/${selectedServer.id}/library/${library.id}`)
+						navigate(`/library/${library.id}`)
 					},
 				})),
 			]
@@ -113,11 +113,9 @@ export function NavLibraries() {
 												e.preventDefault()
 												setActiveItem(item)
 
-												if (!selectedServer || !serverStatus) return
+												if (!server) return
 
-												navigate(
-													`/server/${selectedServer.id}/library/${item.id}`
-												)
+												navigate(`/library/${item.id}`)
 											}}
 											style={{
 												color:

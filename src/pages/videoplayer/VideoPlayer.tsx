@@ -1,16 +1,102 @@
+import { useServerStore } from '@/context/server.context'
+import { Video } from '@/data/interfaces/Media'
+import { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
+import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { invoke } from '@tauri-apps/api/core'
 import { useEffect, useRef, useState } from 'react'
+import { useParams } from 'react-router'
+import useSWR from 'swr'
+import { shallow } from 'zustand/shallow'
+
+interface VideoInfo {
+	title: string
+	subtitle: string
+	preferAudioLan: string
+	preferSubtitleLan: string
+	subsMode: string
+}
 
 type Track = [number, string]
 
 export default function VideoPlayer() {
+	const { videoId } = useParams()
+	const { user, serverUrl } = useServerStore(
+		(state) => ({
+			user: state.currentUser,
+			serverUrl: state.serverUrl,
+		}),
+		shallow
+	)
 	const [position, setPosition] = useState(0)
-	const [duration, setDuration] = useState(0)
 	const [volume, setVolume] = useState(100)
 	const [zoom, setZoom] = useState(0)
 
 	const [audioTrack, setAudioTrack] = useState(1)
 	const [subtitleTrack, setSubtitleTrack] = useState(1)
+
+	// Get video data
+	const {
+		data: video,
+		isLoading: loadingVideo,
+		mutate,
+	} = useSWR<Video>(
+		videoId && serverUrl !== ''
+			? `${serverUrl}/details/video?id=${videoId}`
+			: null,
+		authenticatedFetcher
+	)
+
+	// Get video info
+	// const { data: videoInfo, isLoading: loadingVideoInfo } = useSWR<VideoInfo>(
+	// 	videoId && serverUrl !== ''
+	// 		? `${serverUrl}/videoInfo?id=${videoId}`
+	// 		: null,
+	// 	authenticatedFetcher
+	// )
+
+	// Controls
+	const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+	const [showControls, setShowControls] = useState(false)
+
+	// Timeline
+	const timelineRef = useRef<HTMLDivElement>(null)
+	const [wasPaused, setWasPaused] = useState(false)
+	const [isScrubbing, setIsScrubbing] = useState(false)
+
+	const videoRef = useRef<HTMLVideoElement | null>(null)
+	const [isPlaying, setIsPlaying] = useState(false)
+	const [showLoadingCircle, setShowLoadingCircle] = useState(false)
+	const [videoLoaded, setVideoLoaded] = useState(false)
+	const [isFullscreen, setIsFullscreen] = useState(false)
+	const [duration, setDuration] = useState(video ? video.runtime * 60 : 0)
+	const [timeOffset, setTimeOffset] = useState(0)
+	const [currentTime, setCurrentTime] = useState(0)
+	const [previewTime, setPreviewTime] = useState(0)
+
+	const watchedList = video?.watchLists?.find(
+		(list: any) => list.userId === user?.id
+	)
+
+	const timeWatched = watchedList?.timeWatched ?? 0
+
+	// State for triggering stream reload
+	const [streamStartTime, setStreamStartTime] = useState(timeWatched ?? 0)
+
+	const [selectedAudioTrack, setSelectedAudioTrack] =
+		useState<AudioTrack | null>(
+			video?.audioTracks?.find((track) => track.selected) || null
+		)
+	const [selectedSubtitleTrack, setSelectedSubtitleTrack] =
+		useState<SubtitleTrack | null>(
+			video?.subtitleTracks?.find((track) => track.selected) || null
+		)
+	const [tracks, setTracks] = useState<{
+		audioTracks: AudioTrack[]
+		subtitleTracks: SubtitleTrack[]
+	}>({
+		audioTracks: video?.audioTracks || [],
+		subtitleTracks: video?.subtitleTracks || [],
+	})
 
 	const [audioTracks] = useState<Track[]>([
 		[1, 'Audio 1'],
@@ -23,6 +109,47 @@ export default function VideoPlayer() {
 	])
 
 	const seeking = useRef(false)
+
+	const [videoSrc, setVideoSrc] = useState<string>('')
+
+	async function getSignedStreamUrl(video: any, serverUrl: string) {
+		const res = await authenticatedFetch(
+			`${serverUrl}/get-video-url`,
+			'POST',
+			{
+				filePath: video.fileSrc,
+				expiresIn: '2m',
+			}
+		)
+
+		const url = await res.json()
+		return `${serverUrl}${url}`
+	}
+
+	useEffect(() => {
+		if (!video || !serverUrl) return
+		getSignedStreamUrl(video, serverUrl).then(setVideoSrc)
+	}, [
+		video,
+		serverUrl,
+		streamStartTime,
+		selectedAudioTrack,
+		selectedSubtitleTrack,
+	])
+
+	useEffect(() => {
+		if (!video) return
+
+		if (timeWatched && timeWatched > 0) {
+			setStreamStartTime(timeWatched)
+			setTimeOffset(timeWatched)
+			setCurrentTime(timeWatched)
+		} else {
+			setStreamStartTime(0)
+			setTimeOffset(0)
+			setCurrentTime(0)
+		}
+	}, [video])
 
 	useEffect(() => {
 		invoke('embed_mpv').catch(console.error)
@@ -40,10 +167,11 @@ export default function VideoPlayer() {
 		return () => clearInterval(interval)
 	}, [])
 
-	const loadVideo = async () => {
+	const loadVideo = async (url: string) => {
 		try {
-			await invoke('loadfile', {
-				file: 'C:/Users/juan_/Videos/fmab.mkv',
+			console.log({ url })
+			await invoke('load_url', {
+				url: url,
 			})
 			const dur = await invoke<number>('get_duration')
 			const vol = await invoke<number>('get_volume')
@@ -137,7 +265,10 @@ export default function VideoPlayer() {
 				</button>
 			</div>
 
-			<button onClick={loadVideo} style={{ marginBottom: '10px' }}>
+			<button
+				onClick={() => loadVideo(videoSrc)}
+				style={{ marginBottom: '10px' }}
+			>
 				Load Video
 			</button>
 

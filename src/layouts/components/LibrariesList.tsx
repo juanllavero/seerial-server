@@ -4,7 +4,6 @@ import { LibraryType } from '@/utils/constants'
 import { motion, AnimatePresence } from 'framer-motion'
 import FocusableButton from '@/components/navigation/NavigationButton'
 import { useNavigate } from 'react-router'
-import { useServerStore } from '@/context/server.context'
 
 interface LibrariesListProps {
 	type: LibraryType
@@ -15,7 +14,6 @@ interface LibrariesListProps {
 
 function LibrariesList({ type, libraries, show, hide }: LibrariesListProps) {
 	const navigate = useNavigate()
-	const selectedServer = useServerStore((state) => state.selectedServer)
 	if (!libraries) return null
 
 	return (
@@ -37,9 +35,7 @@ function LibrariesList({ type, libraries, show, hide }: LibrariesListProps) {
 									customKey={library.id}
 									onClick={() => {
 										hide()
-										navigate(
-											`/server/${selectedServer?.id}/library/${library.id}/${type}`
-										)
+										navigate(`/library/${library.id}/${type}`)
 									}}
 								>
 									{library.name}

@@ -147,6 +147,18 @@ pub fn loadfile(state: State<MpvState>, file: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+pub fn load_url(state: State<MpvState>, url: String) -> Result<(), String> {
+    // Basic URL validation
+    if !url.starts_with("http://") && !url.starts_with("https://") {
+        return Err("Invalid URL: must start with http:// or https://".to_string());
+    }
+
+    state.with_mpv(|mpv| {
+        mpv.command("loadfile", &[url.as_str(), "replace"])
+    })
+}
+
+#[tauri::command]
 pub fn get_position(state: State<MpvState>) -> Result<f64, String> {
     state.with_mpv(|mpv| mpv.get_property("time-pos"))
 }

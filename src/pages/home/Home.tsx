@@ -1,24 +1,22 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useNavigate } from 'react-router'
 import { useServerStore } from '../../context/server.context'
-import { useAuth } from '../../context/auth.context'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 import { Skeleton } from '../../components/ui/skeleton'
-import { authenticatedFetcher } from '../../utils/utils'
 import ContentCard from '../../components/Card'
 import NavigationScrollView from '@/components/navigation/NavigationScrollView'
 import Page from '@/components/Page'
 import HomeInfo from './components/HomeInfo'
 import { ContinueWatchingElement } from '@/data/interfaces/Lists'
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation'
+import { authenticatedFetcher } from '@/lib/auth'
 
 function Home() {
-	const { serverId } = useParams()
-	const { user } = useAuth()
+	const { currentUser } = useServerStore()
 	const navigate = useNavigate()
 	const { t } = useTranslation()
-	const { selectServer, selectedServer, serverUrl } = useServerStore()
+	const { server, serverUrl } = useServerStore()
 	const [selectedElement, setSelectedElement] =
 		useState<ContinueWatchingElement | null>(null)
 
@@ -26,19 +24,11 @@ function Home() {
 	const { data: continueWatching, isLoading } = useSWR<
 		ContinueWatchingElement[]
 	>(
-		selectedServer
-			? `${serverUrl}/continueWatching?userId=${user?.id ?? null}`
+		server
+			? `${serverUrl}/continueWatching?userId=${currentUser?.id ?? null}`
 			: null,
 		authenticatedFetcher
 	)
-
-	useEffect(() => {
-		if (user && serverId) {
-			selectServer(
-				user.servers.find((server) => server.id === serverId) ?? null
-			)
-		}
-	}, [serverId])
 
 	useEffect(() => {
 		if (continueWatching && continueWatching.length > 0)

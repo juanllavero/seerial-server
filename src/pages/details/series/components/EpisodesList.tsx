@@ -1,7 +1,7 @@
 import Loading from '@/components/Loading'
 import { useServerStore } from '@/context/server.context'
 import { Season } from '@/data/interfaces/Media'
-import { authenticatedFetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/lib/auth'
 import { useNavigate } from 'react-router'
 import useSWR from 'swr'
 
@@ -26,9 +26,7 @@ function EpisodesList({ selectedSeasonId }: EpisodesListProps) {
 				<div
 					key={episode.id}
 					onClick={() => {
-						navigate(
-							`/server/${serverUrl}/video-player/${episode.video.id}`
-						)
+						navigate(`/video-player/${episode.video.id}`)
 					}}
 				>
 					{episode.name}

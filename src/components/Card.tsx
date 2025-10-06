@@ -2,7 +2,6 @@ import {
 	setFocus,
 	useFocusable,
 } from '@noriginmedia/norigin-spatial-navigation'
-import LazyImage from './ui/LazyImage'
 import FlexBox from './ui/FlexBox'
 import { useEffect } from 'react'
 import Image from './ui/Image'
@@ -43,8 +42,8 @@ function ContentCard({
 		<FlexBox
 			ref={ref}
 			onClick={() => {
-				action()
 				if (customKey) setFocus(customKey)
+				if (focused) action()
 			}}
 			direction='column'
 			width={width}

@@ -8,13 +8,11 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useMemo } from 'react'
 import { HomeIcon } from '../ui/IconLibrary'
 import { useTranslation } from 'react-i18next'
-import { useServerStore } from '../../context/server.context'
 
 const NavHomeButton = () => {
 	const { t } = useTranslation()
 	const navigate = useNavigate()
 	const location = useLocation()
-	const { selectedServer } = useServerStore()
 	const inHome = useMemo(
 		() => location.pathname.includes('/home'),
 		[location.pathname]
@@ -26,7 +24,7 @@ const NavHomeButton = () => {
 	})
 
 	const navigateHome = () => {
-		if (selectedServer) navigate(`/server/${selectedServer.id}/home`)
+		navigate(`/home`)
 	}
 
 	const home = {
