@@ -32,7 +32,11 @@ function SeriesDetails({ id }: SeriesDetailsProps) {
 			<SeriesInfo series={series} currentEpisode={currentEpisode} />
 
 			{/* Series Content */}
-			<SeriesContent series={series} setCurrentEpisode={setCurrentEpisode} />
+			<SeriesContent
+				series={series}
+				currentEpisode={currentEpisode}
+				setCurrentEpisode={setCurrentEpisode}
+			/>
 		</View>
 	)
 }

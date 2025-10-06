@@ -7,7 +7,7 @@ const videoSource =
 
 function VideoPlayerScreen() {
 	return (
-		<View style={styles.contentContainer} className='bg-white'>
+		<View style={styles.contentContainer}>
 			<AppText className='text-5xl text-stone-400'>Video Player</AppText>
 		</View>
 	)

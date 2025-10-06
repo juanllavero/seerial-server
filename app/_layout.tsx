@@ -134,7 +134,7 @@ function AppLayout() {
 
 			{/* Audio Player and Music Player UI */}
 			<AudioPlayer />
-			<MusicPlayer />
+			{/* <MusicPlayer /> */}
 		</>
 	)
 }

@@ -15,7 +15,7 @@ interface LibraryItemCardProps {
 	subtitle: string
 	imgSrc: string
 	width: number
-	isFocused: boolean // <-- Recibirá el estado de foco
+	isFocused: boolean
 	collectionImages?: CollectionImages
 	aspectRatio?: number
 	isCollection?: boolean
@@ -29,7 +29,7 @@ function LibraryItemCard({
 	width,
 	aspectRatio,
 	collectionImages,
-	isFocused, // <-- Usamos la prop
+	isFocused,
 	isCollection = false,
 }: LibraryItemCardProps) {
 	const serverUrl = useServerStore((state) => state.serverUrl)

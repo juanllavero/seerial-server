@@ -1,10 +1,11 @@
 import { useServerStore } from '@/context/server.context'
 import { Movie } from '@/data/interfaces/Media'
 import { fetcher } from '@/utils/utils'
-import React, { memo } from 'react'
+import React, { memo, useEffect } from 'react'
 import { ScrollView } from 'react-native'
 import useSWR from 'swr'
 import MovieInfo from './MovieInfo'
+import useDataStore from '@/context/data.context'
 
 interface MovieDetailsProps {
 	id: string
@@ -12,11 +13,20 @@ interface MovieDetailsProps {
 
 function MovieDetails({ id }: MovieDetailsProps) {
 	const serverUrl = useServerStore((state) => state.serverUrl)
+	const setCurrentBackground = useDataStore(
+		(state) => state.setCurrentBackground
+	)
 
 	const { data: movie } = useSWR<Movie>(
 		serverUrl ? `${serverUrl}/details/movie?id=${id}` : null,
 		fetcher
 	)
+
+	useEffect(() => {
+		if (movie && movie.backgroundSrc && movie.backgroundSrc !== '') {
+			setCurrentBackground(movie.backgroundSrc)
+		}
+	}, [movie])
 
 	if (!movie) {
 		return null

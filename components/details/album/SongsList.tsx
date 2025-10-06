@@ -5,6 +5,7 @@ import { View } from 'react-native'
 import MusicCard from './MusicCard'
 import Subtitle from '@/components/text/Subtitle'
 import { memo, useMemo } from 'react'
+import { router } from 'expo-router'
 
 interface SongsListProps {
 	album: Album
@@ -76,6 +77,8 @@ const SongsList = memo(function SongsList({ album }: SongsListProps) {
 							setIsExpanded(true)
 							setSongQueue(flatListForQueue)
 						}
+
+						router.push('/audioPlayer')
 					}
 					return (
 						<MusicCard
@@ -107,6 +110,8 @@ const SongsList = memo(function SongsList({ album }: SongsListProps) {
 								setIsExpanded(true)
 								setSongQueue(flatListForQueue)
 							}
+
+							router.push('/audioPlayer')
 						}
 						return (
 							<MusicCard

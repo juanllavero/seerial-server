@@ -9,10 +9,12 @@ const AnimatedOptimizedImage = Animated.createAnimatedComponent(OptimizedImage)
 const AlignedImage = ({
 	imageUrl,
 	height = 200,
+	maxWidth = width,
 	className,
 }: {
 	imageUrl: string
 	height?: number
+	maxWidth?: number
 	className?: string
 }) => {
 	const [aspectRatio, setAspectRatio] = useState(1)
@@ -41,7 +43,11 @@ const AlignedImage = ({
 			className={className}
 			style={{
 				width,
-				height,
+				height:
+					width === maxWidth
+						? height
+						: Math.min(maxWidth / aspectRatio, height),
+				maxWidth: maxWidth,
 				alignItems: 'flex-start',
 			}}
 		>
@@ -52,6 +58,7 @@ const AlignedImage = ({
 					resizeMode: 'contain',
 					aspectRatio,
 					opacity: opacity,
+					maxWidth: maxWidth,
 				}}
 				onLoad={fadeIn}
 			/>

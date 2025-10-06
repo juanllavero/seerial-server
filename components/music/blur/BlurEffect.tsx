@@ -6,7 +6,6 @@ type BlurEffectProps = BlurViewProps & {
 }
 
 const BlurEffect: React.FC<BlurEffectProps> = ({ children, ...props }) => {
-	// Aquí usamos directamente BlurView porque sabemos que estamos en una plataforma nativa
 	return <BlurView {...props}>{children}</BlurView>
 }
 

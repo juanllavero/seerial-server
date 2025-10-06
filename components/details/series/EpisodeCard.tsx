@@ -8,10 +8,18 @@ import { SpatialNavigationFocusableView } from 'react-tv-space-navigation'
 interface EpisodeCardProps {
 	episode: Episode
 	width: number
+	episodesFocused: boolean
+	selectedEpisode: Episode | null
 	setSelectedEpisode: React.Dispatch<React.SetStateAction<Episode | null>>
 }
 
-function EpisodeCard({ episode, width, setSelectedEpisode }: EpisodeCardProps) {
+function EpisodeCard({
+	episode,
+	width,
+	episodesFocused,
+	selectedEpisode,
+	setSelectedEpisode,
+}: EpisodeCardProps) {
 	return (
 		<SpatialNavigationFocusableView
 			onSelect={() => {}}
@@ -27,6 +35,10 @@ function EpisodeCard({ episode, width, setSelectedEpisode }: EpisodeCardProps) {
 								height: width * (9 / 16),
 								borderWidth: 1.5,
 								borderRadius: 0,
+								opacity:
+									episodesFocused || selectedEpisode === episode
+										? 1
+										: 0.3,
 								borderColor: isFocused ? 'white' : 'transparent',
 							}}
 						/>

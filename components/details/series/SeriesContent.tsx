@@ -4,8 +4,8 @@ import { scaledPixels } from '@/hooks/useScale'
 import React, { useCallback, useEffect } from 'react'
 import { View } from 'react-native'
 import EpisodeCard from './EpisodeCard'
-import Button from '@/components/buttons/Button'
 import {
+	SpatialNavigationFocusableView,
 	SpatialNavigationNode,
 	SpatialNavigationView,
 } from 'react-tv-space-navigation'
@@ -17,10 +17,15 @@ import useDataStore from '@/context/data.context'
 
 interface SeriesContentProps {
 	series: Series
+	currentEpisode: Episode | null
 	setCurrentEpisode: React.Dispatch<React.SetStateAction<Episode | null>>
 }
 
-function SeriesContent({ series, setCurrentEpisode }: SeriesContentProps) {
+function SeriesContent({
+	series,
+	currentEpisode,
+	setCurrentEpisode,
+}: SeriesContentProps) {
 	const serverUrl = useServerStore((state) => state.serverUrl)
 	const setCurrentBackground = useDataStore(
 		(state) => state.setCurrentBackground
@@ -28,6 +33,7 @@ function SeriesContent({ series, setCurrentEpisode }: SeriesContentProps) {
 	const [selectedSeason, setSelectedSeason] = React.useState<Season | null>(
 		null
 	)
+	const [episodesFocused, setEpisodesFocused] = React.useState(true)
 
 	const { data: season } = useSWR<Season>(
 		serverUrl && selectedSeason
@@ -43,6 +49,14 @@ function SeriesContent({ series, setCurrentEpisode }: SeriesContentProps) {
 	}, [])
 
 	useEffect(() => {
+		setCurrentEpisode(
+			season && season.episodes && season.episodes.length > 0
+				? season.episodes[0]
+				: null
+		)
+	}, [season])
+
+	useEffect(() => {
 		if (
 			selectedSeason &&
 			selectedSeason.backgroundSrc &&
@@ -50,19 +64,22 @@ function SeriesContent({ series, setCurrentEpisode }: SeriesContentProps) {
 		) {
 			setCurrentBackground(selectedSeason.backgroundSrc)
 		}
-	}, [selectedSeason])
+	}, [selectedSeason, setCurrentBackground])
 
 	const renderEpisodeItem = useCallback(
 		({ item }: { item: Episode }) => (
 			<EpisodeCard
 				episode={item}
 				key={item.id}
+				episodesFocused={episodesFocused}
 				width={scaledPixels(170)}
+				selectedEpisode={currentEpisode}
 				setSelectedEpisode={setCurrentEpisode}
 			/>
 		),
-		[]
+		[currentEpisode]
 	)
+
 	return (
 		<View className='flex-1'>
 			<SpatialNavigationNode>

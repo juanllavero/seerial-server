@@ -1,26 +1,36 @@
 import React, { memo, useEffect, useRef } from 'react'
-import { StyleSheet, View, Animated, Easing, Dimensions } from 'react-native'
+import { StyleSheet, View, Animated, Easing } from 'react-native'
 import { useServerStore } from '@/context/server.context'
 import OptimizedImage from '../images/OptimizedImage'
+import { getImageUrl } from '@/utils/utils'
+import { scaledPixels } from '@/hooks/useScale'
 
-interface MusicGradientProps {
+interface AnimatedAlbumBackgroundProps {
 	imageUrl: string
 }
 
-const MusicGradient: React.FC<MusicGradientProps> = ({ imageUrl }) => {
+const AnimatedAlbumBackground: React.FC<AnimatedAlbumBackgroundProps> = ({
+	imageUrl,
+}) => {
 	const serverUrl = useServerStore((state) => state.serverUrl)
 	const spinAnim = useRef(new Animated.Value(0)).current
 
 	useEffect(() => {
-		// Inicia una animación en bucle infinito
-		Animated.loop(
+		const animation = Animated.loop(
 			Animated.timing(spinAnim, {
-				toValue: 1, // El valor de la animación irá de 0 a 1
-				duration: 40000, // 40 segundos, como en el CSS original
-				easing: Easing.linear, // Animación lineal sin aceleración
-				useNativeDriver: true, // Mejora el rendimiento al ejecutar la animación en el hilo de UI
+				toValue: 1,
+				duration: 40000,
+				easing: Easing.linear,
+				useNativeDriver: true,
 			})
-		).start()
+		)
+
+		animation.start()
+
+		return () => {
+			animation.stop()
+			spinAnim.setValue(0)
+		}
 	}, [spinAnim])
 
 	// Interpola el valor de la animación (0 a 1) a una rotación (0deg a 360deg)
@@ -35,12 +45,7 @@ const MusicGradient: React.FC<MusicGradientProps> = ({ imageUrl }) => {
 		outputRange: [1, 1.05],
 	})
 
-	const url = `${serverUrl}/${imageUrl.replace('resources/img', 'img')}`
-
-	// Calcula las dimensiones basadas en la altura de la pantalla para emular 'dvh'
-	const { height: screenHeight } = Dimensions.get('window')
-	const size60dvh = screenHeight * 0.6
-	const size90dvh = screenHeight * 0.9
+	const url = getImageUrl(serverUrl, imageUrl)
 
 	const animatedStyle = {
 		transform: [{ rotate: spin }, { scale: breathe }],
@@ -62,17 +67,49 @@ const MusicGradient: React.FC<MusicGradientProps> = ({ imageUrl }) => {
 					style={[
 						styles.spinnerBase,
 						{
-							width: size60dvh,
-							height: size60dvh,
+							width: scaledPixels(400),
+							height: scaledPixels(400),
+							top: '5%',
+							left: '5%',
+						},
+						animatedStyle,
+					]}
+				>
+					<OptimizedImage
+						source={{ uri: url }}
+						style={
+							(StyleSheet.absoluteFill,
+							styles.imageStyle,
+							{
+								width: scaledPixels(400),
+								height: scaledPixels(400),
+							})
+						}
+						resizeMode='cover'
+					/>
+				</Animated.View>
+				<Animated.View
+					style={[
+						styles.spinnerBase,
+						{
+							width: scaledPixels(300),
+							height: scaledPixels(300),
 							top: '0%',
-							left: '0%',
+							right: '10%',
 						},
 						animatedStyle,
 					]}
 				>
 					<OptimizedImage
 						source={{ uri: url }}
-						style={(StyleSheet.absoluteFill, styles.imageStyle)}
+						style={
+							(StyleSheet.absoluteFill,
+							styles.imageStyle,
+							{
+								width: scaledPixels(300),
+								height: scaledPixels(300),
+							})
+						}
 						resizeMode='cover'
 					/>
 				</Animated.View>
@@ -80,55 +117,24 @@ const MusicGradient: React.FC<MusicGradientProps> = ({ imageUrl }) => {
 					style={[
 						styles.spinnerBase,
 						{
-							width: size60dvh,
-							height: size60dvh,
-							top: '0%',
-							right: '0%',
-						},
-						animatedStyle,
-					]}
-				>
-					<OptimizedImage
-						source={{ uri: url }}
-						style={(StyleSheet.absoluteFill, styles.imageStyle)}
-						resizeMode='cover'
-					/>
-				</Animated.View>
-				<Animated.View
-					style={[
-						styles.spinnerBase,
-						{
-							width: size90dvh / 1.5,
-							height: size90dvh / 1.5,
-							top: '50%',
-							left: '50%',
-							marginLeft: -size90dvh / 3,
-							marginTop: -size90dvh / 3,
-						},
-						animatedStyle,
-					]}
-				>
-					<OptimizedImage
-						source={{ uri: url }}
-						style={(StyleSheet.absoluteFill, styles.imageStyle)}
-						resizeMode='cover'
-					/>
-				</Animated.View>
-				<Animated.View
-					style={[
-						styles.spinnerBase,
-						{
-							width: size60dvh,
-							height: size60dvh,
+							width: scaledPixels(300),
+							height: scaledPixels(300),
 							bottom: '0%',
-							left: '0%',
+							left: '10%',
 						},
 						animatedStyle,
 					]}
 				>
 					<OptimizedImage
 						source={{ uri: url }}
-						style={(StyleSheet.absoluteFill, styles.imageStyle)}
+						style={
+							(StyleSheet.absoluteFill,
+							styles.imageStyle,
+							{
+								width: scaledPixels(300),
+								height: scaledPixels(300),
+							})
+						}
 						resizeMode='cover'
 					/>
 				</Animated.View>
@@ -136,30 +142,28 @@ const MusicGradient: React.FC<MusicGradientProps> = ({ imageUrl }) => {
 					style={[
 						styles.spinnerBase,
 						{
-							width: size90dvh / 1.2,
-							height: size90dvh / 1.2,
-							bottom: '0%',
-							right: '0%',
+							width: scaledPixels(500),
+							height: scaledPixels(500),
+							bottom: '-20%',
+							right: '5%',
 						},
 						animatedStyle,
 					]}
 				>
 					<OptimizedImage
 						source={{ uri: url }}
-						style={(StyleSheet.absoluteFill, styles.imageStyle)}
+						style={
+							(StyleSheet.absoluteFill,
+							styles.imageStyle,
+							{
+								width: scaledPixels(500),
+								height: scaledPixels(500),
+							})
+						}
 						resizeMode='cover'
 					/>
 				</Animated.View>
 			</View>
-
-			{/* 3. Capa de desenfoque y brillo */}
-			{/* <BlurEffect
-				style={styles.blurOverlay}
-				blurType='dark'
-				blurAmount={100}
-			>
-				<View style={styles.brightnessOverlay} />
-			</BlurEffect> */}
 		</View>
 	)
 }
@@ -167,12 +171,13 @@ const MusicGradient: React.FC<MusicGradientProps> = ({ imageUrl }) => {
 const styles = StyleSheet.create({
 	container: {
 		position: 'absolute',
+		zIndex: 0,
 		top: 0,
 		left: 0,
 		width: '100%',
 		height: '100%',
 		overflow: 'hidden',
-		backgroundColor: '#111',
+		backgroundColor: 'black',
 	},
 	baseImage: {
 		position: 'absolute',
@@ -191,17 +196,10 @@ const styles = StyleSheet.create({
 	imageStyle: {
 		borderRadius: 10,
 	},
-	blurOverlay: {
-		position: 'absolute',
-		top: 0,
-		left: 0,
-		width: '100%',
-		height: '100%',
-	},
 	brightnessOverlay: {
 		...StyleSheet.absoluteFillObject,
-		backgroundColor: 'rgba(0, 0, 0, 0.3)',
+		backgroundColor: 'rgba(0, 0, 0, 0.05)',
 	},
 })
 
-export default memo(MusicGradient)
+export default memo(AnimatedAlbumBackground)

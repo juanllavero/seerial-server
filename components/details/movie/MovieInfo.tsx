@@ -24,23 +24,36 @@ function MovieInfo({ movie }: MovieInfoProps) {
 				<AlignedImage
 					className='pb-5'
 					height={scaledPixels(130)}
+					maxWidth={scaledPixels(500)}
 					imageUrl={movie.logoSrc}
 				/>
 			) : (
 				<Title>{movie.name}</Title>
 			)}
-			<View className='flex-row gap-3'>
-				<Tertiary>{getOnlyYear(movie.year)}</Tertiary>
-				{movie.videos && movie.videos.length === 1 && (
-					<Tertiary>{formatTimeForView(movie.videos[0].runtime)}</Tertiary>
-				)}
-			</View>
-			<View className='flex-row gap-3'>
-				<Tertiary>{movie.imdbScore}</Tertiary>
-			</View>
-			<Tertiary>{movie.genres.join(', ')}</Tertiary>
+			<View className='gap-1'>
+				<View className='flex-row gap-3'>
+					<Tertiary>{getOnlyYear(movie.year)}</Tertiary>
+					{movie.videos && movie.videos.length === 1 && (
+						<Tertiary>
+							{formatTimeForView(movie.videos[0].runtime)}
+						</Tertiary>
+					)}
+				</View>
+				<View className='flex-row gap-3'>
+					<Tertiary>{movie.imdbScore}</Tertiary>
+				</View>
+				<Tertiary>{movie.genres.join(', ')}</Tertiary>
 
-			<Tertiary>{movie.overview}</Tertiary>
+				<View
+					style={{
+						maxWidth: scaledPixels(500),
+						height: scaledPixels(40),
+						paddingTop: 3,
+					}}
+				>
+					<Tertiary>{movie.overview}</Tertiary>
+				</View>
+			</View>
 
 			<SpatialNavigationView
 				style={{

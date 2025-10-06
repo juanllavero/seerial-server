@@ -31,6 +31,7 @@ function SeriesInfo({ series, currentEpisode }: SeriesInfoProps) {
 				<AlignedImage
 					className='pb-5'
 					height={scaledPixels(120)}
+					maxWidth={scaledPixels(500)}
 					imageUrl={series.logoSrc}
 				/>
 			) : (

@@ -47,7 +47,9 @@ function MusicCard({ song, index, handlePlaySong }: MusicCardProps) {
 							<View className='flex-row items-center justify-start gap-5'>
 								<View className='w-8 justify-center items-center'>
 									{isPlaying && song.id === currentSong?.id ? (
-										<MusicWave />
+										<MusicWave
+											color={isFocused ? 'black' : 'white'}
+										/>
 									) : (
 										<Secondary
 											style={{

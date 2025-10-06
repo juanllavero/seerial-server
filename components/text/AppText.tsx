@@ -21,7 +21,7 @@ const AppText = ({
 		<Text
 			className={className}
 			onTextLayout={onTextLayout}
-			style={[styles.text, !noShadow && styles.shadow, style]}
+			style={[styles.text, style]}
 			{...props}
 		>
 			{children}
@@ -44,11 +44,11 @@ const styles = StyleSheet.create({
 			},
 		}),
 	},
-	shadow: {
-		textShadowColor: 'black',
-		textShadowOffset: { width: 0, height: 0 },
-		textShadowRadius: 10,
-	},
+	// shadow: {
+	// 	textShadowColor: 'black',
+	// 	textShadowOffset: { width: 0, height: 0 },
+	// 	textShadowRadius: 10,
+	// },
 })
 
 export default memo(AppText)

@@ -63,8 +63,16 @@ function LRCVisualizer() {
 	)
 
 	useEffect(() => {
-		if (lyrics && lyrics.length > 0) setSelectedLRCFile(lyrics[0])
-	}, [lyrics])
+		if (lyrics && lyrics.length > 0) {
+			const firstLyric = lyrics[0]
+			if (
+				!selectedLRCFile ||
+				selectedLRCFile.content !== firstLyric.content
+			) {
+				setSelectedLRCFile(firstLyric)
+			}
+		}
+	}, [lyrics, selectedLRCFile])
 
 	useEffect(() => {
 		if (selectedLRCFile) {
@@ -119,33 +127,31 @@ function LRCVisualizer() {
 	if (!lyrics || lyrics.length === 0) return null
 
 	return (
-		<View className='p-x-[0.5rem] @container flex h-full flex-col gap-1 rounded-lg'>
-			<ScrollView
-				ref={scrollViewRef}
-				showsHorizontalScrollIndicator={false}
-				onLayout={handleScrollViewLayout}
-				className='w-full flex-grow overflow-x-hidden overflow-y-auto'
-				scrollEventThrottle={16}
-			>
-				<View className='space-y-10 px-6 py-8'>
-					{lyrics && lyrics.length > 0 ? (
-						lines.map((line, index) => (
-							<LyricLine
-								key={index}
-								lineText={line.text}
-								isCurrent={index === currentLineIndex}
-								isPast={index < currentLineIndex}
-								onLayout={createLineLayoutHandler(index)}
-							/>
-						))
-					) : (
-						<View className='flex h-full min-h-[300px] w-full items-center justify-center'>
-							<AppText>{'No Lyrics Found'}</AppText>
-						</View>
-					)}
-				</View>
-			</ScrollView>
-		</View>
+		<ScrollView
+			ref={scrollViewRef}
+			showsHorizontalScrollIndicator={false}
+			onLayout={handleScrollViewLayout}
+			className='w-full flex-grow overflow-x-hidden overflow-y-auto'
+			scrollEventThrottle={16}
+		>
+			<View className='space-y-10 px-6 py-8'>
+				{lyrics && lyrics.length > 0 ? (
+					lines.map((line, index) => (
+						<LyricLine
+							key={index}
+							lineText={line.text}
+							isCurrent={index === currentLineIndex}
+							isPast={index < currentLineIndex}
+							onLayout={createLineLayoutHandler(index)}
+						/>
+					))
+				) : (
+					<View className='flex h-full min-h-[300px] w-full items-center justify-center'>
+						<AppText>{'No Lyrics Found'}</AppText>
+					</View>
+				)}
+			</View>
+		</ScrollView>
 	)
 }
 

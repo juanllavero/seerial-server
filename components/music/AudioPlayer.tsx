@@ -64,11 +64,15 @@ const AudioPlayer = () => {
 		<Video
 			ref={playerRef}
 			source={{
-				uri: `${serverUrl}/audio-stream?path=${currentSong.fileSrc}&isWeb=true`,
+				uri: `${serverUrl}/audio-stream?path=${currentSong.fileSrc}&isWeb=false`,
 			}}
 			paused={!isPlaying}
 			volume={volume}
-			style={{ position: 'absolute', top: '-100%' }}
+			style={{
+				position: 'absolute',
+				top: '-100%',
+				display: 'none',
+			}}
 			playInBackground={true}
 			onLoad={handleOnLoad}
 			onProgress={handleOnProgress}
