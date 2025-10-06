@@ -15,7 +15,7 @@ import { useIsAdmin } from '@/hooks/useIsAdmin'
 
 const ServerSettings = () => {
   const { t } = useTranslation()
-  const serverStatus = useServerStore((state) => state.serverStatus)
+  const server = useServerStore((state) => state.server)
   const { settingsSection, setSettingsSection } = useSettingsStore(
     (state) => ({
       settingsSection: state.settingsSection,
@@ -53,7 +53,7 @@ const ServerSettings = () => {
             </span>
           </SidebarMenuButton>
         </SidebarMenuItem>
-        {serverStatus && (
+        {server && (
           <>
             <SidebarMenuItem>
               <SidebarMenuButton

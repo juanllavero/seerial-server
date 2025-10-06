@@ -1,12 +1,12 @@
 import { useEffect, useRef } from 'react'
 import { useServerStore } from '@/context/server.context'
 import { Album } from '@/data/interfaces/Music'
-import { authenticatedFetcher } from '@/utils/utils'
 import useSWR from 'swr'
 import { memo } from 'react'
 import useMusicStore from '@/context/music.context'
 import { shallow } from 'zustand/shallow'
 import { useGradientStore } from '@/context/gradientBackground.context'
+import { authenticatedFetcher } from '@/lib/auth'
 
 function MusicPlayer() {
   const { currentSong, initializeAudioRef, getAudioSrc, setAlbum } =

@@ -1,7 +1,7 @@
 import useMusicStore from '@/context/music.context'
 import { useServerStore } from '@/context/server.context'
 import { LRCFile, LRCLine } from '@/data/interfaces/Music'
-import { authenticatedFetcher, getLanguageName } from '@/utils/utils'
+import { getLanguageName } from '@/utils/utils'
 import { useState, useEffect, useRef, memo } from 'react'
 import useSWR from 'swr'
 import Loading from '@/components/Loading'
@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select'
 import { shallow } from 'zustand/shallow'
 import { useIsMobile } from '@/components/hooks/use-mobile'
+import { authenticatedFetcher } from '@/lib/auth'
 
 const LRCVisualizer = () => {
   const { t } = useTranslation()

@@ -18,9 +18,8 @@ import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
 import { Movie } from '@/data/interfaces/Media'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
-import { authenticatedFetch } from '@/lib/auth'
+import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { formatTimeForView } from '@/utils/ReactUtils'
-import { authenticatedFetcher } from '@/utils/utils'
 import { t } from 'i18next'
 import { Pencil } from 'lucide-react'
 import { useEffect } from 'react'
@@ -70,7 +69,7 @@ function MovieDetailsPage() {
 
   // Mutate content on ws message
   useEffect(() => {
-    if (wsMessage === MessageType.MUTATE_MOVIE) {
+    if (wsMessage?.header === MessageType.MUTATE_MOVIE) {
       mutate()
     }
   }, [wsMessage, mutate])

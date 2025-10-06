@@ -3,7 +3,6 @@ import { useServerStore } from '@/context/server.context'
 import { Collection, Library, LibraryItem } from '@/data/interfaces/Media'
 import { Album } from '@/data/interfaces/Music'
 import { useReorderableList } from '@/hooks/useReorderableList'
-import { authenticatedFetcher } from '@/utils/utils'
 import {
   DndContext,
   PointerSensor,
@@ -15,6 +14,7 @@ import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable'
 import useSWR from 'swr'
 import AlbumCard from '../cards/AlbumCard'
 import CollectionCard from '../cards/CollectionCard'
+import { authenticatedFetcher } from '@/lib/auth'
 
 interface AlbumListProps {
   library: Library

@@ -4,12 +4,12 @@ import { MessageType } from '@/data/enums/WSMessage'
 import { Library } from '@/data/interfaces/Media'
 import { useCardWidth } from '@/hooks/useCardWidth'
 import NoContent from '@/pages/home/components/NoContent'
-import { authenticatedFetcher } from '@/utils/utils'
 import { memo, useEffect } from 'react'
 import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
 import LibraryContent from './LibraryContent'
 import LibraryPageSkeleton from './LibraryPageSkeleton'
+import { authenticatedFetcher } from '@/lib/auth'
 
 interface LibraryPageContentProps {
   libraryId: string

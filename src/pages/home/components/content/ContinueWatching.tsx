@@ -4,11 +4,11 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useServerStore } from '@/context/server.context'
 import { Video } from '@/data/interfaces/Media'
 import { getVideoProgress } from '@/utils/ReactUtils'
-import { authenticatedFetcher } from '@/utils/utils'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
 import HorizontalList from '../../../../components/lists/HorizontalList'
+import { authenticatedFetcher } from '@/lib/auth'
 
 interface ContinueWatchingProps {
   goToContent: (url: string) => void

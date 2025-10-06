@@ -11,8 +11,7 @@ import ImageListTab from '../components/ImageListTab'
 import SeasonInfoTab from './components/SeasonInfoTab'
 import { shallow } from 'zustand/shallow'
 import MediaTab from '../MediaTab'
-import { authenticatedFetcher } from '@/utils/utils'
-import { authenticatedFetch } from '@/lib/auth'
+import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 
 function SeasonDialog() {
   const { t } = useTranslation()

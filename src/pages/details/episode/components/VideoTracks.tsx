@@ -8,10 +8,9 @@ import {
   AudioTrack,
   SubtitleTrack,
 } from '@/data/interfaces/MediaInfo'
-import { authenticatedFetch } from '@/lib/auth'
+import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { useLanguageName } from '@/localization/TrackLanguages'
 import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
-import { authenticatedFetcher } from '@/utils/utils'
 import { t } from 'i18next'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'

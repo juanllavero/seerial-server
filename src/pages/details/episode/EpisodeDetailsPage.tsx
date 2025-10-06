@@ -5,9 +5,8 @@ import LazyImage from '@/components/ui/LazyImage'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
-import { authenticatedFetch } from '@/lib/auth'
+import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { formatDate } from '@/utils/ReactUtils'
-import { authenticatedFetcher } from '@/utils/utils'
 import { PlayIcon } from 'lucide-react'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -49,7 +48,7 @@ function EpisodeDetailsPage() {
 
   // Mutate content on ws message
   useEffect(() => {
-    if (wsMessage === MessageType.MUTATE_SEASON) {
+    if (wsMessage?.header === MessageType.MUTATE_SEASON) {
       mutate()
     }
   }, [wsMessage, mutate])

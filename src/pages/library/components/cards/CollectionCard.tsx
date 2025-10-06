@@ -11,8 +11,8 @@ import { useNavigate } from 'react-router-dom'
 import ParentCard from './ParentCard'
 import { getPosterImage } from '@/utils/ReactUtils'
 import useSWR from 'swr'
-import { authenticatedFetcher } from '@/utils/utils'
 import { shallow } from 'zustand/shallow'
+import { authenticatedFetcher } from '@/lib/auth'
 
 interface CollectionCardProps {
   libraryId: string

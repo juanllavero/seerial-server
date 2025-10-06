@@ -21,7 +21,6 @@ import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { LibraryTypes } from '@/data/enums/LibraryTypes'
 import { Library } from '@/data/interfaces/Media'
-import { authenticatedFetcher } from '@/utils/utils'
 import { t } from 'i18next'
 import {
   Film,
@@ -38,7 +37,7 @@ import { useNavigate } from 'react-router-dom'
 import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
 import SmallSpinner from './loading/SmallSpinner'
-import { authenticatedFetch } from '@/lib/auth'
+import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 
 interface Item {

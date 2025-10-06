@@ -8,9 +8,8 @@ import {
   SubtitleTrack,
   VideoTrack,
 } from '@/data/interfaces/MediaInfo'
-import { authenticatedFetch } from '@/lib/auth'
+import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
-import { authenticatedFetcher } from '@/utils/utils'
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 

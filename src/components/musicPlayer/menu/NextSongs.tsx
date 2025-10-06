@@ -4,12 +4,12 @@ import LazyImage from '@/components/ui/LazyImage'
 import useMusicStore from '@/context/music.context'
 import { useServerStore } from '@/context/server.context'
 import { formatTime } from '@/utils/ReactUtils'
-import { authenticatedFetcher } from '@/utils/utils'
 import useSWR from 'swr'
 import './NextSongs.css'
 import { useTranslation } from 'react-i18next'
 import { shallow } from 'zustand/shallow'
 import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
+import { authenticatedFetcher } from '@/lib/auth'
 
 function NextSongs() {
   const { t } = useTranslation()

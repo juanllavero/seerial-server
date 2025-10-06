@@ -13,10 +13,9 @@ import { shallow } from 'zustand/shallow'
 
 function ServerGeneral({ isLoaded }: { isLoaded: boolean }) {
   const { t } = useTranslation()
-  const { serverUrl, serverVersion } = useServerStore(
+  const { serverUrl } = useServerStore(
     (state) => ({
       serverUrl: state.serverUrl,
-      serverVersion: state.serverVersion,
     }),
     shallow,
   )
@@ -81,7 +80,7 @@ function ServerGeneral({ isLoaded }: { isLoaded: boolean }) {
     <ContentWrapper group={t('server')} section={t('generalButton')}>
       <FlexBox wrap="wrap" gap={2} align="center">
         <span>
-          {t('version')} {serverVersion}
+          {t('version')} {'None'}
         </span>
         <Button variant={'secondary'} onClick={handleSearchUpdates}>
           <CloudDownload className="mr-3" />

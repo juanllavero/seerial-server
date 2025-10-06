@@ -7,7 +7,6 @@ import {
   Series,
 } from '@/data/interfaces/Media'
 import { useReorderableList } from '@/hooks/useReorderableList'
-import { authenticatedFetcher } from '@/utils/utils'
 import {
   DndContext,
   PointerSensor,
@@ -19,6 +18,7 @@ import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable'
 import useSWR from 'swr'
 import CollectionCard from '../cards/CollectionCard'
 import SeriesCard from '../cards/SeriesCard'
+import { authenticatedFetcher } from '@/lib/auth'
 
 interface SeriesListProps {
   library: Library

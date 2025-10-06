@@ -18,7 +18,6 @@ import AlbumCard from '@/pages/library/components/cards/AlbumCard'
 import MovieCard from '@/pages/library/components/cards/MovieCard'
 import SeriesCard from '@/pages/library/components/cards/SeriesCard'
 import { CollectionKey, ContentType } from '@/types/types'
-import { authenticatedFetcher } from '@/utils/utils'
 import { Ellipsis, Pencil } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -31,7 +30,7 @@ import { SortableHorizontalList } from '@/components/lists/SortableHorizontalLis
 import { arrayMove } from '@dnd-kit/sortable'
 import { getCoverSize, getTitleSize } from '@/utils/ReactUtils'
 import useScreenHeight from '@/components/hooks/use-height'
-import { authenticatedFetch } from '@/lib/auth'
+import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 function CollectionDetailsPage() {
   const { collectionId, type } = useParams()
@@ -87,7 +86,7 @@ function CollectionDetailsPage() {
 
   // Mutate content on ws message
   useEffect(() => {
-    if (wsMessage === MessageType.MUTATE_LIBRARY) {
+    if (wsMessage?.header === MessageType.MUTATE_LIBRARY) {
       mutate()
     }
   }, [wsMessage, mutate])

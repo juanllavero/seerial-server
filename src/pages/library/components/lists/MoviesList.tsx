@@ -7,7 +7,6 @@ import {
   Movie,
 } from '@/data/interfaces/Media'
 import { useReorderableList } from '@/hooks/useReorderableList'
-import { authenticatedFetcher } from '@/utils/utils'
 import {
   closestCenter,
   DndContext,
@@ -19,6 +18,7 @@ import { rectSortingStrategy, SortableContext } from '@dnd-kit/sortable'
 import useSWR from 'swr'
 import CollectionCard from '../cards/CollectionCard'
 import MovieCard from '../cards/MovieCard'
+import { authenticatedFetcher } from '@/lib/auth'
 
 interface MoviesListProps {
   library: Library

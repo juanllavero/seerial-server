@@ -31,10 +31,10 @@ import { useTranslation } from 'react-i18next'
 import { shallow } from 'zustand/shallow'
 import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
 import { LRCFile } from '@/data/interfaces/Music'
-import { authenticatedFetcher } from '@/utils/utils'
 import useSWR from 'swr'
 import { useServerStore } from '@/context/server.context'
 import { stat } from 'fs'
+import { authenticatedFetcher } from '@/lib/auth'
 
 interface MusicControlsExpandedProps {
   title: string

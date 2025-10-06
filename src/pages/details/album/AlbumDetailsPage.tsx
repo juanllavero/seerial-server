@@ -14,7 +14,7 @@ import '../DetailsPage.css'
 import AlbumInfo from './components/AlbumInfo'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import { useGradientStore } from '@/context/gradientBackground.context'
-import { authenticatedFetcher } from '@/utils/utils'
+import { authenticatedFetcher } from '@/lib/auth'
 
 function AlbumDetailsPage() {
   const { albumId } = useParams()
@@ -43,7 +43,7 @@ function AlbumDetailsPage() {
   }, [album])
 
   useEffect(() => {
-    if (wsMessage === MessageType.MUTATE_ALBUM) {
+    if (wsMessage?.header === MessageType.MUTATE_ALBUM) {
       mutate()
     }
   }, [wsMessage, mutate])

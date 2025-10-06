@@ -14,8 +14,7 @@ import DownloadMediaCard from './DownloadMediaCard'
 import DownloadMediaCardSkeleton from './DownloadMediaCardSkeleton'
 import { shallow } from 'zustand/shallow'
 import useSWR from 'swr'
-import { authenticatedFetcher } from '@/utils/utils'
-import { authenticatedFetch } from '@/lib/auth'
+import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 
 function DownloadMediaSearch() {
   const { t } = useTranslation()

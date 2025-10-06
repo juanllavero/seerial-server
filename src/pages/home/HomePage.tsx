@@ -2,7 +2,6 @@ import LoadingInsideSidebar from '@/components/LoadingInsideSidebar'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { Library } from '@/data/interfaces/Media'
-import { authenticatedFetcher } from '@/utils/utils'
 import { useEffect } from 'react'
 import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
@@ -11,6 +10,7 @@ import NoContent from './components/NoContent'
 import NoServer from './components/NoServer'
 import NotAvailableServer from './components/NotAvailableServer'
 import HomePageContent from './components/content/HomePageContent'
+import { authenticatedFetcher } from '@/lib/auth'
 
 export default function HomePage() {
   const {

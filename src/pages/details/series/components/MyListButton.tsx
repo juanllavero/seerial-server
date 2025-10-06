@@ -1,8 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { AddToListIcon, RemoveFromListIcon } from '@/components/ui/IconLibrary'
 import { useServerStore } from '@/context/server.context'
-import { authenticatedFetch } from '@/lib/auth'
-import { authenticatedFetcher } from '@/utils/utils'
+import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { t } from 'i18next'
 import useSWR from 'swr'
 

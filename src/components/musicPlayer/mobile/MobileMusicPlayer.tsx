@@ -7,9 +7,9 @@ import { shallow } from 'zustand/shallow'
 import LRCVisualizer from '../lyrics/LRCVisualizer'
 import { useServerStore } from '@/context/server.context'
 import { LRCFile } from '@/data/interfaces/Music'
-import { authenticatedFetcher } from '@/utils/utils'
 import useSWR from 'swr'
 import MusicGradient from '@/layouts/backgrounds/MusicGradient'
+import { authenticatedFetcher } from '@/lib/auth'
 
 const MobileMusicPlayer = () => {
   const {

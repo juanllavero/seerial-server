@@ -17,3 +17,17 @@ export async function authenticatedFetch(
 
   return await fetch(url, options)
 }
+
+/**
+ * Fetches data from a given URL and returns the parsed JSON response.
+ *
+ * @param url - The URL to fetch data from.
+ * @param token - The token to use for authentication.
+ * @returns A promise that resolves to the parsed JSON data.
+ */
+export const authenticatedFetcher = async (url: string) => {
+  const res = await fetch(url, {
+    credentials: 'include',
+  })
+  return await res.json()
+}
