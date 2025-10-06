@@ -10,6 +10,7 @@ import {
   toggleSeriesWatched,
 } from '@/utils/ReactUtils'
 import { Pencil } from 'lucide-react'
+import { memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { shallow } from 'zustand/shallow'
@@ -116,4 +117,4 @@ function SeriesCard({ series, remainingEpisodes }: SeriesCardProps) {
   )
 }
 
-export default SeriesCard
+export default memo(SeriesCard)

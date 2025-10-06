@@ -1,20 +1,20 @@
-import { Collection, Library, LibraryItem } from '@/data/interfaces/Media'
-import AlbumCard from '../cards/AlbumCard'
-import CollectionCard from '../cards/CollectionCard'
-import { Album } from '@/data/interfaces/Music'
-import useSWR from 'swr'
-import { authenticatedFetcher } from '@/utils/utils'
-import { useServerStore } from '@/context/server.context'
 import { SortableItem } from '@/components/lists/SortableItem'
+import { useServerStore } from '@/context/server.context'
+import { Collection, Library, LibraryItem } from '@/data/interfaces/Media'
+import { Album } from '@/data/interfaces/Music'
 import { useReorderableList } from '@/hooks/useReorderableList'
+import { authenticatedFetcher } from '@/utils/utils'
 import {
-  useSensors,
-  useSensor,
-  PointerSensor,
   DndContext,
+  PointerSensor,
   closestCenter,
+  useSensor,
+  useSensors,
 } from '@dnd-kit/core'
 import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable'
+import useSWR from 'swr'
+import AlbumCard from '../cards/AlbumCard'
+import CollectionCard from '../cards/CollectionCard'
 
 interface AlbumListProps {
   library: Library
@@ -23,7 +23,7 @@ interface AlbumListProps {
 
 function AlbumList({ library, mutateLibrary }: AlbumListProps) {
   const serverUrl = useServerStore((state) => state.serverUrl)
-  const { data, isLoading } = useSWR(
+  const { data, isLoading } = useSWR<LibraryItem[]>(
     serverUrl !== ''
       ? `${serverUrl}/library-content?libraryId=${library.id}&type=Music`
       : null,

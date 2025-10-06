@@ -27,7 +27,7 @@ interface SeriesListProps {
 
 function SeriesList({ library, mutateLibrary }: SeriesListProps) {
   const serverUrl = useServerStore((state) => state.serverUrl)
-  const { data, isLoading } = useSWR(
+  const { data, isLoading } = useSWR<LibraryItem[]>(
     serverUrl !== ''
       ? `${serverUrl}/library-content?libraryId=${library.id}&type=Shows`
       : null,

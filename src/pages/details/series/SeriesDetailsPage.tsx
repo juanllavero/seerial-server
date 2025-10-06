@@ -79,8 +79,8 @@ function SeriesDetailsPage() {
   // Mutate content on ws message
   useEffect(() => {
     if (
-      wsMessage === MessageType.MUTATE_SERIES ||
-      wsMessage === MessageType.MUTATE_SEASON
+      wsMessage?.header === MessageType.MUTATE_SERIES ||
+      wsMessage?.header === MessageType.MUTATE_SEASON
     ) {
       mutateSeries()
     }

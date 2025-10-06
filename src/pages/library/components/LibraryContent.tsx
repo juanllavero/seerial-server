@@ -3,6 +3,7 @@ import Grid from '@/components/ui/Grid'
 import { LibraryTypes } from '@/data/enums/LibraryTypes'
 import { Library } from '@/data/interfaces/Media'
 import { useCardWidth } from '@/hooks/useCardWidth'
+import { memo } from 'react'
 import AlbumList from './lists/AlbumList'
 import MoviesList from './lists/MoviesList'
 import SeriesList from './lists/SeriesList'
@@ -46,4 +47,4 @@ function LibraryContent({ library, mutateLibrary }: LibraryContentProps) {
   )
 }
 
-export default LibraryContent
+export default memo(LibraryContent)

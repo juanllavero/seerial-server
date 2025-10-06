@@ -11,7 +11,7 @@ interface WebSocketMessage {
 
 interface WebSocketState {
   ws: WebSocket | null
-  wsMessage: MessageType
+  wsMessage: WebSocketMessage | null
   errorDownloading: boolean
   downloading: boolean
   downloaded: boolean
@@ -49,7 +49,7 @@ interface WebSocketState {
 export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
   (set, get) => ({
     ws: null,
-    wsMessage: MessageType.NO_MESSAGE,
+    wsMessage: null,
     wsConnected: false,
     messageQueue: [],
     analyzing: false,
@@ -141,7 +141,7 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
                 set({ analyzing: false, analyzingLibraryId: null })
                 break
               default:
-                set({ wsMessage: message.header })
+                set({ wsMessage: message })
             }
 
             // Add all messages to queue for external processing

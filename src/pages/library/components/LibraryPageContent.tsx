@@ -5,11 +5,11 @@ import { Library } from '@/data/interfaces/Media'
 import { useCardWidth } from '@/hooks/useCardWidth'
 import NoContent from '@/pages/home/components/NoContent'
 import { authenticatedFetcher } from '@/utils/utils'
-import { useEffect } from 'react'
+import { memo, useEffect } from 'react'
 import useSWR from 'swr'
+import { shallow } from 'zustand/shallow'
 import LibraryContent from './LibraryContent'
 import LibraryPageSkeleton from './LibraryPageSkeleton'
-import { shallow } from 'zustand/shallow'
 
 interface LibraryPageContentProps {
   libraryId: string
@@ -22,8 +22,8 @@ function LibraryPageContent({
   serverUrl,
   type,
 }: LibraryPageContentProps) {
-  const { cardWidth } = useCardWidth()
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
+  const { cardWidth } = useCardWidth()
   const { selectedLibraryId, selectLibrary } = useDataStore(
     (state) => ({
       selectedLibraryId: state.selectedLibraryId,
@@ -41,18 +41,26 @@ function LibraryPageContent({
   )
 
   useEffect(() => {
+    if (
+      (wsMessage?.header === MessageType.MUTATE_LIBRARY ||
+        wsMessage?.header === MessageType.SCAN_COMPLETE ||
+        wsMessage?.header === MessageType.MUTATE_COLLECTION ||
+        wsMessage?.header === MessageType.MUTATE_MOVIE ||
+        wsMessage?.header === MessageType.MUTATE_SERIES ||
+        wsMessage?.header === MessageType.MUTATE_ALBUM) &&
+      wsMessage.body.libraryId === libraryId
+    ) {
+      console.log('Updating all')
+      mutate()
+    }
+    console.log('Message recieved but no mutation')
+  }, [wsMessage, mutate])
+
+  useEffect(() => {
     if (library && library.id !== selectedLibraryId) {
       selectLibrary(library.id)
     }
   }, [library?.id, selectedLibraryId, selectLibrary])
-
-  // Mutate content on ws message
-  useEffect(() => {
-    if (wsMessage === MessageType.MUTATE_LIBRARY) {
-      console.log('wsMessage:', wsMessage)
-      mutate()
-    }
-  }, [wsMessage, mutate])
 
   if (isLoading) {
     return <LibraryPageSkeleton cardWidth={cardWidth} type={type} />
@@ -65,4 +73,4 @@ function LibraryPageContent({
   return <LibraryContent library={library} mutateLibrary={mutate} />
 }
 
-export default LibraryPageContent
+export default memo(LibraryPageContent)

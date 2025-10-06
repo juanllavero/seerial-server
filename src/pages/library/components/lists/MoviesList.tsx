@@ -1,15 +1,13 @@
+import { SortableItem } from '@/components/lists/SortableItem'
+import { useServerStore } from '@/context/server.context'
 import {
   Collection,
   Library,
   LibraryItem,
   Movie,
 } from '@/data/interfaces/Media'
-import CollectionCard from '../cards/CollectionCard'
-import MovieCard from '../cards/MovieCard'
-import { useServerStore } from '@/context/server.context'
-import { authenticatedFetcher } from '@/utils/utils'
-import useSWR from 'swr'
 import { useReorderableList } from '@/hooks/useReorderableList'
+import { authenticatedFetcher } from '@/utils/utils'
 import {
   closestCenter,
   DndContext,
@@ -17,8 +15,10 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
-import { SortableItem } from '@/components/lists/SortableItem'
-import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable'
+import { rectSortingStrategy, SortableContext } from '@dnd-kit/sortable'
+import useSWR from 'swr'
+import CollectionCard from '../cards/CollectionCard'
+import MovieCard from '../cards/MovieCard'
 
 interface MoviesListProps {
   library: Library
@@ -27,7 +27,7 @@ interface MoviesListProps {
 
 function MoviesList({ library, mutateLibrary }: MoviesListProps) {
   const serverUrl = useServerStore((state) => state.serverUrl)
-  const { data, isLoading } = useSWR(
+  const { data, isLoading } = useSWR<LibraryItem[]>(
     serverUrl !== ''
       ? `${serverUrl}/library-content?libraryId=${library.id}&type=Movies`
       : null,
