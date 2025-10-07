@@ -17,6 +17,7 @@ import ApiError from "@/utils/ApiError";
 interface FormattedVideoInfo {
   title: string;
   subtitle: string;
+  info: string;
   preferAudioLan: string;
   preferSubtitleLan: string;
   subsMode: string;
@@ -50,7 +51,8 @@ export class MediaManager {
 
       return {
         title: series.name,
-        subtitle: `S${episode.seasonNumber}E${episode.episodeNumber}`,
+        subtitle: episode.name,
+        info: `S${episode.seasonNumber}E${episode.episodeNumber}`,
         preferAudioLan: series.preferAudioLan || library.preferAudioLan || "",
         preferSubtitleLan: series.preferSubLan || library.preferSubLan || "",
         subsMode: series.subsMode || library.subsMode || "",
@@ -68,7 +70,8 @@ export class MediaManager {
 
       return {
         title: movie.name,
-        subtitle: `(${year})`,
+        subtitle: "",
+        info: `${year}`,
         preferAudioLan: library.preferAudioLan || "",
         preferSubtitleLan: library.preferSubLan || "",
         subsMode: library.subsMode || "",

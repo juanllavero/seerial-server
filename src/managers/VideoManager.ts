@@ -89,7 +89,6 @@ export class VideoManager {
    */
   public static streamDirectVideoFile(req: any, res: any): void {
     const { path: videoPath } = req.videoParams;
-    console.log({ videoPath });
     if (!fs.existsSync(videoPath)) {
       throw new ApiError(404, messages.errors.notFound.video);
     }
