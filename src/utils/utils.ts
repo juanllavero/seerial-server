@@ -9,6 +9,33 @@ import { Video } from '../data/interfaces/Media'
  */
 export const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
+export const iso1to3: Record<string, string> = {
+	es: 'spa',
+	en: 'eng',
+	pt: 'por',
+	fr: 'fre',
+	de: 'ger',
+	it: 'ita',
+	ru: 'rus',
+	ar: 'ara',
+	ja: 'jpn',
+	ko: 'kor',
+	zh: 'zho',
+	hi: 'hin',
+	pl: 'pol',
+	nl: 'dut',
+	sv: 'swe',
+	el: 'ell',
+	cs: 'ces',
+	ro: 'ron',
+	fi: 'fin',
+	tr: 'tur',
+	th: 'tha',
+	id: 'ind',
+	ms: 'msa',
+	ca: 'cat',
+}
+
 export let colors: string[] = []
 
 export const extractColorsFromImage = async (imgSrc: string) => {
@@ -151,18 +178,23 @@ export const getSubtitleTrack = (
 	) {
 		return video.subtitleTracks[video.selectedSubtitleTrack]
 	} else {
+		// Convert 2-letter code to 3-letter code
+		const targetLang = iso1to3[prefSubsLan] ?? prefSubsLan
+
+		const defaultTrack =
+			subsMode === 'alwaysSubs'
+				? video.subtitleTracks.length > 0
+					? video.subtitleTracks[0]
+					: null
+				: null
+
 		switch (subsMode) {
 			case 'autoSubs':
-				return (
-					video.subtitleTracks.find(
-						(track) => track.language === prefSubsLan
-					) ?? null
-				)
 			case 'alwaysSubs':
 				return (
-					video.subtitleTracks.find(
-						(track) => track.language === prefSubsLan
-					) ?? null
+					video.subtitleTracks.findLast(
+						(track) => track.languageTag === targetLang
+					) ?? defaultTrack
 				)
 			default:
 				return null

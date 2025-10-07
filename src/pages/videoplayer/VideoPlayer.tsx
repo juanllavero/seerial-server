@@ -1,38 +1,19 @@
 import { useServerStore } from '@/context/server.context'
 import { Video } from '@/data/interfaces/Media'
-import { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
 import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { invoke } from '@tauri-apps/api/core'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'react-router'
 import useSWR from 'swr'
-import { shallow } from 'zustand/shallow'
-
-interface VideoInfo {
-	title: string
-	subtitle: string
-	preferAudioLan: string
-	preferSubtitleLan: string
-	subsMode: string
-}
-
-type Track = [number, string]
+import TopBar from './components/TopBar'
+import Controls from './components/controls/Controls'
+import FlexBox from '@/components/ui/FlexBox'
+import Loading from '@/components/Loading'
 
 export default function VideoPlayer() {
 	const { videoId } = useParams()
-	const { user, serverUrl } = useServerStore(
-		(state) => ({
-			user: state.currentUser,
-			serverUrl: state.serverUrl,
-		}),
-		shallow
-	)
-	const [position, setPosition] = useState(0)
-	const [volume, setVolume] = useState(100)
-	const [zoom, setZoom] = useState(0)
-
-	const [audioTrack, setAudioTrack] = useState(1)
-	const [subtitleTrack, setSubtitleTrack] = useState(1)
+	const [showControls, setShowControls] = useState(true)
+	const serverUrl = useServerStore((state) => state.serverUrl)
 
 	// Get video data
 	const {
@@ -46,71 +27,9 @@ export default function VideoPlayer() {
 		authenticatedFetcher
 	)
 
-	// Get video info
-	// const { data: videoInfo, isLoading: loadingVideoInfo } = useSWR<VideoInfo>(
-	// 	videoId && serverUrl !== ''
-	// 		? `${serverUrl}/videoInfo?id=${videoId}`
-	// 		: null,
-	// 	authenticatedFetcher
-	// )
-
-	// Controls
-	const timeoutRef = useRef<NodeJS.Timeout | null>(null)
-	const [showControls, setShowControls] = useState(false)
-
-	// Timeline
-	const timelineRef = useRef<HTMLDivElement>(null)
-	const [wasPaused, setWasPaused] = useState(false)
-	const [isScrubbing, setIsScrubbing] = useState(false)
-
-	const videoRef = useRef<HTMLVideoElement | null>(null)
-	const [isPlaying, setIsPlaying] = useState(false)
-	const [showLoadingCircle, setShowLoadingCircle] = useState(false)
-	const [videoLoaded, setVideoLoaded] = useState(false)
-	const [isFullscreen, setIsFullscreen] = useState(false)
-	const [duration, setDuration] = useState(video ? video.runtime * 60 : 0)
-	const [timeOffset, setTimeOffset] = useState(0)
-	const [currentTime, setCurrentTime] = useState(0)
-	const [previewTime, setPreviewTime] = useState(0)
-
-	const watchedList = video?.watchLists?.find(
-		(list: any) => list.userId === user?.id
-	)
-
-	const timeWatched = watchedList?.timeWatched ?? 0
-
-	// State for triggering stream reload
-	const [streamStartTime, setStreamStartTime] = useState(timeWatched ?? 0)
-
-	const [selectedAudioTrack, setSelectedAudioTrack] =
-		useState<AudioTrack | null>(
-			video?.audioTracks?.find((track) => track.selected) || null
-		)
-	const [selectedSubtitleTrack, setSelectedSubtitleTrack] =
-		useState<SubtitleTrack | null>(
-			video?.subtitleTracks?.find((track) => track.selected) || null
-		)
-	const [tracks, setTracks] = useState<{
-		audioTracks: AudioTrack[]
-		subtitleTracks: SubtitleTrack[]
-	}>({
-		audioTracks: video?.audioTracks || [],
-		subtitleTracks: video?.subtitleTracks || [],
-	})
-
-	const [audioTracks] = useState<Track[]>([
-		[1, 'Audio 1'],
-		[2, 'Audio 2'],
-	])
-	const [subtitleTracks] = useState<Track[]>([
-		[0, 'No Subtitles'],
-		[1, 'English'],
-		[2, 'Spanish'],
-	])
-
-	const seeking = useRef(false)
-
 	const [videoSrc, setVideoSrc] = useState<string>('')
+	const [videoLoaded, setVideoLoaded] = useState(false)
+	const [videoError, setVideoError] = useState(false)
 
 	async function getSignedStreamUrl(video: any, serverUrl: string) {
 		const res = await authenticatedFetch(
@@ -129,228 +48,70 @@ export default function VideoPlayer() {
 	useEffect(() => {
 		if (!video || !serverUrl) return
 		getSignedStreamUrl(video, serverUrl).then(setVideoSrc)
-	}, [
-		video,
-		serverUrl,
-		streamStartTime,
-		selectedAudioTrack,
-		selectedSubtitleTrack,
-	])
-
-	useEffect(() => {
-		if (!video) return
-
-		if (timeWatched && timeWatched > 0) {
-			setStreamStartTime(timeWatched)
-			setTimeOffset(timeWatched)
-			setCurrentTime(timeWatched)
-		} else {
-			setStreamStartTime(0)
-			setTimeOffset(0)
-			setCurrentTime(0)
-		}
-	}, [video])
+	}, [video?.id, serverUrl])
 
 	useEffect(() => {
 		invoke('embed_mpv').catch(console.error)
 	}, [])
 
-	// Poll de posición cada 500ms, si no estamos haciendo seek manual
 	useEffect(() => {
-		const interval = setInterval(() => {
-			if (!seeking.current) {
-				invoke<number>('get_position')
-					.then(setPosition)
-					.catch(console.error)
-			}
-		}, 500)
-		return () => clearInterval(interval)
-	}, [])
+		if (
+			videoSrc &&
+			(videoSrc.startsWith('http') || videoSrc.startsWith('https'))
+		) {
+			loadVideo(videoSrc)
+		}
+	}, [videoSrc])
 
 	const loadVideo = async (url: string) => {
 		try {
-			console.log({ url })
 			await invoke('load_url', {
 				url: url,
 			})
-			const dur = await invoke<number>('get_duration')
-			const vol = await invoke<number>('get_volume')
 
-			setDuration(dur)
-			console.log({ dur })
-			setVolume(vol)
-			setPosition(0)
+			setVideoLoaded(true)
 		} catch (e) {
 			console.error(e)
+			setVideoLoaded(false)
+			setVideoError(true)
 		}
 	}
 
-	const handleSeekStart = () => {
-		seeking.current = true
+	if (!video || loadingVideo || !videoLoaded) {
+		return <Loading />
 	}
 
-	const handleSeekChange = (value: number) => {
-		setPosition(value)
-	}
-
-	const handleSeekEnd = async (value: number) => {
-		seeking.current = false
-		try {
-			const currentDur = await invoke<number>('get_duration')
-			const clamped = Math.max(0, Math.min(currentDur, value))
-			await invoke('set_position', { position: clamped })
-			setPosition(clamped)
-			setDuration(currentDur)
-		} catch (error) {
-			console.error('Seek set failed:', error)
-		}
-	}
-
-	const seekRelative = async (delta: number) => {
-		try {
-			const currentPos = await invoke<number>('get_position')
-			const currentDur = await invoke<number>('get_duration')
-
-			const newPos = Math.max(0, Math.min(currentDur, currentPos + delta))
-			await invoke('set_position', { position: newPos })
-			setPosition(newPos)
-			setDuration(currentDur) // opcional, por si se actualiza
-		} catch (error) {
-			console.error('Seek failed:', error)
-		}
-	}
-
-	const handleVolumeChange = async (vol: number) => {
-		setVolume(vol)
-		await invoke('set_volume', { volume: vol }).catch(console.error)
-	}
-
-	const handleZoomChange = async (zoomLevel: number) => {
-		setZoom(zoomLevel)
-		await invoke('set_zoom', { zoomLevel }).catch(console.error)
-	}
-
-	const handleAudioTrack = async (trackId: number) => {
-		setAudioTrack(trackId)
-		await invoke('set_audio_track', { trackId }).catch(console.error)
-	}
-
-	const handleSubtitleTrack = async (trackId: number) => {
-		setSubtitleTrack(trackId)
-		await invoke('set_subtitle_track', { trackId }).catch(console.error)
+	if (videoError) {
+		return <div>Error loading video.</div>
 	}
 
 	return (
-		<div
-			style={{
-				color: 'white',
-				backgroundColor: 'rgba(0,0,0,0.7)',
-				padding: '10px',
-				borderRadius: '5px',
+		<FlexBox
+			className='absolute w-full h-full'
+			css={{
+				backgroundColor: showControls
+					? 'rgba(0, 0, 0, 0.3)'
+					: 'transparent',
 			}}
-			className='absolute top-10 right-10'
+			width={'100%'}
+			height={'100%'}
+			justify='space-between'
+			direction='column'
 		>
-			<h1>MPV Video Controls</h1>
+			<TopBar />
 
-			<div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-				<button onClick={() => invoke('play')}>Play</button>
-				<button onClick={() => invoke('pause')}>Pause</button>
-				<button
-					onClick={() => {
-						invoke('stop')
-						invoke('embed_mpv').catch(console.error)
-					}}
-				>
-					Stop
-				</button>
-			</div>
-
-			<button
-				onClick={() => loadVideo(videoSrc)}
-				style={{ marginBottom: '10px' }}
+			<FlexBox
+				width={'100%'}
+				padding='1rem'
+				justify='center'
+				align='center'
+				css={{
+					background:
+						'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.8) 3%, rgba(0, 0, 0, 0.5) 50%, rgba(0, 0, 0, 0.3) 70%, rgba(0, 0, 0, 0) 100%)',
+				}}
 			>
-				Load Video
-			</button>
-
-			<div style={{ marginBottom: '10px' }}>
-				<label>Position: </label>
-				<input
-					type='range'
-					min={0}
-					max={duration}
-					step={0.1}
-					value={position}
-					onMouseDown={handleSeekStart}
-					onTouchStart={handleSeekStart}
-					onChange={(e) => handleSeekChange(parseFloat(e.target.value))}
-					onMouseUp={(e) =>
-						handleSeekEnd(
-							parseFloat((e.target as HTMLInputElement).value)
-						)
-					}
-					onTouchEnd={() => handleSeekEnd(position)}
-				/>
-				<div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
-					<button onClick={() => seekRelative(-10)}>-10s</button>
-					<span>
-						{position.toFixed(1)} / {duration.toFixed(1)}s
-					</span>
-					<button onClick={() => seekRelative(10)}>+10s</button>
-				</div>
-			</div>
-
-			<div style={{ marginBottom: '10px' }}>
-				<label>Volume: </label>
-				<input
-					type='range'
-					min={0}
-					max={100}
-					value={volume}
-					onChange={(e) => handleVolumeChange(parseInt(e.target.value))}
-				/>
-				<span> {volume}%</span>
-			</div>
-
-			<div style={{ marginBottom: '10px' }}>
-				<label>Audio Track: </label>
-				<select
-					value={audioTrack}
-					onChange={(e) => handleAudioTrack(parseInt(e.target.value))}
-				>
-					{audioTracks.map(([id, label]) => (
-						<option key={id} value={id}>
-							{label}
-						</option>
-					))}
-				</select>
-			</div>
-
-			<div style={{ marginBottom: '10px' }}>
-				<label>Subtitle Track: </label>
-				<select
-					value={subtitleTrack}
-					onChange={(e) => handleSubtitleTrack(parseInt(e.target.value))}
-				>
-					{subtitleTracks.map(([id, label]) => (
-						<option key={id} value={id}>
-							{label}
-						</option>
-					))}
-				</select>
-			</div>
-
-			<div style={{ marginBottom: '10px' }}>
-				<label>Zoom: </label>
-				<input
-					type='range'
-					min={-3}
-					max={5}
-					step={0.1}
-					value={zoom}
-					onChange={(e) => handleZoomChange(parseFloat(e.target.value))}
-				/>
-				<span> {zoom.toFixed(1)}x</span>
-			</div>
-		</div>
+				<Controls video={video} mutateVideo={mutate} />
+			</FlexBox>
+		</FlexBox>
 	)
 }

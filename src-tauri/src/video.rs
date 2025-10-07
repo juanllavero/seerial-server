@@ -119,6 +119,14 @@ pub fn pause(state: State<MpvState>) -> Result<(), String> {
 }
 
 #[tauri::command]
+pub fn toggle_play_pause(state: State<MpvState>) -> Result<(), String> {
+    state.with_mpv(|mpv| {
+        let is_paused: bool = mpv.get_property("pause")?;
+        mpv.set_property("pause", !is_paused)
+    })
+}
+
+#[tauri::command]
 pub fn stop(state: State<MpvState>) -> Result<(), String> {
     // Primero intentamos parar el video actual
     let _ = state.with_mpv(|mpv| mpv.command("stop", &[]));

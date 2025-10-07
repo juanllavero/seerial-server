@@ -260,3 +260,12 @@ export interface WatchList {
 	timeWatched?: number
 	lastWatched?: string
 }
+
+export interface VideoInfo {
+	title: string
+	subtitle: string
+	info: string
+	preferAudioLan: string
+	preferSubtitleLan: string
+	subsMode: string
+}

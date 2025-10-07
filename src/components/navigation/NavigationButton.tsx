@@ -9,8 +9,9 @@ interface FocusableButtonProps {
 	icon?: React.ReactElement
 	children?: React.ReactNode
 	disabled?: boolean
-	onClick?: () => void
+	onClick?: (e: React.MouseEvent) => void
 	customKey?: string
+	transparent?: boolean
 }
 
 function FocusableButton({
@@ -22,6 +23,7 @@ function FocusableButton({
 	disabled,
 	onClick,
 	customKey,
+	transparent = false,
 }: FocusableButtonProps) {
 	const { ref, focused } = useFocusable({
 		onEnterPress: onClick,
@@ -32,7 +34,7 @@ function FocusableButton({
 		<Button
 			ref={ref}
 			title={title}
-			className={`${className} ${focused ? 'bg-muted-foreground' : ''}`}
+			className={`${className} hover:text-black ${focused ? 'bg-muted-foreground' : transparent ? 'text-white bg-transparent' : ''}`}
 			disabled={disabled}
 			onClick={onClick}
 		>
