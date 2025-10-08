@@ -46,13 +46,7 @@ function TopBar() {
 			customFocusKey='topBar'
 			className='relative flex justify-between items-center w-screen px-5 py-8'
 		>
-			<div>
-				<FocusableButton
-					customKey='user'
-					title={'User'}
-					icon={<User onClick={() => {}} />}
-				/>
-			</div>
+			<img src='/Seerial_logo.svg' alt='Logo' className='w-[5dvh]' />
 			<div className='flex gap-2'>
 				<FocusableButton customKey='home' onClick={() => navigate('/home')}>
 					Home

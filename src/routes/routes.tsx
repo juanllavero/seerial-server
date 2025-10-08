@@ -7,7 +7,7 @@ import AlbumDetails from '../pages/details/album/AlbumDetails'
 import CollectionDetails from '../pages/details/collection/CollectionDetails'
 import VideoPlayer from '../pages/videoplayer/VideoPlayer'
 import Root from './root'
-import SideBarLayout from '@/pages/sidebarLayout/SideBarLayout'
+import TopBarLayout from '@/pages/topBarLayout/TopBarLayout'
 import LoginPage from '@/pages/login/LoginPage'
 import UsersPage from '@/pages/users/UsersPage'
 
@@ -18,7 +18,7 @@ export function AppRoutes() {
 				<Route path='/login' element={<LoginPage />} />
 				<Route path='/users' element={<UsersPage />} />
 				<Route index element={<Navigate to='/home' replace />} />
-				<Route element={<SideBarLayout />}>
+				<Route element={<TopBarLayout />}>
 					<Route path='/home' element={<Home />} />
 					<Route path='/home2' element={<VideoPlayer />} />
 					<Route index element={<Navigate to='library' replace />} />

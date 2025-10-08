@@ -20,7 +20,7 @@ export interface CollectionImages {
 }
 
 export interface LibraryItem {
-	type: string
+	type: 'collection' | 'movies' | 'shows' | 'albums'
 	order: number
 	data: {
 		id: string

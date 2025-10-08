@@ -1,7 +1,7 @@
 import BaseLayout from '@/layouts/BaseLayout'
 import { Outlet } from 'react-router'
 
-function SideBarLayout() {
+function TopBarLayout() {
 	return (
 		<BaseLayout>
 			<Outlet />
@@ -9,4 +9,4 @@ function SideBarLayout() {
 	)
 }
 
-export default SideBarLayout
+export default TopBarLayout

@@ -65,7 +65,7 @@ function LibraryPage() {
 						imgSrc={item.data.posterSrc}
 						action={() => {
 							navigate(
-								`/details/${type === LibraryType.MOVIES ? 'movie' : type === LibraryType.SHOWS ? 'series' : 'album'}/${item.data.id}`
+								`/details/${item.type === 'movies' ? 'movie' : type === 'shows' ? 'series' : type === 'albums' ? 'album' : 'collection'}/${item.data.id}${item.type === 'collection' ? `/${type}` : ''}`
 							)
 						}}
 					/>

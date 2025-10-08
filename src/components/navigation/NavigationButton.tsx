@@ -6,7 +6,7 @@ interface FocusableButtonProps {
 	text?: string
 	title?: string
 	className?: string
-	icon?: React.ReactElement
+	icon?: React.ReactNode
 	children?: React.ReactNode
 	disabled?: boolean
 	onClick?: (e: React.MouseEvent) => void

@@ -1,7 +1,74 @@
-import React from 'react'
+import Loading from '@/components/Loading'
+import Page from '@/components/Page'
+import { useServerStore } from '@/context/server.context'
+import { Collection } from '@/data/interfaces/Media'
+import { memo, useMemo } from 'react'
+import { useParams } from 'react-router'
+import useSWR from 'swr'
+import { shallow } from 'zustand/shallow'
+import { authenticatedFetcher } from '@/lib/auth'
+import DetailsInfo from '../components/DetailsInfo'
+import { LibraryType } from '@/utils/constants'
 
 function CollectionDetails() {
-	return <div>CollectionDetails</div>
+	const { collectionId, type } = useParams()
+	const { serverUrl } = useServerStore(
+		(state) => ({
+			serverUrl: state.serverUrl,
+		}),
+		shallow
+	)
+
+	const { data: collection, isLoading } = useSWR<Collection>(
+		serverUrl !== ''
+			? `${serverUrl}/details/collection?id=${collectionId}`
+			: null,
+		authenticatedFetcher
+	)
+
+	const yearRange = useMemo(() => {
+		if (!collection) return 'N/A'
+
+		const getYears = (items: any[] | undefined) =>
+			items?.map((item) => item.year).filter(Boolean) || []
+
+		let years: (string | undefined)[] = []
+		switch (type) {
+			case LibraryType.MUSIC:
+				years = getYears(collection.albums)
+				break
+			case LibraryType.MOVIES:
+				years = getYears(collection.movies)
+				break
+			case LibraryType.SHOWS:
+				years = getYears(collection.shows)
+				break
+		}
+
+		if (years.length === 0) return 'N/A'
+
+		const numericYears = years.map((year) => parseInt(year!, 10))
+		const minYear = Math.min(...numericYears)
+		const maxYear = Math.max(...numericYears)
+
+		return minYear === maxYear ? `${minYear}` : `${minYear} - ${maxYear}`
+	}, [collection, type])
+
+	if (isLoading) {
+		return <Loading />
+	}
+
+	if (!collection) return <span>Collection not found</span>
+
+	return (
+		<Page padding='0 2rem' justify='end'>
+			<DetailsInfo
+				title={collection.title}
+				overview={collection.description}
+				infoItems={[yearRange]}
+			/>
+		</Page>
+	)
 }
 
-export default CollectionDetails
+export default memo(CollectionDetails)
