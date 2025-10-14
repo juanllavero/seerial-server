@@ -1,5 +1,4 @@
 import { Skeleton } from '@/components/ui/skeleton'
-import { useServerStore } from '@/context/server.context'
 import { isAbsolutePath } from '@/utils/ReactUtils'
 import { memo, useEffect, useState } from 'react'
 
@@ -30,8 +29,6 @@ function LazyImage({
   onLoad,
   className,
 }: LazyImageProps) {
-  const serverUrl = useServerStore((state) => state.serverUrl)
-
   const [loaded, setLoaded] = useState(false)
   const [imageSrc, setImageSrc] = useState(
     url
@@ -40,8 +37,8 @@ function LazyImage({
         : url.startsWith('local')
           ? url.replace('local', '')
           : isAbsolutePath(url)
-            ? `${serverUrl}/image?path=${encodeURIComponent(url)}`
-            : `${serverUrl}/${url.replace('resources/img', 'img2')}`
+            ? `/api/image?path=${encodeURIComponent(url)}`
+            : `/api/${url.replace('resources/img', 'img2')}`
       : (src ?? errorSrc),
   )
   const [hasError, setHasError] = useState(false) // New state to track errors
@@ -53,13 +50,13 @@ function LazyImage({
         : url.startsWith('local')
           ? url.replace('local', '')
           : isAbsolutePath(url)
-            ? `${serverUrl}/image?path=${encodeURIComponent(url)}`
-            : `${serverUrl}/${url.replace('resources/img', 'img2')}`
+            ? `/api/image?path=${encodeURIComponent(url)}`
+            : `/api/${url.replace('resources/img', 'img2')}`
       : (src ?? errorSrc)
     if (imageSrc !== newSrc) setImageSrc(newSrc ?? errorSrc)
     setLoaded(false) // Reset loaded to show skeleton while loading new image
     setHasError(false) // Reset error state
-  }, [url, src, serverUrl])
+  }, [url, src])
 
   const containerStyles = {
     width: width,

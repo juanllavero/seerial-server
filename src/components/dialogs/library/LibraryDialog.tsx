@@ -1,5 +1,4 @@
 import { useDialogStore } from '@/context/dialog.context'
-import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { authenticatedFetch } from '@/lib/auth'
 import { useEffect, useState } from 'react'
@@ -16,13 +15,6 @@ function LibraryDialog() {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const currentLanguage = i18n.language?.split('-')[0] ?? 'en'
-  const { server, serverUrl } = useServerStore(
-    (state) => ({
-      server: state.server,
-      serverUrl: state.serverUrl,
-    }),
-    shallow,
-  )
   const connectWS = useWebSocketStore((state) => state.connectWS)
   const { libraryDialog, closeLibraryDialog } = useDialogStore(
     (state) => ({
@@ -70,11 +62,9 @@ function LibraryDialog() {
   }, [libraryDialog])
 
   const handleAddEditLibrary = async () => {
-    if (serverUrl === '') return
-
     setLoading(true)
 
-    await connectWS(serverUrl)
+    await connectWS()
 
     if (libraryDialog.libraryToEdit) {
       const newLibrary = {
@@ -89,13 +79,13 @@ function LibraryDialog() {
         subsMode,
       }
 
-      await authenticatedFetch(`${serverUrl}/library`, 'PUT', {
+      await authenticatedFetch(`/api/library`, 'PUT', {
         libraryId: libraryDialog.libraryToEdit.id,
         updatedLibrary: newLibrary,
       })
 
       // Mutate libraries list
-      mutate((key: string) => key.startsWith(`${serverUrl}/libraries`))
+      mutate((key: string) => key.startsWith(`/api/libraries`))
 
       closeLibraryDialog()
 
@@ -109,7 +99,6 @@ function LibraryDialog() {
       type: type ?? 'Shows',
       order: 0,
       hidden: false,
-      serverId: server?.id ?? '1',
       folders: folders ?? [],
       backgroundSrc: '',
       preferAudioLan,
@@ -118,7 +107,7 @@ function LibraryDialog() {
     }
 
     const response = await authenticatedFetch(
-      `${serverUrl}/addLibrary`,
+      `/api/addLibrary`,
       'POST',
       newLibrary,
     )
@@ -131,7 +120,7 @@ function LibraryDialog() {
     }
 
     // Mutate libraries list
-    mutate((key: string) => key.startsWith(`${serverUrl}/libraries`))
+    mutate((key: string) => key.startsWith(`/api/libraries`))
 
     console.log({ okay: response.ok, response })
     const data = await response.json()

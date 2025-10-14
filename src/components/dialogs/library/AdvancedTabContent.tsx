@@ -2,7 +2,6 @@ import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
-import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import ISO6391 from 'iso-639-1'
 import { useEffect } from 'react'
@@ -34,7 +33,6 @@ function AdvancedTabContent({
   edit,
 }: AdvancedTabContentProps) {
   const { t, i18n } = useTranslation()
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const getServerSetting = useSettingsStore((state) => state.getServerSetting)
   const currentLanguage = i18n.language?.split('-')[0] ?? 'en'
   const languageCodes = ISO6391.getAllCodes()
@@ -60,29 +58,21 @@ function AdvancedTabContent({
   ]
 
   const getPrefAudioLan = async () => {
-    const prefAudio = await getServerSetting(
-      serverUrl,
-      'preferAudioLan',
-      currentLanguage,
-    )
+    const prefAudio = await getServerSetting('preferAudioLan', currentLanguage)
     return (
       ISO6391.getNativeName(String(prefAudio).split('-')[0]) || currentLanguage
     )
   }
 
   const getPrefSubLan = async () => {
-    const prefSub = await getServerSetting(
-      serverUrl,
-      'preferSubsLan',
-      currentLanguage,
-    )
+    const prefSub = await getServerSetting('preferSubsLan', currentLanguage)
     return (
       ISO6391.getNativeName(String(prefSub).split('-')[0]) || currentLanguage
     )
   }
 
   const getSubsMode = async () => {
-    const subs = await getServerSetting(serverUrl, 'subsMode', 'autoSubs')
+    const subs = await getServerSetting('subsMode', 'autoSubs')
     return t(String(subs))
   }
 
@@ -97,7 +87,7 @@ function AdvancedTabContent({
     }
 
     setValues()
-  }, [serverUrl])
+  }, [])
 
   return (
     <FlexBox

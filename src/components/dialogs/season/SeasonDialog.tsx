@@ -1,21 +1,19 @@
 import { ModalWrapper } from '@/components/ModalWrapper'
 import { useDialogStore } from '@/context/dialog.context'
-import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Season } from '@/data/interfaces/Media'
+import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { showToast } from '@/utils/ReactUtils'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import useSWR, { mutate } from 'swr'
-import ImageListTab from '../components/ImageListTab'
-import SeasonInfoTab from './components/SeasonInfoTab'
 import { shallow } from 'zustand/shallow'
+import ImageListTab from '../components/ImageListTab'
 import MediaTab from '../MediaTab'
-import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
+import SeasonInfoTab from './components/SeasonInfoTab'
 
 function SeasonDialog() {
   const { t } = useTranslation()
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const connectWS = useWebSocketStore((state) => state.connectWS)
   const { seasonDialog, closeSeasonDialog } = useDialogStore(
     (state) => ({
@@ -29,8 +27,8 @@ function SeasonDialog() {
   const [season, setSeason] = useState<Season | undefined>(undefined)
 
   const { data: series } = useSWR(
-    seasonDialog.seasonToEdit && serverUrl !== ''
-      ? `${serverUrl}/details/series?id=${seasonDialog.seasonToEdit.seriesId}`
+    seasonDialog.seasonToEdit
+      ? `/api/details/series?id=${seasonDialog.seasonToEdit.seriesId}`
       : null,
     authenticatedFetcher,
   )
@@ -72,12 +70,10 @@ function SeasonDialog() {
   if (!season) return null
 
   const handleEditSeason = async () => {
-    if (serverUrl === '') return
-
-    await connectWS(serverUrl)
+    await connectWS()
 
     const response = await authenticatedFetch(
-      `${serverUrl}/season/${season.id}`,
+      `/api/season/${season.id}`,
       'PUT',
       {
         ...season,
@@ -96,8 +92,8 @@ function SeasonDialog() {
       return
     }
 
-    mutate((key: string) => key.startsWith(`${serverUrl}/details/series`))
-    mutate((key: string) => key.startsWith(`${serverUrl}/details/season`))
+    mutate((key: string) => key.startsWith(`/api/details/series`))
+    mutate((key: string) => key.startsWith(`/api/details/season`))
 
     closeSeasonDialog()
   }

@@ -21,6 +21,8 @@ import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { LibraryTypes } from '@/data/enums/LibraryTypes'
 import { Library } from '@/data/interfaces/Media'
+import { useIsAdmin } from '@/hooks/useIsAdmin'
+import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { t } from 'i18next'
 import {
   Film,
@@ -37,8 +39,6 @@ import { useNavigate } from 'react-router-dom'
 import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
 import SmallSpinner from './loading/SmallSpinner'
-import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
-import { useIsAdmin } from '@/hooks/useIsAdmin'
 
 interface Item {
   id: string
@@ -61,10 +61,8 @@ const NavLibraries = () => {
   const navigate = useNavigate()
 
   const isAdmin = useIsAdmin()
-  const { serverUrl, server, apiKeyStatus } = useServerStore(
+  const { apiKeyStatus } = useServerStore(
     (state) => ({
-      serverUrl: state.serverUrl,
-      server: state.server,
       apiKeyStatus: state.apiKeyStatus,
     }),
     shallow,
@@ -85,7 +83,7 @@ const NavLibraries = () => {
   )
 
   const { data: libraries, isLoading } = useSWR<Library[]>(
-    serverUrl !== '' ? `${serverUrl}/libraries/` : null,
+    '/api/libraries/',
     authenticatedFetcher,
     {
       revalidateOnFocus: false,
@@ -94,9 +92,9 @@ const NavLibraries = () => {
   )
 
   const searchFiles = async (libraryId: string) => {
-    await connectWS(serverUrl)
+    await connectWS()
 
-    authenticatedFetch(`${serverUrl}/library/search?libraryId=${libraryId}`)
+    authenticatedFetch(`/api/library/search?libraryId=${libraryId}`)
   }
 
   const [activeItem, setActiveItem] = React.useState<Item | null>(null)
@@ -124,9 +122,6 @@ const NavLibraries = () => {
                   : Music,
             action: () => {
               selectLibrary(library.id)
-
-              if (!server) return
-
               navigate(`/library/${library.id}/${library.type}`)
             },
           })),
@@ -156,10 +151,8 @@ const NavLibraries = () => {
                       }`}
                       onClick={(e) => {
                         e.preventDefault()
+
                         setActiveItem(item)
-
-                        if (!server) return
-
                         navigate(`/library/${item.id}/${item.type}`)
                       }}
                       style={{
@@ -235,7 +228,7 @@ const NavLibraries = () => {
         </>
       )}
 
-      {isAdmin && server && apiKeyStatus && (
+      {isAdmin && apiKeyStatus && (
         <>
           {/* Separator */}
           <SidebarSeparator />

@@ -1,30 +1,29 @@
 import { monitorForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
 import { useEffect } from 'react'
-import HorizontalList from './HorizontalList'
 import { SortableItem } from './SortableItem'
 
-interface SortableHorizontalListProps {
-  title: string
+interface SortableGridProps {
   items: any[]
   onDragEnd: (sourceIndex: number, destinationIndex: number) => void
   renderItem: (item: any) => React.ReactNode
 }
 
-export function SortableHorizontalList({
-  title,
+export function SortableGrid({
   items,
   onDragEnd,
   renderItem,
-}: SortableHorizontalListProps) {
+}: SortableGridProps) {
   useEffect(() => {
     return monitorForElements({
       onDrop: ({ source, location }) => {
         const target = location.current.dropTargets[0]
+        console.log({ target })
         if (!target) return
 
         const sourceData = source.data as { id: string; index: number }
         const targetData = target.data as { id: string; index: number }
 
+        console.log({ sourceData, targetData })
         if (sourceData.id === targetData.id) return
 
         const sourceIndex = sourceData.index
@@ -36,12 +35,11 @@ export function SortableHorizontalList({
   }, [onDragEnd])
 
   return (
-    <HorizontalList title={title}>
-      {items.map((item, index) => (
-        <SortableItem key={item.id} id={item.id} index={index}>
-          {renderItem(item)}
-        </SortableItem>
-      ))}
-    </HorizontalList>
+    items &&
+    items.map((item, index) => (
+      <SortableItem key={item.data.id} id={item.data.id} index={index}>
+        {renderItem(item)}
+      </SortableItem>
+    ))
   )
 }

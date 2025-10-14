@@ -5,24 +5,14 @@ import { shallow } from 'zustand/shallow'
 
 function Root() {
   const navigate = useNavigate()
-  const { server, user } = useServerStore(
+  const { user } = useServerStore(
     (state) => ({
-      server: state.server,
       user: state.currentUser,
     }),
     shallow,
   )
 
-  if (!server && window.location.pathname !== '/login') {
-    navigate('/login')
-    return null
-  }
-
-  if (
-    !user &&
-    window.location.pathname !== '/users' &&
-    window.location.pathname !== '/login'
-  ) {
+  if (!user && window.location.pathname !== '/users') {
     navigate('/users')
     return null
   }

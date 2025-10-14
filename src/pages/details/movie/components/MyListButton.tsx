@@ -7,19 +7,18 @@ import useSWR from 'swr'
 
 interface MyListButtonProps {
   movieId: string
-  serverUrl: string
 }
 
-function MyListButton({ movieId, serverUrl }: MyListButtonProps) {
+function MyListButton({ movieId }: MyListButtonProps) {
   const user = useServerStore((state) => state.currentUser)
   // Get if movie is in My List
   const { data: inMyList, mutate: mutateInMyList } = useSWR(
-    `${serverUrl}/isMovieInMyList?movieId=${movieId}&userId=${user?.id}`,
+    `/api/isMovieInMyList?movieId=${movieId}&userId=${user?.id}`,
     authenticatedFetcher,
   )
 
   const toggleMyList = () => {
-    authenticatedFetch(`${serverUrl}/updateMovieMyList`, 'POST', {
+    authenticatedFetch(`/api/updateMovieMyList`, 'POST', {
       movieId: movieId,
       userId: user?.id,
     }).then(() => {

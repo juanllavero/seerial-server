@@ -1,23 +1,21 @@
 import { ModalWrapper } from '@/components/ModalWrapper'
 import { useDialogStore } from '@/context/dialog.context'
-import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Series } from '@/data/interfaces/Media'
+import { authenticatedFetch } from '@/lib/auth'
+import { ImageType } from '@/utils/constants'
 import { showToast } from '@/utils/ReactUtils'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
+import { shallow } from 'zustand/shallow'
 import ImageListTab from '../components/ImageListTab'
+import MediaTab from '../MediaTab'
 import SeriesInfoTab from './components/SeriesInfoTab'
 import SeriesTagsTab from './components/SeriesTagsTab'
-import { shallow } from 'zustand/shallow'
-import MediaTab from '../MediaTab'
-import { ImageType } from '@/utils/constants'
-import { authenticatedFetch } from '@/lib/auth'
 
 function SeriesDialog() {
   const { t } = useTranslation()
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const connectWS = useWebSocketStore((state) => state.connectWS)
   const { seriesDialog, closeSeriesDialog } = useDialogStore(
     (state) => ({
@@ -93,43 +91,37 @@ function SeriesDialog() {
   if (!series) return null
 
   const handleEditMovie = async () => {
-    if (serverUrl === '') return
+    await connectWS()
 
-    await connectWS(serverUrl)
-
-    const response = await authenticatedFetch(
-      `${serverUrl}/show/${series.id}`,
-      'PUT',
-      {
-        ...series,
-        name: name,
-        year: year,
-        overview: overview,
-        tagline: tagline,
-        productionStudios: studios,
-        genres: genres,
-        creator: creator,
-        musicComposer: music,
-        nameLock: nameLock,
-        yearLock: yearLock,
-        overviewLock: overviewLock,
-        taglineLock: taglineLock,
-        productionStudiosLock: studiosLock,
-        genresLock: genresLock,
-        creatorLock: creatorLock,
-        musicComposerLock: musicLock,
-        logoSrc: selectedLogo ?? series.logoSrc,
-        coverSrc: selectedPoster ?? series.coverSrc,
-      },
-    )
+    const response = await authenticatedFetch(`/api/show/${series.id}`, 'PUT', {
+      ...series,
+      name: name,
+      year: year,
+      overview: overview,
+      tagline: tagline,
+      productionStudios: studios,
+      genres: genres,
+      creator: creator,
+      musicComposer: music,
+      nameLock: nameLock,
+      yearLock: yearLock,
+      overviewLock: overviewLock,
+      taglineLock: taglineLock,
+      productionStudiosLock: studiosLock,
+      genresLock: genresLock,
+      creatorLock: creatorLock,
+      musicComposerLock: musicLock,
+      logoSrc: selectedLogo ?? series.logoSrc,
+      coverSrc: selectedPoster ?? series.coverSrc,
+    })
 
     if (!response || !response.ok) {
       showToast('error', 'Error updating series')
       return
     }
 
-    mutate((key: string) => key.startsWith(`${serverUrl}/details/series`))
-    mutate((key: string) => key.startsWith(`${serverUrl}/library-content`))
+    mutate((key: string) => key.startsWith(`/api/details/series`))
+    mutate((key: string) => key.startsWith(`/api/library-content`))
 
     closeSeriesDialog()
   }

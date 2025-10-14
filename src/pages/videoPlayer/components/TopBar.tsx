@@ -23,7 +23,6 @@ interface TopBarProps {
   isFullscreen: boolean
   handleFullscreen: () => void
   showControls: boolean
-  serverUrl: string
   currentTime: number
   setVideoLoaded: (value: boolean) => void
   setIsPlaying: (value: boolean) => void
@@ -37,7 +36,6 @@ function TopBar({
   isFullscreen,
   handleFullscreen,
   showControls,
-  serverUrl,
   currentTime,
   setVideoLoaded,
   setIsPlaying,
@@ -51,7 +49,7 @@ function TopBar({
     setVideoLoaded(false)
     setIsPlaying(false)
 
-    await authenticatedFetch(`${serverUrl}/updateWatchState`, 'PUT', {
+    await authenticatedFetch(`/api/updateWatchState`, 'PUT', {
       videoId: video.id,
       timeWatched: currentTime,
       watched: currentTime > video.runtime * 60 * 0.9,

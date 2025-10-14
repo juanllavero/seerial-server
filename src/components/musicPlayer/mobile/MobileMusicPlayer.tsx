@@ -1,15 +1,14 @@
-import { useState, useRef, useEffect, memo, useLayoutEffect } from 'react'
 import Image from '@/components/ui/Image'
 import useMusicStore from '@/context/music.context'
-import MinimizedBar from './controls/MinimizedBar'
-import ExpandedMobileMusicControls from './controls/ExpandedMobileMusicControls'
-import { shallow } from 'zustand/shallow'
-import LRCVisualizer from '../lyrics/LRCVisualizer'
-import { useServerStore } from '@/context/server.context'
 import { LRCFile } from '@/data/interfaces/Music'
-import useSWR from 'swr'
 import MusicGradient from '@/layouts/backgrounds/MusicGradient'
 import { authenticatedFetcher } from '@/lib/auth'
+import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import useSWR from 'swr'
+import { shallow } from 'zustand/shallow'
+import LRCVisualizer from '../lyrics/LRCVisualizer'
+import ExpandedMobileMusicControls from './controls/ExpandedMobileMusicControls'
+import MinimizedBar from './controls/MinimizedBar'
 
 const MobileMusicPlayer = () => {
   const {
@@ -32,7 +31,6 @@ const MobileMusicPlayer = () => {
     }),
     shallow,
   )
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const [dragStart, setDragStart] = useState<number | null>(null)
   const [dragOffset, setDragOffset] = useState<number | null>(0)
   const [isDragging, setIsDragging] = useState(false)
@@ -48,9 +46,7 @@ const MobileMusicPlayer = () => {
 
   // Get Lyrics in order to show lyrics button
   const { data: lyrics } = useSWR<LRCFile[]>(
-    serverUrl !== '' && currentSong && isShown
-      ? `${serverUrl}/lyrics?id=${currentSong.id}`
-      : null,
+    currentSong && isShown ? `/api/lyrics?id=${currentSong.id}` : null,
     authenticatedFetcher,
   )
 

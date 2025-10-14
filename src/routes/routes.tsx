@@ -5,21 +5,19 @@ import MovieDetailsPage from '@/pages/details/movie/MovieDetailsPage'
 import SeriesDetailsPage from '@/pages/details/series/SeriesDetailsPage'
 import HomePage from '@/pages/home/HomePage'
 import LibraryPage from '@/pages/library/LibraryPage'
-import LoginPage from '@/pages/login/LoginPage'
+import TVLinkPage from '@/pages/link/TVLinkPage'
 import SettingsPage from '@/pages/settings/SettingsPage'
 import SideBarLayout from '@/pages/sidebarLayout/SideBarLayout'
+import UsersPage from '@/pages/users/UsersPage'
 import VideoPlayerPage from '@/pages/videoPlayer/VideoPlayerPage'
 import { memo } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import Root from './__root'
-import TVLinkPage from '@/pages/link/TVLinkPage'
-import UsersPage from '@/pages/users/UsersPage'
 
 export function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Root />}>
-        <Route path="/login" element={<LoginPage />} />
         <Route path="/users" element={<UsersPage />} />
         <Route path="/link" element={<TVLinkPage />} />
         <Route index element={<Navigate to="/home" replace />} />
@@ -50,7 +48,6 @@ export function AppRoutes() {
 
 // Export memoized components for consistency
 export const MemoizedHomePage = memo(HomePage)
-export const MemoizedLoginPage = memo(LoginPage)
 export const MemoizedSettingsPage = memo(SettingsPage)
 export const MemoizedLibraryPage = memo(LibraryPage)
 export const MemoizedMovieDetailsPage = memo(MovieDetailsPage)

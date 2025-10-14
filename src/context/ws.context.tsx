@@ -27,18 +27,16 @@ interface WebSocketState {
   setDownloadPercentage: (value: number) => void
   setAnalyzing: (value: boolean, libraryId: string) => void
   setSeriesReceived: (value: Series | null) => void
-  connectWS: (ip: string) => Promise<void>
+  connectWS: () => Promise<void>
   downloadAudio: (
     elementId: string,
     url: string,
-    serverUrl: string,
     libraryId: string,
     fileName: string,
   ) => Promise<void>
   downloadVideo: (
     elementId: string,
     url: string,
-    serverUrl: string,
     libraryId: string,
     fileName: string,
   ) => Promise<void>
@@ -73,13 +71,18 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
       })),
     clearMessageQueue: () => set({ messageQueue: [] }),
 
-    connectWS: async (ip: string) => {
+    connectWS: async () => {
       set({ downloaded: false })
       if (!get().wsConnected) {
         return new Promise<void>((resolve, reject) => {
-          const websocket = new WebSocket(
-            `${ip.replace('http://', 'ws://')}/ws`,
-          )
+          // Determine the protocol (http or https) based on the current location
+          const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
+          // Get the hostname
+          const host = window.location.host
+          // Reconstruct the WebSocket URL
+          const wsUrl = `${protocol}://${host}/api`
+
+          const websocket = new WebSocket(wsUrl)
 
           websocket.onopen = () => {
             set({
@@ -151,7 +154,7 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
       }
     },
 
-    downloadVideo: async (elementId, url, serverUrl, libraryId, fileName) => {
+    downloadVideo: async (elementId, url, libraryId, fileName) => {
       set({
         downloadingElementId: elementId,
         downloadPercentage: 0,
@@ -159,11 +162,11 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
       })
 
       const { connectWS } = get()
-      await connectWS(serverUrl)
+      await connectWS()
 
       try {
         const response = await authenticatedFetch(
-          `${serverUrl}/downloadVideo`,
+          `/api/downloadVideo`,
           'POST',
           {
             url,
@@ -181,7 +184,7 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
       }
     },
 
-    downloadAudio: async (elementId, url, serverUrl, libraryId, fileName) => {
+    downloadAudio: async (elementId, url, libraryId, fileName) => {
       set({
         downloadingElementId: elementId,
         downloadPercentage: 0,
@@ -189,11 +192,11 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
       })
 
       const { connectWS } = get()
-      await connectWS(serverUrl)
+      await connectWS()
 
       try {
         const response = await authenticatedFetch(
-          `${serverUrl}/downloadMusic`,
+          `/api/downloadMusic`,
           'POST',
           {
             url,

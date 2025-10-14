@@ -4,17 +4,15 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import FlexBox from '@/components/ui/FlexBox'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
-import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import ISO6391 from 'iso-639-1'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import ContentWrapper from './utils/ContentWrapper'
 import { shallow } from 'zustand/shallow'
+import ContentWrapper from './utils/ContentWrapper'
 
 function ServerLanguages() {
   const { t, i18n } = useTranslation()
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const { setServerSetting, serverSettings, setServerSettings } =
     useSettingsStore(
       (state) => ({
@@ -71,16 +69,10 @@ function ServerLanguages() {
   }))
 
   const handleSave = () => {
-    if (serverUrl === '') return
-
-    setServerSetting(serverUrl, 'autoSelectTracks', autoSelectTracks)
-    setServerSetting(
-      serverUrl,
-      'preferAudioLan',
-      ISO6391.getCode(preferAudioLan),
-    )
-    setServerSetting(serverUrl, 'subsMode', subsMode)
-    setServerSetting(serverUrl, 'preferSubsLan', ISO6391.getCode(preferSubLan))
+    setServerSetting('autoSelectTracks', autoSelectTracks)
+    setServerSetting('preferAudioLan', ISO6391.getCode(preferAudioLan))
+    setServerSetting('subsMode', subsMode)
+    setServerSetting('preferSubsLan', ISO6391.getCode(preferSubLan))
 
     setServerSettings({
       ...serverSettings,

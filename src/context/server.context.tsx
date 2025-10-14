@@ -1,23 +1,16 @@
-import { BasicServer, BasicUser } from '@/data/interfaces/Users'
+import { BasicUser } from '@/data/interfaces/Users'
 import { authenticatedFetch } from '@/lib/auth'
 import { createWithEqualityFn } from 'zustand/traditional'
 
 interface ServerState {
   users: BasicUser[]
   currentUser: BasicUser | null
-  servers: BasicServer[]
-  server: BasicServer | null
-  serverUrl: string
-  gettingServerStatus: boolean
   apiKeyStatus: boolean
   gettingApiKeyStatus: boolean
-  addServer: (server: BasicServer) => Promise<void>
-  removeServer: (serverId: string) => void
-  getServerStatus: (url: string) => Promise<void>
-  setServerUrl: (serverUrl: string) => void
+  gettingServerStatus: boolean
+  getServerStatus: () => Promise<void>
   setCurrentUser: (user: BasicUser | null) => void
   setApiKey: (apiKey: string) => Promise<void>
-  resetServerSelection: () => void
 }
 
 /**
@@ -58,57 +51,23 @@ export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
   currentUser: localStorage.getItem('user')
     ? JSON.parse(localStorage.getItem('user')!)
     : null,
-  servers: localStorage.getItem('servers')
-    ? JSON.parse(localStorage.getItem('servers')!)
-    : [],
-  serverUrl: localStorage.getItem('serverUrl') || '',
-  server: localStorage.getItem('server')
-    ? JSON.parse(localStorage.getItem('server')!)
-    : null,
-  gettingServerStatus: true,
   apiKeyStatus: false,
   gettingApiKeyStatus: false,
+  gettingServerStatus: false,
 
-  addServer: async (server) => {
-    const servers = get().servers
-    if (!servers.find((s) => s.id === server.id)) {
-      set({ servers: [...servers, server], serverUrl: server.url })
-      localStorage.setItem('serverUrl', server.url)
-      localStorage.setItem('servers', JSON.stringify([...servers, server]))
-    }
-    await get().getServerStatus(server.url)
-  },
-
-  removeServer: (serverId) => {
-    const servers = get().servers
-    set({ servers: servers.filter((s) => s.id !== serverId) })
-    localStorage.setItem('servers', JSON.stringify(servers))
-  },
-
-  setServerUrl: (serverUrl) => {
-    set({ serverUrl })
-    localStorage.setItem('serverUrl', serverUrl)
-    get().getServerStatus(serverUrl)
-  },
-
-  getServerStatus: async (url: string) => {
+  getServerStatus: async () => {
     set({ gettingServerStatus: true })
 
     try {
       // Use a standard 10-second timeout for regular requests
-      const response = await pingServer(`${url}`, 10000)
+      const response = await pingServer(`/api`, 10000)
       // We need to actually get the data this time
       const data = await (await fetch(response)).json()
 
-      const server = { ...data, url }
-      localStorage.setItem('server', JSON.stringify(server))
       set({
-        server: server,
         apiKeyStatus: data.status === 'VALID_API_KEY',
         gettingApiKeyStatus: false,
       })
-    } catch {
-      set({ server: null })
     } finally {
       set({ gettingServerStatus: false })
     }
@@ -120,18 +79,12 @@ export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
   },
 
   setApiKey: async (apiKey) => {
-    // Use the dynamically set serverUrl from the state
-    const { serverUrl } = get()
-    if (!serverUrl) return
-
     set({ gettingApiKeyStatus: true })
 
     try {
-      const response = await authenticatedFetch(
-        `${serverUrl}/api-key`,
-        'POST',
-        { apiKey },
-      )
+      const response = await authenticatedFetch(`/api/api-key`, 'POST', {
+        apiKey,
+      })
       if (!response || !response.ok) {
         throw new Error()
       }
@@ -145,11 +98,5 @@ export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
       console.error('Failed to set API Key', error)
       set({ apiKeyStatus: false, gettingApiKeyStatus: false })
     }
-  },
-
-  resetServerSelection: () => {
-    set({ serverUrl: '', server: null, apiKeyStatus: false })
-    localStorage.removeItem('serverUrl')
-    localStorage.removeItem('server')
   },
 }))

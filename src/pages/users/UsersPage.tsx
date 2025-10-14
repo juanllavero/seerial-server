@@ -1,11 +1,13 @@
+import Loading from '@/components/Loading'
 import Image from '@/components/ui/Image'
 import { Input } from '@/components/ui/input'
 import { useServerStore } from '@/context/server.context'
 import { BasicUser } from '@/data/interfaces/Users'
-import { authenticatedFetch } from '@/lib/auth'
-import { ArrowLeft, Plus, Server, User, UserIcon } from 'lucide-react'
+import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
+import { ArrowLeft, UserIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
 
 interface User {
@@ -16,17 +18,13 @@ interface User {
 }
 
 export default function UsersPage() {
-  const { server, servers, addServer, resetServerSelection, setCurrentUser } =
-    useServerStore(
-      (state) => ({
-        server: state.server,
-        servers: state.servers,
-        addServer: state.addServer,
-        resetServerSelection: state.resetServerSelection,
-        setCurrentUser: state.setCurrentUser,
-      }),
-      shallow,
-    )
+  const { currentUser, setCurrentUser } = useServerStore(
+    (state) => ({
+      currentUser: state.currentUser,
+      setCurrentUser: state.setCurrentUser,
+    }),
+    shallow,
+  )
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [profilePassword, setProfilePassword] = useState('')
@@ -35,13 +33,18 @@ export default function UsersPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
-  const hasUsers = server && server.users && server.users?.length > 0
-  const defaultSection = hasUsers ? 'profiles' : 'manual'
+  // Fetch users registered in the server
+  const { data: users, isLoading: gettingUsers } = useSWR<BasicUser[]>(
+    '/api/users/public',
+    authenticatedFetcher,
+  )
+
+  const defaultSection = users && users.length > 0 ? 'profiles' : 'manual'
   const [view, setView] = useState(defaultSection) // 'profiles', 'manual', 'addUser', 'servers'
   const navigate = useNavigate()
 
-  if (!server) {
-    navigate('/login')
+  if (currentUser) {
+    navigate('/home')
     return null
   }
 
@@ -54,14 +57,10 @@ export default function UsersPage() {
   const handleProfileLogin = async () => {
     setIsLoading(true)
     setErrorMessage('')
-    const response = await authenticatedFetch(
-      `${server.url}/users/login`,
-      'POST',
-      {
-        username: selectedUser?.username,
-        password: profilePassword,
-      },
-    )
+    const response = await authenticatedFetch(`/api/users/login`, 'POST', {
+      username: selectedUser?.username,
+      password: profilePassword,
+    })
     if (response.ok) {
       setCurrentUser(selectedUser)
       setIsLoading(false)
@@ -78,14 +77,10 @@ export default function UsersPage() {
   const handleManualLogin = async () => {
     setIsLoading(true)
     setErrorMessage('')
-    const response = await authenticatedFetch(
-      `${server.url}/users/login`,
-      'POST',
-      {
-        username: username,
-        password: password,
-      },
-    )
+    const response = await authenticatedFetch(`/api/users/login`, 'POST', {
+      username: username,
+      password: password,
+    })
     if (response.ok) {
       const newUser: BasicUser | null = await response.json()
       setCurrentUser(newUser)
@@ -103,7 +98,7 @@ export default function UsersPage() {
   const handleAddUser = async () => {
     setIsLoading(true)
     setErrorMessage('')
-    const response = await authenticatedFetch(`${server.url}/users`, 'POST', {
+    const response = await authenticatedFetch(`/api/users`, 'POST', {
       username: username,
       password: password,
       type: newUserType,
@@ -122,15 +117,12 @@ export default function UsersPage() {
     }, 5000)
   }
 
-  const handleServerClick = (newServer: any) => {
-    if (newServer.id !== server?.id) {
-      addServer(newServer)
-    }
+  const handleAddServer = () => {
+    navigate('/login')
   }
 
-  const handleAddServer = () => {
-    resetServerSelection()
-    navigate('/login')
+  if (gettingUsers) {
+    return <Loading />
   }
 
   return (
@@ -148,14 +140,14 @@ export default function UsersPage() {
               : 'pointer-events-none absolute opacity-0'
           }`}
         >
-          {hasUsers && (
+          {users && users.length > 0 && (
             <>
               <h1 className="mb-12 text-center text-4xl font-bold tracking-tight text-white">
                 Perfiles
               </h1>
               {/* Users Grid */}
               <div className="mb-8 flex flex-wrap justify-center gap-6">
-                {server?.users.map((user) => (
+                {users.map((user) => (
                   <button
                     key={user.id}
                     onClick={() => handleUserClick(user)}
@@ -259,7 +251,7 @@ export default function UsersPage() {
           }`}
         >
           {/* Back Button */}
-          {hasUsers && (
+          {users && users.length > 0 && (
             <button
               onClick={() => {
                 setView(defaultSection)
@@ -420,65 +412,6 @@ export default function UsersPage() {
               )}
             </button>
           </div>
-        </div>
-        {/* Servers Section */}
-        <div
-          className={`${
-            view === 'servers'
-              ? 'opacity-100'
-              : 'pointer-events-none absolute opacity-0'
-          }`}
-        >
-          {/* Back Button */}
-          <button
-            onClick={() => setView(defaultSection)}
-            className="mb-8 flex items-center gap-2 text-white transition-colors duration-300 focus:outline-none"
-          >
-            <ArrowLeft size={24} />
-            <span className="text-lg">Volver</span>
-          </button>
-          <h1 className="mb-12 text-center text-4xl font-bold tracking-tight text-white">
-            Cambiar Servidor
-          </h1>
-          {/* Servers Grid */}
-          <div className="mb-12 flex flex-wrap justify-center gap-6">
-            {servers.map((server) => (
-              <button
-                key={server.id}
-                onClick={() => handleServerClick(server)}
-                className="group flex flex-col items-center transition-all duration-300 hover:scale-110 focus:outline-none"
-              >
-                <div className="group-hover:bg-app-color mb-4 flex h-32 w-32 items-center justify-center rounded-2xl bg-stone-700 bg-gradient-to-br text-6xl shadow-lg transition-all duration-300 group-hover:text-stone-700 group-hover:shadow-2xl">
-                  <Server size={48} />
-                </div>
-                <span className="group-hover:text-app-color max-w-[240px] text-center text-lg font-medium text-white transition-colors">
-                  {server.name}
-                </span>
-              </button>
-            ))}
-          </div>
-          <div className="flex justify-center">
-            <button
-              onClick={() => handleAddServer()}
-              className="focus:ring-opacity-50 bg-app-color focus:ring-app-color hover:bg-app-color/90 flex items-center gap-3 rounded-lg bg-gradient-to-r px-8 py-4 text-lg font-medium text-black shadow-lg transition-all duration-300 hover:shadow-2xl focus:ring-4 focus:outline-none"
-            >
-              <Plus size={24} />
-              Añadir Servidor
-            </button>
-          </div>
-        </div>
-        {/* Change Server Button - Always visible */}
-        <div
-          className={`mt-3 flex justify-center transition-opacity duration-500 ${
-            view === 'servers' ? 'pointer-events-none opacity-0' : 'opacity-100'
-          }`}
-        >
-          <button
-            onClick={() => setView('servers')}
-            className="focus:ring-opacity-50 focus:ring-app-color mx-auto flex w-full max-w-md transform items-center justify-center rounded-lg bg-white bg-gradient-to-r py-5 text-xl font-semibold text-black shadow-lg transition-all duration-300 hover:opacity-95 hover:shadow-2xl focus:ring-4 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
-          >
-            Cambiar Servidor
-          </button>
         </div>
       </div>
     </div>

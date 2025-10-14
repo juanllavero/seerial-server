@@ -20,10 +20,9 @@ export default function BaseLayout({
 }: {
   children: React.ReactNode
 }) {
-  const { user, serverUrl } = useServerStore(
+  const { user } = useServerStore(
     (state) => ({
       user: state.currentUser,
-      serverUrl: state.serverUrl,
     }),
     shallow,
   )
@@ -44,8 +43,8 @@ export default function BaseLayout({
   const inMusicPage = location.pathname.includes('/album/')
 
   useEffect(() => {
-    if (selectedBackgroundForGradient && serverUrl !== '') {
-      generateGradient(selectedBackgroundForGradient, serverUrl, false)
+    if (selectedBackgroundForGradient) {
+      generateGradient(selectedBackgroundForGradient, false)
     }
 
     if (!selectedBackground) {
@@ -94,7 +93,7 @@ export default function BaseLayout({
         style={{
           backgroundImage:
             (inMusicPage || inDetailsPage) && currentBackground
-              ? `url(${currentBackground.startsWith('http') ? getSafeURL(currentBackground) : isAbsolutePath(currentBackground) ? `${serverUrl}/image?path=${encodeURIComponent(currentBackground)}` : `${serverUrl}/${getSafeURL(currentBackground)}`})`
+              ? `url(${currentBackground.startsWith('http') ? getSafeURL(currentBackground) : isAbsolutePath(currentBackground) ? `/api/image?path=${encodeURIComponent(currentBackground)}` : `/api/${getSafeURL(currentBackground)}`})`
               : 'none',
           opacity: inDetailsPage && currentBackground ? 1 : 0,
         }}
@@ -105,7 +104,7 @@ export default function BaseLayout({
         <div
           className="background-layer fade-in"
           style={{
-            backgroundImage: `url(${selectedBackground.startsWith('http') ? getSafeURL(selectedBackground) : isAbsolutePath(selectedBackground) ? `${serverUrl}/image?path=${encodeURIComponent(selectedBackground)}` : `${serverUrl}/${getSafeURL(selectedBackground)}`})`,
+            backgroundImage: `url(${selectedBackground.startsWith('http') ? getSafeURL(selectedBackground) : isAbsolutePath(selectedBackground) ? `/api/image?path=${encodeURIComponent(selectedBackground)}` : `/api/${getSafeURL(selectedBackground)}`})`,
           }}
         />
       )} */}

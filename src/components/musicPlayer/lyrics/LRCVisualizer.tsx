@@ -1,14 +1,6 @@
-import useMusicStore from '@/context/music.context'
-import { useServerStore } from '@/context/server.context'
-import { LRCFile, LRCLine } from '@/data/interfaces/Music'
-import { getLanguageName } from '@/utils/utils'
-import { useState, useEffect, useRef, memo } from 'react'
-import useSWR from 'swr'
+import { useIsMobile } from '@/components/hooks/use-mobile'
 import Loading from '@/components/Loading'
-import i18next from 'i18next'
-import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -16,14 +8,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { shallow } from 'zustand/shallow'
-import { useIsMobile } from '@/components/hooks/use-mobile'
+import useMusicStore from '@/context/music.context'
+import { LRCFile, LRCLine } from '@/data/interfaces/Music'
 import { authenticatedFetcher } from '@/lib/auth'
+import { getLanguageName } from '@/utils/utils'
+import i18next from 'i18next'
+import { Plus } from 'lucide-react'
+import { memo, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import useSWR from 'swr'
+import { shallow } from 'zustand/shallow'
 
 const LRCVisualizer = () => {
   const { t } = useTranslation()
   const isMobile = useIsMobile()
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const { currentSong, currentTime, isShown, seekTo } = useMusicStore(
     (state) => ({
       currentSong: state.currentSong,
@@ -41,9 +39,7 @@ const LRCVisualizer = () => {
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const { data: lyrics, isLoading } = useSWR<LRCFile[]>(
-    serverUrl !== '' && currentSong && isShown
-      ? `${serverUrl}/lyrics?id=${currentSong.id}`
-      : null,
+    currentSong && isShown ? `/api/lyrics?id=${currentSong.id}` : null,
     authenticatedFetcher,
   )
 

@@ -44,12 +44,6 @@ function MovieDetailsPage() {
   const clientSettings = useSettingsStore((state) => state.clientSettings)
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
   const openMovieDialog = useDialogStore((state) => state.openMovieDialog)
-  const { serverUrl } = useServerStore(
-    (state) => ({
-      serverUrl: state.serverUrl,
-    }),
-    shallow,
-  )
   const isAdmin = useIsAdmin()
   const navigate = useNavigate()
 
@@ -59,10 +53,7 @@ function MovieDetailsPage() {
     isLoading,
     error,
     mutate,
-  } = useSWR<Movie>(
-    `${serverUrl}/details/movie?id=${movieId}`,
-    authenticatedFetcher,
-  )
+  } = useSWR<Movie>(`/api/details/movie?id=${movieId}`, authenticatedFetcher)
 
   const isMobile = useIsMobile()
   const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true
@@ -116,7 +107,7 @@ function MovieDetailsPage() {
 
   const toggleMovieWatched = async () => {
     if (movie) {
-      authenticatedFetch(`${serverUrl}/setMovieWatched`, 'POST', {
+      authenticatedFetch(`/api/setMovieWatched`, 'POST', {
         movieId: movie.id,
         watched: !movie.watchStatus,
         userId: user?.id,
@@ -260,10 +251,7 @@ function MovieDetailsPage() {
                     <MarkWatchedIcon />
                   )}
                 </Button>
-                <MyListButton
-                  movieId={movieId ?? ''}
-                  serverUrl={serverUrl ?? ''}
-                />
+                <MyListButton movieId={movieId ?? ''} />
               </>
             )}
             {isAdmin && (

@@ -26,10 +26,9 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
     }),
     shallow,
   )
-  const { user, serverUrl } = useServerStore(
+  const { user } = useServerStore(
     (state) => ({
       user: state.currentUser,
-      serverUrl: state.serverUrl,
     }),
     shallow,
   )
@@ -37,9 +36,7 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
 
   // Get Movies in My List
   const { data: moviesInMyList, isLoading } = useSWR<Movie[]>(
-    serverUrl !== ''
-      ? `${serverUrl}/myListMovies?userId=${user?.id ?? null}`
-      : null,
+    `/api/myListMovies?userId=${user?.id ?? null}`,
     authenticatedFetcher,
   )
 
@@ -67,16 +64,12 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
                     {
                       title: t('removeFromMyList'),
                       action: () => {
-                        authenticatedFetch(
-                          `${serverUrl}/updateMovieMyList`,
-                          'POST',
-                          {
-                            movieId: movie.id,
-                            userId: user?.id,
-                          },
-                        ).then(() => {
+                        authenticatedFetch(`/api/updateMovieMyList`, 'POST', {
+                          movieId: movie.id,
+                          userId: user?.id,
+                        }).then(() => {
                           mutate((key: string) =>
-                            key.startsWith(`${serverUrl}/myListMovies`),
+                            key.startsWith(`/api/myListMovies`),
                           )
                         })
                       },
@@ -95,8 +88,7 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
                           ? t('markUnwatched')
                           : t('markWatched'),
 
-                      action: () =>
-                        user && toggleMovieWatched(serverUrl, movie, user.id),
+                      action: () => user && toggleMovieWatched(movie, user.id),
                     },
                   ],
                 },

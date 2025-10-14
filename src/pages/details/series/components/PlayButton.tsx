@@ -10,28 +10,24 @@ import useSWR from 'swr'
 interface PlayButtonProps {
   currentlyWatchingEpisodeId?: string
   selectedSeasonId: string | null
-  serverUrl: string
 }
 
 function PlayButton({
   currentlyWatchingEpisodeId,
   selectedSeasonId,
-  serverUrl,
 }: PlayButtonProps) {
   const navigate = useNavigate()
   const { t } = useTranslation()
 
   const { data: season } = useSWR<Season>(
-    selectedSeasonId
-      ? `${serverUrl}/details/season?id=${selectedSeasonId}`
-      : null,
+    selectedSeasonId ? `/api/details/season?id=${selectedSeasonId}` : null,
     authenticatedFetcher,
   )
 
   // Get current episode
   const { data: episode } = useSWR<Episode>(
     currentlyWatchingEpisodeId
-      ? `${serverUrl}/details/episode?id=${currentlyWatchingEpisodeId}`
+      ? `/api/details/episode?id=${currentlyWatchingEpisodeId}`
       : null,
     authenticatedFetcher,
   )
@@ -48,7 +44,7 @@ function PlayButton({
         const episodeId = episode ? episode.id : season?.episodes[0].id
 
         const response = await authenticatedFetch(
-          `${serverUrl}/details/episode-video?id=${episodeId}`,
+          `/api/details/episode-video?id=${episodeId}`,
         )
 
         if (!response.ok) {

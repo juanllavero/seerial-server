@@ -1,7 +1,6 @@
 import Loading from '@/components/Loading'
 import FlexBox from '@/components/ui/FlexBox'
 import { useDialogStore } from '@/context/dialog.context'
-import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { EpisodeGroupResult } from '@/data/interfaces/Utils'
 import { authenticatedFetch } from '@/lib/auth'
@@ -13,7 +12,6 @@ import './ChangeEpisodesGroupSearch.css'
 
 function ChangeEpisodesGroupSearch() {
   const { t } = useTranslation()
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const connectWS = useWebSocketStore((state) => state.connectWS)
   const { episodesGroupDialog, closeEpisodesGroupDialog } = useDialogStore(
     (state) => ({
@@ -32,7 +30,7 @@ function ChangeEpisodesGroupSearch() {
 
   const search = () => {
     authenticatedFetch(
-      `${serverUrl}/episodeGroups/search?id=${episodesGroupDialog.seriesToEdit?.themdbId}`,
+      `/api/episodeGroups/search?id=${episodesGroupDialog.seriesToEdit?.themdbId}`,
     )
       .then((response) => response.json())
       .then((data) => {
@@ -42,10 +40,8 @@ function ChangeEpisodesGroupSearch() {
   }
 
   const saveIdentification = async (id: string) => {
-    if (serverUrl === '') return
-
-    await connectWS(serverUrl)
-    authenticatedFetch(`${serverUrl}/updateEpisodeGroup`, 'POST', {
+    await connectWS()
+    authenticatedFetch(`/api/updateEpisodeGroup`, 'POST', {
       id: episodesGroupDialog.seriesToEdit?.id,
       themdbId: episodesGroupDialog.seriesToEdit?.themdbId,
       episodeGroupId: id,

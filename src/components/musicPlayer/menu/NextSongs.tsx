@@ -1,15 +1,14 @@
+import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
 import FlexBox from '@/components/ui/FlexBox'
 import { PauseIcon, PlayIcon } from '@/components/ui/IconLibrary'
 import LazyImage from '@/components/ui/LazyImage'
 import useMusicStore from '@/context/music.context'
-import { useServerStore } from '@/context/server.context'
-import { formatTime } from '@/utils/ReactUtils'
-import useSWR from 'swr'
-import './NextSongs.css'
-import { useTranslation } from 'react-i18next'
-import { shallow } from 'zustand/shallow'
-import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
 import { authenticatedFetcher } from '@/lib/auth'
+import { formatTime } from '@/utils/ReactUtils'
+import { useTranslation } from 'react-i18next'
+import useSWR from 'swr'
+import { shallow } from 'zustand/shallow'
+import './NextSongs.css'
 
 function NextSongs() {
   const { t } = useTranslation()
@@ -31,11 +30,8 @@ function NextSongs() {
     }),
     shallow,
   )
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const { data: album } = useSWR(
-    currentSong && serverUrl !== ''
-      ? `${serverUrl}/details/album?id=${currentSong.albumId}`
-      : null,
+    currentSong ? `/api/details/album?id=${currentSong.albumId}` : null,
     authenticatedFetcher,
   )
 

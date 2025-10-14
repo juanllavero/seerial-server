@@ -6,20 +6,19 @@ import { t } from 'i18next'
 import useSWR from 'swr'
 
 interface MyListButtonProps {
-  serverUrl: string
   seriesId: string
 }
 
-function MyListButton({ serverUrl, seriesId }: MyListButtonProps) {
+function MyListButton({ seriesId }: MyListButtonProps) {
   const user = useServerStore((state) => state.currentUser)
   // Get if show is in My List
   const { data: inMyList, mutate: mutateInMyList } = useSWR(
-    `${serverUrl}/isShowInMyList?seriesId=${seriesId}&userId=${user?.id}`,
+    `/api/isShowInMyList?seriesId=${seriesId}&userId=${user?.id}`,
     authenticatedFetcher,
   )
 
   const toggleMyList = () => {
-    authenticatedFetch(`${serverUrl}/updateSeriesMyList`, 'POST', {
+    authenticatedFetch(`/api/updateSeriesMyList`, 'POST', {
       seriesId: seriesId,
       userId: user?.id,
     }).then(() => {

@@ -46,10 +46,9 @@ function SeriesDetailsPage() {
   )
   const isAdmin = useIsAdmin()
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
-  const { user, serverUrl } = useServerStore(
+  const { user } = useServerStore(
     (state) => ({
       user: state.currentUser,
-      serverUrl: state.serverUrl,
     }),
     shallow,
   )
@@ -62,10 +61,7 @@ function SeriesDetailsPage() {
     isLoading,
     error,
     mutate: mutateSeries,
-  } = useSWR<Series>(
-    `${serverUrl}/details/series?id=${seriesId}`,
-    authenticatedFetcher,
-  )
+  } = useSWR<Series>(`/api/details/series?id=${seriesId}`, authenticatedFetcher)
 
   // Get selected season data
   const season = series
@@ -141,13 +137,13 @@ function SeriesDetailsPage() {
 
   const toggleSeasonWatched = async () => {
     if (season) {
-      authenticatedFetch(`${serverUrl}/setSeasonWatched`, 'POST', {
+      authenticatedFetch(`/api/setSeasonWatched`, 'POST', {
         seasonId: season.id,
         watched: !season.watchStatus,
         userId: user?.id,
       }).then(() => {
-        mutate((key: string) => key.startsWith(`${serverUrl}/details/series`))
-        mutate((key: string) => key.startsWith(`${serverUrl}/details/season`))
+        mutate((key: string) => key.startsWith(`/api/details/series`))
+        mutate((key: string) => key.startsWith(`/api/details/season`))
       })
     }
   }
@@ -256,7 +252,6 @@ function SeriesDetailsPage() {
           </FlexBox>
           <FlexBox gap={1} wrap="wrap">
             <PlayButton
-              serverUrl={serverUrl ?? ''}
               selectedSeasonId={selectedSeasonId}
               currentlyWatchingEpisodeId={
                 series ? series.currentlyWatchingEpisodeId : undefined
@@ -279,10 +274,7 @@ function SeriesDetailsPage() {
                     <MarkWatchedIcon />
                   )}
                 </Button>
-                <MyListButton
-                  serverUrl={serverUrl ?? ''}
-                  seriesId={seriesId ?? ''}
-                />
+                <MyListButton seriesId={seriesId ?? ''} />
               </>
             )}
             {isAdmin && (
@@ -328,10 +320,7 @@ function SeriesDetailsPage() {
       {isLoading || !series || !season ? (
         <Skeleton className="h-300 w-200" />
       ) : (
-        <SeasonContent
-          seasonList={series.seasons}
-          serverUrl={serverUrl ?? ''}
-        />
+        <SeasonContent seasonList={series.seasons} />
       )}
 
       {/* Cast */}

@@ -1,13 +1,12 @@
+import { useIsMobile } from '@/components/hooks/use-mobile'
+import HorizontalList from '@/components/lists/HorizontalList'
 import Loading from '@/components/Loading'
-import { useServerStore } from '@/context/server.context'
 import { Collection } from '@/data/interfaces/Media'
 import { MusicExtra } from '@/data/interfaces/Music'
-import HorizontalList from '@/components/lists/HorizontalList'
+import { authenticatedFetcher } from '@/lib/auth'
+import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 import VideoThumbnail from './VideoThumbnail'
-import { useTranslation } from 'react-i18next'
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import { authenticatedFetcher } from '@/lib/auth'
 
 interface ExtrasListProps {
   collection: Collection
@@ -16,10 +15,9 @@ interface ExtrasListProps {
 function ExtrasList({ collection }: ExtrasListProps) {
   const { t } = useTranslation()
   const isMobile = useIsMobile()
-  const serverUrl = useServerStore((state) => state.serverUrl)
 
   const { data: extras, isLoading } = useSWR<MusicExtra[]>(
-    serverUrl !== '' ? `${serverUrl}/musicExtras/${collection.id}` : null,
+    `/api/musicExtras/${collection.id}`,
     authenticatedFetcher,
   )
 
@@ -53,7 +51,7 @@ function ExtrasList({ collection }: ExtrasListProps) {
           <div className={isMobile ? 'w-80' : 'w-100'}>
             <VideoThumbnail
               key={index}
-              videoUrl={`${serverUrl}/video-file?path=${extra.src}`}
+              videoUrl={`/api/video-file?path=${extra.src}`}
             />
           </div>
           <div className="flex flex-col">

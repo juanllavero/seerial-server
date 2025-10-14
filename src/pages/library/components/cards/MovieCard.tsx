@@ -22,10 +22,9 @@ interface MovieCardProps {
 function MovieCard({ movie }: MovieCardProps) {
   const { t } = useTranslation()
   const selectMovie = useDataStore((state) => state.selectMovie)
-  const { user, serverUrl } = useServerStore(
+  const { user } = useServerStore(
     (state) => ({
       user: state.currentUser,
-      serverUrl: state.serverUrl,
     }),
     shallow,
   )
@@ -56,7 +55,7 @@ function MovieCard({ movie }: MovieCardProps) {
               movie.watchStatus !== undefined
                 ? t('markUnwatched')
                 : t('markWatched'),
-            action: () => user && toggleMovieWatched(serverUrl, movie, user.id),
+            action: () => user && toggleMovieWatched(movie, user.id),
           },
         ],
       },

@@ -1,12 +1,11 @@
 import Loading from '@/components/Loading'
 import FlexBox from '@/components/ui/FlexBox'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
-import { useServerStore } from '@/context/server.context'
 import { Video } from '@/data/interfaces/Media'
 import {
-  VideoTrack,
   AudioTrack,
   SubtitleTrack,
+  VideoTrack,
 } from '@/data/interfaces/MediaInfo'
 import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { useLanguageName } from '@/localization/TrackLanguages'
@@ -14,7 +13,7 @@ import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
 import { t } from 'i18next'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import useSWR, { mutate } from 'swr'
+import useSWR from 'swr'
 
 interface VideoInfo {
   title: string
@@ -31,10 +30,9 @@ interface VideoTracksProps {
 
 function VideoTracks({ video, mutate }: VideoTracksProps) {
   const { i18n } = useTranslation()
-  const serverUrl = useServerStore((state) => state.serverUrl)
   // Get video info
   const { data: videoInfo, isLoading } = useSWR<VideoInfo>(
-    video && serverUrl !== '' ? `${serverUrl}/videoInfo?id=${video.id}` : null,
+    video ? `/api/videoInfo?id=${video.id}` : null,
     authenticatedFetcher,
   )
 
@@ -68,11 +66,9 @@ function VideoTracks({ video, mutate }: VideoTracksProps) {
     hasFetched.current = true
 
     const fetchData = async () => {
-      const result = await authenticatedFetch(
-        `${serverUrl}/updateMediaInfo`,
-        'PUT',
-        { videoId: video.id },
-      )
+      const result = await authenticatedFetch(`/api/updateMediaInfo`, 'PUT', {
+        videoId: video.id,
+      })
 
       if (!result || !result.ok) {
         return

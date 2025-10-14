@@ -31,10 +31,9 @@ function MyListShows({ goToContent }: MyListShowsProps) {
     }),
     shallow,
   )
-  const { user, serverUrl } = useServerStore(
+  const { user } = useServerStore(
     (state) => ({
       user: state.currentUser,
-      serverUrl: state.serverUrl,
     }),
     shallow,
   )
@@ -42,9 +41,7 @@ function MyListShows({ goToContent }: MyListShowsProps) {
 
   // Get Shows in My List
   const { data: showsInMyList, isLoading } = useSWR<Series[]>(
-    serverUrl !== ''
-      ? `${serverUrl}/myListSeries?userId=${user?.id ?? null}`
-      : null,
+    `/api/myListSeries?userId=${user?.id ?? null}`,
     authenticatedFetcher,
   )
 
@@ -70,16 +67,12 @@ function MyListShows({ goToContent }: MyListShowsProps) {
                     {
                       title: t('removeFromMyList'),
                       action: () => {
-                        authenticatedFetch(
-                          `${serverUrl}/updateSeriesMyList`,
-                          'POST',
-                          {
-                            seriesId: series.id,
-                            userId: user?.id,
-                          },
-                        ).then(() => {
+                        authenticatedFetch(`/api/updateSeriesMyList`, 'POST', {
+                          seriesId: series.id,
+                          userId: user?.id,
+                        }).then(() => {
                           mutate((key: string) =>
-                            key.startsWith(`${serverUrl}/myListSeries`),
+                            key.startsWith(`/api/myListSeries`),
                           )
                         })
                       },
@@ -104,7 +97,7 @@ function MyListShows({ goToContent }: MyListShowsProps) {
                           ? t('markUnwatched')
                           : t('markWatched'),
                       action: () =>
-                        user && toggleSeriesWatched(serverUrl, series, user.id),
+                        user && toggleSeriesWatched(series, user.id),
                     },
                   ],
                 },

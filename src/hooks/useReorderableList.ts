@@ -1,7 +1,5 @@
-import { useServerStore } from '@/context/server.context'
 import { LibraryItem } from '@/data/interfaces/Media'
 import { authenticatedFetch } from '@/lib/auth'
-import { arrayMove } from '@dnd-kit/sortable'
 import { useEffect, useState } from 'react'
 
 export function useReorderableList(
@@ -9,7 +7,6 @@ export function useReorderableList(
   libraryId: string,
   mutate: () => void,
 ) {
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const [items, setItems] = useState<LibraryItem[]>([])
 
   useEffect(() => {
@@ -18,31 +15,32 @@ export function useReorderableList(
     }
   }, [swrData])
 
-  async function handleDragEnd(event: any) {
-    const { active, over } = event
+  async function handleDragEnd(sourceIndex: number, destinationIndex: number) {
+    console.log({ sourceIndex, destinationIndex })
+    if (sourceIndex === destinationIndex) return
 
-    if (over && active.id !== over.id) {
-      const oldIndex = items.findIndex((item) => item.data.id === active.id)
-      const newIndex = items.findIndex((item) => item.data.id === over.id)
+    const newItems = [...items]
+    const [movedItem] = newItems.splice(sourceIndex, 1)
+    newItems.splice(destinationIndex, 0, movedItem)
 
-      const newItems = arrayMove(items, oldIndex, newIndex)
-      setItems(newItems)
+    setItems(newItems)
 
-      const orderedItemsForApi = newItems.map((item) => ({
-        id: item.data.id,
-        type: item.type,
-      }))
+    const orderedItemsForApi = newItems.map((item) => ({
+      id: item.data.id,
+      type: item.type,
+    }))
 
-      try {
-        await authenticatedFetch(`${serverUrl}/library/reorder`, 'POST', {
-          libraryId,
-          orderedItems: orderedItemsForApi,
-        })
-      } catch (error) {
-        setItems(items)
-      } finally {
-        mutate()
+    try {
+      await authenticatedFetch(`/api/library/reorder`, 'POST', {
+        libraryId,
+        orderedItems: orderedItemsForApi,
+      })
+    } catch (error) {
+      if (swrData) {
+        setItems(swrData)
       }
+    } finally {
+      mutate()
     }
   }
 

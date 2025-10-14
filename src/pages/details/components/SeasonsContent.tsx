@@ -20,10 +20,9 @@ import EpisodeCardDetails from './cards/EpisodeCardDetails'
 
 interface SeasonContentProps {
   seasonList: Season[]
-  serverUrl: string
 }
 
-function SeasonContent({ seasonList, serverUrl }: SeasonContentProps) {
+function SeasonContent({ seasonList }: SeasonContentProps) {
   const navigate = useNavigate()
   const { t } = useTranslation()
   const user = useServerStore((state) => state.currentUser)
@@ -53,9 +52,7 @@ function SeasonContent({ seasonList, serverUrl }: SeasonContentProps) {
     isLoading,
     error,
   } = useSWR<Season>(
-    selectedSeasonId
-      ? `${serverUrl}/details/season?id=${selectedSeasonId}`
-      : null,
+    selectedSeasonId ? `/api/details/season?id=${selectedSeasonId}` : null,
     authenticatedFetcher,
   )
 
@@ -88,34 +85,26 @@ function SeasonContent({ seasonList, serverUrl }: SeasonContentProps) {
             {
               title: t('markWatched'),
               action: () => {
-                authenticatedFetch(`${serverUrl}/setEpisodeWatched`, 'POST', {
+                authenticatedFetch(`/api/setEpisodeWatched`, 'POST', {
                   episodeId: episode.id,
                   watched: true,
                   userId: user?.id,
                 }).finally(() => {
-                  mutate((key: string) =>
-                    key.startsWith(`${serverUrl}/details/series`),
-                  )
-                  mutate((key: string) =>
-                    key.startsWith(`${serverUrl}/details/season`),
-                  )
+                  mutate((key: string) => key.startsWith(`/api/details/series`))
+                  mutate((key: string) => key.startsWith(`/api/details/season`))
                 })
               },
             },
             {
               title: t('markUnwatched'),
               action: () => {
-                authenticatedFetch(`${serverUrl}/setEpisodeWatched`, 'POST', {
+                authenticatedFetch(`/api/setEpisodeWatched`, 'POST', {
                   episodeId: episode.id,
                   watched: false,
                   userId: user?.id,
                 }).finally(() => {
-                  mutate((key: string) =>
-                    key.startsWith(`${serverUrl}/details/series`),
-                  )
-                  mutate((key: string) =>
-                    key.startsWith(`${serverUrl}/details/season`),
-                  )
+                  mutate((key: string) => key.startsWith(`/api/details/series`))
+                  mutate((key: string) => key.startsWith(`/api/details/season`))
                 })
               },
             },
@@ -136,7 +125,7 @@ function SeasonContent({ seasonList, serverUrl }: SeasonContentProps) {
 
   const playEpisode = async (episodeId: Episode) => {
     const response = await authenticatedFetch(
-      `${serverUrl}/details/episode-video?id=${episodeId.id}`,
+      `/api/details/episode-video?id=${episodeId.id}`,
     )
 
     if (!response.ok) {

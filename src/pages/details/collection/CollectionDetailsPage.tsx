@@ -1,10 +1,11 @@
+import useScreenHeight from '@/components/hooks/use-height'
 import { useIsMobile } from '@/components/hooks/use-mobile'
+import { SortableHorizontalList } from '@/components/lists/SortableHorizontalList'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Skeleton } from '@/components/ui/skeleton'
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
-import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
 import {
@@ -14,32 +15,24 @@ import {
   Series,
 } from '@/data/interfaces/Media'
 import { Album } from '@/data/interfaces/Music'
+import { useIsAdmin } from '@/hooks/useIsAdmin'
+import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import AlbumCard from '@/pages/library/components/cards/AlbumCard'
 import MovieCard from '@/pages/library/components/cards/MovieCard'
 import SeriesCard from '@/pages/library/components/cards/SeriesCard'
 import { CollectionKey, ContentType } from '@/types/types'
+import { getCoverSize, getTitleSize } from '@/utils/ReactUtils'
 import { Ellipsis, Pencil } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
 import useSWR from 'swr'
+import { shallow } from 'zustand/shallow'
 import '../DetailsPage.css'
 import CollectionImage from './CollectionImage'
-import { shallow } from 'zustand/shallow'
-import { SortableHorizontalList } from '@/components/lists/SortableHorizontalList'
-import { arrayMove } from '@dnd-kit/sortable'
-import { getCoverSize, getTitleSize } from '@/utils/ReactUtils'
-import useScreenHeight from '@/components/hooks/use-height'
-import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
-import { useIsAdmin } from '@/hooks/useIsAdmin'
+
 function CollectionDetailsPage() {
   const { collectionId, type } = useParams()
-  const { serverUrl } = useServerStore(
-    (state) => ({
-      serverUrl: state.serverUrl,
-    }),
-    shallow,
-  )
   const isAdmin = useIsAdmin()
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
   const openCollectionDialog = useDialogStore(
@@ -56,20 +49,18 @@ function CollectionDetailsPage() {
   const isMobile = useIsMobile()
   const screenHeight = useScreenHeight()
 
-  // Get collection data
   const {
     data: collection,
     isLoading,
     mutate,
   } = useSWR<Collection>(
-    `${serverUrl}/details/collection?id=${collectionId}`,
+    `/api/details/collection?id=${collectionId}`,
     authenticatedFetcher,
   )
 
-  // Get collection images
   const { data: collectionImages } = useSWR<CollectionImages>(
     collection
-      ? `${serverUrl}/collection-images?collectionId=${collection.id}&&type=${type}`
+      ? `/api/collection-images?collectionId=${collection.id}&&type=${type}`
       : null,
     authenticatedFetcher,
   )
@@ -84,14 +75,12 @@ function CollectionDetailsPage() {
     }
   }, [collection])
 
-  // Mutate content on ws message
   useEffect(() => {
     if (wsMessage?.header === MessageType.MUTATE_LIBRARY) {
       mutate()
     }
   }, [wsMessage, mutate])
 
-  // Set background image src
   useEffect(() => {
     const image =
       collection && collection.backgroundSrc && collection.backgroundSrc !== ''
@@ -107,84 +96,85 @@ function CollectionDetailsPage() {
   }, [collection, collectionImages, setCurrentBackground])
 
   async function handleDragEnd(
-    event: any,
+    sourceIndex: number,
+    destinationIndex: number,
     listKey: 'movies' | 'shows' | 'albums',
   ) {
-    const { active, over } = event
+    if (!localCollection) return
 
-    if (over && active.id !== over.id) {
-      if (!localCollection) return
+    let reorderedList: Movie[] | Series[] | Album[]
+    let orderedItemsForApi: { id: string; type: string }[]
 
-      let reorderedList: Movie[] | Series[] | Album[] = []
+    switch (listKey) {
+      case 'movies': {
+        const list = [...localCollection.movies]
+        const [movedItem] = list.splice(sourceIndex, 1)
+        list.splice(destinationIndex, 0, movedItem)
+        reorderedList = list
 
-      switch (listKey) {
-        case 'movies': {
-          const list = localCollection.movies
-          const oldIndex = list.findIndex((item) => item.id === active.id)
-          const newIndex = list.findIndex((item) => item.id === over.id)
+        setLocalCollection((prev) => ({
+          ...prev!,
+          movies: list,
+        }))
 
-          reorderedList = arrayMove(list, oldIndex, newIndex)
-
-          setLocalCollection((prev) => ({
-            ...prev!,
-            movies: reorderedList as Movie[],
-          }))
-          break
-        }
-
-        case 'shows': {
-          const list = localCollection.shows
-          const oldIndex = list.findIndex((item) => item.id === active.id)
-          const newIndex = list.findIndex((item) => item.id === over.id)
-
-          reorderedList = arrayMove(list, oldIndex, newIndex)
-
-          setLocalCollection((prev) => ({
-            ...prev!,
-            shows: reorderedList as Series[],
-          }))
-          break
-        }
-
-        case 'albums': {
-          const list = localCollection.albums
-          const oldIndex = list.findIndex((item) => item.id === active.id)
-          const newIndex = list.findIndex((item) => item.id === over.id)
-
-          reorderedList = arrayMove(list, oldIndex, newIndex)
-
-          setLocalCollection((prev) => ({
-            ...prev!,
-            albums: reorderedList as Album[],
-          }))
-          break
-        }
-
-        default:
-          return
+        orderedItemsForApi = list.map((item) => ({
+          id: item.id,
+          type: 'movie',
+        }))
+        break
       }
 
-      const orderedItemsForApi = reorderedList.map((item) => ({
-        id: item.id,
-        type: listKey.slice(0, -1),
-      }))
+      case 'shows': {
+        const list = [...localCollection.shows]
+        const [movedItem] = list.splice(sourceIndex, 1)
+        list.splice(destinationIndex, 0, movedItem)
+        reorderedList = list
 
-      try {
-        await authenticatedFetch(
-          `${serverUrl}/collections/reorder-content`,
-          'POST',
-          {
-            collectionId: collectionId,
-            orderedItems: orderedItemsForApi,
-          },
-        )
-      } catch (error) {
-        if (collection) {
-          setLocalCollection(collection)
-        }
-      } finally {
-        mutate()
+        setLocalCollection((prev) => ({
+          ...prev!,
+          shows: list,
+        }))
+
+        orderedItemsForApi = list.map((item) => ({
+          id: item.id,
+          type: 'show',
+        }))
+        break
       }
+
+      case 'albums': {
+        const list = [...localCollection.albums]
+        const [movedItem] = list.splice(sourceIndex, 1)
+        list.splice(destinationIndex, 0, movedItem)
+        reorderedList = list
+
+        setLocalCollection((prev) => ({
+          ...prev!,
+          albums: list,
+        }))
+
+        orderedItemsForApi = list.map((item) => ({
+          id: item.id,
+          type: 'album',
+        }))
+        break
+      }
+
+      default:
+        return
+    }
+
+    try {
+      await authenticatedFetch(`/api/collections/reorder-content`, 'POST', {
+        collectionId: collectionId,
+        orderedItems: orderedItemsForApi,
+      })
+    } catch (error) {
+      if (collection) {
+        setLocalCollection(collection)
+      }
+    } finally {
+      mutate()
     }
   }
 
@@ -222,14 +212,12 @@ function CollectionDetailsPage() {
     }
   }
 
-  // Set order of content
   const orderMap: Record<ContentType, CollectionKey[]> = {
     Music: ['albums', 'movies', 'shows'],
     Shows: ['shows', 'movies', 'albums'],
     Movies: ['movies', 'shows', 'albums'],
   }
 
-  // Render content by type
   const renderMap: Record<CollectionKey, (items: any[]) => React.ReactNode> = {
     albums: (items: Album[]) => (
       <FlexBox
@@ -242,7 +230,9 @@ function CollectionDetailsPage() {
         <SortableHorizontalList
           title={t('albums')}
           items={items}
-          onDragEnd={(event) => handleDragEnd(event, 'albums')}
+          onDragEnd={(sourceIndex, destinationIndex) =>
+            handleDragEnd(sourceIndex, destinationIndex, 'albums')
+          }
           renderItem={(item: Album) => (
             <div key={item.id} className={isMobile ? 'w-45' : ''}>
               <AlbumCard album={item} />
@@ -263,7 +253,9 @@ function CollectionDetailsPage() {
         <SortableHorizontalList
           title={t('movies')}
           items={items}
-          onDragEnd={(event) => handleDragEnd(event, 'movies')}
+          onDragEnd={(sourceIndex, destinationIndex) =>
+            handleDragEnd(sourceIndex, destinationIndex, 'movies')
+          }
           renderItem={(item: Movie) => (
             <div key={item.id} className={isMobile ? 'w-45' : ''}>
               <MovieCard movie={item} />
@@ -277,7 +269,9 @@ function CollectionDetailsPage() {
         <SortableHorizontalList
           title={t('shows')}
           items={items}
-          onDragEnd={(event) => handleDragEnd(event, 'shows')}
+          onDragEnd={(sourceIndex, destinationIndex) =>
+            handleDragEnd(sourceIndex, destinationIndex, 'shows')
+          }
           renderItem={(item: Series) => (
             <div key={item.id} className={isMobile ? 'w-45' : ''}>
               <SeriesCard series={item} remainingEpisodes={0} />
@@ -351,13 +345,7 @@ function CollectionDetailsPage() {
                 >
                   <Pencil />
                 </Button>
-                <Button
-                  variant={'ghost'}
-                  // onClick={(e) => {
-                  //   dispatch(toggleSeasonMenu())
-                  //   if (!seasonMenuOpen) cm.current?.show(e)
-                  // }}
-                >
+                <Button variant={'ghost'}>
                   <Ellipsis />
                 </Button>
               </>
@@ -375,7 +363,6 @@ function CollectionDetailsPage() {
         </FlexBox>
       </FlexBox>
 
-      {/* Content */}
       {isLoading || !collection ? (
         <Skeleton className="h-30 w-90" />
       ) : (
@@ -384,8 +371,6 @@ function CollectionDetailsPage() {
           return items.length > 0 ? renderMap[key](items) : null
         })
       )}
-
-      {/* {collection && <ExtrasList collection={collection} />} */}
     </FlexBox>
   )
 }

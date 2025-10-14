@@ -1,5 +1,4 @@
 import { useDialogStore } from '@/context/dialog.context'
-import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Episode } from '@/data/interfaces/Media'
 import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
@@ -15,7 +14,6 @@ import EpisodeMediaInfoTab from './components/EpisodeMediaInfoTab'
 
 function EpisodeDialog() {
   const { t } = useTranslation()
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const connectWS = useWebSocketStore((state) => state.connectWS)
   const { episodeDialog, closeEpisodeDialog } = useDialogStore(
     (state) => ({
@@ -48,9 +46,7 @@ function EpisodeDialog() {
   //#endregion
 
   const { data: series } = useSWR(
-    episode && serverUrl !== ''
-      ? `${serverUrl}/details/seriesBySeasonId?id=${episode.seasonId}`
-      : null,
+    episode ? `/api/details/seriesBySeasonId?id=${episode.seasonId}` : null,
     authenticatedFetcher,
   )
 
@@ -75,12 +71,10 @@ function EpisodeDialog() {
   if (!episode || !series) return null
 
   const handleEditEpisode = async () => {
-    if (serverUrl === '') return
-
-    await connectWS(serverUrl)
+    await connectWS()
 
     const response = await authenticatedFetch(
-      `${serverUrl}/episode/${episode.id}`,
+      `/api/episode/${episode.id}`,
       'PUT',
       {
         ...episode,
@@ -103,8 +97,8 @@ function EpisodeDialog() {
       return
     }
 
-    mutate((key: string) => key.startsWith(`${serverUrl}/details/season`))
-    mutate((key: string) => key.startsWith(`${serverUrl}/details/episode`))
+    mutate((key: string) => key.startsWith(`/api/details/season`))
+    mutate((key: string) => key.startsWith(`/api/details/episode`))
 
     closeEpisodeDialog()
   }

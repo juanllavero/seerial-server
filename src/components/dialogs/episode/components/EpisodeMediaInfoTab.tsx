@@ -1,7 +1,6 @@
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import Loading from '@/components/Loading'
 import FlexBox from '@/components/ui/FlexBox'
-import { useServerStore } from '@/context/server.context'
 import { Video } from '@/data/interfaces/Media'
 import {
   AudioTrack,
@@ -26,16 +25,13 @@ interface VideoInfo {
 }
 
 function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const isTablet = useIsTablet()
   const [loaded, setLoaded] = useState(false)
   const [mediaInfo, setMediaInfo] = useState<Video | null>(null)
 
   // Get video info
   const { data: videoInfo } = useSWR<VideoInfo>(
-    video.id && serverUrl !== ''
-      ? `${serverUrl}/videoInfo?id=${video.id}`
-      : null,
+    video.id ? `/api/videoInfo?id=${video.id}` : null,
     authenticatedFetcher,
   )
 
@@ -46,15 +42,9 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
       setLoaded(false)
 
       const attemptFetch = async () => {
-        if (serverUrl === '') return
-
-        const result = await authenticatedFetch(
-          `${serverUrl}/updateMediaInfo`,
-          'PUT',
-          {
-            videoId: video.id,
-          },
-        )
+        const result = await authenticatedFetch(`/api/updateMediaInfo`, 'PUT', {
+          videoId: video.id,
+        })
 
         return result && result.ok ? await result.json() : null
       }

@@ -3,18 +3,16 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import FlexBox from '@/components/ui/FlexBox'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
-import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import ContentWrapper from './utils/ContentWrapper'
 import { shallow } from 'zustand/shallow'
+import ContentWrapper from './utils/ContentWrapper'
 
 function ServerLibraries() {
   const { t } = useTranslation()
   const [isDirty, setIsDirty] = useState<boolean>(false)
   const [showMessage, setShowMessage] = useState(false)
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const { setServerSetting, serverSettings, setServerSettings } =
     useSettingsStore(
       (state) => ({
@@ -105,11 +103,9 @@ function ServerLibraries() {
   }
 
   const handleSave = () => {
-    if (serverUrl === '') return
-
-    setServerSetting(serverUrl, 'autoScan', autoScan)
-    setServerSetting(serverUrl, 'autoScanPeriod', autoScanPeriod)
-    setServerSetting(serverUrl, 'generateChapters', generateChapters)
+    setServerSetting('autoScan', autoScan)
+    setServerSetting('autoScanPeriod', autoScanPeriod)
+    setServerSetting('generateChapters', generateChapters)
 
     setServerSettings({
       ...serverSettings,

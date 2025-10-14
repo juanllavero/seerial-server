@@ -3,12 +3,12 @@ import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useServerStore } from '@/context/server.context'
 import { Video } from '@/data/interfaces/Media'
+import { authenticatedFetcher } from '@/lib/auth'
 import { getVideoProgress } from '@/utils/ReactUtils'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
 import HorizontalList from '../../../../components/lists/HorizontalList'
-import { authenticatedFetcher } from '@/lib/auth'
 
 interface ContinueWatchingProps {
   goToContent: (url: string) => void
@@ -16,10 +16,9 @@ interface ContinueWatchingProps {
 
 function ContinueWatching({ goToContent }: ContinueWatchingProps) {
   const { t } = useTranslation()
-  const { user, serverUrl } = useServerStore(
+  const { user } = useServerStore(
     (state) => ({
       user: state.currentUser,
-      serverUrl: state.serverUrl,
     }),
     shallow,
   )
@@ -27,9 +26,7 @@ function ContinueWatching({ goToContent }: ContinueWatchingProps) {
 
   // Get Continue Watching items
   const { data: continueWatching, isLoading } = useSWR<Video[]>(
-    serverUrl !== ''
-      ? `${serverUrl}/continueWatching?userId=${user?.id ?? null}`
-      : null,
+    `/api/continueWatching?userId=${user?.id ?? null}`,
     authenticatedFetcher,
   )
 

@@ -1,5 +1,4 @@
 import { TooltipProvider } from '@radix-ui/react-tooltip'
-import { GoogleOAuthProvider } from '@react-oauth/google'
 import { useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { useTranslation } from 'react-i18next'
@@ -24,9 +23,7 @@ function App() {
 
 const root = createRoot(document.getElementById('app')!)
 root.render(
-  <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID!}>
-    <TooltipProvider>
-      <App />
-    </TooltipProvider>
-  </GoogleOAuthProvider>,
+  <TooltipProvider>
+    <App />
+  </TooltipProvider>,
 )

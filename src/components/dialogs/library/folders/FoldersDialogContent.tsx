@@ -3,7 +3,6 @@ import Loading from '@/components/Loading'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
-import { useServerStore } from '@/context/server.context'
 import { authenticatedFetcher } from '@/lib/auth'
 import { ChevronLeft, FileIcon, FolderIcon, HomeIcon } from 'lucide-react'
 import { useState } from 'react'
@@ -24,17 +23,16 @@ function FoldersDialogContent({
   close,
 }: FoldersDialogContentProps) {
   const { t } = useTranslation()
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const [currentPath, setCurrentPath] = useState<string>('') // Ruta actual
 
   const { data: drives, isLoading } = useSWR<string[]>(
-    serverUrl !== '' ? `${serverUrl}/drives` : null,
+    '/api/drives',
     authenticatedFetcher,
   )
 
   const { data: folderContent } = useSWR<Folder[]>(
-    currentPath !== '' && serverUrl !== ''
-      ? `${serverUrl}/folder/${encodeURIComponent(currentPath)}`
+    currentPath !== ''
+      ? `/api/folder?path=${encodeURIComponent(currentPath)}`
       : null,
     authenticatedFetcher,
   )

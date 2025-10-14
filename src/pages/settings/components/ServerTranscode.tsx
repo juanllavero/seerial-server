@@ -3,18 +3,16 @@ import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
-import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import ContentWrapper from './utils/ContentWrapper'
 import { shallow } from 'zustand/shallow'
+import ContentWrapper from './utils/ContentWrapper'
 
 function ServerTranscode() {
   const { t } = useTranslation()
   const [isDirty, setIsDirty] = React.useState(false)
   const [showMessage, setShowMessage] = React.useState(false)
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const { setServerSetting, serverSettings, setServerSettings } =
     useSettingsStore(
       (state) => ({
@@ -106,12 +104,10 @@ function ServerTranscode() {
   }
 
   const handleSave = () => {
-    if (serverUrl === '') return
-
-    setServerSetting(serverUrl, 'tempTranscodeFolder', tempFolder)
-    setServerSetting(serverUrl, 'transcodePreset', transcoderPreset)
-    setServerSetting(serverUrl, 'transcodeBuffer', defaultBuffer)
-    setServerSetting(serverUrl, 'maxTranscodeProcesses', maxTranscoding)
+    setServerSetting('tempTranscodeFolder', tempFolder)
+    setServerSetting('transcodePreset', transcoderPreset)
+    setServerSetting('transcodeBuffer', defaultBuffer)
+    setServerSetting('maxTranscodeProcesses', maxTranscoding)
 
     setServerSettings({
       ...serverSettings,

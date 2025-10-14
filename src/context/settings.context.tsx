@@ -12,13 +12,12 @@ interface SettingsStore {
   setClientSettings: (settings: Settings) => void
   setServerSettings: (settings: Settings) => void
 
-  getAllServerSettings: (serverUrl: string) => Promise<void>
+  getAllServerSettings: () => Promise<void>
   getServerSetting: (
-    serverUrl: string,
     key: string,
     defaultValue: ValueOption,
   ) => Promise<ValueOption>
-  setServerSetting: (serverUrl: string, key: string, value: ValueOption) => void
+  setServerSetting: (key: string, value: ValueOption) => void
 
   getAllClientSettings: () => void
   getClientSetting: (key: string, defaultValue: ValueOption) => ValueOption
@@ -48,28 +47,20 @@ export const useSettingsStore = createWithEqualityFn<SettingsStore>((set) => ({
     })),
 
   // --- SERVER SETTINGS ---
-  getAllServerSettings: async (serverUrl: string) => {
-    const settings = await authenticatedFetch(`${serverUrl}/serverConfig`)
+  getAllServerSettings: async () => {
+    const settings = await authenticatedFetch(`/api/serverConfig`)
     const result = await settings.json()
     set({ serverSettings: result })
   },
 
-  getServerSetting: async (
-    serverUrl: string,
-    key: string,
-    defaultValue: ValueOption,
-  ) => {
-    const setting = await authenticatedFetch(`${serverUrl}/serverConfig/${key}`)
+  getServerSetting: async (key: string, defaultValue: ValueOption) => {
+    const setting = await authenticatedFetch(`/api/serverConfig/${key}`)
     const result = await setting.json()
     return result ? result.value : defaultValue
   },
 
-  setServerSetting: async (
-    serverUrl: string,
-    key: string,
-    value: ValueOption,
-  ) => {
-    authenticatedFetch(`${serverUrl}/serverConfig`, 'PATCH', { [key]: value })
+  setServerSetting: async (key: string, value: ValueOption) => {
+    authenticatedFetch(`/api/serverConfig`, 'PATCH', { [key]: value })
   },
 
   // --- CLIENT SETTINGS (localStorage + defaults) ---

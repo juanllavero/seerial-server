@@ -2,7 +2,6 @@ import Loading from '@/components/Loading'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import LazyImage from '@/components/ui/LazyImage'
-import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
 import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
@@ -18,31 +17,24 @@ function EpisodeDetailsPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
-  const serverUrl = useServerStore((state) => state.serverUrl)
-  const { serverId, episodeId } = useParams()
+  const { episodeId } = useParams()
 
   const {
     data: episode,
     isLoading,
     mutate,
   } = useSWR(
-    episodeId && serverUrl !== ''
-      ? `${serverUrl}/details/episode?id=${episodeId}`
-      : null,
+    episodeId ? `/api/details/episode?id=${episodeId}` : null,
     authenticatedFetcher,
   )
 
   const { data: season } = useSWR(
-    episode && serverUrl !== ''
-      ? `${serverUrl}/details/season?id=${episode.seasonId}`
-      : null,
+    episode ? `/api/details/season?id=${episode.seasonId}` : null,
     authenticatedFetcher,
   )
 
   const { data: series } = useSWR(
-    season && serverUrl !== ''
-      ? `${serverUrl}/details/series?id=${season.seriesId}`
-      : null,
+    season ? `/api/details/series?id=${season.seriesId}` : null,
     authenticatedFetcher,
   )
 
@@ -80,9 +72,7 @@ function EpisodeDetailsPage() {
       <FlexBox direction="column" gap={1}>
         <FlexBox direction="column">
           <span
-            onClick={() =>
-              navigate(`/server/${serverId}/details/series/${series?.id}`)
-            }
+            onClick={() => navigate(`/details/series/${series?.id}`)}
             className="a_text cursor-pointer text-4xl font-black uppercase"
           >
             {series ? series.name : 'None'}
@@ -107,7 +97,7 @@ function EpisodeDetailsPage() {
             const episodeId = episode ? episode.id : season?.episodes[0].id
 
             const response = await authenticatedFetch(
-              `${serverUrl}/details/episode-video?id=${episodeId}`,
+              `/api/details/episode-video?id=${episodeId}`,
             )
 
             if (!response.ok) {

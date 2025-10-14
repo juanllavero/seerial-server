@@ -1,5 +1,4 @@
-import { SortableItem } from '@/components/lists/SortableItem'
-import { useServerStore } from '@/context/server.context'
+import { SortableGrid } from '@/components/lists/SortableGrid'
 import {
   Collection,
   Library,
@@ -7,18 +6,10 @@ import {
   Series,
 } from '@/data/interfaces/Media'
 import { useReorderableList } from '@/hooks/useReorderableList'
-import {
-  DndContext,
-  PointerSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core'
-import { SortableContext, rectSortingStrategy } from '@dnd-kit/sortable'
+import { authenticatedFetcher } from '@/lib/auth'
 import useSWR from 'swr'
 import CollectionCard from '../cards/CollectionCard'
 import SeriesCard from '../cards/SeriesCard'
-import { authenticatedFetcher } from '@/lib/auth'
 
 interface SeriesListProps {
   library: Library
@@ -26,11 +17,8 @@ interface SeriesListProps {
 }
 
 function SeriesList({ library, mutateLibrary }: SeriesListProps) {
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const { data, isLoading } = useSWR<LibraryItem[]>(
-    serverUrl !== ''
-      ? `${serverUrl}/library-content?libraryId=${library.id}&type=Shows`
-      : null,
+    `/api/library-content?libraryId=${library.id}&type=Shows`,
     authenticatedFetcher,
   )
 
@@ -41,43 +29,29 @@ function SeriesList({ library, mutateLibrary }: SeriesListProps) {
     mutateLibrary,
   )
 
-  // Configure dnd sensor
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-  )
-
   if (isLoading) return null
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
+    <SortableGrid
+      items={items}
       onDragEnd={handleDragEnd}
-    >
-      <SortableContext
-        items={items.map((item) => item.data.id)}
-        strategy={rectSortingStrategy}
-      >
-        {items.map((item: LibraryItem) => (
-          <SortableItem key={item.data.id} id={item.data.id}>
-            {item.type === 'collection' ? (
-              <CollectionCard
-                key={item.data.id}
-                libraryId={library.id}
-                collection={item.data as Collection}
-                type={'Shows'}
-              />
-            ) : (
-              <SeriesCard
-                key={item.data.id}
-                series={item.data as Series}
-                remainingEpisodes={item.remainingItems ?? 0}
-              />
-            )}
-          </SortableItem>
-        ))}
-      </SortableContext>
-    </DndContext>
+      renderItem={(item: LibraryItem) =>
+        item.type === 'collection' ? (
+          <CollectionCard
+            key={item.data.id}
+            libraryId={library.id}
+            collection={item.data as Collection}
+            type={'Shows'}
+          />
+        ) : (
+          <SeriesCard
+            key={item.data.id}
+            series={item.data as Series}
+            remainingEpisodes={item.remainingItems ?? 0}
+          />
+        )
+      }
+    />
   )
 }
 

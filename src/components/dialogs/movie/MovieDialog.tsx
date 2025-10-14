@@ -1,24 +1,21 @@
 import { ModalWrapper } from '@/components/ModalWrapper'
 import { useDialogStore } from '@/context/dialog.context'
-import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Movie } from '@/data/interfaces/Media'
+import { authenticatedFetch } from '@/lib/auth'
+import { ImageType } from '@/utils/constants'
 import { showToast } from '@/utils/ReactUtils'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
-import ImageListTab from '../components/ImageListTab'
-import MovieInfoTab from './components/MovieInfoTab'
-import MediaTab from '../MediaTab'
-import MovieTagsTab from './components/MovieTagsTab'
 import { shallow } from 'zustand/shallow'
-import { ImageType } from '@/utils/constants'
-import { authenticatedFetch } from '@/lib/auth'
-import { t } from 'i18next'
+import ImageListTab from '../components/ImageListTab'
+import MediaTab from '../MediaTab'
+import MovieInfoTab from './components/MovieInfoTab'
+import MovieTagsTab from './components/MovieTagsTab'
 
 function MovieDialog() {
   const { t } = useTranslation()
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const connectWS = useWebSocketStore((state) => state.connectWS)
   const { movieDialog, closeMovieDialog } = useDialogStore(
     (state) => ({
@@ -110,48 +107,42 @@ function MovieDialog() {
   if (!movie) return null
 
   const handleEditMovie = async () => {
-    if (serverUrl === '') return
+    await connectWS()
 
-    await connectWS(serverUrl)
-
-    const response = await authenticatedFetch(
-      `${serverUrl}/movie/${movie.id}`,
-      'PUT',
-      {
-        ...movie,
-        name,
-        year,
-        overview,
-        tagline,
-        productionStudios: studios,
-        genres,
-        creator,
-        musicComposer: music,
-        directedBy,
-        writtenBy,
-        nameLock,
-        yearLock,
-        overviewLock,
-        taglineLock,
-        productionStudiosLock: studiosLock,
-        genresLock,
-        creatorLock,
-        musicComposerLock: musicLock,
-        directedByLock,
-        writtenByLock,
-        logoSrc: selectedLogo ?? movie.logoSrc,
-        coverSrc: selectedPoster ?? movie.coverSrc,
-        backgroundSrc: selectedBackground ?? movie.backgroundSrc,
-      },
-    )
+    const response = await authenticatedFetch(`/api/movie/${movie.id}`, 'PUT', {
+      ...movie,
+      name,
+      year,
+      overview,
+      tagline,
+      productionStudios: studios,
+      genres,
+      creator,
+      musicComposer: music,
+      directedBy,
+      writtenBy,
+      nameLock,
+      yearLock,
+      overviewLock,
+      taglineLock,
+      productionStudiosLock: studiosLock,
+      genresLock,
+      creatorLock,
+      musicComposerLock: musicLock,
+      directedByLock,
+      writtenByLock,
+      logoSrc: selectedLogo ?? movie.logoSrc,
+      coverSrc: selectedPoster ?? movie.coverSrc,
+      backgroundSrc: selectedBackground ?? movie.backgroundSrc,
+    })
 
     if (!response || !response.ok) {
       showToast('error', 'Error updating movie')
       return
     }
 
-    mutate((key: string) => key.startsWith(`${serverUrl}/details/movie`))
-    mutate((key: string) => key.startsWith(`${serverUrl}/library-content`))
+    mutate((key: string) => key.startsWith(`/api/details/movie`))
+    mutate((key: string) => key.startsWith(`/api/library-content`))
 
     closeMovieDialog()
   }

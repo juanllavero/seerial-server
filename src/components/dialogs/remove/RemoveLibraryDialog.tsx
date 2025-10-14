@@ -1,16 +1,14 @@
 import AlertWrapper from '@/components/AlertWrapper'
 import { useDialogStore } from '@/context/dialog.context'
-import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
-import { useNavigate } from 'react-router-dom'
+import { authenticatedFetch } from '@/lib/auth'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import { mutate } from 'swr'
 import { shallow } from 'zustand/shallow'
-import { authenticatedFetch } from '@/lib/auth'
 
 function RemoveLibraryDialog() {
   const { t } = useTranslation()
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const connectWS = useWebSocketStore((state) => state.connectWS)
   const { removeLibraryDialog, closeRemoveLibraryDialog } = useDialogStore(
     (state) => ({
@@ -27,16 +25,14 @@ function RemoveLibraryDialog() {
       description={t('removeLibraryMessage')}
       actionMessage={t('removeButton')}
       action={async () => {
-        if (serverUrl === '') return
-
-        connectWS(serverUrl)
+        connectWS()
         await authenticatedFetch(
-          `${serverUrl}/libraries/${removeLibraryDialog.libraryToRemove}`,
+          `/api/libraries/${removeLibraryDialog.libraryToRemove}`,
           'DELETE',
         )
 
         // Mutate libraries list
-        mutate((key: string) => key.startsWith(`${serverUrl}/libraries`))
+        mutate((key: string) => key.startsWith(`/api/libraries`))
 
         navigate('/home')
         closeRemoveLibraryDialog()

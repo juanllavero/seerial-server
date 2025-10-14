@@ -3,25 +3,20 @@ import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
 import { Library } from '@/data/interfaces/Media'
 import { useCardWidth } from '@/hooks/useCardWidth'
+import { authenticatedFetcher } from '@/lib/auth'
 import NoContent from '@/pages/home/components/NoContent'
 import { memo, useEffect } from 'react'
 import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
 import LibraryContent from './LibraryContent'
 import LibraryPageSkeleton from './LibraryPageSkeleton'
-import { authenticatedFetcher } from '@/lib/auth'
 
 interface LibraryPageContentProps {
   libraryId: string
-  serverUrl: string
   type: string
 }
 
-function LibraryPageContent({
-  libraryId,
-  serverUrl,
-  type,
-}: LibraryPageContentProps) {
+function LibraryPageContent({ libraryId, type }: LibraryPageContentProps) {
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
   const { cardWidth } = useCardWidth()
   const { selectedLibraryId, selectLibrary } = useDataStore(
@@ -35,10 +30,7 @@ function LibraryPageContent({
     data: library,
     isLoading,
     mutate,
-  } = useSWR<Library>(
-    `${serverUrl}/library?id=${libraryId}`,
-    authenticatedFetcher,
-  )
+  } = useSWR<Library>(`/api/library?id=${libraryId}`, authenticatedFetcher)
 
   useEffect(() => {
     if (

@@ -1,18 +1,17 @@
 import { Button } from '@/components/ui/button'
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
-import { useServerStore } from '@/context/server.context'
 import { Collection, CollectionImages } from '@/data/interfaces/Media'
 import { DropdownContent } from '@/data/interfaces/Utils'
+import { authenticatedFetcher } from '@/lib/auth'
+import { getPosterImage } from '@/utils/ReactUtils'
 import { Pencil } from 'lucide-react'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import ParentCard from './ParentCard'
-import { getPosterImage } from '@/utils/ReactUtils'
 import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
-import { authenticatedFetcher } from '@/lib/auth'
+import ParentCard from './ParentCard'
 
 interface CollectionCardProps {
   libraryId: string
@@ -29,19 +28,13 @@ function CollectionCard({ libraryId, collection, type }: CollectionCardProps) {
     }),
     shallow,
   )
-  const { serverUrl } = useServerStore(
-    (state) => ({
-      serverUrl: state.serverUrl,
-    }),
-    shallow,
-  )
   const openCollectionDialog = useDialogStore(
     (state) => state.openCollectionDialog,
   )
   const navigate = useNavigate()
 
   const { data: collectionImages } = useSWR<CollectionImages>(
-    `${serverUrl}/collection-images?collectionId=${collection.id}&&type=${type}`,
+    `/api/collection-images?collectionId=${collection.id}&&type=${type}`,
     authenticatedFetcher,
   )
 

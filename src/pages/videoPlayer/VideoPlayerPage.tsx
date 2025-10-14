@@ -22,10 +22,9 @@ interface VideoInfo {
 }
 
 function VideoPlayerPage() {
-  const { user, serverUrl } = useServerStore(
+  const { user } = useServerStore(
     (state) => ({
       user: state.currentUser,
-      serverUrl: state.serverUrl,
     }),
     shallow,
   )
@@ -37,15 +36,13 @@ function VideoPlayerPage() {
     isLoading: loadingVideo,
     mutate,
   } = useSWR<Video>(
-    videoId && serverUrl !== ''
-      ? `${serverUrl}/details/video?id=${videoId}`
-      : null,
+    videoId ? `/api/details/video?id=${videoId}` : null,
     authenticatedFetcher,
   )
 
   // Get video info
   const { data: videoInfo, isLoading: loadingVideoInfo } = useSWR<VideoInfo>(
-    videoId && serverUrl !== '' ? `${serverUrl}/videoInfo?id=${videoId}` : null,
+    videoId ? `/api/videoInfo?id=${videoId}` : null,
     authenticatedFetcher,
   )
 
@@ -96,44 +93,28 @@ function VideoPlayerPage() {
 
   const [videoSrc, setVideoSrc] = useState<string>('')
 
-  async function getSignedStreamUrl(
-    video: any,
-    serverUrl: string,
-    start = 0,
-    audio = 0,
-  ) {
-    const res = await authenticatedFetch(
-      `${serverUrl}/get-stream-url`,
-      'POST',
-      {
-        filePath: video.fileSrc,
-        start,
-        audio,
-        expiresIn: '2m',
-      },
-    )
+  async function getSignedStreamUrl(video: any, start = 0, audio = 0) {
+    const res = await authenticatedFetch(`/api/get-stream-url`, 'POST', {
+      filePath: video.fileSrc,
+      start,
+      audio,
+      expiresIn: '2m',
+    })
 
     const { url } = await res.json()
-    return `${serverUrl}${url}`
+    return `/api/${url}`
   }
 
   useEffect(() => {
-    if (!video || !serverUrl) return
+    if (!video) return
     getSignedStreamUrl(
       video,
-      serverUrl,
       streamStartTime ? Math.floor(streamStartTime) : 0,
       selectedAudioTrack && selectedAudioTrack.id && selectedAudioTrack.id > 0
         ? selectedAudioTrack.id - 1
         : 0,
     ).then(setVideoSrc)
-  }, [
-    video,
-    serverUrl,
-    streamStartTime,
-    selectedAudioTrack,
-    selectedSubtitleTrack,
-  ])
+  }, [video, streamStartTime, selectedAudioTrack, selectedSubtitleTrack])
 
   // These functions now correctly update the state to trigger the 'videoSrc' recalculation.
   const handleAudioTrackChange = (track: AudioTrack) => {
@@ -386,11 +367,9 @@ function VideoPlayerPage() {
     if (!video || !videoInfo) return
 
     const fetchData = async () => {
-      const result = await authenticatedFetch(
-        `${serverUrl}/updateMediaInfo`,
-        'PUT',
-        { videoId: video.id },
-      )
+      const result = await authenticatedFetch(`/api/updateMediaInfo`, 'PUT', {
+        videoId: video.id,
+      })
 
       if (!result || !result.ok) {
         return
@@ -471,7 +450,7 @@ function VideoPlayerPage() {
     track.kind = 'subtitles'
     track.label = selectedSubtitleTrack.displayTitle
     track.srclang = selectedSubtitleTrack.language
-    track.src = `${serverUrl}/subs-from-video?path=${encodeURIComponent(video?.fileSrc ?? '')}&trackId=${tracks.subtitleTracks.indexOf(selectedSubtitleTrack)}&startTime=${streamStartTime}`
+    track.src = `/api/subs-from-video?path=${encodeURIComponent(video?.fileSrc ?? '')}&trackId=${tracks.subtitleTracks.indexOf(selectedSubtitleTrack)}&startTime=${streamStartTime}`
     track.default = true
 
     videoPlayer.appendChild(track)
@@ -526,7 +505,6 @@ function VideoPlayerPage() {
           isPlaying={isPlaying}
           isFullscreen={isFullscreen}
           showControls={showControls}
-          serverUrl={serverUrl}
           currentTime={currentTime}
           setVideoLoaded={setVideoLoaded}
           setIsPlaying={setIsPlaying}

@@ -23,10 +23,9 @@ interface SeriesCardProps {
 
 function SeriesCard({ series, remainingEpisodes }: SeriesCardProps) {
   const { t } = useTranslation()
-  const { user, serverUrl } = useServerStore(
+  const { user } = useServerStore(
     (state) => ({
       user: state.currentUser,
-      serverUrl: state.serverUrl,
     }),
     shallow,
   )
@@ -67,8 +66,7 @@ function SeriesCard({ series, remainingEpisodes }: SeriesCardProps) {
               series.watchStatus !== undefined
                 ? t('markUnwatched')
                 : t('markWatched'),
-            action: () =>
-              user && toggleSeriesWatched(serverUrl, series, user.id),
+            action: () => user && toggleSeriesWatched(series, user.id),
           },
         ],
       },

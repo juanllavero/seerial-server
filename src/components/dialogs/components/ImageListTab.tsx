@@ -2,7 +2,6 @@ import { useIsTablet } from '@/components/hooks/use-tablet'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
-import { useServerStore } from '@/context/server.context'
 import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { ImageType } from '@/utils/constants'
 import { generateRandoumUUID, showToast } from '@/utils/ReactUtils'
@@ -32,7 +31,6 @@ function ImageListTab({
   type = ImageType.BACKDROP,
 }: ImageListTabProps) {
   const { t } = useTranslation()
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const [pastingUrl, setPastingUrl] = useState<boolean>(false)
   const [urlToDownload, setUrlToDownload] = useState<string>('')
   const isTablet = useIsTablet()
@@ -45,7 +43,7 @@ function ImageListTab({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { data: localImages, isLoading } = useSWR<LocalImage[]>(
-    localFolder ? `${serverUrl}/images?path=${localFolder}` : null,
+    localFolder ? `/api/images?path=${localFolder}` : null,
     authenticatedFetcher,
   )
 
@@ -89,7 +87,7 @@ function ImageListTab({
 
     try {
       const response = await authenticatedFetch(
-        `${serverUrl}/uploadImage`,
+        `/api/uploadImage`,
         'POST',
         formData,
       )
@@ -98,7 +96,7 @@ function ImageListTab({
         throw new Error()
       }
 
-      mutate(`${serverUrl}/images?path=${localFolder}`)
+      mutate(`/api/images?path=${localFolder}`)
 
       showToast('success', t('imageLoaded'))
     } catch (err) {
@@ -112,21 +110,17 @@ function ImageListTab({
     setIsUploading(true)
 
     try {
-      const response = await authenticatedFetch(
-        `${serverUrl}/downloadImage`,
-        'POST',
-        {
-          url: url,
-          downloadFolder: localFolder,
-          fileName: `${generateRandoumUUID()}.${url.split('.').pop()}`,
-        },
-      )
+      const response = await authenticatedFetch(`/api/downloadImage`, 'POST', {
+        url: url,
+        downloadFolder: localFolder,
+        fileName: `${generateRandoumUUID()}.${url.split('.').pop()}`,
+      })
 
       if (!response || !response.ok) {
         throw new Error()
       }
 
-      mutate(`${serverUrl}/images?path=${localFolder}`)
+      mutate(`/api/images?path=${localFolder}`)
 
       showToast('success', t('imageLoaded'))
     } catch (err) {
