@@ -26,10 +26,11 @@ router.post(
 
     // Set JWT in HttpOnly cookie
     res.cookie("jwt", token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "none",
-      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      httpOnly: true, // Protects from XSS
+      path: "/",
+      secure: req.protocol === "https",
+      sameSite: "lax",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
     });
     res.status(200).json(user);
   })

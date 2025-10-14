@@ -17,12 +17,13 @@ export default class AuthMiddleware {
       const user = await User.findByPk(decoded.userId, {
         include: ["libraries"],
       });
+
       if (!user)
         return res.status(401).json({ error: messages.errors.token.invalid });
 
       // Check library access if route involves a library
-      const libraryId = req.params.libraryId || req.body.libraryId;
-      if (libraryId) {
+      const libraryId = req.params?.libraryId || req.body?.libraryId;
+      if (user.type !== UserType.ADMIN && libraryId) {
         const hasAccess = user.libraries?.some((lib) => lib.id === libraryId);
         if (!hasAccess)
           return res
@@ -46,6 +47,7 @@ export default class AuthMiddleware {
       req.user = user; // Attach user to request
       next();
     } catch (err) {
+      console.log("[AuthMiddleware] Error:", err);
       return res.status(401).json({ error: messages.errors.token.invalid });
     }
   }
@@ -66,6 +68,7 @@ export default class AuthMiddleware {
       req.user = user;
       next();
     } catch (err) {
+      console.log("[AuthMiddleware] Error:", err);
       return res.status(401).json({ error: messages.errors.token.invalid });
     }
   }
@@ -87,6 +90,7 @@ export default class AuthMiddleware {
       req.user = user;
       next();
     } catch (err) {
+      console.log("[AuthMiddleware] Error:", err);
       return res.status(401).json({ error: messages.errors.token.invalid });
     }
   }
@@ -145,6 +149,7 @@ export default class AuthMiddleware {
         message: messages.errors.token.noAccess,
       });
     } catch (err) {
+      console.log("[AuthMiddleware] Error:", err);
       return res.status(401).json({ error: messages.errors.token.invalid });
     }
   }

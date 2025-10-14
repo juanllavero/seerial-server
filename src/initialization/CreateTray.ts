@@ -1,3 +1,4 @@
+import { ServerConfigManager } from "@/managers/ServerConfigManager";
 import { app, Menu, shell, Tray } from "electron";
 import path from "path";
 
@@ -22,7 +23,9 @@ export function createTray() {
     {
       label: "Open Seerial...",
       click: () => {
-        shell.openExternal("https://app.seerial.es");
+        shell.openExternal(
+          `http://localhost:${ServerConfigManager.serverConfig.httpPort}/web`
+        );
       },
     },
     { type: "separator" },

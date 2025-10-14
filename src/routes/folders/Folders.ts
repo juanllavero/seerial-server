@@ -81,19 +81,22 @@ const getFolderContent = (dirPath: string) => {
 
 // Endpoint to get files and folders within a directory
 router.get(
-  "/folder/*",
-  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const folderPath = req.params[0]; // Extract the folder path from the URL
-    const fullPath = path.resolve(folderPath); // Assert the path is absolute
+  "/folder",
+  catchAsync(async (req, res, next) => {
+    const folderPath = req.query.path;
 
-    // Check if the folder exists
+    if (!folderPath || folderPath === "") {
+      return next(new ApiError(400, messages.errors.validation.invalidData));
+    }
+
+    const fullPath = path.resolve(folderPath as string);
+
     if (!fs.existsSync(fullPath) || !fs.lstatSync(fullPath).isDirectory()) {
       return next(new ApiError(400, messages.errors.notFound.folder));
     }
 
     const content = getFolderContent(fullPath);
-
-    return res.status(200).json(content);
+    res.status(200).json(content);
   })
 );
 

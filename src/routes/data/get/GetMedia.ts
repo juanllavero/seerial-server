@@ -186,22 +186,29 @@ router.get(
 
 // #region BACKGROUND MEDIA
 router.get(
-  "/:itemType(movie|series|season)/:mediaType(video|music)",
+  "/:itemType/:mediaType",
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { itemType, mediaType } = req.params as {
-      itemType: "movie" | "series" | "season";
-      mediaType: "video" | "music";
-    };
+    const { itemType, mediaType } = req.params;
     const { id } = req.query;
+
+    if (!["movie", "series", "season"].includes(itemType)) {
+      return next(new ApiError(400, messages.errors.validation.invalidData));
+    }
+    if (!["video", "music"].includes(mediaType)) {
+      return next(new ApiError(400, messages.errors.validation.invalidData));
+    }
+
     if (typeof id !== "string")
       return next(
         new ApiError(400, messages.errors.validation.notEnoughParams)
       );
+
     const url = await MediaDetailsManager.findMediaBackground(
-      mediaType,
-      itemType,
+      mediaType as "video" | "music",
+      itemType as "movie" | "series" | "season",
       id
     );
+
     res.status(200).json(url);
   })
 );

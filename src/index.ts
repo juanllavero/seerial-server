@@ -10,7 +10,7 @@ import { downloadYtDlp } from "@/utils/YoutubeDownloader";
 import cors from "cors";
 import { config } from "dotenv";
 import { app } from "electron";
-import express from "express";
+import express, { Request, Response } from "express";
 import rateLimit from "express-rate-limit";
 import http from "http";
 import https from "https";
@@ -24,23 +24,9 @@ export const appServer = express();
 // Middleware
 appServer.use(
   cors({
-    // origin: (origin, callback) => {
-    //   const allowedOrigins = [
-    //     "http://localhost:5173", // React dev server
-    //     `http://localhost:${ServerConfigManager.serverConfig.httpPort}`,
-    //     `https://localhost:${ServerConfigManager.serverConfig.httpsPort}`,
-    //     ServerConfigManager.serverConfig.customUrl,
-    //     ServerConfigManager.serverConfig.tunnelUrl,
-    //   ].filter(Boolean);
-    //   if (!origin || allowedOrigins.includes(origin)) {
-    //     callback(null, true);
-    //   } else {
-    //     callback(new Error("Not allowed by CORS"));
-    //   }
-    // },
     origin: (origin, callback) => {
-      if (!origin) return callback(null, true); // peticiones tipo curl / server-side
-      callback(null, origin); // Devolver el mismo origen que hace la petición
+      if (!origin) return callback(null, true); // Curl or server side requests
+      callback(null, origin); // Return same origin
     },
     credentials: true, // Allow cookies
     exposedHeaders: ["Content-Range", "Accept-Ranges", "Content-Length"],
@@ -87,6 +73,15 @@ app.whenReady().then(async () => {
 
   // Initialize routes
   addServerRoutes(appServer);
+
+  // Serve static web files
+  const webPath = path.join(__dirname, "web");
+  appServer.use(express.static(webPath));
+
+  // Capture all requests and redirect to index.html
+  appServer.get(/^(?!\/api).*/, (_req: Request, res: Response) => {
+    res.sendFile(path.join(webPath, "index.html"));
+  });
 
   // Start server
   await ServerConfigManager.startServer(appServer);
