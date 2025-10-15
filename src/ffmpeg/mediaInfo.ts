@@ -17,6 +17,13 @@ import {
   processVideoData,
 } from "./utils/ffmpegUtils";
 
+let ffprobePathFinal = ffprobePath.path;
+
+// If app.asar is used, use app.asar.unpacked
+if (ffprobePathFinal.includes("app.asar")) {
+  ffprobePathFinal = ffprobePathFinal.replace("app.asar", "app.asar.unpacked");
+}
+
 /**
  * Retrieves the duration of a video/audio file.
  * @param mediaFile - The path to the media file to probe for duration.
@@ -118,7 +125,7 @@ export async function getChapters(videoPath: string): Promise<ChapterData[]> {
   const timeoutMs = 10000;
 
   return new Promise((resolve) => {
-    const process = spawn(ffprobePath.path, [
+    const process = spawn(ffprobePathFinal, [
       "-v",
       "error",
       "-show_entries",

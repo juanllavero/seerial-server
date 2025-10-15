@@ -1,16 +1,18 @@
-import { Collection, Movie } from "@/data/models";
-import { Episode as EpisodeLocal } from "@/data/models/Media/Episode.model";
-import { Season } from "@/data/models/Media/Season.model";
-import { Series } from "@/data/models/Media/Series.model";
-import { Video } from "@/data/models/Media/Video.model";
-import { FileSearch } from "@/fileSearch/FileSearch";
+import { Collection } from "@/api/v0/collections/collections.model";
+import { Episode as EpisodeLocal } from "@/api/v0/episodes/episodes.model";
+import { Movie } from "@/api/v0/movies/movies.model";
+import { Season } from "@/api/v0/seasons/seasons.model";
+import { Series } from "@/api/v0/series/series.model";
+import { Video } from "@/api/v0/videos/videos.model";
 import { MovieDBWrapper } from "@/theMovieDB/MovieDB";
-import { IMDBScores } from "@/utils/IMDBScores";
+import { getIMDBScore } from "@/utils/getIMDBScore";
 import fs from "fs";
 import { Episode, MovieResponse } from "moviedb-promise";
 import { FilesManager } from "./FilesManager";
 
 export class MetadataManager {
+  static BASE_URL: string = "https://image.tmdb.org/t/p/original";
+
   //#region SERIES METADATA
   /**
    * Updates the metadata of a series using data from TMDb.
@@ -70,7 +72,7 @@ export class MetadataManager {
         name: person.name ?? "",
         character: person.character ?? "",
         profileImage: person.profile_path
-          ? `${FileSearch.BASE_URL}${person.profile_path}`
+          ? `${this.BASE_URL}${person.profile_path}`
           : "",
       }));
     }
@@ -141,7 +143,7 @@ export class MetadataManager {
       // Download logos
       if (images.logos && images.logos.length > 0) {
         series.logosUrls = images.logos.map(
-          (logo) => `${FileSearch.BASE_URL}${logo.file_path}`
+          (logo) => `${this.BASE_URL}${logo.file_path}`
         );
         series.logoSrc = series.logosUrls[0];
       }
@@ -149,7 +151,7 @@ export class MetadataManager {
       // Download posters
       if (images.posters && images.posters.length > 0) {
         series.coversUrls = images.posters.map(
-          (poster) => `${FileSearch.BASE_URL}${poster.file_path}`
+          (poster) => `${this.BASE_URL}${poster.file_path}`
         );
         series.coverSrc = series.coversUrls[0];
       }
@@ -195,7 +197,7 @@ export class MetadataManager {
 
       if (backdrops.length > 0) {
         season.backgroundsUrls = backdrops.map(
-          (bg) => `${FileSearch.BASE_URL}${bg.file_path}`
+          (bg) => `${this.BASE_URL}${bg.file_path}`
         );
         season.backgroundSrc = season.backgroundsUrls[0];
       }
@@ -254,11 +256,11 @@ export class MetadataManager {
     );
     if (images?.stills) {
       video.imgUrls = images.stills.map(
-        (img) => `${FileSearch.BASE_URL}${img.file_path}`
+        (img) => `${this.BASE_URL}${img.file_path}`
       );
     }
     video.imgSrc = episodeMetadata.still_path
-      ? `${FileSearch.BASE_URL}${episodeMetadata.still_path}`
+      ? `${this.BASE_URL}${episodeMetadata.still_path}`
       : "";
 
     await episode.save();
@@ -302,7 +304,7 @@ export class MetadataManager {
     }
 
     // Get IMDB Score
-    movie.imdbScore = await IMDBScores.getIMDBScore(movie.imdbId);
+    movie.imdbScore = await getIMDBScore(movie.imdbId);
 
     // Update cast and crew
     await this.updateMovieCredits(movie, movieMetadata.id ?? 0, language);
@@ -393,7 +395,7 @@ export class MetadataManager {
         name: person.name ?? "",
         character: person.character ?? "",
         profileImage: person.profile_path
-          ? `${FileSearch.BASE_URL}${person.profile_path}`
+          ? `${this.BASE_URL}${person.profile_path}`
           : "",
       }));
     }
@@ -447,7 +449,7 @@ export class MetadataManager {
       // Backdrops
       if (images.backdrops && images.backdrops.length > 0) {
         movie.backgroundsUrls = images.backdrops.map(
-          (img) => `${FileSearch.BASE_URL}${img.file_path}`
+          (img) => `${this.BASE_URL}${img.file_path}`
         );
         movie.backgroundSrc = movie.backgroundsUrls[0];
       }
@@ -455,7 +457,7 @@ export class MetadataManager {
       // Logos
       if (images.logos && images.logos.length > 0) {
         movie.logosUrls = images.logos.map(
-          (img) => `${FileSearch.BASE_URL}${img.file_path}`
+          (img) => `${this.BASE_URL}${img.file_path}`
         );
         movie.logoSrc = movie.logosUrls[0];
       }
@@ -463,7 +465,7 @@ export class MetadataManager {
       // Posters
       if (images.posters && images.posters.length > 0) {
         movie.coversUrls = images.posters.map(
-          (img) => `${FileSearch.BASE_URL}${img.file_path}`
+          (img) => `${this.BASE_URL}${img.file_path}`
         );
         movie.coverSrc = movie.coversUrls[0];
 
@@ -510,7 +512,7 @@ export class MetadataManager {
 
       if (thumbnails.length > 0) {
         video.imgUrls = thumbnails.map(
-          (thumb) => `${FileSearch.BASE_URL}${thumb.file_path}`
+          (thumb) => `${this.BASE_URL}${thumb.file_path}`
         );
         video.imgSrc = video.imgUrls[0];
       } else {

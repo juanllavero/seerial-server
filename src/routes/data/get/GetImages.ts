@@ -1,7 +1,8 @@
 import { messages } from "@/config/messages";
+import ApiError from "@/data/ApiError";
 import { FilesManager } from "@/managers/FilesManager";
 import { ImageManager } from "@/managers/ImageManager";
-import ApiError from "@/utils/ApiError";
+import { SanitizationManager } from "@/managers/SanitizationManager";
 import catchAsync from "@/utils/catchAsync";
 import express, { NextFunction, Request, Response } from "express";
 import path from "path";
@@ -22,19 +23,24 @@ router.get(
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const imagesPath = req.query.path as string;
 
-    console.log({ imagesPath });
-
     if (!imagesPath) {
       return next(
         new ApiError(400, messages.errors.validation.notEnoughParams)
       );
     }
 
-    const images = await ImageManager.getDirectoryListing(
-      decodeURIComponent(imagesPath)
-    );
+    try {
+      const sanitizedPath = SanitizationManager.sanitizeDirectoryPath(
+        decodeURIComponent(imagesPath),
+        SanitizationManager.getSystemAllowedPaths(),
+        true
+      );
 
-    return res.status(200).json(images);
+      const images = await ImageManager.getDirectoryListing(sanitizedPath);
+      return res.status(200).json(images);
+    } catch (error: any) {
+      return next(new ApiError(400, `Invalid path: ${error.message}`));
+    }
   })
 );
 
@@ -53,12 +59,22 @@ router.get(
       );
     }
 
-    await ImageManager.streamLocalImage({
-      filePath: imagePath,
-      res,
-      width: width ? parseInt(width as string, 10) : undefined,
-      height: height ? parseInt(height as string, 10) : undefined,
-    });
+    try {
+      const sanitizedPath = SanitizationManager.sanitizeImagePath(
+        imagePath,
+        SanitizationManager.getSystemAllowedPaths(),
+        true // Must exist
+      );
+
+      await ImageManager.streamLocalImage({
+        filePath: sanitizedPath,
+        res,
+        width: width ? parseInt(width as string, 10) : undefined,
+        height: height ? parseInt(height as string, 10) : undefined,
+      });
+    } catch (error: any) {
+      return next(new ApiError(400, `Invalid image path: ${error.message}`));
+    }
   })
 );
 

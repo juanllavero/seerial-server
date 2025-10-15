@@ -1,5 +1,6 @@
 import { messages } from "@/config/messages";
-import ApiError from "@/utils/ApiError";
+import ApiError from "@/data/ApiError";
+import { SanitizationManager } from "@/managers/SanitizationManager";
 import catchAsync from "@/utils/catchAsync";
 import express, { NextFunction, Request, Response } from "express";
 import fs from "fs";
@@ -89,14 +90,18 @@ router.get(
       return next(new ApiError(400, messages.errors.validation.invalidData));
     }
 
-    const fullPath = path.resolve(folderPath as string);
+    try {
+      const sanitizedPath = SanitizationManager.sanitizeDirectoryPath(
+        folderPath as string,
+        SanitizationManager.getSystemAllowedPaths(),
+        true // Must exist
+      );
 
-    if (!fs.existsSync(fullPath) || !fs.lstatSync(fullPath).isDirectory()) {
-      return next(new ApiError(400, messages.errors.notFound.folder));
+      const content = getFolderContent(sanitizedPath);
+      res.status(200).json(content);
+    } catch (error: any) {
+      return next(new ApiError(400, `Invalid folder path: ${error.message}`));
     }
-
-    const content = getFolderContent(fullPath);
-    res.status(200).json(content);
   })
 );
 

@@ -1,5 +1,5 @@
 import { VideoManager } from "@/managers/VideoManager";
-import { verifyVideoStreamToken } from "@/middleware/videoMiddleware";
+import { verifyVideoStreamToken } from "@/middleware/video.middleware";
 import express, { Request, Response } from "express";
 
 const router = express.Router();

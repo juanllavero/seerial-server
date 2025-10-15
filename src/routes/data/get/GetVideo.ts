@@ -1,6 +1,6 @@
 import { messages } from "@/config/messages";
+import ApiError from "@/data/ApiError";
 import { FilesManager } from "@/managers/FilesManager";
-import ApiError from "@/utils/ApiError";
 import catchAsync from "@/utils/catchAsync";
 import crypto from "crypto";
 import express, { NextFunction, Request, Response } from "express";

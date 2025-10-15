@@ -1,5 +1,4 @@
 import { FilesManager } from "@/managers/FilesManager";
-import { Utils } from "@/utils/Utils";
 import express from "express";
 import fs from "fs";
 
@@ -28,7 +27,10 @@ const defaultServerConfig = {
 router.get("/serverConfig/:key", (req: any, res: any) => {
   const key = req.params.key;
 
-  Utils.createJSONFileIfNotExists(SERVER_CONFIG_FILE, defaultServerConfig);
+  FilesManager.createJSONFileIfNotExists(
+    SERVER_CONFIG_FILE,
+    defaultServerConfig
+  );
   const configData = JSON.parse(fs.readFileSync(SERVER_CONFIG_FILE, "utf8"));
 
   // If the key does not exist, return null
@@ -38,14 +40,20 @@ router.get("/serverConfig/:key", (req: any, res: any) => {
 
 // GET /config - Returns all settings
 router.get("/serverConfig", (_req: any, res: any) => {
-  Utils.createJSONFileIfNotExists(SERVER_CONFIG_FILE, defaultServerConfig);
+  FilesManager.createJSONFileIfNotExists(
+    SERVER_CONFIG_FILE,
+    defaultServerConfig
+  );
   const configData = JSON.parse(fs.readFileSync(SERVER_CONFIG_FILE, "utf8"));
   res.json(configData);
 });
 
 // PATCH /config - Modifies the data and saves the settings
 router.patch("/serverConfig", (req: any, res: any) => {
-  Utils.createJSONFileIfNotExists(SERVER_CONFIG_FILE, defaultServerConfig);
+  FilesManager.createJSONFileIfNotExists(
+    SERVER_CONFIG_FILE,
+    defaultServerConfig
+  );
   const updates = req.body; // The data to be modified is sent in the body of the request
   let configData = JSON.parse(fs.readFileSync(SERVER_CONFIG_FILE, "utf8"));
 

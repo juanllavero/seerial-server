@@ -22,7 +22,7 @@ import {
   UserLibrary,
   Video,
   WatchList,
-} from "@/data/models";
+} from "@/api/v0/index.models";
 import fs from "fs";
 import { Sequelize } from "sequelize-typescript";
 import { FilesManager } from "./FilesManager";

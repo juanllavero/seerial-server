@@ -1,6 +1,6 @@
 import { messages } from "@/config/messages";
-import ApiError from "@/utils/ApiError";
-import { Utils } from "@/utils/Utils";
+import ApiError from "@/data/ApiError";
+import { audioExtensions } from "@/utils/utils";
 import crypto from "crypto";
 import { Request, Response } from "express";
 import ffmpeg from "fluent-ffmpeg";
@@ -30,7 +30,7 @@ export class AudioManager {
     }
 
     const fileExtension = path.extname(originalPath).toLowerCase();
-    const isCompatible = Utils.webCompatibleAudioCodecs.includes(fileExtension);
+    const isCompatible = audioExtensions.includes(fileExtension);
 
     // If not for web or compatible, just return the original path
     if (!isWeb || isCompatible) {

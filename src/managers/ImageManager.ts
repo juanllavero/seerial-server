@@ -1,5 +1,5 @@
 import { messages } from "@/config/messages";
-import ApiError from "@/utils/ApiError";
+import ApiError from "@/data/ApiError";
 import axios from "axios";
 import { Response } from "express";
 import fs from "fs-extra";

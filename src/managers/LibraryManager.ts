@@ -1,16 +1,20 @@
 import { messages } from "@/config/messages";
-import { Album, Collection, Movie, Series } from "@/data/models";
+
+import { Album } from "@/api/v0/albums/albums.model";
+import { Collection } from "@/api/v0/collections/collections.model";
+import { getCollectionsInLibrary } from "@/api/v0/collections/collections.service";
 import {
-  getCollectionsInLibrary,
   getItemsForLibrary,
   getLibraries,
   getLibraryById,
-} from "@/db/get/getData";
-import { FileSearch } from "@/fileSearch/FileSearch";
-import { clearLibrary, getCollectionItemsKey } from "@/fileSearch/utils/utils";
+} from "@/api/v0/libraries/libraries.service";
+import { Movie } from "@/api/v0/movies/movies.model";
+import { Series } from "@/api/v0/series/series.model";
+import ApiError from "@/data/ApiError";
+import { scanFiles } from "@/file-search/fileSearch";
+import { clearLibrary, getCollectionItemsKey } from "@/file-search/utils/utils";
 import { WebSocketManager } from "@/managers/WebSocketManager";
-import ApiError from "@/utils/ApiError";
-import { Utils } from "@/utils/Utils";
+import { imageExtensions } from "@/utils/utils";
 import * as fs from "fs/promises";
 import { existsSync } from "original-fs";
 import path from "path";
@@ -179,9 +183,7 @@ export class LibraryManager {
           // Search poster.ext and background.ext
           for (const file of filesInFolder) {
             const fileNameWithoutExt = path.parse(file).name.toLowerCase();
-            if (
-              Utils.imageExtensions.includes(path.extname(file).toLowerCase())
-            ) {
+            if (imageExtensions.includes(path.extname(file).toLowerCase())) {
               if (fileNameWithoutExt === "poster") {
                 posterPath = path.join(baseFolder, file);
               } else if (fileNameWithoutExt === "background") {
@@ -219,11 +221,7 @@ export class LibraryManager {
     const library = await this.getLibraryById(libraryId); // reuses own method
     await clearLibrary(libraryId, WebSocketManager.getInstance());
     // This is a fire-and-forget operation, so no await is needed here.
-    FileSearch.scanFiles(
-      { id: library.id },
-      WebSocketManager.getInstance(),
-      false
-    );
+    scanFiles({ id: library.id }, WebSocketManager.getInstance(), false);
     return { message: `Scan initiated for library: ${library.name}` };
   }
 }

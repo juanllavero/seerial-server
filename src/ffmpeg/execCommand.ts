@@ -1,7 +1,14 @@
 import ffprobePath from "ffprobe-static";
 import ffmpeg from "fluent-ffmpeg";
 
-ffmpeg.setFfprobePath(ffprobePath.path);
+let ffprobePathFinal = ffprobePath.path;
+
+// If app.asar is used, use app.asar.unpacked
+if (ffprobePathFinal.includes("app.asar")) {
+  ffprobePathFinal = ffprobePathFinal.replace("app.asar", "app.asar.unpacked");
+}
+
+ffmpeg.setFfprobePath(ffprobePathFinal);
 
 export async function probeMediaFile(
   filePath: string,

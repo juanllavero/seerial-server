@@ -1,55 +1,39 @@
-import AuthMiddleware from "@/middleware/authMiddleware";
+import adminRoutes from "@/api/v0/admin.routes";
+import fastRoutes from "@/api/v0/fast.routes";
+import publicRoutes from "@/api/v0/public.routes";
+import userRoutes from "@/api/v0/user.routes";
+import userManagementRoutes from "@/api/v0/users/users.routes";
+import AuthMiddleware from "@/middleware/auth.middleware";
 import * as routes from "@/routes/index";
 import cookieParser from "cookie-parser";
-import { Express, Router } from "express";
+import { Router } from "express";
 
-export function addServerRoutes(appServer: Express) {
-  const authMiddleware = new AuthMiddleware();
-  const apiRouter = Router();
+const authMiddleware = new AuthMiddleware();
+const apiRouter = Router();
 
-  // Use cookie-parser middleware before your routes
-  apiRouter.use(cookieParser());
+// Use cookie-parser middleware before your routes
+apiRouter.use(cookieParser());
 
-  // Public routes
-  apiRouter.use("/", routes.getStatusRoutes);
-  apiRouter.use("/", routes.userManagementPublicRoutes);
+// Public routes
+apiRouter.use("/", publicRoutes);
 
-  // Custom authentication with temp token
-  apiRouter.use("/", routes.getVideoFileRoutes);
+// Custom authentication with temp token
+apiRouter.use("/", routes.getVideoFileRoutes);
 
-  // Management routes (require local access or admin access)
-  apiRouter.use(
-    "/",
-    authMiddleware.requireManagementAccess,
-    routes.userManagementRoutes
-  );
+// Management routes (require local access or admin access)
+apiRouter.use(
+  "/",
+  authMiddleware.requireManagementAccess,
+  userManagementRoutes
+);
 
-  // Access restricted to users
-  apiRouter.use("/", authMiddleware.requireAccess, routes.getMediaRoutes);
-  apiRouter.use("/", authMiddleware.requireAccess, routes.publicPostRoutes);
-  apiRouter.use("/", authMiddleware.requireAccess, routes.publicUpdateRoutes);
+// Access restricted to users
+apiRouter.use("/", authMiddleware.requireAccess, userRoutes);
 
-  // Fast access routes for users
-  apiRouter.use(
-    "/",
-    authMiddleware.requireAccessFast,
-    routes.getMediaInfoRoutes
-  );
-  apiRouter.use("/", authMiddleware.requireAccessFast, routes.getVideoRoutes);
-  apiRouter.use("/", authMiddleware.requireAccessFast, routes.getAudioRoutes);
-  apiRouter.use("/", authMiddleware.requireAccessFast, routes.getColorsRoutes);
-  apiRouter.use("/", authMiddleware.requireAccessFast, routes.getImagesRoutes);
+// Fast access routes for users
+apiRouter.use("/", authMiddleware.requireAccessFast, fastRoutes);
 
-  // Access restricted to admin users
-  apiRouter.use("/", authMiddleware.requireAdmin, routes.folderRoutes);
-  apiRouter.use("/", authMiddleware.requireAdmin, routes.deleteDataRoutes);
-  apiRouter.use("/", authMiddleware.requireAdmin, routes.postDataRoutes);
-  apiRouter.use("/", authMiddleware.requireAdmin, routes.updateDataRoutes);
-  apiRouter.use("/", authMiddleware.requireAdmin, routes.getHTPCSettings);
-  apiRouter.use("/", authMiddleware.requireAdmin, routes.getServerSettings);
-  apiRouter.use("/", authMiddleware.requireAdmin, routes.getWebSettings);
-  apiRouter.use("/", authMiddleware.requireAdmin, routes.serverConfigRoutes);
+// Access restricted to admin users
+apiRouter.use("/", authMiddleware.requireAdmin, adminRoutes);
 
-  // Add API routes
-  appServer.use("/api", apiRouter);
-}
+export default apiRouter;

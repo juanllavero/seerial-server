@@ -1,32 +1,12 @@
+import { getSongById } from "@/api/v0/songs/songs.service";
 import { messages } from "@/config/messages";
-import {
-  Album,
-  CollectionAlbum,
-  CollectionMovie,
-  CollectionSeries,
-  Library,
-  LibraryCollection,
-  Movie,
-  Series,
-} from "@/data/models";
-import { getSongById } from "@/db/get/getData";
-import { FileSearch } from "@/fileSearch/FileSearch";
-import {
-  changeIdentificationMovie,
-  changeIdentificationShow,
-} from "@/fileSearch/utils/changeIdentification";
-import {
-  refreshMovieMetadata,
-  refreshSeriesMetadata,
-} from "@/fileSearch/utils/refreshMetadata";
+import ApiError from "@/data/ApiError";
 import { wsManager } from "@/index";
 import { DownloaderManager } from "@/managers/DownloaderManager";
 import { FilesManager } from "@/managers/FilesManager";
-import { SequelizeManager } from "@/managers/SequelizeManager";
+import { SanitizationManager } from "@/managers/SanitizationManager";
 import { MovieDBWrapper } from "@/theMovieDB/MovieDB";
-import ApiError from "@/utils/ApiError";
 import catchAsync from "@/utils/catchAsync";
-import { Utils } from "@/utils/Utils";
 import express, { NextFunction, Request, Response } from "express";
 import { promises as fs } from "fs";
 import { MovieDb } from "moviedb-promise";
@@ -63,237 +43,6 @@ router.post(
   })
 );
 
-// Add library
-router.post(
-  "/addLibrary",
-  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const libraryData = req.body;
-    const library = await FileSearch.scanFiles(libraryData, wsManager, true);
-
-    if (!library) {
-      return next(new ApiError(404, messages.errors.create));
-    }
-
-    return res.status(200).json(library);
-  })
-);
-
-// Reorder libraries
-router.post(
-  "/libraries/reorder",
-  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { orderedLibraryIds } = req.body;
-
-    if (!Array.isArray(orderedLibraryIds)) {
-      return next(new ApiError(400, messages.errors.validation.invalidData));
-    }
-
-    if (!SequelizeManager.sequelize) {
-      return next(new ApiError(500, messages.errors.server.dbInit));
-    }
-
-    const t = await SequelizeManager.sequelize.transaction();
-
-    try {
-      await Library.update(
-        { order: 9999 },
-        {
-          where: {},
-          transaction: t,
-        }
-      );
-
-      for (const [index, libraryId] of orderedLibraryIds.entries()) {
-        const newOrder = index;
-
-        await Library.update(
-          { order: newOrder },
-          {
-            where: { id: libraryId },
-            transaction: t,
-          }
-        );
-      }
-
-      await t.commit();
-      return res.status(200).json({ message: messages.success.order });
-    } catch (error) {
-      await t.rollback();
-      return next(new ApiError(500, messages.errors.order));
-    }
-  })
-);
-
-// Reorder library
-router.post(
-  "/library/reorder",
-  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { libraryId, orderedItems } = req.body;
-
-    if (!libraryId || !Array.isArray(orderedItems)) {
-      return next(new ApiError(400, messages.errors.validation.invalidData));
-    }
-
-    if (!SequelizeManager.sequelize) {
-      return next(new ApiError(500, messages.errors.server.dbInit));
-    }
-
-    const t = await SequelizeManager.sequelize.transaction();
-
-    try {
-      const tempOrder = 9999;
-
-      // Get the library
-      const library = await Library.findByPk(libraryId);
-      if (!library) {
-        await t.rollback();
-        return res.status(404).json({ error: "Library not found" });
-      }
-
-      // Restore the order of the collections
-      await LibraryCollection.update(
-        { customOrder: tempOrder },
-        { where: { libraryId: libraryId }, transaction: t }
-      );
-
-      // Restore the order of the items
-      if (library.type === "Movies") {
-        await Movie.update(
-          { order: tempOrder },
-          { where: { libraryId: libraryId }, transaction: t }
-        );
-      } else if (library.type === "Shows") {
-        await Series.update(
-          { order: tempOrder },
-          { where: { libraryId: libraryId }, transaction: t }
-        );
-      } else if (library.type === "Music") {
-        await Album.update(
-          { order: tempOrder },
-          { where: { libraryId: libraryId }, transaction: t }
-        );
-      }
-
-      // Assign the new order to the items
-      for (let i = 0; i < orderedItems.length; i++) {
-        const item = orderedItems[i];
-        const newOrder = i;
-
-        if (item.type === "collection") {
-          await LibraryCollection.update(
-            { customOrder: newOrder },
-            {
-              where: { libraryId: libraryId, collectionId: item.id },
-              transaction: t,
-            }
-          );
-        } else if (item.type === "movies") {
-          await Movie.update(
-            { order: newOrder },
-            { where: { libraryId: libraryId, id: item.id }, transaction: t }
-          );
-        } else if (item.type === "shows") {
-          await Series.update(
-            { order: newOrder },
-            { where: { libraryId: libraryId, id: item.id }, transaction: t }
-          );
-        } else if (item.type === "albums") {
-          await Album.update(
-            { order: newOrder },
-            { where: { libraryId: libraryId, id: item.id }, transaction: t }
-          );
-        }
-      }
-
-      await t.commit();
-      return res.status(200).json({ message: messages.success.order });
-    } catch (error) {
-      await t.rollback();
-      return next(new ApiError(500, messages.errors.order));
-    }
-  })
-);
-
-router.post(
-  "/collections/reorder-content",
-  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { collectionId, orderedItems } = req.body;
-
-    if (!collectionId || !Array.isArray(orderedItems)) {
-      return next(new ApiError(400, messages.errors.validation.invalidData));
-    }
-
-    if (!SequelizeManager.sequelize) {
-      return next(new ApiError(500, messages.errors.server.dbInit));
-    }
-
-    const t = await SequelizeManager.sequelize.transaction();
-
-    try {
-      const tempOrder = 9999;
-
-      // Restore the order of the items
-      await CollectionMovie.update(
-        { customOrder: tempOrder },
-        { where: { collectionId }, transaction: t }
-      );
-      await CollectionSeries.update(
-        { customOrder: tempOrder },
-        { where: { collectionId }, transaction: t }
-      );
-      await CollectionAlbum.update(
-        { customOrder: tempOrder },
-        { where: { collectionId }, transaction: t }
-      );
-
-      // Assign the new order to the items
-      for (const [index, item] of orderedItems.entries()) {
-        const newOrder = index;
-
-        switch (item.type) {
-          case "movie":
-          case "movies":
-            await CollectionMovie.update(
-              { customOrder: newOrder },
-              {
-                where: { collectionId, movieId: item.id },
-                transaction: t,
-              }
-            );
-            break;
-          case "series":
-          case "show":
-          case "shows":
-            await CollectionSeries.update(
-              { customOrder: newOrder },
-              {
-                where: { collectionId, seriesId: item.id },
-                transaction: t,
-              }
-            );
-            break;
-          case "album":
-          case "albums":
-            await CollectionAlbum.update(
-              { customOrder: newOrder },
-              {
-                where: { collectionId, albumId: item.id },
-                transaction: t,
-              }
-            );
-            break;
-        }
-      }
-
-      await t.commit();
-      return res.status(200).json({ message: messages.success.order });
-    } catch (error) {
-      await t.rollback();
-      return next(new ApiError(500, messages.errors.order));
-    }
-  })
-);
-
 // Upload image
 router.post(
   "/uploadImage",
@@ -307,21 +56,39 @@ router.post(
       );
     }
 
-    if (Array.isArray(req.files) || !req.files?.image) {
-      return next(
-        new ApiError(400, messages.errors.validation.noImageReceived)
-      );
-    }
-
-    const file = req.files.image[0];
-
-    res.status(200).send({
-      status: "success",
-      message: `Image uploaded successfully to ${path.join(
+    try {
+      const sanitizedDestPath = SanitizationManager.sanitizeDirectoryPath(
         destPath,
+        SanitizationManager.getSystemAllowedPaths(),
+        false
+      );
+
+      if (Array.isArray(req.files) || !req.files?.image) {
+        return next(
+          new ApiError(400, messages.errors.validation.noImageReceived)
+        );
+      }
+
+      const file = req.files.image[0];
+
+      // Validate file name
+      if (!SanitizationManager.isValidFileName(file.originalname)) {
+        return next(new ApiError(400, "Invalid file name"));
+      }
+
+      // Combine the paths
+      const finalPath = SanitizationManager.safeJoinPath(
+        sanitizedDestPath,
         file.originalname
-      )}`,
-    });
+      );
+
+      res.status(200).send({
+        status: "success",
+        message: `Image uploaded successfully to ${finalPath}`,
+      });
+    } catch (error: any) {
+      return next(new ApiError(400, `Invalid path: ${error.message}`));
+    }
   })
 );
 
@@ -337,7 +104,7 @@ router.post(
       );
     }
 
-    if (!Utils.isValidURL(url)) {
+    if (!FilesManager.isValidURL(url)) {
       return next(new ApiError(400, messages.errors.validation.invalidData));
     }
 
@@ -346,7 +113,7 @@ router.post(
       fileName += ".jpg";
     }
 
-    await Utils.downloadImage(
+    await FilesManager.downloadImage(
       url,
       path.join(FilesManager.resourcesPath, downloadFolder, fileName)
     );
@@ -398,92 +165,6 @@ router.post(
     );
 
     return res.status(200).json({ message: messages.success.download });
-  })
-);
-
-// Refresh metadata for show
-router.post(
-  "/refreshShowMetadata",
-  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { id } = req.body;
-
-    if (!id) {
-      return next(
-        new ApiError(400, messages.errors.validation.notEnoughParams)
-      );
-    }
-
-    refreshSeriesMetadata(id, wsManager);
-    return res.status(200).json({ message: messages.success.update });
-  })
-);
-
-// Refresh metadata for movie
-router.post(
-  "/refreshMovieMetadata",
-  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { id } = req.body;
-
-    if (!id) {
-      return next(
-        new ApiError(400, messages.errors.validation.notEnoughParams)
-      );
-    }
-
-    refreshMovieMetadata(id, wsManager);
-    return res.status(200).json({ message: messages.success.update });
-  })
-);
-
-// Update TheMovieDB id for show
-router.post(
-  "/updateShowId",
-  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { id, themdbId } = req.body;
-
-    if (!id || !themdbId) {
-      return next(
-        new ApiError(400, messages.errors.validation.notEnoughParams)
-      );
-    }
-
-    changeIdentificationShow(id, themdbId, wsManager);
-
-    return res.status(200).json({ message: messages.success.update });
-  })
-);
-
-// Update TheMovieDB id for movie
-router.post(
-  "/updateMovieId",
-  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { id, themdbId } = req.body;
-
-    if (!id || !themdbId) {
-      return next(
-        new ApiError(400, messages.errors.validation.notEnoughParams)
-      );
-    }
-
-    changeIdentificationMovie(id, themdbId, wsManager);
-    return res.status(200).json({ message: messages.success.update });
-  })
-);
-
-// Update episode group for show
-router.post(
-  "/updateEpisodeGroup",
-  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { id, themdbId, episodeGroupId } = req.body;
-
-    if (!id || !themdbId || !episodeGroupId) {
-      return next(
-        new ApiError(400, messages.errors.validation.notEnoughParams)
-      );
-    }
-
-    changeIdentificationShow(id, themdbId, wsManager, episodeGroupId);
-    return res.status(200).json({ message: messages.success.update });
   })
 );
 

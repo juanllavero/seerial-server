@@ -24,7 +24,7 @@ export function createTray() {
       label: "Open Seerial...",
       click: () => {
         shell.openExternal(
-          `http://localhost:${ServerConfigManager.serverConfig.httpPort}/web`
+          `http://localhost:${ServerConfigManager.serverConfig.httpPort}/`
         );
       },
     },
@@ -47,7 +47,9 @@ export function createTray() {
     {
       label: "About Seerial",
       click: () => {
-        shell.openExternal("https://seerial.es");
+        shell.openExternal(
+          `http://localhost:${ServerConfigManager.serverConfig.httpPort}/`
+        );
       },
     },
     { type: "separator" },

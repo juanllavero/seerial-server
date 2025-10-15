@@ -1,6 +1,6 @@
 import { messages } from "@/config/messages";
+import ApiError from "@/data/ApiError";
 import { MediaManager } from "@/managers/MediaManager";
-import ApiError from "@/utils/ApiError";
 import catchAsync from "@/utils/catchAsync";
 import express, { NextFunction, Request, Response } from "express";
 

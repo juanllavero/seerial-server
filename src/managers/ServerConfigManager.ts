@@ -1,4 +1,4 @@
-import { Server } from "@/data/models/Main/Server.model";
+import { Server } from "@/api/v0/servers/servers.model";
 import { FilesManager } from "@/managers/FilesManager";
 import crypto from "crypto";
 import { Express } from "express";

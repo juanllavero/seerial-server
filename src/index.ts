@@ -1,4 +1,4 @@
-import { addServerRoutes } from "@/initialization/AddRoutes";
+import appRoutes from "@/initialization/AddRoutes";
 import { createTray } from "@/initialization/CreateTray";
 import * as ConfigManager from "@/managers/ConfigManager";
 import { FilesManager } from "@/managers/FilesManager";
@@ -6,20 +6,25 @@ import { SequelizeManager } from "@/managers/SequelizeManager";
 import { ServerConfigManager } from "@/managers/ServerConfigManager";
 import { WebSocketManager } from "@/managers/WebSocketManager";
 import { MovieDBWrapper } from "@/theMovieDB/MovieDB";
-import { downloadYtDlp } from "@/utils/YoutubeDownloader";
+import { downloadYtDlp } from "@/utils/youtubeDownloader";
 import cors from "cors";
 import { config } from "dotenv";
 import { app } from "electron";
 import express, { Request, Response } from "express";
 import rateLimit from "express-rate-limit";
+import helmet from "helmet";
 import http from "http";
 import https from "https";
 import path from "path";
+import { sanitizationMiddleware } from "./middleware/sanitization.middleware";
 
 // Initialize app and environment
 config();
 process.env.APP_ROOT = path.join(__dirname, "../../");
 export const appServer = express();
+
+// Sanitization middleware
+appServer.use(sanitizationMiddleware);
 
 // Middleware
 appServer.use(
@@ -42,6 +47,24 @@ appServer.use(
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 20, // 10 attempts per IP
     message: "Too many login attempts, please try again later",
+  })
+);
+
+// Limit the max number of requests per minute
+appServer.use(
+  rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 1000, // max 1000 requests per minute
+    standardHeaders: true,
+    legacyHeaders: false,
+  })
+);
+
+// Configure helmet middleware to avoid some security vulnerabilities
+appServer.use(
+  helmet({
+    contentSecurityPolicy: false, // Disable CSP
+    crossOriginEmbedderPolicy: false, // Avoid problems with video streaming
   })
 );
 
@@ -72,14 +95,19 @@ app.whenReady().then(async () => {
   await ServerConfigManager.loadOrCreateServerConfig();
 
   // Initialize routes
-  addServerRoutes(appServer);
+  appServer.use("/api", appRoutes);
 
   // Serve static web files
   const webPath = path.join(__dirname, "web");
   appServer.use(express.static(webPath));
 
   // Capture all requests and redirect to index.html
-  appServer.get(/^(?!\/api).*/, (_req: Request, res: Response) => {
+  appServer.use((req: Request, res: Response, next) => {
+    // Si la ruta pedida tiene extensión (.js, .css, .png, etc.), no devolvemos index.html
+    if (path.extname(req.path)) {
+      return next();
+    }
+
     res.sendFile(path.join(webPath, "index.html"));
   });
 

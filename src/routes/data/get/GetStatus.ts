@@ -1,5 +1,5 @@
-import { User } from "@/data/models/Main/User.model";
-import { getUsers } from "@/db/get/getData";
+import { User } from "@/api/v0/users/users.model";
+import { getUsers } from "@/api/v0/users/users.service";
 import { ServerConfigManager } from "@/managers/ServerConfigManager";
 import { MovieDBWrapper } from "@/theMovieDB/MovieDB";
 import express from "express";

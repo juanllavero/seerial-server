@@ -1,3 +1,4 @@
+import { Collection, Series, Movie, Album } from "@/api/v0/index.models";
 import http from "http";
 import https from "https";
 import WebSocket, { WebSocketServer } from "ws";
@@ -91,4 +92,75 @@ export class WebSocketManager {
   private generateUniqueId(): string {
     return Math.random().toString(36).substr(2, 9);
   }
+
+  //#region WEBSOCKET CONTENT MESSAGES
+  public static mutateLibraries = (ws: WebSocketManager) => {
+    const message = {
+      header: "MUTATE_LIBRARIES",
+      body: {},
+    };
+    ws.broadcast(JSON.stringify(message));
+  };
+
+  public static mutateLibrary = (ws: WebSocketManager, libraryId: string) => {
+    const message = {
+      header: "MUTATE_LIBRARY",
+      body: {
+        libraryId,
+      },
+    };
+    ws.broadcast(JSON.stringify(message));
+  };
+
+  public static mutateCollection = (
+    ws: WebSocketManager,
+    collection: Collection
+  ) => {
+    const message = {
+      header: "MUTATE_COLLECTION",
+      body: collection,
+    };
+    ws.broadcast(JSON.stringify(message));
+  };
+
+  public static mutateSeries = (ws: WebSocketManager, series: Series) => {
+    const message = {
+      header: "MUTATE_SERIES",
+      body: series,
+    };
+    ws.broadcast(JSON.stringify(message));
+  };
+
+  public static mutateSeason = (ws: WebSocketManager) => {
+    const message = {
+      header: "MUTATE_SEASON",
+      body: {},
+    };
+    ws.broadcast(JSON.stringify(message));
+  };
+
+  public static mutateEpisode = (ws: WebSocketManager) => {
+    const message = {
+      header: "MUTATE_EPISODE",
+      body: {},
+    };
+    ws.broadcast(JSON.stringify(message));
+  };
+
+  public static mutateMovie = (ws: WebSocketManager, movie: Movie) => {
+    const message = {
+      header: "MUTATE_MOVIE",
+      body: movie,
+    };
+    ws.broadcast(JSON.stringify(message));
+  };
+
+  public static mutateAlbum = (ws: WebSocketManager, album: Album) => {
+    const message = {
+      header: "MUTATE_ALBUM",
+      body: album,
+    };
+    ws.broadcast(JSON.stringify(message));
+  };
+  //#endregion
 }

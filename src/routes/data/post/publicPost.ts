@@ -1,33 +1,37 @@
-import { messages } from "@/config/messages";
 import {
-  getEpisodeById,
-  getMovieById,
-  getMovieFromMyList,
-  getSeasonById,
-  getSeriesById,
-  getSeriesFromMyList,
-  getVideoByEpisodeId,
-  getVideoById,
-} from "@/db/get/getData";
+  addVideoToContinueWatching,
+  removeVideoFromContinueWatching,
+} from "@/api/v0/continue-watching/continue-watching.service";
+import { setEpisodeWatchState } from "@/api/v0/episodes/episodes.controller";
+import { getEpisodeById } from "@/api/v0/episodes/episodes.service";
+import { getMovieById } from "@/api/v0/movies/movies.service";
 import {
   addMovieToMyList,
+  addSeriesToMyList,
+  getMovieFromMyList,
+  getSeriesFromMyList,
+  removeMovieFromMyList,
+  removeSeriesFromMyList,
+} from "@/api/v0/my-lists/my-lists.service";
+import { getSeasonById } from "@/api/v0/seasons/seasons.service";
+import { getSeriesById } from "@/api/v0/series/series.service";
+import {
+  getVideoByEpisodeId,
+  getVideoById,
+} from "@/api/v0/videos/videos.service";
+import {
   addMovieToWatchList,
   addSeasonToWatchList,
-  addSeriesToMyList,
   addSeriesToWatchList,
-  addVideoToContinueWatching,
   addVideoToWatchList,
-  removeMovieFromMyList,
   removeMovieFromWatchList,
   removeSeasonFromWatchList,
-  removeSeriesFromMyList,
   removeSeriesFromWatchList,
-  removeVideoFromContinueWatching,
   removeVideoFromWatchList,
-} from "@/db/post/postData";
-import ApiError from "@/utils/ApiError";
+} from "@/api/v0/watch-lists/watch-lists.service";
+import { messages } from "@/config/messages";
+import ApiError from "@/data/ApiError";
 import catchAsync from "@/utils/catchAsync";
-import { Utils } from "@/utils/Utils";
 import { NextFunction, Request, Response, Router } from "express";
 
 const router = Router();
@@ -193,7 +197,7 @@ router.post(
     )[episodeIndex];
 
     // Set episode watched state
-    await Utils.setEpisodeWatchState(season, episode, watched, userId);
+    await setEpisodeWatchState(season, episode, watched, userId);
     return res.status(200).json({ message: messages.success.update });
   })
 );
@@ -222,7 +226,7 @@ router.post(
       return next(new ApiError(404, messages.errors.notFound.season));
     }
 
-    await Utils.setEpisodeWatchState(season, episode, watched, userId);
+    await setEpisodeWatchState(season, episode, watched, userId);
 
     return res.status(200).json({ message: messages.success.update });
   })

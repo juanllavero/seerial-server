@@ -1,6 +1,6 @@
+import { User } from "@/api/v0/users/users.model";
 import { messages } from "@/config/messages";
-import { User } from "@/data/models/Main/User.model";
-import ApiError from "@/utils/ApiError";
+import ApiError from "@/data/ApiError";
 import { UserType } from "@/utils/constants";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";

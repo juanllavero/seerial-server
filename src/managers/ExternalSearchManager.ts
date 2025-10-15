@@ -1,7 +1,7 @@
+import ApiError from "@/data/ApiError"; // Adjust path
 import { DownloaderManager } from "@/managers/DownloaderManager"; // Adjust path
 import { MovieDBWrapper } from "@/theMovieDB/MovieDB"; // Adjust path
-import ApiError from "@/utils/ApiError"; // Adjust path
-import { IMDBScores } from "@/utils/IMDBScores"; // Adjust path
+import { getIMDBScore } from "@/utils/getIMDBScore";
 
 export class ExternalSearchManager {
   /**
@@ -61,7 +61,7 @@ export class ExternalSearchManager {
    */
   public static async getImdbScore(imdbId: string) {
     try {
-      return await IMDBScores.getIMDBScore(imdbId);
+      return await getIMDBScore(imdbId);
     } catch (error) {
       console.error("Error fetching IMDB score:", error);
       throw new ApiError(503, "External IMDB score service is unavailable.");

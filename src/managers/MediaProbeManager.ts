@@ -1,6 +1,6 @@
+import ApiError from "@/data/ApiError";
 import { getAudioInfo } from "@/ffmpeg/audioInfo";
 import { getChapters, getMediaInfo } from "@/ffmpeg/mediaInfo";
-import ApiError from "@/utils/ApiError";
 
 export class MediaProbeManager {
   /**

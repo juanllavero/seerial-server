@@ -1,19 +1,20 @@
-import { messages } from "@/config/messages";
+import { getAlbumById } from "@/api/v0/albums/albums.service";
+import { getCollectionById } from "@/api/v0/collections/collections.service";
+import { getEpisodeById } from "@/api/v0/episodes/episodes.service";
+import { getMovieById } from "@/api/v0/movies/movies.service";
+import { getSeasonById } from "@/api/v0/seasons/seasons.service";
+import { getSeriesById } from "@/api/v0/series/series.service";
+import { getSongById } from "@/api/v0/songs/songs.service";
 import {
-  getAlbumById,
-  getCollectionById,
-  getEpisodeById,
-  getMovieById,
-  getSeasonById,
-  getSeriesById,
-  getSongById,
   getVideoByEpisodeId,
   getVideoById,
   getVideoByMovieId,
-} from "@/db/get/getData";
+} from "@/api/v0/videos/videos.service";
+import { messages } from "@/config/messages";
+
+import ApiError from "@/data/ApiError";
 import { FilesManager } from "@/managers/FilesManager";
-import ApiError from "@/utils/ApiError";
-import { Utils } from "@/utils/Utils";
+import { extraTypes, videoExtensions } from "@/utils/utils";
 import * as fs from "fs/promises";
 import path from "path";
 
@@ -89,7 +90,7 @@ export class MediaDetailsManager {
     const folder = FilesManager.getExternalPath(
       `resources/${mediaType}/${libraryId}/`
     );
-    const filename = Utils.getFileInFolder(folder, item.id);
+    const filename = FilesManager.getFileInFolder(folder, item.id);
     if (!filename) throw new ApiError(404, "Background media file not found.");
 
     return {
@@ -199,14 +200,14 @@ export class MediaDetailsManager {
         const fileExt = path.extname(file).toLowerCase();
 
         // Only process if it is a known video file
-        if (!Utils.videoExtensions.includes(fileExt)) {
+        if (!videoExtensions.includes(fileExt)) {
           continue;
         }
 
         const baseName = path.basename(file, fileExt);
 
         // Check if the filename ends with any of the extra suffixes
-        for (const type of Utils.extraTypes) {
+        for (const type of extraTypes) {
           const suffix = `-${type}`;
           if (baseName.endsWith(suffix)) {
             // Extract the title according to the rules
