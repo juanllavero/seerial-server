@@ -101,8 +101,8 @@ function VideoPlayerPage() {
       expiresIn: '2m',
     })
 
-    const { url } = await res.json()
-    return `/api/${url}`
+    const url = await res.json()
+    return `/api${url}`
   }
 
   useEffect(() => {
