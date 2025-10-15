@@ -19,14 +19,14 @@ const GradientBackground = ({
   const [activeIndex, setActiveIndex] = useState(0)
   const [visible, setVisible] = useState(true)
   const [gradientCSS, setGradientCSS] = useState<string | undefined>('')
-  const canvasRefs = [
-    useRef<HTMLCanvasElement | null>(null),
-    useRef<HTMLCanvasElement | null>(null),
-  ]
+  const canvasRef1 = useRef<HTMLCanvasElement | null>(null)
+  const canvasRef2 = useRef<HTMLCanvasElement | null>(null)
+  const canvasRefs = [canvasRef1, canvasRef2]
 
   useEffect(() => {
     if (!showGradient || !imageSrc || imageSrc === '') {
       setVisible(false)
+      return
     }
 
     const generateGradient = async () => {
