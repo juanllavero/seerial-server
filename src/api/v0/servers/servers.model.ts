@@ -1,4 +1,4 @@
-import { Library, User } from "@/api/v0/index.models";
+import { User } from "@/api/v0/index.models";
 import {
   Column,
   DataType,
@@ -133,13 +133,6 @@ export class Server extends Model {
   publicHttpsPort!: number;
 
   // Associations
-  @HasMany(() => Library, {
-    foreignKey: "serverId",
-    onDelete: "CASCADE",
-    hooks: true,
-  })
-  libraries!: Library[];
-
   @HasMany(() => User, {
     foreignKey: "serverId",
     onDelete: "CASCADE",

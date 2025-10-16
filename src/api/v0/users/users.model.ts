@@ -91,7 +91,6 @@ export class User extends Model {
 
   @BelongsToMany(() => Library, {
     through: () => UserLibrary,
-    onDelete: "CASCADE",
     hooks: true,
   })
   libraries!: Library[];

@@ -7,7 +7,6 @@ import {
   Video,
   WatchList,
 } from "@/api/v0/index.models";
-import { Op } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
 
 //#region GET
@@ -164,12 +163,29 @@ export const addVideoToContinueWatching = async (
       return existingElement;
     }
 
-    // Remove every video that has seriesId or movieId in ContinueWatching
-    await ContinueWatching.destroy({
-      where: {
-        [Op.or]: [{ seriesId: seriesId ?? null }, { movieId: movieId ?? null }],
-      },
-    });
+    // Remove videos from Continue Watching
+    if (seriesId || movieId) {
+      // Build the where clause dynamically
+      const whereClause: {
+        userId: string;
+        seriesId?: string;
+        movieId?: string;
+      } = {
+        userId,
+      };
+
+      if (seriesId) {
+        whereClause.seriesId = seriesId;
+      }
+
+      if (movieId) {
+        whereClause.movieId = movieId;
+      }
+
+      await ContinueWatching.destroy({
+        where: whereClause,
+      });
+    }
 
     // Genera un UUID para el id
     const newElementData = {
@@ -222,16 +238,27 @@ export async function deleteAllVideosFromContinueWatching(
   seriesId?: string,
   movieId?: string
 ): Promise<boolean> {
-  const affectedCount = await ContinueWatching.destroy({
-    where: {
-      userId,
-      [Op.or]: [{ seriesId: seriesId ?? null }, { movieId: movieId ?? null }],
-    },
-  });
-
-  if (affectedCount === 0) {
+  // Ensure at least one of seriesId or movieId is provided
+  if (!seriesId && !movieId) {
     return false;
   }
 
-  return true;
+  // Build the where clause dynamically
+  const whereClause: { userId: string; seriesId?: string; movieId?: string } = {
+    userId,
+  };
+
+  if (seriesId) {
+    whereClause.seriesId = seriesId;
+  }
+
+  if (movieId) {
+    whereClause.movieId = movieId;
+  }
+
+  const affectedCount = await ContinueWatching.destroy({
+    where: whereClause,
+  });
+
+  return affectedCount > 0;
 }

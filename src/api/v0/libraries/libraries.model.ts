@@ -4,16 +4,13 @@ import {
   LibraryCollection,
   Movie,
   Series,
-  Server,
   User,
   UserLibrary,
 } from "@/api/v0/index.models";
 import {
-  BelongsTo,
   BelongsToMany,
   Column,
   DataType,
-  ForeignKey,
   HasMany,
   IsIn,
   Model,
@@ -145,13 +142,6 @@ export class Library extends Model {
     hooks: true,
   })
   collections!: Collection[];
-
-  @ForeignKey(() => Server)
-  @Column({ type: DataType.STRING, allowNull: false, field: "server_id" })
-  serverId!: string;
-
-  @BelongsTo(() => Server)
-  server!: Server;
 
   @BelongsToMany(() => User, {
     through: () => UserLibrary,
