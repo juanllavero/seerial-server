@@ -39,6 +39,7 @@ function DetailsInfo({
 			direction='column'
 			justify='end'
 			margin='0 0 1rem 0'
+			className='z-10'
 			// css={{
 			// 	height: 380,
 			// }}

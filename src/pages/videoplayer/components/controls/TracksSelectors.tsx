@@ -65,7 +65,7 @@ function TracksSelectors({
 
 		const fetchData = async () => {
 			const result = await authenticatedFetch(
-				`${serverUrl}/updateMediaInfo`,
+				`${serverUrl}/api/updateMediaInfo`,
 				'PUT',
 				{ videoId: video.id }
 			)

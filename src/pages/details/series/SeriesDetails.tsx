@@ -12,6 +12,7 @@ import SeasonSelector from './components/SeasonSelector'
 import DetailsInfo from '../components/DetailsInfo'
 import { t } from 'i18next'
 import { formatDate, formatTimeForView } from '@/utils/utils'
+import GradientBackground from '@/components/backgrounds/GradientBackground'
 
 function SeriesDetails() {
 	const { seriesId } = useParams()
@@ -25,7 +26,9 @@ function SeriesDetails() {
 	const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(null)
 
 	const { data: show, isLoading } = useSWR<Series>(
-		serverUrl !== '' ? `${serverUrl}/details/series?id=${seriesId}` : null,
+		serverUrl !== ''
+			? `${serverUrl}/api/details/series?id=${seriesId}`
+			: null,
 		authenticatedFetcher
 	)
 
@@ -43,6 +46,10 @@ function SeriesDetails() {
 
 	return (
 		<Page padding='0 2rem' justify='end'>
+			<GradientBackground
+				imageSrc={selectedSeason?.backgroundSrc ?? show?.coverSrc}
+				index={0}
+			/>
 			<DetailsInfo
 				title={show.name}
 				logoUrl={show.logoSrc}

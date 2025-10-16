@@ -22,7 +22,7 @@ export default function VideoPlayer() {
 		mutate,
 	} = useSWR<Video>(
 		videoId && serverUrl !== ''
-			? `${serverUrl}/details/video?id=${videoId}`
+			? `${serverUrl}/api/details/video?id=${videoId}`
 			: null,
 		authenticatedFetcher
 	)
@@ -33,7 +33,7 @@ export default function VideoPlayer() {
 
 	async function getSignedStreamUrl(video: any, serverUrl: string) {
 		const res = await authenticatedFetch(
-			`${serverUrl}/get-video-url`,
+			`${serverUrl}/api/get-video-url`,
 			'POST',
 			{
 				filePath: video.fileSrc,

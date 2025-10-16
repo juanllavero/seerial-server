@@ -34,7 +34,7 @@ function Controls({ video, runtime, mutateVideo }: ControlsProps) {
 	// Get video info
 	const { data: videoInfo } = useSWR<VideoInfo>(
 		video.id && serverUrl !== ''
-			? `${serverUrl}/videoInfo?id=${video.id}`
+			? `${serverUrl}/api/videoInfo?id=${video.id}`
 			: null,
 		authenticatedFetcher
 	)

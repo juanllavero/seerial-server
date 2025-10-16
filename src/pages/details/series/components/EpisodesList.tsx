@@ -26,7 +26,7 @@ function EpisodesList({
 	const navigate = useNavigate()
 	const { data: season, isLoading } = useSWR<Season>(
 		serverUrl !== ''
-			? `${serverUrl}/details/season?id=${selectedSeasonId}`
+			? `${serverUrl}/api/details/season?id=${selectedSeasonId}`
 			: null,
 		authenticatedFetcher
 	)
@@ -41,7 +41,7 @@ function EpisodesList({
 
 	if (isLoading) return <Loading />
 	return (
-		<NavigationScrollView className='gap-5 pb-5'>
+		<NavigationScrollView className='gap-5 pb-5 z-10'>
 			{season?.episodes.map((episode) => (
 				<div
 					key={episode.id}

@@ -9,6 +9,7 @@ import { shallow } from 'zustand/shallow'
 import { authenticatedFetcher } from '@/lib/auth'
 import DetailsInfo from '../components/DetailsInfo'
 import { LibraryType } from '@/utils/constants'
+import GradientBackground from '@/components/backgrounds/GradientBackground'
 
 function CollectionDetails() {
 	const { collectionId, type } = useParams()
@@ -21,7 +22,7 @@ function CollectionDetails() {
 
 	const { data: collection, isLoading } = useSWR<Collection>(
 		serverUrl !== ''
-			? `${serverUrl}/details/collection?id=${collectionId}`
+			? `${serverUrl}/api/details/collection?id=${collectionId}`
 			: null,
 		authenticatedFetcher
 	)
@@ -62,6 +63,10 @@ function CollectionDetails() {
 
 	return (
 		<Page padding='0 2rem' justify='end'>
+			<GradientBackground
+				imageSrc={collection?.backgroundSrc ?? collection?.coverSrc}
+				index={0}
+			/>
 			<DetailsInfo
 				title={collection.title}
 				overview={collection.description}

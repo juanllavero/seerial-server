@@ -1,3 +1,4 @@
+import GradientBackground from '@/components/backgrounds/GradientBackground'
 import ContentCard from '@/components/Card'
 import Loading from '@/components/Loading'
 import NavigationGridView from '@/components/navigation/NavigationGridView'
@@ -6,7 +7,7 @@ import { useServerStore } from '@/context/server.context'
 import { LibraryItem } from '@/data/interfaces/Media'
 import { authenticatedFetcher } from '@/lib/auth'
 import { LibraryType } from '@/utils/constants'
-import { memo } from 'react'
+import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
@@ -26,6 +27,9 @@ function LibraryPage() {
 		}),
 		shallow
 	)
+	const [selectedElement, setSelectedElement] = useState<LibraryItem | null>(
+		null
+	)
 
 	const screenWidth = screen.width
 
@@ -41,7 +45,7 @@ function LibraryPage() {
 
 	const { data: libraryContent, isLoading } = useSWR<LibraryItem[]>(
 		serverUrl !== ''
-			? `${serverUrl}/library-content-flat?libraryId=${libraryId}&type=${type}`
+			? `${serverUrl}/api/library-content-flat?libraryId=${libraryId}&type=${type}`
 			: null,
 		authenticatedFetcher
 	)
@@ -54,18 +58,23 @@ function LibraryPage() {
 
 	return (
 		<Page padding='0 2rem'>
-			<NavigationGridView className='gap-5'>
+			<GradientBackground
+				imageSrc={selectedElement?.data.posterSrc}
+				index={0}
+			/>
+			<NavigationGridView className='gap-5 z-10'>
 				{libraryContent?.map((item) => (
 					<ContentCard
 						key={item.data.id}
 						customKey={item.data.id}
 						title={item.data.title}
 						width={itemWidth}
+						onFocus={() => setSelectedElement(item)}
 						aspectRatio={type === LibraryType.MUSIC ? '1' : '2/3'}
 						imgSrc={item.data.posterSrc}
 						action={() => {
 							navigate(
-								`/details/${item.type === 'movies' ? 'movie' : type === 'shows' ? 'series' : type === 'albums' ? 'album' : 'collection'}/${item.data.id}${item.type === 'collection' ? `/${type}` : ''}`
+								`/details/${item.type === 'movies' ? 'movie' : item.type === 'shows' ? 'series' : item.type === 'albums' ? 'album' : 'collection'}/${item.data.id}${item.type === 'collection' ? `/${type}` : ''}`
 							)
 						}}
 					/>
@@ -75,4 +84,4 @@ function LibraryPage() {
 	)
 }
 
-export default memo(LibraryPage)
+export default LibraryPage

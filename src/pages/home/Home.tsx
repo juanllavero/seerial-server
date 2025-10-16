@@ -11,6 +11,8 @@ import HomeInfo from './components/HomeInfo'
 import { ContinueWatchingElement } from '@/data/interfaces/Lists'
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation'
 import { authenticatedFetcher } from '@/lib/auth'
+import GradientBackground from '@/components/backgrounds/GradientBackground'
+import TransparentImage from './components/TransparentImage'
 
 function Home() {
 	const { currentUser } = useServerStore()
@@ -25,7 +27,7 @@ function Home() {
 		ContinueWatchingElement[]
 	>(
 		server
-			? `${serverUrl}/continueWatching?userId=${currentUser?.id ?? null}`
+			? `${serverUrl}/api/continueWatching?userId=${currentUser?.id ?? null}`
 			: null,
 		authenticatedFetcher
 	)
@@ -48,15 +50,24 @@ function Home() {
 
 	return (
 		<Page justify='end'>
+			<GradientBackground
+				imageSrc={
+					selectedElement?.backgroundImage ?? selectedElement?.posterImage
+				}
+				index={0}
+			/>
+
+			<TransparentImage imageSrc={selectedElement?.backgroundImage ?? ''} />
+
 			<HomeInfo selectedElement={selectedElement} />
 
-			<span className='text-xl'>{t('continueWatching')}</span>
+			<span className='text-xl z-10'>{t('continueWatching')}</span>
 
 			{/* <LogoIntro /> */}
 
 			<NavigationScrollView
 				direction='horizontal'
-				className='gap-10 w-full'
+				className='gap-10 w-full z-10'
 				customFocusKey='continueWatching'
 			>
 				{continueWatching && continueWatching.length > 0

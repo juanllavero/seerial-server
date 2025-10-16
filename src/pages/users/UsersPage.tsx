@@ -47,7 +47,7 @@ export default function UsersPage() {
 		setIsLoading(true)
 		setErrorMessage('')
 		const response = await authenticatedFetch(
-			`${server.url}/users/login`,
+			`${server.url}/api/users/login`,
 			'POST',
 			{
 				username: selectedUser?.username,
@@ -71,7 +71,7 @@ export default function UsersPage() {
 		setIsLoading(true)
 		setErrorMessage('')
 		const response = await authenticatedFetch(
-			`${server.url}/users/login`,
+			`${server.url}/api/users/login`,
 			'POST',
 			{
 				username: username,
@@ -95,11 +95,15 @@ export default function UsersPage() {
 	const handleAddUser = async () => {
 		setIsLoading(true)
 		setErrorMessage('')
-		const response = await authenticatedFetch(`${server.url}/users`, 'POST', {
-			username: username,
-			password: password,
-			type: newUserType,
-		})
+		const response = await authenticatedFetch(
+			`${server.url}/api/users`,
+			'POST',
+			{
+				username: username,
+				password: password,
+				type: newUserType,
+			}
+		)
 		if (response.ok) {
 			const newUser: BasicUser | null = await response.json()
 			setCurrentUser(newUser)

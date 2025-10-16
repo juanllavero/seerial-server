@@ -20,7 +20,15 @@ function SeasonSelector({
 		}
 	}, [seasons])
 	return (
-		<FlexBox gap={1} padding='1rem' scroll='horizontal' hideScrollbar>
+		<FlexBox
+			gap={1}
+			width={'100%'}
+			justify='center'
+			padding='1rem'
+			scroll='horizontal'
+			className='z-10'
+			hideScrollbar
+		>
 			{seasons
 				.sort((a, b) => a.seasonNumber - b.seasonNumber)
 				.map((season) => (

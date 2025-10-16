@@ -1,6 +1,5 @@
 import FlexBox from '@/components/ui/FlexBox'
 import Image from '@/components/ui/Image'
-import LazyImage from '@/components/ui/LazyImage'
 import { ContinueWatchingElement } from '@/data/interfaces/Lists'
 
 interface HomeInfoProps {
@@ -9,7 +8,11 @@ interface HomeInfoProps {
 
 function HomeInfo({ selectedElement }: HomeInfoProps) {
 	return (
-		<FlexBox direction='column' justify='end' className='justify-end pr-64'>
+		<FlexBox
+			direction='column'
+			justify='end'
+			className='justify-end pr-64 z-10'
+		>
 			{selectedElement ? (
 				<>
 					{selectedElement.logoImage &&

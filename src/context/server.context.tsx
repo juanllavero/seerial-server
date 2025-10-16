@@ -128,7 +128,7 @@ export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
 
 		try {
 			const response = await authenticatedFetch(
-				`${serverUrl}/api-key`,
+				`${serverUrl}/api/api-key`,
 				'POST',
 				{ apiKey }
 			)

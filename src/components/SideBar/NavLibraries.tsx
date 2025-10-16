@@ -46,7 +46,7 @@ export function NavLibraries() {
 	const { selectedLibraryId, selectLibrary } = useDataStore()
 
 	const { data: libraries, isLoading } = useSWR<Library[]>(
-		server ? `https://${server.url}/libraries/` : null,
+		server ? `https://${server.url}/api/libraries/` : null,
 		authenticatedFetcher,
 		{
 			revalidateOnFocus: false,

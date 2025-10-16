@@ -20,7 +20,7 @@ function TopBar() {
 	const serverUrl = useServerStore((state) => state.serverUrl)
 
 	const { data: libraries } = useSWR<Library[]>(
-		serverUrl !== '' ? `${serverUrl}/libraries/` : null,
+		serverUrl !== '' ? `${serverUrl}/api/libraries/` : null,
 		authenticatedFetcher,
 		{
 			revalidateOnFocus: false,
@@ -44,7 +44,7 @@ function TopBar() {
 	return (
 		<NavigationContainer
 			customFocusKey='topBar'
-			className='relative flex justify-between items-center w-screen px-5 py-8'
+			className='relative flex justify-between items-center w-screen px-5 py-8 z-10'
 		>
 			<img src='/Seerial_logo.svg' alt='Logo' className='w-[5dvh]' />
 			<div className='flex gap-2'>

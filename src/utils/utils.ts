@@ -1,5 +1,6 @@
 import { extractColors } from 'extract-colors'
 import { Video } from '../data/interfaces/Media'
+import { isAbsolutePath } from './ReactUtils'
 
 /**
  * Fetches data from a given URL and returns the parsed JSON response.
@@ -93,6 +94,18 @@ export const generateGradient = (
 	} else {
 		getDominantColors('/img/songDefault.png')
 	}
+}
+
+export const getImageUrl = (serverUrl: string, imageSrc: string) => {
+	return imageSrc
+		? imageSrc.startsWith('http')
+			? imageSrc
+			: imageSrc.startsWith('local')
+				? imageSrc.replace('local', '')
+				: isAbsolutePath(imageSrc)
+					? `${serverUrl}/image?path=${encodeURIComponent(imageSrc)}`
+					: `${serverUrl}/${imageSrc.replace('resources/img', 'img')}`
+		: ''
 }
 
 /**

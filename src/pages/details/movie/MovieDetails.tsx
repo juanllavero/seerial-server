@@ -9,6 +9,7 @@ import { shallow } from 'zustand/shallow'
 import { authenticatedFetcher } from '@/lib/auth'
 import DetailsInfo from '../components/DetailsInfo'
 import { formatDate, formatTimeForView } from '@/utils/utils'
+import GradientBackground from '@/components/backgrounds/GradientBackground'
 
 function MovieDetails() {
 	const { movieId } = useParams()
@@ -21,7 +22,7 @@ function MovieDetails() {
 	const [selectedVideo, selectVideo] = useState<Video | null>(null)
 
 	const { data: movie, isLoading } = useSWR<Movie>(
-		serverUrl !== '' ? `${serverUrl}/details/movie?id=${movieId}` : null,
+		serverUrl !== '' ? `${serverUrl}/api/details/movie?id=${movieId}` : null,
 		authenticatedFetcher
 	)
 
@@ -39,6 +40,10 @@ function MovieDetails() {
 
 	return (
 		<Page padding='0 2rem' justify='end'>
+			<GradientBackground
+				imageSrc={movie?.backgroundSrc ?? movie?.coverSrc}
+				index={0}
+			/>
 			<DetailsInfo
 				title={movie.name}
 				logoUrl={movie.logoSrc}
