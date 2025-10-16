@@ -4,9 +4,9 @@ import Loading from '@/components/Loading'
 import NavigationGridView from '@/components/navigation/NavigationGridView'
 import Page from '@/components/Page'
 import { useServerStore } from '@/context/server.context'
+import { LibraryTypes } from '@/data/enums/enums'
 import { LibraryItem } from '@/data/interfaces/Media'
 import { authenticatedFetcher } from '@/lib/auth'
-import { LibraryType } from '@/utils/constants'
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
 import useSWR from 'swr'
@@ -70,7 +70,7 @@ function LibraryPage() {
 						title={item.data.title}
 						width={itemWidth}
 						onFocus={() => setSelectedElement(item)}
-						aspectRatio={type === LibraryType.MUSIC ? '1' : '2/3'}
+						aspectRatio={type === LibraryTypes.MUSIC ? '1' : '2/3'}
 						imgSrc={item.data.posterSrc}
 						action={() => {
 							navigate(

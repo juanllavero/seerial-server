@@ -1,6 +1,4 @@
-import { extractColors } from 'extract-colors'
 import { Video } from '../data/interfaces/Media'
-import { isAbsolutePath } from './ReactUtils'
 
 /**
  * Fetches data from a given URL and returns the parsed JSON response.
@@ -36,64 +34,11 @@ export const iso1to3: Record<string, string> = {
 	ms: 'msa',
 	ca: 'cat',
 }
+export const isAbsolutePath = (pathString: string): boolean => {
+	const windowsPathRegex = /^[a-zA-Z]:[\\/]/
+	const unixPathRegex = /^\//
 
-export let colors: string[] = []
-
-export const extractColorsFromImage = async (imgSrc: string) => {
-	try {
-		const options = {
-			pixels: 50000, // Reduce the number of pixels to analyze to focus on prominent colors
-			distance: 0.15, // Reduce color distance to get less variety
-			saturationDistance: 0.5, // Reduce saturation distance to get less vibrant colors
-			lightnessDistance: 0.12, // Reduce lightness distance to get darker colors
-			hueDistance: 0.05, // Reduce hue distance to get colors closer to each other
-		}
-
-		const extractedColors = await extractColors(imgSrc, options)
-
-		const dominantColors = extractedColors
-			.slice(0, 5)
-			.map((color) => color.hex)
-		return dominantColors
-	} catch (error) {
-		console.error('Error al extraer colores:', error)
-		return undefined
-	}
-}
-
-export const getDominantColors = async (imgSrc: string) => {
-	const dominantColors = await extractColorsFromImage(imgSrc)
-
-	if (dominantColors) colors = dominantColors
-}
-
-export const getGradientBackground = () => {
-	if (colors.length >= 4) {
-		//return `linear-gradient(to top right, ${this.colors.join(", ")})`;
-		//return `linear-gradient(to bottom, ${this.colors[0]} 0%, ${this.colors[1]} 100%)`;
-		return `radial-gradient(circle farthest-side at 0% 100%, ${colors[1]} 0%, rgba(48, 66, 66, 0) 100%),
-                radial-gradient(circle farthest-side at 100% 100%, ${colors[0]} 0%, rgba(63, 77, 69, 0) 100%),
-                radial-gradient(circle farthest-side at 100% 0%, ${colors[2]} 0%, rgba(33, 36, 33, 0) 100%),
-                radial-gradient(circle farthest-side at 0% 0%, ${colors[3]} 0%, rgba(65, 77, 66, 0) 100%),
-                black
-                `
-	}
-	return 'none'
-}
-
-export const generateGradient = (
-	background: string | undefined,
-	serverIP: string
-) => {
-	if (background) {
-		const imageUrl = background.startsWith('http')
-			? background
-			: `https://${serverIP}/${background.replace('resources/img', 'img')}`
-
-		getDominantColors(imageUrl)
-	} else {
-		getDominantColors('/img/songDefault.png')
-	}
+	return windowsPathRegex.test(pathString) || unixPathRegex.test(pathString)
 }
 
 export const getImageUrl = (serverUrl: string, imageSrc: string) => {

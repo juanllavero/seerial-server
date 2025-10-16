@@ -1,6 +1,5 @@
 import LibrariesList from './LibrariesList'
-import { Settings, User } from 'lucide-react'
-import { LibraryType } from '@/utils/constants'
+import { Settings } from 'lucide-react'
 import { useState } from 'react'
 import { useServerStore } from '@/context/server.context'
 import { Library } from '@/data/interfaces/Media'
@@ -9,12 +8,13 @@ import FocusableButton from '@/components/navigation/NavigationButton'
 import NavigationContainer from '@/components/navigation/NavigationContainer'
 import { useNavigate } from 'react-router'
 import { authenticatedFetcher } from '@/lib/auth'
+import { LibraryTypes } from '@/data/enums/enums'
 
 function TopBar() {
 	const navigate = useNavigate()
 	const [showLibraries, setShowLibraries] = useState(false)
-	const [libraryType, setLibraryType] = useState<LibraryType>(
-		LibraryType.MOVIES
+	const [libraryType, setLibraryType] = useState<LibraryTypes>(
+		LibraryTypes.MOVIES
 	)
 
 	const serverUrl = useServerStore((state) => state.serverUrl)
@@ -30,16 +30,16 @@ function TopBar() {
 
 	const showMovies =
 		libraries &&
-		libraries.filter((library) => library.type === LibraryType.MOVIES)
+		libraries.filter((library) => library.type === LibraryTypes.MOVIES)
 			.length > 0
 	const showSeries =
 		libraries &&
-		libraries.filter((library) => library.type === LibraryType.SHOWS).length >
-			0
+		libraries.filter((library) => library.type === LibraryTypes.SHOWS)
+			.length > 0
 	const showMusic =
 		libraries &&
-		libraries.filter((library) => library.type === LibraryType.MUSIC).length >
-			0
+		libraries.filter((library) => library.type === LibraryTypes.MUSIC)
+			.length > 0
 
 	return (
 		<NavigationContainer
@@ -55,10 +55,10 @@ function TopBar() {
 					customKey='movies'
 					disabled={!showMovies}
 					onClick={() => {
-						if (libraryType === LibraryType.MOVIES || !showLibraries) {
+						if (libraryType === LibraryTypes.MOVIES || !showLibraries) {
 							setShowLibraries(!showLibraries)
 						}
-						setLibraryType(LibraryType.MOVIES)
+						setLibraryType(LibraryTypes.MOVIES)
 					}}
 				>
 					Movies
@@ -67,10 +67,10 @@ function TopBar() {
 					customKey='shows'
 					disabled={!showSeries}
 					onClick={() => {
-						if (libraryType === LibraryType.SHOWS || !showLibraries) {
+						if (libraryType === LibraryTypes.SHOWS || !showLibraries) {
 							setShowLibraries(!showLibraries)
 						}
-						setLibraryType(LibraryType.SHOWS)
+						setLibraryType(LibraryTypes.SHOWS)
 					}}
 				>
 					Shows
@@ -79,10 +79,10 @@ function TopBar() {
 					customKey='music'
 					disabled={!showMusic}
 					onClick={() => {
-						if (libraryType === LibraryType.MUSIC || !showLibraries) {
+						if (libraryType === LibraryTypes.MUSIC || !showLibraries) {
 							setShowLibraries(!showLibraries)
 						}
-						setLibraryType(LibraryType.MUSIC)
+						setLibraryType(LibraryTypes.MUSIC)
 					}}
 				>
 					Music

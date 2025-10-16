@@ -8,8 +8,8 @@ import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
 import { authenticatedFetcher } from '@/lib/auth'
 import DetailsInfo from '../components/DetailsInfo'
-import { LibraryType } from '@/utils/constants'
 import GradientBackground from '@/components/backgrounds/GradientBackground'
+import { LibraryTypes } from '@/data/enums/enums'
 
 function CollectionDetails() {
 	const { collectionId, type } = useParams()
@@ -35,13 +35,13 @@ function CollectionDetails() {
 
 		let years: (string | undefined)[] = []
 		switch (type) {
-			case LibraryType.MUSIC:
+			case LibraryTypes.MUSIC:
 				years = getYears(collection.albums)
 				break
-			case LibraryType.MOVIES:
+			case LibraryTypes.MOVIES:
 				years = getYears(collection.movies)
 				break
-			case LibraryType.SHOWS:
+			case LibraryTypes.SHOWS:
 				years = getYears(collection.shows)
 				break
 		}

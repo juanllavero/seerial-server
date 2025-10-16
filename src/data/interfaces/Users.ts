@@ -1,4 +1,4 @@
-import { UserType } from '@/utils/constants'
+import { UserType } from '../enums/enums'
 
 export interface User {
 	id: string

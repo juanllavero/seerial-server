@@ -18,6 +18,7 @@ interface ServerState {
 	setCurrentUser: (user: BasicUser | null) => void
 	setApiKey: (apiKey: string) => Promise<void>
 	resetServerSelection: () => void
+	logout: () => void
 }
 
 /**
@@ -151,5 +152,10 @@ export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
 		set({ serverUrl: '', server: null, apiKeyStatus: false })
 		localStorage.removeItem('serverUrl')
 		localStorage.removeItem('server')
+	},
+
+	logout: () => {
+		set({ currentUser: null, apiKeyStatus: false })
+		localStorage.removeItem('user')
 	},
 }))

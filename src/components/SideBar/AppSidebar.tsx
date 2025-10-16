@@ -7,7 +7,6 @@ import {
 } from '../../components/ui/sidebar'
 import { NavLibraries } from './NavLibraries'
 import { NavUser } from './NavUser'
-import { ServerSwitcher } from './ServerSwitcher'
 import NavHomeButton from './NavHomeButton'
 import { useLocation } from 'react-router-dom'
 import { useMemo } from 'react'
@@ -33,9 +32,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				<NavHomeButton />
 				<NavLibraries />
 			</SidebarContent>
-			<SidebarFooter>
-				<ServerSwitcher />
-			</SidebarFooter>
+			<SidebarFooter>{/* <ServerSwitcher /> */}</SidebarFooter>
 			<SidebarRail />
 		</Sidebar>
 	)

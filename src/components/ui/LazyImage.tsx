@@ -1,7 +1,7 @@
 import { useServerStore } from '@/context/server.context'
 import { useEffect, useRef, useState } from 'react'
 import { Skeleton } from './skeleton'
-import { isAbsolutePath } from '@/utils/ReactUtils'
+import { isAbsolutePath } from '@/utils/utils'
 
 interface ImageProps {
 	url?: string

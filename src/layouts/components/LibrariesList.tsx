@@ -1,12 +1,12 @@
 import NavigationContainer from '@/components/navigation/NavigationContainer'
 import { Library } from '@/data/interfaces/Media'
-import { LibraryType } from '@/utils/constants'
 import { motion, AnimatePresence } from 'framer-motion'
 import FocusableButton from '@/components/navigation/NavigationButton'
 import { useNavigate } from 'react-router'
+import { LibraryTypes } from '@/data/enums/enums'
 
 interface LibrariesListProps {
-	type: LibraryType
+	type: LibraryTypes
 	libraries: Library[]
 	show: boolean
 	hide: () => void

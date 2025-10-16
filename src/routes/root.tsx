@@ -1,5 +1,4 @@
 import { useServerStore } from '@/context/server.context'
-import BaseLayout from '@/layouts/BaseLayout'
 import { Outlet, useNavigate } from 'react-router-dom'
 import { shallow } from 'zustand/shallow'
 
