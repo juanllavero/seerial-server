@@ -94,7 +94,7 @@ const NavLibraries = () => {
   const searchFiles = async (libraryId: string) => {
     await connectWS()
 
-    authenticatedFetch(`/api/library/search?libraryId=${libraryId}`)
+    authenticatedFetch(`/api/library/scan?libraryId=${libraryId}`)
   }
 
   const [activeItem, setActiveItem] = React.useState<Item | null>(null)

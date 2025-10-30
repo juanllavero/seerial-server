@@ -72,7 +72,7 @@ function CorrectIdentificationSearch() {
   const saveIdentification = async (id: number) => {
     await connectWS()
     authenticatedFetch(
-      `/api/${isShow ? 'updateShowId' : 'updateMovieId'}`,
+      `/api/${isShow ? 'showId' : 'movieId'}`,
       'POST',
       isShow
         ? {
