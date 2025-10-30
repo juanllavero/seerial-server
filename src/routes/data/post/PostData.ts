@@ -1,7 +1,6 @@
 import { getSongById } from "@/api/v0/songs/songs.service";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { wsManager } from "@/index";
 import { DownloaderManager } from "@/managers/DownloaderManager";
 import { FilesManager } from "@/managers/FilesManager";
 import { SanitizationManager } from "@/managers/SanitizationManager";
@@ -134,12 +133,7 @@ router.post(
       );
     }
 
-    await DownloaderManager.downloadVideo(
-      url,
-      downloadFolder,
-      fileName,
-      wsManager
-    );
+    await DownloaderManager.downloadVideo(url, downloadFolder, fileName);
 
     return res.status(200).json({ message: messages.success.download });
   })
@@ -157,12 +151,7 @@ router.post(
       );
     }
 
-    await DownloaderManager.downloadAudio(
-      url,
-      downloadFolder,
-      fileName,
-      wsManager
-    );
+    await DownloaderManager.downloadAudio(url, downloadFolder, fileName);
 
     return res.status(200).json({ message: messages.success.download });
   })

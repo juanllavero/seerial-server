@@ -1,16 +1,21 @@
+import { DependencyContainer } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import appRoutes from "@/initialization/AddRoutes";
 import { createTray } from "@/initialization/CreateTray";
 import * as ConfigManager from "@/managers/ConfigManager";
 import { FilesManager } from "@/managers/FilesManager";
 import { SequelizeManager } from "@/managers/SequelizeManager";
 import { ServerConfigManager } from "@/managers/ServerConfigManager";
-import { WebSocketManager } from "@/managers/WebSocketManager";
 import { MovieDBWrapper } from "@/theMovieDB/MovieDB";
 import { downloadYtDlp } from "@/utils/youtubeDownloader";
 import cors from "cors";
 import { config } from "dotenv";
 import { app } from "electron";
-import express, { Request, Response } from "express";
+import express, {
+  ErrorRequestHandler,
+  NextFunction,
+  Request,
+  Response,
+} from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import http from "http";
@@ -77,7 +82,6 @@ appServer.use(
 
 // Global server and WebSocket manager
 export let server: http.Server | https.Server;
-export let wsManager: WebSocketManager;
 
 // Start the app
 app.whenReady().then(async () => {
@@ -103,7 +107,7 @@ app.whenReady().then(async () => {
 
   // Capture all requests and redirect to index.html
   appServer.use((req: Request, res: Response, next) => {
-    // Si la ruta pedida tiene extensión (.js, .css, .png, etc.), no devolvemos index.html
+    // If the request is for a file (has an extension), skip to next middleware
     if (path.extname(req.path)) {
       return next();
     }
@@ -111,11 +115,28 @@ app.whenReady().then(async () => {
     res.sendFile(path.join(webPath, "index.html"));
   });
 
+  // Error handler
+  const errorHandler: ErrorRequestHandler = (
+    err: any,
+    _req: Request,
+    res: Response,
+    _next: NextFunction
+  ) => {
+    console.error(err.stack); // Logging
+    res.status(err.status || 500).json({
+      status: "error",
+      message: err.message || "Something went wrong",
+    });
+  };
+  appServer.use(errorHandler);
+
   // Start server
   await ServerConfigManager.startServer(appServer);
 
-  // Initialize WebSocket
-  wsManager = WebSocketManager.getInstance(ServerConfigManager.mainServer);
+  // Initialize NotificationService through DI container
+  const container = DependencyContainer.getInstance();
+  const notificationService = container.getNotificationService();
+  notificationService.init(ServerConfigManager.mainServer);
 
   // Setup UPnP port mapping
   await ServerConfigManager.setupPortMapping();

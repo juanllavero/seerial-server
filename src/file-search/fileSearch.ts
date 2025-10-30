@@ -15,7 +15,6 @@ import { scanTVShow } from "./series/searchSeries";
 
 export async function scanFiles(
   newLibrary: Partial<LibraryData>,
-  wsManager: WebSocketManager,
   addNewLibrary: boolean
 ): Promise<Library | undefined> {
   if (!newLibrary) return undefined;
@@ -44,11 +43,11 @@ export async function scanFiles(
 
       const task = limit(async () => {
         if (library.type === "Shows") {
-          await scanTVShow(library, filePath, wsManager);
+          await scanTVShow(library, filePath);
         } else if (library.type === "Movies") {
-          await scanMovie(library, filePath, wsManager);
+          await scanMovie(library, filePath);
         } else {
-          await scanMusic(library, filePath, wsManager);
+          await scanMusic(library, filePath);
         }
       });
       tasks.push(task);
@@ -60,7 +59,7 @@ export async function scanFiles(
     header: "SCAN_STARTED",
     body: library.id,
   };
-  wsManager.broadcast(JSON.stringify(message));
+  WebSocketManager.broadcast(JSON.stringify(message));
 
   Promise.all(tasks).then(() => {
     const message = {
@@ -69,11 +68,11 @@ export async function scanFiles(
         libraryId: library.id,
       },
     };
-    wsManager.broadcast(JSON.stringify(message));
+    WebSocketManager.broadcast(JSON.stringify(message));
   });
 
   // Update content in clients
-  WebSocketManager.mutateLibrary(wsManager, library.id);
+  WebSocketManager.mutateLibrary(library.id);
 
   return library;
 }

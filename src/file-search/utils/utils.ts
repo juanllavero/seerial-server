@@ -11,8 +11,8 @@ import {
 import { deleteMovie, getMovieByPath } from "@/api/v0/movies/movies.service";
 import { deleteSeason, getSeasonById } from "@/api/v0/seasons/seasons.service";
 import { deleteSeries, getSeriesById } from "@/api/v0/series/series.service";
+import { getNotificationService } from "@/api/v0/shared/infrastructure/adapters/notification/NotificationServiceInstance";
 import { deleteSong, getSongByPath } from "@/api/v0/songs/songs.service";
-import { WebSocketManager } from "@/managers/WebSocketManager";
 import { existsSync } from "fs-extra";
 import { Episode as MovieDBEpisode, TvSeasonResponse } from "moviedb-promise";
 import * as path from "path";
@@ -21,13 +21,9 @@ import { parse } from "path";
 /**
  * Delete removed files from library
  * @param libraryId Library ID
- * @param wsManager Websocket manager to send updates to client
  * @returns
  */
-export async function clearLibrary(
-  libraryId: string,
-  wsManager: WebSocketManager
-) {
+export async function clearLibrary(libraryId: string) {
   const library = await getLibraryById(libraryId);
 
   if (
@@ -131,7 +127,7 @@ export async function clearLibrary(
   }
 
   // Update library in client
-  WebSocketManager.mutateLibrary(wsManager, libraryId);
+  getNotificationService().mutateLibrary(libraryId);
 }
 
 /**
@@ -265,14 +261,13 @@ export function indexSeasons(
   return index;
 }
 
-// Función para construir un arreglo con la cuenta acumulada de episodios por temporada.
+// Function to build an array with the cumulative count of episodes by season.
 export function buildCumulativeEpisodes(
   seasonsMetadata: TvSeasonResponse[]
 ): number[] {
   const cumulative: number[] = [];
   let total = 0;
 
-  // Se consideran temporadas con número válido y que tengan episodios.
   for (const season of seasonsMetadata) {
     if (
       season.season_number != null &&
@@ -296,7 +291,7 @@ export function getSeasonEpisodeByAbsoluteNumber(
     if (absoluteNumber <= cumulative[i]) {
       const season = seasonsMetadata[i];
       const previousCount = i > 0 ? cumulative[i - 1] : 0;
-      const episodeIndex = absoluteNumber - previousCount - 1; // índice basado en 0
+      const episodeIndex = absoluteNumber - previousCount - 1; // Index from 0
       if (season.episodes && season.episodes[episodeIndex]) {
         return { season, episode: season.episodes[episodeIndex] };
       }

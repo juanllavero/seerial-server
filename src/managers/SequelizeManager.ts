@@ -1,28 +1,26 @@
-import {
-  Album,
-  AlbumArtist,
-  Artist,
-  Collection,
-  CollectionAlbum,
-  CollectionMovie,
-  CollectionSeries,
-  ContinueWatching,
-  Episode,
-  Library,
-  LibraryCollection,
-  Movie,
-  MyList,
-  PlayList,
-  PlayListItem,
-  Season,
-  Series,
-  Server,
-  Song,
-  User,
-  UserLibrary,
-  Video,
-  WatchList,
-} from "@/api/v0/index.models";
+import { AlbumArtistModel } from "@/api/v0/albums/infrastructure/persistence/models/AlbumArtistModel";
+import { AlbumModel } from "@/api/v0/albums/infrastructure/persistence/models/AlbumModel";
+import { ArtistModel } from "@/api/v0/artists/infrastructure/persistence/models/ArtistModel";
+import { CollectionAlbumModel } from "@/api/v0/collections/infrastructure/persistence/models/CollectionAlbum";
+import { CollectionModel } from "@/api/v0/collections/infrastructure/persistence/models/CollectionModel";
+import { CollectionMovieModel } from "@/api/v0/collections/infrastructure/persistence/models/CollectionMovie";
+import { CollectionSeriesModel } from "@/api/v0/collections/infrastructure/persistence/models/CollectionSeries";
+import { ContinueWatchingModel } from "@/api/v0/continue-watching/infrastructure/persistence/models/ContinueWatchingModel";
+import { EpisodeModel } from "@/api/v0/episodes/infrastructure/persistence/models/EpisodeModel";
+import { LibraryCollectionModel } from "@/api/v0/libraries/infrastructure/persistence/models/LibraryCollectionModel";
+import { LibraryModel } from "@/api/v0/libraries/infrastructure/persistence/models/LibraryModel";
+import { MovieModel } from "@/api/v0/movies/infrastructure/persistence/models/MovieModel";
+import { MyListModel } from "@/api/v0/my-lists/infrastructure/persistence/models/MyListModel";
+import { PlayListItemModel } from "@/api/v0/playlists/infrastructure/persistence/models/PlayListItemModel";
+import { PlayListModel } from "@/api/v0/playlists/infrastructure/persistence/models/PlayListModel";
+import { SeasonModel } from "@/api/v0/seasons/infrastructure/persistence/models/SeasonModel";
+import { SeriesModel } from "@/api/v0/series/infrastructure/persistence/models/SeriesModel";
+import { ServerModel } from "@/api/v0/servers/infrastructure/persistence/models/ServerModel";
+import { SongModel } from "@/api/v0/songs/infrastructure/persistence/models/SongModel";
+import { UserLibraryModel } from "@/api/v0/users/infrastructure/persistence/models/UserLibraryModel";
+import { UserModel } from "@/api/v0/users/infrastructure/persistence/models/UserModel";
+import { VideoModel } from "@/api/v0/videos/infrastructure/persistence/models/VideoModel";
+import { WatchListModel } from "@/api/v0/watch-lists/infrastructure/persistence/models/WatchListModel";
 import fs from "fs";
 import { Sequelize } from "sequelize-typescript";
 import { FilesManager } from "./FilesManager";
@@ -50,29 +48,29 @@ export class SequelizeManager {
         password: "",
         storage: SequelizeManager.DB_PATH,
         models: [
-          Collection,
-          CollectionAlbum,
-          CollectionMovie,
-          CollectionSeries,
-          LibraryCollection,
-          ContinueWatching,
-          WatchList,
-          Episode,
-          Library,
-          Movie,
-          MyList,
-          PlayList,
-          PlayListItem,
-          Season,
-          Series,
-          Video,
-          Album,
-          AlbumArtist,
-          Artist,
-          Song,
-          Server,
-          User,
-          UserLibrary,
+          CollectionModel,
+          CollectionAlbumModel,
+          CollectionMovieModel,
+          CollectionSeriesModel,
+          LibraryCollectionModel,
+          ContinueWatchingModel,
+          WatchListModel,
+          EpisodeModel,
+          LibraryModel,
+          MovieModel,
+          MyListModel,
+          PlayListModel,
+          PlayListItemModel,
+          SeasonModel,
+          SeriesModel,
+          VideoModel,
+          AlbumModel,
+          AlbumArtistModel,
+          ArtistModel,
+          SongModel,
+          ServerModel,
+          UserModel,
+          UserLibraryModel,
         ],
         define: {
           underscored: true, // Map snake_case (DB) to camelCase (Models)

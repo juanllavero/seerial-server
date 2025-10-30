@@ -24,8 +24,7 @@ export async function ensureSeason(
   show: Series,
   seasonMetadata: TvSeasonResponse,
   realSeason?: number,
-  realEpisode?: number,
-  wsManager?: WebSocketManager
+  realEpisode?: number
 ): Promise<Season | null> {
   const seasons = await getSeasons(show.id);
   let season: Season | null =
@@ -54,7 +53,7 @@ export async function ensureSeason(
   if (season.seasonNumber === 0) season.order = 100;
   await season.save();
 
-  if (wsManager) WebSocketManager.mutateSeries(wsManager, show);
+  WebSocketManager.mutateSeries(show);
   return season;
 }
 

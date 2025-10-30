@@ -1,14 +1,16 @@
-import { Collection } from "@/api/v0/collections/collections.model";
-import { Episode as EpisodeLocal } from "@/api/v0/episodes/episodes.model";
-import { Movie } from "@/api/v0/movies/movies.model";
-import { Season } from "@/api/v0/seasons/seasons.model";
-import { Series } from "@/api/v0/series/series.model";
-import { Video } from "@/api/v0/videos/videos.model";
-import { MovieDBWrapper } from "@/theMovieDB/MovieDB";
+import { CollectionModel } from "@/api/v0/collections/infrastructure/persistence/models/CollectionModel";
+import { EpisodeModel } from "@/api/v0/episodes/infrastructure/persistence/models/EpisodeModel";
+import { MovieModel } from "@/api/v0/movies/infrastructure/persistence/models/MovieModel";
+import { SeasonModel } from "@/api/v0/seasons/infrastructure/persistence/models/SeasonModel";
+import { SeriesModel } from "@/api/v0/series/infrastructure/persistence/models/SeriesModel";
+import { VideoModel } from "@/api/v0/videos/infrastructure/persistence/models/VideoModel";
 import { getIMDBScore } from "@/utils/getIMDBScore";
 import fs from "fs";
 import { Episode, MovieResponse } from "moviedb-promise";
-import { FilesManager } from "./FilesManager";
+
+// Legacy imports for transition
+import { FilesManager } from "@/managers/FilesManager";
+import MovieDBWrapper from "@/theMovieDB/MovieDB";
 
 export class MetadataManager {
   static BASE_URL: string = "https://image.tmdb.org/t/p/original";
@@ -21,9 +23,9 @@ export class MetadataManager {
    * @param language The language to obtain the metadata in.
    */
   public static async updateSeriesMetadata(
-    series: Series,
+    series: SeriesModel,
     language: string
-  ): Promise<Series | undefined> {
+  ): Promise<SeriesModel | undefined> {
     if (series.themdbId === -1) return;
 
     const showData = await MovieDBWrapper.getTVShow(series.themdbId, language);
@@ -62,7 +64,10 @@ export class MetadataManager {
    * Update credits (cast and crew) of a series.
    * @param series instance of the series.
    */
-  private static async updateSeriesCredits(series: Series, language: string) {
+  private static async updateSeriesCredits(
+    series: SeriesModel,
+    language: string
+  ) {
     const credits = await MovieDBWrapper.getTVCredits(series.themdbId);
     if (!credits) return;
 
@@ -117,58 +122,14 @@ export class MetadataManager {
   }
 
   /**
-   * Download logos and posters of a series.
-   * @param series instance of the series.
-   */
-  private static async downloadSeriesImages(series: Series) {
-    // Create folders if they do not exist
-    const outputLogosDir = FilesManager.getExternalPath(
-      "resources/img/logos/" + series.id
-    );
-    if (!fs.existsSync(outputLogosDir)) {
-      fs.mkdirSync(outputLogosDir);
-    }
-
-    const outputPostersDir = FilesManager.getExternalPath(
-      "resources/img/posters/" + series.id
-    );
-    if (!fs.existsSync(outputPostersDir)) {
-      fs.mkdirSync(outputPostersDir);
-    }
-
-    try {
-      const images = await MovieDBWrapper.getTVShowImages(series.themdbId);
-      if (!images) return;
-
-      // Download logos
-      if (images.logos && images.logos.length > 0) {
-        series.logosUrls = images.logos.map(
-          (logo) => `${this.BASE_URL}${logo.file_path}`
-        );
-        series.logoSrc = series.logosUrls[0];
-      }
-
-      // Download posters
-      if (images.posters && images.posters.length > 0) {
-        series.coversUrls = images.posters.map(
-          (poster) => `${this.BASE_URL}${poster.file_path}`
-        );
-        series.coverSrc = series.coversUrls[0];
-      }
-    } catch (error) {
-      console.error(`Error downloading images for series ${series.id}:`, error);
-    }
-  }
-
-  /**
    * Update season metadata (backgrounds).
    * @param season instance of the season.
    * @param series instance of the series.
    */
   public static async updateSeasonMetadata(
-    season: Season,
-    series: Series
-  ): Promise<Season> {
+    season: SeasonModel,
+    series: SeriesModel
+  ): Promise<SeasonModel> {
     // Create folders if they do not exist
     const outputImageDir = FilesManager.getExternalPath(
       "resources/img/backgrounds/" + season.id
@@ -220,9 +181,9 @@ export class MetadataManager {
    * @param episodeMetadata The metadata obtained from TMDb.
    */
   public static async updateEpisodeMetadata(
-    episode: EpisodeLocal,
-    video: Video,
-    series: Series,
+    episode: EpisodeModel,
+    video: VideoModel,
+    series: SeriesModel,
     episodeMetadata: Episode
   ): Promise<void> {
     // Update basic metadata
@@ -276,10 +237,10 @@ export class MetadataManager {
    * @param collection (Optional) The collection to update the poster for.
    */
   public static async updateMovieMetadata(
-    movie: Movie,
+    movie: MovieModel,
     movieMetadata: MovieResponse,
     language: string,
-    collection?: Collection
+    collection?: CollectionModel
   ): Promise<void> {
     if (!movie.nameLock) movie.name = movieMetadata.title ?? "";
     if (!movie.yearLock) movie.year = movieMetadata.release_date ?? "";
@@ -324,7 +285,7 @@ export class MetadataManager {
    * @param themdbId The TMDb ID of the movie.
    */
   private static async updateMovieCredits(
-    movie: Movie,
+    movie: MovieModel,
     themdbId: number,
     language: string
   ) {
@@ -402,13 +363,53 @@ export class MetadataManager {
   }
 
   /**
+   * Updates the metadata of a Video object, specifically its thumbnails.
+   * @param video The video to update.
+   * @param movie The movie to which the video belongs.
+   */
+  public static async updateVideoMetadataForMovie(
+    video: VideoModel,
+    movie: MovieModel
+  ): Promise<void> {
+    try {
+      const images = await MovieDBWrapper.getMovieImages(movie.themdbId);
+      const thumbnails = images?.backdrops ?? [];
+
+      // Initialize thumbnails path
+      const outputDir = FilesManager.getExternalPath(
+        "resources/img/thumbnails/video/" + video.id + "/"
+      );
+      if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir);
+      }
+
+      if (thumbnails.length > 0) {
+        video.imgUrls = thumbnails.map(
+          (thumb) => `${this.BASE_URL}${thumb.file_path}`
+        );
+        video.imgSrc = video.imgUrls[0];
+      } else {
+        video.imgSrc = "resources/img/Default_video_thumbnail.jpg";
+      }
+
+      await video.save();
+    } catch (error) {
+      console.error(
+        `Error actualizando miniaturas para el video ${video.id}:`,
+        error
+      );
+    }
+  }
+  //#endregion
+
+  /**
    * Downloads and assigns logos, posters and backgrounds for a movie.
    * @param movie The movie to which the images will be assigned.
    * @param collection (Optional) The collection to which the posters will also be assigned.
    */
   private static async downloadMovieImages(
-    movie: Movie,
-    collection?: Collection
+    movie: MovieModel,
+    collection?: CollectionModel
   ) {
     try {
       const images = await MovieDBWrapper.getMovieImages(movie.themdbId);
@@ -490,42 +491,46 @@ export class MetadataManager {
   }
 
   /**
-   * Updates the metadata of a Video object, specifically its thumbnails.
-   * @param video The video to update.
-   * @param movie The movie to which the video belongs.
+   * Download logos and posters of a series.
+   * @param series instance of the series.
    */
-  public static async updateVideoMetadataForMovie(
-    video: Video,
-    movie: Movie
-  ): Promise<void> {
+  private static async downloadSeriesImages(series: SeriesModel) {
+    // Create folders if they do not exist
+    const outputLogosDir = FilesManager.getExternalPath(
+      "resources/img/logos/" + series.id
+    );
+    if (!fs.existsSync(outputLogosDir)) {
+      fs.mkdirSync(outputLogosDir);
+    }
+
+    const outputPostersDir = FilesManager.getExternalPath(
+      "resources/img/posters/" + series.id
+    );
+    if (!fs.existsSync(outputPostersDir)) {
+      fs.mkdirSync(outputPostersDir);
+    }
+
     try {
-      const images = await MovieDBWrapper.getMovieImages(movie.themdbId);
-      const thumbnails = images?.backdrops ?? [];
+      const images = await MovieDBWrapper.getTVShowImages(series.themdbId);
+      if (!images) return;
 
-      // Initialize thumbnails path
-      const outputDir = FilesManager.getExternalPath(
-        "resources/img/thumbnails/video/" + video.id + "/"
-      );
-      if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir);
-      }
-
-      if (thumbnails.length > 0) {
-        video.imgUrls = thumbnails.map(
-          (thumb) => `${this.BASE_URL}${thumb.file_path}`
+      // Download logos
+      if (images.logos && images.logos.length > 0) {
+        series.logosUrls = images.logos.map(
+          (logo) => `${this.BASE_URL}${logo.file_path}`
         );
-        video.imgSrc = video.imgUrls[0];
-      } else {
-        video.imgSrc = "resources/img/Default_video_thumbnail.jpg";
+        series.logoSrc = series.logosUrls[0];
       }
 
-      await video.save();
+      // Download posters
+      if (images.posters && images.posters.length > 0) {
+        series.coversUrls = images.posters.map(
+          (poster) => `${this.BASE_URL}${poster.file_path}`
+        );
+        series.coverSrc = series.coversUrls[0];
+      }
     } catch (error) {
-      console.error(
-        `Error actualizando miniaturas para el video ${video.id}:`,
-        error
-      );
+      console.error(`Error downloading images for series ${series.id}:`, error);
     }
   }
-  //#endregion
 }

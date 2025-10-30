@@ -1,4 +1,4 @@
-import { User } from "@/api/v0/index.models";
+import { UserModel } from "@/api/v0/users/infrastructure/persistence/models/UserModel";
 import { messages } from "@/config/messages";
 import { UserType } from "@/utils/constants";
 import { NextFunction } from "express";
@@ -14,7 +14,7 @@ export default class AuthMiddleware {
       const decoded = jwt.verify(token, process.env.JWT_SECRET ?? "") as {
         userId: string;
       };
-      const user = await User.findByPk(decoded.userId, {
+      const user = await UserModel.findByPk(decoded.userId, {
         include: ["libraries"],
       });
 
@@ -61,7 +61,7 @@ export default class AuthMiddleware {
       const decoded = jwt.verify(token, process.env.JWT_SECRET ?? "") as {
         userId: string;
       };
-      const user = await User.findByPk(decoded.userId);
+      const user = await UserModel.findByPk(decoded.userId);
       if (!user)
         return res.status(401).json({ error: messages.errors.token.invalid });
 
@@ -83,7 +83,7 @@ export default class AuthMiddleware {
         userId: string;
         type: string;
       };
-      const user = await User.findByPk(decoded.userId);
+      const user = await UserModel.findByPk(decoded.userId);
       if (!user || user.type !== UserType.ADMIN) {
         return res.status(403).json({ error: messages.errors.token.noAccess });
       }
@@ -112,7 +112,7 @@ export default class AuthMiddleware {
           const secret = process.env.JWT_SECRET || "";
           if (!secret) throw new Error("Missing JWT_SECRET");
           const decoded = jwt.verify(token, secret) as { userId: string };
-          const user = await User.findByPk(decoded.userId);
+          const user = await UserModel.findByPk(decoded.userId);
           if (user) (req as any).user = user;
         } catch (e) {}
       }
@@ -133,7 +133,7 @@ export default class AuthMiddleware {
       }
 
       const decoded = jwt.verify(token, secret) as { userId: string };
-      const user = await User.findByPk(decoded.userId);
+      const user = await UserModel.findByPk(decoded.userId);
       if (!user) {
         return res.status(401).json({ error: messages.errors.token.invalid });
       }

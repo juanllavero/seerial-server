@@ -3,24 +3,20 @@ import { getLibraryById } from "@/api/v0/libraries/libraries.service";
 import { getMovieById } from "@/api/v0/movies/movies.service";
 import { getSeasons } from "@/api/v0/seasons/seasons.service";
 import { getSeriesById } from "@/api/v0/series/series.service";
+import { getNotificationService } from "@/api/v0/shared/infrastructure/adapters/notification/NotificationServiceInstance";
 import {
   getVideoByEpisodeId,
   getVideoByMovieId,
 } from "@/api/v0/videos/videos.service";
 import { MetadataManager } from "@/managers/MetadataManager";
-import { WebSocketManager } from "@/managers/WebSocketManager";
 import { MovieDBWrapper } from "@/theMovieDB/MovieDB";
 
 /**
  * Refresh all metadata of an existing movie and its associated videos.
  * It does not re-scan the files, it only uses the existing themdbId.
  * * @param movieId The ID of the movie in the local database.
- * @param wsManager The WebSocket Manager to notify clients.
  */
-export async function refreshMovieMetadata(
-  movieId: string,
-  wsManager: WebSocketManager
-): Promise<void> {
+export async function refreshMovieMetadata(movieId: string): Promise<void> {
   const movie = await getMovieById(movieId);
   if (!movie) {
     console.error(`[Updater] No movie found: ${movieId}`);
@@ -37,7 +33,7 @@ export async function refreshMovieMetadata(
     // Update UI
     movie.analyzingFiles = true;
     await movie.save();
-    WebSocketManager.mutateMovie(wsManager, movie);
+    getNotificationService().mutateMovie(movie);
 
     // Get metadata from TheMovieDB
     const movieMetadata = await MovieDBWrapper.getMovie(
@@ -70,8 +66,8 @@ export async function refreshMovieMetadata(
     // Update UI
     movie.analyzingFiles = false;
     await movie.save();
-    WebSocketManager.mutateMovie(wsManager, movie);
-    WebSocketManager.mutateLibrary(wsManager, library.id);
+    getNotificationService().mutateMovie(movie);
+    getNotificationService().mutateLibrary(library.id);
   }
 }
 
@@ -79,12 +75,8 @@ export async function refreshMovieMetadata(
  * Refreshes all the metadata of an existing series, including all its seasons and episodes.
  * It does not re-scan the files, it only uses the existing themdbId.
  * * @param seriesId The ID of the series in the local database.
- * @param wsManager The WebSocket Manager to notify clients.
  */
-export async function refreshSeriesMetadata(
-  seriesId: string,
-  wsManager: WebSocketManager
-): Promise<void> {
+export async function refreshSeriesMetadata(seriesId: string): Promise<void> {
   const series = await getSeriesById(seriesId);
   if (!series) {
     console.error(`[Updater] Show not found: ${seriesId}`);
@@ -101,7 +93,7 @@ export async function refreshSeriesMetadata(
     // Update UI
     series.analyzingFiles = true;
     await series.save();
-    WebSocketManager.mutateSeries(wsManager, series);
+    getNotificationService().mutateSeries(series);
 
     // Update show metadata
     await MetadataManager.updateSeriesMetadata(series, library.language);
@@ -146,8 +138,8 @@ export async function refreshSeriesMetadata(
     // Update UI
     series.analyzingFiles = false;
     await series.save();
-    WebSocketManager.mutateSeries(wsManager, series);
-    WebSocketManager.mutateSeason(wsManager);
-    WebSocketManager.mutateLibrary(wsManager, library.id);
+    getNotificationService().mutateSeries(series);
+    getNotificationService().mutateSeason();
+    getNotificationService().mutateLibrary(library.id);
   }
 }

@@ -1,19 +1,8 @@
 import { getEpisodeById } from "@/api/v0/episodes/episodes.service";
-import { getLibraryById } from "@/api/v0/libraries/libraries.service";
-import { getMovieById } from "@/api/v0/movies/movies.service";
 import {
   getMovieFromMyList,
   getSeriesFromMyList,
 } from "@/api/v0/my-lists/my-lists.service";
-import { getSeasonById } from "@/api/v0/seasons/seasons.service";
-import {
-  getAllSeriesDataById,
-  getSeriesById,
-} from "@/api/v0/series/series.service";
-import {
-  getVideoByEpisodeId,
-  getVideoById,
-} from "@/api/v0/videos/videos.service";
 import { messages } from "@/config/messages";
 
 import ApiError from "@/data/ApiError";

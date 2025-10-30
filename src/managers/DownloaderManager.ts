@@ -56,8 +56,7 @@ export class DownloaderManager {
   public static async downloadVideo(
     url: string,
     downloadFolder: string,
-    fileName: string,
-    wsManager: WebSocketManager
+    fileName: string
   ): Promise<void> {
     const folder = FilesManager.getExternalPath(downloadFolder);
 
@@ -76,14 +75,13 @@ export class DownloaderManager {
     // Prepare yt-dlp command
     const command = `"${ytDlpPath}" -f "bestvideo[ext=webm]+bestaudio[ext=webm]" -o "${outputPath}" ${url} -q --progress --force-overwrite --ffmpeg-location ${ffmpegPathFinal}`;
 
-    this.downloadContent(command, fileName, wsManager);
+    this.downloadContent(command, fileName);
   }
 
   public static async downloadAudio(
     url: string,
     downloadFolder: string,
-    fileName: string,
-    wsManager: WebSocketManager
+    fileName: string
   ): Promise<void> {
     const folder = FilesManager.getExternalPath(downloadFolder);
 
@@ -102,14 +100,10 @@ export class DownloaderManager {
     // Prepare the yt-dlp command to download only the audio (the best audio available)
     const command = `"${ytDlpPath}" -f "bestaudio[ext=webm]" -o "${outputPath}" ${url} -q --progress --force-overwrite --ffmpeg-location ${ffmpegPathFinal}`;
 
-    this.downloadContent(command, fileName, wsManager);
+    this.downloadContent(command, fileName);
   }
 
-  private static async downloadContent(
-    command: string,
-    fileName: string,
-    wsManager: WebSocketManager
-  ) {
+  private static async downloadContent(command: string, fileName: string) {
     try {
       const process = spawn(command, {
         shell: true,
@@ -130,7 +124,7 @@ export class DownloaderManager {
           };
 
           // Send progress to the client
-          wsManager.broadcast(JSON.stringify(message));
+          WebSocketManager.broadcast(JSON.stringify(message));
         }
       });
 
@@ -147,7 +141,7 @@ export class DownloaderManager {
           };
 
           // Send complete message to the client
-          wsManager.broadcast(JSON.stringify(message));
+          WebSocketManager.broadcast(JSON.stringify(message));
         } else {
           // Generate message for WebSockets
           const message = {
@@ -156,7 +150,7 @@ export class DownloaderManager {
           };
 
           // Send error message to the client
-          wsManager.broadcast(JSON.stringify(message));
+          WebSocketManager.broadcast(JSON.stringify(message));
         }
       });
     } catch (error) {

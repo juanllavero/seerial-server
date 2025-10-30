@@ -29,11 +29,7 @@ import {
   resolveEpisodeMetadata,
 } from "./utils/utils";
 
-export async function scanTVShow(
-  library: Library,
-  folder: string,
-  wsManager: WebSocketManager
-) {
+export async function scanTVShow(library: Library, folder: string) {
   if (!(await FilesManager.isFolder(folder))) return;
 
   const videoFiles = await FilesManager.getValidVideoFiles(folder);
@@ -80,7 +76,7 @@ export async function scanTVShow(
   show.analyzingFiles = true;
   await show.save();
 
-  WebSocketManager.mutateSeries(wsManager, show);
+  WebSocketManager.mutateSeries(show);
 
   // Download seasons metadata
   const showData = await MovieDBWrapper.getTVShow(
@@ -111,8 +107,7 @@ export async function scanTVShow(
     videoFiles,
     show,
     seasonsMetadata,
-    episodesGroup,
-    wsManager
+    episodesGroup
   );
 
   const seasons = await getSeasons(show.id);
@@ -124,7 +119,7 @@ export async function scanTVShow(
   show.analyzingFiles = false;
   await show.save();
 
-  WebSocketManager.mutateSeries(wsManager, show);
+  WebSocketManager.mutateSeries(show);
 }
 
 // Process each video file
@@ -133,8 +128,7 @@ export async function processEpisodes(
   videoFiles: string[],
   show: Series,
   seasonsMetadata: TvSeasonResponse[],
-  episodesGroup: EpisodeGroupResponse | undefined,
-  wsManager: WebSocketManager
+  episodesGroup: EpisodeGroupResponse | undefined
 ) {
   const seasonsIndex = indexSeasons(seasonsMetadata);
   const cumulativeEpisodes = buildCumulativeEpisodes(seasonsMetadata);
@@ -151,8 +145,7 @@ export async function processEpisodes(
         seasonsMetadata,
         seasonsIndex,
         cumulativeEpisodes,
-        episodesGroup,
-        wsManager
+        episodesGroup
       );
     }
   }
@@ -192,8 +185,7 @@ export async function processEpisode(
     { season: TvSeasonResponse; episodesMap: Map<number, Episode> }
   >,
   cumulativeEpisodes: number[],
-  episodesGroup: EpisodeGroupResponse | undefined,
-  wsManager: WebSocketManager
+  episodesGroup: EpisodeGroupResponse | undefined
 ) {
   const { seasonMetadata, episodeMetadata, realSeason, realEpisode } =
     await resolveEpisodeMetadata(
@@ -212,8 +204,7 @@ export async function processEpisode(
     show,
     seasonMetadata,
     realSeason,
-    realEpisode,
-    wsManager
+    realEpisode
   );
   if (!season) return;
 
@@ -244,5 +235,5 @@ export async function processEpisode(
   );
 
   // Notify changes in clients
-  WebSocketManager.mutateSeason(wsManager);
+  WebSocketManager.mutateSeason();
 }

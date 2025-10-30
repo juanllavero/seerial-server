@@ -12,7 +12,6 @@ import { WebSocketManager } from "@/managers/WebSocketManager";
 export async function changeIdentificationShow(
   showId: string,
   newTheMovieDBID: number,
-  wsManager: WebSocketManager,
   newepisodeGroupId?: string
 ) {
   const show = await getSeriesById(showId);
@@ -45,18 +44,17 @@ export async function changeIdentificationShow(
 
   // Save changes in DB
   show.save();
-  WebSocketManager.mutateSeries(wsManager, show);
-  WebSocketManager.mutateSeason(wsManager);
-  WebSocketManager.mutateLibrary(wsManager, library.id);
+  WebSocketManager.mutateSeries(show);
+  WebSocketManager.mutateSeason();
+  WebSocketManager.mutateLibrary(library.id);
 
   // Get new data
-  await scanTVShow(library, show.folder, wsManager);
+  await scanTVShow(library, show.folder);
 }
 
 export async function changeIdentificationMovie(
   movieId: string,
-  newTheMovieDBID: number,
-  wsManager: WebSocketManager
+  newTheMovieDBID: number
 ) {
   const movie = await getMovieById(movieId);
 
@@ -87,9 +85,9 @@ export async function changeIdentificationMovie(
 
   // Save changes in DB
   movie.save();
-  WebSocketManager.mutateMovie(wsManager, movie);
-  WebSocketManager.mutateLibrary(wsManager, library.id);
+  WebSocketManager.mutateMovie(movie);
+  WebSocketManager.mutateLibrary(library.id);
 
   // Get new data
-  await scanMovie(library, movie.folder, wsManager);
+  await scanMovie(library, movie.folder);
 }

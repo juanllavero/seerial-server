@@ -21,14 +21,9 @@ import path from "path";
  * Scans a folder for music files and adds them to the library
  * @param {Library} library Library object
  * @param {string} folder Folder to scan for music files
- * @param {WebSocketManager} wsManager WebSocket Manager to update the info in the client apps
  * @returns {Promise<void>} Promise that resolves when all files have been processed
  */
-export async function scanMusic(
-  library: Library,
-  folder: string,
-  wsManager: WebSocketManager
-) {
+export async function scanMusic(library: Library, folder: string) {
   if (!(await FilesManager.isFolder(folder))) return;
 
   // Add collection or retrieve existing one
@@ -50,19 +45,12 @@ export async function scanMusic(
   //Process each file
   for (const file of musicFiles) {
     if (!library.analyzedFiles[file]) {
-      await processMusicFile(
-        folder,
-        library,
-        file,
-        collection,
-        wsManager,
-        albumMap
-      );
+      await processMusicFile(folder, library, file, collection, albumMap);
     }
   }
 
   // Update content in clients
-  WebSocketManager.mutateLibrary(wsManager, library.id);
+  WebSocketManager.mutateLibrary(library.id);
 }
 
 /**
@@ -71,7 +59,6 @@ export async function scanMusic(
  * @param library Library containing the music file
  * @param musicFile Music file to process
  * @param collection Collection that the music file belongs to
- * @param wsManager WebSocket manager to send updates to client
  * @param albumMap Cache of albums to avoid heap overflow
  * @returns Promise that resolves when the music file has been processed
  */
@@ -80,7 +67,6 @@ export async function processMusicFile(
   library: Library,
   musicFile: string,
   collection: Collection,
-  wsManager: WebSocketManager,
   albumMap: Map<string, Album>
 ) {
   try {
@@ -120,7 +106,7 @@ export async function processMusicFile(
       }
 
       // Update content in clients
-      WebSocketManager.mutateLibrary(wsManager, library.id);
+      WebSocketManager.mutateLibrary(library.id);
     }
 
     if (!newAlbum) return;
@@ -170,7 +156,7 @@ export async function processMusicFile(
       await newAlbum.save();
 
       // Update content in clients
-      WebSocketManager.mutateLibrary(wsManager, library.id);
+      WebSocketManager.mutateLibrary(library.id);
     }
 
     if (!song) return;

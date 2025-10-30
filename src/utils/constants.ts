@@ -18,3 +18,16 @@ export enum UserType {
   NORMAL = "normal",
   ADMIN = "admin",
 }
+
+export const initFolders: string[] = [
+  "resources/",
+  "resources/config",
+  "resources/img/",
+  "resources/img/posters/",
+  "resources/img/logos/",
+  "resources/img/backgrounds/",
+  "resources/img/thumbnails/",
+  "resources/img/thumbnails/video/",
+  "resources/img/thumbnails/chapters/",
+  "resources/img/DownloadCache/",
+];

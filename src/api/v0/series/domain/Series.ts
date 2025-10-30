@@ -1,0 +1,46 @@
+import { Cast } from "moviedb-promise";
+import { Season } from "../../seasons/domain/Season";
+import { WatchList } from "../../watch-lists/infrastructure/persistence/models/WatchListModel";
+
+export interface Series {
+  id: string;
+  libraryId: string;
+  themdbId: number;
+  order: number;
+  name: string;
+  nameLock: boolean;
+  overview: string;
+  overviewLock: boolean;
+  year: string;
+  yearLock: boolean;
+  score: number;
+  tagline: string;
+  taglineLock: boolean;
+
+  logoSrc: string;
+  logosUrls: string[];
+  coverSrc: string;
+  coversUrls: string[];
+
+  productionStudios: string[];
+  productionStudiosLock: boolean;
+  creator: string[];
+  creatorLock: boolean;
+  musicComposer: string[];
+  musicComposerLock: boolean;
+  genres: string[];
+  genresLock: boolean;
+  cast: Cast[];
+
+  preferAudioLan?: string;
+  preferSubLan?: string;
+  subsMode?: string;
+
+  folder: string;
+  episodeGroupId: string | null;
+  analyzingFiles: boolean;
+
+  watchLists: WatchList[];
+
+  seasons: Season[];
+}

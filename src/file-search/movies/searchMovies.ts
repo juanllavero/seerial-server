@@ -12,7 +12,6 @@ import {
 } from "@/api/v0/videos/videos.service";
 import { getOnlyRuntime } from "@/ffmpeg/mediaInfo";
 import { extractNameAndYear } from "@/file-search/utils/utils";
-import { wsManager } from "@/index";
 import { FilesManager } from "@/managers/FilesManager";
 import { MetadataManager } from "@/managers/MetadataManager";
 import { WebSocketManager } from "@/managers/WebSocketManager";
@@ -22,13 +21,8 @@ import { MovieResponse } from "moviedb-promise";
 /**
  * Scans a specific folder for movies and collections
  * @param root Root folder/file to search into
- * @param wsManager WebSocket Manager to communicate with the client apps
  */
-export async function scanMovie(
-  library: Library,
-  root: string,
-  wsManager: WebSocketManager
-) {
+export async function scanMovie(library: Library, root: string) {
   if (!(await FilesManager.isFolder(root))) {
     // ONLY ONE FILE
     if (!FilesManager.isVideoFile(root)) return;
@@ -61,7 +55,7 @@ export async function scanMovie(
       }
 
       // Update content in clients
-      WebSocketManager.mutateLibrary(wsManager, library.id);
+      WebSocketManager.mutateLibrary(library.id);
 
       const processPromises = folders.map(async (folder) => {
         const files = await FilesManager.getValidVideoFiles(folder);
@@ -127,13 +121,13 @@ export async function processFolder(
     movie.year = year !== "1" ? year : "";
 
     const processPromises = files.map(async (file) => {
-      await saveMovieWithoutMetadata(library, movie, file, wsManager);
+      await saveMovieWithoutMetadata(library, movie, file);
     });
 
     await Promise.all(processPromises);
 
     // Update content in clients
-    WebSocketManager.mutateMovie(wsManager, movie);
+    WebSocketManager.mutateMovie(movie);
     return;
   }
 
@@ -145,11 +139,11 @@ export async function processFolder(
   );
 
   // Update content in clients
-  WebSocketManager.mutateLibrary(wsManager, library.id);
-  WebSocketManager.mutateMovie(wsManager, movie);
+  WebSocketManager.mutateLibrary(library.id);
+  WebSocketManager.mutateMovie(movie);
 
   const processPromises = files.map(async (file) => {
-    await processVideo(library, movie, file, wsManager);
+    await processVideo(library, movie, file);
   });
 
   await Promise.all(processPromises);
@@ -158,7 +152,7 @@ export async function processFolder(
   library.save();
 
   // Update content in clients
-  WebSocketManager.mutateLibrary(wsManager, library.id);
+  WebSocketManager.mutateLibrary(library.id);
 }
 
 /**
@@ -183,13 +177,11 @@ export async function searchMovie(
  * Processes the video file associated to a movie without any metadata from TheMovieDB
  * @param movie Movie object
  * @param filePath Path to the video file
- * @param wsManager WebSocket Manager to update the info in the client apps
  */
 export async function saveMovieWithoutMetadata(
   library: Library,
   movie: Movie,
-  filePath: string,
-  wsManager: WebSocketManager
+  filePath: string
 ) {
   let videos = await getVideoByMovieId(movie.id);
 
@@ -218,20 +210,18 @@ export async function saveMovieWithoutMetadata(
   video.save();
 
   // Update content in clients
-  WebSocketManager.mutateMovie(wsManager, movie);
+  WebSocketManager.mutateMovie(movie);
 }
 
 /**
  * Processes the video file associated to a movie
  * @param movie Movie object
  * @param filePath Path to the video file
- * @param wsManager WebSocket Manager to update the info in the client apps
  */
 export async function processVideo(
   library: Library,
   movie: Movie,
-  filePath: string,
-  wsManager: WebSocketManager
+  filePath: string
 ) {
   let video: Video | null = null;
 
@@ -259,20 +249,18 @@ export async function processVideo(
   await MetadataManager.updateVideoMetadataForMovie(video, movie);
 
   // Update content in clients
-  WebSocketManager.mutateMovie(wsManager, movie);
+  WebSocketManager.mutateMovie(movie);
 }
 
 /**
  * Processes the video file associated to a movie extra
  * @param movie Movie object
  * @param filePath Path to the video file
- * @param wsManager WebSocket Manager to update the info in the client apps
  */
 export async function processVideoAsExtra(
   library: Library,
   movie: Movie,
-  filePath: string,
-  wsManager: WebSocketManager
+  filePath: string
 ) {
   let video: Video | null = null;
 
@@ -301,5 +289,5 @@ export async function processVideoAsExtra(
   video.save();
 
   // Update content in clients
-  WebSocketManager.mutateMovie(wsManager, movie);
+  WebSocketManager.mutateMovie(movie);
 }

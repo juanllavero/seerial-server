@@ -1,4 +1,4 @@
-import { Server } from "@/api/v0/servers/servers.model";
+import { ServerModel } from "@/api/v0/servers/infrastructure/persistence/models/ServerModel";
 import { FilesManager } from "@/managers/FilesManager";
 import crypto from "crypto";
 import { Express } from "express";
@@ -11,7 +11,7 @@ import os from "os";
 import { appServer } from "..";
 
 export class ServerConfigManager {
-  static serverConfig: Server;
+  static serverConfig: ServerModel;
   static sslOptions: { key: string; cert: string; passphrase?: string } | null =
     null;
   static httpServer: http.Server | null = null;
@@ -19,13 +19,13 @@ export class ServerConfigManager {
   public static mainServer: http.Server | https.Server;
 
   static async loadOrCreateServerConfig() {
-    let config: Server | null = null;
+    let config: ServerModel | null = null;
 
     try {
-      config = await Server.findOne();
+      config = await ServerModel.findOne();
       if (!config) {
         const hostname = os.hostname(); // Get computer hostname
-        config = await Server.create({
+        config = await ServerModel.create({
           name: hostname || "Server",
         });
         console.log("[Config]: Created new server config with defaults.");
