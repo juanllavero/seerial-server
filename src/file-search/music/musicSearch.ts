@@ -14,8 +14,8 @@ import { addSong } from "@/api/v0/songs/songs.service";
 import { getAudioInfo } from "@/ffmpeg/audioInfo";
 import { FilesManager } from "@/managers/FilesManager";
 import { WebSocketManager } from "@/managers/WebSocketManager";
-import { promises as fsPromises } from "fs";
 import path from "path";
+import { setEntityCover } from "../utils/utils";
 
 /**
  * Scans a folder for music files and adds them to the library
@@ -170,34 +170,5 @@ export async function processMusicFile(
     await song.save();
   } catch (error) {
     console.error("Error processing music file", error);
-  }
-}
-
-/**
- * Helper function to handle cover art logic.
- * @param entity An object with an ID and a property to store the image path (e.g., Album or Collection)
- * @param propertyName The name of the property to update (e.g., 'coverSrc')
- * @param sourceImagePath The path of the image to copy.
- */
-async function setEntityCover(
-  entity: { id: string; [key: string]: any },
-  propertyName: string,
-  sourceImagePath: string
-) {
-  const imageName = path.basename(sourceImagePath);
-  const destinationFolder = FilesManager.getExternalPath(
-    path.join("resources", "img", "posters", entity.id)
-  );
-  const destinationPath = path.join(destinationFolder, imageName);
-
-  try {
-    FilesManager.createFolder(destinationFolder);
-    await fsPromises.copyFile(sourceImagePath, destinationPath);
-
-    entity[propertyName] = path
-      .join("resources", "img", "posters", entity.id, imageName)
-      .replace(/\\/g, "/");
-  } catch (err) {
-    console.error(`Error copying image for entity ${entity.id}:`, err);
   }
 }

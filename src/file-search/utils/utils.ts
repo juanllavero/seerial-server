@@ -11,8 +11,10 @@ import {
 import { deleteMovie, getMovieByPath } from "@/api/v0/movies/movies.service";
 import { deleteSeason, getSeasonById } from "@/api/v0/seasons/seasons.service";
 import { deleteSeries, getSeriesById } from "@/api/v0/series/series.service";
+import { fileSystemService } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { getNotificationService } from "@/api/v0/shared/infrastructure/adapters/notification/NotificationServiceInstance";
 import { deleteSong, getSongByPath } from "@/api/v0/songs/songs.service";
+import { promises as fsPromises } from "fs";
 import { existsSync } from "fs-extra";
 import { Episode as MovieDBEpisode, TvSeasonResponse } from "moviedb-promise";
 import * as path from "path";
@@ -298,4 +300,33 @@ export function getSeasonEpisodeByAbsoluteNumber(
     }
   }
   return null;
+}
+
+/**
+ * Helper function to handle cover art logic.
+ * @param entity An object with an ID and a property to store the image path (e.g., Album or Collection)
+ * @param propertyName The name of the property to update (e.g., 'coverSrc')
+ * @param sourceImagePath The path of the image to copy.
+ */
+export async function setEntityCover(
+  entity: { id: string; [key: string]: any },
+  propertyName: string,
+  sourceImagePath: string
+) {
+  const imageName = path.basename(sourceImagePath);
+  const destinationFolder = fileSystemService.getExternalPath(
+    path.join("resources", "img", "posters", entity.id)
+  );
+  const destinationPath = path.join(destinationFolder, imageName);
+
+  try {
+    fileSystemService.createFolder(destinationFolder);
+    await fsPromises.copyFile(sourceImagePath, destinationPath);
+
+    entity[propertyName] = path
+      .join("resources", "img", "posters", entity.id, imageName)
+      .replace(/\\/g, "/");
+  } catch (err) {
+    console.error(`Error copying image for entity ${entity.id}:`, err);
+  }
 }

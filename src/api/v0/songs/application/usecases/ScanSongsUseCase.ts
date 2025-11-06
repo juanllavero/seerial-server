@@ -1,36 +1,51 @@
 import { Library } from "@/api/v0/libraries/domain/Library";
+import { FileSystemServicePort } from "@/api/v0/shared/application/ports/FileSystemServicePort";
+import {
+  notificationService,
+  useCases,
+} from "@/api/v0/shared/infrastructure/adapters/di/container";
+import { getFileName } from "@/utils/utils";
 
 export class ScanSongsUseCase {
-  constructor(
-    private readonly fileSystemService: IFileSystemService,
-    private readonly movieRepository: IMovieRepository,
-    private readonly processFolderUseCase: ProcessMovieFolderUseCase
-  ) {}
+  private readonly processSongFile = useCases.processSongFile();
+  private readonly getAlbums = useCases.getAlbums();
+  private readonly addCollection = useCases.addCollection();
+  private readonly addLibraryToCollection = useCases.addLibraryToCollection();
+
+  constructor(private readonly fileSystemService: FileSystemServicePort) {}
 
   async execute(library: Library, root: string): Promise<void> {
-    if (!(await this.fileSystemService.isFolder(root))) {
-      // Single file
-      if (!this.fileSystemService.isVideoFile(root)) return;
-      await this.processFolderUseCase.execute(library, root, [root]);
-      return;
-    }
+    if (!(await this.fileSystemService.isFolder(root))) return;
 
-    // Folder logic
-    const filesInDir = await this.fileSystemService.getFilesInFolder(root);
-    const filesInRoot: string[] = [];
-    const folders: string[] = [];
+    // Add collection or retrieve existing one
+    const collection = await this.addCollection.execute({
+      title: getFileName(root),
+    });
 
-    for (const file of filesInDir) {
-      const filePath = `${root}/${file.name}`;
-      if (await this.fileSystemService.isFolder(filePath)) {
-        folders.push(filePath);
-      } else {
-        if (this.fileSystemService.isVideoFile(filePath)) {
-          filesInRoot.push(filePath);
-        }
+    if (!collection) return;
+    await this.addLibraryToCollection.execute(library.id, collection.id);
+
+    // Get music files inside folder (4 folders of depth)
+    const musicFiles = await this.fileSystemService.getValidMusicFiles(root);
+
+    // Cache albums to avoid heap overflow
+    const allAlbums = (await this.getAlbums.execute(library.id)) || [];
+    const albumMap = new Map(allAlbums.map((album) => [album.title, album]));
+
+    //Process each file
+    for (const file of musicFiles) {
+      if (!library.analyzedFiles[file]) {
+        await this.processSongFile.execute(
+          root,
+          library,
+          file,
+          collection,
+          albumMap
+        );
       }
     }
 
-    // Rest of logic...
+    // Update content in clients
+    notificationService.mutateLibrary(library.id);
   }
 }

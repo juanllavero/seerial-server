@@ -1,12 +1,9 @@
 import { CollectionsRepositoryPort } from "@/api/v0/collections/application/ports/CollectionRepositoryPort";
-import { CollectionModel } from "@/api/v0/collections/infrastructure/persistence/models/CollectionModel";
 import { LibrariesRepositoryPort } from "@/api/v0/libraries/application/ports/LibrariesRepositoryPort";
 import { Library } from "@/api/v0/libraries/domain/Library";
-import { LibraryModel } from "@/api/v0/libraries/infrastructure/persistence/models/LibraryModel";
 import { FileSystemServicePort } from "@/api/v0/shared/application/ports/FileSystemServicePort";
 import { MetadataProviderPort } from "@/api/v0/shared/application/ports/MetadataProviderPort";
 import { VideoRepositoryPort } from "@/api/v0/videos/application/ports/VideosRepositoryPort";
-import { VideoModel } from "@/api/v0/videos/infrastructure/persistence/models/VideoModel";
 import { getOnlyRuntime } from "@/ffmpeg/mediaInfo";
 import {
   processFolder,
@@ -16,22 +13,33 @@ import {
 } from "@/file-search/movies/searchMovies";
 import { extractNameAndYear } from "@/file-search/utils/utils";
 
+import { Collection } from "@/api/v0/collections/domain/Collection";
+import {
+  notificationService,
+  useCases,
+} from "@/api/v0/shared/infrastructure/adapters/di/container";
+import { Video } from "@/api/v0/videos/domain/Video";
 import { MetadataManager } from "@/managers/MetadataManager";
-import { WebSocketManager } from "@/managers/WebSocketManager";
 import { getFileName } from "@/utils/utils";
 import { MovieResponse } from "moviedb-promise";
-import { MovieModel } from "../../infrastructure/persistence/models/MovieModel";
+import { Movie } from "../../domain/Movie";
 import { MoviesRepositoryPort } from "../ports/MoviesRepositoryPort";
-import { ProcessMovieFolderUseCase } from "./ProcessMovieFolderUseCase";
 
 export class ScanMovieUseCase {
+  private readonly processMovieFolderUseCase = useCases.processMovieFolder();
+  private readonly updateLibrary = useCases.updateLibrary();
+  private readonly updateCollection = useCases.updateCollection();
+  private readonly updateMovie = useCases.updateMovie();
+  private readonly updateVideo = useCases.updateVideo();
+  private readonly addAnalyzedFile = useCases.addAnalyzedFile();
+  private readonly addAnalyzedFolder = useCases.addAnalyzedFolder();
+
   constructor(
     private readonly filesManager: FileSystemServicePort,
     private readonly librariesRepo: LibrariesRepositoryPort,
     private readonly movieRepository: MoviesRepositoryPort,
     private readonly videoRepo: VideoRepositoryPort,
     private readonly collectionRepo: CollectionsRepositoryPort,
-    private readonly processFolderUseCase: ProcessMovieFolderUseCase,
     private readonly metadataProvider: MetadataProviderPort
   ) {}
 
@@ -69,7 +77,7 @@ export class ScanMovieUseCase {
         }
 
         // Update content in clients
-        WebSocketManager.mutateLibrary(library.id);
+        notificationService.mutateLibrary(library.id);
 
         const processPromises = folders.map(async (folder) => {
           const files = await this.filesManager.getValidVideoFiles(folder);
@@ -94,12 +102,12 @@ export class ScanMovieUseCase {
    * @param collection Collection from the movie
    */
   async processFolder(
-    library: LibraryModel,
+    library: Library,
     rootFolder: string,
     files: string[],
-    collection?: CollectionModel
+    collection?: Collection
   ) {
-    let movie: MovieModel | null = null;
+    let movie: Movie | null = null;
     if (rootFolder in library.analyzedFolders) {
       movie = await this.movieRepository.findById(
         library.analyzedFolders[rootFolder] ?? ""
@@ -125,7 +133,7 @@ export class ScanMovieUseCase {
 
     if (!movie) return;
 
-    await library.addAnalyzedFolder(rootFolder, movie.id);
+    await this.addAnalyzedFolder.execute(library.id, rootFolder, movie.id);
 
     if (collection) {
       this.collectionRepo.addMovie(collection.id, movie.id);
@@ -143,7 +151,7 @@ export class ScanMovieUseCase {
       await Promise.all(processPromises);
 
       // Update content in clients
-      WebSocketManager.mutateMovie(movie);
+      notificationService.mutateMovie(movie);
       return;
     }
 
@@ -155,8 +163,8 @@ export class ScanMovieUseCase {
     );
 
     // Update content in clients
-    WebSocketManager.mutateLibrary(library.id);
-    WebSocketManager.mutateMovie(movie);
+    notificationService.mutateLibrary(library.id);
+    notificationService.mutateMovie(movie);
 
     const processPromises = files.map(async (file) => {
       await processVideo(library, movie, file);
@@ -165,10 +173,10 @@ export class ScanMovieUseCase {
     await Promise.all(processPromises);
 
     // Save data in DB
-    library.save();
+    this.updateLibrary.execute(library.id, library);
 
     // Update content in clients
-    WebSocketManager.mutateLibrary(library.id);
+    notificationService.mutateLibrary(library.id);
   }
 
   /**
@@ -191,13 +199,13 @@ export class ScanMovieUseCase {
    * @param filePath Path to the video file
    */
   async saveMovieWithoutMetadata(
-    library: LibraryModel,
-    movie: MovieModel,
+    library: Library,
+    movie: Movie,
     filePath: string
   ) {
     let videos = await this.videoRepo.findByMovieId(movie.id);
 
-    let video: VideoModel | null = null;
+    let video: Video | null = null;
     if (!videos?.find((v) => v.fileSrc === filePath))
       video = await this.videoRepo.addAsMovie(movie.id);
 
@@ -214,17 +222,17 @@ export class ScanMovieUseCase {
 
     if (!video) return;
 
-    await library.addAnalyzedFile(filePath, video.id);
+    await this.addAnalyzedFile.execute(library.id, filePath, video.id);
 
     video.fileSrc = filePath;
     video.imgSrc = "resources/img/Default_video_thumbnail.jpg";
 
     // Save data in DB
-    movie.save();
-    video.save();
+    this.updateMovie.execute(movie.id, movie);
+    this.updateVideo.execute(video.id, video);
 
     // Update content in clients
-    WebSocketManager.mutateMovie(movie);
+    notificationService.mutateMovie(movie);
   }
 
   /**
@@ -232,12 +240,8 @@ export class ScanMovieUseCase {
    * @param movie Movie object
    * @param filePath Path to the video file
    */
-  async processVideo(
-    library: LibraryModel,
-    movie: MovieModel,
-    filePath: string
-  ) {
-    let video: VideoModel | null = null;
+  async processVideo(library: Library, movie: Movie, filePath: string) {
+    let video: Video | null = null;
 
     if (filePath in library.analyzedFiles) {
       video = await this.videoRepo.findById(
@@ -255,7 +259,7 @@ export class ScanMovieUseCase {
 
       if (!video) return;
 
-      await library.addAnalyzedFile(filePath, video.id);
+      await this.addAnalyzedFile.execute(library.id, filePath, video.id);
     }
 
     if (!video) return;
@@ -265,7 +269,7 @@ export class ScanMovieUseCase {
     await MetadataManager.updateVideoMetadataForMovie(video, movie);
 
     // Update content in clients
-    WebSocketManager.mutateMovie(movie);
+    notificationService.mutateMovie(movie);
   }
 
   /**
@@ -273,12 +277,8 @@ export class ScanMovieUseCase {
    * @param movie Movie object
    * @param filePath Path to the video file
    */
-  async processVideoAsExtra(
-    library: LibraryModel,
-    movie: MovieModel,
-    filePath: string
-  ) {
-    let video: VideoModel | null = null;
+  async processVideoAsExtra(library: Library, movie: Movie, filePath: string) {
+    let video: Video | null = null;
 
     if (filePath in library.analyzedFiles) {
       video = await this.videoRepo.findById(
@@ -304,9 +304,9 @@ export class ScanMovieUseCase {
     video.runtime = await getOnlyRuntime(video.fileSrc);
 
     // Save data in DB
-    video.save();
+    this.updateVideo.execute(video.id, video);
 
     // Update content in clients
-    WebSocketManager.mutateMovie(movie);
+    notificationService.mutateMovie(movie);
   }
 }

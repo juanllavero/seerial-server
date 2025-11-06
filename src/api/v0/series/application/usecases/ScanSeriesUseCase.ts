@@ -1,8 +1,10 @@
 import { Library } from "@/api/v0/libraries/domain/Library";
-import { ProcessMovieFolderUseCase } from "@/api/v0/movies/application/usecases/ProcessMovieFolderUseCase";
 import { FileSystemServicePort } from "@/api/v0/shared/application/ports/FileSystemServicePort";
 import { MetadataProviderPort } from "@/api/v0/shared/application/ports/MetadataProviderPort";
-import { NotificationServicePort } from "@/api/v0/shared/application/ports/NotificationServicePort";
+import {
+  notificationService,
+  useCases,
+} from "@/api/v0/shared/infrastructure/adapters/di/container";
 import {
   processEpisode,
   processEpisodes,
@@ -23,15 +25,22 @@ import {
   TvSeasonResponse,
 } from "moviedb-promise";
 import { Series } from "../../domain/Series";
-import { SeriesRepositoryPort } from "../ports/SeriesRepositoryPort";
 
 export class ScanSeriesUseCase {
+  private readonly getSeriesById = useCases.getSeriesById();
+  private readonly addSeries = useCases.createSeries();
+  private readonly addAnalyzedFolder = useCases.addAnalyzedFolder();
+  private readonly getVideoByEpisodeId = useCases.getVideoByEpisodeId();
+  private readonly addVideoAsEpisode = useCases.addVideoAsEpisode();
+  private readonly getSeasons = useCases.getSeasons();
+  private readonly getEpisodeByPath = useCases.getEpisodeByPath();
+  private readonly deleteSeries = useCases.deleteSeries();
+  private readonly updateSeries = useCases.updateSeries();
+  private readonly updateSeason = useCases.updateSeason();
+
   constructor(
     private readonly fileSystemService: FileSystemServicePort,
-    private readonly processFolderUseCase: ProcessMovieFolderUseCase,
-    private readonly seriesRepository: SeriesRepositoryPort,
-    private readonly metadataProvider: MetadataProviderPort,
-    private readonly notificationService: NotificationServicePort
+    private readonly metadataProvider: MetadataProviderPort
   ) {}
 
   async execute(library: Library, root: string): Promise<void> {
@@ -44,17 +53,19 @@ export class ScanSeriesUseCase {
     let exists: boolean = false;
 
     if (root in library.analyzedFolders) {
-      show = await getSeriesById(library.analyzedFolders[root] ?? "");
+      show = await this.getSeriesById.execute(
+        library.analyzedFolders[root] ?? ""
+      );
       if (show !== null) exists = true;
     }
 
     if (show === null) {
-      show = await addSeries({
-        root,
+      show = await this.addSeries.execute({
+        folder: root,
         libraryId: library.id,
       });
       if (!show) return;
-      await library.addAnalyzedFolder(root, show.id);
+      await this.addAnalyzedFolder.execute(library.id, root, show.id);
     }
 
     // Search for themdbId
@@ -71,8 +82,7 @@ export class ScanSeriesUseCase {
 
       const showsSearch = await this.metadataProvider.searchTVShows(
         finalName,
-        year,
-        1
+        year
       );
       if (!showsSearch || showsSearch.length === 0) return;
 
@@ -83,9 +93,9 @@ export class ScanSeriesUseCase {
     await MetadataManager.updateSeriesMetadata(show, library.language);
 
     show.analyzingFiles = true;
-    await show.save();
+    await this.updateSeries.execute(show.id, show);
 
-    this.notificationService.mutateSeries(show);
+    notificationService.mutateSeries(show);
 
     // Download seasons metadata
     const showData = await this.metadataProvider.getTVShow(
@@ -119,16 +129,16 @@ export class ScanSeriesUseCase {
       episodesGroup
     );
 
-    const seasons = await getSeasons(show.id);
+    const seasons = await this.getSeasons.execute(show.id);
     if (!seasons || seasons.length < 1) {
-      await deleteSeries(show.id);
+      await this.deleteSeries.execute(show.id);
       return;
     }
 
     show.analyzingFiles = false;
-    await show.save();
+    await this.updateSeries.execute(show.id, show);
 
-    this.notificationService.mutateSeries(show);
+    notificationService.mutateSeries(show);
   }
 
   // Process each video file
@@ -145,7 +155,7 @@ export class ScanSeriesUseCase {
     for (const videoFile of videoFiles) {
       if (
         !library.analyzedFiles[videoFile] ||
-        !(await getEpisodeByPath(videoFile))
+        !(await this.getEpisodeByPath.execute(videoFile))
       ) {
         await processEpisode(
           library,
@@ -159,7 +169,7 @@ export class ScanSeriesUseCase {
       }
     }
 
-    const seasons = await getSeasons(show.id);
+    const seasons = await this.getSeasons.execute(show.id);
     if (!seasons) return;
 
     // Rename seasons after episodes group
@@ -170,14 +180,14 @@ export class ScanSeriesUseCase {
         );
         if (group) {
           season.name = group.name ?? season.name;
-          await season.save();
+          await this.updateSeason.execute(season.id, season);
         }
       }
     } else if (seasons.length > 1 && seasons[0].name === seasons[1].name) {
       for (const season of seasons) {
         if (season.seasonNumber !== 0) {
           season.name = `Season ${season.seasonNumber}`;
-          await season.save();
+          await this.updateSeason.execute(season.id, season);
         }
       }
     }
@@ -229,9 +239,11 @@ export class ScanSeriesUseCase {
     if (!episode) return;
 
     // Ensure video in DB
-    let video = await getVideoByEpisodeId(episode.id);
+    let video = await this.getVideoByEpisodeId.execute(episode.id);
     if (!video) {
-      video = await addVideoAsEpisode(episode.id, { fileSrc: videoSrc });
+      video = await this.addVideoAsEpisode.execute(episode.id, {
+        fileSrc: videoSrc,
+      });
       if (!video) return;
     }
 
@@ -244,6 +256,6 @@ export class ScanSeriesUseCase {
     );
 
     // Notify changes in clients
-    this.notificationService.mutateSeason();
+    notificationService.mutateSeason();
   }
 }

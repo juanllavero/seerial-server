@@ -30,14 +30,14 @@ export class VideosRepositoryImpl
     }, `Failed to retrieve video for episode with ID ${episodeId}`);
   }
 
-  async findByMovieId(movieId: string): Promise<Video | null> {
+  async findByMovieId(movieId: string): Promise<Video[]> {
     const validatedId = this.validateId(movieId, "Movie ID");
 
     return this.handleRepositoryError(async () => {
-      const video = await VideoModel.findOne({
+      const videos = await VideoModel.findAll({
         where: { movieId: validatedId },
       });
-      return video ? (video.toJSON() as unknown as Video) : null;
+      return videos ? videos.map((v) => v.toJSON()) : [];
     }, `Failed to retrieve video for movie with ID ${movieId}`);
   }
 

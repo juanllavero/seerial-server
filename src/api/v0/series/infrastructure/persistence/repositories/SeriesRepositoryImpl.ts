@@ -75,7 +75,7 @@ export class SeriesRepositoryImpl
     }, `Failed to retrieve series with ID ${id}`);
   }
 
-  async create(series: Series): Promise<Series> {
+  async create(series: Partial<Series>): Promise<Series> {
     this.validateData(series, "Series data");
 
     return this.handleRepositoryError(async () => {

@@ -1,8 +1,8 @@
 import { ReorderItemDTO } from "../dtos/CollectionDTOs";
-import { CollectionRepositoryPort } from "../ports/CollectionRepositoryPort";
+import { CollectionsRepositoryPort } from "../ports/CollectionRepositoryPort";
 
 export class ReorderCollectionItemsUseCase {
-  constructor(private collectionRepo: CollectionRepositoryPort) {}
+  constructor(private collectionRepo: CollectionsRepositoryPort) {}
 
   async execute(
     collectionId: string,

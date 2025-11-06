@@ -1,5 +1,5 @@
 export interface Album {
-  id?: string;
+  id: string;
   libraryId: string;
   title: string;
   year?: string;

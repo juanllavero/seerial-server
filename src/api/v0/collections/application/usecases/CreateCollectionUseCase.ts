@@ -1,10 +1,10 @@
 import { Collection } from "../../domain/Collection";
 import { CollectionsRepositoryPort } from "../ports/CollectionRepositoryPort";
 
-export class UpdateCollectionUseCase {
+export class CreateCollectionUseCase {
   constructor(private collectionRepo: CollectionsRepositoryPort) {}
 
-  async execute(id: string, data: Partial<Collection>): Promise<Collection> {
-    return this.collectionRepo.update(id, data);
+  async execute(data: Partial<Collection>): Promise<Collection | null> {
+    return await this.collectionRepo.add(data);
   }
 }

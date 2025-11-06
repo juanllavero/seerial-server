@@ -1,19 +1,30 @@
-import { CollectionModel } from "@/api/v0/collections/infrastructure/persistence/models/CollectionModel";
-import { EpisodeModel } from "@/api/v0/episodes/infrastructure/persistence/models/EpisodeModel";
-import { MovieModel } from "@/api/v0/movies/infrastructure/persistence/models/MovieModel";
-import { SeasonModel } from "@/api/v0/seasons/infrastructure/persistence/models/SeasonModel";
-import { SeriesModel } from "@/api/v0/series/infrastructure/persistence/models/SeriesModel";
-import { VideoModel } from "@/api/v0/videos/infrastructure/persistence/models/VideoModel";
 import { getIMDBScore } from "@/utils/getIMDBScore";
 import fs from "fs";
-import { Episode, MovieResponse } from "moviedb-promise";
+import { Episode as EpisodeMetadata, MovieResponse } from "moviedb-promise";
 
 // Legacy imports for transition
-import { FilesManager } from "@/managers/FilesManager";
-import MovieDBWrapper from "@/theMovieDB/MovieDB";
+import { Collection } from "@/api/v0/collections/domain/Collection";
+import { Episode } from "@/api/v0/episodes/domain/Episode";
+import { Movie } from "@/api/v0/movies/domain/Movie";
+import { Season } from "@/api/v0/seasons/domain/Season";
+import { Series } from "@/api/v0/series/domain/Series";
+import {
+  fileSystemService,
+  metadataProvider,
+  useCases,
+} from "@/api/v0/shared/infrastructure/adapters/di/container";
+import { Video } from "@/api/v0/videos/domain/Video";
 
 export class MetadataManager {
   static BASE_URL: string = "https://image.tmdb.org/t/p/original";
+
+  private static readonly updateSeries = useCases.updateSeries();
+  private static readonly updateMovie = useCases.updateMovie();
+  private static readonly updateVideo = useCases.updateVideo();
+  private static readonly updateCollection = useCases.updateCollection();
+  private static readonly updateLibrary = useCases.updateLibrary();
+  private static readonly updateSeason = useCases.updateSeason();
+  private static readonly updateEpisode = useCases.updateEpisode();
 
   //#region SERIES METADATA
   /**
@@ -23,12 +34,15 @@ export class MetadataManager {
    * @param language The language to obtain the metadata in.
    */
   public static async updateSeriesMetadata(
-    series: SeriesModel,
+    series: Series,
     language: string
-  ): Promise<SeriesModel | undefined> {
+  ): Promise<Series | undefined> {
     if (series.themdbId === -1) return;
 
-    const showData = await MovieDBWrapper.getTVShow(series.themdbId, language);
+    const showData = await metadataProvider.getTVShow(
+      series.themdbId,
+      language
+    );
     if (!showData) return;
 
     // Update metadata if not blocked
@@ -56,7 +70,7 @@ export class MetadataManager {
     // Download logos and posters
     await this.downloadSeriesImages(series);
 
-    await series.save();
+    await this.updateSeries.execute(series.id, series);
     return series;
   }
 
@@ -64,11 +78,8 @@ export class MetadataManager {
    * Update credits (cast and crew) of a series.
    * @param series instance of the series.
    */
-  private static async updateSeriesCredits(
-    series: SeriesModel,
-    language: string
-  ) {
-    const credits = await MovieDBWrapper.getTVCredits(series.themdbId);
+  private static async updateSeriesCredits(series: Series, language: string) {
+    const credits = await metadataProvider.getTVCredits(series.themdbId);
     if (!credits) return;
 
     // Cast
@@ -106,7 +117,7 @@ export class MetadataManager {
 
         // Default creator
         if (series.creator && series.creator.length === 0) {
-          const showData = await MovieDBWrapper.getTVShow(
+          const showData = await metadataProvider.getTVShow(
             series.themdbId,
             language
           );
@@ -127,11 +138,11 @@ export class MetadataManager {
    * @param series instance of the series.
    */
   public static async updateSeasonMetadata(
-    season: SeasonModel,
-    series: SeriesModel
-  ): Promise<SeasonModel> {
+    season: Season,
+    series: Series
+  ): Promise<Season> {
     // Create folders if they do not exist
-    const outputImageDir = FilesManager.getExternalPath(
+    const outputImageDir = fileSystemService.getExternalPath(
       "resources/img/backgrounds/" + season.id
     );
     if (!fs.existsSync(outputImageDir)) {
@@ -146,14 +157,14 @@ export class MetadataManager {
           season.backgroundSrc = s.backgroundSrc;
           season.backgroundsUrls = s.backgroundsUrls;
 
-          await season.save();
+          await this.updateSeason.execute(season.id, season);
           return season;
         }
       }
     }
 
     try {
-      const images = await MovieDBWrapper.getTVShowImages(series.themdbId);
+      const images = await metadataProvider.getTVShowImages(series.themdbId);
       const backdrops = images?.backdrops ?? [];
 
       if (backdrops.length > 0) {
@@ -162,7 +173,7 @@ export class MetadataManager {
         );
         season.backgroundSrc = season.backgroundsUrls[0];
       }
-      await season.save();
+      await this.updateSeason.execute(season.id, season);
     } catch (error) {
       console.error(
         `Error updating backgrounds for season ${season.id}:`,
@@ -181,10 +192,10 @@ export class MetadataManager {
    * @param episodeMetadata The metadata obtained from TMDb.
    */
   public static async updateEpisodeMetadata(
-    episode: EpisodeModel,
-    video: VideoModel,
-    series: SeriesModel,
-    episodeMetadata: Episode
+    episode: Episode,
+    video: Video,
+    series: Series,
+    episodeMetadata: EpisodeMetadata
   ): Promise<void> {
     // Update basic metadata
     episode.name = episodeMetadata.name ?? "";
@@ -210,7 +221,7 @@ export class MetadataManager {
     }
 
     // Update images
-    const images = await MovieDBWrapper.getEpisodeImages(
+    const images = await metadataProvider.getEpisodeImages(
       series.themdbId,
       episode.seasonNumber,
       episode.episodeNumber
@@ -224,8 +235,8 @@ export class MetadataManager {
       ? `${this.BASE_URL}${episodeMetadata.still_path}`
       : "";
 
-    await episode.save();
-    await video.save();
+    await this.updateEpisode.execute(episode.id, episode);
+    await this.updateVideo.execute(video.id, video);
   }
   //#endregion
 
@@ -237,10 +248,10 @@ export class MetadataManager {
    * @param collection (Optional) The collection to update the poster for.
    */
   public static async updateMovieMetadata(
-    movie: MovieModel,
+    movie: Movie,
     movieMetadata: MovieResponse,
     language: string,
-    collection?: CollectionModel
+    collection?: Collection
   ): Promise<void> {
     if (!movie.nameLock) movie.name = movieMetadata.title ?? "";
     if (!movie.yearLock) movie.year = movieMetadata.release_date ?? "";
@@ -273,9 +284,9 @@ export class MetadataManager {
     // Download images (logos, backgrounds and posters)
     await this.downloadMovieImages(movie, collection);
 
-    await movie.save();
+    await this.updateMovie.execute(movie.id, movie);
     if (collection) {
-      await collection.save();
+      await this.updateCollection.execute(collection.id, collection);
     }
   }
 
@@ -285,11 +296,11 @@ export class MetadataManager {
    * @param themdbId The TMDb ID of the movie.
    */
   private static async updateMovieCredits(
-    movie: MovieModel,
+    movie: Movie,
     themdbId: number,
     language: string
   ) {
-    const credits = await MovieDBWrapper.getMovieCredits(themdbId, language);
+    const credits = await metadataProvider.getMovieCredits(themdbId, language);
     if (!credits) return;
 
     if (credits.crew) {
@@ -368,15 +379,15 @@ export class MetadataManager {
    * @param movie The movie to which the video belongs.
    */
   public static async updateVideoMetadataForMovie(
-    video: VideoModel,
-    movie: MovieModel
+    video: Video,
+    movie: Movie
   ): Promise<void> {
     try {
-      const images = await MovieDBWrapper.getMovieImages(movie.themdbId);
+      const images = await metadataProvider.getMovieImages(movie.themdbId);
       const thumbnails = images?.backdrops ?? [];
 
       // Initialize thumbnails path
-      const outputDir = FilesManager.getExternalPath(
+      const outputDir = fileSystemService.getExternalPath(
         "resources/img/thumbnails/video/" + video.id + "/"
       );
       if (!fs.existsSync(outputDir)) {
@@ -392,7 +403,7 @@ export class MetadataManager {
         video.imgSrc = "resources/img/Default_video_thumbnail.jpg";
       }
 
-      await video.save();
+      await this.updateVideo.execute(video.id, video);
     } catch (error) {
       console.error(
         `Error actualizando miniaturas para el video ${video.id}:`,
@@ -408,29 +419,29 @@ export class MetadataManager {
    * @param collection (Optional) The collection to which the posters will also be assigned.
    */
   private static async downloadMovieImages(
-    movie: MovieModel,
-    collection?: CollectionModel
+    movie: Movie,
+    collection?: Collection
   ) {
     try {
-      const images = await MovieDBWrapper.getMovieImages(movie.themdbId);
+      const images = await metadataProvider.getMovieImages(movie.themdbId);
       if (!images) return;
 
       // Create folders if they do not exist
-      const outputLogosDir = FilesManager.getExternalPath(
+      const outputLogosDir = fileSystemService.getExternalPath(
         "resources/img/logos/" + movie.id
       );
       if (!fs.existsSync(outputLogosDir)) {
         fs.mkdirSync(outputLogosDir);
       }
 
-      const outputPostersDir = FilesManager.getExternalPath(
+      const outputPostersDir = fileSystemService.getExternalPath(
         "resources/img/posters/" + movie.id
       );
       if (!fs.existsSync(outputPostersDir)) {
         fs.mkdirSync(outputPostersDir);
       }
 
-      const outputPostersCollectionDir = FilesManager.getExternalPath(
+      const outputPostersCollectionDir = fileSystemService.getExternalPath(
         "resources/img/posters/" + collection?.id
       );
 
@@ -440,7 +451,7 @@ export class MetadataManager {
         }
       }
 
-      const outputImageDir = FilesManager.getExternalPath(
+      const outputImageDir = fileSystemService.getExternalPath(
         "resources/img/backgrounds/" + movie.id
       );
       if (!fs.existsSync(outputImageDir)) {
@@ -472,16 +483,16 @@ export class MetadataManager {
 
         // If there is a collection, add poster to collection
         if (collection) {
-          collection.postersUrls.push(movie.coversUrls[0]);
-          if (!collection.posterSrc) {
-            collection.posterSrc = movie.coversUrls[0];
+          collection.coversUrls.push(movie.coversUrls[0]);
+          if (!collection.coverSrc) {
+            collection.coverSrc = movie.coversUrls[0];
           }
 
-          await collection.save();
+          await this.updateCollection.execute(collection.id, collection);
         }
       }
 
-      await movie.save();
+      await this.updateMovie.execute(movie.id, movie);
     } catch (error) {
       console.error(
         `Error descargando imágenes para la película ${movie.id}:`,
@@ -494,16 +505,16 @@ export class MetadataManager {
    * Download logos and posters of a series.
    * @param series instance of the series.
    */
-  private static async downloadSeriesImages(series: SeriesModel) {
+  private static async downloadSeriesImages(series: Series) {
     // Create folders if they do not exist
-    const outputLogosDir = FilesManager.getExternalPath(
+    const outputLogosDir = fileSystemService.getExternalPath(
       "resources/img/logos/" + series.id
     );
     if (!fs.existsSync(outputLogosDir)) {
       fs.mkdirSync(outputLogosDir);
     }
 
-    const outputPostersDir = FilesManager.getExternalPath(
+    const outputPostersDir = fileSystemService.getExternalPath(
       "resources/img/posters/" + series.id
     );
     if (!fs.existsSync(outputPostersDir)) {
@@ -511,7 +522,7 @@ export class MetadataManager {
     }
 
     try {
-      const images = await MovieDBWrapper.getTVShowImages(series.themdbId);
+      const images = await metadataProvider.getTVShowImages(series.themdbId);
       if (!images) return;
 
       // Download logos

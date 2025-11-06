@@ -1,7 +1,7 @@
 import { LibrariesRepositoryPort } from "@/api/v0/libraries/application/ports/LibrariesRepositoryPort";
+import { fileSystemService } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { FilesManager } from "@/managers/FilesManager";
 import { VideoRepositoryPort } from "../ports/VideosRepositoryPort";
 
 export class DeleteVideoUseCase {
@@ -16,8 +16,8 @@ export class DeleteVideoUseCase {
 
     const library = await this.libraryRepository.getByVideoId(videoId);
 
-    FilesManager.deleteDirectory(`resources/img/thumbnails/video/${videoId}`);
-    FilesManager.deleteDirectory(
+    fileSystemService.deleteFolder(`resources/img/thumbnails/video/${videoId}`);
+    fileSystemService.deleteFolder(
       `resources/img/thumbnails/chapters/${videoId}`
     );
 

@@ -39,7 +39,7 @@ export class AlbumsRepositoryImpl
     }, `Failed to retrieve album with ID ${id}`);
   }
 
-  async create(album: Album): Promise<Album> {
+  async create(album: Partial<Album>): Promise<Album> {
     this.validateData(album, "Album data");
 
     return this.handleRepositoryError(async () => {

@@ -1,5 +1,5 @@
 import { FileSystemServicePort } from "@/api/v0/shared/application/ports/FileSystemServicePort";
-import { NotificationServicePort } from "@/api/v0/shared/application/ports/NotificationServicePort";
+import { notificationService } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { scanMovie } from "@/file-search/movies/searchMovies";
 import { scanMusic } from "@/file-search/music/musicSearch";
 import { scanTVShow } from "@/file-search/series/searchSeries";
@@ -12,8 +12,7 @@ import { LibrariesRepositoryPort } from "../ports/LibrariesRepositoryPort";
 export class ScanLibraryUseCase {
   constructor(
     private readonly filesManager: FileSystemServicePort,
-    private readonly librariesRepo: LibrariesRepositoryPort,
-    private readonly notificationService: NotificationServicePort
+    private readonly librariesRepo: LibrariesRepositoryPort
   ) {}
 
   async execute(newLibrary: Library, addNewLibrary: boolean) {
@@ -61,7 +60,7 @@ export class ScanLibraryUseCase {
       header: "SCAN_STARTED",
       body: library.id,
     };
-    this.notificationService.broadcast(JSON.stringify(message));
+    notificationService.broadcast(JSON.stringify(message));
 
     Promise.all(tasks).then(() => {
       const message = {
@@ -70,11 +69,11 @@ export class ScanLibraryUseCase {
           libraryId: library.id,
         },
       };
-      this.notificationService.broadcast(JSON.stringify(message));
+      notificationService.broadcast(JSON.stringify(message));
     });
 
     // Update content in clients
-    this.notificationService.mutateLibrary(library.id);
+    notificationService.mutateLibrary(library.id);
 
     // Update Library
     this.librariesRepo.update(library.id, library);

@@ -11,6 +11,9 @@ export interface Collection {
   coverSrc: string;
   coversUrls: string[];
 
+  numberOfItems?: number;
+  musicPosterSrc?: string;
+
   shows: Series[];
   movies: Movie[];
   albums: Album[];

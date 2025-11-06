@@ -32,7 +32,7 @@ export class SongsRepositoryImpl
     }, `Failed to retrieve song with path ${path}`);
   }
 
-  async create(song: Song): Promise<Song | null> {
+  async create(song: Partial<Song>): Promise<Song | null> {
     this.validateData(song, "Song data");
 
     return this.handleRepositoryError(async () => {

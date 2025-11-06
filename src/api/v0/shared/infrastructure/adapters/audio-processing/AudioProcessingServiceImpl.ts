@@ -6,9 +6,10 @@ import ffmpeg from "fluent-ffmpeg";
 import fs from "fs";
 import path from "path";
 import { AudioProcessingServicePort } from "../../../application/ports/AudioProcessingServicePort";
+import { FileSystemServicePort } from "../../../application/ports/FileSystemServicePort";
 
 export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
-  constructor(private readonly fileSystemService: any) {} // Inject FileSystemServicePort
+  constructor(private readonly fileSystemService: FileSystemServicePort) {}
 
   async getStreamableAudioPath(
     originalPath: string,
