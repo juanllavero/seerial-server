@@ -1,151 +1,209 @@
 import { BaseRepository } from "@/api/v0/base-repository/BaseRepository";
-import { AlbumArtist, Artist, Song } from "@/api/v0/index.models";
 import { v4 as uuidv4 } from "uuid";
-import { AlbumRepositoryPort } from "../../../application/ports/AlbumRepositoryPort";
-import { Album } from "../../../domain/Album";
-import { Album as AlbumModel } from "../models/AlbumModel";
+import { WatchListRepositoryPort } from "../../../application/ports/WatchListRepositoryPort";
+import { WatchList } from "../../../domain/WatchList";
+import { WatchListModel } from "../models/WatchListModel";
 
 export class WatchListRepositoryImpl
   extends BaseRepository
-  implements AlbumRepositoryPort
+  implements WatchListRepositoryPort
 {
-  async findAllByLibrary(libraryId: string): Promise<Album[]> {
-    const validatedId = this.validateId(libraryId, "Library ID");
+  async findByVideoId(videoId: string): Promise<WatchList | null> {
+    const validatedId = this.validateId(videoId, "Video ID");
 
     return this.handleRepositoryError(async () => {
-      const albums = await AlbumModel.findAll({
-        where: { libraryId: validatedId },
-      });
-      return albums.map((album) => new Album(album.toJSON()));
-    }, `Failed to retrieve albums for library ${libraryId}`);
-  }
-
-  async findById(id: string, includeSongs = true): Promise<Album | null> {
-    const validatedId = this.validateId(id, "Album ID");
-
-    return this.handleRepositoryError(async () => {
-      const includeOptions = [
-        { model: Artist, as: "artists" },
-        ...(includeSongs ? [{ model: Song, as: "songs" }] : []),
-      ];
-
-      const album = await AlbumModel.findByPk(validatedId, {
-        include: includeOptions,
+      const watchlistItem = await WatchListModel.findOne({
+        where: {
+          videoId: validatedId,
+        },
       });
 
-      return album ? new Album(album.toJSON()) : null;
-    }, `Failed to retrieve album with ID ${id}`);
+      return watchlistItem ? watchlistItem.toJSON() : null;
+    }, `Failed to retrieve watchList item with video ID ${validatedId}`);
   }
 
-  async create(album: Album): Promise<Album> {
-    this.validateData(album, "Album data");
+  async findById(id: string): Promise<WatchList | null> {
+    const validatedId = this.validateId(id, "WatchList ID");
 
     return this.handleRepositoryError(async () => {
-      const albumData = album.toJSON();
+      const watchlistItem = await WatchListModel.findByPk(validatedId, {});
 
-      // Check if album already exists by ID
-      if (albumData.id) {
-        const existingAlbum = await this.findById(albumData.id, false);
-        if (existingAlbum) {
-          console.log(`Album with ID ${albumData.id} already exists`);
-          return existingAlbum;
-        }
-      }
+      return watchlistItem ? watchlistItem.toJSON() : null;
+    }, `Failed to retrieve watchList item with ID ${validatedId}`);
+  }
 
-      // Generate UUID if it doesn't exist
+  async create(data: WatchList): Promise<WatchList> {
+    this.validateData(data, "WatchList data");
+
+    return this.handleRepositoryError(async () => {
+      // If the record already exists for the same unique pair (e.g., videoId+userId), return it
+      const where: any = { userId: data.userId };
+      if (data.videoId) where.videoId = data.videoId;
+      if (data.movieId) where.movieId = data.movieId;
+      if (data.episodeId) where.episodeId = data.episodeId;
+      if (data.seasonId) where.seasonId = data.seasonId;
+      if (data.seriesId) where.seriesId = data.seriesId;
+
+      const existing = await WatchListModel.findOne({ where });
+      if (existing) return existing.toJSON();
+
       const dataToCreate = {
-        ...albumData,
-        id: albumData.id || uuidv4().split("-")[0],
-      };
+        ...data,
+        id: data.id || uuidv4().split("-")[0],
+      } as any;
 
-      const createdAlbum = await AlbumModel.create(dataToCreate as any);
-      return new Album(createdAlbum.toJSON());
-    }, "Failed to create album");
+      const created = await WatchListModel.create(dataToCreate);
+      return created.toJSON();
+    }, "Failed to create watchList item");
   }
 
-  async update(id: string, data: Partial<Album>): Promise<Album> {
-    const validatedId = this.validateId(id, "Album ID");
+  async update(id: string, data: Partial<WatchList>): Promise<WatchList> {
+    const validatedId = this.validateId(id, "WatchList item ID");
     this.validateData(data, "Update data");
 
     return this.handleRepositoryError(async () => {
-      const [affectedCount] = await AlbumModel.update(data as any, {
+      const [affectedCount] = await WatchListModel.update(data as any, {
         where: { id: validatedId },
       });
 
-      this.ensureAffected(affectedCount, `Album with ID ${id} not found`);
+      this.ensureAffected(affectedCount, `WatchList with ID ${id} not found`);
 
-      const updatedAlbum = await this.findById(id, false);
-      if (!updatedAlbum) {
-        throw new Error(`Failed to retrieve updated album with ID ${id}`);
+      const updatedWatchList = await this.findById(id);
+      if (!updatedWatchList) {
+        throw new Error(
+          `Failed to retrieve updated watchlist item with ID ${id}`
+        );
       }
 
-      return updatedAlbum;
-    }, `Failed to update album with ID ${id}`);
+      return updatedWatchList;
+    }, `Failed to update watchlist item with ID ${id}`);
   }
 
   async delete(id: string): Promise<void> {
-    const validatedId = this.validateId(id, "Album ID");
+    const validatedId = this.validateId(id, "WatchList item ID");
 
     await this.handleRepositoryError(async () => {
-      const affectedCount = await AlbumModel.destroy({
+      const affectedCount = await WatchListModel.destroy({
         where: { id: validatedId },
-      });
-
-      this.ensureAffected(affectedCount, `Album with ID ${id} not found`);
-    }, `Failed to delete album with ID ${id}`);
-  }
-
-  async addArtistToAlbum(
-    artistId: string,
-    albumId: string
-  ): Promise<{ id: string; artistId: string; albumId: string }> {
-    const validated = this.validateIds({ artistId, albumId });
-
-    return this.handleRepositoryError(async () => {
-      // Check if relation already exists
-      const existingRelation = await AlbumArtist.findOne({
-        where: {
-          artistId: validated.artistId,
-          albumId: validated.albumId,
-        },
-      });
-
-      if (existingRelation) {
-        console.log(
-          `Relation between artist ${artistId} and album ${albumId} already exists`
-        );
-        return existingRelation.toJSON();
-      }
-
-      // Create new relation
-      const newRelation = await AlbumArtist.create({
-        id: uuidv4().split("-")[0],
-        artistId: validated.artistId,
-        albumId: validated.albumId,
-      } as any);
-
-      return newRelation.toJSON();
-    }, `Failed to add artist ${artistId} to album ${albumId}`);
-  }
-
-  async removeArtistFromAlbum(
-    artistId: string,
-    albumId: string
-  ): Promise<void> {
-    const validated = this.validateIds({ artistId, albumId });
-
-    await this.handleRepositoryError(async () => {
-      const affectedCount = await AlbumArtist.destroy({
-        where: {
-          artistId: validated.artistId,
-          albumId: validated.albumId,
-        },
       });
 
       this.ensureAffected(
         affectedCount,
-        `Relation between artist ${artistId} and album ${albumId} not found`
+        `WatchList item with ID ${id} not found`
       );
-    }, `Failed to remove artist ${artistId} from album ${albumId}`);
+    }, `Failed to delete watchlist item with ID ${id}`);
+  }
+
+  async addSeries(userId: string, seriesId: string): Promise<void> {
+    const { userId: uId, seriesId: sId } = this.validateIds({
+      userId,
+      seriesId,
+    });
+
+    await this.handleRepositoryError(async () => {
+      const existing = await WatchListModel.findOne({ where: { userId: uId, seriesId: sId } });
+      if (existing) return;
+      await WatchListModel.create({ id: uuidv4().split("-")[0], userId: uId, seriesId: sId } as any);
+    }, `Failed to add series ${seriesId} to watchlist`);
+  }
+
+  async removeSeries(userId: number, seriesId: number): Promise<boolean> {
+    const { userId: uId, seriesId: sId } = this.validateIds({
+      userId: String(userId),
+      seriesId: String(seriesId),
+    });
+
+    return this.handleRepositoryError(async () => {
+      const affected = await WatchListModel.destroy({ where: { userId: uId, seriesId: sId } });
+      return affected > 0;
+    }, `Failed to remove series ${seriesId} from watchlist`);
+  }
+
+  async addSeason(userId: string, seasonId: string): Promise<void> {
+    const { userId: uId, seasonId: seId } = this.validateIds({ userId, seasonId });
+
+    await this.handleRepositoryError(async () => {
+      const existing = await WatchListModel.findOne({ where: { userId: uId, seasonId: seId } });
+      if (existing) return;
+      await WatchListModel.create({ id: uuidv4().split("-")[0], userId: uId, seasonId: seId } as any);
+    }, `Failed to add season ${seasonId} to watchlist`);
+  }
+
+  async removeSeason(userId: number, seasonId: number): Promise<boolean> {
+    const { userId: uId, seasonId: seId } = this.validateIds({
+      userId: String(userId),
+      seasonId: String(seasonId),
+    });
+
+    return this.handleRepositoryError(async () => {
+      const affected = await WatchListModel.destroy({ where: { userId: uId, seasonId: seId } });
+      return affected > 0;
+    }, `Failed to remove season ${seasonId} from watchlist`);
+  }
+
+  async addEpisode(userId: string, episodeId: string): Promise<void> {
+    const { userId: uId, episodeId: eId } = this.validateIds({ userId, episodeId });
+
+    await this.handleRepositoryError(async () => {
+      const existing = await WatchListModel.findOne({ where: { userId: uId, episodeId: eId } });
+      if (existing) return;
+      await WatchListModel.create({ id: uuidv4().split("-")[0], userId: uId, episodeId: eId } as any);
+    }, `Failed to add episode ${episodeId} to watchlist`);
+  }
+
+  async removeEpisode(userId: number, episodeId: number): Promise<boolean> {
+    const { userId: uId, episodeId: eId } = this.validateIds({
+      userId: String(userId),
+      episodeId: String(episodeId),
+    });
+
+    return this.handleRepositoryError(async () => {
+      const affected = await WatchListModel.destroy({ where: { userId: uId, episodeId: eId } });
+      return affected > 0;
+    }, `Failed to remove episode ${episodeId} from watchlist`);
+  }
+
+  async addMovie(userId: string, movieId: string): Promise<void> {
+    const { userId: uId, movieId: mId } = this.validateIds({ userId, movieId });
+
+    await this.handleRepositoryError(async () => {
+      const existing = await WatchListModel.findOne({ where: { userId: uId, movieId: mId } });
+      if (existing) return;
+      await WatchListModel.create({ id: uuidv4().split("-")[0], userId: uId, movieId: mId } as any);
+    }, `Failed to add movie ${movieId} to watchlist`);
+  }
+
+  async removeMovie(userId: number, movieId: number): Promise<boolean> {
+    const { userId: uId, movieId: mId } = this.validateIds({
+      userId: String(userId),
+      movieId: String(movieId),
+    });
+
+    return this.handleRepositoryError(async () => {
+      const affected = await WatchListModel.destroy({ where: { userId: uId, movieId: mId } });
+      return affected > 0;
+    }, `Failed to remove movie ${movieId} from watchlist`);
+  }
+
+  async addVideo(userId: string, videoId: string): Promise<void> {
+    const { userId: uId, videoId: vId } = this.validateIds({ userId, videoId });
+
+    await this.handleRepositoryError(async () => {
+      const existing = await WatchListModel.findOne({ where: { userId: uId, videoId: vId } });
+      if (existing) return;
+      await WatchListModel.create({ id: uuidv4().split("-")[0], userId: uId, videoId: vId } as any);
+    }, `Failed to add video ${videoId} to watchlist`);
+  }
+
+  async removeVideo(userId: number, videoId: number): Promise<boolean> {
+    const { userId: uId, videoId: vId } = this.validateIds({
+      userId: String(userId),
+      videoId: String(videoId),
+    });
+
+    return this.handleRepositoryError(async () => {
+      const affected = await WatchListModel.destroy({ where: { userId: uId, videoId: vId } });
+      return affected > 0;
+    }, `Failed to remove video ${videoId} from watchlist`);
   }
 }

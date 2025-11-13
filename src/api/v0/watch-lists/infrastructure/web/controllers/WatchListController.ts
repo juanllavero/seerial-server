@@ -1,12 +1,7 @@
+import { useCases } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import { NextFunction, Request, Response } from "express";
-import { DeleteAlbumUseCase } from "../../../application/usecases/DeleteAlbumUseCase";
-import { UpdateAlbumUseCase } from "../../../application/usecases/UpdateAlbumUseCase";
-import { UpdateWatchStateUseCase } from "../../../application/usecases/UpdateWatchStateUseCase";
-import { WatchListRepositoryImpl } from "../../persistence/repositories/WatchListRepositoryImpl";
-
-const watchListRepo = new WatchListRepositoryImpl();
 
 export class WatchListController {
   static async updateWatchState(
@@ -15,49 +10,23 @@ export class WatchListController {
     next: NextFunction
   ) {
     try {
-      const { id } = req.params;
-      if (!id) throw new ApiError(400, messages.errors.validation.missingId);
+      const { videoId, timeWatched, watched, userId } = req.body;
+      if (videoId == null || timeWatched == null || watched == null || !userId)
+        throw new ApiError(400, messages.errors.validation.notEnoughParams);
 
-      const useCase = new UpdateWatchStateUseCase(watchListRepo);
-      const result = await useCase.execute(id, req.body);
+      const updateWatchState = useCases.updateWatchStateUseCase();
+      const result = await updateWatchState.execute({
+        videoId,
+        timeWatched,
+        watched,
+        userId,
+      });
 
       res.status(200).json({
         status: "success",
         message: messages.success.update,
         data: result,
       });
-    } catch (err) {
-      next(err);
-    }
-  }
-
-  static async update(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { id } = req.params;
-      if (!id) throw new ApiError(400, messages.errors.validation.missingId);
-
-      const useCase = new UpdateAlbumUseCase(watchListRepo);
-      const result = await useCase.execute(id, req.body);
-
-      res.status(200).json({
-        status: "success",
-        message: messages.success.update,
-        data: result,
-      });
-    } catch (err) {
-      next(err);
-    }
-  }
-
-  static async delete(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { id } = req.params;
-      if (!id) throw new ApiError(400, messages.errors.validation.missingId);
-
-      const useCase = new DeleteAlbumUseCase(watchListRepo);
-      await useCase.execute(id);
-
-      res.status(200).json({ message: messages.success.delete });
     } catch (err) {
       next(err);
     }

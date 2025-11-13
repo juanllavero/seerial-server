@@ -1,10 +1,10 @@
-import { Album } from "../../domain/Album";
-import { AlbumRepositoryPort } from "../ports/AlbumRepositoryPort";
+import { WatchList } from "../../domain/WatchList";
+import { WatchListRepositoryPort } from "../ports/WatchListRepositoryPort";
 
-export class UpdateAlbumUseCase {
-  constructor(private albumRepo: AlbumRepositoryPort) {}
+export class UpdateWatchListUseCase {
+  constructor(private watchListRepo: WatchListRepositoryPort) {}
 
-  async execute(id: string, data: Partial<Album>): Promise<Album> {
-    return this.albumRepo.update(id, data);
+  async execute(id: string, data: Partial<WatchList>): Promise<WatchList> {
+    return this.watchListRepo.update(id, data);
   }
 }

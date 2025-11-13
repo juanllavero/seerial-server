@@ -1,9 +1,9 @@
-import { AlbumRepositoryPort } from "../ports/AlbumRepositoryPort";
+import { WatchListRepositoryPort } from "../ports/WatchListRepositoryPort";
 
-export class DeleteAlbumUseCase {
-  constructor(private albumRepo: AlbumRepositoryPort) {}
+export class DeleteWatchListUseCase {
+  constructor(private watchListRepo: WatchListRepositoryPort) {}
 
   async execute(id: string): Promise<void> {
-    await this.albumRepo.delete(id);
+    await this.watchListRepo.delete(id);
   }
 }
