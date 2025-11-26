@@ -1,4 +1,4 @@
-import { VideoManager } from "@/managers/VideoManager";
+import { videoProcessingService } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { verifyVideoStreamToken } from "@/middleware/video.middleware";
 import express, { Request, Response } from "express";
 
@@ -12,7 +12,7 @@ router.get(
   "/stream-video",
   verifyVideoStreamToken,
   (req: Request, res: Response) => {
-    VideoManager.transcodeAndStreamVideo(req.videoParams, res);
+    videoProcessingService.transcodeAndStreamVideo(req.videoParams, res);
   }
 );
 
@@ -24,7 +24,7 @@ router.get(
   "/video-file",
   verifyVideoStreamToken,
   (req: Request, res: Response) => {
-    VideoManager.streamDirectVideoFile(req, res);
+    videoProcessingService.streamDirectVideoFile(req, res);
   }
 );
 

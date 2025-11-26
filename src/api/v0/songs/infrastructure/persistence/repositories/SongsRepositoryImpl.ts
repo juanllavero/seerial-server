@@ -32,6 +32,20 @@ export class SongsRepositoryImpl
     }, `Failed to retrieve song with path ${path}`);
   }
 
+  async findByAlbum(albumId: string): Promise<Song[]> {
+    const validatedId = this.validateId(albumId, "Album ID");
+
+    return this.handleRepositoryError(async () => {
+      const songs = await SongModel.findAll({
+        where: {
+          albumId: validatedId,
+        },
+      });
+
+      return songs.map((song) => song.toJSON() as Song);
+    }, `Failed to retrieve song with album ID ${albumId}`);
+  }
+
   async create(song: Partial<Song>): Promise<Song | null> {
     this.validateData(song, "Song data");
 

@@ -1,24 +1,30 @@
-import { deleteAlbum, getAlbumById } from "@/api/v0/albums/albums.service";
+import { AlbumModel } from "@/api/v0/albums/infrastructure/persistence/models/AlbumModel";
+import { MovieModel } from "@/api/v0/movies/infrastructure/persistence/models/MovieModel";
+import { SeriesModel } from "@/api/v0/series/infrastructure/persistence/models/SeriesModel";
 import {
-  deleteEpisode,
-  getEpisodeByPath,
-} from "@/api/v0/episodes/episodes.service";
-import { Album, Movie, Series } from "@/api/v0/index.models";
-import {
-  deleteLibrary,
-  getLibraryById,
-} from "@/api/v0/libraries/libraries.service";
-import { deleteMovie, getMovieByPath } from "@/api/v0/movies/movies.service";
-import { deleteSeason, getSeasonById } from "@/api/v0/seasons/seasons.service";
-import { deleteSeries, getSeriesById } from "@/api/v0/series/series.service";
-import { fileSystemService } from "@/api/v0/shared/infrastructure/adapters/di/container";
-import { getNotificationService } from "@/api/v0/shared/infrastructure/adapters/notification/NotificationServiceInstance";
-import { deleteSong, getSongByPath } from "@/api/v0/songs/songs.service";
-import { promises as fsPromises } from "fs";
+  notificationService,
+  useCases,
+} from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { existsSync } from "fs-extra";
-import { Episode as MovieDBEpisode, TvSeasonResponse } from "moviedb-promise";
 import * as path from "path";
 import { parse } from "path";
+
+const getLibraryById = useCases.getLibrary();
+const deleteLibrary = useCases.deleteLibrary();
+const getEpisodeByPath = useCases.getEpisodeByPath();
+const deleteEpisode = useCases.deleteEpisode();
+
+const getSeriesById = useCases.getSeriesById();
+const deleteSeason = useCases.deleteSeason();
+const getSeasonById = useCases.getSeasonById();
+const deleteSeries = useCases.deleteSeries();
+const deleteMovie = useCases.deleteMovie();
+const deleteSong = useCases.deleteSong();
+const getAlbumById = useCases.getAlbumById();
+const deleteAlbum = useCases.deleteAlbum();
+const getMovieByPath = useCases.getMovieByPath();
+const getSongByPath = useCases.getSongByPath();
+const getSongsByAlbum = useCases.getSongsByAlbum();
 
 /**
  * Delete removed files from library
@@ -26,7 +32,7 @@ import { parse } from "path";
  * @returns
  */
 export async function clearLibrary(libraryId: string) {
-  const library = await getLibraryById(libraryId);
+  const library = await getLibraryById.execute(libraryId);
 
   if (
     !library ||
@@ -78,44 +84,46 @@ export async function clearLibrary(libraryId: string) {
 
     if (!fileExists) {
       if (type === "Shows") {
-        const episode = await getEpisodeByPath(filePath);
+        const episode = await getEpisodeByPath.execute(filePath);
 
         if (!episode) continue;
 
         const seasonId = episode.seasonId;
-        await deleteEpisode(episode.id);
+        await deleteEpisode.execute(episode.id);
 
-        const season = await getSeasonById(seasonId);
+        const season = await getSeasonById.execute(seasonId);
 
         if (!season || (season.episodes && season.episodes.length > 0))
           continue;
 
         const seriesId = season.seriesId;
-        await deleteSeason(seasonId);
+        await deleteSeason.execute(seasonId);
 
-        const series = await getSeriesById(seriesId);
+        const series = await getSeriesById.execute(seriesId);
 
         if (!series || (series.seasons && series.seasons.length > 0)) continue;
-        await deleteSeries(seriesId);
+        await deleteSeries.execute(seriesId);
       } else if (type === "Movies") {
-        const movie = await getMovieByPath(filePath);
+        const movie = await getMovieByPath.execute(filePath);
 
         if (!movie) continue;
 
-        await deleteMovie(movie.id);
+        await deleteMovie.execute(movie.id);
       } else {
-        const song = await getSongByPath(filePath);
+        const song = await getSongByPath.execute(filePath);
 
         if (!song) continue;
 
         const albumId = song.albumId;
-        await deleteSong(song.id);
+        await deleteSong.execute(song.id ?? "");
 
-        const album = await getAlbumById(albumId);
+        const album = await getAlbumById.execute(albumId);
 
-        if (!album || (album.songs && album.songs.length > 0)) continue;
+        const songs = await getSongsByAlbum.execute(albumId);
 
-        await deleteAlbum(albumId);
+        if (!album || songs.length > 0) continue;
+
+        await deleteAlbum.execute(albumId);
       }
     }
   }
@@ -125,11 +133,11 @@ export async function clearLibrary(libraryId: string) {
     (type === "Movies" && library.movies && library.movies.length === 0) ||
     (type === "Music" && library.albums && library.albums.length === 0)
   ) {
-    await deleteLibrary(libraryId);
+    await deleteLibrary.execute(libraryId);
   }
 
   // Update library in client
-  getNotificationService().mutateLibrary(libraryId);
+  notificationService.mutateLibrary(libraryId);
 }
 
 /**
@@ -160,13 +168,13 @@ export function getCollectionItemsKey(value: string) {
 export function getItemModel(type: string) {
   switch (type) {
     case "Movies":
-      return Movie;
+      return MovieModel;
     case "Series":
-      return Series;
+      return SeriesModel;
     case "Shows":
-      return Series;
+      return SeriesModel;
     case "Music":
-      return Album;
+      return AlbumModel;
     default:
       throw new Error(`Invalid item type provided: ${type}`);
   }
@@ -200,133 +208,4 @@ export function extractNameAndYear(source: string) {
     .trim();
 
   return [name, year];
-}
-
-/**
- * Function to detect episode and season numbers in a video file name
- * @param filename path to the video file
- * @returns array of 1 to 2 elements corresponding with the episode and season number detected, or NaN if no episode was found
- */
-export function extractEpisodeSeason(filename: string): [number, number?] {
-  const regexPatterns = [
-    /[Ss](\d{1,4})[Ee](\d{1,4})(?:v\d+)?/i, // S01E02, s1e2, S1.E2, S01E01v2
-    /[Ss](\d{1,4})[\.]?E(\d{1,4})(?:v\d+)?/i, // S1.E2, S1.E2v1
-    /[Ss](\d{1,4})[\s\-]+Ep?(\d{1,4})(?:v\d+)?/i, // S01 E02, S1 E2, con v2 opcional
-    /-\s?(\d{1,4})(?:v\d+)?(?!p)/, // - 01, - 01v1 (anime style)
-    /(?:\b|^)(\d{1,4})(?:[^\d]+(\d{1,4}))?/i, // General case
-  ];
-
-  for (const regex of regexPatterns) {
-    const match = filename.match(regex);
-    if (match) {
-      let episode, season;
-      if (regex === regexPatterns[3] && match[2]) {
-        // Only consider the second number as the episode if two numbers are present
-        episode = parseInt(match[2], 10);
-        season = undefined;
-      } else {
-        episode = parseInt(match[2] ?? match[1], 10);
-        season = match[2] ? parseInt(match[1], 10) : undefined;
-      }
-      return season ? [episode, season] : [episode];
-    }
-  }
-
-  return [NaN]; // Return NaN if no episode found
-}
-
-// Index episodes and seasons of a show to quicker access
-export function indexSeasons(
-  seasonsMetadata: TvSeasonResponse[]
-): Map<
-  number,
-  { season: TvSeasonResponse; episodesMap: Map<number, MovieDBEpisode> }
-> {
-  const index = new Map<
-    number,
-    { season: TvSeasonResponse; episodesMap: Map<number, MovieDBEpisode> }
-  >();
-
-  for (const season of seasonsMetadata) {
-    if (season.season_number != null) {
-      const episodesMap = new Map<number, MovieDBEpisode>();
-      if (season.episodes) {
-        for (const episode of season.episodes) {
-          if (episode.episode_number != null) {
-            episodesMap.set(episode.episode_number, episode);
-          }
-        }
-      }
-      index.set(season.season_number, { season, episodesMap });
-    }
-  }
-  return index;
-}
-
-// Function to build an array with the cumulative count of episodes by season.
-export function buildCumulativeEpisodes(
-  seasonsMetadata: TvSeasonResponse[]
-): number[] {
-  const cumulative: number[] = [];
-  let total = 0;
-
-  for (const season of seasonsMetadata) {
-    if (
-      season.season_number != null &&
-      season.season_number >= 1 &&
-      season.episodes
-    ) {
-      total += season.episodes.length;
-      cumulative.push(total);
-    }
-  }
-  return cumulative;
-}
-
-// Returns the season and episode by absolute number
-export function getSeasonEpisodeByAbsoluteNumber(
-  absoluteNumber: number,
-  seasonsMetadata: TvSeasonResponse[],
-  cumulative: number[]
-): { season: TvSeasonResponse; episode: MovieDBEpisode } | null {
-  for (let i = 0; i < cumulative.length; i++) {
-    if (absoluteNumber <= cumulative[i]) {
-      const season = seasonsMetadata[i];
-      const previousCount = i > 0 ? cumulative[i - 1] : 0;
-      const episodeIndex = absoluteNumber - previousCount - 1; // Index from 0
-      if (season.episodes && season.episodes[episodeIndex]) {
-        return { season, episode: season.episodes[episodeIndex] };
-      }
-    }
-  }
-  return null;
-}
-
-/**
- * Helper function to handle cover art logic.
- * @param entity An object with an ID and a property to store the image path (e.g., Album or Collection)
- * @param propertyName The name of the property to update (e.g., 'coverSrc')
- * @param sourceImagePath The path of the image to copy.
- */
-export async function setEntityCover(
-  entity: { id: string; [key: string]: any },
-  propertyName: string,
-  sourceImagePath: string
-) {
-  const imageName = path.basename(sourceImagePath);
-  const destinationFolder = fileSystemService.getExternalPath(
-    path.join("resources", "img", "posters", entity.id)
-  );
-  const destinationPath = path.join(destinationFolder, imageName);
-
-  try {
-    fileSystemService.createFolder(destinationFolder);
-    await fsPromises.copyFile(sourceImagePath, destinationPath);
-
-    entity[propertyName] = path
-      .join("resources", "img", "posters", entity.id, imageName)
-      .replace(/\\/g, "/");
-  } catch (err) {
-    console.error(`Error copying image for entity ${entity.id}:`, err);
-  }
 }

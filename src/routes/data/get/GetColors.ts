@@ -1,6 +1,6 @@
+import { imageProcessingService } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { ImageManager } from "@/managers/ImageManager";
 import catchAsync from "@/utils/catchAsync";
 import express, { NextFunction, Request, Response } from "express";
 
@@ -31,7 +31,7 @@ router.get(
       saturationFactor: sat ? parseFloat(sat as string) : 1.0,
     };
 
-    const result = await ImageManager.getImageColorPalette(
+    const result = await imageProcessingService.getImageColorPalette(
       imageSource,
       options
     );
@@ -64,11 +64,12 @@ router.get(
 
     const imageSource = (localPath as string) || (url as string);
 
-    const finalImageBuffer = await ImageManager.createTransparentImage(
-      imageSource,
-      finalWidth,
-      finalHeight
-    );
+    const finalImageBuffer =
+      await imageProcessingService.createTransparentImage(
+        imageSource,
+        finalWidth,
+        finalHeight
+      );
 
     res.setHeader("Content-Type", "image/png");
     return res.send(finalImageBuffer);

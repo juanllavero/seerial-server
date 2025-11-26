@@ -1,8 +1,8 @@
 import { FileSystemServicePort } from "@/api/v0/shared/application/ports/FileSystemServicePort";
-import { notificationService } from "@/api/v0/shared/infrastructure/adapters/di/container";
-import { scanMovie } from "@/file-search/movies/searchMovies";
-import { scanMusic } from "@/file-search/music/musicSearch";
-import { scanTVShow } from "@/file-search/series/searchSeries";
+import {
+  notificationService,
+  useCases,
+} from "@/api/v0/shared/infrastructure/adapters/di/container";
 import os from "os";
 import pLimit from "p-limit";
 import path from "path";
@@ -10,6 +10,10 @@ import { Library } from "../../domain/Library";
 import { LibrariesRepositoryPort } from "../ports/LibrariesRepositoryPort";
 
 export class ScanLibraryUseCase {
+  private static readonly scanTVShow = useCases.scanSeries();
+  private static readonly scanMovie = useCases.scanMovie();
+  private static readonly scanMusic = useCases.scanSongs();
+
   constructor(
     private readonly filesManager: FileSystemServicePort,
     private readonly librariesRepo: LibrariesRepositoryPort
@@ -44,11 +48,11 @@ export class ScanLibraryUseCase {
 
         const task = limit(async () => {
           if (library.type === "Shows") {
-            await scanTVShow(library, filePath);
+            await ScanLibraryUseCase.scanTVShow.execute(library, filePath);
           } else if (library.type === "Movies") {
-            await scanMovie(library, filePath);
+            await ScanLibraryUseCase.scanMovie.execute(library, filePath);
           } else {
-            await scanMusic(library, filePath);
+            await ScanLibraryUseCase.scanMusic.execute(library, filePath);
           }
         });
         tasks.push(task);

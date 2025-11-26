@@ -1,6 +1,6 @@
+import { fileSystemService } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { FilesManager } from "@/managers/FilesManager";
 import catchAsync from "@/utils/catchAsync";
 import crypto from "crypto";
 import express, { NextFunction, Request, Response } from "express";
@@ -103,7 +103,7 @@ router.get(
     }
 
     const videoSrc = videoUrl.startsWith("resources")
-      ? FilesManager.getExternalPath(videoUrl)
+      ? fileSystemService.getExternalPath(videoUrl)
       : videoUrl;
 
     try {

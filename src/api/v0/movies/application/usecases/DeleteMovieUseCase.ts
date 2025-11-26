@@ -1,15 +1,16 @@
 import { LibrariesRepositoryPort } from "@/api/v0/libraries/application/ports/LibrariesRepositoryPort";
-import { VideoRepositoryPort } from "@/api/v0/videos/application/ports/VideosRepositoryPort";
+import { useCases } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { FilesManager } from "@/managers/FilesManager";
 import { MoviesRepositoryPort } from "../ports/MoviesRepositoryPort";
 
 export class DeleteMovieUseCase {
+  private deleteMovieData = useCases.deleteMovieData();
+  private deleteVideo = useCases.deleteVideo();
+
   constructor(
     private libraryRepository: LibrariesRepositoryPort,
-    private moviesRepo: MoviesRepositoryPort,
-    private videosRepo: VideoRepositoryPort
+    private moviesRepo: MoviesRepositoryPort
   ) {}
 
   async execute(id: string): Promise<void> {
@@ -20,14 +21,13 @@ export class DeleteMovieUseCase {
     }
 
     for (const video of movie.videos) {
-      await this.videosRepo.delete(video.id);
+      await this.deleteVideo.execute(video.id);
     }
 
     const library = await this.libraryRepository.getById(movie.libraryId);
 
-    FilesManager.deleteDirectory(`resources/img/backgrounds/${movie.id}`);
-    FilesManager.deleteDirectory(`resources/img/posters/${movie.id}`);
-    FilesManager.deleteDirectory(`resources/img/logos/${movie.id}`);
+    // Delete local media files and folders
+    await this.deleteMovieData.execute(id);
 
     if (library) {
       await this.libraryRepository.removeAnalyzedFolder(

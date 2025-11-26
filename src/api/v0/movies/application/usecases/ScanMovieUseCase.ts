@@ -1,24 +1,17 @@
 import { CollectionsRepositoryPort } from "@/api/v0/collections/application/ports/CollectionRepositoryPort";
+import { Collection } from "@/api/v0/collections/domain/Collection";
 import { LibrariesRepositoryPort } from "@/api/v0/libraries/application/ports/LibrariesRepositoryPort";
 import { Library } from "@/api/v0/libraries/domain/Library";
 import { FileSystemServicePort } from "@/api/v0/shared/application/ports/FileSystemServicePort";
 import { MetadataProviderPort } from "@/api/v0/shared/application/ports/MetadataProviderPort";
-import { VideoRepositoryPort } from "@/api/v0/videos/application/ports/VideosRepositoryPort";
-import { getOnlyRuntime } from "@/ffmpeg/mediaInfo";
-import {
-  processFolder,
-  processVideo,
-  saveMovieWithoutMetadata,
-  searchMovie,
-} from "@/file-search/movies/searchMovies";
-import { extractNameAndYear } from "@/file-search/utils/utils";
-
-import { Collection } from "@/api/v0/collections/domain/Collection";
 import {
   notificationService,
   useCases,
 } from "@/api/v0/shared/infrastructure/adapters/di/container";
+import { VideoRepositoryPort } from "@/api/v0/videos/application/ports/VideosRepositoryPort";
 import { Video } from "@/api/v0/videos/domain/Video";
+import { getOnlyRuntime } from "@/ffmpeg/mediaInfo";
+import { extractNameAndYear } from "@/file-search/utils/utils";
 import { MetadataManager } from "@/managers/MetadataManager";
 import { getFileName } from "@/utils/utils";
 import { MovieResponse } from "moviedb-promise";
@@ -48,7 +41,7 @@ export class ScanMovieUseCase {
       // ONLY ONE FILE
       if (!this.filesManager.isVideoFile(root)) return;
 
-      await processFolder(library, root, [root]);
+      await this.processFolder(library, root, [root]);
     } else {
       const filesInDir = await this.filesManager.getFilesInFolder(root);
       const filesInRoot: string[] = [];
@@ -81,13 +74,18 @@ export class ScanMovieUseCase {
 
         const processPromises = folders.map(async (folder) => {
           const files = await this.filesManager.getValidVideoFiles(folder);
-          await processFolder(library, folder, files, collection ?? undefined);
+          await this.processFolder(
+            library,
+            folder,
+            files,
+            collection ?? undefined
+          );
         });
 
         await Promise.all(processPromises);
       } else {
         // MOVIE FILE/CONCERT FILES INSIDE FOLDER
-        await processFolder(library, root, filesInRoot);
+        await this.processFolder(library, root, filesInRoot);
       }
     }
 
@@ -122,7 +120,7 @@ export class ScanMovieUseCase {
     let name = nameAndYear[0];
     let year = nameAndYear[1];
 
-    movieMetadata = await searchMovie(name, year, library.language);
+    movieMetadata = await this.searchMovie(name, year, library.language);
 
     if (!movie) {
       movie = await this.movieRepository.create({
@@ -145,7 +143,7 @@ export class ScanMovieUseCase {
       movie.year = year !== "1" ? year : "";
 
       const processPromises = files.map(async (file) => {
-        await saveMovieWithoutMetadata(library, movie, file);
+        await this.saveMovieWithoutMetadata(library, movie, file);
       });
 
       await Promise.all(processPromises);
@@ -167,7 +165,7 @@ export class ScanMovieUseCase {
     notificationService.mutateMovie(movie);
 
     const processPromises = files.map(async (file) => {
-      await processVideo(library, movie, file);
+      await this.processVideo(library, movie, file);
     });
 
     await Promise.all(processPromises);

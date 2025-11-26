@@ -1,7 +1,9 @@
+import {
+  fileSystemService,
+  imageProcessingService,
+} from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { FilesManager } from "@/managers/FilesManager";
-import { ImageManager } from "@/managers/ImageManager";
 import { SanitizationManager } from "@/managers/SanitizationManager";
 import catchAsync from "@/utils/catchAsync";
 import express, { NextFunction, Request, Response } from "express";
@@ -11,7 +13,7 @@ const router = express.Router();
 
 router.use(
   "/img",
-  express.static(path.join(FilesManager.resourcesPath, "img"))
+  express.static(path.join(fileSystemService.resourcesPath, "img"))
 );
 
 /**
@@ -36,7 +38,9 @@ router.get(
         true
       );
 
-      const images = await ImageManager.getDirectoryListing(sanitizedPath);
+      const images = await imageProcessingService.getDirectoryListing(
+        sanitizedPath
+      );
       return res.status(200).json(images);
     } catch (error: any) {
       return next(new ApiError(400, `Invalid path: ${error.message}`));
@@ -66,7 +70,7 @@ router.get(
         true // Must exist
       );
 
-      await ImageManager.streamLocalImage({
+      await imageProcessingService.streamLocalImage({
         filePath: sanitizedPath,
         res,
         width: width ? parseInt(width as string, 10) : undefined,
@@ -93,7 +97,7 @@ router.get(
       );
     }
 
-    await ImageManager.streamRemoteImage({
+    await imageProcessingService.streamRemoteImage({
       url,
       res,
       width: width ? parseInt(width as string, 10) : undefined,

@@ -52,6 +52,15 @@ export class VideosRepositoryImpl
     }, `Failed to retrieve video for extra with ID ${extraId}`);
   }
 
+  async findByPath(path: string): Promise<Video | null> {
+    this.validateData(path, "Video path");
+
+    return this.handleRepositoryError(async () => {
+      const video = await VideoModel.findOne({ where: { fileSrc: path } });
+      return video ? (video.toJSON() as unknown as Video) : null;
+    }, `Failed to retrieve video with path ${path}`);
+  }
+
   async create(video: Video): Promise<Video> {
     this.validateData(video, "Video data");
 

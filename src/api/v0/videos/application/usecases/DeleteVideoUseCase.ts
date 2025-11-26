@@ -1,10 +1,12 @@
 import { LibrariesRepositoryPort } from "@/api/v0/libraries/application/ports/LibrariesRepositoryPort";
-import { fileSystemService } from "@/api/v0/shared/infrastructure/adapters/di/container";
+import { useCases } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import { VideoRepositoryPort } from "../ports/VideosRepositoryPort";
 
 export class DeleteVideoUseCase {
+  private deleteVideoData = useCases.deleteVideoData();
+
   constructor(
     private readonly videoRepository: VideoRepositoryPort,
     private readonly libraryRepository: LibrariesRepositoryPort
@@ -14,12 +16,10 @@ export class DeleteVideoUseCase {
     const video = await this.videoRepository.findById(videoId);
     if (!video) throw new ApiError(404, messages.errors.notFound.video);
 
-    const library = await this.libraryRepository.getByVideoId(videoId);
+    // Delete local media files and folders
+    await this.deleteVideoData.execute(videoId);
 
-    fileSystemService.deleteFolder(`resources/img/thumbnails/video/${videoId}`);
-    fileSystemService.deleteFolder(
-      `resources/img/thumbnails/chapters/${videoId}`
-    );
+    const library = await this.libraryRepository.getByVideoId(videoId);
 
     if (library) {
       await this.libraryRepository.removeAnalyzedFile(

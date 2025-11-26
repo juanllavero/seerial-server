@@ -3,7 +3,7 @@ import { VideosRepositoryImpl } from "@/api/v0/videos/infrastructure/persistence
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import { NextFunction, Request, Response } from "express";
-import { DeleteMovieUseCase } from "../../../application/usecases/DeleteMoviesUseCase";
+import { DeleteMovieUseCase } from "../../../application/usecases/DeleteMovieUseCase";
 import { RefreshMovieMetadataUseCase } from "../../../application/usecases/RefreshMovieMetadataUseCase";
 import { UpdateMovieIdUseCase } from "../../../application/usecases/UpdateMovieIdUseCase";
 import { UpdateMovieUseCase } from "../../../application/usecases/UpdateMoviesUseCase";

@@ -23,9 +23,11 @@ import { DeleteUseCase } from "@/api/v0/continue-watching/application/usecases/D
 import { GetCurrentEpisodeUseCase } from "@/api/v0/continue-watching/application/usecases/GetCurrentEpisodeUseCase";
 import { GetVideosUseCase } from "@/api/v0/continue-watching/application/usecases/GetVideosUseCase";
 import { ContinueWatchingRepositoryImpl } from "@/api/v0/continue-watching/infrastructure/persistence/repositories/ContinueWatchingRepositoryImpl";
+import { CreateEpisodeUseCase } from "@/api/v0/episodes/application/usecases/CreateEpisodeUseCase";
 import { DeleteEpisodeUseCase } from "@/api/v0/episodes/application/usecases/DeleteEpisodeUseCase";
 import { FindEpisodeByIdUseCase } from "@/api/v0/episodes/application/usecases/FindEpisodeByIdUseCase";
 import { FindEpisodeByPathUseCase } from "@/api/v0/episodes/application/usecases/FindEpisodeByPathUseCase";
+import { GetAllBySeasonIdUseCase } from "@/api/v0/episodes/application/usecases/GetAllBySeasonIdUseCase";
 import { SetEpisodeWatchStateUseCase } from "@/api/v0/episodes/application/usecases/SetEpisodeWatchStateUseCase";
 import { UpdateEpisodeUseCase } from "@/api/v0/episodes/application/usecases/UpdateEpisodeUseCase";
 import { EpisodeRepositoryImpl } from "@/api/v0/episodes/infrastructure/persistence/repositories/EpisodeRepositoryImpl";
@@ -44,8 +46,10 @@ import { ReorderLibraryItemsUseCase } from "@/api/v0/libraries/application/useca
 import { ScanLibraryUseCase } from "@/api/v0/libraries/application/usecases/ScanLibraryUseCase";
 import { UpdateLibraryUseCase } from "@/api/v0/libraries/application/usecases/UpdateLibraryUseCase";
 import { LibrariesRepositoryImpl } from "@/api/v0/libraries/infrastructure/persistence/repositories/LibraryRepositoryImpl";
-import { DeleteMovieUseCase } from "@/api/v0/movies/application/usecases/DeleteMoviesUseCase";
+import { DeleteMovieDataUseCase } from "@/api/v0/movies/application/usecases/DeleteMovieDataUseCase";
+import { DeleteMovieUseCase } from "@/api/v0/movies/application/usecases/DeleteMovieUseCase";
 import { FindMovieByIdUseCase } from "@/api/v0/movies/application/usecases/FindMovieByIdUseCase";
+import { FindMovieByPathUseCase } from "@/api/v0/movies/application/usecases/FindMovieByPathUseCase";
 import { ProcessMovieFolderUseCase } from "@/api/v0/movies/application/usecases/ProcessMovieFolderUseCase";
 import { ScanMovieUseCase } from "@/api/v0/movies/application/usecases/ScanMovieUseCase";
 import { SearchMovieMetadataUseCase } from "@/api/v0/movies/application/usecases/SearchMovieMetadataUseCase";
@@ -53,12 +57,15 @@ import { UpdateMovieMetadataUseCase } from "@/api/v0/movies/application/usecases
 import { UpdateMovieUseCase } from "@/api/v0/movies/application/usecases/UpdateMoviesUseCase";
 import { MoviesRepositoryImpl } from "@/api/v0/movies/infrastructure/persistence/repositories/MoviesRepositoryImpl";
 import { MyListRepositoryImpl } from "@/api/v0/my-lists/infrastructure/persistence/repositories/MyListRepositoryImpl";
+import { CreateSeasonUseCase } from "@/api/v0/seasons/application/usecases/CreateSeasonUseCase";
+import { DeleteSeasonDataUseCase } from "@/api/v0/seasons/application/usecases/DeleteSeasonDataUseCase";
 import { DeleteSeasonUseCase } from "@/api/v0/seasons/application/usecases/DeleteSeasonsUseCase";
 import { FindAllSeasonsUseCase } from "@/api/v0/seasons/application/usecases/FindAllSeasonsUseCase";
 import { FindSeasonByIdUseCase } from "@/api/v0/seasons/application/usecases/FindSeasonByIdUseCase";
 import { UpdateSeasonUseCase } from "@/api/v0/seasons/application/usecases/UpdateSeasonsUseCase";
 import { SeasonsRepositoryImpl } from "@/api/v0/seasons/infrastructure/persistence/repositories/SeasonsRepositoryImpl";
 import { CreateSeriesUseCase } from "@/api/v0/series/application/usecases/CreateSeriesUseCase";
+import { DeleteSeriesDataUseCase } from "@/api/v0/series/application/usecases/DeleteSeriesDataUseCase";
 import { DeleteSeriesUseCase } from "@/api/v0/series/application/usecases/DeleteSeriesUseCase";
 import { FindSeriesByIdUseCase } from "@/api/v0/series/application/usecases/FindSeriesByIdUseCase";
 import { ProcessEpisodeUseCase } from "@/api/v0/series/application/usecases/ProcessEpisodeUseCase";
@@ -74,6 +81,9 @@ import { UpdateServerUseCase } from "@/api/v0/servers/application/usecases/Updat
 import { ServersRepositoryImpl } from "@/api/v0/servers/infrastructure/persistence/repositories/ServersRepositoryImpl";
 import { CreateSongUseCase } from "@/api/v0/songs/application/usecases/CreateSongUseCase";
 import { DeleteSongUseCase } from "@/api/v0/songs/application/usecases/DeleteSongUseCase";
+import { FindSongByIdUseCase } from "@/api/v0/songs/application/usecases/FindSongByIdUseCase";
+import { FindSongByPathUseCase } from "@/api/v0/songs/application/usecases/FindSongByPathUseCase";
+import { FindSongsByAlbumIdUseCase } from "@/api/v0/songs/application/usecases/FindSongsByAlbumIdUseCase";
 import { ProcessSongFileUseCase } from "@/api/v0/songs/application/usecases/ProcessSongFileUseCase";
 import { ScanSongsUseCase } from "@/api/v0/songs/application/usecases/ScanSongsUseCase";
 import { UpdateSongUseCase } from "@/api/v0/songs/application/usecases/UpdateSongUseCase";
@@ -85,19 +95,26 @@ import { GetAllUsersUseCase } from "@/api/v0/users/application/usecases/GetAllUs
 import { UpdateUserUseCase } from "@/api/v0/users/application/usecases/UpdateUserUseCase";
 import { UsersRepositoryImpl } from "@/api/v0/users/infrastructure/persistence/repositories/UsersRepositoryImpl";
 import { CreateVideoAsEpisodeUseCase } from "@/api/v0/videos/application/usecases/CreateVideoAsEpisodeUseCase";
+import { DeleteVideoDataUseCase } from "@/api/v0/videos/application/usecases/DeleteVideoDataUseCase";
+import { DeleteVideoUseCase } from "@/api/v0/videos/application/usecases/DeleteVideoUseCase";
 import { FindVideoByEpisodeIdUseCase } from "@/api/v0/videos/application/usecases/FindVideoByEpisodeIdUseCase";
 import { FindVideoByIdUseCase } from "@/api/v0/videos/application/usecases/FindVideoByIdUseCase";
+import { FindVideoByMovieIdUseCase } from "@/api/v0/videos/application/usecases/FindVideoByMovieIdUseCase";
+import { FindVideoByPathUseCase } from "@/api/v0/videos/application/usecases/FindVideoByPathUseCase";
 import { UpdateVideoUseCase } from "@/api/v0/videos/application/usecases/UpdateVideosUseCase";
 import { VideosRepositoryImpl } from "@/api/v0/videos/infrastructure/persistence/repositories/VideosRepositoryImpl";
 import { UpdateWatchStateUseCase } from "@/api/v0/watch-lists/application/usecases/UpdateWatchStateUseCase";
 import { WatchListRepositoryImpl } from "@/api/v0/watch-lists/infrastructure/persistence/repositories/WatchListRepositoryImpl";
+import { SanitizationManager } from "@/managers/SanitizationManager";
 import { AudioProcessingServiceImpl } from "../audio-processing/AudioProcessingServiceImpl";
 import { DownloaderServiceImpl } from "../downloader/DownloaderServiceImpl";
 import { FileSystemServiceImpl } from "../filesystem/FileSystemServiceImpl";
+import { ImageProcessingServiceImpl } from "../image-processing/ImageProcessingServiceImpl";
 import { MediaInfoServiceImpl } from "../media-info/MediaInfoServiceImpl";
 import { MetadataProviderImpl } from "../metadata/MetadataProviderImpl";
 import { TMDbApiClient } from "../metadata/TMDbApiClient";
 import { NotificationServiceImpl } from "../notification/NotificationServiceImpl";
+import { VideoProcessingServiceImpl } from "../video-processing/VideoProcessingServiceImpl";
 
 //#endregion
 
@@ -111,6 +128,13 @@ export const notificationService = new NotificationServiceImpl();
 export const downloaderService = new DownloaderServiceImpl(
   fileSystemService,
   notificationService
+);
+export const sanitizationService = new SanitizationManager();
+export const videoProcessingService = new VideoProcessingServiceImpl(
+  sanitizationService
+);
+export const imageProcessingService = new ImageProcessingServiceImpl(
+  fileSystemService
 );
 
 // Providers
@@ -134,7 +158,7 @@ export const myListRepo = new MyListRepositoryImpl();
 export const serversRepo = new ServersRepositoryImpl();
 export const usersRepo = new UsersRepositoryImpl();
 
-// Fábricas de casos de uso
+// Use cases factories
 export const useCases = {
   // Servers
   createServer: () => new CreateServerUseCase(serversRepo),
@@ -184,8 +208,9 @@ export const useCases = {
   // Series
   getSeriesById: () => new FindSeriesByIdUseCase(seriesRepo),
   createSeries: () => new CreateSeriesUseCase(seriesRepo),
-  deleteSeries: () => new DeleteSeriesUseCase(seriesRepo),
   updateSeries: () => new UpdateSeriesUseCase(seriesRepo),
+  deleteSeries: () => new DeleteSeriesUseCase(seriesRepo),
+  deleteSeriesData: () => new DeleteSeriesDataUseCase(),
 
   processEpisode: () => new ProcessEpisodeUseCase(mediaInfoService),
   refreshMetadata: () => new RefreshMetadataUseCase(),
@@ -195,16 +220,19 @@ export const useCases = {
   updateShowId: () => new UpdateShowIdUseCase(),
 
   // Seasons
+  createSeason: () => new CreateSeasonUseCase(seasonsRepo),
   getSeasonById: () => new FindSeasonByIdUseCase(seasonsRepo),
   getSeasons: () => new FindAllSeasonsUseCase(seasonsRepo),
-  deleteSeason: () => new DeleteSeasonUseCase(seasonsRepo, episodesRepo),
   updateSeason: () => new UpdateSeasonUseCase(seasonsRepo),
+  deleteSeason: () => new DeleteSeasonUseCase(seasonsRepo),
+  deleteSeasonData: () => new DeleteSeasonDataUseCase(seasonsRepo),
 
   // Movies
   getMoviebyId: () => new FindMovieByIdUseCase(moviesRepo),
-  deleteMovie: () =>
-    new DeleteMovieUseCase(librariesRepo, moviesRepo, videosRepo),
+  getMovieByPath: () => new FindMovieByPathUseCase(moviesRepo),
   updateMovie: () => new UpdateMovieUseCase(moviesRepo),
+  deleteMovie: () => new DeleteMovieUseCase(librariesRepo, moviesRepo),
+  deleteMovieData: () => new DeleteMovieDataUseCase(),
 
   updateMovieMetadata: () =>
     new UpdateMovieMetadataUseCase(
@@ -238,6 +266,9 @@ export const useCases = {
   updateArtist: () => new UpdateArtistUseCase(artistsRepo),
 
   // Songs
+  getSongById: () => new FindSongByIdUseCase(songsRepo),
+  getSongsByAlbum: () => new FindSongsByAlbumIdUseCase(songsRepo),
+  getSongByPath: () => new FindSongByPathUseCase(songsRepo),
   createSong: () => new CreateSongUseCase(songsRepo),
   deleteSong: () => new DeleteSongUseCase(songsRepo),
   updateSong: () => new UpdateSongUseCase(songsRepo),
@@ -246,10 +277,13 @@ export const useCases = {
   scanSongs: () => new ScanSongsUseCase(fileSystemService),
 
   // Episodes
+  createEpisode: () => new CreateEpisodeUseCase(episodesRepo),
   getEpisodeById: () => new FindEpisodeByIdUseCase(episodesRepo),
   getEpisodeByPath: () => new FindEpisodeByPathUseCase(episodesRepo),
-  deleteEpisode: () => new DeleteEpisodeUseCase(episodesRepo),
+  getAllBySeasonId: () => new GetAllBySeasonIdUseCase(episodesRepo),
   updateEpisode: () => new UpdateEpisodeUseCase(episodesRepo),
+  deleteEpisode: () => new DeleteEpisodeUseCase(episodesRepo),
+
   setEpisodeWatchState: () =>
     new SetEpisodeWatchStateUseCase(
       episodesRepo,
@@ -261,10 +295,14 @@ export const useCases = {
     ),
 
   // Videos
+  getVideoByPath: () => new FindVideoByPathUseCase(videosRepo),
   getVideoById: () => new FindVideoByIdUseCase(videosRepo),
   getVideoByEpisodeId: () => new FindVideoByEpisodeIdUseCase(videosRepo),
+  getVideoByMovieId: () => new FindVideoByMovieIdUseCase(videosRepo),
   updateVideo: () => new UpdateVideoUseCase(videosRepo),
   addVideoAsEpisode: () => new CreateVideoAsEpisodeUseCase(videosRepo),
+  deleteVideo: () => new DeleteVideoUseCase(videosRepo, librariesRepo),
+  deleteVideoData: () => new DeleteVideoDataUseCase(),
 
   // Playlists
 

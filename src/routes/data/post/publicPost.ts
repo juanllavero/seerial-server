@@ -1,11 +1,4 @@
 import {
-  addVideoToContinueWatching,
-  removeVideoFromContinueWatching,
-} from "@/api/v0/continue-watching/continue-watching.service";
-import { setEpisodeWatchState } from "@/api/v0/episodes/episodes.controller";
-import { getEpisodeById } from "@/api/v0/episodes/episodes.service";
-import { getMovieById } from "@/api/v0/movies/movies.service";
-import {
   addMovieToMyList,
   addSeriesToMyList,
   getMovieFromMyList,
@@ -13,22 +6,6 @@ import {
   removeMovieFromMyList,
   removeSeriesFromMyList,
 } from "@/api/v0/my-lists/my-lists.service";
-import { getSeasonById } from "@/api/v0/seasons/seasons.service";
-import { getSeriesById } from "@/api/v0/series/series.service";
-import {
-  getVideoByEpisodeId,
-  getVideoById,
-} from "@/api/v0/videos/videos.service";
-import {
-  addMovieToWatchList,
-  addSeasonToWatchList,
-  addSeriesToWatchList,
-  addVideoToWatchList,
-  removeMovieFromWatchList,
-  removeSeasonFromWatchList,
-  removeSeriesFromWatchList,
-  removeVideoFromWatchList,
-} from "@/api/v0/watch-lists/watch-lists.service";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import catchAsync from "@/utils/catchAsync";

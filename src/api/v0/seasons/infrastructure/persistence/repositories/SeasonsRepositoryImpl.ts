@@ -61,7 +61,7 @@ export class SeasonsRepositoryImpl
     }, `Failed to retrieve season with ID ${id}`);
   }
 
-  async create(data: Season): Promise<Season> {
+  async create(data: Partial<Season>): Promise<Season> {
     this.validateData(data, "Album data");
 
     return this.handleRepositoryError(async () => {

@@ -73,7 +73,8 @@
     "build-win": "pnpm run build && electron-builder --win",
     "build-mac": "pnpm run build && electron-builder --mac",
     "build-linux": "pnpm run build && electron-builder --linux",
-    "publish": "node dist/utils/publish.js"
+    "publish": "node dist/utils/publish.js",
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@types/bcrypt": "^6.0.0",

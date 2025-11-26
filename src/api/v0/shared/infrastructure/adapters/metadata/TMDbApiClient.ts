@@ -4,7 +4,7 @@ import { fileSystemService } from "../di/container";
 
 export class TMDbApiClient {
   private BASE_URL = "https://api.themoviedb.org/3";
-  private THEMOVIEDB_API_TOKEN: string = "";
+  public THEMOVIEDB_API_TOKEN: string = "";
   public connectionStatus: boolean = false;
 
   async makeRequest(

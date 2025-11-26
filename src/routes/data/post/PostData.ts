@@ -1,11 +1,15 @@
-import { getSongById } from "@/api/v0/songs/songs.service";
+import {
+  fileSystemService,
+  tmdbApiClient,
+  useCases,
+} from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import { DownloaderManager } from "@/managers/DownloaderManager";
-import { FilesManager } from "@/managers/FilesManager";
 import { SanitizationManager } from "@/managers/SanitizationManager";
-import { MovieDBWrapper } from "@/theMovieDB/MovieDB";
 import catchAsync from "@/utils/catchAsync";
+import { upload } from "@/utils/multer";
+import { downloadImage, isValidURL } from "@/utils/utils";
 import express, { NextFunction, Request, Response } from "express";
 import { promises as fs } from "fs";
 import { MovieDb } from "moviedb-promise";
@@ -20,11 +24,11 @@ router.post(
     const { apiKey } = req.body;
 
     const properties =
-      propertiesReader(FilesManager.propertiesFilePath) || undefined;
+      propertiesReader(fileSystemService.propertiesFilePath) || undefined;
 
     // Save API key in properties file
     properties.set("TMDB_API_KEY", apiKey);
-    properties.save(FilesManager.propertiesFilePath);
+    properties.save(fileSystemService.propertiesFilePath);
 
     if (!apiKey) {
       return res.status(400).json({
@@ -34,7 +38,7 @@ router.post(
 
     const moviedb = new MovieDb(String(apiKey));
 
-    MovieDBWrapper.THEMOVIEDB_API_TOKEN = apiKey;
+    tmdbApiClient.THEMOVIEDB_API_TOKEN = apiKey;
 
     return res.status(200).json({
       status: moviedb ? "VALID_API_KEY" : "INVALID_API_KEY",
@@ -45,7 +49,7 @@ router.post(
 // Upload image
 router.post(
   "/uploadImage",
-  FilesManager.upload,
+  upload,
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const destPath = req.body.destPath;
 
@@ -103,7 +107,7 @@ router.post(
       );
     }
 
-    if (!FilesManager.isValidURL(url)) {
+    if (!isValidURL(url)) {
       return next(new ApiError(400, messages.errors.validation.invalidData));
     }
 
@@ -112,9 +116,9 @@ router.post(
       fileName += ".jpg";
     }
 
-    await FilesManager.downloadImage(
+    await downloadImage(
       url,
-      path.join(FilesManager.resourcesPath, downloadFolder, fileName)
+      path.join(fileSystemService.resourcesPath, downloadFolder, fileName)
     );
 
     return res.status(200).json({ message: messages.success.download });
@@ -172,7 +176,8 @@ router.post(
       );
     }
 
-    const song = await getSongById(songId as string);
+    const getSongById = useCases.getSongById();
+    const song = await getSongById.execute(songId as string);
 
     if (!song) {
       return next(new ApiError(404, messages.errors.notFound.song));

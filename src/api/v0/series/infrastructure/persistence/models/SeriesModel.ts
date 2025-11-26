@@ -2,10 +2,9 @@ import { CollectionModel } from "@/api/v0/collections/infrastructure/persistence
 import { CollectionSeriesModel } from "@/api/v0/collections/infrastructure/persistence/models/CollectionSeries";
 import { LibraryModel } from "@/api/v0/libraries/infrastructure/persistence/models/LibraryModel";
 import { SeasonModel } from "@/api/v0/seasons/infrastructure/persistence/models/SeasonModel";
+import { useCases } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { WatchListModel } from "@/api/v0/watch-lists/infrastructure/persistence/models/WatchListModel";
 import { Cast } from "@/data/interfaces/Media";
-import fs from "fs-extra";
-import path from "path";
 import {
   BeforeDestroy,
   BelongsTo,
@@ -275,23 +274,22 @@ export class SeriesModel extends Model {
   @BeforeDestroy
   static async beforeDestroyHook(instance: SeriesModel): Promise<void> {
     try {
-      try {
-        await fs.remove(
-          path.join("resources", "img", "posters", instance.id ?? "")
-        );
-        await fs.remove(
-          path.join("resources", "img", "logos", instance.id ?? "")
-        );
-      } catch (error) {
-        console.error(
-          "deleteSeriesData: Error deleting cover images directory",
-          error
-        );
-      }
+      // Delete stored data
+      const deleteSeriesData = useCases.deleteSeriesData();
+      await deleteSeriesData.execute(
+        instance.libraryId,
+        instance.id,
+        instance.folder
+      );
 
-      const library = await getLibraryById(instance.libraryId);
+      // Remove folder stored in library
+      const getLibrary = useCases.getLibrary();
+      const library = await getLibrary.execute(instance.libraryId);
 
-      await library?.removeAnalyzedFolder(instance.folder);
+      if (!library) return;
+
+      const removeAnalyzedFolder = useCases.removeAnalyzedFolder();
+      await removeAnalyzedFolder.execute(library.id, instance.folder);
       console.log(`Cleaned data from series ID=${instance.id}`);
     } catch (error) {
       console.error(`Error cleaning data for series ID=${instance.id}:`, error);

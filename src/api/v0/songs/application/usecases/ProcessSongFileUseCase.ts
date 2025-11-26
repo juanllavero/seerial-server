@@ -8,8 +8,8 @@ import {
   useCases,
 } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { getAudioInfo } from "@/ffmpeg/audioInfo";
-import { setEntityCover } from "@/file-search/utils/utils";
 import { getFileName } from "@/utils/utils";
+import fsPromises from "fs/promises";
 import path from "path";
 import { SongsRepositoryPort } from "../ports/SongsRepositoryPort";
 
@@ -116,9 +116,9 @@ export class ProcessSongFileUseCase {
         }
 
         if (imageSrc) {
-          await setEntityCover(newAlbum, "coverSrc", imageSrc);
+          await this.setEntityCover(newAlbum, "coverSrc", imageSrc);
           if (collection.musicPosterSrc === "") {
-            await setEntityCover(collection, "musicPosterSrc", imageSrc);
+            await this.setEntityCover(collection, "musicPosterSrc", imageSrc);
           }
         }
 
@@ -139,6 +139,35 @@ export class ProcessSongFileUseCase {
       await this.updateSong.execute(song.id, song);
     } catch (error) {
       console.error("Error processing music file", error);
+    }
+  }
+
+  /**
+   * Helper function to handle cover art logic.
+   * @param entity An object with an ID and a property to store the image path (e.g., Album or Collection)
+   * @param propertyName The name of the property to update (e.g., 'coverSrc')
+   * @param sourceImagePath The path of the image to copy.
+   */
+  async setEntityCover(
+    entity: { id: string; [key: string]: any },
+    propertyName: string,
+    sourceImagePath: string
+  ) {
+    const imageName = path.basename(sourceImagePath);
+    const destinationFolder = this.fileSystemService.getExternalPath(
+      path.join("resources", "img", "posters", entity.id)
+    );
+    const destinationPath = path.join(destinationFolder, imageName);
+
+    try {
+      this.fileSystemService.createFolder(destinationFolder);
+      await fsPromises.copyFile(sourceImagePath, destinationPath);
+
+      entity[propertyName] = path
+        .join("resources", "img", "posters", entity.id, imageName)
+        .replace(/\\/g, "/");
+    } catch (err) {
+      console.error(`Error copying image for entity ${entity.id}:`, err);
     }
   }
 }
