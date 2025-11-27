@@ -56,6 +56,14 @@ import { SearchMovieMetadataUseCase } from "@/api/v0/movies/application/usecases
 import { UpdateMovieMetadataUseCase } from "@/api/v0/movies/application/usecases/UpdateMovieMetadataUseCase";
 import { UpdateMovieUseCase } from "@/api/v0/movies/application/usecases/UpdateMoviesUseCase";
 import { MoviesRepositoryImpl } from "@/api/v0/movies/infrastructure/persistence/repositories/MoviesRepositoryImpl";
+import { AddMovieToMyListUseCase } from "@/api/v0/my-lists/application/usecases/AddMovieToMyListUseCase";
+import { AddSeriesToMyListUseCase } from "@/api/v0/my-lists/application/usecases/AddSeriesToMyListUseCase";
+import { GetMoviesFromMyListUseCase } from "@/api/v0/my-lists/application/usecases/GetMoviesFromMyListUseCase";
+import { GetSeriesFromMyListUseCase } from "@/api/v0/my-lists/application/usecases/GetSeriesFromMyListUseCase";
+import { IsMovieInMyListUseCase } from "@/api/v0/my-lists/application/usecases/IsMovieInMyListUseCase";
+import { IsSeriesInMyListUseCase } from "@/api/v0/my-lists/application/usecases/IsSeriesInMyListUseCase";
+import { RemoveMovieFromMyListUseCase } from "@/api/v0/my-lists/application/usecases/RemoveMovieFromMyListUseCase";
+import { RemoveSeriesFromMyListUseCase } from "@/api/v0/my-lists/application/usecases/RemoveSeriesFromMyListUseCase";
 import { MyListRepositoryImpl } from "@/api/v0/my-lists/infrastructure/persistence/repositories/MyListRepositoryImpl";
 import { CreateSeasonUseCase } from "@/api/v0/seasons/application/usecases/CreateSeasonUseCase";
 import { DeleteSeasonDataUseCase } from "@/api/v0/seasons/application/usecases/DeleteSeasonDataUseCase";
@@ -317,7 +325,29 @@ export const useCases = {
   getContinueWatchingVideos: () => new GetVideosUseCase(continueWatchingRepo),
 
   // MyLists
+  addMovieToMyList: () => new AddMovieToMyListUseCase(myListRepo),
+  removeMovieFromMyList: () => new RemoveMovieFromMyListUseCase(myListRepo),
+  getMoviesFromMyList: () => new GetMoviesFromMyListUseCase(myListRepo),
+
+  addSeriesToMyList: () => new AddSeriesToMyListUseCase(myListRepo),
+  removeSeriesFromMyList: () => new RemoveSeriesFromMyListUseCase(myListRepo),
+  getSeriesFromMyList: () => new GetSeriesFromMyListUseCase(myListRepo),
+
+  isMovieInMyList: () => new IsMovieInMyListUseCase(myListRepo),
+  isSeriesInMyList: () => new IsSeriesInMyListUseCase(myListRepo),
 
   // WatchLists
+  addVideoToWatchList: () => new AddVideoToWatchListUseCase(watchListRepo),
+  removeVideoFromWatchList: () =>
+    new RemoveVideoFromWatchListUseCase(watchListRepo),
+  addMovieToWatchList: () => new AddMovieToWatchListUseCase(watchListRepo),
+  removeMovieFromWatchList: () =>
+    new RemoveMovieFromWatchListUseCase(watchListRepo),
+  addSeasonToWatchList: () => new AddSeasonToWatchListUseCase(watchListRepo),
+  removeSeasonFromWatchList: () =>
+    new RemoveSeasonFromWatchListUseCase(watchListRepo),
+  addSeriesToWatchList: () => new AddSeriesToWatchListUseCase(watchListRepo),
+  removeSeriesFromWatchList: () =>
+    new RemoveSeriesFromWatchListUseCase(watchListRepo),
   updateWatchStateUseCase: () => new UpdateWatchStateUseCase(watchListRepo),
 };

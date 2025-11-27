@@ -1,42 +1,30 @@
-import { messages } from "@/config/messages";
-import ApiError from "@/data/ApiError";
+import { getUserId } from "@/utils/utils";
 import { NextFunction, Request, Response } from "express";
-import { DeleteAlbumUseCase } from "../../../application/usecases/DeleteAlbumUseCase";
-import { UpdateAlbumUseCase } from "../../../application/usecases/UpdateAlbumUseCase";
-import { AlbumRepositoryImpl } from "../../persistence/repositories/AlbumRepositoryImpl";
+import { MyListRepositoryImpl } from "../../persistence/repositories/MyListRepositoryImpl";
 
-const albumRepo = new AlbumRepositoryImpl();
+const myListRepo = new MyListRepositoryImpl();
 
-export class AlbumsController {
-  static async update(req: Request, res: Response, next: NextFunction) {
+export class MyListController {
+  static async getMyListMovies(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
     try {
-      const { id } = req.params;
-      if (!id) throw new ApiError(400, messages.errors.validation.missingId);
+      const series = myListRepo.getMoviesFromMyList(getUserId(req));
 
-      const useCase = new UpdateAlbumUseCase(albumRepo);
-      const result = await useCase.execute(id, req.body);
-
-      res.status(200).json({
-        status: "success",
-        message: messages.success.update,
-        data: result,
-      });
+      res.status(200).json(series);
     } catch (err) {
       next(err);
     }
   }
 
-  static async delete(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { id } = req.params;
-      if (!id) throw new ApiError(400, messages.errors.validation.missingId);
-
-      const useCase = new DeleteAlbumUseCase(albumRepo);
-      await useCase.execute(id);
-
-      res.status(200).json({ message: messages.success.delete });
-    } catch (err) {
-      next(err);
-    }
+  static async getMyListSeries(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) {
+    const movies = myListRepo.getSeriesFromMyList(getUserId(req));
+    res.status(200).json(movies);
   }
 }

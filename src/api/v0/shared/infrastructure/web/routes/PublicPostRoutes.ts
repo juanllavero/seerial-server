@@ -1,15 +1,28 @@
-import {
-  addMovieToMyList,
-  addSeriesToMyList,
-  getMovieFromMyList,
-  getSeriesFromMyList,
-  removeMovieFromMyList,
-  removeSeriesFromMyList,
-} from "@/api/v0/my-lists/my-lists.service";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import catchAsync from "@/utils/catchAsync";
 import { NextFunction, Request, Response, Router } from "express";
+import { useCases } from "../../adapters/di/container";
+
+const getMovieById = useCases.getMoviebyId();
+const updateMovieUseCase = useCases.updateMovie();
+const getVideoById = useCases.getVideoById();
+const getSeriesById = useCases.getSeriesById();
+const getSeasonById = useCases.getSeasonById();
+const getEpisodeById = useCases.getEpisodeById();
+const getVideoByEpisodeId = useCases.getVideoByEpisodeId();
+const addVideoToContinueWatching = useCases.addVideoToContinueWatching();
+const removeVideoFromContinueWatching =
+  useCases.removeVideoFromContinueWatching();
+const addMovieToWatchList = useCases.addMovieToWatchList();
+const removeMovieFromWatchList = useCases.removeMovieFromWatchList();
+const addVideoToWatchList = useCases.addVideoToWatchList();
+const removeVideoFromWatchList = useCases.removeVideoFromWatchList();
+const addSeasonToWatchList = useCases.addSeasonToWatchList();
+const removeSeasonFromWatchList = useCases.removeSeasonFromWatchList();
+const addSeriesToWatchList = useCases.addSeriesToWatchList();
+const removeSeriesFromWatchList = useCases.removeSeriesFromWatchList();
+const setEpisodeWatchState = useCases.setEpisodeWatchState();
 
 const router = Router();
 
@@ -25,18 +38,18 @@ router.post(
       );
     }
 
-    const movie = await getMovieById(movieId);
+    const movie = await getMovieById.execute(movieId);
 
     if (!movie) {
       return next(new ApiError(404, messages.errors.notFound.movie));
     }
 
     if (watched) {
-      await addMovieToWatchList(movieId, userId);
+      await addMovieToWatchList.execute(movieId, userId);
     } else {
-      await removeMovieFromWatchList(movieId, userId);
+      await removeMovieFromWatchList.execute(movieId, userId);
     }
-    await movie.save();
+    await updateMovieUseCase.execute(movie.id, movie);
 
     // Manage continue watching for all movie videos
     for (const video of movie.videos) {
@@ -46,9 +59,9 @@ router.post(
         (video.watchLists.filter((wl) => wl.id === userId)[0]?.timeWatched ??
           0) > 0
       ) {
-        await addVideoToContinueWatching(video.id, userId);
+        await addVideoToContinueWatching.execute(video.id, userId);
       } else if (watched === true) {
-        await removeVideoFromContinueWatching(video.id, userId);
+        await removeVideoFromContinueWatching.execute(video.id, userId);
       }
     }
 
@@ -68,16 +81,16 @@ router.post(
       );
     }
 
-    const video = await getVideoById(videoId);
+    const video = await getVideoById.execute(videoId);
 
     if (!video) {
       return next(new ApiError(404, messages.errors.notFound.video));
     }
 
     if (watched) {
-      await addVideoToWatchList(videoId, userId);
+      await addVideoToWatchList.execute(videoId, userId);
     } else {
-      await removeVideoFromWatchList(videoId, userId);
+      await removeVideoFromWatchList.execute(videoId, userId);
     }
     await video.save();
 
@@ -97,51 +110,51 @@ router.post(
       );
     }
 
-    const series = await getSeriesById(seriesId);
+    const series = await getSeriesById.execute(seriesId);
 
     if (!series) {
       return next(new ApiError(404, messages.errors.notFound.series));
     }
 
     for (const season of series.seasons) {
-      const seasonWithEpisodes = await getSeasonById(season.id);
+      const seasonWithEpisodes = await getSeasonById.execute(season.id);
 
       if (!seasonWithEpisodes) continue;
 
       for (const episode of seasonWithEpisodes.episodes) {
-        const episodeDB = await getEpisodeById(episode.id);
+        const episodeDB = await getEpisodeById.execute(episode.id);
 
         if (!episodeDB) continue;
 
-        const video = await getVideoByEpisodeId(episodeDB.id);
+        const video = await getVideoByEpisodeId.execute(episodeDB.id);
 
         if (!video) continue;
 
         if (watched) {
-          await addVideoToWatchList(video.id, userId);
+          await addVideoToWatchLis.executet(video.id, userId);
         } else {
-          await removeVideoFromWatchList(video.id, userId);
+          await removeVideoFromWatchList.execute(video.id, userId);
         }
         await video.save();
 
         // Manage continue watching
         if (watched === true) {
-          await removeVideoFromContinueWatching(video.id, userId);
+          await removeVideoFromContinueWatching.execute(video.id, userId);
         }
       }
 
       if (watched) {
-        await addSeasonToWatchList(seasonWithEpisodes.id, userId);
+        await addSeasonToWatchList.execute(seasonWithEpisodes.id, userId);
       } else {
-        await removeSeasonFromWatchList(seasonWithEpisodes.id, userId);
+        await removeSeasonFromWatchList.execute(seasonWithEpisodes.id, userId);
       }
       await seasonWithEpisodes.save();
     }
 
     if (watched) {
-      await addSeriesToWatchList(seriesId, userId);
+      await addSeriesToWatchList.execute(seriesId, userId);
     } else {
-      await removeSeriesFromWatchList(seriesId, userId);
+      await removeSeriesFromWatchList.execute(seriesId, userId);
     }
     await series.save();
 
@@ -161,7 +174,7 @@ router.post(
       );
     }
 
-    const season = await getSeasonById(seasonId);
+    const season = await getSeasonById.execute(seasonId);
 
     if (!season) {
       return next(new ApiError(404, messages.errors.notFound.season));
@@ -174,7 +187,7 @@ router.post(
     )[episodeIndex];
 
     // Set episode watched state
-    await setEpisodeWatchState(season, episode, watched, userId);
+    await setEpisodeWatchState.execute(season, episode, watched, userId);
     return res.status(200).json({ message: messages.success.update });
   })
 );
@@ -191,63 +204,19 @@ router.post(
       );
     }
 
-    const episode = await getEpisodeById(episodeId);
+    const episode = await getEpisodeById.execute(episodeId);
 
     if (!episode) {
       return next(new ApiError(404, messages.errors.notFound.episode));
     }
 
-    const season = await getSeasonById(episode.seasonId);
+    const season = await getSeasonById.execute(episode.seasonId);
 
     if (!season) {
       return next(new ApiError(404, messages.errors.notFound.season));
     }
 
-    await setEpisodeWatchState(season, episode, watched, userId);
-
-    return res.status(200).json({ message: messages.success.update });
-  })
-);
-
-// Add/remove series from My List
-router.post(
-  "/updateSeriesMyList",
-  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { seriesId, userId } = req.body;
-
-    if (!userId || !seriesId) {
-      return next(
-        new ApiError(400, messages.errors.validation.notEnoughParams)
-      );
-    }
-
-    if (await getSeriesFromMyList(seriesId, userId)) {
-      await removeSeriesFromMyList(seriesId, userId);
-    } else {
-      await addSeriesToMyList(seriesId, userId);
-    }
-
-    return res.status(200).json({ message: messages.success.update });
-  })
-);
-
-// Add/remove movie from My List
-router.post(
-  "/updateMovieMyList",
-  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { movieId, userId } = req.body;
-
-    if (!userId || !movieId) {
-      return next(
-        new ApiError(400, messages.errors.validation.notEnoughParams)
-      );
-    }
-
-    if (await getMovieFromMyList(movieId, userId)) {
-      await removeMovieFromMyList(movieId, userId);
-    } else {
-      await addMovieToMyList(movieId, userId);
-    }
+    await setEpisodeWatchState.execute(season, episode, watched, userId);
 
     return res.status(200).json({ message: messages.success.update });
   })
