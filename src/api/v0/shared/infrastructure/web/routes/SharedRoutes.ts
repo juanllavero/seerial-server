@@ -2,10 +2,11 @@ import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import { ExternalSearchManager } from "@/managers/ExternalSearchManager";
 import { MediaDetailsManager } from "@/managers/MediaDetailsManager";
+import { MediaManager } from "@/managers/MediaManager";
 import catchAsync from "@/utils/catchAsync";
-import express, { NextFunction, Request, Response } from "express";
+import { NextFunction, Request, Response, Router } from "express";
 
-const router = express.Router();
+const router = Router();
 
 router.get(
   "/details/:type",
@@ -114,14 +115,76 @@ router.get(
 );
 
 router.get(
-  "/lyrics",
+  "/remaining-episodes",
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
-    const { id } = req.query;
-    if (typeof id !== "string") {
-      return next(new ApiError(400, "Query parameter 'id' is required."));
+    const { seriesId } = req.query;
+    const userId = (req as any).user?.id; // Assuming user is attached by auth middleware
+
+    if (typeof seriesId !== "string" || !userId) {
+      return next(
+        new ApiError(400, messages.errors.validation.notEnoughParams)
+      );
     }
-    const lyrics = await MediaDetailsManager.findLyricsForSong(id);
-    res.status(200).json(lyrics);
+
+    const remainingEpisodes = await MediaManager.countRemainingEpisodes(
+      seriesId,
+      userId
+    );
+
+    res.status(200).json(remainingEpisodes);
+  })
+);
+
+router.get(
+  "/remaining-videos",
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const { movieId } = req.query;
+    const userId = (req as any).user?.id; // Assuming user is attached by auth middleware
+
+    if (typeof movieId !== "string" || !userId) {
+      return next(
+        new ApiError(400, messages.errors.validation.notEnoughParams)
+      );
+    }
+
+    const remainingVideos = await MediaManager.countRemainingVideos(
+      movieId,
+      userId
+    );
+
+    res.status(200).json(remainingVideos);
+  })
+);
+
+router.get(
+  "/isShowInMyList",
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const { seriesId, userId } = req.query;
+    if (typeof seriesId !== "string" || typeof userId !== "string") {
+      return next(
+        new ApiError(400, messages.errors.validation.notEnoughParams)
+      );
+    }
+
+    const isInMyList = await MediaManager.isSeriesInMyList(seriesId, userId);
+
+    res.status(200).json(isInMyList);
+  })
+);
+
+router.get(
+  "/isMovieInMyList",
+  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+    const { movieId, userId } = req.query;
+    if (typeof movieId !== "string" || typeof userId !== "string") {
+      return next(
+        new ApiError(400, messages.errors.validation.notEnoughParams)
+      );
+    }
+
+    const isInMyList = await MediaManager.isMovieInMyList(movieId, userId);
+
+    res.status(200).json(isInMyList);
   })
 );
 

@@ -1,12 +1,20 @@
-export { default as getAudioRoutes } from "@/routes/data/get/getAudio";
-export { default as getColorsRoutes } from "@/routes/data/get/getColors";
-export { default as getImagesRoutes } from "@/routes/data/get/getImages";
-export { default as getMediaRoutes } from "@/routes/data/get/getMedia";
-export { default as getMediaInfoRoutes } from "@/routes/data/get/getMediaInfo";
-export { default as getStatusRoutes } from "@/routes/data/get/getStatus";
-export { default as getVideoRoutes } from "@/routes/data/get/getVideo";
-export { default as getVideoFileRoutes } from "@/routes/data/get/getVideoFile";
-export { default as postDataRoutes } from "@/routes/data/post/postData";
-export { default as publicPostRoutes } from "@/routes/data/post/publicPost";
-export { default as getServerSettings } from "@/routes/data/settings/ServerSettings";
-export { default as folderRoutes } from "@/routes/folders/folders";
+export {
+  default as getColorsRoutes,
+  default as getImagesRoutes,
+} from "@/api/v0/images/infrastructure/web/routes/ImagesRoutes";
+export {
+  default as getServerSettings,
+  default as getStatusRoutes,
+} from "@/api/v0/servers/infrastructure/web/routes/ServersRoutes";
+export {
+  default as folderRoutes,
+  default as getMediaInfoRoutes,
+  default as getMediaRoutes,
+  default as postDataRoutes,
+  default as publicPostRoutes,
+} from "@/api/v0/shared/infrastructure/web/routes/SharedRoutes";
+export { default as getAudioRoutes } from "@/api/v0/songs/infrastructure/web/routes/SongsRoutes";
+export {
+  default as getVideoFileRoutes,
+  default as getVideoRoutes,
+} from "@/api/v0/videos/infrastructure/web/routes/VideosRoutes";

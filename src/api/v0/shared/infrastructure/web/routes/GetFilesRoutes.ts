@@ -2,13 +2,14 @@ import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import { SanitizationManager } from "@/managers/SanitizationManager";
 import catchAsync from "@/utils/catchAsync";
-import express, { NextFunction, Request, Response } from "express";
+import { NextFunction, Request, Response, Router } from "express";
 import fs from "fs";
 import os from "os";
 import path from "path";
 
-const router = express.Router();
+const router = Router();
 
+// From folders.ts
 // Function to get drives in the system
 const getDrives = () => {
   const drives = [];

@@ -2,7 +2,7 @@ import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import { AudioManager } from "@/managers/AudioManager";
 import catchAsync from "@/utils/catchAsync";
-import express, { NextFunction, Request, Response } from "express";
+import express, { NextFunction, Response } from "express";
 
 const router = express.Router();
 
@@ -12,7 +12,7 @@ const router = express.Router();
  */
 router.get(
   "/audio-stream",
-  catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  catchAsync(async (req: any, res: Response, next: NextFunction) => {
     const audioPath = req.query.path;
     const isWeb = req.query.isWeb === "true";
 
