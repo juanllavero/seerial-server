@@ -1,4 +1,4 @@
-import { FilesManager } from "@/managers/FilesManager";
+import { fileSystemService } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { https } from "follow-redirects";
 import {
   chmodSync,
@@ -9,7 +9,7 @@ import {
 } from "fs";
 import path from "path";
 
-const binDir = FilesManager.getExternalPath(path.join("resources", "lib"));
+const binDir = fileSystemService.getExternalPath(path.join("resources", "lib"));
 export const ytDlpPath = path.join(
   binDir,
   process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp"

@@ -2,9 +2,9 @@ import adminRoutes from "@/api/v0/admin.routes";
 import fastRoutes from "@/api/v0/fast.routes";
 import publicRoutes from "@/api/v0/public.routes";
 import userRoutes from "@/api/v0/user.routes";
-import userManagementRoutes from "@/api/v0/users/users.routes";
+import userManagementRoutes from "@/api/v0/users/infrastructure/web/routes/UsersRoutes";
+import videoStreamingRoutes from "@/api/v0/videos/infrastructure/web/routes/VideoStreamingRoutes";
 import AuthMiddleware from "@/middleware/auth.middleware";
-import * as routes from "@/routes/index";
 import cookieParser from "cookie-parser";
 import { Router } from "express";
 
@@ -18,7 +18,7 @@ apiRouter.use(cookieParser());
 apiRouter.use("/", publicRoutes);
 
 // Custom authentication with temp token
-apiRouter.use("/", routes.getVideoFileRoutes);
+apiRouter.use("/", videoStreamingRoutes);
 
 // Management routes (require local access or admin access)
 apiRouter.use(

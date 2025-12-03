@@ -39,6 +39,12 @@ export class WatchListModel extends Model {
   })
   seriesId?: string;
 
+  @BelongsTo(() => SeriesModel, {
+    onDelete: "CASCADE",
+    hooks: true,
+  })
+  series?: SeriesModel;
+
   @ForeignKey(() => SeasonModel)
   @Column({
     type: DataType.STRING,
@@ -47,6 +53,12 @@ export class WatchListModel extends Model {
     onDelete: "CASCADE",
   })
   seasonId?: string;
+
+  @BelongsTo(() => SeasonModel, {
+    onDelete: "CASCADE",
+    hooks: true,
+  })
+  season?: SeasonModel;
 
   @ForeignKey(() => EpisodeModel)
   @Column({

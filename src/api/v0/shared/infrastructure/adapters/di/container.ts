@@ -13,6 +13,7 @@ import { AddAlbumToCollectionUseCase } from "@/api/v0/collections/application/us
 import { AddLibraryToCollectionUseCase } from "@/api/v0/collections/application/usecases/AddLibraryUseCase";
 import { CreateCollectionUseCase } from "@/api/v0/collections/application/usecases/CreateCollectionUseCase";
 import { DeleteCollectionUseCase } from "@/api/v0/collections/application/usecases/DeleteCollectionUseCase";
+import { FindCollectionByIdUseCase } from "@/api/v0/collections/application/usecases/FindCollectionByIdUseCase";
 import { GetMusicExtrasUseCase } from "@/api/v0/collections/application/usecases/GetMusicExtrasUseCase";
 import { ReorderCollectionItemsUseCase } from "@/api/v0/collections/application/usecases/ReorderCollectionItemsUseCase";
 import { UpdateCollectionUseCase } from "@/api/v0/collections/application/usecases/UpdateCollectionUseCase";
@@ -111,6 +112,14 @@ import { FindVideoByMovieIdUseCase } from "@/api/v0/videos/application/usecases/
 import { FindVideoByPathUseCase } from "@/api/v0/videos/application/usecases/FindVideoByPathUseCase";
 import { UpdateVideoUseCase } from "@/api/v0/videos/application/usecases/UpdateVideosUseCase";
 import { VideosRepositoryImpl } from "@/api/v0/videos/infrastructure/persistence/repositories/VideosRepositoryImpl";
+import { AddMovieToWatchListUseCase } from "@/api/v0/watch-lists/application/usecases/AddMovieToWatchListUseCase";
+import { AddSeasonToWatchListUseCase } from "@/api/v0/watch-lists/application/usecases/AddSeasonToWatchListUseCase";
+import { AddSeriesToWatchListUseCase } from "@/api/v0/watch-lists/application/usecases/AddSeriesToWatchListUseCase";
+import { AddVideoToWatchListUseCase } from "@/api/v0/watch-lists/application/usecases/AddVideoToWatchListUseCase";
+import { RemoveMovieFromWatchListUseCase } from "@/api/v0/watch-lists/application/usecases/RemoveMovieFromWatchListUseCase";
+import { RemoveSeasonFromWatchListUseCase } from "@/api/v0/watch-lists/application/usecases/RemoveSeasonFromWatchListUseCase";
+import { RemoveSeriesFromWatchListUseCase } from "@/api/v0/watch-lists/application/usecases/RemoveSeriesFromWatchListUseCase";
+import { RemoveVideoFromWatchListUseCase } from "@/api/v0/watch-lists/application/usecases/RemoveVideoFromWatchListUseCase";
 import { UpdateWatchStateUseCase } from "@/api/v0/watch-lists/application/usecases/UpdateWatchStateUseCase";
 import { WatchListRepositoryImpl } from "@/api/v0/watch-lists/infrastructure/persistence/repositories/WatchListRepositoryImpl";
 import { SanitizationManager } from "@/managers/SanitizationManager";
@@ -203,6 +212,7 @@ export const useCases = {
   removeAnalyzedFolder: () => new RemoveAnalyzedFolderUseCase(librariesRepo),
 
   // Collections
+  getCollectionById: () => new FindCollectionByIdUseCase(collectionsRepo),
   addCollection: () => new CreateCollectionUseCase(collectionsRepo),
   deleteCollection: () => new DeleteCollectionUseCase(collectionsRepo),
   updateCollection: () => new UpdateCollectionUseCase(collectionsRepo),

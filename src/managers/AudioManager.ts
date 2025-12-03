@@ -1,3 +1,4 @@
+import { fileSystemService } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import { audioExtensions } from "@/utils/utils";
@@ -6,9 +7,8 @@ import { Request, Response } from "express";
 import ffmpeg from "fluent-ffmpeg";
 import fs from "fs";
 import path from "path";
-import { FilesManager } from "./FilesManager";
 
-const CACHE_DIR = path.join(FilesManager.resourcesPath, "cache", "audio");
+const CACHE_DIR = path.join(fileSystemService.resourcesPath, "cache", "audio");
 if (!fs.existsSync(CACHE_DIR)) {
   fs.mkdirSync(CACHE_DIR, { recursive: true });
 }

@@ -6,14 +6,14 @@ export interface WatchListRepositoryPort {
   create(album: WatchList): Promise<WatchList>;
   update(id: string, album: Partial<WatchList>): Promise<WatchList>;
   delete(id: string): Promise<void>;
-  addSeries(id: string, seriesId: string): Promise<void>;
-  removeSeries(id: number, seriesId: number): Promise<boolean>;
-  addSeason(id: string, seasonId: string): Promise<void>;
-  removeSeason(id: number, seasonId: number): Promise<boolean>;
-  addEpisode(id: string, episodeId: string): Promise<void>;
-  removeEpisode(id: number, episodeId: number): Promise<boolean>;
-  addMovie(id: string, movieId: string): Promise<void>;
-  removeMovie(id: number, movieId: number): Promise<boolean>;
-  addVideo(id: string, videoId: string): Promise<void>;
-  removeVideo(id: number, videoId: number): Promise<boolean>;
+  addSeries(userId: string, seriesId: string): Promise<void>;
+  removeSeries(userId: string, seriesId: string): Promise<boolean>;
+  addSeason(userId: string, seasonId: string): Promise<void>;
+  removeSeason(userId: string, seasonId: string): Promise<boolean>;
+  addEpisode(userId: string, episodeId: string): Promise<void>;
+  removeEpisode(userId: string, episodeId: string): Promise<boolean>;
+  addMovie(userId: string, movieId: string): Promise<void>;
+  removeMovie(userId: string, movieId: string): Promise<boolean>;
+  addVideo(userId: string, videoId: string): Promise<void>;
+  removeVideo(userId: string, videoId: string): Promise<boolean>;
 }

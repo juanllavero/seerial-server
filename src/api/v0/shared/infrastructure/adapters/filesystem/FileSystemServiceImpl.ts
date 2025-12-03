@@ -129,11 +129,20 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
   //#endregion
 
   //#region GET FILES
-  public async getFileInFolder(pathStr: string): Promise<string | null> {
+  public async getFileInFolder(
+    pathStr: string,
+    fileName: string
+  ): Promise<string | null> {
     try {
-      const entries = await fs.promises.readdir(pathStr);
-      if (entries.length === 0) return null;
-      return path.join(pathStr, entries[0]);
+      const entries = await fs.promises.readdir(pathStr, {
+        withFileTypes: true,
+      });
+      for (const entry of entries) {
+        if (entry.isFile() && entry.name === fileName) {
+          return path.join(pathStr, entry.name);
+        }
+      }
+      return null;
     } catch {
       return null;
     }

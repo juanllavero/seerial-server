@@ -10,6 +10,9 @@ const getVideoById = useCases.getVideoById();
 const getSeriesById = useCases.getSeriesById();
 const getSeasonById = useCases.getSeasonById();
 const getEpisodeById = useCases.getEpisodeById();
+const updateVideo = useCases.updateVideo();
+const updateSeason = useCases.updateSeason();
+const updateSeries = useCases.updateSeries();
 const getVideoByEpisodeId = useCases.getVideoByEpisodeId();
 const addVideoToContinueWatching = useCases.addVideoToContinueWatching();
 const removeVideoFromContinueWatching =
@@ -92,7 +95,7 @@ router.post(
     } else {
       await removeVideoFromWatchList.execute(videoId, userId);
     }
-    await video.save();
+    await updateVideo.execute(video.id, video);
 
     return res.status(200).json({ message: messages.success.update });
   })
@@ -131,11 +134,11 @@ router.post(
         if (!video) continue;
 
         if (watched) {
-          await addVideoToWatchLis.executet(video.id, userId);
+          await addVideoToWatchList.execute(video.id, userId);
         } else {
           await removeVideoFromWatchList.execute(video.id, userId);
         }
-        await video.save();
+        await updateVideo.execute(video.id, video);
 
         // Manage continue watching
         if (watched === true) {
@@ -148,7 +151,7 @@ router.post(
       } else {
         await removeSeasonFromWatchList.execute(seasonWithEpisodes.id, userId);
       }
-      await seasonWithEpisodes.save();
+      await updateSeason.execute(seasonWithEpisodes.id, seasonWithEpisodes);
     }
 
     if (watched) {
@@ -156,7 +159,7 @@ router.post(
     } else {
       await removeSeriesFromWatchList.execute(seriesId, userId);
     }
-    await series.save();
+    await updateSeries.execute(series.id, series);
 
     return res.status(200).json({ message: messages.success.update });
   })
@@ -187,7 +190,7 @@ router.post(
     )[episodeIndex];
 
     // Set episode watched state
-    await setEpisodeWatchState.execute(season, episode, watched, userId);
+    await setEpisodeWatchState.execute(episode.id, userId, watched);
     return res.status(200).json({ message: messages.success.update });
   })
 );
@@ -216,7 +219,7 @@ router.post(
       return next(new ApiError(404, messages.errors.notFound.season));
     }
 
-    await setEpisodeWatchState.execute(season, episode, watched, userId);
+    await setEpisodeWatchState.execute(episode.id, userId, watched);
 
     return res.status(200).json({ message: messages.success.update });
   })

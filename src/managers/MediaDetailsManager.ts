@@ -1,22 +1,24 @@
-import { getAlbumById } from "@/api/v0/albums/albums.service";
-import { getCollectionById } from "@/api/v0/collections/collections.service";
-import { getEpisodeById } from "@/api/v0/episodes/episodes.service";
-import { getMovieById } from "@/api/v0/movies/movies.service";
-import { getSeasonById } from "@/api/v0/seasons/seasons.service";
-import { getSeriesById } from "@/api/v0/series/series.service";
-import { getSongById } from "@/api/v0/songs/songs.service";
 import {
-  getVideoByEpisodeId,
-  getVideoById,
-  getVideoByMovieId,
-} from "@/api/v0/videos/videos.service";
+  fileSystemService,
+  useCases,
+} from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 
 import ApiError from "@/data/ApiError";
-import { FilesManager } from "@/managers/FilesManager";
 import { extraTypes, videoExtensions } from "@/utils/utils";
 import * as fs from "fs/promises";
 import path from "path";
+
+const getCollectionById = useCases.getCollectionById();
+const getSeriesById = useCases.getSeriesById();
+const getSeasonById = useCases.getSeasonById();
+const getEpisodeById = useCases.getEpisodeById();
+const getVideoById = useCases.getVideoById();
+const getMovieById = useCases.getMoviebyId();
+const getAlbumById = useCases.getAlbumById();
+const getSongById = useCases.getSongById();
+const getVideoByEpisodeId = useCases.getVideoByEpisodeId();
+const getVideoByMovieId = useCases.getVideoByMovieId();
 
 export class MediaDetailsManager {
   /**
@@ -26,35 +28,35 @@ export class MediaDetailsManager {
     let result;
     switch (type) {
       case "collection":
-        result = await getCollectionById(id);
+        result = await getCollectionById.execute(id);
         // Sorting logic from the original endpoint can be applied here
         break;
       case "series":
-        result = await getSeriesById(id);
+        result = await getSeriesById.execute(id);
         break;
       case "season":
-        result = await getSeasonById(id);
+        result = await getSeasonById.execute(id);
         break;
       case "episode":
-        result = await getEpisodeById(id);
+        result = await getEpisodeById.execute(id);
         break;
       case "video":
-        result = await getVideoById(id);
+        result = await getVideoById.execute(id);
         break;
       case "movie":
-        result = await getMovieById(id);
+        result = await getMovieById.execute(id);
         break;
       case "album":
-        result = await getAlbumById(id);
+        result = await getAlbumById.execute(id);
         break;
       case "seriesBySeasonId":
-        result = await getSeasonById(id);
+        result = await getSeasonById.execute(id);
         break;
       case "episode-video":
-        result = await getVideoByEpisodeId(id);
+        result = await getVideoByEpisodeId.execute(id);
         break;
       case "movie-video":
-        result = await getVideoByMovieId(id);
+        result = await getVideoByMovieId.execute(id);
         break;
       default:
         throw new ApiError(400, messages.errors.validation.invalidData);
@@ -75,22 +77,24 @@ export class MediaDetailsManager {
     let libraryId: string;
 
     if (itemType === "season") {
-      const season = await getSeasonById(id);
+      const season = await getSeasonById.execute(id);
       if (!season) throw new ApiError(404, "Season not found.");
-      item = await getSeriesById(season.seriesId);
+      item = await getSeriesById.execute(season.seriesId);
       if (!item) throw new ApiError(404, "Associated series not found.");
     } else {
       item =
-        itemType === "movie" ? await getMovieById(id) : await getSeriesById(id);
+        itemType === "movie"
+          ? await getMovieById.execute(id)
+          : await getSeriesById.execute(id);
     }
 
     if (!item) throw new ApiError(404, `${itemType} not found.`);
     libraryId = item.libraryId;
 
-    const folder = FilesManager.getExternalPath(
+    const folder = fileSystemService.getExternalPath(
       `resources/${mediaType}/${libraryId}/`
     );
-    const filename = FilesManager.getFileInFolder(folder, item.id);
+    const filename = await fileSystemService.getFileInFolder(folder, item.id);
     if (!filename) throw new ApiError(404, "Background media file not found.");
 
     return {
@@ -104,7 +108,7 @@ export class MediaDetailsManager {
    * @returns A promise that resolves to an array of lyric objects.
    */
   public static async findLyricsForSong(songId: string) {
-    const song = await getSongById(songId);
+    const song = await getSongById.execute(songId);
     if (!song) {
       throw new ApiError(404, "Song not found.");
     }
@@ -156,7 +160,7 @@ export class MediaDetailsManager {
    * @returns A promise that resolves to a flat array of all found extra media.
    */
   public static async findMusicExtras(collectionId: string) {
-    const collection = await getCollectionById(collectionId);
+    const collection = await getCollectionById.execute(collectionId);
     if (!collection) {
       throw new ApiError(404, "Collection not found.");
     }

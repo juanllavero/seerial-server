@@ -16,6 +16,7 @@ import { PlayListModel } from "@/api/v0/playlists/infrastructure/persistence/mod
 import { SeasonModel } from "@/api/v0/seasons/infrastructure/persistence/models/SeasonModel";
 import { SeriesModel } from "@/api/v0/series/infrastructure/persistence/models/SeriesModel";
 import { ServerModel } from "@/api/v0/servers/infrastructure/persistence/models/ServerModel";
+import { fileSystemService } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { SongModel } from "@/api/v0/songs/infrastructure/persistence/models/SongModel";
 import { UserLibraryModel } from "@/api/v0/users/infrastructure/persistence/models/UserLibraryModel";
 import { UserModel } from "@/api/v0/users/infrastructure/persistence/models/UserModel";
@@ -23,10 +24,9 @@ import { VideoModel } from "@/api/v0/videos/infrastructure/persistence/models/Vi
 import { WatchListModel } from "@/api/v0/watch-lists/infrastructure/persistence/models/WatchListModel";
 import fs from "fs";
 import { Sequelize } from "sequelize-typescript";
-import { FilesManager } from "./FilesManager";
 
 export class SequelizeManager {
-  public static DB_PATH: string = FilesManager.getExternalPath(
+  public static DB_PATH: string = fileSystemService.getExternalPath(
     "resources/db/data.db"
   );
   public static sequelize: Sequelize | null = null;
@@ -112,7 +112,7 @@ export class SequelizeManager {
    * Creates db directory if it does not exist.
    */
   private static ensureDatabaseDirectory(): void {
-    const dbDir = FilesManager.getExternalPath("resources/db/");
+    const dbDir = fileSystemService.getExternalPath("resources/db/");
     if (!fs.existsSync(dbDir)) {
       fs.mkdirSync(dbDir, { recursive: true });
     }

@@ -1,10 +1,10 @@
-import userManagementPublicRoutes from "@/api/v0/users/users.routes.public";
-import getStatusRoutes from "@/routes/data/get/getStatus";
+import statusRoutes from "@/api/v0/servers/infrastructure/web/routes/ServerStatusRoutes";
+import userManagementPublicRoutes from "@/api/v0/users/infrastructure/web/routes/UsersPublicRoutes";
 import { Router } from "express";
 
 const publicRoutes = Router();
 
 publicRoutes.use("/", userManagementPublicRoutes);
-publicRoutes.use("/", getStatusRoutes);
+publicRoutes.use("/", statusRoutes);
 
 export default publicRoutes;

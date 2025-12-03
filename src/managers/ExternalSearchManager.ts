@@ -1,6 +1,6 @@
+import { metadataProvider } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import ApiError from "@/data/ApiError"; // Adjust path
 import { DownloaderManager } from "@/managers/DownloaderManager"; // Adjust path
-import { MovieDBWrapper } from "@/theMovieDB/MovieDB"; // Adjust path
 import { getIMDBScore } from "@/utils/getIMDBScore";
 
 export class ExternalSearchManager {
@@ -12,7 +12,7 @@ export class ExternalSearchManager {
    */
   public static async searchMovies(name: string, year?: string) {
     try {
-      return await MovieDBWrapper.searchMovies(name, year ?? "", 1);
+      return await metadataProvider.searchMovies(name, year ?? "");
     } catch (error) {
       console.error("Error searching movies on TheMovieDB:", error);
       throw new ApiError(503, "External movie search service is unavailable.");
@@ -27,7 +27,7 @@ export class ExternalSearchManager {
    */
   public static async searchTvShows(name: string, year?: string) {
     try {
-      return await MovieDBWrapper.searchTVShows(name, year ?? "", 1);
+      return await metadataProvider.searchTVShows(name, year ?? "");
     } catch (error) {
       console.error("Error searching TV shows on TheMovieDB:", error);
       throw new ApiError(
@@ -44,7 +44,7 @@ export class ExternalSearchManager {
    */
   public static async searchEpisodeGroups(seriesId: string) {
     try {
-      return await MovieDBWrapper.searchEpisodeGroups(seriesId);
+      return await metadataProvider.searchEpisodeGroups(seriesId);
     } catch (error) {
       console.error("Error searching episode groups on TheMovieDB:", error);
       throw new ApiError(

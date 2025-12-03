@@ -1,3 +1,4 @@
+import { fileSystemService } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import fs from "fs";
 import multer from "multer";
 import path from "path";
@@ -8,7 +9,7 @@ export const storage = multer.diskStorage({
     console.log({
       storagePath: req.body.destPath,
     });
-    const resourcesPath = getExternalPath("resources");
+    const resourcesPath = fileSystemService.getExternalPath("resources");
     const destPath = req.body.destPath
       ? path.join(resourcesPath, req.body.destPath)
       : path.join(resourcesPath, "img", "DownloadCache"); // Destination path received from client or default

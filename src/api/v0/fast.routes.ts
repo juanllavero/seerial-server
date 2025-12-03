@@ -1,16 +1,15 @@
-import getAudioRoutes from "@/routes/data/get/getAudio";
-import getColorsRoutes from "@/routes/data/get/getColors";
-import getImagesRoutes from "@/routes/data/get/getImages";
-import getMediaInfoRoutes from "@/routes/data/get/getMediaInfo";
-import getVideoRoutes from "@/routes/data/get/getVideo";
+import getImagesRoutes from "@/api/v0/shared/infrastructure/web/routes/ImagesRoutes";
+import getMediaInfoRoutes from "@/api/v0/shared/infrastructure/web/routes/MediaInfoRoutes";
+import getAudioRoutes from "@/api/v0/songs/infrastructure/web/routes/AudioStreamingRoutes";
+import videoStreamRoutes from "@/api/v0/videos/infrastructure/web/routes/VideoStreamRoutes";
+
 import { Router } from "express";
 
 const router = Router();
 
 router.use("/", getAudioRoutes);
-router.use("/", getColorsRoutes);
 router.use("/", getImagesRoutes);
 router.use("/", getMediaInfoRoutes);
-router.use("/", getVideoRoutes);
+router.use("/", videoStreamRoutes);
 
 export default router;

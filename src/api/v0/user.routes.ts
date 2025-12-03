@@ -1,11 +1,10 @@
-import collectionRoutes from "@/api/v0/collections/collections.routes.public";
-import continueWatchingRoutes from "@/api/v0/continue-watching/continue-watching.routes.public";
-import librariesRoutes from "@/api/v0/libraries/libraries.routes.public";
-import mylistRoutes from "@/api/v0/my-lists/my-lists.routes.public";
-import videosRoutes from "@/api/v0/videos/videos.routes.public";
-import watchlistRoutes from "@/api/v0/watch-lists/watch-lists.routes.public";
-import getMediaRoutes from "@/routes/data/get/getMedia";
-import publicPostRoutes from "@/routes/data/post/publicPost";
+import collectionRoutes from "@/api/v0/collections/infrastructure/web/routes/CollectionsPublicRoutes";
+import continueWatchingRoutes from "@/api/v0/continue-watching/infrastructure/web/routes/ContinueWatchingRoutes";
+import librariesRoutes from "@/api/v0/libraries/infrastructure/web/routes/LibrariesPublicRoutes";
+import mylistRoutes from "@/api/v0/my-lists/infrastructure/web/routes/MyListRoutes";
+import getMediaRoutes from "@/api/v0/shared/infrastructure/web/routes/GetFilesRoutes";
+import publicPostRoutes from "@/api/v0/shared/infrastructure/web/routes/PublicPostRoutes";
+import watchlistRoutes from "@/api/v0/watch-lists/infrastructure/web/routes/WatchListPublicRoutes";
 import { Router } from "express";
 
 const router = Router();
@@ -13,7 +12,6 @@ const router = Router();
 router.use("/", getMediaRoutes);
 router.use("/", publicPostRoutes);
 router.use("/", watchlistRoutes);
-router.use("/", videosRoutes);
 router.use("/", mylistRoutes);
 router.use("/", librariesRoutes);
 router.use("/", continueWatchingRoutes);

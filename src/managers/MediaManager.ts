@@ -1,11 +1,17 @@
-import { getEpisodeById } from "@/api/v0/episodes/episodes.service";
-import {
-  getMovieFromMyList,
-  getSeriesFromMyList,
-} from "@/api/v0/my-lists/my-lists.service";
+import { useCases } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 
 import ApiError from "@/data/ApiError";
+
+const isMovieInMyList = useCases.isMovieInMyList();
+const isSeriesInMyList = useCases.isSeriesInMyList();
+const getEpisodeById = useCases.getEpisodeById();
+const getLibraryById = useCases.getLibrary();
+const getMovieById = useCases.getMoviebyId();
+const getSeriesById = useCases.getSeriesById();
+const getSeasonById = useCases.getSeasonById();
+const getVideoById = useCases.getVideoById();
+const getVideoByEpisodeId = useCases.getVideoByEpisodeId();
 
 // Interface for the structured video info response
 interface FormattedVideoInfo {
@@ -27,20 +33,20 @@ export class MediaManager {
   public static async getFormattedVideoInfo(
     videoId: string
   ): Promise<FormattedVideoInfo> {
-    const video = await getVideoById(videoId);
+    const video = await getVideoById.execute(videoId);
     if (!video) throw new ApiError(404, messages.errors.notFound.video);
 
     if (video.episodeId) {
-      const episode = await getEpisodeById(video.episodeId);
+      const episode = await getEpisodeById.execute(video.episodeId);
       if (!episode) throw new ApiError(404, messages.errors.notFound.episode);
 
-      const season = await getSeasonById(episode.seasonId);
+      const season = await getSeasonById.execute(episode.seasonId);
       if (!season) throw new ApiError(404, messages.errors.notFound.season);
 
-      const series = await getSeriesById(season.seriesId);
+      const series = await getSeriesById.execute(season.seriesId);
       if (!series) throw new ApiError(404, messages.errors.notFound.series);
 
-      const library = await getLibraryById(series.libraryId);
+      const library = await getLibraryById.execute(series.libraryId);
       if (!library) throw new ApiError(404, messages.errors.notFound.library);
 
       return {
@@ -54,10 +60,10 @@ export class MediaManager {
     }
 
     if (video.movieId) {
-      const movie = await getMovieById(video.movieId);
+      const movie = await getMovieById.execute(video.movieId);
       if (!movie) throw new ApiError(404, messages.errors.notFound.movie);
 
-      const library = await getLibraryById(movie.libraryId);
+      const library = await getLibraryById.execute(movie.libraryId);
       if (!library) throw new ApiError(404, messages.errors.notFound.library);
 
       const year = new Date(movie.year).getFullYear();
@@ -89,7 +95,7 @@ export class MediaManager {
     seriesId: string,
     userId: string
   ): Promise<number> {
-    const series = await getAllSeriesDataById(seriesId);
+    const series = await getSeriesById.execute(seriesId, "all");
     if (!series) throw new ApiError(404, messages.errors.notFound.series);
 
     let totalEpisodes = 0;
@@ -98,7 +104,7 @@ export class MediaManager {
     for (const season of series.seasons) {
       for (const episode of season.episodes) {
         totalEpisodes++;
-        const video = await getVideoByEpisodeId(episode.id); // This could still be an N+1, ideally getSeriesById should include this data
+        const video = await getVideoByEpisodeId.execute(episode.id); // This could still be an N+1, ideally getSeriesById should include this data
         if (video && video.watchLists.some((wl) => wl.userId === userId)) {
           watchedEpisodes++;
         }
@@ -118,7 +124,7 @@ export class MediaManager {
     movieId: string,
     userId: string
   ): Promise<number> {
-    const movie = await getMovieById(movieId);
+    const movie = await getMovieById.execute(movieId);
     if (!movie) throw new ApiError(404, messages.errors.notFound.movie);
 
     const watchedCount = movie.videos.filter((video) =>
@@ -136,7 +142,7 @@ export class MediaManager {
     seriesId: string,
     userId: string
   ): Promise<boolean> {
-    const seriesInList = await getSeriesFromMyList(seriesId, userId);
+    const seriesInList = await isSeriesInMyList.execute(seriesId, userId);
     return seriesInList !== null;
   }
 
@@ -148,7 +154,7 @@ export class MediaManager {
     movieId: string,
     userId: string
   ): Promise<boolean> {
-    const movieInList = await getMovieFromMyList(movieId, userId);
+    const movieInList = await isMovieInMyList.execute(movieId, userId);
     return movieInList !== null;
   }
 }

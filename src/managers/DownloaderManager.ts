@@ -1,3 +1,7 @@
+import {
+  fileSystemService,
+  notificationService,
+} from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { MediaSearchResult } from "@/data/interfaces/SearchResults";
 import { ytDlpPath } from "@/utils/youtubeDownloader";
 import { exec, spawn } from "child_process";
@@ -5,8 +9,6 @@ import ffmpegPath from "ffmpeg-static";
 import fs from "fs";
 import path from "path";
 import { promisify } from "util";
-import { FilesManager } from "./FilesManager";
-import { WebSocketManager } from "./WebSocketManager";
 
 let ffmpegPathFinal = ffmpegPath ?? "";
 
@@ -58,7 +60,7 @@ export class DownloaderManager {
     downloadFolder: string,
     fileName: string
   ): Promise<void> {
-    const folder = FilesManager.getExternalPath(downloadFolder);
+    const folder = fileSystemService.getExternalPath(downloadFolder);
 
     // Make sure the download path has a trailing slash
     const outputPath = path.join(folder, `${fileName}.webm`);
@@ -83,7 +85,7 @@ export class DownloaderManager {
     downloadFolder: string,
     fileName: string
   ): Promise<void> {
-    const folder = FilesManager.getExternalPath(downloadFolder);
+    const folder = fileSystemService.getExternalPath(downloadFolder);
 
     // Make sure the download path has a trailing slash
     const outputPath = path.join(folder, `${fileName}.opus`);
@@ -124,7 +126,7 @@ export class DownloaderManager {
           };
 
           // Send progress to the client
-          WebSocketManager.broadcast(JSON.stringify(message));
+          notificationService.broadcast(JSON.stringify(message));
         }
       });
 
@@ -141,7 +143,7 @@ export class DownloaderManager {
           };
 
           // Send complete message to the client
-          WebSocketManager.broadcast(JSON.stringify(message));
+          notificationService.broadcast(JSON.stringify(message));
         } else {
           // Generate message for WebSockets
           const message = {
@@ -150,7 +152,7 @@ export class DownloaderManager {
           };
 
           // Send error message to the client
-          WebSocketManager.broadcast(JSON.stringify(message));
+          notificationService.broadcast(JSON.stringify(message));
         }
       });
     } catch (error) {

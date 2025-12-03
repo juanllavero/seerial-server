@@ -23,7 +23,7 @@ export interface FileSystemServicePort {
   deleteFolder(path: string): void;
 
   // Get files
-  getFileInFolder(path: string): Promise<string | null>;
+  getFileInFolder(path: string, fileName: string): Promise<string | null>;
   getFilesInFolder(path: string): Promise<FileOrDir[]>;
 
   // Get valid media files

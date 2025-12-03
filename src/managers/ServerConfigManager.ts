@@ -1,5 +1,5 @@
 import { ServerModel } from "@/api/v0/servers/infrastructure/persistence/models/ServerModel";
-import { FilesManager } from "@/managers/FilesManager";
+import { fileSystemService } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import crypto from "crypto";
 import { Express } from "express";
 import fs from "fs";
@@ -38,7 +38,7 @@ export class ServerConfigManager {
     if (!config) return;
 
     // Ensure JWT_SECRET exists
-    const secretPath = FilesManager.getExternalPath(
+    const secretPath = fileSystemService.getExternalPath(
       "resources/config/jwt_secret"
     );
     if (!fs.existsSync(secretPath)) {
