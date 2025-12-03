@@ -1,3 +1,8 @@
+import { MetadataProviderPort } from "@/api/v0/shared/application/ports/MetadataProviderPort";
+import {
+  notificationService,
+  useCases,
+} from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { MetadataManager } from "@/managers/MetadataManager";
 
 /**
@@ -6,16 +11,23 @@ import { MetadataManager } from "@/managers/MetadataManager";
  * * @param seriesId The ID of the series in the local database.
  */
 export class RefreshMetadataUseCase {
-  constructor() {}
+  private getLibraryById = useCases.getLibrary();
+  private getSeriesById = useCases.getSeriesById();
+  private getSeasons = useCases.getSeasonsBySeriesId();
+  private getEpisodes = useCases.getEpisodesBySeasonId();
+  private getVideoByEpisodeId = useCases.getVideoByEpisodeId();
+  private updateSeries = useCases.updateSeries();
+
+  constructor(private readonly metadataProvider: MetadataProviderPort) {}
 
   async execute(seriesId: string): Promise<void> {
-    const series = await getSeriesById(seriesId);
+    const series = await this.getSeriesById.execute(seriesId);
     if (!series) {
       console.error(`[Updater] Show not found: ${seriesId}`);
       return;
     }
 
-    const library = await getLibraryById(series.libraryId);
+    const library = await this.getLibraryById.execute(series.libraryId);
     if (!library) {
       console.error(`[Updater] Library not found for show: ${series.name}`);
       return;
@@ -24,33 +36,33 @@ export class RefreshMetadataUseCase {
     try {
       // Update UI
       series.analyzingFiles = true;
-      await series.save();
-      getNotificationService().mutateSeries(series);
+      await this.updateSeries.execute(series.id, series);
+      notificationService.mutateSeries(series);
 
       // Update show metadata
       await MetadataManager.updateSeriesMetadata(series, library.language);
 
       // Update seasons and episodes metadata
-      const seasons = await getSeasons(series.id);
+      const seasons = await this.getSeasons.execute(series.id);
       if (seasons) {
         for (const season of seasons) {
           await MetadataManager.updateSeasonMetadata(season, series);
 
           // Get season metadata from TMDb
-          const seasonTMDb = await MovieDBWrapper.getSeason(
+          const seasonTMDb = await this.metadataProvider.getSeason(
             series.themdbId,
             season.seasonNumber,
             library.language
           );
           if (!seasonTMDb?.episodes) continue;
 
-          const episodes = await getEpisodes(season.id);
+          const episodes = await this.getEpisodes.execute(season.id);
           if (episodes) {
             for (const episode of episodes) {
               const episodeTMDb = seasonTMDb.episodes.find(
                 (e) => e.episode_number === episode.episodeNumber
               );
-              const video = await getVideoByEpisodeId(episode.id);
+              const video = await this.getVideoByEpisodeId.execute(episode.id);
 
               if (episodeTMDb && video) {
                 await MetadataManager.updateEpisodeMetadata(
@@ -69,10 +81,10 @@ export class RefreshMetadataUseCase {
     } finally {
       // Update UI
       series.analyzingFiles = false;
-      await series.save();
-      getNotificationService().mutateSeries(series);
-      getNotificationService().mutateSeason();
-      getNotificationService().mutateLibrary(library.id);
+      await this.updateSeries.execute(series.id, series);
+      notificationService.mutateSeries(series);
+      notificationService.mutateSeason();
+      notificationService.mutateLibrary(library.id);
     }
   }
 }

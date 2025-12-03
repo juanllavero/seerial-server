@@ -1,11 +1,11 @@
-import { Album } from "@/api/v0/albums/albums.model";
 import { v4 as uuidv4 } from "uuid";
+import { AlbumModel } from "../albums/infrastructure/persistence/models/AlbumModel";
 import { Artist } from "./artists.model";
 import { ArtistData } from "./artists.types";
 
 export const getArtistById = (artistId: string) => {
   return Artist.findByPk(artistId, {
-    include: [{ model: Album, as: "albums" }],
+    include: [{ model: AlbumModel, as: "albums" }],
   });
 };
 

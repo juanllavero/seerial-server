@@ -1,8 +1,8 @@
 import { Artist } from "../../domain/Artist";
-import { ArtistRepositoryPort } from "../ports/ArtistsRepositoryPort";
+import { ArtistsRepositoryPort } from "../ports/ArtistsRepositoryPort";
 
 export class UpdateArtistUseCase {
-  constructor(private artistRepo: ArtistRepositoryPort) {}
+  constructor(private artistRepo: ArtistsRepositoryPort) {}
 
   async execute(id: string, data: Partial<Artist>): Promise<Artist> {
     return this.artistRepo.update(id, data);

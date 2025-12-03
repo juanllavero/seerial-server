@@ -252,4 +252,60 @@ export class WatchListRepositoryImpl
       return affected > 0;
     }, `Failed to remove video ${videoId} from watchlist`);
   }
+
+  async isVideoWatched(videoId: string, userId: string): Promise<boolean> {
+    const { userId: uId, videoId: vId } = this.validateIds({
+      userId: String(userId),
+      videoId: String(videoId),
+    });
+
+    return this.handleRepositoryError(async () => {
+      const existing = await WatchListModel.findOne({
+        where: { userId: uId, videoId: vId },
+      });
+      return existing !== null;
+    }, `Failed to check if video ${videoId} is watched by user ${userId}`);
+  }
+
+  async isSeriesWatched(seriesId: string, userId: string): Promise<boolean> {
+    const { userId: uId, seriesId: sId } = this.validateIds({
+      userId: String(userId),
+      seriesId: String(seriesId),
+    });
+
+    return this.handleRepositoryError(async () => {
+      const existing = await WatchListModel.findOne({
+        where: { userId: uId, seriesId: sId },
+      });
+      return existing !== null;
+    }, `Failed to check if series ${seriesId} is watched by user ${userId}`);
+  }
+
+  async isMovieWatched(movieId: string, userId: string): Promise<boolean> {
+    const { userId: uId, movieId: mId } = this.validateIds({
+      userId: String(userId),
+      movieId: String(movieId),
+    });
+
+    return this.handleRepositoryError(async () => {
+      const existing = await WatchListModel.findOne({
+        where: { userId: uId, movieId: mId },
+      });
+      return existing !== null;
+    }, `Failed to check if movie ${movieId} is watched by user ${userId}`);
+  }
+
+  async isSeasonWatched(seasonId: string, userId: string): Promise<boolean> {
+    const { userId: uId, seasonId: sId } = this.validateIds({
+      userId: String(userId),
+      seasonId: String(seasonId),
+    });
+
+    return this.handleRepositoryError(async () => {
+      const existing = await WatchListModel.findOne({
+        where: { userId: uId, seasonId: sId },
+      });
+      return existing !== null;
+    }, `Failed to check if season ${seasonId} is watched by user ${userId}`);
+  }
 }

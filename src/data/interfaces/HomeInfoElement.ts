@@ -1,11 +1,11 @@
-import { EpisodeData } from "@/api/v0/episodes/episodes.types";
-import { LibraryData } from "@/api/v0/libraries/libraries.types";
-import { SeasonData } from "@/api/v0/seasons/seasons.types";
-import { SeriesData } from "@/api/v0/series/series.types";
+import { Library } from "@/api/v0/libraries/domain/Library";
+import { Season } from "@/api/v0/seasons/domain/Season";
+import { Series } from "@/api/v0/series/domain/Series";
+import { Episode } from "moviedb-promise";
 
 export interface HomeInfoElement {
-  library: LibraryData;
-  show: SeriesData;
-  season: SeasonData;
-  episode: EpisodeData;
+  library: Library;
+  show: Series;
+  season: Season;
+  episode: Episode;
 }

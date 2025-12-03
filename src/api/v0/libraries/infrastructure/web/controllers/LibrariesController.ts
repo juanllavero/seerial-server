@@ -1,6 +1,7 @@
 import { AlbumsRepositoryImpl } from "@/api/v0/albums/infrastructure/persistence/repositories/AlbumsRepositoryImpl";
 import { MoviesRepositoryImpl } from "@/api/v0/movies/infrastructure/persistence/repositories/MoviesRepositoryImpl";
 import { SeriesRepositoryImpl } from "@/api/v0/series/infrastructure/persistence/repositories/SeriesRepositoryImpl";
+import { useCases } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import { getUserId } from "@/utils/utils";
@@ -12,7 +13,6 @@ import { GetLibraryContentUseCase } from "../../../application/usecases/GetLibra
 import { GetLibraryUseCase } from "../../../application/usecases/GetLibraryUseCase";
 import { ReorderLibrariesUseCase } from "../../../application/usecases/ReorderLibrariesUseCase";
 import { ReorderLibraryItemsUseCase } from "../../../application/usecases/ReorderLibraryItemsUseCase";
-import { ScanLibraryUseCase } from "../../../application/usecases/ScanLibraryUseCase";
 import { UpdateLibraryUseCase } from "../../../application/usecases/UpdateLibraryUseCase";
 import { LibrariesRepositoryImpl } from "../../persistence/repositories/LibraryRepositoryImpl";
 
@@ -90,8 +90,15 @@ export class LibrariesController {
       if (typeof libraryId !== "string")
         return next(new ApiError(400, messages.errors.validation.invalidData));
 
-      const useCase = new ScanLibraryUseCase();
-      const message = await useCase.execute(libraryId);
+      const getLibrary = useCases.getLibrary();
+      const library = await getLibrary.execute(libraryId);
+
+      if (!library) {
+        throw new ApiError(404, messages.errors.notFound.library);
+      }
+
+      const useCase = useCases.scanLibrary();
+      const message = await useCase.execute(library, false);
 
       res.status(200).json({
         status: "success",

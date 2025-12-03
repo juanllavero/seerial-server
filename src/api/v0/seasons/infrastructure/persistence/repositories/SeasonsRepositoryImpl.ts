@@ -61,6 +61,15 @@ export class SeasonsRepositoryImpl
     }, `Failed to retrieve season with ID ${id}`);
   }
 
+  async findSeasonsBySeriesId(seriesId: string): Promise<Season[]> {
+    return this.handleRepositoryError(async () => {
+      const seasons = await SeasonModel.findAll({
+        where: { seriesId },
+      });
+      return seasons ? seasons.map((season) => season.toJSON()) : [];
+    }, `Failed to retrieve seasons for series with ID ${seriesId}`);
+  }
+
   async create(data: Partial<Season>): Promise<Season> {
     this.validateData(data, "Album data");
 

@@ -14,6 +14,7 @@ import { AddLibraryToCollectionUseCase } from "@/api/v0/collections/application/
 import { CreateCollectionUseCase } from "@/api/v0/collections/application/usecases/CreateCollectionUseCase";
 import { DeleteCollectionUseCase } from "@/api/v0/collections/application/usecases/DeleteCollectionUseCase";
 import { FindCollectionByIdUseCase } from "@/api/v0/collections/application/usecases/FindCollectionByIdUseCase";
+import { FindCollectionsInLibraryUseCase } from "@/api/v0/collections/application/usecases/FindCollectionsInLibraryUseCase";
 import { GetMusicExtrasUseCase } from "@/api/v0/collections/application/usecases/GetMusicExtrasUseCase";
 import { ReorderCollectionItemsUseCase } from "@/api/v0/collections/application/usecases/ReorderCollectionItemsUseCase";
 import { UpdateCollectionUseCase } from "@/api/v0/collections/application/usecases/UpdateCollectionUseCase";
@@ -28,11 +29,10 @@ import { CreateEpisodeUseCase } from "@/api/v0/episodes/application/usecases/Cre
 import { DeleteEpisodeUseCase } from "@/api/v0/episodes/application/usecases/DeleteEpisodeUseCase";
 import { FindEpisodeByIdUseCase } from "@/api/v0/episodes/application/usecases/FindEpisodeByIdUseCase";
 import { FindEpisodeByPathUseCase } from "@/api/v0/episodes/application/usecases/FindEpisodeByPathUseCase";
-import { GetAllBySeasonIdUseCase } from "@/api/v0/episodes/application/usecases/GetAllBySeasonIdUseCase";
+import { FindEpisodesBySeasonIdUseCase } from "@/api/v0/episodes/application/usecases/FindEpisodesBySeasonIdUseCase";
 import { SetEpisodeWatchStateUseCase } from "@/api/v0/episodes/application/usecases/SetEpisodeWatchStateUseCase";
 import { UpdateEpisodeUseCase } from "@/api/v0/episodes/application/usecases/UpdateEpisodeUseCase";
 import { EpisodeRepositoryImpl } from "@/api/v0/episodes/infrastructure/persistence/repositories/EpisodeRepositoryImpl";
-import { CreateLibraryUseCase } from "@/api/v0/libraries/application/usecases/CreateLibraryUseCase";
 import { DeleteLibraryUseCase } from "@/api/v0/libraries/application/usecases/DeleteLibraryUseCase";
 import { AddAnalyzedFileUseCase } from "@/api/v0/libraries/application/usecases/files/AddAnalyzedFileUseCase";
 import { RemoveAnalyzedFileUseCase } from "@/api/v0/libraries/application/usecases/files/RemoveAnalyzedFileUseCase";
@@ -71,6 +71,7 @@ import { DeleteSeasonDataUseCase } from "@/api/v0/seasons/application/usecases/D
 import { DeleteSeasonUseCase } from "@/api/v0/seasons/application/usecases/DeleteSeasonsUseCase";
 import { FindAllSeasonsUseCase } from "@/api/v0/seasons/application/usecases/FindAllSeasonsUseCase";
 import { FindSeasonByIdUseCase } from "@/api/v0/seasons/application/usecases/FindSeasonByIdUseCase";
+import { FindSeasonsBySeriesIdUseCase } from "@/api/v0/seasons/application/usecases/FindSeasonsBySeriesIdUseCase";
 import { UpdateSeasonUseCase } from "@/api/v0/seasons/application/usecases/UpdateSeasonsUseCase";
 import { SeasonsRepositoryImpl } from "@/api/v0/seasons/infrastructure/persistence/repositories/SeasonsRepositoryImpl";
 import { CreateSeriesUseCase } from "@/api/v0/series/application/usecases/CreateSeriesUseCase";
@@ -190,7 +191,6 @@ export const useCases = {
   getAllUsers: () => new GetAllUsersUseCase(usersRepo),
 
   // Libraries
-  createLibrary: () => new CreateLibraryUseCase(),
   deleteLibrary: () =>
     new DeleteLibraryUseCase(librariesRepo, seriesRepo, moviesRepo, albumsRepo),
   updateLibrary: () => new UpdateLibraryUseCase(librariesRepo),
@@ -212,6 +212,8 @@ export const useCases = {
   removeAnalyzedFolder: () => new RemoveAnalyzedFolderUseCase(librariesRepo),
 
   // Collections
+  getAllCollectionsInLibrary: () =>
+    new FindCollectionsInLibraryUseCase(collectionsRepo),
   getCollectionById: () => new FindCollectionByIdUseCase(collectionsRepo),
   addCollection: () => new CreateCollectionUseCase(collectionsRepo),
   deleteCollection: () => new DeleteCollectionUseCase(collectionsRepo),
@@ -231,13 +233,14 @@ export const useCases = {
   deleteSeriesData: () => new DeleteSeriesDataUseCase(),
 
   processEpisode: () => new ProcessEpisodeUseCase(mediaInfoService),
-  refreshMetadata: () => new RefreshMetadataUseCase(),
+  refreshMetadata: () => new RefreshMetadataUseCase(metadataProvider),
   scanSeries: () => new ScanSeriesUseCase(fileSystemService, metadataProvider),
 
   updateSeriesMetadata: () => new UpdateSeriesMetadataUseCase(seriesRepo),
   updateShowId: () => new UpdateShowIdUseCase(),
 
   // Seasons
+  getSeasonsBySeriesId: () => new FindSeasonsBySeriesIdUseCase(seasonsRepo),
   createSeason: () => new CreateSeasonUseCase(seasonsRepo),
   getSeasonById: () => new FindSeasonByIdUseCase(seasonsRepo),
   getSeasons: () => new FindAllSeasonsUseCase(seasonsRepo),
@@ -295,10 +298,10 @@ export const useCases = {
   scanSongs: () => new ScanSongsUseCase(fileSystemService),
 
   // Episodes
+  getEpisodesBySeasonId: () => new FindEpisodesBySeasonIdUseCase(episodesRepo),
   createEpisode: () => new CreateEpisodeUseCase(episodesRepo),
   getEpisodeById: () => new FindEpisodeByIdUseCase(episodesRepo),
   getEpisodeByPath: () => new FindEpisodeByPathUseCase(episodesRepo),
-  getAllBySeasonId: () => new GetAllBySeasonIdUseCase(episodesRepo),
   updateEpisode: () => new UpdateEpisodeUseCase(episodesRepo),
   deleteEpisode: () => new DeleteEpisodeUseCase(episodesRepo),
 

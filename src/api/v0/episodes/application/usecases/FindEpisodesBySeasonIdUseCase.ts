@@ -1,7 +1,7 @@
 import { Episode } from "../../domain/Episode";
 import { EpisodeRepositoryPort } from "../ports/EpisodeRepositoryPort";
 
-export class GetAllBySeasonIdUseCase {
+export class FindEpisodesBySeasonIdUseCase {
   constructor(private episodeRepo: EpisodeRepositoryPort) {}
 
   async execute(seasonId: string): Promise<Episode[]> {

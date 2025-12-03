@@ -2,11 +2,10 @@ import { Album } from "@/api/v0/albums/domain/Album";
 import { Collection } from "@/api/v0/collections/domain/Collection";
 import { Movie } from "@/api/v0/movies/domain/Movie";
 import { Series } from "@/api/v0/series/domain/Series";
+import { useCases } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { scanFiles } from "@/file-search/fileSearch";
 import { clearLibrary, getCollectionItemsKey } from "@/file-search/utils/utils";
-import { WebSocketManager } from "@/managers/WebSocketManager";
 import { imageExtensions } from "@/utils/utils";
 import * as fs from "fs/promises";
 import { existsSync } from "original-fs";
@@ -17,6 +16,9 @@ import { GetLibrariesUseCase } from "../usecases/GetLibrariesUseCase";
 import { GetLibraryUseCase } from "../usecases/GetLibraryUseCase";
 
 const librariesRepo = new LibrariesRepositoryImpl();
+
+const getCollectionsInLibrary = useCases.getAllCollectionsInLibrary();
+const getItemsForLibrary = useCases.getLibraryContent();
 
 export class LibraryManager {
   /**
@@ -50,8 +52,8 @@ export class LibraryManager {
     flat?: boolean
   ) {
     const [collections, allItems] = await Promise.all([
-      getCollectionsInLibrary(libraryId, type),
-      getItemsForLibrary(libraryId, type),
+      getCollectionsInLibrary.execute(libraryId, type),
+      getItemsForLibrary.execute(libraryId, type),
     ]);
 
     const itemIdsInCollections = new Set<string>();
@@ -219,9 +221,9 @@ export class LibraryManager {
    */
   public static async startLibraryScan(libraryId: string) {
     const library = await this.getLibraryById(libraryId); // reuses own method
-    await clearLibrary(libraryId, WebSocketManager.getInstance());
+    await clearLibrary(libraryId);
     // This is a fire-and-forget operation, so no await is needed here.
-    scanFiles({ id: library.id }, WebSocketManager.getInstance(), false);
+    scanFiles({ id: library.id }, false);
     return `Scan initiated for library: ${library.name}`;
   }
 }

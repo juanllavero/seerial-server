@@ -1,11 +1,13 @@
-import { DependencyContainer } from "@/api/v0/shared/infrastructure/adapters/di/container";
+import {
+  fileSystemService,
+  notificationService,
+  tmdbApiClient,
+} from "@/api/v0/shared/infrastructure/adapters/di/container";
 import appRoutes from "@/initialization/AddRoutes";
 import { createTray } from "@/initialization/CreateTray";
 import * as ConfigManager from "@/managers/ConfigManager";
-import { FilesManager } from "@/managers/FilesManager";
 import { SequelizeManager } from "@/managers/SequelizeManager";
 import { ServerConfigManager } from "@/managers/ServerConfigManager";
-import { MovieDBWrapper } from "@/theMovieDB/MovieDB";
 import { downloadYtDlp } from "@/utils/youtubeDownloader";
 import cors from "cors";
 import { config } from "dotenv";
@@ -77,7 +79,7 @@ appServer.use(express.json({ limit: "50mb" }));
 appServer.use(express.urlencoded({ limit: "50mb", extended: true }));
 appServer.use(
   "/media",
-  express.static(FilesManager.getExternalPath("resources"))
+  express.static(fileSystemService.getExternalPath("resources"))
 );
 
 // Global server and WebSocket manager
@@ -88,12 +90,12 @@ app.whenReady().then(async () => {
   // Initialize dependencies
   await downloadYtDlp();
   await SequelizeManager.initializeDB();
-  FilesManager.initFolders();
-  FilesManager.loadProperties();
+  fileSystemService.initFolders();
+  fileSystemService.loadProperties();
   await ConfigManager.loadConfig();
 
   // Initialize MovieDB
-  await MovieDBWrapper.initConnection();
+  await tmdbApiClient.initialize();
 
   // Load or create server and user configs
   await ServerConfigManager.loadOrCreateServerConfig();
@@ -134,8 +136,6 @@ app.whenReady().then(async () => {
   await ServerConfigManager.startServer(appServer);
 
   // Initialize NotificationService through DI container
-  const container = DependencyContainer.getInstance();
-  const notificationService = container.getNotificationService();
   notificationService.init(ServerConfigManager.mainServer);
 
   // Setup UPnP port mapping

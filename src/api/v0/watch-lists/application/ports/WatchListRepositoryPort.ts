@@ -16,4 +16,8 @@ export interface WatchListRepositoryPort {
   removeMovie(userId: string, movieId: string): Promise<boolean>;
   addVideo(userId: string, videoId: string): Promise<void>;
   removeVideo(userId: string, videoId: string): Promise<boolean>;
+  isVideoWatched(videoId: string, userId: string): Promise<boolean>;
+  isSeriesWatched(seriesId: string, userId: string): Promise<boolean>;
+  isMovieWatched(movieId: string, userId: string): Promise<boolean>;
+  isSeasonWatched(seasonId: string, userId: string): Promise<boolean>;
 }

@@ -30,7 +30,7 @@ export class ScanSeriesUseCase {
   private readonly updateSeries = useCases.updateSeries();
   private readonly updateSeason = useCases.updateSeason();
   private readonly addEpisode = useCases.createEpisode();
-  private readonly getEpisodesBySeasonId = useCases.getAllBySeasonId();
+  private readonly getEpisodesBySeasonId = useCases.getEpisodesBySeasonId();
   private readonly getEpisodeByPath = useCases.getEpisodeByPath();
 
   constructor(

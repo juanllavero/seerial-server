@@ -1,15 +1,15 @@
 import { BaseRepository } from "@/api/v0/base-repository/BaseRepository";
-import {
-  Episode,
-  Movie,
-  Season,
-  Series,
-  Video,
-  WatchList,
-} from "@/api/v0/index.models";
+import { EpisodeModel } from "@/api/v0/episodes/infrastructure/persistence/models/EpisodeModel";
+import { MovieModel } from "@/api/v0/movies/infrastructure/persistence/models/MovieModel";
+import { SeasonModel } from "@/api/v0/seasons/infrastructure/persistence/models/SeasonModel";
+import { SeriesModel } from "@/api/v0/series/infrastructure/persistence/models/SeriesModel";
+import { VideoModel } from "@/api/v0/videos/infrastructure/persistence/models/VideoModel";
+import { WatchList } from "@/api/v0/watch-lists/domain/WatchList";
+import { WatchListModel } from "@/api/v0/watch-lists/infrastructure/persistence/models/WatchListModel";
 import { v4 as uuidv4 } from "uuid";
 import { ContinueWatchingRepositoryPort } from "../../../application/ports/ContinueWatchingRepositoryPort";
-import { ContinueWatching } from "../models/ContinueWatchingModel";
+import { ContinueWatching } from "../../../domain/ContinueWatching";
+import { ContinueWatchingModel } from "../models/ContinueWatchingModel";
 
 export class ContinueWatchingRepositoryImpl
   extends BaseRepository
@@ -17,30 +17,30 @@ export class ContinueWatchingRepositoryImpl
 {
   async getVideos(userId: string): Promise<any[]> {
     try {
-      const elements = await ContinueWatching.findAll({
+      const elements = await ContinueWatchingModel.findAll({
         where: {
           userId: userId,
         },
         include: [
           {
-            model: Video,
+            model: VideoModel,
             as: "video",
             required: true,
             include: [
               {
-                model: Episode,
+                model: EpisodeModel,
                 as: "episode",
                 include: [
                   {
-                    model: Season,
+                    model: SeasonModel,
                     as: "season",
-                    include: [{ model: Series, as: "series" }],
+                    include: [{ model: SeriesModel, as: "series" }],
                   },
                 ],
               },
-              { model: Movie, as: "movie" },
+              { model: MovieModel, as: "movie" },
               {
-                model: WatchList,
+                model: WatchListModel,
                 as: "watchLists",
               },
             ],
@@ -129,18 +129,20 @@ export class ContinueWatchingRepositoryImpl
 
   async getCurrentEpisode(seriesId: string): Promise<ContinueWatching | null> {
     try {
-      return await ContinueWatching.findOne({
+      const continueWatching = await ContinueWatchingModel.findOne({
         where: {
           seriesId: seriesId,
         },
         include: [
           {
-            model: Video,
+            model: VideoModel,
             as: "video",
-            include: [{ model: Episode, as: "episode" }],
+            include: [{ model: EpisodeModel, as: "episode" }],
           },
         ],
       });
+
+      return continueWatching ? continueWatching.toJSON() : null;
     } catch (error: any) {
       console.log(`Error fetching Currently_Watching: ${error.message}`);
       return null;
@@ -155,7 +157,7 @@ export class ContinueWatchingRepositoryImpl
   ): Promise<ContinueWatching | null> {
     try {
       // Verify if the video is already in Continue Watching
-      const existingElement = await ContinueWatching.findOne({
+      const existingElement = await ContinueWatchingModel.findOne({
         where: {
           videoId,
           userId,
@@ -163,7 +165,7 @@ export class ContinueWatchingRepositoryImpl
       });
 
       if (existingElement) {
-        console.log(`El video ${videoId} ya está en Continue Watching`);
+        console.log(`Video with id ${videoId} is already in Continue Watching`);
         return existingElement;
       }
 
@@ -186,7 +188,7 @@ export class ContinueWatchingRepositoryImpl
           whereClause.movieId = movieId;
         }
 
-        await ContinueWatching.destroy({
+        await ContinueWatchingModel.destroy({
           where: whereClause,
         });
       }
@@ -200,20 +202,20 @@ export class ContinueWatchingRepositoryImpl
         movieId: movieId ?? null,
       };
 
-      const newElement = new ContinueWatching(newElementData);
+      const newElement = new ContinueWatchingModel(newElementData);
       await newElement.save();
-      return newElement;
+      return newElement.toJSON();
     } catch (error) {
-      console.error("Error al agregar el video a Continue Watching:", error);
+      console.error("Error adding video to Continue Watching:", error);
       return null;
     }
   }
 
   async delete(videoId: string, userId?: string): Promise<void> {
     try {
-      await ContinueWatching.destroy({ where: { videoId, userId } });
+      await ContinueWatchingModel.destroy({ where: { videoId, userId } });
     } catch (error) {
-      console.error("Error al eliminar video de Continue Watching:", error);
+      console.error("Error deleting video from Continue Watching:", error);
     }
   }
 
@@ -241,7 +243,7 @@ export class ContinueWatchingRepositoryImpl
       whereClause.movieId = movieId;
     }
 
-    const affectedCount = await ContinueWatching.destroy({
+    const affectedCount = await ContinueWatchingModel.destroy({
       where: whereClause,
     });
 

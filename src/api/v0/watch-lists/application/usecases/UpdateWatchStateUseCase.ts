@@ -54,10 +54,7 @@ export class UpdateWatchStateUseCase {
       if (watched) {
         await this.watchListRepo.addVideo(userId, video.id);
       } else {
-        await this.watchListRepo.removeVideo(
-          userId as unknown as number,
-          video.id as unknown as number
-        );
+        await this.watchListRepo.removeVideo(userId, video.id);
       }
 
       const allWatched =
@@ -70,10 +67,7 @@ export class UpdateWatchStateUseCase {
       if (allWatched) {
         await this.watchListRepo.addMovie(userId, movie.id);
       } else {
-        await this.watchListRepo.removeMovie(
-          userId as unknown as number,
-          movie.id as unknown as number
-        );
+        await this.watchListRepo.removeMovie(userId, movie.id);
       }
 
       await UpdateWatchStateUseCase.addVideoToContinueWatching.execute(

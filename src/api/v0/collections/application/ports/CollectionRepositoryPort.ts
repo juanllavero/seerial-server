@@ -2,7 +2,7 @@ import { Collection } from "../../domain/Collection";
 import { ReorderItemDTO } from "../dtos/CollectionDTOs";
 
 export interface CollectionsRepositoryPort {
-  getAll(): Promise<Collection[]>;
+  getAll(libraryId: string): Promise<Collection[]>;
   getById(id: string): Promise<Collection | null>;
   add(collection: Partial<Collection>): Promise<Collection | null>;
   update(id: string, data: Partial<Collection>): Promise<Collection>;

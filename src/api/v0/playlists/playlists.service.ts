@@ -1,27 +1,27 @@
-import { Song } from "@/api/v0/songs/songs.model";
 import { v4 as uuidv4 } from "uuid";
-import { PlayListItem } from "./playlist-item.model";
-import { PlayList } from "./playlists.model";
-import { PlayListData } from "./playlists.types";
+import { SongModel } from "../songs/infrastructure/persistence/models/SongModel";
+import { PlayList } from "./domain/PlayList";
+import { PlayListItemModel } from "./infrastructure/persistence/models/PlayListItemModel";
+import { PlayListModel } from "./infrastructure/persistence/models/PlayListModel";
 
 //#region GET
 export const getPlayLists = () => {
-  return PlayList.findAll();
+  return PlayListModel.findAll();
 };
 
 export const getPlayListById = (id: string) => {
-  return PlayList.findByPk(id, {
-    include: [{ model: Song, as: "songs" }],
+  return PlayListModel.findByPk(id, {
+    include: [{ model: SongModel, as: "songs" }],
   });
 };
 //#endregion
 
 export const addPlaylist = async (
-  playList: Partial<PlayListData>,
+  playList: Partial<PlayList>,
   userId?: string
 ) => {
   try {
-    // Verifica si la lista de reproducción ya existe
+    // Check if the playlist already exists
     if (playList.id) {
       const existingPlayList = await getPlayListById(playList.id);
       if (existingPlayList) {
@@ -30,14 +30,13 @@ export const addPlaylist = async (
       }
     }
 
-    // Genera un UUID para el id
     const playListData = {
       ...playList,
       id: uuidv4().split("-")[0],
       userId,
     };
 
-    const newPlayList = new PlayList(playListData);
+    const newPlayList = new PlayListModel(playListData);
     await newPlayList.save();
     return newPlayList;
   } catch (error) {
@@ -48,8 +47,8 @@ export const addPlaylist = async (
 
 export const addSongToPlaylist = async (playlistId: string, songId: string) => {
   try {
-    // Verifica si la relación ya existe
-    const existingElement = await PlayListItem.findOne({
+    // Checks if the relation already exists
+    const existingElement = await PlayListItemModel.findOne({
       where: {
         playlistId,
         songId,
@@ -63,14 +62,13 @@ export const addSongToPlaylist = async (playlistId: string, songId: string) => {
       return existingElement;
     }
 
-    // Genera un UUID para el id
     const newElementData = {
       id: uuidv4().split("-")[0],
       playlistId,
       songId,
     };
 
-    const newPlayListItem = new PlayListItem(newElementData);
+    const newPlayListItem = new PlayListItemModel(newElementData);
     await newPlayListItem.save();
     return newPlayListItem;
   } catch (error) {
@@ -87,8 +85,8 @@ export const removeSongFromPlaylist = async (
   songId: string
 ) => {
   try {
-    // Verifica si la relacion ya existe
-    const existingElement = await PlayListItem.findOne({
+    // Check if the relation exists
+    const existingElement = await PlayListItemModel.findOne({
       where: {
         playlistId,
         songId,
@@ -123,7 +121,7 @@ export async function updatePlayList(
   id: string,
   data: Partial<PlayList>
 ): Promise<PlayList> {
-  const [affectedCount] = await PlayList.update(data, {
+  const [affectedCount] = await PlayListModel.update(data, {
     where: { id },
   });
 
@@ -146,7 +144,7 @@ export async function updatePlayList(
  * @returns True if deletion is successful.
  */
 export async function deletePlayList(id: string): Promise<boolean> {
-  const affectedCount = await PlayList.destroy({
+  const affectedCount = await PlayListModel.destroy({
     where: { id },
   });
 
@@ -163,7 +161,7 @@ export async function deletePlayList(id: string): Promise<boolean> {
  * @returns True if deletion is successful.
  */
 export async function deletePlayListItem(id: string): Promise<boolean> {
-  const affectedCount = await PlayListItem.destroy({
+  const affectedCount = await PlayListItemModel.destroy({
     where: { id },
   });
 

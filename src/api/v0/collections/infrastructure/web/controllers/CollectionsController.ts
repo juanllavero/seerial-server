@@ -6,9 +6,9 @@ import { DeleteCollectionUseCase } from "../../../application/usecases/DeleteCol
 import { GetMusicExtrasUseCase } from "../../../application/usecases/GetMusicExtrasUseCase";
 import { ReorderCollectionItemsUseCase } from "../../../application/usecases/ReorderCollectionItemsUseCase";
 import { UpdateCollectionUseCase } from "../../../application/usecases/UpdateCollectionUseCase";
-import { CollectionRepositoryImpl } from "../../persistence/repositories/CollectionsRepositoryImpl";
+import { CollectionsRepositoryImpl } from "../../persistence/repositories/CollectionsRepositoryImpl";
 
-const collectionsRepo = new CollectionRepositoryImpl();
+const collectionsRepo = new CollectionsRepositoryImpl();
 
 export class CollectionsController {
   static async getMusicExtras(req: Request, res: Response, next: NextFunction) {

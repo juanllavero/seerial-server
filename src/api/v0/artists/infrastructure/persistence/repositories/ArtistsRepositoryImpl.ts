@@ -1,13 +1,14 @@
-import { Album } from "@/api/v0/albums/infrastructure/persistence/models/AlbumModel";
+import { AlbumModel } from "@/api/v0/albums/infrastructure/persistence/models/AlbumModel";
 import { Artist } from "@/api/v0/artists/domain/Artist";
-import { Artist as ArtistModel } from "@/api/v0/artists/infrastructure/persistence/models/ArtistModel";
+import { ArtistModel } from "@/api/v0/artists/infrastructure/persistence/models/ArtistModel";
 import { v4 as uuidv4 } from "uuid";
+import { ArtistsRepositoryPort } from "../../../application/ports/ArtistsRepositoryPort";
 import { ArtistData } from "../../../artists.types";
 
 export class ArtistsRepositoryImpl implements ArtistsRepositoryPort {
   async getById(id: string): Promise<Artist | null> {
     const artist = await ArtistModel.findByPk(id, {
-      include: [{ model: Album, as: "albums" }],
+      include: [{ model: AlbumModel, as: "albums" }],
     });
 
     if (!artist) return null;
@@ -45,7 +46,7 @@ export class ArtistsRepositoryImpl implements ArtistsRepositoryPort {
     }
 
     const updated = await ArtistModel.findByPk(id, {
-      include: [{ model: Album, as: "albums" }],
+      include: [{ model: AlbumModel, as: "albums" }],
     });
     if (!updated) {
       throw new Error(`Failed to retrieve updated artist with ID ${id}`);

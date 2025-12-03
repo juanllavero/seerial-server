@@ -15,9 +15,17 @@ import { CollectionMovieModel } from "../models/CollectionMovie";
 import { CollectionSeriesModel } from "../models/CollectionSeries";
 
 export class CollectionsRepositoryImpl implements CollectionsRepositoryPort {
-  async getAll(): Promise<Collection[]> {
-    const data = await CollectionModel.findAll();
-    return data.map((d) => d.toJSON());
+  async getAll(libraryId: string): Promise<Collection[]> {
+    const data = await LibraryModel.findByPk(libraryId, {
+      include: [
+        {
+          model: CollectionModel,
+          as: "collections",
+        },
+      ],
+    });
+
+    return data?.collections.map((d) => d.toJSON()) || [];
   }
 
   async getById(id: string): Promise<Collection | null> {

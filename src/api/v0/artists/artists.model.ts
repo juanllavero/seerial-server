@@ -1,4 +1,3 @@
-import { Album, AlbumArtist } from "@/api/v0/index.models";
 import {
   BelongsToMany,
   Column,
@@ -7,6 +6,8 @@ import {
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
+import { AlbumArtistModel } from "../albums/infrastructure/persistence/models/AlbumArtistModel";
+import { AlbumModel } from "../albums/infrastructure/persistence/models/AlbumModel";
 
 @Table({ tableName: "Artist", timestamps: false })
 export class Artist extends Model {
@@ -24,6 +25,6 @@ export class Artist extends Model {
   })
   name!: string;
 
-  @BelongsToMany(() => Album, () => AlbumArtist)
-  albums!: Album[];
+  @BelongsToMany(() => AlbumModel, () => AlbumArtistModel)
+  albums!: AlbumModel[];
 }
