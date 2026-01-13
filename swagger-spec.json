@@ -1,0 +1,3911 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Seerial Media Server API",
+    "version": "0.2.0",
+    "description": "Media management server API for the Seerial suite",
+    "contact": {
+      "name": "Juan Llavero"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:34200/api",
+      "description": "Development server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      },
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "token"
+      }
+    }
+  },
+  "security": [
+    {
+      "bearerAuth": []
+    },
+    {
+      "cookieAuth": []
+    }
+  ],
+  "paths": {
+    "/albums/{id}": {
+      "put": {
+        "summary": "Update an album",
+        "tags": [
+          "Albums"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Album ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "Album title"
+                  },
+                  "artist": {
+                    "type": "string",
+                    "description": "Artist name"
+                  },
+                  "releaseDate": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Release date"
+                  },
+                  "genre": {
+                    "type": "string",
+                    "description": "Music genre"
+                  },
+                  "coverImage": {
+                    "type": "string",
+                    "description": "Cover image URL"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Album updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Album updated successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Album"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid album ID"
+          },
+          "500": {
+            "description": "Update failed"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete an album",
+        "tags": [
+          "Albums"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Album ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Album deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Album deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid album ID"
+          },
+          "500": {
+            "description": "Deletion failed"
+          }
+        }
+      }
+    },
+    "/artists": {
+      "post": {
+        "summary": "Create a new artist",
+        "tags": [
+          "Artists"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Artist name",
+                    "example": "The Beatles"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Artist created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Artist created successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Artist"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "409": {
+            "description": "Artist already exists"
+          },
+          "500": {
+            "description": "Creation failed"
+          }
+        }
+      }
+    },
+    "/artists/{id}": {
+      "get": {
+        "summary": "Get artist by ID",
+        "tags": [
+          "Artists"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Artist ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Artist retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Artist retrieved successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Artist"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid artist ID"
+          },
+          "404": {
+            "description": "Artist not found"
+          },
+          "500": {
+            "description": "Retrieval failed"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update an artist",
+        "tags": [
+          "Artists"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Artist ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Artist name"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Artist updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Artist updated successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Artist"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid artist ID"
+          },
+          "500": {
+            "description": "Update failed"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete an artist",
+        "tags": [
+          "Artists"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Artist ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Artist deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Artist deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid artist ID"
+          },
+          "500": {
+            "description": "Deletion failed"
+          }
+        }
+      }
+    },
+    "/collections/{collectionId}/music-extras": {
+      "get": {
+        "summary": "Get music extras for a collection",
+        "tags": [
+          "Collections"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "collectionId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Collection ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Music extras retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Music extras data"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing collection ID"
+          },
+          "500": {
+            "description": "Failed to retrieve music extras"
+          }
+        }
+      }
+    },
+    "/collections/{id}/items/order": {
+      "put": {
+        "summary": "Reorder items in a collection",
+        "tags": [
+          "Collections"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "collectionId",
+                  "orderedItems"
+                ],
+                "properties": {
+                  "collectionId": {
+                    "type": "string",
+                    "description": "Collection ID"
+                  },
+                  "orderedItems": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "description": "Item ID"
+                        },
+                        "order": {
+                          "type": "number",
+                          "description": "New order position"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Collection items reordered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Items reordered successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid data or missing parameters"
+          },
+          "500": {
+            "description": "Reorder operation failed"
+          }
+        }
+      }
+    },
+    "/collections/{id}": {
+      "put": {
+        "summary": "Update a collection",
+        "tags": [
+          "Collections"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Collection ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Collection name"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Collection description"
+                  },
+                  "coverImage": {
+                    "type": "string",
+                    "description": "Cover image URL"
+                  },
+                  "isPublic": {
+                    "type": "boolean",
+                    "description": "Whether the collection is public"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Collection updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Collection updated successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Collection"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid collection ID"
+          },
+          "500": {
+            "description": "Update failed"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a collection",
+        "tags": [
+          "Collections"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Collection ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Collection deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Collection deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid collection ID"
+          },
+          "404": {
+            "description": "Collection not found"
+          },
+          "500": {
+            "description": "Deletion failed"
+          }
+        }
+      }
+    },
+    "/continue-watching/videos": {
+      "get": {
+        "summary": "Get videos from continue watching list",
+        "tags": [
+          "Continue Watching"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Continue watching videos retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Video ID"
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "Video title"
+                      },
+                      "duration": {
+                        "type": "number",
+                        "description": "Video duration in seconds"
+                      },
+                      "watchedTime": {
+                        "type": "number",
+                        "description": "Time watched in seconds"
+                      },
+                      "thumbnail": {
+                        "type": "string",
+                        "description": "Video thumbnail URL"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid or missing authentication"
+          },
+          "500": {
+            "description": "Failed to retrieve continue watching videos"
+          }
+        }
+      }
+    },
+    "/episodes/{id}": {
+      "put": {
+        "summary": "Update an episode",
+        "tags": [
+          "Episodes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Episode ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "Episode title"
+                  },
+                  "episodeNumber": {
+                    "type": "integer",
+                    "description": "Episode number in season"
+                  },
+                  "description": {
+                    "type": "string",
+                    "description": "Episode description"
+                  },
+                  "airDate": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Original air date"
+                  },
+                  "duration": {
+                    "type": "integer",
+                    "description": "Episode duration in minutes"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Episode updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Episode updated successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Episode"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid episode ID or data"
+          },
+          "500": {
+            "description": "Update failed"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete an episode",
+        "tags": [
+          "Episodes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Episode ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Episode deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Episode deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid episode ID"
+          },
+          "500": {
+            "description": "Deletion failed"
+          }
+        }
+      }
+    },
+    "/episodes/{id}/watch-state": {
+      "put": {
+        "summary": "Set episode watch state for a user",
+        "tags": [
+          "Episodes"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Episode ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "state"
+                ],
+                "properties": {
+                  "state": {
+                    "type": "boolean",
+                    "description": "Whether the episode is watched (true) or unwatched (false)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Episode watch state updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Episode watch state updated to true"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid episode ID or watch state"
+          },
+          "401": {
+            "description": "Unauthorized - user not authenticated"
+          },
+          "500": {
+            "description": "Watch state update failed"
+          }
+        }
+      }
+    },
+    "/libraries": {
+      "get": {
+        "summary": "Get all libraries",
+        "tags": [
+          "Libraries"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of all libraries",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Library"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new library",
+        "tags": [
+          "Libraries"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "path",
+                  "type"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "path": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "movies",
+                      "series",
+                      "albums",
+                      "mixed"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Library created successfully"
+          },
+          "400": {
+            "description": "Invalid data"
+          },
+          "500": {
+            "description": "Creation failed"
+          }
+        }
+      }
+    },
+    "/libraries/{id}": {
+      "get": {
+        "summary": "Get library by ID",
+        "tags": [
+          "Libraries"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Library ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Library details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Library"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid ID"
+          },
+          "404": {
+            "description": "Library not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update a library",
+        "tags": [
+          "Libraries"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "path": {
+                    "type": "string"
+                  },
+                  "type": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Library updated successfully"
+          },
+          "400": {
+            "description": "Invalid ID or data"
+          },
+          "500": {
+            "description": "Update failed"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a library",
+        "tags": [
+          "Libraries"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Library deleted successfully"
+          },
+          "400": {
+            "description": "Invalid ID"
+          },
+          "500": {
+            "description": "Deletion failed"
+          }
+        }
+      }
+    },
+    "/libraries/id/content": {
+      "get": {
+        "summary": "Get library content",
+        "tags": [
+          "Libraries"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "libraryId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Library ID"
+          },
+          {
+            "in": "query",
+            "name": "type",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "movies",
+                "series",
+                "albums",
+                "collections"
+              ]
+            },
+            "description": "Content type"
+          },
+          {
+            "in": "query",
+            "name": "flat",
+            "schema": {
+              "type": "string",
+              "enum": [
+                true,
+                false
+              ]
+            },
+            "description": "Return flat structure"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Library content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "oneOf": [
+                          {
+                            "$ref": "#/components/schemas/Movie"
+                          },
+                          {
+                            "$ref": "#/components/schemas/Series"
+                          },
+                          {
+                            "$ref": "#/components/schemas/Album"
+                          },
+                          {
+                            "$ref": "#/components/schemas/Collection"
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid parameters"
+          },
+          "404": {
+            "description": "Library not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/libraries/{id}/scan": {
+      "post": {
+        "summary": "Start library scan",
+        "tags": [
+          "Libraries"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "libraryId"
+                ],
+                "properties": {
+                  "libraryId": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Scan started successfully"
+          },
+          "400": {
+            "description": "Invalid library ID"
+          },
+          "404": {
+            "description": "Library not found"
+          }
+        }
+      }
+    },
+    "/libraries/order": {
+      "put": {
+        "summary": "Reorder libraries",
+        "tags": [
+          "Libraries"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "orderedLibraryIds"
+                ],
+                "properties": {
+                  "orderedLibraryIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Libraries reordered successfully"
+          },
+          "400": {
+            "description": "Invalid data"
+          },
+          "500": {
+            "description": "Reorder failed"
+          }
+        }
+      }
+    },
+    "/libraries/{id}/order": {
+      "put": {
+        "summary": "Reorder library items",
+        "tags": [
+          "Libraries"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "libraryId",
+                  "orderedItems"
+                ],
+                "properties": {
+                  "libraryId": {
+                    "type": "string"
+                  },
+                  "orderedItems": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Items reordered successfully"
+          },
+          "400": {
+            "description": "Invalid data"
+          },
+          "500": {
+            "description": "Reorder failed"
+          }
+        }
+      }
+    },
+    "/movies/{id}/metadata": {
+      "post": {
+        "summary": "Refresh movie metadata from TMDB",
+        "tags": [
+          "Movies"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "Movie ID"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Metadata refreshed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Metadata updated successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing movie ID"
+          },
+          "500": {
+            "description": "Metadata refresh failed"
+          }
+        }
+      }
+    },
+    "/movies/{id}/identification": {
+      "post": {
+        "summary": "Change movie identification (TMDB ID)",
+        "tags": [
+          "Movies"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "themdbId"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "Movie ID"
+                  },
+                  "themdbId": {
+                    "type": "integer",
+                    "description": "New TMDB ID"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Movie identification changed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Movie updated successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "500": {
+            "description": "Identification change failed"
+          }
+        }
+      }
+    },
+    "/movies/{id}": {
+      "put": {
+        "summary": "Update a movie",
+        "tags": [
+          "Movies"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Movie ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "Movie title"
+                  },
+                  "overview": {
+                    "type": "string",
+                    "description": "Movie description"
+                  },
+                  "releaseDate": {
+                    "type": "string",
+                    "format": "date",
+                    "description": "Release date"
+                  },
+                  "genres": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Movie genres"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Movie updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Movie updated successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Movie"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid movie ID"
+          },
+          "500": {
+            "description": "Update failed"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a movie",
+        "tags": [
+          "Movies"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Movie ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Movie deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Movie deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid movie ID"
+          },
+          "500": {
+            "description": "Deletion failed"
+          }
+        }
+      }
+    },
+    "/user/lists/movies": {
+      "get": {
+        "summary": "Get movies from user's personal list",
+        "tags": [
+          "My Lists"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User's movies list retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Movie ID"
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "Movie title"
+                      },
+                      "posterSrc": {
+                        "type": "string",
+                        "description": "Movie poster URL"
+                      },
+                      "addedDate": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "When the movie was added to the list"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid or missing authentication"
+          },
+          "500": {
+            "description": "Failed to retrieve movies list"
+          }
+        }
+      }
+    },
+    "/user/lists/series": {
+      "get": {
+        "summary": "Get series from user's personal list",
+        "tags": [
+          "My Lists"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User's series list retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Series ID"
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "Series title"
+                      },
+                      "posterSrc": {
+                        "type": "string",
+                        "description": "Series poster URL"
+                      },
+                      "addedDate": {
+                        "type": "string",
+                        "format": "date-time",
+                        "description": "When the series was added to the list"
+                      },
+                      "totalSeasons": {
+                        "type": "integer",
+                        "description": "Total number of seasons"
+                      },
+                      "watchedEpisodes": {
+                        "type": "integer",
+                        "description": "Number of episodes watched"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid or missing authentication"
+          },
+          "500": {
+            "description": "Failed to retrieve series list"
+          }
+        }
+      }
+    },
+    "/configuration/api-key": {
+      "post": {
+        "summary": "Set and validate TMDB API key",
+        "tags": [
+          "API Configuration"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "apiKey"
+                ],
+                "properties": {
+                  "apiKey": {
+                    "type": "string",
+                    "description": "TMDB API key to validate and save",
+                    "example": "your_tmdb_api_key_here"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "API key validation result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "VALID_API_KEY",
+                        "INVALID_API_KEY"
+                      ],
+                      "example": "VALID_API_KEY"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "INVALID_API_KEY"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Server error during API key validation"
+          }
+        }
+      }
+    },
+    "/downloads/video": {
+      "post": {
+        "summary": "Download a video from URL",
+        "tags": [
+          "Downloads"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "url",
+                  "downloadFolder",
+                  "fileName"
+                ],
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Video URL to download"
+                  },
+                  "downloadFolder": {
+                    "type": "string",
+                    "description": "Destination folder path"
+                  },
+                  "fileName": {
+                    "type": "string",
+                    "description": "Output file name"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Video downloaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Download completed successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "500": {
+            "description": "Download failed"
+          }
+        }
+      }
+    },
+    "/downloads/music": {
+      "post": {
+        "summary": "Download audio/music from URL",
+        "tags": [
+          "Downloads"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "url",
+                  "downloadFolder",
+                  "fileName"
+                ],
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Audio URL to download"
+                  },
+                  "downloadFolder": {
+                    "type": "string",
+                    "description": "Destination folder path"
+                  },
+                  "fileName": {
+                    "type": "string",
+                    "description": "Output file name"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Audio downloaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Download completed successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "500": {
+            "description": "Download failed"
+          }
+        }
+      }
+    },
+    "/downloads/image": {
+      "post": {
+        "summary": "Download an image from URL",
+        "tags": [
+          "Downloads"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "url",
+                  "downloadFolder",
+                  "fileName"
+                ],
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "Image URL to download"
+                  },
+                  "downloadFolder": {
+                    "type": "string",
+                    "description": "Destination folder path"
+                  },
+                  "fileName": {
+                    "type": "string",
+                    "description": "Output file name (extension will be added if missing)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Image downloaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Download completed successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters or invalid URL"
+          },
+          "500": {
+            "description": "Download failed"
+          }
+        }
+      }
+    },
+    "/files/drives": {
+      "get": {
+        "summary": "Get available system drives",
+        "tags": [
+          "Files"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of available drives",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "description": "Drive path",
+                    "example": "C:\\"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/files/folder": {
+      "get": {
+        "summary": "Get contents of a directory",
+        "tags": [
+          "Files"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Directory path to list contents"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Directory contents",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "File or folder name"
+                      },
+                      "isFolder": {
+                        "type": "boolean",
+                        "description": "Whether the item is a folder"
+                      }
+                    },
+                    "example": [
+                      {
+                        "name": "Documents",
+                        "isFolder": true
+                      },
+                      {
+                        "name": "file.txt",
+                        "isFolder": false
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid path parameter"
+          },
+          "500": {
+            "description": "Directory access error"
+          }
+        }
+      }
+    },
+    "/images": {
+      "post": {
+        "summary": "Upload an image file",
+        "tags": [
+          "Images"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "image",
+                  "destPath"
+                ],
+                "properties": {
+                  "image": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Image file to upload"
+                  },
+                  "destPath": {
+                    "type": "string",
+                    "description": "Destination path for the uploaded image"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Image uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Image uploaded successfully to /path/to/image.jpg"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing parameters or invalid file"
+          },
+          "500": {
+            "description": "Upload failed"
+          }
+        }
+      },
+      "get": {
+        "summary": "List images in a directory",
+        "tags": [
+          "Images"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Directory path to list images from"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of images in the directory",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "description": "Image file name"
+                      },
+                      "path": {
+                        "type": "string",
+                        "description": "Full path to the image"
+                      },
+                      "size": {
+                        "type": "number",
+                        "description": "File size in bytes"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid path parameter"
+          },
+          "500": {
+            "description": "Directory listing failed"
+          }
+        }
+      }
+    },
+    "/images/local": {
+      "get": {
+        "summary": "Serve a resized and compressed local image",
+        "tags": [
+          "Images"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Local path to the image file"
+          },
+          {
+            "in": "query",
+            "name": "width",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Desired width for resizing"
+          },
+          {
+            "in": "query",
+            "name": "height",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Desired height for resizing"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resized and compressed image",
+            "content": {
+              "image/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid path parameter"
+          },
+          "500": {
+            "description": "Image processing failed"
+          }
+        }
+      }
+    },
+    "/images/compressed": {
+      "get": {
+        "summary": "Download, compress, and serve an image from URL",
+        "tags": [
+          "Images"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "url",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Image URL to download and compress"
+          },
+          {
+            "in": "query",
+            "name": "width",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Desired width for resizing"
+          },
+          {
+            "in": "query",
+            "name": "height",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Desired height for resizing"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Compressed and resized image",
+            "content": {
+              "image/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or invalid URL"
+          },
+          "500": {
+            "description": "Image download or processing failed"
+          }
+        }
+      }
+    },
+    "/images/colors": {
+      "get": {
+        "summary": "Extract color palette from an image",
+        "tags": [
+          "Images"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "url",
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Image URL to analyze (required if localPath not provided)"
+          },
+          {
+            "in": "query",
+            "name": "localPath",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Local image path to analyze (required if url not provided)"
+          },
+          {
+            "in": "query",
+            "name": "minLight",
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.04
+            },
+            "description": "Minimum lightness for color palette"
+          },
+          {
+            "in": "query",
+            "name": "maxLight",
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "default": 0.09
+            },
+            "description": "Maximum lightness for color palette"
+          },
+          {
+            "in": "query",
+            "name": "sat",
+            "schema": {
+              "type": "number",
+              "minimum": 0,
+              "default": 1
+            },
+            "description": "Saturation factor"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Color palette extracted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "colors": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Array of color hex codes"
+                    },
+                    "gradient": {
+                      "type": "string",
+                      "description": "CSS gradient string"
+                    },
+                    "dominant": {
+                      "type": "string",
+                      "description": "Dominant color hex code"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing image source (URL or local path)"
+          },
+          "500": {
+            "description": "Image processing failed"
+          }
+        }
+      }
+    },
+    "/images/effects/transparent": {
+      "get": {
+        "summary": "Apply transparent fade effect to an image",
+        "tags": [
+          "Images"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "url",
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            },
+            "description": "Image URL to process (required if localPath not provided)"
+          },
+          {
+            "in": "query",
+            "name": "localPath",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Local image path to process (required if url not provided)"
+          },
+          {
+            "in": "query",
+            "name": "width",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Output image width"
+          },
+          {
+            "in": "query",
+            "name": "height",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "description": "Output image height"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Image with transparent fade effect",
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters or invalid dimensions"
+          },
+          "500": {
+            "description": "Image processing failed"
+          }
+        }
+      }
+    },
+    "/lyrics": {
+      "get": {
+        "summary": "Get lyrics for a song",
+        "tags": [
+          "Lyrics"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Song ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lyrics retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "lyrics": {
+                      "type": "string",
+                      "description": "Lyrics content"
+                    },
+                    "language": {
+                      "type": "string",
+                      "description": "Language of the lyrics"
+                    },
+                    "synced": {
+                      "type": "boolean",
+                      "description": "Whether the lyrics are synchronized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing song ID parameter"
+          },
+          "404": {
+            "description": "Song or lyrics not found"
+          },
+          "500": {
+            "description": "Lyrics retrieval failed"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new lyrics file for a song",
+        "tags": [
+          "Lyrics"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "songId",
+                  "language",
+                  "content"
+                ],
+                "properties": {
+                  "songId": {
+                    "type": "string",
+                    "description": "ID of the song to add lyrics to"
+                  },
+                  "language": {
+                    "type": "string",
+                    "description": "Language code for the lyrics (use \"original\" for no suffix)",
+                    "example": "en"
+                  },
+                  "content": {
+                    "type": "string",
+                    "description": "Lyrics content in LRC format",
+                    "example": "[00:12.00]Lyrics line one\n[00:15.30]Lyrics line two"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Lyrics file created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Lyrics file created successfully"
+                    },
+                    "path": {
+                      "type": "string",
+                      "description": "Full path where the lyrics file was saved",
+                      "example": "/path/to/song.en.lrc"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "404": {
+            "description": "Song not found"
+          },
+          "500": {
+            "description": "File creation failed"
+          }
+        }
+      }
+    },
+    "/setMovieWatched": {
+      "post": {
+        "summary": "Set movie watched state for a user",
+        "tags": [
+          "Watch States"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "movieId",
+                  "watched",
+                  "userId"
+                ],
+                "properties": {
+                  "movieId": {
+                    "type": "string",
+                    "description": "Movie ID"
+                  },
+                  "watched": {
+                    "type": "boolean",
+                    "description": "Whether the movie is watched"
+                  },
+                  "userId": {
+                    "type": "string",
+                    "description": "User ID"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Movie watch state updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Movie watch state updated successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "404": {
+            "description": "Movie not found"
+          },
+          "500": {
+            "description": "Watch state update failed"
+          }
+        }
+      }
+    },
+    "/setVideoWatched": {
+      "post": {
+        "summary": "Set video watched state for a user",
+        "tags": [
+          "Watch States"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "videoId",
+                  "watched",
+                  "userId"
+                ],
+                "properties": {
+                  "videoId": {
+                    "type": "string",
+                    "description": "Video ID"
+                  },
+                  "watched": {
+                    "type": "boolean",
+                    "description": "Whether the video is watched"
+                  },
+                  "userId": {
+                    "type": "string",
+                    "description": "User ID"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Video watch state updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Video watch state updated successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "404": {
+            "description": "Video not found"
+          },
+          "500": {
+            "description": "Watch state update failed"
+          }
+        }
+      }
+    },
+    "/setSeriesWatched": {
+      "post": {
+        "summary": "Set series watched state for a user",
+        "tags": [
+          "Watch States"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "seriesId",
+                  "watched",
+                  "userId"
+                ],
+                "properties": {
+                  "seriesId": {
+                    "type": "string",
+                    "description": "Series ID"
+                  },
+                  "watched": {
+                    "type": "boolean",
+                    "description": "Whether the series is watched"
+                  },
+                  "userId": {
+                    "type": "string",
+                    "description": "User ID"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Series watch state updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Series watch state updated successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "404": {
+            "description": "Series not found"
+          },
+          "500": {
+            "description": "Watch state update failed"
+          }
+        }
+      }
+    },
+    "/setSeasonWatched": {
+      "post": {
+        "summary": "Set season watched state for a user",
+        "tags": [
+          "Watch States"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "seasonId",
+                  "watched",
+                  "userId"
+                ],
+                "properties": {
+                  "seasonId": {
+                    "type": "string",
+                    "description": "Season ID"
+                  },
+                  "watched": {
+                    "type": "boolean",
+                    "description": "Whether the season is watched"
+                  },
+                  "userId": {
+                    "type": "string",
+                    "description": "User ID"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Season watch state updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Season watch state updated successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "404": {
+            "description": "Season not found"
+          },
+          "500": {
+            "description": "Watch state update failed"
+          }
+        }
+      }
+    },
+    "/setEpisodeWatched": {
+      "post": {
+        "summary": "Set episode watched state for a user",
+        "tags": [
+          "Watch States"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "episodeId",
+                  "watched",
+                  "userId"
+                ],
+                "properties": {
+                  "episodeId": {
+                    "type": "string",
+                    "description": "Episode ID"
+                  },
+                  "watched": {
+                    "type": "boolean",
+                    "description": "Whether the episode is watched"
+                  },
+                  "userId": {
+                    "type": "string",
+                    "description": "User ID"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Episode watch state updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Episode watch state updated successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "404": {
+            "description": "Episode or season not found"
+          },
+          "500": {
+            "description": "Watch state update failed"
+          }
+        }
+      }
+    },
+    "/details/{type}": {
+      "get": {
+        "summary": "Get media details by type and ID",
+        "tags": [
+          "Media Details"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "type",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "movie",
+                "series",
+                "season",
+                "episode"
+              ]
+            },
+            "description": "Type of media"
+          },
+          {
+            "in": "query",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Media ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Media details retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Media details object"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "500": {
+            "description": "Media details retrieval failed"
+          }
+        }
+      }
+    },
+    "/songs/{id}": {
+      "put": {
+        "summary": "Update a song",
+        "tags": [
+          "Songs"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Song ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "Song title"
+                  },
+                  "artist": {
+                    "type": "string",
+                    "description": "Artist name"
+                  },
+                  "album": {
+                    "type": "string",
+                    "description": "Album name"
+                  },
+                  "duration": {
+                    "type": "number",
+                    "description": "Duration in seconds"
+                  },
+                  "genre": {
+                    "type": "string",
+                    "description": "Music genre"
+                  },
+                  "filePath": {
+                    "type": "string",
+                    "description": "File path"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Song updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Song updated successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Song"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid song ID"
+          },
+          "500": {
+            "description": "Update failed"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a song",
+        "tags": [
+          "Songs"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Song ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Song deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Song deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid song ID"
+          },
+          "500": {
+            "description": "Deletion failed"
+          }
+        }
+      }
+    },
+    "/users/login": {
+      "post": {
+        "summary": "User login with JWT cookie",
+        "tags": [
+          "Users"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "username",
+                  "password"
+                ],
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "description": "User's username"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "User's password"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful, JWT set in HttpOnly cookie",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            },
+            "headers": {
+              "Set-Cookie": {
+                "description": "JWT token in HttpOnly cookie",
+                "schema": {
+                  "type": "string",
+                  "example": "jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; Path=/; HttpOnly; Secure; SameSite=Lax"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required fields"
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "summary": "Get all users",
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of all users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/User"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a new user",
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "username",
+                  "password"
+                ],
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "description": "Unique username"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "User's password"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "User's email (optional)"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "user",
+                      "admin"
+                    ],
+                    "description": "User role (optional)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid data or username already exists"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/users/authenticate": {
+      "post": {
+        "summary": "Authenticate user (without setting cookie)",
+        "tags": [
+          "Users"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "username",
+                  "password"
+                ],
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "description": "User's username"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "User's password"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Authentication successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "token": {
+                      "type": "string",
+                      "description": "JWT token"
+                    },
+                    "user": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing username or password"
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "put": {
+        "summary": "Update a user",
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "User ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "description": "New username"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "New password"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "New email"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "user",
+                      "admin"
+                    ],
+                    "description": "New role"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "User updated successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID or data"
+          },
+          "500": {
+            "description": "Update failed"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a user",
+        "tags": [
+          "Users"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "User ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "User deleted successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "description": "Deletion result"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid ID"
+          },
+          "500": {
+            "description": "Deletion failed"
+          }
+        }
+      }
+    },
+    "/videos/{id}": {
+      "put": {
+        "summary": "Update a video",
+        "tags": [
+          "Videos"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Video ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "Video title"
+                  },
+                  "duration": {
+                    "type": "number",
+                    "description": "Video duration in seconds"
+                  },
+                  "filePath": {
+                    "type": "string",
+                    "description": "File path"
+                  },
+                  "quality": {
+                    "type": "string",
+                    "description": "Video quality"
+                  },
+                  "size": {
+                    "type": "number",
+                    "description": "File size in bytes"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Video updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Video updated successfully"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/Video"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid video ID"
+          },
+          "500": {
+            "description": "Update failed"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete a video",
+        "tags": [
+          "Videos"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Video ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Video deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Video deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid video ID"
+          },
+          "500": {
+            "description": "Deletion failed"
+          }
+        }
+      }
+    },
+    "/videos/{id}/media-info": {
+      "put": {
+        "summary": "Update video media information",
+        "tags": [
+          "Videos"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Video ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Media info updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Media info updated successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "description": "Updated media information"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid video ID"
+          },
+          "500": {
+            "description": "Media info update failed"
+          }
+        }
+      },
+      "get": {
+        "summary": "Get formatted video information",
+        "tags": [
+          "Media Info"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Video ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Formatted video information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "duration": {
+                      "type": "number",
+                      "description": "Video duration in seconds"
+                    },
+                    "resolution": {
+                      "type": "string",
+                      "description": "Video resolution (e.g., \"1920x1080\")"
+                    },
+                    "bitrate": {
+                      "type": "number",
+                      "description": "Video bitrate"
+                    },
+                    "codec": {
+                      "type": "string",
+                      "description": "Video codec"
+                    },
+                    "size": {
+                      "type": "number",
+                      "description": "File size in bytes"
+                    },
+                    "format": {
+                      "type": "string",
+                      "description": "Video format/container"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid video ID"
+          },
+          "500": {
+            "description": "Media info retrieval failed"
+          }
+        }
+      }
+    },
+    "/watch-lists/update-state": {
+      "post": {
+        "summary": "Update watch state for a video",
+        "tags": [
+          "Watch Lists"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "videoId",
+                  "timeWatched",
+                  "watched",
+                  "userId"
+                ],
+                "properties": {
+                  "videoId": {
+                    "type": "string",
+                    "description": "Video ID"
+                  },
+                  "timeWatched": {
+                    "type": "number",
+                    "description": "Time watched in seconds"
+                  },
+                  "watched": {
+                    "type": "boolean",
+                    "description": "Whether the video is fully watched"
+                  },
+                  "userId": {
+                    "type": "string",
+                    "description": "User ID"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Watch state updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Watch state updated successfully"
+                    },
+                    "data": {
+                      "type": "object",
+                      "description": "Updated watch state information"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing required parameters"
+          },
+          "500": {
+            "description": "Update failed"
+          }
+        }
+      }
+    }
+  },
+  "tags": []
+}

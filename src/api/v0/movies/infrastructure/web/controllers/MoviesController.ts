@@ -13,7 +13,7 @@ import { UpdateMovieUseCase } from "../../../application/usecases/UpdateMoviesUs
 export class MoviesController {
   /**
    * @swagger
-   * /movies/refresh-metadata:
+   * /movies/{id}/metadata:
    *   post:
    *     summary: Refresh movie metadata from TMDB
    *     tags: [Movies]
@@ -68,7 +68,7 @@ export class MoviesController {
 
   /**
    * @swagger
-   * /movies/change-identification:
+   * /movies/{id}/identification:
    *   post:
    *     summary: Change movie identification (TMDB ID)
    *     tags: [Movies]

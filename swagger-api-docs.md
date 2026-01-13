@@ -1,0 +1,940 @@
+# Seerial Media Server API Documentation
+
+**Version:** 0.2.0
+
+**Description:** Media management server API for the Seerial suite
+
+## /albums/{id}
+
+### PUT
+
+**Summary:** Update an album
+
+**Parameters:**
+
+- `id` (path): Album ID
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Album updated successfully
+- **400**: Invalid album ID
+- **500**: Update failed
+
+### DELETE
+
+**Summary:** Delete an album
+
+**Parameters:**
+
+- `id` (path): Album ID
+
+**Responses:**
+
+- **200**: Album deleted successfully
+- **400**: Invalid album ID
+- **500**: Deletion failed
+
+## /artists
+
+### POST
+
+**Summary:** Create a new artist
+
+**Request Body:** Available
+
+**Responses:**
+
+- **201**: Artist created successfully
+- **400**: Missing required parameters
+- **409**: Artist already exists
+- **500**: Creation failed
+
+## /artists/{id}
+
+### GET
+
+**Summary:** Get artist by ID
+
+**Parameters:**
+
+- `id` (path): Artist ID
+
+**Responses:**
+
+- **200**: Artist retrieved successfully
+- **400**: Invalid artist ID
+- **404**: Artist not found
+- **500**: Retrieval failed
+
+### PUT
+
+**Summary:** Update an artist
+
+**Parameters:**
+
+- `id` (path): Artist ID
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Artist updated successfully
+- **400**: Invalid artist ID
+- **500**: Update failed
+
+### DELETE
+
+**Summary:** Delete an artist
+
+**Parameters:**
+
+- `id` (path): Artist ID
+
+**Responses:**
+
+- **200**: Artist deleted successfully
+- **400**: Invalid artist ID
+- **500**: Deletion failed
+
+## /collections/{collectionId}/music-extras
+
+### GET
+
+**Summary:** Get music extras for a collection
+
+**Parameters:**
+
+- `collectionId` (path): Collection ID
+
+**Responses:**
+
+- **200**: Music extras retrieved successfully
+- **400**: Missing collection ID
+- **500**: Failed to retrieve music extras
+
+## /collections/{id}/items/order
+
+### PUT
+
+**Summary:** Reorder items in a collection
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Collection items reordered successfully
+- **400**: Invalid data or missing parameters
+- **500**: Reorder operation failed
+
+## /collections/{id}
+
+### PUT
+
+**Summary:** Update a collection
+
+**Parameters:**
+
+- `id` (path): Collection ID
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Collection updated successfully
+- **400**: Invalid collection ID
+- **500**: Update failed
+
+### DELETE
+
+**Summary:** Delete a collection
+
+**Parameters:**
+
+- `id` (path): Collection ID
+
+**Responses:**
+
+- **200**: Collection deleted successfully
+- **400**: Invalid collection ID
+- **404**: Collection not found
+- **500**: Deletion failed
+
+## /continue-watching/videos
+
+### GET
+
+**Summary:** Get videos from continue watching list
+
+**Responses:**
+
+- **200**: Continue watching videos retrieved successfully
+- **401**: Unauthorized - invalid or missing authentication
+- **500**: Failed to retrieve continue watching videos
+
+## /episodes/{id}
+
+### PUT
+
+**Summary:** Update an episode
+
+**Parameters:**
+
+- `id` (path): Episode ID
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Episode updated successfully
+- **400**: Invalid episode ID or data
+- **500**: Update failed
+
+### DELETE
+
+**Summary:** Delete an episode
+
+**Parameters:**
+
+- `id` (path): Episode ID
+
+**Responses:**
+
+- **200**: Episode deleted successfully
+- **400**: Invalid episode ID
+- **500**: Deletion failed
+
+## /episodes/{id}/watch-state
+
+### PUT
+
+**Summary:** Set episode watch state for a user
+
+**Parameters:**
+
+- `id` (path): Episode ID
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Episode watch state updated successfully
+- **400**: Invalid episode ID or watch state
+- **401**: Unauthorized - user not authenticated
+- **500**: Watch state update failed
+
+## /libraries
+
+### GET
+
+**Summary:** Get all libraries
+
+**Responses:**
+
+- **200**: List of all libraries
+- **500**: Internal server error
+
+### POST
+
+**Summary:** Create a new library
+
+**Request Body:** Available
+
+**Responses:**
+
+- **201**: Library created successfully
+- **400**: Invalid data
+- **500**: Creation failed
+
+## /libraries/{id}
+
+### GET
+
+**Summary:** Get library by ID
+
+**Parameters:**
+
+- `id` (query): Library ID
+
+**Responses:**
+
+- **200**: Library details
+- **400**: Missing or invalid ID
+- **404**: Library not found
+- **500**: Internal server error
+
+### PUT
+
+**Summary:** Update a library
+
+**Parameters:**
+
+- `id` (path): No description
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Library updated successfully
+- **400**: Invalid ID or data
+- **500**: Update failed
+
+### DELETE
+
+**Summary:** Delete a library
+
+**Parameters:**
+
+- `id` (path): No description
+
+**Responses:**
+
+- **200**: Library deleted successfully
+- **400**: Invalid ID
+- **500**: Deletion failed
+
+## /libraries/id/content
+
+### GET
+
+**Summary:** Get library content
+
+**Parameters:**
+
+- `libraryId` (query): Library ID
+- `type` (query): Content type
+- `flat` (query): Return flat structure
+
+**Responses:**
+
+- **200**: Library content
+- **400**: Invalid parameters
+- **404**: Library not found
+- **500**: Internal server error
+
+## /libraries/{id}/scan
+
+### POST
+
+**Summary:** Start library scan
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Scan started successfully
+- **400**: Invalid library ID
+- **404**: Library not found
+
+## /libraries/order
+
+### PUT
+
+**Summary:** Reorder libraries
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Libraries reordered successfully
+- **400**: Invalid data
+- **500**: Reorder failed
+
+## /libraries/{id}/order
+
+### PUT
+
+**Summary:** Reorder library items
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Items reordered successfully
+- **400**: Invalid data
+- **500**: Reorder failed
+
+## /movies/{id}/metadata
+
+### POST
+
+**Summary:** Refresh movie metadata from TMDB
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Metadata refreshed successfully
+- **400**: Missing movie ID
+- **500**: Metadata refresh failed
+
+## /movies/{id}/identification
+
+### POST
+
+**Summary:** Change movie identification (TMDB ID)
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Movie identification changed successfully
+- **400**: Missing required parameters
+- **500**: Identification change failed
+
+## /movies/{id}
+
+### PUT
+
+**Summary:** Update a movie
+
+**Parameters:**
+
+- `id` (path): Movie ID
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Movie updated successfully
+- **400**: Invalid movie ID
+- **500**: Update failed
+
+### DELETE
+
+**Summary:** Delete a movie
+
+**Parameters:**
+
+- `id` (path): Movie ID
+
+**Responses:**
+
+- **200**: Movie deleted successfully
+- **400**: Invalid movie ID
+- **500**: Deletion failed
+
+## /user/lists/movies
+
+### GET
+
+**Summary:** Get movies from user's personal list
+
+**Responses:**
+
+- **200**: User's movies list retrieved successfully
+- **401**: Unauthorized - invalid or missing authentication
+- **500**: Failed to retrieve movies list
+
+## /user/lists/series
+
+### GET
+
+**Summary:** Get series from user's personal list
+
+**Responses:**
+
+- **200**: User's series list retrieved successfully
+- **401**: Unauthorized - invalid or missing authentication
+- **500**: Failed to retrieve series list
+
+## /configuration/api-key
+
+### POST
+
+**Summary:** Set and validate TMDB API key
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: API key validation result
+- **400**: Missing or invalid API key
+- **500**: Server error during API key validation
+
+## /downloads/video
+
+### POST
+
+**Summary:** Download a video from URL
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Video downloaded successfully
+- **400**: Missing required parameters
+- **500**: Download failed
+
+## /downloads/music
+
+### POST
+
+**Summary:** Download audio/music from URL
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Audio downloaded successfully
+- **400**: Missing required parameters
+- **500**: Download failed
+
+## /downloads/image
+
+### POST
+
+**Summary:** Download an image from URL
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Image downloaded successfully
+- **400**: Missing required parameters or invalid URL
+- **500**: Download failed
+
+## /files/drives
+
+### GET
+
+**Summary:** Get available system drives
+
+**Responses:**
+
+- **200**: List of available drives
+- **500**: Internal server error
+
+## /files/folder
+
+### GET
+
+**Summary:** Get contents of a directory
+
+**Parameters:**
+
+- `path` (query): Directory path to list contents
+
+**Responses:**
+
+- **200**: Directory contents
+- **400**: Invalid path parameter
+- **500**: Directory access error
+
+## /images
+
+### POST
+
+**Summary:** Upload an image file
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Image uploaded successfully
+- **400**: Missing parameters or invalid file
+- **500**: Upload failed
+
+### GET
+
+**Summary:** List images in a directory
+
+**Parameters:**
+
+- `path` (query): Directory path to list images from
+
+**Responses:**
+
+- **200**: List of images in the directory
+- **400**: Missing or invalid path parameter
+- **500**: Directory listing failed
+
+## /images/local
+
+### GET
+
+**Summary:** Serve a resized and compressed local image
+
+**Parameters:**
+
+- `path` (query): Local path to the image file
+- `width` (query): Desired width for resizing
+- `height` (query): Desired height for resizing
+
+**Responses:**
+
+- **200**: Resized and compressed image
+- **400**: Missing or invalid path parameter
+- **500**: Image processing failed
+
+## /images/compressed
+
+### GET
+
+**Summary:** Download, compress, and serve an image from URL
+
+**Parameters:**
+
+- `url` (query): Image URL to download and compress
+- `width` (query): Desired width for resizing
+- `height` (query): Desired height for resizing
+
+**Responses:**
+
+- **200**: Compressed and resized image
+- **400**: Missing or invalid URL
+- **500**: Image download or processing failed
+
+## /images/colors
+
+### GET
+
+**Summary:** Extract color palette from an image
+
+**Parameters:**
+
+- `url` (query): Image URL to analyze (required if localPath not provided)
+- `localPath` (query): Local image path to analyze (required if url not provided)
+- `minLight` (query): Minimum lightness for color palette
+- `maxLight` (query): Maximum lightness for color palette
+- `sat` (query): Saturation factor
+
+**Responses:**
+
+- **200**: Color palette extracted successfully
+- **400**: Missing image source (URL or local path)
+- **500**: Image processing failed
+
+## /images/effects/transparent
+
+### GET
+
+**Summary:** Apply transparent fade effect to an image
+
+**Parameters:**
+
+- `url` (query): Image URL to process (required if localPath not provided)
+- `localPath` (query): Local image path to process (required if url not provided)
+- `width` (query): Output image width
+- `height` (query): Output image height
+
+**Responses:**
+
+- **200**: Image with transparent fade effect
+- **400**: Missing required parameters or invalid dimensions
+- **500**: Image processing failed
+
+## /lyrics
+
+### GET
+
+**Summary:** Get lyrics for a song
+
+**Parameters:**
+
+- `id` (query): Song ID
+
+**Responses:**
+
+- **200**: Lyrics retrieved successfully
+- **400**: Missing song ID parameter
+- **404**: Song or lyrics not found
+- **500**: Lyrics retrieval failed
+
+### POST
+
+**Summary:** Create a new lyrics file for a song
+
+**Request Body:** Available
+
+**Responses:**
+
+- **201**: Lyrics file created successfully
+- **400**: Missing required parameters
+- **404**: Song not found
+- **500**: File creation failed
+
+## /setMovieWatched
+
+### POST
+
+**Summary:** Set movie watched state for a user
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Movie watch state updated successfully
+- **400**: Missing required parameters
+- **404**: Movie not found
+- **500**: Watch state update failed
+
+## /setVideoWatched
+
+### POST
+
+**Summary:** Set video watched state for a user
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Video watch state updated successfully
+- **400**: Missing required parameters
+- **404**: Video not found
+- **500**: Watch state update failed
+
+## /setSeriesWatched
+
+### POST
+
+**Summary:** Set series watched state for a user
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Series watch state updated successfully
+- **400**: Missing required parameters
+- **404**: Series not found
+- **500**: Watch state update failed
+
+## /setSeasonWatched
+
+### POST
+
+**Summary:** Set season watched state for a user
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Season watch state updated successfully
+- **400**: Missing required parameters
+- **404**: Season not found
+- **500**: Watch state update failed
+
+## /setEpisodeWatched
+
+### POST
+
+**Summary:** Set episode watched state for a user
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Episode watch state updated successfully
+- **400**: Missing required parameters
+- **404**: Episode or season not found
+- **500**: Watch state update failed
+
+## /details/{type}
+
+### GET
+
+**Summary:** Get media details by type and ID
+
+**Parameters:**
+
+- `type` (path): Type of media
+- `id` (query): Media ID
+
+**Responses:**
+
+- **200**: Media details retrieved successfully
+- **400**: Missing required parameters
+- **500**: Media details retrieval failed
+
+## /songs/{id}
+
+### PUT
+
+**Summary:** Update a song
+
+**Parameters:**
+
+- `id` (path): Song ID
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Song updated successfully
+- **400**: Invalid song ID
+- **500**: Update failed
+
+### DELETE
+
+**Summary:** Delete a song
+
+**Parameters:**
+
+- `id` (path): Song ID
+
+**Responses:**
+
+- **200**: Song deleted successfully
+- **400**: Invalid song ID
+- **500**: Deletion failed
+
+## /users/login
+
+### POST
+
+**Summary:** User login with JWT cookie
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Login successful, JWT set in HttpOnly cookie
+- **400**: Missing required fields
+- **401**: Invalid credentials
+
+## /users
+
+### GET
+
+**Summary:** Get all users
+
+**Responses:**
+
+- **200**: List of all users
+- **500**: Internal server error
+
+### POST
+
+**Summary:** Create a new user
+
+**Request Body:** Available
+
+**Responses:**
+
+- **201**: User created successfully
+- **400**: Invalid data or username already exists
+- **500**: Internal server error
+
+## /users/authenticate
+
+### POST
+
+**Summary:** Authenticate user (without setting cookie)
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Authentication successful
+- **400**: Missing username or password
+- **401**: Invalid credentials
+
+## /users/{id}
+
+### PUT
+
+**Summary:** Update a user
+
+**Parameters:**
+
+- `id` (path): User ID
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: User updated successfully
+- **400**: Invalid ID or data
+- **500**: Update failed
+
+### DELETE
+
+**Summary:** Delete a user
+
+**Parameters:**
+
+- `id` (path): User ID
+
+**Responses:**
+
+- **200**: User deleted successfully
+- **400**: Invalid ID
+- **500**: Deletion failed
+
+## /videos/{id}
+
+### PUT
+
+**Summary:** Update a video
+
+**Parameters:**
+
+- `id` (path): Video ID
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Video updated successfully
+- **400**: Invalid video ID
+- **500**: Update failed
+
+### DELETE
+
+**Summary:** Delete a video
+
+**Parameters:**
+
+- `id` (path): Video ID
+
+**Responses:**
+
+- **200**: Video deleted successfully
+- **400**: Invalid video ID
+- **500**: Deletion failed
+
+## /videos/{id}/media-info
+
+### PUT
+
+**Summary:** Update video media information
+
+**Parameters:**
+
+- `id` (path): Video ID
+
+**Responses:**
+
+- **200**: Media info updated successfully
+- **400**: Invalid video ID
+- **500**: Media info update failed
+
+### GET
+
+**Summary:** Get formatted video information
+
+**Parameters:**
+
+- `id` (query): Video ID
+
+**Responses:**
+
+- **200**: Formatted video information
+- **400**: Invalid video ID
+- **500**: Media info retrieval failed
+
+## /watch-lists/update-state
+
+### POST
+
+**Summary:** Update watch state for a video
+
+**Request Body:** Available
+
+**Responses:**
+
+- **200**: Watch state updated successfully
+- **400**: Missing required parameters
+- **500**: Update failed
+

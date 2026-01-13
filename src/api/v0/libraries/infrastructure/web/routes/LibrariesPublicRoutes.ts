@@ -4,9 +4,12 @@ import { LibrariesController } from "../controllers/LibrariesController";
 
 const router = express.Router();
 
-router.get("/library", catchAsync(LibrariesController.getById));
+router.get("/libraries/:id", catchAsync(LibrariesController.getById));
 router.get("/libraries", catchAsync(LibrariesController.getAll));
-router.get("/library-content", catchAsync(LibrariesController.getContent));
-router.get("/library/scan", catchAsync(LibrariesController.startScan));
+router.get(
+  "/libraries/:id/content",
+  catchAsync(LibrariesController.getContent)
+);
+router.get("/libraries/:id/scan", catchAsync(LibrariesController.startScan));
 
 export default router;

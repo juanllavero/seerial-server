@@ -4,7 +4,14 @@ import { VideosController } from "../controllers/VideosController";
 
 const router = express.Router();
 
-router.put("/media-info", catchAsync(VideosController.updateMediaInfo));
+router.get(
+  "/videos/:id/media-info",
+  catchAsync(VideosController.updateMediaInfo)
+);
+router.put(
+  "/videos/:id/media-info",
+  catchAsync(VideosController.updateMediaInfo)
+);
 router.put("/videos/:id", catchAsync(VideosController.update));
 router.delete("/videos/:id", catchAsync(VideosController.delete));
 

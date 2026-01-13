@@ -4,7 +4,9 @@ import { SongsController } from "../controllers/SongsController";
 
 const router = express.Router();
 
-router.put("/song/:id", catchAsync(SongsController.update));
-router.delete("/song/:id", catchAsync(SongsController.delete));
+router.put("/songs/:id", catchAsync(SongsController.update));
+router.delete("/songs/:id", catchAsync(SongsController.delete));
+router.get("songs/:id/lyrics", catchAsync(SongsController.getSongsLyrics));
+router.post("/songs/lyrics", catchAsync(SongsController.addSongsLyrics));
 
 export default router;

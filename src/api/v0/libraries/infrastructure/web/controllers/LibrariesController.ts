@@ -59,14 +59,14 @@ export class LibrariesController {
 
   /**
    * @swagger
-   * /libraries:
+   * /libraries/{id}:
    *   get:
    *     summary: Get library by ID
    *     tags: [Libraries]
    *     security:
    *       - bearerAuth: []
    *     parameters:
-   *       - in: query
+   *       - in: path
    *         name: id
    *         required: true
    *         schema:
@@ -94,7 +94,7 @@ export class LibrariesController {
    */
   static async getById(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id } = req.query;
+      const { id } = req.params;
       if (typeof id !== "string")
         throw new ApiError(400, messages.errors.validation.missingId);
 
@@ -115,7 +115,7 @@ export class LibrariesController {
 
   /**
    * @swagger
-   * /libraries/content:
+   * /libraries/{id}/content:
    *   get:
    *     summary: Get library content
    *     tags: [Libraries]
@@ -169,7 +169,8 @@ export class LibrariesController {
    */
   static async getContent(req: Request, res: Response, next: NextFunction) {
     try {
-      const { libraryId, type, flat } = req.query;
+      const { id: libraryId } = req.params;
+      const { type, flat } = req.query;
       const userId = getUserId(req);
       if (typeof libraryId !== "string" || typeof type !== "string") {
         throw new ApiError(400, messages.errors.validation.invalidData);
@@ -197,7 +198,7 @@ export class LibrariesController {
 
   /**
    * @swagger
-   * /libraries/scan:
+   * /libraries/{id}/scan:
    *   post:
    *     summary: Start library scan
    *     tags: [Libraries]
@@ -224,11 +225,11 @@ export class LibrariesController {
    */
   static async startScan(req: Request, res: Response, next: NextFunction) {
     try {
-      const { libraryId } = req.body;
-      if (typeof libraryId !== "string")
+      const { id } = req.params;
+      if (typeof id !== "string")
         return next(new ApiError(400, messages.errors.validation.invalidData));
 
-      const library = await useCases.getLibrary().execute(libraryId);
+      const library = await useCases.getLibrary().execute(id);
 
       if (!library) {
         throw new ApiError(404, messages.errors.notFound.library);
@@ -247,7 +248,7 @@ export class LibrariesController {
 
   /**
    * @swagger
-   * /libraries/reorder:
+   * /libraries/order:
    *   put:
    *     summary: Reorder libraries
    *     tags: [Libraries]
@@ -299,7 +300,7 @@ export class LibrariesController {
 
   /**
    * @swagger
-   * /libraries/reorder-items:
+   * /libraries/{id}/order:
    *   put:
    *     summary: Reorder library items
    *     tags: [Libraries]
@@ -331,7 +332,8 @@ export class LibrariesController {
    */
   static async reorderItems(req: Request, res: Response, next: NextFunction) {
     try {
-      const { libraryId, orderedItems } = req.body;
+      const { id: libraryId } = req.params;
+      const { orderedItems } = req.body;
 
       if (!libraryId || !Array.isArray(orderedItems)) {
         throw new ApiError(400, messages.errors.validation.invalidData);

@@ -19,7 +19,7 @@ router.use(
 
 /**
  * @swagger
- * /images/uploadImage:
+ * /images:
  *   post:
  *     summary: Upload an image file
  *     tags: [Images]
@@ -62,7 +62,7 @@ router.use(
  *         description: Upload failed
  */
 router.post(
-  "/uploadImage",
+  "/images",
   upload,
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const destPath = req.body.destPath;
@@ -178,7 +178,7 @@ router.get(
 
 /**
  * @swagger
- * /images/image:
+ * /images/local:
  *   get:
  *     summary: Serve a resized and compressed local image
  *     tags: [Images]
@@ -217,7 +217,7 @@ router.get(
  *         description: Image processing failed
  */
 router.get(
-  "/image",
+  "/images/local",
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { path: imagePath, width, height } = req.query;
 
@@ -248,7 +248,7 @@ router.get(
 
 /**
  * @swagger
- * /images/compress-image:
+ * /images/compressed:
  *   get:
  *     summary: Download, compress, and serve an image from URL
  *     tags: [Images]
@@ -288,7 +288,7 @@ router.get(
  *         description: Image download or processing failed
  */
 router.get(
-  "/compress-image",
+  "/images/compressed",
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { url, width, height } = req.query;
 
@@ -309,7 +309,7 @@ router.get(
 
 /**
  * @swagger
- * /images/image-colors:
+ * /images/colors:
  *   get:
  *     summary: Extract color palette from an image
  *     tags: [Images]
@@ -375,7 +375,7 @@ router.get(
  *         description: Image processing failed
  */
 router.get(
-  "/image-colors",
+  "/images/colors",
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { url, localPath, minLight, maxLight, sat } = req.query;
 
@@ -406,7 +406,7 @@ router.get(
 
 /**
  * @swagger
- * /images/transparent-image-effect:
+ * /images/effects/transparent:
  *   get:
  *     summary: Apply transparent fade effect to an image
  *     tags: [Images]
@@ -452,7 +452,7 @@ router.get(
  *         description: Image processing failed
  */
 router.get(
-  "/transparent-image-effect",
+  "/images/effects/transparent",
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { url, localPath, width, height } = req.query;
 

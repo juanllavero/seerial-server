@@ -5,11 +5,14 @@ import { MoviesController } from "../controllers/MoviesController";
 const router = express.Router();
 
 router.post(
-  "/refreshMovieMetadata",
+  "/movies/:id/metadata",
   catchAsync(MoviesController.refreshMovieMetadata)
 );
-router.post("/movieId", catchAsync(MoviesController.changeIdentification));
-router.put("/movie/:id", catchAsync(MoviesController.update));
-router.delete("/movie/:id", catchAsync(MoviesController.delete));
+router.post(
+  "/movies/:id/identification",
+  catchAsync(MoviesController.changeIdentification)
+);
+router.put("/movies/:id", catchAsync(MoviesController.update));
+router.delete("/movies/:id", catchAsync(MoviesController.delete));
 
 export default router;

@@ -52,7 +52,7 @@ export class CollectionsController {
 
   /**
    * @swagger
-   * /collections/reorder-content:
+   * /collections/{id}/items/order:
    *   put:
    *     summary: Reorder items in a collection
    *     tags: [Collections]
@@ -99,7 +99,8 @@ export class CollectionsController {
    *         description: Reorder operation failed
    */
   static async reorderContent(req: Request, res: Response, next: NextFunction) {
-    const { collectionId, orderedItems } = req.body;
+    const { id: collectionId } = req.params;
+    const { orderedItems } = req.body;
 
     if (!collectionId || !Array.isArray(orderedItems)) {
       return next(new ApiError(400, messages.errors.validation.invalidData));

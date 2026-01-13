@@ -8,7 +8,7 @@ const router = Router();
 
 /**
  * @swagger
- * /api-key:
+ * /configuration/api-key:
  *   post:
  *     summary: Set and validate TMDB API key
  *     tags: [API Configuration]
@@ -53,7 +53,7 @@ const router = Router();
  *         description: Server error during API key validation
  */
 router.post(
-  "/api-key",
+  "/configuration/api-key",
   catchAsync(async (req: Request, res: Response, _next: NextFunction) => {
     const { apiKey } = req.body;
 

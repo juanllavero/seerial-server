@@ -5,7 +5,7 @@ import { NextFunction, Request, Response } from "express";
 export class MyListController {
   /**
    * @swagger
-   * /my-lists/movies:
+   * /user/lists/movies:
    *   get:
    *     summary: Get movies from user's personal list
    *     tags: [My Lists]
@@ -55,7 +55,7 @@ export class MyListController {
 
   /**
    * @swagger
-   * /my-lists/series:
+   * /user/lists/series:
    *   get:
    *     summary: Get series from user's personal list
    *     tags: [My Lists]

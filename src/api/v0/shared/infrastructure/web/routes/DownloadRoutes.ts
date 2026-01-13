@@ -11,7 +11,7 @@ const router = Router();
 
 /**
  * @swagger
- * /downloads/downloadVideo:
+ * /downloads/video:
  *   post:
  *     summary: Download a video from URL
  *     tags: [Downloads]
@@ -55,7 +55,7 @@ const router = Router();
  *         description: Download failed
  */
 router.post(
-  "/downloadVideo",
+  "/downloads/video",
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { url, downloadFolder, fileName } = req.body;
 
@@ -73,7 +73,7 @@ router.post(
 
 /**
  * @swagger
- * /downloads/downloadMusic:
+ * /downloads/music:
  *   post:
  *     summary: Download audio/music from URL
  *     tags: [Downloads]
@@ -117,7 +117,7 @@ router.post(
  *         description: Download failed
  */
 router.post(
-  "/downloadMusic",
+  "/downloads/music",
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     const { url, downloadFolder, fileName } = req.body;
 
@@ -135,7 +135,7 @@ router.post(
 
 /**
  * @swagger
- * /downloads/downloadImage:
+ * /downloads/image:
  *   post:
  *     summary: Download an image from URL
  *     tags: [Downloads]
@@ -179,7 +179,7 @@ router.post(
  *         description: Download failed
  */
 router.post(
-  "/downloadImage",
+  "/downloads/image",
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
     let { url, downloadFolder, fileName } = req.body;
 

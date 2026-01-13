@@ -5,7 +5,7 @@ import { CollectionsController } from "../controllers/CollectionsController";
 const router = express.Router();
 
 router.post(
-  "/collections/reorder-content",
+  "/collections/:id/items/order",
   catchAsync(CollectionsController.reorderContent)
 );
 router.put("/collection/:id", catchAsync(CollectionsController.update));
