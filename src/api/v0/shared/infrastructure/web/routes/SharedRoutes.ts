@@ -8,6 +8,41 @@ import { NextFunction, Request, Response, Router } from "express";
 
 const router = Router();
 
+/**
+ * @swagger
+ * /details/{type}:
+ *   get:
+ *     summary: Get media details by type and ID
+ *     tags: [Media Details]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: type
+ *         required: true
+ *         schema:
+ *           type: string
+ *           enum: [movie, series, season, episode]
+ *         description: Type of media
+ *       - in: query
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Media ID
+ *     responses:
+ *       200:
+ *         description: Media details retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               description: Media details object
+ *       400:
+ *         description: Missing required parameters
+ *       500:
+ *         description: Media details retrieval failed
+ */
 router.get(
   "/details/:type",
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {

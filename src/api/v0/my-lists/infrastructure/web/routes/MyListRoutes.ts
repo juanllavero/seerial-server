@@ -7,13 +7,6 @@ import { MyListController } from "../controllers/MyListController";
 
 const router = express.Router();
 
-const isSeriesInMyList = useCases.isSeriesInMyList();
-const isMovieInMyList = useCases.isMovieInMyList();
-const addSeriesToMyList = useCases.addSeriesToMyList();
-const removeSeriesFromMyList = useCases.removeSeriesFromMyList();
-const addMovieToMyList = useCases.addMovieToMyList();
-const removeMovieFromMyList = useCases.removeMovieFromMyList();
-
 router.get("/my-list/series", catchAsync(MyListController.getMyListSeries));
 router.get("/my-list/movies", catchAsync(MyListController.getMyListMovies));
 
@@ -29,10 +22,10 @@ router.post(
       );
     }
 
-    if (await isSeriesInMyList.execute(seriesId, userId)) {
-      await removeSeriesFromMyList.execute(seriesId, userId);
+    if (await useCases.isSeriesInMyList().execute(seriesId, userId)) {
+      await useCases.removeSeriesFromMyList().execute(seriesId, userId);
     } else {
-      await addSeriesToMyList.execute(seriesId, userId);
+      await useCases.addSeriesToMyList().execute(seriesId, userId);
     }
 
     return res.status(200).json({ message: messages.success.update });
@@ -51,10 +44,10 @@ router.post(
       );
     }
 
-    if (await isMovieInMyList.execute(movieId, userId)) {
-      await removeMovieFromMyList.execute(movieId, userId);
+    if (await useCases.isMovieInMyList().execute(movieId, userId)) {
+      await useCases.removeMovieFromMyList().execute(movieId, userId);
     } else {
-      await addMovieToMyList.execute(movieId, userId);
+      await useCases.addMovieToMyList().execute(movieId, userId);
     }
 
     return res.status(200).json({ message: messages.success.update });

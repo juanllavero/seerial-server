@@ -1,4 +1,4 @@
-import { Album } from "../../domain/Album";
+import { Album } from "@/api/v0/albums/domain/Album";
 
 export interface AlbumRepositoryPort {
   findAllByLibrary(libraryId: string): Promise<Album[]>;

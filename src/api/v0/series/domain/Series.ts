@@ -1,6 +1,6 @@
 import { Cast } from "moviedb-promise";
 import { Season } from "../../seasons/domain/Season";
-import { WatchList } from "../../watch-lists/infrastructure/persistence/models/WatchListModel";
+import { WatchList } from "../../watch-lists/domain/WatchList";
 
 export interface Series {
   id: string;

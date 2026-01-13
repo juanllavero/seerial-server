@@ -1,6 +1,6 @@
 import { Cast } from "@/data/interfaces/Media";
 import { Video } from "../../videos/domain/Video";
-import { WatchList } from "../../watch-lists/infrastructure/persistence/models/WatchListModel";
+import { WatchList } from "../../watch-lists/domain/WatchList";
 
 export interface Movie {
   id: string;

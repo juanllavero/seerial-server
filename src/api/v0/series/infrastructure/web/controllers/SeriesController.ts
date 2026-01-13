@@ -1,14 +1,14 @@
+import {
+  seriesRepo,
+  useCases,
+} from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import { NextFunction, Request, Response } from "express";
 import { DeleteSeriesUseCase } from "../../../application/usecases/DeleteSeriesUseCase";
-import { RefreshMetadataUseCase } from "../../../application/usecases/RefreshMetadataUseCase";
 import { UpdateEpisodeGroupUseCase } from "../../../application/usecases/UpdateEpisodeGroupUseCase";
 import { UpdateSeriesUseCase } from "../../../application/usecases/UpdateSeriesUseCase";
 import { UpdateShowIdUseCase } from "../../../application/usecases/UpdateShowIdUseCase";
-import { SeriesRepositoryImpl } from "../../persistence/repositories/SeriesRepositoryImpl";
-
-const seriesRepo = new SeriesRepositoryImpl();
 
 export class SeriesController {
   static async refreshMetadata(
@@ -25,7 +25,7 @@ export class SeriesController {
         );
       }
 
-      const useCase = new RefreshMetadataUseCase();
+      const useCase = useCases.refreshMetadata();
       useCase.execute(id);
       res.status(200).json({
         status: "success",

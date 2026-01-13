@@ -25,7 +25,7 @@ export class ServersRepositoryImpl
         const existingServer = await ServerModel.findByPk(server.id);
         if (existingServer) {
           console.log(`Server with ID ${server.id} already exists`);
-          return existingServer;
+          return existingServer.toJSON();
         }
       }
 

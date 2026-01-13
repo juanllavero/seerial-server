@@ -18,14 +18,6 @@ import { Video } from "@/api/v0/videos/domain/Video";
 export class MetadataManager {
   static BASE_URL: string = "https://image.tmdb.org/t/p/original";
 
-  private static readonly updateSeries = useCases.updateSeries();
-  private static readonly updateMovie = useCases.updateMovie();
-  private static readonly updateVideo = useCases.updateVideo();
-  private static readonly updateCollection = useCases.updateCollection();
-  private static readonly updateLibrary = useCases.updateLibrary();
-  private static readonly updateSeason = useCases.updateSeason();
-  private static readonly updateEpisode = useCases.updateEpisode();
-
   //#region SERIES METADATA
   /**
    * Updates the metadata of a series using data from TMDb.
@@ -70,7 +62,7 @@ export class MetadataManager {
     // Download logos and posters
     await this.downloadSeriesImages(series);
 
-    await this.updateSeries.execute(series.id, series);
+    await useCases.updateSeries().execute(series.id, series);
     return series;
   }
 
@@ -157,7 +149,7 @@ export class MetadataManager {
           season.backgroundSrc = s.backgroundSrc;
           season.backgroundsUrls = s.backgroundsUrls;
 
-          await this.updateSeason.execute(season.id, season);
+          await useCases.updateSeason().execute(season.id, season);
           return season;
         }
       }
@@ -173,7 +165,7 @@ export class MetadataManager {
         );
         season.backgroundSrc = season.backgroundsUrls[0];
       }
-      await this.updateSeason.execute(season.id, season);
+      await useCases.updateSeason().execute(season.id, season);
     } catch (error) {
       console.error(
         `Error updating backgrounds for season ${season.id}:`,
@@ -235,8 +227,8 @@ export class MetadataManager {
       ? `${this.BASE_URL}${episodeMetadata.still_path}`
       : "";
 
-    await this.updateEpisode.execute(episode.id, episode);
-    await this.updateVideo.execute(video.id, video);
+    await useCases.updateEpisode().execute(episode.id, episode);
+    await useCases.updateVideo().execute(video.id, video);
   }
   //#endregion
 
@@ -284,9 +276,9 @@ export class MetadataManager {
     // Download images (logos, backgrounds and posters)
     await this.downloadMovieImages(movie, collection);
 
-    await this.updateMovie.execute(movie.id, movie);
+    await useCases.updateMovie().execute(movie.id, movie);
     if (collection) {
-      await this.updateCollection.execute(collection.id, collection);
+      await useCases.updateCollection().execute(collection.id, collection);
     }
   }
 
@@ -403,7 +395,7 @@ export class MetadataManager {
         video.imgSrc = "resources/img/Default_video_thumbnail.jpg";
       }
 
-      await this.updateVideo.execute(video.id, video);
+      await useCases.updateVideo().execute(video.id, video);
     } catch (error) {
       console.error(
         `Error actualizando miniaturas para el video ${video.id}:`,
@@ -488,11 +480,11 @@ export class MetadataManager {
             collection.coverSrc = movie.coversUrls[0];
           }
 
-          await this.updateCollection.execute(collection.id, collection);
+          await useCases.updateCollection().execute(collection.id, collection);
         }
       }
 
-      await this.updateMovie.execute(movie.id, movie);
+      await useCases.updateMovie().execute(movie.id, movie);
     } catch (error) {
       console.error(
         `Error descargando imágenes para la película ${movie.id}:`,

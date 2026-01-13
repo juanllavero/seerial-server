@@ -9,30 +9,13 @@ import { existsSync } from "fs-extra";
 import * as path from "path";
 import { parse } from "path";
 
-const getLibraryById = useCases.getLibrary();
-const deleteLibrary = useCases.deleteLibrary();
-const getEpisodeByPath = useCases.getEpisodeByPath();
-const deleteEpisode = useCases.deleteEpisode();
-
-const getSeriesById = useCases.getSeriesById();
-const deleteSeason = useCases.deleteSeason();
-const getSeasonById = useCases.getSeasonById();
-const deleteSeries = useCases.deleteSeries();
-const deleteMovie = useCases.deleteMovie();
-const deleteSong = useCases.deleteSong();
-const getAlbumById = useCases.getAlbumById();
-const deleteAlbum = useCases.deleteAlbum();
-const getMovieByPath = useCases.getMovieByPath();
-const getSongByPath = useCases.getSongByPath();
-const getSongsByAlbum = useCases.getSongsByAlbum();
-
 /**
  * Delete removed files from library
  * @param libraryId Library ID
  * @returns
  */
 export async function clearLibrary(libraryId: string) {
-  const library = await getLibraryById.execute(libraryId);
+  const library = await useCases.getLibrary().execute(libraryId);
 
   if (
     !library ||
@@ -84,46 +67,46 @@ export async function clearLibrary(libraryId: string) {
 
     if (!fileExists) {
       if (type === "Shows") {
-        const episode = await getEpisodeByPath.execute(filePath);
+        const episode = await useCases.getEpisodeByPath().execute(filePath);
 
         if (!episode) continue;
 
         const seasonId = episode.seasonId;
-        await deleteEpisode.execute(episode.id);
+        await useCases.deleteEpisode().execute(episode.id);
 
-        const season = await getSeasonById.execute(seasonId);
+        const season = await useCases.getSeasonById().execute(seasonId);
 
         if (!season || (season.episodes && season.episodes.length > 0))
           continue;
 
         const seriesId = season.seriesId;
-        await deleteSeason.execute(seasonId);
+        await useCases.deleteSeason().execute(seasonId);
 
-        const series = await getSeriesById.execute(seriesId);
+        const series = await useCases.getSeriesById().execute(seriesId);
 
         if (!series || (series.seasons && series.seasons.length > 0)) continue;
-        await deleteSeries.execute(seriesId);
+        await useCases.deleteSeries().execute(seriesId);
       } else if (type === "Movies") {
-        const movie = await getMovieByPath.execute(filePath);
+        const movie = await useCases.getMovieByPath().execute(filePath);
 
         if (!movie) continue;
 
-        await deleteMovie.execute(movie.id);
+        await useCases.deleteMovie().execute(movie.id);
       } else {
-        const song = await getSongByPath.execute(filePath);
+        const song = await useCases.getSongByPath().execute(filePath);
 
         if (!song) continue;
 
         const albumId = song.albumId;
-        await deleteSong.execute(song.id ?? "");
+        await useCases.deleteSong().execute(song.id ?? "");
 
-        const album = await getAlbumById.execute(albumId);
+        const album = await useCases.getAlbumById().execute(albumId);
 
-        const songs = await getSongsByAlbum.execute(albumId);
+        const songs = await useCases.getSongsByAlbum().execute(albumId);
 
         if (!album || songs.length > 0) continue;
 
-        await deleteAlbum.execute(albumId);
+        await useCases.deleteAlbum().execute(albumId);
       }
     }
   }
@@ -133,7 +116,7 @@ export async function clearLibrary(libraryId: string) {
     (type === "Movies" && library.movies && library.movies.length === 0) ||
     (type === "Music" && library.albums && library.albums.length === 0)
   ) {
-    await deleteLibrary.execute(libraryId);
+    await useCases.deleteLibrary().execute(libraryId);
   }
 
   // Update library in client

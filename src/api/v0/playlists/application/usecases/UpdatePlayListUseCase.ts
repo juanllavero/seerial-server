@@ -1,5 +1,5 @@
-import { Album } from "../../domain/Album";
-import { AlbumRepositoryPort } from "../ports/AlbumRepositoryPort";
+import { Album } from "@/api/v0/albums/domain/Album";
+import { AlbumRepositoryPort } from "../ports/PlayListRepositoryPort";
 
 export class UpdateAlbumUseCase {
   constructor(private albumRepo: AlbumRepositoryPort) {}

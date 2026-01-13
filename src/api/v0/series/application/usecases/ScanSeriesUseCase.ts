@@ -18,21 +18,6 @@ import { Episode as EpisodeLocal } from "../../../episodes/domain/Episode";
 import { Series } from "../../domain/Series";
 
 export class ScanSeriesUseCase {
-  private readonly getSeriesById = useCases.getSeriesById();
-  private readonly addSeries = useCases.createSeries();
-  private readonly addAnalyzedFile = useCases.addAnalyzedFile();
-  private readonly addAnalyzedFolder = useCases.addAnalyzedFolder();
-  private readonly getVideoByEpisodeId = useCases.getVideoByEpisodeId();
-  private readonly addVideoAsEpisode = useCases.addVideoAsEpisode();
-  private readonly addSeason = useCases.createSeason();
-  private readonly getSeasons = useCases.getSeasons();
-  private readonly deleteSeries = useCases.deleteSeries();
-  private readonly updateSeries = useCases.updateSeries();
-  private readonly updateSeason = useCases.updateSeason();
-  private readonly addEpisode = useCases.createEpisode();
-  private readonly getEpisodesBySeasonId = useCases.getEpisodesBySeasonId();
-  private readonly getEpisodeByPath = useCases.getEpisodeByPath();
-
   constructor(
     private readonly fileSystemService: FileSystemServicePort,
     private readonly metadataProvider: MetadataProviderPort
@@ -48,19 +33,19 @@ export class ScanSeriesUseCase {
     let exists: boolean = false;
 
     if (root in library.analyzedFolders) {
-      show = await this.getSeriesById.execute(
-        library.analyzedFolders[root] ?? ""
-      );
+      show = await useCases
+        .getSeriesById()
+        .execute(library.analyzedFolders[root] ?? "");
       if (show !== null) exists = true;
     }
 
     if (show === null) {
-      show = await this.addSeries.execute({
+      show = await useCases.createSeries().execute({
         folder: root,
         libraryId: library.id,
       });
       if (!show) return;
-      await this.addAnalyzedFolder.execute(library.id, root, show.id);
+      await useCases.addAnalyzedFolder().execute(library.id, root, show.id);
     }
 
     // Search for themdbId
@@ -88,7 +73,7 @@ export class ScanSeriesUseCase {
     await MetadataManager.updateSeriesMetadata(show, library.language);
 
     show.analyzingFiles = true;
-    await this.updateSeries.execute(show.id, show);
+    await useCases.updateSeries().execute(show.id, show);
 
     notificationService.mutateSeries(show);
 
@@ -124,14 +109,14 @@ export class ScanSeriesUseCase {
       episodesGroup
     );
 
-    const seasons = await this.getSeasons.execute(show.id);
+    const seasons = await useCases.getSeasons().execute(show.id);
     if (!seasons || seasons.length < 1) {
-      await this.deleteSeries.execute(show.id);
+      await useCases.deleteSeries().execute(show.id);
       return;
     }
 
     show.analyzingFiles = false;
-    await this.updateSeries.execute(show.id, show);
+    await useCases.updateSeries().execute(show.id, show);
 
     notificationService.mutateSeries(show);
   }
@@ -150,7 +135,7 @@ export class ScanSeriesUseCase {
     for (const videoFile of videoFiles) {
       if (
         !library.analyzedFiles[videoFile] ||
-        !(await this.getEpisodeByPath.execute(videoFile))
+        !(await useCases.getEpisodeByPath().execute(videoFile))
       ) {
         await this.processEpisode(
           library,
@@ -164,7 +149,7 @@ export class ScanSeriesUseCase {
       }
     }
 
-    const seasons = await this.getSeasons.execute(show.id);
+    const seasons = await useCases.getSeasons().execute(show.id);
     if (!seasons) return;
 
     // Rename seasons after episodes group
@@ -175,14 +160,14 @@ export class ScanSeriesUseCase {
         );
         if (group) {
           season.name = group.name ?? season.name;
-          await this.updateSeason.execute(season.id, season);
+          await useCases.updateSeason().execute(season.id, season);
         }
       }
     } else if (seasons.length > 1 && seasons[0].name === seasons[1].name) {
       for (const season of seasons) {
         if (season.seasonNumber !== 0) {
           season.name = `Season ${season.seasonNumber}`;
-          await this.updateSeason.execute(season.id, season);
+          await useCases.updateSeason().execute(season.id, season);
         }
       }
     }
@@ -234,9 +219,9 @@ export class ScanSeriesUseCase {
     if (!episode) return;
 
     // Ensure video in DB
-    let video = await this.getVideoByEpisodeId.execute(episode.id);
+    let video = await useCases.getVideoByEpisodeId().execute(episode.id);
     if (!video) {
-      video = await this.addVideoAsEpisode.execute(episode.id, {
+      video = await useCases.addVideoAsEpisode().execute(episode.id, {
         fileSrc: videoSrc,
       });
       if (!video) return;
@@ -260,7 +245,7 @@ export class ScanSeriesUseCase {
     realSeason?: number,
     realEpisode?: number
   ): Promise<Season | null> {
-    const seasons = await this.getSeasons.execute(show.id);
+    const seasons = await useCases.getSeasons().execute(show.id);
     let season: Season | null =
       seasons?.find((s: Season) =>
         realEpisode !== -1 && realSeason
@@ -270,7 +255,7 @@ export class ScanSeriesUseCase {
 
     if (season) return season;
 
-    season = await this.addSeason.execute({
+    season = await useCases.createSeason().execute({
       seriesId: show.id,
       name: seasonMetadata.name ?? "",
       year: seasonMetadata.episodes?.[0]?.air_date ?? "",
@@ -287,7 +272,7 @@ export class ScanSeriesUseCase {
     await MetadataManager.updateSeasonMetadata(season, show);
 
     if (season.seasonNumber === 0) season.order = 100;
-    await this.updateSeason.execute(season.id, season);
+    await useCases.updateSeason().execute(season.id, season);
 
     notificationService.mutateSeries(show);
     return season;
@@ -301,7 +286,7 @@ export class ScanSeriesUseCase {
     library: Library,
     videoSrc: string
   ): Promise<EpisodeLocal | null> {
-    const episodes = await this.getEpisodesBySeasonId.execute(season.id);
+    const episodes = await useCases.getEpisodesBySeasonId().execute(season.id);
 
     let episode: EpisodeLocal | null =
       episodes?.find((ep) =>
@@ -313,7 +298,7 @@ export class ScanSeriesUseCase {
     if (episode) return episode;
 
     // Create episode if not exists
-    episode = await this.addEpisode.execute({
+    episode = await useCases.createEpisode().execute({
       seasonId: season.id,
       seasonNumber: season.seasonNumber,
       name: episodeMetadata.name ?? "",
@@ -331,7 +316,7 @@ export class ScanSeriesUseCase {
     if (!episode) return null;
 
     // Save file in library log
-    await this.addAnalyzedFile.execute(library.id, videoSrc, episode.id);
+    await useCases.addAnalyzedFile().execute(library.id, videoSrc, episode.id);
 
     return episode;
   }

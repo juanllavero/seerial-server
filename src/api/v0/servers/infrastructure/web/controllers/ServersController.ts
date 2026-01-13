@@ -1,12 +1,10 @@
+import { serversRepo } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import { NextFunction, Request, Response } from "express";
 import { CreateServerUseCase } from "../../../application/usecases/CreateServerUseCase";
 import { GetServerUseCase } from "../../../application/usecases/GetServerUseCase";
 import { UpdateServerUseCase } from "../../../application/usecases/UpdateServerUseCase";
-import { ServersRepositoryImpl } from "../../persistence/repositories/ServersRepositoryImpl";
-
-const serversRepo = new ServersRepositoryImpl();
 
 export class ServersController {
   static async getServerConfig(

@@ -7,41 +7,32 @@ import {
 import { getFileName } from "@/utils/utils";
 
 export class ScanSongsUseCase {
-  private readonly processSongFile = useCases.processSongFile();
-  private readonly getAlbums = useCases.getAlbums();
-  private readonly addCollection = useCases.addCollection();
-  private readonly addLibraryToCollection = useCases.addLibraryToCollection();
-
   constructor(private readonly fileSystemService: FileSystemServicePort) {}
 
   async execute(library: Library, root: string): Promise<void> {
     if (!(await this.fileSystemService.isFolder(root))) return;
 
     // Add collection or retrieve existing one
-    const collection = await this.addCollection.execute({
+    const collection = await useCases.addCollection().execute({
       title: getFileName(root),
     });
 
     if (!collection) return;
-    await this.addLibraryToCollection.execute(library.id, collection.id);
+    await useCases.addLibraryToCollection().execute(library.id, collection.id);
 
     // Get music files inside folder (4 folders of depth)
     const musicFiles = await this.fileSystemService.getValidMusicFiles(root);
 
     // Cache albums to avoid heap overflow
-    const allAlbums = (await this.getAlbums.execute(library.id)) || [];
+    const allAlbums = (await useCases.getAlbums().execute(library.id)) || [];
     const albumMap = new Map(allAlbums.map((album) => [album.title, album]));
 
     //Process each file
     for (const file of musicFiles) {
       if (!library.analyzedFiles[file]) {
-        await this.processSongFile.execute(
-          root,
-          library,
-          file,
-          collection,
-          albumMap
-        );
+        await useCases
+          .processSongFile()
+          .execute(root, library, file, collection, albumMap);
       }
     }
 

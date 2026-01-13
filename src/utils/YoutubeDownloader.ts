@@ -9,11 +9,19 @@ import {
 } from "fs";
 import path from "path";
 
-const binDir = fileSystemService.getExternalPath(path.join("resources", "lib"));
-export const ytDlpPath = path.join(
-  binDir,
-  process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp"
-);
+const getBinDir = (): string => {
+  return fileSystemService.getExternalPath(path.join("resources", "lib"));
+};
+
+export const getYtDlpPath = (): string => {
+  const binDir = fileSystemService.getExternalPath(
+    path.join("resources", "lib")
+  );
+  return path.join(
+    binDir,
+    process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp"
+  );
+};
 
 function getDownloadURL(): string {
   if (process.platform === "win32")
@@ -27,6 +35,9 @@ function getDownloadURL(): string {
  * Downloads yt-dlp and assigns execution permissions on macOS/Linux
  */
 export async function downloadYtDlp(): Promise<void> {
+  const binDir = getBinDir();
+  const ytDlpPath = getYtDlpPath();
+
   if (existsSync(ytDlpPath)) {
     console.log("[DepCheck]: yt-dlp is already in:", ytDlpPath);
     return;

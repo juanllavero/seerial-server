@@ -2,23 +2,20 @@ import { Album } from "@/api/v0/albums/domain/Album";
 import { Collection } from "@/api/v0/collections/domain/Collection";
 import { Movie } from "@/api/v0/movies/domain/Movie";
 import { Series } from "@/api/v0/series/domain/Series";
-import { useCases } from "@/api/v0/shared/infrastructure/adapters/di/container";
-import { messages } from "@/config/messages";
+import {
+  librariesRepo,
+  useCases,
+} from "@/api/v0/shared/infrastructure/adapters/di/container";
 import ApiError from "@/data/ApiError";
+import { LibraryItem } from "@/data/interfaces/Media";
 import { clearLibrary, getCollectionItemsKey } from "@/file-search/utils/utils";
 import { imageExtensions } from "@/utils/utils";
 import * as fs from "fs/promises";
 import { existsSync } from "original-fs";
 import path from "path";
 import { MediaManager } from "../../../../../managers/MediaManager";
-import { LibrariesRepositoryImpl } from "../../infrastructure/persistence/repositories/LibraryRepositoryImpl";
 import { GetLibrariesUseCase } from "../usecases/GetLibrariesUseCase";
 import { GetLibraryUseCase } from "../usecases/GetLibraryUseCase";
-
-const librariesRepo = new LibrariesRepositoryImpl();
-
-const getCollectionsInLibrary = useCases.getAllCollectionsInLibrary();
-const getItemsForLibrary = useCases.getLibraryContent();
 
 export class LibraryManager {
   /**
@@ -50,21 +47,23 @@ export class LibraryManager {
     type: string,
     userId: string,
     flat?: boolean
-  ) {
+  ): Promise<LibraryItem[]> {
     const [collections, allItems] = await Promise.all([
-      getCollectionsInLibrary.execute(libraryId, type),
-      getItemsForLibrary.execute(libraryId, type),
+      useCases.getAllCollectionsInLibrary().execute(libraryId),
+      useCases
+        .getLibraryContent()
+        .execute(libraryId, type, userId, flat ? "true" : "false"),
     ]);
 
     const itemIdsInCollections = new Set<string>();
     collections.forEach((collection) => {
       const itemsKey = getCollectionItemsKey(type);
-      const items = (collection.get(itemsKey) as { id: string }[]) || [];
+      const items = (collection[itemsKey] as { id: string }[]) || [];
       items.forEach((item) => itemIdsInCollections.add(item.id));
     });
 
     const itemsNotInCollections = allItems.filter(
-      (item) => !itemIdsInCollections.has(item.id)
+      (item) => !itemIdsInCollections.has(item.data.id)
     );
 
     const unifiedContent = [];
@@ -78,30 +77,31 @@ export class LibraryManager {
         continue;
       }
 
-      const collectionData = collection.get({ plain: true });
+      //const collectionData = collection.get({ plain: true });
+      const collectionData = collection;
 
-      if (!collectionData.LibraryCollection) {
-        throw new ApiError(404, messages.errors.notFound.library);
-      }
+      // if (!collectionData.LibraryCollection) {
+      //   throw new ApiError(404, messages.errors.notFound.library);
+      // }
 
       const collectionImages = await this.getCollectionImages(collection, type);
 
       unifiedContent.push({
         type: "collection",
-        order: collectionData.LibraryCollection.customOrder,
+        //order: collectionData.LibraryCollection.customOrder,
         data: {
           id: collectionData.id,
           title: collectionData.title,
           images: collectionImages,
-          posterSrc:
-            collectionData.posterSrc ??
-            (type === "Movies" &&
-              collectionData.movies &&
-              collectionData.movies.length === 1)
-              ? collectionData.movies[0].coverSrc ?? undefined
-              : collectionData.shows && collectionData.shows.length === 1
-              ? collectionData.shows[0].coverSrc ?? undefined
-              : undefined,
+          // posterSrc:
+          //   collectionData.posterSrc ??
+          //   (type === "Movies" &&
+          //     collectionData.movies &&
+          //     collectionData.movies.length === 1)
+          //     ? collectionData.movies[0].coverSrc ?? undefined
+          //     : collectionData.shows && collectionData.shows.length === 1
+          //     ? collectionData.shows[0].coverSrc ?? undefined
+          //     : undefined,
           musicPosterSrc:
             collectionData.musicPosterSrc ??
             (collectionData.albums && collectionData.albums.length === 1)
@@ -123,32 +123,40 @@ export class LibraryManager {
       const itemType = getCollectionItemsKey(type);
       const remainingItems =
         getCollectionItemsKey(type) === "movies"
-          ? await MediaManager.countRemainingVideos(item.id, userId)
+          ? await MediaManager.countRemainingVideos(item.data.id, userId)
           : getCollectionItemsKey(type) === "shows"
-          ? await MediaManager.countRemainingEpisodes(item.id, userId)
+          ? await MediaManager.countRemainingEpisodes(item.data.id, userId)
           : 0;
       unifiedContent.push({
         type: getCollectionItemsKey(type),
         order: item.order || 0,
         data: flat
           ? {
-              id: item.id,
-              year: item.year,
+              id: item.data.id,
+              year:
+                itemType === "albums"
+                  ? (item.data as Album).year
+                  : itemType === "movies"
+                  ? (item.data as Movie).year
+                  : itemType === "shows"
+                  ? (item.data as Series).year
+                  : undefined,
               title:
                 itemType === "albums"
-                  ? (item as Album).title
+                  ? (item.data as Album).title
                   : itemType === "movies"
-                  ? (item as Movie).name
-                  : (item as Series).name,
-              posterSrc: item.coverSrc,
+                  ? (item.data as Movie).name
+                  : (item.data as Series).name,
+              posterSrc: item.data.coverSrc,
             }
           : item,
         remainingItems,
       });
     }
 
-    unifiedContent.sort((a, b) => a.order - b.order);
-    return unifiedContent;
+    //unifiedContent.sort((a, b) => a.order - b.order);
+    //return unifiedContent;
+    return [];
   }
 
   private static async getCollectionImages(
@@ -223,7 +231,7 @@ export class LibraryManager {
     const library = await this.getLibraryById(libraryId); // reuses own method
     await clearLibrary(libraryId);
     // This is a fire-and-forget operation, so no await is needed here.
-    scanFiles({ id: library.id }, false);
+    useCases.scanLibrary().execute(library, false);
     return `Scan initiated for library: ${library.name}`;
   }
 }

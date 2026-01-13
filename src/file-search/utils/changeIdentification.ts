@@ -3,37 +3,24 @@ import {
   useCases,
 } from "@/api/v0/shared/infrastructure/adapters/di/container";
 
-const getLibraryById = useCases.getLibrary();
-const getSeriesById = useCases.getSeriesById();
-const deleteSeriesData = useCases.deleteSeries();
-const scanTVShow = useCases.scanSeries();
-const getMovieById = useCases.getMoviebyId();
-const deleteMovieData = useCases.deleteMovie();
-const scanMovie = useCases.scanMovie();
-const getVideoByMovieId = useCases.getVideoByMovieId();
-const deleteVideo = useCases.deleteVideo();
-const updateSeries = useCases.updateSeries();
-const updateMovie = useCases.updateMovie();
-const addAnalyzedFolder = useCases.addAnalyzedFolder();
-
 export async function changeIdentificationShow(
   showId: string,
   newTheMovieDBID: number,
   newepisodeGroupId?: string
 ) {
-  const show = await getSeriesById.execute(showId);
+  const show = await useCases.getSeriesById().execute(showId);
 
   if (!show) return;
 
   // Delete previous data
-  await deleteSeriesData.execute(show.id);
+  await useCases.deleteSeriesData().execute(show.id);
 
-  const library = await getLibraryById.execute(show.libraryId);
+  const library = await useCases.getLibrary().execute(show.libraryId);
 
   if (!library) return;
 
   // Restore folder stored in library
-  await addAnalyzedFolder.execute(library.id, show.folder, show.id);
+  await useCases.addAnalyzedFolder().execute(library.id, show.folder, show.id);
 
   // Clear season list
   show.seasons = [];
@@ -50,40 +37,42 @@ export async function changeIdentificationShow(
   show.analyzingFiles = true;
 
   // Save changes in DB
-  updateSeries.execute(show.id, show);
+  useCases.updateSeries().execute(show.id, show);
 
   notificationService.mutateSeries(show);
   notificationService.mutateSeason();
   notificationService.mutateLibrary(library.id);
 
   // Get new data
-  await scanTVShow.execute(library, show.folder);
+  await useCases.scanSeries().execute(library, show.folder);
 }
 
 export async function changeIdentificationMovie(
   movieId: string,
   newTheMovieDBID: number
 ) {
-  const movie = await getMovieById.execute(movieId);
+  const movie = await useCases.getMoviebyId().execute(movieId);
 
   if (!movie) return;
 
   // Delete previous data
-  await deleteMovieData.execute(movie.id);
+  await useCases.deleteMovieData().execute(movie.id);
 
-  const library = await getLibraryById.execute(movie.libraryId);
+  const library = await useCases.getLibrary().execute(movie.libraryId);
 
   if (!library) return;
 
   // Restore folder in library
-  await addAnalyzedFolder.execute(library.id, movie.folder, movie.id);
+  await useCases
+    .addAnalyzedFolder()
+    .execute(library.id, movie.folder, movie.id);
 
   // Remove videos
-  const videos = await getVideoByMovieId.execute(movieId);
+  const videos = await useCases.getVideoByMovieId().execute(movieId);
 
   if (videos) {
     for (const video of videos) {
-      deleteVideo.execute(video.id);
+      useCases.deleteVideo().execute(video.id);
     }
   }
 
@@ -91,11 +80,11 @@ export async function changeIdentificationMovie(
   movie.themdbId = newTheMovieDBID;
 
   // Save changes in DB
-  updateMovie.execute(movie.id, movie);
+  useCases.updateMovie().execute(movie.id, movie);
 
   notificationService.mutateMovie(movie);
   notificationService.mutateLibrary(library.id);
 
   // Get new data
-  await scanMovie.execute(library, movie.folder);
+  await useCases.scanMovie().execute(library, movie.folder);
 }

@@ -6,6 +6,52 @@ import { fileSystemService, tmdbApiClient } from "../../adapters/di/container";
 
 const router = Router();
 
+/**
+ * @swagger
+ * /api-key:
+ *   post:
+ *     summary: Set and validate TMDB API key
+ *     tags: [API Configuration]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - apiKey
+ *             properties:
+ *               apiKey:
+ *                 type: string
+ *                 description: TMDB API key to validate and save
+ *                 example: "your_tmdb_api_key_here"
+ *     responses:
+ *       200:
+ *         description: API key validation result
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   enum: [VALID_API_KEY, INVALID_API_KEY]
+ *                   example: VALID_API_KEY
+ *       400:
+ *         description: Missing or invalid API key
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: INVALID_API_KEY
+ *       500:
+ *         description: Server error during API key validation
+ */
 router.post(
   "/api-key",
   catchAsync(async (req: Request, res: Response, _next: NextFunction) => {

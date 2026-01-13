@@ -1,5 +1,5 @@
 import { MediaSearchResult } from "@/data/interfaces/SearchResults";
-import { ytDlpPath } from "@/utils/youtubeDownloader";
+import { getYtDlpPath } from "@/utils/youtubeDownloader";
 import { exec, spawn } from "child_process";
 import ffmpegPath from "ffmpeg-static";
 import path from "path";
@@ -26,7 +26,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
     query: string,
     numberOfResults: number
   ): Promise<MediaSearchResult[]> {
-    const searchQuery = `"${ytDlpPath}" "ytsearch${
+    const searchQuery = `"${getYtDlpPath()}" "ytsearch${
       numberOfResults > 0 ? numberOfResults : 1
     }:${query}" --dump-json --default-search ytsearch --no-playlist --no-check-certificate --geo-bypass --flat-playlist --skip-download --quiet --ignore-errors --ffmpeg-location ${ffmpegPathFinal}`;
 
@@ -71,7 +71,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
     this.fileSystem.deleteFile(outputPath);
 
     // Prepare yt-dlp command
-    const command = `"${ytDlpPath}" -f "bestvideo[ext=webm]+bestaudio[ext=webm]" -o "${outputPath}" ${url} -q --progress --force-overwrite --ffmpeg-location ${ffmpegPathFinal}`;
+    const command = `"${getYtDlpPath()}" -f "bestvideo[ext=webm]+bestaudio[ext=webm]" -o "${outputPath}" ${url} -q --progress --force-overwrite --ffmpeg-location ${ffmpegPathFinal}`;
 
     this.downloadContent(command, fileName);
   }
@@ -90,7 +90,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
     this.fileSystem.deleteFile(outputPath);
 
     // Prepare the yt-dlp command to download only the audio (the best audio available)
-    const command = `"${ytDlpPath}" -f "bestaudio[ext=webm]" -o "${outputPath}" ${url} -q --progress --force-overwrite --ffmpeg-location ${ffmpegPathFinal}`;
+    const command = `"${getYtDlpPath()}" -f "bestaudio[ext=webm]" -o "${outputPath}" ${url} -q --progress --force-overwrite --ffmpeg-location ${ffmpegPathFinal}`;
 
     this.downloadContent(command, fileName);
   }

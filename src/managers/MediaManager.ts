@@ -3,16 +3,6 @@ import { messages } from "@/config/messages";
 
 import ApiError from "@/data/ApiError";
 
-const isMovieInMyList = useCases.isMovieInMyList();
-const isSeriesInMyList = useCases.isSeriesInMyList();
-const getEpisodeById = useCases.getEpisodeById();
-const getLibraryById = useCases.getLibrary();
-const getMovieById = useCases.getMoviebyId();
-const getSeriesById = useCases.getSeriesById();
-const getSeasonById = useCases.getSeasonById();
-const getVideoById = useCases.getVideoById();
-const getVideoByEpisodeId = useCases.getVideoByEpisodeId();
-
 // Interface for the structured video info response
 interface FormattedVideoInfo {
   title: string;
@@ -33,20 +23,20 @@ export class MediaManager {
   public static async getFormattedVideoInfo(
     videoId: string
   ): Promise<FormattedVideoInfo> {
-    const video = await getVideoById.execute(videoId);
+    const video = await useCases.getVideoById().execute(videoId);
     if (!video) throw new ApiError(404, messages.errors.notFound.video);
 
     if (video.episodeId) {
-      const episode = await getEpisodeById.execute(video.episodeId);
+      const episode = await useCases.getEpisodeById().execute(video.episodeId);
       if (!episode) throw new ApiError(404, messages.errors.notFound.episode);
 
-      const season = await getSeasonById.execute(episode.seasonId);
+      const season = await useCases.getSeasonById().execute(episode.seasonId);
       if (!season) throw new ApiError(404, messages.errors.notFound.season);
 
-      const series = await getSeriesById.execute(season.seriesId);
+      const series = await useCases.getSeriesById().execute(season.seriesId);
       if (!series) throw new ApiError(404, messages.errors.notFound.series);
 
-      const library = await getLibraryById.execute(series.libraryId);
+      const library = await useCases.getLibrary().execute(series.libraryId);
       if (!library) throw new ApiError(404, messages.errors.notFound.library);
 
       return {
@@ -60,10 +50,10 @@ export class MediaManager {
     }
 
     if (video.movieId) {
-      const movie = await getMovieById.execute(video.movieId);
+      const movie = await useCases.getMoviebyId().execute(video.movieId);
       if (!movie) throw new ApiError(404, messages.errors.notFound.movie);
 
-      const library = await getLibraryById.execute(movie.libraryId);
+      const library = await useCases.getLibrary().execute(movie.libraryId);
       if (!library) throw new ApiError(404, messages.errors.notFound.library);
 
       const year = new Date(movie.year).getFullYear();
@@ -95,7 +85,7 @@ export class MediaManager {
     seriesId: string,
     userId: string
   ): Promise<number> {
-    const series = await getSeriesById.execute(seriesId, "all");
+    const series = await useCases.getSeriesById().execute(seriesId, "all");
     if (!series) throw new ApiError(404, messages.errors.notFound.series);
 
     let totalEpisodes = 0;
@@ -104,8 +94,8 @@ export class MediaManager {
     for (const season of series.seasons) {
       for (const episode of season.episodes) {
         totalEpisodes++;
-        const video = await getVideoByEpisodeId.execute(episode.id); // This could still be an N+1, ideally getSeriesById should include this data
-        if (video && video.watchLists.some((wl) => wl.userId === userId)) {
+        const video = await useCases.getVideoByEpisodeId().execute(episode.id); // This could still be an N+1, ideally getSeriesById should include this data
+        if (video && video.watchLists.some((wl: any) => wl.userId === userId)) {
           watchedEpisodes++;
         }
       }
@@ -124,11 +114,11 @@ export class MediaManager {
     movieId: string,
     userId: string
   ): Promise<number> {
-    const movie = await getMovieById.execute(movieId);
+    const movie = await useCases.getMoviebyId().execute(movieId);
     if (!movie) throw new ApiError(404, messages.errors.notFound.movie);
 
-    const watchedCount = movie.videos.filter((video) =>
-      video.watchLists.some((wl) => wl.userId === userId)
+    const watchedCount = movie.videos.filter((video: any) =>
+      video.watchLists.some((wl: any) => wl.userId === userId)
     ).length;
 
     return movie.videos.length - watchedCount;
@@ -142,7 +132,9 @@ export class MediaManager {
     seriesId: string,
     userId: string
   ): Promise<boolean> {
-    const seriesInList = await isSeriesInMyList.execute(seriesId, userId);
+    const seriesInList = await useCases
+      .isSeriesInMyList()
+      .execute(seriesId, userId);
     return seriesInList !== null;
   }
 
@@ -154,7 +146,9 @@ export class MediaManager {
     movieId: string,
     userId: string
   ): Promise<boolean> {
-    const movieInList = await isMovieInMyList.execute(movieId, userId);
+    const movieInList = await useCases
+      .isMovieInMyList()
+      .execute(movieId, userId);
     return movieInList !== null;
   }
 }

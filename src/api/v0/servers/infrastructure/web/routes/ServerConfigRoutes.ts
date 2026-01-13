@@ -4,9 +4,11 @@ import fs from "fs";
 
 const router = express.Router();
 
-const SERVER_CONFIG_FILE = (global as any).fileSystemService.getExternalPath(
-  "resources/config/serverConfig.json"
-);
+const getServerConfigFile = (): string => {
+  return fileSystemService.getExternalPath(
+    "resources/config/serverConfig.json"
+  );
+};
 
 const defaultServerConfig = {
   autoScan: false,
@@ -27,6 +29,8 @@ const defaultServerConfig = {
 router.get("/serverConfig/:key", (req: Request, res: Response) => {
   const key = req.params.key;
 
+  const SERVER_CONFIG_FILE = getServerConfigFile();
+
   fileSystemService.createJSONFile(SERVER_CONFIG_FILE, defaultServerConfig);
   const configData = JSON.parse(fs.readFileSync(SERVER_CONFIG_FILE, "utf8"));
 
@@ -37,6 +41,8 @@ router.get("/serverConfig/:key", (req: Request, res: Response) => {
 
 // GET /config - Returns all settings
 router.get("/serverConfig", (_req: Request, res: Response) => {
+  const SERVER_CONFIG_FILE = getServerConfigFile();
+
   fileSystemService.createJSONFile(SERVER_CONFIG_FILE, defaultServerConfig);
   const configData = JSON.parse(fs.readFileSync(SERVER_CONFIG_FILE, "utf8"));
   res.json(configData);
@@ -44,6 +50,8 @@ router.get("/serverConfig", (_req: Request, res: Response) => {
 
 // PATCH /config - Modifies the data and saves the settings
 router.patch("/serverConfig", (req: Request, res: Response) => {
+  const SERVER_CONFIG_FILE = getServerConfigFile();
+
   fileSystemService.createJSONFile(SERVER_CONFIG_FILE, defaultServerConfig);
   const updates = req.body; // The data to be modified is sent in the body of the request
   let configData = JSON.parse(fs.readFileSync(SERVER_CONFIG_FILE, "utf8"));

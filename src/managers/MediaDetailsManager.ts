@@ -1,3 +1,4 @@
+import { Album } from "@/api/v0/albums/domain/Album";
 import {
   fileSystemService,
   useCases,
@@ -9,17 +10,6 @@ import { extraTypes, videoExtensions } from "@/utils/utils";
 import * as fs from "fs/promises";
 import path from "path";
 
-const getCollectionById = useCases.getCollectionById();
-const getSeriesById = useCases.getSeriesById();
-const getSeasonById = useCases.getSeasonById();
-const getEpisodeById = useCases.getEpisodeById();
-const getVideoById = useCases.getVideoById();
-const getMovieById = useCases.getMoviebyId();
-const getAlbumById = useCases.getAlbumById();
-const getSongById = useCases.getSongById();
-const getVideoByEpisodeId = useCases.getVideoByEpisodeId();
-const getVideoByMovieId = useCases.getVideoByMovieId();
-
 export class MediaDetailsManager {
   /**
    * Fetches details for a single media item by type and ID.
@@ -28,35 +18,35 @@ export class MediaDetailsManager {
     let result;
     switch (type) {
       case "collection":
-        result = await getCollectionById.execute(id);
+        result = await useCases.getCollectionById().execute(id);
         // Sorting logic from the original endpoint can be applied here
         break;
       case "series":
-        result = await getSeriesById.execute(id);
+        result = await useCases.getSeriesById().execute(id);
         break;
       case "season":
-        result = await getSeasonById.execute(id);
+        result = await useCases.getSeasonById().execute(id);
         break;
       case "episode":
-        result = await getEpisodeById.execute(id);
+        result = await useCases.getEpisodeById().execute(id);
         break;
       case "video":
-        result = await getVideoById.execute(id);
+        result = await useCases.getVideoById().execute(id);
         break;
       case "movie":
-        result = await getMovieById.execute(id);
+        result = await useCases.getMoviebyId().execute(id);
         break;
       case "album":
-        result = await getAlbumById.execute(id);
+        result = await useCases.getAlbumById().execute(id);
         break;
       case "seriesBySeasonId":
-        result = await getSeasonById.execute(id);
+        result = await useCases.getSeasonById().execute(id);
         break;
       case "episode-video":
-        result = await getVideoByEpisodeId.execute(id);
+        result = await useCases.getVideoByEpisodeId().execute(id);
         break;
       case "movie-video":
-        result = await getVideoByMovieId.execute(id);
+        result = await useCases.getVideoByMovieId().execute(id);
         break;
       default:
         throw new ApiError(400, messages.errors.validation.invalidData);
@@ -77,15 +67,15 @@ export class MediaDetailsManager {
     let libraryId: string;
 
     if (itemType === "season") {
-      const season = await getSeasonById.execute(id);
+      const season = await useCases.getSeasonById().execute(id);
       if (!season) throw new ApiError(404, "Season not found.");
-      item = await getSeriesById.execute(season.seriesId);
+      item = await useCases.getSeriesById().execute(season.seriesId);
       if (!item) throw new ApiError(404, "Associated series not found.");
     } else {
       item =
         itemType === "movie"
-          ? await getMovieById.execute(id)
-          : await getSeriesById.execute(id);
+          ? await useCases.getMoviebyId().execute(id)
+          : await useCases.getSeriesById().execute(id);
     }
 
     if (!item) throw new ApiError(404, `${itemType} not found.`);
@@ -108,7 +98,7 @@ export class MediaDetailsManager {
    * @returns A promise that resolves to an array of lyric objects.
    */
   public static async findLyricsForSong(songId: string) {
-    const song = await getSongById.execute(songId);
+    const song = await useCases.getSongById().execute(songId);
     if (!song) {
       throw new ApiError(404, "Song not found.");
     }
@@ -160,14 +150,14 @@ export class MediaDetailsManager {
    * @returns A promise that resolves to a flat array of all found extra media.
    */
   public static async findMusicExtras(collectionId: string) {
-    const collection = await getCollectionById.execute(collectionId);
+    const collection = await useCases.getCollectionById().execute(collectionId);
     if (!collection) {
       throw new ApiError(404, "Collection not found.");
     }
 
     const rootFolders = new Set<string>();
     collection.albums.forEach(
-      (album) => album.folder && rootFolders.add(album.folder)
+      (album: Album) => album.folder && rootFolders.add(album.folder)
     );
 
     const promises = Array.from(rootFolders).map(async (folder) => {

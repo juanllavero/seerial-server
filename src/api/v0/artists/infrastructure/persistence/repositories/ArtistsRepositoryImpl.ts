@@ -3,7 +3,6 @@ import { Artist } from "@/api/v0/artists/domain/Artist";
 import { ArtistModel } from "@/api/v0/artists/infrastructure/persistence/models/ArtistModel";
 import { v4 as uuidv4 } from "uuid";
 import { ArtistsRepositoryPort } from "../../../application/ports/ArtistsRepositoryPort";
-import { ArtistData } from "../../../artists.types";
 
 export class ArtistsRepositoryImpl implements ArtistsRepositoryPort {
   async getById(id: string): Promise<Artist | null> {
@@ -16,7 +15,7 @@ export class ArtistsRepositoryImpl implements ArtistsRepositoryPort {
     return artist.toJSON() as Artist;
   }
 
-  async add(artistData: Partial<ArtistData>): Promise<Artist | null> {
+  async add(artistData: Partial<Artist>): Promise<Artist | null> {
     try {
       // Avoid duplicates
       if (artistData.name) {
@@ -39,7 +38,7 @@ export class ArtistsRepositoryImpl implements ArtistsRepositoryPort {
     }
   }
 
-  async update(id: string, data: Partial<ArtistData>): Promise<Artist> {
+  async update(id: string, data: Partial<Artist>): Promise<Artist> {
     const [affected] = await ArtistModel.update(data, { where: { id } });
     if (affected === 0) {
       throw new Error(`Artist with ID ${id} not found`);

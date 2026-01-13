@@ -1,30 +1,84 @@
-import { ContinueWatchingRepositoryImpl } from "@/api/v0/continue-watching/infrastructure/persistence/repositories/ContinueWatchingRepositoryImpl";
-import { SeasonsRepositoryImpl } from "@/api/v0/seasons/infrastructure/persistence/repositories/SeasonsRepositoryImpl";
-import { SeriesRepositoryImpl } from "@/api/v0/series/infrastructure/persistence/repositories/SeriesRepositoryImpl";
-import { VideosRepositoryImpl } from "@/api/v0/videos/infrastructure/persistence/repositories/VideosRepositoryImpl";
-import { WatchListRepositoryImpl } from "@/api/v0/watch-lists/infrastructure/persistence/repositories/WatchListRepositoryImpl";
+import {
+  continueWatchingRepo,
+  episodesRepo,
+  seasonsRepo,
+  seriesRepo,
+  videosRepo,
+  watchListRepo,
+} from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import { NextFunction, Request, Response } from "express";
 import { DeleteEpisodeUseCase } from "../../../application/usecases/DeleteEpisodeUseCase";
 import { SetEpisodeWatchStateUseCase } from "../../../application/usecases/SetEpisodeWatchStateUseCase";
 import { UpdateEpisodeUseCase } from "../../../application/usecases/UpdateEpisodeUseCase";
-import { EpisodeRepositoryImpl } from "../../persistence/repositories/EpisodeRepositoryImpl";
-
-const episodeRepo = new EpisodeRepositoryImpl();
-const seasonRepo = new SeasonsRepositoryImpl();
-const seriesRepo = new SeriesRepositoryImpl();
-const videoRepo = new VideosRepositoryImpl();
-const watchListRepo = new WatchListRepositoryImpl();
-const continueWatchingRepo = new ContinueWatchingRepositoryImpl();
 
 export class EpisodesController {
+  /**
+   * @swagger
+   * /episodes/{id}:
+   *   put:
+   *     summary: Update an episode
+   *     tags: [Episodes]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Episode ID
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             properties:
+   *               title:
+   *                 type: string
+   *                 description: Episode title
+   *               episodeNumber:
+   *                 type: integer
+   *                 description: Episode number in season
+   *               description:
+   *                 type: string
+   *                 description: Episode description
+   *               airDate:
+   *                 type: string
+   *                 format: date
+   *                 description: Original air date
+   *               duration:
+   *                 type: integer
+   *                 description: Episode duration in minutes
+   *     responses:
+   *       200:
+   *         description: Episode updated successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: Episode updated successfully
+   *                 data:
+   *                   $ref: '#/components/schemas/Episode'
+   *       400:
+   *         description: Invalid episode ID or data
+   *       500:
+   *         description: Update failed
+   */
   static async update(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
       if (!id) throw new ApiError(400, messages.errors.validation.missingId);
 
-      const useCase = new UpdateEpisodeUseCase(episodeRepo);
+      const useCase = new UpdateEpisodeUseCase(episodesRepo);
       const result = await useCase.execute(id, req.body);
 
       res.status(200).json({
@@ -37,12 +91,43 @@ export class EpisodesController {
     }
   }
 
+  /**
+   * @swagger
+   * /episodes/{id}:
+   *   delete:
+   *     summary: Delete an episode
+   *     tags: [Episodes]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Episode ID
+   *     responses:
+   *       200:
+   *         description: Episode deleted successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                   example: Episode deleted successfully
+   *       400:
+   *         description: Invalid episode ID
+   *       500:
+   *         description: Deletion failed
+   */
   static async delete(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
       if (!id) throw new ApiError(400, messages.errors.validation.missingId);
 
-      const useCase = new DeleteEpisodeUseCase(episodeRepo);
+      const useCase = new DeleteEpisodeUseCase(episodesRepo);
       await useCase.execute(id);
 
       res.status(200).json({ message: messages.success.delete });
@@ -51,6 +136,54 @@ export class EpisodesController {
     }
   }
 
+  /**
+   * @swagger
+   * /episodes/{id}/watch-state:
+   *   put:
+   *     summary: Set episode watch state for a user
+   *     tags: [Episodes]
+   *     security:
+   *       - bearerAuth: []
+   *     parameters:
+   *       - in: path
+   *         name: id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: Episode ID
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - state
+   *             properties:
+   *               state:
+   *                 type: boolean
+   *                 description: Whether the episode is watched (true) or unwatched (false)
+   *     responses:
+   *       200:
+   *         description: Episode watch state updated successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: success
+   *                 message:
+   *                   type: string
+   *                   example: "Episode watch state updated to true"
+   *       400:
+   *         description: Invalid episode ID or watch state
+   *       401:
+   *         description: Unauthorized - user not authenticated
+   *       500:
+   *         description: Watch state update failed
+   */
   static async setWatchState(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
@@ -64,10 +197,10 @@ export class EpisodesController {
       if (!userId) throw new ApiError(401, messages.errors.token.missing);
 
       const useCase = new SetEpisodeWatchStateUseCase(
-        episodeRepo,
-        seasonRepo,
+        episodesRepo,
+        seasonsRepo,
         seriesRepo,
-        videoRepo,
+        videosRepo,
         watchListRepo,
         continueWatchingRepo
       );

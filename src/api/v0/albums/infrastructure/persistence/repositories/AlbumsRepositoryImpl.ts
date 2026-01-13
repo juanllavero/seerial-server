@@ -1,4 +1,4 @@
-import { Artist } from "@/api/v0/artists/artists.model";
+import { ArtistModel } from "@/api/v0/artists/infrastructure/persistence/models/ArtistModel";
 import { BaseRepository } from "@/api/v0/base-repository/BaseRepository";
 import { SongModel } from "@/api/v0/songs/infrastructure/persistence/models/SongModel";
 import { v4 as uuidv4 } from "uuid";
@@ -27,7 +27,7 @@ export class AlbumsRepositoryImpl
 
     return this.handleRepositoryError(async () => {
       const includeOptions = [
-        { model: Artist, as: "artists" },
+        { model: ArtistModel, as: "artists" },
         ...(includeSongs ? [{ model: SongModel, as: "songs" }] : []),
       ];
 

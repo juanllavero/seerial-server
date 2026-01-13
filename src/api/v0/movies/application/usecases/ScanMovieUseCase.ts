@@ -19,14 +19,6 @@ import { Movie } from "../../domain/Movie";
 import { MoviesRepositoryPort } from "../ports/MoviesRepositoryPort";
 
 export class ScanMovieUseCase {
-  private readonly processMovieFolderUseCase = useCases.processMovieFolder();
-  private readonly updateLibrary = useCases.updateLibrary();
-  private readonly updateCollection = useCases.updateCollection();
-  private readonly updateMovie = useCases.updateMovie();
-  private readonly updateVideo = useCases.updateVideo();
-  private readonly addAnalyzedFile = useCases.addAnalyzedFile();
-  private readonly addAnalyzedFolder = useCases.addAnalyzedFolder();
-
   constructor(
     private readonly filesManager: FileSystemServicePort,
     private readonly librariesRepo: LibrariesRepositoryPort,
@@ -131,7 +123,9 @@ export class ScanMovieUseCase {
 
     if (!movie) return;
 
-    await this.addAnalyzedFolder.execute(library.id, rootFolder, movie.id);
+    await useCases
+      .addAnalyzedFolder()
+      .execute(library.id, rootFolder, movie.id);
 
     if (collection) {
       this.collectionRepo.addMovie(collection.id, movie.id);
@@ -171,7 +165,7 @@ export class ScanMovieUseCase {
     await Promise.all(processPromises);
 
     // Save data in DB
-    this.updateLibrary.execute(library.id, library);
+    useCases.updateLibrary().execute(library.id, library);
 
     // Update content in clients
     notificationService.mutateLibrary(library.id);
@@ -220,14 +214,14 @@ export class ScanMovieUseCase {
 
     if (!video) return;
 
-    await this.addAnalyzedFile.execute(library.id, filePath, video.id);
+    await useCases.addAnalyzedFile().execute(library.id, filePath, video.id);
 
     video.fileSrc = filePath;
     video.imgSrc = "resources/img/Default_video_thumbnail.jpg";
 
     // Save data in DB
-    this.updateMovie.execute(movie.id, movie);
-    this.updateVideo.execute(video.id, video);
+    useCases.updateMovie().execute(movie.id, movie);
+    useCases.updateVideo().execute(video.id, video);
 
     // Update content in clients
     notificationService.mutateMovie(movie);
@@ -257,7 +251,7 @@ export class ScanMovieUseCase {
 
       if (!video) return;
 
-      await this.addAnalyzedFile.execute(library.id, filePath, video.id);
+      await useCases.addAnalyzedFile().execute(library.id, filePath, video.id);
     }
 
     if (!video) return;
@@ -302,7 +296,7 @@ export class ScanMovieUseCase {
     video.runtime = await getOnlyRuntime(video.fileSrc);
 
     // Save data in DB
-    this.updateVideo.execute(video.id, video);
+    useCases.updateVideo().execute(video.id, video);
 
     // Update content in clients
     notificationService.mutateMovie(movie);

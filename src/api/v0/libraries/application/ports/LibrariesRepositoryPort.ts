@@ -1,3 +1,4 @@
+import { LibraryItem } from "@/data/interfaces/Media";
 import { Library } from "../../domain/Library";
 
 export interface LibrariesRepositoryPort {
@@ -7,7 +8,7 @@ export interface LibrariesRepositoryPort {
     type: string,
     userId: string,
     flat?: string
-  ): Promise<any[]>;
+  ): Promise<LibraryItem[]>;
   getById(id: string): Promise<Library | null>;
   getByAlbumId(albumId: string): Promise<Library | null>;
   getByMovieId(movieId: string): Promise<Library | null>;

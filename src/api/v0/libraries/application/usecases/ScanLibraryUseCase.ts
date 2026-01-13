@@ -10,10 +10,6 @@ import { Library } from "../../domain/Library";
 import { LibrariesRepositoryPort } from "../ports/LibrariesRepositoryPort";
 
 export class ScanLibraryUseCase {
-  private static readonly scanTVShow = useCases.scanSeries();
-  private static readonly scanMovie = useCases.scanMovie();
-  private static readonly scanMusic = useCases.scanSongs();
-
   constructor(
     private readonly filesManager: FileSystemServicePort,
     private readonly librariesRepo: LibrariesRepositoryPort
@@ -48,11 +44,11 @@ export class ScanLibraryUseCase {
 
         const task = limit(async () => {
           if (library.type === "Shows") {
-            await ScanLibraryUseCase.scanTVShow.execute(library, filePath);
+            await useCases.scanSeries().execute(library, filePath);
           } else if (library.type === "Movies") {
-            await ScanLibraryUseCase.scanMovie.execute(library, filePath);
+            await useCases.scanMovie().execute(library, filePath);
           } else {
-            await ScanLibraryUseCase.scanMusic.execute(library, filePath);
+            await useCases.scanSongs().execute(library, filePath);
           }
         });
         tasks.push(task);

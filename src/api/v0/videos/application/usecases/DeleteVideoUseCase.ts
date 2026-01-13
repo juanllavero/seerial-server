@@ -5,8 +5,6 @@ import ApiError from "@/data/ApiError";
 import { VideoRepositoryPort } from "../ports/VideosRepositoryPort";
 
 export class DeleteVideoUseCase {
-  private deleteVideoData = useCases.deleteVideoData();
-
   constructor(
     private readonly videoRepository: VideoRepositoryPort,
     private readonly libraryRepository: LibrariesRepositoryPort
@@ -17,7 +15,7 @@ export class DeleteVideoUseCase {
     if (!video) throw new ApiError(404, messages.errors.notFound.video);
 
     // Delete local media files and folders
-    await this.deleteVideoData.execute(videoId);
+    await useCases.deleteVideoData().execute(videoId);
 
     const library = await this.libraryRepository.getByVideoId(videoId);
 

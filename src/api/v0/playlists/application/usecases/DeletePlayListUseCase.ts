@@ -1,4 +1,4 @@
-import { AlbumRepositoryPort } from "../ports/AlbumRepositoryPort";
+import { AlbumRepositoryPort } from "../ports/PlayListRepositoryPort";
 
 export class DeleteAlbumUseCase {
   constructor(private albumRepo: AlbumRepositoryPort) {}

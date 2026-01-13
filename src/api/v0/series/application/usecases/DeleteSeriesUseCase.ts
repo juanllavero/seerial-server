@@ -2,10 +2,6 @@ import { useCases } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { SeriesRepositoryPort } from "../ports/SeriesRepositoryPort";
 
 export class DeleteSeriesUseCase {
-  private deleteSeriesData = useCases.deleteSeriesData();
-  private deleteSeason = useCases.deleteSeason();
-  private getLibrary = useCases.getLibrary();
-
   constructor(private seriesRepo: SeriesRepositoryPort) {}
 
   async execute(id: string): Promise<void> {
@@ -14,13 +10,13 @@ export class DeleteSeriesUseCase {
 
     // Delete seasons
     for (const season of series.seasons || []) {
-      await this.deleteSeason.execute(season.id);
+      await useCases.deleteSeason().execute(season.id);
     }
 
     // Delete local media files and folders
-    await this.deleteSeriesData.execute(id);
+    await useCases.deleteSeriesData().execute(id);
 
-    const library = await this.getLibrary.execute(series.libraryId);
+    const library = await useCases.getLibrary().execute(series.libraryId);
 
     if (!library) return;
 

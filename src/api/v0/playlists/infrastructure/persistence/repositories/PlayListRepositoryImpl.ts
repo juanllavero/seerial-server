@@ -1,9 +1,11 @@
+import { Album } from "@/api/v0/albums/domain/Album";
+import { AlbumArtistModel } from "@/api/v0/albums/infrastructure/persistence/models/AlbumArtistModel";
+import { AlbumModel } from "@/api/v0/albums/infrastructure/persistence/models/AlbumModel";
+import { ArtistModel } from "@/api/v0/artists/infrastructure/persistence/models/ArtistModel";
 import { BaseRepository } from "@/api/v0/base-repository/BaseRepository";
-import { AlbumArtist, Artist, Song } from "@/api/v0/index.models";
+import { SongModel } from "@/api/v0/songs/infrastructure/persistence/models/SongModel";
 import { v4 as uuidv4 } from "uuid";
-import { AlbumRepositoryPort } from "../../../application/ports/AlbumRepositoryPort";
-import { Album } from "../../../domain/Album";
-import { Album as AlbumModel } from "../models/AlbumModel";
+import { AlbumRepositoryPort } from "../../../application/ports/PlayListRepositoryPort";
 
 export class AlbumRepositoryImpl
   extends BaseRepository
@@ -16,7 +18,7 @@ export class AlbumRepositoryImpl
       const albums = await AlbumModel.findAll({
         where: { libraryId: validatedId },
       });
-      return albums.map((album) => new Album(album.toJSON()));
+      return albums.map((album) => new AlbumModel(album.toJSON()));
     }, `Failed to retrieve albums for library ${libraryId}`);
   }
 
@@ -25,15 +27,15 @@ export class AlbumRepositoryImpl
 
     return this.handleRepositoryError(async () => {
       const includeOptions = [
-        { model: Artist, as: "artists" },
-        ...(includeSongs ? [{ model: Song, as: "songs" }] : []),
+        { model: ArtistModel, as: "artists" },
+        ...(includeSongs ? [{ model: SongModel, as: "songs" }] : []),
       ];
 
       const album = await AlbumModel.findByPk(validatedId, {
         include: includeOptions,
       });
 
-      return album ? new Album(album.toJSON()) : null;
+      return album ? new AlbumModel(album.toJSON()) : null;
     }, `Failed to retrieve album with ID ${id}`);
   }
 
@@ -41,7 +43,7 @@ export class AlbumRepositoryImpl
     this.validateData(album, "Album data");
 
     return this.handleRepositoryError(async () => {
-      const albumData = album.toJSON();
+      const albumData = album;
 
       // Check if album already exists by ID
       if (albumData.id) {
@@ -59,7 +61,7 @@ export class AlbumRepositoryImpl
       };
 
       const createdAlbum = await AlbumModel.create(dataToCreate as any);
-      return new Album(createdAlbum.toJSON());
+      return new AlbumModel(createdAlbum.toJSON());
     }, "Failed to create album");
   }
 
@@ -103,7 +105,7 @@ export class AlbumRepositoryImpl
 
     return this.handleRepositoryError(async () => {
       // Check if relation already exists
-      const existingRelation = await AlbumArtist.findOne({
+      const existingRelation = await AlbumArtistModel.findOne({
         where: {
           artistId: validated.artistId,
           albumId: validated.albumId,
@@ -118,7 +120,7 @@ export class AlbumRepositoryImpl
       }
 
       // Create new relation
-      const newRelation = await AlbumArtist.create({
+      const newRelation = await AlbumArtistModel.create({
         id: uuidv4().split("-")[0],
         artistId: validated.artistId,
         albumId: validated.albumId,
@@ -135,7 +137,7 @@ export class AlbumRepositoryImpl
     const validated = this.validateIds({ artistId, albumId });
 
     await this.handleRepositoryError(async () => {
-      const affectedCount = await AlbumArtist.destroy({
+      const affectedCount = await AlbumArtistModel.destroy({
         where: {
           artistId: validated.artistId,
           albumId: validated.albumId,

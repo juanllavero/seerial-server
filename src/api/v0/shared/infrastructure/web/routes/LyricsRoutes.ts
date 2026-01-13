@@ -9,6 +9,45 @@ import { useCases } from "../../adapters/di/container";
 
 const router = Router();
 
+/**
+ * @swagger
+ * /lyrics:
+ *   get:
+ *     summary: Get lyrics for a song
+ *     tags: [Lyrics]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Song ID
+ *     responses:
+ *       200:
+ *         description: Lyrics retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 lyrics:
+ *                   type: string
+ *                   description: Lyrics content
+ *                 language:
+ *                   type: string
+ *                   description: Language of the lyrics
+ *                 synced:
+ *                   type: boolean
+ *                   description: Whether the lyrics are synchronized
+ *       400:
+ *         description: Missing song ID parameter
+ *       404:
+ *         description: Song or lyrics not found
+ *       500:
+ *         description: Lyrics retrieval failed
+ */
 router.get(
   "/lyrics",
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -22,8 +61,56 @@ router.get(
 );
 
 /**
- * Creates a new .lrc file for a given song.
- * Expects { songId: string, language: string, content: string } in the request body.
+ * @swagger
+ * /lyrics:
+ *   post:
+ *     summary: Create a new lyrics file for a song
+ *     tags: [Lyrics]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - songId
+ *               - language
+ *               - content
+ *             properties:
+ *               songId:
+ *                 type: string
+ *                 description: ID of the song to add lyrics to
+ *               language:
+ *                 type: string
+ *                 description: Language code for the lyrics (use "original" for no suffix)
+ *                 example: "en"
+ *               content:
+ *                 type: string
+ *                 description: Lyrics content in LRC format
+ *                 example: "[00:12.00]Lyrics line one\n[00:15.30]Lyrics line two"
+ *     responses:
+ *       201:
+ *         description: Lyrics file created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: "Lyrics file created successfully"
+ *                 path:
+ *                   type: string
+ *                   description: Full path where the lyrics file was saved
+ *                   example: "/path/to/song.en.lrc"
+ *       400:
+ *         description: Missing required parameters
+ *       404:
+ *         description: Song not found
+ *       500:
+ *         description: File creation failed
  */
 router.post(
   "/lyrics",

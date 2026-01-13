@@ -1,3 +1,8 @@
+import {
+  metadataProvider,
+  notificationService,
+  useCases,
+} from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { MetadataManager } from "@/managers/MetadataManager";
 
 /**
@@ -9,13 +14,15 @@ export class RefreshMovieMetadataUseCase {
   constructor() {}
 
   async execute(movieId: string): Promise<void> {
-    const movie = await getMovieById(movieId);
+    const getMovieById = useCases.getMoviebyId();
+    const movie = await getMovieById.execute(movieId);
     if (!movie) {
       console.error(`[Updater] No movie found: ${movieId}`);
       return;
     }
 
-    const library = await getLibraryById(movie.libraryId);
+    const getLibraryById = useCases.getLibrary();
+    const library = await getLibraryById.execute(movie.libraryId);
     if (!library) {
       console.error(`[Updater] No library found for movie: ${movie.name}`);
       return;
@@ -23,12 +30,12 @@ export class RefreshMovieMetadataUseCase {
 
     try {
       // Update UI
-      movie.analyzingFiles = true;
-      await movie.save();
-      getNotificationService().mutateMovie(movie);
+      const updateMovie = useCases.updateMovie();
+      await updateMovie.execute(movie.id, movie);
+      notificationService.mutateMovie(movie);
 
       // Get metadata from TheMovieDB
-      const movieMetadata = await MovieDBWrapper.getMovie(
+      const movieMetadata = await metadataProvider.getMovie(
         movie.themdbId,
         library.language
       );
@@ -46,7 +53,8 @@ export class RefreshMovieMetadataUseCase {
       );
 
       // Update videos metadata
-      const videos = await getVideoByMovieId(movie.id);
+      const getVideoByMovieId = useCases.getVideoByMovieId();
+      const videos = await getVideoByMovieId.execute(movie.id);
       if (videos) {
         for (const video of videos) {
           await MetadataManager.updateVideoMetadataForMovie(video, movie);
@@ -56,10 +64,10 @@ export class RefreshMovieMetadataUseCase {
       console.error(`[Updater] Error refreshing movie "${movie.name}":`, error);
     } finally {
       // Update UI
-      movie.analyzingFiles = false;
-      await movie.save();
-      getNotificationService().mutateMovie(movie);
-      getNotificationService().mutateLibrary(library.id);
+      const updateMovie = useCases.updateMovie();
+      await updateMovie.execute(movie.id, movie);
+      notificationService.mutateMovie(movie);
+      notificationService.mutateLibrary(library.id);
     }
   }
 }

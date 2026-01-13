@@ -26,9 +26,9 @@ import fs from "fs";
 import { Sequelize } from "sequelize-typescript";
 
 export class SequelizeManager {
-  public static DB_PATH: string = fileSystemService.getExternalPath(
-    "resources/db/data.db"
-  );
+  public static get DB_PATH(): string {
+    return fileSystemService.getExternalPath("resources/db/data.db");
+  }
   public static sequelize: Sequelize | null = null;
 
   /**

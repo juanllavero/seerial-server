@@ -1,6 +1,6 @@
 import catchAsync from "@/utils/catchAsync";
 import express from "express";
-import { AlbumsController } from "../controllers/AlbumsController";
+import { AlbumsController } from "../controllers/PlayListController";
 
 const router = express.Router();
 

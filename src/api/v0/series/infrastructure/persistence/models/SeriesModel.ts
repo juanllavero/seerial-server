@@ -276,11 +276,7 @@ export class SeriesModel extends Model {
     try {
       // Delete stored data
       const deleteSeriesData = useCases.deleteSeriesData();
-      await deleteSeriesData.execute(
-        instance.libraryId,
-        instance.id,
-        instance.folder
-      );
+      await deleteSeriesData.execute(instance.id);
 
       // Remove folder stored in library
       const getLibrary = useCases.getLibrary();

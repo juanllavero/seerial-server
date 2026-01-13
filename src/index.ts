@@ -23,6 +23,8 @@ import helmet from "helmet";
 import http from "http";
 import https from "https";
 import path from "path";
+import swaggerJSDoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
 import { sanitizationMiddleware } from "./middleware/sanitization.middleware";
 
 // Initialize app and environment
@@ -99,6 +101,55 @@ app.whenReady().then(async () => {
 
   // Load or create server and user configs
   await ServerConfigManager.loadOrCreateServerConfig();
+
+  // Swagger configuration
+  const swaggerOptions = {
+    definition: {
+      openapi: "3.0.0",
+      info: {
+        title: "Seerial Media Server API",
+        version: "0.2.0",
+        description: "Media management server API for the Seerial suite",
+        contact: {
+          name: "Juan Llavero",
+        },
+      },
+      servers: [
+        {
+          url: "http://localhost:8080/api",
+          description: "Development server",
+        },
+      ],
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: "http",
+            scheme: "bearer",
+            bearerFormat: "JWT",
+          },
+          cookieAuth: {
+            type: "apiKey",
+            in: "cookie",
+            name: "token",
+          },
+        },
+      },
+      security: [
+        {
+          bearerAuth: [],
+        },
+        {
+          cookieAuth: [],
+        },
+      ],
+    },
+    apis: ["./src/api/**/*.ts"], // Path to the API docs - adjusted path
+  };
+
+  const swaggerSpec = swaggerJSDoc(swaggerOptions);
+
+  // Swagger UI
+  appServer.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
   // Initialize routes
   appServer.use("/api", appRoutes);

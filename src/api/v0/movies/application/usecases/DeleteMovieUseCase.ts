@@ -5,9 +5,6 @@ import ApiError from "@/data/ApiError";
 import { MoviesRepositoryPort } from "../ports/MoviesRepositoryPort";
 
 export class DeleteMovieUseCase {
-  private deleteMovieData = useCases.deleteMovieData();
-  private deleteVideo = useCases.deleteVideo();
-
   constructor(
     private libraryRepository: LibrariesRepositoryPort,
     private moviesRepo: MoviesRepositoryPort
@@ -21,13 +18,13 @@ export class DeleteMovieUseCase {
     }
 
     for (const video of movie.videos) {
-      await this.deleteVideo.execute(video.id);
+      await useCases.deleteVideo().execute(video.id);
     }
 
     const library = await this.libraryRepository.getById(movie.libraryId);
 
     // Delete local media files and folders
-    await this.deleteMovieData.execute(id);
+    await useCases.deleteMovieData().execute(id);
 
     if (library) {
       await this.libraryRepository.removeAnalyzedFolder(

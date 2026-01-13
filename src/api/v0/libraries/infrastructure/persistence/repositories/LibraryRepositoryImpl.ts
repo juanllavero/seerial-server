@@ -33,6 +33,7 @@ export class LibrariesRepositoryImpl
     userId: string,
     flat?: string
   ) {
+    // TODO: Change this function to not use LibraryManager
     return await LibraryManager.getLibraryContent(
       libraryId,
       type,

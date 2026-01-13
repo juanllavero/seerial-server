@@ -1,5 +1,4 @@
 import { Album } from "@/api/v0/albums/domain/Album";
-import { addArtist } from "@/api/v0/artists/artists.service";
 import { Collection } from "@/api/v0/collections/domain/Collection";
 import { Library } from "@/api/v0/libraries/domain/Library";
 import { FileSystemServicePort } from "@/api/v0/shared/application/ports/FileSystemServicePort";
@@ -14,16 +13,6 @@ import path from "path";
 import { SongsRepositoryPort } from "../ports/SongsRepositoryPort";
 
 export class ProcessSongFileUseCase {
-  private readonly createAlbum = useCases.createAlbum();
-  private readonly addAlbumToCollection = useCases.addAlbumToCollection();
-  private readonly addArtistToAlbum = useCases.addArtistToAlbum();
-  private readonly addAnalyzedFile = useCases.addAnalyzedFile();
-  private readonly updateLibrary = useCases.updateLibrary();
-  private readonly updateCollection = useCases.updateCollection();
-  private readonly updateAlbum = useCases.updateAlbum();
-  private readonly updateSong = useCases.updateSong();
-  private readonly addSong = useCases.createSong();
-
   constructor(
     private readonly fileSystemService: FileSystemServicePort,
     private readonly songsRepo: SongsRepositoryPort
@@ -60,7 +49,7 @@ export class ProcessSongFileUseCase {
       }
 
       if (!newAlbum) {
-        newAlbum = await this.createAlbum.execute({
+        newAlbum = await useCases.createAlbum().execute({
           title: album !== "" ? album : collection.title,
           year: date ? new Date(date).getFullYear().toString() : "",
           libraryId: library.id,
@@ -78,9 +67,9 @@ export class ProcessSongFileUseCase {
 
       if (!newAlbum || !newAlbum.id) return;
 
-      await this.addAlbumToCollection.execute(collection.id, newAlbum.id);
+      await useCases.addAlbumToCollection().execute(collection.id, newAlbum.id);
 
-      const song = await this.addSong.execute({
+      const song = await useCases.createSong().execute({
         title: title !== "" ? title : getFileName(musicFile),
         albumId: newAlbum.id,
         trackNumber,
@@ -92,12 +81,13 @@ export class ProcessSongFileUseCase {
       });
 
       for (const artist of artists) {
-        const newArtist = await addArtist({
+        const addArtistUseCase = useCases.addArtist();
+        const newArtist = await addArtistUseCase.execute({
           name: artist,
         });
 
         if (newArtist && newArtist.id) {
-          await this.addArtistToAlbum.execute(newArtist.id, newAlbum.id);
+          await useCases.addArtistToAlbum().execute(newArtist.id, newAlbum.id);
         }
       }
 
@@ -122,7 +112,7 @@ export class ProcessSongFileUseCase {
           }
         }
 
-        await this.updateAlbum.execute(newAlbum.id, newAlbum);
+        await useCases.updateAlbum().execute(newAlbum.id, newAlbum);
 
         // Update content in clients
         notificationService.mutateLibrary(library.id);
@@ -130,13 +120,13 @@ export class ProcessSongFileUseCase {
 
       if (!song || !song.id) return;
 
-      await this.addAnalyzedFile.execute(library.id, musicFile, song.id);
+      await useCases.addAnalyzedFile().execute(library.id, musicFile, song.id);
 
       // Save data in DB
-      await this.updateLibrary.execute(library.id, library);
-      await this.updateCollection.execute(collection.id, collection);
-      await this.updateAlbum.execute(newAlbum.id, newAlbum);
-      await this.updateSong.execute(song.id, song);
+      await useCases.updateLibrary().execute(library.id, library);
+      await useCases.updateCollection().execute(collection.id, collection);
+      await useCases.updateAlbum().execute(newAlbum.id, newAlbum);
+      await useCases.updateSong().execute(song.id, song);
     } catch (error) {
       console.error("Error processing music file", error);
     }

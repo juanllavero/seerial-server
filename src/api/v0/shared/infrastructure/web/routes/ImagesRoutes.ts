@@ -17,7 +17,50 @@ router.use(
   express.static(path.join(fileSystemService.resourcesPath, "img"))
 );
 
-// Upload image
+/**
+ * @swagger
+ * /images/uploadImage:
+ *   post:
+ *     summary: Upload an image file
+ *     tags: [Images]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - image
+ *               - destPath
+ *             properties:
+ *               image:
+ *                 type: string
+ *                 format: binary
+ *                 description: Image file to upload
+ *               destPath:
+ *                 type: string
+ *                 description: Destination path for the uploaded image
+ *     responses:
+ *       200:
+ *         description: Image uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Image uploaded successfully to /path/to/image.jpg
+ *       400:
+ *         description: Missing parameters or invalid file
+ *       500:
+ *         description: Upload failed
+ */
 router.post(
   "/uploadImage",
   upload,
@@ -67,8 +110,43 @@ router.post(
 );
 
 /**
- * @route GET /images
- * @desc Lists all images in a given directory path.
+ * @swagger
+ * /images:
+ *   get:
+ *     summary: List images in a directory
+ *     tags: [Images]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Directory path to list images from
+ *     responses:
+ *       200:
+ *         description: List of images in the directory
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   name:
+ *                     type: string
+ *                     description: Image file name
+ *                   path:
+ *                     type: string
+ *                     description: Full path to the image
+ *                   size:
+ *                     type: number
+ *                     description: File size in bytes
+ *       400:
+ *         description: Missing or invalid path parameter
+ *       500:
+ *         description: Directory listing failed
  */
 router.get(
   "/images",
@@ -99,8 +177,44 @@ router.get(
 );
 
 /**
- * @route GET /image
- * @desc Serves a resized and compressed local image.
+ * @swagger
+ * /images/image:
+ *   get:
+ *     summary: Serve a resized and compressed local image
+ *     tags: [Images]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Local path to the image file
+ *       - in: query
+ *         name: width
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: Desired width for resizing
+ *       - in: query
+ *         name: height
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: Desired height for resizing
+ *     responses:
+ *       200:
+ *         description: Resized and compressed image
+ *         content:
+ *           image/*:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       400:
+ *         description: Missing or invalid path parameter
+ *       500:
+ *         description: Image processing failed
  */
 router.get(
   "/image",
@@ -133,8 +247,45 @@ router.get(
 );
 
 /**
- * @route GET /compress-image
- * @desc Downloads, compresses, and serves an image from a URL.
+ * @swagger
+ * /images/compress-image:
+ *   get:
+ *     summary: Download, compress, and serve an image from URL
+ *     tags: [Images]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: url
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uri
+ *         description: Image URL to download and compress
+ *       - in: query
+ *         name: width
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: Desired width for resizing
+ *       - in: query
+ *         name: height
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: Desired height for resizing
+ *     responses:
+ *       200:
+ *         description: Compressed and resized image
+ *         content:
+ *           image/*:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       400:
+ *         description: Missing or invalid URL
+ *       500:
+ *         description: Image download or processing failed
  */
 router.get(
   "/compress-image",
@@ -157,8 +308,71 @@ router.get(
 );
 
 /**
- * @route GET /image-colors
- * @desc Extracts a vibrant color palette from an image and returns it along with a CSS gradient.
+ * @swagger
+ * /images/image-colors:
+ *   get:
+ *     summary: Extract color palette from an image
+ *     tags: [Images]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: url
+ *         schema:
+ *           type: string
+ *           format: uri
+ *         description: Image URL to analyze (required if localPath not provided)
+ *       - in: query
+ *         name: localPath
+ *         schema:
+ *           type: string
+ *         description: Local image path to analyze (required if url not provided)
+ *       - in: query
+ *         name: minLight
+ *         schema:
+ *           type: number
+ *           minimum: 0
+ *           maximum: 1
+ *           default: 0.04
+ *         description: Minimum lightness for color palette
+ *       - in: query
+ *         name: maxLight
+ *         schema:
+ *           type: number
+ *           minimum: 0
+ *           maximum: 1
+ *           default: 0.09
+ *         description: Maximum lightness for color palette
+ *       - in: query
+ *         name: sat
+ *         schema:
+ *           type: number
+ *           minimum: 0
+ *           default: 1.0
+ *         description: Saturation factor
+ *     responses:
+ *       200:
+ *         description: Color palette extracted successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 colors:
+ *                   type: array
+ *                   items:
+ *                     type: string
+ *                   description: Array of color hex codes
+ *                 gradient:
+ *                   type: string
+ *                   description: CSS gradient string
+ *                 dominant:
+ *                   type: string
+ *                   description: Dominant color hex code
+ *       400:
+ *         description: Missing image source (URL or local path)
+ *       500:
+ *         description: Image processing failed
  */
 router.get(
   "/image-colors",
@@ -191,8 +405,51 @@ router.get(
 );
 
 /**
- * @route GET /transparent-image-effect
- * @desc Applies a transparent fade effect to an image and returns it as a PNG.
+ * @swagger
+ * /images/transparent-image-effect:
+ *   get:
+ *     summary: Apply transparent fade effect to an image
+ *     tags: [Images]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: url
+ *         schema:
+ *           type: string
+ *           format: uri
+ *         description: Image URL to process (required if localPath not provided)
+ *       - in: query
+ *         name: localPath
+ *         schema:
+ *           type: string
+ *         description: Local image path to process (required if url not provided)
+ *       - in: query
+ *         name: width
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: Output image width
+ *       - in: query
+ *         name: height
+ *         required: true
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *         description: Output image height
+ *     responses:
+ *       200:
+ *         description: Image with transparent fade effect
+ *         content:
+ *           image/png:
+ *             schema:
+ *               type: string
+ *               format: binary
+ *       400:
+ *         description: Missing required parameters or invalid dimensions
+ *       500:
+ *         description: Image processing failed
  */
 router.get(
   "/transparent-image-effect",

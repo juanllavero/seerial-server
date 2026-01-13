@@ -6,7 +6,9 @@ import { FindAlbumByIdUseCase } from "@/api/v0/albums/application/usecases/FindA
 import { FindAllAlbumsUseCase } from "@/api/v0/albums/application/usecases/FindAllAlbumsUseCase";
 import { UpdateAlbumUseCase } from "@/api/v0/albums/application/usecases/UpdateAlbumUseCase";
 import { AlbumsRepositoryImpl } from "@/api/v0/albums/infrastructure/persistence/repositories/AlbumsRepositoryImpl";
+import { AddArtistUseCase } from "@/api/v0/artists/application/usecases/AddArtistUseCase";
 import { DeleteArtistUseCase } from "@/api/v0/artists/application/usecases/DeleteArtistUseCase";
+import { GetArtistByIdUseCase } from "@/api/v0/artists/application/usecases/GetArtistByIdUseCase";
 import { UpdateArtistUseCase } from "@/api/v0/artists/application/usecases/UpdateArtistUseCase";
 import { ArtistsRepositoryImpl } from "@/api/v0/artists/infrastructure/persistence/repositories/ArtistsRepositoryImpl";
 import { AddAlbumToCollectionUseCase } from "@/api/v0/collections/application/usecases/AddAlbumToCollectionUseCase";
@@ -283,6 +285,8 @@ export const useCases = {
   addArtistToAlbum: () => new AddArtistToAlbumUseCase(albumsRepo),
 
   // Artists
+  addArtist: () => new AddArtistUseCase(artistsRepo),
+  getArtistById: () => new GetArtistByIdUseCase(artistsRepo),
   deleteArtist: () => new DeleteArtistUseCase(artistsRepo),
   updateArtist: () => new UpdateArtistUseCase(artistsRepo),
 
@@ -323,7 +327,7 @@ export const useCases = {
   updateVideo: () => new UpdateVideoUseCase(videosRepo),
   addVideoAsEpisode: () => new CreateVideoAsEpisodeUseCase(videosRepo),
   deleteVideo: () => new DeleteVideoUseCase(videosRepo, librariesRepo),
-  deleteVideoData: () => new DeleteVideoDataUseCase(),
+  deleteVideoData: () => new DeleteVideoDataUseCase(fileSystemService),
 
   // Playlists
 
