@@ -1,59 +1,83 @@
-import {
-  seasonsRepo,
-  useCases,
-} from "@/api/v0/shared/infrastructure/adapters/di/container";
+import { MessageResponse } from "@/api/v0/shared/application/dtos/DTOs";
+import { useCases } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { NextFunction, Request, Response } from "express";
-import { UpdateSeasonUseCase } from "../../../application/usecases/UpdateSeasonsUseCase";
+import {
+  Body,
+  Controller,
+  Delete,
+  Path,
+  Post,
+  Put,
+  Route,
+  Security,
+  Tags,
+} from "tsoa";
+import {
+  SeasonResponse,
+  SetWatchStateDTO,
+  UpdateSeasonDTO,
+} from "../../../application/dtos/SeasonDTOs";
 
-export class SeasonsController {
-  static async update(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { id } = req.params;
-      if (!id) throw new ApiError(400, messages.errors.validation.missingId);
-
-      const useCase = new UpdateSeasonUseCase(seasonsRepo);
-      const result = await useCase.execute(id, req.body);
-
-      res.status(200).json({
-        status: "success",
-        message: messages.success.update,
-        data: result,
-      });
-    } catch (err) {
-      next(err);
+@Route("seasons")
+@Tags("Seasons")
+export class SeasonsController extends Controller {
+  /**
+   * Update season details
+   */
+  @Put("{id}")
+  @Security("cookieAuth")
+  public async update(
+    @Path() id: string,
+    @Body() body: UpdateSeasonDTO
+  ): Promise<SeasonResponse> {
+    if (!id) {
+      throw new ApiError(400, messages.errors.validation.missingId);
     }
+
+    const result = await useCases.updateSeason().execute(id, body);
+
+    return {
+      status: "success",
+      message: messages.success.update,
+      data: result,
+    };
   }
 
-  static async delete(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { id } = req.params;
-      if (!id) throw new ApiError(400, messages.errors.validation.missingId);
-
-      const useCase = useCases.deleteSeason();
-      await useCase.execute(id);
-
-      res.status(200).json({ message: messages.success.delete });
-    } catch (err) {
-      next(err);
+  /**
+   * Delete a season
+   */
+  @Delete("{id}")
+  @Security("cookieAuth")
+  public async delete(@Path() id: string): Promise<MessageResponse> {
+    if (!id) {
+      throw new ApiError(400, messages.errors.validation.missingId);
     }
+
+    await useCases.deleteSeason().execute(id);
+
+    return { message: messages.success.delete };
   }
 
-  static async setWatchState(req: Request, res: Response, next: NextFunction) {
-    const { id: seasonId } = req.params;
-    const { watched, userId } = req.body;
+  /**
+   * Set season watch state for a user
+   */
+  @Post("{id}/watch-state")
+  @Security("cookieAuth")
+  public async setWatchState(
+    @Path() id: string,
+    @Body() body: SetWatchStateDTO
+  ): Promise<MessageResponse> {
+    const { watched, userId } = body;
 
-    if (!userId || !seasonId) {
-      return next(
-        new ApiError(400, messages.errors.validation.notEnoughParams)
-      );
+    if (!userId || !id) {
+      throw new ApiError(400, messages.errors.validation.notEnoughParams);
     }
 
-    const season = await useCases.getSeasonById().execute(seasonId);
+    const season = await useCases.getSeasonById().execute(id);
 
     if (!season) {
-      return next(new ApiError(404, messages.errors.notFound.season));
+      throw new ApiError(404, messages.errors.notFound.season);
     }
 
     // Get first or last episode
@@ -64,6 +88,7 @@ export class SeasonsController {
 
     // Set episode watched state
     await useCases.setEpisodeWatchState().execute(episode.id, userId, watched);
-    return res.status(200).json({ message: messages.success.update });
+
+    return { message: messages.success.update };
   }
 }

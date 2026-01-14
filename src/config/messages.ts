@@ -6,6 +6,8 @@ export const messages = {
     order: "Order updated successfully.",
     download: "Download finished.",
     login: "Login successful.",
+    fetch: "Data retrieved successfully.",
+    scan: "Scan completed successfully.",
   },
   errors: {
     create: "Failed to create element.",

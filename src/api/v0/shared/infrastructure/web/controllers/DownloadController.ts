@@ -1,0 +1,99 @@
+import { MessageResponse } from "@/api/v0/shared/application/dtos/DTOs";
+import { messages } from "@/config/messages";
+import ApiError from "@/data/ApiError";
+import { DownloaderManager } from "@/managers/DownloaderManager";
+import { downloadImage, isValidURL } from "@/utils/utils";
+import path from "path";
+import { Body, Controller, Post, Route, Security, Tags } from "tsoa";
+import { fileSystemService } from "../../adapters/di/container";
+
+interface DownloadVideoDTO {
+  url: string;
+  downloadFolder: string;
+  fileName: string;
+}
+
+interface DownloadMusicDTO {
+  url: string;
+  downloadFolder: string;
+  fileName: string;
+}
+
+interface DownloadImageDTO {
+  url: string;
+  downloadFolder: string;
+  fileName: string;
+}
+
+@Route("downloads")
+@Tags("Downloads")
+export class DownloadController extends Controller {
+  /**
+   * Download video file
+   */
+  @Post("video")
+  @Security("cookieAuth")
+  public async downloadVideo(
+    @Body() body: DownloadVideoDTO
+  ): Promise<MessageResponse> {
+    const { url, downloadFolder, fileName } = body;
+
+    if (!url || !downloadFolder || !fileName) {
+      throw new ApiError(400, messages.errors.validation.notEnoughParams);
+    }
+
+    await DownloaderManager.downloadVideo(url, downloadFolder, fileName);
+
+    return { message: messages.success.download };
+  }
+
+  /**
+   * Download music file
+   */
+  @Post("music")
+  @Security("cookieAuth")
+  public async downloadMusic(
+    @Body() body: DownloadMusicDTO
+  ): Promise<MessageResponse> {
+    const { url, downloadFolder, fileName } = body;
+
+    if (!url || !downloadFolder || !fileName) {
+      throw new ApiError(400, messages.errors.validation.notEnoughParams);
+    }
+
+    await DownloaderManager.downloadAudio(url, downloadFolder, fileName);
+
+    return { message: messages.success.download };
+  }
+
+  /**
+   * Download image file
+   */
+  @Post("image")
+  @Security("cookieAuth")
+  public async downloadImage(
+    @Body() body: DownloadImageDTO
+  ): Promise<MessageResponse> {
+    let { url, downloadFolder, fileName } = body;
+
+    if (!url || !downloadFolder || !fileName) {
+      throw new ApiError(400, messages.errors.validation.notEnoughParams);
+    }
+
+    if (!isValidURL(url)) {
+      throw new ApiError(400, messages.errors.validation.invalidData);
+    }
+
+    // If the file name doesn't have an extension, add .jpg
+    if (!path.extname(fileName)) {
+      fileName += ".jpg";
+    }
+
+    await downloadImage(
+      url,
+      path.join(fileSystemService.resourcesPath, downloadFolder, fileName)
+    );
+
+    return { message: messages.success.download };
+  }
+}

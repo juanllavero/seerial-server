@@ -3,7 +3,7 @@ import { ContinueWatchingRepositoryPort } from "../ports/ContinueWatchingReposit
 export class GetVideosUseCase {
   constructor(private continueWatchingRepo: ContinueWatchingRepositoryPort) {}
 
-  async execute(userId: string): Promise<void> {
-    await this.continueWatchingRepo.getVideos(userId);
+  async execute(userId: string): Promise<any[]> {
+    return await this.continueWatchingRepo.getVideos(userId);
   }
 }

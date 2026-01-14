@@ -1,4 +1,4 @@
-import { MessageResponse } from "@/api/v0/episodes/application/dtos/EpisodeDTOs";
+import { MessageResponse } from "@/api/v0/shared/application/dtos/DTOs";
 import {
   librariesRepo,
   moviesRepo,
@@ -6,19 +6,24 @@ import {
 } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
+import { ExternalSearchManager } from "@/managers/ExternalSearchManager";
+import { MediaManager } from "@/managers/MediaManager";
 import { Request as ExpressRequest } from "express";
 import {
   Body,
   Controller,
   Delete,
+  Get,
   Path,
   Post,
   Put,
+  Query,
   Request,
   Route,
   Security,
   Tags,
 } from "tsoa";
+
 import {
   ChangeIdentificationDTO,
   MovieResponse,
@@ -156,5 +161,68 @@ export class MoviesController extends Controller {
     }
 
     return { message: messages.success.update };
+  }
+
+  /**
+   * Search movies in TMDB
+   */
+  @Get("search")
+  @Security("cookieAuth")
+  public async searchMovies(
+    @Query() name: string,
+    @Query() year?: string
+  ): Promise<any> {
+    if (typeof name !== "string") {
+      throw new ApiError(400, "Query parameter 'name' is required.");
+    }
+    return await ExternalSearchManager.searchMovies(name, year);
+  }
+
+  /**
+   * Get IMDB score for a movie
+   */
+  @Get("imdb-score")
+  @Security("cookieAuth")
+  public async getImdbScore(@Query() id: string): Promise<any> {
+    if (typeof id !== "string") {
+      throw new ApiError(400, "Query parameter 'id' is required.");
+    }
+    return await ExternalSearchManager.getImdbScore(id);
+  }
+
+  /**
+   * Get remaining videos count for a movie
+   */
+  @Get("{id}/remaining-videos")
+  @Security("cookieAuth")
+  public async getRemainingVideos(
+    @Path() id: string,
+    @Request() req: ExpressRequest
+  ): Promise<any> {
+    const userId = (req as any).user?.id;
+
+    if (!id || !userId) {
+      throw new ApiError(400, messages.errors.validation.notEnoughParams);
+    }
+
+    return await MediaManager.countRemainingVideos(id, userId);
+  }
+
+  /**
+   * Check if movie is in user's my list
+   */
+  @Get("{id}/my-list")
+  @Security("cookieAuth")
+  public async isMovieInMyList(
+    @Path() id: string,
+    @Request() req: ExpressRequest
+  ): Promise<any> {
+    const userId = (req as any).user?.id;
+
+    if (!id || !userId) {
+      throw new ApiError(400, messages.errors.validation.notEnoughParams);
+    }
+
+    return await MediaManager.isMovieInMyList(id, userId);
   }
 }

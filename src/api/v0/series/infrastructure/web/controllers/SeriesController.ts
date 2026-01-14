@@ -1,133 +1,158 @@
-import {
-  seriesRepo,
-  useCases,
-} from "@/api/v0/shared/infrastructure/adapters/di/container";
+import { MessageResponse } from "@/api/v0/shared/application/dtos/DTOs";
+import { useCases } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { NextFunction, Request, Response } from "express";
-import { DeleteSeriesUseCase } from "../../../application/usecases/DeleteSeriesUseCase";
-import { UpdateEpisodeGroupUseCase } from "../../../application/usecases/UpdateEpisodeGroupUseCase";
-import { UpdateSeriesUseCase } from "../../../application/usecases/UpdateSeriesUseCase";
-import { UpdateShowIdUseCase } from "../../../application/usecases/UpdateShowIdUseCase";
+import { ExternalSearchManager } from "@/managers/ExternalSearchManager";
+import { MediaManager } from "@/managers/MediaManager";
+import { Request as ExpressRequest } from "express";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Path,
+  Post,
+  Put,
+  Query,
+  Request,
+  Route,
+  Security,
+  Tags,
+} from "tsoa";
+import {
+  RefreshMetadataDTO,
+  SeriesResponse,
+  SetWatchStateDTO,
+  UpdateEpisodeGroupDTO,
+  UpdateSeriesDTO,
+  UpdateShowIdDTO,
+} from "../../../application/dtos/SeriesDTOs";
 
-export class SeriesController {
-  static async refreshMetadata(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
-    try {
-      const { id } = req.body;
+@Route("series")
+@Tags("Series")
+export class SeriesController extends Controller {
+  /**
+   * Refresh series metadata from external sources
+   */
+  @Post("refreshShowMetadata")
+  @Security("cookieAuth")
+  public async refreshMetadata(
+    @Body() body: RefreshMetadataDTO
+  ): Promise<SeriesResponse> {
+    const { id } = body;
 
-      if (!id) {
-        return next(
-          new ApiError(400, messages.errors.validation.notEnoughParams)
-        );
-      }
-
-      const useCase = useCases.refreshMetadata();
-      useCase.execute(id);
-      res.status(200).json({
-        status: "success",
-        message: messages.success.update,
-      });
-    } catch (err) {
-      next(err);
+    if (!id) {
+      throw new ApiError(400, messages.errors.validation.notEnoughParams);
     }
+
+    await useCases.refreshMetadata().execute(id);
+
+    return {
+      status: "success",
+      message: messages.success.update,
+    };
   }
 
-  static async updateShowId(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { id, themdbId } = req.body;
+  /**
+   * Update series TMDB ID
+   */
+  @Post("updateShowId")
+  @Security("cookieAuth")
+  public async updateShowId(
+    @Body() body: UpdateShowIdDTO
+  ): Promise<SeriesResponse> {
+    const { id, themdbId } = body;
 
-      if (!id || !themdbId) {
-        return next(
-          new ApiError(400, messages.errors.validation.notEnoughParams)
-        );
-      }
-
-      const useCase = new UpdateShowIdUseCase();
-      useCase.execute(id, themdbId);
-      res.status(200).json({
-        status: "success",
-        message: messages.success.update,
-      });
-    } catch (err) {
-      next(err);
+    if (!id || !themdbId) {
+      throw new ApiError(400, messages.errors.validation.notEnoughParams);
     }
+
+    await useCases.updateShowId().execute(id, themdbId);
+
+    return {
+      status: "success",
+      message: messages.success.update,
+    };
   }
 
-  static async updateEpisodeGroup(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
-    try {
-      const { id, themdbId, episodeGroupId } = req.body;
+  /**
+   * Update series episode group
+   */
+  @Post("updateEpisodeGroup")
+  @Security("cookieAuth")
+  public async updateEpisodeGroup(
+    @Body() body: UpdateEpisodeGroupDTO
+  ): Promise<SeriesResponse> {
+    const { id, themdbId, episodeGroupId } = body;
 
-      if (!id || !themdbId || !episodeGroupId) {
-        return next(
-          new ApiError(400, messages.errors.validation.notEnoughParams)
-        );
-      }
-
-      const useCase = new UpdateEpisodeGroupUseCase();
-      useCase.execute(id, themdbId, episodeGroupId);
-      res.status(200).json({
-        status: "success",
-        message: messages.success.update,
-      });
-    } catch (err) {
-      next(err);
+    if (!id || !themdbId || !episodeGroupId) {
+      throw new ApiError(400, messages.errors.validation.notEnoughParams);
     }
+
+    await useCases.updateEpisodeGroup().execute(id, themdbId, episodeGroupId);
+
+    return {
+      status: "success",
+      message: messages.success.update,
+    };
   }
 
-  static async update(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { id } = req.params;
-      if (!id) throw new ApiError(400, messages.errors.validation.missingId);
-
-      const useCase = new UpdateSeriesUseCase(seriesRepo);
-      const result = await useCase.execute(id, req.body);
-
-      res.status(200).json({
-        status: "success",
-        message: messages.success.update,
-        data: result,
-      });
-    } catch (err) {
-      next(err);
+  /**
+   * Update series details
+   */
+  @Put("show/{id}")
+  @Security("cookieAuth")
+  public async update(
+    @Path() id: string,
+    @Body() body: UpdateSeriesDTO
+  ): Promise<SeriesResponse> {
+    if (!id) {
+      throw new ApiError(400, messages.errors.validation.missingId);
     }
+
+    const result = await useCases.updateSeries().execute(id, body);
+
+    return {
+      status: "success",
+      message: messages.success.update,
+      data: result,
+    };
   }
 
-  static async delete(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { id } = req.params;
-      if (!id) throw new ApiError(400, messages.errors.validation.missingId);
-
-      const useCase = new DeleteSeriesUseCase(seriesRepo);
-      await useCase.execute(id);
-
-      res.status(200).json({ message: messages.success.delete });
-    } catch (err) {
-      next(err);
+  /**
+   * Delete a series
+   */
+  @Delete("{id}")
+  @Security("cookieAuth")
+  public async delete(@Path() id: string): Promise<MessageResponse> {
+    if (!id) {
+      throw new ApiError(400, messages.errors.validation.missingId);
     }
+
+    await useCases.deleteSeries().execute(id);
+
+    return { message: messages.success.delete };
   }
 
-  static async setWatchState(req: Request, res: Response, next: NextFunction) {
-    const { id: seriesId } = req.params;
-    const { watched, userId } = req.body;
+  /**
+   * Set series watch state for a user
+   */
+  @Post("{id}/watch-state")
+  @Security("cookieAuth")
+  public async setWatchState(
+    @Path() id: string,
+    @Body() body: SetWatchStateDTO
+  ): Promise<MessageResponse> {
+    const { watched, userId } = body;
 
-    if (!seriesId || !userId) {
-      return next(
-        new ApiError(400, messages.errors.validation.notEnoughParams)
-      );
+    if (!id || !userId) {
+      throw new ApiError(400, messages.errors.validation.notEnoughParams);
     }
 
-    const series = await useCases.getSeriesById().execute(seriesId);
+    const series = await useCases.getSeriesById().execute(id);
 
     if (!series) {
-      return next(new ApiError(404, messages.errors.notFound.series));
+      throw new ApiError(404, messages.errors.notFound.series);
     }
 
     for (const season of series.seasons) {
@@ -178,12 +203,75 @@ export class SeriesController {
     }
 
     if (watched) {
-      await useCases.addSeriesToWatchList().execute(seriesId, userId);
+      await useCases.addSeriesToWatchList().execute(id, userId);
     } else {
-      await useCases.removeSeriesFromWatchList().execute(seriesId, userId);
+      await useCases.removeSeriesFromWatchList().execute(id, userId);
     }
     await useCases.updateSeries().execute(series.id, series);
 
-    return res.status(200).json({ message: messages.success.update });
+    return { message: messages.success.update };
+  }
+
+  /**
+   * Search series in TMDB
+   */
+  @Get("search")
+  @Security("cookieAuth")
+  public async searchSeries(
+    @Query() name: string,
+    @Query() year?: string
+  ): Promise<any> {
+    if (typeof name !== "string") {
+      throw new ApiError(400, "Query parameter 'name' is required.");
+    }
+    return await ExternalSearchManager.searchTvShows(name, year);
+  }
+
+  /**
+   * Search episode groups in TMDB
+   */
+  @Get("episode-groups/search")
+  @Security("cookieAuth")
+  public async searchEpisodeGroups(@Query() id: string): Promise<any> {
+    if (typeof id !== "string") {
+      throw new ApiError(400, "Query parameter 'id' is required.");
+    }
+    return await ExternalSearchManager.searchEpisodeGroups(id);
+  }
+
+  /**
+   * Get remaining episodes count for a series
+   */
+  @Get("{id}/remaining-episodes")
+  @Security("cookieAuth")
+  public async getRemainingEpisodes(
+    @Path() id: string,
+    @Request() req: ExpressRequest
+  ): Promise<any> {
+    const userId = (req as any).user?.id;
+
+    if (!id || !userId) {
+      throw new ApiError(400, messages.errors.validation.notEnoughParams);
+    }
+
+    return await MediaManager.countRemainingEpisodes(id, userId);
+  }
+
+  /**
+   * Check if series is in user's my list
+   */
+  @Get("{id}/my-list")
+  @Security("cookieAuth")
+  public async isSeriesInMyList(
+    @Path() id: string,
+    @Request() req: ExpressRequest
+  ): Promise<any> {
+    const userId = (req as any).user?.id;
+
+    if (!id || !userId) {
+      throw new ApiError(400, messages.errors.validation.notEnoughParams);
+    }
+
+    return await MediaManager.isSeriesInMyList(id, userId);
   }
 }

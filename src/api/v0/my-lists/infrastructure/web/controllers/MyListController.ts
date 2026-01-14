@@ -1,28 +1,65 @@
 import { myListRepo } from "@/api/v0/shared/infrastructure/adapters/di/container";
+import { messages } from "@/config/messages";
+import ApiError from "@/data/ApiError";
+import { MediaManager } from "@/managers/MediaManager";
 import { getUserId } from "@/utils/utils";
-import { NextFunction, Request, Response } from "express";
+import { Request as ExpressRequest } from "express";
+import { Controller, Get, Path, Request, Route, Security, Tags } from "tsoa";
 
-export class MyListController {
-  static async getMyListMovies(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
-    try {
-      const series = myListRepo.getMoviesFromMyList(getUserId(req));
-
-      res.status(200).json(series);
-    } catch (err) {
-      next(err);
-    }
+@Route("my-list")
+@Tags("My List")
+export class MyListController extends Controller {
+  /**
+   * Get movies from user's my list
+   */
+  @Get("movies")
+  @Security("cookieAuth")
+  public async getMyListMovies(@Request() req: ExpressRequest): Promise<any[]> {
+    return myListRepo.getMoviesFromMyList(getUserId(req));
   }
 
-  static async getMyListSeries(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
-    const movies = myListRepo.getSeriesFromMyList(getUserId(req));
-    res.status(200).json(movies);
+  /**
+   * Get series from user's my list
+   */
+  @Get("series")
+  @Security("cookieAuth")
+  public async getMyListSeries(@Request() req: ExpressRequest): Promise<any[]> {
+    return myListRepo.getSeriesFromMyList(getUserId(req));
+  }
+
+  /**
+   * Check if a specific movie is in user's my list
+   */
+  @Get("movies/{id}/check")
+  @Security("cookieAuth")
+  public async isMovieInMyList(
+    @Path() id: string,
+    @Request() req: ExpressRequest
+  ): Promise<any> {
+    const userId = getUserId(req);
+
+    if (!id || !userId) {
+      throw new ApiError(400, messages.errors.validation.notEnoughParams);
+    }
+
+    return await MediaManager.isMovieInMyList(id, userId);
+  }
+
+  /**
+   * Check if a specific series is in user's my list
+   */
+  @Get("series/{id}/check")
+  @Security("cookieAuth")
+  public async isSeriesInMyList(
+    @Path() id: string,
+    @Request() req: ExpressRequest
+  ): Promise<any> {
+    const userId = getUserId(req);
+
+    if (!id || !userId) {
+      throw new ApiError(400, messages.errors.validation.notEnoughParams);
+    }
+
+    return await MediaManager.isSeriesInMyList(id, userId);
   }
 }

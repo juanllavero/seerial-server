@@ -1,12 +1,20 @@
 import { continueWatchingRepo } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { getUserId } from "@/utils/utils";
-import { NextFunction, Request, Response } from "express";
+import { Request as ExpressRequest } from "express";
+import { Controller, Get, Request, Route, Security, Tags } from "tsoa";
 import { GetVideosUseCase } from "../../../application/usecases/GetVideosUseCase";
 
-export class ContinueWatchingController {
-  static async getVideos(req: Request, res: Response, _next: NextFunction) {
+@Route("continueWatching")
+@Tags("Continue Watching")
+export class ContinueWatchingController extends Controller {
+  /**
+   * Get videos for continue watching
+   */
+  @Get()
+  @Security("cookieAuth")
+  public async getVideos(@Request() req: ExpressRequest): Promise<any[]> {
+    const userId = getUserId(req);
     const useCase = new GetVideosUseCase(continueWatchingRepo);
-    const videos = await useCase.execute(getUserId(req));
-    res.status(200).json(videos);
+    return await useCase.execute(userId);
   }
 }

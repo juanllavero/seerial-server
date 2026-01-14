@@ -83,6 +83,7 @@ import { FindSeriesByIdUseCase } from "@/api/v0/series/application/usecases/Find
 import { ProcessEpisodeUseCase } from "@/api/v0/series/application/usecases/ProcessEpisodeUseCase";
 import { RefreshMetadataUseCase } from "@/api/v0/series/application/usecases/RefreshMetadataUseCase";
 import { ScanSeriesUseCase } from "@/api/v0/series/application/usecases/ScanSeriesUseCase";
+import { UpdateEpisodeGroupUseCase } from "@/api/v0/series/application/usecases/UpdateEpisodeGroupUseCase";
 import { UpdateSeriesMetadataUseCase } from "@/api/v0/series/application/usecases/UpdateSeriesMetadataUseCase";
 import { UpdateSeriesUseCase } from "@/api/v0/series/application/usecases/UpdateSeriesUseCase";
 import { UpdateShowIdUseCase } from "@/api/v0/series/application/usecases/UpdateShowIdUseCase";
@@ -113,8 +114,10 @@ import { FindVideoByEpisodeIdUseCase } from "@/api/v0/videos/application/usecase
 import { FindVideoByIdUseCase } from "@/api/v0/videos/application/usecases/FindVideoByIdUseCase";
 import { FindVideoByMovieIdUseCase } from "@/api/v0/videos/application/usecases/FindVideoByMovieIdUseCase";
 import { FindVideoByPathUseCase } from "@/api/v0/videos/application/usecases/FindVideoByPathUseCase";
+import { UpdateMediaInfoUseCase } from "@/api/v0/videos/application/usecases/UpdateMediaInfoUseCase";
 import { UpdateVideoUseCase } from "@/api/v0/videos/application/usecases/UpdateVideosUseCase";
 import { VideosRepositoryImpl } from "@/api/v0/videos/infrastructure/persistence/repositories/VideosRepositoryImpl";
+import { VideoExtractionService } from "@/api/v0/videos/infrastructure/services/VideoExtractionService";
 import { AddMovieToWatchListUseCase } from "@/api/v0/watch-lists/application/usecases/AddMovieToWatchListUseCase";
 import { AddSeasonToWatchListUseCase } from "@/api/v0/watch-lists/application/usecases/AddSeasonToWatchListUseCase";
 import { AddSeriesToWatchListUseCase } from "@/api/v0/watch-lists/application/usecases/AddSeriesToWatchListUseCase";
@@ -139,6 +142,7 @@ import { VideoProcessingServiceImpl } from "../video-processing/VideoProcessingS
 //#endregion
 
 // Services
+export const videoExtractionService = new VideoExtractionService();
 export const fileSystemService = new FileSystemServiceImpl();
 export const mediaInfoService = new MediaInfoServiceImpl();
 export const audioProcessingService = new AudioProcessingServiceImpl(
@@ -240,6 +244,7 @@ export const useCases = {
 
   updateSeriesMetadata: () => new UpdateSeriesMetadataUseCase(seriesRepo),
   updateShowId: () => new UpdateShowIdUseCase(),
+  updateEpisodeGroup: () => new UpdateEpisodeGroupUseCase(),
 
   // Seasons
   getSeasonsBySeriesId: () => new FindSeasonsBySeriesIdUseCase(seasonsRepo),
@@ -325,6 +330,7 @@ export const useCases = {
   getVideoByEpisodeId: () => new FindVideoByEpisodeIdUseCase(videosRepo),
   getVideoByMovieId: () => new FindVideoByMovieIdUseCase(videosRepo),
   updateVideo: () => new UpdateVideoUseCase(videosRepo),
+  updateMediaInfo: () => new UpdateMediaInfoUseCase(videosRepo),
   addVideoAsEpisode: () => new CreateVideoAsEpisodeUseCase(videosRepo),
   deleteVideo: () => new DeleteVideoUseCase(videosRepo, librariesRepo),
   deleteVideoData: () => new DeleteVideoDataUseCase(fileSystemService),

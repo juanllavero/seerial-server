@@ -1,73 +1,110 @@
+import { MessageResponse } from "@/api/v0/shared/application/dtos/DTOs";
 import { collectionsRepo } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { NextFunction, Request, Response } from "express";
-import { ReorderItemDTO } from "../../../application/dtos/CollectionDTOs";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Path,
+  Post,
+  Put,
+  Route,
+  Security,
+  Tags,
+} from "tsoa";
+import {
+  CollectionResponse,
+  MusicExtrasDTO,
+  ReorderContentDTO,
+  UpdateCollectionDTO,
+} from "../../../application/dtos/CollectionDTOs";
 import { DeleteCollectionUseCase } from "../../../application/usecases/DeleteCollectionUseCase";
 import { GetMusicExtrasUseCase } from "../../../application/usecases/GetMusicExtrasUseCase";
 import { ReorderCollectionItemsUseCase } from "../../../application/usecases/ReorderCollectionItemsUseCase";
 import { UpdateCollectionUseCase } from "../../../application/usecases/UpdateCollectionUseCase";
 
-export class CollectionsController {
-  static async getMusicExtras(req: Request, res: Response, next: NextFunction) {
-    const { collectionId } = req.params;
-
+@Route("collections")
+@Tags("Collections")
+export class CollectionsController extends Controller {
+  /**
+   * Get music extras for a collection
+   */
+  @Get("musicExtras/{collectionId}")
+  @Security("cookieAuth")
+  public async getMusicExtras(
+    @Path() collectionId: string
+  ): Promise<MusicExtrasDTO> {
     if (!collectionId) {
-      return next(new ApiError(400, messages.errors.validation.missingId));
+      throw new ApiError(400, messages.errors.validation.missingId);
     }
 
-    const extras = new GetMusicExtrasUseCase(collectionsRepo).execute(
-      collectionId
-    );
-    res.status(200).json(extras);
+    const useCase = new GetMusicExtrasUseCase(collectionsRepo);
+    return await useCase.execute(collectionId);
   }
 
-  static async reorderContent(req: Request, res: Response, next: NextFunction) {
-    const { id: collectionId } = req.params;
-    const { orderedItems } = req.body;
+  /**
+   * Reorder items in a collection
+   */
+  @Post("{id}/items/order")
+  @Security("cookieAuth")
+  public async reorderContent(
+    @Path() id: string,
+    @Body() body: ReorderContentDTO
+  ): Promise<MessageResponse> {
+    const { orderedItems } = body;
 
-    if (!collectionId || !Array.isArray(orderedItems)) {
-      return next(new ApiError(400, messages.errors.validation.invalidData));
+    if (!id || !Array.isArray(orderedItems)) {
+      throw new ApiError(400, messages.errors.validation.invalidData);
     }
 
     const useCase = new ReorderCollectionItemsUseCase(collectionsRepo);
-    await useCase.execute(collectionId, orderedItems as ReorderItemDTO[]);
+    await useCase.execute(id, orderedItems);
 
-    res.status(200).json({ message: messages.success.order });
+    return { message: messages.success.order };
   }
 
-  static async update(req: Request, res: Response, next: NextFunction) {
-    const updatedCollectionData = req.body;
-    const id = req.params.id;
-
+  /**
+   * Update collection details
+   */
+  @Put("{id}")
+  @Security("cookieAuth")
+  public async update(
+    @Path() id: string,
+    @Body() body: UpdateCollectionDTO
+  ): Promise<CollectionResponse> {
     if (!id) {
-      return next(new ApiError(400, messages.errors.validation.missingId));
+      throw new ApiError(400, messages.errors.validation.missingId);
     }
 
     const useCase = new UpdateCollectionUseCase(collectionsRepo);
-    const updatedCollection = await useCase.execute(id, updatedCollectionData);
+    const result = await useCase.execute(id, body);
 
-    return res.status(200).json({
+    return {
       status: "success",
       message: messages.success.update,
-      data: updatedCollection,
-    });
+      data: result,
+    };
   }
 
-  static async delete(req: Request, res: Response, next: NextFunction) {
-    const { id } = req.params;
-
+  /**
+   * Delete a collection
+   */
+  @Delete("{id}")
+  @Security("cookieAuth")
+  public async delete(@Path() id: string): Promise<MessageResponse> {
     if (!id) {
-      return next(new ApiError(400, messages.errors.validation.missingId));
+      throw new ApiError(400, messages.errors.validation.missingId);
     }
 
     const useCase = new DeleteCollectionUseCase(collectionsRepo);
     const deleted = await useCase.execute(id);
 
     if (!deleted) {
-      return next(new ApiError(404, messages.errors.delete));
+      throw new ApiError(404, messages.errors.delete);
     }
 
-    res.status(200).json({ message: messages.success.delete });
+    return { message: messages.success.delete };
   }
 }

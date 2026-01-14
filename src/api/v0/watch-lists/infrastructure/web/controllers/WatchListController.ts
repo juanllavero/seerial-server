@@ -1,34 +1,40 @@
 import { useCases } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { NextFunction, Request, Response } from "express";
+import { Body, Controller, Put, Route, Security, Tags } from "tsoa";
+import {
+  UpdateWatchStateDTO,
+  WatchListResponse,
+} from "../../../application/dtos/WatchListDTOs";
 
-export class WatchListController {
-  static async updateWatchState(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
-    try {
-      const { videoId, timeWatched, watched, userId } = req.body;
-      if (videoId == null || timeWatched == null || watched == null || !userId)
-        throw new ApiError(400, messages.errors.validation.notEnoughParams);
+@Route("watch-lists")
+@Tags("Watch Lists")
+export class WatchListController extends Controller {
+  /**
+   * Update watch state for a video
+   */
+  @Put("updateWatchState")
+  @Security("cookieAuth")
+  public async updateWatchState(
+    @Body() body: UpdateWatchStateDTO
+  ): Promise<WatchListResponse> {
+    const { videoId, timeWatched, watched, userId } = body;
 
-      const updateWatchState = useCases.updateWatchStateUseCase();
-      const result = await updateWatchState.execute({
-        videoId,
-        timeWatched,
-        watched,
-        userId,
-      });
-
-      res.status(200).json({
-        status: "success",
-        message: messages.success.update,
-        data: result,
-      });
-    } catch (err) {
-      next(err);
+    if (videoId == null || timeWatched == null || watched == null || !userId) {
+      throw new ApiError(400, messages.errors.validation.notEnoughParams);
     }
+
+    const result = await useCases.updateWatchStateUseCase().execute({
+      videoId,
+      timeWatched,
+      watched,
+      userId,
+    });
+
+    return {
+      status: "success",
+      message: messages.success.update,
+      data: result,
+    };
   }
 }

@@ -1,71 +1,97 @@
+import { MessageResponse } from "@/api/v0/shared/application/dtos/DTOs";
 import {
   fileSystemService,
-  songsRepo,
   useCases,
 } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import { MediaDetailsManager } from "@/managers/MediaDetailsManager";
-import { NextFunction, Request, Response } from "express";
-import { DeleteSongUseCase } from "../../../application/usecases/DeleteSongUseCase";
-import { UpdateSongUseCase } from "../../../application/usecases/UpdateSongUseCase";
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Path,
+  Post,
+  Put,
+  Route,
+  Security,
+  Tags,
+} from "tsoa";
+import {
+  AddLyricsDTO,
+  SongResponse,
+  UpdateSongDTO,
+} from "../../../application/dtos/SongDTOs";
 
-export class SongsController {
-  static async update(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { id } = req.params;
-      if (!id) throw new ApiError(400, messages.errors.validation.missingId);
-
-      const useCase = new UpdateSongUseCase(songsRepo);
-      const result = await useCase.execute(id, req.body);
-
-      res.status(200).json({
-        status: "success",
-        message: messages.success.update,
-        data: result,
-      });
-    } catch (err) {
-      next(err);
+@Route("songs")
+@Tags("Songs")
+export class SongsController extends Controller {
+  /**
+   * Update song details
+   */
+  @Put("{id}")
+  @Security("cookieAuth")
+  public async update(
+    @Path() id: string,
+    @Body() body: UpdateSongDTO
+  ): Promise<SongResponse> {
+    if (!id) {
+      throw new ApiError(400, messages.errors.validation.missingId);
     }
+
+    const result = await useCases.updateSong().execute(id, body);
+
+    return {
+      status: "success",
+      message: messages.success.update,
+      data: result,
+    };
   }
 
-  static async delete(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { id } = req.params;
-      if (!id) throw new ApiError(400, messages.errors.validation.missingId);
-
-      const useCase = new DeleteSongUseCase(songsRepo);
-      await useCase.execute(id);
-
-      res.status(200).json({ message: messages.success.delete });
-    } catch (err) {
-      next(err);
+  /**
+   * Delete a song
+   */
+  @Delete("{id}")
+  @Security("cookieAuth")
+  public async delete(@Path() id: string): Promise<MessageResponse> {
+    if (!id) {
+      throw new ApiError(400, messages.errors.validation.missingId);
     }
+
+    await useCases.deleteSong().execute(id);
+
+    return { message: messages.success.delete };
   }
 
-  static async getSongsLyrics(req: Request, res: Response, next: NextFunction) {
-    const { id } = req.query;
-    if (typeof id !== "string") {
-      return next(new ApiError(400, "Query parameter 'id' is required."));
+  /**
+   * Get song lyrics
+   */
+  @Get("{id}/lyrics")
+  @Security("cookieAuth")
+  public async getSongsLyrics(@Path() id: string): Promise<any> {
+    if (!id) {
+      throw new ApiError(400, "Song ID is required.");
     }
-    const lyrics = await MediaDetailsManager.findLyricsForSong(id);
-    res.status(200).json(lyrics);
+    return await MediaDetailsManager.findLyricsForSong(id);
   }
 
-  static async addSongsLyrics(req: Request, res: Response, next: NextFunction) {
-    const { songId, language, content } = req.body;
+  /**
+   * Add song lyrics
+   */
+  @Post("lyrics")
+  @Security("cookieAuth")
+  public async addSongsLyrics(@Body() body: AddLyricsDTO): Promise<any> {
+    const { songId, language, content } = body;
 
     if (!songId || !language || !content) {
-      return next(
-        new ApiError(400, messages.errors.validation.notEnoughParams)
-      );
+      throw new ApiError(400, messages.errors.validation.notEnoughParams);
     }
 
-    const getSongById = useCases.getSongById();
-    const song = await getSongById.execute(songId as string);
+    const song = await useCases.getSongById().execute(songId);
 
     if (!song) {
-      return next(new ApiError(404, messages.errors.notFound.song));
+      throw new ApiError(404, messages.errors.notFound.song);
     }
 
     const songDirectory = fileSystemService.dirname(song.fileSrc);
@@ -85,9 +111,9 @@ export class SongsController {
 
     await fileSystemService.writeFile(fullSavePath, content, "utf-8");
 
-    return res.status(201).json({
+    return {
       message: "Lyrics file created successfully",
       path: fullSavePath,
-    });
+    };
   }
 }

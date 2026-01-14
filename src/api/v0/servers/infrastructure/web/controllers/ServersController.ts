@@ -1,67 +1,34 @@
-import { serversRepo } from "@/api/v0/shared/infrastructure/adapters/di/container";
+import { useCases } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { NextFunction, Request, Response } from "express";
-import { CreateServerUseCase } from "../../../application/usecases/CreateServerUseCase";
-import { GetServerUseCase } from "../../../application/usecases/GetServerUseCase";
-import { UpdateServerUseCase } from "../../../application/usecases/UpdateServerUseCase";
+import { Body, Controller, Path, Put, Route, Security, Tags } from "tsoa";
+import {
+  ServerResponse,
+  UpdateServerDTO,
+} from "../../../application/dtos/ServerDTOs";
 
-export class ServersController {
-  static async getServerConfig(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
-    try {
-      const { id } = req.params;
-      if (!id) throw new ApiError(400, messages.errors.validation.missingId);
-
-      const useCase = new GetServerUseCase(serversRepo);
-      const result = await useCase.execute();
-
-      res.status(200).json({
-        status: "success",
-        message: messages.success.update,
-        data: result,
-      });
-    } catch (err) {
-      next(err);
+@Route("servers")
+@Tags("Servers")
+export class ServersController extends Controller {
+  /**
+   * Update server configuration
+   */
+  @Put("server/{id}")
+  @Security("cookieAuth")
+  public async update(
+    @Path() id: string,
+    @Body() body: UpdateServerDTO
+  ): Promise<ServerResponse> {
+    if (!id) {
+      throw new ApiError(400, messages.errors.validation.missingId);
     }
-  }
 
-  static async create(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { id } = req.params;
-      if (!id) throw new ApiError(400, messages.errors.validation.missingId);
+    const result = await useCases.updateServer().execute(id, body);
 
-      const useCase = new CreateServerUseCase(serversRepo);
-      const result = await useCase.execute(req.body);
-
-      res.status(200).json({
-        status: "success",
-        message: messages.success.update,
-        data: result,
-      });
-    } catch (err) {
-      next(err);
-    }
-  }
-
-  static async update(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { id } = req.params;
-      if (!id) throw new ApiError(400, messages.errors.validation.missingId);
-
-      const useCase = new UpdateServerUseCase(serversRepo);
-      const result = await useCase.execute(id, req.body);
-
-      res.status(200).json({
-        status: "success",
-        message: messages.success.update,
-        data: result,
-      });
-    } catch (err) {
-      next(err);
-    }
+    return {
+      status: "success",
+      message: messages.success.update,
+      data: result,
+    };
   }
 }
