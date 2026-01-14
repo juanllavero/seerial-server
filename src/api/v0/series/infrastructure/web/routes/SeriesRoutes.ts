@@ -15,5 +15,9 @@ router.post(
 );
 router.put("/show/:id", catchAsync(SeriesController.update));
 router.delete("/series/:id", catchAsync(SeriesController.delete));
+router.post(
+  "/series/:id/watch-state",
+  catchAsync(SeriesController.setWatchState)
+);
 
 export default router;

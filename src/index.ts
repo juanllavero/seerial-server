@@ -3,7 +3,6 @@ import {
   notificationService,
   tmdbApiClient,
 } from "@/api/v0/shared/infrastructure/adapters/di/container";
-import appRoutes from "@/initialization/AddRoutes";
 import { createTray } from "@/initialization/CreateTray";
 import * as ConfigManager from "@/managers/ConfigManager";
 import { SequelizeManager } from "@/managers/SequelizeManager";
@@ -23,9 +22,10 @@ import helmet from "helmet";
 import http from "http";
 import https from "https";
 import path from "path";
-import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
+import swaggerDocument from "../swagger.json";
 import { sanitizationMiddleware } from "./middleware/sanitization.middleware";
+import { RegisterRoutes } from "./routes/routes";
 
 // Initialize app and environment
 config();
@@ -146,13 +146,14 @@ app.whenReady().then(async () => {
     apis: ["./src/api/**/*.ts"], // Path to the API docs - adjusted path
   };
 
-  const swaggerSpec = swaggerJSDoc(swaggerOptions);
-
   // Swagger UI
-  appServer.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  appServer.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
+  // Registrar rutas generadas por tsoa
+  RegisterRoutes(appServer);
 
   // Initialize routes
-  appServer.use("/api", appRoutes);
+  //appServer.use("/api", appRoutes);
 
   // Serve static web files
   const webPath = path.join(__dirname, "web");

@@ -39,4 +39,31 @@ export class SeasonsController {
       next(err);
     }
   }
+
+  static async setWatchState(req: Request, res: Response, next: NextFunction) {
+    const { id: seasonId } = req.params;
+    const { watched, userId } = req.body;
+
+    if (!userId || !seasonId) {
+      return next(
+        new ApiError(400, messages.errors.validation.notEnoughParams)
+      );
+    }
+
+    const season = await useCases.getSeasonById().execute(seasonId);
+
+    if (!season) {
+      return next(new ApiError(404, messages.errors.notFound.season));
+    }
+
+    // Get first or last episode
+    const episodeIndex = watched === true ? season.episodes.length - 1 : 0;
+    const episode = season.episodes.sort(
+      (a, b) => a.episodeNumber - b.episodeNumber
+    )[episodeIndex];
+
+    // Set episode watched state
+    await useCases.setEpisodeWatchState().execute(episode.id, userId, watched);
+    return res.status(200).json({ message: messages.success.update });
+  }
 }

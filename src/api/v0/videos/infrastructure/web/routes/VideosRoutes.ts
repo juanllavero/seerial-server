@@ -14,5 +14,9 @@ router.put(
 );
 router.put("/videos/:id", catchAsync(VideosController.update));
 router.delete("/videos/:id", catchAsync(VideosController.delete));
+router.post(
+  "/videos/:id/watch-state",
+  catchAsync(VideosController.setWatchState)
+);
 
 export default router;

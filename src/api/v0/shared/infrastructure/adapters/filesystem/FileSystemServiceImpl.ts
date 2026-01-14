@@ -233,4 +233,32 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
     fs.writeFileSync(filePath, JSON.stringify(content));
   }
   //#endregion
+
+  //#region PATH OPERATIONS
+  public dirname(filePath: string): string {
+    return path.dirname(filePath);
+  }
+
+  public basename(filePath: string, ext?: string): string {
+    return path.basename(filePath, ext);
+  }
+
+  public extname(filePath: string): string {
+    return path.extname(filePath);
+  }
+
+  public join(...paths: string[]): string {
+    return path.join(...paths);
+  }
+  //#endregion
+
+  //#region FILE WRITING
+  public async writeFile(
+    filePath: string,
+    content: string,
+    encoding: BufferEncoding = "utf-8"
+  ): Promise<void> {
+    return fs.promises.writeFile(filePath, content, encoding);
+  }
+  //#endregion
 }

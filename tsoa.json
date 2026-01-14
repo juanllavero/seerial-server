@@ -1,0 +1,28 @@
+{
+  "entryFile": "src/index.ts",
+  "noImplicitAdditionalProperties": "throw-on-extras",
+  "controllerPathGlobs": ["src/api/v0/**/controllers/*Controller.ts"],
+  "spec": {
+    "outputDirectory": "./",
+    "specVersion": 3,
+    "basePath": "/api",
+    "description": "Media management server API for the Seerial suite",
+    "name": "Seerial Media Server API",
+    "version": "0.2.0",
+    "host": "localhost:34200",
+    "schemes": ["http"],
+    "securityDefinitions": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "jwt"
+      }
+    }
+  },
+  "routes": {
+    "routesDir": "./src/routes",
+    "middleware": "express",
+    "authenticationModule": "./src/middleware/tsoa.authentication.ts",
+    "basePath": "/api"
+  }
+}

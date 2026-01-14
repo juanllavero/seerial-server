@@ -9,30 +9,8 @@ import path from "path";
 
 const router = Router();
 
-/**
- * @swagger
- * /files/drives:
- *   get:
- *     summary: Get available system drives
- *     tags: [Files]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of available drives
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: string
- *                 description: Drive path
- *                 example: "C:\\"
- *       500:
- *         description: Internal server error
- */
 router.get(
-  "/drives",
+  "/files/drives",
   catchAsync(async (_req: Request, res: Response, _next: NextFunction) => {
     const drives = getDrives();
     return res.status(200).json(drives);
@@ -102,49 +80,8 @@ const getFolderContent = (dirPath: string) => {
   return contents;
 };
 
-/**
- * @swagger
- * /files/folder:
- *   get:
- *     summary: Get contents of a directory
- *     tags: [Files]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: query
- *         name: path
- *         required: true
- *         schema:
- *           type: string
- *         description: Directory path to list contents
- *     responses:
- *       200:
- *         description: Directory contents
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   name:
- *                     type: string
- *                     description: File or folder name
- *                   isFolder:
- *                     type: boolean
- *                     description: Whether the item is a folder
- *                 example:
- *                   - name: "Documents"
- *                     isFolder: true
- *                   - name: "file.txt"
- *                     isFolder: false
- *       400:
- *         description: Invalid path parameter
- *       500:
- *         description: Directory access error
- */
 router.get(
-  "/folder",
+  "/files/folder",
   catchAsync(async (req, res, next) => {
     const folderPath = req.query.path;
 

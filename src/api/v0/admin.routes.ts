@@ -2,7 +2,6 @@ import albumRoutes from "@/api/v0/albums/infrastructure/web/routes/AlbumsRoutes"
 import collectionRoutes from "@/api/v0/collections/infrastructure/web/routes/CollectionsRoutes";
 import episodeRoutes from "@/api/v0/episodes/infrastructure/web/routes/EpisodesRoutes";
 import librariesRoutes from "@/api/v0/libraries/infrastructure/web/routes/LibrariesRoutes";
-import moviesRoutes from "@/api/v0/movies/infrastructure/web/routes/MoviesRoutes";
 import seasonsRoutes from "@/api/v0/seasons/infrastructure/web/routes/SeasonsRoutes";
 import seriesRoutes from "@/api/v0/series/infrastructure/web/routes/SeriesRoutes";
 import getServerSettings from "@/api/v0/servers/infrastructure/web/routes/ServerConfigRoutes";
@@ -10,8 +9,6 @@ import serverRoutes from "@/api/v0/servers/infrastructure/web/routes/ServersRout
 import apiKeyRoutes from "@/api/v0/shared/infrastructure/web/routes/APIKeyRoutes";
 import downloadRoutes from "@/api/v0/shared/infrastructure/web/routes/DownloadRoutes";
 import getFilesRoutes from "@/api/v0/shared/infrastructure/web/routes/GetFilesRoutes";
-import lyricsRoutes from "@/api/v0/shared/infrastructure/web/routes/LyricsRoutes";
-import mediaInfoRoutes from "@/api/v0/shared/infrastructure/web/routes/MediaInfoRoutes";
 import sharedRoutes from "@/api/v0/shared/infrastructure/web/routes/SharedRoutes";
 import songsRoutes from "@/api/v0/songs/infrastructure/web/routes/SongsRoutes";
 import videosRoutes from "@/api/v0/videos/infrastructure/web/routes/VideosRoutes";
@@ -25,7 +22,6 @@ router.use("/", songsRoutes);
 router.use("/", serverRoutes);
 router.use("/", seriesRoutes);
 router.use("/", seasonsRoutes);
-router.use("/", moviesRoutes);
 router.use("/", librariesRoutes);
 router.use("/", episodeRoutes);
 router.use("/", collectionRoutes);
@@ -34,7 +30,5 @@ router.use("/", sharedRoutes);
 router.use("/", getFilesRoutes);
 router.use("/", apiKeyRoutes);
 router.use("/", downloadRoutes);
-router.use("/", lyricsRoutes);
-router.use("/", mediaInfoRoutes);
 
 export default router;

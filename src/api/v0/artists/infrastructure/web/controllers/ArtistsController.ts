@@ -8,50 +8,6 @@ import { GetArtistByIdUseCase } from "../../../application/usecases/GetArtistByI
 import { UpdateArtistUseCase } from "../../../application/usecases/UpdateArtistUseCase";
 
 export class ArtistsController {
-  /**
-   * @swagger
-   * /artists:
-   *   post:
-   *     summary: Create a new artist
-   *     tags: [Artists]
-   *     security:
-   *       - bearerAuth: []
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required:
-   *               - name
-   *             properties:
-   *               name:
-   *                 type: string
-   *                 description: Artist name
-   *                 example: "The Beatles"
-   *     responses:
-   *       201:
-   *         description: Artist created successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: success
-   *                 message:
-   *                   type: string
-   *                   example: Artist created successfully
-   *                 data:
-   *                   $ref: '#/components/schemas/Artist'
-   *       400:
-   *         description: Missing required parameters
-   *       409:
-   *         description: Artist already exists
-   *       500:
-   *         description: Creation failed
-   */
   static async create(req: Request, res: Response, next: NextFunction) {
     try {
       const { name } = req.body;
@@ -79,44 +35,6 @@ export class ArtistsController {
     }
   }
 
-  /**
-   * @swagger
-   * /artists/{id}:
-   *   get:
-   *     summary: Get artist by ID
-   *     tags: [Artists]
-   *     security:
-   *       - bearerAuth: []
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *         description: Artist ID
-   *     responses:
-   *       200:
-   *         description: Artist retrieved successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: success
-   *                 message:
-   *                   type: string
-   *                   example: Artist retrieved successfully
-   *                 data:
-   *                   $ref: '#/components/schemas/Artist'
-   *       400:
-   *         description: Invalid artist ID
-   *       404:
-   *         description: Artist not found
-   *       500:
-   *         description: Retrieval failed
-   */
   static async getById(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
@@ -138,52 +56,7 @@ export class ArtistsController {
       next(err);
     }
   }
-  /**
-   * @swagger
-   * /artists/{id}:
-   *   put:
-   *     summary: Update an artist
-   *     tags: [Artists]
-   *     security:
-   *       - bearerAuth: []
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *         description: Artist ID
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             properties:
-   *               name:
-   *                 type: string
-   *                 description: Artist name
-   *     responses:
-   *       200:
-   *         description: Artist updated successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: success
-   *                 message:
-   *                   type: string
-   *                   example: Artist updated successfully
-   *                 data:
-   *                   $ref: '#/components/schemas/Artist'
-   *       400:
-   *         description: Invalid artist ID
-   *       500:
-   *         description: Update failed
-   */
+
   static async update(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
@@ -202,37 +75,6 @@ export class ArtistsController {
     }
   }
 
-  /**
-   * @swagger
-   * /artists/{id}:
-   *   delete:
-   *     summary: Delete an artist
-   *     tags: [Artists]
-   *     security:
-   *       - bearerAuth: []
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *         description: Artist ID
-   *     responses:
-   *       200:
-   *         description: Artist deleted successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 message:
-   *                   type: string
-   *                   example: Artist deleted successfully
-   *       400:
-   *         description: Invalid artist ID
-   *       500:
-   *         description: Deletion failed
-   */
   static async delete(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;

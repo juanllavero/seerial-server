@@ -1,248 +1,160 @@
+import { MessageResponse } from "@/api/v0/episodes/application/dtos/EpisodeDTOs";
 import {
   librariesRepo,
   moviesRepo,
+  useCases,
 } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { NextFunction, Request, Response } from "express";
+import { Request as ExpressRequest } from "express";
+import {
+  Body,
+  Controller,
+  Delete,
+  Path,
+  Post,
+  Put,
+  Request,
+  Route,
+  Security,
+  Tags,
+} from "tsoa";
+import {
+  ChangeIdentificationDTO,
+  MovieResponse,
+  SetWatchStateDTO,
+  UpdateMovieDTO,
+} from "../../../application/dtos/MovieDTOs";
 import { DeleteMovieUseCase } from "../../../application/usecases/DeleteMovieUseCase";
 import { RefreshMovieMetadataUseCase } from "../../../application/usecases/RefreshMovieMetadataUseCase";
 import { UpdateMovieIdUseCase } from "../../../application/usecases/UpdateMovieIdUseCase";
 import { UpdateMovieUseCase } from "../../../application/usecases/UpdateMoviesUseCase";
 
-export class MoviesController {
+@Route("movies")
+@Tags("Movies")
+export class MoviesController extends Controller {
   /**
-   * @swagger
-   * /movies/{id}/metadata:
-   *   post:
-   *     summary: Refresh movie metadata from TMDB
-   *     tags: [Movies]
-   *     security:
-   *       - bearerAuth: []
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required:
-   *               - id
-   *             properties:
-   *               id:
-   *                 type: string
-   *                 description: Movie ID
-   *     responses:
-   *       200:
-   *         description: Metadata refreshed successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 message:
-   *                   type: string
-   *                   example: Metadata updated successfully
-   *       400:
-   *         description: Missing movie ID
-   *       500:
-   *         description: Metadata refresh failed
+   * Refresh movie metadata from external sources
    */
-  static async refreshMovieMetadata(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
-    try {
-      const { id } = req.body;
-      if (!id)
-        throw new ApiError(400, messages.errors.validation.notEnoughParams);
-
-      const useCase = new RefreshMovieMetadataUseCase();
-      await useCase.execute(id);
-
-      res.status(200).json({ message: messages.success.update });
-    } catch (err) {
-      next(err);
+  @Post("{id}/metadata")
+  @Security("cookieAuth")
+  public async refreshMovieMetadata(
+    @Path() id: string
+  ): Promise<MessageResponse> {
+    if (!id) {
+      throw new ApiError(400, messages.errors.validation.notEnoughParams);
     }
+
+    const useCase = new RefreshMovieMetadataUseCase();
+    await useCase.execute(id);
+
+    return { message: messages.success.update };
   }
 
   /**
-   * @swagger
-   * /movies/{id}/identification:
-   *   post:
-   *     summary: Change movie identification (TMDB ID)
-   *     tags: [Movies]
-   *     security:
-   *       - bearerAuth: []
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required:
-   *               - id
-   *               - themdbId
-   *             properties:
-   *               id:
-   *                 type: string
-   *                 description: Movie ID
-   *               themdbId:
-   *                 type: integer
-   *                 description: New TMDB ID
-   *     responses:
-   *       200:
-   *         description: Movie identification changed successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 message:
-   *                   type: string
-   *                   example: Movie updated successfully
-   *       400:
-   *         description: Missing required parameters
-   *       500:
-   *         description: Identification change failed
+   * Change movie identification (TMDB ID)
    */
-  static async changeIdentification(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ) {
-    try {
-      const { id, themdbId } = req.body;
-      if (!id || !themdbId)
-        throw new ApiError(400, messages.errors.validation.notEnoughParams);
-
-      const useCase = new UpdateMovieIdUseCase();
-      await useCase.execute(id, themdbId);
-
-      res.status(200).json({ message: messages.success.update });
-    } catch (err) {
-      next(err);
+  @Post("{id}/identification")
+  @Security("cookieAuth")
+  public async changeIdentification(
+    @Path() id: string,
+    @Body() body: ChangeIdentificationDTO
+  ): Promise<MessageResponse> {
+    if (!id || !body.themdbId) {
+      throw new ApiError(400, messages.errors.validation.notEnoughParams);
     }
+
+    const useCase = new UpdateMovieIdUseCase();
+    await useCase.execute(id, body.themdbId);
+
+    return { message: messages.success.update };
   }
 
   /**
-   * @swagger
-   * /movies/{id}:
-   *   put:
-   *     summary: Update a movie
-   *     tags: [Movies]
-   *     security:
-   *       - bearerAuth: []
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *         description: Movie ID
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             properties:
-   *               title:
-   *                 type: string
-   *                 description: Movie title
-   *               overview:
-   *                 type: string
-   *                 description: Movie description
-   *               releaseDate:
-   *                 type: string
-   *                 format: date
-   *                 description: Release date
-   *               genres:
-   *                 type: array
-   *                 items:
-   *                   type: string
-   *                 description: Movie genres
-   *     responses:
-   *       200:
-   *         description: Movie updated successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: success
-   *                 message:
-   *                   type: string
-   *                   example: Movie updated successfully
-   *                 data:
-   *                   $ref: '#/components/schemas/Movie'
-   *       400:
-   *         description: Invalid movie ID
-   *       500:
-   *         description: Update failed
+   * Update movie details
    */
-  static async update(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { id } = req.params;
-      if (!id) throw new ApiError(400, messages.errors.validation.missingId);
-
-      const useCase = new UpdateMovieUseCase(moviesRepo);
-      const result = await useCase.execute(id, req.body);
-
-      res.status(200).json({
-        status: "success",
-        message: messages.success.update,
-        data: result,
-      });
-    } catch (err) {
-      next(err);
+  @Put("{id}")
+  @Security("cookieAuth")
+  public async update(
+    @Path() id: string,
+    @Body() body: UpdateMovieDTO
+  ): Promise<MovieResponse> {
+    if (!id) {
+      throw new ApiError(400, messages.errors.validation.missingId);
     }
+
+    const useCase = new UpdateMovieUseCase(moviesRepo);
+    const result = await useCase.execute(id, body);
+
+    return {
+      status: "success",
+      message: messages.success.update,
+      data: result,
+    };
   }
 
   /**
-   * @swagger
-   * /movies/{id}:
-   *   delete:
-   *     summary: Delete a movie
-   *     tags: [Movies]
-   *     security:
-   *       - bearerAuth: []
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *         description: Movie ID
-   *     responses:
-   *       200:
-   *         description: Movie deleted successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 message:
-   *                   type: string
-   *                   example: Movie deleted successfully
-   *       400:
-   *         description: Invalid movie ID
-   *       500:
-   *         description: Deletion failed
+   * Delete a movie
    */
-  static async delete(req: Request, res: Response, next: NextFunction) {
-    try {
-      const { id } = req.params;
-      if (!id) throw new ApiError(400, messages.errors.validation.missingId);
-
-      const useCase = new DeleteMovieUseCase(librariesRepo, moviesRepo);
-      await useCase.execute(id);
-
-      res.status(200).json({ message: messages.success.delete });
-    } catch (err) {
-      next(err);
+  @Delete("{id}")
+  @Security("cookieAuth")
+  public async delete(@Path() id: string): Promise<MessageResponse> {
+    if (!id) {
+      throw new ApiError(400, messages.errors.validation.missingId);
     }
+
+    const useCase = new DeleteMovieUseCase(librariesRepo, moviesRepo);
+    await useCase.execute(id);
+
+    return { message: messages.success.delete };
+  }
+
+  /**
+   * Set movie watch state for a user
+   */
+  @Post("{id}/watch-state")
+  @Security("cookieAuth")
+  public async setWatchState(
+    @Path() id: string,
+    @Body() body: SetWatchStateDTO,
+    @Request() req: ExpressRequest
+  ): Promise<MessageResponse> {
+    const userId = (req as any).user?.id;
+    const { watched } = body;
+
+    if (!id || !userId) {
+      throw new ApiError(400, messages.errors.validation.notEnoughParams);
+    }
+
+    const movie = await useCases.getMoviebyId().execute(id);
+
+    if (!movie) {
+      throw new ApiError(404, messages.errors.notFound.movie);
+    }
+
+    if (watched) {
+      await useCases.addMovieToWatchList().execute(id, userId);
+    } else {
+      await useCases.removeMovieFromWatchList().execute(id, userId);
+    }
+    await useCases.updateMovie().execute(movie.id, movie);
+
+    // Manage continue watching for all movie videos
+    for (const video of movie.videos) {
+      if (
+        watched === false &&
+        video.watchLists.filter((wl) => wl.id === userId).length > 0 &&
+        (video.watchLists.filter((wl) => wl.id === userId)[0]?.timeWatched ??
+          0) > 0
+      ) {
+        await useCases.addVideoToContinueWatching().execute(video.id, userId);
+      } else if (watched === true) {
+        await useCases
+          .removeVideoFromContinueWatching()
+          .execute(video.id, userId);
+      }
+    }
+
+    return { message: messages.success.update };
   }
 }

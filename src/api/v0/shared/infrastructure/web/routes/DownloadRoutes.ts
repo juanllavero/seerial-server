@@ -9,51 +9,6 @@ import { fileSystemService } from "../../adapters/di/container";
 
 const router = Router();
 
-/**
- * @swagger
- * /downloads/video:
- *   post:
- *     summary: Download a video from URL
- *     tags: [Downloads]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - url
- *               - downloadFolder
- *               - fileName
- *             properties:
- *               url:
- *                 type: string
- *                 format: uri
- *                 description: Video URL to download
- *               downloadFolder:
- *                 type: string
- *                 description: Destination folder path
- *               fileName:
- *                 type: string
- *                 description: Output file name
- *     responses:
- *       200:
- *         description: Video downloaded successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Download completed successfully
- *       400:
- *         description: Missing required parameters
- *       500:
- *         description: Download failed
- */
 router.post(
   "/downloads/video",
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -71,51 +26,6 @@ router.post(
   })
 );
 
-/**
- * @swagger
- * /downloads/music:
- *   post:
- *     summary: Download audio/music from URL
- *     tags: [Downloads]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - url
- *               - downloadFolder
- *               - fileName
- *             properties:
- *               url:
- *                 type: string
- *                 format: uri
- *                 description: Audio URL to download
- *               downloadFolder:
- *                 type: string
- *                 description: Destination folder path
- *               fileName:
- *                 type: string
- *                 description: Output file name
- *     responses:
- *       200:
- *         description: Audio downloaded successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Download completed successfully
- *       400:
- *         description: Missing required parameters
- *       500:
- *         description: Download failed
- */
 router.post(
   "/downloads/music",
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {
@@ -133,51 +43,6 @@ router.post(
   })
 );
 
-/**
- * @swagger
- * /downloads/image:
- *   post:
- *     summary: Download an image from URL
- *     tags: [Downloads]
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - url
- *               - downloadFolder
- *               - fileName
- *             properties:
- *               url:
- *                 type: string
- *                 format: uri
- *                 description: Image URL to download
- *               downloadFolder:
- *                 type: string
- *                 description: Destination folder path
- *               fileName:
- *                 type: string
- *                 description: Output file name (extension will be added if missing)
- *     responses:
- *       200:
- *         description: Image downloaded successfully
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: Download completed successfully
- *       400:
- *         description: Missing required parameters or invalid URL
- *       500:
- *         description: Download failed
- */
 router.post(
   "/downloads/image",
   catchAsync(async (req: Request, res: Response, next: NextFunction) => {

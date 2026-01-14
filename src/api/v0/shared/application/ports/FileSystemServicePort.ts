@@ -33,4 +33,17 @@ export interface FileSystemServicePort {
 
   // JSON
   createJSONFile(filePath: string, content: any): void;
+
+  // Path operations
+  dirname(filePath: string): string;
+  basename(filePath: string, ext?: string): string;
+  extname(filePath: string): string;
+  join(...paths: string[]): string;
+
+  // File writing
+  writeFile(
+    filePath: string,
+    content: string,
+    encoding?: string
+  ): Promise<void>;
 }

@@ -18,32 +18,6 @@ import { ReorderLibraryItemsUseCase } from "../../../application/usecases/Reorde
 import { UpdateLibraryUseCase } from "../../../application/usecases/UpdateLibraryUseCase";
 
 export class LibrariesController {
-  /**
-   * @swagger
-   * /libraries:
-   *   get:
-   *     summary: Get all libraries
-   *     tags: [Libraries]
-   *     security:
-   *       - bearerAuth: []
-   *     responses:
-   *       200:
-   *         description: List of all libraries
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: success
-   *                 data:
-   *                   type: array
-   *                   items:
-   *                     $ref: '#/components/schemas/Library'
-   *       500:
-   *         description: Internal server error
-   */
   static async getAll(_req: Request, res: Response, next: NextFunction) {
     try {
       const useCase = new GetLibrariesUseCase(librariesRepo);
@@ -57,41 +31,6 @@ export class LibrariesController {
     }
   }
 
-  /**
-   * @swagger
-   * /libraries/{id}:
-   *   get:
-   *     summary: Get library by ID
-   *     tags: [Libraries]
-   *     security:
-   *       - bearerAuth: []
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *         description: Library ID
-   *     responses:
-   *       200:
-   *         description: Library details
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: success
-   *                 data:
-   *                   $ref: '#/components/schemas/Library'
-   *       400:
-   *         description: Missing or invalid ID
-   *       404:
-   *         description: Library not found
-   *       500:
-   *         description: Internal server error
-   */
   static async getById(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
@@ -113,60 +52,6 @@ export class LibrariesController {
     }
   }
 
-  /**
-   * @swagger
-   * /libraries/{id}/content:
-   *   get:
-   *     summary: Get library content
-   *     tags: [Libraries]
-   *     security:
-   *       - bearerAuth: []
-   *     parameters:
-   *       - in: query
-   *         name: libraryId
-   *         required: true
-   *         schema:
-   *           type: string
-   *         description: Library ID
-   *       - in: query
-   *         name: type
-   *         required: true
-   *         schema:
-   *           type: string
-   *           enum: [movies, series, albums, collections]
-   *         description: Content type
-   *       - in: query
-   *         name: flat
-   *         schema:
-   *           type: string
-   *           enum: [true, false]
-   *         description: Return flat structure
-   *     responses:
-   *       200:
-   *         description: Library content
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: success
-   *                 data:
-   *                   type: array
-   *                   items:
-   *                     oneOf:
-   *                       - $ref: '#/components/schemas/Movie'
-   *                       - $ref: '#/components/schemas/Series'
-   *                       - $ref: '#/components/schemas/Album'
-   *                       - $ref: '#/components/schemas/Collection'
-   *       400:
-   *         description: Invalid parameters
-   *       404:
-   *         description: Library not found
-   *       500:
-   *         description: Internal server error
-   */
   static async getContent(req: Request, res: Response, next: NextFunction) {
     try {
       const { id: libraryId } = req.params;
@@ -196,33 +81,6 @@ export class LibrariesController {
     }
   }
 
-  /**
-   * @swagger
-   * /libraries/{id}/scan:
-   *   post:
-   *     summary: Start library scan
-   *     tags: [Libraries]
-   *     security:
-   *       - bearerAuth: []
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required:
-   *               - libraryId
-   *             properties:
-   *               libraryId:
-   *                 type: string
-   *     responses:
-   *       200:
-   *         description: Scan started successfully
-   *       400:
-   *         description: Invalid library ID
-   *       404:
-   *         description: Library not found
-   */
   static async startScan(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
@@ -246,35 +104,6 @@ export class LibrariesController {
     }
   }
 
-  /**
-   * @swagger
-   * /libraries/order:
-   *   put:
-   *     summary: Reorder libraries
-   *     tags: [Libraries]
-   *     security:
-   *       - bearerAuth: []
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required:
-   *               - orderedLibraryIds
-   *             properties:
-   *               orderedLibraryIds:
-   *                 type: array
-   *                 items:
-   *                   type: string
-   *     responses:
-   *       200:
-   *         description: Libraries reordered successfully
-   *       400:
-   *         description: Invalid data
-   *       500:
-   *         description: Reorder failed
-   */
   static async reorder(req: Request, res: Response, next: NextFunction) {
     try {
       const { orderedLibraryIds } = req.body;
@@ -298,38 +127,6 @@ export class LibrariesController {
     }
   }
 
-  /**
-   * @swagger
-   * /libraries/{id}/order:
-   *   put:
-   *     summary: Reorder library items
-   *     tags: [Libraries]
-   *     security:
-   *       - bearerAuth: []
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required:
-   *               - libraryId
-   *               - orderedItems
-   *             properties:
-   *               libraryId:
-   *                 type: string
-   *               orderedItems:
-   *                 type: array
-   *                 items:
-   *                   type: object
-   *     responses:
-   *       200:
-   *         description: Items reordered successfully
-   *       400:
-   *         description: Invalid data
-   *       500:
-   *         description: Reorder failed
-   */
   static async reorderItems(req: Request, res: Response, next: NextFunction) {
     try {
       const { id: libraryId } = req.params;
@@ -356,40 +153,6 @@ export class LibrariesController {
     }
   }
 
-  /**
-   * @swagger
-   * /libraries:
-   *   post:
-   *     summary: Create a new library
-   *     tags: [Libraries]
-   *     security:
-   *       - bearerAuth: []
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             required:
-   *               - name
-   *               - path
-   *               - type
-   *             properties:
-   *               name:
-   *                 type: string
-   *               path:
-   *                 type: string
-   *               type:
-   *                 type: string
-   *                 enum: [movies, series, albums, mixed]
-   *     responses:
-   *       201:
-   *         description: Library created successfully
-   *       400:
-   *         description: Invalid data
-   *       500:
-   *         description: Creation failed
-   */
   static async create(req: Request, res: Response, next: NextFunction) {
     try {
       const libraryData = req.body;
@@ -410,41 +173,6 @@ export class LibrariesController {
     }
   }
 
-  /**
-   * @swagger
-   * /libraries/{id}:
-   *   put:
-   *     summary: Update a library
-   *     tags: [Libraries]
-   *     security:
-   *       - bearerAuth: []
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             properties:
-   *               name:
-   *                 type: string
-   *               path:
-   *                 type: string
-   *               type:
-   *                 type: string
-   *     responses:
-   *       200:
-   *         description: Library updated successfully
-   *       400:
-   *         description: Invalid ID or data
-   *       500:
-   *         description: Update failed
-   */
   static async update(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
@@ -463,28 +191,6 @@ export class LibrariesController {
     }
   }
 
-  /**
-   * @swagger
-   * /libraries/{id}:
-   *   delete:
-   *     summary: Delete a library
-   *     tags: [Libraries]
-   *     security:
-   *       - bearerAuth: []
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *     responses:
-   *       200:
-   *         description: Library deleted successfully
-   *       400:
-   *         description: Invalid ID
-   *       500:
-   *         description: Deletion failed
-   */
   static async delete(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;

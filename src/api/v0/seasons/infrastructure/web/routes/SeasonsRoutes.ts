@@ -6,5 +6,9 @@ const router = express.Router();
 
 router.put("/season/:id", catchAsync(SeasonsController.update));
 router.delete("/season/:id", catchAsync(SeasonsController.delete));
+router.post(
+  "/seasons/:id/watch-state",
+  catchAsync(SeasonsController.setWatchState)
+);
 
 export default router;

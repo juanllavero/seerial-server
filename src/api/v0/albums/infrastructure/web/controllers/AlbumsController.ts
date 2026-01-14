@@ -6,65 +6,6 @@ import { DeleteAlbumUseCase } from "../../../application/usecases/DeleteAlbumUse
 import { UpdateAlbumUseCase } from "../../../application/usecases/UpdateAlbumUseCase";
 
 export class AlbumsController {
-  /**
-   * @swagger
-   * /albums/{id}:
-   *   put:
-   *     summary: Update an album
-   *     tags: [Albums]
-   *     security:
-   *       - bearerAuth: []
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *         description: Album ID
-   *     requestBody:
-   *       required: true
-   *       content:
-   *         application/json:
-   *           schema:
-   *             type: object
-   *             properties:
-   *               title:
-   *                 type: string
-   *                 description: Album title
-   *               artist:
-   *                 type: string
-   *                 description: Artist name
-   *               releaseDate:
-   *                 type: string
-   *                 format: date
-   *                 description: Release date
-   *               genre:
-   *                 type: string
-   *                 description: Music genre
-   *               coverImage:
-   *                 type: string
-   *                 description: Cover image URL
-   *     responses:
-   *       200:
-   *         description: Album updated successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 status:
-   *                   type: string
-   *                   example: success
-   *                 message:
-   *                   type: string
-   *                   example: Album updated successfully
-   *                 data:
-   *                   $ref: '#/components/schemas/Album'
-   *       400:
-   *         description: Invalid album ID
-   *       500:
-   *         description: Update failed
-   */
   static async update(req: Request, res: Response, next: NextFunction) {
     const { id } = req.params;
     if (!id)
@@ -80,37 +21,6 @@ export class AlbumsController {
     });
   }
 
-  /**
-   * @swagger
-   * /albums/{id}:
-   *   delete:
-   *     summary: Delete an album
-   *     tags: [Albums]
-   *     security:
-   *       - bearerAuth: []
-   *     parameters:
-   *       - in: path
-   *         name: id
-   *         required: true
-   *         schema:
-   *           type: string
-   *         description: Album ID
-   *     responses:
-   *       200:
-   *         description: Album deleted successfully
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 message:
-   *                   type: string
-   *                   example: Album deleted successfully
-   *       400:
-   *         description: Invalid album ID
-   *       500:
-   *         description: Deletion failed
-   */
   static async delete(req: Request, res: Response, next: NextFunction) {
     const { id } = req.params;
     if (!id)
