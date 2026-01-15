@@ -1,7 +1,9 @@
-import { metadataProvider } from "@/api/v0/shared/infrastructure/adapters/di/container";
+import {
+  imdbScoreService,
+  metadataProvider,
+} from "@/api/v0/shared/infrastructure/adapters/di/container";
 import ApiError from "@/data/ApiError"; // Adjust path
 import { DownloaderManager } from "@/managers/DownloaderManager"; // Adjust path
-import { getIMDBScore } from "@/utils/getIMDBScore";
 
 export class ExternalSearchManager {
   /**
@@ -61,7 +63,7 @@ export class ExternalSearchManager {
    */
   public static async getImdbScore(imdbId: string) {
     try {
-      return await getIMDBScore(imdbId);
+      return await imdbScoreService.getIMDBScore(imdbId);
     } catch (error) {
       console.error("Error fetching IMDB score:", error);
       throw new ApiError(503, "External IMDB score service is unavailable.");

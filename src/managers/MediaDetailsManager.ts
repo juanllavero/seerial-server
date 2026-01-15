@@ -6,7 +6,7 @@ import {
 import { messages } from "@/config/messages";
 
 import ApiError from "@/data/ApiError";
-import { extraTypes, videoExtensions } from "@/utils/utils";
+import { extraTypes, videoExtensions } from "@/utils/constants";
 import * as fs from "fs/promises";
 import path from "path";
 

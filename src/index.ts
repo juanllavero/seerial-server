@@ -1,13 +1,12 @@
 import {
+  downloaderService,
   fileSystemService,
   notificationService,
   tmdbApiClient,
 } from "@/api/v0/shared/infrastructure/adapters/di/container";
-import { createTray } from "@/initialization/CreateTray";
 import * as ConfigManager from "@/managers/ConfigManager";
 import { SequelizeManager } from "@/managers/SequelizeManager";
 import { ServerConfigManager } from "@/managers/ServerConfigManager";
-import { downloadYtDlp } from "@/utils/youtubeDownloader";
 import cors from "cors";
 import { config } from "dotenv";
 import { app } from "electron";
@@ -26,6 +25,7 @@ import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "../swagger.json";
 import { sanitizationMiddleware } from "./middleware/sanitization.middleware";
 import { RegisterRoutes } from "./routes/routes";
+import { createTray } from "./utils/appTray";
 
 // Initialize app and environment
 config();
@@ -90,7 +90,7 @@ export let server: http.Server | https.Server;
 // Start the app
 app.whenReady().then(async () => {
   // Initialize dependencies
-  await downloadYtDlp();
+  await downloaderService.downloadYoutubeDownloader();
   await SequelizeManager.initializeDB();
   fileSystemService.initFolders();
   fileSystemService.loadProperties();

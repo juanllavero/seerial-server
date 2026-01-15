@@ -1,5 +1,5 @@
 import { continueWatchingRepo } from "@/api/v0/shared/infrastructure/adapters/di/container";
-import { getUserId } from "@/utils/utils";
+import { getUserId } from "@/utils/auth";
 import { Request as ExpressRequest } from "express";
 import { Controller, Get, Request, Route, Security, Tags } from "tsoa";
 import { GetVideosUseCase } from "../../../application/usecases/GetVideosUseCase";

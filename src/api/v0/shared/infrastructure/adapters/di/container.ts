@@ -141,6 +141,7 @@ import { AudioProcessingServiceImpl } from "../audio-processing/AudioProcessingS
 import { DownloaderServiceImpl } from "../downloader/DownloaderServiceImpl";
 import { FileSystemServiceImpl } from "../filesystem/FileSystemServiceImpl";
 import { ImageProcessingServiceImpl } from "../image-processing/ImageProcessingServiceImpl";
+import { IMDBScoreServiceImpl } from "../imdb-score/IMDBScoreServiceImpl";
 import { MediaInfoServiceImpl } from "../media-info/MediaInfoServiceImpl";
 import { MetadataProviderImpl } from "../metadata/MetadataProviderImpl";
 import { TMDbApiClient } from "../metadata/TMDbApiClient";
@@ -150,6 +151,7 @@ import { VideoProcessingServiceImpl } from "../video-processing/VideoProcessingS
 //#endregion
 
 // Services
+export const imdbScoreService = new IMDBScoreServiceImpl();
 export const videoExtractionService = new VideoExtractionService();
 export const fileSystemService = new FileSystemServiceImpl();
 export const mediaInfoService = new MediaInfoServiceImpl();

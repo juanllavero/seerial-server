@@ -1,6 +1,7 @@
 import { MediaSearchResult } from "@/data/interfaces/SearchResults";
 
 export interface DownloaderServicePort {
+  downloadYoutubeDownloader(): Promise<void>;
   searchVideos(
     query: string,
     numberOfResults: number

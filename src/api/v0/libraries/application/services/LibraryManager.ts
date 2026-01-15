@@ -9,9 +9,9 @@ import {
 import ApiError from "@/data/ApiError";
 import { LibraryItem } from "@/data/interfaces/Media";
 import { clearLibrary, getCollectionItemsKey } from "@/file-search/utils/utils";
-import { imageExtensions } from "@/utils/utils";
-import * as fs from "fs/promises";
-import { existsSync } from "original-fs";
+import { imageExtensions } from "@/utils/constants";
+import fs from "fs";
+import * as fsPromises from "fs/promises";
 import path from "path";
 import { MediaManager } from "../../../../../managers/MediaManager";
 import { GetLibrariesUseCase } from "../usecases/GetLibrariesUseCase";
@@ -186,9 +186,9 @@ export class LibraryManager {
     // Get the folder of the first item (root folder of the collection in this library)
     if (items.length > 0 && items[0].folder) {
       baseFolder = items[0].folder ?? "";
-      if (baseFolder !== null && existsSync(baseFolder)) {
+      if (baseFolder !== null && fs.existsSync(baseFolder)) {
         try {
-          const filesInFolder = await fs.readdir(baseFolder);
+          const filesInFolder = await fsPromises.readdir(baseFolder);
 
           // Search poster.ext and background.ext
           for (const file of filesInFolder) {

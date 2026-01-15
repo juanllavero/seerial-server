@@ -1,10 +1,10 @@
-import { MessageResponse } from "@/api/v0/shared/application/dtos/DTOs";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import { DownloaderManager } from "@/managers/DownloaderManager";
 import { downloadImage, isValidURL } from "@/utils/utils";
 import path from "path";
 import { Body, Controller, Post, Route, Security, Tags } from "tsoa";
+import { MessageResponse } from "../../../application/dtos/DTOs";
 import { fileSystemService } from "../../adapters/di/container";
 
 interface DownloadVideoDTO {

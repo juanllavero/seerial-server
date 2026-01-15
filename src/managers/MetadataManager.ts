@@ -1,4 +1,3 @@
-import { getIMDBScore } from "@/utils/getIMDBScore";
 import fs from "fs";
 import { Episode as EpisodeMetadata, MovieResponse } from "moviedb-promise";
 
@@ -10,6 +9,7 @@ import { Season } from "@/api/v0/seasons/domain/Season";
 import { Series } from "@/api/v0/series/domain/Series";
 import {
   fileSystemService,
+  imdbScoreService,
   metadataProvider,
   useCases,
 } from "@/api/v0/shared/infrastructure/adapters/di/container";
@@ -268,7 +268,7 @@ export class MetadataManager {
     }
 
     // Get IMDB Score
-    movie.imdbScore = await getIMDBScore(movie.imdbId);
+    movie.imdbScore = await imdbScoreService.getIMDBScore(movie.imdbId);
 
     // Update cast and crew
     await this.updateMovieCredits(movie, movieMetadata.id ?? 0, language);

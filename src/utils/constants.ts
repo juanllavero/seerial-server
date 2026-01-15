@@ -14,11 +14,6 @@ export const LOCAL_DATA_PATH = path.join(
   APP_NAME
 );
 
-export enum UserType {
-  NORMAL = "normal",
-  ADMIN = "admin",
-}
-
 export const initFolders: string[] = [
   "resources/",
   "resources/config",
@@ -30,4 +25,49 @@ export const initFolders: string[] = [
   "resources/img/thumbnails/video/",
   "resources/img/thumbnails/chapters/",
   "resources/img/DownloadCache/",
+];
+
+export enum UserType {
+  NORMAL = "normal",
+  ADMIN = "admin",
+}
+
+export const extraTypes = [
+  "behindthescenes",
+  "concert",
+  "interview",
+  "live",
+  "lyrics",
+  "video",
+];
+export const videoExtensions = [
+  ".mp4",
+  ".mkv",
+  ".avi",
+  ".mov",
+  ".wmv",
+  ".flv",
+  ".mpeg",
+  ".m2ts",
+  ".webm",
+];
+export const audioExtensions = [
+  ".mp3",
+  ".flac",
+  ".wav",
+  ".m4a",
+  ".ogg",
+  ".aac",
+  ".wma",
+  ".webm",
+  ".caf",
+];
+export const imageExtensions = [
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".gif",
+  ".bmp",
+  ".webp",
+  ".svg",
 ];

@@ -2,7 +2,7 @@ import { CollectionsRepositoryPort } from "@/api/v0/collections/application/port
 import { CollectionModel } from "@/api/v0/collections/infrastructure/persistence/models/CollectionModel";
 import { FileSystemServicePort } from "@/api/v0/shared/application/ports/FileSystemServicePort";
 import { MetadataProviderPort } from "@/api/v0/shared/application/ports/MetadataProviderPort";
-import { getIMDBScore } from "@/utils/getIMDBScore";
+import { imdbScoreService } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import fs from "fs";
 import { MovieResponse } from "moviedb-promise";
 import { MovieModel } from "../../infrastructure/persistence/models/MovieModel";
@@ -46,7 +46,7 @@ export class UpdateMovieMetadataUseCase {
     }
 
     // Get IMDB Score
-    movie.imdbScore = await getIMDBScore(movie.imdbId);
+    movie.imdbScore = await imdbScoreService.getIMDBScore(movie.imdbId);
 
     // Update cast and crew
     await this.updateMovieCredits(movie, movieMetadata.id ?? 0, language);

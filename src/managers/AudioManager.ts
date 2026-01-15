@@ -1,7 +1,7 @@
 import { fileSystemService } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { audioExtensions } from "@/utils/utils";
+import { audioExtensions } from "@/utils/constants";
 import crypto from "crypto";
 import { Request, Response } from "express";
 import ffmpeg from "fluent-ffmpeg";

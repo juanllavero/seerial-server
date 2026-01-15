@@ -1,4 +1,4 @@
-import { IncludeType } from "@/utils/utils";
+import { IncludeType } from "@/types/common";
 import { Season } from "../../domain/Season";
 
 export interface SeasonsRepositoryPort {

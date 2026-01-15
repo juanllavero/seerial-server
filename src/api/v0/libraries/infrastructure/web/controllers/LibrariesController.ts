@@ -2,7 +2,7 @@ import { MessageResponse } from "@/api/v0/shared/application/dtos/DTOs";
 import { useCases } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { getUserId } from "@/utils/utils";
+import { getUserId } from "@/utils/auth";
 import { Request as ExpressRequest } from "express";
 import {
   Body,

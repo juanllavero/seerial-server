@@ -2,7 +2,7 @@ import { myListRepo } from "@/api/v0/shared/infrastructure/adapters/di/container
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import { MediaManager } from "@/managers/MediaManager";
-import { getUserId } from "@/utils/utils";
+import { getUserId } from "@/utils/auth";
 import { Request as ExpressRequest } from "express";
 import { Controller, Get, Path, Request, Route, Security, Tags } from "tsoa";
 

@@ -1,10 +1,11 @@
 import { SanitizationManager } from "@/managers/SanitizationManager";
-import { initFolders, LOCAL_DATA_PATH } from "@/utils/constants";
 import {
   audioExtensions,
   imageExtensions,
+  initFolders,
+  LOCAL_DATA_PATH,
   videoExtensions,
-} from "@/utils/utils";
+} from "@/utils/constants";
 import fs from "fs";
 import path from "path";
 import PropertiesReader, { Reader } from "properties-reader";

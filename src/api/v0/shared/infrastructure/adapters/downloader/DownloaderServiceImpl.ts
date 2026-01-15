@@ -1,7 +1,15 @@
+import { fileSystemService } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { MediaSearchResult } from "@/data/interfaces/SearchResults";
-import { getYtDlpPath } from "@/utils/youtubeDownloader";
 import { exec, spawn } from "child_process";
 import ffmpegPath from "ffmpeg-static";
+import { https } from "follow-redirects";
+import {
+  chmodSync,
+  createWriteStream,
+  existsSync,
+  mkdirSync,
+  unlinkSync,
+} from "fs";
 import path from "path";
 import { promisify } from "util";
 import { DownloaderServicePort } from "../../../application/ports/DownloaderServicePort";
@@ -22,11 +30,91 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
     private fileSystem: FileSystemServicePort,
     private notification: NotificationServicePort
   ) {}
+
+  private getBinDir = (): string => {
+    return fileSystemService.getExternalPath(path.join("resources", "lib"));
+  };
+
+  private getYtDlpPath = (): string => {
+    const binDir = fileSystemService.getExternalPath(
+      path.join("resources", "lib")
+    );
+    return path.join(
+      binDir,
+      process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp"
+    );
+  };
+
+  private getDownloadURL(): string {
+    if (process.platform === "win32")
+      return "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe";
+    if (process.platform === "darwin")
+      return "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos";
+    return "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux";
+  }
+
+  /**
+   * Downloads yt-dlp and assigns execution permissions on macOS/Linux
+   */
+  async downloadYoutubeDownloader(): Promise<void> {
+    const binDir = this.getBinDir();
+    const ytDlpPath = this.getYtDlpPath();
+
+    if (existsSync(ytDlpPath)) {
+      console.log("[DepCheck]: yt-dlp is already in:", ytDlpPath);
+      return;
+    }
+
+    if (!existsSync(binDir)) mkdirSync(binDir, { recursive: true });
+
+    const url = this.getDownloadURL();
+
+    console.log("[DepCheck]: Downloading yt-dlp from:", url);
+
+    return new Promise((resolve, reject) => {
+      const file = createWriteStream(ytDlpPath);
+
+      https
+        .get(url, (response) => {
+          if (response.statusCode !== 200) {
+            reject(
+              new Error(
+                `[DepCheck]: Error downloading yt-dlp. HTTP code ${response.statusCode}`
+              )
+            );
+            return;
+          }
+
+          response.pipe(file);
+
+          file.on("finish", () => {
+            file.close(() => {
+              try {
+                if (process.platform !== "win32") {
+                  chmodSync(ytDlpPath, 0o755); // Add executable permission
+                }
+                resolve();
+              } catch (err) {
+                reject(err);
+              }
+            });
+          });
+        })
+        .on("error", (err) => {
+          // Clean partially downloaded file
+          try {
+            if (existsSync(ytDlpPath)) unlinkSync(ytDlpPath);
+          } catch {}
+          reject(err);
+        });
+    });
+  }
+
   public async searchVideos(
     query: string,
     numberOfResults: number
   ): Promise<MediaSearchResult[]> {
-    const searchQuery = `"${getYtDlpPath()}" "ytsearch${
+    const searchQuery = `"${this.getYtDlpPath()}" "ytsearch${
       numberOfResults > 0 ? numberOfResults : 1
     }:${query}" --dump-json --default-search ytsearch --no-playlist --no-check-certificate --geo-bypass --flat-playlist --skip-download --quiet --ignore-errors --ffmpeg-location ${ffmpegPathFinal}`;
 
@@ -71,7 +159,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
     this.fileSystem.deleteFile(outputPath);
 
     // Prepare yt-dlp command
-    const command = `"${getYtDlpPath()}" -f "bestvideo[ext=webm]+bestaudio[ext=webm]" -o "${outputPath}" ${url} -q --progress --force-overwrite --ffmpeg-location ${ffmpegPathFinal}`;
+    const command = `"${this.getYtDlpPath()}" -f "bestvideo[ext=webm]+bestaudio[ext=webm]" -o "${outputPath}" ${url} -q --progress --force-overwrite --ffmpeg-location ${ffmpegPathFinal}`;
 
     this.downloadContent(command, fileName);
   }
@@ -90,7 +178,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
     this.fileSystem.deleteFile(outputPath);
 
     // Prepare the yt-dlp command to download only the audio (the best audio available)
-    const command = `"${getYtDlpPath()}" -f "bestaudio[ext=webm]" -o "${outputPath}" ${url} -q --progress --force-overwrite --ffmpeg-location ${ffmpegPathFinal}`;
+    const command = `"${this.getYtDlpPath()}" -f "bestaudio[ext=webm]" -o "${outputPath}" ${url} -q --progress --force-overwrite --ffmpeg-location ${ffmpegPathFinal}`;
 
     this.downloadContent(command, fileName);
   }
