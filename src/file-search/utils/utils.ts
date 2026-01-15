@@ -1,10 +1,10 @@
-import { AlbumModel } from "@/api/v0/albums/infrastructure/persistence/models/AlbumModel";
-import { MovieModel } from "@/api/v0/movies/infrastructure/persistence/models/MovieModel";
-import { SeriesModel } from "@/api/v0/series/infrastructure/persistence/models/SeriesModel";
+import { AlbumModel } from "@/api/v1/albums/infrastructure/persistence/models/AlbumModel";
+import { MovieModel } from "@/api/v1/movies/infrastructure/persistence/models/MovieModel";
+import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/SeriesModel";
 import {
   notificationService,
   useCases,
-} from "@/api/v0/shared/infrastructure/adapters/di/container";
+} from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { existsSync } from "fs-extra";
 import * as path from "path";
 import { parse } from "path";

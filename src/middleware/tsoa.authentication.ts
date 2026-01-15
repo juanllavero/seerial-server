@@ -1,4 +1,4 @@
-import { UserModel } from "@/api/v0/users/infrastructure/persistence/models/UserModel";
+import { UserModel } from "@/api/v1/users/infrastructure/persistence/models/UserModel";
 import { messages } from "@/config/messages";
 import { UserType } from "@/utils/constants";
 import { Request } from "express";

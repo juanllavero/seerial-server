@@ -4,51 +4,51 @@
 import type { TsoaRoute } from '@tsoa/runtime';
 import {  fetchMiddlewares, ExpressTemplateService } from '@tsoa/runtime';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { MoviesController } from './../api/v0/movies/infrastructure/web/controllers/MoviesController';
+import { MoviesController } from './../api/v1/movies/infrastructure/web/controllers/MoviesController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { VideoStreamingController } from './../api/v0/videos/infrastructure/web/controllers/VideoStreamingController';
+import { VideoStreamingController } from './../api/v1/videos/infrastructure/web/controllers/VideoStreamingController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { VideosController } from './../api/v0/videos/infrastructure/web/controllers/VideosController';
+import { VideosController } from './../api/v1/videos/infrastructure/web/controllers/VideosController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { UsersController } from './../api/v0/users/infrastructure/web/controllers/UsersController';
+import { UsersController } from './../api/v1/users/infrastructure/web/controllers/UsersController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { SongsController } from './../api/v0/songs/infrastructure/web/controllers/SongsController';
+import { SongsController } from './../api/v1/songs/infrastructure/web/controllers/SongsController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { SearchController } from './../api/v0/shared/infrastructure/web/controllers/SearchController';
+import { SearchController } from './../api/v1/shared/infrastructure/web/controllers/SearchController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { MediaController } from './../api/v0/shared/infrastructure/web/controllers/MediaController';
+import { MediaController } from './../api/v1/shared/infrastructure/web/controllers/MediaController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { FilesController } from './../api/v0/shared/infrastructure/web/controllers/FilesController';
+import { FilesController } from './../api/v1/shared/infrastructure/web/controllers/FilesController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { DownloadController } from './../api/v0/shared/infrastructure/web/controllers/DownloadController';
+import { DownloadController } from './../api/v1/shared/infrastructure/web/controllers/DownloadController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { APIKeyController } from './../api/v0/shared/infrastructure/web/controllers/APIKeyController';
+import { APIKeyController } from './../api/v1/shared/infrastructure/web/controllers/APIKeyController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { ServersController } from './../api/v0/servers/infrastructure/web/controllers/ServersController';
+import { ServersController } from './../api/v1/servers/infrastructure/web/controllers/ServersController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { SeriesController } from './../api/v0/series/infrastructure/web/controllers/SeriesController';
+import { SeriesController } from './../api/v1/series/infrastructure/web/controllers/SeriesController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { SeasonsController } from './../api/v0/seasons/infrastructure/web/controllers/SeasonsController';
+import { SeasonsController } from './../api/v1/seasons/infrastructure/web/controllers/SeasonsController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { PlayListController } from './../api/v0/playlists/infrastructure/web/controllers/PlayListController';
+import { PlayListController } from './../api/v1/playlists/infrastructure/web/controllers/PlayListController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { MyListController } from './../api/v0/my-lists/infrastructure/web/controllers/MyListController';
+import { MyListController } from './../api/v1/my-lists/infrastructure/web/controllers/MyListController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { LibrariesController } from './../api/v0/libraries/infrastructure/web/controllers/LibrariesController';
+import { LibrariesController } from './../api/v1/libraries/infrastructure/web/controllers/LibrariesController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { ImagesController } from './../api/v0/images/infrastructure/web/controllers/ImagesController';
+import { ImagesController } from './../api/v1/images/infrastructure/web/controllers/ImagesController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { EpisodesController } from './../api/v0/episodes/infrastructure/web/controllers/EpisodesController';
+import { EpisodesController } from './../api/v1/episodes/infrastructure/web/controllers/EpisodesController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { ContinueWatchingController } from './../api/v0/continue-watching/infrastructure/web/controllers/ContinueWatchingController';
+import { ContinueWatchingController } from './../api/v1/continue-watching/infrastructure/web/controllers/ContinueWatchingController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { CollectionsController } from './../api/v0/collections/infrastructure/web/controllers/CollectionsController';
+import { CollectionsController } from './../api/v1/collections/infrastructure/web/controllers/CollectionsController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { ArtistsController } from './../api/v0/artists/infrastructure/web/controllers/ArtistsController';
+import { ArtistsController } from './../api/v1/artists/infrastructure/web/controllers/ArtistsController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { AlbumsController } from './../api/v0/albums/infrastructure/web/controllers/AlbumsController';
+import { AlbumsController } from './../api/v1/albums/infrastructure/web/controllers/AlbumsController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-import { WatchListController } from './../api/v0/watch-lists/infrastructure/web/controllers/WatchListController';
+import { WatchListController } from './../api/v1/watch-lists/infrastructure/web/controllers/WatchListController';
 import { expressAuthentication } from './../middleware/tsoa.authentication';
 // @ts-ignore - no great way to install types from subpackage
 import type { Request as ExRequest, Response as ExResponse, RequestHandler, Router } from 'express';

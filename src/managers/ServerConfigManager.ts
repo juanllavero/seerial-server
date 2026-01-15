@@ -1,5 +1,5 @@
-import { ServerModel } from "@/api/v0/servers/infrastructure/persistence/models/ServerModel";
-import { fileSystemService } from "@/api/v0/shared/infrastructure/adapters/di/container";
+import { ServerModel } from "@/api/v1/servers/infrastructure/persistence/models/ServerModel";
+import { fileSystemService } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import crypto from "crypto";
 import { Express } from "express";
 import fs from "fs";

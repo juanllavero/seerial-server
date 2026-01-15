@@ -1,7 +1,7 @@
-import { Album } from "@/api/v0/albums/domain/Album";
-import { Collection } from "@/api/v0/collections/domain/Collection";
-import { Movie } from "@/api/v0/movies/domain/Movie";
-import { Series } from "@/api/v0/series/domain/Series";
+import { Album } from "@/api/v1/albums/domain/Album";
+import { Collection } from "@/api/v1/collections/domain/Collection";
+import { Movie } from "@/api/v1/movies/domain/Movie";
+import { Series } from "@/api/v1/series/domain/Series";
 
 export interface Cast {
   name: string;

@@ -2,18 +2,18 @@ import fs from "fs";
 import { Episode as EpisodeMetadata, MovieResponse } from "moviedb-promise";
 
 // Legacy imports for transition
-import { Collection } from "@/api/v0/collections/domain/Collection";
-import { Episode } from "@/api/v0/episodes/domain/Episode";
-import { Movie } from "@/api/v0/movies/domain/Movie";
-import { Season } from "@/api/v0/seasons/domain/Season";
-import { Series } from "@/api/v0/series/domain/Series";
+import { Collection } from "@/api/v1/collections/domain/Collection";
+import { Episode } from "@/api/v1/episodes/domain/Episode";
+import { Movie } from "@/api/v1/movies/domain/Movie";
+import { Season } from "@/api/v1/seasons/domain/Season";
+import { Series } from "@/api/v1/series/domain/Series";
 import {
   fileSystemService,
   imdbScoreService,
   metadataProvider,
   useCases,
-} from "@/api/v0/shared/infrastructure/adapters/di/container";
-import { Video } from "@/api/v0/videos/domain/Video";
+} from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { Video } from "@/api/v1/videos/domain/Video";
 
 export class MetadataManager {
   static BASE_URL: string = "https://image.tmdb.org/t/p/original";

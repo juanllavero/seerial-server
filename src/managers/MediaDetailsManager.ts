@@ -1,8 +1,8 @@
-import { Album } from "@/api/v0/albums/domain/Album";
+import { Album } from "@/api/v1/albums/domain/Album";
 import {
   fileSystemService,
   useCases,
-} from "@/api/v0/shared/infrastructure/adapters/di/container";
+} from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 
 import ApiError from "@/data/ApiError";

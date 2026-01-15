@@ -1,7 +1,7 @@
 {
   "entryFile": "src/index.ts",
   "noImplicitAdditionalProperties": "throw-on-extras",
-  "controllerPathGlobs": ["src/api/v0/**/controllers/*Controller.ts"],
+  "controllerPathGlobs": ["src/api/v1/**/controllers/*Controller.ts"],
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {

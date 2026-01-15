@@ -77,7 +77,8 @@
     "lint": "tsc --noEmit",
     "tsoa:spec": "tsoa spec",
     "tsoa:routes": "tsoa routes",
-    "tsoa:generate": "tsoa spec && tsoa routes"
+    "tsoa:generate": "tsoa spec && tsoa routes",
+    "tests": "jest --verbose"
   },
   "dependencies": {
     "@tsoa/runtime": "7.0.0-alpha.0",
@@ -118,6 +119,7 @@
     "@types/ffprobe-static": "^2.0.3",
     "@types/follow-redirects": "^1.14.4",
     "@types/fs-extra": "^11.0.4",
+    "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.0.0",
     "@types/nat-upnp": "^1.1.5",
@@ -129,6 +131,8 @@
     "electron": "^38.2.2",
     "electron-builder": "^26.0.12",
     "electron-icon-builder": "^2.0.1",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.6",
     "tsc-alias": "^1.8.16",
     "typescript": "^5.9.3"
   }

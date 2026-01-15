@@ -2,7 +2,7 @@ import {
   downloaderService,
   fileSystemService,
   notificationService,
-} from "@/api/v0/shared/infrastructure/adapters/di/container";
+} from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { MediaSearchResult } from "@/data/interfaces/SearchResults";
 import { exec, spawn } from "child_process";
 import ffmpegPath from "ffmpeg-static";

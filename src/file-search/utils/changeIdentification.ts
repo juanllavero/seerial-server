@@ -1,7 +1,7 @@
 import {
   notificationService,
   useCases,
-} from "@/api/v0/shared/infrastructure/adapters/di/container";
+} from "@/api/v1/shared/infrastructure/adapters/di/container";
 
 export async function changeIdentificationShow(
   showId: string,

@@ -3,7 +3,7 @@ import {
   fileSystemService,
   notificationService,
   tmdbApiClient,
-} from "@/api/v0/shared/infrastructure/adapters/di/container";
+} from "@/api/v1/shared/infrastructure/adapters/di/container";
 import * as ConfigManager from "@/managers/ConfigManager";
 import { SequelizeManager } from "@/managers/SequelizeManager";
 import { ServerConfigManager } from "@/managers/ServerConfigManager";

@@ -1,4 +1,4 @@
-import { useCases } from "@/api/v0/shared/infrastructure/adapters/di/container";
+import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 
 import ApiError from "@/data/ApiError";

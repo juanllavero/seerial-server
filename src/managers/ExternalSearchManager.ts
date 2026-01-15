@@ -1,7 +1,7 @@
 import {
   imdbScoreService,
   metadataProvider,
-} from "@/api/v0/shared/infrastructure/adapters/di/container";
+} from "@/api/v1/shared/infrastructure/adapters/di/container";
 import ApiError from "@/data/ApiError"; // Adjust path
 import { DownloaderManager } from "@/managers/DownloaderManager"; // Adjust path
 

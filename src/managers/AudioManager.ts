@@ -1,4 +1,4 @@
-import { fileSystemService } from "@/api/v0/shared/infrastructure/adapters/di/container";
+import { fileSystemService } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import { executeFfmpeg } from "@/ffmpeg/nativeFfmpeg";
