@@ -6,23 +6,14 @@ import {
   SubtitleTrack,
   VideoTrack,
 } from "@/data/interfaces/MediaInfo";
-import { spawn } from "child_process";
-import ffprobePath from "ffprobe-static";
 import path from "path";
-import { probeMediaFile } from "./execCommand";
+import { executeFfprobe, executeFfprobeRaw } from "./nativeFfmpeg";
 import {
   formatTime,
   processAudioData,
   processSubtitleData,
   processVideoData,
 } from "./utils/ffmpegUtils";
-
-let ffprobePathFinal = ffprobePath.path;
-
-// If app.asar is used, use app.asar.unpacked
-if (ffprobePathFinal.includes("app.asar")) {
-  ffprobePathFinal = ffprobePathFinal.replace("app.asar", "app.asar.unpacked");
-}
 
 /**
  * Retrieves the duration of a video/audio file.
@@ -36,7 +27,7 @@ export async function getOnlyRuntime(mediaFile: string): Promise<number> {
   }
 
   try {
-    const data = await probeMediaFile(mediaFile);
+    const data = await executeFfprobe(mediaFile);
     const duration = data?.format?.duration;
 
     if (typeof duration === "number" && !isNaN(duration)) {
@@ -59,7 +50,7 @@ export async function getMediaInfo(
   }
 
   try {
-    const data = await probeMediaFile(videoPath);
+    const data = await executeFfprobe(videoPath);
     const format = data.format;
     const streams = data.streams;
 
@@ -122,10 +113,8 @@ export async function getMediaInfo(
 export async function getChapters(videoPath: string): Promise<ChapterData[]> {
   const chaptersArray: ChapterData[] = [];
 
-  const timeoutMs = 10000;
-
-  return new Promise((resolve) => {
-    const process = spawn(ffprobePathFinal, [
+  try {
+    const stdout = await executeFfprobeRaw([
       "-v",
       "error",
       "-show_entries",
@@ -136,60 +125,32 @@ export async function getChapters(videoPath: string): Promise<ChapterData[]> {
       videoPath,
     ]);
 
-    let stdout = "";
-    let stderr = "";
-
-    process.stdout.on("data", (data) => (stdout += data));
-    process.stderr.on("data", (data) => (stderr += data));
-
-    const timeout = setTimeout(() => {
-      process.kill("SIGTERM");
-      console.log(`ffprobe timed out after ${timeoutMs}ms`, {
+    const metadata = JSON.parse(stdout);
+    const chapters = metadata.chapters || [];
+    if (chapters.length > 0) {
+      for (const chapter of chapters) {
+        const chapterData: ChapterData = {
+          title: chapter.title || "Sin título",
+          time: chapter.start_time || 0,
+          displayTime: formatTime(chapter.start_time || 0),
+          thumbnailSrc: "",
+        };
+        chaptersArray.push(chapterData);
+      }
+      console.log("Chapters extracted", {
+        chapterCount: chaptersArray.length,
+      });
+    } else {
+      console.log("No chapters found in the file", {
         file: videoPath,
       });
-      resolve(chaptersArray);
-    }, timeoutMs);
-
-    process.on("close", (code) => {
-      clearTimeout(timeout);
-      if (code !== 0) {
-        console.log("ffprobe exited with error", {
-          code,
-          stderr,
-          file: videoPath,
-        });
-        resolve(chaptersArray);
-        return;
-      }
-
-      try {
-        const metadata = JSON.parse(stdout);
-        const chapters = metadata.chapters || [];
-        if (chapters.length > 0) {
-          for (const chapter of chapters) {
-            const chapterData: ChapterData = {
-              title: chapter.title || "Sin título",
-              time: chapter.start_time || 0,
-              displayTime: formatTime(chapter.start_time || 0),
-              thumbnailSrc: "",
-            };
-            chaptersArray.push(chapterData);
-          }
-          console.log("Chapters extracted", {
-            chapterCount: chaptersArray.length,
-          });
-        } else {
-          console.log("No chapters found in the file", {
-            file: videoPath,
-          });
-        }
-      } catch (error: any) {
-        console.log("Error parsing chapters", {
-          error: error.message,
-          file: videoPath,
-        });
-      }
-      resolve(chaptersArray);
+    }
+  } catch (error: any) {
+    console.log("Error getting chapters", {
+      error: error.message,
+      file: videoPath,
     });
-  });
+  }
+
+  return chaptersArray;
 }

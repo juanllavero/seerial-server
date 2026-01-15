@@ -1,5 +1,5 @@
 import { AudioInfo } from "@/data/interfaces/MediaInfo";
-import { probeMediaFile } from "./execCommand";
+import { executeFfprobe } from "./nativeFfmpeg";
 
 export async function getAudioInfo(
   audioPath: string
@@ -10,7 +10,7 @@ export async function getAudioInfo(
   }
 
   try {
-    const data = await probeMediaFile(audioPath);
+    const data = await executeFfprobe(audioPath);
     const format = data.format;
     const tags = format.tags || {};
     const streams = data.streams;

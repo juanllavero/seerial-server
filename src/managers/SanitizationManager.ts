@@ -2,7 +2,7 @@ import {
   audioExtensions,
   imageExtensions,
   videoExtensions,
-} from "@/utils/utils";
+} from "@/utils/constants";
 import fs from "fs";
 import os from "os";
 import path from "path";

@@ -1,12 +1,18 @@
 import { fileSystemService } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
+import {
+  executeFfmpeg,
+  executeFfmpegPipeToStream,
+} from "@/ffmpeg/nativeFfmpeg";
 import crypto from "crypto";
-import ffmpeg from "fluent-ffmpeg";
 import fs from "fs-extra";
 import os from "os";
+import { VideoExtractionServicePort } from "../../application/ports/VideoExtractionServicePort";
 
-export class VideoExtractionService {
+export class VideoExtractionServiceImpl implements VideoExtractionServicePort {
+  constructor() {}
+
   /**
    * Extract video thumbnail and stream it to response
    */
@@ -27,17 +33,35 @@ export class VideoExtractionService {
 
     res.setHeader("Content-Type", "image/jpeg");
 
-    ffmpeg(videoSrc)
-      .seekInput(timeParam)
-      .frames(1)
-      .toFormat("mjpeg")
-      .on("error", (err) => {
+    const args = [
+      "-i",
+      videoSrc,
+      "-ss",
+      timeParam,
+      "-frames:v",
+      "1",
+      "-f",
+      "mjpeg",
+    ];
+
+    executeFfmpegPipeToStream(
+      args,
+      res,
+      (err) => {
         console.error("FFMPEG error generating thumbnail:", err.message);
         if (!res.headersSent) {
           res.status(500).send(messages.errors.server.internal);
         }
-      })
-      .pipe(res, { end: true });
+      },
+      (code) => {
+        if (code !== 0) {
+          console.error("FFmpeg error: process exited with code", code);
+          if (!res.headersSent) {
+            res.status(500).send(messages.errors.server.internal);
+          }
+        }
+      }
+    );
   }
 
   /**
@@ -74,19 +98,28 @@ export class VideoExtractionService {
       return fs.createReadStream(cachedFile).pipe(res);
     }
 
-    ffmpeg(videoPath)
-      .inputOptions(startTimeNum > 0 ? [`-ss ${startTimeNum}`] : [])
-      .outputOptions([`-map 0:s:${trackIdNum}`])
-      .outputFormat("webvtt")
-      .on("error", (err: any) => {
-        console.error("FFMPEG error generating subtitles:", err);
-        if (!res.headersSent) {
-          res.status(500).send(messages.errors.server.internal);
-        }
-      })
-      .on("end", () => {
-        fs.createReadStream(cachedFile).pipe(res);
-      })
-      .save(cachedFile);
+    const args: string[] = [];
+    if (startTimeNum > 0) {
+      args.push("-ss", startTimeNum.toString());
+    }
+    args.push(
+      "-i",
+      videoPath,
+      "-map",
+      `0:s:${trackIdNum}`,
+      "-f",
+      "webvtt",
+      cachedFile
+    );
+
+    try {
+      await executeFfmpeg(args);
+      fs.createReadStream(cachedFile).pipe(res);
+    } catch (error) {
+      console.error("FFMPEG error generating subtitles:", error);
+      if (!res.headersSent) {
+        res.status(500).send(messages.errors.server.internal);
+      }
+    }
   }
 }

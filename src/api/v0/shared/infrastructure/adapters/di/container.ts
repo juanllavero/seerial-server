@@ -125,7 +125,7 @@ import { FindVideoByPathUseCase } from "@/api/v0/videos/application/usecases/Fin
 import { UpdateMediaInfoUseCase } from "@/api/v0/videos/application/usecases/UpdateMediaInfoUseCase";
 import { UpdateVideoUseCase } from "@/api/v0/videos/application/usecases/UpdateVideosUseCase";
 import { VideosRepositoryImpl } from "@/api/v0/videos/infrastructure/persistence/repositories/VideosRepositoryImpl";
-import { VideoExtractionService } from "@/api/v0/videos/infrastructure/services/VideoExtractionService";
+import { VideoExtractionServiceImpl } from "@/api/v0/videos/infrastructure/services/VideoExtractionServiceImpl";
 import { AddMovieToWatchListUseCase } from "@/api/v0/watch-lists/application/usecases/AddMovieToWatchListUseCase";
 import { AddSeasonToWatchListUseCase } from "@/api/v0/watch-lists/application/usecases/AddSeasonToWatchListUseCase";
 import { AddSeriesToWatchListUseCase } from "@/api/v0/watch-lists/application/usecases/AddSeriesToWatchListUseCase";
@@ -137,7 +137,8 @@ import { RemoveVideoFromWatchListUseCase } from "@/api/v0/watch-lists/applicatio
 import { UpdateWatchStateUseCase } from "@/api/v0/watch-lists/application/usecases/UpdateWatchStateUseCase";
 import { WatchListRepositoryImpl } from "@/api/v0/watch-lists/infrastructure/persistence/repositories/WatchListRepositoryImpl";
 import { SanitizationManager } from "@/managers/SanitizationManager";
-import { AudioProcessingServiceImpl } from "../audio-processing/AudioProcessingServiceImpl";
+import { AudioProcessingServiceImpl } from "../../../../songs/infrastructure/services/AudioProcessingServiceImpl";
+import { VideoProcessingServiceImpl } from "../../../../videos/infrastructure/services/VideoProcessingServiceImpl";
 import { DownloaderServiceImpl } from "../downloader/DownloaderServiceImpl";
 import { FileSystemServiceImpl } from "../filesystem/FileSystemServiceImpl";
 import { ImageProcessingServiceImpl } from "../image-processing/ImageProcessingServiceImpl";
@@ -146,13 +147,12 @@ import { MediaInfoServiceImpl } from "../media-info/MediaInfoServiceImpl";
 import { MetadataProviderImpl } from "../metadata/MetadataProviderImpl";
 import { TMDbApiClient } from "../metadata/TMDbApiClient";
 import { NotificationServiceImpl } from "../notification/NotificationServiceImpl";
-import { VideoProcessingServiceImpl } from "../video-processing/VideoProcessingServiceImpl";
 
 //#endregion
 
 // Services
 export const imdbScoreService = new IMDBScoreServiceImpl();
-export const videoExtractionService = new VideoExtractionService();
+export const videoExtractionService = new VideoExtractionServiceImpl();
 export const fileSystemService = new FileSystemServiceImpl();
 export const mediaInfoService = new MediaInfoServiceImpl();
 export const audioProcessingService = new AudioProcessingServiceImpl(

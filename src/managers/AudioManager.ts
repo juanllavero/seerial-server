@@ -1,10 +1,10 @@
 import { fileSystemService } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
+import { executeFfmpeg } from "@/ffmpeg/nativeFfmpeg";
 import { audioExtensions } from "@/utils/constants";
 import crypto from "crypto";
 import { Request, Response } from "express";
-import ffmpeg from "fluent-ffmpeg";
 import fs from "fs";
 import path from "path";
 
@@ -51,17 +51,15 @@ export class AudioManager {
 
     // Needs conversion
     try {
-      await new Promise<void>((resolve, reject) => {
-        ffmpeg(originalPath)
-          .audioCodec("libmp3lame")
-          .audioBitrate(320)
-          .output(cachedFilePath)
-          .on("end", () => resolve())
-          .on("error", (err) =>
-            reject(new Error(`FFMPEG error: ${err.message}`))
-          )
-          .run();
-      });
+      await executeFfmpeg([
+        "-i",
+        originalPath,
+        "-acodec",
+        "libmp3lame",
+        "-ab",
+        "320k",
+        cachedFilePath,
+      ]);
 
       return cachedFilePath;
     } catch (error) {

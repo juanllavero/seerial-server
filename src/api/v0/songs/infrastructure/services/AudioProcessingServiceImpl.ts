@@ -1,12 +1,12 @@
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
+import { executeFfmpeg } from "@/ffmpeg/nativeFfmpeg";
 import { audioExtensions } from "@/utils/constants";
 import crypto from "crypto";
-import ffmpeg from "fluent-ffmpeg";
 import fs from "fs";
 import path from "path";
-import { AudioProcessingServicePort } from "../../../application/ports/AudioProcessingServicePort";
-import { FileSystemServicePort } from "../../../application/ports/FileSystemServicePort";
+import { FileSystemServicePort } from "../../../shared/application/ports/FileSystemServicePort";
+import { AudioProcessingServicePort } from "../../application/ports/AudioProcessingServicePort";
 
 export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
   constructor(private readonly fileSystemService: FileSystemServicePort) {}
@@ -46,17 +46,15 @@ export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
 
     // Needs conversion
     try {
-      await new Promise<void>((resolve, reject) => {
-        ffmpeg(originalPath)
-          .audioCodec("libmp3lame")
-          .audioBitrate(320)
-          .output(cachedFilePath)
-          .on("end", () => resolve())
-          .on("error", (err) =>
-            reject(new Error(`FFMPEG error: ${err.message}`))
-          )
-          .run();
-      });
+      await executeFfmpeg([
+        "-i",
+        originalPath,
+        "-acodec",
+        "libmp3lame",
+        "-ab",
+        "320k",
+        cachedFilePath,
+      ]);
 
       return cachedFilePath;
     } catch (error) {

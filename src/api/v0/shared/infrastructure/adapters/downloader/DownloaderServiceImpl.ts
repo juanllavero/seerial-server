@@ -35,7 +35,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
     return fileSystemService.getExternalPath(path.join("resources", "lib"));
   };
 
-  private getYtDlpPath = (): string => {
+  getYtDlpPath = (): string => {
     const binDir = fileSystemService.getExternalPath(
       path.join("resources", "lib")
     );

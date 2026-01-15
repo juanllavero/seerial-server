@@ -1,15 +1,7 @@
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import ffmpegPath from "ffmpeg-static";
-import ffmpeg from "fluent-ffmpeg";
-import { VideoProcessingServicePort } from "../../../application/ports/VideoProcessingServicePort";
-
-let ffmpegPathFinal = ffmpegPath ?? "";
-
-// If app.asar is used, use app.asar.unpacked
-if (ffmpegPathFinal.includes("app.asar")) {
-  ffmpegPathFinal = ffmpegPathFinal.replace("app.asar", "app.asar.unpacked");
-}
+import { executeFfmpegPipeToStream } from "@/ffmpeg/nativeFfmpeg";
+import { VideoProcessingServicePort } from "../../application/ports/VideoProcessingServicePort";
 
 type ResolutionKey = "480p" | "720p" | "1080p" | "4K";
 const resolutionMap: Record<string, number> = {
@@ -21,8 +13,6 @@ const resolutionMap: Record<string, number> = {
 const validBitrates: number[] = [
   200, 300, 700, 1500, 2000, 3000, 4000, 8000, 10000, 12000, 15000, 20000,
 ];
-
-ffmpeg.setFfmpegPath(ffmpegPathFinal);
 
 export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
   constructor(private readonly sanitizationService: any) {} // Inject SanitizationService
@@ -50,44 +40,83 @@ export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
       res.setHeader("Content-Type", "video/mp4");
       res.setHeader("Accept-Ranges", "bytes");
 
-      const ffmpegCommand = ffmpeg(sanitizedVideoPath)
-        .audioCodec("opus")
-        .audioBitrate("128k")
-        .format("mp4");
+      const args = [
+        "-i",
+        sanitizedVideoPath,
+        "-acodec",
+        "opus",
+        "-ab",
+        "128k",
+        "-f",
+        "mp4",
+      ];
 
       const isQualityZero = quality === "0" || quality === 0;
       const isValidResolution = Object.keys(resolutionMap).includes(quality);
       const isValidBitrate = validBitrates.includes(bitrate);
 
       if (isQualityZero || !isValidResolution || !isValidBitrate) {
-        ffmpegCommand.videoCodec("copy");
+        args.push("-vcodec", "copy");
       } else {
         const resolutionHeight = resolutionMap[quality as ResolutionKey];
-        ffmpegCommand
-          .videoCodec("libx264")
-          .videoBitrate(`${bitrate}k`)
-          .size(`?x${resolutionHeight}`)
-          .outputOptions(["-preset veryfast"]);
+        args.push(
+          "-vcodec",
+          "libx264",
+          "-b:v",
+          `${bitrate}k`,
+          "-vf",
+          `scale=-2:${resolutionHeight}`,
+          "-preset",
+          "veryfast"
+        );
       }
 
-      ffmpegCommand.outputOptions([
-        "-movflags frag_keyframe+empty_moov",
-        `-ss ${videoStart}`,
-        "-map 0:v:0",
-        `-map 0:a:${audioTrack}`,
+      args.push(
+        "-movflags",
+        "frag_keyframe+empty_moov",
+        "-ss",
+        videoStart,
+        "-map",
+        "0:v:0",
+        "-map",
+        `0:a:${audioTrack}`,
         "-copyts",
-        "-avoid_negative_ts make_zero",
-        "-max_muxing_queue_size 1024",
-      ]);
+        "-avoid_negative_ts",
+        "make_zero",
+        "-max_muxing_queue_size",
+        "1024"
+      );
 
-      ffmpegCommand.on("error", (err: any) => {
-        console.error("FFmpeg error:", err.message);
-        if (!res.headersSent) {
-          res.status(500).json({ error: "Error processing the video" });
+      const streaming = executeFfmpegPipeToStream(
+        args,
+        res,
+        (err) => {
+          console.error("FFmpeg spawn error:", err.message);
+          if (!res.headersSent) {
+            res.writeHead(500);
+          }
+          res.end();
+        },
+        (code) => {
+          if (code !== 0) {
+            console.error("FFmpeg error: process exited with code", code);
+            if (!res.headersSent) {
+              res.writeHead(500);
+            }
+            res.end();
+          }
         }
+      );
+
+      res.on("close", () => {
+        console.log("Client disconnected, cancelling stream");
+        streaming.cancel();
       });
 
-      ffmpegCommand.pipe(res, { end: true });
+      // Debugging
+      setTimeout(() => {
+        console.log("FFmpeg output:", streaming.stderr);
+      }, 1000);
     } catch (error: any) {
       throw new ApiError(400, `Invalid video path: ${error.message}`);
     }
