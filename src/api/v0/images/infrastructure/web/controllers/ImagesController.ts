@@ -22,7 +22,7 @@ export class ImagesController extends Controller {
    * Upload image file
    */
   @Post()
-  @Security("cookieAuth")
+  @Security("cookieAuthFast")
   public async uploadImage(
     @FormField() destPath: string,
     @UploadedFile() image: Express.Multer.File
@@ -65,7 +65,7 @@ export class ImagesController extends Controller {
    * Get directory listing
    */
   @Get()
-  @Security("cookieAuth")
+  @Security("cookieAuthFast")
   public async getDirectoryListing(@Query() path: string): Promise<any> {
     const imagesPath = path;
 
@@ -93,7 +93,7 @@ export class ImagesController extends Controller {
    * Get local image with optional resizing
    */
   @Get("local")
-  @Security("cookieAuth")
+  @Security("cookieAuthFast")
   public async getLocalImage(
     @Query() path: string,
     @Query() width?: number,
@@ -125,7 +125,7 @@ export class ImagesController extends Controller {
    * Get remote image with optional resizing
    */
   @Get("compressed")
-  @Security("cookieAuth")
+  @Security("cookieAuthFast")
   public async getRemoteImage(
     @Query() url: string,
     @Query() width?: number,
@@ -147,7 +147,7 @@ export class ImagesController extends Controller {
    * Get image color palette
    */
   @Get("colors")
-  @Security("cookieAuth")
+  @Security("cookieAuthFast")
   public async getImageColorPalette(
     @Query() url?: string,
     @Query() localPath?: string,
@@ -181,7 +181,7 @@ export class ImagesController extends Controller {
    * Create transparent image
    */
   @Get("effects/transparent")
-  @Security("cookieAuth")
+  @Security("cookieAuthFast")
   public async createTransparentImage(
     @Query() width: number,
     @Query() height: number,

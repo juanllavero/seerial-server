@@ -15,7 +15,7 @@ import {
 } from "tsoa";
 import {
   SeasonResponse,
-  SetWatchStateDTO,
+  SetSeasonWatchStateDTO,
   UpdateSeasonDTO,
 } from "../../../application/dtos/SeasonDTOs";
 
@@ -26,7 +26,7 @@ export class SeasonsController extends Controller {
    * Update season details
    */
   @Put("{id}")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async update(
     @Path() id: string,
     @Body() body: UpdateSeasonDTO
@@ -48,7 +48,7 @@ export class SeasonsController extends Controller {
    * Delete a season
    */
   @Delete("{id}")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async delete(@Path() id: string): Promise<MessageResponse> {
     if (!id) {
       throw new ApiError(400, messages.errors.validation.missingId);
@@ -63,10 +63,10 @@ export class SeasonsController extends Controller {
    * Set season watch state for a user
    */
   @Post("{id}/watch-state")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async setWatchState(
     @Path() id: string,
-    @Body() body: SetWatchStateDTO
+    @Body() body: SetSeasonWatchStateDTO
   ): Promise<MessageResponse> {
     const { watched, userId } = body;
 

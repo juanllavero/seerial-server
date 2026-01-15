@@ -34,7 +34,7 @@ export class LibrariesController extends Controller {
    * Get all libraries
    */
   @Get()
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async getAll(): Promise<LibrariesResponse> {
     const libraries = await useCases.getLibraries().execute();
     return {
@@ -48,7 +48,7 @@ export class LibrariesController extends Controller {
    * Get library by ID
    */
   @Get("{id}")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async getById(@Path() id: string): Promise<LibraryResponse> {
     if (!id) {
       throw new ApiError(400, messages.errors.validation.missingId);
@@ -70,7 +70,7 @@ export class LibrariesController extends Controller {
    * Get library content
    */
   @Get("{id}/content")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async getContent(
     @Path() id: string,
     @Query() type: string,
@@ -100,7 +100,7 @@ export class LibrariesController extends Controller {
    * Start library scan
    */
   @Get("{id}/scan")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async startScan(@Path() id: string): Promise<LibraryResponse> {
     if (!id) {
       throw new ApiError(400, messages.errors.validation.invalidData);
@@ -125,7 +125,7 @@ export class LibrariesController extends Controller {
    * Create a new library
    */
   @Post()
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async create(
     @Body() body: CreateLibraryDTO
   ): Promise<LibraryResponse> {
@@ -159,10 +159,47 @@ export class LibrariesController extends Controller {
   }
 
   /**
+   * Update library details
+   */
+  @Put("{id}")
+  @Security("adminAuth")
+  public async update(
+    @Path() id: string,
+    @Body() body: UpdateLibraryDTO
+  ): Promise<LibraryResponse> {
+    if (!id) {
+      throw new ApiError(400, messages.errors.validation.missingId);
+    }
+
+    const result = await useCases.updateLibrary().execute(id, body);
+
+    return {
+      status: "success",
+      message: messages.success.update,
+      data: result,
+    };
+  }
+
+  /**
+   * Delete a library
+   */
+  @Delete("{id}")
+  @Security("adminAuth")
+  public async delete(@Path() id: string): Promise<MessageResponse> {
+    if (!id) {
+      throw new ApiError(400, messages.errors.validation.missingId);
+    }
+
+    await useCases.deleteLibrary().execute(id);
+
+    return { message: messages.success.delete };
+  }
+
+  /**
    * Reorder libraries
    */
   @Post("order")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async reorder(
     @Body() body: ReorderLibrariesDTO
   ): Promise<LibraryResponse> {
@@ -188,7 +225,7 @@ export class LibrariesController extends Controller {
    * Reorder library items
    */
   @Post("{id}/order")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async reorderItems(
     @Path() id: string,
     @Body() body: ReorderItemsDTO
@@ -212,42 +249,5 @@ export class LibrariesController extends Controller {
       message: messages.success.order,
       data: result,
     };
-  }
-
-  /**
-   * Update library details
-   */
-  @Put("{id}")
-  @Security("cookieAuth")
-  public async update(
-    @Path() id: string,
-    @Body() body: UpdateLibraryDTO
-  ): Promise<LibraryResponse> {
-    if (!id) {
-      throw new ApiError(400, messages.errors.validation.missingId);
-    }
-
-    const result = await useCases.updateLibrary().execute(id, body);
-
-    return {
-      status: "success",
-      message: messages.success.update,
-      data: result,
-    };
-  }
-
-  /**
-   * Delete a library
-   */
-  @Delete("{id}")
-  @Security("cookieAuth")
-  public async delete(@Path() id: string): Promise<MessageResponse> {
-    if (!id) {
-      throw new ApiError(400, messages.errors.validation.missingId);
-    }
-
-    await useCases.deleteLibrary().execute(id);
-
-    return { message: messages.success.delete };
   }
 }

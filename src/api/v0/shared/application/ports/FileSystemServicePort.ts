@@ -40,6 +40,10 @@ export interface FileSystemServicePort {
   extname(filePath: string): string;
   join(...paths: string[]): string;
 
+  // File reading
+  readFile(filePath: string): Promise<string>;
+  readFileSync(filePath: string, encoding?: string): string;
+
   // File writing
   writeFile(
     filePath: string,

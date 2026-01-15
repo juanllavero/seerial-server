@@ -1,5 +1,3 @@
-import { ApiResponse } from "@/api/v0/shared/application/dtos/DTOs";
-
 export interface RefreshMetadataDTO {
   id: string;
 }
@@ -45,9 +43,13 @@ export interface UpdateSeriesDTO {
   analyzingFiles?: boolean;
 }
 
-export interface SetWatchStateDTO {
+export interface SetSeriesWatchStateDTO {
   watched: boolean;
   userId: string;
 }
 
-export interface SeriesResponse extends ApiResponse {}
+export interface SeriesResponse {
+  status: string;
+  message: string;
+  data?: any;
+}

@@ -32,7 +32,7 @@ export class DownloadController extends Controller {
    * Download video file
    */
   @Post("video")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async downloadVideo(
     @Body() body: DownloadVideoDTO
   ): Promise<MessageResponse> {
@@ -51,7 +51,7 @@ export class DownloadController extends Controller {
    * Download music file
    */
   @Post("music")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async downloadMusic(
     @Body() body: DownloadMusicDTO
   ): Promise<MessageResponse> {
@@ -70,7 +70,7 @@ export class DownloadController extends Controller {
    * Download image file
    */
   @Post("image")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async downloadImage(
     @Body() body: DownloadImageDTO
   ): Promise<MessageResponse> {

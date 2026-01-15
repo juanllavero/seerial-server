@@ -31,8 +31,8 @@ export class CollectionsController extends Controller {
   /**
    * Get music extras for a collection
    */
-  @Get("musicExtras/{collectionId}")
-  @Security("cookieAuth")
+  @Get("{collectionId}/music-extras")
+  @Security("adminAuth")
   public async getMusicExtras(
     @Path() collectionId: string
   ): Promise<MusicExtrasDTO> {
@@ -48,7 +48,7 @@ export class CollectionsController extends Controller {
    * Reorder items in a collection
    */
   @Post("{id}/items/order")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async reorderContent(
     @Path() id: string,
     @Body() body: ReorderContentDTO
@@ -69,7 +69,7 @@ export class CollectionsController extends Controller {
    * Update collection details
    */
   @Put("{id}")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async update(
     @Path() id: string,
     @Body() body: UpdateCollectionDTO
@@ -92,7 +92,7 @@ export class CollectionsController extends Controller {
    * Delete a collection
    */
   @Delete("{id}")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async delete(@Path() id: string): Promise<MessageResponse> {
     if (!id) {
       throw new ApiError(400, messages.errors.validation.missingId);

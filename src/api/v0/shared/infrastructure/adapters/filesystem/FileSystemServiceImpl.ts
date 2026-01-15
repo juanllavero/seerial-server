@@ -252,6 +252,19 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
   }
   //#endregion
 
+  //#region FILE READING
+  public async readFile(filePath: string): Promise<string> {
+    return fs.promises.readFile(filePath, "utf-8");
+  }
+
+  public readFileSync(
+    filePath: string,
+    encoding: BufferEncoding = "utf-8"
+  ): string {
+    return fs.readFileSync(filePath, encoding);
+  }
+  //#endregion
+
   //#region FILE WRITING
   public async writeFile(
     filePath: string,

@@ -13,7 +13,7 @@ export interface UpdateMovieDTO {
   // ... otros campos que permites actualizar
 }
 
-export interface SetWatchStateDTO {
+export interface SetMovieWatchStateDTO {
   watched: boolean;
 }
 

@@ -1,10 +1,11 @@
-import { Album } from "@/api/v0/albums/domain/Album";
-import { AlbumRepositoryPort } from "../ports/PlayListRepositoryPort";
+import { UpdatePlayListDTO } from "../../application/dtos/PlayListDTOs";
+import { PlayList } from "../../domain/PlayList";
+import { PlayListRepositoryPort } from "../ports/PlayListRepositoryPort";
 
-export class UpdateAlbumUseCase {
-  constructor(private albumRepo: AlbumRepositoryPort) {}
+export class UpdatePlayListUseCase {
+  constructor(private playlistRepo: PlayListRepositoryPort) {}
 
-  async execute(id: string, data: Partial<Album>): Promise<Album> {
-    return this.albumRepo.update(id, data);
+  async execute(id: string, data: UpdatePlayListDTO): Promise<PlayList> {
+    return this.playlistRepo.update(id, data);
   }
 }

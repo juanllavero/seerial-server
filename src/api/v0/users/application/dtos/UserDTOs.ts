@@ -1,5 +1,3 @@
-import { ApiResponse } from "@/api/v0/shared/application/dtos/DTOs";
-
 export interface LoginDTO {
   username: string;
   password: string;
@@ -33,4 +31,8 @@ export interface UpdateUserDTO {
   serverId?: string;
 }
 
-export interface UserResponse extends ApiResponse {}
+export interface UserResponse {
+  status: string;
+  message: string;
+  data?: any;
+}

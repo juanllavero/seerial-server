@@ -1,6 +1,5 @@
 import { fileSystemService } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import express, { Request, Response } from "express";
-import fs from "fs";
 
 const router = express.Router();
 
@@ -32,7 +31,9 @@ router.get("/serverConfig/:key", (req: Request, res: Response) => {
   const SERVER_CONFIG_FILE = getServerConfigFile();
 
   fileSystemService.createJSONFile(SERVER_CONFIG_FILE, defaultServerConfig);
-  const configData = JSON.parse(fs.readFileSync(SERVER_CONFIG_FILE, "utf8"));
+  const configData = JSON.parse(
+    fileSystemService.readFileSync(SERVER_CONFIG_FILE, "utf8")
+  );
 
   // If the key does not exist, return null
   const value = configData[key] !== undefined ? configData[key] : null;
@@ -44,7 +45,9 @@ router.get("/serverConfig", (_req: Request, res: Response) => {
   const SERVER_CONFIG_FILE = getServerConfigFile();
 
   fileSystemService.createJSONFile(SERVER_CONFIG_FILE, defaultServerConfig);
-  const configData = JSON.parse(fs.readFileSync(SERVER_CONFIG_FILE, "utf8"));
+  const configData = JSON.parse(
+    fileSystemService.readFileSync(SERVER_CONFIG_FILE, "utf8")
+  );
   res.json(configData);
 });
 
@@ -54,13 +57,18 @@ router.patch("/serverConfig", (req: Request, res: Response) => {
 
   fileSystemService.createJSONFile(SERVER_CONFIG_FILE, defaultServerConfig);
   const updates = req.body; // The data to be modified is sent in the body of the request
-  let configData = JSON.parse(fs.readFileSync(SERVER_CONFIG_FILE, "utf8"));
+  let configData = JSON.parse(
+    fileSystemService.readFileSync(SERVER_CONFIG_FILE, "utf8")
+  );
 
   // Update the existing data with the new values
   configData = { ...configData, ...updates };
 
   // Save the updated data to the file
-  fs.writeFileSync(SERVER_CONFIG_FILE, JSON.stringify(configData, null, 2));
+  fileSystemService.writeFile(
+    SERVER_CONFIG_FILE,
+    JSON.stringify(configData, null, 2)
+  );
   res.json({ message: "Configuration updated", config: configData });
 });
 

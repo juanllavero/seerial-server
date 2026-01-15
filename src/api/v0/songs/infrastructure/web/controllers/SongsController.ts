@@ -5,6 +5,7 @@ import {
 } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
+import { AudioManager } from "@/managers/AudioManager";
 import { MediaDetailsManager } from "@/managers/MediaDetailsManager";
 import {
   Body,
@@ -14,6 +15,7 @@ import {
   Path,
   Post,
   Put,
+  Query,
   Route,
   Security,
   Tags,
@@ -31,7 +33,7 @@ export class SongsController extends Controller {
    * Update song details
    */
   @Put("{id}")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async update(
     @Path() id: string,
     @Body() body: UpdateSongDTO
@@ -53,7 +55,7 @@ export class SongsController extends Controller {
    * Delete a song
    */
   @Delete("{id}")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async delete(@Path() id: string): Promise<MessageResponse> {
     if (!id) {
       throw new ApiError(400, messages.errors.validation.missingId);
@@ -68,7 +70,7 @@ export class SongsController extends Controller {
    * Get song lyrics
    */
   @Get("{id}/lyrics")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async getSongsLyrics(@Path() id: string): Promise<any> {
     if (!id) {
       throw new ApiError(400, "Song ID is required.");
@@ -80,7 +82,7 @@ export class SongsController extends Controller {
    * Add song lyrics
    */
   @Post("lyrics")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async addSongsLyrics(@Body() body: AddLyricsDTO): Promise<any> {
     const { songId, language, content } = body;
 
@@ -115,5 +117,35 @@ export class SongsController extends Controller {
       message: "Lyrics file created successfully",
       path: fullSavePath,
     };
+  }
+
+  /**
+   * Stream audio file
+   */
+  @Get("stream")
+  @Security("adminAuth")
+  public async streamAudio(
+    @Query() path: string,
+    @Query() isWeb?: string
+  ): Promise<void> {
+    const audioPath = path;
+    const isWebBool = isWeb === "true";
+
+    if (typeof audioPath !== "string" || audioPath.trim() === "") {
+      throw new ApiError(400, messages.errors.validation.invalidData);
+    }
+
+    // Get file path
+    const streamablePath = await AudioManager.getStreamableAudioPath(
+      decodeURIComponent(audioPath),
+      isWebBool
+    );
+
+    // Stream the file
+    AudioManager.streamFile(
+      streamablePath,
+      (this as any).request,
+      (this as any).response
+    );
   }
 }

@@ -102,58 +102,11 @@ app.whenReady().then(async () => {
   // Load or create server and user configs
   await ServerConfigManager.loadOrCreateServerConfig();
 
-  // Swagger configuration
-  const swaggerOptions = {
-    definition: {
-      openapi: "3.0.0",
-      info: {
-        title: "Seerial Media Server API",
-        version: "0.2.0",
-        description: "Media management server API for the Seerial suite",
-        contact: {
-          name: "Juan Llavero",
-        },
-      },
-      servers: [
-        {
-          url: "http://localhost:8080/api",
-          description: "Development server",
-        },
-      ],
-      components: {
-        securitySchemes: {
-          bearerAuth: {
-            type: "http",
-            scheme: "bearer",
-            bearerFormat: "JWT",
-          },
-          cookieAuth: {
-            type: "apiKey",
-            in: "cookie",
-            name: "token",
-          },
-        },
-      },
-      security: [
-        {
-          bearerAuth: [],
-        },
-        {
-          cookieAuth: [],
-        },
-      ],
-    },
-    apis: ["./src/api/**/*.ts"], // Path to the API docs - adjusted path
-  };
-
   // Swagger UI
   appServer.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-  // Registrar rutas generadas por tsoa
+  // Register generated tsoa routes
   RegisterRoutes(appServer);
-
-  // Initialize routes
-  //appServer.use("/api", appRoutes);
 
   // Serve static web files
   const webPath = path.join(__dirname, "web");

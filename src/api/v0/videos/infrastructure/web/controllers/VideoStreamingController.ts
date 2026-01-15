@@ -52,7 +52,7 @@ export class VideoStreamingController extends Controller {
         bitrate: bitrate || 0,
       },
       process.env.JWT_SECRET!,
-      { expiresIn: expiresIn || "2m" }
+      { expiresIn: (expiresIn ?? "2m") as jwt.SignOptions["expiresIn"] }
     );
 
     const params = new URLSearchParams({ token });
@@ -87,7 +87,7 @@ export class VideoStreamingController extends Controller {
         path: filePath,
       },
       process.env.JWT_SECRET || "default-secret",
-      { expiresIn: expiresIn || "2m" }
+      { expiresIn: (expiresIn ?? "2m") as jwt.SignOptions["expiresIn"] }
     );
 
     const params = new URLSearchParams({ token });

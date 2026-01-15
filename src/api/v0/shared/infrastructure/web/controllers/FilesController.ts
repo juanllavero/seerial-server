@@ -26,7 +26,7 @@ export class FilesController {
    * Get system drives
    */
   @Get("drives")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async getDrives(): Promise<string[]> {
     return getDrives();
   }
@@ -35,7 +35,7 @@ export class FilesController {
    * Get folder contents
    */
   @Get("folder")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async getFolderContents(@Query() path: string): Promise<FileItem[]> {
     if (!path || path === "") {
       throw new ApiError(400, messages.errors.validation.invalidData);

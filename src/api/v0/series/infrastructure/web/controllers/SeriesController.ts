@@ -22,7 +22,7 @@ import {
 import {
   RefreshMetadataDTO,
   SeriesResponse,
-  SetWatchStateDTO,
+  SetSeriesWatchStateDTO,
   UpdateEpisodeGroupDTO,
   UpdateSeriesDTO,
   UpdateShowIdDTO,
@@ -34,8 +34,8 @@ export class SeriesController extends Controller {
   /**
    * Refresh series metadata from external sources
    */
-  @Post("refreshShowMetadata")
-  @Security("cookieAuth")
+  @Post("metadata")
+  @Security("adminAuth")
   public async refreshMetadata(
     @Body() body: RefreshMetadataDTO
   ): Promise<SeriesResponse> {
@@ -56,8 +56,8 @@ export class SeriesController extends Controller {
   /**
    * Update series TMDB ID
    */
-  @Post("updateShowId")
-  @Security("cookieAuth")
+  @Post("tmdb-id")
+  @Security("adminAuth")
   public async updateShowId(
     @Body() body: UpdateShowIdDTO
   ): Promise<SeriesResponse> {
@@ -78,8 +78,8 @@ export class SeriesController extends Controller {
   /**
    * Update series episode group
    */
-  @Post("updateEpisodeGroup")
-  @Security("cookieAuth")
+  @Post("episode-group")
+  @Security("adminAuth")
   public async updateEpisodeGroup(
     @Body() body: UpdateEpisodeGroupDTO
   ): Promise<SeriesResponse> {
@@ -101,7 +101,7 @@ export class SeriesController extends Controller {
    * Update series details
    */
   @Put("show/{id}")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async update(
     @Path() id: string,
     @Body() body: UpdateSeriesDTO
@@ -123,7 +123,7 @@ export class SeriesController extends Controller {
    * Delete a series
    */
   @Delete("{id}")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async delete(@Path() id: string): Promise<MessageResponse> {
     if (!id) {
       throw new ApiError(400, messages.errors.validation.missingId);
@@ -138,10 +138,10 @@ export class SeriesController extends Controller {
    * Set series watch state for a user
    */
   @Post("{id}/watch-state")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async setWatchState(
     @Path() id: string,
-    @Body() body: SetWatchStateDTO
+    @Body() body: SetSeriesWatchStateDTO
   ): Promise<MessageResponse> {
     const { watched, userId } = body;
 
@@ -216,7 +216,7 @@ export class SeriesController extends Controller {
    * Search series in TMDB
    */
   @Get("search")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async searchSeries(
     @Query() name: string,
     @Query() year?: string
@@ -231,7 +231,7 @@ export class SeriesController extends Controller {
    * Search episode groups in TMDB
    */
   @Get("episode-groups/search")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async searchEpisodeGroups(@Query() id: string): Promise<any> {
     if (typeof id !== "string") {
       throw new ApiError(400, "Query parameter 'id' is required.");
@@ -243,7 +243,7 @@ export class SeriesController extends Controller {
    * Get remaining episodes count for a series
    */
   @Get("{id}/remaining-episodes")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async getRemainingEpisodes(
     @Path() id: string,
     @Request() req: ExpressRequest
@@ -261,7 +261,7 @@ export class SeriesController extends Controller {
    * Check if series is in user's my list
    */
   @Get("{id}/my-list")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async isSeriesInMyList(
     @Path() id: string,
     @Request() req: ExpressRequest

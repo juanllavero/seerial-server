@@ -1,4 +1,3 @@
-import { MessageResponse } from "@/api/v0/shared/application/dtos/DTOs";
 import {
   librariesRepo,
   moviesRepo,
@@ -24,10 +23,11 @@ import {
   Tags,
 } from "tsoa";
 
+import { MessageResponse } from "@/api/v0/shared/application/dtos/DTOs";
 import {
   ChangeIdentificationDTO,
   MovieResponse,
-  SetWatchStateDTO,
+  SetMovieWatchStateDTO,
   UpdateMovieDTO,
 } from "../../../application/dtos/MovieDTOs";
 import { DeleteMovieUseCase } from "../../../application/usecases/DeleteMovieUseCase";
@@ -121,7 +121,7 @@ export class MoviesController extends Controller {
   @Security("cookieAuth")
   public async setWatchState(
     @Path() id: string,
-    @Body() body: SetWatchStateDTO,
+    @Body() body: SetMovieWatchStateDTO,
     @Request() req: ExpressRequest
   ): Promise<MessageResponse> {
     const userId = (req as any).user?.id;

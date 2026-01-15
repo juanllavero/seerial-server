@@ -2,7 +2,16 @@ import { MessageResponse } from "@/api/v0/shared/application/dtos/DTOs";
 import { useCases } from "@/api/v0/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { Controller, Delete, Path, Put, Route, Security, Tags } from "tsoa";
+import {
+  Body,
+  Controller,
+  Delete,
+  Path,
+  Put,
+  Route,
+  Security,
+  Tags,
+} from "tsoa";
 import {
   AlbumResponse,
   UpdateAlbumDTO,
@@ -15,10 +24,10 @@ export class AlbumsController extends Controller {
    * Update album details
    */
   @Put("{id}")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async update(
     @Path() id: string,
-    body: UpdateAlbumDTO
+    @Body() body: UpdateAlbumDTO
   ): Promise<AlbumResponse> {
     if (!id) {
       throw new ApiError(400, messages.errors.validation.missingId);
@@ -37,7 +46,7 @@ export class AlbumsController extends Controller {
    * Delete an album
    */
   @Delete("{id}")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async delete(@Path() id: string): Promise<MessageResponse> {
     if (!id) {
       throw new ApiError(400, messages.errors.validation.missingId);

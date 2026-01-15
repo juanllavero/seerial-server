@@ -68,6 +68,14 @@ import { IsSeriesInMyListUseCase } from "@/api/v0/my-lists/application/usecases/
 import { RemoveMovieFromMyListUseCase } from "@/api/v0/my-lists/application/usecases/RemoveMovieFromMyListUseCase";
 import { RemoveSeriesFromMyListUseCase } from "@/api/v0/my-lists/application/usecases/RemoveSeriesFromMyListUseCase";
 import { MyListRepositoryImpl } from "@/api/v0/my-lists/infrastructure/persistence/repositories/MyListRepositoryImpl";
+import { AddSongToPlayListUseCase } from "@/api/v0/playlists/application/usecases/AddSongToPlayListUseCase";
+import { CreatePlayListUseCase } from "@/api/v0/playlists/application/usecases/CreatePlayListUseCase";
+import { DeletePlayListUseCase } from "@/api/v0/playlists/application/usecases/DeletePlayListUseCase";
+import { FindAllPlayListsUseCase } from "@/api/v0/playlists/application/usecases/FindAllPlayListsUseCase";
+import { FindPlayListByIdUseCase } from "@/api/v0/playlists/application/usecases/FindPlayListByIdUseCase";
+import { RemoveSongFromPlayListUseCase } from "@/api/v0/playlists/application/usecases/RemoveSongFromPlayListUseCase";
+import { UpdatePlayListUseCase } from "@/api/v0/playlists/application/usecases/UpdatePlayListUseCase";
+import { PlayListRepositoryImpl } from "@/api/v0/playlists/infrastructure/persistence/repositories/PlayListRepositoryImpl";
 import { CreateSeasonUseCase } from "@/api/v0/seasons/application/usecases/CreateSeasonUseCase";
 import { DeleteSeasonDataUseCase } from "@/api/v0/seasons/application/usecases/DeleteSeasonDataUseCase";
 import { DeleteSeasonUseCase } from "@/api/v0/seasons/application/usecases/DeleteSeasonsUseCase";
@@ -179,6 +187,7 @@ export const collectionsRepo = new CollectionsRepositoryImpl();
 export const continueWatchingRepo = new ContinueWatchingRepositoryImpl();
 export const watchListRepo = new WatchListRepositoryImpl();
 export const myListRepo = new MyListRepositoryImpl();
+export const playlistRepo = new PlayListRepositoryImpl();
 export const serversRepo = new ServersRepositoryImpl();
 export const usersRepo = new UsersRepositoryImpl();
 
@@ -336,6 +345,13 @@ export const useCases = {
   deleteVideoData: () => new DeleteVideoDataUseCase(fileSystemService),
 
   // Playlists
+  getPlayLists: () => new FindAllPlayListsUseCase(playlistRepo),
+  getPlayListById: () => new FindPlayListByIdUseCase(playlistRepo),
+  createPlayList: () => new CreatePlayListUseCase(playlistRepo),
+  updatePlayList: () => new UpdatePlayListUseCase(playlistRepo),
+  deletePlayList: () => new DeletePlayListUseCase(playlistRepo),
+  addSongToPlayList: () => new AddSongToPlayListUseCase(playlistRepo),
+  removeSongFromPlayList: () => new RemoveSongFromPlayListUseCase(playlistRepo),
 
   // ContinueWatching
   addVideoToContinueWatching: () => new AddVideoUseCase(continueWatchingRepo),

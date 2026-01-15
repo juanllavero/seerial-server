@@ -19,7 +19,7 @@ export class APIKeyController extends Controller {
    * Configure TMDB API key
    */
   @Post("api-key")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async configureApiKey(
     @Body() body: APIKeyDTO
   ): Promise<APIKeyResponse> {

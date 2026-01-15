@@ -27,7 +27,7 @@ export class ArtistsController extends Controller {
    * Create a new artist
    */
   @Post()
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async create(@Body() body: CreateArtistDTO): Promise<ArtistResponse> {
     const { name } = body;
 
@@ -52,7 +52,7 @@ export class ArtistsController extends Controller {
    * Get artist by ID
    */
   @Get("{id}")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async getById(@Path() id: string): Promise<ArtistResponse> {
     if (!id) {
       throw new ApiError(400, messages.errors.validation.missingId);
@@ -75,7 +75,7 @@ export class ArtistsController extends Controller {
    * Update artist details
    */
   @Put("{id}")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async update(
     @Path() id: string,
     @Body() body: UpdateArtistDTO
@@ -97,7 +97,7 @@ export class ArtistsController extends Controller {
    * Delete an artist
    */
   @Delete("{id}")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async delete(@Path() id: string): Promise<MessageResponse> {
     if (!id) {
       throw new ApiError(400, messages.errors.validation.missingId);

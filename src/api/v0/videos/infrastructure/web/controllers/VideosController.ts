@@ -19,7 +19,7 @@ import {
   Tags,
 } from "tsoa";
 import {
-  SetWatchStateDTO,
+  SetVideoWatchStateDTO,
   UpdateVideoDTO,
   VideoResponse,
 } from "../../../application/dtos/VideoDTOs";
@@ -31,7 +31,7 @@ export class VideosController extends Controller {
    * Update video details
    */
   @Put("{id}")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async update(
     @Path() id: string,
     @Body() body: UpdateVideoDTO
@@ -53,7 +53,7 @@ export class VideosController extends Controller {
    * Delete a video
    */
   @Delete("{id}")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async delete(@Path() id: string): Promise<MessageResponse> {
     if (!id) {
       throw new ApiError(400, messages.errors.validation.missingId);
@@ -68,7 +68,7 @@ export class VideosController extends Controller {
    * Update video media info
    */
   @Get("{id}/media-info")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async updateMediaInfo(@Path() id: string): Promise<VideoResponse> {
     if (!id) {
       throw new ApiError(400, messages.errors.validation.missingId);
@@ -87,7 +87,7 @@ export class VideosController extends Controller {
    * Update video media info (PUT)
    */
   @Put("{id}/media-info")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async updateMediaInfoPut(@Path() id: string): Promise<VideoResponse> {
     if (!id) {
       throw new ApiError(400, messages.errors.validation.missingId);
@@ -106,10 +106,10 @@ export class VideosController extends Controller {
    * Set video watch state for a user
    */
   @Post("{id}/watch-state")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async setWatchState(
     @Path() id: string,
-    @Body() body: SetWatchStateDTO
+    @Body() body: SetVideoWatchStateDTO
   ): Promise<MessageResponse> {
     const { watched, userId } = body;
 
@@ -137,7 +137,7 @@ export class VideosController extends Controller {
    * Extract video thumbnail
    */
   @Get("thumbnail")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async getVideoThumbnail(
     @Query() url: string,
     @Query() time?: string
@@ -153,7 +153,7 @@ export class VideosController extends Controller {
    * Extract subtitle track from video
    */
   @Get("subtitles")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async getSubsFromVideo(
     @Query() videoPathParam: string,
     @Query() trackId: number,

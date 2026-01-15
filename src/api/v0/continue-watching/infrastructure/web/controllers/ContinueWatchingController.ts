@@ -4,7 +4,7 @@ import { Request as ExpressRequest } from "express";
 import { Controller, Get, Request, Route, Security, Tags } from "tsoa";
 import { GetVideosUseCase } from "../../../application/usecases/GetVideosUseCase";
 
-@Route("continueWatching")
+@Route("continue-watching")
 @Tags("Continue Watching")
 export class ContinueWatchingController extends Controller {
   /**

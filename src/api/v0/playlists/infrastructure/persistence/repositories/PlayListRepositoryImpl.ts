@@ -1,153 +1,136 @@
-import { Album } from "@/api/v0/albums/domain/Album";
-import { AlbumArtistModel } from "@/api/v0/albums/infrastructure/persistence/models/AlbumArtistModel";
-import { AlbumModel } from "@/api/v0/albums/infrastructure/persistence/models/AlbumModel";
-import { ArtistModel } from "@/api/v0/artists/infrastructure/persistence/models/ArtistModel";
 import { BaseRepository } from "@/api/v0/base-repository/BaseRepository";
 import { SongModel } from "@/api/v0/songs/infrastructure/persistence/models/SongModel";
 import { v4 as uuidv4 } from "uuid";
-import { AlbumRepositoryPort } from "../../../application/ports/PlayListRepositoryPort";
+import { PlayListRepositoryPort } from "../../../application/ports/PlayListRepositoryPort";
+import { PlayList } from "../../../domain/PlayList";
+import { PlayListItemModel } from "../models/PlayListItemModel";
+import { PlayListModel } from "../models/PlayListModel";
 
-export class AlbumRepositoryImpl
+export class PlayListRepositoryImpl
   extends BaseRepository
-  implements AlbumRepositoryPort
+  implements PlayListRepositoryPort
 {
-  async findAllByLibrary(libraryId: string): Promise<Album[]> {
-    const validatedId = this.validateId(libraryId, "Library ID");
-
+  async findAll(): Promise<PlayList[]> {
     return this.handleRepositoryError(async () => {
-      const albums = await AlbumModel.findAll({
-        where: { libraryId: validatedId },
+      const playlists = await PlayListModel.findAll({
+        include: [{ model: SongModel, as: "songs" }],
       });
-      return albums.map((album) => new AlbumModel(album.toJSON()));
-    }, `Failed to retrieve albums for library ${libraryId}`);
+      return playlists.map((playlist) => playlist.toJSON() as PlayList);
+    }, "Failed to retrieve playlists");
   }
 
-  async findById(id: string, includeSongs = true): Promise<Album | null> {
-    const validatedId = this.validateId(id, "Album ID");
+  async findById(id: string): Promise<PlayList | null> {
+    const validatedId = this.validateId(id, "PlayList ID");
 
     return this.handleRepositoryError(async () => {
-      const includeOptions = [
-        { model: ArtistModel, as: "artists" },
-        ...(includeSongs ? [{ model: SongModel, as: "songs" }] : []),
-      ];
-
-      const album = await AlbumModel.findByPk(validatedId, {
-        include: includeOptions,
+      const playlist = await PlayListModel.findByPk(validatedId, {
+        include: [{ model: SongModel, as: "songs" }],
       });
 
-      return album ? new AlbumModel(album.toJSON()) : null;
-    }, `Failed to retrieve album with ID ${id}`);
+      return playlist ? (playlist.toJSON() as PlayList) : null;
+    }, `Failed to retrieve playlist with ID ${id}`);
   }
 
-  async create(album: Album): Promise<Album> {
-    this.validateData(album, "Album data");
+  async create(playList: PlayList): Promise<PlayList> {
+    this.validateData(playList, "PlayList data");
 
     return this.handleRepositoryError(async () => {
-      const albumData = album;
-
-      // Check if album already exists by ID
-      if (albumData.id) {
-        const existingAlbum = await this.findById(albumData.id, false);
-        if (existingAlbum) {
-          console.log(`Album with ID ${albumData.id} already exists`);
-          return existingAlbum;
+      // Check if playlist already exists by ID
+      if (playList.id) {
+        const existingPlayList = await this.findById(playList.id);
+        if (existingPlayList) {
+          console.log(`PlayList with ID ${playList.id} already exists`);
+          return existingPlayList;
         }
       }
 
       // Generate UUID if it doesn't exist
       const dataToCreate = {
-        ...albumData,
-        id: albumData.id || uuidv4().split("-")[0],
+        ...playList,
+        id: playList.id || uuidv4().split("-")[0],
       };
 
-      const createdAlbum = await AlbumModel.create(dataToCreate as any);
-      return new AlbumModel(createdAlbum.toJSON());
-    }, "Failed to create album");
+      const createdPlayList = await PlayListModel.create(dataToCreate as any);
+      return createdPlayList.toJSON() as PlayList;
+    }, "Failed to create playlist");
   }
 
-  async update(id: string, data: Partial<Album>): Promise<Album> {
-    const validatedId = this.validateId(id, "Album ID");
+  async update(id: string, data: Partial<PlayList>): Promise<PlayList> {
+    const validatedId = this.validateId(id, "PlayList ID");
     this.validateData(data, "Update data");
 
     return this.handleRepositoryError(async () => {
-      const [affectedCount] = await AlbumModel.update(data as any, {
+      const [affectedCount] = await PlayListModel.update(data as any, {
         where: { id: validatedId },
       });
 
-      this.ensureAffected(affectedCount, `Album with ID ${id} not found`);
+      this.ensureAffected(affectedCount, `PlayList with ID ${id} not found`);
 
-      const updatedAlbum = await this.findById(id, false);
-      if (!updatedAlbum) {
-        throw new Error(`Failed to retrieve updated album with ID ${id}`);
+      const updatedPlayList = await this.findById(id);
+      if (!updatedPlayList) {
+        throw new Error(`Failed to retrieve updated playlist with ID ${id}`);
       }
 
-      return updatedAlbum;
-    }, `Failed to update album with ID ${id}`);
+      return updatedPlayList;
+    }, `Failed to update playlist with ID ${id}`);
   }
 
   async delete(id: string): Promise<void> {
-    const validatedId = this.validateId(id, "Album ID");
+    const validatedId = this.validateId(id, "PlayList ID");
 
     await this.handleRepositoryError(async () => {
-      const affectedCount = await AlbumModel.destroy({
+      const affectedCount = await PlayListModel.destroy({
         where: { id: validatedId },
       });
 
-      this.ensureAffected(affectedCount, `Album with ID ${id} not found`);
-    }, `Failed to delete album with ID ${id}`);
+      this.ensureAffected(affectedCount, `PlayList with ID ${id} not found`);
+    }, `Failed to delete playlist with ID ${id}`);
   }
 
-  async addArtistToAlbum(
-    artistId: string,
-    albumId: string
-  ): Promise<{ id: string; artistId: string; albumId: string }> {
-    const validated = this.validateIds({ artistId, albumId });
+  async addSongToPlaylist(playlistId: string, songId: string): Promise<void> {
+    const validated = this.validateIds({ playlistId, songId });
 
-    return this.handleRepositoryError(async () => {
+    await this.handleRepositoryError(async () => {
       // Check if relation already exists
-      const existingRelation = await AlbumArtistModel.findOne({
+      const existingRelation = await PlayListItemModel.findOne({
         where: {
-          artistId: validated.artistId,
-          albumId: validated.albumId,
+          playlistId: validated.playlistId,
+          songId: validated.songId,
         },
       });
 
       if (existingRelation) {
-        console.log(
-          `Relation between artist ${artistId} and album ${albumId} already exists`
-        );
-        return existingRelation.toJSON();
+        console.log(`Song ${songId} is already in playlist ${playlistId}`);
+        return;
       }
 
       // Create new relation
-      const newRelation = await AlbumArtistModel.create({
+      await PlayListItemModel.create({
         id: uuidv4().split("-")[0],
-        artistId: validated.artistId,
-        albumId: validated.albumId,
+        playlistId: validated.playlistId,
+        songId: validated.songId,
       } as any);
-
-      return newRelation.toJSON();
-    }, `Failed to add artist ${artistId} to album ${albumId}`);
+    }, `Failed to add song ${songId} to playlist ${playlistId}`);
   }
 
-  async removeArtistFromAlbum(
-    artistId: string,
-    albumId: string
+  async removeSongFromPlaylist(
+    playlistId: string,
+    songId: string
   ): Promise<void> {
-    const validated = this.validateIds({ artistId, albumId });
+    const validated = this.validateIds({ playlistId, songId });
 
     await this.handleRepositoryError(async () => {
-      const affectedCount = await AlbumArtistModel.destroy({
+      const affectedCount = await PlayListItemModel.destroy({
         where: {
-          artistId: validated.artistId,
-          albumId: validated.albumId,
+          playlistId: validated.playlistId,
+          songId: validated.songId,
         },
       });
 
       this.ensureAffected(
         affectedCount,
-        `Relation between artist ${artistId} and album ${albumId} not found`
+        `Song ${songId} not found in playlist ${playlistId}`
       );
-    }, `Failed to remove artist ${artistId} from album ${albumId}`);
+    }, `Failed to remove song ${songId} from playlist ${playlistId}`);
   }
 }

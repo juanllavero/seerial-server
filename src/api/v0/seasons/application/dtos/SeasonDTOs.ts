@@ -1,5 +1,3 @@
-import { ApiResponse } from "@/api/v0/shared/application/dtos/DTOs";
-
 export interface UpdateSeasonDTO {
   name?: string;
   nameLock?: boolean;
@@ -14,9 +12,13 @@ export interface UpdateSeasonDTO {
   musicSrc?: string;
 }
 
-export interface SetWatchStateDTO {
+export interface SetSeasonWatchStateDTO {
   watched: boolean;
   userId: string;
 }
 
-export interface SeasonResponse extends ApiResponse {}
+export interface SeasonResponse {
+  status: string;
+  message: string;
+  data?: any;
+}

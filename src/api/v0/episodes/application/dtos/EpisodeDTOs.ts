@@ -1,5 +1,3 @@
-import { ApiResponse } from "@/api/v0/shared/application/dtos/DTOs";
-
 export interface UpdateEpisodeDTO {
   title?: string;
   episodeNumber?: number;
@@ -8,8 +6,12 @@ export interface UpdateEpisodeDTO {
   duration?: number;
 }
 
-export interface SetWatchStateDTO {
+export interface SetEpisodeWatchStateDTO {
   state: boolean;
 }
 
-export interface EpisodeResponse extends ApiResponse {}
+export interface EpisodeResponse {
+  status: string;
+  message: string;
+  data?: any;
+}

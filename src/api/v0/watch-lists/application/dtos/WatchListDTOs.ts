@@ -1,5 +1,3 @@
-import { ApiResponse } from "@/api/v0/shared/application/dtos/DTOs";
-
 export interface UpdateWatchStateDTO {
   videoId: string;
   timeWatched: number;
@@ -7,4 +5,8 @@ export interface UpdateWatchStateDTO {
   userId: string;
 }
 
-export interface WatchListResponse extends ApiResponse {}
+export interface WatchListResponse {
+  status: string;
+  message: string;
+  data?: any;
+}

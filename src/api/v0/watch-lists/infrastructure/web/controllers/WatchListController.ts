@@ -13,7 +13,7 @@ export class WatchListController extends Controller {
   /**
    * Update watch state for a video
    */
-  @Put("updateWatchState")
+  @Put("watch-state")
   @Security("cookieAuth")
   public async updateWatchState(
     @Body() body: UpdateWatchStateDTO

@@ -25,7 +25,7 @@ export class UsersController extends Controller {
    * Create a new user
    */
   @Post()
-  @Security("cookieAuth")
+  @Security("managementAuth")
   public async create(@Body() body: CreateUserDTO): Promise<any> {
     return await useCases.createUser().execute(body);
   }
@@ -34,7 +34,7 @@ export class UsersController extends Controller {
    * Update user details
    */
   @Put("{id}")
-  @Security("cookieAuth")
+  @Security("managementAuth")
   public async update(
     @Path() id: string,
     @Body() body: UpdateUserDTO
@@ -56,7 +56,7 @@ export class UsersController extends Controller {
    * Delete a user
    */
   @Delete("{id}")
-  @Security("cookieAuth")
+  @Security("managementAuth")
   public async delete(@Path() id: string): Promise<UserResponse> {
     if (!id) {
       throw new ApiError(400, messages.errors.validation.missingId);
@@ -69,5 +69,30 @@ export class UsersController extends Controller {
       message: messages.success.delete,
       data: result,
     };
+  }
+
+  /**
+   * Get all users (public access)
+   */
+  @Put("public")
+  @Security("public")
+  public async findAll(): Promise<UserResponse> {
+    const result = await useCases.getAllUsers().execute();
+
+    return {
+      status: "success",
+      message: messages.success.fetch,
+      data: result,
+    };
+  }
+
+  /**
+   * User login
+   */
+  @Delete("login")
+  @Security("public")
+  public async login(@Body() body: any): Promise<any> {
+    const { username, password } = body;
+    return await useCases.authenticateUser().execute(username, password);
   }
 }

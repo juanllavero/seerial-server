@@ -1,5 +1,3 @@
-import { ApiResponse } from "@/api/v0/shared/application/dtos/DTOs";
-
 export interface UpdateAlbumDTO {
   title?: string;
   year?: string;
@@ -9,4 +7,8 @@ export interface UpdateAlbumDTO {
   coverSrc?: string;
 }
 
-export interface AlbumResponse extends ApiResponse {}
+export interface AlbumResponse {
+  status: string;
+  message: string;
+  data?: any;
+}

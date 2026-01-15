@@ -1,9 +1,11 @@
-import { Album } from "@/api/v0/albums/domain/Album";
+import { PlayList } from "../../domain/PlayList";
 
-export interface AlbumRepositoryPort {
-  findAllByLibrary(libraryId: string): Promise<Album[]>;
-  findById(id: string, includeSongs?: boolean): Promise<Album | null>;
-  create(album: Album): Promise<Album>;
-  update(id: string, album: Partial<Album>): Promise<Album>;
+export interface PlayListRepositoryPort {
+  findAll(): Promise<PlayList[]>;
+  findById(id: string): Promise<PlayList | null>;
+  create(playList: PlayList): Promise<PlayList>;
+  update(id: string, playList: Partial<PlayList>): Promise<PlayList>;
   delete(id: string): Promise<void>;
+  addSongToPlaylist(playlistId: string, songId: string): Promise<void>;
+  removeSongFromPlaylist(playlistId: string, songId: string): Promise<void>;
 }

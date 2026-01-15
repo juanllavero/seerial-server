@@ -1,5 +1,3 @@
-import { ApiResponse } from "@/api/v0/shared/application/dtos/DTOs";
-
 export interface UpdateVideoDTO {
   title?: string;
   fileSrc?: string;
@@ -13,9 +11,13 @@ export interface UpdateVideoDTO {
   movieId?: string;
 }
 
-export interface SetWatchStateDTO {
+export interface SetVideoWatchStateDTO {
   watched: boolean;
   userId: string;
 }
 
-export interface VideoResponse extends ApiResponse {}
+export interface VideoResponse {
+  status: string;
+  message: string;
+  data?: any;
+}

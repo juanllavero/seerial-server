@@ -7,7 +7,7 @@ import jwt from "jsonwebtoken";
 /**
  * Function required by tsoa to handle authentication
  * @param request Express request
- * @param securityName Name of the security scheme (bearerAuth, cookieAuth, etc.)
+ * @param securityName Name of the security scheme (bearerAuth, cookieAuth, cookieAuthFast, adminAuth, managementAuth, public)
  * @param scopes Optional scopes (if using specific roles)
  */
 export async function expressAuthentication(
@@ -15,7 +15,13 @@ export async function expressAuthentication(
   securityName: string,
   scopes?: string[]
 ): Promise<any> {
+  if (securityName === "public") {
+    // No authentication required
+    return {};
+  }
+
   if (securityName === "bearerAuth" || securityName === "cookieAuth") {
+    // Full authentication with library and remote access checks
     const token = request.cookies.jwt;
 
     if (!token) {
@@ -35,14 +41,6 @@ export async function expressAuthentication(
         throw new Error(messages.errors.token.invalid);
       }
 
-      // If you need to validate scopes (roles)
-      if (scopes && scopes.length > 0) {
-        // Validate admin role
-        if (scopes.includes("admin") && user.type !== UserType.ADMIN) {
-          throw new Error(messages.errors.token.noAccess);
-        }
-      }
-
       // Check library access if route involves a library
       const libraryId = request.params?.libraryId || request.body?.libraryId;
       if (user.type !== UserType.ADMIN && libraryId) {
@@ -58,7 +56,104 @@ export async function expressAuthentication(
         throw new Error(messages.errors.token.noRemoteAccess);
       }
 
-      return user; // tsoa adds this to req.user automatically
+      // Check session limit (omitted in original tsoa auth for simplicity)
+
+      return user;
+    } catch (err) {
+      console.log("[Authentication] Error:", err);
+      throw new Error(messages.errors.token.invalid);
+    }
+  }
+
+  if (securityName === "cookieAuthFast") {
+    // Fast authentication without additional checks
+    const token = request.cookies.jwt;
+    if (!token) {
+      throw new Error(messages.errors.token.missing);
+    }
+
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET ?? "") as {
+        userId: string;
+      };
+      const user = await UserModel.findByPk(decoded.userId);
+      if (!user) {
+        throw new Error(messages.errors.token.invalid);
+      }
+
+      return user;
+    } catch (err) {
+      console.log("[Authentication] Error:", err);
+      throw new Error(messages.errors.token.invalid);
+    }
+  }
+
+  if (securityName === "adminAuth") {
+    // Admin authentication
+    const token = request.cookies.jwt;
+    if (!token) {
+      throw new Error(messages.errors.token.missing);
+    }
+
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET ?? "") as {
+        userId: string;
+        type: string;
+      };
+      const user = await UserModel.findByPk(decoded.userId);
+      if (!user || user.type !== UserType.ADMIN) {
+        throw new Error(messages.errors.token.noAccess);
+      }
+      return user;
+    } catch (err) {
+      console.log("[Authentication] Error:", err);
+      throw new Error(messages.errors.token.invalid);
+    }
+  }
+
+  if (securityName === "managementAuth") {
+    // Management access: local or admin
+    const ip = getClientIp(request);
+    const isLocal = isLoopback(ip);
+
+    const token = request.cookies?.jwt as string | undefined;
+
+    // Local request: allow access
+    if (isLocal) {
+      if (token) {
+        try {
+          const secret = process.env.JWT_SECRET || "";
+          if (!secret) throw new Error("Missing JWT_SECRET");
+          const decoded = jwt.verify(token, secret) as { userId: string };
+          const user = await UserModel.findByPk(decoded.userId);
+          if (user) return user;
+        } catch (e) {}
+      }
+      return {}; // Allow local access without user
+    }
+
+    // Remote request: check token and admin user
+    if (!token) {
+      throw new Error(messages.errors.token.missing);
+    }
+
+    try {
+      const secret = process.env.JWT_SECRET || "";
+      if (!secret) {
+        throw new Error("Server misconfigured (JWT secret missing)");
+      }
+
+      const decoded = jwt.verify(token, secret) as { userId: string };
+      const user = await UserModel.findByPk(decoded.userId);
+      if (!user) {
+        throw new Error(messages.errors.token.invalid);
+      }
+
+      if (user.type === UserType.ADMIN) {
+        return user;
+      }
+
+      throw new Error(messages.errors.token.noAccess);
     } catch (err) {
       console.log("[Authentication] Error:", err);
       throw new Error(messages.errors.token.invalid);

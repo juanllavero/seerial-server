@@ -1,5 +1,3 @@
-import { ApiResponse } from "@/api/v0/shared/application/dtos/DTOs";
-
 export interface ReorderItemDTO {
   id: string;
   type: "movie" | "movies" | "series" | "show" | "shows" | "album" | "albums";
@@ -23,4 +21,8 @@ export interface UpdateCollectionDTO {
   musicPosterSrc?: string;
 }
 
-export interface CollectionResponse extends ApiResponse {}
+export interface CollectionResponse {
+  status: string;
+  message: string;
+  data?: any;
+}

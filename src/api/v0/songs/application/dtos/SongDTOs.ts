@@ -1,5 +1,3 @@
-import { ApiResponse } from "@/api/v0/shared/application/dtos/DTOs";
-
 export interface UpdateSongDTO {
   title?: string;
   codec?: string;
@@ -18,7 +16,11 @@ export interface AddLyricsDTO {
   content: string;
 }
 
-export interface SongResponse extends ApiResponse {}
+export interface SongResponse {
+  status: string;
+  message: string;
+  data?: any;
+}
 
 export interface LyricsResponse {
   message: string;

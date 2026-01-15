@@ -1,5 +1,3 @@
-import { ApiResponse } from "@/api/v0/shared/application/dtos/DTOs";
-
 export interface CreateLibraryDTO {
   name: string;
   language: string;
@@ -36,6 +34,14 @@ export interface GetLibraryContentDTO {
   flat?: string;
 }
 
-export interface LibraryResponse extends ApiResponse {}
+export interface LibraryResponse {
+  status: string;
+  message: string;
+  data?: any;
+}
 
-export interface LibrariesResponse extends ApiResponse {}
+export interface LibrariesResponse {
+  status: string;
+  message: string;
+  data?: any;
+}

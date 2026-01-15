@@ -24,7 +24,7 @@ import {
 } from "tsoa";
 import {
   EpisodeResponse,
-  SetWatchStateDTO,
+  SetEpisodeWatchStateDTO,
   UpdateEpisodeDTO,
 } from "../../../application/dtos/EpisodeDTOs";
 import { DeleteEpisodeUseCase } from "../../../application/usecases/DeleteEpisodeUseCase";
@@ -38,7 +38,7 @@ export class EpisodesController extends Controller {
    * Update episode details
    */
   @Put("{id}")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async update(
     @Path() id: string,
     @Body() body: UpdateEpisodeDTO
@@ -61,7 +61,7 @@ export class EpisodesController extends Controller {
    * Delete an episode
    */
   @Delete("{id}")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async delete(@Path() id: string): Promise<MessageResponse> {
     if (!id) {
       throw new ApiError(400, messages.errors.validation.missingId);
@@ -77,10 +77,10 @@ export class EpisodesController extends Controller {
    * Set episode watch state for a user
    */
   @Post("{id}/watch-state")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async setWatchState(
     @Path() id: string,
-    @Body() body: SetWatchStateDTO,
+    @Body() body: SetEpisodeWatchStateDTO,
     @Request() req: ExpressRequest
   ): Promise<EpisodeResponse> {
     const { state } = body;
