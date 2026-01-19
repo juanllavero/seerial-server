@@ -7,6 +7,7 @@ import {
 import * as ConfigManager from "@/managers/ConfigManager";
 import { SequelizeManager } from "@/managers/SequelizeManager";
 import { ServerConfigManager } from "@/managers/ServerConfigManager";
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import { config } from "dotenv";
 import { app } from "electron";
@@ -79,6 +80,7 @@ appServer.use(
 
 appServer.use(express.json({ limit: "50mb" }));
 appServer.use(express.urlencoded({ limit: "50mb", extended: true }));
+appServer.use(cookieParser());
 appServer.use(
   "/media",
   express.static(fileSystemService.getExternalPath("resources"))

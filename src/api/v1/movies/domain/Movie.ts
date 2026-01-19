@@ -1,4 +1,4 @@
-import { Cast } from "@/data/interfaces/Media";
+import { CastData } from "@/data/interfaces/Media";
 import { Video } from "../../videos/domain/Video";
 import { WatchList } from "../../watch-lists/domain/WatchList";
 
@@ -31,7 +31,7 @@ export interface Movie {
   creatorLock: boolean;
   musicComposer: string[];
   musicComposerLock: boolean;
-  cast: Cast[];
+  cast: CastData[];
 
   videoSrc: string;
   musicSrc: string;

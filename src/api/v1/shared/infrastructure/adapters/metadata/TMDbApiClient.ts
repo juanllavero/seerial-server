@@ -61,17 +61,15 @@ export class TMDbApiClient {
     const properties = propertiesReader(propertiesFilePath);
 
     // Get API Key
-    const THEMOVIEDB_API_KEY = properties.get("TMDB_API_KEY");
+    this.THEMOVIEDB_API_TOKEN = properties.get("TMDB_API_KEY") as string;
 
-    if (THEMOVIEDB_API_KEY) {
+    if (this.THEMOVIEDB_API_TOKEN) {
       const apiKeyStatus = await this.getAPIKeyStatus();
 
       if (!apiKeyStatus) {
         console.error("Invalid API Key");
         return false;
       }
-
-      this.THEMOVIEDB_API_TOKEN = String(THEMOVIEDB_API_KEY);
 
       console.log("[MovieDB] Connected to TheMovieDB");
       this.connectionStatus = true;

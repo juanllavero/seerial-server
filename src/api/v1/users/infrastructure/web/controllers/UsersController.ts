@@ -1,5 +1,6 @@
 import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
+import jwt from "jsonwebtoken";
 import {
   Body,
   Controller,
@@ -13,9 +14,11 @@ import {
 } from "tsoa";
 import {
   CreateUserDTO,
+  LoginDTO,
   UpdateUserDTO,
   UserResponse,
 } from "../../../application/dtos/UserDTOs";
+import { User } from "../../../domain/User";
 
 @Route("users")
 @Tags("Users")
@@ -25,8 +28,17 @@ export class UsersController extends Controller {
    */
   @Post()
   @Security("managementAuth")
-  public async create(@Body() body: CreateUserDTO): Promise<any> {
-    return await useCases.createUser().execute(body);
+  public async create(
+    @Body() body: CreateUserDTO
+  ): Promise<{ token: string; user: User }> {
+    const user = await useCases.createUser().execute(body);
+    // Generate token for auto-login after user creation
+    const token = jwt.sign(
+      { userId: user.id, username: user.username, type: user.type },
+      process.env.JWT_SECRET || "",
+      { expiresIn: "30d" }
+    );
+    return { token, user };
   }
 
   /**
@@ -80,9 +92,12 @@ export class UsersController extends Controller {
   /**
    * User login
    */
-  @Delete("login")
+  @Post("login")
   @Security("public")
-  public async login(@Body() body: any): Promise<any> {
+  public async login(@Body() body: LoginDTO): Promise<{
+    token: string;
+    user: User | null;
+  } | null> {
     const { username, password } = body;
     return await useCases.authenticateUser().execute(username, password);
   }

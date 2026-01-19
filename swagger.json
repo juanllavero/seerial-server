@@ -314,6 +314,1411 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"User": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"username": {
+						"type": "string"
+					},
+					"password": {
+						"type": "string"
+					},
+					"avatar": {
+						"type": "string"
+					},
+					"allowRemote": {
+						"type": "boolean"
+					},
+					"type": {
+						"type": "string"
+					},
+					"allowVideoTranscoding": {
+						"type": "boolean"
+					},
+					"internetBitrateLimit": {
+						"type": "number",
+						"format": "double"
+					},
+					"allowDownloads": {
+						"type": "boolean"
+					},
+					"hideInLogin": {
+						"type": "boolean"
+					},
+					"maxSessions": {
+						"type": "number",
+						"format": "double"
+					},
+					"serverId": {
+						"type": "string"
+					},
+					"server": {
+						"$ref": "#/components/schemas/Server"
+					},
+					"libraries": {
+						"items": {
+							"$ref": "#/components/schemas/Library"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"id",
+					"username",
+					"allowRemote",
+					"type",
+					"allowVideoTranscoding",
+					"allowDownloads",
+					"hideInLogin",
+					"maxSessions",
+					"serverId",
+					"server",
+					"libraries"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Server": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"httpPort": {
+						"type": "number",
+						"format": "double"
+					},
+					"httpsPort": {
+						"type": "number",
+						"format": "double"
+					},
+					"tunnelEnabled": {
+						"type": "boolean"
+					},
+					"tunnelUrl": {
+						"type": "string"
+					},
+					"httpsEnabled": {
+						"type": "boolean"
+					},
+					"sslCertPath": {
+						"type": "string"
+					},
+					"sslKeyPath": {
+						"type": "string"
+					},
+					"sslPassword": {
+						"type": "string"
+					},
+					"customUrl": {
+						"type": "string"
+					},
+					"proxyHosts": {
+						"type": "string"
+					},
+					"forceHttps": {
+						"type": "boolean"
+					},
+					"allowRemoteConnections": {
+						"type": "boolean"
+					},
+					"remoteIpFilter": {
+						"type": "string"
+					},
+					"remoteIpFilterMode": {
+						"type": "string"
+					},
+					"enableAutoPortMapping": {
+						"type": "boolean"
+					},
+					"publicHttpPort": {
+						"type": "number",
+						"format": "double"
+					},
+					"publicHttpsPort": {
+						"type": "number",
+						"format": "double"
+					},
+					"users": {
+						"items": {
+							"$ref": "#/components/schemas/User"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"id",
+					"name",
+					"httpPort",
+					"httpsPort",
+					"tunnelEnabled",
+					"httpsEnabled",
+					"forceHttps",
+					"allowRemoteConnections",
+					"remoteIpFilterMode",
+					"enableAutoPortMapping",
+					"publicHttpPort",
+					"publicHttpsPort",
+					"users"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Record_string.string_": {
+				"properties": {},
+				"additionalProperties": {
+					"type": "string"
+				},
+				"type": "object",
+				"description": "Construct a type with a set of properties K of type T"
+			},
+			"Cast": {
+				"properties": {
+					"adult": {
+						"type": "boolean"
+					},
+					"cast_id": {
+						"type": "number",
+						"format": "double"
+					},
+					"character": {
+						"type": "string"
+					},
+					"credit_id": {
+						"type": "string"
+					},
+					"gender": {
+						"type": "number",
+						"format": "double",
+						"nullable": true
+					},
+					"id": {
+						"type": "number",
+						"format": "double"
+					},
+					"known_for_department": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"order": {
+						"type": "number",
+						"format": "double"
+					},
+					"original_name": {
+						"type": "string"
+					},
+					"popularity": {
+						"type": "number",
+						"format": "double"
+					},
+					"profile_path": {
+						"type": "string",
+						"nullable": true
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Series": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"libraryId": {
+						"type": "string"
+					},
+					"themdbId": {
+						"type": "number",
+						"format": "double"
+					},
+					"order": {
+						"type": "number",
+						"format": "double"
+					},
+					"name": {
+						"type": "string"
+					},
+					"nameLock": {
+						"type": "boolean"
+					},
+					"overview": {
+						"type": "string"
+					},
+					"overviewLock": {
+						"type": "boolean"
+					},
+					"year": {
+						"type": "string"
+					},
+					"yearLock": {
+						"type": "boolean"
+					},
+					"score": {
+						"type": "number",
+						"format": "double"
+					},
+					"tagline": {
+						"type": "string"
+					},
+					"taglineLock": {
+						"type": "boolean"
+					},
+					"logoSrc": {
+						"type": "string"
+					},
+					"logosUrls": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"coverSrc": {
+						"type": "string"
+					},
+					"coversUrls": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"productionStudios": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"productionStudiosLock": {
+						"type": "boolean"
+					},
+					"creator": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"creatorLock": {
+						"type": "boolean"
+					},
+					"musicComposer": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"musicComposerLock": {
+						"type": "boolean"
+					},
+					"genres": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"genresLock": {
+						"type": "boolean"
+					},
+					"cast": {
+						"items": {
+							"$ref": "#/components/schemas/Cast"
+						},
+						"type": "array"
+					},
+					"preferAudioLan": {
+						"type": "string"
+					},
+					"preferSubLan": {
+						"type": "string"
+					},
+					"subsMode": {
+						"type": "string"
+					},
+					"folder": {
+						"type": "string"
+					},
+					"episodeGroupId": {
+						"type": "string",
+						"nullable": true
+					},
+					"analyzingFiles": {
+						"type": "boolean"
+					},
+					"watchLists": {
+						"items": {
+							"$ref": "#/components/schemas/WatchList"
+						},
+						"type": "array"
+					},
+					"seasons": {
+						"items": {
+							"$ref": "#/components/schemas/Season"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"id",
+					"libraryId",
+					"themdbId",
+					"order",
+					"name",
+					"nameLock",
+					"overview",
+					"overviewLock",
+					"year",
+					"yearLock",
+					"score",
+					"tagline",
+					"taglineLock",
+					"logoSrc",
+					"logosUrls",
+					"coverSrc",
+					"coversUrls",
+					"productionStudios",
+					"productionStudiosLock",
+					"creator",
+					"creatorLock",
+					"musicComposer",
+					"musicComposerLock",
+					"genres",
+					"genresLock",
+					"cast",
+					"folder",
+					"episodeGroupId",
+					"analyzingFiles",
+					"watchLists",
+					"seasons"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CastData": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"character": {
+						"type": "string"
+					},
+					"profileImage": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"name",
+					"character",
+					"profileImage"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"WatchList": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"userId": {
+						"type": "string"
+					},
+					"seriesId": {
+						"type": "string"
+					},
+					"seasonId": {
+						"type": "string"
+					},
+					"episodeId": {
+						"type": "string"
+					},
+					"episode": {
+						"$ref": "#/components/schemas/Episode"
+					},
+					"movieId": {
+						"type": "string"
+					},
+					"movie": {
+						"$ref": "#/components/schemas/Movie"
+					},
+					"videoId": {
+						"type": "string"
+					},
+					"video": {
+						"$ref": "#/components/schemas/Video"
+					},
+					"timeWatched": {
+						"type": "number",
+						"format": "double"
+					},
+					"lastWatched": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"userId",
+					"timeWatched",
+					"lastWatched"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Video": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"fileSrc": {
+						"type": "string"
+					},
+					"runtime": {
+						"type": "number",
+						"format": "double"
+					},
+					"imgSrc": {
+						"type": "string"
+					},
+					"imgUrls": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"continueWatching": {
+						"items": {
+							"$ref": "#/components/schemas/ContinueWatching"
+						},
+						"type": "array"
+					},
+					"watchLists": {
+						"items": {
+							"$ref": "#/components/schemas/WatchList"
+						},
+						"type": "array"
+					},
+					"mediaInfo": {
+						"$ref": "#/components/schemas/MediaInfo"
+					},
+					"videoTracks": {
+						"items": {
+							"$ref": "#/components/schemas/VideoTrack"
+						},
+						"type": "array"
+					},
+					"subtitleTracks": {
+						"items": {
+							"$ref": "#/components/schemas/SubtitleTrack"
+						},
+						"type": "array"
+					},
+					"audioTracks": {
+						"items": {
+							"$ref": "#/components/schemas/AudioTrack"
+						},
+						"type": "array"
+					},
+					"chapters": {
+						"items": {
+							"$ref": "#/components/schemas/Chapter"
+						},
+						"type": "array"
+					},
+					"selectedAudioTrack": {
+						"type": "number",
+						"format": "double"
+					},
+					"selectedSubtitleTrack": {
+						"type": "number",
+						"format": "double"
+					},
+					"extraType": {
+						"type": "string"
+					},
+					"episodeId": {
+						"type": "string"
+					},
+					"movieId": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"title",
+					"fileSrc",
+					"runtime",
+					"imgSrc",
+					"imgUrls",
+					"continueWatching",
+					"watchLists"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Movie": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"libraryId": {
+						"type": "string"
+					},
+					"imdbId": {
+						"type": "string"
+					},
+					"themdbId": {
+						"type": "number",
+						"format": "double"
+					},
+					"imdbScore": {
+						"type": "number",
+						"format": "double"
+					},
+					"score": {
+						"type": "number",
+						"format": "double"
+					},
+					"order": {
+						"type": "number",
+						"format": "double"
+					},
+					"name": {
+						"type": "string"
+					},
+					"nameLock": {
+						"type": "boolean"
+					},
+					"overview": {
+						"type": "string"
+					},
+					"overviewLock": {
+						"type": "boolean"
+					},
+					"year": {
+						"type": "string"
+					},
+					"yearLock": {
+						"type": "boolean"
+					},
+					"tagline": {
+						"type": "string"
+					},
+					"taglineLock": {
+						"type": "boolean"
+					},
+					"genres": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"genresLock": {
+						"type": "boolean"
+					},
+					"productionStudios": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"productionStudiosLock": {
+						"type": "boolean"
+					},
+					"directedBy": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"directedByLock": {
+						"type": "boolean"
+					},
+					"writtenBy": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"writtenByLock": {
+						"type": "boolean"
+					},
+					"creator": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"creatorLock": {
+						"type": "boolean"
+					},
+					"musicComposer": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"musicComposerLock": {
+						"type": "boolean"
+					},
+					"cast": {
+						"items": {
+							"$ref": "#/components/schemas/CastData"
+						},
+						"type": "array"
+					},
+					"videoSrc": {
+						"type": "string"
+					},
+					"musicSrc": {
+						"type": "string"
+					},
+					"folder": {
+						"type": "string"
+					},
+					"logoSrc": {
+						"type": "string"
+					},
+					"logosUrls": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"backgroundSrc": {
+						"type": "string"
+					},
+					"backgroundsUrls": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"coverSrc": {
+						"type": "string"
+					},
+					"coversUrls": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"watchLists": {
+						"items": {
+							"$ref": "#/components/schemas/WatchList"
+						},
+						"type": "array"
+					},
+					"videos": {
+						"items": {
+							"$ref": "#/components/schemas/Video"
+						},
+						"type": "array"
+					},
+					"extras": {
+						"items": {
+							"$ref": "#/components/schemas/Video"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"id",
+					"libraryId",
+					"imdbId",
+					"themdbId",
+					"imdbScore",
+					"score",
+					"order",
+					"name",
+					"nameLock",
+					"overview",
+					"overviewLock",
+					"year",
+					"yearLock",
+					"tagline",
+					"taglineLock",
+					"genres",
+					"genresLock",
+					"productionStudios",
+					"productionStudiosLock",
+					"directedBy",
+					"directedByLock",
+					"writtenBy",
+					"writtenByLock",
+					"creator",
+					"creatorLock",
+					"musicComposer",
+					"musicComposerLock",
+					"cast",
+					"videoSrc",
+					"musicSrc",
+					"folder",
+					"logoSrc",
+					"logosUrls",
+					"backgroundSrc",
+					"backgroundsUrls",
+					"coverSrc",
+					"coversUrls",
+					"watchLists",
+					"videos",
+					"extras"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ContinueWatching": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"userId": {
+						"type": "string"
+					},
+					"seriesId": {
+						"type": "string"
+					},
+					"series": {
+						"$ref": "#/components/schemas/Series"
+					},
+					"movieId": {
+						"type": "string"
+					},
+					"movie": {
+						"$ref": "#/components/schemas/Movie"
+					},
+					"videoId": {
+						"type": "string"
+					},
+					"video": {
+						"$ref": "#/components/schemas/Video"
+					}
+				},
+				"required": [
+					"id",
+					"userId",
+					"videoId",
+					"video"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"MediaInfo": {
+				"properties": {
+					"file": {
+						"type": "string"
+					},
+					"location": {
+						"type": "string"
+					},
+					"bitrate": {
+						"type": "string"
+					},
+					"duration": {
+						"type": "string"
+					},
+					"size": {
+						"type": "string"
+					},
+					"container": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"file",
+					"location",
+					"bitrate",
+					"duration",
+					"size",
+					"container"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"VideoTrack": {
+				"properties": {
+					"displayTitle": {
+						"type": "string"
+					},
+					"id": {
+						"type": "number",
+						"format": "double"
+					},
+					"selected": {
+						"type": "boolean"
+					},
+					"codec": {
+						"type": "string"
+					},
+					"codecExt": {
+						"type": "string"
+					},
+					"bitrate": {
+						"type": "string"
+					},
+					"framerate": {
+						"type": "string"
+					},
+					"codedHeight": {
+						"type": "string"
+					},
+					"codedWidth": {
+						"type": "string"
+					},
+					"chromaLocation": {
+						"type": "string"
+					},
+					"colorSpace": {
+						"type": "string"
+					},
+					"aspectRatio": {
+						"type": "string"
+					},
+					"profile": {
+						"type": "string"
+					},
+					"refFrames": {
+						"type": "string"
+					},
+					"colorRange": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"displayTitle",
+					"id",
+					"selected",
+					"codec",
+					"codecExt",
+					"bitrate",
+					"framerate",
+					"codedHeight",
+					"codedWidth",
+					"chromaLocation",
+					"colorSpace",
+					"aspectRatio",
+					"profile",
+					"refFrames",
+					"colorRange"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"SubtitleTrack": {
+				"properties": {
+					"displayTitle": {
+						"type": "string"
+					},
+					"id": {
+						"type": "number",
+						"format": "double"
+					},
+					"language": {
+						"type": "string"
+					},
+					"languageTag": {
+						"type": "string"
+					},
+					"selected": {
+						"type": "boolean"
+					},
+					"codec": {
+						"type": "string"
+					},
+					"codecExt": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"displayTitle",
+					"id",
+					"language",
+					"languageTag",
+					"selected",
+					"codec",
+					"codecExt",
+					"title"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"AudioTrack": {
+				"properties": {
+					"displayTitle": {
+						"type": "string"
+					},
+					"id": {
+						"type": "number",
+						"format": "double"
+					},
+					"language": {
+						"type": "string"
+					},
+					"languageTag": {
+						"type": "string"
+					},
+					"selected": {
+						"type": "boolean"
+					},
+					"codec": {
+						"type": "string"
+					},
+					"codecExt": {
+						"type": "string"
+					},
+					"channels": {
+						"type": "string"
+					},
+					"channelLayout": {
+						"type": "string"
+					},
+					"bitrate": {
+						"type": "string"
+					},
+					"bitDepth": {
+						"type": "string"
+					},
+					"profile": {
+						"type": "string"
+					},
+					"samplingRate": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"displayTitle",
+					"id",
+					"language",
+					"languageTag",
+					"selected",
+					"codec",
+					"codecExt",
+					"channels",
+					"channelLayout",
+					"bitrate",
+					"bitDepth",
+					"profile",
+					"samplingRate"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Chapter": {
+				"properties": {
+					"title": {
+						"type": "string"
+					},
+					"time": {
+						"type": "number",
+						"format": "double"
+					},
+					"displayTime": {
+						"type": "string"
+					},
+					"thumbnailSrc": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"title",
+					"time",
+					"displayTime",
+					"thumbnailSrc"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Episode": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"seasonId": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"nameLock": {
+						"type": "boolean"
+					},
+					"year": {
+						"type": "string"
+					},
+					"yearLock": {
+						"type": "boolean"
+					},
+					"overview": {
+						"type": "string"
+					},
+					"overviewLock": {
+						"type": "boolean"
+					},
+					"score": {
+						"type": "number",
+						"format": "double"
+					},
+					"directedBy": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"directedByLock": {
+						"type": "boolean"
+					},
+					"writtenBy": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"writtenByLock": {
+						"type": "boolean"
+					},
+					"episodeNumber": {
+						"type": "number",
+						"format": "double"
+					},
+					"seasonNumber": {
+						"type": "number",
+						"format": "double"
+					},
+					"order": {
+						"type": "number",
+						"format": "double"
+					},
+					"video": {
+						"$ref": "#/components/schemas/Video"
+					}
+				},
+				"required": [
+					"id",
+					"seasonId",
+					"name",
+					"nameLock",
+					"year",
+					"yearLock",
+					"overview",
+					"overviewLock",
+					"score",
+					"directedBy",
+					"directedByLock",
+					"writtenBy",
+					"writtenByLock",
+					"episodeNumber",
+					"seasonNumber",
+					"order",
+					"video"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Season": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"seriesId": {
+						"type": "string"
+					},
+					"order": {
+						"type": "number",
+						"format": "double"
+					},
+					"name": {
+						"type": "string"
+					},
+					"nameLock": {
+						"type": "boolean"
+					},
+					"year": {
+						"type": "string"
+					},
+					"yearLock": {
+						"type": "boolean"
+					},
+					"overview": {
+						"type": "string"
+					},
+					"overviewLock": {
+						"type": "boolean"
+					},
+					"seasonNumber": {
+						"type": "number",
+						"format": "double"
+					},
+					"backgroundSrc": {
+						"type": "string"
+					},
+					"backgroundsUrls": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"videoSrc": {
+						"type": "string"
+					},
+					"musicSrc": {
+						"type": "string"
+					},
+					"watchLists": {
+						"items": {
+							"$ref": "#/components/schemas/WatchList"
+						},
+						"type": "array"
+					},
+					"episodes": {
+						"items": {
+							"$ref": "#/components/schemas/Episode"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"id",
+					"seriesId",
+					"order",
+					"name",
+					"nameLock",
+					"year",
+					"yearLock",
+					"overview",
+					"overviewLock",
+					"seasonNumber",
+					"backgroundSrc",
+					"backgroundsUrls",
+					"videoSrc",
+					"musicSrc",
+					"watchLists",
+					"episodes"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Album": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"libraryId": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"year": {
+						"type": "string"
+					},
+					"genres": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"folder": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"coverSrc": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"libraryId",
+					"title",
+					"genres",
+					"folder",
+					"coverSrc"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Collection": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"backgroundSrc": {
+						"type": "string"
+					},
+					"backgroundsUrls": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"coverSrc": {
+						"type": "string"
+					},
+					"coversUrls": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"numberOfItems": {
+						"type": "number",
+						"format": "double"
+					},
+					"musicPosterSrc": {
+						"type": "string"
+					},
+					"shows": {
+						"items": {
+							"$ref": "#/components/schemas/Series"
+						},
+						"type": "array"
+					},
+					"movies": {
+						"items": {
+							"$ref": "#/components/schemas/Movie"
+						},
+						"type": "array"
+					},
+					"albums": {
+						"items": {
+							"$ref": "#/components/schemas/Album"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"id",
+					"title",
+					"backgroundSrc",
+					"backgroundsUrls",
+					"coverSrc",
+					"coversUrls",
+					"shows",
+					"movies",
+					"albums"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Library": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"language": {
+						"type": "string"
+					},
+					"type": {
+						"type": "string"
+					},
+					"order": {
+						"type": "number",
+						"format": "double"
+					},
+					"hidden": {
+						"type": "boolean"
+					},
+					"folders": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"preferAudioLan": {
+						"type": "string"
+					},
+					"preferSubLan": {
+						"type": "string"
+					},
+					"subsMode": {
+						"type": "string"
+					},
+					"analyzedFiles": {
+						"$ref": "#/components/schemas/Record_string.string_"
+					},
+					"analyzedFolders": {
+						"$ref": "#/components/schemas/Record_string.string_"
+					},
+					"backgroundSrc": {
+						"type": "string"
+					},
+					"series": {
+						"items": {
+							"$ref": "#/components/schemas/Series"
+						},
+						"type": "array"
+					},
+					"movies": {
+						"items": {
+							"$ref": "#/components/schemas/Movie"
+						},
+						"type": "array"
+					},
+					"albums": {
+						"items": {
+							"$ref": "#/components/schemas/Album"
+						},
+						"type": "array"
+					},
+					"collections": {
+						"items": {
+							"$ref": "#/components/schemas/Collection"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"id",
+					"name",
+					"language",
+					"type",
+					"order",
+					"hidden",
+					"folders",
+					"analyzedFiles",
+					"analyzedFolders",
+					"backgroundSrc",
+					"series",
+					"movies",
+					"albums",
+					"collections"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"LoginDTO": {
+				"properties": {
+					"username": {
+						"type": "string"
+					},
+					"password": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"username",
+					"password"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"SongResponse": {
 				"properties": {
 					"status": {
@@ -2356,14 +3761,34 @@
 			}
 		},
 		"/users/login": {
-			"delete": {
+			"post": {
 				"operationId": "Login",
 				"responses": {
 					"200": {
 						"description": "Ok",
 						"content": {
 							"application/json": {
-								"schema": {}
+								"schema": {
+									"properties": {
+										"user": {
+											"allOf": [
+												{
+													"$ref": "#/components/schemas/User"
+												}
+											],
+											"nullable": true
+										},
+										"token": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"user",
+										"token"
+									],
+									"type": "object",
+									"nullable": true
+								}
 							}
 						}
 					}
@@ -2382,7 +3807,9 @@
 					"required": true,
 					"content": {
 						"application/json": {
-							"schema": {}
+							"schema": {
+								"$ref": "#/components/schemas/LoginDTO"
+							}
 						}
 					}
 				}

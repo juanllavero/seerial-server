@@ -4,7 +4,7 @@ import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/mode
 import { SeasonModel } from "@/api/v1/seasons/infrastructure/persistence/models/SeasonModel";
 import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { WatchListModel } from "@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel";
-import { Cast } from "@/data/interfaces/Media";
+import { CastData } from "@/data/interfaces/Media";
 import {
   BeforeDestroy,
   BelongsTo,
@@ -218,7 +218,7 @@ export class SeriesModel extends Model {
     defaultValue: [],
     allowNull: false,
   })
-  cast!: Cast[];
+  cast!: CastData[];
 
   @Column({
     type: DataType.STRING,

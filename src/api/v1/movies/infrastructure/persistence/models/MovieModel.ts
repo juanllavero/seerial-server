@@ -3,7 +3,7 @@ import { CollectionMovieModel } from "@/api/v1/collections/infrastructure/persis
 import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryModel";
 import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/VideoModel";
 import { WatchListModel } from "@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel";
-import { Cast } from "@/data/interfaces/Media";
+import { CastData } from "@/data/interfaces/Media";
 import {
   BelongsTo,
   BelongsToMany,
@@ -232,7 +232,7 @@ export class MovieModel extends Model {
     allowNull: false,
     defaultValue: [],
   })
-  cast!: Cast[];
+  cast!: CastData[];
 
   @Column({
     type: DataType.STRING,
