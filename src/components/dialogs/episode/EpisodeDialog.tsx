@@ -4,12 +4,19 @@ import { Episode } from '@/data/interfaces/Media'
 import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { showToast } from '@/utils/ReactUtils'
 import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import useSWR, { mutate } from 'swr'
 import { shallow } from 'zustand/shallow'
 import { ModalWrapper } from '../../ModalWrapper'
+import GenericFormTab from '../components/GenericFormTab'
 import ImageListTab from '../components/ImageListTab'
-import EpisodeInfoTab from './components/EpisodeInfoTab'
+import {
+  episodeInfoConfig,
+  generateDefaultValues,
+  generateResetValues,
+  generateSubmitData,
+} from '../forms.config'
 import EpisodeMediaInfoTab from './components/EpisodeMediaInfoTab'
 
 function EpisodeDialog() {
@@ -22,28 +29,19 @@ function EpisodeDialog() {
     }),
     shallow,
   )
+  const { control, reset, handleSubmit } = useForm({
+    defaultValues: generateDefaultValues(episodeInfoConfig),
+  })
+
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 
   const [images, setImages] = useState<string[]>([])
   const [localFolder, setLocalFolder] = useState<string>('')
   const [selectedImage, setSelectedImage] = useState<string>('')
 
-  //#region ATTRIBUTES
-  const [nameLock, setNameLock] = useState<boolean>(false)
-  const [yearLock, setYearLock] = useState<boolean>(false)
-  const [overviewLock, setOverviewLock] = useState<boolean>(false)
-  const [directedLock, setDirectedLock] = useState<boolean>(false)
-  const [writtenLock, setWrittenLock] = useState<boolean>(false)
-
-  const [name, setName] = useState<string>('')
-  const [year, setYear] = useState<string>('')
-  const [overview, setOverview] = useState<string>('')
-  const [directedBy, setDirectedBy] = useState<string[]>([])
-  const [writtenBy, setWrittenBy] = useState<string[]>([])
   const [episode, setEpisode] = useState<Episode | undefined>(
     episodeDialog.episodeToEdit,
   )
-  //#endregion
 
   const { data: series } = useSWR(
     episode ? `/api/details/seriesBySeasonId?id=${episode.seasonId}` : null,
@@ -52,43 +50,28 @@ function EpisodeDialog() {
 
   useEffect(() => {
     if (episodeDialog && episodeDialog.episodeToEdit) {
-      setNameLock(episodeDialog.episodeToEdit.nameLock)
-      setYearLock(episodeDialog.episodeToEdit.yearLock)
-      setOverviewLock(episodeDialog.episodeToEdit.overviewLock)
-      setName(episodeDialog.episodeToEdit.name)
-      setYear(episodeDialog.episodeToEdit.year)
-      setOverview(episodeDialog.episodeToEdit.overview)
-      setDirectedBy(episodeDialog.episodeToEdit.directedBy)
-      setWrittenBy(episodeDialog.episodeToEdit.writtenBy)
+      reset(generateResetValues(episodeDialog.episodeToEdit, episodeInfoConfig))
       setEpisode(episodeDialog.episodeToEdit)
       setImages(episodeDialog.episodeToEdit.video.imgUrls || [])
       setSelectedImage(episodeDialog.episodeToEdit.video.imgSrc || '')
       setLocalFolder(`img/thumbnails/video/${episodeDialog.episodeToEdit.id}`)
       setSelectedTab(t('generalButton'))
     }
-  }, [episodeDialog])
+  }, [episodeDialog, reset])
 
   if (!episode || !series) return null
 
-  const handleEditEpisode = async () => {
+  const handleEditEpisode = handleSubmit(async (data) => {
     await connectWS()
+
+    const submitData = generateSubmitData(data, episode, episodeInfoConfig)
 
     const response = await authenticatedFetch(
       `/api/episode/${episode.id}`,
       'PUT',
       {
-        ...episode,
+        ...submitData,
         imgSrc: selectedImage ?? episode.video.imgSrc,
-        name: name,
-        year: year,
-        overview: overview,
-        directedBy: directedBy,
-        writtenBy: writtenBy,
-        nameLock: nameLock,
-        yearLock: yearLock,
-        overviewLock: overviewLock,
-        directedLock: directedLock,
-        writtenLock: writtenLock,
       },
     )
 
@@ -101,7 +84,7 @@ function EpisodeDialog() {
     mutate((key: string) => key.startsWith(`/api/details/episode`))
 
     closeEpisodeDialog()
-  }
+  })
 
   const getWindowTitle = () => {
     return `${t('editButton')} ${series.name} - ${episode.name} ${`(${t('seasonLetter')}${episode.seasonNumber}${t('episodeLetter')}${episode.episodeNumber})`}`
@@ -114,28 +97,7 @@ function EpisodeDialog() {
         {
           title: t('generalButton'),
           content: (
-            <EpisodeInfoTab
-              name={name}
-              setName={setName}
-              year={year}
-              setYear={setYear}
-              overview={overview}
-              setOverview={setOverview}
-              directedBy={directedBy}
-              setDirectedBy={setDirectedBy}
-              writtenBy={writtenBy}
-              setWrittenBy={setWrittenBy}
-              nameLock={nameLock}
-              yearLock={yearLock}
-              overviewLock={overviewLock}
-              directedLock={directedLock}
-              writtenLock={writtenLock}
-              setNameLock={setNameLock}
-              setYearLock={setYearLock}
-              setOverviewLock={setOverviewLock}
-              setDirectedLock={setDirectedLock}
-              setWrittenLock={setWrittenLock}
-            />
+            <GenericFormTab config={episodeInfoConfig} control={control} />
           ),
         },
         {

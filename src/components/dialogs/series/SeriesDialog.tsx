@@ -6,13 +6,20 @@ import { authenticatedFetch } from '@/lib/auth'
 import { ImageType } from '@/utils/constants'
 import { showToast } from '@/utils/ReactUtils'
 import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
 import { shallow } from 'zustand/shallow'
+import GenericFormTab from '../components/GenericFormTab'
 import ImageListTab from '../components/ImageListTab'
+import {
+  generateDefaultValues,
+  generateResetValues,
+  generateSubmitData,
+  seriesInfoConfig,
+  seriesTagsConfig,
+} from '../forms.config'
 import MediaTab from '../MediaTab'
-import SeriesInfoTab from './components/SeriesInfoTab'
-import SeriesTagsTab from './components/SeriesTagsTab'
 
 function SeriesDialog() {
   const { t } = useTranslation()
@@ -24,6 +31,10 @@ function SeriesDialog() {
     }),
     shallow,
   )
+  const { control, reset, handleSubmit } = useForm({
+    defaultValues: generateDefaultValues(seriesInfoConfig, seriesTagsConfig),
+  })
+
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 
   const [series, setSeries] = useState<Series | undefined>(undefined)
@@ -38,44 +49,15 @@ function SeriesDialog() {
   const [localPosterFolder, setLocalPosterFolder] = useState<string>('')
   const [selectedPoster, setSelectedPoster] = useState<string>('')
 
-  //#region ATTRIBUTES
-  const [nameLock, setNameLock] = useState<boolean>(false)
-  const [yearLock, setYearLock] = useState<boolean>(false)
-  const [overviewLock, setOverviewLock] = useState<boolean>(false)
-  const [taglineLock, setTaglineLock] = useState<boolean>(false)
-  const [studiosLock, setStudiosLock] = useState<boolean>(false)
-  const [genresLock, setGenresLock] = useState<boolean>(false)
-  const [creatorLock, setCreatorLock] = useState<boolean>(false)
-  const [musicLock, setMusicLock] = useState<boolean>(false)
-
-  const [name, setName] = useState<string>('')
-  const [year, setYear] = useState<string>('')
-  const [overview, setOverview] = useState<string>('')
-  const [tagline, setTagline] = useState<string>('')
-  const [studios, setStudios] = useState<string[]>([''])
-  const [genres, setGenres] = useState<string[]>([''])
-  const [creator, setCreator] = useState<string[]>([''])
-  const [music, setMusic] = useState<string[]>([''])
-  //#endregion
-
   useEffect(() => {
     if (seriesDialog && seriesDialog.seriesToEdit) {
-      setNameLock(seriesDialog.seriesToEdit.nameLock || false)
-      setYearLock(seriesDialog.seriesToEdit.yearLock || false)
-      setOverviewLock(seriesDialog.seriesToEdit.overviewLock || false)
-      setTaglineLock(seriesDialog.seriesToEdit.taglineLock || false)
-      setStudiosLock(seriesDialog.seriesToEdit.productionStudiosLock || false)
-      setGenresLock(seriesDialog.seriesToEdit.genresLock || false)
-      setCreatorLock(seriesDialog.seriesToEdit.creatorLock || false)
-      setMusicLock(seriesDialog.seriesToEdit.musicComposerLock || false)
-      setName(seriesDialog.seriesToEdit.name)
-      setYear(seriesDialog.seriesToEdit.year)
-      setOverview(seriesDialog.seriesToEdit.overview)
-      setTagline(seriesDialog.seriesToEdit.tagline || '')
-      setStudios(seriesDialog.seriesToEdit.productionStudios || [])
-      setGenres(seriesDialog.seriesToEdit.genres || [])
-      setCreator(seriesDialog.seriesToEdit.creator || [])
-      setMusic(seriesDialog.seriesToEdit.musicComposer || [])
+      reset(
+        generateResetValues(
+          seriesDialog.seriesToEdit,
+          seriesInfoConfig,
+          seriesTagsConfig,
+        ),
+      )
 
       setSeries(seriesDialog.seriesToEdit)
       setLogos(seriesDialog.seriesToEdit.logosUrls || [])
@@ -86,31 +68,22 @@ function SeriesDialog() {
       setLocalPosterFolder(`img/posters/${seriesDialog.seriesToEdit.id}`)
       setSelectedTab(t('generalButton'))
     }
-  }, [seriesDialog])
+  }, [seriesDialog, reset])
 
   if (!series) return null
 
-  const handleEditMovie = async () => {
+  const handleEditMovie = handleSubmit(async (data) => {
     await connectWS()
 
+    const submitData = generateSubmitData(
+      data,
+      series,
+      seriesInfoConfig,
+      seriesTagsConfig,
+    )
+
     const response = await authenticatedFetch(`/api/show/${series.id}`, 'PUT', {
-      ...series,
-      name: name,
-      year: year,
-      overview: overview,
-      tagline: tagline,
-      productionStudios: studios,
-      genres: genres,
-      creator: creator,
-      musicComposer: music,
-      nameLock: nameLock,
-      yearLock: yearLock,
-      overviewLock: overviewLock,
-      taglineLock: taglineLock,
-      productionStudiosLock: studiosLock,
-      genresLock: genresLock,
-      creatorLock: creatorLock,
-      musicComposerLock: musicLock,
+      ...submitData,
       logoSrc: selectedLogo ?? series.logoSrc,
       coverSrc: selectedPoster ?? series.coverSrc,
     })
@@ -124,7 +97,7 @@ function SeriesDialog() {
     mutate((key: string) => key.startsWith(`/api/library-content`))
 
     closeSeriesDialog()
-  }
+  })
 
   const getWindowTitle = () => {
     return `${t('editButton')} ${series.name}`
@@ -137,47 +110,13 @@ function SeriesDialog() {
         {
           title: t('generalButton'),
           content: (
-            <SeriesInfoTab
-              name={name}
-              setName={setName}
-              year={year}
-              setYear={setYear}
-              overview={overview}
-              setOverview={setOverview}
-              nameLock={nameLock}
-              yearLock={yearLock}
-              overviewLock={overviewLock}
-              setNameLock={setNameLock}
-              setYearLock={setYearLock}
-              setOverviewLock={setOverviewLock}
-              tagline={tagline}
-              setTagline={setTagline}
-              taglineLock={taglineLock}
-              setTaglineLock={setTaglineLock}
-            />
+            <GenericFormTab config={seriesInfoConfig} control={control} />
           ),
         },
         {
           title: t('tags'),
           content: (
-            <SeriesTagsTab
-              genres={genres}
-              setGenres={setGenres}
-              creator={creator}
-              setCreator={setCreator}
-              studios={studios}
-              setStudios={setStudios}
-              music={music}
-              setMusic={setMusic}
-              genresLock={genresLock}
-              setGenresLock={setGenresLock}
-              studiosLock={studiosLock}
-              setStudiosLock={setStudiosLock}
-              creatorLock={creatorLock}
-              setCreatorLock={setCreatorLock}
-              musicLock={musicLock}
-              setMusicLock={setMusicLock}
-            />
+            <GenericFormTab config={seriesTagsConfig} control={control} />
           ),
         },
         {

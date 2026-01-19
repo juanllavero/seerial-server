@@ -5,12 +5,19 @@ import { Season } from '@/data/interfaces/Media'
 import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { showToast } from '@/utils/ReactUtils'
 import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import useSWR, { mutate } from 'swr'
 import { shallow } from 'zustand/shallow'
+import GenericFormTab from '../components/GenericFormTab'
 import ImageListTab from '../components/ImageListTab'
+import {
+  generateDefaultValues,
+  generateResetValues,
+  generateSubmitData,
+  seasonInfoConfig,
+} from '../forms.config'
 import MediaTab from '../MediaTab'
-import SeasonInfoTab from './components/SeasonInfoTab'
 
 function SeasonDialog() {
   const { t } = useTranslation()
@@ -22,6 +29,12 @@ function SeasonDialog() {
     }),
     shallow,
   )
+  const { control, reset, handleSubmit } = useForm({
+    defaultValues: generateDefaultValues(seasonInfoConfig),
+  })
+
+  // Note: Similar standardization applied to Episode and Movie dialogs
+
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 
   const [season, setSeason] = useState<Season | undefined>(undefined)
@@ -38,24 +51,9 @@ function SeasonDialog() {
   const [localBackgroundFolder, setLocalBackgroundFolder] = useState<string>('')
   const [selectedBackground, setSelectedBackground] = useState<string>('')
 
-  //#region ATTRIBUTES
-  const [nameLock, setNameLock] = useState<boolean>(false)
-  const [yearLock, setYearLock] = useState<boolean>(false)
-  const [overviewLock, setOverviewLock] = useState<boolean>(false)
-
-  const [name, setName] = useState<string>('')
-  const [year, setYear] = useState<string>('')
-  const [overview, setOverview] = useState<string>('')
-  //#endregion
-
   useEffect(() => {
     if (seasonDialog && seasonDialog.seasonToEdit) {
-      setNameLock(seasonDialog.seasonToEdit.nameLock || false)
-      setYearLock(seasonDialog.seasonToEdit.yearLock || false)
-      setOverviewLock(seasonDialog.seasonToEdit.overviewLock || false)
-      setName(seasonDialog.seasonToEdit.name)
-      setYear(seasonDialog.seasonToEdit.year)
-      setOverview(seasonDialog.seasonToEdit.overview)
+      reset(generateResetValues(seasonDialog.seasonToEdit, seasonInfoConfig))
 
       setSeason(seasonDialog.seasonToEdit)
       setBackgrounds(seasonDialog.seasonToEdit.backgroundsUrls || [])
@@ -65,25 +63,21 @@ function SeasonDialog() {
       )
       setSelectedTab(t('generalButton'))
     }
-  }, [seasonDialog])
+  }, [seasonDialog, reset])
 
   if (!season) return null
 
-  const handleEditSeason = async () => {
+  const handleEditSeason = handleSubmit(async (data) => {
     await connectWS()
+
+    const submitData = generateSubmitData(data, season, seasonInfoConfig)
 
     const response = await authenticatedFetch(
       `/api/season/${season.id}`,
       'PUT',
       {
-        ...season,
+        ...submitData,
         backgroundSrc: selectedBackground ?? season.backgroundSrc,
-        name: name,
-        year: year,
-        overview: overview,
-        nameLock: nameLock,
-        yearLock: yearLock,
-        overviewLock: overviewLock,
       },
     )
 
@@ -96,7 +90,7 @@ function SeasonDialog() {
     mutate((key: string) => key.startsWith(`/api/details/season`))
 
     closeSeasonDialog()
-  }
+  })
 
   const getWindowTitle = () => {
     return `${t('editButton')} ${series?.name} - ${season.name}`
@@ -109,20 +103,7 @@ function SeasonDialog() {
         {
           title: t('generalButton'),
           content: (
-            <SeasonInfoTab
-              name={name}
-              setName={setName}
-              year={year}
-              setYear={setYear}
-              overview={overview}
-              setOverview={setOverview}
-              nameLock={nameLock}
-              yearLock={yearLock}
-              overviewLock={overviewLock}
-              setNameLock={setNameLock}
-              setYearLock={setYearLock}
-              setOverviewLock={setOverviewLock}
-            />
+            <GenericFormTab config={seasonInfoConfig} control={control} />
           ),
         },
         {

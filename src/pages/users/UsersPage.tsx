@@ -10,13 +10,6 @@ import { useNavigate } from 'react-router-dom'
 import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
 
-interface User {
-  id: number
-  name: string
-  avatar: string
-  type: string
-}
-
 export default function UsersPage() {
   const { currentUser, setCurrentUser } = useServerStore(
     (state) => ({
@@ -59,10 +52,13 @@ export default function UsersPage() {
     setErrorMessage('')
     const response = await authenticatedFetch(`/api/users/login`, 'POST', {
       username: selectedUser?.username,
-      password: profilePassword,
+      password: profilePassword ?? '',
     })
     if (response.ok) {
-      setCurrentUser(selectedUser)
+      const data = await response.json()
+      // Set JWT token as cookie
+      document.cookie = `jwt=${data.token}; path=/; max-age=2592000; samesite=strict`
+      setCurrentUser(data.user)
       setIsLoading(false)
       navigate('/home')
       return
@@ -79,11 +75,13 @@ export default function UsersPage() {
     setErrorMessage('')
     const response = await authenticatedFetch(`/api/users/login`, 'POST', {
       username: username,
-      password: password,
+      password: password ?? '',
     })
     if (response.ok) {
-      const newUser: BasicUser | null = await response.json()
-      setCurrentUser(newUser)
+      const data = await response.json()
+      // Set JWT token as cookie
+      document.cookie = `jwt=${data.token}; path=/; max-age=2592000; samesite=strict`
+      setCurrentUser(data.user)
       setIsLoading(false)
       navigate('/home')
       return
@@ -104,21 +102,19 @@ export default function UsersPage() {
       type: newUserType,
     })
     if (response.ok) {
-      const newUser: BasicUser | null = await response.json()
-      setCurrentUser(newUser)
+      const data = await response.json()
+      // Set JWT token as cookie
+      document.cookie = `jwt=${data.token}; path=/; max-age=2592000; samesite=strict`
+      setCurrentUser(data.user)
       setIsLoading(false)
       navigate('/home')
       return
     }
     setIsLoading(false)
-    setErrorMessage('Contraseña incorrecta')
+    setErrorMessage('Error al crear usuario')
     setTimeout(() => {
       setErrorMessage('')
     }, 5000)
-  }
-
-  const handleAddServer = () => {
-    navigate('/login')
   }
 
   if (gettingUsers) {
@@ -126,10 +122,10 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-cyan-900 via-cyan-950 to-black">
+    <div className="flex min-h-screen items-center justify-center bg-linear-to-br from-cyan-900 via-cyan-950 to-black">
       <div className="w-full max-w-5xl px-8">
         {/* Logo y título */}
-        <div className="absolute top-5 left-5 flex w-[10rem] flex-row justify-center">
+        <div className="absolute top-5 left-5 flex w-40 flex-row justify-center">
           <Image src="/img/banner.svg" alt="Logo" aspectRatio={21 / 9} />
         </div>
         {/* Profiles Section */}
@@ -156,7 +152,7 @@ export default function UsersPage() {
                     }`}
                   >
                     <div
-                      className={`relative mb-4 flex h-25 w-25 items-center justify-center rounded-full bg-stone-700 bg-gradient-to-br text-6xl shadow-lg transition-all duration-300 ${
+                      className={`relative mb-4 flex h-25 w-25 items-center justify-center rounded-full bg-stone-700 bg-linear-to-br text-6xl shadow-lg transition-all duration-300 ${
                         selectedUser?.id === user.id
                           ? 'ring-app-color shadow-2xl ring-3'
                           : ''
@@ -204,7 +200,7 @@ export default function UsersPage() {
                   <button
                     onClick={handleProfileLogin}
                     disabled={isLoading}
-                    className="focus:ring-opacity-50 bg-app-color hover:bg-app-color/90 focus:ring-app-color flex w-full transform items-center justify-center rounded-lg bg-gradient-to-r py-4 text-lg font-semibold text-black shadow-lg transition-all duration-300 hover:shadow-2xl focus:ring-4 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+                    className="focus:ring-opacity-50 bg-app-color hover:bg-app-color/90 focus:ring-app-color flex w-full transform items-center justify-center rounded-lg bg-linear-to-r py-4 text-lg font-semibold text-black shadow-lg transition-all duration-300 hover:shadow-2xl focus:ring-4 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
                   >
                     {isLoading ? (
                       <div className="h-6 w-6 animate-spin rounded-full border-4 border-white border-t-transparent"></div>
@@ -222,7 +218,7 @@ export default function UsersPage() {
                     setSelectedUser(null)
                     setErrorMessage('')
                   }}
-                  className="focus:ring-opacity-50 focus:ring-app-color mx-auto flex w-full max-w-md transform items-center justify-center rounded-lg bg-white bg-gradient-to-r py-5 text-xl font-semibold text-black shadow-lg transition-all duration-300 hover:opacity-95 hover:shadow-2xl focus:ring-4 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+                  className="focus:ring-opacity-50 focus:ring-app-color mx-auto flex w-full max-w-md transform items-center justify-center rounded-lg bg-white bg-linear-to-r py-5 text-xl font-semibold text-black shadow-lg transition-all duration-300 hover:opacity-95 hover:shadow-2xl focus:ring-4 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
                 >
                   Acceder Manualmente
                 </button>
@@ -234,7 +230,7 @@ export default function UsersPage() {
                     setNewUserType('regular')
                     setErrorMessage('')
                   }}
-                  className="focus:ring-opacity-50 focus:ring-app-color mx-auto flex w-full max-w-md transform items-center justify-center rounded-lg bg-white bg-gradient-to-r py-5 text-xl font-semibold text-black shadow-lg transition-all duration-300 hover:opacity-95 hover:shadow-2xl focus:ring-4 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+                  className="focus:ring-opacity-50 focus:ring-app-color mx-auto flex w-full max-w-md transform items-center justify-center rounded-lg bg-white bg-linear-to-r py-5 text-xl font-semibold text-black shadow-lg transition-all duration-300 hover:opacity-95 hover:shadow-2xl focus:ring-4 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
                 >
                   Añadir Usuario
                 </button>
@@ -306,7 +302,7 @@ export default function UsersPage() {
             <button
               onClick={handleManualLogin}
               disabled={isLoading || !username.trim()}
-              className="focus:ring-opacity-50 bg-app-color hover:bg-app-color/90 focus:ring-app-color flex w-full transform items-center justify-center rounded-lg bg-gradient-to-r py-5 text-xl font-semibold text-black shadow-lg transition-all duration-300 hover:shadow-2xl focus:ring-4 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+              className="focus:ring-opacity-50 bg-app-color hover:bg-app-color/90 focus:ring-app-color flex w-full transform items-center justify-center rounded-lg bg-linear-to-r py-5 text-xl font-semibold text-black shadow-lg transition-all duration-300 hover:shadow-2xl focus:ring-4 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
             >
               {isLoading ? (
                 <div className="h-7 w-7 animate-spin rounded-full border-4 border-white border-t-transparent"></div>
@@ -322,7 +318,7 @@ export default function UsersPage() {
                 setNewUserType('regular')
                 setErrorMessage('')
               }}
-              className="focus:ring-opacity-50 focus:ring-app-color mx-auto flex w-full max-w-md transform items-center justify-center rounded-lg bg-white bg-gradient-to-r py-5 text-xl font-semibold text-black shadow-lg transition-all duration-300 hover:opacity-95 hover:shadow-2xl focus:ring-4 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+              className="focus:ring-opacity-50 focus:ring-app-color mx-auto flex w-full max-w-md transform items-center justify-center rounded-lg bg-white bg-linear-to-r py-5 text-xl font-semibold text-black shadow-lg transition-all duration-300 hover:opacity-95 hover:shadow-2xl focus:ring-4 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
             >
               Añadir Usuario
             </button>
@@ -403,7 +399,7 @@ export default function UsersPage() {
                 !username.trim() ||
                 (newUserType === 'admin' && !password.trim())
               }
-              className="focus:ring-opacity-50 bg-app-color hover:bg-app-color/90 focus:ring-app-color flex w-full transform items-center justify-center rounded-lg bg-gradient-to-r py-5 text-xl font-semibold text-black shadow-lg transition-all duration-300 hover:shadow-2xl focus:ring-4 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
+              className="focus:ring-opacity-50 bg-app-color hover:bg-app-color/90 focus:ring-app-color flex w-full transform items-center justify-center rounded-lg bg-linear-to-r py-5 text-xl font-semibold text-black shadow-lg transition-all duration-300 hover:shadow-2xl focus:ring-4 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
             >
               {isLoading ? (
                 <div className="h-7 w-7 animate-spin rounded-full border-4 border-white border-t-transparent"></div>

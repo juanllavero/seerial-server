@@ -1,46 +1,55 @@
-import AlbumDialog from './album/AlbumDialog'
-import CollectionDialog from './collection/CollectionDialog'
-import DownloadMediaDialog from './downloadMedia/DownloadMediaDialog'
-import EpisodeDialog from './episode/EpisodeDialog'
-import ChangeEpisodesGroupDialog from './episodesGroup/ChangeEpisodesGroupDialog'
-import ChangeIdentificationDialog from './identification/ChangeIdentificationDialog'
-import LibraryDialog from './library/LibraryDialog'
-import MovieDialog from './movie/MovieDialog'
-import RemoveLibraryDialog from './remove/RemoveLibraryDialog'
-import SeasonDialog from './season/SeasonDialog'
-import SeriesDialog from './series/SeriesDialog'
+import { useDialogStore } from '@/context/dialog.context'
+import { shallow } from 'zustand/shallow'
+import DynamicDialog from './DynamicDialog'
 
 function DialogManager() {
+  const {
+    libraryDialog,
+    removeLibraryDialog,
+    collectionDialog,
+    movieDialog,
+    seriesDialog,
+    seasonDialog,
+    episodeDialog,
+    albumDialog,
+    songDialog,
+    identificationDialog,
+    episodesGroupDialog,
+    downloadMediaDialog,
+  } = useDialogStore(
+    (state) => ({
+      libraryDialog: state.libraryDialog,
+      removeLibraryDialog: state.removeLibraryDialog,
+      collectionDialog: state.collectionDialog,
+      movieDialog: state.movieDialog,
+      seriesDialog: state.seriesDialog,
+      seasonDialog: state.seasonDialog,
+      episodeDialog: state.episodeDialog,
+      albumDialog: state.albumDialog,
+      songDialog: state.songDialog,
+      identificationDialog: state.identificationDialog,
+      episodesGroupDialog: state.episodesGroupDialog,
+      downloadMediaDialog: state.downloadMediaDialog,
+    }),
+    shallow,
+  )
+
   return (
     <>
-      {/* Library Dialogs */}
-      <LibraryDialog />
-      <RemoveLibraryDialog />
-
-      {/* Collection Dialogs */}
-      <CollectionDialog />
-
-      {/* Movie Dialogs */}
-      <MovieDialog />
-
-      {/* Series Dialogs */}
-      <SeriesDialog />
-
-      {/* Season Dialogs */}
-      <SeasonDialog />
-
-      {/* Episode Dialogs */}
-      <EpisodeDialog />
-
-      {/* Album Dialogs */}
-      <AlbumDialog />
-
-      {/* Download Media Dialog */}
-      <DownloadMediaDialog />
-
-      {/* Identification And Episodes Group Dialogs */}
-      <ChangeIdentificationDialog />
-      <ChangeEpisodesGroupDialog />
+      <DynamicDialog type="library" isOpen={libraryDialog.isOpen} />
+      <DynamicDialog type="removeLibrary" isOpen={removeLibraryDialog.isOpen} />
+      <DynamicDialog type="collection" isOpen={collectionDialog.isOpen} />
+      <DynamicDialog type="movie" isOpen={movieDialog.isOpen} />
+      <DynamicDialog type="series" isOpen={seriesDialog.isOpen} />
+      <DynamicDialog type="season" isOpen={seasonDialog.isOpen} />
+      <DynamicDialog type="episode" isOpen={episodeDialog.isOpen} />
+      <DynamicDialog type="album" isOpen={albumDialog.isOpen} />
+      <DynamicDialog type="downloadMedia" isOpen={downloadMediaDialog.isOpen} />
+      <DynamicDialog
+        type="identification"
+        isOpen={identificationDialog.isOpen}
+      />
+      <DynamicDialog type="episodesGroup" isOpen={episodesGroupDialog.isOpen} />
     </>
   )
 }
