@@ -1,4 +1,4 @@
-import { API, authenticatedFetch } from '@/config/api'
+import { API, API_BASE_URL, authenticatedFetch } from '@/config/api'
 import { BasicUser } from '@/data/interfaces/Users'
 import { createWithEqualityFn } from 'zustand/traditional'
 
@@ -60,7 +60,10 @@ export const useServerStore = createWithEqualityFn<ServerState>((set) => ({
 
     try {
       // Use a standard 10-second timeout for regular requests
-      const response = await pingServer(API.servers.status, 10000)
+      const response = await pingServer(
+        `${API_BASE_URL}${API.servers.status}`,
+        10000,
+      )
       // We need to actually get the data this time
       const data = await (await fetch(response)).json()
 

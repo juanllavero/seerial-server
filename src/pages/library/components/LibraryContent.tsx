@@ -14,6 +14,8 @@ function LibraryContent({ library, mutateLibrary }: LibraryContentProps) {
   const isMobile = useIsMobile()
   const { cardWidth } = useCardWidth()
 
+  if (!library) return null
+
   return (
     <Grid
       columns={

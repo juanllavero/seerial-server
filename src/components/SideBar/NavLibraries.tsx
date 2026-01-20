@@ -125,7 +125,7 @@ const NavLibraries = () => {
                   : Music,
             action: () => {
               selectLibrary(library.id)
-              navigate(`/library/${library.id}/${library.type}`)
+              navigate(`/library/${library.id}`)
             },
           })),
         ]
@@ -156,7 +156,7 @@ const NavLibraries = () => {
                         e.preventDefault()
 
                         setActiveItem(item)
-                        navigate(`/library/${item.id}/${item.type}`)
+                        navigate(`/library/${item.id}`)
                       }}
                       style={{
                         color:
