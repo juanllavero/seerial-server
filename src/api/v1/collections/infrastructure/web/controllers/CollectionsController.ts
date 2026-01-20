@@ -58,6 +58,20 @@ export class CollectionsController extends Controller {
   }
 
   /**
+   * Get collection by ID
+   */
+  @Get("{id}")
+  @Security("cookieAuth")
+  public async get(@Path() id: string): Promise<CollectionResponse> {
+    const collection = await collectionsRepo.getById(id);
+    return {
+      status: "success",
+      message: messages.success.fetch,
+      data: collection,
+    };
+  }
+
+  /**
    * Update collection details
    */
   @Put("{id}")

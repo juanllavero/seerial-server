@@ -6,6 +6,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Path,
   Post,
   Put,
@@ -22,6 +23,21 @@ import {
 @Route("seasons")
 @Tags("Seasons")
 export class SeasonsController extends Controller {
+  /**
+   * Get season details by ID
+   */
+  @Get("{id}")
+  @Security("cookieAuth")
+  public async get(@Path() id: string): Promise<SeasonResponse> {
+    const result = await useCases.getSeasonById().execute(id);
+
+    return {
+      status: "success",
+      message: messages.success.fetch,
+      data: result,
+    };
+  }
+
   /**
    * Update season details
    */

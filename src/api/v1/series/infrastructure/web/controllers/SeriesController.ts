@@ -70,12 +70,13 @@ export class SeriesController extends Controller {
   /**
    * Update series episode group
    */
-  @Post("episode-group")
+  @Post("{id}/episode-group")
   @Security("adminAuth")
   public async updateEpisodeGroup(
+    @Path() id: string,
     @Body() body: UpdateEpisodeGroupDTO
   ): Promise<SeriesResponse> {
-    const { id, themdbId, episodeGroupId } = body;
+    const { themdbId, episodeGroupId } = body;
 
     await useCases.updateEpisodeGroup().execute(id, themdbId, episodeGroupId);
 
@@ -185,6 +186,25 @@ export class SeriesController extends Controller {
     await useCases.updateSeries().execute(series.id, series);
 
     return { message: messages.success.update };
+  }
+
+  /**
+   * Get series by ID
+   */
+  @Get("{id}")
+  @Security("cookieAuth")
+  public async get(@Path() id: string): Promise<SeriesResponse> {
+    const series = await useCases.getSeriesById().execute(id);
+
+    if (!series) {
+      throw new ApiError(404, messages.errors.notFound.series);
+    }
+
+    return {
+      status: "success",
+      message: messages.success.fetch,
+      data: series,
+    };
   }
 
   /**

@@ -41,7 +41,7 @@ export class MoviesController extends Controller {
    * Refresh movie metadata from external sources
    */
   @Post("{id}/metadata")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async refreshMovieMetadata(
     @Path() id: string
   ): Promise<MessageResponse> {
@@ -55,7 +55,7 @@ export class MoviesController extends Controller {
    * Change movie identification (TMDB ID)
    */
   @Post("{id}/identification")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async changeIdentification(
     @Path() id: string,
     @Body() body: ChangeIdentificationDTO
@@ -70,7 +70,7 @@ export class MoviesController extends Controller {
    * Update movie details
    */
   @Put("{id}")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async update(
     @Path() id: string,
     @Body() body: UpdateMovieDTO
@@ -89,7 +89,7 @@ export class MoviesController extends Controller {
    * Delete a movie
    */
   @Delete("{id}")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async delete(@Path() id: string): Promise<MessageResponse> {
     const useCase = new DeleteMovieUseCase(librariesRepo, moviesRepo);
     await useCase.execute(id);
@@ -143,10 +143,29 @@ export class MoviesController extends Controller {
   }
 
   /**
+   * Get movie by ID
+   */
+  @Get("{id}")
+  @Security("cookieAuth")
+  public async get(@Path() id: string): Promise<MovieResponse> {
+    const movie = await useCases.getMoviebyId().execute(id);
+
+    if (!movie) {
+      throw new ApiError(404, messages.errors.notFound.movie);
+    }
+
+    return {
+      status: "success",
+      message: messages.success.fetch,
+      data: movie,
+    };
+  }
+
+  /**
    * Search movies in TMDB
    */
   @Get("search")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async searchMovies(
     @Query() name: string,
     @Query() year?: string
@@ -158,7 +177,7 @@ export class MoviesController extends Controller {
    * Get IMDB score for a movie
    */
   @Get("imdb-score")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async getImdbScore(@Query() id: string): Promise<any> {
     return await ExternalSearchManager.getImdbScore(id);
   }
@@ -167,7 +186,7 @@ export class MoviesController extends Controller {
    * Get remaining videos count for a movie
    */
   @Get("{id}/remaining-videos")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async getRemainingVideos(
     @Path() id: string,
     @Request() req: ExpressRequest
@@ -180,7 +199,7 @@ export class MoviesController extends Controller {
    * Check if movie is in user's my list
    */
   @Get("{id}/my-list")
-  @Security("cookieAuth")
+  @Security("adminAuth")
   public async isMovieInMyList(
     @Path() id: string,
     @Request() req: ExpressRequest

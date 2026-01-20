@@ -5,14 +5,6 @@ import os from "os";
 import path from "path";
 import { Get, Query, Route, Security, Tags } from "tsoa";
 
-interface DriveInfo {
-  name: string;
-}
-
-interface DriveResponse {
-  drives: string[];
-}
-
 interface FileItem {
   name: string;
   isFolder: boolean;
@@ -27,7 +19,34 @@ export class FilesController {
   @Get("drives")
   @Security("adminAuth")
   public async getDrives(): Promise<string[]> {
-    return getDrives();
+    const drives = [];
+    const platform = os.platform();
+
+    // Get the directory of the current user
+    const userHome = os.homedir();
+    drives.push(userHome); // Add the user's directory as the first element
+
+    if (platform === "win32") {
+      const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+      for (let i = 0; i < letters.length; i++) {
+        const drive = `${letters[i]}:\\`;
+        if (fs.existsSync(drive)) {
+          drives.push(drive);
+        }
+      }
+    } else {
+      // For Unix-like systems such as macOS or Linux
+      drives.push("/"); // Add the root directory
+      const volumes = "/Volumes"; // In macOS, external volumes are in /Volumes
+      if (fs.existsSync(volumes)) {
+        const mountedVolumes = fs.readdirSync(volumes);
+        mountedVolumes.forEach((volume) => {
+          drives.push(path.join(volumes, volume)); // Add each mounted volume
+        });
+      }
+    }
+
+    return drives;
   }
 
   /**
@@ -49,39 +68,6 @@ export class FilesController {
     }
   }
 }
-
-// From folders.ts
-// Function to get drives in the system
-const getDrives = () => {
-  const drives = [];
-  const platform = os.platform();
-
-  // Get the directory of the current user
-  const userHome = os.homedir();
-  drives.push(userHome); // Add the user's directory as the first element
-
-  if (platform === "win32") {
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    for (let i = 0; i < letters.length; i++) {
-      const drive = `${letters[i]}:\\`;
-      if (fs.existsSync(drive)) {
-        drives.push(drive);
-      }
-    }
-  } else {
-    // For Unix-like systems such as macOS or Linux
-    drives.push("/"); // Add the root directory
-    const volumes = "/Volumes"; // In macOS, external volumes are in /Volumes
-    if (fs.existsSync(volumes)) {
-      const mountedVolumes = fs.readdirSync(volumes);
-      mountedVolumes.forEach((volume) => {
-        drives.push(path.join(volumes, volume)); // Add each mounted volume
-      });
-    }
-  }
-
-  return drives;
-};
 
 // Function to get files and folders within a directory
 const getFolderContent = (dirPath: string) => {

@@ -5,6 +5,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Path,
   Put,
   Route,
@@ -19,6 +20,21 @@ import {
 @Route("albums")
 @Tags("Albums")
 export class AlbumsController extends Controller {
+  /**
+   * Get album by ID
+   */
+  @Get("{id}")
+  @Security("cookieAuth")
+  public async get(@Path() id: string): Promise<AlbumResponse> {
+    const result = await useCases.getAlbumById().execute(id);
+
+    return {
+      status: "success",
+      message: messages.success.fetch,
+      data: result,
+    };
+  }
+
   /**
    * Update album details
    */

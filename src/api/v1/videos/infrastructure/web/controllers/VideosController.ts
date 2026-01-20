@@ -28,6 +28,25 @@ import {
 @Tags("Videos")
 export class VideosController extends Controller {
   /**
+   * Get video details by ID
+   */
+  @Get("{id}")
+  @Security("cookieAuth")
+  public async get(@Path() id: string): Promise<VideoResponse> {
+    const result = await useCases.getVideoById().execute(id);
+
+    if (!result) {
+      throw new ApiError(404, messages.errors.notFound.video);
+    }
+
+    return {
+      status: "success",
+      message: messages.success.fetch,
+      data: result,
+    };
+  }
+
+  /**
    * Update video details
    */
   @Put("{id}")

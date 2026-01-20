@@ -13,6 +13,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Path,
   Post,
   Put,
@@ -33,6 +34,20 @@ import { UpdateEpisodeUseCase } from "../../../application/usecases/UpdateEpisod
 @Route("episodes")
 @Tags("Episodes")
 export class EpisodesController extends Controller {
+  /**
+   * Get episode by ID
+   */
+  @Get("{id}")
+  @Security("cookieAuth")
+  public async get(@Path() id: string): Promise<EpisodeResponse> {
+    const episode = await episodesRepo.findById(id);
+    return {
+      status: "success",
+      message: messages.success.fetch,
+      data: episode,
+    };
+  }
+
   /**
    * Update episode details
    */

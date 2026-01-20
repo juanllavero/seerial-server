@@ -212,108 +212,6 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"CreateUserDTO": {
-				"properties": {
-					"username": {
-						"type": "string"
-					},
-					"password": {
-						"type": "string"
-					},
-					"avatar": {
-						"type": "string"
-					},
-					"allowRemote": {
-						"type": "boolean"
-					},
-					"type": {
-						"type": "string"
-					},
-					"allowVideoTranscoding": {
-						"type": "boolean"
-					},
-					"internetBitrateLimit": {
-						"type": "number",
-						"format": "double"
-					},
-					"allowDownloads": {
-						"type": "boolean"
-					},
-					"hideInLogin": {
-						"type": "boolean"
-					},
-					"maxSessions": {
-						"type": "number",
-						"format": "double"
-					},
-					"serverId": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"username"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"UserResponse": {
-				"properties": {
-					"status": {
-						"type": "string"
-					},
-					"message": {
-						"type": "string"
-					},
-					"data": {}
-				},
-				"required": [
-					"status",
-					"message"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"UpdateUserDTO": {
-				"properties": {
-					"username": {
-						"type": "string"
-					},
-					"password": {
-						"type": "string"
-					},
-					"avatar": {
-						"type": "string"
-					},
-					"allowRemote": {
-						"type": "boolean"
-					},
-					"type": {
-						"type": "string"
-					},
-					"allowVideoTranscoding": {
-						"type": "boolean"
-					},
-					"internetBitrateLimit": {
-						"type": "number",
-						"format": "double"
-					},
-					"allowDownloads": {
-						"type": "boolean"
-					},
-					"hideInLogin": {
-						"type": "boolean"
-					},
-					"maxSessions": {
-						"type": "number",
-						"format": "double"
-					},
-					"serverId": {
-						"type": "string"
-					}
-				},
-				"type": "object",
-				"additionalProperties": false
-			},
 			"User": {
 				"properties": {
 					"id": {
@@ -1703,6 +1601,108 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"CreateUserDTO": {
+				"properties": {
+					"username": {
+						"type": "string"
+					},
+					"password": {
+						"type": "string"
+					},
+					"avatar": {
+						"type": "string"
+					},
+					"allowRemote": {
+						"type": "boolean"
+					},
+					"type": {
+						"type": "string"
+					},
+					"allowVideoTranscoding": {
+						"type": "boolean"
+					},
+					"internetBitrateLimit": {
+						"type": "number",
+						"format": "double"
+					},
+					"allowDownloads": {
+						"type": "boolean"
+					},
+					"hideInLogin": {
+						"type": "boolean"
+					},
+					"maxSessions": {
+						"type": "number",
+						"format": "double"
+					},
+					"serverId": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"username"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UserResponse": {
+				"properties": {
+					"status": {
+						"type": "string"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {}
+				},
+				"required": [
+					"status",
+					"message"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UpdateUserDTO": {
+				"properties": {
+					"username": {
+						"type": "string"
+					},
+					"password": {
+						"type": "string"
+					},
+					"avatar": {
+						"type": "string"
+					},
+					"allowRemote": {
+						"type": "boolean"
+					},
+					"type": {
+						"type": "string"
+					},
+					"allowVideoTranscoding": {
+						"type": "boolean"
+					},
+					"internetBitrateLimit": {
+						"type": "number",
+						"format": "double"
+					},
+					"allowDownloads": {
+						"type": "boolean"
+					},
+					"hideInLogin": {
+						"type": "boolean"
+					},
+					"maxSessions": {
+						"type": "number",
+						"format": "double"
+					},
+					"serverId": {
+						"type": "string"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
 			"LoginDTO": {
 				"properties": {
 					"username": {
@@ -2893,7 +2893,7 @@
 				],
 				"security": [
 					{
-						"cookieAuth": []
+						"adminAuth": []
 					}
 				],
 				"parameters": [
@@ -2929,7 +2929,7 @@
 				],
 				"security": [
 					{
-						"cookieAuth": []
+						"adminAuth": []
 					}
 				],
 				"parameters": [
@@ -2975,7 +2975,7 @@
 				],
 				"security": [
 					{
-						"cookieAuth": []
+						"adminAuth": []
 					}
 				],
 				"parameters": [
@@ -3014,6 +3014,40 @@
 					}
 				},
 				"description": "Delete a movie",
+				"tags": [
+					"Movies"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"get": {
+				"operationId": "Get",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/MovieResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get movie by ID",
 				"tags": [
 					"Movies"
 				],
@@ -3099,7 +3133,7 @@
 				],
 				"security": [
 					{
-						"cookieAuth": []
+						"adminAuth": []
 					}
 				],
 				"parameters": [
@@ -3141,7 +3175,7 @@
 				],
 				"security": [
 					{
-						"cookieAuth": []
+						"adminAuth": []
 					}
 				],
 				"parameters": [
@@ -3175,7 +3209,7 @@
 				],
 				"security": [
 					{
-						"cookieAuth": []
+						"adminAuth": []
 					}
 				],
 				"parameters": [
@@ -3209,7 +3243,7 @@
 				],
 				"security": [
 					{
-						"cookieAuth": []
+						"adminAuth": []
 					}
 				],
 				"parameters": [
@@ -3339,6 +3373,40 @@
 			}
 		},
 		"/videos/{id}": {
+			"get": {
+				"operationId": "Get",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/VideoResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get video details by ID",
+				"tags": [
+					"Videos"
+				],
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
 			"put": {
 				"operationId": "Update",
 				"responses": {
@@ -3626,7 +3694,21 @@
 						"description": "Ok",
 						"content": {
 							"application/json": {
-								"schema": {}
+								"schema": {
+									"properties": {
+										"user": {
+											"$ref": "#/components/schemas/User"
+										},
+										"token": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"user",
+										"token"
+									],
+									"type": "object"
+								}
 							}
 						}
 					}
@@ -4583,7 +4665,7 @@
 				}
 			}
 		},
-		"/series/episode-group": {
+		"/series/{id}/episode-group": {
 			"post": {
 				"operationId": "UpdateEpisodeGroup",
 				"responses": {
@@ -4607,7 +4689,16 @@
 						"adminAuth": []
 					}
 				],
-				"parameters": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
 				"requestBody": {
 					"required": true,
 					"content": {
@@ -4688,6 +4779,40 @@
 				"security": [
 					{
 						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"get": {
+				"operationId": "Get",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SeriesResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get series by ID",
+				"tags": [
+					"Series"
+				],
+				"security": [
+					{
+						"cookieAuth": []
 					}
 				],
 				"parameters": [
@@ -4893,6 +5018,40 @@
 			}
 		},
 		"/seasons/{id}": {
+			"get": {
+				"operationId": "Get",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SeasonResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get season details by ID",
+				"tags": [
+					"Seasons"
+				],
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
 			"put": {
 				"operationId": "Update",
 				"responses": {
@@ -6056,6 +6215,40 @@
 			}
 		},
 		"/episodes/{id}": {
+			"get": {
+				"operationId": "Get",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/EpisodeResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get episode by ID",
+				"tags": [
+					"Episodes"
+				],
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
 			"put": {
 				"operationId": "Update",
 				"responses": {
@@ -6292,6 +6485,40 @@
 			}
 		},
 		"/collections/{id}": {
+			"get": {
+				"operationId": "Get",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/CollectionResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get collection by ID",
+				"tags": [
+					"Collections"
+				],
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
 			"put": {
 				"operationId": "Update",
 				"responses": {
@@ -6523,6 +6750,40 @@
 			}
 		},
 		"/albums/{id}": {
+			"get": {
+				"operationId": "Get",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AlbumResponse"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get album by ID",
+				"tags": [
+					"Albums"
+				],
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
 			"put": {
 				"operationId": "Update",
 				"responses": {
