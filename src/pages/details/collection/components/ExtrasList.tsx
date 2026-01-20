@@ -1,9 +1,9 @@
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import HorizontalList from '@/components/lists/HorizontalList'
 import Loading from '@/components/Loading'
+import { API, authenticatedFetcher } from '@/config/api'
 import { Collection } from '@/data/interfaces/Media'
 import { MusicExtra } from '@/data/interfaces/Music'
-import { authenticatedFetcher } from '@/lib/auth'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 import VideoThumbnail from './VideoThumbnail'
@@ -17,7 +17,7 @@ function ExtrasList({ collection }: ExtrasListProps) {
   const isMobile = useIsMobile()
 
   const { data: extras, isLoading } = useSWR<MusicExtra[]>(
-    `/api/musicExtras/${collection.id}`,
+    API.collections.musicExtras(collection.id),
     authenticatedFetcher,
   )
 

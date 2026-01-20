@@ -8,9 +8,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { API, authenticatedFetcher } from '@/config/api'
 import useMusicStore from '@/context/music.context'
 import { LRCFile, LRCLine } from '@/data/interfaces/Music'
-import { authenticatedFetcher } from '@/lib/auth'
 import { getLanguageName } from '@/utils/utils'
 import i18next from 'i18next'
 import { Plus } from 'lucide-react'
@@ -39,7 +39,7 @@ const LRCVisualizer = () => {
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const { data: lyrics, isLoading } = useSWR<LRCFile[]>(
-    currentSong && isShown ? `/api/lyrics?id=${currentSong.id}` : null,
+    currentSong && isShown ? API.songs.lyrics(currentSong.id) : null,
     authenticatedFetcher,
   )
 
@@ -147,7 +147,7 @@ const LRCVisualizer = () => {
     <div className="p-x-[0.5rem] @container flex h-full w-full flex-col gap-1 rounded-lg">
       <div
         ref={containerRef}
-        className="no-scrollbar w-full flex-grow overflow-x-hidden overflow-y-auto"
+        className="no-scrollbar w-full grow overflow-x-hidden overflow-y-auto"
         onScroll={handleScroll}
       >
         <div className="space-y-10 px-6 py-8">
@@ -213,7 +213,7 @@ const LRCVisualizer = () => {
               )
             })
           ) : (
-            <div className="flex h-full min-h-[300px] w-full items-center justify-center">
+            <div className="flex h-full min-h-75 w-full items-center justify-center">
               <span className="text-center text-2xl font-bold">
                 {t('lyricsNotFound')}
               </span>

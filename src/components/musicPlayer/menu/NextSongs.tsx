@@ -2,8 +2,8 @@ import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
 import FlexBox from '@/components/ui/FlexBox'
 import { PauseIcon, PlayIcon } from '@/components/ui/IconLibrary'
 import LazyImage from '@/components/ui/LazyImage'
+import { API, authenticatedFetcher } from '@/config/api'
 import useMusicStore from '@/context/music.context'
-import { authenticatedFetcher } from '@/lib/auth'
 import { formatTime } from '@/utils/ReactUtils'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
@@ -31,7 +31,7 @@ function NextSongs() {
     shallow,
   )
   const { data: album } = useSWR(
-    currentSong ? `/api/details/album?id=${currentSong.albumId}` : null,
+    currentSong ? API.albums.get(currentSong.albumId) : null,
     authenticatedFetcher,
   )
 

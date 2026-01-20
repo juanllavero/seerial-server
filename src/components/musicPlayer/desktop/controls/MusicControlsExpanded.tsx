@@ -12,10 +12,10 @@ import {
 } from '@/components/ui/IconLibrary'
 import Image from '@/components/ui/Image'
 import { Slider } from '@/components/ui/slider'
+import { API, authenticatedFetcher } from '@/config/api'
 import useMusicStore from '@/context/music.context'
 import { RepeateMode } from '@/data/enums/Music'
 import { LRCFile } from '@/data/interfaces/Music'
-import { authenticatedFetcher } from '@/lib/auth'
 import { formatTime } from '@/utils/ReactUtils'
 import {
   EllipsisVertical,
@@ -112,7 +112,7 @@ function MusicControlsExpanded({
 
   // Get Lyrics in order to show lyrics button
   const { data: lyrics } = useSWR<LRCFile[]>(
-    currentSong && isShown ? `/api/lyrics?id=${currentSong.id}` : null,
+    currentSong && isShown ? API.songs.lyrics(currentSong.id) : null,
     authenticatedFetcher,
   )
 

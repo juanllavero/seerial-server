@@ -44,7 +44,7 @@ function PlayButton({
         const episodeId = episode ? episode.id : season?.episodes[0].id
 
         const response = await authenticatedFetch(
-          `/api/details/episode-video?id=${episodeId}`,
+          API.videos.getByEpisodeId(episodeId ?? ''),
         )
 
         if (!response.data) {

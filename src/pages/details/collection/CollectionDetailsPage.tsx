@@ -4,6 +4,7 @@ import { SortableHorizontalList } from '@/components/lists/SortableHorizontalLis
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Skeleton } from '@/components/ui/skeleton'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
 import { useWebSocketStore } from '@/context/ws.context'
@@ -16,7 +17,6 @@ import {
 } from '@/data/interfaces/Media'
 import { Album } from '@/data/interfaces/Music'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
-import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import AlbumCard from '@/pages/library/components/cards/AlbumCard'
 import MovieCard from '@/pages/library/components/cards/MovieCard'
 import SeriesCard from '@/pages/library/components/cards/SeriesCard'
@@ -54,7 +54,7 @@ function CollectionDetailsPage() {
     isLoading,
     mutate,
   } = useSWR<Collection>(
-    `/api/details/collection?id=${collectionId}`,
+    API.collections.get(collectionId ?? ''),
     authenticatedFetcher,
   )
 
@@ -165,10 +165,14 @@ function CollectionDetailsPage() {
     }
 
     try {
-      await authenticatedFetch(`/api/collections/reorder-content`, 'POST', {
-        collectionId: collectionId,
-        orderedItems: orderedItemsForApi,
-      })
+      await authenticatedFetch(
+        API.collections.reorderContent(collectionId ?? ''),
+        'POST',
+        {
+          collectionId: collectionId,
+          orderedItems: orderedItemsForApi,
+        },
+      )
     } catch (error) {
       if (collection) {
         setLocalCollection(collection)

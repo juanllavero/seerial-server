@@ -6,6 +6,7 @@ import FlexBox from '@/components/ui/FlexBox'
 import { MarkWatchedIcon, UnmarkWatchedIcon } from '@/components/ui/IconLibrary'
 import LazyImage from '@/components/ui/LazyImage'
 import { Skeleton } from '@/components/ui/skeleton'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
@@ -14,7 +15,6 @@ import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
 import { Series } from '@/data/interfaces/Media'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
-import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { t } from 'i18next'
 import { Pencil } from 'lucide-react'
 import { useEffect } from 'react'
@@ -61,7 +61,7 @@ function SeriesDetailsPage() {
     isLoading,
     error,
     mutate: mutateSeries,
-  } = useSWR<Series>(`/api/details/series?id=${seriesId}`, authenticatedFetcher)
+  } = useSWR<Series>(API.series.get(seriesId ?? ''), authenticatedFetcher)
 
   // Get selected season data
   const season = series
@@ -137,13 +137,13 @@ function SeriesDetailsPage() {
 
   const toggleSeasonWatched = async () => {
     if (season) {
-      authenticatedFetch(`/api/setSeasonWatched`, 'POST', {
+      authenticatedFetch(API.seasons.setWatchState(season.id), 'POST', {
         seasonId: season.id,
         watched: !season.watchStatus,
         userId: user?.id,
       }).then(() => {
-        mutate((key: string) => key.startsWith(`/api/details/series`))
-        mutate((key: string) => key.startsWith(`/api/details/season`))
+        mutate((key: string) => key.startsWith(API.series.get(seriesId ?? '')))
+        mutate((key: string) => key.startsWith(API.seasons.get(season.id)))
       })
     }
   }

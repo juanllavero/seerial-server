@@ -4,11 +4,10 @@ import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
 import LazyImage from '@/components/ui/LazyImage'
-import { API } from '@/config/api'
+import { API, authenticatedFetch } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { IdentificationResult } from '@/data/interfaces/Utils'
-import { authenticatedFetch } from '@/lib/auth'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { shallow } from 'zustand/shallow'
@@ -63,7 +62,7 @@ function CorrectIdentificationSearch() {
     authenticatedFetch(
       `${isShow ? API.series.search : API.movies.search}?name=${name}&year=${year}`,
     )
-      .then((response) => response.json())
+      .then((response) => response.data)
       .then((data) => {
         setIdentificationResults(data)
       })

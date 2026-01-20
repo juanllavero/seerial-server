@@ -3,11 +3,11 @@ import { useIsTablet } from '@/components/hooks/use-tablet'
 import NotFound from '@/components/NotFound'
 import FlexBox from '@/components/ui/FlexBox'
 import { Skeleton } from '@/components/ui/skeleton'
+import { API, authenticatedFetcher } from '@/config/api'
 import { useGradientStore } from '@/context/gradientBackground.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
 import { Album } from '@/data/interfaces/Music'
-import { authenticatedFetcher } from '@/lib/auth'
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import useSWR from 'swr'
@@ -26,7 +26,7 @@ function AlbumDetailsPage() {
     isLoading,
     error,
     mutate,
-  } = useSWR<Album>(`/api/details/album?id=${albumId}`, authenticatedFetcher)
+  } = useSWR<Album>(API.albums.get(albumId ?? ''), authenticatedFetcher)
 
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()

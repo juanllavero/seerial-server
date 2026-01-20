@@ -1,7 +1,7 @@
+import { API, authenticatedFetcher } from '@/config/api'
 import { useGradientStore } from '@/context/gradientBackground.context'
 import useMusicStore from '@/context/music.context'
 import { Album } from '@/data/interfaces/Music'
-import { authenticatedFetcher } from '@/lib/auth'
 import { memo, useEffect, useRef } from 'react'
 import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
@@ -23,7 +23,7 @@ function MusicPlayer() {
   // Get Album details
   const { data: album } = useSWR<Album>(
     currentSong && currentSong.albumId
-      ? `/api/details/album?id=${currentSong.albumId}`
+      ? API.albums.get(currentSong.albumId)
       : null,
     authenticatedFetcher,
   )

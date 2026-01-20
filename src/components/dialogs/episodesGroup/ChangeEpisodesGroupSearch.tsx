@@ -1,10 +1,9 @@
 import Loading from '@/components/Loading'
 import FlexBox from '@/components/ui/FlexBox'
-import { API } from '@/config/api'
+import { API, authenticatedFetch } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { EpisodeGroupResult } from '@/data/interfaces/Utils'
-import { authenticatedFetch } from '@/lib/auth'
 import { getEpisodeGroupType } from '@/utils/ReactUtils'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -33,7 +32,7 @@ function ChangeEpisodesGroupSearch() {
     authenticatedFetch(
       `${API.series.searchEpisodeGroups}?id=${episodesGroupDialog.seriesToEdit?.themdbId}`,
     )
-      .then((response) => response.json())
+      .then((response) => response.data)
       .then((data) => {
         setEpisodeGroupsResults(data)
       })

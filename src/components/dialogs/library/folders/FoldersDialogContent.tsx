@@ -3,8 +3,7 @@ import Loading from '@/components/Loading'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
-import { API_ENDPOINTS } from '@/config/api'
-import { authenticatedFetcher } from '@/lib/auth'
+import { API, authenticatedFetcher } from '@/config/api'
 import { ChevronLeft, FileIcon, FolderIcon, HomeIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -24,21 +23,21 @@ function FoldersDialogContent({
   close,
 }: FoldersDialogContentProps) {
   const { t } = useTranslation()
-  const [currentPath, setCurrentPath] = useState<string>('') // Ruta actual
+  const [currentPath, setCurrentPath] = useState<string>('')
 
   const { data: drives, isLoading } = useSWR<string[]>(
-    API_ENDPOINTS.files.drives,
+    API.files.drives,
     authenticatedFetcher,
   )
 
   const { data: folderContent } = useSWR<Folder[]>(
     currentPath !== ''
-      ? `${API_ENDPOINTS.files.folder}?path=${encodeURIComponent(currentPath)}`
+      ? `${API.files.folder}?path=${encodeURIComponent(currentPath)}`
       : null,
     authenticatedFetcher,
   )
 
-  // Manejador para cuando el usuario selecciona una carpeta o unidad
+  // Handler to navigate into folders or go back
   const handleFolderClick = (folder: string) => {
     if (!drives) return
     if (folder === '.. [Back]') {
@@ -51,22 +50,22 @@ function FoldersDialogContent({
 
       let upperPath = currentPath.split('\\').slice(0, -1).join('\\')
 
-      // Comprobar si upperPath es una unidad de almacenamiento (ej. C:, D:, F:)
+      // Check if the current path is a drive unit (E.g. C:, D:, F:)
       const isDriveUnit = /^[A-Z]:$/.test(upperPath)
       if (isDriveUnit) {
         upperPath += '\\'
       }
 
-      setCurrentPath(upperPath || '') // Si es raíz, reiniciar ruta
+      setCurrentPath(upperPath || '') // Go back if no upper path
     } else {
-      // Verificar si currentPath ya termina con '/home' o '\'
+      // Check if the current path ends with '/home' o '\'
       const separator =
         currentPath.endsWith('/home') || currentPath.endsWith('\\') ? '' : '\\'
       setCurrentPath(`${currentPath}${separator}${folder}`)
     }
   }
 
-  // Renderizar las unidades o carpetas
+  // Render folder content
   const renderFolderContent = () => {
     if (isLoading) return <Loading />
 

@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { AddToListIcon, RemoveFromListIcon } from '@/components/ui/IconLibrary'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import { useServerStore } from '@/context/server.context'
-import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { t } from 'i18next'
 import useSWR from 'swr'
 
@@ -13,12 +13,12 @@ function MyListButton({ movieId }: MyListButtonProps) {
   const user = useServerStore((state) => state.currentUser)
   // Get if movie is in My List
   const { data: inMyList, mutate: mutateInMyList } = useSWR(
-    `/api/isMovieInMyList?movieId=${movieId}&userId=${user?.id}`,
+    API.myList.isMovieInList,
     authenticatedFetcher,
   )
 
   const toggleMyList = () => {
-    authenticatedFetch(`/api/updateMovieMyList`, 'POST', {
+    authenticatedFetch(API.myList.movies, 'POST', {
       movieId: movieId,
       userId: user?.id,
     }).then(() => {

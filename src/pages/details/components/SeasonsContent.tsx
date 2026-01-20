@@ -5,11 +5,11 @@ import FlexBox from '@/components/ui/FlexBox'
 import Grid from '@/components/ui/Grid'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
 import { Skeleton } from '@/components/ui/skeleton'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { Episode, Season } from '@/data/interfaces/Media'
 import { SelectableOption } from '@/data/interfaces/Utils'
-import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import React, { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
@@ -52,7 +52,7 @@ function SeasonContent({ seasonList }: SeasonContentProps) {
     isLoading,
     error,
   } = useSWR<Season>(
-    selectedSeasonId ? `/api/details/season?id=${selectedSeasonId}` : null,
+    selectedSeasonId ? API.seasons.get(selectedSeasonId) : null,
     authenticatedFetcher,
   )
 
@@ -85,26 +85,42 @@ function SeasonContent({ seasonList }: SeasonContentProps) {
             {
               title: t('markWatched'),
               action: () => {
-                authenticatedFetch(`/api/setEpisodeWatched`, 'POST', {
-                  episodeId: episode.id,
-                  watched: true,
-                  userId: user?.id,
-                }).finally(() => {
-                  mutate((key: string) => key.startsWith(`/api/details/series`))
-                  mutate((key: string) => key.startsWith(`/api/details/season`))
+                authenticatedFetch(
+                  API.episodes.setWatchState(episode.id),
+                  'POST',
+                  {
+                    episodeId: episode.id,
+                    watched: true,
+                    userId: user?.id,
+                  },
+                ).finally(() => {
+                  mutate((key: string) =>
+                    key.startsWith(API.series.get(season?.seriesId || '')),
+                  )
+                  mutate((key: string) =>
+                    key.startsWith(API.seasons.get(season?.id || '')),
+                  )
                 })
               },
             },
             {
               title: t('markUnwatched'),
               action: () => {
-                authenticatedFetch(`/api/setEpisodeWatched`, 'POST', {
-                  episodeId: episode.id,
-                  watched: false,
-                  userId: user?.id,
-                }).finally(() => {
-                  mutate((key: string) => key.startsWith(`/api/details/series`))
-                  mutate((key: string) => key.startsWith(`/api/details/season`))
+                authenticatedFetch(
+                  API.episodes.setWatchState(episode.id),
+                  'POST',
+                  {
+                    episodeId: episode.id,
+                    watched: false,
+                    userId: user?.id,
+                  },
+                ).finally(() => {
+                  mutate((key: string) =>
+                    key.startsWith(API.series.get(season?.seriesId || '')),
+                  )
+                  mutate((key: string) =>
+                    key.startsWith(API.seasons.get(season?.id || '')),
+                  )
                 })
               },
             },
@@ -125,15 +141,14 @@ function SeasonContent({ seasonList }: SeasonContentProps) {
 
   const playEpisode = async (episodeId: Episode) => {
     const response = await authenticatedFetch(
-      `/api/details/episode-video?id=${episodeId.id}`,
+      API.videos.getByEpisodeId(episodeId.id),
     )
 
-    if (!response.ok) {
-      // Show error message
+    if (!response.data) {
       return
     }
 
-    const data = await response.json()
+    const data = await response.data
     navigate(`/video-player/${data.id}`)
   }
 

@@ -1,8 +1,8 @@
 import Image from '@/components/ui/Image'
+import { API, authenticatedFetcher } from '@/config/api'
 import useMusicStore from '@/context/music.context'
 import { LRCFile } from '@/data/interfaces/Music'
 import MusicGradient from '@/layouts/backgrounds/MusicGradient'
-import { authenticatedFetcher } from '@/lib/auth'
 import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
@@ -46,7 +46,7 @@ const MobileMusicPlayer = () => {
 
   // Get Lyrics in order to show lyrics button
   const { data: lyrics } = useSWR<LRCFile[]>(
-    currentSong && isShown ? `/api/lyrics?id=${currentSong.id}` : null,
+    currentSong && isShown ? API.songs.lyrics(currentSong.id) : null,
     authenticatedFetcher,
   )
 

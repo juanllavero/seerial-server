@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/IconLibrary'
 import LazyImage from '@/components/ui/LazyImage'
 import { Skeleton } from '@/components/ui/skeleton'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
@@ -18,7 +19,6 @@ import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
 import { Movie } from '@/data/interfaces/Media'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
-import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { formatTimeForView } from '@/utils/ReactUtils'
 import { t } from 'i18next'
 import { Pencil } from 'lucide-react'
@@ -53,7 +53,7 @@ function MovieDetailsPage() {
     isLoading,
     error,
     mutate,
-  } = useSWR<Movie>(`/api/details/movie?id=${movieId}`, authenticatedFetcher)
+  } = useSWR<Movie>(API.movies.get(movieId ?? ''), authenticatedFetcher)
 
   const isMobile = useIsMobile()
   const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true

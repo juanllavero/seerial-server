@@ -2,9 +2,9 @@ import Loading from '@/components/Loading'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import LazyImage from '@/components/ui/LazyImage'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
-import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { formatDate } from '@/utils/ReactUtils'
 import { PlayIcon } from 'lucide-react'
 import { useEffect } from 'react'
@@ -24,17 +24,17 @@ function EpisodeDetailsPage() {
     isLoading,
     mutate,
   } = useSWR(
-    episodeId ? `/api/details/episode?id=${episodeId}` : null,
+    episodeId ? API.episodes.get(episodeId) : null,
     authenticatedFetcher,
   )
 
   const { data: season } = useSWR(
-    episode ? `/api/details/season?id=${episode.seasonId}` : null,
+    episode ? API.seasons.get(episode.seasonId) : null,
     authenticatedFetcher,
   )
 
   const { data: series } = useSWR(
-    season ? `/api/details/series?id=${season.seriesId}` : null,
+    season ? API.series.get(season.seriesId) : null,
     authenticatedFetcher,
   )
 
@@ -97,14 +97,14 @@ function EpisodeDetailsPage() {
             const episodeId = episode ? episode.id : season?.episodes[0].id
 
             const response = await authenticatedFetch(
-              `/api/details/episode-video?id=${episodeId}`,
+              API.videos.getByEpisodeId(episodeId ?? ''),
             )
 
-            if (!response.ok) {
+            if (!response.data) {
               return
             }
 
-            const data = await response.json()
+            const data = await response.data
             navigate(`/video-player/${data.id}`)
           }}
         >

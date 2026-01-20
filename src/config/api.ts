@@ -116,6 +116,7 @@ export const API = {
   // Videos
   videos: {
     get: (id: string) => `/videos/${id}`,
+    getByEpisodeId: (episodeId: string) => `/videos/by-episode/${episodeId}`,
     update: (id: string) => `/videos/${id}`,
     delete: (id: string) => `/videos/${id}`,
     getMediaInfo: (id: string) => `/videos/${id}/media-info`,
