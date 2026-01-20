@@ -47,6 +47,23 @@ export class VideosController extends Controller {
   }
 
   /**
+   * Get video by episode ID
+   */
+  @Get("by-episode/{episodeId}")
+  @Security("cookieAuth")
+  public async getByEpisodeId(
+    @Path() episodeId: string
+  ): Promise<VideoResponse> {
+    const result = await useCases.getVideoByEpisodeId().execute(episodeId);
+
+    return {
+      status: "success",
+      message: messages.success.fetch,
+      data: result,
+    };
+  }
+
+  /**
    * Update video details
    */
   @Put("{id}")
