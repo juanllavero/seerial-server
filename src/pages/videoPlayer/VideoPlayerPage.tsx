@@ -1,8 +1,8 @@
 import Loading from '@/components/Loading'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import { useServerStore } from '@/context/server.context'
 import { Video } from '@/data/interfaces/Media'
 import { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
-import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
 import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
@@ -36,13 +36,13 @@ function VideoPlayerPage() {
     isLoading: loadingVideo,
     mutate,
   } = useSWR<Video>(
-    videoId ? `/api/details/video?id=${videoId}` : null,
+    videoId ? API.videos.get(videoId) : null,
     authenticatedFetcher,
   )
 
   // Get video info
   const { data: videoInfo, isLoading: loadingVideoInfo } = useSWR<VideoInfo>(
-    videoId ? `/api/videoInfo?id=${videoId}` : null,
+    videoId ? API.videos.getMediaInfo(videoId) : null,
     authenticatedFetcher,
   )
 
@@ -101,7 +101,7 @@ function VideoPlayerPage() {
       expiresIn: '2m',
     })
 
-    const url = await res.json()
+    const url = await res.data
     return `/api${url}`
   }
 
@@ -371,11 +371,11 @@ function VideoPlayerPage() {
         videoId: video.id,
       })
 
-      if (!result || !result.ok) {
+      if (!result || !result.data) {
         return
       }
 
-      const data = await result.json()
+      const data = await result.data
 
       const { videoTracks, audioTracks, subtitleTracks } = data
       setTracks({ audioTracks, subtitleTracks })

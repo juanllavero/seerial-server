@@ -1,7 +1,7 @@
 import AlertWrapper from '@/components/AlertWrapper'
+import { authenticatedFetch } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.context'
 import { useWebSocketStore } from '@/context/ws.context'
-import { authenticatedFetch } from '@/lib/auth'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { mutate } from 'swr'

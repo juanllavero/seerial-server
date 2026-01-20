@@ -1,3 +1,9 @@
+export interface APIResponse<T> {
+  data: T
+  message: string
+  status: 'success' | 'error'
+}
+
 export interface EpisodeGroupResult {
   description: string
   episode_count: number

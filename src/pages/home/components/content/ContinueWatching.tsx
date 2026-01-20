@@ -1,9 +1,9 @@
 import Card from '@/components/cards/Card'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Skeleton } from '@/components/ui/skeleton'
+import { API, authenticatedFetcher } from '@/config/api'
 import { useServerStore } from '@/context/server.context'
 import { Video } from '@/data/interfaces/Media'
-import { authenticatedFetcher } from '@/lib/auth'
 import { getVideoProgress } from '@/utils/ReactUtils'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
@@ -26,16 +26,14 @@ function ContinueWatching({ goToContent }: ContinueWatchingProps) {
 
   // Get Continue Watching items
   const { data: continueWatching, isLoading } = useSWR<Video[]>(
-    `/api/continueWatching?userId=${user?.id ?? null}`,
+    API.continueWatching.getVideos,
     authenticatedFetcher,
   )
 
   const skeletons = Array.from({ length: 10 }, (_, index) => (
     <Skeleton
       key={'ContinueWatching ' + index}
-      className={
-        isMobile ? 'h-[158px] min-w-[280px]' : 'h-[214px] min-w-[380px]'
-      }
+      className={isMobile ? 'h-39.5 min-w-70' : 'h-53.5 min-w-95'}
     />
   ))
 

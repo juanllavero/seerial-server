@@ -1,9 +1,9 @@
+import { API, authenticatedFetcher } from '@/config/api'
 import useDataStore from '@/context/data.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { MessageType } from '@/data/enums/WSMessage'
 import { Library } from '@/data/interfaces/Media'
 import { useCardWidth } from '@/hooks/useCardWidth'
-import { authenticatedFetcher } from '@/lib/auth'
 import NoContent from '@/pages/home/components/NoContent'
 import { memo, useEffect } from 'react'
 import useSWR from 'swr'
@@ -30,7 +30,7 @@ function LibraryPageContent({ libraryId, type }: LibraryPageContentProps) {
     data: library,
     isLoading,
     mutate,
-  } = useSWR<Library>(`/api/library?id=${libraryId}`, authenticatedFetcher)
+  } = useSWR<Library>(API.libraries.getById(libraryId), authenticatedFetcher)
 
   useEffect(() => {
     if (

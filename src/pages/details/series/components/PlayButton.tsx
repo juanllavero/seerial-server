@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { PlayIcon } from '@/components/ui/IconLibrary'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import { Episode, Season } from '@/data/interfaces/Media'
-import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import useSWR from 'swr'
@@ -20,14 +20,14 @@ function PlayButton({
   const { t } = useTranslation()
 
   const { data: season } = useSWR<Season>(
-    selectedSeasonId ? `/api/details/season?id=${selectedSeasonId}` : null,
+    selectedSeasonId ? API.seasons.get(selectedSeasonId) : null,
     authenticatedFetcher,
   )
 
   // Get current episode
   const { data: episode } = useSWR<Episode>(
     currentlyWatchingEpisodeId
-      ? `/api/details/episode?id=${currentlyWatchingEpisodeId}`
+      ? API.episodes.get(currentlyWatchingEpisodeId)
       : null,
     authenticatedFetcher,
   )
@@ -47,11 +47,11 @@ function PlayButton({
           `/api/details/episode-video?id=${episodeId}`,
         )
 
-        if (!response.ok) {
+        if (!response.data) {
           return
         }
 
-        const data = await response.json()
+        const data = await response.data
         navigate(`/video-player/${data.id}`)
       }}
     >

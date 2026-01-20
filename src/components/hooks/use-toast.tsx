@@ -1,9 +1,25 @@
-import * as React from 'react'
 import * as ToastPrimitives from '@radix-ui/react-toast'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { X } from 'lucide-react'
+import * as React from 'react'
 
 import { cn } from '@/utils/tailwind'
+
+type ToastType = 'success' | 'error' | 'info' | 'warning'
+type Toast = { id: string; type: ToastType; message: string }
+
+type ToastContextValue = {
+  showToast: (type: ToastType, message: string, duration?: number) => string
+  hideToast: (id: string) => void
+}
+
+const ToastContext = React.createContext<ToastContextValue | null>(null)
+
+export function useToast() {
+  const ctx = React.useContext(ToastContext)
+  if (!ctx) throw new Error('useToast must be used within ToastProvider')
+  return ctx
+}
 
 const ToastProvider = ToastPrimitives.Provider
 
@@ -14,7 +30,7 @@ const ToastViewport = React.forwardRef<
   <ToastPrimitives.Viewport
     ref={ref}
     className={cn(
-      'fixed top-0 z-[100] flex max-h-screen w-full flex-col-reverse p-4 sm:top-auto sm:right-0 sm:bottom-0 sm:flex-col md:max-w-[420px]',
+      'fixed top-0 z-100 flex max-h-screen w-full flex-col-reverse p-4 sm:top-auto sm:right-0 sm:bottom-0 sm:flex-col md:max-w-105',
       className,
     )}
     {...props}
@@ -115,13 +131,13 @@ type ToastProps = React.ComponentPropsWithoutRef<typeof Toast>
 type ToastActionElement = React.ReactElement<typeof ToastAction>
 
 export {
-  type ToastProps,
-  type ToastActionElement,
-  ToastProvider,
-  ToastViewport,
   Toast,
-  ToastTitle,
-  ToastDescription,
-  ToastClose,
   ToastAction,
+  ToastClose,
+  ToastDescription,
+  ToastProvider,
+  ToastTitle,
+  ToastViewport,
+  type ToastActionElement,
+  type ToastProps,
 }

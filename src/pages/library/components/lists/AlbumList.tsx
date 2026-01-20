@@ -1,8 +1,8 @@
 import { SortableGrid } from '@/components/lists/SortableGrid'
+import { API, authenticatedFetcher } from '@/config/api'
 import { Collection, Library, LibraryItem } from '@/data/interfaces/Media'
 import { Album } from '@/data/interfaces/Music'
 import { useReorderableList } from '@/hooks/useReorderableList'
-import { authenticatedFetcher } from '@/lib/auth'
 import useSWR from 'swr'
 import AlbumCard from '../cards/AlbumCard'
 import CollectionCard from '../cards/CollectionCard'
@@ -14,7 +14,7 @@ interface AlbumListProps {
 
 function AlbumList({ library, mutateLibrary }: AlbumListProps) {
   const { data, isLoading } = useSWR<LibraryItem[]>(
-    `/api/library-content?libraryId=${library.id}&type=Music`,
+    `${API.libraries.content(library.id)}?type=Music`,
     authenticatedFetcher,
   )
 

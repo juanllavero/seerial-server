@@ -1,5 +1,5 @@
+import { API, authenticatedFetch } from '@/config/api'
 import { Settings, SettingsSection, ValueOption } from '@/data/interfaces/Utils'
-import { authenticatedFetch } from '@/lib/auth'
 import { defaultWebConfig } from '@/utils/defaults'
 import { createWithEqualityFn } from 'zustand/traditional'
 
@@ -48,19 +48,19 @@ export const useSettingsStore = createWithEqualityFn<SettingsStore>((set) => ({
 
   // --- SERVER SETTINGS ---
   getAllServerSettings: async () => {
-    const settings = await authenticatedFetch(`/api/serverConfig`)
-    const result = await settings.json()
+    const settings = await authenticatedFetch(API.servers.config)
+    const result = await settings.data
     set({ serverSettings: result })
   },
 
   getServerSetting: async (key: string, defaultValue: ValueOption) => {
-    const setting = await authenticatedFetch(`/api/serverConfig/${key}`)
-    const result = await setting.json()
+    const setting = await authenticatedFetch(API.servers.configKey(key))
+    const result = await setting.data
     return result ? result.value : defaultValue
   },
 
   setServerSetting: async (key: string, value: ValueOption) => {
-    authenticatedFetch(`/api/serverConfig`, 'PATCH', { [key]: value })
+    authenticatedFetch(API.servers.config, 'PATCH', { [key]: value })
   },
 
   // --- CLIENT SETTINGS (localStorage + defaults) ---

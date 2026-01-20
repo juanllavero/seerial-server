@@ -3,6 +3,7 @@ import Loading from '@/components/Loading'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
+import { API_ENDPOINTS } from '@/config/api'
 import { authenticatedFetcher } from '@/lib/auth'
 import { ChevronLeft, FileIcon, FolderIcon, HomeIcon } from 'lucide-react'
 import { useState } from 'react'
@@ -26,13 +27,13 @@ function FoldersDialogContent({
   const [currentPath, setCurrentPath] = useState<string>('') // Ruta actual
 
   const { data: drives, isLoading } = useSWR<string[]>(
-    '/api/drives',
+    API_ENDPOINTS.files.drives,
     authenticatedFetcher,
   )
 
   const { data: folderContent } = useSWR<Folder[]>(
     currentPath !== ''
-      ? `/api/folder?path=${encodeURIComponent(currentPath)}`
+      ? `${API_ENDPOINTS.files.folder}?path=${encodeURIComponent(currentPath)}`
       : null,
     authenticatedFetcher,
   )

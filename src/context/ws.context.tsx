@@ -1,6 +1,6 @@
+import { authenticatedFetch } from '@/config/api'
 import { MessageType } from '@/data/enums/WSMessage'
 import { Series } from '@/data/interfaces/Media'
-import { authenticatedFetch } from '@/lib/auth'
 import { createWithEqualityFn } from 'zustand/traditional'
 
 // Message interface
@@ -174,10 +174,10 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
             fileName,
           },
         )
-        if (!response || !response.ok) {
+        if (!response || !response.data) {
           throw new Error()
         }
-        const data = await response.json()
+        const data = await response.data
         console.log('Download started:', data)
       } catch (error) {
         console.error('Error downloading media:', error)
@@ -204,10 +204,10 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
             fileName,
           },
         )
-        if (!response || !response.ok) {
+        if (!response || !response.data) {
           throw new Error()
         }
-        const data = await response.json()
+        const data = await response.data
         console.log('Download started:', data)
       } catch (error) {
         console.error('Error downloading media:', error)

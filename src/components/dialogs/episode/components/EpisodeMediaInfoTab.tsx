@@ -1,13 +1,13 @@
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import Loading from '@/components/Loading'
 import FlexBox from '@/components/ui/FlexBox'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import { Video } from '@/data/interfaces/Media'
 import {
   AudioTrack,
   SubtitleTrack,
   VideoTrack,
 } from '@/data/interfaces/MediaInfo'
-import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
@@ -31,7 +31,7 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
 
   // Get video info
   const { data: videoInfo } = useSWR<VideoInfo>(
-    video.id ? `/api/videoInfo?id=${video.id}` : null,
+    video.id ? API.videos.getMediaInfo(video.id) : null,
     authenticatedFetcher,
   )
 
@@ -42,11 +42,12 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
       setLoaded(false)
 
       const attemptFetch = async () => {
-        const result = await authenticatedFetch(`/api/updateMediaInfo`, 'PUT', {
-          videoId: video.id,
-        })
+        const result = await authenticatedFetch(
+          API.videos.updateMediaInfo(video.id),
+          'PUT',
+        )
 
-        return result && result.ok ? await result.json() : null
+        return result && result.data ? await result.data : null
       }
 
       // First attempt

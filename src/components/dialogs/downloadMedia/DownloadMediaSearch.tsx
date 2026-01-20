@@ -4,10 +4,10 @@ import { ModalWrapper } from '@/components/ModalWrapper'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { MediaSearchResult } from '@/data/interfaces/Utils'
-import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
@@ -55,7 +55,7 @@ function DownloadMediaSearch() {
     seasonToEdit !== undefined && seriesToEdit === undefined
 
   const { data: series } = useSWR(
-    seasonToEdit ? `/api/details/series?id=${seasonToEdit.seriesId}` : null,
+    seasonToEdit ? `${API.series.get(seasonToEdit.seriesId)}` : null,
     authenticatedFetcher,
   )
 
@@ -90,10 +90,10 @@ function DownloadMediaSearch() {
 
   const search = (text: string) => {
     setSearching(true)
-    authenticatedFetch(`/api/media/search?query=${text}`)
+    authenticatedFetch(`${API.search.media}?query=${text}`)
       .then(async (response) => {
-        if (response && response.ok) {
-          const data = await response.json()
+        if (response && response.data) {
+          const data = await response.data
           setSearchResults(data)
         }
       })

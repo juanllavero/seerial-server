@@ -1,8 +1,9 @@
 import LoadingInsideSidebar from '@/components/LoadingInsideSidebar'
+import { API, authenticatedFetcher } from '@/config/api'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { Library } from '@/data/interfaces/Media'
-import { authenticatedFetcher } from '@/lib/auth'
+import { APIResponse } from '@/data/interfaces/Utils'
 import { useEffect } from 'react'
 import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
@@ -22,8 +23,8 @@ export default function HomePage() {
   const selectLibrary = useDataStore((state) => state.selectLibrary)
 
   // Get Libraries
-  const { data: libraries, isLoading: loadingLibraries } = useSWR<Library[]>(
-    '/api/libraries/',
+  const { data, isLoading: loadingLibraries } = useSWR<APIResponse<Library[]>>(
+    API.libraries.getAll,
     authenticatedFetcher,
     {
       revalidateOnFocus: false,
@@ -44,7 +45,7 @@ export default function HomePage() {
     return <NoAPIKey />
   }
 
-  if (!libraries || libraries.length === 0) {
+  if (!data || data.data.length === 0) {
     return <NoContent />
   }
 

@@ -1,13 +1,12 @@
 import { ModalWrapper } from '@/components/ModalWrapper'
+import { API, authenticatedFetch } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Collection } from '@/data/interfaces/Media'
-import { authenticatedFetch } from '@/lib/auth'
 import { ImageType } from '@/utils/constants'
 import { showToast } from '@/utils/ReactUtils'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { mutate } from 'swr'
 import { shallow } from 'zustand/shallow'
 import ImageListTab from '../components/ImageListTab'
 import CollectionInfoTab from './components/CollectionInfoTab'
@@ -68,7 +67,7 @@ function CollectionDialog() {
     await connectWS()
 
     const response = await authenticatedFetch(
-      `/api/collection/${collection.id}`,
+      API.collections.get(collection.id),
       'PUT',
       {
         ...collection,
@@ -79,12 +78,10 @@ function CollectionDialog() {
       },
     )
 
-    if (!response || !response.ok) {
+    if (!response || !response.data) {
       showToast('error', 'Error updating episode')
       return
     }
-
-    mutate((key: string) => key.startsWith(`/api/details/season`))
 
     closeCollectionDialog()
   }

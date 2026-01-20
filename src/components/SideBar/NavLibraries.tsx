@@ -15,14 +15,15 @@ import {
   SidebarSeparator,
   useSidebar,
 } from '@/components/ui/sidebar'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { LibraryTypes } from '@/data/enums/LibraryTypes'
 import { Library } from '@/data/interfaces/Media'
+import { APIResponse } from '@/data/interfaces/Utils'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
-import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { t } from 'i18next'
 import {
   Film,
@@ -82,8 +83,8 @@ const NavLibraries = () => {
     shallow,
   )
 
-  const { data: libraries, isLoading } = useSWR<Library[]>(
-    '/api/libraries/',
+  const { data, isLoading } = useSWR<APIResponse<Library[]>>(
+    API.libraries.getAll,
     authenticatedFetcher,
     {
       revalidateOnFocus: false,
@@ -91,10 +92,12 @@ const NavLibraries = () => {
     },
   )
 
+  const libraries = data ? data.data : []
+
   const searchFiles = async (libraryId: string) => {
     await connectWS()
 
-    authenticatedFetch(`/api/library/scan?libraryId=${libraryId}`)
+    authenticatedFetch(API.libraries.scan(libraryId), 'POST')
   }
 
   const [activeItem, setActiveItem] = React.useState<Item | null>(null)

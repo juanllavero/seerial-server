@@ -2,7 +2,7 @@ import { useIsTablet } from '@/components/hooks/use-tablet'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
-import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import { ImageType } from '@/utils/constants'
 import { generateRandoumUUID, showToast } from '@/utils/ReactUtils'
 import React, { useEffect, useRef, useState } from 'react'
@@ -43,7 +43,7 @@ function ImageListTab({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { data: localImages, isLoading } = useSWR<LocalImage[]>(
-    localFolder ? `/api/images?path=${localFolder}` : null,
+    localFolder ? `${API.images.directoryListing}?path=${localFolder}` : null,
     authenticatedFetcher,
   )
 
@@ -86,17 +86,9 @@ function ImageListTab({
     formData.append('image', file)
 
     try {
-      const response = await authenticatedFetch(
-        `/api/uploadImage`,
-        'POST',
-        formData,
-      )
+      await authenticatedFetch(API.images.upload, 'POST', formData)
 
-      if (!response || !response.ok) {
-        throw new Error()
-      }
-
-      mutate(`/api/images?path=${localFolder}`)
+      mutate(`${API.images.directoryListing}?path=${localFolder}`)
 
       showToast('success', t('imageLoaded'))
     } catch (err) {
@@ -110,17 +102,13 @@ function ImageListTab({
     setIsUploading(true)
 
     try {
-      const response = await authenticatedFetch(`/api/downloadImage`, 'POST', {
+      await authenticatedFetch(API.downloads.image, 'POST', {
         url: url,
         downloadFolder: localFolder,
         fileName: `${generateRandoumUUID()}.${url.split('.').pop()}`,
       })
 
-      if (!response || !response.ok) {
-        throw new Error()
-      }
-
-      mutate(`/api/images?path=${localFolder}`)
+      mutate(`${API.images.directoryListing}?path=${localFolder}`)
 
       showToast('success', t('imageLoaded'))
     } catch (err) {

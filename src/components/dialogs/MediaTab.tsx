@@ -2,9 +2,9 @@ import { useIsTablet } from '@/components/hooks/use-tablet'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Skeleton } from '@/components/ui/skeleton'
+import { API, authenticatedFetcher } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.context'
 import { Movie, Season, Series } from '@/data/interfaces/Media'
-import { authenticatedFetcher } from '@/lib/auth'
 import { Download, Trash2 } from 'lucide-react'
 import { memo } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -31,20 +31,28 @@ function MediaTab({ series, season, movie }: MediaTabProps) {
     data: video,
     isLoading: loadingVideo,
     error: videoError,
-  } = useSWR(`/api/${type}/video?id=${id}`, authenticatedFetcher, {
-    revalidateAll: true,
-    refreshInterval: 1000,
-  })
+  } = useSWR(
+    `${API.media.background(type, 'video')}?id=${id}`,
+    authenticatedFetcher,
+    {
+      revalidateAll: true,
+      refreshInterval: 1000,
+    },
+  )
 
   // Background music
   const {
     data: music,
     isLoading: loadingMusic,
     error: musicError,
-  } = useSWR(`/api/${type}/music?id=${id}`, authenticatedFetcher, {
-    revalidateAll: true,
-    refreshInterval: 1000,
-  })
+  } = useSWR(
+    `${API.media.background(type, 'music')}?id=${id}`,
+    authenticatedFetcher,
+    {
+      revalidateAll: true,
+      refreshInterval: 1000,
+    },
+  )
 
   const openDownloadDialog = (type: 'music' | 'video') => {
     openDownloadMediaDialog(type, series, season, movie)

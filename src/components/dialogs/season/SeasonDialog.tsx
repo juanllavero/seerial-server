@@ -1,8 +1,8 @@
 import { ModalWrapper } from '@/components/ModalWrapper'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Season } from '@/data/interfaces/Media'
-import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { showToast } from '@/utils/ReactUtils'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -41,7 +41,7 @@ function SeasonDialog() {
 
   const { data: series } = useSWR(
     seasonDialog.seasonToEdit
-      ? `/api/details/series?id=${seasonDialog.seasonToEdit.seriesId}`
+      ? API.series.get(seasonDialog.seasonToEdit.seriesId)
       : null,
     authenticatedFetcher,
   )
@@ -73,7 +73,7 @@ function SeasonDialog() {
     const submitData = generateSubmitData(data, season, seasonInfoConfig)
 
     const response = await authenticatedFetch(
-      `/api/season/${season.id}`,
+      API.seasons.update(season.id),
       'PUT',
       {
         ...submitData,
@@ -81,7 +81,7 @@ function SeasonDialog() {
       },
     )
 
-    if (!response || !response.ok) {
+    if (!response || !response.data) {
       showToast('error', 'Error updating episode')
       return
     }

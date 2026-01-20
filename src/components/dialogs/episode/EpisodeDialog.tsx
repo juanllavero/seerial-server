@@ -1,7 +1,7 @@
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Episode } from '@/data/interfaces/Media'
-import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { showToast } from '@/utils/ReactUtils'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -44,7 +44,9 @@ function EpisodeDialog() {
   )
 
   const { data: series } = useSWR(
-    episode ? `/api/details/seriesBySeasonId?id=${episode.seasonId}` : null,
+    episode
+      ? API.media.details(`seriesBySeasonId?id=${episode.seasonId}`)
+      : null,
     authenticatedFetcher,
   )
 
@@ -66,24 +68,19 @@ function EpisodeDialog() {
 
     const submitData = generateSubmitData(data, episode, episodeInfoConfig)
 
-    const response = await authenticatedFetch(
-      `/api/episode/${episode.id}`,
-      'PUT',
-      {
+    try {
+      await authenticatedFetch(API.episodes.update(episode.id), 'PUT', {
         ...submitData,
         imgSrc: selectedImage ?? episode.video.imgSrc,
-      },
-    )
+      })
 
-    if (!response || !response.ok) {
+      mutate((key: string) => key.startsWith(API.media.details('season')))
+      mutate((key: string) => key.startsWith(API.media.details('episode')))
+
+      closeEpisodeDialog()
+    } catch (error) {
       showToast('error', 'Error updating episode')
-      return
     }
-
-    mutate((key: string) => key.startsWith(`/api/details/season`))
-    mutate((key: string) => key.startsWith(`/api/details/episode`))
-
-    closeEpisodeDialog()
   })
 
   const getWindowTitle = () => {

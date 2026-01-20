@@ -1,5 +1,5 @@
+import { API, authenticatedFetch } from '@/config/api'
 import { BasicUser } from '@/data/interfaces/Users'
-import { authenticatedFetch } from '@/lib/auth'
 import { createWithEqualityFn } from 'zustand/traditional'
 
 interface ServerState {
@@ -46,7 +46,7 @@ const pingServer = (url: string, timeout: number = 3000): Promise<string> => {
   })
 }
 
-export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
+export const useServerStore = createWithEqualityFn<ServerState>((set) => ({
   users: [],
   currentUser: localStorage.getItem('user')
     ? JSON.parse(localStorage.getItem('user')!)
@@ -60,9 +60,11 @@ export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
 
     try {
       // Use a standard 10-second timeout for regular requests
-      const response = await pingServer(`/api`, 10000)
+      const response = await pingServer(API.servers.status, 10000)
       // We need to actually get the data this time
       const data = await (await fetch(response)).json()
+
+      console.log({ data })
 
       set({
         apiKeyStatus: data.status === 'VALID_API_KEY',
@@ -82,13 +84,17 @@ export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
     set({ gettingApiKeyStatus: true })
 
     try {
-      const response = await authenticatedFetch(`/api/api-key`, 'POST', {
-        apiKey,
-      })
-      if (!response || !response.ok) {
+      const response = await authenticatedFetch(
+        API.configuration.apiKey,
+        'POST',
+        {
+          apiKey,
+        },
+      )
+      if (!response || !response.status || response.status !== 200) {
         throw new Error()
       }
-      const data = await response.json()
+      const data = await response.data
 
       set({
         apiKeyStatus: data.status === 'VALID_API_KEY',

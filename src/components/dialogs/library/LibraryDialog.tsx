@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { authenticatedFetch } from '@/lib/auth'
@@ -79,13 +80,13 @@ function LibraryDialog() {
         subsMode,
       }
 
-      await authenticatedFetch(`/api/library`, 'PUT', {
+      await authenticatedFetch(API_ENDPOINTS.libraries.create, 'PUT', {
         libraryId: libraryDialog.libraryToEdit.id,
         updatedLibrary: newLibrary,
       })
 
       // Mutate libraries list
-      mutate((key: string) => key.startsWith(`/api/libraries`))
+      mutate((key: string) => key.startsWith(API_ENDPOINTS.libraries.create))
 
       closeLibraryDialog()
 
@@ -107,7 +108,7 @@ function LibraryDialog() {
     }
 
     const response = await authenticatedFetch(
-      `/api/addLibrary`,
+      API_ENDPOINTS.libraries.create,
       'POST',
       newLibrary,
     )
@@ -120,7 +121,7 @@ function LibraryDialog() {
     }
 
     // Mutate libraries list
-    mutate((key: string) => key.startsWith(`/api/libraries`))
+    mutate((key: string) => key.startsWith(API_ENDPOINTS.libraries.create))
 
     console.log({ okay: response.ok, response })
     const data = await response.json()

@@ -1,10 +1,10 @@
 import Card from '@/components/cards/Card'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { Movie } from '@/data/interfaces/Media'
-import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { refreshMetadata, toggleMovieWatched } from '@/utils/ReactUtils'
 import { Pencil } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -36,7 +36,7 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
 
   // Get Movies in My List
   const { data: moviesInMyList, isLoading } = useSWR<Movie[]>(
-    `/api/myListMovies?userId=${user?.id ?? null}`,
+    API.myList.movies,
     authenticatedFetcher,
   )
 
@@ -64,7 +64,7 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
                     {
                       title: t('removeFromMyList'),
                       action: () => {
-                        authenticatedFetch(`/api/updateMovieMyList`, 'POST', {
+                        authenticatedFetch(API.myList.movies, 'POST', {
                           movieId: movie.id,
                           userId: user?.id,
                         }).then(() => {

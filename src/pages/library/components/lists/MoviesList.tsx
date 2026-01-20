@@ -1,4 +1,5 @@
 import { SortableGrid } from '@/components/lists/SortableGrid'
+import { API, authenticatedFetcher } from '@/config/api'
 import {
   Collection,
   Library,
@@ -6,7 +7,6 @@ import {
   Movie,
 } from '@/data/interfaces/Media'
 import { useReorderableList } from '@/hooks/useReorderableList'
-import { authenticatedFetcher } from '@/lib/auth'
 import useSWR from 'swr'
 import CollectionCard from '../cards/CollectionCard'
 import MovieCard from '../cards/MovieCard'
@@ -18,7 +18,7 @@ interface MoviesListProps {
 
 function MoviesList({ library, mutateLibrary }: MoviesListProps) {
   const { data, isLoading } = useSWR<LibraryItem[]>(
-    `/api/library-content?libraryId=${library.id}&type=Movies`,
+    `${API.libraries.content(library.id)}?type=Movies`,
     authenticatedFetcher,
   )
 

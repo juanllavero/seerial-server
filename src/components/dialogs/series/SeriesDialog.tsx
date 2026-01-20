@@ -1,8 +1,8 @@
 import { ModalWrapper } from '@/components/ModalWrapper'
+import { API, authenticatedFetch } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Series } from '@/data/interfaces/Media'
-import { authenticatedFetch } from '@/lib/auth'
 import { ImageType } from '@/utils/constants'
 import { showToast } from '@/utils/ReactUtils'
 import { useEffect, useState } from 'react'
@@ -82,21 +82,20 @@ function SeriesDialog() {
       seriesTagsConfig,
     )
 
-    const response = await authenticatedFetch(`/api/show/${series.id}`, 'PUT', {
-      ...submitData,
-      logoSrc: selectedLogo ?? series.logoSrc,
-      coverSrc: selectedPoster ?? series.coverSrc,
-    })
+    try {
+      await authenticatedFetch(API.series.update(series.id), 'PUT', {
+        ...submitData,
+        logoSrc: selectedLogo ?? series.logoSrc,
+        coverSrc: selectedPoster ?? series.coverSrc,
+      })
 
-    if (!response || !response.ok) {
+      mutate((key: string) => key.startsWith(API.media.details('series')))
+      mutate((key: string) => key.startsWith(API.libraries.content('')))
+
+      closeSeriesDialog()
+    } catch (error) {
       showToast('error', 'Error updating series')
-      return
     }
-
-    mutate((key: string) => key.startsWith(`/api/details/series`))
-    mutate((key: string) => key.startsWith(`/api/library-content`))
-
-    closeSeriesDialog()
   })
 
   const getWindowTitle = () => {

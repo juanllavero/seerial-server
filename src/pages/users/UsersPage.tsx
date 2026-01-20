@@ -1,9 +1,9 @@
 import Loading from '@/components/Loading'
 import Image from '@/components/ui/Image'
 import { Input } from '@/components/ui/input'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import { useServerStore } from '@/context/server.context'
 import { BasicUser } from '@/data/interfaces/Users'
-import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { ArrowLeft, UserIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -28,7 +28,7 @@ export default function UsersPage() {
 
   // Fetch users registered in the server
   const { data: users, isLoading: gettingUsers } = useSWR<BasicUser[]>(
-    '/api/users/public',
+    API.users.findAllPublic,
     authenticatedFetcher,
   )
 
@@ -50,71 +50,71 @@ export default function UsersPage() {
   const handleProfileLogin = async () => {
     setIsLoading(true)
     setErrorMessage('')
-    const response = await authenticatedFetch(`/api/users/login`, 'POST', {
-      username: selectedUser?.username,
-      password: profilePassword ?? '',
-    })
-    if (response.ok) {
-      const data = await response.json()
+    try {
+      const response = await authenticatedFetch(API.users.login, 'POST', {
+        username: selectedUser?.username,
+        password: profilePassword ?? '',
+      })
       // Set JWT token as cookie
-      document.cookie = `jwt=${data.token}; path=/; max-age=2592000; samesite=strict`
-      setCurrentUser(data.user)
+      document.cookie = `jwt=${response.data.token}; path=/; max-age=2592000; samesite=strict`
+      setCurrentUser(response.data.user)
       setIsLoading(false)
       navigate('/home')
       return
+    } catch (error) {
+      setIsLoading(false)
+      setErrorMessage('Contraseña incorrecta')
+      setTimeout(() => {
+        setErrorMessage('')
+      }, 5000)
     }
-    setIsLoading(false)
-    setErrorMessage('Contraseña incorrecta')
-    setTimeout(() => {
-      setErrorMessage('')
-    }, 5000)
   }
 
   const handleManualLogin = async () => {
     setIsLoading(true)
     setErrorMessage('')
-    const response = await authenticatedFetch(`/api/users/login`, 'POST', {
-      username: username,
-      password: password ?? '',
-    })
-    if (response.ok) {
-      const data = await response.json()
+    try {
+      const response = await authenticatedFetch(API.users.login, 'POST', {
+        username: username,
+        password: password ?? '',
+      })
       // Set JWT token as cookie
-      document.cookie = `jwt=${data.token}; path=/; max-age=2592000; samesite=strict`
-      setCurrentUser(data.user)
+      document.cookie = `jwt=${response.data.token}; path=/; max-age=2592000; samesite=strict`
+      setCurrentUser(response.data.user)
       setIsLoading(false)
       navigate('/home')
       return
+    } catch (error) {
+      setIsLoading(false)
+      setErrorMessage('Contraseña incorrecta')
+      setTimeout(() => {
+        setErrorMessage('')
+      }, 5000)
     }
-    setIsLoading(false)
-    setErrorMessage('Contraseña incorrecta')
-    setTimeout(() => {
-      setErrorMessage('')
-    }, 5000)
   }
 
   const handleAddUser = async () => {
     setIsLoading(true)
     setErrorMessage('')
-    const response = await authenticatedFetch(`/api/users`, 'POST', {
-      username: username,
-      password: password,
-      type: newUserType,
-    })
-    if (response.ok) {
-      const data = await response.json()
+    try {
+      const response = await authenticatedFetch(API.users.create, 'POST', {
+        username: username,
+        password: password,
+        type: newUserType,
+      })
       // Set JWT token as cookie
-      document.cookie = `jwt=${data.token}; path=/; max-age=2592000; samesite=strict`
-      setCurrentUser(data.user)
+      document.cookie = `jwt=${response.data.token}; path=/; max-age=2592000; samesite=strict`
+      setCurrentUser(response.data.user)
       setIsLoading(false)
       navigate('/home')
       return
+    } catch (error) {
+      setIsLoading(false)
+      setErrorMessage('Error al crear usuario')
+      setTimeout(() => {
+        setErrorMessage('')
+      }, 5000)
     }
-    setIsLoading(false)
-    setErrorMessage('Error al crear usuario')
-    setTimeout(() => {
-      setErrorMessage('')
-    }, 5000)
   }
 
   if (gettingUsers) {

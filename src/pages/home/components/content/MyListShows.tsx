@@ -1,10 +1,10 @@
 import Card from '@/components/cards/Card'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { Series } from '@/data/interfaces/Media'
-import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth'
 import { refreshMetadata, toggleSeriesWatched } from '@/utils/ReactUtils'
 import { Pencil } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
@@ -41,7 +41,7 @@ function MyListShows({ goToContent }: MyListShowsProps) {
 
   // Get Shows in My List
   const { data: showsInMyList, isLoading } = useSWR<Series[]>(
-    `/api/myListSeries?userId=${user?.id ?? null}`,
+    API.myList.series,
     authenticatedFetcher,
   )
 
@@ -67,7 +67,7 @@ function MyListShows({ goToContent }: MyListShowsProps) {
                     {
                       title: t('removeFromMyList'),
                       action: () => {
-                        authenticatedFetch(`/api/updateSeriesMyList`, 'POST', {
+                        authenticatedFetch(API.myList.series, 'POST', {
                           seriesId: series.id,
                           userId: user?.id,
                         }).then(() => {

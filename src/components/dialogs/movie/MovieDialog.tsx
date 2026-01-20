@@ -1,8 +1,8 @@
 import { ModalWrapper } from '@/components/ModalWrapper'
+import { API, authenticatedFetch } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Movie } from '@/data/interfaces/Media'
-import { authenticatedFetch } from '@/lib/auth'
 import { ImageType } from '@/utils/constants'
 import { showToast } from '@/utils/ReactUtils'
 import { useEffect, useState } from 'react'
@@ -90,22 +90,21 @@ function MovieDialog() {
       movieTagsConfig,
     )
 
-    const response = await authenticatedFetch(`/api/movie/${movie.id}`, 'PUT', {
-      ...submitData,
-      logoSrc: selectedLogo ?? movie.logoSrc,
-      coverSrc: selectedPoster ?? movie.coverSrc,
-      backgroundSrc: selectedBackground ?? movie.backgroundSrc,
-    })
+    try {
+      await authenticatedFetch(API.movies.update(movie.id), 'PUT', {
+        ...submitData,
+        logoSrc: selectedLogo ?? movie.logoSrc,
+        coverSrc: selectedPoster ?? movie.coverSrc,
+        backgroundSrc: selectedBackground ?? movie.backgroundSrc,
+      })
 
-    if (!response || !response.ok) {
+      mutate((key: string) => key.startsWith(API.media.details('movie')))
+      mutate((key: string) => key.startsWith(API.libraries.content('')))
+
+      closeMovieDialog()
+    } catch (error) {
       showToast('error', 'Error updating movie')
-      return
     }
-
-    mutate((key: string) => key.startsWith(`/api/details/movie`))
-    mutate((key: string) => key.startsWith(`/api/library-content`))
-
-    closeMovieDialog()
   })
 
   const getWindowTitle = () => {
