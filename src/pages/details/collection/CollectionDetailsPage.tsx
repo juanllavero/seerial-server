@@ -8,7 +8,6 @@ import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
 import { useWebSocketStore } from '@/context/ws.context'
-import { MessageType } from '@/data/enums/WSMessage'
 import {
   Collection,
   CollectionImages,
@@ -74,12 +73,6 @@ function CollectionDetailsPage() {
       setLocalCollection(collection)
     }
   }, [collection])
-
-  useEffect(() => {
-    if (wsMessage?.header === MessageType.MUTATE_LIBRARY) {
-      mutate()
-    }
-  }, [wsMessage, mutate])
 
   useEffect(() => {
     const image =

@@ -72,7 +72,7 @@ function MyListShows({ goToContent }: MyListShowsProps) {
                           userId: user?.id,
                         }).then(() => {
                           mutate((key: string) =>
-                            key.startsWith(`/api/myListSeries`),
+                            key.startsWith(API.myList.series),
                           )
                         })
                       },

@@ -12,7 +12,6 @@ import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import { useWebSocketStore } from '@/context/ws.context'
-import { MessageType } from '@/data/enums/WSMessage'
 import { Series } from '@/data/interfaces/Media'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { t } from 'i18next'
@@ -70,16 +69,6 @@ function SeriesDetailsPage() {
 
   const isMobile = useIsMobile()
   const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true
-
-  // Mutate content on ws message
-  useEffect(() => {
-    if (
-      wsMessage?.header === MessageType.MUTATE_SERIES ||
-      wsMessage?.header === MessageType.MUTATE_SEASON
-    ) {
-      mutateSeries()
-    }
-  }, [wsMessage, mutateSeries])
 
   useEffect(() => {
     if (

@@ -69,7 +69,7 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
                           userId: user?.id,
                         }).then(() => {
                           mutate((key: string) =>
-                            key.startsWith(`/api/myListMovies`),
+                            key.startsWith(API.myList.movies),
                           )
                         })
                       },

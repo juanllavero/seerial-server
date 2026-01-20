@@ -1,7 +1,6 @@
-import { API_ENDPOINTS } from '@/config/api'
+import { API, authenticatedFetch } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.context'
 import { useWebSocketStore } from '@/context/ws.context'
-import { authenticatedFetch } from '@/lib/auth'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
@@ -80,13 +79,13 @@ function LibraryDialog() {
         subsMode,
       }
 
-      await authenticatedFetch(API_ENDPOINTS.libraries.create, 'PUT', {
+      await authenticatedFetch(API.libraries.create, 'PUT', {
         libraryId: libraryDialog.libraryToEdit.id,
         updatedLibrary: newLibrary,
       })
 
       // Mutate libraries list
-      mutate((key: string) => key.startsWith(API_ENDPOINTS.libraries.create))
+      mutate((key: string) => key.startsWith(API.libraries.create))
 
       closeLibraryDialog()
 
@@ -108,23 +107,23 @@ function LibraryDialog() {
     }
 
     const response = await authenticatedFetch(
-      API_ENDPOINTS.libraries.create,
+      API.libraries.create,
       'POST',
       newLibrary,
     )
 
     closeLibraryDialog()
 
-    if (!response || !response.ok) {
+    if (!response || !response.data) {
       setLoading(false)
       return
     }
 
     // Mutate libraries list
-    mutate((key: string) => key.startsWith(API_ENDPOINTS.libraries.create))
+    mutate((key: string) => key.startsWith(API.libraries.create))
 
-    console.log({ okay: response.ok, response })
-    const data = await response.json()
+    console.log({ okay: response.data, response })
+    const data = await response.data
     console.log({ data })
     const libraryId = data.id
 

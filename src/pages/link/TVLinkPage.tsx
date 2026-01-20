@@ -1,6 +1,6 @@
 import Image from '@/components/ui/Image'
+import { authenticatedFetch } from '@/config/api'
 import { useServerStore } from '@/context/server.context'
-import { authenticatedFetch } from '@/lib/auth'
 import { CENTRAL_SERVER } from '@/utils/constants'
 import { t } from 'i18next'
 import { useEffect, useState } from 'react'
@@ -43,13 +43,13 @@ export default function TVLinkPage() {
         { user_code: autoCode.toUpperCase() },
       )
 
-      if (response && response.ok) {
+      if (response && response.data) {
         setSuccess(true)
         setTimeout(() => {
           navigate('/home')
         }, 2000)
       } else {
-        const errorData = await response?.json()
+        const errorData = await response?.data
         setError(errorData?.error || 'Failed to link device')
       }
     } catch (err) {
@@ -79,13 +79,13 @@ export default function TVLinkPage() {
         { user_code: code },
       )
 
-      if (response && response.ok) {
+      if (response && response.data) {
         setSuccess(true)
         setTimeout(() => {
           navigate('/home')
         }, 2000)
       } else {
-        const errorData = await response?.json()
+        const errorData = await response?.data
         setError(errorData?.error || 'Failed to link device')
       }
     } catch (err) {

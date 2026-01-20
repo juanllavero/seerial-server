@@ -1,45 +1,60 @@
-import AlbumDetailsPage from '@/pages/details/album/AlbumDetailsPage'
-import CollectionDetailsPage from '@/pages/details/collection/CollectionDetailsPage'
-import EpisodeDetailsPage from '@/pages/details/episode/EpisodeDetailsPage'
-import MovieDetailsPage from '@/pages/details/movie/MovieDetailsPage'
-import SeriesDetailsPage from '@/pages/details/series/SeriesDetailsPage'
-import HomePage from '@/pages/home/HomePage'
-import LibraryPage from '@/pages/library/LibraryPage'
-import TVLinkPage from '@/pages/link/TVLinkPage'
-import SettingsPage from '@/pages/settings/SettingsPage'
-import SideBarLayout from '@/pages/sidebarLayout/SideBarLayout'
-import UsersPage from '@/pages/users/UsersPage'
-import VideoPlayerPage from '@/pages/videoPlayer/VideoPlayerPage'
-import { memo } from 'react'
+import { lazy, memo } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import Root from './__root'
+
+const UsersPage = lazy(() => import('@/pages/users/UsersPage'))
+const TVLinkPage = lazy(() => import('@/pages/link/TVLinkPage'))
+const HomePage = lazy(() => import('@/pages/home/HomePage'))
+const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'))
+const LibraryPage = lazy(() => import('@/pages/library/LibraryPage'))
+const MovieDetailsPage = lazy(
+  () => import('@/pages/details/movie/MovieDetailsPage'),
+)
+const SeriesDetailsPage = lazy(
+  () => import('@/pages/details/series/SeriesDetailsPage'),
+)
+const AlbumDetailsPage = lazy(
+  () => import('@/pages/details/album/AlbumDetailsPage'),
+)
+const CollectionDetailsPage = lazy(
+  () => import('@/pages/details/collection/CollectionDetailsPage'),
+)
+const EpisodeDetailsPage = lazy(
+  () => import('@/pages/details/episode/EpisodeDetailsPage'),
+)
+const VideoPlayerPage = lazy(
+  () => import('@/pages/videoPlayer/VideoPlayerPage'),
+)
+const SideBarLayout = lazy(() => import('@/pages/sidebarLayout/SideBarLayout'))
 
 export function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Root />}>
-        <Route path="/users" element={<UsersPage />} />
-        <Route path="/link" element={<TVLinkPage />} />
+        {/* Login Pages */}
+        <Route path="users" element={<UsersPage />} />
+        <Route path="link" element={<TVLinkPage />} />
+
+        {/* Home Page */}
         <Route index element={<Navigate to="/home" replace />} />
+
+        {/* Sidebar Content */}
         <Route element={<SideBarLayout />}>
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="library/:libraryId/:type" element={<LibraryPage />} />
-          <Route path="details/movie/:movieId" element={<MovieDetailsPage />} />
-          <Route
-            path="details/series/:seriesId"
-            element={<SeriesDetailsPage />}
-          />
-          <Route path="details/album/:albumId" element={<AlbumDetailsPage />} />
-          <Route
-            path="details/collection/:collectionId/:type"
-            element={<CollectionDetailsPage />}
-          />
-          <Route
-            path="details/episode/:episodeId"
-            element={<EpisodeDetailsPage />}
-          />
+          <Route path="home" element={<HomePage />} />
+          <Route path="settings" element={<SettingsPage />} />
+          <Route path="library/:libraryId/:type" element={<LibraryPage />}>
+            <Route path="movie/:movieId" element={<MovieDetailsPage />} />
+            <Route path="series/:seriesId" element={<SeriesDetailsPage />} />
+            <Route path="album/:albumId" element={<AlbumDetailsPage />} />
+            <Route path="episode/:episodeId" element={<EpisodeDetailsPage />} />
+            <Route
+              path="collection/:collectionId/:type"
+              element={<CollectionDetailsPage />}
+            />
+          </Route>
         </Route>
+
+        {/* Video Player */}
         <Route path="video-player/:videoId" element={<VideoPlayerPage />} />
       </Route>
     </Routes>

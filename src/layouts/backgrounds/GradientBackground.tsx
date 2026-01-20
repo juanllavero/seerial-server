@@ -1,4 +1,4 @@
-import { authenticatedFetch } from '@/lib/auth'
+import { authenticatedFetch } from '@/config/api'
 import { useEffect, useRef, useState } from 'react'
 
 interface GradientBackgroundProps {
@@ -36,7 +36,7 @@ const GradientBackground = ({
         `/api/image-colors?${imageSrc?.startsWith('http') ? `url=${imageSrc}` : `localPath=${imageSrc}`}`,
       )
 
-      const data = await response.json()
+      const data = await response.data
       const css = data.css
 
       const newIndex = (activeIndex + 1) % 2

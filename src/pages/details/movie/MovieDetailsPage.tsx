@@ -16,7 +16,6 @@ import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import { useWebSocketStore } from '@/context/ws.context'
-import { MessageType } from '@/data/enums/WSMessage'
 import { Movie } from '@/data/interfaces/Media'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { formatTimeForView } from '@/utils/ReactUtils'
@@ -57,13 +56,6 @@ function MovieDetailsPage() {
 
   const isMobile = useIsMobile()
   const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true
-
-  // Mutate content on ws message
-  useEffect(() => {
-    if (wsMessage?.header === MessageType.MUTATE_MOVIE) {
-      mutate()
-    }
-  }, [wsMessage, mutate])
 
   // Set background image src
   useEffect(() => {

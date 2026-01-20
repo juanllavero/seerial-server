@@ -2,8 +2,8 @@ import Image from '@/components/ui/Image'
 import { ScreenHeight } from '@/data/enums/Screen'
 import { Collection, Movie, Series, Video } from '@/data/interfaces/Media'
 
+import { API, authenticatedFetch } from '@/config/api'
 import { useWebSocketStore } from '@/context/ws.context'
-import { authenticatedFetch } from '@/lib/auth'
 import { t } from 'i18next'
 import { toast } from 'sonner'
 import { mutate } from 'swr'
@@ -28,7 +28,7 @@ export const getVideoProgress = (video: Video, watchedTime?: number) => {
 
 export const toggleMovieWatched = (movie: Movie, userId: string) => {
   if (movie) {
-    authenticatedFetch(`/api/setMovieWatched`, 'POST', {
+    authenticatedFetch(API.movies.setWatchState(movie.id), 'POST', {
       movieId: movie.id,
       watched: movie.watchStatus === undefined,
       userId,
@@ -42,7 +42,7 @@ export const toggleMovieWatched = (movie: Movie, userId: string) => {
 
 export const toggleSeriesWatched = (series: Series, userId: string) => {
   if (series) {
-    authenticatedFetch(`/api/setSeriesWatched`, 'POST', {
+    authenticatedFetch(API.series.setWatchState(series.id), 'POST', {
       seriesId: series.id,
       watched: series.watchStatus === undefined,
       userId,
@@ -66,7 +66,7 @@ export const refreshMetadata = async (type: 'show' | 'movie', id: string) => {
     },
   )
 
-  if (!response.ok) {
+  if (!response.data) {
     showToast('error', t('refreshMetadataError'))
     return
   }

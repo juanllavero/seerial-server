@@ -6,7 +6,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { API, authenticatedFetcher } from '@/config/api'
 import { useGradientStore } from '@/context/gradientBackground.context'
 import { useWebSocketStore } from '@/context/ws.context'
-import { MessageType } from '@/data/enums/WSMessage'
 import { Album } from '@/data/interfaces/Music'
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
@@ -36,12 +35,6 @@ function AlbumDetailsPage() {
       selectBackground(album.coverSrc)
     }
   }, [album])
-
-  useEffect(() => {
-    if (wsMessage?.header === MessageType.MUTATE_ALBUM) {
-      mutate()
-    }
-  }, [wsMessage, mutate])
 
   if (error) {
     return <NotFound />

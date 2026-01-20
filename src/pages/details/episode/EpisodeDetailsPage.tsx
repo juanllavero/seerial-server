@@ -4,10 +4,8 @@ import FlexBox from '@/components/ui/FlexBox'
 import LazyImage from '@/components/ui/LazyImage'
 import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import { useWebSocketStore } from '@/context/ws.context'
-import { MessageType } from '@/data/enums/WSMessage'
 import { formatDate } from '@/utils/ReactUtils'
 import { PlayIcon } from 'lucide-react'
-import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import useSWR from 'swr'
@@ -37,13 +35,6 @@ function EpisodeDetailsPage() {
     season ? API.series.get(season.seriesId) : null,
     authenticatedFetcher,
   )
-
-  // Mutate content on ws message
-  useEffect(() => {
-    if (wsMessage?.header === MessageType.MUTATE_SEASON) {
-      mutate()
-    }
-  }, [wsMessage, mutate])
 
   if (isLoading) {
     return <Loading />

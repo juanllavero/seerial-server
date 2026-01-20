@@ -2,12 +2,10 @@ import Card from '@/components/cards/Card'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Skeleton } from '@/components/ui/skeleton'
 import { API, authenticatedFetcher } from '@/config/api'
-import { useServerStore } from '@/context/server.context'
 import { Video } from '@/data/interfaces/Media'
 import { getVideoProgress } from '@/utils/ReactUtils'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
-import { shallow } from 'zustand/shallow'
 import HorizontalList from '../../../../components/lists/HorizontalList'
 
 interface ContinueWatchingProps {
@@ -16,12 +14,6 @@ interface ContinueWatchingProps {
 
 function ContinueWatching({ goToContent }: ContinueWatchingProps) {
   const { t } = useTranslation()
-  const { user } = useServerStore(
-    (state) => ({
-      user: state.currentUser,
-    }),
-    shallow,
-  )
   const isMobile = useIsMobile()
 
   // Get Continue Watching items

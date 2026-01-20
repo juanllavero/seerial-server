@@ -28,9 +28,7 @@ function HorizontalListSkeleton({ listType }: HorizontalListSkeletonProps) {
       >
         <Skeleton
           key={'MyListMovies ' + index}
-          className={
-            isMobile ? 'h-[195px] min-w-[130px]' : 'h-[270px] min-w-[180px]'
-          }
+          className={isMobile ? 'h-48.75 min-w-32.5' : 'h-67.5 min-w-45'}
         />
       </div>
       <div

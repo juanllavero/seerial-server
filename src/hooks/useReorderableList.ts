@@ -1,5 +1,5 @@
+import { API, authenticatedFetch } from '@/config/api'
 import { LibraryItem } from '@/data/interfaces/Media'
-import { authenticatedFetch } from '@/lib/auth'
 import { useEffect, useState } from 'react'
 
 export function useReorderableList(
@@ -31,7 +31,7 @@ export function useReorderableList(
     }))
 
     try {
-      await authenticatedFetch(`/api/library/reorder`, 'POST', {
+      await authenticatedFetch(API.libraries.reorderItems(libraryId), 'POST', {
         libraryId,
         orderedItems: orderedItemsForApi,
       })

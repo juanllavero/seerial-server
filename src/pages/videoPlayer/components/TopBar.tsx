@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
+import { API, authenticatedFetch } from '@/config/api'
 import { useServerStore } from '@/context/server.context'
 import { Video } from '@/data/interfaces/Media'
-import { authenticatedFetch } from '@/lib/auth'
 import { ChevronLeft, Maximize2, Minimize2 } from 'lucide-react'
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -49,7 +49,7 @@ function TopBar({
     setVideoLoaded(false)
     setIsPlaying(false)
 
-    await authenticatedFetch(`/api/updateWatchState`, 'PUT', {
+    await authenticatedFetch(API.videos.setWatchState(video.id), 'PUT', {
       videoId: video.id,
       timeWatched: currentTime,
       watched: currentTime > video.runtime * 60 * 0.9,
