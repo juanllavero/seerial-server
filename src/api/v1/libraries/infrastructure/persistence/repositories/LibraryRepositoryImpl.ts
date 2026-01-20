@@ -1,13 +1,13 @@
 import { AlbumModel } from "@/api/v1/albums/infrastructure/persistence/models/AlbumModel";
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
 import { EpisodeModel } from "@/api/v1/episodes/infrastructure/persistence/models/EpisodeModel";
-import { LibraryManager } from "@/api/v1/libraries/application/services/LibraryManager";
 import { MovieModel } from "@/api/v1/movies/infrastructure/persistence/models/MovieModel";
 import { SeasonModel } from "@/api/v1/seasons/infrastructure/persistence/models/SeasonModel";
 import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/SeriesModel";
 import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/VideoModel";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
+import { getCollectionItemsKey } from "@/file-search/utils/utils";
 import { SequelizeManager } from "@/managers/SequelizeManager";
 import { v4 as uuidv4 } from "uuid";
 import { LibrariesRepositoryPort } from "../../../application/ports/LibrariesRepositoryPort";
@@ -33,13 +33,43 @@ export class LibrariesRepositoryImpl
     userId: string,
     flat?: string
   ) {
-    // TODO: Change this function to not use LibraryManager
-    return await LibraryManager.getLibraryContent(
-      libraryId,
-      type,
-      userId,
-      flat === "true" ? true : false
-    );
+    const library = await LibraryModel.findOne({
+      where: { id: libraryId },
+      include: [
+        {
+          model: SeriesModel,
+          as: "series",
+          order: [["order", "ASC"]],
+        },
+        {
+          model: MovieModel,
+          as: "movies",
+          order: [["order", "ASC"]],
+        },
+        {
+          model: AlbumModel,
+          as: "albums",
+          order: [["order", "ASC"]],
+        },
+      ],
+    });
+
+    if (!library) return [];
+
+    let items: any[] = [];
+    if (type === "Movies") {
+      items = library.movies || [];
+    } else if (type === "Shows" || type === "Series") {
+      items = library.series || [];
+    } else if (type === "Music") {
+      items = library.albums || [];
+    }
+
+    return items.map((item, index) => ({
+      type: getCollectionItemsKey(type),
+      order: item.order || index,
+      data: item.toJSON(),
+    }));
   }
 
   async getById(id: string) {

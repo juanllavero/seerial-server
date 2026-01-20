@@ -21,6 +21,9 @@ export class CollectionsRepositoryImpl implements CollectionsRepositoryPort {
         {
           model: CollectionModel,
           as: "collections",
+          through: {
+            attributes: ["customOrder"],
+          },
         },
       ],
     });

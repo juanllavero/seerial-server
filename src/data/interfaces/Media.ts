@@ -9,9 +9,28 @@ export interface CastData {
   profileImage: string;
 }
 
+export interface CollectionData {
+  id: string;
+  title: string;
+  images: {
+    poster?: string | null;
+    background?: string | null;
+    images: string[];
+  };
+  musicPosterSrc?: string;
+  numberOfItems: number;
+}
+
+export interface FlatItem {
+  id: string;
+  year?: string;
+  title: string;
+  posterSrc: string;
+}
+
 export interface LibraryItem {
   type: string;
   order: number;
-  data: Collection | Series | Movie | Album;
+  data: Collection | Series | Movie | Album | CollectionData | FlatItem;
   remainingItems?: number;
 }

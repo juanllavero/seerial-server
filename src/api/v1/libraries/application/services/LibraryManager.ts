@@ -77,43 +77,27 @@ export class LibraryManager {
         continue;
       }
 
-      //const collectionData = collection.get({ plain: true });
-      const collectionData = collection;
-
-      // if (!collectionData.LibraryCollection) {
-      //   throw new ApiError(404, messages.errors.notFound.library);
-      // }
-
       const collectionImages = await this.getCollectionImages(collection, type);
 
       unifiedContent.push({
         type: "collection",
-        //order: collectionData.LibraryCollection.customOrder,
+        order: (collection as any).LibraryCollection?.customOrder ?? 0,
         data: {
-          id: collectionData.id,
-          title: collectionData.title,
+          id: collection.id,
+          title: collection.title,
           images: collectionImages,
-          // posterSrc:
-          //   collectionData.posterSrc ??
-          //   (type === "Movies" &&
-          //     collectionData.movies &&
-          //     collectionData.movies.length === 1)
-          //     ? collectionData.movies[0].coverSrc ?? undefined
-          //     : collectionData.shows && collectionData.shows.length === 1
-          //     ? collectionData.shows[0].coverSrc ?? undefined
-          //     : undefined,
           musicPosterSrc:
-            collectionData.musicPosterSrc ??
-            (collectionData.albums && collectionData.albums.length === 1)
-              ? collectionData.albums[0].coverSrc ?? undefined
+            collection.musicPosterSrc ??
+            (collection.albums && collection.albums.length === 1)
+              ? collection.albums[0].coverSrc ?? undefined
               : undefined,
           numberOfItems:
             type === "Movies"
-              ? collectionData.movies.length
+              ? collection.movies.length
               : type === "Shows" || type === "Series"
-              ? collectionData.shows.length
+              ? collection.shows.length
               : type === "Music"
-              ? collectionData.albums.length
+              ? collection.albums.length
               : 0,
         },
       });
@@ -147,16 +131,15 @@ export class LibraryManager {
                   : itemType === "movies"
                   ? (item.data as Movie).name
                   : (item.data as Series).name,
-              posterSrc: item.data.coverSrc,
+              posterSrc: (item.data as any).coverSrc,
             }
-          : item,
+          : item.data,
         remainingItems,
       });
     }
 
-    //unifiedContent.sort((a, b) => a.order - b.order);
-    //return unifiedContent;
-    return [];
+    unifiedContent.sort((a, b) => a.order - b.order);
+    return unifiedContent;
   }
 
   private static async getCollectionImages(
