@@ -2,6 +2,7 @@ import { MessageResponse } from "@/api/v1/shared/application/dtos/DTOs";
 import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
+import { IncludeType } from "@/types/common";
 import {
   Body,
   Controller,
@@ -10,6 +11,7 @@ import {
   Path,
   Post,
   Put,
+  Query,
   Route,
   Security,
   Tags,
@@ -28,8 +30,11 @@ export class SeasonsController extends Controller {
    */
   @Get("{id}")
   @Security("cookieAuth")
-  public async get(@Path() id: string): Promise<SeasonResponse> {
-    const result = await useCases.getSeasonById().execute(id);
+  public async get(
+    @Path() id: string,
+    @Query() include?: IncludeType
+  ): Promise<SeasonResponse> {
+    const result = await useCases.getSeasonById().execute(id, include);
 
     return {
       status: "success",

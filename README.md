@@ -1,4 +1,6 @@
-# Seerial Server
+![Seerial Banner](assets/banner.svg)
+
+# Seerial Media Server
 
 This is the server application for the suite Seerial. It is a multimedia management server that provides user media to different client applications. Built with a focus on scalability and maintainability using modern web technologies.
 

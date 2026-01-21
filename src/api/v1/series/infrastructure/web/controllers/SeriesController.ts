@@ -4,6 +4,7 @@ import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import { ExternalSearchManager } from "@/managers/ExternalSearchManager";
 import { MediaManager } from "@/managers/MediaManager";
+import { IncludeType } from "@/types/common";
 import { Request as ExpressRequest } from "express";
 import {
   Body,
@@ -193,8 +194,11 @@ export class SeriesController extends Controller {
    */
   @Get("{id}")
   @Security("cookieAuth")
-  public async get(@Path() id: string): Promise<SeriesResponse> {
-    const series = await useCases.getSeriesById().execute(id);
+  public async get(
+    @Path() id: string,
+    @Query() include?: IncludeType
+  ): Promise<SeriesResponse> {
+    const series = await useCases.getSeriesById().execute(id, include);
 
     if (!series) {
       throw new ApiError(404, messages.errors.notFound.series);
