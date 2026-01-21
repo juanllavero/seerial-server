@@ -1,4 +1,5 @@
 import { DropdownContent } from '@/data/interfaces/Utils'
+import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { Check, EllipsisVertical } from 'lucide-react'
 import React, { useState } from 'react'
 import DropdownWrapper from '../DropdownWrapper'
@@ -10,10 +11,6 @@ import LazyImage from '../ui/LazyImage'
 import { Progress } from '../ui/progress'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 import './Card.css'
-import { useServerStore } from '@/context/server.context'
-import { shallow } from 'zustand/shallow'
-import { UserType } from '@/utils/constants'
-import { useIsAdmin } from '@/hooks/useIsAdmin'
 
 interface CardProps {
   itemKey: string

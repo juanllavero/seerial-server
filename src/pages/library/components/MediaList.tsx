@@ -1,21 +1,12 @@
 import { SortableGrid } from '@/components/lists/SortableGrid'
 import { API, authenticatedFetcher } from '@/config/api'
 import { LibraryTypes } from '@/data/enums/LibraryTypes'
-import {
-  Collection,
-  Library,
-  LibraryItem,
-  Movie,
-  Series,
-} from '@/data/interfaces/Media'
-import { Album } from '@/data/interfaces/Music'
+import { Library, LibraryItem } from '@/data/interfaces/Media'
+import { APIResponse } from '@/data/interfaces/Utils'
 import { useReorderableList } from '@/hooks/useReorderableList'
 import { memo } from 'react'
 import useSWR from 'swr'
-import AlbumCard from './cards/AlbumCard'
-import CollectionCard from './cards/CollectionCard'
-import MovieCard from './cards/MovieCard'
-import SeriesCard from './cards/SeriesCard'
+import MediaCard from './cards/MediaCard'
 
 interface MediaListProps {
   library: Library
@@ -30,13 +21,15 @@ function MediaList({ library, mutateLibrary }: MediaListProps) {
         ? 'Shows'
         : 'Movies'
 
-  const { data, isLoading } = useSWR<LibraryItem[]>(
+  const { data, isLoading } = useSWR<APIResponse<LibraryItem[]>>(
     `${API.libraries.content(library.id)}?type=${queryType}`,
     authenticatedFetcher,
   )
 
+  const libraryItems = data && data.data ? data.data : []
+
   const { items, handleDragEnd } = useReorderableList(
-    data,
+    libraryItems,
     library.id,
     mutateLibrary,
   )
@@ -47,32 +40,9 @@ function MediaList({ library, mutateLibrary }: MediaListProps) {
     <SortableGrid
       items={items}
       onDragEnd={handleDragEnd}
-      renderItem={(item: LibraryItem) => {
-        if (item.type === 'collection') {
-          return (
-            <CollectionCard
-              key={item.data.id}
-              libraryId={library.id}
-              collection={item.data as Collection}
-              type={queryType}
-            />
-          )
-        }
-        switch (library.type) {
-          case LibraryTypes.MUSIC:
-            return <AlbumCard key={item.data.id} album={item.data as Album} />
-          case LibraryTypes.SHOWS:
-            return (
-              <SeriesCard
-                key={item.data.id}
-                series={item.data as Series}
-                remainingEpisodes={item.remainingItems ?? 0}
-              />
-            )
-          default: // Default MOVIES
-            return <MovieCard key={item.data.id} movie={item.data as Movie} />
-        }
-      }}
+      renderItem={(item: LibraryItem) => (
+        <MediaCard key={item.data.id} item={item} library={library} />
+      )}
     />
   )
 }

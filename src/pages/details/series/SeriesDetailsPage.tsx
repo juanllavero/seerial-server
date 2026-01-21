@@ -11,8 +11,8 @@ import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
-import { useWebSocketStore } from '@/context/ws.context'
 import { Series } from '@/data/interfaces/Media'
+import { APIResponse } from '@/data/interfaces/Utils'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { t } from 'i18next'
 import { Pencil } from 'lucide-react'
@@ -44,7 +44,6 @@ function SeriesDetailsPage() {
     shallow,
   )
   const isAdmin = useIsAdmin()
-  const wsMessage = useWebSocketStore((state) => state.wsMessage)
   const { user } = useServerStore(
     (state) => ({
       user: state.currentUser,
@@ -59,13 +58,18 @@ function SeriesDetailsPage() {
     data: series,
     isLoading,
     error,
-    mutate: mutateSeries,
-  } = useSWR<Series>(API.series.get(seriesId ?? ''), authenticatedFetcher)
+  } = useSWR<APIResponse<Series>>(
+    `${API.series.get(seriesId ?? '')}?include=all`,
+    authenticatedFetcher,
+  )
+
+  const seriesData = series ? series.data : undefined
 
   // Get selected season data
-  const season = series
-    ? series.seasons.find((s) => s.id === selectedSeasonId)
-    : undefined
+  const season =
+    seriesData && seriesData.seasons
+      ? seriesData.seasons.find((s) => s.id === selectedSeasonId)
+      : undefined
 
   const isMobile = useIsMobile()
   const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true
@@ -73,16 +77,16 @@ function SeriesDetailsPage() {
   useEffect(() => {
     if (
       !isLoading &&
-      series &&
+      seriesData &&
       ((season && season.id !== selectedSeasonId) || !season)
     ) {
       selectSeason(
-        series.seasons && series.seasons.length > 0
-          ? series.seasons[0].id
+        seriesData.seasons && seriesData.seasons.length > 0
+          ? seriesData.seasons[0].id
           : null,
       )
     }
-  }, [series, season, isLoading, selectedSeasonId, selectSeason])
+  }, [seriesData, season, isLoading, selectedSeasonId, selectSeason])
 
   // Set background image src
   useEffect(() => {
@@ -95,11 +99,11 @@ function SeriesDetailsPage() {
   }, [season, setCurrentBackground, currentBackground])
 
   const renderLogoOrText = () => {
-    if (isLoading || !series) {
+    if (isLoading || !seriesData) {
       return <Skeleton style={{ width: '350px', height: '200px' }} />
     }
 
-    const logoUrl = series.logoSrc
+    const logoUrl = seriesData.logoSrc
 
     if (logoUrl && logoUrl !== '') {
       return (
@@ -118,7 +122,7 @@ function SeriesDetailsPage() {
             textTransform: 'uppercase',
           }}
         >
-          {series.name}
+          {seriesData.name}
         </span>
       )
     }
@@ -138,7 +142,7 @@ function SeriesDetailsPage() {
   }
 
   const selectSeasonOption = (key: string, _value: string) => {
-    selectSeason(series?.seasons[Number(key)]?.id || null)
+    selectSeason(seriesData?.seasons[Number(key)]?.id || null)
   }
 
   if (error) {
@@ -158,14 +162,14 @@ function SeriesDetailsPage() {
         {!isMobile && (
           <div className="cover-container">
             {showPoster &&
-              (isLoading || !series ? (
+              (isLoading || !seriesData ? (
                 <FlexBox className="image-container">
                   <Skeleton style={{ height: '495px', width: '330px' }} />
                 </FlexBox>
               ) : (
                 <FlexBox className="image-container">
                   <LazyImage
-                    url={series.coverSrc}
+                    url={seriesData.coverSrc}
                     width={330}
                     maxHeight={495}
                     height={495}
@@ -185,12 +189,12 @@ function SeriesDetailsPage() {
           {renderLogoOrText()}
 
           {/* Season Title */}
-          {isLoading || !series ? (
+          {isLoading || !seriesData ? (
             <Skeleton className="h-8 w-60" />
-          ) : series.seasons && series.seasons.length > 1 && season ? (
+          ) : seriesData.seasons && seriesData.seasons.length > 1 && season ? (
             <SeasonSelectable
-              defaultValue={season ? season.name : series.seasons[0].name}
-              options={series.seasons
+              defaultValue={season ? season.name : seriesData.seasons[0].name}
+              options={seriesData.seasons
                 .sort((a, b) => a.seasonNumber - b.seasonNumber)
                 .map((season, index) => {
                   return {
@@ -206,7 +210,7 @@ function SeriesDetailsPage() {
           <FlexBox direction="column" gap={0.2}>
             <FlexBox gap={1.3} margin="0 0 0.3rem 0">
               <span id="date">
-                {isLoading || !series ? (
+                {isLoading || !seriesData ? (
                   <Skeleton className="h-5 w-20" />
                 ) : season ? (
                   new Date(season.year).getFullYear()
@@ -216,8 +220,10 @@ function SeriesDetailsPage() {
             <span id="genres">
               {isLoading ? (
                 <Skeleton className="h-5 w-40" />
-              ) : series && series.genres && series.genres.length > 0 ? (
-                series.genres.join(', ') || ''
+              ) : seriesData &&
+                seriesData.genres &&
+                seriesData.genres.length > 0 ? (
+                seriesData.genres.join(', ') || ''
               ) : null}
             </span>
           </FlexBox>
@@ -232,8 +238,8 @@ function SeriesDetailsPage() {
             <span className="text-sm font-bold">
               {isLoading ? (
                 <Skeleton className="h-5 w-8" />
-              ) : series ? (
-                series.score.toFixed(2)
+              ) : seriesData ? (
+                seriesData.score.toFixed(2)
               ) : (
                 'N/A'
               )}
@@ -243,7 +249,7 @@ function SeriesDetailsPage() {
             <PlayButton
               selectedSeasonId={selectedSeasonId}
               currentlyWatchingEpisodeId={
-                series ? series.currentlyWatchingEpisodeId : undefined
+                seriesData ? seriesData.currentlyWatchingEpisodeId : undefined
               }
             />
             {!isMobile && (
@@ -295,8 +301,8 @@ function SeriesDetailsPage() {
                 <Skeleton className="h-30 w-90" />
               ) : season ? (
                 <ExpandableText text={season.overview} />
-              ) : series ? (
-                <ExpandableText text={series.overview} />
+              ) : seriesData ? (
+                <ExpandableText text={seriesData.overview} />
               ) : (
                 ''
               )}
@@ -306,17 +312,17 @@ function SeriesDetailsPage() {
       </FlexBox>
 
       {/* Season Content */}
-      {isLoading || !series || !season ? (
+      {isLoading || !seriesData || !season ? (
         <Skeleton className="h-300 w-200" />
       ) : (
-        <SeasonContent seasonList={series.seasons} />
+        <SeasonContent seasonList={seriesData.seasons} />
       )}
 
       {/* Cast */}
-      {isLoading || !series ? (
+      {isLoading || !seriesData ? (
         <Skeleton className="h-100 w-200" />
       ) : (
-        <CastList cast={series.cast ?? []} />
+        <CastList cast={seriesData.cast ?? []} />
       )}
     </FlexBox>
   )

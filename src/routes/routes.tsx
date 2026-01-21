@@ -32,30 +32,43 @@ export function AppRoutes() {
     <Routes>
       <Route path="/" element={<Root />}>
         {/* Login Pages */}
-        <Route path="users" element={<UsersPage />} />
-        <Route path="link" element={<TVLinkPage />} />
+        <Route path="/users" element={<UsersPage />} />
+        <Route path="/link" element={<TVLinkPage />} />
 
-        {/* Home Page */}
+        {/* Default to Home Page */}
         <Route index element={<Navigate to="/home" replace />} />
 
         {/* Sidebar Content */}
         <Route element={<SideBarLayout />}>
-          <Route path="home" element={<HomePage />} />
-          <Route path="settings" element={<SettingsPage />} />
-          <Route path="library/:libraryId" element={<LibraryPage />}>
-            <Route path="movie/:movieId" element={<MovieDetailsPage />} />
-            <Route path="series/:seriesId" element={<SeriesDetailsPage />} />
-            <Route path="album/:albumId" element={<AlbumDetailsPage />} />
-            <Route path="episode/:episodeId" element={<EpisodeDetailsPage />} />
-            <Route
-              path="collection/:collectionId/:type"
-              element={<CollectionDetailsPage />}
-            />
-          </Route>
+          <Route path="/home" element={<HomePage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/library/:libraryId" element={<LibraryPage />}></Route>
+          <Route
+            path="/library/:libraryId/movie/:movieId"
+            element={<MovieDetailsPage />}
+          />
+          <Route
+            path="/library/:libraryId/series/:seriesId"
+            element={<SeriesDetailsPage />}
+          />
+          <Route
+            path="/library/:libraryId/album/:albumId"
+            element={<AlbumDetailsPage />}
+          />
+          <Route
+            path="/library/:libraryId/episode/:episodeId"
+            element={<EpisodeDetailsPage />}
+          />
+
+          {/* Collection Details Page */}
+          <Route
+            path="/collection/:collectionId/:type"
+            element={<CollectionDetailsPage />}
+          />
         </Route>
 
         {/* Video Player */}
-        <Route path="video-player/:videoId" element={<VideoPlayerPage />} />
+        <Route path="/video-player/:videoId" element={<VideoPlayerPage />} />
       </Route>
     </Routes>
   )
