@@ -103,4 +103,4 @@ After running the server, visit `http://localhost:3000/api-docs` for Swagger UI 
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) for details.
+GNU GENERAL PUBLIC LICENSE - see [LICENSE](LICENSE) for details.
