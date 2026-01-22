@@ -2,7 +2,7 @@ import {
   AudioTrack,
   SubtitleTrack,
   VideoTrack,
-} from "../../data/interfaces/MediaInfo";
+} from "@/data/interfaces/MediaInfo";
 
 // Process video data
 export function processVideoData(stream: any): VideoTrack {

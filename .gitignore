@@ -32,6 +32,7 @@ out
 #lockfile
 package-lock.json
 pnpm-lock.yaml
+pnpm-workspace.yaml
 yarn.lock
 /test-results/
 /playwright-report/

@@ -2,7 +2,6 @@ import os from "os";
 import path from "path";
 
 export const APP_NAME = "Seerial Media Server";
-export const API_URL = "https://api.seerial.es";
 export const LOCAL_DATA_PATH = path.join(
   os.homedir(),
   process.platform === "win32"
@@ -14,3 +13,61 @@ export const LOCAL_DATA_PATH = path.join(
     : "",
   APP_NAME
 );
+
+export const initFolders: string[] = [
+  "resources/",
+  "resources/config",
+  "resources/img/",
+  "resources/img/posters/",
+  "resources/img/logos/",
+  "resources/img/backgrounds/",
+  "resources/img/thumbnails/",
+  "resources/img/thumbnails/video/",
+  "resources/img/thumbnails/chapters/",
+  "resources/img/DownloadCache/",
+];
+
+export enum UserType {
+  NORMAL = "normal",
+  ADMIN = "admin",
+}
+
+export const extraTypes = [
+  "behindthescenes",
+  "concert",
+  "interview",
+  "live",
+  "lyrics",
+  "video",
+];
+export const videoExtensions = [
+  ".mp4",
+  ".mkv",
+  ".avi",
+  ".mov",
+  ".wmv",
+  ".flv",
+  ".mpeg",
+  ".m2ts",
+  ".webm",
+];
+export const audioExtensions = [
+  ".mp3",
+  ".flac",
+  ".wav",
+  ".m4a",
+  ".ogg",
+  ".aac",
+  ".wma",
+  ".webm",
+  ".caf",
+];
+export const imageExtensions = [
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".gif",
+  ".bmp",
+  ".webp",
+  ".svg",
+];
