@@ -2,15 +2,13 @@ import { useIsTablet } from '@/components/hooks/use-tablet'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
-import { useServerStore } from '@/context/server.context'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
+import { ImageType } from '@/utils/constants'
 import { generateRandoumUUID, showToast } from '@/utils/ReactUtils'
-import { authenticatedFetcher } from '@/utils/utils'
 import React, { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import useSWR, { mutate } from 'swr'
 import ImageButton from './ImageButton'
-import { ImageType } from '@/utils/constants'
-import { authenticatedFetch } from '@/lib/auth'
 
 interface LocalImage {
   name: string
@@ -33,7 +31,6 @@ function ImageListTab({
   type = ImageType.BACKDROP,
 }: ImageListTabProps) {
   const { t } = useTranslation()
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const [pastingUrl, setPastingUrl] = useState<boolean>(false)
   const [urlToDownload, setUrlToDownload] = useState<string>('')
   const isTablet = useIsTablet()
@@ -46,7 +43,7 @@ function ImageListTab({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const { data: localImages, isLoading } = useSWR<LocalImage[]>(
-    localFolder ? `${serverUrl}/images?path=${localFolder}` : null,
+    localFolder ? `${API.images.directoryListing}?path=${localFolder}` : null,
     authenticatedFetcher,
   )
 
@@ -89,17 +86,9 @@ function ImageListTab({
     formData.append('image', file)
 
     try {
-      const response = await authenticatedFetch(
-        `${serverUrl}/uploadImage`,
-        'POST',
-        formData,
-      )
+      await authenticatedFetch(API.images.upload, 'POST', formData)
 
-      if (!response || !response.ok) {
-        throw new Error()
-      }
-
-      mutate(`${serverUrl}/images?path=${localFolder}`)
+      mutate(`${API.images.directoryListing}?path=${localFolder}`)
 
       showToast('success', t('imageLoaded'))
     } catch (err) {
@@ -113,21 +102,13 @@ function ImageListTab({
     setIsUploading(true)
 
     try {
-      const response = await authenticatedFetch(
-        `${serverUrl}/downloadImage`,
-        'POST',
-        {
-          url: url,
-          downloadFolder: localFolder,
-          fileName: `${generateRandoumUUID()}.${url.split('.').pop()}`,
-        },
-      )
+      await authenticatedFetch(API.downloads.image, 'POST', {
+        url: url,
+        downloadFolder: localFolder,
+        fileName: `${generateRandoumUUID()}.${url.split('.').pop()}`,
+      })
 
-      if (!response || !response.ok) {
-        throw new Error()
-      }
-
-      mutate(`${serverUrl}/images?path=${localFolder}`)
+      mutate(`${API.images.directoryListing}?path=${localFolder}`)
 
       showToast('success', t('imageLoaded'))
     } catch (err) {
@@ -145,6 +126,8 @@ function ImageListTab({
       }
     }
   }, [imageUrl])
+
+  console.log({ localImages })
 
   return (
     <FlexBox direction="column" gap={1} height={isTablet ? '25rem' : '35rem'}>

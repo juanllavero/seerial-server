@@ -1,10 +1,9 @@
 import Card from '@/components/cards/Card'
-import EpisodeDialog from '@/components/dialogs/episode/EpisodeDialog'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
-import { useAuth } from '@/context/auth.context'
 import { useDialogStore } from '@/context/dialog.context'
+import { useServerStore } from '@/context/server.context'
 import { Episode } from '@/data/interfaces/Media'
 import { getVideoProgress } from '@/utils/ReactUtils'
 import { Pencil } from 'lucide-react'
@@ -23,7 +22,7 @@ function EpisodeCardDetails({
   goToDetails,
   getEpisodeMenu,
 }: EpisodeCardDetailsProps) {
-  const { user } = useAuth()
+  const user = useServerStore((state) => state.currentUser)
   const { t } = useTranslation()
   const isMobile = useIsMobile()
   const openEpisodeDialog = useDialogStore((state) => state.openEpisodeDialog)

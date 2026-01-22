@@ -1,6 +1,7 @@
+import { API, authenticatedFetch } from '@/config/api'
 import { MessageType } from '@/data/enums/WSMessage'
 import { Series } from '@/data/interfaces/Media'
-import { authenticatedFetch } from '@/lib/auth'
+import { mutate } from 'swr'
 import { createWithEqualityFn } from 'zustand/traditional'
 
 // Message interface
@@ -11,7 +12,7 @@ interface WebSocketMessage {
 
 interface WebSocketState {
   ws: WebSocket | null
-  wsMessage: MessageType
+  wsMessage: WebSocketMessage | null
   errorDownloading: boolean
   downloading: boolean
   downloaded: boolean
@@ -27,18 +28,16 @@ interface WebSocketState {
   setDownloadPercentage: (value: number) => void
   setAnalyzing: (value: boolean, libraryId: string) => void
   setSeriesReceived: (value: Series | null) => void
-  connectWS: (ip: string) => Promise<void>
+  connectWS: () => Promise<void>
   downloadAudio: (
     elementId: string,
     url: string,
-    serverUrl: string,
     libraryId: string,
     fileName: string,
   ) => Promise<void>
   downloadVideo: (
     elementId: string,
     url: string,
-    serverUrl: string,
     libraryId: string,
     fileName: string,
   ) => Promise<void>
@@ -49,7 +48,7 @@ interface WebSocketState {
 export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
   (set, get) => ({
     ws: null,
-    wsMessage: MessageType.NO_MESSAGE,
+    wsMessage: null,
     wsConnected: false,
     messageQueue: [],
     analyzing: false,
@@ -73,13 +72,18 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
       })),
     clearMessageQueue: () => set({ messageQueue: [] }),
 
-    connectWS: async (ip: string) => {
+    connectWS: async () => {
       set({ downloaded: false })
       if (!get().wsConnected) {
         return new Promise<void>((resolve, reject) => {
-          const websocket = new WebSocket(
-            `${ip.replace('http://', 'ws://')}/ws`,
-          )
+          // Determine the protocol (http or https) based on the current location
+          const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws'
+          // Get the hostname
+          const host = window.location.host
+          // Reconstruct the WebSocket URL
+          const wsUrl = `${protocol}://${host}/api`
+
+          const websocket = new WebSocket(wsUrl)
 
           websocket.onopen = () => {
             set({
@@ -139,9 +143,140 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
                 break
               case MessageType.SCAN_COMPLETE:
                 set({ analyzing: false, analyzingLibraryId: null })
+                // Revalidate affected keys after scan (optimal for batch updates)
+                const scannedLibraryId = message.body // Assuming body is libraryId
+                mutate(API.libraries.getAll) // List of libraries
+                if (scannedLibraryId) {
+                  mutate(API.libraries.getById(scannedLibraryId)) // Specific library
+                  mutate(API.libraries.content(scannedLibraryId)) // Library content
+                }
                 break
+
+              // Handle MUTATE_ messages with optimistic cache updates
+              // Adjust based on actual message.body structure (e.g., assuming body is the entity object with 'id' and possibly 'libraryId')
+              case MessageType.MUTATE_LIBRARIES:
+                // Mutate the list of libraries
+                mutate(
+                  API.libraries.getAll,
+                  (current: any[] | undefined) => {
+                    if (!current) return current
+                    return [
+                      ...current,
+                      ...(Array.isArray(message.body)
+                        ? message.body
+                        : [message.body]),
+                    ]
+                  },
+                  { revalidate: false },
+                )
+                break
+
+              case MessageType.MUTATE_LIBRARY:
+                // Update libraries list
+                mutate(
+                  API.libraries.getAll,
+                  (current: any[] | undefined) => {
+                    if (!current) return current
+                    const updated = current.map((item) =>
+                      item.id === message.body.id ? message.body : item,
+                    )
+                    return updated.length === current.length
+                      ? [...current, message.body]
+                      : updated
+                  },
+                  { revalidate: false },
+                )
+                // Update specific library detail
+                mutate(API.libraries.getById(message.body.id), message.body, {
+                  revalidate: false,
+                })
+                // If content affected, revalidate content key
+                mutate(API.libraries.content(message.body.id))
+                break
+
+              case MessageType.MUTATE_COLLECTION:
+                // Collections might be fetched via library content or specific endpoints
+                // Assuming no direct list, mutate detail and potentially parent library if body has libraryId
+                mutate(API.collections.get(message.body.id), message.body, {
+                  revalidate: false,
+                })
+                if (message.body.libraryId) {
+                  mutate(API.libraries.content(message.body.libraryId))
+                }
+                break
+
+              case MessageType.MUTATE_SERIES:
+                set({ seriesReceived: message.body }) // Keep if needed for other logic
+                // Mutate series detail
+                mutate(API.series.get(message.body.id), message.body, {
+                  revalidate: false,
+                })
+                // If part of a library, mutate library content (assuming body has libraryId)
+                if (message.body.libraryId) {
+                  mutate(API.libraries.content(message.body.libraryId))
+                }
+                // If there's a series list (e.g., via my-list), revalidate if applicable
+                mutate(API.myList.series) // Example if relevant
+                break
+
+              case MessageType.MUTATE_SEASON:
+                // Mutate season detail
+                mutate(API.seasons.get(message.body.id), message.body, {
+                  revalidate: false,
+                })
+                // Mutate parent series if body has seriesId
+                if (message.body.seriesId) {
+                  mutate(API.series.get(message.body.seriesId))
+                }
+                break
+
+              case MessageType.MUTATE_EPISODE:
+                // Mutate episode detail
+                mutate(API.episodes.get(message.body.id), message.body, {
+                  revalidate: false,
+                })
+                // Mutate parent season/series if available in body
+                if (message.body.seasonId) {
+                  mutate(API.seasons.get(message.body.seasonId))
+                }
+                if (message.body.seriesId) {
+                  mutate(API.series.get(message.body.seriesId))
+                }
+                // Video-related if episode has video
+                if (message.body.videoId) {
+                  mutate(API.videos.getByEpisodeId(message.body.id))
+                }
+                break
+
+              case MessageType.MUTATE_MOVIE:
+                // Mutate movie detail
+                mutate(API.movies.get(message.body.id), message.body, {
+                  revalidate: false,
+                })
+                // If part of a library, mutate library content
+                if (message.body.libraryId) {
+                  mutate(API.libraries.content(message.body.libraryId))
+                }
+                // My-list if relevant
+                mutate(API.myList.movies)
+                break
+
+              case MessageType.MUTATE_ALBUM:
+                // Mutate album detail
+                mutate(API.albums.get(message.body.id), message.body, {
+                  revalidate: false,
+                })
+                // If part of a collection or library
+                if (message.body.collectionId) {
+                  mutate(API.collections.get(message.body.collectionId))
+                }
+                if (message.body.libraryId) {
+                  mutate(API.libraries.content(message.body.libraryId))
+                }
+                break
+
               default:
-                set({ wsMessage: message.header })
+                set({ wsMessage: message })
             }
 
             // Add all messages to queue for external processing
@@ -151,7 +286,7 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
       }
     },
 
-    downloadVideo: async (elementId, url, serverUrl, libraryId, fileName) => {
+    downloadVideo: async (elementId, url, libraryId, fileName) => {
       set({
         downloadingElementId: elementId,
         downloadPercentage: 0,
@@ -159,11 +294,11 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
       })
 
       const { connectWS } = get()
-      await connectWS(serverUrl)
+      await connectWS()
 
       try {
         const response = await authenticatedFetch(
-          `${serverUrl}/downloadVideo`,
+          `/api/downloadVideo`,
           'POST',
           {
             url,
@@ -171,17 +306,17 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
             fileName,
           },
         )
-        if (!response || !response.ok) {
+        if (!response || !response.data) {
           throw new Error()
         }
-        const data = await response.json()
+        const data = await response.data
         console.log('Download started:', data)
       } catch (error) {
         console.error('Error downloading media:', error)
       }
     },
 
-    downloadAudio: async (elementId, url, serverUrl, libraryId, fileName) => {
+    downloadAudio: async (elementId, url, libraryId, fileName) => {
       set({
         downloadingElementId: elementId,
         downloadPercentage: 0,
@@ -189,11 +324,11 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
       })
 
       const { connectWS } = get()
-      await connectWS(serverUrl)
+      await connectWS()
 
       try {
         const response = await authenticatedFetch(
-          `${serverUrl}/downloadMusic`,
+          `/api/downloadMusic`,
           'POST',
           {
             url,
@@ -201,10 +336,10 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>(
             fileName,
           },
         )
-        if (!response || !response.ok) {
+        if (!response || !response.data) {
           throw new Error()
         }
-        const data = await response.json()
+        const data = await response.data
         console.log('Download started:', data)
       } catch (error) {
         console.error('Error downloading media:', error)

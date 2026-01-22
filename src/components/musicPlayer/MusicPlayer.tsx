@@ -1,12 +1,10 @@
-import { useEffect, useRef } from 'react'
-import { useServerStore } from '@/context/server.context'
-import { Album } from '@/data/interfaces/Music'
-import { authenticatedFetcher } from '@/utils/utils'
-import useSWR from 'swr'
-import { memo } from 'react'
-import useMusicStore from '@/context/music.context'
-import { shallow } from 'zustand/shallow'
+import { API, authenticatedFetcher } from '@/config/api'
 import { useGradientStore } from '@/context/gradientBackground.context'
+import useMusicStore from '@/context/music.context'
+import { Album } from '@/data/interfaces/Music'
+import { memo, useEffect, useRef } from 'react'
+import useSWR from 'swr'
+import { shallow } from 'zustand/shallow'
 
 function MusicPlayer() {
   const { currentSong, initializeAudioRef, getAudioSrc, setAlbum } =
@@ -20,13 +18,12 @@ function MusicPlayer() {
       shallow,
     )
   const generateGradient = useGradientStore((state) => state.generateGradient)
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const localAudioRef = useRef<HTMLAudioElement>(null)
 
   // Get Album details
   const { data: album } = useSWR<Album>(
-    currentSong && currentSong.albumId && serverUrl !== ''
-      ? `${serverUrl}/details/album?id=${currentSong.albumId}`
+    currentSong && currentSong.albumId
+      ? API.albums.get(currentSong.albumId)
       : null,
     authenticatedFetcher,
   )
@@ -41,18 +38,18 @@ function MusicPlayer() {
 
   // Handle gradient background
   useEffect(() => {
-    if (album && serverUrl !== '') {
+    if (album) {
       setAlbum(album)
-      generateGradient(album.coverSrc, serverUrl, true)
+      generateGradient(album.coverSrc, true)
     }
-  }, [album, serverUrl])
+  }, [album])
 
   if (!album || !currentSong) return null
 
   return (
     <audio
       ref={localAudioRef}
-      src={`${serverUrl}${getAudioSrc()}`}
+      src={`/api/${getAudioSrc()}`}
       onError={(e) => console.error('Audio loading error:', e)}
       autoPlay
     />

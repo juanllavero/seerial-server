@@ -6,10 +6,11 @@ import React, { useEffect, useRef, useState, useCallback } from 'react'
 
 interface HorizontalListProps {
   title?: string
+  className?: string
   children: React.ReactNode
 }
 
-function HorizontalList({ title, children }: HorizontalListProps) {
+function HorizontalList({ title, className, children }: HorizontalListProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [showButtons, setShowButtons] = useState(false)
   const [disableLeft, setDisableLeft] = useState(true)
@@ -94,6 +95,7 @@ function HorizontalList({ title, children }: HorizontalListProps) {
       direction="column"
       gap={gapValue}
       width={'100%'}
+      className={className}
       padding={isMobile ? '0 1rem' : ''}
     >
       <FlexBox

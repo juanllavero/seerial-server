@@ -13,36 +13,34 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { useAuth } from '@/context/auth.context'
+import { useServerStore } from '@/context/server.context'
 import { cn } from '@/utils/tailwind'
-import { Bell, ChevronRight, LogOut, Settings, UserRound } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { ChevronRight, LogOut, Settings, UserRound } from 'lucide-react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { shallow } from 'zustand/shallow'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
-import FlexBox from '../ui/FlexBox'
-import { Invitation } from '@/data/interfaces/Users'
-import { getInvitations } from '@/lib/auth'
 export function NavUser() {
   const navigate = useNavigate()
-  const { user, logout } = useAuth()
+  const { user } = useServerStore(
+    (state) => ({
+      user: state.currentUser,
+    }),
+    shallow,
+  )
   const { isMobile } = useSidebar()
   const [open, setOpen] = useState(false)
   const [hover, setHover] = useState(false)
-  const [invitations, setInvitations] = useState<Invitation[]>([])
-  const updateInterval = 5000
-
-  if (!user) return null
 
   const handleGoToSettings = () => {
     navigate('/settings')
   }
 
-  const handleGoToProfile = () => {
-    navigate('/profile')
+  const handleChangeProfile = () => {
+    navigate('/users')
   }
 
   const handleLogout = () => {
-    logout()
     navigate('/login')
   }
 
@@ -50,15 +48,9 @@ export function NavUser() {
     setOpen(open)
   }
 
-  const updateInvitations = async () => {
-    setInvitations(await getInvitations())
-  }
+  if (!user) return null
 
-  useEffect(() => {
-    updateInvitations()
-    const interval = setInterval(updateInvitations, updateInterval)
-    return () => clearInterval(interval)
-  }, [])
+  const image = user.avatar ?? ''
 
   return (
     <SidebarMenu>
@@ -72,12 +64,11 @@ export function NavUser() {
               onMouseLeave={() => setHover(false)}
             >
               <Avatar className="h-8 w-8 rounded-lg">
-                <AvatarImage src={user.image} alt={user.name} />
+                <AvatarImage src={image} alt={user.username} />
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{user.name}</span>
-                <span className="truncate text-xs">{user.email}</span>
+                <span className="truncate font-semibold">{user.username}</span>
               </div>
               <div className="h-6 w-6">
                 <ChevronRight
@@ -99,31 +90,22 @@ export function NavUser() {
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
-                  <AvatarImage src={user.image} alt={user.name} />
+                  <AvatarImage src={image} alt={user.username} />
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{user.name}</span>
-                  <span className="truncate text-xs">{user.email}</span>
+                  <span className="truncate font-semibold">
+                    {user.username}
+                  </span>
                 </div>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
 
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={handleGoToProfile}>
+              <DropdownMenuItem onClick={handleChangeProfile}>
                 <UserRound />
-                Profile
-                {invitations && invitations.length > 0 && (
-                  <FlexBox className="items-center justify-center rounded-full bg-white">
-                    <span
-                      className="flex w-5 items-center justify-center"
-                      style={{ color: 'black' }}
-                    >
-                      {invitations.length}
-                    </span>
-                  </FlexBox>
-                )}
+                Change Profile
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleGoToSettings}>
                 <Settings />
@@ -133,7 +115,7 @@ export function NavUser() {
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut />
-              Log out
+              Change server
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

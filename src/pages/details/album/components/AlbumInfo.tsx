@@ -14,7 +14,7 @@ import useScreenHeight from '@/components/hooks/use-height'
 import { shallow } from 'zustand/shallow'
 import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
 import { getCoverSize, getTitleSize } from '@/utils/ReactUtils'
-import { useIsServerOwner } from '@/hooks/useServerOwner'
+import { useIsAdmin } from '@/hooks/useIsAdmin'
 
 interface AlbumInfoProps {
   isLoading: boolean
@@ -25,7 +25,7 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
   const { t } = useTranslation()
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
-  const isServerOwner = useIsServerOwner()
+  const isAdmin = useIsAdmin()
   const screenHeight = useScreenHeight()
   const {
     isPlaying,
@@ -132,7 +132,7 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
         </div>
 
         <FlexBox gap={1} justify="center" align="center">
-          {isServerOwner && (
+          {isAdmin && (
             <Button
               variant={'ghost'}
               title={t('editButton')}

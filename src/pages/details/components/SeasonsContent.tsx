@@ -1,38 +1,31 @@
 import { useIsMobile } from '@/components/hooks/use-mobile'
+import { useIsTablet } from '@/components/hooks/use-tablet'
+import NotFound from '@/components/NotFound'
 import FlexBox from '@/components/ui/FlexBox'
 import Grid from '@/components/ui/Grid'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
+import { Skeleton } from '@/components/ui/skeleton'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import useDataStore from '@/context/data.context'
+import { useServerStore } from '@/context/server.context'
 import { Episode, Season } from '@/data/interfaces/Media'
-import { useNavigate } from 'react-router-dom'
+import { SelectableOption } from '@/data/interfaces/Utils'
 import React, { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
+import useSWR, { mutate } from 'swr'
+import { shallow } from 'zustand/shallow'
 import EpisodeCard from './cards/EpisodeCard'
 import EpisodeCardDetails from './cards/EpisodeCardDetails'
-import useSWR, { mutate } from 'swr'
-import NotFound from '@/components/NotFound'
-import { Skeleton } from '@/components/ui/skeleton'
-import { useIsTablet } from '@/components/hooks/use-tablet'
-import { SelectableOption } from '@/data/interfaces/Utils'
-import { shallow } from 'zustand/shallow'
-import { useAuth } from '@/context/auth.context'
-import { authenticatedFetch } from '@/lib/auth'
-import { authenticatedFetcher } from '@/utils/utils'
 
 interface SeasonContentProps {
   seasonList: Season[]
-  serverId: string
-  serverUrl: string
 }
 
-function SeasonContent({
-  seasonList,
-  serverId,
-  serverUrl,
-}: SeasonContentProps) {
+function SeasonContent({ seasonList }: SeasonContentProps) {
   const navigate = useNavigate()
   const { t } = useTranslation()
-  const { user } = useAuth()
+  const user = useServerStore((state) => state.currentUser)
   const { selectedSeasonId } = useDataStore(
     (state) => ({
       selectedSeasonId: state.selectedSeasonId,
@@ -59,9 +52,7 @@ function SeasonContent({
     isLoading,
     error,
   } = useSWR<Season>(
-    selectedSeasonId
-      ? `${serverUrl}/details/season?id=${selectedSeasonId}`
-      : null,
+    selectedSeasonId ? API.seasons.get(selectedSeasonId) : null,
     authenticatedFetcher,
   )
 
@@ -94,16 +85,20 @@ function SeasonContent({
             {
               title: t('markWatched'),
               action: () => {
-                authenticatedFetch(`${serverUrl}/setEpisodeWatched`, 'POST', {
-                  episodeId: episode.id,
-                  watched: true,
-                  userId: user?.id,
-                }).finally(() => {
+                authenticatedFetch(
+                  API.episodes.setWatchState(episode.id),
+                  'POST',
+                  {
+                    episodeId: episode.id,
+                    watched: true,
+                    userId: user?.id,
+                  },
+                ).finally(() => {
                   mutate((key: string) =>
-                    key.startsWith(`${serverUrl}/details/series`),
+                    key.startsWith(API.series.get(season?.seriesId || '')),
                   )
                   mutate((key: string) =>
-                    key.startsWith(`${serverUrl}/details/season`),
+                    key.startsWith(API.seasons.get(season?.id || '')),
                   )
                 })
               },
@@ -111,16 +106,20 @@ function SeasonContent({
             {
               title: t('markUnwatched'),
               action: () => {
-                authenticatedFetch(`${serverUrl}/setEpisodeWatched`, 'POST', {
-                  episodeId: episode.id,
-                  watched: false,
-                  userId: user?.id,
-                }).finally(() => {
+                authenticatedFetch(
+                  API.episodes.setWatchState(episode.id),
+                  'POST',
+                  {
+                    episodeId: episode.id,
+                    watched: false,
+                    userId: user?.id,
+                  },
+                ).finally(() => {
                   mutate((key: string) =>
-                    key.startsWith(`${serverUrl}/details/series`),
+                    key.startsWith(API.series.get(season?.seriesId || '')),
                   )
                   mutate((key: string) =>
-                    key.startsWith(`${serverUrl}/details/season`),
+                    key.startsWith(API.seasons.get(season?.id || '')),
                   )
                 })
               },
@@ -137,21 +136,20 @@ function SeasonContent({
   }
 
   const goToEpisodePage = (episode: Episode) => {
-    navigate(`/server/${serverId}/details/episode/${episode.id}`)
+    navigate(`/details/episode/${episode.id}`)
   }
 
   const playEpisode = async (episodeId: Episode) => {
     const response = await authenticatedFetch(
-      `${serverUrl}/episode-video?episodeId=${episodeId.id}`,
+      API.videos.getByEpisodeId(episodeId.id),
     )
 
-    if (!response.ok) {
-      // Show error message
+    if (!response.data) {
       return
     }
 
-    const data = await response.json()
-    navigate(`/server/${serverId}/video-player/${data.id}`)
+    const data = await response.data
+    navigate(`/video-player/${data.id}`)
   }
 
   // Loading Skeleton

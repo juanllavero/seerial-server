@@ -1,10 +1,11 @@
 import { useIsMobile } from '@/components/hooks/use-mobile'
+import { useIsTablet } from '@/components/hooks/use-tablet'
 import NotFound from '@/components/NotFound'
 import FlexBox from '@/components/ui/FlexBox'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useServerStore } from '@/context/server.context'
+import { API, authenticatedFetcher } from '@/config/api'
+import { useGradientStore } from '@/context/gradientBackground.context'
 import { useWebSocketStore } from '@/context/ws.context'
-import { MessageType } from '@/data/enums/WSMessage'
 import { Album } from '@/data/interfaces/Music'
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
@@ -12,14 +13,10 @@ import useSWR from 'swr'
 import AlbumContent from '../components/AlbumContent'
 import '../DetailsPage.css'
 import AlbumInfo from './components/AlbumInfo'
-import { useIsTablet } from '@/components/hooks/use-tablet'
-import { useGradientStore } from '@/context/gradientBackground.context'
-import { authenticatedFetcher } from '@/utils/utils'
 
 function AlbumDetailsPage() {
   const { albumId } = useParams()
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const selectBackground = useGradientStore((state) => state.selectBackground)
 
   // Get series data
@@ -28,10 +25,7 @@ function AlbumDetailsPage() {
     isLoading,
     error,
     mutate,
-  } = useSWR<Album>(
-    `${serverUrl}/details/album?id=${albumId}`,
-    authenticatedFetcher,
-  )
+  } = useSWR<Album>(API.albums.get(albumId ?? ''), authenticatedFetcher)
 
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
@@ -41,12 +35,6 @@ function AlbumDetailsPage() {
       selectBackground(album.coverSrc)
     }
   }, [album])
-
-  useEffect(() => {
-    if (wsMessage === MessageType.MUTATE_ALBUM) {
-      mutate()
-    }
-  }, [wsMessage, mutate])
 
   if (error) {
     return <NotFound />

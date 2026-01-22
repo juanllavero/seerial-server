@@ -1,4 +1,5 @@
 import { DropdownContent } from '@/data/interfaces/Utils'
+import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { Check, EllipsisVertical } from 'lucide-react'
 import React, { useState } from 'react'
 import DropdownWrapper from '../DropdownWrapper'
@@ -10,7 +11,6 @@ import LazyImage from '../ui/LazyImage'
 import { Progress } from '../ui/progress'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 import './Card.css'
-import { useIsServerOwner } from '@/hooks/useServerOwner'
 
 interface CardProps {
   itemKey: string
@@ -58,7 +58,7 @@ function Card({
   errorSrc,
 }: CardProps) {
   const [playButtonHovered, setPlayButtonHovered] = useState(false)
-  const isServerOwner = useIsServerOwner()
+  const isAdmin = useIsAdmin()
 
   return (
     <FlexBox
@@ -97,7 +97,7 @@ function Card({
           width="100%"
           height="100%"
         >
-          {!hideButtons && isServerOwner && (
+          {!hideButtons && isAdmin && (
             <FlexBox
               justify="space-between"
               align="start"
@@ -139,7 +139,7 @@ function Card({
               </Button>
             ) : null}
           </FlexBox>
-          {!hideButtons && menu && isServerOwner && (
+          {!hideButtons && menu && isAdmin && (
             <FlexBox
               justify="space-between"
               align="end"

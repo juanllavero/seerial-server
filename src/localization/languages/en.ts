@@ -13,6 +13,8 @@ export const en = {
     errorImageUpload: 'Error uploading image',
     invalidImageError: 'Select a valid image file',
 
+    refreshMetadataError: 'Refresh metadata failed',
+    refreshMetadataStart: 'Refreshing metadata...',
     signedAsMessage: "You're signed in as",
     signAsAnotherUser: 'Sign in as a different user',
     link: 'Link',

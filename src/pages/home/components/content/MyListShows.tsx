@@ -1,19 +1,17 @@
 import Card from '@/components/cards/Card'
 import { useIsMobile } from '@/components/hooks/use-mobile'
+import { Button } from '@/components/ui/button'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
+import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { Series } from '@/data/interfaces/Media'
-import { authenticatedFetcher } from '@/utils/utils'
+import { refreshMetadata, toggleSeriesWatched } from '@/utils/ReactUtils'
+import { Pencil } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import useSWR, { mutate } from 'swr'
+import { shallow } from 'zustand/shallow'
 import HorizontalList from '../../../../components/lists/HorizontalList'
 import HorizontalListSkeleton from './HorizontalListSkeleton'
-import { shallow } from 'zustand/shallow'
-import { useDialogStore } from '@/context/dialog.context'
-import { toggleSeriesWatched } from '@/utils/ReactUtils'
-import { Button } from '@/components/ui/button'
-import { Pencil } from 'lucide-react'
-import { useAuth } from '@/context/auth.context'
-import { authenticatedFetch } from '@/lib/auth'
 
 interface MyListShowsProps {
   goToContent: (url: string) => void
@@ -21,7 +19,6 @@ interface MyListShowsProps {
 
 function MyListShows({ goToContent }: MyListShowsProps) {
   const { t } = useTranslation()
-  const { user } = useAuth()
   const {
     openIdentificationDialog,
     openEpisodesGroupDialog,
@@ -34,10 +31,9 @@ function MyListShows({ goToContent }: MyListShowsProps) {
     }),
     shallow,
   )
-  const { selectedServer, serverUrl } = useServerStore(
+  const { user } = useServerStore(
     (state) => ({
-      selectedServer: state.selectedServer,
-      serverUrl: state.serverUrl,
+      user: state.currentUser,
     }),
     shallow,
   )
@@ -45,9 +41,7 @@ function MyListShows({ goToContent }: MyListShowsProps) {
 
   // Get Shows in My List
   const { data: showsInMyList, isLoading } = useSWR<Series[]>(
-    selectedServer
-      ? `${serverUrl}/myListSeries?userId=${user?.id ?? null}`
-      : null,
+    API.myList.series,
     authenticatedFetcher,
   )
 
@@ -73,23 +67,21 @@ function MyListShows({ goToContent }: MyListShowsProps) {
                     {
                       title: t('removeFromMyList'),
                       action: () => {
-                        authenticatedFetch(
-                          `${serverUrl}/updateSeriesMyList`,
-                          'POST',
-                          {
-                            seriesId: series.id,
-                            userId: user?.id,
-                          },
-                        ).then(() => {
+                        authenticatedFetch(API.myList.series, 'POST', {
+                          seriesId: series.id,
+                          userId: user?.id,
+                        }).then(() => {
                           mutate((key: string) =>
-                            key.startsWith(`${serverUrl}/myListSeries`),
+                            key.startsWith(API.myList.series),
                           )
                         })
                       },
                     },
                     {
                       title: t('updateMetadata'),
-                      action: () => console.log('Profile clicked'),
+                      action: () => {
+                        refreshMetadata('show', series.id)
+                      },
                     },
                     {
                       title: t('correctIdentification'),
@@ -105,7 +97,7 @@ function MyListShows({ goToContent }: MyListShowsProps) {
                           ? t('markUnwatched')
                           : t('markWatched'),
                       action: () =>
-                        user && toggleSeriesWatched(serverUrl, series, user.id),
+                        user && toggleSeriesWatched(series, user.id),
                     },
                   ],
                 },
@@ -138,11 +130,7 @@ function MyListShows({ goToContent }: MyListShowsProps) {
                 <Pencil size={16} />
               </Button>
             }
-            action={() =>
-              goToContent(
-                `/server/${selectedServer?.id}/details/series/${series.id}`,
-              )
-            }
+            action={() => goToContent(`/details/series/${series.id}`)}
           />
         ))
       ) : (

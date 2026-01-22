@@ -4,22 +4,19 @@ import { ModalWrapper } from '@/components/ModalWrapper'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.context'
-import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { MediaSearchResult } from '@/data/interfaces/Utils'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import useSWR from 'swr'
+import { shallow } from 'zustand/shallow'
 import DownloadMediaCard from './DownloadMediaCard'
 import DownloadMediaCardSkeleton from './DownloadMediaCardSkeleton'
-import { shallow } from 'zustand/shallow'
-import useSWR from 'swr'
-import { authenticatedFetcher } from '@/utils/utils'
-import { authenticatedFetch } from '@/lib/auth'
 
 function DownloadMediaSearch() {
   const { t } = useTranslation()
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
   const { connectWS, downloadAudio, downloadVideo, downloaded, setDownloaded } =
@@ -58,9 +55,7 @@ function DownloadMediaSearch() {
     seasonToEdit !== undefined && seriesToEdit === undefined
 
   const { data: series } = useSWR(
-    seasonToEdit
-      ? `${serverUrl}/details/series?id=${seasonToEdit.seriesId}`
-      : null,
+    seasonToEdit ? `${API.series.get(seasonToEdit.seriesId)}` : null,
     authenticatedFetcher,
   )
 
@@ -95,10 +90,10 @@ function DownloadMediaSearch() {
 
   const search = (text: string) => {
     setSearching(true)
-    authenticatedFetch(`${serverUrl}/media/search?query=${text}`)
+    authenticatedFetch(`${API.search.media}?query=${text}`)
       .then(async (response) => {
-        if (response && response.ok) {
-          const data = await response.json()
+        if (response && response.data) {
+          const data = await response.data
           setSearchResults(data)
         }
       })
@@ -109,15 +104,12 @@ function DownloadMediaSearch() {
   }
 
   const downloadMedia = async (media: MediaSearchResult) => {
-    if (serverUrl === '') return
-
-    await connectWS(serverUrl)
+    await connectWS()
 
     if (type === 'music') {
       await downloadAudio(
         media.id,
         media.url,
-        serverUrl,
         isShow
           ? (seriesToEdit?.libraryId ?? '')
           : isSeason
@@ -133,7 +125,6 @@ function DownloadMediaSearch() {
       await downloadVideo(
         media.id,
         media.url,
-        serverUrl,
         isShow
           ? (seriesToEdit?.libraryId ?? '')
           : isSeason

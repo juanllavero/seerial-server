@@ -1,40 +1,33 @@
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
-import { Episode, Season } from '@/data/interfaces/Media'
-import { authenticatedFetcher } from '@/utils/utils'
-import { useNavigate } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
 import { PlayIcon } from '@/components/ui/IconLibrary'
-import { useServerStore } from '@/context/server.context'
-import { authenticatedFetch } from '@/lib/auth'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
+import { Episode, Season } from '@/data/interfaces/Media'
+import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
+import useSWR from 'swr'
 
 interface PlayButtonProps {
   currentlyWatchingEpisodeId?: string
   selectedSeasonId: string | null
-  serverUrl: string
 }
 
 function PlayButton({
   currentlyWatchingEpisodeId,
   selectedSeasonId,
-  serverUrl,
 }: PlayButtonProps) {
   const navigate = useNavigate()
-  const selectedServer = useServerStore((state) => state.selectedServer)
   const { t } = useTranslation()
 
   const { data: season } = useSWR<Season>(
-    selectedSeasonId
-      ? `${serverUrl}/details/season?id=${selectedSeasonId}`
-      : null,
+    selectedSeasonId ? API.seasons.get(selectedSeasonId) : null,
     authenticatedFetcher,
   )
 
   // Get current episode
   const { data: episode } = useSWR<Episode>(
     currentlyWatchingEpisodeId
-      ? `${serverUrl}/details/episode?id=${currentlyWatchingEpisodeId}`
+      ? API.episodes.get(currentlyWatchingEpisodeId)
       : null,
     authenticatedFetcher,
   )
@@ -51,15 +44,15 @@ function PlayButton({
         const episodeId = episode ? episode.id : season?.episodes[0].id
 
         const response = await authenticatedFetch(
-          `${serverUrl}/episode-video?episodeId=${episodeId}`,
+          API.videos.getByEpisodeId(episodeId ?? ''),
         )
 
-        if (!response.ok) {
+        if (!response.data) {
           return
         }
 
-        const data = await response.json()
-        navigate(`/server/${selectedServer?.id}/video-player/${data.id}`)
+        const data = await response.data
+        navigate(`/video-player/${data.id}`)
       }}
     >
       <FlexBox align="center" gap={0.5} className="text-black">

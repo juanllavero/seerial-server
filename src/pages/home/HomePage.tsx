@@ -1,30 +1,19 @@
+import LoadingInsideSidebar from '@/components/LoadingInsideSidebar'
+import { API, authenticatedFetcher } from '@/config/api'
 import useDataStore from '@/context/data.context'
 import { useServerStore } from '@/context/server.context'
 import { Library } from '@/data/interfaces/Media'
-import { authenticatedFetcher } from '@/utils/utils'
+import { APIResponse } from '@/data/interfaces/Utils'
 import { useEffect } from 'react'
 import useSWR from 'swr'
+import { shallow } from 'zustand/shallow'
 import NoAPIKey from './components/NoAPIKey'
 import NoContent from './components/NoContent'
-import NoServer from './components/NoServer'
-import NotAvailableServer from './components/NotAvailableServer'
 import HomePageContent from './components/content/HomePageContent'
-import { shallow } from 'zustand/shallow'
-import LoadingInsideSidebar from '@/components/LoadingInsideSidebar'
 
 export default function HomePage() {
-  const {
-    selectedServer,
-    serverUrl,
-    serverStatus,
-    apiKeyStatus,
-    gettingServerStatus,
-    getServerStatus,
-  } = useServerStore(
+  const { apiKeyStatus, gettingServerStatus, getServerStatus } = useServerStore(
     (state) => ({
-      selectedServer: state.selectedServer,
-      serverUrl: state.serverUrl,
-      serverStatus: state.serverStatus,
       apiKeyStatus: state.apiKeyStatus,
       gettingServerStatus: state.gettingServerStatus,
       getServerStatus: state.getServerStatus,
@@ -34,8 +23,8 @@ export default function HomePage() {
   const selectLibrary = useDataStore((state) => state.selectLibrary)
 
   // Get Libraries
-  const { data: libraries, isLoading: loadingLibraries } = useSWR<Library[]>(
-    serverUrl !== '' ? `${serverUrl}/libraries/` : null,
+  const { data, isLoading: loadingLibraries } = useSWR<APIResponse<Library[]>>(
+    API.libraries.getAll,
     authenticatedFetcher,
     {
       revalidateOnFocus: false,
@@ -52,27 +41,11 @@ export default function HomePage() {
     return <LoadingInsideSidebar />
   }
 
-  if (!serverUrl) {
-    return <NoServer />
-  }
-
-  if (!serverStatus) {
-    return <NotAvailableServer />
-  }
-
   if (!apiKeyStatus) {
     return <NoAPIKey />
   }
 
-  const visibleLibraries = libraries
-    ? selectedServer?.shared
-      ? libraries.filter((library) =>
-          selectedServer.libraries?.includes(library.id),
-        )
-      : libraries
-    : []
-
-  if (!visibleLibraries || visibleLibraries.length === 0) {
+  if (!data || data.data.length === 0) {
     return <NoContent />
   }
 

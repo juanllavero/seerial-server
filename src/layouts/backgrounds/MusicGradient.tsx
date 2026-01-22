@@ -1,4 +1,3 @@
-import { useServerStore } from '@/context/server.context'
 import React, { useEffect } from 'react'
 
 interface MusicGradientProps {
@@ -17,8 +16,6 @@ const animationKeyframes = `
 `
 
 const MusicGradient: React.FC<MusicGradientProps> = ({ imageUrl }) => {
-  const serverUrl = useServerStore((state) => state.serverUrl)
-
   useEffect(() => {
     const styleTagId = 'apple-gradient-keyframes'
     if (document.getElementById(styleTagId)) return
@@ -37,7 +34,7 @@ const MusicGradient: React.FC<MusicGradientProps> = ({ imageUrl }) => {
     }
   }, [])
 
-  const url = `${serverUrl}/${imageUrl.replace('resources/img', 'img')}`
+  const url = `/api/${imageUrl.replace('resources/img', 'img')}`
 
   return (
     <div

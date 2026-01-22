@@ -2,14 +2,10 @@ import Loading from '@/components/Loading'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import LazyImage from '@/components/ui/LazyImage'
-import { useServerStore } from '@/context/server.context'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import { useWebSocketStore } from '@/context/ws.context'
-import { MessageType } from '@/data/enums/WSMessage'
-import { authenticatedFetch } from '@/lib/auth'
 import { formatDate } from '@/utils/ReactUtils'
-import { authenticatedFetcher } from '@/utils/utils'
 import { PlayIcon } from 'lucide-react'
-import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import useSWR from 'swr'
@@ -17,43 +13,28 @@ import VideoTracks from './components/VideoTracks'
 
 function EpisodeDetailsPage() {
   const { t } = useTranslation()
-  const selectedServer = useServerStore((state) => state.selectedServer)
   const navigate = useNavigate()
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
-  const serverUrl = useServerStore((state) => state.serverUrl)
-  const { serverId, episodeId } = useParams()
+  const { episodeId } = useParams()
 
   const {
     data: episode,
     isLoading,
     mutate,
   } = useSWR(
-    episodeId && serverUrl !== ''
-      ? `${serverUrl}/details/episode?id=${episodeId}`
-      : null,
+    episodeId ? API.episodes.get(episodeId) : null,
     authenticatedFetcher,
   )
 
   const { data: season } = useSWR(
-    episode && serverUrl !== ''
-      ? `${serverUrl}/details/season?id=${episode.seasonId}`
-      : null,
+    episode ? API.seasons.get(episode.seasonId) : null,
     authenticatedFetcher,
   )
 
   const { data: series } = useSWR(
-    season && serverUrl !== ''
-      ? `${serverUrl}/details/series?id=${season.seriesId}`
-      : null,
+    season ? API.series.get(season.seriesId) : null,
     authenticatedFetcher,
   )
-
-  // Mutate content on ws message
-  useEffect(() => {
-    if (wsMessage === MessageType.MUTATE_SEASON) {
-      mutate()
-    }
-  }, [wsMessage, mutate])
 
   if (isLoading) {
     return <Loading />
@@ -82,9 +63,7 @@ function EpisodeDetailsPage() {
       <FlexBox direction="column" gap={1}>
         <FlexBox direction="column">
           <span
-            onClick={() =>
-              navigate(`/server/${serverId}/details/series/${series?.id}`)
-            }
+            onClick={() => navigate(`/details/series/${series?.id}`)}
             className="a_text cursor-pointer text-4xl font-black uppercase"
           >
             {series ? series.name : 'None'}
@@ -109,15 +88,15 @@ function EpisodeDetailsPage() {
             const episodeId = episode ? episode.id : season?.episodes[0].id
 
             const response = await authenticatedFetch(
-              `${serverUrl}/episode-video?episodeId=${episodeId}`,
+              API.videos.getByEpisodeId(episodeId ?? ''),
             )
 
-            if (!response.ok) {
+            if (!response.data) {
               return
             }
 
-            const data = await response.json()
-            navigate(`/server/${selectedServer?.id}/video-player/${data.id}`)
+            const data = await response.data
+            navigate(`/video-player/${data.id}`)
           }}
         >
           <FlexBox align="center" gap={0.5} className="text-black">

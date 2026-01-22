@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react'
 import Image from '@/components/ui/Image'
-import { useAuth } from '@/context/auth.context'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { authenticatedFetch } from '@/config/api'
+import { useServerStore } from '@/context/server.context'
 import { CENTRAL_SERVER } from '@/utils/constants'
-import { authenticatedFetch } from '@/lib/auth'
 import { t } from 'i18next'
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 export default function TVLinkPage() {
-  const { user } = useAuth()
+  const user = useServerStore((state) => state.currentUser)
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const [code, setCode] = useState('')
@@ -43,13 +43,13 @@ export default function TVLinkPage() {
         { user_code: autoCode.toUpperCase() },
       )
 
-      if (response && response.ok) {
+      if (response && response.data) {
         setSuccess(true)
         setTimeout(() => {
           navigate('/home')
         }, 2000)
       } else {
-        const errorData = await response?.json()
+        const errorData = await response?.data
         setError(errorData?.error || 'Failed to link device')
       }
     } catch (err) {
@@ -79,13 +79,13 @@ export default function TVLinkPage() {
         { user_code: code },
       )
 
-      if (response && response.ok) {
+      if (response && response.data) {
         setSuccess(true)
         setTimeout(() => {
           navigate('/home')
         }, 2000)
       } else {
-        const errorData = await response?.json()
+        const errorData = await response?.data
         setError(errorData?.error || 'Failed to link device')
       }
     } catch (err) {
@@ -178,7 +178,7 @@ export default function TVLinkPage() {
       {/* Footer */}
       <div className="mt-12 text-center">
         <p className="mb-2 text-sm text-gray-500">
-          {t('signedAsMessage')} {user.name}
+          {t('signedAsMessage')} {user.username}
         </p>
         <button
           onClick={() => navigate('/login')}

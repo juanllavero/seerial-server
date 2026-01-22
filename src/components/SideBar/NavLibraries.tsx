@@ -15,13 +15,15 @@ import {
   SidebarSeparator,
   useSidebar,
 } from '@/components/ui/sidebar'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { LibraryTypes } from '@/data/enums/LibraryTypes'
 import { Library } from '@/data/interfaces/Media'
-import { authenticatedFetcher } from '@/utils/utils'
+import { APIResponse } from '@/data/interfaces/Utils'
+import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { t } from 'i18next'
 import {
   Film,
@@ -38,9 +40,6 @@ import { useNavigate } from 'react-router-dom'
 import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
 import SmallSpinner from './loading/SmallSpinner'
-import { useAuth } from '@/context/auth.context'
-import { useIsServerOwner } from '@/hooks/useServerOwner'
-import { authenticatedFetch } from '@/lib/auth'
 
 interface Item {
   id: string
@@ -62,17 +61,13 @@ const NavLibraries = () => {
   )
   const navigate = useNavigate()
 
-  const isServerOwner = useIsServerOwner()
-  const { selectedServer, serverUrl, serverStatus, apiKeyStatus } =
-    useServerStore(
-      (state) => ({
-        selectedServer: state.selectedServer,
-        serverUrl: state.serverUrl,
-        serverStatus: state.serverStatus,
-        apiKeyStatus: state.apiKeyStatus,
-      }),
-      shallow,
-    )
+  const isAdmin = useIsAdmin()
+  const { apiKeyStatus } = useServerStore(
+    (state) => ({
+      apiKeyStatus: state.apiKeyStatus,
+    }),
+    shallow,
+  )
   const { openLibraryDialog, openRemoveLibraryDialog } = useDialogStore(
     (state) => ({
       openLibraryDialog: state.openLibraryDialog,
@@ -88,8 +83,8 @@ const NavLibraries = () => {
     shallow,
   )
 
-  const { data: libraries, isLoading } = useSWR<Library[]>(
-    serverUrl !== '' ? `${serverUrl}/libraries/` : null,
+  const { data, isLoading } = useSWR<APIResponse<Library[]>>(
+    API.libraries.getAll,
     authenticatedFetcher,
     {
       revalidateOnFocus: false,
@@ -97,10 +92,12 @@ const NavLibraries = () => {
     },
   )
 
-  const searchFiles = async (libraryId: string) => {
-    await connectWS(serverUrl)
+  const libraries = data ? data.data : []
 
-    authenticatedFetch(`${serverUrl}/library/search?libraryId=${libraryId}`)
+  const searchFiles = async (libraryId: string) => {
+    await connectWS()
+
+    authenticatedFetch(API.libraries.scan(libraryId), 'POST')
   }
 
   const [activeItem, setActiveItem] = React.useState<Item | null>(null)
@@ -113,35 +110,26 @@ const NavLibraries = () => {
     }
   }, [selectedLibraryId])
 
-  const visibleLibraries = libraries
-    ? selectedServer?.shared
-      ? libraries.filter((library) =>
-          selectedServer.libraries?.includes(library.id),
-        )
-      : libraries
-    : []
-  const librariesItems = [
-    ...visibleLibraries.map((library) => ({
-      id: library.id,
-      name: library.name,
-      type: library.type,
-      logo:
-        library.type === LibraryTypes.SHOWS
-          ? TvMinimal
-          : library.type === LibraryTypes.MOVIES
-            ? Film
-            : Music,
-      action: () => {
-        selectLibrary(library.id)
-
-        if (!selectedServer || !serverStatus) return
-
-        navigate(
-          `/server/${selectedServer.id}/library/${library.id}/${library.type}`,
-        )
-      },
-    })),
-  ]
+  const librariesItems =
+    libraries && libraries.length > 0
+      ? [
+          ...libraries.map((library) => ({
+            id: library.id,
+            name: library.name,
+            type: library.type,
+            logo:
+              library.type === LibraryTypes.SHOWS
+                ? TvMinimal
+                : library.type === LibraryTypes.MOVIES
+                  ? Film
+                  : Music,
+            action: () => {
+              selectLibrary(library.id)
+              navigate(`/library/${library.id}`)
+            },
+          })),
+        ]
+      : []
 
   return (
     <>
@@ -166,13 +154,9 @@ const NavLibraries = () => {
                       }`}
                       onClick={(e) => {
                         e.preventDefault()
+
                         setActiveItem(item)
-
-                        if (!selectedServer || !serverStatus) return
-
-                        navigate(
-                          `/server/${selectedServer.id}/library/${item.id}/${item.type}`,
-                        )
+                        navigate(`/library/${item.id}`)
                       }}
                       style={{
                         color:
@@ -199,7 +183,7 @@ const NavLibraries = () => {
                       </span>
                     </a>
                   </SidebarMenuButton>
-                  {isServerOwner && (
+                  {isAdmin && (
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <SidebarMenuAction showOnHover>
@@ -247,7 +231,7 @@ const NavLibraries = () => {
         </>
       )}
 
-      {isServerOwner && serverStatus && apiKeyStatus && (
+      {isAdmin && apiKeyStatus && (
         <>
           {/* Separator */}
           <SidebarSeparator />

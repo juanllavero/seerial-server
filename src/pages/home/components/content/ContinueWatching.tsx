@@ -1,15 +1,12 @@
 import Card from '@/components/cards/Card'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useServerStore } from '@/context/server.context'
+import { API, authenticatedFetcher } from '@/config/api'
 import { Video } from '@/data/interfaces/Media'
-import { authenticatedFetcher } from '@/utils/utils'
+import { getVideoProgress } from '@/utils/ReactUtils'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 import HorizontalList from '../../../../components/lists/HorizontalList'
-import { shallow } from 'zustand/shallow'
-import { getVideoProgress } from '@/utils/ReactUtils'
-import { useAuth } from '@/context/auth.context'
 
 interface ContinueWatchingProps {
   goToContent: (url: string) => void
@@ -17,30 +14,18 @@ interface ContinueWatchingProps {
 
 function ContinueWatching({ goToContent }: ContinueWatchingProps) {
   const { t } = useTranslation()
-  const { user } = useAuth()
-  const { selectedServer, serverUrl } = useServerStore(
-    (state) => ({
-      selectedServer: state.selectedServer,
-      serverUrl: state.serverUrl,
-    }),
-    shallow,
-  )
   const isMobile = useIsMobile()
 
   // Get Continue Watching items
   const { data: continueWatching, isLoading } = useSWR<Video[]>(
-    selectedServer
-      ? `${serverUrl}/continueWatching?userId=${user?.id ?? null}`
-      : null,
+    API.continueWatching.getVideos,
     authenticatedFetcher,
   )
 
   const skeletons = Array.from({ length: 10 }, (_, index) => (
     <Skeleton
       key={'ContinueWatching ' + index}
-      className={
-        isMobile ? 'h-[158px] min-w-[280px]' : 'h-[214px] min-w-[380px]'
-      }
+      className={isMobile ? 'h-39.5 min-w-70' : 'h-53.5 min-w-95'}
     />
   ))
 
@@ -65,13 +50,11 @@ function ContinueWatching({ goToContent }: ContinueWatchingProps) {
               }`}
               action={() =>
                 goToContent(
-                  `/server/${selectedServer?.id}/details/${video.episodeId ? 'episode' : 'movie'}/${video.episodeId ? video.episodeId : video.movieId}`,
+                  `/details/${video.episodeId ? 'episode' : 'movie'}/${video.episodeId ? video.episodeId : video.movieId}`,
                 )
               }
               playButtonAction={() =>
-                goToContent(
-                  `/server/${selectedServer?.id}/video-player/${video.videoId}`,
-                )
+                goToContent(`/video-player/${video.videoId}`)
               }
             />
           ))

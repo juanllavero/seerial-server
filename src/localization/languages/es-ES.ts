@@ -13,6 +13,8 @@ export const es = {
     errorImageUpload: 'Error al subir la imagen',
     invalidImageError: 'Selecciona un archivo de imagen válido',
 
+    refreshMetadataError: 'La actualización de metadatos ha fallado',
+    refreshMetadataStart: 'Comenzando actualización de metadatos...',
     signedAsMessage: 'Estás conectado como',
     signAsAnotherUser: 'Conectarse con otro usuario',
     link: 'Enlazar',

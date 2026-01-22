@@ -4,19 +4,17 @@ import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
 import LazyImage from '@/components/ui/LazyImage'
+import { API, authenticatedFetch } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.context'
-import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { IdentificationResult } from '@/data/interfaces/Utils'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import './CorrectIdentificationSearch.css'
 import { shallow } from 'zustand/shallow'
-import { authenticatedFetch } from '@/lib/auth'
+import './CorrectIdentificationSearch.css'
 
 function CorrectIdentificationSearch() {
   const { t } = useTranslation()
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const connectWS = useWebSocketStore((state) => state.connectWS)
   const { identificationDialog, closeIdentificationDialog } = useDialogStore(
     (state) => ({
@@ -62,9 +60,9 @@ function CorrectIdentificationSearch() {
 
   const search = (name: string, year: string) => {
     authenticatedFetch(
-      `${serverUrl}/${isShow ? 'shows' : 'movies'}/search?name=${name}&year=${year}`,
+      `${isShow ? API.series.search : API.movies.search}?name=${name}&year=${year}`,
     )
-      .then((response) => response.json())
+      .then((response) => response.data)
       .then((data) => {
         setIdentificationResults(data)
       })
@@ -72,11 +70,9 @@ function CorrectIdentificationSearch() {
   }
 
   const saveIdentification = async (id: number) => {
-    if (serverUrl === '') return
-
-    await connectWS(serverUrl)
+    await connectWS()
     authenticatedFetch(
-      `${serverUrl}/${isShow ? 'updateShowId' : 'updateMovieId'}`,
+      `/api/${isShow ? 'showId' : 'movieId'}`,
       'POST',
       isShow
         ? {

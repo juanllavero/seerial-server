@@ -1,10 +1,20 @@
+import { UserType } from '@/utils/constants'
+
 export interface User {
   id: string
+  type: UserType
   email: string
   name?: string
   image?: string
   servers: Server[]
   sharedServers: SharedServer[]
+}
+
+export interface BasicUser {
+  id: string
+  username: string
+  avatar: string | null
+  type: UserType
 }
 
 export interface SearchableUser {
@@ -26,6 +36,14 @@ export interface Server {
   name: string
   tunnel?: string
   libraries: string[] | null
+}
+
+export interface BasicServer {
+  id: string
+  name: string
+  status: string
+  url: string
+  users: BasicUser[]
 }
 
 export interface SharedServer {

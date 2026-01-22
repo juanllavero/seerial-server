@@ -1,27 +1,31 @@
 import DialogManager from '@/components/dialogs/DialogManager'
-import MusicPlayer from '@/components/musicPlayer/MusicPlayer'
-import useDataStore from '@/context/data.context'
-import { useServerStore } from '@/context/server.context'
-import { getToken } from '@/lib/auth'
-import React, { useEffect, useRef, useState } from 'react'
-import { useLocation } from 'react-router-dom'
-import { Toaster } from 'sonner'
-import '../styles/utils.css'
-import GradientBackground from './backgrounds/GradientBackground'
-import './BaseLayout.css'
+import { useIsMobile } from '@/components/hooks/use-mobile'
 import DesktopMusicPlayer from '@/components/musicPlayer/desktop/DesktopMusicPlayer'
 import DesktopMusicPlayerExpanded from '@/components/musicPlayer/desktop/DesktopMusicPlayerExpanded'
 import MobileMusicPlayer from '@/components/musicPlayer/mobile/MobileMusicPlayer'
-import { useIsMobile } from '@/components/hooks/use-mobile'
+import MusicPlayer from '@/components/musicPlayer/MusicPlayer'
+import useDataStore from '@/context/data.context'
 import { useGradientStore } from '@/context/gradientBackground.context'
-import { isAbsolutePath } from '@/utils/ReactUtils'
+import { useServerStore } from '@/context/server.context'
+import React, { useEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
+import { Toaster } from 'sonner'
+import { shallow } from 'zustand/shallow'
+import '../styles/utils.css'
+import GradientBackground from './backgrounds/GradientBackground'
+import './BaseLayout.css'
 
 export default function BaseLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const serverUrl = useServerStore((state) => state.serverUrl)
+  const { user } = useServerStore(
+    (state) => ({
+      user: state.currentUser,
+    }),
+    shallow,
+  )
   const selectedBackground = useDataStore((state) => state.currentBackground)
   const selectedBackgroundForGradient = useGradientStore(
     (state) => state.selectedBackground,
@@ -39,8 +43,8 @@ export default function BaseLayout({
   const inMusicPage = location.pathname.includes('/album/')
 
   useEffect(() => {
-    if (selectedBackgroundForGradient && serverUrl !== '') {
-      generateGradient(selectedBackgroundForGradient, serverUrl, false)
+    if (selectedBackgroundForGradient) {
+      generateGradient(selectedBackgroundForGradient, false)
     }
 
     if (!selectedBackground) {
@@ -89,7 +93,7 @@ export default function BaseLayout({
         style={{
           backgroundImage:
             (inMusicPage || inDetailsPage) && currentBackground
-              ? `url(${currentBackground.startsWith('http') ? getSafeURL(currentBackground) : isAbsolutePath(currentBackground) ? `${serverUrl}/image?path=${encodeURIComponent(currentBackground)}` : `${serverUrl}/${getSafeURL(currentBackground)}`})`
+              ? `url(${currentBackground.startsWith('http') ? getSafeURL(currentBackground) : isAbsolutePath(currentBackground) ? `/api/image?path=${encodeURIComponent(currentBackground)}` : `/api/${getSafeURL(currentBackground)}`})`
               : 'none',
           opacity: inDetailsPage && currentBackground ? 1 : 0,
         }}
@@ -100,7 +104,7 @@ export default function BaseLayout({
         <div
           className="background-layer fade-in"
           style={{
-            backgroundImage: `url(${selectedBackground.startsWith('http') ? getSafeURL(selectedBackground) : isAbsolutePath(selectedBackground) ? `${serverUrl}/image?path=${encodeURIComponent(selectedBackground)}` : `${serverUrl}/${getSafeURL(selectedBackground)}`})`,
+            backgroundImage: `url(${selectedBackground.startsWith('http') ? getSafeURL(selectedBackground) : isAbsolutePath(selectedBackground) ? `/api/image?path=${encodeURIComponent(selectedBackground)}` : `/api/${getSafeURL(selectedBackground)}`})`,
           }}
         />
       )} */}
@@ -109,7 +113,7 @@ export default function BaseLayout({
       <Toaster theme="dark" richColors />
 
       {/* Load components only if the user is logged in */}
-      {getToken() !== null && (
+      {user && (
         <>
           <DialogManager />
           <MusicPlayer />

@@ -1,48 +1,46 @@
-import { useState, useEffect } from 'react'
-import { arrayMove } from '@dnd-kit/sortable'
-import { useServerStore } from '@/context/server.context'
+import { API, authenticatedFetch } from '@/config/api'
 import { LibraryItem } from '@/data/interfaces/Media'
-import { authenticatedFetch } from '@/lib/auth'
+import { useEffect, useState } from 'react'
 
 export function useReorderableList(
-  swrData: { content: LibraryItem[] } | undefined,
+  swrData: LibraryItem[] | undefined,
   libraryId: string,
   mutate: () => void,
 ) {
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const [items, setItems] = useState<LibraryItem[]>([])
 
   useEffect(() => {
-    if (swrData?.content) {
-      setItems(swrData.content)
+    if (swrData) {
+      setItems(swrData)
     }
   }, [swrData])
 
-  async function handleDragEnd(event: any) {
-    const { active, over } = event
+  async function handleDragEnd(sourceIndex: number, destinationIndex: number) {
+    console.log({ sourceIndex, destinationIndex })
+    if (sourceIndex === destinationIndex) return
 
-    if (over && active.id !== over.id) {
-      const oldIndex = items.findIndex((item) => item.data.id === active.id)
-      const newIndex = items.findIndex((item) => item.data.id === over.id)
+    const newItems = [...items]
+    const [movedItem] = newItems.splice(sourceIndex, 1)
+    newItems.splice(destinationIndex, 0, movedItem)
 
-      const newItems = arrayMove(items, oldIndex, newIndex)
-      setItems(newItems)
+    setItems(newItems)
 
-      const orderedItemsForApi = newItems.map((item) => ({
-        id: item.data.id,
-        type: item.type,
-      }))
+    const orderedItemsForApi = newItems.map((item) => ({
+      id: item.data.id,
+      type: item.type,
+    }))
 
-      try {
-        await authenticatedFetch(`${serverUrl}/library/reorder`, 'POST', {
-          libraryId,
-          orderedItems: orderedItemsForApi,
-        })
-      } catch (error) {
-        setItems(items)
-      } finally {
-        mutate()
+    try {
+      await authenticatedFetch(API.libraries.reorderItems(libraryId), 'POST', {
+        libraryId,
+        orderedItems: orderedItemsForApi,
+      })
+    } catch (error) {
+      if (swrData) {
+        setItems(swrData)
       }
+    } finally {
+      mutate()
     }
   }
 

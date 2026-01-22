@@ -1,5 +1,5 @@
+import { API, authenticatedFetch } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.context'
-import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -10,19 +10,11 @@ import { ModalWrapper } from '../../ModalWrapper'
 import AdvancedTabContent from './AdvancedTabContent'
 import FoldersTabContent from './FoldersTabContent'
 import GeneralTabContent from './GeneralTabContent'
-import { authenticatedFetch } from '@/lib/auth'
 
 function LibraryDialog() {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const currentLanguage = i18n.language?.split('-')[0] ?? 'en'
-  const { serverUrl, selectedServer } = useServerStore(
-    (state) => ({
-      serverUrl: state.serverUrl,
-      selectedServer: state.selectedServer,
-    }),
-    shallow,
-  )
   const connectWS = useWebSocketStore((state) => state.connectWS)
   const { libraryDialog, closeLibraryDialog } = useDialogStore(
     (state) => ({
@@ -70,11 +62,9 @@ function LibraryDialog() {
   }, [libraryDialog])
 
   const handleAddEditLibrary = async () => {
-    if (serverUrl === '') return
-
     setLoading(true)
 
-    await connectWS(serverUrl)
+    await connectWS()
 
     if (libraryDialog.libraryToEdit) {
       const newLibrary = {
@@ -89,13 +79,13 @@ function LibraryDialog() {
         subsMode,
       }
 
-      await authenticatedFetch(`${serverUrl}/library`, 'PUT', {
+      await authenticatedFetch(API.libraries.create, 'PUT', {
         libraryId: libraryDialog.libraryToEdit.id,
         updatedLibrary: newLibrary,
       })
 
       // Mutate libraries list
-      mutate((key: string) => key.startsWith(`${serverUrl}/libraries`))
+      mutate((key: string) => key.startsWith(API.libraries.create))
 
       closeLibraryDialog()
 
@@ -107,40 +97,37 @@ function LibraryDialog() {
       name,
       language: language ?? 'en',
       type: type ?? 'Shows',
-      order: 0,
-      hidden: false,
       folders: folders ?? [],
-      backgroundSrc: '',
       preferAudioLan,
       preferSubLan,
       subsMode,
     }
 
     const response = await authenticatedFetch(
-      `${serverUrl}/addLibrary`,
+      API.libraries.create,
       'POST',
       newLibrary,
     )
 
     closeLibraryDialog()
 
-    if (!response || !response.ok) {
+    if (!response || !response.data) {
       setLoading(false)
       return
     }
 
     // Mutate libraries list
-    mutate((key: string) => key.startsWith(`${serverUrl}/libraries`))
+    mutate((key: string) => key.startsWith(API.libraries.create))
 
-    const data = await response.json()
+    console.log({ okay: response.data, response })
+    const data = await response.data
+    console.log({ data })
     const libraryId = data.id
 
     setLoading(false)
 
     // Navigate to new library page
-    navigate(
-      `/server/${selectedServer?.id}/library/${libraryId}/${type ?? 'Shows'}`,
-    )
+    navigate(`/library/${libraryId}/${type ?? 'Shows'}`)
   }
 
   const handleSaveOrNext = () => {

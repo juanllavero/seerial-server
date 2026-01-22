@@ -1,3 +1,4 @@
+import ExpandableText from '@/components/ExpandableText'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import NotFound from '@/components/NotFound'
 import { Button } from '@/components/ui/button'
@@ -9,33 +10,29 @@ import {
 } from '@/components/ui/IconLibrary'
 import LazyImage from '@/components/ui/LazyImage'
 import { Skeleton } from '@/components/ui/skeleton'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import { useWebSocketStore } from '@/context/ws.context'
-import { MessageType } from '@/data/enums/WSMessage'
 import { Movie } from '@/data/interfaces/Media'
+import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { formatTimeForView } from '@/utils/ReactUtils'
-import { authenticatedFetcher } from '@/utils/utils'
 import { t } from 'i18next'
 import { Pencil } from 'lucide-react'
 import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import useSWR from 'swr'
+import { shallow } from 'zustand/shallow'
 import CastList from '../components/CastList'
 import MovieContent from '../components/MovieContent'
 import '../DetailsPage.css'
 import MyListButton from './components/MyListButton'
-import { shallow } from 'zustand/shallow'
-import ExpandableText from '@/components/ExpandableText'
-import { useIsServerOwner } from '@/hooks/useServerOwner'
-import { useAuth } from '@/context/auth.context'
-import { authenticatedFetch } from '@/lib/auth'
 
 function MovieDetailsPage() {
   const { movieId } = useParams()
-  const { user } = useAuth()
+  const user = useServerStore((state) => state.currentUser)
   const { setCurrentBackground, currentBackground } = useDataStore(
     (state) => ({
       setCurrentBackground: state.setCurrentBackground,
@@ -46,14 +43,7 @@ function MovieDetailsPage() {
   const clientSettings = useSettingsStore((state) => state.clientSettings)
   const wsMessage = useWebSocketStore((state) => state.wsMessage)
   const openMovieDialog = useDialogStore((state) => state.openMovieDialog)
-  const { selectedServer, serverUrl } = useServerStore(
-    (state) => ({
-      selectedServer: state.selectedServer,
-      serverUrl: state.serverUrl,
-    }),
-    shallow,
-  )
-  const isServerOwner = useIsServerOwner()
+  const isAdmin = useIsAdmin()
   const navigate = useNavigate()
 
   // Get movie data
@@ -62,27 +52,10 @@ function MovieDetailsPage() {
     isLoading,
     error,
     mutate,
-  } = useSWR<Movie>(
-    `${serverUrl}/details/movie?id=${movieId}`,
-    authenticatedFetcher,
-  )
+  } = useSWR<Movie>(API.movies.get(movieId ?? ''), authenticatedFetcher)
 
   const isMobile = useIsMobile()
   const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true
-
-  // Update selected server
-  // useEffect(() => {
-  //   if (server !== selectedServer) {
-  //     selectServer(server)
-  //   }
-  // }, [])
-
-  // Mutate content on ws message
-  useEffect(() => {
-    if (wsMessage === MessageType.MUTATE_MOVIE) {
-      mutate()
-    }
-  }, [wsMessage, mutate])
 
   // Set background image src
   useEffect(() => {
@@ -126,7 +99,7 @@ function MovieDetailsPage() {
 
   const toggleMovieWatched = async () => {
     if (movie) {
-      authenticatedFetch(`${serverUrl}/setMovieWatched`, 'POST', {
+      authenticatedFetch(`/api/setMovieWatched`, 'POST', {
         movieId: movie.id,
         watched: !movie.watchStatus,
         userId: user?.id,
@@ -244,9 +217,7 @@ function MovieDetailsPage() {
             <Button
               onClick={() => {
                 if (movie && movie.videos && movie.videos.length > 0) {
-                  navigate(
-                    `/server/${selectedServer?.id}/video-player/${movie.videos[0].id}`,
-                  )
+                  navigate(`/video-player/${movie.videos[0].id}`)
                 }
               }}
             >
@@ -272,13 +243,10 @@ function MovieDetailsPage() {
                     <MarkWatchedIcon />
                   )}
                 </Button>
-                <MyListButton
-                  movieId={movieId ?? ''}
-                  serverUrl={serverUrl ?? ''}
-                />
+                <MyListButton movieId={movieId ?? ''} />
               </>
             )}
-            {isServerOwner && (
+            {isAdmin && (
               <Button
                 variant={'ghost'}
                 title={t('editButton')}

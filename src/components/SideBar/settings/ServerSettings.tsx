@@ -6,16 +6,14 @@ import {
   SidebarMenuItem,
 } from '../../ui/sidebar'
 
-import { SidebarMenuButton } from '../../ui/sidebar'
 import { useSettingsStore } from '@/context/settings.context'
 import { SettingsSection } from '@/data/interfaces/Utils'
-import { useServerStore } from '@/context/server.context'
+import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { shallow } from 'zustand/shallow'
-import { useIsServerOwner } from '@/hooks/useServerOwner'
+import { SidebarMenuButton } from '../../ui/sidebar'
 
 const ServerSettings = () => {
   const { t } = useTranslation()
-  const serverStatus = useServerStore((state) => state.serverStatus)
   const { settingsSection, setSettingsSection } = useSettingsStore(
     (state) => ({
       settingsSection: state.settingsSection,
@@ -23,9 +21,9 @@ const ServerSettings = () => {
     }),
     shallow,
   )
-  const isServerOwner = useIsServerOwner()
+  const isAdmin = useIsAdmin()
 
-  if (!isServerOwner) return null
+  if (!isAdmin) return null
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{t('server')}</SidebarGroupLabel>
@@ -53,85 +51,75 @@ const ServerSettings = () => {
             </span>
           </SidebarMenuButton>
         </SidebarMenuItem>
-        {serverStatus && (
-          <>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                tooltip={t('languages')}
-                onClick={() =>
-                  setSettingsSection(SettingsSection.ServerLanguages)
-                }
-                className={`${
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            asChild
+            tooltip={t('languages')}
+            onClick={() => setSettingsSection(SettingsSection.ServerLanguages)}
+            className={`${
+              settingsSection === SettingsSection.ServerLanguages
+                ? 'bg-accent'
+                : ''
+            }`}
+          >
+            <span
+              style={{
+                color:
                   settingsSection === SettingsSection.ServerLanguages
-                    ? 'bg-accent'
-                    : ''
-                }`}
-              >
-                <span
-                  style={{
-                    color:
-                      settingsSection === SettingsSection.ServerLanguages
-                        ? 'var(--app-color)'
-                        : 'white',
-                  }}
-                >
-                  {t('languages')}
-                </span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                tooltip={t('transcode')}
-                onClick={() =>
-                  setSettingsSection(SettingsSection.ServerTranscode)
-                }
-                className={`${
+                    ? 'var(--app-color)'
+                    : 'white',
+              }}
+            >
+              {t('languages')}
+            </span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            asChild
+            tooltip={t('transcode')}
+            onClick={() => setSettingsSection(SettingsSection.ServerTranscode)}
+            className={`${
+              settingsSection === SettingsSection.ServerTranscode
+                ? 'bg-accent'
+                : ''
+            }`}
+          >
+            <span
+              style={{
+                color:
                   settingsSection === SettingsSection.ServerTranscode
-                    ? 'bg-accent'
-                    : ''
-                }`}
-              >
-                <span
-                  style={{
-                    color:
-                      settingsSection === SettingsSection.ServerTranscode
-                        ? 'var(--app-color)'
-                        : 'white',
-                  }}
-                >
-                  {t('transcode')}
-                </span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                asChild
-                tooltip={t('libraries')}
-                onClick={() =>
-                  setSettingsSection(SettingsSection.ServerLibraries)
-                }
-                className={`${
+                    ? 'var(--app-color)'
+                    : 'white',
+              }}
+            >
+              {t('transcode')}
+            </span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            asChild
+            tooltip={t('libraries')}
+            onClick={() => setSettingsSection(SettingsSection.ServerLibraries)}
+            className={`${
+              settingsSection === SettingsSection.ServerLibraries
+                ? 'bg-accent'
+                : ''
+            }`}
+          >
+            <span
+              style={{
+                color:
                   settingsSection === SettingsSection.ServerLibraries
-                    ? 'bg-accent'
-                    : ''
-                }`}
-              >
-                <span
-                  style={{
-                    color:
-                      settingsSection === SettingsSection.ServerLibraries
-                        ? 'var(--app-color)'
-                        : 'white',
-                  }}
-                >
-                  {t('libraries')}
-                </span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </>
-        )}
+                    ? 'var(--app-color)'
+                    : 'white',
+              }}
+            >
+              {t('libraries')}
+            </span>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
       </SidebarMenu>
     </SidebarGroup>
   )

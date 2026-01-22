@@ -7,28 +7,20 @@ interface HTMLVideoPlayerProps {
 }
 
 function HTMLVideoPlayer({ url, videoRef }: HTMLVideoPlayerProps) {
-  if (!url) {
-    return null
-  }
-
   useEffect(() => {
-    if (!videoRef) return
-
     const video = videoRef.current
     if (video) {
+      video.src = url
       video.load()
+      video.play().catch((e) => {
+        console.log(e)
+      })
     }
-  }, [url])
+  }, [url, videoRef])
 
   return (
     <div data-vjs-player className="hide-video">
-      <video
-        ref={videoRef}
-        src={url}
-        crossOrigin="anonymous"
-        playsInline
-        autoPlay
-      />
+      <video ref={videoRef} crossOrigin="anonymous" playsInline />
     </div>
   )
 }

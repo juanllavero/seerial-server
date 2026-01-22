@@ -1,19 +1,17 @@
 import Loading from '@/components/Loading'
 import FlexBox from '@/components/ui/FlexBox'
+import { API, authenticatedFetch } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.context'
-import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { EpisodeGroupResult } from '@/data/interfaces/Utils'
 import { getEpisodeGroupType } from '@/utils/ReactUtils'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import './ChangeEpisodesGroupSearch.css'
 import { shallow } from 'zustand/shallow'
-import { authenticatedFetch } from '@/lib/auth'
+import './ChangeEpisodesGroupSearch.css'
 
 function ChangeEpisodesGroupSearch() {
   const { t } = useTranslation()
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const connectWS = useWebSocketStore((state) => state.connectWS)
   const { episodesGroupDialog, closeEpisodesGroupDialog } = useDialogStore(
     (state) => ({
@@ -32,9 +30,9 @@ function ChangeEpisodesGroupSearch() {
 
   const search = () => {
     authenticatedFetch(
-      `${serverUrl}/episodeGroups/search?id=${episodesGroupDialog.seriesToEdit?.themdbId}`,
+      `${API.series.searchEpisodeGroups}?id=${episodesGroupDialog.seriesToEdit?.themdbId}`,
     )
-      .then((response) => response.json())
+      .then((response) => response.data)
       .then((data) => {
         setEpisodeGroupsResults(data)
       })
@@ -42,14 +40,15 @@ function ChangeEpisodesGroupSearch() {
   }
 
   const saveIdentification = async (id: string) => {
-    if (serverUrl === '') return
-
-    await connectWS(serverUrl)
-    authenticatedFetch(`${serverUrl}/updateEpisodeGroup`, 'POST', {
-      showId: episodesGroupDialog.seriesToEdit?.id,
-      themdbId: episodesGroupDialog.seriesToEdit?.themdbId,
-      episodeGroupId: id,
-    })
+    await connectWS()
+    authenticatedFetch(
+      API.series.updateEpisodeGroup(episodesGroupDialog.seriesToEdit?.id ?? ''),
+      'POST',
+      {
+        themdbId: episodesGroupDialog.seriesToEdit?.themdbId,
+        episodeGroupId: id,
+      },
+    )
 
     closeEpisodesGroupDialog()
   }

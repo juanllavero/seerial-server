@@ -1,18 +1,15 @@
-import { Server } from '@/data/interfaces/Users'
-import { authenticatedFetch } from '@/lib/auth'
+import { API, API_BASE_URL, authenticatedFetch } from '@/config/api'
+import { BasicUser } from '@/data/interfaces/Users'
 import { createWithEqualityFn } from 'zustand/traditional'
 
 interface ServerState {
-  selectedServer: Server | null
-  // The final, reachable URL of the server (can be local or public)
-  serverUrl: string
-  serverStatus: boolean
-  serverVersion: string
-  gettingServerStatus: boolean
+  users: BasicUser[]
+  currentUser: BasicUser | null
   apiKeyStatus: boolean
   gettingApiKeyStatus: boolean
-  selectServer: (server: Server | null) => Promise<void>
+  gettingServerStatus: boolean
   getServerStatus: () => Promise<void>
+  setCurrentUser: (user: BasicUser | null) => void
   setApiKey: (apiKey: string) => Promise<void>
 }
 
@@ -49,114 +46,58 @@ const pingServer = (url: string, timeout: number = 3000): Promise<string> => {
   })
 }
 
-export const useServerStore = createWithEqualityFn<ServerState>((set, get) => ({
-  selectedServer: null,
-  serverStatus: false,
-  serverUrl: '', // Changed from serverUrl to serverUrl for clarity
-  serverVersion: '',
-  gettingServerStatus: true,
+export const useServerStore = createWithEqualityFn<ServerState>((set) => ({
+  users: [],
+  currentUser: localStorage.getItem('user')
+    ? JSON.parse(localStorage.getItem('user')!)
+    : null,
   apiKeyStatus: false,
   gettingApiKeyStatus: false,
-
-  selectServer: async (server) => {
-    if (server?.id === get().selectedServer?.id) {
-      return
-    }
-
-    // Reset state immediately for better UX
-    set({
-      selectedServer: server,
-      serverUrl: '',
-      gettingServerStatus: true,
-      serverStatus: false,
-      apiKeyStatus: false,
-    })
-
-    if (!server) {
-      set({
-        gettingServerStatus: false,
-      })
-      return
-    }
-
-    const localUrl = `https://${server.ip}:${server.port}/`
-    const publicUrl = `https://${server.id}.seerial.es:${server.port}/`
-
-    console.log(`[Connection]: Pinging local URL: ${localUrl}`)
-    console.log(`[Connection]: Pinging public URL: ${publicUrl}`)
-
-    try {
-      // Promise.any resolves as soon as the FIRST promise resolves.
-      // We race the local connection against the public one.
-      const reachableUrl = await Promise.any([
-        pingServer(localUrl),
-        pingServer(publicUrl),
-      ])
-
-      console.log(`[Connection]: Success! Using reachable URL: ${reachableUrl}`)
-      // Set the URL that won the race. Remove the trailing slash.
-      set({ serverUrl: reachableUrl.slice(0, -1) })
-      // Now get the full status from the confirmed reachable URL.
-      await get().getServerStatus()
-    } catch (error) {
-      console.error(
-        '[Connection]: Server is unreachable on both local and public URLs.',
-        error,
-      )
-
-      // If the server has a tunnel, use that.
-      if (server.tunnel && server.tunnel !== '') {
-        set({ serverUrl: server.tunnel })
-        await get().getServerStatus()
-      } else {
-        set({ serverStatus: false, serverUrl: '' })
-      }
-    }
-  },
+  gettingServerStatus: false,
 
   getServerStatus: async () => {
-    // Use the dynamically set serverUrl from the state
-    const { serverUrl } = get()
-    if (!serverUrl) return
-
     set({ gettingServerStatus: true })
 
     try {
       // Use a standard 10-second timeout for regular requests
-      const response = await pingServer(`${serverUrl}/`, 10000)
+      const response = await pingServer(
+        `${API_BASE_URL}${API.servers.status}`,
+        10000,
+      )
       // We need to actually get the data this time
-      const data = await (await authenticatedFetch(response)).json()
+      const data = await (await fetch(response)).json()
+
+      console.log({ data })
 
       set({
-        serverStatus: data.status !== undefined,
         apiKeyStatus: data.status === 'VALID_API_KEY',
-        serverVersion: data.version || '', // Assuming your server returns a version
         gettingApiKeyStatus: false,
       })
-    } catch {
-      set({ serverStatus: false })
     } finally {
       set({ gettingServerStatus: false })
     }
   },
 
-  setApiKey: async (apiKey) => {
-    // Use the dynamically set serverUrl from the state
-    const { serverUrl } = get()
-    if (!serverUrl) return
+  setCurrentUser: (user: BasicUser | null) => {
+    set({ currentUser: user })
+    localStorage.setItem('user', JSON.stringify(user))
+  },
 
+  setApiKey: async (apiKey) => {
     set({ gettingApiKeyStatus: true })
 
     try {
       const response = await authenticatedFetch(
-        `${serverUrl}/api-key`,
+        API.configuration.apiKey,
         'POST',
-        { apiKey },
+        {
+          apiKey,
+        },
       )
-      if (!response || !response.ok) {
+      if (!response || !response.status || response.status !== 200) {
         throw new Error()
       }
-      const data = await response.json()
+      const data = await response.data
 
       set({
         apiKeyStatus: data.status === 'VALID_API_KEY',

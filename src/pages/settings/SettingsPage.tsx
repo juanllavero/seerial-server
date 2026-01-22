@@ -1,9 +1,9 @@
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import FlexBox from '@/components/ui/FlexBox'
-import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import { SettingsSection } from '@/data/interfaces/Utils'
 import { useEffect } from 'react'
+import { shallow } from 'zustand/shallow'
 import ClientGeneral from './components/ClientGeneral'
 import ClientPlayer from './components/ClientPlayer'
 import ClientQuality from './components/ClientQuality'
@@ -11,10 +11,8 @@ import ServerGeneral from './components/ServerGeneral'
 import ServerLanguages from './components/ServerLanguages'
 import ServerLibraries from './components/ServerLibraries'
 import ServerTranscode from './components/ServerTranscode'
-import { shallow } from 'zustand/shallow'
 
 function SettingsPage() {
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const {
     getAllClientSettings,
     getAllServerSettings,
@@ -33,11 +31,9 @@ function SettingsPage() {
   const isMobile = useIsMobile()
 
   useEffect(() => {
-    if (serverUrl) {
-      getAllServerSettings(serverUrl)
-      getAllClientSettings()
-    }
-  }, [serverUrl])
+    getAllServerSettings()
+    getAllClientSettings()
+  }, [])
 
   const isLoaded =
     Object.keys(serverSettings).length > 0 &&

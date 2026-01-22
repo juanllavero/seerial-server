@@ -1,10 +1,8 @@
 import { TooltipProvider } from '@radix-ui/react-tooltip'
-import { GoogleOAuthProvider } from '@react-oauth/google'
-import { BrowserRouter } from 'react-router-dom'
 import { useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { useTranslation } from 'react-i18next'
-import { AuthProvider } from './context/auth.context'
+import { BrowserRouter } from 'react-router-dom'
 import { updateAppLanguage } from './helpers/language_helpers'
 import './localization/i18n'
 import { AppRoutes } from './routes/routes'
@@ -25,11 +23,7 @@ function App() {
 
 const root = createRoot(document.getElementById('app')!)
 root.render(
-  <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID!}>
-    <AuthProvider>
-      <TooltipProvider>
-        <App />
-      </TooltipProvider>
-    </AuthProvider>
-  </GoogleOAuthProvider>,
+  <TooltipProvider>
+    <App />
+  </TooltipProvider>,
 )

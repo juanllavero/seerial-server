@@ -1,9 +1,8 @@
-import { useServerStore } from '@/context/server.context'
+import { isAbsolutePath } from '@/utils/ReactUtils'
 import { useEffect, useRef, useState } from 'react'
 import { useIsMobile } from '../hooks/use-mobile'
 import { useIsTablet } from '../hooks/use-tablet'
 import { Skeleton } from './skeleton'
-import { isAbsolutePath } from '@/utils/ReactUtils'
 
 interface ImageProps {
   url?: string
@@ -32,7 +31,6 @@ const Image: React.FC<ImageProps> = ({
   className = '',
   onClick,
 }) => {
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
   const [isInView, setIsInView] = useState(false)
@@ -44,17 +42,17 @@ const Image: React.FC<ImageProps> = ({
 
   const [imageSrc, setImageSrc] = useState(
     url
-      ? url.startsWith('http2')
+      ? url.startsWith('http')
         ? url
         : url.startsWith('local')
           ? url.replace('local', '')
           : isAbsolutePath(url)
-            ? `${serverUrl}/image?path=${encodeURIComponent(url)}`
-            : `${serverUrl}/${url.replace('resources/img', 'img')}`
+            ? `/api/image?path=${encodeURIComponent(url)}`
+            : `/api/${url.replace('resources/img', 'img')}`
       : (src ?? fallbackSrc),
   )
 
-  // Update imageSrc when url, src, or serverUrl changes
+  // Update imageSrc when url, src changes
   useEffect(() => {
     setIsLoading(true)
     setHasError(false)
@@ -64,11 +62,11 @@ const Image: React.FC<ImageProps> = ({
         : url.startsWith('local')
           ? url.replace('local', '')
           : isAbsolutePath(url)
-            ? `${serverUrl}/image?path=${encodeURIComponent(url)}`
-            : `${serverUrl}/${url.replace('resources/img', 'img')}`
+            ? `/api/image?path=${encodeURIComponent(url)}`
+            : `/api/${url.replace('resources/img', 'img')}`
       : (src ?? fallbackSrc)
     setImageSrc(newSrc)
-  }, [url, src, serverUrl, fallbackSrc])
+  }, [url, src, fallbackSrc])
 
   // Intersection Observer for lazy loading
   useEffect(() => {

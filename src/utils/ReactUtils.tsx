@@ -1,10 +1,12 @@
-import { Collection, Movie, Series, Video } from '@/data/interfaces/Media'
-import { ScreenHeight } from '@/data/enums/Screen'
 import Image from '@/components/ui/Image'
+import { ScreenHeight } from '@/data/enums/Screen'
+import { Collection, Movie, Series, Video } from '@/data/interfaces/Media'
 
+import { API, authenticatedFetch } from '@/config/api'
+import { useWebSocketStore } from '@/context/ws.context'
+import { t } from 'i18next'
 import { toast } from 'sonner'
 import { mutate } from 'swr'
-import { authenticatedFetch } from '@/lib/auth'
 import { iso1to3 } from './utils'
 
 const tailwindSizes = [
@@ -24,40 +26,52 @@ export const getVideoProgress = (video: Video, watchedTime?: number) => {
   return undefined
 }
 
-export const toggleMovieWatched = (
-  serverUrl: string,
-  movie: Movie,
-  userId: string,
-) => {
+export const toggleMovieWatched = (movie: Movie, userId: string) => {
   if (movie) {
-    authenticatedFetch(`${serverUrl}/setMovieWatched`, 'POST', {
+    authenticatedFetch(API.movies.setWatchState(movie.id), 'POST', {
       movieId: movie.id,
       watched: movie.watchStatus === undefined,
       userId,
     }).then(() => {
-      mutate((key: string) => key.startsWith(`${serverUrl}/myListMovies`))
-      mutate((key: string) => key.startsWith(`${serverUrl}/library-content`))
-      mutate((key: string) => key.startsWith(`${serverUrl}/details/movie`))
+      mutate((key: string) => key.startsWith(`/api/myListMovies`))
+      mutate((key: string) => key.startsWith(`/api/library-content`))
+      mutate((key: string) => key.startsWith(`/api/details/movie`))
     })
   }
 }
 
-export const toggleSeriesWatched = (
-  serverUrl: string,
-  series: Series,
-  userId: string,
-) => {
+export const toggleSeriesWatched = (series: Series, userId: string) => {
   if (series) {
-    authenticatedFetch(`${serverUrl}/setSeriesWatched`, 'POST', {
+    authenticatedFetch(API.series.setWatchState(series.id), 'POST', {
       seriesId: series.id,
       watched: series.watchStatus === undefined,
       userId,
     }).then(() => {
-      mutate((key: string) => key.startsWith(`${serverUrl}/myListSeries`))
-      mutate((key: string) => key.startsWith(`${serverUrl}/library-content`))
-      mutate((key: string) => key.startsWith(`${serverUrl}/details/series`))
+      mutate((key: string) => key.startsWith(`/api/myListSeries`))
+      mutate((key: string) => key.startsWith(`/api/library-content`))
+      mutate((key: string) => key.startsWith(`/api/details/series`))
     })
   }
+}
+
+export const refreshMetadata = async (type: 'show' | 'movie', id: string) => {
+  const connectWS = useWebSocketStore((state) => state.connectWS)
+
+  await connectWS()
+  const response = await authenticatedFetch(
+    `/api/${type === 'show' ? 'refreshShowMetadata' : 'refreshMovieMetadata'}`,
+    'POST',
+    {
+      id,
+    },
+  )
+
+  if (!response.data) {
+    showToast('error', t('refreshMetadataError'))
+    return
+  }
+
+  showToast('info', t('refreshMetadataStart'))
 }
 
 //#region IMAGES AND TITLES

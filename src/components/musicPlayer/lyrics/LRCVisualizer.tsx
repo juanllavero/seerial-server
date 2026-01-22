@@ -1,14 +1,6 @@
-import useMusicStore from '@/context/music.context'
-import { useServerStore } from '@/context/server.context'
-import { LRCFile, LRCLine } from '@/data/interfaces/Music'
-import { authenticatedFetcher, getLanguageName } from '@/utils/utils'
-import { useState, useEffect, useRef, memo } from 'react'
-import useSWR from 'swr'
+import { useIsMobile } from '@/components/hooks/use-mobile'
 import Loading from '@/components/Loading'
-import i18next from 'i18next'
-import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -16,13 +8,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { API, authenticatedFetcher } from '@/config/api'
+import useMusicStore from '@/context/music.context'
+import { LRCFile, LRCLine } from '@/data/interfaces/Music'
+import { getLanguageName } from '@/utils/utils'
+import i18next from 'i18next'
+import { Plus } from 'lucide-react'
+import { memo, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
-import { useIsMobile } from '@/components/hooks/use-mobile'
 
 const LRCVisualizer = () => {
   const { t } = useTranslation()
   const isMobile = useIsMobile()
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const { currentSong, currentTime, isShown, seekTo } = useMusicStore(
     (state) => ({
       currentSong: state.currentSong,
@@ -40,9 +39,7 @@ const LRCVisualizer = () => {
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const { data: lyrics, isLoading } = useSWR<LRCFile[]>(
-    serverUrl !== '' && currentSong && isShown
-      ? `${serverUrl}/lyrics?id=${currentSong.id}`
-      : null,
+    currentSong && isShown ? API.songs.lyrics(currentSong.id) : null,
     authenticatedFetcher,
   )
 
@@ -150,7 +147,7 @@ const LRCVisualizer = () => {
     <div className="p-x-[0.5rem] @container flex h-full w-full flex-col gap-1 rounded-lg">
       <div
         ref={containerRef}
-        className="no-scrollbar w-full flex-grow overflow-x-hidden overflow-y-auto"
+        className="no-scrollbar w-full grow overflow-x-hidden overflow-y-auto"
         onScroll={handleScroll}
       >
         <div className="space-y-10 px-6 py-8">
@@ -216,7 +213,7 @@ const LRCVisualizer = () => {
               )
             })
           ) : (
-            <div className="flex h-full min-h-[300px] w-full items-center justify-center">
+            <div className="flex h-full min-h-75 w-full items-center justify-center">
               <span className="text-center text-2xl font-bold">
                 {t('lyricsNotFound')}
               </span>

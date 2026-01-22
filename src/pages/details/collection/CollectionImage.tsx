@@ -1,10 +1,9 @@
 import useScreenHeight from '@/components/hooks/use-height'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import Image from '@/components/ui/Image'
-import { useServerStore } from '@/context/server.context'
+import { authenticatedFetcher } from '@/config/api'
 import { Collection, CollectionImages } from '@/data/interfaces/Media'
 import { getCoverSize, getFirstImage, getPosterImage } from '@/utils/ReactUtils'
-import { authenticatedFetcher } from '@/utils/utils'
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 
@@ -14,12 +13,11 @@ interface CollectionImageProps {
 }
 
 function CollectionImage({ collection, type }: CollectionImageProps) {
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const screenHeight = useScreenHeight()
   const isMobile = useIsMobile()
   const [posterImage, setPosterImage] = useState<string>('')
   const { data: collectionImages } = useSWR<CollectionImages>(
-    `${serverUrl}/collection-images?collectionId=${collection.id}&&type=${type}`,
+    `/api/collection-images?collectionId=${collection.id}&&type=${type}`,
     authenticatedFetcher,
   )
 

@@ -2,9 +2,8 @@ import { useIsMobile } from '@/components/hooks/use-mobile'
 import Grid from '@/components/ui/Grid'
 import { Library } from '@/data/interfaces/Media'
 import { useCardWidth } from '@/hooks/useCardWidth'
-import AlbumList from './lists/AlbumList'
-import MoviesList from './lists/MoviesList'
-import SeriesList from './lists/SeriesList'
+import { memo } from 'react'
+import MediaList from './MediaList'
 
 interface LibraryContentProps {
   library: Library
@@ -15,14 +14,7 @@ function LibraryContent({ library, mutateLibrary }: LibraryContentProps) {
   const isMobile = useIsMobile()
   const { cardWidth } = useCardWidth()
 
-  const ItemsList = () =>
-    library.type === 'Music' ? (
-      <AlbumList library={library} mutateLibrary={mutateLibrary} />
-    ) : library.type === 'Shows' ? (
-      <SeriesList library={library} mutateLibrary={mutateLibrary} />
-    ) : (
-      <MoviesList library={library} mutateLibrary={mutateLibrary} />
-    )
+  if (!library) return null
 
   return (
     <Grid
@@ -40,9 +32,9 @@ function LibraryContent({ library, mutateLibrary }: LibraryContentProps) {
       alignItems="start"
       hideScrollbar
     >
-      <ItemsList />
+      <MediaList library={library} mutateLibrary={mutateLibrary} />
     </Grid>
   )
 }
 
-export default LibraryContent
+export default memo(LibraryContent)

@@ -1,108 +1,74 @@
-import Loading from '@/components/Loading'
-import { useServerStore } from '@/context/server.context'
-import { getUser } from '@/lib/auth'
-import AlbumDetailsPage from '@/pages/details/album/AlbumDetailsPage'
-import CollectionDetailsPage from '@/pages/details/collection/CollectionDetailsPage'
-import EpisodeDetailsPage from '@/pages/details/episode/EpisodeDetailsPage'
-import MovieDetailsPage from '@/pages/details/movie/MovieDetailsPage'
-import SeriesDetailsPage from '@/pages/details/series/SeriesDetailsPage'
-import HomePage from '@/pages/home/HomePage'
-import LibraryPage from '@/pages/library/LibraryPage'
-import LoginPage from '@/pages/login/LoginPage'
-import SettingsPage from '@/pages/settings/SettingsPage'
-import SideBarLayout from '@/pages/sidebarLayout/SideBarLayout'
-import VideoPlayerPage from '@/pages/videoPlayer/VideoPlayerPage'
-import { memo, useEffect, useState } from 'react'
-import { Navigate, Outlet, Route, Routes, useParams } from 'react-router-dom'
+import { lazy, memo } from 'react'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import Root from './__root'
-import { useAuth } from '@/context/auth.context'
-import { shallow } from 'zustand/shallow'
-import ProfilePage from '@/pages/profile/ProfilePage'
-import TVLinkPage from '@/pages/link/TVLinkPage'
 
-// Wrapper for ServerRoute to handle loader logic
-function ServerRouteWrapper() {
-  const { serverId } = useParams()
-  const { logout } = useAuth()
-  const { selectedServer, selectServer } = useServerStore(
-    (state) => ({
-      selectedServer: state.selectedServer,
-      selectServer: state.selectServer,
-    }),
-    shallow,
-  )
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    async function loadServer() {
-      const user = await getUser()
-
-      if (!user) {
-        logout()
-        return <Navigate to="/login" replace />
-      }
-
-      const foundServer = user.servers.find((s) => s.id === serverId)
-      selectServer(foundServer ?? null)
-      setLoading(false)
-    }
-    loadServer()
-  }, [serverId])
-
-  if (loading) {
-    return (
-      <div className="absolute h-full w-full">
-        <Loading />
-      </div>
-    )
-  }
-
-  if (!selectedServer) {
-    return <Navigate to="/home" replace />
-  }
-
-  return <Outlet />
-}
+const UsersPage = lazy(() => import('@/pages/users/UsersPage'))
+const TVLinkPage = lazy(() => import('@/pages/link/TVLinkPage'))
+const HomePage = lazy(() => import('@/pages/home/HomePage'))
+const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'))
+const LibraryPage = lazy(() => import('@/pages/library/LibraryPage'))
+const MovieDetailsPage = lazy(
+  () => import('@/pages/details/movie/MovieDetailsPage'),
+)
+const SeriesDetailsPage = lazy(
+  () => import('@/pages/details/series/SeriesDetailsPage'),
+)
+const AlbumDetailsPage = lazy(
+  () => import('@/pages/details/album/AlbumDetailsPage'),
+)
+const CollectionDetailsPage = lazy(
+  () => import('@/pages/details/collection/CollectionDetailsPage'),
+)
+const EpisodeDetailsPage = lazy(
+  () => import('@/pages/details/episode/EpisodeDetailsPage'),
+)
+const VideoPlayerPage = lazy(
+  () => import('@/pages/videoPlayer/VideoPlayerPage'),
+)
+const SideBarLayout = lazy(() => import('@/pages/sidebarLayout/SideBarLayout'))
 
 export function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Root />}>
-        <Route path="/login" element={<LoginPage />} />
+        {/* Login Pages */}
+        <Route path="/users" element={<UsersPage />} />
         <Route path="/link" element={<TVLinkPage />} />
+
+        {/* Default to Home Page */}
         <Route index element={<Navigate to="/home" replace />} />
+
+        {/* Sidebar Content */}
         <Route element={<SideBarLayout />}>
           <Route path="/home" element={<HomePage />} />
           <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/server/:serverId/*" element={<ServerRouteWrapper />}>
-            <Route index element={<Navigate to="library" replace />} />
-            <Route path="library/:libraryId/:type" element={<LibraryPage />} />
-            <Route
-              path="details/movie/:movieId"
-              element={<MovieDetailsPage />}
-            />
-            <Route
-              path="details/series/:seriesId"
-              element={<SeriesDetailsPage />}
-            />
-            <Route
-              path="details/album/:albumId"
-              element={<AlbumDetailsPage />}
-            />
-            <Route
-              path="details/collection/:collectionId/:type"
-              element={<CollectionDetailsPage />}
-            />
-            <Route
-              path="details/episode/:episodeId"
-              element={<EpisodeDetailsPage />}
-            />
-          </Route>
+          <Route path="/library/:libraryId" element={<LibraryPage />}></Route>
+          <Route
+            path="/library/:libraryId/movie/:movieId"
+            element={<MovieDetailsPage />}
+          />
+          <Route
+            path="/library/:libraryId/series/:seriesId"
+            element={<SeriesDetailsPage />}
+          />
+          <Route
+            path="/library/:libraryId/album/:albumId"
+            element={<AlbumDetailsPage />}
+          />
+          <Route
+            path="/library/:libraryId/episode/:episodeId"
+            element={<EpisodeDetailsPage />}
+          />
+
+          {/* Collection Details Page */}
+          <Route
+            path="/collection/:collectionId/:type"
+            element={<CollectionDetailsPage />}
+          />
         </Route>
-        <Route path="/server/:serverId/*" element={<ServerRouteWrapper />}>
-          <Route path="video-player/:videoId" element={<VideoPlayerPage />} />
-        </Route>
+
+        {/* Video Player */}
+        <Route path="/video-player/:videoId" element={<VideoPlayerPage />} />
       </Route>
     </Routes>
   )
@@ -110,7 +76,6 @@ export function AppRoutes() {
 
 // Export memoized components for consistency
 export const MemoizedHomePage = memo(HomePage)
-export const MemoizedLoginPage = memo(LoginPage)
 export const MemoizedSettingsPage = memo(SettingsPage)
 export const MemoizedLibraryPage = memo(LibraryPage)
 export const MemoizedMovieDetailsPage = memo(MovieDetailsPage)

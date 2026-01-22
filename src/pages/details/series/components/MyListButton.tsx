@@ -1,26 +1,24 @@
 import { Button } from '@/components/ui/button'
-import { RemoveFromListIcon, AddToListIcon } from '@/components/ui/IconLibrary'
-import { useAuth } from '@/context/auth.context'
-import { authenticatedFetch } from '@/lib/auth'
-import { authenticatedFetcher } from '@/utils/utils'
+import { AddToListIcon, RemoveFromListIcon } from '@/components/ui/IconLibrary'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
+import { useServerStore } from '@/context/server.context'
 import { t } from 'i18next'
 import useSWR from 'swr'
 
 interface MyListButtonProps {
-  serverUrl: string
   seriesId: string
 }
 
-function MyListButton({ serverUrl, seriesId }: MyListButtonProps) {
-  const { user } = useAuth()
+function MyListButton({ seriesId }: MyListButtonProps) {
+  const user = useServerStore((state) => state.currentUser)
   // Get if show is in My List
   const { data: inMyList, mutate: mutateInMyList } = useSWR(
-    `${serverUrl}/isShowInMyList?seriesId=${seriesId}&userId=${user?.id}`,
+    API.myList.isSeriesInList(seriesId),
     authenticatedFetcher,
   )
 
   const toggleMyList = () => {
-    authenticatedFetch(`${serverUrl}/updateSeriesMyList`, 'POST', {
+    authenticatedFetch(API.myList.series, 'POST', {
       seriesId: seriesId,
       userId: user?.id,
     }).then(() => {

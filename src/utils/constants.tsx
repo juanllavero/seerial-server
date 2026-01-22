@@ -7,5 +7,10 @@ export enum ImageType {
   SQUARE = 'square',
 }
 
+export enum UserType {
+  NORMAL = 'normal',
+  ADMIN = 'admin',
+}
+
 export const SIDEBAR_MARGIN = 56 // ml-56 for the content inside the sidebar
 export const SIDEBAR_MARGIN_COLLAPSED = 14

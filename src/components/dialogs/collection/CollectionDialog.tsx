@@ -1,21 +1,18 @@
 import { ModalWrapper } from '@/components/ModalWrapper'
+import { API, authenticatedFetch } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.context'
-import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Collection } from '@/data/interfaces/Media'
+import { ImageType } from '@/utils/constants'
 import { showToast } from '@/utils/ReactUtils'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { mutate } from 'swr'
+import { shallow } from 'zustand/shallow'
 import ImageListTab from '../components/ImageListTab'
 import CollectionInfoTab from './components/CollectionInfoTab'
-import { shallow } from 'zustand/shallow'
-import { ImageType } from '@/utils/constants'
-import { authenticatedFetch } from '@/lib/auth'
 
 function CollectionDialog() {
   const { t } = useTranslation()
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const connectWS = useWebSocketStore((state) => state.connectWS)
   const { collectionDialog, closeCollectionDialog } = useDialogStore(
     (state) => ({
@@ -67,12 +64,10 @@ function CollectionDialog() {
   if (!collection) return null
 
   const handleEditCollection = async () => {
-    if (serverUrl === '') return
-
-    await connectWS(serverUrl)
+    await connectWS()
 
     const response = await authenticatedFetch(
-      `${serverUrl}/collection/${collection.id}`,
+      API.collections.get(collection.id),
       'PUT',
       {
         ...collection,
@@ -83,12 +78,10 @@ function CollectionDialog() {
       },
     )
 
-    if (!response || !response.ok) {
+    if (!response || !response.data) {
       showToast('error', 'Error updating episode')
       return
     }
-
-    mutate((key: string) => key.startsWith(`${serverUrl}/details/season`))
 
     closeCollectionDialog()
   }

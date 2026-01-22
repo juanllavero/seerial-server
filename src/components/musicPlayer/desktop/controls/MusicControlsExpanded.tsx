@@ -1,5 +1,7 @@
 import CustomSlider from '@/components/CustomSlider'
 import { useIsMobile } from '@/components/hooks/use-mobile'
+import { useIsTablet } from '@/components/hooks/use-tablet'
+import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
 import { Button } from '@/components/ui/button'
 import {
   NextTrackIcon,
@@ -8,9 +10,12 @@ import {
   PrevTrackIcon,
   StopIcon,
 } from '@/components/ui/IconLibrary'
+import Image from '@/components/ui/Image'
 import { Slider } from '@/components/ui/slider'
+import { API, authenticatedFetcher } from '@/config/api'
 import useMusicStore from '@/context/music.context'
 import { RepeateMode } from '@/data/enums/Music'
+import { LRCFile } from '@/data/interfaces/Music'
 import { formatTime } from '@/utils/ReactUtils'
 import {
   EllipsisVertical,
@@ -24,17 +29,10 @@ import {
   Volume2,
   VolumeOff,
 } from 'lucide-react'
-import Image from '@/components/ui/Image'
 import { useState } from 'react'
-import { useIsTablet } from '@/components/hooks/use-tablet'
 import { useTranslation } from 'react-i18next'
-import { shallow } from 'zustand/shallow'
-import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
-import { LRCFile } from '@/data/interfaces/Music'
-import { authenticatedFetcher } from '@/utils/utils'
 import useSWR from 'swr'
-import { useServerStore } from '@/context/server.context'
-import { stat } from 'fs'
+import { shallow } from 'zustand/shallow'
 
 interface MusicControlsExpandedProps {
   title: string
@@ -107,7 +105,6 @@ function MusicControlsExpanded({
     }),
     shallow,
   )
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const { t } = useTranslation()
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
@@ -115,9 +112,7 @@ function MusicControlsExpanded({
 
   // Get Lyrics in order to show lyrics button
   const { data: lyrics } = useSWR<LRCFile[]>(
-    serverUrl !== '' && currentSong && isShown
-      ? `${serverUrl}/lyrics?id=${currentSong.id}`
-      : null,
+    currentSong && isShown ? API.songs.lyrics(currentSong.id) : null,
     authenticatedFetcher,
   )
 

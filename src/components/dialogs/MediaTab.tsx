@@ -2,10 +2,9 @@ import { useIsTablet } from '@/components/hooks/use-tablet'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Skeleton } from '@/components/ui/skeleton'
+import { API, authenticatedFetcher } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.context'
-import { useServerStore } from '@/context/server.context'
 import { Movie, Season, Series } from '@/data/interfaces/Media'
-import { authenticatedFetcher } from '@/utils/utils'
 import { Download, Trash2 } from 'lucide-react'
 import { memo } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -20,7 +19,6 @@ interface MediaTabProps {
 function MediaTab({ series, season, movie }: MediaTabProps) {
   const { t } = useTranslation()
   const isTablet = useIsTablet()
-  const serverUrl = useServerStore((state) => state.serverUrl)
   const openDownloadMediaDialog = useDialogStore(
     (state) => state.openDownloadMediaDialog,
   )
@@ -33,20 +31,28 @@ function MediaTab({ series, season, movie }: MediaTabProps) {
     data: video,
     isLoading: loadingVideo,
     error: videoError,
-  } = useSWR(`${serverUrl}/${type}Video?id=${id}`, authenticatedFetcher, {
-    revalidateAll: true,
-    refreshInterval: 1000,
-  })
+  } = useSWR(
+    `${API.media.background(type, 'video')}?id=${id}`,
+    authenticatedFetcher,
+    {
+      revalidateAll: true,
+      refreshInterval: 1000,
+    },
+  )
 
   // Background music
   const {
     data: music,
     isLoading: loadingMusic,
     error: musicError,
-  } = useSWR(`${serverUrl}/${type}Music?id=${id}`, authenticatedFetcher, {
-    revalidateAll: true,
-    refreshInterval: 1000,
-  })
+  } = useSWR(
+    `${API.media.background(type, 'music')}?id=${id}`,
+    authenticatedFetcher,
+    {
+      revalidateAll: true,
+      refreshInterval: 1000,
+    },
+  )
 
   const openDownloadDialog = (type: 'music' | 'video') => {
     openDownloadMediaDialog(type, series, season, movie)
@@ -130,7 +136,7 @@ function MediaTab({ series, season, movie }: MediaTabProps) {
         <video
           controls
           className={`w-full ${isTablet ? 'h-48' : 'h-64'} rounded-lg`}
-          src={`${serverUrl}${video.url}`}
+          src={`/api/${video.url}`}
           onError={(e) => {
             console.error('Video loading error:', e)
           }}
@@ -209,7 +215,7 @@ function MediaTab({ series, season, movie }: MediaTabProps) {
         <audio
           controls
           className="w-full"
-          src={`${serverUrl}${music.url}`}
+          src={`/api/${music.url}`}
           onError={(e) => {
             console.error('Audio loading error:', e)
           }}

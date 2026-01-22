@@ -1,18 +1,17 @@
 import Loading from '@/components/Loading'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import { useServerStore } from '@/context/server.context'
 import { Video } from '@/data/interfaces/Media'
 import { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
 import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
-import { authenticatedFetcher } from '@/utils/utils'
-import { useParams } from 'react-router-dom'
 import { useEffect, useRef, useState } from 'react'
+import { useParams } from 'react-router-dom'
 import useSWR from 'swr'
-import HTMLVideoPlayer from './components/HTMLVideoPlayer'
-import './VideoPlayerPage.css'
+import { shallow } from 'zustand/shallow'
 import Controls from './components/Controls'
+import HTMLVideoPlayer from './components/HTMLVideoPlayer'
 import TopBar from './components/TopBar'
-import { authenticatedFetch } from '@/lib/auth'
-import { useAuth } from '@/context/auth.context'
+import './VideoPlayerPage.css'
 
 interface VideoInfo {
   title: string
@@ -23,9 +22,13 @@ interface VideoInfo {
 }
 
 function VideoPlayerPage() {
-  const serverUrl = useServerStore((state) => state.serverUrl)
+  const { user } = useServerStore(
+    (state) => ({
+      user: state.currentUser,
+    }),
+    shallow,
+  )
   const { videoId } = useParams()
-  const { user } = useAuth()
 
   // Get video data
   const {
@@ -33,15 +36,13 @@ function VideoPlayerPage() {
     isLoading: loadingVideo,
     mutate,
   } = useSWR<Video>(
-    videoId && serverUrl !== ''
-      ? `${serverUrl}/details/video?id=${videoId}`
-      : null,
+    videoId ? API.videos.get(videoId) : null,
     authenticatedFetcher,
   )
 
   // Get video info
   const { data: videoInfo, isLoading: loadingVideoInfo } = useSWR<VideoInfo>(
-    videoId && serverUrl !== '' ? `${serverUrl}/videoInfo?id=${videoId}` : null,
+    videoId ? API.videos.getMediaInfo(videoId) : null,
     authenticatedFetcher,
   )
 
@@ -92,44 +93,28 @@ function VideoPlayerPage() {
 
   const [videoSrc, setVideoSrc] = useState<string>('')
 
-  async function getSignedStreamUrl(
-    video: any,
-    serverUrl: string,
-    start = 0,
-    audio = 0,
-  ) {
-    const res = await authenticatedFetch(
-      `${serverUrl}/get-stream-url`,
-      'POST',
-      {
-        filePath: video.fileSrc,
-        start,
-        audio,
-        expiresIn: '2m',
-      },
-    )
+  async function getSignedStreamUrl(video: any, start = 0, audio = 0) {
+    const res = await authenticatedFetch(`/api/get-stream-url`, 'POST', {
+      filePath: video.fileSrc,
+      start,
+      audio,
+      expiresIn: '2m',
+    })
 
-    const { url } = await res.json()
-    return `${serverUrl}${url}`
+    const url = await res.data
+    return `/api${url}`
   }
 
   useEffect(() => {
-    if (!video || !serverUrl) return
+    if (!video) return
     getSignedStreamUrl(
       video,
-      serverUrl,
       streamStartTime ? Math.floor(streamStartTime) : 0,
       selectedAudioTrack && selectedAudioTrack.id && selectedAudioTrack.id > 0
         ? selectedAudioTrack.id - 1
         : 0,
     ).then(setVideoSrc)
-  }, [
-    video,
-    serverUrl,
-    streamStartTime,
-    selectedAudioTrack,
-    selectedSubtitleTrack,
-  ])
+  }, [video, streamStartTime, selectedAudioTrack, selectedSubtitleTrack])
 
   // These functions now correctly update the state to trigger the 'videoSrc' recalculation.
   const handleAudioTrackChange = (track: AudioTrack) => {
@@ -382,17 +367,15 @@ function VideoPlayerPage() {
     if (!video || !videoInfo) return
 
     const fetchData = async () => {
-      const result = await authenticatedFetch(
-        `${serverUrl}/updateMediaInfo`,
-        'PUT',
-        { videoId: video.id },
-      )
+      const result = await authenticatedFetch(`/api/updateMediaInfo`, 'PUT', {
+        videoId: video.id,
+      })
 
-      if (!result || !result.ok) {
+      if (!result || !result.data) {
         return
       }
 
-      const data = await result.json()
+      const data = await result.data
 
       const { videoTracks, audioTracks, subtitleTracks } = data
       setTracks({ audioTracks, subtitleTracks })
@@ -467,7 +450,7 @@ function VideoPlayerPage() {
     track.kind = 'subtitles'
     track.label = selectedSubtitleTrack.displayTitle
     track.srclang = selectedSubtitleTrack.language
-    track.src = `${serverUrl}/subs-from-video?path=${encodeURIComponent(video?.fileSrc ?? '')}&trackId=${tracks.subtitleTracks.indexOf(selectedSubtitleTrack)}&startTime=${streamStartTime}`
+    track.src = `/api/subs-from-video?path=${encodeURIComponent(video?.fileSrc ?? '')}&trackId=${tracks.subtitleTracks.indexOf(selectedSubtitleTrack)}&startTime=${streamStartTime}`
     track.default = true
 
     videoPlayer.appendChild(track)
@@ -522,7 +505,6 @@ function VideoPlayerPage() {
           isPlaying={isPlaying}
           isFullscreen={isFullscreen}
           showControls={showControls}
-          serverUrl={serverUrl}
           currentTime={currentTime}
           setVideoLoaded={setVideoLoaded}
           setIsPlaying={setIsPlaying}

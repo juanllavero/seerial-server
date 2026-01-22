@@ -1,54 +1,117 @@
-# React + TypeScript + Vite
+![Seerial Banner](public/img/banner.svg)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+# Seerial Web Client
 
-Currently, two official plugins are available:
+A modern web client for the Seerial Media Server, providing a sleek and responsive interface for managing and streaming your multimedia library.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Overview
 
-## Expanding the ESLint configuration
+Seerial Web Client is the frontend application that connects to the Seerial Media Server API. It offers a user-friendly interface for browsing, searching, and playing movies, TV series, music, and other media content.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Features
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+- **Media Browsing**: Browse your media library with intuitive navigation and search capabilities
+- **Video Playback**: Integrated video player with support for various formats
+- **Audio Playback**: Music player with playlist support
+- **Responsive Design**: Optimized for desktop and mobile devices
+- **Multi-language Support**: Internationalization with multiple language options
+- **Modern UI**: Clean, accessible interface built with modern design principles
+
+## Technologies
+
+- **React 19**: Modern JavaScript library for building user interfaces
+- **TypeScript**: Type-safe JavaScript for better development experience
+- **Vite**: Fast build tool and development server
+- **Zustand**: Lightweight state management solution
+- **SWR**: React hooks for data fetching with caching and revalidation
+- **Tailwind CSS**: Utility-first CSS framework
+- **Radix UI**: Unstyled, accessible UI components
+- **React Router DOM**: Declarative routing for React
+- **i18next**: Internationalization framework
+- **Video.js**: Web video player
+- **Lucide React**: Beautiful & consistent icon toolkit
+- **shadcn/ui**: Re-usable components built on Radix UI and Tailwind CSS
+
+## Getting Started
+
+This web client is part of the Seerial Media Server project. To run the complete application, follow the setup instructions in the main [README](../README.md).
+
+### Prerequisites
+
+- Node.js (v16+)
+- pnpm (recommended) or npm
+
+### Installation
+
+1. Navigate to the seerial-web directory:
+
+   ```bash
+   cd seerial-web
+   ```
+
+2. Install dependencies:
+   ```bash
+   pnpm install
+   ```
+
+### Development
+
+Start the development server:
+
+```bash
+pnpm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+This will start the Vite development server with hot module replacement.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Building
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
+Build for production:
+
+```bash
+pnpm run build
 ```
+
+The built files will be in the `dist` directory.
+
+### Preview Production Build
+
+Preview the production build locally:
+
+```bash
+pnpm run preview
+```
+
+## Project Structure
+
+```
+src/
+├── components/          # Reusable UI components
+│   ├── cards/          # Media card components
+│   ├── dialogs/        # Modal dialogs
+│   ├── form/           # Form components
+│   ├── lists/          # List components
+│   ├── musicPlayer/    # Audio player components
+│   ├── SideBar/        # Sidebar navigation
+│   └── skeletons/      # Loading skeleton components
+├── config/             # Configuration files
+├── context/            # React context providers
+├── data/               # Data models and types
+├── helpers/            # Utility functions
+├── hooks/              # Custom React hooks
+├── layouts/            # Page layout components
+├── localization/       # Internationalization files
+├── pages/              # Page components
+├── routes/             # Routing configuration
+├── styles/             # Global styles and Tailwind config
+├── types/              # TypeScript type definitions
+└── utils/              # Additional utilities
+```
+
+## Contributing
+
+Contributions are welcome! Please refer to the main project's contribution guidelines.
+
+## License
+
+MIT License - see [LICENSE](LICENSE) for details.

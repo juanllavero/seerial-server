@@ -1,19 +1,17 @@
 import Card from '@/components/cards/Card'
 import { useIsMobile } from '@/components/hooks/use-mobile'
+import { Button } from '@/components/ui/button'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
+import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { Movie } from '@/data/interfaces/Media'
-import { authenticatedFetcher } from '@/utils/utils'
+import { refreshMetadata, toggleMovieWatched } from '@/utils/ReactUtils'
+import { Pencil } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import useSWR, { mutate } from 'swr'
+import { shallow } from 'zustand/shallow'
 import HorizontalList from '../../../../components/lists/HorizontalList'
 import HorizontalListSkeleton from './HorizontalListSkeleton'
-import { shallow } from 'zustand/shallow'
-import { toggleMovieWatched } from '@/utils/ReactUtils'
-import { useDialogStore } from '@/context/dialog.context'
-import { Button } from '@/components/ui/button'
-import { Pencil } from 'lucide-react'
-import { useAuth } from '@/context/auth.context'
-import { authenticatedFetch } from '@/lib/auth'
 
 interface MyListMoviesProps {
   goToContent: (url: string) => void
@@ -21,7 +19,6 @@ interface MyListMoviesProps {
 
 function MyListMovies({ goToContent }: MyListMoviesProps) {
   const { t } = useTranslation()
-  const { user } = useAuth()
   const { openIdentificationDialog, openMovieDialog } = useDialogStore(
     (state) => ({
       openIdentificationDialog: state.openIdentificationDialog,
@@ -29,10 +26,9 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
     }),
     shallow,
   )
-  const { selectedServer, serverUrl } = useServerStore(
+  const { user } = useServerStore(
     (state) => ({
-      selectedServer: state.selectedServer,
-      serverUrl: state.serverUrl,
+      user: state.currentUser,
     }),
     shallow,
   )
@@ -40,9 +36,7 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
 
   // Get Movies in My List
   const { data: moviesInMyList, isLoading } = useSWR<Movie[]>(
-    selectedServer
-      ? `${serverUrl}/myListMovies?userId=${user?.id ?? null}`
-      : null,
+    API.myList.movies,
     authenticatedFetcher,
   )
 
@@ -70,23 +64,19 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
                     {
                       title: t('removeFromMyList'),
                       action: () => {
-                        authenticatedFetch(
-                          `${serverUrl}/updateMovieMyList`,
-                          'POST',
-                          {
-                            movieId: movie.id,
-                            userId: user?.id,
-                          },
-                        ).then(() => {
+                        authenticatedFetch(API.myList.movies, 'POST', {
+                          movieId: movie.id,
+                          userId: user?.id,
+                        }).then(() => {
                           mutate((key: string) =>
-                            key.startsWith(`${serverUrl}/myListMovies`),
+                            key.startsWith(API.myList.movies),
                           )
                         })
                       },
                     },
                     {
                       title: t('updateMetadata'),
-                      action: () => console.log('Profile clicked'),
+                      action: () => refreshMetadata('movie', movie.id),
                     },
                     {
                       title: t('correctIdentification'),
@@ -98,8 +88,7 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
                           ? t('markUnwatched')
                           : t('markWatched'),
 
-                      action: () =>
-                        user && toggleMovieWatched(serverUrl, movie, user.id),
+                      action: () => user && toggleMovieWatched(movie, user.id),
                     },
                   ],
                 },
@@ -128,11 +117,7 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
               </Button>
             }
             hidePlayButton
-            action={() =>
-              goToContent(
-                `/server/${selectedServer?.id}/details/movie/${movie.id}`,
-              )
-            }
+            action={() => goToContent(`/details/movie/${movie.id}`)}
           />
         ))
       ) : (
