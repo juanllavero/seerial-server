@@ -3,6 +3,7 @@ import { messages } from "@/config/messages";
 import { UserType } from "@/utils/constants";
 import { Request } from "express";
 import jwt from "jsonwebtoken";
+import logger from "../utils/logger";
 
 /**
  * Function required by tsoa to handle authentication
@@ -60,7 +61,7 @@ export async function expressAuthentication(
 
       return user;
     } catch (err) {
-      console.log("[Authentication] Error:", err);
+      logger.error(err, "[Authentication] Error");
       throw new Error(messages.errors.token.invalid);
     }
   }
@@ -83,7 +84,7 @@ export async function expressAuthentication(
 
       return user;
     } catch (err) {
-      console.log("[Authentication] Error:", err);
+      logger.error(err, "[Authentication] Error");
       throw new Error(messages.errors.token.invalid);
     }
   }
@@ -106,7 +107,7 @@ export async function expressAuthentication(
       }
       return user;
     } catch (err) {
-      console.log("[Authentication] Error:", err);
+      logger.error(err, "[Authentication] Error");
       throw new Error(messages.errors.token.invalid);
     }
   }
@@ -155,7 +156,7 @@ export async function expressAuthentication(
 
       throw new Error(messages.errors.token.noAccess);
     } catch (err) {
-      console.log("[Authentication] Error:", err);
+      logger.error(err, "[Authentication] Error");
       throw new Error(messages.errors.token.invalid);
     }
   }

@@ -9,6 +9,9 @@ import ApiError from "@/data/ApiError";
 import { extraTypes, videoExtensions } from "@/utils/constants";
 import * as fs from "fs/promises";
 import path from "path";
+import logger from "../utils/logger";
+
+const mediaDetailsLogger = logger.child({ category: "Media Details" });
 
 export class MediaDetailsManager {
   /**
@@ -135,7 +138,7 @@ export class MediaDetailsManager {
       const results = await Promise.all(promises);
       return results.filter((result) => result !== null);
     } catch (error) {
-      console.error("Error searching for lyrics:", error);
+      mediaDetailsLogger.error(error, "Error searching for lyrics");
       throw new ApiError(
         500,
         "An internal error occurred while searching for lyrics."

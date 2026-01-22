@@ -1,10 +1,13 @@
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
 import { MovieModel } from "@/api/v1/movies/infrastructure/persistence/models/MovieModel";
 import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/SeriesModel";
+import logger from "@/utils/logger";
 import { Op } from "sequelize";
 import { v4 as uuidv4 } from "uuid";
 import { MyListRepositoryPort } from "../../../application/ports/MyListRepositoryPort";
 import { MyListModel } from "../models/MyListModel";
+
+const myListRepositoryLogger = logger.child({ category: "My List Repository" });
 
 export class MyListRepositoryImpl
   extends BaseRepository
@@ -22,7 +25,7 @@ export class MyListRepositoryImpl
       });
 
       if (existingElement) {
-        console.log(`The movie with ID ${movieId} is already in My List`);
+        logger.info(`The movie with ID ${movieId} is already in My List`);
         return existingElement.toJSON();
       }
 
@@ -36,7 +39,10 @@ export class MyListRepositoryImpl
       await newElement.save();
       return newElement.toJSON();
     } catch (error) {
-      console.error("Error trying to add the movie to My List:", error);
+      myListRepositoryLogger.error(
+        error,
+        "Error trying to add the movie to My List"
+      );
       return null;
     }
   }
@@ -51,7 +57,7 @@ export class MyListRepositoryImpl
       });
 
       if (existingElement) {
-        console.log(`Show with ID ${seriesId} is already in My List`);
+        logger.info(`Show with ID ${seriesId} is already in My List`);
         return existingElement.toJSON();
       }
 
@@ -65,7 +71,10 @@ export class MyListRepositoryImpl
       await newElement.save();
       return newElement.toJSON();
     } catch (error) {
-      console.error("Error trying to add the series to My List:", error);
+      myListRepositoryLogger.error(
+        error,
+        "Error trying to add the series to My List"
+      );
       return null;
     }
   }
@@ -82,13 +91,16 @@ export class MyListRepositoryImpl
       });
 
       if (!existingElement) {
-        console.log(`The movie ID ${movieId} is not in My List`);
+        logger.info(`The movie ID ${movieId} is not in My List`);
         return;
       }
 
       await existingElement.destroy();
     } catch (error) {
-      console.error("Error trying to remove the movie from My List:", error);
+      myListRepositoryLogger.error(
+        error,
+        "Error trying to remove the movie from My List"
+      );
       return;
     }
   }
@@ -103,13 +115,16 @@ export class MyListRepositoryImpl
       });
 
       if (!existingElement) {
-        console.log(`Series with ID ${seriesId} is not in My List`);
+        logger.info(`Series with ID ${seriesId} is not in My List`);
         return;
       }
 
       await existingElement.destroy();
     } catch (error) {
-      console.error("Error trying to remove the series from My List:", error);
+      myListRepositoryLogger.error(
+        error,
+        "Error trying to remove the series from My List"
+      );
       return;
     }
   }
@@ -151,9 +166,9 @@ export class MyListRepositoryImpl
         },
       });
 
-      return movies;
+      return movies.map((m) => m.toJSON());
     } catch (error: any) {
-      console.log(`Error fetching Movies in My_List: ${error.message}`);
+      logger.error(error, "Error fetching Movies in My_List");
       return [];
     }
   }
@@ -184,9 +199,9 @@ export class MyListRepositoryImpl
         },
       });
 
-      return series;
+      return series.map((s) => s.toJSON());
     } catch (error: any) {
-      console.log(`Error fetching Series in My_List: ${error.message}`);
+      logger.error(error, "Error fetching Series in My_List");
       return [];
     }
   }
@@ -202,7 +217,7 @@ export class MyListRepositoryImpl
 
       return item ? item.toJSON() : null;
     } catch (error: any) {
-      console.log(`Error fetching My_List items: ${error.message}`);
+      logger.error(error, "Error fetching My_List items");
       return null;
     }
   }
@@ -217,7 +232,7 @@ export class MyListRepositoryImpl
 
       return item ? item.toJSON() : null;
     } catch (error: any) {
-      console.log(`Error fetching My_List items: ${error.message}`);
+      logger.error(error, "Error fetching My_List items");
       return null;
     }
   }

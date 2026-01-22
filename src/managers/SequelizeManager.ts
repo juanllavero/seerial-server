@@ -24,6 +24,9 @@ import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/Vi
 import { WatchListModel } from "@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel";
 import fs from "fs";
 import { Sequelize } from "sequelize-typescript";
+import logger from "../utils/logger";
+
+const dbLogger = logger.child({ category: "Database Manager" });
 
 export class SequelizeManager {
   public static get DB_PATH(): string {
@@ -75,8 +78,15 @@ export class SequelizeManager {
         define: {
           underscored: true, // Map snake_case (DB) to camelCase (Models)
         },
-        //logging: (msg) => console.log(msg),
-        logging: false,
+        //logging: false,
+        logging: (msg, timing) => {
+          // Función de logging personalizada con Pino
+          if (timing) {
+            dbLogger.info({ sql: msg, duration: timing }, "Executed SQL query");
+          } else {
+            dbLogger.debug({ sql: msg }, "Sequelize log");
+          }
+        },
       });
 
       // Enable foreign keys
@@ -88,9 +98,7 @@ export class SequelizeManager {
         // force: true
       });
 
-      console.log(
-        "[Database Manager]: Database initialized successfully with Sequelize"
-      );
+      dbLogger.info("Database initialized successfully with Sequelize");
     } catch (error: any) {
       throw new Error(
         `[Database Manager]: Database initialization failed: ${error.message}`
@@ -104,7 +112,7 @@ export class SequelizeManager {
   public static async close(): Promise<void> {
     if (SequelizeManager.sequelize) {
       await SequelizeManager.sequelize.close();
-      console.log("Database connection closed");
+      dbLogger.info("Database connection closed");
     }
   }
 

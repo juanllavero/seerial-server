@@ -1,5 +1,6 @@
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
+import logger from "@/utils/logger";
 import axios from "axios";
 import { Response } from "express";
 import fs from "fs-extra";
@@ -8,6 +9,8 @@ import path from "path";
 import sharp from "sharp";
 import { ImageProcessingServicePort } from "../../../application/ports/ImageProcessingServicePort";
 import { fileSystemService } from "../di/container";
+
+const imageProcessingLogger = logger.child({ category: "Image Processing" });
 
 interface Swatch {
   rgb: [number, number, number];
@@ -41,7 +44,7 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
         css: cssGradient,
       };
     } catch (error) {
-      console.error("node-vibrant error:", error);
+      imageProcessingLogger.error(error, "node-vibrant error");
       throw new ApiError(
         500,
         "The image could not be processed to extract colors."
@@ -87,7 +90,10 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
 
       return finalImageBuffer;
     } catch (error) {
-      console.error("Error processing transparent image effect:", error);
+      imageProcessingLogger.error(
+        error,
+        "Error processing transparent image effect"
+      );
       throw new ApiError(
         500,
         "An error occurred while processing the image effect."
@@ -110,7 +116,10 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
         url: require("path").join(relativePath, file),
       }));
     } catch (error) {
-      console.error(`Error reading directory ${absolutePath}:`, error);
+      imageProcessingLogger.error(
+        error,
+        `Error reading directory ${absolutePath}`
+      );
       throw new ApiError(500, "Error reading images folder.");
     }
   }
@@ -149,7 +158,10 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
       });
       this._compressAndStream(response.data, res, { width, height });
     } catch (error) {
-      console.error("Error downloading or processing image from URL:", error);
+      imageProcessingLogger.error(
+        error,
+        "Error downloading or processing image from URL"
+      );
       if (!res.headersSent) {
         throw new ApiError(
           500,
@@ -315,13 +327,13 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
 
     // --- Stream error handling ---
     inputStream.on("error", (err) => {
-      console.error("Input stream error:", err);
+      imageProcessingLogger.error(err, "Input stream error");
       if (!res.headersSent)
         res.status(500).send("Error reading the source image.");
     });
 
     transformer.on("error", (err) => {
-      console.error("Sharp processing error:", err);
+      imageProcessingLogger.error(err, "Sharp processing error");
       if (!res.headersSent) res.status(500).send("Error processing the image.");
     });
 

@@ -1,6 +1,9 @@
+import logger from "@/utils/logger";
 import path from "path";
 import propertiesReader from "properties-reader";
 import { fileSystemService } from "../di/container";
+
+const movieDbLogger = logger.child({ category: "MovieDB" });
 
 export class TMDbApiClient {
   private BASE_URL = "https://api.themoviedb.org/3";
@@ -67,16 +70,16 @@ export class TMDbApiClient {
       const apiKeyStatus = await this.getAPIKeyStatus();
 
       if (!apiKeyStatus) {
-        console.error("Invalid API Key");
+        movieDbLogger.error("Invalid API Key");
         return false;
       }
 
-      console.log("[MovieDB] Connected to TheMovieDB");
+      movieDbLogger.info("Connected to TheMovieDB");
       this.connectionStatus = true;
 
       return true;
     } else {
-      console.error("This App needs an API Key from TheMovieDB");
+      movieDbLogger.error("This App needs an API Key from TheMovieDB");
       return false;
     }
   }

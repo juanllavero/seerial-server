@@ -10,12 +10,15 @@ import ApiError from "@/data/ApiError";
 import { LibraryItem } from "@/data/interfaces/Media";
 import { clearLibrary, getCollectionItemsKey } from "@/file-search/utils/utils";
 import { imageExtensions } from "@/utils/constants";
+import logger from "@/utils/logger";
 import fs from "fs";
 import * as fsPromises from "fs/promises";
 import path from "path";
 import { MediaManager } from "../../../../../managers/MediaManager";
 import { GetLibrariesUseCase } from "../usecases/GetLibrariesUseCase";
 import { GetLibraryUseCase } from "../usecases/GetLibraryUseCase";
+
+const libraryManagerLogger = logger.child({ category: "Library Manager" });
 
 export class LibraryManager {
   /**
@@ -185,7 +188,10 @@ export class LibraryManager {
             }
           }
         } catch (error) {
-          console.error(`Error reading folder ${baseFolder}:`, error);
+          libraryManagerLogger.error(
+            error,
+            `Error reading folder ${baseFolder}`
+          );
         }
       }
     }

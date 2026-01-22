@@ -6,11 +6,14 @@ import {
   LOCAL_DATA_PATH,
   videoExtensions,
 } from "@/utils/constants";
+import logger from "@/utils/logger";
 import fs from "fs";
 import path from "path";
 import PropertiesReader, { Reader } from "properties-reader";
 import { FileSystemServicePort } from "../../../application/ports/FileSystemServicePort";
 import { FileOrDir } from "../../../domain/types/FilesTypes";
+
+const fileSystemLogger = logger.child({ category: "File System" });
 
 export class FileSystemServiceImpl implements FileSystemServicePort {
   public extPath = "/";
@@ -115,7 +118,7 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
         fs.unlinkSync(pathStr);
       }
     } catch (error) {
-      console.error(`Error deleting file ${pathStr}:`, error);
+      fileSystemLogger.error(error, `Error deleting file ${pathStr}`);
     }
   }
   public deleteFolder(pathStr: string): void {
@@ -124,7 +127,7 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
         fs.rmSync(pathStr, { recursive: true, force: true });
       }
     } catch (error) {
-      console.error(`Error deleting directory ${pathStr}:`, error);
+      fileSystemLogger.error(error, `Error deleting directory ${pathStr}`);
     }
   }
   //#endregion

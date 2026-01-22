@@ -3,6 +3,7 @@ import { EpisodeModel } from "@/api/v1/episodes/infrastructure/persistence/model
 import { SeasonModel } from "@/api/v1/seasons/infrastructure/persistence/models/SeasonModel";
 import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/VideoModel";
 import { WatchListModel } from "@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel";
+import logger from "@/utils/logger";
 import { v4 as uuidv4 } from "uuid";
 import { SeriesRepositoryPort } from "../../../application/ports/SeriesRepositoryPort";
 import { Series } from "../../../domain/Series";
@@ -83,7 +84,7 @@ export class SeriesRepositoryImpl
       if (series.id) {
         const existingSeries = await this.findById(series.id, "none");
         if (existingSeries) {
-          console.log(`Series with ID ${series.id} already exists`);
+          logger.info(`Series with ID ${series.id} already exists`);
           return existingSeries;
         }
       }

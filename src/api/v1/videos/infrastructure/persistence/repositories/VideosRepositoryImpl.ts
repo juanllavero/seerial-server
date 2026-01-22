@@ -1,9 +1,12 @@
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
 import { WatchListModel } from "@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel";
+import logger from "@/utils/logger";
 import { v4 as uuidv4 } from "uuid";
 import { VideoRepositoryPort } from "../../../application/ports/VideosRepositoryPort";
 import { Video } from "../../../domain/Video";
 import { VideoModel } from "../models/VideoModel";
+
+const videoRepositoryLogger = logger.child({ category: "Video Repository" });
 
 export class VideosRepositoryImpl
   extends BaseRepository
@@ -14,7 +17,7 @@ export class VideosRepositoryImpl
 
     return this.handleRepositoryError(async () => {
       const video = await VideoModel.findByPk(validatedId);
-      return video ? (video.toJSON() as unknown as Video) : null;
+      return video ? (video.toJSON() as Video) : null;
     }, `Failed to retrieve video with ID ${id}`);
   }
 
@@ -26,7 +29,7 @@ export class VideosRepositoryImpl
         where: { episodeId: validatedId },
         include: [{ model: WatchListModel, as: "watchLists" }],
       });
-      return video ? (video.toJSON() as unknown as Video) : null;
+      return video ? (video.toJSON() as Video) : null;
     }, `Failed to retrieve video for episode with ID ${episodeId}`);
   }
 
@@ -48,7 +51,7 @@ export class VideosRepositoryImpl
       const video = await VideoModel.findOne({
         where: { extraId: validatedId },
       });
-      return video ? (video.toJSON() as unknown as Video) : null;
+      return video ? (video.toJSON() as Video) : null;
     }, `Failed to retrieve video for extra with ID ${extraId}`);
   }
 
@@ -57,7 +60,7 @@ export class VideosRepositoryImpl
 
     return this.handleRepositoryError(async () => {
       const video = await VideoModel.findOne({ where: { fileSrc: path } });
-      return video ? (video.toJSON() as unknown as Video) : null;
+      return video ? (video.toJSON() as Video) : null;
     }, `Failed to retrieve video with path ${path}`);
   }
 
@@ -76,7 +79,7 @@ export class VideosRepositoryImpl
       } as any;
 
       const created = await VideoModel.create(dataToCreate);
-      return created.toJSON() as unknown as Video;
+      return created.toJSON() as Video;
     }, "Failed to create video");
   }
 
@@ -128,9 +131,12 @@ export class VideosRepositoryImpl
 
       const newVideo = new VideoModel(videoData);
       await newVideo.save();
-      return newVideo;
+      return newVideo.toJSON() as Video;
     } catch (error) {
-      console.error("Error al agregar el video como película:", error);
+      videoRepositoryLogger.error(
+        error,
+        "Error al agregar el video como película"
+      );
       return null;
     }
   }
@@ -156,9 +162,12 @@ export class VideosRepositoryImpl
 
       const newVideo = new VideoModel(videoData);
       await newVideo.save();
-      return newVideo;
+      return newVideo.toJSON() as Video;
     } catch (error) {
-      console.error("Error al agregar el video como extra de película:", error);
+      videoRepositoryLogger.error(
+        error,
+        "Error al agregar el video como extra de película"
+      );
       return null;
     }
   }
@@ -184,9 +193,12 @@ export class VideosRepositoryImpl
 
       const newVideo = new VideoModel(videoData);
       await newVideo.save();
-      return newVideo;
+      return newVideo.toJSON() as Video;
     } catch (error) {
-      console.error("Error al agregar el video como episodio:", error);
+      videoRepositoryLogger.error(
+        error,
+        "Error al agregar el video como episodio"
+      );
       return null;
     }
   }

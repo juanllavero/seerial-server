@@ -1,7 +1,10 @@
 import ApiError from "@/data/ApiError";
 import { getAudioInfo } from "@/ffmpeg/audioInfo";
 import { getChapters, getMediaInfo } from "@/ffmpeg/mediaInfo";
+import logger from "@/utils/logger";
 import { MediaInfoServicePort } from "../../../application/ports/MediaInfoServicePort";
+
+const mediaInfoLogger = logger.child({ category: "Media Info" });
 
 export class MediaInfoServiceImpl implements MediaInfoServicePort {
   constructor() {}
@@ -15,9 +18,9 @@ export class MediaInfoServiceImpl implements MediaInfoServicePort {
     try {
       return getAudioInfo(decodeURIComponent(filePath));
     } catch (error: any) {
-      console.error(
-        `FFprobe error for audio metadata on ${filePath}:`,
-        error.message
+      mediaInfoLogger.error(
+        error,
+        `FFprobe error for audio metadata on ${filePath}`
       );
       throw new ApiError(500, `Failed to get audio metadata: ${error.message}`);
     }
@@ -32,10 +35,7 @@ export class MediaInfoServiceImpl implements MediaInfoServicePort {
     try {
       return getChapters(decodeURIComponent(filePath));
     } catch (error: any) {
-      console.error(
-        `FFprobe error for chapters on ${filePath}:`,
-        error.message
-      );
+      mediaInfoLogger.error(error, `FFprobe error for chapters on ${filePath}`);
       throw new ApiError(500, `Failed to extract chapters: ${error.message}`);
     }
   }
@@ -49,9 +49,9 @@ export class MediaInfoServiceImpl implements MediaInfoServicePort {
     try {
       return getMediaInfo(decodeURIComponent(filePath));
     } catch (error: any) {
-      console.error(
-        `FFprobe error for media info on ${filePath}:`,
-        error.message
+      mediaInfoLogger.error(
+        error,
+        `FFprobe error for media info on ${filePath}`
       );
       throw new ApiError(500, `Failed to get media info: ${error.message}`);
     }

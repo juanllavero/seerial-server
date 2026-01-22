@@ -1,5 +1,6 @@
 import { fileSystemService } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { MediaSearchResult } from "@/data/interfaces/SearchResults";
+import logger from "@/utils/logger";
 import { exec, spawn } from "child_process";
 import ffmpegPath from "ffmpeg-static";
 import { https } from "follow-redirects";
@@ -15,6 +16,11 @@ import { promisify } from "util";
 import { DownloaderServicePort } from "../../../application/ports/DownloaderServicePort";
 import { FileSystemServicePort } from "../../../application/ports/FileSystemServicePort";
 import { NotificationServicePort } from "../../../application/ports/NotificationServicePort";
+
+const depCheckLogger = logger.child({ category: "DepCheck" });
+const downloaderServiceLogger = logger.child({
+  category: "Downloader Service",
+});
 
 let ffmpegPathFinal = ffmpegPath ?? "";
 
@@ -61,7 +67,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
     const ytDlpPath = this.getYtDlpPath();
 
     if (existsSync(ytDlpPath)) {
-      console.log("[DepCheck]: yt-dlp is already in:", ytDlpPath);
+      depCheckLogger.info({ message: "yt-dlp is already in:", ytDlpPath });
       return;
     }
 
@@ -69,7 +75,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
 
     const url = this.getDownloadURL();
 
-    console.log("[DepCheck]: Downloading yt-dlp from:", url);
+    depCheckLogger.info({ message: "Downloading yt-dlp from:", url });
 
     return new Promise((resolve, reject) => {
       const file = createWriteStream(ytDlpPath);
@@ -140,7 +146,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
             : "",
       }));
     } catch (error) {
-      console.error("Error executing yt-dlp:", error);
+      downloaderServiceLogger.error(error, "Error executing yt-dlp");
       return [];
     }
   }
@@ -209,7 +215,10 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
       });
 
       process.stderr.on("data", (data: Buffer) => {
-        console.error("Error:", data.toString());
+        downloaderServiceLogger.error(
+          { stderr: data.toString() },
+          "Download stderr"
+        );
       });
 
       process.on("close", (code: number) => {
@@ -234,7 +243,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
         }
       });
     } catch (error) {
-      console.error("Error executing yt-dlp:", error);
+      downloaderServiceLogger.error(error, "Error executing yt-dlp");
     }
   }
 }

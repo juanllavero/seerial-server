@@ -1,8 +1,13 @@
 import { AlbumModel } from "@/api/v1/albums/infrastructure/persistence/models/AlbumModel";
 import { Artist } from "@/api/v1/artists/domain/Artist";
 import { ArtistModel } from "@/api/v1/artists/infrastructure/persistence/models/ArtistModel";
+import logger from "@/utils/logger";
 import { v4 as uuidv4 } from "uuid";
 import { ArtistsRepositoryPort } from "../../../application/ports/ArtistsRepositoryPort";
+
+const artistsRepositoryLogger = logger.child({
+  category: "Artists Repository",
+});
 
 export class ArtistsRepositoryImpl implements ArtistsRepositoryPort {
   async getById(id: string): Promise<Artist | null> {
@@ -33,7 +38,7 @@ export class ArtistsRepositoryImpl implements ArtistsRepositoryPort {
       const artist = await ArtistModel.create(newArtistData as any);
       return artist.toJSON() as Artist;
     } catch (error) {
-      console.error("Error creating artist:", error);
+      artistsRepositoryLogger.error(error, "Error creating artist");
       return null;
     }
   }

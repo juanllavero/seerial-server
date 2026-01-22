@@ -5,6 +5,7 @@ import { SeasonModel } from "@/api/v1/seasons/infrastructure/persistence/models/
 import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { WatchListModel } from "@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel";
 import { CastData } from "@/data/interfaces/Media";
+import logger from "@/utils/logger";
 import {
   BeforeDestroy,
   BelongsTo,
@@ -17,6 +18,8 @@ import {
   PrimaryKey,
   Table,
 } from "sequelize-typescript";
+
+const seriesLogger = logger.child({ category: "Series" });
 
 @Table({ tableName: "Series", timestamps: false })
 export class SeriesModel extends Model {
@@ -286,9 +289,12 @@ export class SeriesModel extends Model {
 
       const removeAnalyzedFolder = useCases.removeAnalyzedFolder();
       await removeAnalyzedFolder.execute(library.id, instance.folder);
-      console.log(`Cleaned data from series ID=${instance.id}`);
+      seriesLogger.info(`Cleaned data from series ID=${instance.id}`);
     } catch (error) {
-      console.error(`Error cleaning data for series ID=${instance.id}:`, error);
+      seriesLogger.error(
+        error,
+        `Error cleaning data for series ID=${instance.id}`
+      );
     }
   }
 }

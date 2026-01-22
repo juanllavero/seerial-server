@@ -9,6 +9,13 @@ import upnp from "nat-upnp";
 import ngrok from "ngrok";
 import os from "os";
 import { appServer } from "..";
+import logger from "../utils/logger";
+
+const configLogger = logger.child({ category: "Config" });
+const sslLogger = logger.child({ category: "SSL" });
+const streamingLogger = logger.child({ category: "Streaming Server" });
+const tunnelLogger = logger.child({ category: "Tunnel" });
+const upnpLogger = logger.child({ category: "UPnP" });
 
 export class ServerConfigManager {
   static serverConfig: ServerModel;
@@ -28,11 +35,11 @@ export class ServerConfigManager {
         config = await ServerModel.create({
           name: hostname || "Server",
         });
-        console.log("[Config]: Created new server config with defaults.");
+        configLogger.info("Created new server config with defaults.");
       }
       this.serverConfig = config;
     } catch (err) {
-      console.error("[Config]: Error creating server config:", err);
+      configLogger.error(err, "Error creating server config");
     }
 
     if (!config) return;
@@ -44,7 +51,7 @@ export class ServerConfigManager {
     if (!fs.existsSync(secretPath)) {
       const secret = crypto.randomBytes(32).toString("hex"); // Generate secure 256-bit key
       fs.writeFileSync(secretPath, secret, { mode: 0o600 }); // Restrict permissions
-      console.log("[Config]: Generated and saved new JWT_SECRET.");
+      configLogger.info("Generated and saved new JWT_SECRET.");
     }
     process.env.JWT_SECRET = fs.readFileSync(secretPath, "utf-8");
 
@@ -58,9 +65,9 @@ export class ServerConfigManager {
         if (config.sslPassword) {
           this.sslOptions.passphrase = config.sslPassword; // Assume secure storage
         }
-        console.log("[SSL]: Loaded SSL certificates.");
+        sslLogger.info("Loaded SSL certificates.");
       } catch (err) {
-        console.error("[SSL]: Error loading SSL certificates:", err);
+        sslLogger.error(err, "Error loading SSL certificates");
         config.httpsEnabled = false;
         await config.save();
       }
@@ -90,7 +97,7 @@ export class ServerConfigManager {
       );
     }
 
-    console.log("[Config]: Server config loaded.");
+    configLogger.info("Server config loaded.");
   }
 
   static async startServer(app: Express) {
@@ -98,23 +105,20 @@ export class ServerConfigManager {
       await new Promise<void>((resolve, reject) => {
         this.mainServer.close((err) => {
           if (err) {
-            console.error(
-              "[Streaming Server]: Error closing previous server.",
-              err
-            );
+            streamingLogger.error(err, "Error closing previous server");
             return reject(err);
           }
           resolve();
         });
       });
-      console.log("[Streaming Server]: Previous server closed.");
+      streamingLogger.info("Previous server closed.");
     }
 
     // Start HTTP server
     this.httpServer = http.createServer(app);
     this.httpServer.listen(this.serverConfig.httpPort, () => {
-      console.log(
-        `[Streaming Server]: HTTP server started on http://localhost:${this.serverConfig.httpPort}`
+      streamingLogger.info(
+        `HTTP server started on http://localhost:${this.serverConfig.httpPort}`
       );
     });
 
@@ -122,8 +126,8 @@ export class ServerConfigManager {
     if (this.serverConfig.httpsEnabled && this.sslOptions) {
       this.httpsServer = https.createServer(this.sslOptions, app);
       this.httpsServer.listen(this.serverConfig.httpsPort, () => {
-        console.log(
-          `[Streaming Server]: HTTPS server started on https://localhost:${this.serverConfig.httpsPort}`
+        streamingLogger.info(
+          `HTTPS server started on https://localhost:${this.serverConfig.httpsPort}`
         );
       });
     }
@@ -161,9 +165,9 @@ export class ServerConfigManager {
         });
         this.serverConfig.tunnelUrl = url;
         await this.serverConfig.save();
-        console.log(`[Tunnel]: ngrok tunnel established at ${url}`);
+        tunnelLogger.info(`ngrok tunnel established at ${url}`);
       } catch (err) {
-        console.error("[Tunnel]: Failed to establish ngrok tunnel:", err);
+        tunnelLogger.error(err, "Failed to establish ngrok tunnel");
       }
     }
   }
@@ -195,13 +199,13 @@ export class ServerConfigManager {
         },
         (err: any) => {
           if (err) {
-            console.error(
-              `[UPnP]: Error mapping port ${mapping.private} to ${mapping.public}:`,
-              err
+            upnpLogger.error(
+              err,
+              `Error mapping port ${mapping.private} to ${mapping.public}`
             );
           } else {
-            console.log(
-              `[UPnP]: Mapped port ${mapping.private} to public ${mapping.public}`
+            upnpLogger.info(
+              `Mapped port ${mapping.private} to public ${mapping.public}`
             );
           }
         }
@@ -210,7 +214,7 @@ export class ServerConfigManager {
   }
 
   static async restartServer() {
-    console.log("[Streaming Server]: Restarting server...");
+    streamingLogger.info("Restarting server...");
     await this.startServer(appServer);
     await this.setupPortMapping();
   }

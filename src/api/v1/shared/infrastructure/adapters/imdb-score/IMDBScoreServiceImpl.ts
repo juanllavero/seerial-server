@@ -1,6 +1,9 @@
+import logger from "@/utils/logger";
 import axios from "axios";
 import * as cheerio from "cheerio";
 import { IMDBScoreServicePort } from "../../../application/ports/IMDBScoreServicePort";
+
+const imdbLogger = logger.child({ category: "IMDB Score" });
 
 export class IMDBScoreServiceImpl implements IMDBScoreServicePort {
   constructor() {}
@@ -36,7 +39,7 @@ export class IMDBScoreServiceImpl implements IMDBScoreServicePort {
       // Convert to number directly (handles comma or period depending on region)
       return Number(rating.toString().replace(",", "."));
     } catch (error: any) {
-      console.error(`Error obtaining score for ${imdbID}:`, error.message);
+      imdbLogger.error(error, `Error obtaining score for ${imdbID}`);
       return -1;
     }
   }

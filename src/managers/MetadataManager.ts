@@ -14,6 +14,9 @@ import {
   useCases,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { Video } from "@/api/v1/videos/domain/Video";
+import logger from "../utils/logger";
+
+const metadataManagerLogger = logger.child({ category: "Metadata Manager" });
 
 export class MetadataManager {
   static BASE_URL: string = "https://image.tmdb.org/t/p/original";
@@ -167,9 +170,9 @@ export class MetadataManager {
       }
       await useCases.updateSeason().execute(season.id, season);
     } catch (error) {
-      console.error(
-        `Error updating backgrounds for season ${season.id}:`,
-        error
+      metadataManagerLogger.error(
+        error,
+        `Error updating backgrounds for season ${season.id}`
       );
     }
 
@@ -397,9 +400,9 @@ export class MetadataManager {
 
       await useCases.updateVideo().execute(video.id, video);
     } catch (error) {
-      console.error(
-        `Error actualizando miniaturas para el video ${video.id}:`,
-        error
+      metadataManagerLogger.error(
+        error,
+        `Error actualizando miniaturas para el video ${video.id}`
       );
     }
   }
@@ -486,9 +489,9 @@ export class MetadataManager {
 
       await useCases.updateMovie().execute(movie.id, movie);
     } catch (error) {
-      console.error(
-        `Error descargando imágenes para la película ${movie.id}:`,
-        error
+      metadataManagerLogger.error(
+        error,
+        `Error descargando imágenes para la película ${movie.id}`
       );
     }
   }
@@ -533,7 +536,10 @@ export class MetadataManager {
         series.coverSrc = series.coversUrls[0];
       }
     } catch (error) {
-      console.error(`Error downloading images for series ${series.id}:`, error);
+      metadataManagerLogger.error(
+        error,
+        `Error downloading images for series ${series.id}`
+      );
     }
   }
 }

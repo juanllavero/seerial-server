@@ -1,6 +1,7 @@
 import { ArtistModel } from "@/api/v1/artists/infrastructure/persistence/models/ArtistModel";
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
 import { SongModel } from "@/api/v1/songs/infrastructure/persistence/models/SongModel";
+import logger from "@/utils/logger";
 import { v4 as uuidv4 } from "uuid";
 import { AlbumsRepositoryPort } from "../../../application/ports/AlbumsRepositoryPort";
 import { Album } from "../../../domain/Album";
@@ -47,7 +48,7 @@ export class AlbumsRepositoryImpl
       if (album.id) {
         const existingAlbum = await this.findById(album.id, false);
         if (existingAlbum) {
-          console.log(`Album with ID ${album.id} already exists`);
+          logger.info(`Album with ID ${album.id} already exists`);
           return existingAlbum;
         }
       }
@@ -111,7 +112,7 @@ export class AlbumsRepositoryImpl
       });
 
       if (existingRelation) {
-        console.log(
+        logger.info(
           `Relation between artist ${artistId} and album ${albumId} already exists`
         );
         return existingRelation.toJSON();

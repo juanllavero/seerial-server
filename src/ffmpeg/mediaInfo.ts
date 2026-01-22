@@ -7,6 +7,7 @@ import {
   VideoTrack,
 } from "@/data/interfaces/MediaInfo";
 import path from "path";
+import logger from "../utils/logger";
 import { executeFfprobe, executeFfprobeRaw } from "./nativeFfmpeg";
 import {
   formatTime,
@@ -22,7 +23,7 @@ import {
  */
 export async function getOnlyRuntime(mediaFile: string): Promise<number> {
   if (!mediaFile || typeof mediaFile !== "string") {
-    console.error("getOnlyRuntime: Invalid media file path provided.");
+    logger.error("getOnlyRuntime: Invalid media file path provided.");
     return 0;
   }
 
@@ -45,7 +46,10 @@ export async function getMediaInfo(
   extractChapters: boolean = true
 ): Promise<MediaInfoData | undefined> {
   if (!videoPath || videoPath === "") {
-    console.log("Video file does not exist or path is empty", { videoPath });
+    logger.error({
+      message: "Video file does not exist or path is empty",
+      videoPath,
+    });
     return undefined;
   }
 
@@ -105,7 +109,7 @@ export async function getMediaInfo(
       duration,
     };
   } catch (err) {
-    console.log("Failed to get media info", { error: err });
+    logger.error(err, "Failed to get media info");
     throw err; // Re-lanzar para manejo externo si es necesario
   }
 }
@@ -137,17 +141,20 @@ export async function getChapters(videoPath: string): Promise<ChapterData[]> {
         };
         chaptersArray.push(chapterData);
       }
-      console.log("Chapters extracted", {
+      logger.info({
+        message: "Chapters extracted",
         chapterCount: chaptersArray.length,
       });
     } else {
-      console.log("No chapters found in the file", {
+      logger.info({
+        message: "No chapters found in the file",
         file: videoPath,
       });
     }
   } catch (error: any) {
-    console.log("Error getting chapters", {
-      error: error.message,
+    logger.error({
+      err: error,
+      message: "Error getting chapters",
       file: videoPath,
     });
   }

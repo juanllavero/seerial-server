@@ -1,8 +1,8 @@
-import { AlbumModel } from "@/api/v1/albums/infrastructure/persistence/models/AlbumModel";
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
 import { EpisodeModel } from "@/api/v1/episodes/infrastructure/persistence/models/EpisodeModel";
 import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/VideoModel";
 import { WatchListModel } from "@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel";
+import logger from "@/utils/logger";
 import { v4 as uuidv4 } from "uuid";
 import { SeasonsRepositoryPort } from "../../../application/ports/SeasonsRepositoryPort";
 import { Season } from "../../../domain/Season";
@@ -78,7 +78,7 @@ export class SeasonsRepositoryImpl
       if (data.id) {
         const existingSeason = await this.findById(data.id);
         if (existingSeason) {
-          console.log(`Season with ID ${data.id} already exists`);
+          logger.info(`Season with ID ${data.id} already exists`);
           return existingSeason;
         }
       }
@@ -89,7 +89,7 @@ export class SeasonsRepositoryImpl
         id: data.id || uuidv4().split("-")[0],
       };
 
-      const createdSeason = await AlbumModel.create(dataToCreate as any);
+      const createdSeason = await SeasonModel.create(dataToCreate as any);
       return createdSeason.toJSON();
     }, "Failed to create season");
   }

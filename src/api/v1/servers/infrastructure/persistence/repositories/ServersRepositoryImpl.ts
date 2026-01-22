@@ -1,4 +1,5 @@
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
+import logger from "@/utils/logger";
 import { v4 as uuidv4 } from "uuid";
 import { ServersRepositoryPort } from "../../../application/ports/ServersRepositoryPort";
 import { Server } from "../../../domain/Server";
@@ -24,7 +25,7 @@ export class ServersRepositoryImpl
       if (server.id) {
         const existingServer = await ServerModel.findByPk(server.id);
         if (existingServer) {
-          console.log(`Server with ID ${server.id} already exists`);
+          logger.info(`Server with ID ${server.id} already exists`);
           return existingServer.toJSON();
         }
       }

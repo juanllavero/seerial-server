@@ -1,3 +1,4 @@
+import logger from "@/utils/logger";
 import {
   CreditsResponse,
   EpisodeGroupResponse,
@@ -14,6 +15,8 @@ import {
 } from "moviedb-promise";
 import { MetadataProviderPort } from "../../../application/ports/MetadataProviderPort";
 import { TMDbApiClient } from "./TMDbApiClient";
+
+const metadataLogger = logger.child({ category: "Metadata" });
 
 export class MetadataProviderImpl implements MetadataProviderPort {
   constructor(private readonly apiClient: TMDbApiClient) {}
@@ -43,8 +46,8 @@ export class MetadataProviderImpl implements MetadataProviderPort {
 
       // Verify that the results array exists
       if (!Array.isArray(data.results)) {
-        console.log(
-          "Error: The response does not contain a valid results array"
+        metadataLogger.error(
+          "The response does not contain a valid results array"
         );
         return [];
       }
@@ -52,9 +55,9 @@ export class MetadataProviderImpl implements MetadataProviderPort {
       return data.results as MovieResult[];
     } catch (error: any) {
       if (error instanceof Error) {
-        console.log(`Error in searchMovies: ${error.message}`);
+        metadataLogger.error(error, "Error in searchMovies");
       } else {
-        console.log("Unknown error in searchMovies:", error);
+        metadataLogger.error({ error }, "Unknown error in searchMovies");
       }
       return [];
     }
@@ -78,8 +81,8 @@ export class MetadataProviderImpl implements MetadataProviderPort {
 
       // Verify that the results array exists
       if (!Array.isArray(data.results)) {
-        console.log(
-          "Error: The response does not contain a valid results array"
+        metadataLogger.error(
+          "The response does not contain a valid results array"
         );
         return [];
       }
@@ -87,9 +90,9 @@ export class MetadataProviderImpl implements MetadataProviderPort {
       return data.results as TvResult[];
     } catch (error: any) {
       if (error instanceof Error) {
-        console.log(`Error in searchTVShows: ${error.message}`);
+        metadataLogger.error(error, "Error in searchTVShows");
       } else {
-        console.log("Unknown error in searchTVShows:", error);
+        metadataLogger.error({ error }, "Unknown error in searchTVShows");
       }
       return [];
     }
@@ -106,8 +109,8 @@ export class MetadataProviderImpl implements MetadataProviderPort {
       );
 
       if (!data || !Array.isArray(data.results)) {
-        console.log(
-          "Error: The response does not contain a valid results array"
+        metadataLogger.error(
+          "The response does not contain a valid results array"
         );
         return null;
       }
@@ -115,9 +118,9 @@ export class MetadataProviderImpl implements MetadataProviderPort {
       return data.results as TvEpisodeGroupsResponse;
     } catch (error: any) {
       if (error instanceof Error) {
-        console.log(`Error in searchEpisodeGroups: ${error.message}`);
+        metadataLogger.error(error, "Error in searchEpisodeGroups");
       } else {
-        console.log("Unknown error in searchEpisodeGroups:", error);
+        metadataLogger.error({ error }, "Unknown error in searchEpisodeGroups");
       }
       return null;
     }
@@ -136,16 +139,16 @@ export class MetadataProviderImpl implements MetadataProviderPort {
       const data = await this.apiClient.makeRequest(`movie/${id}`, queryParams);
 
       if (!data) {
-        console.log("Error: No data returned from API");
+        metadataLogger.error("No data returned from API");
         return null;
       }
 
       return data as MovieResponse;
     } catch (error: any) {
       if (error instanceof Error) {
-        console.log(`Error in getMovie: ${error.message}`);
+        metadataLogger.error(error, "Error in getMovie");
       } else {
-        console.log("Unknown error in getMovie:", error);
+        metadataLogger.error({ error }, "Unknown error in getMovie");
       }
       return null;
     }
@@ -162,16 +165,16 @@ export class MetadataProviderImpl implements MetadataProviderPort {
       const data = await this.apiClient.makeRequest(`tv/${id}`, queryParams);
 
       if (!data) {
-        console.log("Error: No data returned from API");
+        metadataLogger.error("No data returned from API");
         return null;
       }
 
       return data as ShowResponse;
     } catch (error: any) {
       if (error instanceof Error) {
-        console.log(`Error in getTVShow: ${error.message}`);
+        metadataLogger.error(error, "Error in getTVShow");
       } else {
-        console.log("Unknown error in getTVShow:", error);
+        metadataLogger.error({ error }, "Unknown error in getTVShow");
       }
       return null;
     }
@@ -192,16 +195,16 @@ export class MetadataProviderImpl implements MetadataProviderPort {
       );
 
       if (!data) {
-        console.log("Error: No data returned from API");
+        metadataLogger.error("No data returned from API");
         return null;
       }
 
       return data as TvSeasonResponse;
     } catch (error: any) {
       if (error instanceof Error) {
-        console.log(`Error in getSeason: ${error.message}`);
+        metadataLogger.error(error, "Error in getSeason");
       } else {
-        console.log("Unknown error in getSeason:", error);
+        metadataLogger.error({ error }, "Unknown error in getSeason");
       }
       return null;
     }
@@ -222,8 +225,8 @@ export class MetadataProviderImpl implements MetadataProviderPort {
       );
 
       if (!data || !Array.isArray(data.results)) {
-        console.log(
-          "Error: The response does not contain a valid results array"
+        metadataLogger.error(
+          "The response does not contain a valid results array"
         );
         return null;
       }
@@ -231,9 +234,9 @@ export class MetadataProviderImpl implements MetadataProviderPort {
       return data.results as EpisodeGroupResponse[];
     } catch (error: any) {
       if (error instanceof Error) {
-        console.log(`Error in getEpisodeGroups: ${error.message}`);
+        metadataLogger.error(error, "Error in getEpisodeGroups");
       } else {
-        console.log("Unknown error in getEpisodeGroups:", error);
+        metadataLogger.error({ error }, "Unknown error in getEpisodeGroups");
       }
       return null;
     }
@@ -252,16 +255,16 @@ export class MetadataProviderImpl implements MetadataProviderPort {
       );
 
       if (!data) {
-        console.log("Error: No data returned from API");
+        metadataLogger.error("No data returned from API");
         return undefined;
       }
 
       return data as EpisodeGroupResponse;
     } catch (error: any) {
       if (error instanceof Error) {
-        console.log(`Error in getEpisodeGroup: ${error.message}`);
+        metadataLogger.error(error, "Error in getEpisodeGroup");
       } else {
-        console.log("Unknown error in getEpisodeGroup:", error);
+        metadataLogger.error({ error }, "Unknown error in getEpisodeGroup");
       }
       return undefined;
     }
@@ -283,16 +286,18 @@ export class MetadataProviderImpl implements MetadataProviderPort {
       );
 
       if (!data || !Array.isArray(data.cast) || !Array.isArray(data.crew)) {
-        console.log("Error: The response does not contain valid credits data");
+        metadataLogger.error(
+          "The response does not contain valid credits data"
+        );
         return null;
       }
 
       return data as CreditsResponse;
     } catch (error: any) {
       if (error instanceof Error) {
-        console.log(`Error in getMovieCredits: ${error.message}`);
+        metadataLogger.error(error, "Error in getMovieCredits");
       } else {
-        console.log("Unknown error in getMovieCredits:", error);
+        metadataLogger.error({ error }, "Unknown error in getMovieCredits");
       }
       return null;
     }
@@ -308,16 +313,18 @@ export class MetadataProviderImpl implements MetadataProviderPort {
       );
 
       if (!data || !Array.isArray(data.cast) || !Array.isArray(data.crew)) {
-        console.log("Error: The response does not contain valid credits data");
+        metadataLogger.error(
+          "The response does not contain valid credits data"
+        );
         return null;
       }
 
       return data as CreditsResponse;
     } catch (error: any) {
       if (error instanceof Error) {
-        console.log(`Error in getTVCredits: ${error.message}`);
+        metadataLogger.error(error, "Error in getTVCredits");
       } else {
-        console.log("Unknown error in getTVCredits:", error);
+        metadataLogger.error({ error }, "Unknown error in getTVCredits");
       }
       return null;
     }
@@ -344,16 +351,16 @@ export class MetadataProviderImpl implements MetadataProviderPort {
         !Array.isArray(data.backdrops) ||
         !Array.isArray(data.posters)
       ) {
-        console.log("Error: The response does not contain valid images data");
+        metadataLogger.error("The response does not contain valid images data");
         return null;
       }
 
       return data as MovieImagesResponse;
     } catch (error: any) {
       if (error instanceof Error) {
-        console.log(`Error in getMovieImages: ${error.message}`);
+        metadataLogger.error(error, "Error in getMovieImages");
       } else {
-        console.log("Unknown error in getMovieImages:", error);
+        metadataLogger.error({ error }, "Unknown error in getMovieImages");
       }
       return null;
     }
@@ -377,16 +384,16 @@ export class MetadataProviderImpl implements MetadataProviderPort {
         !Array.isArray(data.backdrops) ||
         !Array.isArray(data.posters)
       ) {
-        console.log("Error: The response does not contain valid images data");
+        metadataLogger.error("The response does not contain valid images data");
         return null;
       }
 
       return data as TvImagesResponse;
     } catch (error: any) {
       if (error instanceof Error) {
-        console.log(`Error in getTVShowImages: ${error.message}`);
+        metadataLogger.error(error, "Error in getTVShowImages");
       } else {
-        console.log("Unknown error in getTVShowImages:", error);
+        metadataLogger.error({ error }, "Unknown error in getTVShowImages");
       }
       return null;
     }
@@ -407,16 +414,16 @@ export class MetadataProviderImpl implements MetadataProviderPort {
       );
 
       if (!data || !Array.isArray(data.posters)) {
-        console.log("Error: The response does not contain valid images data");
+        metadataLogger.error("The response does not contain valid images data");
         return null;
       }
 
       return data as TvSeasonImagesResponse;
     } catch (error: any) {
       if (error instanceof Error) {
-        console.log(`Error in getSeasonImages: ${error.message}`);
+        metadataLogger.error(error, "Error in getSeasonImages");
       } else {
-        console.log("Unknown error in getSeasonImages:", error);
+        metadataLogger.error({ error }, "Unknown error in getSeasonImages");
       }
       return null;
     }
@@ -438,16 +445,16 @@ export class MetadataProviderImpl implements MetadataProviderPort {
       );
 
       if (!data || !Array.isArray(data.stills)) {
-        console.log("Error: The response does not contain valid images data");
+        metadataLogger.error("The response does not contain valid images data");
         return null;
       }
 
       return data as EpisodeImagesResponse;
     } catch (error: any) {
       if (error instanceof Error) {
-        console.log(`Error in getEpisodeImages: ${error.message}`);
+        metadataLogger.error(error, "Error in getEpisodeImages");
       } else {
-        console.log("Unknown error in getEpisodeImages:", error);
+        metadataLogger.error({ error }, "Unknown error in getEpisodeImages");
       }
       return null;
     }

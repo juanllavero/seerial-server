@@ -1,3 +1,7 @@
+import logger from "@/utils/logger";
+
+const repositoryLogger = logger.child({ category: "Repository" });
+
 /**
  * Class base abstract for repositories with common validations
  */
@@ -52,7 +56,7 @@ export abstract class BaseRepository {
         throw error;
       }
 
-      console.error(`${errorMessage}:`, error);
+      repositoryLogger.error(error, errorMessage);
       throw new Error(errorMessage);
     }
   }

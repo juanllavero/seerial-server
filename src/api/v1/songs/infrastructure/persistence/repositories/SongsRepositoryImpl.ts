@@ -1,4 +1,5 @@
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
+import logger from "@/utils/logger";
 import { v4 as uuidv4 } from "uuid";
 import { SongsRepositoryPort } from "../../../application/ports/SongsRepositoryPort";
 import { Song } from "../../../domain/Song";
@@ -54,7 +55,7 @@ export class SongsRepositoryImpl
       if (song.id) {
         const existingSong = await this.findById(song.id);
         if (existingSong) {
-          console.log(`Song with ID ${song.id} already exists`);
+          logger.info(`Song with ID ${song.id} already exists`);
           return existingSong;
         }
       }

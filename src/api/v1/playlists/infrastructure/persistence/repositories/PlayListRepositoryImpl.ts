@@ -1,5 +1,6 @@
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
 import { SongModel } from "@/api/v1/songs/infrastructure/persistence/models/SongModel";
+import logger from "@/utils/logger";
 import { v4 as uuidv4 } from "uuid";
 import { PlayListRepositoryPort } from "../../../application/ports/PlayListRepositoryPort";
 import { PlayList } from "../../../domain/PlayList";
@@ -39,7 +40,7 @@ export class PlayListRepositoryImpl
       if (playList.id) {
         const existingPlayList = await this.findById(playList.id);
         if (existingPlayList) {
-          console.log(`PlayList with ID ${playList.id} already exists`);
+          logger.info(`PlayList with ID ${playList.id} already exists`);
           return existingPlayList;
         }
       }
@@ -100,7 +101,7 @@ export class PlayListRepositoryImpl
       });
 
       if (existingRelation) {
-        console.log(`Song ${songId} is already in playlist ${playlistId}`);
+        logger.info(`Song ${songId} is already in playlist ${playlistId}`);
         return;
       }
 

@@ -4,6 +4,9 @@ import {
   useCases,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { MetadataManager } from "@/managers/MetadataManager";
+import logger from "@/utils/logger";
+
+const refreshMetadataLogger = logger.child({ category: "Refresh Metadata" });
 
 /**
  * Refreshes all the metadata of an existing series, including all its seasons and episodes.
@@ -16,13 +19,13 @@ export class RefreshMetadataUseCase {
   async execute(seriesId: string): Promise<void> {
     const series = await useCases.getSeriesById().execute(seriesId);
     if (!series) {
-      console.error(`[Updater] Show not found: ${seriesId}`);
+      refreshMetadataLogger.error(`Show not found: ${seriesId}`);
       return;
     }
 
     const library = await useCases.getLibrary().execute(series.libraryId);
     if (!library) {
-      console.error(`[Updater] Library not found for show: ${series.name}`);
+      refreshMetadataLogger.error(`Library not found for show: ${series.name}`);
       return;
     }
 
@@ -74,7 +77,10 @@ export class RefreshMetadataUseCase {
         }
       }
     } catch (error) {
-      console.error(`[Updater] Error refreshing show "${series.name}":`, error);
+      refreshMetadataLogger.error(
+        error,
+        `Error refreshing show "${series.name}"`
+      );
     } finally {
       // Update UI
       series.analyzingFiles = false;

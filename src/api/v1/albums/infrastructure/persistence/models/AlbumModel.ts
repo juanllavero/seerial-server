@@ -3,6 +3,7 @@ import { CollectionAlbumModel } from "@/api/v1/collections/infrastructure/persis
 import { CollectionModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionModel";
 import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryModel";
 import { SongModel } from "@/api/v1/songs/infrastructure/persistence/models/SongModel";
+import logger from "@/utils/logger";
 import fs from "fs-extra";
 import path from "path";
 import {
@@ -18,6 +19,8 @@ import {
   Table,
 } from "sequelize-typescript";
 import { AlbumArtistModel } from "./AlbumArtistModel";
+
+const albumLogger = logger.child({ category: "Album" });
 
 @Table({ tableName: "Album", timestamps: false })
 export class AlbumModel extends Model {
@@ -118,9 +121,12 @@ export class AlbumModel extends Model {
       await fs.remove(
         path.join("resources", "img", "posters", instance.id ?? "")
       );
-      console.log(`Cleaned data from album ID=${instance.id}`);
+      albumLogger.info(`Cleaned data from album ID=${instance.id}`);
     } catch (error) {
-      console.error(`Error cleaning data for album ID=${instance.id}:`, error);
+      albumLogger.error(
+        error,
+        `Error cleaning data for album ID=${instance.id}`
+      );
     }
   }
 }

@@ -3,6 +3,7 @@ import { LibraryCollectionModel } from "@/api/v1/libraries/infrastructure/persis
 import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryModel";
 import { MovieModel } from "@/api/v1/movies/infrastructure/persistence/models/MovieModel";
 import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/SeriesModel";
+import logger from "@/utils/logger";
 import fs from "fs-extra";
 import path from "path";
 import {
@@ -17,6 +18,8 @@ import {
 import { CollectionAlbumModel } from "./CollectionAlbum";
 import { CollectionMovieModel } from "./CollectionMovie";
 import { CollectionSeriesModel } from "./CollectionSeries";
+
+const collectionLogger = logger.child({ category: "Collection" });
 
 @Table({ tableName: "Collection", timestamps: false })
 export class CollectionModel extends Model {
@@ -122,11 +125,11 @@ export class CollectionModel extends Model {
       await fs.remove(
         path.join("resources", "img", "backgrounds", instance.id ?? "")
       );
-      console.log(`Cleaned data from collection ID=${instance.id}`);
+      collectionLogger.info(`Cleaned data from collection ID=${instance.id}`);
     } catch (error) {
-      console.error(
-        `Error cleaning data for collection ID=${instance.id}:`,
-        error
+      collectionLogger.error(
+        error,
+        `Error cleaning data for collection ID=${instance.id}`
       );
     }
   }

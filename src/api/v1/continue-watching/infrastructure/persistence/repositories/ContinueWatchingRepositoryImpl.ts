@@ -6,10 +6,13 @@ import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/S
 import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/VideoModel";
 import { WatchList } from "@/api/v1/watch-lists/domain/WatchList";
 import { WatchListModel } from "@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel";
+import logger from "@/utils/logger";
 import { v4 as uuidv4 } from "uuid";
 import { ContinueWatchingRepositoryPort } from "../../../application/ports/ContinueWatchingRepositoryPort";
 import { ContinueWatching } from "../../../domain/ContinueWatching";
 import { ContinueWatchingModel } from "../models/ContinueWatchingModel";
+
+const continueWatchingLogger = logger.child({ category: "Continue Watching" });
 
 export class ContinueWatchingRepositoryImpl
   extends BaseRepository
@@ -122,7 +125,7 @@ export class ContinueWatchingRepositoryImpl
 
       return videos;
     } catch (error: any) {
-      console.log(`Error fetching Continue_Watching videos: ${error.message}`);
+      logger.error(error, "Error fetching Continue_Watching videos");
       return [];
     }
   }
@@ -144,7 +147,7 @@ export class ContinueWatchingRepositoryImpl
 
       return continueWatching ? continueWatching.toJSON() : null;
     } catch (error: any) {
-      console.log(`Error fetching Currently_Watching: ${error.message}`);
+      logger.error(error, "Error fetching Currently_Watching");
       return null;
     }
   }
@@ -165,8 +168,8 @@ export class ContinueWatchingRepositoryImpl
       });
 
       if (existingElement) {
-        console.log(`Video with id ${videoId} is already in Continue Watching`);
-        return existingElement;
+        logger.info(`Video with id ${videoId} is already in Continue Watching`);
+        return existingElement.toJSON();
       }
 
       // Remove videos from Continue Watching
@@ -206,7 +209,10 @@ export class ContinueWatchingRepositoryImpl
       await newElement.save();
       return newElement.toJSON();
     } catch (error) {
-      console.error("Error adding video to Continue Watching:", error);
+      continueWatchingLogger.error(
+        error,
+        "Error adding video to Continue Watching"
+      );
       return null;
     }
   }
@@ -215,7 +221,10 @@ export class ContinueWatchingRepositoryImpl
     try {
       await ContinueWatchingModel.destroy({ where: { videoId, userId } });
     } catch (error) {
-      console.error("Error deleting video from Continue Watching:", error);
+      continueWatchingLogger.error(
+        error,
+        "Error deleting video from Continue Watching"
+      );
     }
   }
 

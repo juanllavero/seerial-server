@@ -7,10 +7,13 @@ import {
   useCases,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { getAudioInfo } from "@/ffmpeg/audioInfo";
+import logger from "@/utils/logger";
 import { getFileName } from "@/utils/utils";
 import fsPromises from "fs/promises";
 import path from "path";
 import { SongsRepositoryPort } from "../ports/SongsRepositoryPort";
+
+const songProcessingLogger = logger.child({ category: "Song Processing" });
 
 export class ProcessSongFileUseCase {
   constructor(
@@ -128,7 +131,7 @@ export class ProcessSongFileUseCase {
       await useCases.updateAlbum().execute(newAlbum.id, newAlbum);
       await useCases.updateSong().execute(song.id, song);
     } catch (error) {
-      console.error("Error processing music file", error);
+      songProcessingLogger.error(error, "Error processing music file");
     }
   }
 
@@ -157,7 +160,10 @@ export class ProcessSongFileUseCase {
         .join("resources", "img", "posters", entity.id, imageName)
         .replace(/\\/g, "/");
     } catch (err) {
-      console.error(`Error copying image for entity ${entity.id}:`, err);
+      songProcessingLogger.error(
+        err,
+        `Error copying image for entity ${entity.id}`
+      );
     }
   }
 }

@@ -1,11 +1,15 @@
 import { AudioInfo } from "@/data/interfaces/MediaInfo";
+import logger from "../utils/logger";
 import { executeFfprobe } from "./nativeFfmpeg";
 
 export async function getAudioInfo(
   audioPath: string
 ): Promise<AudioInfo | undefined> {
   if (!audioPath || audioPath === "") {
-    console.log("Audio file does not exist or path is empty", { audioPath });
+    logger.error({
+      message: "Audio file does not exist or path is empty",
+      audioPath,
+    });
     return undefined;
   }
 
@@ -56,7 +60,7 @@ export async function getAudioInfo(
       artists,
     };
   } catch (err) {
-    console.log("Failed to get media info", { error: err });
+    logger.error({ err, message: "Failed to get media info" });
     return undefined;
   }
 }

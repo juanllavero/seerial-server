@@ -9,11 +9,16 @@ import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import { getCollectionItemsKey } from "@/file-search/utils/utils";
 import { SequelizeManager } from "@/managers/SequelizeManager";
+import logger from "@/utils/logger";
 import { v4 as uuidv4 } from "uuid";
 import { LibrariesRepositoryPort } from "../../../application/ports/LibrariesRepositoryPort";
 import { Library } from "../../../domain/Library";
 import { LibraryCollectionModel } from "../models/LibraryCollectionModel";
 import { LibraryModel } from "../models/LibraryModel";
+
+const libraryRepositoryLogger = logger.child({
+  category: "Library Repository",
+});
 
 export class LibrariesRepositoryImpl
   extends BaseRepository
@@ -82,7 +87,7 @@ export class LibrariesRepositoryImpl
 
       return library.toJSON() as Library;
     } catch (error: any) {
-      console.log(`Error fetching library: ${error.message}`);
+      logger.error(error, "Error fetching library");
       return null;
     }
   }
@@ -332,7 +337,7 @@ export class LibrariesRepositoryImpl
 
   async create(library: Partial<Library>) {
     if (!library) {
-      console.error("Error: No library data provided");
+      libraryRepositoryLogger.error("No library data provided");
       return null;
     }
 
@@ -351,7 +356,7 @@ export class LibrariesRepositoryImpl
           where: { id: libraryData.id },
         });
         if (existingLibrary) {
-          console.log(`Colisión de UUID: ${libraryData.id}. Reintentando...`);
+          logger.info(`Colisión de UUID: ${libraryData.id}. Reintentando...`);
           attempts++;
           continue;
         }
@@ -360,19 +365,19 @@ export class LibrariesRepositoryImpl
         await newLibrary.save();
         return newLibrary.toJSON() as Library;
       } catch (error) {
-        console.error(
+        libraryRepositoryLogger.error(
+          error,
           `Error al intentar guardar la librería (intento ${
             attempts + 1
-          }/${maxAttempts}):`,
-          error
+          }/${maxAttempts})`
         );
         attempts++;
         continue;
       }
     }
 
-    console.error(
-      "Error: No se pudo generar un UUID único después de varios intentos"
+    libraryRepositoryLogger.error(
+      "No se pudo generar un UUID único después de varios intentos"
     );
     return null;
   }
@@ -487,7 +492,7 @@ export class LibrariesRepositoryImpl
 
       return library;
     } catch (error: any) {
-      console.log(`Error fetching library: ${error.message}`);
+      logger.error(error, "Error fetching library");
       return null;
     }
   }

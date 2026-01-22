@@ -27,6 +27,9 @@ import swaggerDocument from "../swagger.json";
 import { sanitizationMiddleware } from "./middleware/sanitization.middleware";
 import { RegisterRoutes } from "./routes/routes";
 import { createTray } from "./utils/appTray";
+import logger from "./utils/logger";
+
+const appLogger = logger.child({ category: "Application" });
 
 // Initialize app and environment
 config();
@@ -131,7 +134,7 @@ app.whenReady().then(async () => {
     res: Response,
     _next: NextFunction
   ) => {
-    console.error(err.stack); // Logging
+    appLogger.error(err, "Application error");
     res.status(err.status || 500).json({
       status: "error",
       message: err.message || "Something went wrong",

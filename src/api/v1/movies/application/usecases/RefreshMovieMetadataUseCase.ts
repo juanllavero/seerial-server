@@ -4,6 +4,11 @@ import {
   useCases,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { MetadataManager } from "@/managers/MetadataManager";
+import logger from "@/utils/logger";
+
+const refreshMovieMetadataLogger = logger.child({
+  category: "Refresh Movie Metadata",
+});
 
 /**
  * Refresh all metadata of an existing movie and its associated videos.
@@ -17,14 +22,16 @@ export class RefreshMovieMetadataUseCase {
     const getMovieById = useCases.getMoviebyId();
     const movie = await getMovieById.execute(movieId);
     if (!movie) {
-      console.error(`[Updater] No movie found: ${movieId}`);
+      refreshMovieMetadataLogger.error(`No movie found: ${movieId}`);
       return;
     }
 
     const getLibraryById = useCases.getLibrary();
     const library = await getLibraryById.execute(movie.libraryId);
     if (!library) {
-      console.error(`[Updater] No library found for movie: ${movie.name}`);
+      refreshMovieMetadataLogger.error(
+        `No library found for movie: ${movie.name}`
+      );
       return;
     }
 
@@ -61,7 +68,10 @@ export class RefreshMovieMetadataUseCase {
         }
       }
     } catch (error) {
-      console.error(`[Updater] Error refreshing movie "${movie.name}":`, error);
+      refreshMovieMetadataLogger.error(
+        error,
+        `Error refreshing movie "${movie.name}"`
+      );
     } finally {
       // Update UI
       const updateMovie = useCases.updateMovie();

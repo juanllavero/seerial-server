@@ -2,9 +2,12 @@ import { Album } from "@/api/v1/albums/domain/Album";
 import { Collection } from "@/api/v1/collections/domain/Collection";
 import { Movie } from "@/api/v1/movies/domain/Movie";
 import { Series } from "@/api/v1/series/domain/Series";
+import logger from "@/utils/logger";
 import http from "http";
 import WebSocket, { WebSocketServer } from "ws";
 import { NotificationServicePort } from "../../../application/ports/NotificationServicePort";
+
+const notificationLogger = logger.child({ category: "Notification Service" });
 
 interface Client {
   id: string;
@@ -34,8 +37,8 @@ export class NotificationServiceImpl implements NotificationServicePort {
       });
     });
 
-    console.log(
-      `[Notification Service]: WebSocket server running using the same HTTP/HTTPS server`
+    notificationLogger.info(
+      "WebSocket server running using the same HTTP/HTTPS server"
     );
 
     // Handle new WebSocket connections
@@ -47,7 +50,7 @@ export class NotificationServiceImpl implements NotificationServicePort {
       const client: Client = { id: clientId, socket: ws };
       this.clients.set(clientId, client);
 
-      console.log(`[Notification Service]: Client connected: ${clientId}`);
+      notificationLogger.info(`Client connected: ${clientId}`);
 
       // Handle messages received from the client
       ws.on("message", (data: string) => {
@@ -59,7 +62,7 @@ export class NotificationServiceImpl implements NotificationServicePort {
 
       // Handle client disconnection
       ws.on("close", () => {
-        console.log(`[Notification Service]: Client disconnected: ${clientId}`);
+        notificationLogger.info(`Client disconnected: ${clientId}`);
         this.clients.delete(clientId);
       });
     });
@@ -88,9 +91,7 @@ export class NotificationServiceImpl implements NotificationServicePort {
     if (client) {
       client.socket.send(message);
     } else {
-      console.error(
-        `[Notification Service]: Client with ID ${clientId} not found.`
-      );
+      notificationLogger.error(`Client with ID ${clientId} not found.`);
     }
   }
 

@@ -1,6 +1,9 @@
 import ApiError from "@/data/ApiError";
 import { getAudioInfo } from "@/ffmpeg/audioInfo";
 import { getChapters, getMediaInfo } from "@/ffmpeg/mediaInfo";
+import logger from "../utils/logger";
+
+const mediaProbeLogger = logger.child({ category: "Media Probe" });
 
 export class MediaProbeManager {
   /**
@@ -12,9 +15,9 @@ export class MediaProbeManager {
     try {
       return await getAudioInfo(decodeURIComponent(filePath));
     } catch (error: any) {
-      console.error(
-        `FFprobe error for audio metadata on ${filePath}:`,
-        error.message
+      mediaProbeLogger.error(
+        error,
+        `FFprobe error for audio metadata on ${filePath}`
       );
       throw new ApiError(500, `Failed to get audio metadata: ${error.message}`);
     }
@@ -29,9 +32,9 @@ export class MediaProbeManager {
     try {
       return await getChapters(decodeURIComponent(filePath));
     } catch (error: any) {
-      console.error(
-        `FFprobe error for chapters on ${filePath}:`,
-        error.message
+      mediaProbeLogger.error(
+        error,
+        `FFprobe error for chapters on ${filePath}`
       );
       throw new ApiError(500, `Failed to extract chapters: ${error.message}`);
     }
@@ -46,9 +49,9 @@ export class MediaProbeManager {
     try {
       return await getMediaInfo(decodeURIComponent(filePath));
     } catch (error: any) {
-      console.error(
-        `FFprobe error for media info on ${filePath}:`,
-        error.message
+      mediaProbeLogger.error(
+        error,
+        `FFprobe error for media info on ${filePath}`
       );
       throw new ApiError(500, `Failed to get media info: ${error.message}`);
     }

@@ -8,6 +8,7 @@ import {
 import { existsSync } from "fs-extra";
 import * as path from "path";
 import { parse } from "path";
+import logger from "../../utils/logger";
 
 /**
  * Delete removed files from library
@@ -53,7 +54,7 @@ export async function clearLibrary(libraryId: string) {
 
     if (!checkedRoots.has(resolvedRoot)) {
       if (!existsSync(resolvedRoot)) {
-        console.log(
+        logger.info(
           `Root folder ${resolvedRoot} is not connected. Its files will be skipped.`
         );
         checkedRoots.add(resolvedRoot);

@@ -1,10 +1,11 @@
 import { config } from "dotenv";
 import { build } from "electron-builder";
+import logger from "./logger";
 
 config(); // Load environment variables
 
 if (!process.env.GH_TOKEN) {
-  console.error("Error: GH_TOKEN not found in .env");
+  logger.error("GH_TOKEN not found in .env");
   process.exit(1);
 }
 
@@ -20,9 +21,9 @@ build({
   },
 })
   .then(() => {
-    console.log("Publish accepted");
+    logger.info("Publish accepted");
   })
   .catch((error) => {
-    console.error("Error publishing:", error);
+    logger.error(error, "Error publishing");
     process.exit(1);
   });

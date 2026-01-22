@@ -4,6 +4,9 @@ import {
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import ApiError from "@/data/ApiError"; // Adjust path
 import { DownloaderManager } from "@/managers/DownloaderManager"; // Adjust path
+import logger from "../utils/logger";
+
+const externalSearchLogger = logger.child({ category: "External Search" });
 
 export class ExternalSearchManager {
   /**
@@ -16,7 +19,7 @@ export class ExternalSearchManager {
     try {
       return await metadataProvider.searchMovies(name, year ?? "");
     } catch (error) {
-      console.error("Error searching movies on TheMovieDB:", error);
+      externalSearchLogger.error(error, "Error searching movies on TheMovieDB");
       throw new ApiError(503, "External movie search service is unavailable.");
     }
   }
@@ -31,7 +34,10 @@ export class ExternalSearchManager {
     try {
       return await metadataProvider.searchTVShows(name, year ?? "");
     } catch (error) {
-      console.error("Error searching TV shows on TheMovieDB:", error);
+      externalSearchLogger.error(
+        error,
+        "Error searching TV shows on TheMovieDB"
+      );
       throw new ApiError(
         503,
         "External TV show search service is unavailable."
@@ -48,7 +54,10 @@ export class ExternalSearchManager {
     try {
       return await metadataProvider.searchEpisodeGroups(seriesId);
     } catch (error) {
-      console.error("Error searching episode groups on TheMovieDB:", error);
+      externalSearchLogger.error(
+        error,
+        "Error searching episode groups on TheMovieDB"
+      );
       throw new ApiError(
         503,
         "External episode group search service is unavailable."
@@ -65,7 +74,7 @@ export class ExternalSearchManager {
     try {
       return await imdbScoreService.getIMDBScore(imdbId);
     } catch (error) {
-      console.error("Error fetching IMDB score:", error);
+      externalSearchLogger.error(error, "Error fetching IMDB score");
       throw new ApiError(503, "External IMDB score service is unavailable.");
     }
   }
@@ -79,7 +88,10 @@ export class ExternalSearchManager {
     try {
       return await DownloaderManager.searchVideos(query, 20);
     } catch (error) {
-      console.error("Error searching for downloadable media:", error);
+      externalSearchLogger.error(
+        error,
+        "Error searching for downloadable media"
+      );
       throw new ApiError(500, "Failed to search for downloadable media.");
     }
   }

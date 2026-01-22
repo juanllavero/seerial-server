@@ -1,7 +1,10 @@
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import { executeFfmpegPipeToStream } from "@/ffmpeg/nativeFfmpeg";
+import logger from "@/utils/logger";
 import { VideoProcessingServicePort } from "../../application/ports/VideoProcessingServicePort";
+
+const videoProcessingLogger = logger.child({ category: "Video Processing" });
 
 type ResolutionKey = "480p" | "720p" | "1080p" | "4K";
 const resolutionMap: Record<string, number> = {
@@ -91,7 +94,7 @@ export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
         args,
         res,
         (err) => {
-          console.error("FFmpeg spawn error:", err.message);
+          videoProcessingLogger.error(err, "FFmpeg spawn error");
           if (!res.headersSent) {
             res.writeHead(500);
           }
@@ -99,7 +102,10 @@ export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
         },
         (code) => {
           if (code !== 0) {
-            console.error("FFmpeg error: process exited with code", code);
+            videoProcessingLogger.error(
+              { exitCode: code },
+              "FFmpeg error: process exited"
+            );
             if (!res.headersSent) {
               res.writeHead(500);
             }
@@ -109,13 +115,13 @@ export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
       );
 
       res.on("close", () => {
-        console.log("Client disconnected, cancelling stream");
+        logger.info("Client disconnected, cancelling stream");
         streaming.cancel();
       });
 
       // Debugging
       setTimeout(() => {
-        console.log("FFmpeg output:", streaming.stderr);
+        logger.debug({ message: "FFmpeg output", stderr: streaming.stderr });
       }, 1000);
     } catch (error: any) {
       throw new ApiError(400, `Invalid video path: ${error.message}`);

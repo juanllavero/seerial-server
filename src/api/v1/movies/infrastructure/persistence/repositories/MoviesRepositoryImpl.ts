@@ -16,7 +16,7 @@ export class MoviesRepositoryImpl
       const movies = await MovieModel.findAll({
         where: { libraryId: validatedLibraryId },
       });
-      return movies;
+      return movies.map((m) => m.toJSON() as Movie);
     }, "Failed to retrieve movies");
   }
 
@@ -35,7 +35,7 @@ export class MoviesRepositoryImpl
           { model: WatchListModel, as: "watchLists" },
         ],
       });
-      return movie;
+      return movie ? (movie.toJSON() as Movie) : null;
     }, `Failed to find movie with ID ${id}`);
   }
 
@@ -52,7 +52,7 @@ export class MoviesRepositoryImpl
       }
 
       const movie = await MovieModel.findByPk(video.movieId);
-      return movie;
+      return movie ? (movie.toJSON() as Movie) : null;
     }, `Failed to find movie with video source path ${videoSrc}`);
   }
 
@@ -90,7 +90,7 @@ export class MoviesRepositoryImpl
         throw new Error(`Failed to retrieve updated movie with ID ${id}`);
       }
 
-      return updatedMovie;
+      return updatedMovie.toJSON() as Movie;
     }, `Failed to update movie with ID ${id}`);
   }
 

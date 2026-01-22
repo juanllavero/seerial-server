@@ -5,10 +5,13 @@ import {
   executeFfmpeg,
   executeFfmpegPipeToStream,
 } from "@/ffmpeg/nativeFfmpeg";
+import logger from "@/utils/logger";
 import crypto from "crypto";
 import fs from "fs-extra";
 import os from "os";
 import { VideoExtractionServicePort } from "../../application/ports/VideoExtractionServicePort";
+
+const videoExtractionLogger = logger.child({ category: "Video Extraction" });
 
 export class VideoExtractionServiceImpl implements VideoExtractionServicePort {
   constructor() {}
@@ -48,14 +51,17 @@ export class VideoExtractionServiceImpl implements VideoExtractionServicePort {
       args,
       res,
       (err) => {
-        console.error("FFMPEG error generating thumbnail:", err.message);
+        videoExtractionLogger.error(err, "FFMPEG error generating thumbnail");
         if (!res.headersSent) {
           res.status(500).send(messages.errors.server.internal);
         }
       },
       (code) => {
         if (code !== 0) {
-          console.error("FFmpeg error: process exited with code", code);
+          videoExtractionLogger.error(
+            { exitCode: code },
+            "FFmpeg error: process exited"
+          );
           if (!res.headersSent) {
             res.status(500).send(messages.errors.server.internal);
           }
@@ -116,7 +122,7 @@ export class VideoExtractionServiceImpl implements VideoExtractionServicePort {
       await executeFfmpeg(args);
       fs.createReadStream(cachedFile).pipe(res);
     } catch (error) {
-      console.error("FFMPEG error generating subtitles:", error);
+      videoExtractionLogger.error(error, "FFMPEG error generating subtitles");
       if (!res.headersSent) {
         res.status(500).send(messages.errors.server.internal);
       }

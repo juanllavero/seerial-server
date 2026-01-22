@@ -6,6 +6,9 @@ import {
 import fs from "fs";
 import os from "os";
 import path from "path";
+import logger from "../utils/logger";
+
+const sanitizationLogger = logger.child({ category: "Sanitization" });
 
 export class SanitizationManager {
   // Patterns to detect path traversal
@@ -221,7 +224,7 @@ export class SanitizationManager {
             allowedPaths.push(path.join(volumes, volume));
           });
         } catch (error) {
-          console.error("Error reading volumes:", error);
+          sanitizationLogger.error(error, "Error reading volumes");
         }
       }
     }

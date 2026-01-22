@@ -9,6 +9,9 @@ import ffmpegPath from "ffmpeg-static";
 import fs from "fs";
 import path from "path";
 import { promisify } from "util";
+import logger from "../utils/logger";
+
+const downloaderLogger = logger.child({ category: "Downloader" });
 
 let ffmpegPathFinal = ffmpegPath ?? "";
 
@@ -50,7 +53,7 @@ export class DownloaderManager {
             : "",
       }));
     } catch (error) {
-      console.error("Error executing yt-dlp:", error);
+      downloaderLogger.error(error, "Error executing yt-dlp");
       return [];
     }
   }
@@ -70,7 +73,7 @@ export class DownloaderManager {
       try {
         fs.unlinkSync(outputPath);
       } catch (error) {
-        console.error("File not removed: ", outputPath);
+        downloaderLogger.error({ error, outputPath }, "File not removed");
       }
     }
 
@@ -95,7 +98,7 @@ export class DownloaderManager {
       try {
         fs.unlinkSync(outputPath);
       } catch (error) {
-        console.error("File not removed: ", outputPath);
+        downloaderLogger.error({ error, outputPath }, "File not removed");
       }
     }
 
@@ -131,7 +134,7 @@ export class DownloaderManager {
       });
 
       process.stderr.on("data", (data: Buffer) => {
-        console.error("Error:", data.toString());
+        downloaderLogger.error({ stderr: data.toString() }, "Download stderr");
       });
 
       process.on("close", (code: number) => {
@@ -156,7 +159,7 @@ export class DownloaderManager {
         }
       });
     } catch (error) {
-      console.error("Error executing yt-dlp:", error);
+      downloaderLogger.error(error, "Error executing yt-dlp");
     }
   }
 }
