@@ -26,7 +26,9 @@ import { RegisterRoutes } from "./routes/routes";
 import { createTray } from "./utils/appTray";
 
 // Initialize app and environment
-config();
+config({
+  quiet: true,
+});
 process.env.APP_ROOT = path.join(__dirname, "../../");
 export const appServer = express();
 

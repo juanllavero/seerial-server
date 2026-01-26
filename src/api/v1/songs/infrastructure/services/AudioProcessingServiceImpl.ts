@@ -9,13 +9,19 @@ import fs from "fs";
 import path from "path";
 import { AudioProcessingServicePort } from "../../application/ports/AudioProcessingServicePort";
 
-const CACHE_DIR = path.join(fileSystemService.resourcesPath, "cache", "audio");
-if (!fs.existsSync(CACHE_DIR)) {
-  fs.mkdirSync(CACHE_DIR, { recursive: true });
-}
-
 export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
-  constructor() {}
+  private cacheDir: string;
+
+  constructor() {
+    this.cacheDir = path.join(
+      fileSystemService.resourcesPath,
+      "cache",
+      "audio"
+    );
+    if (!fs.existsSync(this.cacheDir)) {
+      fs.mkdirSync(this.cacheDir, { recursive: true });
+    }
+  }
 
   /**
    * Determines the final audio file path that can be transmitted,
@@ -45,7 +51,7 @@ export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
       .createHash("md5")
       .update(originalPath)
       .digest("hex");
-    const cachedFilePath = path.join(CACHE_DIR, `${originalPathHash}.mp3`);
+    const cachedFilePath = path.join(this.cacheDir, `${originalPathHash}.mp3`);
 
     // Check if cached file already exists
     if (fs.existsSync(cachedFilePath)) {

@@ -19,6 +19,9 @@ out
 *.token
 *.id
 
+workspace.postman_globals.json
+Seerial Media Server API Copy.postman_collection.json
+
 # Editor directories and files
 .vscode/.debug.env
 .idea
