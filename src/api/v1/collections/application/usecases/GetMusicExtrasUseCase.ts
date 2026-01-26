@@ -1,11 +1,10 @@
-import { MediaDetailsManager } from "@/managers/MediaDetailsManager";
+import { MediaDetailsService } from "@/api/v1/shared/infrastructure/services/MediaDetailsService";
 import { MusicExtrasDTO } from "../dtos/CollectionDTOs";
-import { CollectionsRepositoryPort } from "../ports/CollectionRepositoryPort";
 
 export class GetMusicExtrasUseCase {
-  constructor(private collectionRepo: CollectionsRepositoryPort) {}
+  constructor() {}
 
   async execute(collectionId: string): Promise<MusicExtrasDTO> {
-    return await MediaDetailsManager.findMusicExtras(collectionId);
+    return await MediaDetailsService.findMusicExtras(collectionId);
   }
 }

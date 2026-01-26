@@ -1,9 +1,11 @@
 import { MessageResponse } from "@/api/v1/shared/application/dtos/DTOs";
-import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import {
+  externalSearchService,
+  useCases,
+} from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { MediaService } from "@/api/v1/shared/infrastructure/services/MediaService";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { ExternalSearchManager } from "@/managers/ExternalSearchManager";
-import { MediaManager } from "@/managers/MediaManager";
 import { IncludeType } from "@/types/common";
 import { Request as ExpressRequest } from "express";
 import {
@@ -220,7 +222,7 @@ export class SeriesController extends Controller {
     @Query() name: string,
     @Query() year?: string
   ): Promise<any> {
-    return await ExternalSearchManager.searchTvShows(name, year);
+    return await externalSearchService.searchTvShows(name, year);
   }
 
   /**
@@ -229,7 +231,7 @@ export class SeriesController extends Controller {
   @Get("episode-groups/search")
   @Security("adminAuth")
   public async searchEpisodeGroups(@Query() id: string): Promise<any> {
-    return await ExternalSearchManager.searchEpisodeGroups(id);
+    return await externalSearchService.searchEpisodeGroups(id);
   }
 
   /**
@@ -242,7 +244,7 @@ export class SeriesController extends Controller {
     @Request() req: ExpressRequest
   ): Promise<any> {
     const userId = (req as any).user?.id;
-    return await MediaManager.countRemainingEpisodes(id, userId);
+    return await MediaService.countRemainingEpisodes(id, userId);
   }
 
   /**
@@ -255,6 +257,6 @@ export class SeriesController extends Controller {
     @Request() req: ExpressRequest
   ): Promise<any> {
     const userId = (req as any).user?.id;
-    return await MediaManager.isSeriesInMyList(id, userId);
+    return await MediaService.isSeriesInMyList(id, userId);
   }
 }

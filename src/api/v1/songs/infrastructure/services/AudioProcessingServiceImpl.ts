@@ -1,16 +1,29 @@
+import { fileSystemService } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { executeFfmpeg } from "@/api/v1/shared/infrastructure/adapters/ffmpeg/nativeFfmpeg";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { executeFfmpeg } from "@/ffmpeg/nativeFfmpeg";
 import { audioExtensions } from "@/utils/constants";
 import crypto from "crypto";
+import { Request, Response } from "express";
 import fs from "fs";
 import path from "path";
-import { FileSystemServicePort } from "../../../shared/application/ports/FileSystemServicePort";
 import { AudioProcessingServicePort } from "../../application/ports/AudioProcessingServicePort";
 
-export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
-  constructor(private readonly fileSystemService: FileSystemServicePort) {}
+const CACHE_DIR = path.join(fileSystemService.resourcesPath, "cache", "audio");
+if (!fs.existsSync(CACHE_DIR)) {
+  fs.mkdirSync(CACHE_DIR, { recursive: true });
+}
 
+export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
+  constructor() {}
+
+  /**
+   * Determines the final audio file path that can be transmitted,
+   * performing a conversion to MP3 if necessary.
+   * @param originalPath The path to the original audio file.
+   * @param isWeb Whether the client is a web platform that requires compatible codecs.
+   * @returns The path to the audio file ready to be transmitted.
+   */
   async getStreamableAudioPath(
     originalPath: string,
     isWeb: boolean
@@ -28,16 +41,11 @@ export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
     }
 
     // Conversion and cache logic
-    const cacheDir = this.fileSystemService.getExternalPath("cache/audio");
-    if (!fs.existsSync(cacheDir)) {
-      fs.mkdirSync(cacheDir, { recursive: true });
-    }
-
     const originalPathHash = crypto
       .createHash("md5")
       .update(originalPath)
       .digest("hex");
-    const cachedFilePath = path.join(cacheDir, `${originalPathHash}.mp3`);
+    const cachedFilePath = path.join(CACHE_DIR, `${originalPathHash}.mp3`);
 
     // Check if cached file already exists
     if (fs.existsSync(cachedFilePath)) {
@@ -64,7 +72,11 @@ export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
     }
   }
 
-  streamFile(filePath: string, req: any, res: any): void {
+  /**
+   * Sends a file to the client with support for streaming (HTTP 206 Partial Content).
+   * @param filePath The path to the file that will be transmitted.
+   */
+  streamFile(filePath: string, req: Request, res: Response): void {
     const stat = fs.statSync(filePath);
     const fileSize = stat.size;
     const range = req.headers.range;

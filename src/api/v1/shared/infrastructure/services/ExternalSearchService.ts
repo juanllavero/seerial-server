@@ -1,21 +1,21 @@
 import {
+  downloaderService,
   imdbScoreService,
   metadataProvider,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import ApiError from "@/data/ApiError"; // Adjust path
-import { DownloaderManager } from "@/managers/DownloaderManager"; // Adjust path
-import logger from "../utils/logger";
+import logger from "@/utils/logger";
 
 const externalSearchLogger = logger.child({ category: "External Search" });
 
-export class ExternalSearchManager {
+export class ExternalSearchService {
   /**
    * Searches for movies on TheMovieDB.
    * @param name - The name of the movie to search for.
    * @param year - The optional release year of the movie.
    * @returns A promise that resolves to the search results.
    */
-  public static async searchMovies(name: string, year?: string) {
+  public async searchMovies(name: string, year?: string) {
     try {
       return await metadataProvider.searchMovies(name, year ?? "");
     } catch (error) {
@@ -30,7 +30,7 @@ export class ExternalSearchManager {
    * @param year - The optional first air year of the show.
    * @returns A promise that resolves to the search results.
    */
-  public static async searchTvShows(name: string, year?: string) {
+  public async searchTvShows(name: string, year?: string) {
     try {
       return await metadataProvider.searchTVShows(name, year ?? "");
     } catch (error) {
@@ -50,7 +50,7 @@ export class ExternalSearchManager {
    * @param seriesId - The ID of the series.
    * @returns A promise that resolves to the episode group data.
    */
-  public static async searchEpisodeGroups(seriesId: string) {
+  public async searchEpisodeGroups(seriesId: string) {
     try {
       return await metadataProvider.searchEpisodeGroups(seriesId);
     } catch (error) {
@@ -70,7 +70,7 @@ export class ExternalSearchManager {
    * @param imdbId - The IMDB ID (e.g., 'tt0111161').
    * @returns A promise that resolves to the score data.
    */
-  public static async getImdbScore(imdbId: string) {
+  public async getImdbScore(imdbId: string) {
     try {
       return await imdbScoreService.getIMDBScore(imdbId);
     } catch (error) {
@@ -84,9 +84,9 @@ export class ExternalSearchManager {
    * @param query - The search query.
    * @returns A promise that resolves to the search results.
    */
-  public static async searchDownloadableMedia(query: string) {
+  public async searchDownloadableMedia(query: string) {
     try {
-      return await DownloaderManager.searchVideos(query, 20);
+      return await downloaderService.searchVideos(query, 20);
     } catch (error) {
       externalSearchLogger.error(
         error,

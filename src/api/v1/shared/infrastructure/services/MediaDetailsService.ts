@@ -7,13 +7,13 @@ import { messages } from "@/config/messages";
 
 import ApiError from "@/data/ApiError";
 import { extraTypes, videoExtensions } from "@/utils/constants";
+import logger from "@/utils/logger";
 import * as fs from "fs/promises";
 import path from "path";
-import logger from "../utils/logger";
 
 const mediaDetailsLogger = logger.child({ category: "Media Details" });
 
-export class MediaDetailsManager {
+export class MediaDetailsService {
   /**
    * Fetches details for a single media item by type and ID.
    */

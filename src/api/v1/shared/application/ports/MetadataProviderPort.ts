@@ -1,5 +1,11 @@
+import { Collection } from "@/api/v1/collections/domain/Collection";
+import { Episode as EpisodeData } from "@/api/v1/episodes/domain/Episode";
+import { Movie } from "@/api/v1/movies/domain/Movie";
+import { Season } from "@/api/v1/seasons/domain/Season";
+import { Series } from "@/api/v1/series/domain/Series";
 import {
   CreditsResponse,
+  Episode,
   EpisodeGroupResponse,
   EpisodeImagesResponse,
   MovieImagesResponse,
@@ -11,6 +17,7 @@ import {
   TvResult,
   TvSeasonImagesResponse,
   TvSeasonResponse,
+  Video,
 } from "moviedb-promise";
 
 export interface MetadataProviderPort {
@@ -51,4 +58,24 @@ export interface MetadataProviderPort {
     seasonNumber: number,
     episodeNumber: number
   ): Promise<EpisodeImagesResponse | null>;
+
+  updateSeriesMetadata(
+    series: Series,
+    language: string
+  ): Promise<Series | undefined>;
+  updateMovieMetadata(
+    movie: Movie,
+    movieMetadata: MovieResponse,
+    language: string,
+    collection?: Collection
+  ): Promise<void>;
+  updateSeasonMetadata(season: Season, series: Series): Promise<Season>;
+  updateEpisodeMetadata(
+    episode: EpisodeData,
+    video: Video,
+    series: Series,
+    episodeMetadata: Episode
+  ): Promise<void>;
+
+  updateVideoMetadataForMovie(video: Video, movie: Movie): Promise<void>;
 }

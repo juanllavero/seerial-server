@@ -1,5 +1,7 @@
 import { ServerModel } from "@/api/v1/servers/infrastructure/persistence/models/ServerModel";
 import { fileSystemService } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { appServer } from "@/index";
+import logger from "@/utils/logger";
 import crypto from "crypto";
 import { Express } from "express";
 import fs from "fs";
@@ -8,8 +10,6 @@ import https from "https";
 import upnp from "nat-upnp";
 import ngrok from "ngrok";
 import os from "os";
-import { appServer } from "..";
-import logger from "../utils/logger";
 
 const configLogger = logger.child({ category: "Config" });
 const sslLogger = logger.child({ category: "SSL" });
@@ -17,7 +17,7 @@ const streamingLogger = logger.child({ category: "Streaming Server" });
 const tunnelLogger = logger.child({ category: "Tunnel" });
 const upnpLogger = logger.child({ category: "UPnP" });
 
-export class ServerConfigManager {
+export class ServerConfigService {
   static serverConfig: ServerModel;
   static sslOptions: { key: string; cert: string; passphrase?: string } | null =
     null;

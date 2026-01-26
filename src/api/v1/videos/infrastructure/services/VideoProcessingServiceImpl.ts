@@ -1,6 +1,6 @@
+import { executeFfmpegPipeToStream } from "@/api/v1/shared/infrastructure/adapters/ffmpeg/nativeFfmpeg";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { executeFfmpegPipeToStream } from "@/ffmpeg/nativeFfmpeg";
 import logger from "@/utils/logger";
 import { VideoProcessingServicePort } from "../../application/ports/VideoProcessingServicePort";
 

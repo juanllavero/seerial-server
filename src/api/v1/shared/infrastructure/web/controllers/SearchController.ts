@@ -1,5 +1,5 @@
-import { ExternalSearchManager } from "@/managers/ExternalSearchManager";
 import { Get, Query, Route, Security, Tags } from "tsoa";
+import { externalSearchService } from "../../adapters/di/container";
 
 @Route("search")
 @Tags("Search")
@@ -10,6 +10,6 @@ export class SearchController {
   @Get("media")
   @Security("cookieAuth")
   public async searchDownloadableMedia(@Query() query: string): Promise<any> {
-    return await ExternalSearchManager.searchDownloadableMedia(query);
+    return await externalSearchService.searchDownloadableMedia(query);
   }
 }

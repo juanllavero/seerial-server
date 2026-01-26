@@ -3,7 +3,6 @@ import {
   notificationService,
   useCases,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { MetadataManager } from "@/managers/MetadataManager";
 import logger from "@/utils/logger";
 
 const refreshMetadataLogger = logger.child({ category: "Refresh Metadata" });
@@ -36,13 +35,16 @@ export class RefreshMetadataUseCase {
       notificationService.mutateSeries(series);
 
       // Update show metadata
-      await MetadataManager.updateSeriesMetadata(series, library.language);
+      await this.metadataProvider.updateSeriesMetadata(
+        series,
+        library.language
+      );
 
       // Update seasons and episodes metadata
       const seasons = await useCases.getSeasons().execute(series.id);
       if (seasons) {
         for (const season of seasons) {
-          await MetadataManager.updateSeasonMetadata(season, series);
+          await this.metadataProvider.updateSeasonMetadata(season, series);
 
           // Get season metadata from TMDb
           const seasonTMDb = await this.metadataProvider.getSeason(
@@ -65,7 +67,7 @@ export class RefreshMetadataUseCase {
                 .execute(episode.id);
 
               if (episodeTMDb && video) {
-                await MetadataManager.updateEpisodeMetadata(
+                await this.metadataProvider.updateEpisodeMetadata(
                   episode,
                   video,
                   series,

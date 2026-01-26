@@ -1,12 +1,12 @@
 import { MessageResponse } from "@/api/v1/shared/application/dtos/DTOs";
 import {
+  audioProcessingService,
   fileSystemService,
   useCases,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { MediaDetailsService } from "@/api/v1/shared/infrastructure/services/MediaDetailsService";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { AudioManager } from "@/managers/AudioManager";
-import { MediaDetailsManager } from "@/managers/MediaDetailsManager";
 import {
   Body,
   Controller,
@@ -64,7 +64,7 @@ export class SongsController extends Controller {
   @Get("{id}/lyrics")
   @Security("adminAuth")
   public async getSongsLyrics(@Path() id: string): Promise<any> {
-    return await MediaDetailsManager.findLyricsForSong(id);
+    return await MediaDetailsService.findLyricsForSong(id);
   }
 
   /**
@@ -117,13 +117,13 @@ export class SongsController extends Controller {
     const isWebBool = isWeb === "true";
 
     // Get file path
-    const streamablePath = await AudioManager.getStreamableAudioPath(
+    const streamablePath = await audioProcessingService.getStreamableAudioPath(
       decodeURIComponent(audioPath),
       isWebBool
     );
 
     // Stream the file
-    AudioManager.streamFile(
+    audioProcessingService.streamFile(
       streamablePath,
       (this as any).request,
       (this as any).response

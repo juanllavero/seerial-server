@@ -2792,6 +2792,64 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"HealthStatus": {
+				"type": "string",
+				"enum": [
+					"ok",
+					"degraded",
+					"down"
+				]
+			},
+			"HealthResponse": {
+				"properties": {
+					"status": {
+						"$ref": "#/components/schemas/HealthStatus"
+					},
+					"checks": {
+						"properties": {
+							"tmdb": {
+								"$ref": "#/components/schemas/HealthStatus"
+							},
+							"ffmpeg": {
+								"$ref": "#/components/schemas/HealthStatus"
+							},
+							"database": {
+								"$ref": "#/components/schemas/HealthStatus"
+							},
+							"filesystem": {
+								"$ref": "#/components/schemas/HealthStatus"
+							}
+						},
+						"required": [
+							"tmdb",
+							"ffmpeg",
+							"database",
+							"filesystem"
+						],
+						"type": "object"
+					},
+					"uptime": {
+						"type": "number",
+						"format": "double"
+					},
+					"timestamp": {
+						"type": "number",
+						"format": "double"
+					},
+					"version": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"status",
+					"checks",
+					"uptime",
+					"timestamp",
+					"version"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"WatchListResponse": {
 				"properties": {
 					"status": {
@@ -6932,35 +6990,13 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"properties": {
-										"version": {
-											"type": "string"
-										},
-										"timestamp": {
-											"type": "number",
-											"format": "double"
-										},
-										"uptime": {
-											"type": "number",
-											"format": "double"
-										},
-										"status": {
-											"type": "string"
-										}
-									},
-									"required": [
-										"version",
-										"timestamp",
-										"uptime",
-										"status"
-									],
-									"type": "object"
+									"$ref": "#/components/schemas/HealthResponse"
 								}
 							}
 						}
 					}
 				},
-				"description": "Check application health status",
+				"description": "Check application health status and dependencies",
 				"tags": [
 					"Health"
 				],

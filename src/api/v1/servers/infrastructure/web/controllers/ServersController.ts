@@ -5,7 +5,6 @@ import {
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { User } from "@/api/v1/users/domain/User";
 import { messages } from "@/config/messages";
-import { ServerConfigManager } from "@/managers/ServerConfigManager";
 import {
   Body,
   Controller,
@@ -24,6 +23,7 @@ import {
   UpdateServerConfigDTO,
   UpdateServerDTO,
 } from "../../../application/dtos/ServerDTOs";
+import { ServerConfigService } from "../../services/ServerConfigService";
 
 @Route("servers")
 @Tags("Servers")
@@ -35,8 +35,8 @@ export class ServersController extends Controller {
   public async getServerStatus(): Promise<any> {
     const getUsers = useCases.getAllUsers();
     const users: User[] = await getUsers.execute();
-    const serverId = ServerConfigManager.serverConfig.id;
-    const serverName = ServerConfigManager.serverConfig.name;
+    const serverId = ServerConfigService.serverConfig.id;
+    const serverName = ServerConfigService.serverConfig.name;
 
     let apiKeyStatus: string = "INVALID_API_KEY";
     if (tmdbApiClient.THEMOVIEDB_API_TOKEN) {

@@ -136,9 +136,10 @@ import { RemoveSeriesFromWatchListUseCase } from "@/api/v1/watch-lists/applicati
 import { RemoveVideoFromWatchListUseCase } from "@/api/v1/watch-lists/application/usecases/RemoveVideoFromWatchListUseCase";
 import { UpdateWatchStateUseCase } from "@/api/v1/watch-lists/application/usecases/UpdateWatchStateUseCase";
 import { WatchListRepositoryImpl } from "@/api/v1/watch-lists/infrastructure/persistence/repositories/WatchListRepositoryImpl";
-import { SanitizationManager } from "@/managers/SanitizationManager";
 import { AudioProcessingServiceImpl } from "../../../../songs/infrastructure/services/AudioProcessingServiceImpl";
 import { VideoProcessingServiceImpl } from "../../../../videos/infrastructure/services/VideoProcessingServiceImpl";
+import { ExternalSearchService } from "../../services/ExternalSearchService";
+import { SanitizationService } from "../../services/SanitizationService";
 import { DownloaderServiceImpl } from "../downloader/DownloaderServiceImpl";
 import { FileSystemServiceImpl } from "../filesystem/FileSystemServiceImpl";
 import { ImageProcessingServiceImpl } from "../image-processing/ImageProcessingServiceImpl";
@@ -155,15 +156,11 @@ export const imdbScoreService = new IMDBScoreServiceImpl();
 export const videoExtractionService = new VideoExtractionServiceImpl();
 export const fileSystemService = new FileSystemServiceImpl();
 export const mediaInfoService = new MediaInfoServiceImpl();
-export const audioProcessingService = new AudioProcessingServiceImpl(
-  fileSystemService
-);
+export const audioProcessingService = new AudioProcessingServiceImpl();
 export const notificationService = new NotificationServiceImpl();
-export const downloaderService = new DownloaderServiceImpl(
-  fileSystemService,
-  notificationService
-);
-export const sanitizationService = new SanitizationManager();
+export const downloaderService = new DownloaderServiceImpl();
+export const sanitizationService = new SanitizationService();
+export const externalSearchService = new ExternalSearchService();
 export const videoProcessingService = new VideoProcessingServiceImpl(
   sanitizationService
 );
@@ -235,7 +232,7 @@ export const useCases = {
   addCollection: () => new CreateCollectionUseCase(collectionsRepo),
   deleteCollection: () => new DeleteCollectionUseCase(collectionsRepo),
   updateCollection: () => new UpdateCollectionUseCase(collectionsRepo),
-  getMusicExtras: () => new GetMusicExtrasUseCase(collectionsRepo),
+  getMusicExtras: () => new GetMusicExtrasUseCase(),
   reorderCollectionItems: () =>
     new ReorderCollectionItemsUseCase(collectionsRepo),
   addLibraryToCollection: () =>

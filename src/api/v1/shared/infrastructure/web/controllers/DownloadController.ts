@@ -1,11 +1,13 @@
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { DownloaderManager } from "@/managers/DownloaderManager";
 import { downloadImage, isValidURL } from "@/utils/utils";
 import path from "path";
 import { Body, Controller, Post, Route, Security, Tags } from "tsoa";
 import { MessageResponse } from "../../../application/dtos/DTOs";
-import { fileSystemService } from "../../adapters/di/container";
+import {
+  downloaderService,
+  fileSystemService,
+} from "../../adapters/di/container";
 
 interface DownloadVideoDTO {
   url: string;
@@ -38,7 +40,7 @@ export class DownloadController extends Controller {
   ): Promise<MessageResponse> {
     const { url, downloadFolder, fileName } = body;
 
-    await DownloaderManager.downloadVideo(url, downloadFolder, fileName);
+    await downloaderService.downloadVideo(url, downloadFolder, fileName);
 
     return { message: messages.success.download };
   }
@@ -53,7 +55,7 @@ export class DownloadController extends Controller {
   ): Promise<MessageResponse> {
     const { url, downloadFolder, fileName } = body;
 
-    await DownloaderManager.downloadAudio(url, downloadFolder, fileName);
+    await downloaderService.downloadAudio(url, downloadFolder, fileName);
 
     return { message: messages.success.download };
   }

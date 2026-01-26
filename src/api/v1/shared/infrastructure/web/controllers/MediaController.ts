@@ -1,5 +1,5 @@
-import { MediaDetailsManager } from "@/managers/MediaDetailsManager";
 import { Get, Path, Query, Route, Security, Tags } from "tsoa";
+import { MediaDetailsService } from "../../services/MediaDetailsService";
 
 @Route("media")
 @Tags("Media")
@@ -13,7 +13,7 @@ export class MediaController {
     @Path() type: string,
     @Query() id: string
   ): Promise<any> {
-    return await MediaDetailsManager.getDetails(type, id);
+    return await MediaDetailsService.getDetails(type, id);
   }
 
   /**
@@ -36,7 +36,7 @@ export class MediaController {
       throw new Error("Invalid mediaType. Must be 'video' or 'music'.");
     }
 
-    return await MediaDetailsManager.findMediaBackground(
+    return await MediaDetailsService.findMediaBackground(
       mediaType as "video" | "music",
       itemType as "movie" | "series" | "season",
       id

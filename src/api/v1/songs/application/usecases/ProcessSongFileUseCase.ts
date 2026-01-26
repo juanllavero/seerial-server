@@ -6,7 +6,7 @@ import {
   notificationService,
   useCases,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { getAudioInfo } from "@/ffmpeg/audioInfo";
+import { getAudioInfo } from "@/api/v1/shared/infrastructure/adapters/ffmpeg/audioInfo";
 import logger from "@/utils/logger";
 import { getFileName } from "@/utils/utils";
 import fsPromises from "fs/promises";

@@ -6,7 +6,6 @@ import {
   notificationService,
   useCases,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { MetadataManager } from "@/managers/MetadataManager";
 import logger from "@/utils/logger";
 import {
   Episode,
@@ -216,7 +215,7 @@ export class ScanSeriesUseCase {
     );
 
     try {
-      await MetadataManager.updateSeriesMetadata(show, library.language);
+      await this.metadataProvider.updateSeriesMetadata(show, library.language);
       logger.info(
         {
           seriesId: show.id,
@@ -844,7 +843,7 @@ export class ScanSeriesUseCase {
     );
 
     try {
-      await MetadataManager.updateEpisodeMetadata(
+      await this.metadataProvider.updateEpisodeMetadata(
         episode,
         video,
         show,
@@ -914,7 +913,7 @@ export class ScanSeriesUseCase {
     if (!season) return null;
 
     // Update metadata
-    await MetadataManager.updateSeasonMetadata(season, show);
+    await this.metadataProvider.updateSeasonMetadata(season, show);
 
     if (season.seasonNumber === 0) season.order = 100;
     await useCases.updateSeason().execute(season.id, season);

@@ -13,7 +13,7 @@ interface FormattedVideoInfo {
   subsMode: string;
 }
 
-export class MediaManager {
+export class MediaService {
   /**
    * Fetches a video and its related parent entities (Series/Movie, Library)
    * to construct a formatted information object.

@@ -1,8 +1,8 @@
 import { MessageResponse } from "@/api/v1/shared/application/dtos/DTOs";
 import { imageProcessingService } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { SanitizationService } from "@/api/v1/shared/infrastructure/services/SanitizationService";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { SanitizationManager } from "@/managers/SanitizationManager";
 import {
   Controller,
   FormField,
@@ -29,18 +29,18 @@ export class ImagesController extends Controller {
   ): Promise<MessageResponse> {
     try {
       // Validate file name
-      if (!SanitizationManager.isValidFileName(image.originalname)) {
+      if (!SanitizationService.isValidFileName(image.originalname)) {
         throw new ApiError(400, "Invalid file name");
       }
 
-      const sanitizedDestPath = SanitizationManager.sanitizeDirectoryPath(
+      const sanitizedDestPath = SanitizationService.sanitizeDirectoryPath(
         destPath,
-        SanitizationManager.getSystemAllowedPaths(),
+        SanitizationService.getSystemAllowedPaths(),
         false
       );
 
       // Combine the paths
-      const finalPath = SanitizationManager.safeJoinPath(
+      const finalPath = SanitizationService.safeJoinPath(
         sanitizedDestPath,
         image.originalname
       );
@@ -62,9 +62,9 @@ export class ImagesController extends Controller {
     const imagesPath = path;
 
     try {
-      const sanitizedPath = SanitizationManager.sanitizeDirectoryPath(
+      const sanitizedPath = SanitizationService.sanitizeDirectoryPath(
         decodeURIComponent(imagesPath),
-        SanitizationManager.getSystemAllowedPaths(),
+        SanitizationService.getSystemAllowedPaths(),
         true
       );
 
@@ -88,9 +88,9 @@ export class ImagesController extends Controller {
     @Query() height?: number
   ): Promise<void> {
     try {
-      const sanitizedPath = SanitizationManager.sanitizeImagePath(
+      const sanitizedPath = SanitizationService.sanitizeImagePath(
         path,
-        SanitizationManager.getSystemAllowedPaths(),
+        SanitizationService.getSystemAllowedPaths(),
         true // Must exist
       );
 

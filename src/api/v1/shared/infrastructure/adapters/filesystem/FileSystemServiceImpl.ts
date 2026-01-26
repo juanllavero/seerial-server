@@ -1,4 +1,3 @@
-import { SanitizationManager } from "@/managers/SanitizationManager";
 import {
   audioExtensions,
   imageExtensions,
@@ -12,6 +11,7 @@ import path from "path";
 import PropertiesReader, { Reader } from "properties-reader";
 import { FileSystemServicePort } from "../../../application/ports/FileSystemServicePort";
 import { FileOrDir } from "../../../domain/types/FilesTypes";
+import { SanitizationService } from "../../services/SanitizationService";
 
 const fileSystemLogger = logger.child({ category: "File System" });
 
@@ -166,9 +166,9 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
   public async getValidVideoFiles(folderPath: string): Promise<string[]> {
     const videoFiles: string[] = [];
     try {
-      const sanitizedPath = SanitizationManager.sanitizeDirectoryPath(
+      const sanitizedPath = SanitizationService.sanitizeDirectoryPath(
         folderPath,
-        SanitizationManager.getSystemAllowedPaths(),
+        SanitizationService.getSystemAllowedPaths(),
         true
       );
       const filesAndFolders = await this.getFilesInFolder(sanitizedPath);

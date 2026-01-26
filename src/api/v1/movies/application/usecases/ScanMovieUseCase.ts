@@ -8,11 +8,10 @@ import {
   notificationService,
   useCases,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { getOnlyRuntime } from "@/api/v1/shared/infrastructure/adapters/ffmpeg/mediaInfo";
 import { VideoRepositoryPort } from "@/api/v1/videos/application/ports/VideosRepositoryPort";
 import { Video } from "@/api/v1/videos/domain/Video";
-import { getOnlyRuntime } from "@/ffmpeg/mediaInfo";
 import { extractNameAndYear } from "@/file-search/utils/utils";
-import { MetadataManager } from "@/managers/MetadataManager";
 import logger from "@/utils/logger";
 import { getFileName } from "@/utils/utils";
 import { MovieResponse } from "moviedb-promise";
@@ -459,7 +458,7 @@ export class ScanMovieUseCase {
     );
 
     try {
-      await MetadataManager.updateMovieMetadata(
+      await this.metadataProvider.updateMovieMetadata(
         movie,
         movieMetadata,
         library.language,
@@ -993,7 +992,7 @@ export class ScanMovieUseCase {
     }
 
     try {
-      await MetadataManager.updateVideoMetadataForMovie(video, movie);
+      await this.metadataProvider.updateVideoMetadataForMovie(video, movie);
       logger.info(
         {
           libraryId: library.id,

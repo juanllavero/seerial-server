@@ -1,5 +1,5 @@
 import { AudioInfo } from "@/data/interfaces/MediaInfo";
-import logger from "../utils/logger";
+import logger from "@/utils/logger";
 import { executeFfprobe } from "./nativeFfmpeg";
 
 export async function getAudioInfo(

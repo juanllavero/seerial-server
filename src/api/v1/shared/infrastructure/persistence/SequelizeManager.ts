@@ -22,11 +22,11 @@ import { UserLibraryModel } from "@/api/v1/users/infrastructure/persistence/mode
 import { UserModel } from "@/api/v1/users/infrastructure/persistence/models/UserModel";
 import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/VideoModel";
 import { WatchListModel } from "@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel";
+import logger from "@/utils/logger";
 import fs from "fs";
 import { Sequelize } from "sequelize-typescript";
-import logger from "../utils/logger";
 
-const dbLogger = logger.child({ category: "Database Manager" });
+const dbLogger = logger.child({ category: "Database" });
 
 export class SequelizeManager {
   public static get DB_PATH(): string {

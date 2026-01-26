@@ -1,5 +1,4 @@
 import { myListRepo } from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { MediaManager } from "@/managers/MediaManager";
 import { getUserId } from "@/utils/auth";
 import { Request as ExpressRequest } from "express";
 import { Controller, Get, Path, Request, Route, Security, Tags } from "tsoa";
@@ -35,7 +34,7 @@ export class MyListController extends Controller {
     @Request() req: ExpressRequest
   ): Promise<any> {
     const userId = getUserId(req);
-    return await MediaManager.isMovieInMyList(id, userId);
+    return await myListRepo.isMovieInMyList(id, userId);
   }
 
   /**
@@ -48,6 +47,6 @@ export class MyListController extends Controller {
     @Request() req: ExpressRequest
   ): Promise<any> {
     const userId = getUserId(req);
-    return await MediaManager.isSeriesInMyList(id, userId);
+    return await myListRepo.isSeriesInMyList(id, userId);
   }
 }

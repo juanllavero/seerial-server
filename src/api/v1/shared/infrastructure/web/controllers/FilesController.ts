@@ -1,9 +1,9 @@
 import ApiError from "@/data/ApiError";
-import { SanitizationManager } from "@/managers/SanitizationManager";
 import fs from "fs";
 import os from "os";
 import path from "path";
 import { Get, Query, Route, Security, Tags } from "tsoa";
+import { SanitizationService } from "../../services/SanitizationService";
 
 interface FileItem {
   name: string;
@@ -56,9 +56,9 @@ export class FilesController {
   @Security("adminAuth")
   public async getFolderContents(@Query() path: string): Promise<FileItem[]> {
     try {
-      const sanitizedPath = SanitizationManager.sanitizeDirectoryPath(
+      const sanitizedPath = SanitizationService.sanitizeDirectoryPath(
         path,
-        SanitizationManager.getSystemAllowedPaths(),
+        SanitizationService.getSystemAllowedPaths(),
         true // Must exist
       );
 

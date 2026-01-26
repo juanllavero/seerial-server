@@ -36,7 +36,7 @@ export class CollectionsController extends Controller {
   public async getMusicExtras(
     @Path() collectionId: string
   ): Promise<MusicExtrasDTO> {
-    const useCase = new GetMusicExtrasUseCase(collectionsRepo);
+    const useCase = new GetMusicExtrasUseCase();
     return await useCase.execute(collectionId);
   }
 

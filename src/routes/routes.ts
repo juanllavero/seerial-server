@@ -1160,6 +1160,23 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "HealthStatus": {
+        "dataType": "refAlias",
+        "type": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["ok"]},{"dataType":"enum","enums":["degraded"]},{"dataType":"enum","enums":["down"]}],"validators":{}},
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "HealthResponse": {
+        "dataType": "refObject",
+        "properties": {
+            "status": {"ref":"HealthStatus","required":true},
+            "checks": {"dataType":"nestedObjectLiteral","nestedProperties":{"tmdb":{"ref":"HealthStatus","required":true},"ffmpeg":{"ref":"HealthStatus","required":true},"database":{"ref":"HealthStatus","required":true},"filesystem":{"ref":"HealthStatus","required":true}},"required":true},
+            "uptime": {"dataType":"double","required":true},
+            "timestamp": {"dataType":"double","required":true},
+            "version": {"dataType":"string","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "WatchListResponse": {
         "dataType": "refObject",
         "properties": {

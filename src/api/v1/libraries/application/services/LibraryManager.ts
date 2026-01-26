@@ -6,6 +6,7 @@ import {
   librariesRepo,
   useCases,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { MediaService } from "@/api/v1/shared/infrastructure/services/MediaService";
 import ApiError from "@/data/ApiError";
 import { LibraryItem } from "@/data/interfaces/Media";
 import { clearLibrary, getCollectionItemsKey } from "@/file-search/utils/utils";
@@ -14,7 +15,6 @@ import logger from "@/utils/logger";
 import fs from "fs";
 import * as fsPromises from "fs/promises";
 import path from "path";
-import { MediaManager } from "../../../../../managers/MediaManager";
 import { GetLibrariesUseCase } from "../usecases/GetLibrariesUseCase";
 import { GetLibraryUseCase } from "../usecases/GetLibraryUseCase";
 
@@ -110,9 +110,9 @@ export class LibraryManager {
       const itemType = getCollectionItemsKey(type);
       const remainingItems =
         getCollectionItemsKey(type) === "movies"
-          ? await MediaManager.countRemainingVideos(item.data.id, userId)
+          ? await MediaService.countRemainingVideos(item.data.id, userId)
           : getCollectionItemsKey(type) === "shows"
-          ? await MediaManager.countRemainingEpisodes(item.data.id, userId)
+          ? await MediaService.countRemainingEpisodes(item.data.id, userId)
           : 0;
       unifiedContent.push({
         type: getCollectionItemsKey(type),

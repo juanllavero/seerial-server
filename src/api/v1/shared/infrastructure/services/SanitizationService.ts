@@ -3,14 +3,14 @@ import {
   imageExtensions,
   videoExtensions,
 } from "@/utils/constants";
+import logger from "@/utils/logger";
 import fs from "fs";
 import os from "os";
 import path from "path";
-import logger from "../utils/logger";
 
 const sanitizationLogger = logger.child({ category: "Sanitization" });
 
-export class SanitizationManager {
+export class SanitizationService {
   // Patterns to detect path traversal
   private static readonly dangerousPatterns = [
     /\.\./g, // Parent directory traversal

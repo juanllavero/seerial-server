@@ -1,7 +1,7 @@
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
+import { ServerConfigService } from "@/api/v1/servers/infrastructure/services/ServerConfigService";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { ServerConfigManager } from "@/managers/ServerConfigManager";
 import { UserType } from "@/utils/constants";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -85,7 +85,7 @@ export class UsersRepositoryImpl
         allowDownloads: data.allowDownloads ?? true,
         hideInLogin: data.hideInLogin ?? false,
         maxSessions: data.maxSessions ?? 0,
-        serverId: ServerConfigManager.serverConfig.id,
+        serverId: ServerConfigService.serverConfig.id,
       });
 
       if (data.libraryIds) {

@@ -1,10 +1,13 @@
+import { getAudioInfo } from "@/api/v1/shared/infrastructure/adapters/ffmpeg/audioInfo";
+import {
+  getChapters,
+  getMediaInfo,
+} from "@/api/v1/shared/infrastructure/adapters/ffmpeg/mediaInfo";
 import ApiError from "@/data/ApiError";
-import { getAudioInfo } from "@/ffmpeg/audioInfo";
-import { getChapters, getMediaInfo } from "@/ffmpeg/mediaInfo";
 import logger from "@/utils/logger";
 import { MediaInfoServicePort } from "../../../application/ports/MediaInfoServicePort";
 
-const mediaInfoLogger = logger.child({ category: "Media Info" });
+const mediaProbeLogger = logger.child({ category: "Media Probe" });
 
 export class MediaInfoServiceImpl implements MediaInfoServicePort {
   constructor() {}
@@ -14,11 +17,11 @@ export class MediaInfoServiceImpl implements MediaInfoServicePort {
    * @param filePath - The absolute path to the media file.
    * @returns A promise that resolves to the audio metadata.
    */
-  getAudioMetadata(filePath: string): Promise<any> {
+  async getAudioMetadata(filePath: string): Promise<any> {
     try {
-      return getAudioInfo(decodeURIComponent(filePath));
+      return await getAudioInfo(decodeURIComponent(filePath));
     } catch (error: any) {
-      mediaInfoLogger.error(
+      mediaProbeLogger.error(
         error,
         `FFprobe error for audio metadata on ${filePath}`
       );
@@ -31,11 +34,14 @@ export class MediaInfoServiceImpl implements MediaInfoServicePort {
    * @param filePath - The absolute path to the media file.
    * @returns A promise that resolves to the chapter data.
    */
-  getMediaChapters(filePath: string): Promise<any> {
+  async getMediaChapters(filePath: string): Promise<any> {
     try {
-      return getChapters(decodeURIComponent(filePath));
+      return await getChapters(decodeURIComponent(filePath));
     } catch (error: any) {
-      mediaInfoLogger.error(error, `FFprobe error for chapters on ${filePath}`);
+      mediaProbeLogger.error(
+        error,
+        `FFprobe error for chapters on ${filePath}`
+      );
       throw new ApiError(500, `Failed to extract chapters: ${error.message}`);
     }
   }
@@ -45,11 +51,11 @@ export class MediaInfoServiceImpl implements MediaInfoServicePort {
    * @param filePath - The absolute path to the media file.
    * @returns A promise that resolves to the media info.
    */
-  getMediaInformation(filePath: string): Promise<any> {
+  async getMediaInformation(filePath: string): Promise<any> {
     try {
-      return getMediaInfo(decodeURIComponent(filePath));
+      return await getMediaInfo(decodeURIComponent(filePath));
     } catch (error: any) {
-      mediaInfoLogger.error(
+      mediaProbeLogger.error(
         error,
         `FFprobe error for media info on ${filePath}`
       );

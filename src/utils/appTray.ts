@@ -1,4 +1,4 @@
-import { ServerConfigManager } from "@/managers/ServerConfigManager";
+import { ServerConfigService } from "@/api/v1/servers/infrastructure/services/ServerConfigService";
 import { app, Menu, shell, Tray } from "electron";
 import path from "path";
 
@@ -24,7 +24,7 @@ export function createTray() {
       label: "Open Seerial...",
       click: () => {
         shell.openExternal(
-          `http://localhost:${ServerConfigManager.serverConfig.httpPort}/`
+          `http://localhost:${ServerConfigService.serverConfig.httpPort}/`
         );
       },
     },
@@ -68,7 +68,7 @@ export function createTray() {
 
   tray.on("double-click", () => {
     shell.openExternal(
-      `http://localhost:${ServerConfigManager.serverConfig.httpPort}/`
+      `http://localhost:${ServerConfigService.serverConfig.httpPort}/`
     );
   });
 }

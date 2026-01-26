@@ -6,8 +6,8 @@ import {
   SubtitleTrack,
   VideoTrack,
 } from "@/data/interfaces/MediaInfo";
+import logger from "@/utils/logger";
 import path from "path";
-import logger from "../utils/logger";
 import { executeFfprobe, executeFfprobeRaw } from "./nativeFfmpeg";
 import {
   formatTime,

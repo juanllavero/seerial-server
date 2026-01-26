@@ -1,6 +1,6 @@
+import { getMediaInfo } from "@/api/v1/shared/infrastructure/adapters/ffmpeg/mediaInfo";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { getMediaInfo } from "@/ffmpeg/mediaInfo";
 import { Video } from "../../domain/Video";
 import { VideoRepositoryPort } from "../ports/VideosRepositoryPort";
 

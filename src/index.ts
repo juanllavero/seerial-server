@@ -4,9 +4,8 @@ import {
   notificationService,
   tmdbApiClient,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
-import * as ConfigManager from "@/managers/ConfigManager";
-import { SequelizeManager } from "@/managers/SequelizeManager";
-import { ServerConfigManager } from "@/managers/ServerConfigManager";
+import { SequelizeManager } from "@/api/v1/shared/infrastructure/persistence/SequelizeManager";
+import * as ConfigManager from "@/api/v1/shared/infrastructure/services/ConfigService";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import { config } from "dotenv";
@@ -19,6 +18,7 @@ import https from "https";
 import path from "path";
 import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "../swagger.json";
+import { ServerConfigService } from "./api/v1/servers/infrastructure/services/ServerConfigService";
 import { errorHandlerMiddleware } from "./middleware/errorHandler.middleware";
 import { requestsIDsMiddleware } from "./middleware/requestID.middleware";
 import { sanitizationMiddleware } from "./middleware/sanitization.middleware";
@@ -102,7 +102,7 @@ app.whenReady().then(async () => {
   await tmdbApiClient.initialize();
 
   // Load or create server and user configs
-  await ServerConfigManager.loadOrCreateServerConfig();
+  await ServerConfigService.loadOrCreateServerConfig();
 
   // Swagger UI
   appServer.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
@@ -128,13 +128,13 @@ app.whenReady().then(async () => {
   appServer.use(errorHandlerMiddleware);
 
   // Start server
-  await ServerConfigManager.startServer(appServer);
+  await ServerConfigService.startServer(appServer);
 
   // Initialize NotificationService through DI container
-  notificationService.init(ServerConfigManager.mainServer);
+  notificationService.init(ServerConfigService.mainServer);
 
   // Setup UPnP port mapping
-  await ServerConfigManager.setupPortMapping();
+  await ServerConfigService.setupPortMapping();
 
   // Create tray
   createTray();

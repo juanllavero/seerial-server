@@ -3,7 +3,6 @@ import {
   notificationService,
   useCases,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { MetadataManager } from "@/managers/MetadataManager";
 import logger from "@/utils/logger";
 
 const refreshMovieMetadataLogger = logger.child({
@@ -53,7 +52,7 @@ export class RefreshMovieMetadataUseCase {
       }
 
       // Update movie metadata
-      await MetadataManager.updateMovieMetadata(
+      await metadataProvider.updateMovieMetadata(
         movie,
         movieMetadata,
         library.language
@@ -64,7 +63,7 @@ export class RefreshMovieMetadataUseCase {
       const videos = await getVideoByMovieId.execute(movie.id);
       if (videos) {
         for (const video of videos) {
-          await MetadataManager.updateVideoMetadataForMovie(video, movie);
+          await metadataProvider.updateVideoMetadataForMovie(video, movie);
         }
       }
     } catch (error) {

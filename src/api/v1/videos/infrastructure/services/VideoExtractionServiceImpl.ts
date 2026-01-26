@@ -1,10 +1,10 @@
 import { fileSystemService } from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { messages } from "@/config/messages";
-import ApiError from "@/data/ApiError";
 import {
   executeFfmpeg,
   executeFfmpegPipeToStream,
-} from "@/ffmpeg/nativeFfmpeg";
+} from "@/api/v1/shared/infrastructure/adapters/ffmpeg/nativeFfmpeg";
+import { messages } from "@/config/messages";
+import ApiError from "@/data/ApiError";
 import logger from "@/utils/logger";
 import crypto from "crypto";
 import fs from "fs-extra";

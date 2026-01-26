@@ -1,13 +1,14 @@
 import { MessageResponse } from "@/api/v1/shared/application/dtos/DTOs";
 import {
+  externalSearchService,
   librariesRepo,
   moviesRepo,
+  myListRepo,
   useCases,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { MediaService } from "@/api/v1/shared/infrastructure/services/MediaService";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { ExternalSearchManager } from "@/managers/ExternalSearchManager";
-import { MediaManager } from "@/managers/MediaManager";
 import { Request as ExpressRequest } from "express";
 import {
   Body,
@@ -170,7 +171,7 @@ export class MoviesController extends Controller {
     @Query() name: string,
     @Query() year?: string
   ): Promise<any> {
-    return await ExternalSearchManager.searchMovies(name, year);
+    return await externalSearchService.searchMovies(name, year);
   }
 
   /**
@@ -179,7 +180,7 @@ export class MoviesController extends Controller {
   @Get("imdb-score")
   @Security("adminAuth")
   public async getImdbScore(@Query() id: string): Promise<any> {
-    return await ExternalSearchManager.getImdbScore(id);
+    return await externalSearchService.getImdbScore(id);
   }
 
   /**
@@ -192,7 +193,7 @@ export class MoviesController extends Controller {
     @Request() req: ExpressRequest
   ): Promise<any> {
     const userId = (req as any).user?.id;
-    return await MediaManager.countRemainingVideos(id, userId);
+    return await MediaService.countRemainingVideos(id, userId);
   }
 
   /**
@@ -205,6 +206,6 @@ export class MoviesController extends Controller {
     @Request() req: ExpressRequest
   ): Promise<any> {
     const userId = (req as any).user?.id;
-    return await MediaManager.isMovieInMyList(id, userId);
+    return await myListRepo.isMovieInMyList(id, userId);
   }
 }
