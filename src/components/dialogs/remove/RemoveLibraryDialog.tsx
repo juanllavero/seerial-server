@@ -1,5 +1,5 @@
 import AlertWrapper from '@/components/AlertWrapper'
-import { authenticatedFetch } from '@/config/api'
+import { API, authenticatedFetch } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { useTranslation } from 'react-i18next'
@@ -27,7 +27,7 @@ function RemoveLibraryDialog() {
       action={async () => {
         connectWS()
         await authenticatedFetch(
-          `/api/libraries/${removeLibraryDialog.libraryToRemove}`,
+          API.libraries.delete(removeLibraryDialog.libraryToRemove ?? ''),
           'DELETE',
         )
 
