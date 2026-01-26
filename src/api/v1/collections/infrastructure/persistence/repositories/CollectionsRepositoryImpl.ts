@@ -4,7 +4,10 @@ import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/mode
 import { MovieModel } from "@/api/v1/movies/infrastructure/persistence/models/MovieModel";
 import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/SeriesModel";
 import { SequelizeManager } from "@/api/v1/shared/infrastructure/persistence/SequelizeManager";
-import { getCollectionItemsKey, getItemModel } from "@/file-search/utils/utils";
+import {
+  getCollectionItemsKey,
+  getItemModel,
+} from "@/api/v1/shared/infrastructure/services/FileSearchService";
 import { v4 as uuidv4 } from "uuid";
 import { ReorderItemDTO } from "../../../application/dtos/CollectionDTOs";
 import { CollectionsRepositoryPort } from "../../../application/ports/CollectionRepositoryPort";

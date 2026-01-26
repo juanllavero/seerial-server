@@ -5,10 +5,10 @@ import { MovieModel } from "@/api/v1/movies/infrastructure/persistence/models/Mo
 import { SeasonModel } from "@/api/v1/seasons/infrastructure/persistence/models/SeasonModel";
 import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/SeriesModel";
 import { SequelizeManager } from "@/api/v1/shared/infrastructure/persistence/SequelizeManager";
+import { getCollectionItemsKey } from "@/api/v1/shared/infrastructure/services/FileSearchService";
 import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/VideoModel";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
-import { getCollectionItemsKey } from "@/file-search/utils/utils";
 import logger from "@/utils/logger";
 import { v4 as uuidv4 } from "uuid";
 import { LibrariesRepositoryPort } from "../../../application/ports/LibrariesRepositoryPort";

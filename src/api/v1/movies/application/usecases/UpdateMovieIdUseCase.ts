@@ -1,4 +1,4 @@
-import { changeIdentificationMovie } from "@/file-search/utils/changeIdentification";
+import { changeIdentificationMovie } from "@/api/v1/shared/infrastructure/services/FileSearchService";
 
 export class UpdateMovieIdUseCase {
   constructor() {}

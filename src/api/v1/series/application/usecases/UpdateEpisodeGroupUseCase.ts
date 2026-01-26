@@ -1,4 +1,4 @@
-import { changeIdentificationShow } from "@/file-search/utils/changeIdentification";
+import { changeIdentificationShow } from "@/api/v1/shared/infrastructure/services/FileSearchService";
 
 export class UpdateEpisodeGroupUseCase {
   constructor() {}

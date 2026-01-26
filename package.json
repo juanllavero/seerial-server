@@ -75,9 +75,11 @@
     "build-linux": "pnpm run build && electron-builder --linux",
     "publish": "node dist/utils/publish.js",
     "lint": "tsc --noEmit",
+    "// TSOA DOCUMENTATION": "",
     "tsoa:spec": "tsoa spec",
     "tsoa:routes": "tsoa routes",
     "tsoa:generate": "tsoa spec && tsoa routes",
+    "// TESTS": "",
     "tests": "jest --verbose"
   },
   "dependencies": {

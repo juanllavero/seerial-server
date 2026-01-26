@@ -9,9 +9,9 @@ import {
   useCases,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { getOnlyRuntime } from "@/api/v1/shared/infrastructure/adapters/ffmpeg/mediaInfo";
+import { extractNameAndYear } from "@/api/v1/shared/infrastructure/services/FileSearchService";
 import { VideoRepositoryPort } from "@/api/v1/videos/application/ports/VideosRepositoryPort";
 import { Video } from "@/api/v1/videos/domain/Video";
-import { extractNameAndYear } from "@/file-search/utils/utils";
 import logger from "@/utils/logger";
 import { getFileName } from "@/utils/utils";
 import { MovieResponse } from "moviedb-promise";

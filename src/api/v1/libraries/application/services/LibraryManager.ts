@@ -6,10 +6,13 @@ import {
   librariesRepo,
   useCases,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import {
+  clearLibrary,
+  getCollectionItemsKey,
+} from "@/api/v1/shared/infrastructure/services/FileSearchService";
 import { MediaService } from "@/api/v1/shared/infrastructure/services/MediaService";
 import ApiError from "@/data/ApiError";
 import { LibraryItem } from "@/data/interfaces/Media";
-import { clearLibrary, getCollectionItemsKey } from "@/file-search/utils/utils";
 import { imageExtensions } from "@/utils/constants";
 import logger from "@/utils/logger";
 import fs from "fs";
