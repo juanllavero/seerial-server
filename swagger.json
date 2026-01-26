@@ -6923,6 +6923,51 @@
 				]
 			}
 		},
+		"/health": {
+			"get": {
+				"operationId": "Health",
+				"responses": {
+					"200": {
+						"description": "Health status of the application",
+						"content": {
+							"application/json": {
+								"schema": {
+									"properties": {
+										"version": {
+											"type": "string"
+										},
+										"timestamp": {
+											"type": "number",
+											"format": "double"
+										},
+										"uptime": {
+											"type": "number",
+											"format": "double"
+										},
+										"status": {
+											"type": "string"
+										}
+									},
+									"required": [
+										"version",
+										"timestamp",
+										"uptime",
+										"status"
+									],
+									"type": "object"
+								}
+							}
+						}
+					}
+				},
+				"description": "Check application health status",
+				"tags": [
+					"Health"
+				],
+				"security": [],
+				"parameters": []
+			}
+		},
 		"/watch-lists/watch-state": {
 			"put": {
 				"operationId": "UpdateWatchState",

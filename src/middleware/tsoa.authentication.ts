@@ -18,7 +18,7 @@ export async function expressAuthentication(
 ): Promise<any> {
   if (securityName === "public") {
     // No authentication required
-    return {};
+    return null;
   }
 
   if (securityName === "bearerAuth" || securityName === "cookieAuth") {
@@ -130,7 +130,7 @@ export async function expressAuthentication(
           if (user) return user;
         } catch (e) {}
       }
-      return {}; // Allow local access without user
+      return null; // Allow local access without user
     }
 
     // Remote request: check token and admin user

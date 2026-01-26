@@ -36,3 +36,17 @@ export interface UserResponse {
   message: string;
   data?: any;
 }
+
+export interface UserDTO {
+  id: string;
+  username: string;
+  avatar?: string;
+  allowRemote: boolean;
+  type: string;
+  allowVideoTranscoding: boolean;
+  internetBitrateLimit?: number;
+  allowDownloads: boolean;
+  hideInLogin: boolean;
+  maxSessions: number;
+  serverId: string;
+}

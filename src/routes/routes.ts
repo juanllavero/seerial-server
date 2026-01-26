@@ -48,6 +48,8 @@ import { ArtistsController } from './../api/v1/artists/infrastructure/web/contro
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { AlbumsController } from './../api/v1/albums/infrastructure/web/controllers/AlbumsController';
 // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+import { HealthController } from './../api/v1/shared/infrastructure/web/controllers/HealthController';
+// WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
 import { WatchListController } from './../api/v1/watch-lists/infrastructure/web/controllers/WatchListController';
 import { expressAuthentication } from './../middleware/tsoa.authentication';
 // @ts-ignore - no great way to install types from subpackage
@@ -4500,6 +4502,35 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
 
               await templateService.apiHandler({
                 methodName: 'delete',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: undefined,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        const argsHealthController_health: Record<string, TsoaRoute.ParameterSchema> = {
+        };
+        app.get('/api/health',
+            ...(fetchMiddlewares<RequestHandler>(HealthController)),
+            ...(fetchMiddlewares<RequestHandler>(HealthController.prototype.health)),
+
+            async function HealthController_health(request: ExRequest, response: ExResponse, next: any) {
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args: argsHealthController_health, request, response });
+
+                const controller = new HealthController();
+
+              await templateService.apiHandler({
+                methodName: 'health',
                 controller,
                 response,
                 next,

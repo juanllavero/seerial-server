@@ -1,0 +1,95 @@
+import { UserModel } from "@/api/v1/users/infrastructure/persistence/models/UserModel";
+import { Controller, Get, Route, Tags } from "tsoa";
+import { fileSystemService, tmdbApiClient } from "../../adapters/di/container";
+
+type HealthStatus = "ok" | "degraded" | "down";
+
+interface HealthResponse {
+  status: HealthStatus;
+  checks: {
+    filesystem: HealthStatus;
+    database: HealthStatus;
+    ffmpeg: HealthStatus;
+    tmdb: HealthStatus;
+  };
+  uptime: number;
+  timestamp: number;
+  version: string;
+}
+
+@Route("health")
+@Tags("Health")
+export class HealthController extends Controller {
+  /**
+   *  Check application health status and dependencies
+   * @returns Health status of the application
+   */
+  @Get()
+  public async health(): Promise<HealthResponse> {
+    const checks = {
+      filesystem: await this.checkFilesystem(),
+      database: await this.checkDatabase(),
+      ffmpeg: await this.checkFFmpeg(),
+      tmdb: await this.checkTMDB(),
+    };
+
+    const overall = this.calculateOverallStatus(checks);
+
+    return {
+      status: overall,
+      checks,
+      uptime: process.uptime(),
+      timestamp: Date.now(),
+      version: process.env.APP_VERSION ?? "dev",
+    };
+  }
+
+  private async checkFilesystem(): Promise<HealthStatus> {
+    try {
+      const path = fileSystemService.getExternalPath("resources");
+      fileSystemService.isFolder(path);
+      return "ok";
+    } catch {
+      return "down";
+    }
+  }
+
+  private async checkDatabase(): Promise<HealthStatus> {
+    try {
+      await UserModel.findOne();
+      return "ok";
+    } catch {
+      return "down";
+    }
+  }
+
+  private async checkFFmpeg(): Promise<HealthStatus> {
+    try {
+      await new Promise((resolve, reject) => {
+        const { exec } = require("child_process");
+        exec("ffmpeg -version", (err: any) => (err ? reject() : resolve(true)));
+      });
+      return "ok";
+    } catch {
+      return "degraded"; // Not critical if FFmpeg is missing, only used for conversion and media info extraction
+    }
+  }
+
+  private async checkTMDB(): Promise<HealthStatus> {
+    try {
+      if (!tmdbApiClient.THEMOVIEDB_API_TOKEN) return "degraded";
+      const ok = await tmdbApiClient.getAPIKeyStatus();
+      return ok ? "ok" : "degraded";
+    } catch {
+      return "degraded";
+    }
+  }
+
+  private calculateOverallStatus(
+    checks: Record<string, HealthStatus>
+  ): HealthStatus {
+    if (Object.values(checks).includes("down")) return "down";
+    if (Object.values(checks).includes("degraded")) return "degraded";
+    return "ok";
+  }
+}

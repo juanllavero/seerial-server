@@ -11,12 +11,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import { config } from "dotenv";
 import { app } from "electron";
-import express, {
-  ErrorRequestHandler,
-  NextFunction,
-  Request,
-  Response,
-} from "express";
+import express, { Request, Response } from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import http from "http";
@@ -24,12 +19,11 @@ import https from "https";
 import path from "path";
 import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "../swagger.json";
+import { errorHandlerMiddleware } from "./middleware/errorHandler.middleware";
+import { requestsIDsMiddleware } from "./middleware/requestID.middleware";
 import { sanitizationMiddleware } from "./middleware/sanitization.middleware";
 import { RegisterRoutes } from "./routes/routes";
 import { createTray } from "./utils/appTray";
-import logger from "./utils/logger";
-
-const appLogger = logger.child({ category: "Application" });
 
 // Initialize app and environment
 config();
@@ -38,6 +32,9 @@ export const appServer = express();
 
 // Sanitization middleware
 appServer.use(sanitizationMiddleware);
+
+// Requests IDs for debugging
+appServer.use(requestsIDsMiddleware);
 
 // Middleware
 appServer.use(
@@ -127,20 +124,8 @@ app.whenReady().then(async () => {
     res.sendFile(path.join(webPath, "index.html"));
   });
 
-  // Error handler
-  const errorHandler: ErrorRequestHandler = (
-    err: any,
-    _req: Request,
-    res: Response,
-    _next: NextFunction
-  ) => {
-    appLogger.error(err, "Application error");
-    res.status(err.status || 500).json({
-      status: "error",
-      message: err.message || "Something went wrong",
-    });
-  };
-  appServer.use(errorHandler);
+  // Error handling middleware
+  appServer.use(errorHandlerMiddleware);
 
   // Start server
   await ServerConfigManager.startServer(appServer);

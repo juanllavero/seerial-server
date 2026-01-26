@@ -78,15 +78,15 @@ export class SequelizeManager {
         define: {
           underscored: true, // Map snake_case (DB) to camelCase (Models)
         },
-        //logging: false,
-        logging: (msg, timing) => {
-          // Función de logging personalizada con Pino
-          if (timing) {
-            dbLogger.info({ sql: msg, duration: timing }, "Executed SQL query");
-          } else {
-            dbLogger.debug({ sql: msg }, "Sequelize log");
-          }
-        },
+        logging: false,
+        // logging: (msg, timing) => {
+        //   // Función de logging personalizada con Pino
+        //   if (timing) {
+        //     dbLogger.info({ sql: msg, duration: timing }, "Executed SQL query");
+        //   } else {
+        //     dbLogger.debug({ sql: msg }, "Sequelize log");
+        //   }
+        // },
       });
 
       // Enable foreign keys
