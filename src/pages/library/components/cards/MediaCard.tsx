@@ -202,7 +202,7 @@ function MediaCard({ item, library }: MediaCardProps) {
     imgSrc = album.coverSrc
     action = () => {
       selectAlbum(id)
-      navigate(`/details/album/${id}`)
+      navigate(`album/${id}`)
     }
     editModal = (
       <Button
