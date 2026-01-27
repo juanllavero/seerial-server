@@ -932,6 +932,9 @@ export class MetadataProviderImpl implements MetadataProviderPort {
 
         // If there is a collection, add poster to collection
         if (collection) {
+          if (!collection.coversUrls) {
+            collection.coversUrls = [];
+          }
           collection.coversUrls.push(movie.coversUrls[0]);
           if (!collection.coverSrc) {
             collection.coverSrc = movie.coversUrls[0];

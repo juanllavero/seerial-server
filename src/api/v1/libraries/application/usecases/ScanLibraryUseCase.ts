@@ -150,14 +150,6 @@ export class ScanLibraryUseCase {
     };
     notificationService.broadcast(JSON.stringify(message));
 
-    logger.info(
-      {
-        libraryId: library.id,
-        messageType: "SCAN_STARTED",
-      },
-      "Sent scan started notification to clients"
-    );
-
     Promise.all(tasks).then(() => {
       const message = {
         header: "SCAN_COMPLETE",
@@ -179,22 +171,8 @@ export class ScanLibraryUseCase {
     // Update content in clients
     notificationService.mutateLibrary(library.id);
 
-    logger.info(
-      {
-        libraryId: library.id,
-      },
-      "Updated library content in clients"
-    );
-
     // Update Library
     this.librariesRepo.update(library.id, library);
-
-    logger.info(
-      {
-        libraryId: library.id,
-      },
-      "Updated library in repository"
-    );
 
     return library;
   }

@@ -3,6 +3,12 @@ export interface LoginDTO {
   password: string;
 }
 
+export interface LoginResponseDTO {
+  user: UserDTO | null;
+  token?: string;
+  error?: string;
+}
+
 export interface CreateUserDTO {
   username: string;
   password?: string;

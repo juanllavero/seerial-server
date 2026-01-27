@@ -626,6 +626,34 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "UserDTO": {
+        "dataType": "refObject",
+        "properties": {
+            "id": {"dataType":"string","required":true},
+            "username": {"dataType":"string","required":true},
+            "avatar": {"dataType":"string"},
+            "allowRemote": {"dataType":"boolean","required":true},
+            "type": {"dataType":"string","required":true},
+            "allowVideoTranscoding": {"dataType":"boolean","required":true},
+            "internetBitrateLimit": {"dataType":"double"},
+            "allowDownloads": {"dataType":"boolean","required":true},
+            "hideInLogin": {"dataType":"boolean","required":true},
+            "maxSessions": {"dataType":"double","required":true},
+            "serverId": {"dataType":"string","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "LoginResponseDTO": {
+        "dataType": "refObject",
+        "properties": {
+            "user": {"dataType":"union","subSchemas":[{"ref":"UserDTO"},{"dataType":"enum","enums":[null]}],"required":true},
+            "token": {"dataType":"string"},
+            "error": {"dataType":"string"},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "LoginDTO": {
         "dataType": "refObject",
         "properties": {
@@ -3572,9 +3600,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         const argsLibrariesController_getContent: Record<string, TsoaRoute.ParameterSchema> = {
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
-                type: {"in":"query","name":"type","required":true,"dataType":"string"},
                 req: {"in":"request","name":"req","required":true,"dataType":"object"},
-                flat: {"in":"query","name":"flat","dataType":"string"},
         };
         app.get('/api/libraries/:id/content',
             authenticateMiddleware([{"adminAuth":[]}]),

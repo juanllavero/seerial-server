@@ -1,8 +1,3 @@
-import { Album } from "@/api/v1/albums/domain/Album";
-import { Collection } from "@/api/v1/collections/domain/Collection";
-import { Movie } from "@/api/v1/movies/domain/Movie";
-import { Series } from "@/api/v1/series/domain/Series";
-
 export interface CastData {
   name: string;
   character: string;
@@ -29,8 +24,24 @@ export interface FlatItem {
 }
 
 export interface LibraryItem {
-  type: string;
+  id: string;
+  title: string;
+  years: string;
+  coverSrc: string;
+  numberOfItems: number;
+
   order: number;
-  data: Collection | Series | Movie | Album | CollectionData | FlatItem;
-  remainingItems?: number;
+  watched: boolean;
+  remainingItems: number;
+  analyzingFiles: boolean;
+
+  type: ItemType;
+}
+
+export type ItemType = "series" | "movie" | "album" | "collection";
+
+export enum LibraryTypes {
+  SHOWS = "Shows",
+  MOVIES = "Movies",
+  MUSIC = "Music",
 }

@@ -47,7 +47,7 @@ appServer.use(
     },
     credentials: true, // Allow cookies
     exposedHeaders: ["Content-Range", "Accept-Ranges", "Content-Length"],
-    methods: ["GET", "PUT", "POST", "DELETE", "PATCH"],
+    methods: ["GET", "PUT", "POST", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );

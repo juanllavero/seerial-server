@@ -23,7 +23,7 @@ export async function expressAuthentication(
 
   if (securityName === "bearerAuth" || securityName === "cookieAuth") {
     // Full authentication with library and remote access checks
-    const token = request.cookies.jwt;
+    const token = request.cookies.token;
 
     if (!token) {
       throw new Error(messages.errors.token.missing);
@@ -68,7 +68,7 @@ export async function expressAuthentication(
 
   if (securityName === "cookieAuthFast") {
     // Fast authentication without additional checks
-    const token = request.cookies.jwt;
+    const token = request.cookies.token;
     if (!token) {
       throw new Error(messages.errors.token.missing);
     }
@@ -91,7 +91,7 @@ export async function expressAuthentication(
 
   if (securityName === "adminAuth") {
     // Admin authentication
-    const token = request.cookies.jwt;
+    const token = request.cookies.token;
     if (!token) {
       throw new Error(messages.errors.token.missing);
     }

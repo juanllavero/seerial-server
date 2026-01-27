@@ -12,7 +12,6 @@ import {
   Path,
   Post,
   Put,
-  Query,
   Request,
   Route,
   Security,
@@ -69,14 +68,10 @@ export class LibrariesController extends Controller {
   @Security("adminAuth")
   public async getContent(
     @Path() id: string,
-    @Query() type: string,
-    @Request() req: ExpressRequest,
-    @Query() flat?: string
+    @Request() req: ExpressRequest
   ): Promise<LibraryResponse> {
     const userId = getUserId(req);
-    const content = await useCases
-      .getLibraryContent()
-      .execute(id, type, userId, flat ?? "false");
+    const content = await useCases.getLibraryContent().execute(id, userId);
     if (!content) {
       throw new ApiError(404, messages.errors.notFound.library);
     }

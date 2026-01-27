@@ -168,7 +168,6 @@ export class ContinueWatchingRepositoryImpl
       });
 
       if (existingElement) {
-        logger.info(`Video with id ${videoId} is already in Continue Watching`);
         return existingElement.toJSON();
       }
 

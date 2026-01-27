@@ -15,6 +15,7 @@ import {
 import {
   CreateUserDTO,
   LoginDTO,
+  LoginResponseDTO,
   UpdateUserDTO,
   UserResponse,
 } from "../../../application/dtos/UserDTOs";
@@ -94,11 +95,33 @@ export class UsersController extends Controller {
    */
   @Post("login")
   @Security("public")
-  public async login(@Body() body: LoginDTO): Promise<{
-    token: string;
-    user: User | null;
-  } | null> {
+  public async login(@Body() body: LoginDTO): Promise<LoginResponseDTO> {
     const { username, password } = body;
-    return await useCases.authenticateUser().execute(username, password);
+
+    const result = await useCases
+      .authenticateUser()
+      .execute(username, password);
+
+    if (!result) {
+      this.setStatus(401);
+      return { user: null, error: "Invalid credentials" };
+    }
+
+    const cookie = [
+      `token=${result.token}`,
+      "HttpOnly",
+      "Path=/",
+      "SameSite=Lax",
+      process.env.NODE_ENV === "production" ? "Secure" : null,
+    ]
+      .filter(Boolean)
+      .join("; ");
+
+    this.setHeader("Set-Cookie", cookie);
+
+    return {
+      token: result.token,
+      user: result.user,
+    };
   }
 }

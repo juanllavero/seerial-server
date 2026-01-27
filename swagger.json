@@ -1703,6 +1703,81 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"UserDTO": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"username": {
+						"type": "string"
+					},
+					"avatar": {
+						"type": "string"
+					},
+					"allowRemote": {
+						"type": "boolean"
+					},
+					"type": {
+						"type": "string"
+					},
+					"allowVideoTranscoding": {
+						"type": "boolean"
+					},
+					"internetBitrateLimit": {
+						"type": "number",
+						"format": "double"
+					},
+					"allowDownloads": {
+						"type": "boolean"
+					},
+					"hideInLogin": {
+						"type": "boolean"
+					},
+					"maxSessions": {
+						"type": "number",
+						"format": "double"
+					},
+					"serverId": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"username",
+					"allowRemote",
+					"type",
+					"allowVideoTranscoding",
+					"allowDownloads",
+					"hideInLogin",
+					"maxSessions",
+					"serverId"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"LoginResponseDTO": {
+				"properties": {
+					"user": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/UserDTO"
+							}
+						],
+						"nullable": true
+					},
+					"token": {
+						"type": "string"
+					},
+					"error": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"user"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"LoginDTO": {
 				"properties": {
 					"username": {
@@ -3953,25 +4028,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"properties": {
-										"user": {
-											"allOf": [
-												{
-													"$ref": "#/components/schemas/User"
-												}
-											],
-											"nullable": true
-										},
-										"token": {
-											"type": "string"
-										}
-									},
-									"required": [
-										"user",
-										"token"
-									],
-									"type": "object",
-									"nullable": true
+									"$ref": "#/components/schemas/LoginResponseDTO"
 								}
 							}
 						}
@@ -5890,22 +5947,6 @@
 						"in": "path",
 						"name": "id",
 						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					},
-					{
-						"in": "query",
-						"name": "type",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					},
-					{
-						"in": "query",
-						"name": "flat",
-						"required": false,
 						"schema": {
 							"type": "string"
 						}

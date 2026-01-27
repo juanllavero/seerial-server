@@ -92,6 +92,15 @@ export class SequelizeManager {
       // Enable foreign keys
       await SequelizeManager.sequelize.query("PRAGMA foreign_keys = ON;");
 
+      // Enable write-ahead logging
+      await SequelizeManager.sequelize.query("PRAGMA journal_mode = WAL;");
+
+      // Set busy timeout
+      await SequelizeManager.sequelize.query("PRAGMA busy_timeout = 5000;");
+
+      // Set synchronous mode
+      await SequelizeManager.sequelize.query("PRAGMA synchronous = NORMAL;");
+
       // Sync models to db
       await SequelizeManager.sequelize.sync({
         // alter: true,

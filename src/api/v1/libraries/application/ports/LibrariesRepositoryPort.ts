@@ -3,12 +3,7 @@ import { Library } from "../../domain/Library";
 
 export interface LibrariesRepositoryPort {
   getAll(): Promise<Library[]>;
-  getContent(
-    libraryId: string,
-    type: string,
-    userId: string,
-    flat?: string
-  ): Promise<LibraryItem[]>;
+  getContent(libraryId: string, userId: string): Promise<LibraryItem[]>;
   getById(id: string): Promise<Library | null>;
   getByAlbumId(albumId: string): Promise<Library | null>;
   getByMovieId(movieId: string): Promise<Library | null>;

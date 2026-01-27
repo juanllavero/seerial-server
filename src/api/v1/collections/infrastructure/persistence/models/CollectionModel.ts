@@ -116,6 +116,13 @@ export class CollectionModel extends Model {
   })
   albums!: AlbumModel[];
 
+  @BelongsToMany(() => LibraryCollectionModel, {
+    through: () => LibraryCollectionModel,
+    foreignKey: "collectionId",
+    otherKey: "libraryId",
+  })
+  LibraryCollection!: LibraryCollectionModel[];
+
   @BeforeDestroy
   static async beforeDestroyHook(instance: CollectionModel): Promise<void> {
     try {
