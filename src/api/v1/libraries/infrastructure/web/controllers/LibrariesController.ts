@@ -76,6 +76,8 @@ export class LibrariesController extends Controller {
       throw new ApiError(404, messages.errors.notFound.library);
     }
 
+    // TODO: get collection images before sending back the data
+
     return {
       status: "success",
       message: messages.success.fetch,

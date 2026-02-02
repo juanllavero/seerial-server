@@ -34,8 +34,9 @@ export async function expressAuthentication(
         userId: string;
       };
 
-      const user = await UserModel.findByPk(decoded.userId, {
-        include: ["libraries"],
+      const user = await UserModel.findOne({
+        where: { id: decoded.userId },
+        relations: ["libraries"],
       });
 
       if (!user) {
@@ -77,7 +78,7 @@ export async function expressAuthentication(
       const decoded = jwt.verify(token, process.env.JWT_SECRET ?? "") as {
         userId: string;
       };
-      const user = await UserModel.findByPk(decoded.userId);
+      const user = await UserModel.findOne({ where: { id: decoded.userId } });
       if (!user) {
         throw new Error(messages.errors.token.invalid);
       }
@@ -101,7 +102,7 @@ export async function expressAuthentication(
         userId: string;
         type: string;
       };
-      const user = await UserModel.findByPk(decoded.userId);
+      const user = await UserModel.findOne({ where: { id: decoded.userId } });
       if (!user || user.type !== UserType.ADMIN) {
         throw new Error(messages.errors.token.noAccess);
       }
@@ -126,7 +127,9 @@ export async function expressAuthentication(
           const secret = process.env.JWT_SECRET || "";
           if (!secret) throw new Error("Missing JWT_SECRET");
           const decoded = jwt.verify(token, secret) as { userId: string };
-          const user = await UserModel.findByPk(decoded.userId);
+          const user = await UserModel.findOne({
+            where: { id: decoded.userId },
+          });
           if (user) return user;
         } catch (e) {}
       }
@@ -145,7 +148,7 @@ export async function expressAuthentication(
       }
 
       const decoded = jwt.verify(token, secret) as { userId: string };
-      const user = await UserModel.findByPk(decoded.userId);
+      const user = await UserModel.findOne({ where: { id: decoded.userId } });
       if (!user) {
         throw new Error(messages.errors.token.invalid);
       }

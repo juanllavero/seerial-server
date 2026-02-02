@@ -4,7 +4,6 @@ import {
   notificationService,
   tmdbApiClient,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { SequelizeManager } from "@/api/v1/shared/infrastructure/persistence/SequelizeManager";
 import * as ConfigManager from "@/api/v1/shared/infrastructure/services/ConfigService";
 import cookieParser from "cookie-parser";
 import cors from "cors";
@@ -19,6 +18,7 @@ import path from "path";
 import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "../swagger.json";
 import { ServerConfigService } from "./api/v1/servers/infrastructure/services/ServerConfigService";
+import { DatabaseManager } from "./api/v1/shared/infrastructure/persistence/DatabaseManager";
 import { errorHandlerMiddleware } from "./middleware/errorHandler.middleware";
 import { requestsIDsMiddleware } from "./middleware/requestID.middleware";
 import { sanitizationMiddleware } from "./middleware/sanitization.middleware";
@@ -95,7 +95,7 @@ export let server: http.Server | https.Server;
 app.whenReady().then(async () => {
   // Initialize dependencies
   await downloaderService.downloadYoutubeDownloader();
-  await SequelizeManager.initializeDB();
+  await DatabaseManager.initializeDB();
   fileSystemService.initFolders();
   fileSystemService.loadProperties();
   await ConfigManager.loadConfig();

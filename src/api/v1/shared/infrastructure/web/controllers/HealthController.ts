@@ -56,7 +56,7 @@ export class HealthController extends Controller {
 
   private async checkDatabase(): Promise<HealthStatus> {
     try {
-      await UserModel.findOne();
+      await UserModel.findOne({});
       return "ok";
     } catch {
       return "down";

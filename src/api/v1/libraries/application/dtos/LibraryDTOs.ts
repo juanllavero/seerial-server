@@ -1,7 +1,9 @@
+import { LibraryType } from "../../infrastructure/persistence/models/LibraryModel";
+
 export interface CreateLibraryDTO {
   name: string;
   language: string;
-  type: string;
+  type: LibraryType;
   folders: string[];
   preferAudioLan?: string;
   preferSubLan?: string;
@@ -11,7 +13,7 @@ export interface CreateLibraryDTO {
 export interface UpdateLibraryDTO {
   name?: string;
   language?: string;
-  type?: string;
+  type?: LibraryType;
   order?: number;
   hidden?: boolean;
   folders?: string[];

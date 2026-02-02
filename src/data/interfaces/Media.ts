@@ -26,14 +26,20 @@ export interface FlatItem {
 export interface LibraryItem {
   id: string;
   title: string;
-  years: string;
-  coverSrc: string;
+  years?: string;
+  coverSrc?: string;
   numberOfItems: number;
 
   order: number;
   watched: boolean;
   remainingItems: number;
   analyzingFiles: boolean;
+
+  images?: {
+    poster: string | null;
+    background: string | null;
+    images: string[];
+  };
 
   type: ItemType;
 }

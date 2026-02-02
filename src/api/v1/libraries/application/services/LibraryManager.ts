@@ -1,18 +1,10 @@
-import { Album } from "@/api/v1/albums/domain/Album";
 import { Collection } from "@/api/v1/collections/domain/Collection";
-import { Movie } from "@/api/v1/movies/domain/Movie";
-import { Series } from "@/api/v1/series/domain/Series";
 import {
   librariesRepo,
   useCases,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
-import {
-  clearLibrary,
-  getCollectionItemsKey,
-} from "@/api/v1/shared/infrastructure/services/FileSearchService";
-import { MediaService } from "@/api/v1/shared/infrastructure/services/MediaService";
+import { clearLibrary } from "@/api/v1/shared/infrastructure/services/FileSearchService";
 import ApiError from "@/data/ApiError";
-import { LibraryItem } from "@/data/interfaces/Media";
 import { imageExtensions } from "@/utils/constants";
 import logger from "@/utils/logger";
 import fs from "fs";
@@ -44,117 +36,19 @@ export class LibraryManager {
     return library;
   }
 
-  /**
-   * Fetches and structures the content of a library, combining collections and individual items.
-   * This method is highly complex and involves significant data aggregation.
-   */
-  public static async getLibraryContent(
-    libraryId: string,
-    type: string,
-    userId: string,
-    flat?: boolean
-  ): Promise<LibraryItem[]> {
-    const [collections, allItems] = await Promise.all([
-      useCases.getAllCollectionsInLibrary().execute(libraryId),
-      useCases
-        .getLibraryContent()
-        .execute(libraryId, type, userId, flat ? "true" : "false"),
-    ]);
-
-    const itemIdsInCollections = new Set<string>();
-    collections.forEach((collection) => {
-      const itemsKey = getCollectionItemsKey(type);
-      const items = (collection[itemsKey] as { id: string }[]) || [];
-      items.forEach((item) => itemIdsInCollections.add(item.id));
-    });
-
-    const itemsNotInCollections = allItems.filter(
-      (item) => !itemIdsInCollections.has(item.data.id)
-    );
-
-    const unifiedContent = [];
-
-    for (const collection of collections) {
-      if (
-        (!collection.shows || collection.shows.length === 0) &&
-        (!collection.movies || collection.movies.length === 0) &&
-        (!collection.albums || collection.albums.length === 0)
-      ) {
-        continue;
-      }
-
-      const collectionImages = await this.getCollectionImages(collection, type);
-
-      unifiedContent.push({
-        type: "collection",
-        order: (collection as any).LibraryCollection?.customOrder ?? 0,
-        data: {
-          id: collection.id,
-          title: collection.title,
-          images: collectionImages,
-          musicPosterSrc:
-            collection.musicPosterSrc ??
-            (collection.albums && collection.albums.length === 1)
-              ? collection.albums[0].coverSrc ?? undefined
-              : undefined,
-          numberOfItems:
-            type === "Movies"
-              ? collection.movies.length
-              : type === "Shows" || type === "Series"
-              ? collection.shows.length
-              : type === "Music"
-              ? collection.albums.length
-              : 0,
-        },
-      });
-    }
-
-    for (const item of itemsNotInCollections) {
-      const itemType = getCollectionItemsKey(type);
-      const remainingItems =
-        getCollectionItemsKey(type) === "movies"
-          ? await MediaService.countRemainingVideos(item.data.id, userId)
-          : getCollectionItemsKey(type) === "shows"
-          ? await MediaService.countRemainingEpisodes(item.data.id, userId)
-          : 0;
-      unifiedContent.push({
-        type: getCollectionItemsKey(type),
-        order: item.order || 0,
-        data: flat
-          ? {
-              id: item.data.id,
-              year:
-                itemType === "albums"
-                  ? (item.data as Album).year
-                  : itemType === "movies"
-                  ? (item.data as Movie).year
-                  : itemType === "shows"
-                  ? (item.data as Series).year
-                  : undefined,
-              title:
-                itemType === "albums"
-                  ? (item.data as Album).title
-                  : itemType === "movies"
-                  ? (item.data as Movie).name
-                  : (item.data as Series).name,
-              posterSrc: (item.data as any).coverSrc,
-            }
-          : item.data,
-        remainingItems,
-      });
-    }
-
-    unifiedContent.sort((a, b) => a.order - b.order);
-    return unifiedContent;
-  }
-
   private static async getCollectionImages(
     collection: Collection,
     type: string
-  ) {
+  ): Promise<{
+    poster: string | null;
+    background: string | null;
+    images: string[];
+  }> {
     if (!collection) {
       return {
         images: [],
+        poster: null,
+        background: null,
       };
     }
 
