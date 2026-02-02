@@ -14,7 +14,7 @@ import {
 } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
 
-@Entity({ name: "Continue_Watching" })
+@Entity({ name: "ContinueWatching" })
 export class ContinueWatchingModel extends BaseEntity {
   @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;

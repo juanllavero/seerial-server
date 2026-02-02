@@ -7,8 +7,10 @@ import { GenericRepositoryHelper } from "@/helpers/GenericRepositoryHelper";
 import { UserType } from "@/utils/constants";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { In } from "typeorm";
 import { UsersRepositoryPort } from "../../../application/ports/UsersRepositoryPort";
 import { User } from "../../../domain/User";
+import { UserLibraryModel } from "../models/UserLibraryModel";
 import { UserModel } from "../models/UserModel";
 
 export class UsersRepositoryImpl
@@ -107,9 +109,15 @@ export class UsersRepositoryImpl
 
     if (data.libraryIds) {
       // Load the libraries and assign them to the user
-      const libraries = await LibraryModel.findByIds(data.libraryIds);
+      const libraries = await LibraryModel.findBy({ id: In(data.libraryIds) });
       const userModel = user as unknown as UserModel;
-      userModel.libraries = libraries;
+
+      for (const library of libraries) {
+        UserLibraryModel.create({
+          userId: user.id,
+          libraryId: library.id,
+        });
+      }
       await userModel.save();
     }
 

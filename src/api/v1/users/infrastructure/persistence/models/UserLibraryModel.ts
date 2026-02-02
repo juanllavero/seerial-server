@@ -18,9 +18,9 @@ export class UserLibraryModel extends BaseEntity {
 
   @ManyToOne(() => UserModel, { onDelete: "CASCADE" })
   @JoinColumn({ name: "user_id" })
-  user!: UserModel;
+  user?: UserModel;
 
   @ManyToOne(() => LibraryModel, { onDelete: "CASCADE" })
   @JoinColumn({ name: "library_id" })
-  library!: LibraryModel;
+  library?: LibraryModel;
 }

@@ -11,7 +11,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { PlayListModel } from "./PlayListModel";
 
-@Entity({ name: "PlayList_Item" })
+@Entity({ name: "PlayListItem" })
 export class PlayListItemModel extends BaseEntity {
   @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;

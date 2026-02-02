@@ -1,14 +1,13 @@
-import { SongModel } from "@/api/v1/songs/infrastructure/persistence/models/SongModel";
 import {
   BaseEntity,
   BeforeInsert,
   Column,
   Entity,
-  JoinTable,
-  ManyToMany,
+  OneToMany,
   PrimaryColumn,
 } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
+import { PlayListItemModel } from "./PlayListItemModel";
 
 @Entity({ name: "PlayList" })
 export class PlayListModel extends BaseEntity {
@@ -24,13 +23,10 @@ export class PlayListModel extends BaseEntity {
   @Column({ type: "varchar", nullable: true, default: "" })
   description?: string;
 
-  @ManyToMany(() => SongModel, (song) => song.playLists)
-  @JoinTable({
-    name: "PlayListItem",
-    joinColumn: { name: "playListId", referencedColumnName: "id" },
-    inverseJoinColumn: { name: "songId", referencedColumnName: "id" },
+  @OneToMany(() => PlayListItemModel, (item) => item.playList, {
+    cascade: true,
   })
-  songs!: SongModel[];
+  items!: PlayListItemModel[];
 
   // Lifecycle hooks
   @BeforeInsert()

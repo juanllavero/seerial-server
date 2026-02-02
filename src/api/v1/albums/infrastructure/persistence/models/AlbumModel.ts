@@ -1,5 +1,4 @@
-import { ArtistModel } from "@/api/v1/artists/infrastructure/persistence/models/ArtistModel";
-import { CollectionModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionModel";
+import { CollectionAlbumModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionAlbum";
 import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryModel";
 import { SongModel } from "@/api/v1/songs/infrastructure/persistence/models/SongModel";
 import logger from "@/utils/logger";
@@ -11,13 +10,12 @@ import {
   BeforeRemove,
   Column,
   Entity,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryColumn,
 } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
+import { AlbumArtistModel } from "./AlbumArtistModel";
 
 const albumLogger = logger.child({ category: "Album" });
 
@@ -53,21 +51,11 @@ export class AlbumModel extends BaseEntity {
   @ManyToOne(() => LibraryModel, { onDelete: "CASCADE" })
   library!: LibraryModel;
 
-  @ManyToMany(() => CollectionModel, (collection) => collection.albums)
-  @JoinTable({
-    name: "CollectionAlbum",
-    joinColumn: { name: "albumId", referencedColumnName: "id" },
-    inverseJoinColumn: { name: "collectionId", referencedColumnName: "id" },
-  })
-  collections!: CollectionModel[];
+  @OneToMany(() => CollectionAlbumModel, (ca) => ca.album, { cascade: true })
+  collectionAlbums!: CollectionAlbumModel[];
 
-  @ManyToMany(() => ArtistModel, (artist) => artist.albums)
-  @JoinTable({
-    name: "Album_Artist",
-    joinColumn: { name: "albumId", referencedColumnName: "id" },
-    inverseJoinColumn: { name: "artistId", referencedColumnName: "id" },
-  })
-  artists!: ArtistModel[];
+  @OneToMany(() => AlbumArtistModel, (aa) => aa.album)
+  albumArtists!: AlbumArtistModel[];
 
   @OneToMany(() => SongModel, (song) => song.album)
   songs!: SongModel[];

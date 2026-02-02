@@ -1,19 +1,17 @@
 import { AlbumModel } from "@/api/v1/albums/infrastructure/persistence/models/AlbumModel";
-import { CollectionModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionModel";
 import { MovieModel } from "@/api/v1/movies/infrastructure/persistence/models/MovieModel";
 import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/SeriesModel";
-import { UserModel } from "@/api/v1/users/infrastructure/persistence/models/UserModel";
+import { UserLibraryModel } from "@/api/v1/users/infrastructure/persistence/models/UserLibraryModel";
 import {
   BaseEntity,
   BeforeInsert,
   Column,
   Entity,
-  JoinTable,
-  ManyToMany,
   OneToMany,
   PrimaryColumn,
 } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
+import { LibraryCollectionModel } from "./LibraryCollectionModel";
 
 export type LibraryType = "Shows" | "Movies" | "Music";
 
@@ -92,27 +90,15 @@ export class LibraryModel extends BaseEntity {
   })
   albums!: AlbumModel[];
 
-  @ManyToMany(() => CollectionModel, (collection) => collection.libraries, {
+  @OneToMany(() => LibraryCollectionModel, (lc) => lc.library, {
     cascade: true,
-    onDelete: "CASCADE",
   })
-  @JoinTable({
-    name: "LibraryCollection",
-    joinColumn: { name: "libraryId", referencedColumnName: "id" },
-    inverseJoinColumn: { name: "collectionId", referencedColumnName: "id" },
-  })
-  collections!: CollectionModel[];
+  libraryCollections!: LibraryCollectionModel[];
 
-  @ManyToMany(() => UserModel, (user) => user.libraries, {
+  @OneToMany(() => UserLibraryModel, (userLibrary) => userLibrary.library, {
     cascade: true,
-    onDelete: "CASCADE",
   })
-  @JoinTable({
-    name: "UserLibrary",
-    joinColumn: { name: "libraryId", referencedColumnName: "id" },
-    inverseJoinColumn: { name: "userId", referencedColumnName: "id" },
-  })
-  users!: UserModel[];
+  userLibraries!: UserLibraryModel[];
 
   // Lifecycle hooks
   @BeforeInsert()

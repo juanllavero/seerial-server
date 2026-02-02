@@ -11,7 +11,7 @@ import {
 } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
 
-@Entity({ name: "My_List" })
+@Entity({ name: "MyList" })
 export class MyListModel extends BaseEntity {
   @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
@@ -20,7 +20,7 @@ export class MyListModel extends BaseEntity {
   userId!: string;
 
   @Column({
-    type: "timestamp",
+    type: "datetime",
     nullable: false,
     name: "added_at",
     default: () => "CURRENT_TIMESTAMP",

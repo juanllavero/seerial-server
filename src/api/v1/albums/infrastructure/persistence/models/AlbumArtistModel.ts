@@ -11,7 +11,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { AlbumModel } from "./AlbumModel";
 
-@Entity({ name: "Album_Artist" })
+@Entity({ name: "AlbumArtist" })
 export class AlbumArtistModel extends BaseEntity {
   @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;

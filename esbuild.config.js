@@ -10,7 +10,6 @@ build({
   target: "node18",
   external: [
     "electron",
-    "sqlite3",
     "sharp",
     "node-vibrant",
     "ffmpeg-static",
@@ -41,5 +40,7 @@ build({
     "multer",
     "reflect-metadata",
     "uuid",
+    "axios",
+    "better-sqlite3",
   ],
 }).catch(() => process.exit(1));

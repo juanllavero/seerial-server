@@ -1,16 +1,15 @@
-import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryModel";
 import { ServerModel } from "@/api/v1/servers/infrastructure/persistence/models/ServerModel";
 import {
   BaseEntity,
   BeforeInsert,
   Column,
   Entity,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryColumn,
 } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
+import { UserLibraryModel } from "./UserLibraryModel";
 
 @Entity({ name: "User" })
 export class UserModel extends BaseEntity {
@@ -78,13 +77,10 @@ export class UserModel extends BaseEntity {
   @ManyToOne(() => ServerModel, { onDelete: "CASCADE" })
   server!: ServerModel;
 
-  @ManyToMany(() => LibraryModel, (library) => library.users)
-  @JoinTable({
-    name: "UserLibrary",
-    joinColumn: { name: "userId", referencedColumnName: "id" },
-    inverseJoinColumn: { name: "libraryId", referencedColumnName: "id" },
+  @OneToMany(() => UserLibraryModel, (userLibrary) => userLibrary.user, {
+    cascade: true,
   })
-  libraries!: LibraryModel[];
+  userLibraries!: UserLibraryModel[];
 
   // Lifecycle hooks
   @BeforeInsert()

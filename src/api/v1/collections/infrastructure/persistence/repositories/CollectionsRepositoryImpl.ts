@@ -2,10 +2,7 @@ import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
 import { LibraryCollectionModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryCollectionModel";
 import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryModel";
 import { DatabaseManager } from "@/api/v1/shared/infrastructure/persistence/DatabaseManager";
-import {
-  getCollectionItemsKey,
-  getItemModel,
-} from "@/api/v1/shared/infrastructure/services/FileSearchService";
+import { getCollectionItemsKey } from "@/api/v1/shared/infrastructure/services/FileSearchService";
 import { GenericRepositoryHelper } from "@/helpers/GenericRepositoryHelper";
 import { ReorderItemDTO } from "../../../application/dtos/CollectionDTOs";
 import { CollectionsRepositoryPort } from "../../../application/ports/CollectionRepositoryPort";
@@ -41,7 +38,9 @@ export class CollectionsRepositoryImpl
     });
 
     return (
-      collections?.collections.map((d) => d as unknown as Collection) || []
+      collections?.libraryCollections.map(
+        (c) => c.collection as unknown as Collection
+      ) || []
     );
   }
 
@@ -56,14 +55,15 @@ export class CollectionsRepositoryImpl
     const validatedId = this.validateId(libraryId, "Library ID");
 
     const collectionItemsKey = getCollectionItemsKey(type);
-    const ItemModel = getItemModel(type);
 
     const data = await LibraryModel.findOne({
       where: { id: validatedId },
       relations: ["collections", `collections.${collectionItemsKey}` as any],
     });
 
-    return (data?.collections || []).map((d) => d as unknown as Collection);
+    return (data?.libraryCollections || []).map(
+      (c) => c.collection as unknown as Collection
+    );
   }
 
   async add(collection: Partial<Collection>): Promise<Collection | null> {

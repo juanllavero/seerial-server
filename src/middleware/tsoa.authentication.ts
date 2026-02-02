@@ -46,7 +46,9 @@ export async function expressAuthentication(
       // Check library access if route involves a library
       const libraryId = request.params?.libraryId || request.body?.libraryId;
       if (user.type !== UserType.ADMIN && libraryId) {
-        const hasAccess = user.libraries?.some((lib) => lib.id === libraryId);
+        const hasAccess = user.userLibraries?.some(
+          (lib) => lib.library && lib.library.id === libraryId
+        );
         if (!hasAccess) {
           throw new Error(messages.errors.token.noAccess);
         }

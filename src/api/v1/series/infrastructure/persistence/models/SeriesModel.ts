@@ -1,4 +1,4 @@
-import { CollectionModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionModel";
+import { CollectionSeriesModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionSeries";
 import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryModel";
 import { SeasonModel } from "@/api/v1/seasons/infrastructure/persistence/models/SeasonModel";
 import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
@@ -11,8 +11,6 @@ import {
   BeforeRemove,
   Column,
   Entity,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryColumn,
@@ -187,13 +185,8 @@ export class SeriesModel extends BaseEntity {
   @ManyToOne(() => LibraryModel, { onDelete: "CASCADE" })
   library!: LibraryModel;
 
-  @ManyToMany(() => CollectionModel, (collection) => collection.shows)
-  @JoinTable({
-    name: "CollectionSeries",
-    joinColumn: { name: "seriesId", referencedColumnName: "id" },
-    inverseJoinColumn: { name: "collectionId", referencedColumnName: "id" },
-  })
-  collections!: CollectionModel[];
+  @OneToMany(() => CollectionSeriesModel, (cs) => cs.series, { cascade: true })
+  collectionSeries!: CollectionSeriesModel[];
 
   @OneToMany(() => SeasonModel, (season) => season.series)
   seasons!: SeasonModel[];

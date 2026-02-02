@@ -1,4 +1,4 @@
-import { CollectionModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionModel";
+import { CollectionMovieModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionMovie";
 import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryModel";
 import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/VideoModel";
 import { WatchListModel } from "@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel";
@@ -8,8 +8,6 @@ import {
   BeforeInsert,
   Column,
   Entity,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
   OneToMany,
   PrimaryColumn,
@@ -230,13 +228,8 @@ export class MovieModel extends BaseEntity {
   @ManyToOne(() => LibraryModel, { onDelete: "CASCADE" })
   library!: LibraryModel;
 
-  @ManyToMany(() => CollectionModel, (collection) => collection.movies)
-  @JoinTable({
-    name: "CollectionMovie",
-    joinColumn: { name: "movieId", referencedColumnName: "id" },
-    inverseJoinColumn: { name: "collectionId", referencedColumnName: "id" },
-  })
-  collections!: CollectionModel[];
+  @OneToMany(() => CollectionMovieModel, (cm) => cm.movie, { cascade: true })
+  collectionMovies!: CollectionMovieModel[];
 
   @OneToMany(() => VideoModel, (video) => video.movie)
   videos!: VideoModel[];

@@ -71,13 +71,15 @@ export class LibrariesRepositoryImpl
     const items: LibraryItem[] = [];
 
     // Get collections first
-    const collections = library.collections || [];
+    const collections = library.libraryCollections || [];
     for (const collection of collections) {
       const years = this.calculateYearsForCollection(collection);
       const numberOfItems =
-        (collection.movies?.length || 0) +
-        (collection.shows?.length || 0) +
-        (collection.albums?.length || 0);
+        (collection.collection.collectionMovies?.length || 0) +
+        (collection.collection.collectionSeries?.length || 0) +
+        (collection.collection.collectionAlbums?.length || 0);
+
+      const collectionData = collection.collection;
 
       // Find the junction table entry to get customOrder
       const libraryCollectionRepo = DatabaseManager.getRepository(
@@ -86,15 +88,16 @@ export class LibrariesRepositoryImpl
       const libraryCollection = await libraryCollectionRepo.findOne({
         where: {
           libraryId: libraryId,
-          collectionId: collection.id,
+          collectionId: collectionData.id,
         },
       });
 
       items.push({
-        id: collection.id,
-        title: collection.title,
+        id: collectionData.id,
+        title: collectionData.title,
         years: years,
-        coverSrc: collection.posterSrc || collection.musicPosterSrc || "",
+        coverSrc:
+          collectionData.posterSrc || collectionData.musicPosterSrc || "",
         numberOfItems,
         order: libraryCollection?.customOrder || 0,
         watched: false, // Collections don't have watch state
@@ -106,13 +109,19 @@ export class LibrariesRepositoryImpl
 
     // Get items that don't belong to any collection
     const collectionMovieIds = new Set(
-      collections.flatMap((c) => c.movies?.map((m) => m.id) || [])
+      collections.flatMap(
+        (c) => c.collection.collectionMovies?.map((m) => m.movie.id) || []
+      )
     );
     const collectionSeriesIds = new Set(
-      collections.flatMap((c) => c.shows?.map((s) => s.id) || [])
+      collections.flatMap(
+        (c) => c.collection.collectionSeries?.map((s) => s.series.id) || []
+      )
     );
     const collectionAlbumIds = new Set(
-      collections.flatMap((c) => c.albums?.map((a) => a.id) || [])
+      collections.flatMap(
+        (c) => c.collection.collectionAlbums?.map((a) => a.album.id) || []
+      )
     );
 
     if (type === LibraryTypes.MOVIES) {

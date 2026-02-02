@@ -1,7 +1,4 @@
-import { AlbumModel } from "@/api/v1/albums/infrastructure/persistence/models/AlbumModel";
-import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryModel";
-import { MovieModel } from "@/api/v1/movies/infrastructure/persistence/models/MovieModel";
-import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/SeriesModel";
+import { LibraryCollectionModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryCollectionModel";
 import logger from "@/utils/logger";
 import fs from "fs-extra";
 import path from "path";
@@ -11,11 +8,13 @@ import {
   BeforeRemove,
   Column,
   Entity,
-  JoinTable,
-  ManyToMany,
+  OneToMany,
   PrimaryColumn,
 } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
+import { CollectionAlbumModel } from "./CollectionAlbum";
+import { CollectionMovieModel } from "./CollectionMovie";
+import { CollectionSeriesModel } from "./CollectionSeries";
 
 const collectionLogger = logger.child({ category: "Collection" });
 
@@ -73,37 +72,25 @@ export class CollectionModel extends BaseEntity {
   })
   backgroundsUrls!: string[];
 
-  @ManyToMany(() => LibraryModel, (library) => library.collections)
-  @JoinTable({
-    name: "LibraryCollection",
-    joinColumn: { name: "collectionId", referencedColumnName: "id" },
-    inverseJoinColumn: { name: "libraryId", referencedColumnName: "id" },
+  @OneToMany(() => LibraryCollectionModel, (lc) => lc.collection, {
+    cascade: true,
   })
-  libraries!: LibraryModel[];
+  libraryCollections!: LibraryCollectionModel[];
 
-  @ManyToMany(() => MovieModel, (movie) => movie.collections)
-  @JoinTable({
-    name: "CollectionMovie",
-    joinColumn: { name: "collectionId", referencedColumnName: "id" },
-    inverseJoinColumn: { name: "movieId", referencedColumnName: "id" },
+  @OneToMany(() => CollectionMovieModel, (cm) => cm.collection, {
+    cascade: true,
   })
-  movies!: MovieModel[];
+  collectionMovies!: CollectionMovieModel[];
 
-  @ManyToMany(() => SeriesModel, (series) => series.collections)
-  @JoinTable({
-    name: "CollectionSeries",
-    joinColumn: { name: "collectionId", referencedColumnName: "id" },
-    inverseJoinColumn: { name: "seriesId", referencedColumnName: "id" },
+  @OneToMany(() => CollectionSeriesModel, (cs) => cs.collection, {
+    cascade: true,
   })
-  shows!: SeriesModel[];
+  collectionSeries!: CollectionSeriesModel[];
 
-  @ManyToMany(() => AlbumModel, (album) => album.collections)
-  @JoinTable({
-    name: "CollectionAlbum",
-    joinColumn: { name: "collectionId", referencedColumnName: "id" },
-    inverseJoinColumn: { name: "albumId", referencedColumnName: "id" },
+  @OneToMany(() => CollectionAlbumModel, (ca) => ca.collection, {
+    cascade: true,
   })
-  albums!: AlbumModel[];
+  collectionAlbums!: CollectionAlbumModel[];
 
   // Lifecycle hooks
   @BeforeInsert()

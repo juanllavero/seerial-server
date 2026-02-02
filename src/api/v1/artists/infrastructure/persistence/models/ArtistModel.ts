@@ -1,10 +1,10 @@
-import { AlbumModel } from "@/api/v1/albums/infrastructure/persistence/models/AlbumModel";
+import { AlbumArtistModel } from "@/api/v1/albums/infrastructure/persistence/models/AlbumArtistModel";
 import {
   BaseEntity,
   BeforeInsert,
   Column,
   Entity,
-  ManyToMany,
+  OneToMany,
   PrimaryColumn,
 } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
@@ -17,8 +17,8 @@ export class ArtistModel extends BaseEntity {
   @Column({ type: "varchar", nullable: false })
   name!: string;
 
-  @ManyToMany(() => AlbumModel, (album) => album.artists)
-  albums!: AlbumModel[];
+  @OneToMany(() => AlbumArtistModel, (aa) => aa.artist)
+  albumArtists!: AlbumArtistModel[];
 
   // Lifecycle hooks
   @BeforeInsert()

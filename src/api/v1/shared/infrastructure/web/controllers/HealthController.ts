@@ -1,4 +1,4 @@
-import { UserModel } from "@/api/v1/users/infrastructure/persistence/models/UserModel";
+import { ServerModel } from "@/api/v1/servers/infrastructure/persistence/models/ServerModel";
 import { Controller, Get, Route, Tags } from "tsoa";
 import { fileSystemService, tmdbApiClient } from "../../adapters/di/container";
 
@@ -56,7 +56,7 @@ export class HealthController extends Controller {
 
   private async checkDatabase(): Promise<HealthStatus> {
     try {
-      await UserModel.findOne({});
+      await ServerModel.find({ take: 1 });
       return "ok";
     } catch {
       return "down";

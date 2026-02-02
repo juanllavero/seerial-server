@@ -29,7 +29,7 @@ export class ServerConfigService {
     let config: ServerModel | null = null;
 
     try {
-      config = await ServerModel.findOne({});
+      [config] = await ServerModel.find({ take: 1 });
       if (!config) {
         const hostname = os.hostname(); // Get computer hostname
         config = await ServerModel.create({

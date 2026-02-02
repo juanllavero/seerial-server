@@ -9,7 +9,7 @@ import {
 } from "typeorm";
 import { CollectionModel } from "./CollectionModel";
 
-@Entity({ name: "Collection_Movie" })
+@Entity({ name: "CollectionMovie" })
 export class CollectionMovieModel extends BaseEntity {
   @PrimaryColumn({ type: "varchar", nullable: false, name: "collection_id" })
   collectionId!: string;

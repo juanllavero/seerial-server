@@ -1,14 +1,13 @@
 import { AlbumModel } from "@/api/v1/albums/infrastructure/persistence/models/AlbumModel";
-import { PlayListModel } from "@/api/v1/playlists/infrastructure/persistence/models/PlayListModel";
+import { PlayListItemModel } from "@/api/v1/playlists/infrastructure/persistence/models/PlayListItemModel";
 import {
   BaseEntity,
   BeforeInsert,
   Column,
   Entity,
   JoinColumn,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
+  OneToMany,
   PrimaryColumn,
 } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
@@ -57,13 +56,8 @@ export class SongModel extends BaseEntity {
   @JoinColumn({ name: "album_id" })
   album!: AlbumModel;
 
-  @ManyToMany(() => PlayListModel, (playList) => playList.songs)
-  @JoinTable({
-    name: "PlayListItem",
-    joinColumn: { name: "songId", referencedColumnName: "id" },
-    inverseJoinColumn: { name: "playListId", referencedColumnName: "id" },
-  })
-  playLists!: PlayListModel[];
+  @OneToMany(() => PlayListItemModel, (item) => item.song)
+  playListItems!: PlayListItemModel[];
 
   // Lifecycle hooks
   @BeforeInsert()
@@ -73,4 +67,3 @@ export class SongModel extends BaseEntity {
     }
   }
 }
-[];
