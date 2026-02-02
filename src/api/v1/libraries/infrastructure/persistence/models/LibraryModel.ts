@@ -2,149 +2,154 @@ import { AlbumModel } from "@/api/v1/albums/infrastructure/persistence/models/Al
 import { CollectionModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionModel";
 import { MovieModel } from "@/api/v1/movies/infrastructure/persistence/models/MovieModel";
 import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/SeriesModel";
-import { UserLibraryModel } from "@/api/v1/users/infrastructure/persistence/models/UserLibraryModel";
 import { UserModel } from "@/api/v1/users/infrastructure/persistence/models/UserModel";
 import {
-  BelongsToMany,
+  BaseEntity,
+  BeforeInsert,
   Column,
-  DataType,
-  HasMany,
-  IsIn,
-  Model,
-  PrimaryKey,
-  Table,
-} from "sequelize-typescript";
-import { LibraryCollectionModel } from "./LibraryCollectionModel";
+  Entity,
+  JoinTable,
+  ManyToMany,
+  OneToMany,
+  PrimaryColumn,
+} from "typeorm";
+import { v4 as uuidv4 } from "uuid";
 
-@Table({ tableName: "Library", timestamps: false })
-export class LibraryModel extends Model {
-  @PrimaryKey
-  @Column({
-    type: DataType.STRING,
-    defaultValue: () => require("uuid").v4().split("-")[0],
-    allowNull: false,
-  })
+export type LibraryType = "Shows" | "Movies" | "Music";
+
+@Entity({ name: "Library" })
+export class LibraryModel extends BaseEntity {
+  @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @Column({ type: DataType.STRING, allowNull: false })
+  @Column({ type: "varchar", nullable: false })
   name!: string;
 
-  @Column({ type: DataType.STRING, allowNull: false })
+  @Column({ type: "varchar", nullable: false })
   language!: string;
 
-  @IsIn([["Shows", "Movies", "Music"]])
-  @Column({ type: DataType.STRING, allowNull: false })
-  type!: string;
+  @Column({ type: "varchar", nullable: false })
+  type!: LibraryType;
 
-  @Column({ type: DataType.INTEGER, allowNull: false, defaultValue: 0 })
+  @Column({ type: "integer", nullable: false, default: 0 })
   order!: number;
 
-  @Column({ type: DataType.BOOLEAN, allowNull: false, defaultValue: false })
+  @Column({ type: "boolean", nullable: false, default: false })
   hidden!: boolean;
 
-  @Column({
-    type: DataType.JSON,
-    allowNull: false,
-    defaultValue: [],
-    field: "folders",
-  })
+  @Column({ type: "simple-json", nullable: false, default: "[]" })
   folders!: string[];
 
-  @Column({ type: DataType.STRING, allowNull: true, field: "prefer_audio_lan" })
+  @Column({ type: "varchar", nullable: true, name: "prefer_audio_lan" })
   preferAudioLan?: string;
 
-  @Column({ type: DataType.STRING, allowNull: true, field: "prefer_sub_lan" })
+  @Column({ type: "varchar", nullable: true, name: "prefer_sub_lan" })
   preferSubLan?: string;
 
-  @Column({ type: DataType.STRING, allowNull: true, field: "subs_mode" })
+  @Column({ type: "varchar", nullable: true, name: "subs_mode" })
   subsMode?: string;
 
   @Column({
-    type: DataType.JSON,
-    allowNull: false,
-    defaultValue: {},
-    field: "analyzed_files",
+    type: "simple-json",
+    nullable: false,
+    default: "{}",
+    name: "analyzed_files",
   })
   analyzedFiles!: Record<string, string>;
 
   @Column({
-    type: DataType.JSON,
-    allowNull: false,
-    defaultValue: {},
-    field: "analyzed_folders",
+    type: "simple-json",
+    nullable: false,
+    default: "{}",
+    name: "analyzed_folders",
   })
   analyzedFolders!: Record<string, string>;
 
+  @Column({
+    type: "varchar",
+    nullable: false,
+    name: "background_src",
+    default: "",
+  })
+  backgroundSrc!: string;
+
+  // Relationships
+  @OneToMany(() => SeriesModel, (series) => series.library, {
+    cascade: true,
+    onDelete: "CASCADE",
+  })
+  series!: SeriesModel[];
+
+  @OneToMany(() => MovieModel, (movie) => movie.library, {
+    cascade: true,
+    onDelete: "CASCADE",
+  })
+  movies!: MovieModel[];
+
+  @OneToMany(() => AlbumModel, (album) => album.library, {
+    cascade: true,
+    onDelete: "CASCADE",
+  })
+  albums!: AlbumModel[];
+
+  @ManyToMany(() => CollectionModel, (collection) => collection.libraries, {
+    cascade: true,
+    onDelete: "CASCADE",
+  })
+  @JoinTable({
+    name: "LibraryCollection",
+    joinColumn: { name: "libraryId", referencedColumnName: "id" },
+    inverseJoinColumn: { name: "collectionId", referencedColumnName: "id" },
+  })
+  collections!: CollectionModel[];
+
+  @ManyToMany(() => UserModel, (user) => user.libraries, {
+    cascade: true,
+    onDelete: "CASCADE",
+  })
+  @JoinTable({
+    name: "UserLibrary",
+    joinColumn: { name: "libraryId", referencedColumnName: "id" },
+    inverseJoinColumn: { name: "userId", referencedColumnName: "id" },
+  })
+  users!: UserModel[];
+
+  // Lifecycle hooks
+  @BeforeInsert()
+  generateId() {
+    if (!this.id) {
+      this.id = uuidv4().split("-")[0];
+    }
+  }
+
   // Helper methods to add/remove analyzedFiles
   async addAnalyzedFile(filePath: string, videoId: string): Promise<void> {
-    const analyzedFiles = { ...this.analyzedFiles }; // Make a copy
-    analyzedFiles[filePath] = videoId;
-    this.analyzedFiles = analyzedFiles;
-
-    if (this.changed("analyzedFiles")) {
-      await this.save();
-    }
+    this.analyzedFiles = { ...this.analyzedFiles, [filePath]: videoId };
+    await this.save();
   }
 
   async removeAnalyzedFile(filePath: string): Promise<void> {
     const analyzedFiles = { ...this.analyzedFiles };
     delete analyzedFiles[filePath];
     this.analyzedFiles = analyzedFiles;
-
-    if (this.changed("analyzedFiles")) {
-      await this.save();
-    }
+    await this.save();
   }
 
   // Helper methods to add/remove analyzedFolders
   async addAnalyzedFolder(folderPath: string, videoId: string): Promise<void> {
-    const analyzedFolders = { ...this.analyzedFolders };
-    analyzedFolders[folderPath] = videoId;
-    this.analyzedFolders = analyzedFolders;
-
-    if (this.changed("analyzedFolders")) {
-      await this.save();
-    }
+    this.analyzedFolders = { ...this.analyzedFolders, [folderPath]: videoId };
+    await this.save();
   }
 
   async removeAnalyzedFolder(folderPath: string): Promise<void> {
     const analyzedFolders = { ...this.analyzedFolders };
     delete analyzedFolders[folderPath];
     this.analyzedFolders = analyzedFolders;
-
-    if (this.changed("analyzedFolders")) {
-      await this.save();
-    }
+    await this.save();
   }
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: "background_src",
-    defaultValue: "",
-  })
-  backgroundSrc!: string;
-
-  @HasMany(() => SeriesModel, { onDelete: "CASCADE", hooks: true })
-  series!: SeriesModel[];
-
-  @HasMany(() => MovieModel, { onDelete: "CASCADE", hooks: true })
-  movies!: MovieModel[];
-
-  @HasMany(() => AlbumModel, { onDelete: "CASCADE", hooks: true })
-  albums!: AlbumModel[];
-
-  @BelongsToMany(() => CollectionModel, {
-    through: () => LibraryCollectionModel,
-    onDelete: "CASCADE",
-    hooks: true,
-  })
-  collections!: CollectionModel[];
-
-  @BelongsToMany(() => UserModel, {
-    through: () => UserLibraryModel,
-    onDelete: "CASCADE",
-    hooks: true,
-  })
-  users!: UserModel[];
+  // Validation helper
+  validateType(): boolean {
+    return ["Shows", "Movies", "Music"].includes(this.type);
+  }
 }
