@@ -1,338 +1,257 @@
 import { CollectionModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionModel";
-import { CollectionMovieModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionMovie";
 import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryModel";
 import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/VideoModel";
 import { WatchListModel } from "@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel";
 import { CastData } from "@/data/interfaces/Media";
 import {
-  BelongsTo,
-  BelongsToMany,
+  BaseEntity,
+  BeforeInsert,
   Column,
-  DataType,
-  ForeignKey,
-  HasMany,
-  Model,
-  PrimaryKey,
-  Table,
-} from "sequelize-typescript";
+  Entity,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+  PrimaryColumn,
+} from "typeorm";
+import { v4 as uuidv4 } from "uuid";
 
-@Table({ tableName: "Movie", timestamps: false })
-export class MovieModel extends Model {
-  @PrimaryKey
-  @Column({
-    type: DataType.STRING,
-    defaultValue: () => require("uuid").v4().split("-")[0],
-    allowNull: false,
-  })
+@Entity({ name: "Movie" })
+export class MovieModel extends BaseEntity {
+  @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @ForeignKey(() => LibraryModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    onDelete: "CASCADE",
-    field: "library_id",
-  })
+  @Column({ type: "varchar", nullable: false, name: "library_id" })
   libraryId!: string;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: "imdb_id",
-    defaultValue: "",
-  })
+  @Column({ type: "varchar", nullable: false, default: "", name: "imdb_id" })
   imdbId!: string;
 
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    field: "themdb_id",
-    defaultValue: 0,
-  })
+  @Column({ type: "integer", nullable: false, default: 0, name: "themdb_id" })
   themdbId!: number;
 
-  @Column({
-    type: DataType.FLOAT,
-    allowNull: false,
-    field: "imdb_score",
-    defaultValue: 0,
-  })
+  @Column({ type: "float", nullable: false, default: 0, name: "imdb_score" })
   imdbScore!: number;
 
-  @Column({
-    type: DataType.FLOAT,
-    allowNull: false,
-    defaultValue: 0,
-  })
+  @Column({ type: "float", nullable: false, default: 0 })
   score!: number;
 
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    defaultValue: 0,
-  })
+  @Column({ type: "integer", nullable: false, default: 0 })
   order!: number;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    defaultValue: "",
-  })
+  @Column({ type: "varchar", nullable: false, default: "" })
   name!: string;
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    field: "name_lock",
-    defaultValue: false,
+    type: "boolean",
+    nullable: false,
+    default: false,
+    name: "name_lock",
   })
   nameLock!: boolean;
 
-  @Column({
-    type: DataType.TEXT,
-    allowNull: false,
-    defaultValue: "",
-  })
+  @Column({ type: "text", nullable: false, default: "" })
   overview!: string;
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    field: "overview_lock",
-    defaultValue: false,
+    type: "boolean",
+    nullable: false,
+    default: false,
+    name: "overview_lock",
   })
   overviewLock!: boolean;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    defaultValue: "",
-  })
+  @Column({ type: "varchar", nullable: false, default: "" })
   year!: string;
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    field: "year_lock",
-    defaultValue: false,
+    type: "boolean",
+    nullable: false,
+    default: false,
+    name: "year_lock",
   })
   yearLock!: boolean;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    defaultValue: "",
-  })
+  @Column({ type: "varchar", nullable: false, default: "", name: "tagline" })
   tagline!: string;
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    field: "tagline_lock",
-    defaultValue: false,
+    type: "boolean",
+    nullable: false,
+    default: false,
+    name: "tagline_lock",
   })
   taglineLock!: boolean;
 
-  @Column({
-    type: DataType.JSON,
-    allowNull: false,
-    defaultValue: [],
-  })
+  @Column({ type: "simple-json", nullable: false, default: "[]" })
   genres!: string[];
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    field: "genres_lock",
-    defaultValue: false,
+    type: "boolean",
+    nullable: false,
+    default: false,
+    name: "genres_lock",
   })
   genresLock!: boolean;
 
   @Column({
-    type: DataType.JSON,
-    allowNull: false,
-    field: "production_studios",
-    defaultValue: [],
+    type: "simple-json",
+    nullable: false,
+    default: "[]",
+    name: "production_studios",
   })
   productionStudios!: string[];
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    field: "production_studios_lock",
-    defaultValue: false,
+    type: "boolean",
+    nullable: false,
+    default: false,
+    name: "production_studios_lock",
   })
   productionStudiosLock!: boolean;
 
   @Column({
-    type: DataType.JSON,
-    allowNull: false,
-    field: "directed_by",
-    defaultValue: [],
+    type: "simple-json",
+    nullable: false,
+    default: "[]",
+    name: "directed_by",
   })
   directedBy!: string[];
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    field: "directed_by_lock",
-    defaultValue: false,
+    type: "boolean",
+    nullable: false,
+    default: false,
+    name: "directed_by_lock",
   })
   directedByLock!: boolean;
 
   @Column({
-    type: DataType.JSON,
-    allowNull: false,
-    field: "written_by",
-    defaultValue: [],
+    type: "simple-json",
+    nullable: false,
+    default: "[]",
+    name: "written_by",
   })
   writtenBy!: string[];
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    field: "written_by_lock",
-    defaultValue: false,
+    type: "boolean",
+    nullable: false,
+    default: false,
+    name: "written_by_lock",
   })
   writtenByLock!: boolean;
 
-  @Column({
-    type: DataType.JSON,
-    allowNull: false,
-    defaultValue: [],
-  })
+  @Column({ type: "simple-json", nullable: false, default: "[]" })
   creator!: string[];
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    field: "creator_lock",
-    defaultValue: false,
+    type: "boolean",
+    nullable: false,
+    default: false,
+    name: "creator_lock",
   })
   creatorLock!: boolean;
 
   @Column({
-    type: DataType.JSON,
-    allowNull: false,
-    field: "music_composer",
-    defaultValue: [],
+    type: "simple-json",
+    nullable: false,
+    default: "[]",
+    name: "music_composer",
   })
   musicComposer!: string[];
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    field: "music_composer_lock",
-    defaultValue: false,
+    type: "boolean",
+    nullable: false,
+    default: false,
+    name: "music_composer_lock",
   })
   musicComposerLock!: boolean;
 
-  @Column({
-    type: DataType.JSON,
-    allowNull: false,
-    defaultValue: [],
-  })
+  @Column({ type: "simple-json", nullable: false, default: "[]" })
   cast!: CastData[];
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    field: "logo_src",
-    defaultValue: "",
-  })
+  @Column({ type: "varchar", nullable: true, default: "", name: "logo_src" })
   logoSrc!: string;
 
   @Column({
-    type: DataType.JSON,
-    allowNull: false,
-    field: "logos_urls",
-    defaultValue: [],
+    type: "simple-json",
+    nullable: false,
+    default: "[]",
+    name: "logos_urls",
   })
   logosUrls!: string[];
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    field: "cover_src",
-    defaultValue: "",
-  })
+  @Column({ type: "varchar", nullable: true, default: "", name: "cover_src" })
   coverSrc!: string;
 
   @Column({
-    type: DataType.JSON,
-    allowNull: false,
-    field: "covers_urls",
-    defaultValue: [],
+    type: "simple-json",
+    nullable: false,
+    default: "[]",
+    name: "covers_urls",
   })
   coversUrls!: string[];
 
   @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: "background_src",
-    defaultValue: "",
+    type: "varchar",
+    nullable: false,
+    default: "",
+    name: "background_src",
   })
   backgroundSrc!: string;
 
   @Column({
-    type: DataType.JSON,
-    allowNull: false,
-    field: "background_urls",
-    defaultValue: [],
+    type: "simple-json",
+    nullable: false,
+    default: "[]",
+    name: "background_urls",
   })
   backgroundsUrls!: string[];
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: "video_src",
-    defaultValue: "",
-  })
+  @Column({ type: "varchar", nullable: false, default: "", name: "video_src" })
   videoSrc!: string;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: "music_src",
-    defaultValue: "",
-  })
+  @Column({ type: "varchar", nullable: false, default: "", name: "music_src" })
   musicSrc!: string;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    defaultValue: "",
-  })
+  @Column({ type: "varchar", nullable: false, default: "" })
   folder!: string;
 
   @Column({
-    type: DataType.BOOLEAN,
-    defaultValue: false,
-    allowNull: false,
-    field: "analyzing_files",
+    type: "boolean",
+    nullable: false,
+    default: false,
+    name: "analyzing_files",
   })
   analyzingFiles!: boolean;
 
-  @BelongsTo(() => LibraryModel, { onDelete: "CASCADE" })
+  @ManyToOne(() => LibraryModel, { onDelete: "CASCADE" })
   library!: LibraryModel;
 
-  @BelongsToMany(() => CollectionModel, {
-    through: () => CollectionMovieModel,
-    onDelete: "CASCADE",
-    hooks: true,
+  @ManyToMany(() => CollectionModel, (collection) => collection.movies)
+  @JoinTable({
+    name: "CollectionMovie",
+    joinColumn: { name: "movieId", referencedColumnName: "id" },
+    inverseJoinColumn: { name: "collectionId", referencedColumnName: "id" },
   })
   collections!: CollectionModel[];
 
-  @HasMany(() => VideoModel, { foreignKey: "movieId", as: "videos" })
+  @OneToMany(() => VideoModel, (video) => video.movie)
   videos!: VideoModel[];
 
-  @HasMany(() => VideoModel, { foreignKey: "extraId", as: "extras" })
+  @OneToMany(() => VideoModel, (video) => video.extra)
   extras!: VideoModel[];
 
-  CollectionMovie?: {
-    custom_order: number;
-  };
-
-  @HasMany(() => WatchListModel)
+  @OneToMany(() => WatchListModel, (watchList) => watchList.movie)
   watchLists!: WatchListModel[];
+
+  // Lifecycle hooks
+  @BeforeInsert()
+  generateId() {
+    if (!this.id) {
+      this.id = uuidv4().split("-")[0];
+    }
+  }
 }

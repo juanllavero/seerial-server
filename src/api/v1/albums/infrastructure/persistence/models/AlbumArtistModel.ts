@@ -1,39 +1,40 @@
 import { ArtistModel } from "@/api/v1/artists/infrastructure/persistence/models/ArtistModel";
 import {
+  BaseEntity,
+  BeforeInsert,
   Column,
-  DataType,
-  ForeignKey,
-  Model,
-  PrimaryKey,
-  Table,
-} from "sequelize-typescript";
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+} from "typeorm";
+import { v4 as uuidv4 } from "uuid";
 import { AlbumModel } from "./AlbumModel";
 
-@Table({ tableName: "Album_Artist", timestamps: false })
-export class AlbumArtistModel extends Model {
-  @PrimaryKey
-  @Column({
-    type: DataType.STRING,
-    defaultValue: () => require("uuid").v4().split("-")[0],
-    allowNull: false,
-  })
+@Entity({ name: "Album_Artist" })
+export class AlbumArtistModel extends BaseEntity {
+  @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @ForeignKey(() => ArtistModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: "artist_id",
-    onDelete: "CASCADE",
-  })
+  @Column({ type: "varchar", nullable: false, name: "artist_id" })
   artistId!: string;
 
-  @ForeignKey(() => AlbumModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: "album_id",
-    onDelete: "CASCADE",
-  })
+  @Column({ type: "varchar", nullable: false, name: "album_id" })
   albumId!: string;
+
+  @ManyToOne(() => ArtistModel, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "artist_id" })
+  artist!: ArtistModel;
+
+  @ManyToOne(() => AlbumModel, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "album_id" })
+  album!: AlbumModel;
+
+  // Lifecycle hooks
+  @BeforeInsert()
+  generateId() {
+    if (!this.id) {
+      this.id = uuidv4().split("-")[0];
+    }
+  }
 }

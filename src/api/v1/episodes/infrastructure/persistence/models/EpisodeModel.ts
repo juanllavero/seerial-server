@@ -2,148 +2,128 @@ import { SeasonModel } from "@/api/v1/seasons/infrastructure/persistence/models/
 import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/VideoModel";
 import { WatchListModel } from "@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel";
 import {
-  BelongsTo,
+  BaseEntity,
+  BeforeInsert,
   Column,
-  DataType,
-  ForeignKey,
-  HasMany,
-  HasOne,
-  Model,
-  PrimaryKey,
-  Table,
-} from "sequelize-typescript";
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+  PrimaryColumn,
+} from "typeorm";
+import { v4 as uuidv4 } from "uuid";
 
-@Table({ tableName: "Episode", timestamps: false })
-export class EpisodeModel extends Model {
-  @PrimaryKey
-  @Column({
-    type: DataType.STRING,
-    defaultValue: () => require("uuid").v4().split("-")[0],
-    allowNull: false,
-  })
+@Entity({ name: "Episode" })
+export class EpisodeModel extends BaseEntity {
+  @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @ForeignKey(() => SeasonModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: "season_id",
-  })
+  @Column({ type: "varchar", nullable: false, name: "season_id" })
   seasonId!: string;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    defaultValue: "",
-  })
+  @Column({ type: "varchar", nullable: false, default: "" })
   name!: string;
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    field: "name_lock",
-    defaultValue: false,
+    type: "boolean",
+    nullable: false,
+    default: false,
+    name: "name_lock",
   })
   nameLock!: boolean;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    defaultValue: "",
-  })
+  @Column({ type: "varchar", nullable: false, default: "" })
   year!: string;
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    field: "year_lock",
-    defaultValue: false,
+    type: "boolean",
+    nullable: false,
+    default: false,
+    name: "year_lock",
   })
   yearLock!: boolean;
 
-  @Column({
-    type: DataType.TEXT,
-    allowNull: false,
-    defaultValue: "",
-  })
+  @Column({ type: "text", nullable: false, default: "" })
   overview!: string;
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    field: "overview_lock",
-    defaultValue: false,
+    type: "boolean",
+    nullable: false,
+    default: false,
+    name: "overview_lock",
   })
   overviewLock!: boolean;
 
-  @Column({
-    type: DataType.FLOAT,
-    allowNull: false,
-    defaultValue: 0,
-  })
+  @Column({ type: "float", nullable: false, default: 0 })
   score!: number;
 
   @Column({
-    type: DataType.JSON,
-    allowNull: false,
-    field: "directed_by",
-    defaultValue: [],
+    type: "simple-json",
+    nullable: false,
+    default: "[]",
+    name: "directed_by",
   })
   directedBy!: string[];
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    field: "directed_by_lock",
-    defaultValue: false,
+    type: "boolean",
+    nullable: false,
+    default: false,
+    name: "directed_by_lock",
   })
   directedByLock!: boolean;
 
   @Column({
-    type: DataType.JSON,
-    allowNull: false,
-    field: "written_by",
-    defaultValue: [],
+    type: "simple-json",
+    nullable: false,
+    default: "[]",
+    name: "written_by",
   })
   writtenBy!: string[];
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    field: "written_by_lock",
-    defaultValue: false,
+    type: "boolean",
+    nullable: false,
+    default: false,
+    name: "written_by_lock",
   })
   writtenByLock!: boolean;
 
   @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    field: "episode_number",
-    defaultValue: 0,
+    type: "integer",
+    nullable: false,
+    default: 0,
+    name: "episode_number",
   })
   episodeNumber!: number;
 
   @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    field: "season_number",
-    defaultValue: 0,
+    type: "integer",
+    nullable: false,
+    default: 0,
+    name: "season_number",
   })
   seasonNumber!: number;
 
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    defaultValue: 0,
-  })
+  @Column({ type: "integer", nullable: false, default: 0 })
   order!: number;
 
-  @HasMany(() => WatchListModel)
+  @OneToMany(() => WatchListModel, (watchList) => watchList.episode)
   watchLists!: WatchListModel[];
 
-  @BelongsTo(() => SeasonModel, { onDelete: "CASCADE" })
+  @ManyToOne(() => SeasonModel, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "season_id" })
   season!: SeasonModel;
 
-  @HasOne(() => VideoModel)
+  @OneToOne(() => VideoModel, (video) => video.episode)
   video!: VideoModel;
+
+  // Lifecycle hooks
+  @BeforeInsert()
+  generateId() {
+    if (!this.id) {
+      this.id = uuidv4().split("-")[0];
+    }
+  }
 }

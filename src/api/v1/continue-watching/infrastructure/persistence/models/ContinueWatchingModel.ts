@@ -2,72 +2,58 @@ import { MovieModel } from "@/api/v1/movies/infrastructure/persistence/models/Mo
 import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/SeriesModel";
 import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/VideoModel";
 import {
-  BelongsTo,
+  BaseEntity,
+  BeforeInsert,
   Column,
-  DataType,
-  ForeignKey,
-  Model,
-  PrimaryKey,
-  Table,
-} from "sequelize-typescript";
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+  UpdateDateColumn,
+} from "typeorm";
+import { v4 as uuidv4 } from "uuid";
 
-@Table({ tableName: "Continue_Watching", timestamps: true })
-export class ContinueWatchingModel extends Model {
-  @PrimaryKey
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    defaultValue: () => require("uuid").v4().split("-")[0],
-  })
+@Entity({ name: "Continue_Watching" })
+export class ContinueWatchingModel extends BaseEntity {
+  @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: "user_id",
-  })
+  @Column({ type: "varchar", nullable: false, name: "user_id" })
   userId!: string;
 
-  @ForeignKey(() => SeriesModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    field: "series_id",
-  })
+  @Column({ type: "varchar", nullable: true, name: "series_id" })
   seriesId?: string;
 
-  @BelongsTo(() => SeriesModel, {
-    onDelete: "CASCADE",
-    hooks: true,
-  })
+  @ManyToOne(() => SeriesModel, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "series_id" })
   series?: SeriesModel;
 
-  @ForeignKey(() => MovieModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    field: "movie_id",
-  })
+  @Column({ type: "varchar", nullable: true, name: "movie_id" })
   movieId?: string;
 
-  @BelongsTo(() => MovieModel, {
-    onDelete: "CASCADE",
-    hooks: true,
-  })
+  @ManyToOne(() => MovieModel, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "movie_id" })
   movie?: MovieModel;
 
-  @ForeignKey(() => VideoModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: "video_id",
-    onDelete: "CASCADE",
-  })
+  @Column({ type: "varchar", nullable: false, name: "video_id" })
   videoId!: string;
 
-  @BelongsTo(() => VideoModel, {
-    onDelete: "CASCADE",
-    hooks: true,
-  })
+  @ManyToOne(() => VideoModel, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "video_id" })
   video!: VideoModel;
+
+  @CreateDateColumn({ name: "created_at" })
+  createdAt!: Date;
+
+  @UpdateDateColumn({ name: "updated_at" })
+  updatedAt!: Date;
+
+  // Lifecycle hooks
+  @BeforeInsert()
+  generateId() {
+    if (!this.id) {
+      this.id = uuidv4().split("-")[0];
+    }
+  }
 }

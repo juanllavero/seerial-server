@@ -1,11 +1,4 @@
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
-import { EpisodeModel } from "@/api/v1/episodes/infrastructure/persistence/models/EpisodeModel";
-import { MovieModel } from "@/api/v1/movies/infrastructure/persistence/models/MovieModel";
-import { SeasonModel } from "@/api/v1/seasons/infrastructure/persistence/models/SeasonModel";
-import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/SeriesModel";
-import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/VideoModel";
-import { WatchList } from "@/api/v1/watch-lists/domain/WatchList";
-import { WatchListModel } from "@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel";
 import logger from "@/utils/logger";
 import { v4 as uuidv4 } from "uuid";
 import { ContinueWatchingRepositoryPort } from "../../../application/ports/ContinueWatchingRepositoryPort";
@@ -19,37 +12,20 @@ export class ContinueWatchingRepositoryImpl
   implements ContinueWatchingRepositoryPort
 {
   async getVideos(userId: string): Promise<any[]> {
-    try {
-      const elements = await ContinueWatchingModel.findAll({
-        where: {
-          userId: userId,
-        },
-        include: [
-          {
-            model: VideoModel,
-            as: "video",
-            required: true,
-            include: [
-              {
-                model: EpisodeModel,
-                as: "episode",
-                include: [
-                  {
-                    model: SeasonModel,
-                    as: "season",
-                    include: [{ model: SeriesModel, as: "series" }],
-                  },
-                ],
-              },
-              { model: MovieModel, as: "movie" },
-              {
-                model: WatchListModel,
-                as: "watchLists",
-              },
-            ],
-          },
+    const validatedId = this.validateId(userId, "User ID");
+
+    return this.handleRepositoryError(async () => {
+      const elements = await ContinueWatchingModel.find({
+        where: { userId: validatedId },
+        relations: [
+          "video",
+          "video.episode",
+          "video.episode.season",
+          "video.episode.season.series",
+          "video.movie",
+          "video.watchLists",
         ],
-        order: [["createdAt", "DESC"]],
+        order: { createdAt: "DESC" },
       });
 
       // Map to extract the videos with the necessary data
@@ -58,13 +34,13 @@ export class ContinueWatchingRepositoryImpl
           const itemVideo = item?.video;
           if (!itemVideo) return null;
 
-          const filetedWatchList = itemVideo.watchLists.filter(
-            (wl: WatchList) => wl.userId === userId
-          );
+          const filteredWatchList =
+            itemVideo.watchLists?.filter((wl) => wl.userId === validatedId) ||
+            [];
 
           const timeWatched =
-            filetedWatchList.length > 0
-              ? filetedWatchList[0].timeWatched ?? 0
+            filteredWatchList.length > 0
+              ? filteredWatchList[0].timeWatched ?? 0
               : 0;
 
           // Validate episode
@@ -124,32 +100,22 @@ export class ContinueWatchingRepositoryImpl
         .filter((video) => video !== null); // Filter nulls
 
       return videos;
-    } catch (error: any) {
-      logger.error(error, "Error fetching Continue_Watching videos");
-      return [];
-    }
+    }, "Error fetching Continue Watching videos");
   }
 
   async getCurrentEpisode(seriesId: string): Promise<ContinueWatching | null> {
-    try {
+    const validatedId = this.validateId(seriesId, "Series ID");
+
+    return this.handleRepositoryError(async () => {
       const continueWatching = await ContinueWatchingModel.findOne({
-        where: {
-          seriesId: seriesId,
-        },
-        include: [
-          {
-            model: VideoModel,
-            as: "video",
-            include: [{ model: EpisodeModel, as: "episode" }],
-          },
-        ],
+        where: { seriesId: validatedId },
+        relations: ["video", "video.episode"],
       });
 
-      return continueWatching ? continueWatching.toJSON() : null;
-    } catch (error: any) {
-      logger.error(error, "Error fetching Currently_Watching");
-      return null;
-    }
+      return continueWatching
+        ? (continueWatching as unknown as ContinueWatching)
+        : null;
+    }, "Error fetching Currently Watching");
   }
 
   async add(
@@ -158,29 +124,21 @@ export class ContinueWatchingRepositoryImpl
     seriesId?: string,
     movieId?: string
   ): Promise<ContinueWatching | null> {
-    try {
+    const validated = this.validateIds({ videoId, userId });
+
+    return this.handleRepositoryError(async () => {
       // Verify if the video is already in Continue Watching
       const existingElement = await ContinueWatchingModel.findOne({
-        where: {
-          videoId,
-          userId,
-        },
+        where: { videoId: validated.videoId, userId: validated.userId },
       });
 
       if (existingElement) {
-        return existingElement.toJSON();
+        return existingElement as unknown as ContinueWatching;
       }
 
       // Remove videos from Continue Watching
       if (seriesId || movieId) {
-        // Build the where clause dynamically
-        const whereClause: {
-          userId: string;
-          seriesId?: string;
-          movieId?: string;
-        } = {
-          userId,
-        };
+        const whereClause: any = { userId: validated.userId };
 
         if (seriesId) {
           whereClause.seriesId = seriesId;
@@ -190,41 +148,38 @@ export class ContinueWatchingRepositoryImpl
           whereClause.movieId = movieId;
         }
 
-        await ContinueWatchingModel.destroy({
-          where: whereClause,
-        });
+        await ContinueWatchingModel.delete(whereClause);
       }
 
-      // Genera un UUID para el id
+      // Create new element
       const newElementData = {
         id: uuidv4().split("-")[0],
-        videoId,
-        userId,
-        seriesId: seriesId ?? null,
-        movieId: movieId ?? null,
+        videoId: validated.videoId,
+        userId: validated.userId,
+        seriesId: seriesId ?? undefined,
+        movieId: movieId ?? undefined,
       };
 
-      const newElement = new ContinueWatchingModel(newElementData);
+      const newElement = ContinueWatchingModel.create(newElementData);
       await newElement.save();
-      return newElement.toJSON();
-    } catch (error) {
-      continueWatchingLogger.error(
-        error,
-        "Error adding video to Continue Watching"
-      );
-      return null;
-    }
+      return newElement as unknown as ContinueWatching;
+    }, "Error adding video to Continue Watching");
   }
 
   async delete(videoId: string, userId?: string): Promise<void> {
-    try {
-      await ContinueWatchingModel.destroy({ where: { videoId, userId } });
-    } catch (error) {
-      continueWatchingLogger.error(
-        error,
-        "Error deleting video from Continue Watching"
+    const validated = this.validateIds({ videoId, userId });
+
+    return this.handleRepositoryError(async () => {
+      const result = await ContinueWatchingModel.delete({
+        videoId: validated.videoId,
+        userId: validated.userId ?? undefined,
+      });
+
+      this.ensureAffected(
+        result.affected || 0,
+        "Video not found in Continue Watching"
       );
-    }
+    }, "Error deleting video from Continue Watching");
   }
 
   async deleteAll(
@@ -232,29 +187,27 @@ export class ContinueWatchingRepositoryImpl
     seriesId?: string,
     movieId?: string
   ): Promise<boolean> {
-    // Ensure at least one of seriesId or movieId is provided
-    if (!seriesId && !movieId) {
-      return false;
-    }
+    const validatedId = this.validateId(userId, "User ID");
 
-    // Build the where clause dynamically
-    const whereClause: { userId: string; seriesId?: string; movieId?: string } =
-      {
-        userId,
-      };
+    return this.handleRepositoryError(async () => {
+      // Ensure at least one of seriesId or movieId is provided
+      if (!seriesId && !movieId) {
+        return false;
+      }
 
-    if (seriesId) {
-      whereClause.seriesId = seriesId;
-    }
+      const whereClause: any = { userId: validatedId };
 
-    if (movieId) {
-      whereClause.movieId = movieId;
-    }
+      if (seriesId) {
+        whereClause.seriesId = seriesId;
+      }
 
-    const affectedCount = await ContinueWatchingModel.destroy({
-      where: whereClause,
-    });
+      if (movieId) {
+        whereClause.movieId = movieId;
+      }
 
-    return affectedCount > 0;
+      const result = await ContinueWatchingModel.delete(whereClause);
+
+      return (result.affected || 0) > 0;
+    }, "Error deleting videos from Continue Watching");
   }
 }

@@ -4,120 +4,88 @@ import { SeasonModel } from "@/api/v1/seasons/infrastructure/persistence/models/
 import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/SeriesModel";
 import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/VideoModel";
 import {
-  BelongsTo,
+  BaseEntity,
+  BeforeInsert,
   Column,
-  DataType,
-  ForeignKey,
-  Model,
-  PrimaryKey,
-  Table,
-} from "sequelize-typescript";
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+  UpdateDateColumn,
+} from "typeorm";
+import { v4 as uuidv4 } from "uuid";
 
-@Table({ tableName: "Watch_List", timestamps: true })
-export class WatchListModel extends Model {
-  @PrimaryKey
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    defaultValue: () => require("uuid").v4().split("-")[0],
-  })
+@Entity({ name: "Watch_List" })
+export class WatchListModel extends BaseEntity {
+  @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: "user_id",
-  })
+  @Column({ type: "varchar", nullable: false, name: "user_id" })
   userId!: string;
 
-  @ForeignKey(() => SeriesModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    field: "series_id",
-    onDelete: "CASCADE",
-  })
+  @Column({ type: "varchar", nullable: true, name: "series_id" })
   seriesId?: string;
 
-  @BelongsTo(() => SeriesModel, {
-    onDelete: "CASCADE",
-    hooks: true,
-  })
+  @ManyToOne(() => SeriesModel, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "series_id" })
   series?: SeriesModel;
 
-  @ForeignKey(() => SeasonModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    field: "season_id",
-    onDelete: "CASCADE",
-  })
+  @Column({ type: "varchar", nullable: true, name: "season_id" })
   seasonId?: string;
 
-  @BelongsTo(() => SeasonModel, {
-    onDelete: "CASCADE",
-    hooks: true,
-  })
+  @ManyToOne(() => SeasonModel, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "season_id" })
   season?: SeasonModel;
 
-  @ForeignKey(() => EpisodeModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    field: "episode_id",
-    onDelete: "CASCADE",
-  })
+  @Column({ type: "varchar", nullable: true, name: "episode_id" })
   episodeId?: string;
 
-  @BelongsTo(() => EpisodeModel, {
-    onDelete: "CASCADE",
-    hooks: true,
-  })
+  @ManyToOne(() => EpisodeModel, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "episode_id" })
   episode?: EpisodeModel;
 
-  @ForeignKey(() => MovieModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    field: "movie_id",
-    onDelete: "CASCADE",
-  })
+  @Column({ type: "varchar", nullable: true, name: "movie_id" })
   movieId?: string;
 
-  @BelongsTo(() => MovieModel, {
-    onDelete: "CASCADE",
-    hooks: true,
-  })
+  @ManyToOne(() => MovieModel, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "movie_id" })
   movie?: MovieModel;
 
-  @ForeignKey(() => VideoModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    field: "video_id",
-    onDelete: "CASCADE",
-  })
+  @Column({ type: "varchar", nullable: true, name: "video_id" })
   videoId?: string;
 
-  @BelongsTo(() => VideoModel, {
-    onDelete: "CASCADE",
-    hooks: true,
-  })
+  @ManyToOne(() => VideoModel, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "video_id" })
   video?: VideoModel;
 
   @Column({
-    type: DataType.INTEGER,
-    defaultValue: 0,
-    allowNull: false,
-    field: "time_watched",
+    type: "integer",
+    nullable: false,
+    default: 0,
+    name: "time_watched",
   })
   timeWatched!: number;
 
   @Column({
-    type: DataType.STRING,
-    defaultValue: "",
-    allowNull: false,
-    field: "last_watched",
+    type: "varchar",
+    nullable: false,
+    default: "",
+    name: "last_watched",
   })
   lastWatched!: string;
+
+  @CreateDateColumn({ name: "created_at" })
+  createdAt!: Date;
+
+  @UpdateDateColumn({ name: "updated_at" })
+  updatedAt!: Date;
+
+  // Lifecycle hooks
+  @BeforeInsert()
+  generateId() {
+    if (!this.id) {
+      this.id = uuidv4().split("-")[0];
+    }
+  }
 }

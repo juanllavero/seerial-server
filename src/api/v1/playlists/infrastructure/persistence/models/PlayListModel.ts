@@ -1,48 +1,42 @@
 import { SongModel } from "@/api/v1/songs/infrastructure/persistence/models/SongModel";
 import {
-  BelongsToMany,
+  BaseEntity,
+  BeforeInsert,
   Column,
-  DataType,
-  Model,
-  PrimaryKey,
-  Table,
-} from "sequelize-typescript";
-import { PlayListItemModel } from "./PlayListItemModel";
+  Entity,
+  JoinTable,
+  ManyToMany,
+  PrimaryColumn,
+} from "typeorm";
+import { v4 as uuidv4 } from "uuid";
 
-@Table({ tableName: "PlayList", timestamps: false })
-export class PlayListModel extends Model {
-  @PrimaryKey
-  @Column({
-    type: DataType.STRING,
-    defaultValue: () => require("uuid").v4().split("-")[0],
-    allowNull: false,
-  })
+@Entity({ name: "PlayList" })
+export class PlayListModel extends BaseEntity {
+  @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: "user_id",
-  })
+  @Column({ type: "varchar", nullable: false, name: "user_id" })
   userId!: string;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-  })
+  @Column({ type: "varchar", nullable: false })
   title!: string;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    defaultValue: "",
-  })
+  @Column({ type: "varchar", nullable: true, default: "" })
   description?: string;
 
-  @BelongsToMany(() => SongModel, {
-    through: () => PlayListItemModel,
-    onDelete: "CASCADE",
-    hooks: true,
+  @ManyToMany(() => SongModel, (song) => song.playLists)
+  @JoinTable({
+    name: "PlayListItem",
+    joinColumn: { name: "playListId", referencedColumnName: "id" },
+    inverseJoinColumn: { name: "songId", referencedColumnName: "id" },
   })
   songs!: SongModel[];
+
+  // Lifecycle hooks
+  @BeforeInsert()
+  generateId() {
+    if (!this.id) {
+      this.id = uuidv4().split("-")[0];
+    }
+  }
 }

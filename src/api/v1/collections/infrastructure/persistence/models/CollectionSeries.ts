@@ -1,40 +1,35 @@
 import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/SeriesModel";
 import {
+  BaseEntity,
   Column,
-  DataType,
-  ForeignKey,
-  Model,
-  Table,
-} from "sequelize-typescript";
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+} from "typeorm";
 import { CollectionModel } from "./CollectionModel";
 
-@Table({ tableName: "Collection_Series", timestamps: false })
-export class CollectionSeriesModel extends Model {
-  @ForeignKey(() => CollectionModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: "collection_id",
-    onDelete: "CASCADE",
-    primaryKey: true,
-  })
+@Entity({ name: "Collection_Series" })
+export class CollectionSeriesModel extends BaseEntity {
+  @PrimaryColumn({ type: "varchar", nullable: false, name: "collection_id" })
   collectionId!: string;
 
-  @ForeignKey(() => SeriesModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: "series_id",
-    onDelete: "CASCADE",
-    primaryKey: true,
-  })
+  @PrimaryColumn({ type: "varchar", nullable: false, name: "series_id" })
   seriesId!: string;
 
   @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    field: "custom_order",
-    defaultValue: 0,
+    type: "integer",
+    nullable: false,
+    default: 0,
+    name: "custom_order",
   })
   customOrder!: number;
+
+  @ManyToOne(() => CollectionModel, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "collection_id" })
+  collection!: CollectionModel;
+
+  @ManyToOne(() => SeriesModel, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "series_id" })
+  series!: SeriesModel;
 }

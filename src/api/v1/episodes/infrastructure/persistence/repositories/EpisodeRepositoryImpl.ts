@@ -1,6 +1,5 @@
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
 import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/VideoModel";
-import { WatchListModel } from "@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel";
 import { v4 as uuidv4 } from "uuid";
 import { EpisodeRepositoryPort } from "../../../application/ports/EpisodeRepositoryPort";
 import { Episode } from "../../../domain/Episode";
@@ -13,26 +12,21 @@ export class EpisodeRepositoryImpl
   async findAllBySeasonId(seasonId: string): Promise<Episode[]> {
     const validatedId = this.validateId(seasonId, "Season ID");
     return this.handleRepositoryError(async () => {
-      const episodes = await EpisodeModel.findAll({
+      const episodes = await EpisodeModel.find({
         where: { seasonId: validatedId },
       });
-      return episodes.map((e) => e.toJSON() as Episode);
+      return episodes.map((e) => e as unknown as Episode);
     }, `Failed to retrieve episodes for season with ID ${seasonId}`);
   }
 
   async findById(episodeId: string): Promise<Episode | null> {
     const validatedId = this.validateId(episodeId, "Episode ID");
     return this.handleRepositoryError(async () => {
-      const episode = await EpisodeModel.findByPk(validatedId, {
-        include: [
-          {
-            model: VideoModel,
-            as: "video",
-            include: [{ model: WatchListModel, as: "watchLists" }],
-          },
-        ],
+      const episode = await EpisodeModel.findOne({
+        where: { id: validatedId },
+        relations: ["video", "video.watchLists"],
       });
-      return episode ? (episode.toJSON() as Episode) : null;
+      return episode ? (episode as unknown as Episode) : null;
     }, `Failed to retrieve episode with ID ${episodeId}`);
   }
 
@@ -42,8 +36,10 @@ export class EpisodeRepositoryImpl
       const video = await VideoModel.findOne({ where: { fileSrc: videoSrc } });
       if (!video || !video.episodeId) return null;
 
-      const episode = await EpisodeModel.findByPk(video.episodeId);
-      return episode ? (episode.toJSON() as Episode) : null;
+      const episode = await EpisodeModel.findOne({
+        where: { id: video.episodeId },
+      });
+      return episode ? (episode as unknown as Episode) : null;
     }, `Failed to retrieve episode by video source path ${videoSrc}`);
   }
 
@@ -52,8 +48,8 @@ export class EpisodeRepositoryImpl
 
     return this.handleRepositoryError(async () => {
       if (data.id) {
-        const existing = await EpisodeModel.findByPk(data.id);
-        if (existing) return existing.toJSON() as Episode;
+        const existing = await EpisodeModel.findOne({ where: { id: data.id } });
+        if (existing) return existing as unknown as Episode;
       }
 
       const episodeData = {
@@ -61,9 +57,9 @@ export class EpisodeRepositoryImpl
         id: data.id || uuidv4().split("-")[0],
       };
 
-      const newEpisode = new EpisodeModel(episodeData as any);
+      const newEpisode = EpisodeModel.create(episodeData);
       await newEpisode.save();
-      return newEpisode.toJSON() as Episode;
+      return newEpisode as unknown as Episode;
     }, "Failed to create new episode");
   }
 
@@ -72,11 +68,12 @@ export class EpisodeRepositoryImpl
     this.validateData(data, "Update data");
 
     return this.handleRepositoryError(async () => {
-      const [affectedCount] = await EpisodeModel.update(data as any, {
-        where: { id: validatedId },
-      });
+      const result = await EpisodeModel.update({ id: validatedId }, data);
 
-      this.ensureAffected(affectedCount, `Episode with ID ${id} not found`);
+      this.ensureAffected(
+        result.affected || 0,
+        `Episode with ID ${id} not found`
+      );
 
       const updatedEpisode = await this.findById(id);
       if (!updatedEpisode) {
@@ -90,11 +87,12 @@ export class EpisodeRepositoryImpl
     const validatedId = this.validateId(id, "Episode ID");
 
     await this.handleRepositoryError(async () => {
-      const affectedCount = await EpisodeModel.destroy({
-        where: { id: validatedId },
-      });
+      const result = await EpisodeModel.delete({ id: validatedId });
 
-      this.ensureAffected(affectedCount, `Episode with ID ${id} not found`);
+      this.ensureAffected(
+        result.affected || 0,
+        `Episode with ID ${id} not found`
+      );
     }, `Failed to delete episode with ID ${id}`);
   }
 }

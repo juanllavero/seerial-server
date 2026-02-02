@@ -1,9 +1,7 @@
-import { AlbumModel } from "@/api/v1/albums/infrastructure/persistence/models/AlbumModel";
+import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
 import { LibraryCollectionModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryCollectionModel";
 import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryModel";
-import { MovieModel } from "@/api/v1/movies/infrastructure/persistence/models/MovieModel";
-import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/SeriesModel";
-import { SequelizeManager } from "@/api/v1/shared/infrastructure/persistence/SequelizeManager";
+import { DatabaseManager } from "@/api/v1/shared/infrastructure/persistence/DatabaseManager";
 import {
   getCollectionItemsKey,
   getItemModel,
@@ -17,231 +15,295 @@ import { CollectionModel } from "../models/CollectionModel";
 import { CollectionMovieModel } from "../models/CollectionMovie";
 import { CollectionSeriesModel } from "../models/CollectionSeries";
 
-export class CollectionsRepositoryImpl implements CollectionsRepositoryPort {
+export class CollectionsRepositoryImpl
+  extends BaseRepository
+  implements CollectionsRepositoryPort
+{
   async getAll(libraryId: string): Promise<Collection[]> {
-    const data = await LibraryModel.findByPk(libraryId, {
-      include: [
-        {
-          model: CollectionModel,
-          as: "collections",
-          through: {
-            attributes: ["customOrder"],
-          },
-        },
-      ],
-    });
+    const validatedId = this.validateId(libraryId, "Library ID");
 
-    return data?.collections.map((d) => d.toJSON()) || [];
+    return this.handleRepositoryError(async () => {
+      const data = await LibraryModel.findOne({
+        where: { id: validatedId },
+        relations: ["collections"],
+      });
+
+      return data?.collections.map((d) => d as unknown as Collection) || [];
+    }, `Failed to retrieve collections for library ${libraryId}`);
   }
 
   async getById(id: string): Promise<Collection | null> {
-    const data = await CollectionModel.findByPk(id, {
-      include: [
-        {
-          model: SeriesModel,
-          as: "shows",
-          through: {
-            attributes: ["custom_order"],
-          },
-        },
-        {
-          model: MovieModel,
-          as: "movies",
-          through: {
-            attributes: ["custom_order"],
-          },
-        },
-        {
-          model: AlbumModel,
-          as: "albums",
-          through: {
-            attributes: ["custom_order"],
-          },
-        },
-      ],
-    });
-    return data ? data.toJSON() : null;
+    const validatedId = this.validateId(id, "Collection ID");
+
+    return this.handleRepositoryError(async () => {
+      const data = await CollectionModel.findOne({
+        where: { id: validatedId },
+        relations: ["shows", "movies", "albums"],
+      });
+      return data ? (data as unknown as Collection) : null;
+    }, `Failed to retrieve collection with ID ${id}`);
   }
 
   async getByLibraryId(libraryId: string, type: string): Promise<Collection[]> {
-    const collectionItemsKey = getCollectionItemsKey(type);
-    const ItemModel = getItemModel(type);
+    const validatedId = this.validateId(libraryId, "Library ID");
 
-    const data = await LibraryModel.findByPk(libraryId, {
-      include: [
-        {
-          model: CollectionModel,
-          as: "collections",
-          include: [
-            {
-              model: ItemModel,
-              as: collectionItemsKey,
-              attributes: ["id", "coverSrc"],
-            },
-          ],
-          through: {
-            attributes: ["customOrder"],
-          },
-        },
-      ],
-    }).then((library) => library?.collections || []);
-    return data.map((d) => d.toJSON());
+    return this.handleRepositoryError(async () => {
+      const collectionItemsKey = getCollectionItemsKey(type);
+      const ItemModel = getItemModel(type);
+
+      const data = await LibraryModel.findOne({
+        where: { id: validatedId },
+        relations: ["collections", `collections.${collectionItemsKey}` as any],
+      });
+
+      return (data?.collections || []).map((d) => d as unknown as Collection);
+    }, `Failed to retrieve collections for library ${libraryId} with type ${type}`);
   }
 
   async add(collection: Partial<Collection>): Promise<Collection | null> {
-    const existing = collection.title
-      ? await CollectionModel.findOne({ where: { title: collection.title } })
-      : null;
+    this.validateData(collection, "Collection data");
 
-    if (existing) return existing.toJSON();
+    return this.handleRepositoryError(async () => {
+      const existing = collection.title
+        ? await CollectionModel.findOne({ where: { title: collection.title } })
+        : null;
 
-    const newData = { ...collection, id: uuidv4().split("-")[0] };
-    const created = await CollectionModel.create(newData);
-    return created.toJSON();
+      if (existing) return existing as unknown as Collection;
+
+      const newData = { ...collection, id: uuidv4().split("-")[0] };
+      const created = CollectionModel.create(newData);
+      await created.save();
+      return created as unknown as Collection;
+    }, "Failed to create collection");
   }
 
   async update(id: string, data: Partial<Collection>): Promise<Collection> {
-    const [count] = await CollectionModel.update(data, { where: { id } });
-    if (count === 0) throw new Error(`Collection ${id} not found`);
-    const updated = await CollectionModel.findByPk(id);
-    if (!updated) throw new Error(`Failed to retrieve collection ${id}`);
-    return updated.toJSON();
+    const validatedId = this.validateId(id, "Collection ID");
+    this.validateData(data, "Update data");
+
+    return this.handleRepositoryError(async () => {
+      const result = await CollectionModel.update({ id: validatedId }, data);
+
+      this.ensureAffected(result.affected || 0, `Collection ${id} not found`);
+
+      const updated = await this.getById(id);
+      if (!updated) {
+        throw new Error(`Failed to retrieve collection ${id}`);
+      }
+
+      return updated;
+    }, `Failed to update collection ${id}`);
   }
 
   async delete(id: string): Promise<boolean> {
-    const count = await CollectionModel.destroy({ where: { id } });
-    if (count === 0) throw new Error(`Collection ${id} not found`);
-    return true;
+    const validatedId = this.validateId(id, "Collection ID");
+
+    return this.handleRepositoryError(async () => {
+      const result = await CollectionModel.delete({ id: validatedId });
+
+      this.ensureAffected(result.affected || 0, `Collection ${id} not found`);
+      return true;
+    }, `Failed to delete collection ${id}`);
   }
 
   async addAlbum(collectionId: string, albumId: string): Promise<void> {
-    await CollectionAlbumModel.findOrCreate({
-      where: { collectionId, albumId },
-      defaults: { id: uuidv4().split("-")[0] },
-    });
+    const validated = this.validateIds({ collectionId, albumId });
+
+    return this.handleRepositoryError(async () => {
+      // Check if relation already exists
+      const existing = await CollectionAlbumModel.findOne({
+        where: {
+          collectionId: validated.collectionId,
+          albumId: validated.albumId,
+        },
+      });
+
+      if (existing) return;
+
+      const newRelation = CollectionAlbumModel.create({
+        collectionId: validated.collectionId,
+        albumId: validated.albumId,
+      });
+      await newRelation.save();
+    }, `Failed to add album ${albumId} to collection ${collectionId}`);
   }
 
   async addMovie(collectionId: string, movieId: string): Promise<void> {
-    await CollectionMovieModel.findOrCreate({
-      where: { collectionId, movieId },
-      defaults: { id: uuidv4().split("-")[0] },
-    });
+    const validated = this.validateIds({ collectionId, movieId });
+
+    return this.handleRepositoryError(async () => {
+      // Check if relation already exists
+      const existing = await CollectionMovieModel.findOne({
+        where: {
+          collectionId: validated.collectionId,
+          movieId: validated.movieId,
+        },
+      });
+
+      if (existing) return;
+
+      const newRelation = CollectionMovieModel.create({
+        collectionId: validated.collectionId,
+        movieId: validated.movieId,
+      });
+      await newRelation.save();
+    }, `Failed to add movie ${movieId} to collection ${collectionId}`);
   }
 
   async addSeries(collectionId: string, seriesId: string): Promise<void> {
-    await CollectionSeriesModel.findOrCreate({
-      where: { collectionId, seriesId },
-      defaults: { id: uuidv4().split("-")[0] },
-    });
+    const validated = this.validateIds({ collectionId, seriesId });
+
+    return this.handleRepositoryError(async () => {
+      // Check if relation already exists
+      const existing = await CollectionSeriesModel.findOne({
+        where: {
+          collectionId: validated.collectionId,
+          seriesId: validated.seriesId,
+        },
+      });
+
+      if (existing) return;
+
+      const newRelation = CollectionSeriesModel.create({
+        collectionId: validated.collectionId,
+        seriesId: validated.seriesId,
+      });
+      await newRelation.save();
+    }, `Failed to add series ${seriesId} to collection ${collectionId}`);
   }
 
   async addLibrary(libraryId: string, collectionId: string): Promise<void> {
-    await LibraryCollectionModel.findOrCreate({
-      where: { libraryId, collectionId },
-      defaults: { id: uuidv4().split("-")[0] },
-    });
+    const validated = this.validateIds({ libraryId, collectionId });
+
+    return this.handleRepositoryError(async () => {
+      // Check if relation already exists
+      const existing = await LibraryCollectionModel.findOne({
+        where: {
+          libraryId: validated.libraryId,
+          collectionId: validated.collectionId,
+        },
+      });
+
+      if (existing) return;
+
+      const newRelation = LibraryCollectionModel.create({
+        libraryId: validated.libraryId,
+        collectionId: validated.collectionId,
+      });
+      await newRelation.save();
+    }, `Failed to add collection ${collectionId} to library ${libraryId}`);
   }
 
-  async removeSeries(collectionId: number, seriesId: number): Promise<boolean> {
-    const affectedCount = await CollectionSeriesModel.destroy({
-      where: { collectionId, seriesId },
-    });
+  async removeSeries(collectionId: string, seriesId: string): Promise<boolean> {
+    const validated = this.validateIds({ collectionId, seriesId });
 
-    if (affectedCount === 0) {
-      throw new Error(
-        `CollectionSeries with collectionId ${collectionId} and seriesId ${seriesId} not found`
-      );
-    }
+    return this.handleRepositoryError(async () => {
+      const result = await CollectionSeriesModel.delete({
+        collectionId: validated.collectionId,
+        seriesId: validated.seriesId,
+      });
 
-    return true;
+      this.ensureAffected(result.affected || 0, `CollectionSeries not found`);
+      return true;
+    }, `Failed to remove series ${seriesId} from collection ${collectionId}`);
   }
 
-  async removeMovie(collectionId: number, movieId: number): Promise<boolean> {
-    const affectedCount = await CollectionMovieModel.destroy({
-      where: { collectionId, movieId },
-    });
+  async removeMovie(collectionId: string, movieId: string): Promise<boolean> {
+    const validated = this.validateIds({ collectionId, movieId });
 
-    if (affectedCount === 0) {
-      throw new Error(
-        `CollectionMovie with collectionId ${collectionId} and movieId ${movieId} not found`
-      );
-    }
+    return this.handleRepositoryError(async () => {
+      const result = await CollectionMovieModel.delete({
+        collectionId: validated.collectionId,
+        movieId: validated.movieId,
+      });
 
-    return true;
+      this.ensureAffected(result.affected || 0, `CollectionMovie not found`);
+      return true;
+    }, `Failed to remove movie ${movieId} from collection ${collectionId}`);
   }
 
-  async removeAlbum(collectionId: number, albumId: number): Promise<boolean> {
-    const affectedCount = await CollectionAlbumModel.destroy({
-      where: { collectionId, albumId },
-    });
+  async removeAlbum(collectionId: string, albumId: string): Promise<boolean> {
+    const validated = this.validateIds({ collectionId, albumId });
 
-    if (affectedCount === 0) {
-      throw new Error(
-        `CollectionAlbum with collectionId ${collectionId} and albumId ${albumId} not found`
-      );
-    }
+    return this.handleRepositoryError(async () => {
+      const result = await CollectionAlbumModel.delete({
+        collectionId: validated.collectionId,
+        albumId: validated.albumId,
+      });
 
-    return true;
+      this.ensureAffected(result.affected || 0, `CollectionAlbum not found`);
+      return true;
+    }, `Failed to remove album ${albumId} from collection ${collectionId}`);
   }
 
   async reorderContent(
     collectionId: string,
     orderedItems: ReorderItemDTO[]
   ): Promise<void> {
-    if (!SequelizeManager.sequelize) throw new Error("DB not initialized");
+    const validatedId = this.validateId(collectionId, "Collection ID");
 
-    const t = await SequelizeManager.sequelize.transaction();
-    try {
-      const tempOrder = 9999;
+    return this.handleRepositoryError(async () => {
+      const dataSource = DatabaseManager.getDataSource();
 
-      await CollectionMovieModel.update(
-        { customOrder: tempOrder },
-        { where: { collectionId }, transaction: t }
-      );
-      await CollectionSeriesModel.update(
-        { customOrder: tempOrder },
-        { where: { collectionId }, transaction: t }
-      );
-      await CollectionAlbumModel.update(
-        { customOrder: tempOrder },
-        { where: { collectionId }, transaction: t }
-      );
-
-      for (const [index, item] of orderedItems.entries()) {
-        const newOrder = index;
-        const type = (item.type || "").toLowerCase();
-
-        if (type === "movie" || type === "movies") {
-          await CollectionMovieModel.update(
-            { customOrder: newOrder },
-            {
-              where: { collectionId, movieId: item.id },
-              transaction: t,
-            }
-          );
-        } else if (type === "series" || type === "show" || type === "shows") {
-          await CollectionSeriesModel.update(
-            { customOrder: newOrder },
-            {
-              where: { collectionId, seriesId: item.id },
-              transaction: t,
-            }
-          );
-        } else if (type === "album" || type === "albums") {
-          await CollectionAlbumModel.update(
-            { customOrder: newOrder },
-            {
-              where: { collectionId, albumId: item.id },
-              transaction: t,
-            }
-          );
-        }
+      if (!dataSource) {
+        throw new Error("Database not initialized");
       }
 
-      await t.commit();
-    } catch (err) {
-      await t.rollback();
-      throw err;
-    }
+      const queryRunner = dataSource.createQueryRunner();
+      await queryRunner.connect();
+      await queryRunner.startTransaction();
+
+      try {
+        const tempOrder = 9999;
+
+        await queryRunner.manager.update(
+          CollectionMovieModel,
+          { collectionId: validatedId },
+          { customOrder: tempOrder }
+        );
+        await queryRunner.manager.update(
+          CollectionSeriesModel,
+          { collectionId: validatedId },
+          { customOrder: tempOrder }
+        );
+        await queryRunner.manager.update(
+          CollectionAlbumModel,
+          { collectionId: validatedId },
+          { customOrder: tempOrder }
+        );
+
+        for (const [index, item] of orderedItems.entries()) {
+          const newOrder = index;
+          const type = (item.type || "").toLowerCase();
+
+          if (type === "movie" || type === "movies") {
+            await queryRunner.manager.update(
+              CollectionMovieModel,
+              { collectionId: validatedId, movieId: item.id },
+              { customOrder: newOrder }
+            );
+          } else if (type === "series" || type === "show" || type === "shows") {
+            await queryRunner.manager.update(
+              CollectionSeriesModel,
+              { collectionId: validatedId, seriesId: item.id },
+              { customOrder: newOrder }
+            );
+          } else if (type === "album" || type === "albums") {
+            await queryRunner.manager.update(
+              CollectionAlbumModel,
+              { collectionId: validatedId, albumId: item.id },
+              { customOrder: newOrder }
+            );
+          }
+        }
+
+        await queryRunner.commitTransaction();
+      } catch (err) {
+        await queryRunner.rollbackTransaction();
+        throw err;
+      } finally {
+        await queryRunner.release();
+      }
+    }, `Failed to reorder content for collection ${collectionId}`);
   }
 }

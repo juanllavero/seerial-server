@@ -13,9 +13,9 @@ export class SongsRepositoryImpl
     const validatedId = this.validateId(id, "Song ID");
 
     return this.handleRepositoryError(async () => {
-      const song = await SongModel.findByPk(validatedId);
+      const song = await SongModel.findOne({ where: { id: validatedId } });
 
-      return song ? (song.toJSON() as Song) : null;
+      return song ? (song as unknown as Song) : null;
     }, `Failed to retrieve song with ID ${id}`);
   }
 
@@ -29,7 +29,7 @@ export class SongsRepositoryImpl
         },
       });
 
-      return song ? (song.toJSON() as Song) : null;
+      return song ? (song as unknown as Song) : null;
     }, `Failed to retrieve song with path ${path}`);
   }
 
@@ -37,13 +37,13 @@ export class SongsRepositoryImpl
     const validatedId = this.validateId(albumId, "Album ID");
 
     return this.handleRepositoryError(async () => {
-      const songs = await SongModel.findAll({
+      const songs = await SongModel.find({
         where: {
           albumId: validatedId,
         },
       });
 
-      return songs.map((song) => song.toJSON() as Song);
+      return songs.map((song) => song as unknown as Song);
     }, `Failed to retrieve song with album ID ${albumId}`);
   }
 
@@ -66,8 +66,9 @@ export class SongsRepositoryImpl
         id: song.id || uuidv4().split("-")[0],
       };
 
-      const createdSong = await SongModel.create(dataToCreate as any);
-      return createdSong ? (createdSong.toJSON() as Song) : null;
+      const createdSong = SongModel.create(dataToCreate);
+      await createdSong.save();
+      return createdSong as unknown as Song;
     }, "Failed to create song");
   }
 
@@ -75,11 +76,9 @@ export class SongsRepositoryImpl
     const validatedId = this.validateId(id, "Song ID");
 
     return this.handleRepositoryError(async () => {
-      const [affectedCount] = await SongModel.update(data, {
-        where: { id: validatedId },
-      });
+      const result = await SongModel.update({ id: validatedId }, data);
 
-      this.ensureAffected(affectedCount, `Song with ID ${id} not found`);
+      this.ensureAffected(result.affected || 0, `Song with ID ${id} not found`);
 
       const updatedSong = await this.findById(id);
 
@@ -95,8 +94,8 @@ export class SongsRepositoryImpl
     const validatedId = this.validateId(id, "Song ID");
 
     return this.handleRepositoryError(async () => {
-      const affected = await SongModel.destroy({ where: { id: validatedId } });
-      this.ensureAffected(affected, `Song with ID ${id} not found`);
+      const result = await SongModel.delete({ id: validatedId });
+      this.ensureAffected(result.affected || 0, `Song with ID ${id} not found`);
     }, `Failed to delete song with ID ${id}`);
   }
 }

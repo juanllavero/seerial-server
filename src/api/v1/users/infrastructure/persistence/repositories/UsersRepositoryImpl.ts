@@ -1,4 +1,5 @@
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
+import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryModel";
 import { ServerConfigService } from "@/api/v1/servers/infrastructure/services/ServerConfigService";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
@@ -15,11 +16,11 @@ export class UsersRepositoryImpl
 {
   async findAll(): Promise<User[]> {
     return this.handleRepositoryError(async () => {
-      const users = await UserModel.findAll({
+      const users = await UserModel.find({
         where: { hideInLogin: false },
-        attributes: ["id", "username", "type", "avatar"], // Exclude sensitive fields like password
+        select: ["id", "username", "type", "avatar"], // Exclude sensitive fields like password
       });
-      return users.map((user) => user.toJSON());
+      return users.map((user) => user as unknown as User);
     }, `Failed to retrieve users`);
   }
 
@@ -45,12 +46,15 @@ export class UsersRepositoryImpl
       { expiresIn: "30d" }
     );
 
-    const safeUser = await UserModel.findByPk(user.id, {
-      attributes: { exclude: ["password"] },
+    const safeUser = await UserModel.findOne({
+      where: { id: user.id },
+      select: { password: false },
     });
     return {
       token,
-      user: safeUser ? safeUser.toJSON() : user.toJSON(),
+      user: safeUser
+        ? (safeUser as unknown as User)
+        : (user as unknown as User),
     };
   }
 
@@ -76,9 +80,9 @@ export class UsersRepositoryImpl
       const hashedPassword = data.password
         ? await bcrypt.hash(data.password, 10)
         : null;
-      const user = await UserModel.create({
+      const user = UserModel.create({
         ...data,
-        password: hashedPassword,
+        password: hashedPassword || undefined,
         type: data.type || UserType.NORMAL,
         allowRemote: data.allowRemote ?? true,
         allowVideoTranscoding: data.allowVideoTranscoding ?? true,
@@ -87,21 +91,28 @@ export class UsersRepositoryImpl
         maxSessions: data.maxSessions ?? 0,
         serverId: ServerConfigService.serverConfig.id,
       });
+      await user.save();
 
       if (data.libraryIds) {
-        await user.$set("libraries", data.libraryIds);
+        // Load the libraries and assign them to the user
+        const libraries = await LibraryModel.findByIds(data.libraryIds);
+        user.libraries = libraries;
+        await user.save();
       }
 
-      const safeUser = await UserModel.findByPk(user.id, {
-        attributes: { exclude: ["password"] },
+      const safeUser = await UserModel.findOne({
+        where: { id: user.id },
+        select: { password: false },
       });
-      return safeUser ? safeUser.toJSON() : user.toJSON();
+      return safeUser
+        ? (safeUser as unknown as User)
+        : (user as unknown as User);
     }, `Failed to create user`);
   }
 
   async update(id: string, data: Partial<User>): Promise<User> {
     return this.handleRepositoryError(async () => {
-      const user = await UserModel.findByPk(id);
+      const user = await UserModel.findOne({ where: { id } });
 
       if (!user) {
         throw new ApiError(404, messages.errors.notFound.user);
@@ -111,22 +122,26 @@ export class UsersRepositoryImpl
         data.password = await bcrypt.hash(data.password, 10);
       }
 
-      await user.update(data);
+      Object.assign(user, data);
+      await user.save();
 
-      const safeUser = await UserModel.findByPk(user.id, {
-        attributes: { exclude: ["password"] },
+      const safeUser = await UserModel.findOne({
+        where: { id },
+        select: { password: false },
       });
-      return safeUser ? safeUser.toJSON() : user.toJSON();
+      return safeUser
+        ? (safeUser as unknown as User)
+        : (user as unknown as User);
     }, `Failed to update user with id ${id}`);
   }
 
   async delete(id: string): Promise<void> {
     return this.handleRepositoryError(async () => {
-      const user = await UserModel.findByPk(id);
+      const user = await UserModel.findOne({ where: { id } });
       if (!user) {
         throw new ApiError(404, messages.errors.notFound.user);
       }
-      await user.destroy();
+      await user.remove();
     }, `Failed to delete user with id ${id}`);
   }
 }

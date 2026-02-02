@@ -1,7 +1,4 @@
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
-import { EpisodeModel } from "@/api/v1/episodes/infrastructure/persistence/models/EpisodeModel";
-import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/VideoModel";
-import { WatchListModel } from "@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel";
 import logger from "@/utils/logger";
 import { v4 as uuidv4 } from "uuid";
 import { SeasonsRepositoryPort } from "../../../application/ports/SeasonsRepositoryPort";
@@ -16,11 +13,11 @@ export class SeasonsRepositoryImpl
     const validatedSeriesId = this.validateId(seriesId, "Series ID");
 
     return this.handleRepositoryError(async () => {
-      const seasons = await SeasonModel.findAll({
+      const seasons = await SeasonModel.find({
         where: { seriesId: validatedSeriesId },
       });
 
-      return seasons.map((season) => season.toJSON());
+      return seasons.map((season) => season as unknown as Season);
     }, `Failed to retrieve seasons for series with ID ${seriesId}`);
   }
 
@@ -28,45 +25,32 @@ export class SeasonsRepositoryImpl
     const validatedId = this.validateId(id, "Season ID");
 
     return this.handleRepositoryError(async () => {
-      const includeFew = [{ model: EpisodeModel, as: "episodes" }];
+      const includeFew = ["episodes"];
       const includeAll = [
-        {
-          model: EpisodeModel,
-          as: "episodes",
-          include: [
-            {
-              model: VideoModel,
-              as: "video",
-              include: [
-                {
-                  model: WatchListModel,
-                  as: "watchLists",
-                },
-              ],
-            },
-          ],
-        },
-        {
-          model: WatchListModel,
-          as: "watchLists",
-        },
+        "episodes",
+        "episodes.video",
+        "episodes.video.watchLists",
+        "watchLists",
       ];
 
-      const season = await SeasonModel.findByPk(validatedId, {
-        include:
+      const season = await SeasonModel.findOne({
+        where: { id: validatedId },
+        relations:
           include === "few" ? includeFew : include === "all" ? includeAll : [],
       });
 
-      return season ? season.toJSON() : null;
+      return season ? (season as unknown as Season) : null;
     }, `Failed to retrieve season with ID ${id}`);
   }
 
   async findSeasonsBySeriesId(seriesId: string): Promise<Season[]> {
     return this.handleRepositoryError(async () => {
-      const seasons = await SeasonModel.findAll({
+      const seasons = await SeasonModel.find({
         where: { seriesId },
       });
-      return seasons ? seasons.map((season) => season.toJSON()) : [];
+      return seasons
+        ? seasons.map((season) => season as unknown as Season)
+        : [];
     }, `Failed to retrieve seasons for series with ID ${seriesId}`);
   }
 
@@ -89,8 +73,9 @@ export class SeasonsRepositoryImpl
         id: data.id || uuidv4().split("-")[0],
       };
 
-      const createdSeason = await SeasonModel.create(dataToCreate as any);
-      return createdSeason.toJSON();
+      const createdSeason = SeasonModel.create(dataToCreate);
+      await createdSeason.save();
+      return createdSeason as unknown as Season;
     }, "Failed to create season");
   }
 
@@ -99,11 +84,12 @@ export class SeasonsRepositoryImpl
     this.validateData(data, "Update data");
 
     return this.handleRepositoryError(async () => {
-      const [affectedCount] = await SeasonModel.update(data as any, {
-        where: { id: validatedId },
-      });
+      const result = await SeasonModel.update({ id: validatedId }, data);
 
-      this.ensureAffected(affectedCount, `Season with ID ${id} not found`);
+      this.ensureAffected(
+        result.affected || 0,
+        `Season with ID ${id} not found`
+      );
 
       const updatedSeason = await this.findById(id);
       if (!updatedSeason) {
@@ -118,11 +104,12 @@ export class SeasonsRepositoryImpl
     const validatedId = this.validateId(id, "Season ID");
 
     await this.handleRepositoryError(async () => {
-      const affectedCount = await SeasonModel.destroy({
-        where: { id: validatedId },
-      });
+      const result = await SeasonModel.delete({ id: validatedId });
 
-      this.ensureAffected(affectedCount, `Season with ID ${id} not found`);
+      this.ensureAffected(
+        result.affected || 0,
+        `Season with ID ${id} not found`
+      );
     }, `Failed to delete season with ID ${id}`);
   }
 }

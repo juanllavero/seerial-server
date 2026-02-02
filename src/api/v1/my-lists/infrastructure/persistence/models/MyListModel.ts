@@ -1,54 +1,51 @@
 import { MovieModel } from "@/api/v1/movies/infrastructure/persistence/models/MovieModel";
 import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/SeriesModel";
 import {
+  BaseEntity,
+  BeforeInsert,
   Column,
-  DataType,
-  ForeignKey,
-  Model,
-  PrimaryKey,
-  Table,
-} from "sequelize-typescript";
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+} from "typeorm";
+import { v4 as uuidv4 } from "uuid";
 
-@Table({ tableName: "My_List", timestamps: false })
-export class MyListModel extends Model {
-  @PrimaryKey
-  @Column({
-    type: DataType.STRING,
-    defaultValue: () => require("uuid").v4().split("-")[0],
-    allowNull: false,
-  })
+@Entity({ name: "My_List" })
+export class MyListModel extends BaseEntity {
+  @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: "user_id",
-  })
+  @Column({ type: "varchar", nullable: false, name: "user_id" })
   userId!: string;
 
   @Column({
-    type: DataType.DATE,
-    defaultValue: DataType.NOW,
-    allowNull: false,
-    field: "added_at",
+    type: "timestamp",
+    nullable: false,
+    name: "added_at",
+    default: () => "CURRENT_TIMESTAMP",
   })
   addedAt!: Date;
 
-  @ForeignKey(() => SeriesModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    field: "series_id",
-    onDelete: "CASCADE",
-  })
+  @Column({ type: "varchar", nullable: true, name: "series_id" })
   seriesId?: string;
 
-  @ForeignKey(() => MovieModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    field: "movie_id",
-    onDelete: "CASCADE",
-  })
+  @Column({ type: "varchar", nullable: true, name: "movie_id" })
   movieId?: string;
+
+  @ManyToOne(() => SeriesModel, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "series_id" })
+  series?: SeriesModel;
+
+  @ManyToOne(() => MovieModel, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "movie_id" })
+  movie?: MovieModel;
+
+  // Lifecycle hooks
+  @BeforeInsert()
+  generateId() {
+    if (!this.id) {
+      this.id = uuidv4().split("-")[0];
+    }
+  }
 }

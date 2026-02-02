@@ -1,5 +1,4 @@
 import { ArtistModel } from "@/api/v1/artists/infrastructure/persistence/models/ArtistModel";
-import { CollectionAlbumModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionAlbum";
 import { CollectionModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionModel";
 import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryModel";
 import { SongModel } from "@/api/v1/songs/infrastructure/persistence/models/SongModel";
@@ -7,126 +6,87 @@ import logger from "@/utils/logger";
 import fs from "fs-extra";
 import path from "path";
 import {
-  BeforeDestroy,
-  BelongsTo,
-  BelongsToMany,
+  BaseEntity,
+  BeforeInsert,
+  BeforeRemove,
   Column,
-  DataType,
-  ForeignKey,
-  HasMany,
-  Model,
-  PrimaryKey,
-  Table,
-} from "sequelize-typescript";
-import { AlbumArtistModel } from "./AlbumArtistModel";
+  Entity,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  OneToMany,
+  PrimaryColumn,
+} from "typeorm";
+import { v4 as uuidv4 } from "uuid";
 
 const albumLogger = logger.child({ category: "Album" });
 
-@Table({ tableName: "Album", timestamps: false })
-export class AlbumModel extends Model {
-  @PrimaryKey
-  @Column({
-    type: DataType.STRING,
-    defaultValue: () => require("uuid").v4().split("-")[0],
-    allowNull: false,
-  })
+@Entity({ name: "Album" })
+export class AlbumModel extends BaseEntity {
+  @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @ForeignKey(() => LibraryModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    onDelete: "CASCADE",
-    field: "library_id",
-  })
+  @Column({ type: "varchar", nullable: false, name: "library_id" })
   libraryId!: string;
 
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    defaultValue: 0,
-  })
+  @Column({ type: "integer", nullable: false, default: 0 })
   order!: number;
 
-  @Column({
-    type: DataType.STRING,
-    defaultValue: "",
-    allowNull: false,
-  })
+  @Column({ type: "varchar", nullable: false, default: "" })
   title!: string;
 
-  @Column({
-    type: DataType.STRING,
-    defaultValue: "",
-    allowNull: true,
-  })
+  @Column({ type: "varchar", nullable: true, default: "" })
   year?: string;
 
-  @Column({
-    type: DataType.JSON,
-    defaultValue: [],
-    allowNull: true,
-  })
+  @Column({ type: "simple-json", nullable: true, default: "[]" })
   genres!: string[];
 
-  @Column({
-    type: DataType.TEXT,
-    defaultValue: "",
-    allowNull: true,
-  })
+  @Column({ type: "text", nullable: true, default: "" })
   description?: string;
 
-  @Column({
-    type: DataType.TEXT,
-    allowNull: true,
-    defaultValue: "",
-    field: "cover_src",
-  })
+  @Column({ type: "text", nullable: true, default: "", name: "cover_src" })
   coverSrc!: string;
 
-  @Column({
-    type: DataType.STRING,
-    defaultValue: "",
-    allowNull: false,
-  })
+  @Column({ type: "varchar", nullable: false, default: "" })
   folder!: string;
 
-  @BelongsTo(() => LibraryModel, { onDelete: "CASCADE" })
+  @ManyToOne(() => LibraryModel, { onDelete: "CASCADE" })
   library!: LibraryModel;
 
-  @BelongsToMany(() => CollectionModel, {
-    through: () => CollectionAlbumModel,
-    onDelete: "CASCADE",
-    hooks: true,
+  @ManyToMany(() => CollectionModel, (collection) => collection.albums)
+  @JoinTable({
+    name: "CollectionAlbum",
+    joinColumn: { name: "albumId", referencedColumnName: "id" },
+    inverseJoinColumn: { name: "collectionId", referencedColumnName: "id" },
   })
   collections!: CollectionModel[];
 
-  @BelongsToMany(() => ArtistModel, {
-    through: () => AlbumArtistModel,
-    onDelete: "CASCADE",
-    hooks: true,
+  @ManyToMany(() => ArtistModel, (artist) => artist.albums)
+  @JoinTable({
+    name: "Album_Artist",
+    joinColumn: { name: "albumId", referencedColumnName: "id" },
+    inverseJoinColumn: { name: "artistId", referencedColumnName: "id" },
   })
   artists!: ArtistModel[];
 
-  @HasMany(() => SongModel)
+  @OneToMany(() => SongModel, (song) => song.album)
   songs!: SongModel[];
 
-  CollectionAlbum?: {
-    custom_order: number;
-  };
+  // Lifecycle hooks
+  @BeforeInsert()
+  generateId() {
+    if (!this.id) {
+      this.id = uuidv4().split("-")[0];
+    }
+  }
 
-  @BeforeDestroy
-  static async beforeDestroyHook(instance: AlbumModel): Promise<void> {
+  @BeforeRemove()
+  async beforeRemove(): Promise<void> {
     try {
-      await fs.remove(
-        path.join("resources", "img", "posters", instance.id ?? "")
-      );
-      albumLogger.info(`Cleaned data from album ID=${instance.id}`);
+      await fs.remove(path.join("resources", "img", "posters", this.id ?? ""));
+      albumLogger.info(`Cleaned data from album ID=${this.id}`);
     } catch (error) {
-      albumLogger.error(
-        error,
-        `Error cleaning data for album ID=${instance.id}`
-      );
+      albumLogger.error(error, `Error cleaning data for album ID=${this.id}`);
     }
   }
 }

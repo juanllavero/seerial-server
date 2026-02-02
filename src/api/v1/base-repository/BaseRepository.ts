@@ -3,7 +3,31 @@ import logger from "@/utils/logger";
 const repositoryLogger = logger.child({ category: "Repository" });
 
 /**
- * Class base abstract for repositories with common validations
+ * Custom error types for better error handling
+ */
+export class RepositoryError extends Error {
+  constructor(message: string, public readonly cause?: Error) {
+    super(message);
+    this.name = "RepositoryError";
+  }
+}
+
+export class ValidationError extends RepositoryError {
+  constructor(message: string) {
+    super(message);
+    this.name = "ValidationError";
+  }
+}
+
+export class NotFoundError extends RepositoryError {
+  constructor(entityName: string, identifier: string) {
+    super(`${entityName} with identifier ${identifier} not found`);
+    this.name = "NotFoundError";
+  }
+}
+
+/**
+ * Enhanced base repository with improved validations and error handling
  */
 export abstract class BaseRepository {
   /**
@@ -11,7 +35,7 @@ export abstract class BaseRepository {
    */
   protected validateId(id: string, fieldName = "ID"): string {
     if (!id || typeof id !== "string" || id.trim() === "") {
-      throw new Error(
+      throw new ValidationError(
         `${fieldName} is required and must be a non-empty string`
       );
     }
@@ -36,28 +60,80 @@ export abstract class BaseRepository {
    */
   protected validateData<T>(data: T, fieldName = "Data"): T {
     if (!data || (typeof data === "object" && Object.keys(data).length === 0)) {
-      throw new Error(`${fieldName} is required and cannot be empty`);
+      throw new ValidationError(`${fieldName} is required and cannot be empty`);
     }
     return data;
   }
 
   /**
-   * Handle errors in a consistent way
+   * Validate string field
+   */
+  protected validateString(
+    value: string,
+    fieldName: string,
+    options?: {
+      minLength?: number;
+      maxLength?: number;
+      pattern?: RegExp;
+    }
+  ): string {
+    if (!value || typeof value !== "string") {
+      throw new ValidationError(`${fieldName} must be a valid string`);
+    }
+
+    const trimmed = value.trim();
+
+    if (options?.minLength && trimmed.length < options.minLength) {
+      throw new ValidationError(
+        `${fieldName} must be at least ${options.minLength} characters long`
+      );
+    }
+
+    if (options?.maxLength && trimmed.length > options.maxLength) {
+      throw new ValidationError(
+        `${fieldName} must not exceed ${options.maxLength} characters`
+      );
+    }
+
+    if (options?.pattern && !options.pattern.test(trimmed)) {
+      throw new ValidationError(`${fieldName} format is invalid`);
+    }
+
+    return trimmed;
+  }
+
+  /**
+   * Handle errors in a consistent way with improved error differentiation
    */
   protected async handleRepositoryError<T>(
     operation: () => Promise<T>,
-    errorMessage: string
+    errorMessage: string,
+    entityName?: string
   ): Promise<T> {
     try {
       return await operation();
     } catch (error) {
+      // Re-throw validation errors
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+
+      // Re-throw not found errors
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
+
       // Re-throw business errors (like "not found")
       if (error instanceof Error && error.message.includes("not found")) {
         throw error;
       }
 
+      // Log and wrap unexpected errors
       repositoryLogger.error(error, errorMessage);
-      throw new Error(errorMessage);
+      throw new RepositoryError(
+        errorMessage,
+        error instanceof Error ? error : undefined
+      );
     }
   }
 
@@ -70,6 +146,23 @@ export abstract class BaseRepository {
   ): void {
     if (affectedCount === 0) {
       throw new Error(notFoundMessage);
+    }
+  }
+
+  /**
+   * Safe operation wrapper that catches and logs errors without throwing
+   * Useful for optional operations
+   */
+  protected async safeOperation<T>(
+    operation: () => Promise<T>,
+    defaultValue: T,
+    errorMessage: string
+  ): Promise<T> {
+    try {
+      return await operation();
+    } catch (error) {
+      repositoryLogger.warn(error, errorMessage);
+      return defaultValue;
     }
   }
 }

@@ -1,40 +1,35 @@
 import { MovieModel } from "@/api/v1/movies/infrastructure/persistence/models/MovieModel";
 import {
+  BaseEntity,
   Column,
-  DataType,
-  ForeignKey,
-  Model,
-  Table,
-} from "sequelize-typescript";
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+} from "typeorm";
 import { CollectionModel } from "./CollectionModel";
 
-@Table({ tableName: "Collection_Movie", timestamps: false })
-export class CollectionMovieModel extends Model {
-  @ForeignKey(() => CollectionModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: "collection_id",
-    onDelete: "CASCADE",
-    primaryKey: true,
-  })
+@Entity({ name: "Collection_Movie" })
+export class CollectionMovieModel extends BaseEntity {
+  @PrimaryColumn({ type: "varchar", nullable: false, name: "collection_id" })
   collectionId!: string;
 
-  @ForeignKey(() => MovieModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: "movie_id",
-    onDelete: "CASCADE",
-    primaryKey: true,
-  })
+  @PrimaryColumn({ type: "varchar", nullable: false, name: "movie_id" })
   movieId!: string;
 
   @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    field: "custom_order",
-    defaultValue: 0,
+    type: "integer",
+    nullable: false,
+    default: 0,
+    name: "custom_order",
   })
   customOrder!: number;
+
+  @ManyToOne(() => CollectionModel, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "collection_id" })
+  collection!: CollectionModel;
+
+  @ManyToOne(() => MovieModel, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "movie_id" })
+  movie!: MovieModel;
 }

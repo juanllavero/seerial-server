@@ -1,6 +1,4 @@
-import { ArtistModel } from "@/api/v1/artists/infrastructure/persistence/models/ArtistModel";
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
-import { SongModel } from "@/api/v1/songs/infrastructure/persistence/models/SongModel";
 import { v4 as uuidv4 } from "uuid";
 import { AlbumsRepositoryPort } from "../../../application/ports/AlbumsRepositoryPort";
 import { Album } from "../../../domain/Album";
@@ -15,10 +13,10 @@ export class AlbumsRepositoryImpl
     const validatedId = this.validateId(libraryId, "Library ID");
 
     return this.handleRepositoryError(async () => {
-      const albums = await AlbumModel.findAll({
+      const albums = await AlbumModel.find({
         where: { libraryId: validatedId },
       });
-      return albums.map((album) => album.toJSON() as Album);
+      return albums.map((album) => album as unknown as Album);
     }, `Failed to retrieve albums for library ${libraryId}`);
   }
 
@@ -26,16 +24,17 @@ export class AlbumsRepositoryImpl
     const validatedId = this.validateId(id, "Album ID");
 
     return this.handleRepositoryError(async () => {
-      const includeOptions = [
-        { model: ArtistModel, as: "artists" },
-        ...(includeSongs ? [{ model: SongModel, as: "songs" }] : []),
-      ];
+      const relations = ["artists"];
+      if (includeSongs) {
+        relations.push("songs");
+      }
 
-      const album = await AlbumModel.findByPk(validatedId, {
-        include: includeOptions,
+      const album = await AlbumModel.findOne({
+        where: { id: validatedId },
+        relations,
       });
 
-      return album ? (album.toJSON() as Album) : null;
+      return album ? (album as unknown as Album) : null;
     }, `Failed to retrieve album with ID ${id}`);
   }
 
@@ -57,8 +56,9 @@ export class AlbumsRepositoryImpl
         id: album.id || uuidv4().split("-")[0],
       };
 
-      const createdAlbum = await AlbumModel.create(dataToCreate as any);
-      return createdAlbum.toJSON() as Album;
+      const createdAlbum = AlbumModel.create(dataToCreate);
+      await createdAlbum.save();
+      return createdAlbum as unknown as Album;
     }, "Failed to create album");
   }
 
@@ -67,11 +67,12 @@ export class AlbumsRepositoryImpl
     this.validateData(data, "Update data");
 
     return this.handleRepositoryError(async () => {
-      const [affectedCount] = await AlbumModel.update(data as any, {
-        where: { id: validatedId },
-      });
+      const result = await AlbumModel.update({ id: validatedId }, data);
 
-      this.ensureAffected(affectedCount, `Album with ID ${id} not found`);
+      this.ensureAffected(
+        result.affected || 0,
+        `Album with ID ${id} not found`
+      );
 
       const updatedAlbum = await this.findById(id, false);
       if (!updatedAlbum) {
@@ -86,11 +87,12 @@ export class AlbumsRepositoryImpl
     const validatedId = this.validateId(id, "Album ID");
 
     await this.handleRepositoryError(async () => {
-      const affectedCount = await AlbumModel.destroy({
-        where: { id: validatedId },
-      });
+      const result = await AlbumModel.delete({ id: validatedId });
 
-      this.ensureAffected(affectedCount, `Album with ID ${id} not found`);
+      this.ensureAffected(
+        result.affected || 0,
+        `Album with ID ${id} not found`
+      );
     }, `Failed to delete album with ID ${id}`);
   }
 
@@ -110,17 +112,18 @@ export class AlbumsRepositoryImpl
       });
 
       if (existingRelation) {
-        return existingRelation.toJSON();
+        return existingRelation as any;
       }
 
       // Create new relation
-      const newRelation = await AlbumArtistModel.create({
+      const newRelation = AlbumArtistModel.create({
         id: uuidv4().split("-")[0],
         artistId: validated.artistId,
         albumId: validated.albumId,
-      } as any);
+      });
+      await newRelation.save();
 
-      return newRelation.toJSON();
+      return newRelation as any;
     }, `Failed to add artist ${artistId} to album ${albumId}`);
   }
 
@@ -131,15 +134,13 @@ export class AlbumsRepositoryImpl
     const validated = this.validateIds({ artistId, albumId });
 
     await this.handleRepositoryError(async () => {
-      const affectedCount = await AlbumArtistModel.destroy({
-        where: {
-          artistId: validated.artistId,
-          albumId: validated.albumId,
-        },
+      const result = await AlbumArtistModel.delete({
+        artistId: validated.artistId,
+        albumId: validated.albumId,
       });
 
       this.ensureAffected(
-        affectedCount,
+        result.affected || 0,
         `Relation between artist ${artistId} and album ${albumId} not found`
       );
     }, `Failed to remove artist ${artistId} from album ${albumId}`);

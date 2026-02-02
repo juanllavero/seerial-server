@@ -1,142 +1,140 @@
 import { UserModel } from "@/api/v1/users/infrastructure/persistence/models/UserModel";
 import {
+  BaseEntity,
+  BeforeInsert,
   Column,
-  DataType,
-  HasMany,
-  IsIn,
-  Model,
-  PrimaryKey,
-  Table,
-} from "sequelize-typescript";
+  Entity,
+  OneToMany,
+  PrimaryColumn,
+} from "typeorm";
+import { v4 as uuidv4 } from "uuid";
 
-@Table({ tableName: "Server", timestamps: false })
-export class ServerModel extends Model {
-  @PrimaryKey
-  @Column({
-    type: DataType.STRING,
-    defaultValue: () => require("uuid").v4().split("-")[0],
-    allowNull: false,
-  })
+@Entity({ name: "Server" })
+export class ServerModel extends BaseEntity {
+  @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @Column({ type: DataType.STRING, allowNull: false })
+  @Column({ type: "varchar", nullable: false })
   name!: string;
 
   // HTTP port configuration
   @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    defaultValue: 34200,
-    field: "http_port",
+    type: "integer",
+    nullable: false,
+    default: 34200,
+    name: "http_port",
   })
   httpPort!: number;
 
   // HTTPS port configuration
   @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    defaultValue: 34400,
-    field: "https_port",
+    type: "integer",
+    nullable: false,
+    default: 34400,
+    name: "https_port",
   })
   httpsPort!: number;
 
   // Tunnel configuration
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    defaultValue: false,
-    field: "tunnel_enabled",
+    type: "boolean",
+    nullable: false,
+    default: false,
+    name: "tunnel_enabled",
   })
   tunnelEnabled!: boolean;
 
-  @Column({ type: DataType.STRING, allowNull: true, field: "tunnel_url" })
+  @Column({ type: "varchar", nullable: true, name: "tunnel_url" })
   tunnelUrl?: string;
 
   // HTTPS enablement and certificate configuration
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    defaultValue: false,
-    field: "https_enabled",
+    type: "boolean",
+    nullable: false,
+    default: false,
+    name: "https_enabled",
   })
   httpsEnabled!: boolean;
 
-  @Column({ type: DataType.STRING, allowNull: true, field: "ssl_cert_path" })
+  @Column({ type: "varchar", nullable: true, name: "ssl_cert_path" })
   sslCertPath?: string;
 
-  @Column({ type: DataType.STRING, allowNull: true, field: "ssl_key_path" })
+  @Column({ type: "varchar", nullable: true, name: "ssl_key_path" })
   sslKeyPath?: string;
 
-  @Column({ type: DataType.STRING, allowNull: true, field: "ssl_password" }) // Store securely in application logic (e.g., encrypted)
+  @Column({ type: "varchar", nullable: true, name: "ssl_password" }) // Store securely in application logic (e.g., encrypted)
   sslPassword?: string;
 
   // Custom URL for access
-  @Column({ type: DataType.STRING, allowNull: true, field: "custom_url" })
+  @Column({ type: "varchar", nullable: true, name: "custom_url" })
   customUrl?: string;
 
   // Proxy hosts for X-Forwarded-For
-  @Column({ type: DataType.STRING, allowNull: true, field: "proxy_hosts" }) // Comma-separated list
+  @Column({ type: "varchar", nullable: true, name: "proxy_hosts" }) // Comma-separated list
   proxyHosts?: string;
 
   // Force HTTPS
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    defaultValue: false,
-    field: "force_https",
+    type: "boolean",
+    nullable: false,
+    default: false,
+    name: "force_https",
   })
   forceHttps!: boolean;
 
   // Remote access options
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    defaultValue: true,
-    field: "allow_remote_connections",
+    type: "boolean",
+    nullable: false,
+    default: true,
+    name: "allow_remote_connections",
   })
   allowRemoteConnections!: boolean;
 
-  @Column({ type: DataType.STRING, allowNull: true, field: "remote_ip_filter" }) // Comma-separated IPs or IP/mask
+  @Column({ type: "varchar", nullable: true, name: "remote_ip_filter" }) // Comma-separated IPs or IP/mask
   remoteIpFilter?: string;
 
-  @IsIn([["whitelist", "blacklist"]])
   @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    defaultValue: "whitelist",
-    field: "remote_ip_filter_mode",
+    type: "varchar",
+    nullable: false,
+    default: "whitelist",
+    name: "remote_ip_filter_mode",
   })
   remoteIpFilterMode!: string;
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    defaultValue: false,
-    field: "enable_auto_port_mapping",
+    type: "boolean",
+    nullable: false,
+    default: false,
+    name: "enable_auto_port_mapping",
   })
   enableAutoPortMapping!: boolean;
 
   @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    defaultValue: 34200,
-    field: "public_http_port",
+    type: "integer",
+    nullable: false,
+    default: 34200,
+    name: "public_http_port",
   })
   publicHttpPort!: number;
 
   @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    defaultValue: 34400,
-    field: "public_https_port",
+    type: "integer",
+    nullable: false,
+    default: 34400,
+    name: "public_https_port",
   })
   publicHttpsPort!: number;
 
   // Associations
-  @HasMany(() => UserModel, {
-    foreignKey: "serverId",
-    onDelete: "CASCADE",
-    hooks: true,
-  })
+  @OneToMany(() => UserModel, (user) => user.server)
   users!: UserModel[];
+
+  // Lifecycle hooks
+  @BeforeInsert()
+  generateId() {
+    if (!this.id) {
+      this.id = uuidv4().split("-")[0];
+    }
+  }
 }

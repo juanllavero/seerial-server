@@ -1,99 +1,96 @@
 import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryModel";
 import { ServerModel } from "@/api/v1/servers/infrastructure/persistence/models/ServerModel";
 import {
-  BelongsTo,
-  BelongsToMany,
+  BaseEntity,
+  BeforeInsert,
   Column,
-  DataType,
-  ForeignKey,
-  IsIn,
-  Model,
-  PrimaryKey,
-  Table,
-} from "sequelize-typescript";
-import { UserLibraryModel } from "./UserLibraryModel";
+  Entity,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  PrimaryColumn,
+} from "typeorm";
+import { v4 as uuidv4 } from "uuid";
 
-@Table({ tableName: "User", timestamps: false })
-export class UserModel extends Model {
-  @PrimaryKey
-  @Column({
-    type: DataType.STRING,
-    defaultValue: () => require("uuid").v4().split("-")[0],
-    allowNull: false,
-  })
+@Entity({ name: "User" })
+export class UserModel extends BaseEntity {
+  @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @Column({ type: DataType.STRING, allowNull: false, unique: true })
+  @Column({ type: "varchar", nullable: false, unique: true })
   username!: string;
 
-  @Column({ type: DataType.STRING, allowNull: true }) // Store hashed password
+  @Column({ type: "varchar", nullable: true }) // Store hashed password
   password?: string;
 
-  @Column({ type: DataType.STRING, allowNull: true })
+  @Column({ type: "varchar", nullable: true })
   avatar?: string;
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    defaultValue: true,
-    field: "allow_remote",
+    type: "boolean",
+    nullable: false,
+    default: true,
+    name: "allow_remote",
   })
   allowRemote!: boolean;
 
-  @IsIn([["admin", "normal"]])
-  @Column({ type: DataType.STRING, allowNull: false, defaultValue: "normal" })
+  @Column({ type: "varchar", nullable: false, default: "normal" })
   type!: string;
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    defaultValue: true,
-    field: "allow_video_transcoding",
+    type: "boolean",
+    nullable: false,
+    default: true,
+    name: "allow_video_transcoding",
   })
   allowVideoTranscoding!: boolean;
 
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: true,
-    field: "internet_bitrate_limit",
-  }) // In Mbps
+  @Column({ type: "integer", nullable: true, name: "internet_bitrate_limit" }) // In Mbps
   internetBitrateLimit?: number;
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    defaultValue: true,
-    field: "allow_downloads",
+    type: "boolean",
+    nullable: false,
+    default: true,
+    name: "allow_downloads",
   })
   allowDownloads!: boolean;
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    defaultValue: false,
-    field: "hide_in_login",
+    type: "boolean",
+    nullable: false,
+    default: false,
+    name: "hide_in_login",
   })
   hideInLogin!: boolean;
 
   @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    defaultValue: 0,
-    field: "max_sessions",
+    type: "integer",
+    nullable: false,
+    default: 0,
+    name: "max_sessions",
   }) // 0 for unlimited
   maxSessions!: number;
 
-  // Associations
-  @ForeignKey(() => ServerModel)
-  @Column({ type: DataType.STRING, allowNull: false, field: "server_id" })
+  @Column({ type: "varchar", nullable: false, name: "server_id" })
   serverId!: string;
 
-  @BelongsTo(() => ServerModel)
+  @ManyToOne(() => ServerModel, { onDelete: "CASCADE" })
   server!: ServerModel;
 
-  @BelongsToMany(() => LibraryModel, {
-    through: () => UserLibraryModel,
-    hooks: true,
+  @ManyToMany(() => LibraryModel, (library) => library.users)
+  @JoinTable({
+    name: "UserLibrary",
+    joinColumn: { name: "userId", referencedColumnName: "id" },
+    inverseJoinColumn: { name: "libraryId", referencedColumnName: "id" },
   })
   libraries!: LibraryModel[];
+
+  // Lifecycle hooks
+  @BeforeInsert()
+  generateId() {
+    if (!this.id) {
+      this.id = uuidv4().split("-")[0];
+    }
+  }
 }

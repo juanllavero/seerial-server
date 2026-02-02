@@ -1,6 +1,5 @@
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
 import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/VideoModel";
-import { WatchListModel } from "@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel";
 import { MoviesRepositoryPort } from "../../../application/ports/MoviesRepositoryPort";
 import { Movie } from "../../../domain/Movie";
 import { MovieModel } from "../models/MovieModel";
@@ -13,10 +12,10 @@ export class MoviesRepositoryImpl
     const validatedLibraryId = this.validateId(libraryId, "Library ID");
 
     return this.handleRepositoryError(async () => {
-      const movies = await MovieModel.findAll({
+      const movies = await MovieModel.find({
         where: { libraryId: validatedLibraryId },
       });
-      return movies.map((m) => m.toJSON() as Movie);
+      return movies.map((m) => m as unknown as Movie);
     }, "Failed to retrieve movies");
   }
 
@@ -24,18 +23,11 @@ export class MoviesRepositoryImpl
     const validatedId = this.validateId(id, "Movie ID");
 
     return this.handleRepositoryError(async () => {
-      const movie = await MovieModel.findByPk(validatedId, {
-        include: [
-          {
-            model: VideoModel,
-            as: "videos",
-            include: [{ model: WatchListModel, as: "watchLists" }],
-          },
-          { model: VideoModel, as: "extras" },
-          { model: WatchListModel, as: "watchLists" },
-        ],
+      const movie = await MovieModel.findOne({
+        where: { id: validatedId },
+        relations: ["videos", "videos.watchLists", "extras", "watchLists"],
       });
-      return movie ? (movie.toJSON() as Movie) : null;
+      return movie ? (movie as unknown as Movie) : null;
     }, `Failed to find movie with ID ${id}`);
   }
 
@@ -51,8 +43,8 @@ export class MoviesRepositoryImpl
         return null;
       }
 
-      const movie = await MovieModel.findByPk(video.movieId);
-      return movie ? (movie.toJSON() as Movie) : null;
+      const movie = await MovieModel.findOne({ where: { id: video.movieId } });
+      return movie ? (movie as unknown as Movie) : null;
     }, `Failed to find movie with video source path ${videoSrc}`);
   }
 
@@ -61,16 +53,18 @@ export class MoviesRepositoryImpl
 
     return this.handleRepositoryError(async () => {
       if (data.id) {
-        const existingMovie = await MovieModel.findByPk(data.id);
+        const existingMovie = await MovieModel.findOne({
+          where: { id: data.id },
+        });
         if (existingMovie) {
-          return existingMovie;
+          return existingMovie as unknown as Movie;
         }
       }
 
-      const movie = await MovieModel.create(data as any);
+      const movie = MovieModel.create(data);
       await movie.save();
 
-      return movie.toJSON() as Movie;
+      return movie as unknown as Movie;
     }, "Failed to create movie");
   }
 
@@ -79,18 +73,21 @@ export class MoviesRepositoryImpl
     this.validateData(data, "Update data");
 
     return this.handleRepositoryError(async () => {
-      const [affectedCount] = await MovieModel.update(data as any, {
+      const result = await MovieModel.update({ id: validatedId }, data);
+
+      this.ensureAffected(
+        result.affected || 0,
+        `Movie with ID ${id} not found`
+      );
+
+      const updatedMovie = await MovieModel.findOne({
         where: { id: validatedId },
       });
-
-      this.ensureAffected(affectedCount, `Movie with ID ${id} not found`);
-
-      const updatedMovie = await MovieModel.findByPk(id);
       if (!updatedMovie) {
         throw new Error(`Failed to retrieve updated movie with ID ${id}`);
       }
 
-      return updatedMovie.toJSON() as Movie;
+      return updatedMovie as unknown as Movie;
     }, `Failed to update movie with ID ${id}`);
   }
 
@@ -98,11 +95,12 @@ export class MoviesRepositoryImpl
     const validatedId = this.validateId(id, "Movie ID");
 
     await this.handleRepositoryError(async () => {
-      const affectedCount = await MovieModel.destroy({
-        where: { id: validatedId },
-      });
+      const result = await MovieModel.delete({ id: validatedId });
 
-      this.ensureAffected(affectedCount, `Movie with ID ${id} not found`);
+      this.ensureAffected(
+        result.affected || 0,
+        `Movie with ID ${id} not found`
+      );
     }, `Failed to delete movie with ID ${id}`);
   }
 }

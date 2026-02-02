@@ -2,132 +2,106 @@ import { EpisodeModel } from "@/api/v1/episodes/infrastructure/persistence/model
 import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/SeriesModel";
 import { WatchListModel } from "@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel";
 import {
-  BelongsTo,
+  BaseEntity,
+  BeforeInsert,
   Column,
-  DataType,
-  ForeignKey,
-  HasMany,
-  Model,
-  PrimaryKey,
-  Table,
-} from "sequelize-typescript";
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryColumn,
+} from "typeorm";
+import { v4 as uuidv4 } from "uuid";
 
-@Table({ tableName: "Season", timestamps: false })
-export class SeasonModel extends Model {
-  @PrimaryKey
-  @Column({
-    type: DataType.STRING,
-    defaultValue: () => require("uuid").v4().split("-")[0],
-    allowNull: false,
-  })
+@Entity({ name: "Season" })
+export class SeasonModel extends BaseEntity {
+  @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @ForeignKey(() => SeriesModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: "series_id",
-  })
+  @Column({ type: "varchar", nullable: false, name: "series_id" })
   seriesId!: string;
 
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    defaultValue: 0,
-  })
+  @Column({ type: "integer", nullable: false, default: 0 })
   order!: number;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    defaultValue: "",
-  })
+  @Column({ type: "varchar", nullable: false, default: "" })
   name!: string;
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    field: "name_lock",
-    defaultValue: false,
+    type: "boolean",
+    nullable: false,
+    default: false,
+    name: "name_lock",
   })
   nameLock!: boolean;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    defaultValue: "",
-  })
+  @Column({ type: "varchar", nullable: false, default: "" })
   year!: string;
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    field: "year_lock",
-    defaultValue: false,
+    type: "boolean",
+    nullable: false,
+    default: false,
+    name: "year_lock",
   })
   yearLock!: boolean;
 
-  @Column({
-    type: DataType.TEXT,
-    allowNull: false,
-    defaultValue: "",
-  })
+  @Column({ type: "text", nullable: false, default: "" })
   overview!: string;
 
   @Column({
-    type: DataType.BOOLEAN,
-    allowNull: false,
-    field: "overview_lock",
-    defaultValue: false,
+    type: "boolean",
+    nullable: false,
+    default: false,
+    name: "overview_lock",
   })
   overviewLock!: boolean;
 
   @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    field: "season_number",
-    defaultValue: 0,
+    type: "integer",
+    nullable: false,
+    default: 0,
+    name: "season_number",
   })
   seasonNumber!: number;
 
   @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: "background_src",
-    defaultValue: "",
+    type: "varchar",
+    nullable: false,
+    default: "",
+    name: "background_src",
   })
   backgroundSrc!: string;
 
   @Column({
-    type: DataType.JSON,
-    allowNull: false,
-    field: "background_urls",
-    defaultValue: [],
+    type: "simple-json",
+    nullable: false,
+    default: "[]",
+    name: "background_urls",
   })
   backgroundsUrls!: string[];
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: "video_src",
-    defaultValue: "",
-  })
+  @Column({ type: "varchar", nullable: false, default: "", name: "video_src" })
   videoSrc!: string;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: "music_src",
-    defaultValue: "",
-  })
+  @Column({ type: "varchar", nullable: false, default: "", name: "music_src" })
   musicSrc!: string;
 
-  @BelongsTo(() => SeriesModel, { onDelete: "CASCADE" })
+  @ManyToOne(() => SeriesModel, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "series_id" })
   series!: SeriesModel;
 
-  @HasMany(() => EpisodeModel)
+  @OneToMany(() => EpisodeModel, (episode) => episode.season)
   episodes!: EpisodeModel[];
 
-  @HasMany(() => WatchListModel)
+  @OneToMany(() => WatchListModel, (watchList) => watchList.season)
   watchLists!: WatchListModel[];
+
+  // Lifecycle hooks
+  @BeforeInsert()
+  generateId() {
+    if (!this.id) {
+      this.id = uuidv4().split("-")[0];
+    }
+  }
 }

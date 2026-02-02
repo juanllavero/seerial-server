@@ -1,40 +1,35 @@
 import { CollectionModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionModel";
 import {
+  BaseEntity,
   Column,
-  DataType,
-  ForeignKey,
-  Model,
-  Table,
-} from "sequelize-typescript";
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryColumn,
+} from "typeorm";
 import { LibraryModel } from "./LibraryModel";
 
-@Table({ tableName: "Library_Collection", timestamps: false })
-export class LibraryCollectionModel extends Model {
-  @ForeignKey(() => LibraryModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: "library_id",
-    onDelete: "CASCADE",
-    primaryKey: true,
-  })
+@Entity({ name: "Library_Collection" })
+export class LibraryCollectionModel extends BaseEntity {
+  @PrimaryColumn({ type: "varchar", nullable: false, name: "library_id" })
   libraryId!: string;
 
-  @ForeignKey(() => CollectionModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: "collection_id",
-    onDelete: "CASCADE",
-    primaryKey: true,
-  })
+  @PrimaryColumn({ type: "varchar", nullable: false, name: "collection_id" })
   collectionId!: string;
 
   @Column({
-    type: DataType.INTEGER,
-    allowNull: false,
-    field: "custom_order",
-    defaultValue: 0,
+    type: "integer",
+    nullable: false,
+    default: 0,
+    name: "custom_order",
   })
   customOrder!: number;
+
+  @ManyToOne(() => LibraryModel, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "library_id" })
+  library!: LibraryModel;
+
+  @ManyToOne(() => CollectionModel, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "collection_id" })
+  collection!: CollectionModel;
 }

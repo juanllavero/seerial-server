@@ -1,13 +1,11 @@
 import { AlbumModel } from "@/api/v1/albums/infrastructure/persistence/models/AlbumModel";
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
-import { CollectionModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionModel";
 import { EpisodeModel } from "@/api/v1/episodes/infrastructure/persistence/models/EpisodeModel";
 import { MovieModel } from "@/api/v1/movies/infrastructure/persistence/models/MovieModel";
 import { SeasonModel } from "@/api/v1/seasons/infrastructure/persistence/models/SeasonModel";
 import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/SeriesModel";
-import { SequelizeManager } from "@/api/v1/shared/infrastructure/persistence/SequelizeManager";
+import { DatabaseManager } from "@/api/v1/shared/infrastructure/persistence/DatabaseManager";
 import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/VideoModel";
-import { WatchListModel } from "@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import { LibraryItem, LibraryTypes } from "@/data/interfaces/Media";
@@ -27,81 +25,29 @@ export class LibrariesRepositoryImpl
   implements LibrariesRepositoryPort
 {
   async getAll() {
-    return LibraryModel.findAll({
-      order: [["order", "ASC"]],
-    }).then((libraries) =>
-      libraries.map((library) => library.toJSON() as Library)
-    );
+    const libraries = await LibraryModel.find({
+      order: { order: "ASC" },
+    });
+
+    return libraries.map((library) => library as unknown as Library);
   }
 
   async getContent(libraryId: string, userId: string): Promise<LibraryItem[]> {
     const library = await LibraryModel.findOne({
       where: { id: libraryId },
-      include: [
-        {
-          model: SeriesModel,
-          as: "series",
-          order: [["order", "ASC"]],
-          include: [
-            {
-              model: SeasonModel,
-              as: "seasons",
-              include: [
-                {
-                  model: EpisodeModel,
-                  as: "episodes",
-                  include: [
-                    {
-                      model: WatchListModel,
-                      as: "watchLists",
-                      where: { userId },
-                      required: false,
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-        {
-          model: MovieModel,
-          as: "movies",
-          order: [["order", "ASC"]],
-          include: [
-            {
-              model: VideoModel,
-              as: "videos",
-            },
-          ],
-        },
-        {
-          model: AlbumModel,
-          as: "albums",
-          order: [["order", "ASC"]],
-        },
-        {
-          model: CollectionModel,
-          as: "collections",
-          order: [["order", "ASC"]],
-          include: [
-            {
-              model: MovieModel,
-              as: "movies",
-            },
-            {
-              model: SeriesModel,
-              as: "shows",
-            },
-            {
-              model: AlbumModel,
-              as: "albums",
-            },
-            {
-              model: LibraryCollectionModel,
-              as: "LibraryCollection",
-            },
-          ],
-        },
+      relations: [
+        "series",
+        "series.seasons",
+        "series.seasons.episodes",
+        "series.seasons.episodes.watchLists",
+        "movies",
+        "movies.videos",
+        "albums",
+        "collections",
+        "collections.movies",
+        "collections.shows",
+        "collections.albums",
+        "collections.libraries",
       ],
     });
 
@@ -115,9 +61,20 @@ export class LibrariesRepositoryImpl
     for (const collection of collections) {
       const years = this.calculateYearsForCollection(collection);
       const numberOfItems =
-        collection.movies?.length +
-          collection.shows?.length +
-          collection.albums?.length || 0;
+        (collection.movies?.length || 0) +
+        (collection.shows?.length || 0) +
+        (collection.albums?.length || 0);
+
+      // Find the junction table entry to get customOrder
+      const libraryCollectionRepo = DatabaseManager.getRepository(
+        LibraryCollectionModel
+      );
+      const libraryCollection = await libraryCollectionRepo.findOne({
+        where: {
+          libraryId: libraryId,
+          collectionId: collection.id,
+        },
+      });
 
       items.push({
         id: collection.id,
@@ -125,9 +82,7 @@ export class LibrariesRepositoryImpl
         years: years,
         coverSrc: collection.posterSrc || collection.musicPosterSrc || "",
         numberOfItems,
-        order:
-          collection.LibraryCollection?.find((lc) => lc.libraryId === libraryId)
-            ?.customOrder || 0,
+        order: libraryCollection?.customOrder || 0,
         watched: false, // Collections don't have watch state
         remainingItems: 0,
         analyzingFiles: false, // Collections don't have analyzingFiles
@@ -309,13 +264,15 @@ export class LibrariesRepositoryImpl
 
   async getById(id: string) {
     try {
-      const library = await LibraryModel.findByPk(id);
+      const library = await LibraryModel.findOne({
+        where: { id },
+      });
 
       if (!library) {
         return null;
       }
 
-      return library.toJSON() as Library;
+      return library as unknown as Library;
     } catch (error: any) {
       logger.error(error, "Error fetching library");
       return null;
@@ -326,21 +283,24 @@ export class LibrariesRepositoryImpl
     const validatedId = this.validateId(albumId, "Album ID");
 
     return this.handleRepositoryError(async () => {
-      const album = await AlbumModel.findByPk(validatedId, {
-        attributes: ["libraryId"],
+      const album = await AlbumModel.findOne({
+        where: { id: validatedId },
+        select: ["libraryId"],
       });
 
       if (!album || !album.libraryId) {
         return null;
       }
 
-      const library = await LibraryModel.findByPk(album.libraryId);
+      const library = await LibraryModel.findOne({
+        where: { id: album.libraryId },
+      });
 
       if (!library) {
         return null;
       }
 
-      return library.toJSON() as Library;
+      return library as unknown as Library;
     }, `Failed to find library by album ID ${albumId}`);
   }
 
@@ -348,21 +308,24 @@ export class LibrariesRepositoryImpl
     const validatedId = this.validateId(movieId, "Movie ID");
 
     return this.handleRepositoryError(async () => {
-      const movie = await MovieModel.findByPk(validatedId, {
-        attributes: ["libraryId"],
+      const movie = await MovieModel.findOne({
+        where: { id: validatedId },
+        select: ["libraryId"],
       });
 
       if (!movie || !movie.libraryId) {
         return null;
       }
 
-      const library = await LibraryModel.findByPk(movie.libraryId);
+      const library = await LibraryModel.findOne({
+        where: { id: movie.libraryId },
+      });
 
       if (!library) {
         return null;
       }
 
-      return library.toJSON() as Library;
+      return library as unknown as Library;
     }, `Failed to find library by movie ID ${movieId}`);
   }
 
@@ -370,21 +333,24 @@ export class LibrariesRepositoryImpl
     const validatedId = this.validateId(seriesId, "Series ID");
 
     return this.handleRepositoryError(async () => {
-      const series = await SeriesModel.findByPk(validatedId, {
-        attributes: ["libraryId"],
+      const series = await SeriesModel.findOne({
+        where: { id: validatedId },
+        select: ["libraryId"],
       });
 
       if (!series || !series.libraryId) {
         return null;
       }
 
-      const library = await LibraryModel.findByPk(series.libraryId);
+      const library = await LibraryModel.findOne({
+        where: { id: series.libraryId },
+      });
 
       if (!library) {
         return null;
       }
 
-      return library.toJSON() as Library;
+      return library as unknown as Library;
     }, `Failed to find library by series ID ${seriesId}`);
   }
 
@@ -392,93 +358,108 @@ export class LibrariesRepositoryImpl
     const validatedId = this.validateId(seasonId, "Season ID");
 
     return this.handleRepositoryError(async () => {
-      const season = await SeasonModel.findByPk(validatedId, {
-        attributes: ["libraryId"],
+      const season = await SeasonModel.findOne({
+        where: { id: validatedId },
+        relations: ["series"],
       });
 
-      if (!season) {
+      if (!season || !season.series) {
         return null;
       }
 
-      const series = await SeriesModel.findByPk(validatedId, {
-        attributes: ["libraryId"],
+      const library = await LibraryModel.findOne({
+        where: { id: season.series.libraryId },
       });
-
-      if (!series || !series.libraryId) {
-        return null;
-      }
-
-      const library = await LibraryModel.findByPk(series.libraryId);
 
       if (!library) {
         return null;
       }
 
-      return library.toJSON() as Library;
+      return library as unknown as Library;
     }, `Failed to find library by season ID ${seasonId}`);
   }
 
   async getByVideoId(videoId: string) {
-    const video = await VideoModel.findByPk(videoId);
+    const video = await VideoModel.findOne({
+      where: { id: videoId },
+    });
 
     if (!video) return null;
 
-    let element: EpisodeModel | MovieModel | null = video.episodeId
-      ? await EpisodeModel.findByPk(video.episodeId)
-      : await MovieModel.findByPk(video.movieId ?? video.extraId ?? "");
+    let element: EpisodeModel | MovieModel | null = null;
+
+    if (video.episodeId) {
+      element = await EpisodeModel.findOne({
+        where: { id: video.episodeId },
+      });
+    } else if (video.movieId || video.extraId) {
+      element = await MovieModel.findOne({
+        where: { id: video.movieId ?? video.extraId ?? "" },
+      });
+    }
 
     if (!element) return null;
 
     if (element instanceof EpisodeModel) {
-      const season = await SeasonModel.findByPk(element.seasonId);
+      const season = await SeasonModel.findOne({
+        where: { id: element.seasonId },
+      });
 
       if (!season) return null;
 
-      const series = await SeriesModel.findByPk(season.seriesId);
+      const series = await SeriesModel.findOne({
+        where: { id: season.seriesId },
+      });
 
       if (!series) return null;
 
-      const library = await LibraryModel.findByPk(series.libraryId);
-      return library ? library.toJSON() : null;
+      const library = await LibraryModel.findOne({
+        where: { id: series.libraryId },
+      });
+
+      return library ? (library as unknown as Library) : null;
     }
 
-    const library = await LibraryModel.findByPk(element.libraryId);
-    return library ? library.toJSON() : null;
+    const library = await LibraryModel.findOne({
+      where: { id: element.libraryId },
+    });
+
+    return library ? (library as unknown as Library) : null;
   }
 
   async reorder(orderedLibrariesIds: string[]): Promise<boolean> {
-    if (!SequelizeManager.sequelize) {
+    const dataSource = DatabaseManager.getDataSource();
+
+    if (!dataSource) {
       return false;
     }
 
-    const t = await SequelizeManager.sequelize.transaction();
+    const queryRunner = dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
     try {
-      await LibraryModel.update(
-        { order: 9999 },
-        {
-          where: {},
-          transaction: t,
-        }
-      );
+      // Reset all orders to temporary value
+      await queryRunner.manager.update(LibraryModel, {}, { order: 9999 });
 
+      // Update each library with new order
       for (const [index, libraryId] of orderedLibrariesIds.entries()) {
         const newOrder = index;
 
-        await LibraryModel.update(
-          { order: newOrder },
-          {
-            where: { id: libraryId },
-            transaction: t,
-          }
+        await queryRunner.manager.update(
+          LibraryModel,
+          { id: libraryId },
+          { order: newOrder }
         );
       }
 
-      await t.commit();
+      await queryRunner.commitTransaction();
       return true;
     } catch (error) {
-      await t.rollback();
+      await queryRunner.rollbackTransaction();
       return false;
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -486,43 +467,54 @@ export class LibrariesRepositoryImpl
     libraryId: string,
     orderedItems: { id: string; type: string }[]
   ) {
-    if (!SequelizeManager.sequelize) {
+    const dataSource = DatabaseManager.getDataSource();
+
+    if (!dataSource) {
       return false;
     }
 
-    const t = await SequelizeManager.sequelize.transaction();
+    const queryRunner = dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
     try {
       const tempOrder = 9999;
 
       // Get the library
-      const library = await LibraryModel.findByPk(libraryId);
+      const library = await queryRunner.manager.findOne(LibraryModel, {
+        where: { id: libraryId },
+      });
+
       if (!library) {
-        await t.rollback();
+        await queryRunner.rollbackTransaction();
         return false;
       }
 
-      // Restore the order of the collections
-      await LibraryCollectionModel.update(
-        { customOrder: tempOrder },
-        { where: { libraryId: libraryId }, transaction: t }
+      // Reset the order of the collections
+      await queryRunner.manager.update(
+        LibraryCollectionModel,
+        { libraryId: libraryId },
+        { customOrder: tempOrder }
       );
 
-      // Restore the order of the items
+      // Reset the order of the items based on library type
       if (library.type === "Movies") {
-        await MovieModel.update(
-          { order: tempOrder },
-          { where: { libraryId: libraryId }, transaction: t }
+        await queryRunner.manager.update(
+          MovieModel,
+          { libraryId: libraryId },
+          { order: tempOrder }
         );
       } else if (library.type === "Shows") {
-        await SeriesModel.update(
-          { order: tempOrder },
-          { where: { libraryId: libraryId }, transaction: t }
+        await queryRunner.manager.update(
+          SeriesModel,
+          { libraryId: libraryId },
+          { order: tempOrder }
         );
       } else if (library.type === "Music") {
-        await AlbumModel.update(
-          { order: tempOrder },
-          { where: { libraryId: libraryId }, transaction: t }
+        await queryRunner.manager.update(
+          AlbumModel,
+          { libraryId: libraryId },
+          { order: tempOrder }
         );
       }
 
@@ -532,36 +524,39 @@ export class LibrariesRepositoryImpl
         const newOrder = i;
 
         if (item.type === "collection") {
-          await LibraryCollectionModel.update(
-            { customOrder: newOrder },
-            {
-              where: { libraryId: libraryId, collectionId: item.id },
-              transaction: t,
-            }
+          await queryRunner.manager.update(
+            LibraryCollectionModel,
+            { libraryId: libraryId, collectionId: item.id },
+            { customOrder: newOrder }
           );
         } else if (item.type === "movies") {
-          await MovieModel.update(
-            { order: newOrder },
-            { where: { libraryId: libraryId, id: item.id }, transaction: t }
+          await queryRunner.manager.update(
+            MovieModel,
+            { libraryId: libraryId, id: item.id },
+            { order: newOrder }
           );
         } else if (item.type === "shows") {
-          await SeriesModel.update(
-            { order: newOrder },
-            { where: { libraryId: libraryId, id: item.id }, transaction: t }
+          await queryRunner.manager.update(
+            SeriesModel,
+            { libraryId: libraryId, id: item.id },
+            { order: newOrder }
           );
         } else if (item.type === "albums") {
-          await AlbumModel.update(
-            { order: newOrder },
-            { where: { libraryId: libraryId, id: item.id }, transaction: t }
+          await queryRunner.manager.update(
+            AlbumModel,
+            { libraryId: libraryId, id: item.id },
+            { order: newOrder }
           );
         }
       }
 
-      await t.commit();
+      await queryRunner.commitTransaction();
       return true;
     } catch (error) {
-      await t.rollback();
+      await queryRunner.rollbackTransaction();
       return false;
+    } finally {
+      await queryRunner.release();
     }
   }
 
@@ -581,18 +576,20 @@ export class LibrariesRepositoryImpl
       };
 
       try {
-        // Verifica si el id ya existe
+        // Check if the id already exists
         const existingLibrary = await LibraryModel.findOne({
           where: { id: libraryData.id },
         });
+
         if (existingLibrary) {
           attempts++;
           continue;
         }
 
-        const newLibrary = new LibraryModel(libraryData);
+        const newLibrary = LibraryModel.create(libraryData);
         await newLibrary.save();
-        return newLibrary.toJSON() as Library;
+
+        return newLibrary as unknown as Library;
       } catch (error) {
         libraryRepositoryLogger.error(
           error,
@@ -612,11 +609,9 @@ export class LibrariesRepositoryImpl
   }
 
   async update(id: string, data: Partial<Library>): Promise<Library> {
-    const [affectedCount] = await LibraryModel.update(data, {
-      where: { id },
-    });
+    const result = await LibraryModel.update({ id }, data);
 
-    if (affectedCount === 0) {
+    if (result.affected === 0) {
       throw new ApiError(404, messages.errors.notFound.library);
     }
 
@@ -633,11 +628,9 @@ export class LibrariesRepositoryImpl
   }
 
   async delete(id: string): Promise<boolean> {
-    const affectedCount = await LibraryModel.destroy({
-      where: { id },
-    });
+    const result = await LibraryModel.delete({ id });
 
-    if (affectedCount === 0) {
+    if (result.affected === 0) {
       throw new Error(`Library with ID ${id} not found`);
     }
 
@@ -656,10 +649,9 @@ export class LibrariesRepositoryImpl
     }
 
     await library.addAnalyzedFile(file, videoId);
-
     await library.save();
 
-    return library.toJSON() as Library;
+    return library as unknown as Library;
   }
 
   async removeAnalyzedFile(libraryId: string, file: string): Promise<Library> {
@@ -670,10 +662,9 @@ export class LibrariesRepositoryImpl
     }
 
     await library.removeAnalyzedFile(file);
-
     await library.save();
 
-    return library.toJSON() as Library;
+    return library as unknown as Library;
   }
 
   async addAnalyzedFolder(
@@ -688,10 +679,9 @@ export class LibrariesRepositoryImpl
     }
 
     await library.addAnalyzedFolder(folder, videoId);
-
     await library.save();
 
-    return library.toJSON() as Library;
+    return library as unknown as Library;
   }
 
   async removeAnalyzedFolder(
@@ -705,15 +695,16 @@ export class LibrariesRepositoryImpl
     }
 
     await library.removeAnalyzedFolder(folder);
-
     await library.save();
 
-    return library.toJSON() as Library;
+    return library as unknown as Library;
   }
 
   private async getLibraryModel(id: string): Promise<LibraryModel | null> {
     try {
-      const library = await LibraryModel.findByPk(id);
+      const library = await LibraryModel.findOne({
+        where: { id },
+      });
 
       if (!library) {
         return null;

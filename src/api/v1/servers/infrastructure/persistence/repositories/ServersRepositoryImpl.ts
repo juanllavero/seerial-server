@@ -13,7 +13,7 @@ export class ServersRepositoryImpl
     return this.handleRepositoryError(async () => {
       const server = await ServerModel.findOne();
 
-      return server ? server.toJSON() : null;
+      return server ? (server as unknown as Server) : null;
     }, `Failed to retrieve server config`);
   }
 
@@ -23,10 +23,12 @@ export class ServersRepositoryImpl
     return await this.handleRepositoryError(async () => {
       // Check if server already exists by ID
       if (server.id) {
-        const existingServer = await ServerModel.findByPk(server.id);
+        const existingServer = await ServerModel.findOne({
+          where: { id: server.id },
+        });
         if (existingServer) {
           logger.info(`Server with ID ${server.id} already exists`);
-          return existingServer.toJSON();
+          return existingServer as unknown as Server;
         }
       }
 
@@ -36,8 +38,9 @@ export class ServersRepositoryImpl
         id: server.id || uuidv4().split("-")[0],
       };
 
-      const createdServer = await ServerModel.create(dataToCreate as any);
-      return createdServer ? createdServer.toJSON() : null;
+      const createdServer = ServerModel.create(dataToCreate);
+      await createdServer.save();
+      return createdServer as unknown as Server;
     }, "Failed to create server");
   }
 
@@ -46,18 +49,21 @@ export class ServersRepositoryImpl
     this.validateData(data, "Update data");
 
     return this.handleRepositoryError(async () => {
-      const [affectedCount] = await ServerModel.update(data as any, {
+      const result = await ServerModel.update({ id: validatedId }, data);
+
+      this.ensureAffected(
+        result.affected || 0,
+        `Server with ID ${id} not found`
+      );
+
+      const updatedServer = await ServerModel.findOne({
         where: { id: validatedId },
       });
-
-      this.ensureAffected(affectedCount, `Server with ID ${id} not found`);
-
-      const updatedServer = await ServerModel.findByPk(id);
       if (!updatedServer) {
-        throw new Error(`Failed to retrieve updated album with ID ${id}`);
+        throw new Error(`Failed to retrieve updated server with ID ${id}`);
       }
 
-      return updatedServer.toJSON();
-    }, `Failed to update album with ID ${id}`);
+      return updatedServer as unknown as Server;
+    }, `Failed to update server with ID ${id}`);
   }
 }

@@ -1,5 +1,4 @@
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
-import { SongModel } from "@/api/v1/songs/infrastructure/persistence/models/SongModel";
 import logger from "@/utils/logger";
 import { v4 as uuidv4 } from "uuid";
 import { PlayListRepositoryPort } from "../../../application/ports/PlayListRepositoryPort";
@@ -13,10 +12,10 @@ export class PlayListRepositoryImpl
 {
   async findAll(): Promise<PlayList[]> {
     return this.handleRepositoryError(async () => {
-      const playlists = await PlayListModel.findAll({
-        include: [{ model: SongModel, as: "songs" }],
+      const playlists = await PlayListModel.find({
+        relations: ["songs"],
       });
-      return playlists.map((playlist) => playlist.toJSON() as PlayList);
+      return playlists.map((playlist) => playlist as unknown as PlayList);
     }, "Failed to retrieve playlists");
   }
 
@@ -24,11 +23,12 @@ export class PlayListRepositoryImpl
     const validatedId = this.validateId(id, "PlayList ID");
 
     return this.handleRepositoryError(async () => {
-      const playlist = await PlayListModel.findByPk(validatedId, {
-        include: [{ model: SongModel, as: "songs" }],
+      const playlist = await PlayListModel.findOne({
+        where: { id: validatedId },
+        relations: ["songs"],
       });
 
-      return playlist ? (playlist.toJSON() as PlayList) : null;
+      return playlist ? (playlist as unknown as PlayList) : null;
     }, `Failed to retrieve playlist with ID ${id}`);
   }
 
@@ -51,8 +51,9 @@ export class PlayListRepositoryImpl
         id: playList.id || uuidv4().split("-")[0],
       };
 
-      const createdPlayList = await PlayListModel.create(dataToCreate as any);
-      return createdPlayList.toJSON() as PlayList;
+      const createdPlayList = PlayListModel.create(dataToCreate);
+      await createdPlayList.save();
+      return createdPlayList as unknown as PlayList;
     }, "Failed to create playlist");
   }
 
@@ -61,11 +62,12 @@ export class PlayListRepositoryImpl
     this.validateData(data, "Update data");
 
     return this.handleRepositoryError(async () => {
-      const [affectedCount] = await PlayListModel.update(data as any, {
-        where: { id: validatedId },
-      });
+      const result = await PlayListModel.update({ id: validatedId }, data);
 
-      this.ensureAffected(affectedCount, `PlayList with ID ${id} not found`);
+      this.ensureAffected(
+        result.affected || 0,
+        `PlayList with ID ${id} not found`
+      );
 
       const updatedPlayList = await this.findById(id);
       if (!updatedPlayList) {
@@ -80,11 +82,12 @@ export class PlayListRepositoryImpl
     const validatedId = this.validateId(id, "PlayList ID");
 
     await this.handleRepositoryError(async () => {
-      const affectedCount = await PlayListModel.destroy({
-        where: { id: validatedId },
-      });
+      const result = await PlayListModel.delete({ id: validatedId });
 
-      this.ensureAffected(affectedCount, `PlayList with ID ${id} not found`);
+      this.ensureAffected(
+        result.affected || 0,
+        `PlayList with ID ${id} not found`
+      );
     }, `Failed to delete playlist with ID ${id}`);
   }
 
@@ -106,11 +109,12 @@ export class PlayListRepositoryImpl
       }
 
       // Create new relation
-      await PlayListItemModel.create({
+      const newRelation = PlayListItemModel.create({
         id: uuidv4().split("-")[0],
         playlistId: validated.playlistId,
         songId: validated.songId,
-      } as any);
+      });
+      await newRelation.save();
     }, `Failed to add song ${songId} to playlist ${playlistId}`);
   }
 
@@ -121,15 +125,13 @@ export class PlayListRepositoryImpl
     const validated = this.validateIds({ playlistId, songId });
 
     await this.handleRepositoryError(async () => {
-      const affectedCount = await PlayListItemModel.destroy({
-        where: {
-          playlistId: validated.playlistId,
-          songId: validated.songId,
-        },
+      const result = await PlayListItemModel.delete({
+        playlistId: validated.playlistId,
+        songId: validated.songId,
       });
 
       this.ensureAffected(
-        affectedCount,
+        result.affected || 0,
         `Song ${songId} not found in playlist ${playlistId}`
       );
     }, `Failed to remove song ${songId} from playlist ${playlistId}`);

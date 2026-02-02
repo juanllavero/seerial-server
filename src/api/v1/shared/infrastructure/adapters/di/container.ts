@@ -48,7 +48,7 @@ import { ReorderLibrariesUseCase } from "@/api/v1/libraries/application/usecases
 import { ReorderLibraryItemsUseCase } from "@/api/v1/libraries/application/usecases/ReorderLibraryItemsUseCase";
 import { ScanLibraryUseCase } from "@/api/v1/libraries/application/usecases/ScanLibraryUseCase";
 import { UpdateLibraryUseCase } from "@/api/v1/libraries/application/usecases/UpdateLibraryUseCase";
-import { LibrariesRepositoryImpl } from "@/api/v1/libraries/infrastructure/persistence/repositories/LibraryRepositoryImpl";
+import { LibrariesRepositoryImpl } from "@/api/v1/libraries/infrastructure/persistence/repositories/LibrariesRepositoryImpl";
 import { DeleteMovieDataUseCase } from "@/api/v1/movies/application/usecases/DeleteMovieDataUseCase";
 import { DeleteMovieUseCase } from "@/api/v1/movies/application/usecases/DeleteMovieUseCase";
 import { FindMovieByIdUseCase } from "@/api/v1/movies/application/usecases/FindMovieByIdUseCase";

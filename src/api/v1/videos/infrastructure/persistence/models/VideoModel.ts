@@ -10,173 +10,101 @@ import {
   VideoTrack,
 } from "@/data/interfaces/MediaInfo";
 import {
-  BelongsTo,
+  BaseEntity,
+  BeforeInsert,
   Column,
-  DataType,
-  ForeignKey,
-  HasMany,
-  Model,
-  PrimaryKey,
-  Table,
-} from "sequelize-typescript";
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryColumn,
+} from "typeorm";
+import { v4 as uuidv4 } from "uuid";
 
-@Table({ tableName: "Video", timestamps: false })
-export class VideoModel extends Model {
-  @PrimaryKey
-  @Column({
-    type: DataType.STRING,
-    defaultValue: () => require("uuid").v4().split("-")[0],
-    allowNull: false,
-  })
+@Entity({ name: "Video" })
+export class VideoModel extends BaseEntity {
+  @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    defaultValue: "",
-    field: "title",
-  })
+  @Column({ type: "varchar", nullable: false, default: "", name: "title" })
   title!: string;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: false,
-    field: "file_src",
-  })
+  @Column({ type: "varchar", nullable: false, name: "file_src" })
   fileSrc!: string;
 
-  @Column({
-    type: DataType.INTEGER,
-    defaultValue: 0,
-    allowNull: false,
-  })
+  @Column({ type: "integer", nullable: false, default: 0 })
   runtime!: number;
 
-  @Column({
-    type: DataType.STRING,
-    defaultValue: "",
-    allowNull: false,
-    field: "img_src",
-  })
+  @Column({ type: "varchar", nullable: false, default: "", name: "img_src" })
   imgSrc!: string;
 
   @Column({
-    type: DataType.JSON,
-    defaultValue: [],
-    allowNull: false,
-    field: "img_urls",
+    type: "simple-json",
+    nullable: false,
+    default: "[]",
+    name: "img_urls",
   })
   imgUrls!: string[];
 
-  @Column({
-    type: DataType.JSON,
-    allowNull: true,
-    field: "media_info",
-  })
+  @Column({ type: "simple-json", nullable: true, name: "media_info" })
   mediaInfo?: MediaInfo;
 
-  @Column({
-    type: DataType.JSON,
-    allowNull: true,
-    field: "video_tracks",
-  })
+  @Column({ type: "simple-json", nullable: true, name: "video_tracks" })
   videoTracks?: VideoTrack[];
 
-  @Column({
-    type: DataType.JSON,
-    allowNull: true,
-    field: "subtitle_tracks",
-  })
+  @Column({ type: "simple-json", nullable: true, name: "subtitle_tracks" })
   subtitleTracks?: SubtitleTrack[];
 
-  @Column({
-    type: DataType.JSON,
-    allowNull: true,
-    field: "audio_tracks",
-  })
+  @Column({ type: "simple-json", nullable: true, name: "audio_tracks" })
   audioTracks?: AudioTrack[];
 
-  @Column({
-    type: DataType.JSON,
-    allowNull: true,
-  })
+  @Column({ type: "simple-json", nullable: true })
   chapters?: Chapter[];
 
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: true,
-    field: "selected_audio_track",
-  })
+  @Column({ type: "integer", nullable: true, name: "selected_audio_track" })
   selectedAudioTrack?: number;
 
-  @Column({
-    type: DataType.INTEGER,
-    allowNull: true,
-    field: "selected_subtitle_track",
-  })
+  @Column({ type: "integer", nullable: true, name: "selected_subtitle_track" })
   selectedSubtitleTrack?: number;
 
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    field: "extra_type",
-  })
+  @Column({ type: "varchar", nullable: true, name: "extra_type" })
   extraType?: string;
 
-  @BelongsTo(() => EpisodeModel, {
-    foreignKey: "episodeId",
-    as: "episode",
-    onDelete: "CASCADE",
-    hooks: true,
-  })
+  @ManyToOne(() => EpisodeModel, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "episode_id" })
   episode?: EpisodeModel;
 
-  @ForeignKey(() => EpisodeModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    field: "episode_id",
-    onDelete: "CASCADE",
-  })
+  @Column({ type: "varchar", nullable: true, name: "episode_id" })
   episodeId?: string;
 
-  @BelongsTo(() => MovieModel, {
-    foreignKey: "movieId",
-    as: "movie",
-    onDelete: "CASCADE",
-    hooks: true,
-  })
+  @ManyToOne(() => MovieModel, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "movie_id" })
   movie?: MovieModel;
 
-  @ForeignKey(() => MovieModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    field: "movie_id",
-    onDelete: "CASCADE",
-  })
+  @Column({ type: "varchar", nullable: true, name: "movie_id" })
   movieId?: string;
 
-  @BelongsTo(() => MovieModel, {
-    foreignKey: "extraId",
-    as: "extra",
-    onDelete: "CASCADE",
-    hooks: true,
-  })
+  @ManyToOne(() => MovieModel, { onDelete: "CASCADE" })
+  @JoinColumn({ name: "extra_id" })
   extra?: MovieModel;
 
-  @ForeignKey(() => MovieModel)
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    field: "extra_id",
-    onDelete: "CASCADE",
-  })
+  @Column({ type: "varchar", nullable: true, name: "extra_id" })
   extraId?: string;
 
-  @HasMany(() => ContinueWatchingModel)
+  @OneToMany(
+    () => ContinueWatchingModel,
+    (continueWatching) => continueWatching.video
+  )
   continueWatching!: ContinueWatchingModel[];
 
-  @HasMany(() => WatchListModel)
+  @OneToMany(() => WatchListModel, (watchList) => watchList.video)
   watchLists!: WatchListModel[];
+
+  // Lifecycle hooks
+  @BeforeInsert()
+  generateId() {
+    if (!this.id) {
+      this.id = uuidv4().split("-")[0];
+    }
+  }
 }

@@ -18,7 +18,7 @@ export class WatchListRepositoryImpl
         },
       });
 
-      return watchlistItem ? watchlistItem.toJSON() : null;
+      return watchlistItem ? (watchlistItem as unknown as WatchList) : null;
     }, `Failed to retrieve watchList item with video ID ${validatedId}`);
   }
 
@@ -26,9 +26,11 @@ export class WatchListRepositoryImpl
     const validatedId = this.validateId(id, "WatchList ID");
 
     return this.handleRepositoryError(async () => {
-      const watchlistItem = await WatchListModel.findByPk(validatedId, {});
+      const watchlistItem = await WatchListModel.findOne({
+        where: { id: validatedId },
+      });
 
-      return watchlistItem ? watchlistItem.toJSON() : null;
+      return watchlistItem ? (watchlistItem as unknown as WatchList) : null;
     }, `Failed to retrieve watchList item with ID ${validatedId}`);
   }
 
@@ -45,15 +47,16 @@ export class WatchListRepositoryImpl
       if (data.seriesId) where.seriesId = data.seriesId;
 
       const existing = await WatchListModel.findOne({ where });
-      if (existing) return existing.toJSON();
+      if (existing) return existing as unknown as WatchList;
 
       const dataToCreate = {
         ...data,
         id: data.id || uuidv4().split("-")[0],
-      } as any;
+      };
 
-      const created = await WatchListModel.create(dataToCreate);
-      return created.toJSON();
+      const created = WatchListModel.create(dataToCreate);
+      await created.save();
+      return created as unknown as WatchList;
     }, "Failed to create watchList item");
   }
 
@@ -62,11 +65,12 @@ export class WatchListRepositoryImpl
     this.validateData(data, "Update data");
 
     return this.handleRepositoryError(async () => {
-      const [affectedCount] = await WatchListModel.update(data as any, {
-        where: { id: validatedId },
-      });
+      const result = await WatchListModel.update({ id: validatedId }, data);
 
-      this.ensureAffected(affectedCount, `WatchList with ID ${id} not found`);
+      this.ensureAffected(
+        result.affected || 0,
+        `WatchList with ID ${id} not found`
+      );
 
       const updatedWatchList = await this.findById(id);
       if (!updatedWatchList) {
@@ -83,12 +87,10 @@ export class WatchListRepositoryImpl
     const validatedId = this.validateId(id, "WatchList item ID");
 
     await this.handleRepositoryError(async () => {
-      const affectedCount = await WatchListModel.destroy({
-        where: { id: validatedId },
-      });
+      const result = await WatchListModel.delete({ id: validatedId });
 
       this.ensureAffected(
-        affectedCount,
+        result.affected || 0,
         `WatchList item with ID ${id} not found`
       );
     }, `Failed to delete watchlist item with ID ${id}`);
@@ -105,11 +107,12 @@ export class WatchListRepositoryImpl
         where: { userId: uId, seriesId: sId },
       });
       if (existing) return;
-      await WatchListModel.create({
+      const newWatchList = WatchListModel.create({
         id: uuidv4().split("-")[0],
         userId: uId,
         seriesId: sId,
-      } as any);
+      });
+      await newWatchList.save();
     }, `Failed to add series ${seriesId} to watchlist`);
   }
 
@@ -120,10 +123,11 @@ export class WatchListRepositoryImpl
     });
 
     return this.handleRepositoryError(async () => {
-      const affected = await WatchListModel.destroy({
-        where: { userId: uId, seriesId: sId },
+      const result = await WatchListModel.delete({
+        userId: uId,
+        seriesId: sId,
       });
-      return affected > 0;
+      return (result.affected || 0) > 0;
     }, `Failed to remove series ${seriesId} from watchlist`);
   }
 
@@ -138,11 +142,12 @@ export class WatchListRepositoryImpl
         where: { userId: uId, seasonId: seId },
       });
       if (existing) return;
-      await WatchListModel.create({
+      const newWatchList = WatchListModel.create({
         id: uuidv4().split("-")[0],
         userId: uId,
         seasonId: seId,
-      } as any);
+      });
+      await newWatchList.save();
     }, `Failed to add season ${seasonId} to watchlist`);
   }
 
@@ -153,10 +158,11 @@ export class WatchListRepositoryImpl
     });
 
     return this.handleRepositoryError(async () => {
-      const affected = await WatchListModel.destroy({
-        where: { userId: uId, seasonId: seId },
+      const result = await WatchListModel.delete({
+        userId: uId,
+        seasonId: seId,
       });
-      return affected > 0;
+      return (result.affected || 0) > 0;
     }, `Failed to remove season ${seasonId} from watchlist`);
   }
 
@@ -171,11 +177,12 @@ export class WatchListRepositoryImpl
         where: { userId: uId, episodeId: eId },
       });
       if (existing) return;
-      await WatchListModel.create({
+      const newWatchList = WatchListModel.create({
         id: uuidv4().split("-")[0],
         userId: uId,
         episodeId: eId,
-      } as any);
+      });
+      await newWatchList.save();
     }, `Failed to add episode ${episodeId} to watchlist`);
   }
 
@@ -186,10 +193,11 @@ export class WatchListRepositoryImpl
     });
 
     return this.handleRepositoryError(async () => {
-      const affected = await WatchListModel.destroy({
-        where: { userId: uId, episodeId: eId },
+      const result = await WatchListModel.delete({
+        userId: uId,
+        episodeId: eId,
       });
-      return affected > 0;
+      return (result.affected || 0) > 0;
     }, `Failed to remove episode ${episodeId} from watchlist`);
   }
 
@@ -201,11 +209,12 @@ export class WatchListRepositoryImpl
         where: { userId: uId, movieId: mId },
       });
       if (existing) return;
-      await WatchListModel.create({
+      const newWatchList = WatchListModel.create({
         id: uuidv4().split("-")[0],
         userId: uId,
         movieId: mId,
-      } as any);
+      });
+      await newWatchList.save();
     }, `Failed to add movie ${movieId} to watchlist`);
   }
 
@@ -216,10 +225,8 @@ export class WatchListRepositoryImpl
     });
 
     return this.handleRepositoryError(async () => {
-      const affected = await WatchListModel.destroy({
-        where: { userId: uId, movieId: mId },
-      });
-      return affected > 0;
+      const result = await WatchListModel.delete({ userId: uId, movieId: mId });
+      return (result.affected || 0) > 0;
     }, `Failed to remove movie ${movieId} from watchlist`);
   }
 
@@ -231,11 +238,12 @@ export class WatchListRepositoryImpl
         where: { userId: uId, videoId: vId },
       });
       if (existing) return;
-      await WatchListModel.create({
+      const newWatchList = WatchListModel.create({
         id: uuidv4().split("-")[0],
         userId: uId,
         videoId: vId,
-      } as any);
+      });
+      await newWatchList.save();
     }, `Failed to add video ${videoId} to watchlist`);
   }
 
@@ -246,10 +254,8 @@ export class WatchListRepositoryImpl
     });
 
     return this.handleRepositoryError(async () => {
-      const affected = await WatchListModel.destroy({
-        where: { userId: uId, videoId: vId },
-      });
-      return affected > 0;
+      const result = await WatchListModel.delete({ userId: uId, videoId: vId });
+      return (result.affected || 0) > 0;
     }, `Failed to remove video ${videoId} from watchlist`);
   }
 
