@@ -1,4 +1,5 @@
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
+import { GenericRepositoryHelper } from "@/helpers/GenericRepositoryHelper";
 import logger from "@/utils/logger";
 import { v4 as uuidv4 } from "uuid";
 import { SongsRepositoryPort } from "../../../application/ports/SongsRepositoryPort";
@@ -9,93 +10,63 @@ export class SongsRepositoryImpl
   extends BaseRepository
   implements SongsRepositoryPort
 {
+  // Generic helper for common CRUD operations
+  private helper: GenericRepositoryHelper<SongModel, Song>;
+
+  constructor() {
+    super();
+
+    // Initialize helper
+    this.helper = new GenericRepositoryHelper(SongModel, {
+      entityName: "Song",
+      generateShortId: true,
+    });
+  }
+
   async findById(id: string): Promise<Song | null> {
     const validatedId = this.validateId(id, "Song ID");
-
-    return this.handleRepositoryError(async () => {
-      const song = await SongModel.findOne({ where: { id: validatedId } });
-
-      return song ? (song as unknown as Song) : null;
-    }, `Failed to retrieve song with ID ${id}`);
+    return this.helper.findById(validatedId);
   }
 
   async findByPath(path: string): Promise<Song | null> {
     this.validateData(path, "Path data");
-
-    return this.handleRepositoryError(async () => {
-      const song = await SongModel.findOne({
-        where: {
-          fileSrc: path,
-        },
-      });
-
-      return song ? (song as unknown as Song) : null;
-    }, `Failed to retrieve song with path ${path}`);
+    return this.helper.findByField("fileSrc", path);
   }
 
   async findByAlbum(albumId: string): Promise<Song[]> {
     const validatedId = this.validateId(albumId, "Album ID");
-
-    return this.handleRepositoryError(async () => {
-      const songs = await SongModel.find({
-        where: {
-          albumId: validatedId,
-        },
-      });
-
-      return songs.map((song) => song as unknown as Song);
-    }, `Failed to retrieve song with album ID ${albumId}`);
+    return this.helper.findManyByField("albumId", validatedId);
   }
 
   async create(song: Partial<Song>): Promise<Song | null> {
     this.validateData(song, "Song data");
 
-    return this.handleRepositoryError(async () => {
-      // Check if song already exists by ID
-      if (song.id) {
-        const existingSong = await this.findById(song.id);
-        if (existingSong) {
-          logger.info(`Song with ID ${song.id} already exists`);
-          return existingSong;
-        }
+    // Check if song already exists by ID
+    if (song.id) {
+      const existingSong = await this.findById(song.id);
+      if (existingSong) {
+        logger.info(`Song with ID ${song.id} already exists`);
+        return existingSong;
       }
+    }
 
-      // Generate UUID if it doesn't exist
-      const dataToCreate = {
-        ...song,
-        id: song.id || uuidv4().split("-")[0],
-      };
+    // Generate UUID if it doesn't exist
+    const dataToCreate = {
+      ...song,
+      id: song.id || uuidv4().split("-")[0],
+    };
 
-      const createdSong = SongModel.create(dataToCreate);
-      await createdSong.save();
-      return createdSong as unknown as Song;
-    }, "Failed to create song");
+    return this.helper.create(dataToCreate, true);
   }
 
   async update(id: string, data: Partial<Song>): Promise<Song> {
     const validatedId = this.validateId(id, "Song ID");
-
-    return this.handleRepositoryError(async () => {
-      const result = await SongModel.update({ id: validatedId }, data);
-
-      this.ensureAffected(result.affected || 0, `Song with ID ${id} not found`);
-
-      const updatedSong = await this.findById(id);
-
-      if (!updatedSong) {
-        throw new Error(`Failed to retrieve updated song with ID ${id}`);
-      }
-
-      return updatedSong;
-    }, `Failed to update song with ID ${id}`);
+    this.validateData(data, "Update data");
+    return this.helper.update(validatedId, data);
   }
 
   async delete(id: string): Promise<void> {
     const validatedId = this.validateId(id, "Song ID");
-
-    return this.handleRepositoryError(async () => {
-      const result = await SongModel.delete({ id: validatedId });
-      this.ensureAffected(result.affected || 0, `Song with ID ${id} not found`);
-    }, `Failed to delete song with ID ${id}`);
+    return this.helper.delete(validatedId);
   }
 }

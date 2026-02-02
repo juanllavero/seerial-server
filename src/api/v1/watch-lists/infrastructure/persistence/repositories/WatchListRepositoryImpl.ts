@@ -1,4 +1,5 @@
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
+import { GenericRepositoryHelper } from "@/helpers/GenericRepositoryHelper";
 import { v4 as uuidv4 } from "uuid";
 import { WatchListRepositoryPort } from "../../../application/ports/WatchListRepositoryPort";
 import { WatchList } from "../../../domain/WatchList";
@@ -8,92 +9,60 @@ export class WatchListRepositoryImpl
   extends BaseRepository
   implements WatchListRepositoryPort
 {
+  // Generic helper for common CRUD operations
+  private helper: GenericRepositoryHelper<WatchListModel, WatchList>;
+
+  constructor() {
+    super();
+
+    // Initialize helper
+    this.helper = new GenericRepositoryHelper(WatchListModel, {
+      entityName: "WatchList",
+      generateShortId: true,
+    });
+  }
+
   async findByVideoId(videoId: string): Promise<WatchList | null> {
     const validatedId = this.validateId(videoId, "Video ID");
-
-    return this.handleRepositoryError(async () => {
-      const watchlistItem = await WatchListModel.findOne({
-        where: {
-          videoId: validatedId,
-        },
-      });
-
-      return watchlistItem ? (watchlistItem as unknown as WatchList) : null;
-    }, `Failed to retrieve watchList item with video ID ${validatedId}`);
+    return this.helper.findByField("videoId", validatedId);
   }
 
   async findById(id: string): Promise<WatchList | null> {
     const validatedId = this.validateId(id, "WatchList ID");
-
-    return this.handleRepositoryError(async () => {
-      const watchlistItem = await WatchListModel.findOne({
-        where: { id: validatedId },
-      });
-
-      return watchlistItem ? (watchlistItem as unknown as WatchList) : null;
-    }, `Failed to retrieve watchList item with ID ${validatedId}`);
+    return this.helper.findById(validatedId);
   }
 
   async create(data: WatchList): Promise<WatchList> {
     this.validateData(data, "WatchList data");
 
-    return this.handleRepositoryError(async () => {
-      // If the record already exists for the same unique pair (e.g., videoId+userId), return it
-      const where: any = { userId: data.userId };
-      if (data.videoId) where.videoId = data.videoId;
-      if (data.movieId) where.movieId = data.movieId;
-      if (data.episodeId) where.episodeId = data.episodeId;
-      if (data.seasonId) where.seasonId = data.seasonId;
-      if (data.seriesId) where.seriesId = data.seriesId;
+    // If the record already exists for the same unique pair (e.g., videoId+userId), return it
+    const where: any = { userId: data.userId };
+    if (data.videoId) where.videoId = data.videoId;
+    if (data.movieId) where.movieId = data.movieId;
+    if (data.episodeId) where.episodeId = data.episodeId;
+    if (data.seasonId) where.seasonId = data.seasonId;
+    if (data.seriesId) where.seriesId = data.seriesId;
 
-      const existing = await WatchListModel.findOne({ where });
-      if (existing) return existing as unknown as WatchList;
+    const existing = await WatchListModel.findOne({ where });
+    if (existing) return existing as unknown as WatchList;
 
-      const dataToCreate = {
-        ...data,
-        id: data.id || uuidv4().split("-")[0],
-      };
+    const dataToCreate = {
+      ...data,
+      id: data.id || uuidv4().split("-")[0],
+    };
 
-      const created = WatchListModel.create(dataToCreate);
-      await created.save();
-      return created as unknown as WatchList;
-    }, "Failed to create watchList item");
+    return this.helper.create(dataToCreate, true);
   }
 
   async update(id: string, data: Partial<WatchList>): Promise<WatchList> {
     const validatedId = this.validateId(id, "WatchList item ID");
     this.validateData(data, "Update data");
-
-    return this.handleRepositoryError(async () => {
-      const result = await WatchListModel.update({ id: validatedId }, data);
-
-      this.ensureAffected(
-        result.affected || 0,
-        `WatchList with ID ${id} not found`
-      );
-
-      const updatedWatchList = await this.findById(id);
-      if (!updatedWatchList) {
-        throw new Error(
-          `Failed to retrieve updated watchlist item with ID ${id}`
-        );
-      }
-
-      return updatedWatchList;
-    }, `Failed to update watchlist item with ID ${id}`);
+    return this.helper.update(validatedId, data);
   }
 
   async delete(id: string): Promise<void> {
     const validatedId = this.validateId(id, "WatchList item ID");
-
-    await this.handleRepositoryError(async () => {
-      const result = await WatchListModel.delete({ id: validatedId });
-
-      this.ensureAffected(
-        result.affected || 0,
-        `WatchList item with ID ${id} not found`
-      );
-    }, `Failed to delete watchlist item with ID ${id}`);
+    return this.helper.delete(validatedId);
   }
 
   async addSeries(userId: string, seriesId: string): Promise<void> {
@@ -102,18 +71,17 @@ export class WatchListRepositoryImpl
       seriesId,
     });
 
-    await this.handleRepositoryError(async () => {
-      const existing = await WatchListModel.findOne({
-        where: { userId: uId, seriesId: sId },
-      });
-      if (existing) return;
-      const newWatchList = WatchListModel.create({
-        id: uuidv4().split("-")[0],
-        userId: uId,
-        seriesId: sId,
-      });
-      await newWatchList.save();
-    }, `Failed to add series ${seriesId} to watchlist`);
+    const existing = await WatchListModel.findOne({
+      where: { userId: uId, seriesId: sId },
+    });
+    if (existing) return;
+
+    const newWatchListData = {
+      userId: uId,
+      seriesId: sId,
+    };
+
+    await this.helper.create(newWatchListData, true);
   }
 
   async removeSeries(userId: string, seriesId: string): Promise<boolean> {
@@ -122,13 +90,13 @@ export class WatchListRepositoryImpl
       seriesId: String(seriesId),
     });
 
-    return this.handleRepositoryError(async () => {
-      const result = await WatchListModel.delete({
-        userId: uId,
-        seriesId: sId,
-      });
-      return (result.affected || 0) > 0;
-    }, `Failed to remove series ${seriesId} from watchlist`);
+    const whereCondition = {
+      userId: uId,
+      seriesId: sId,
+    };
+
+    await this.helper.deleteRelationship(WatchListModel, whereCondition);
+    return true;
   }
 
   async addSeason(userId: string, seasonId: string): Promise<void> {
@@ -137,18 +105,17 @@ export class WatchListRepositoryImpl
       seasonId,
     });
 
-    await this.handleRepositoryError(async () => {
-      const existing = await WatchListModel.findOne({
-        where: { userId: uId, seasonId: seId },
-      });
-      if (existing) return;
-      const newWatchList = WatchListModel.create({
-        id: uuidv4().split("-")[0],
-        userId: uId,
-        seasonId: seId,
-      });
-      await newWatchList.save();
-    }, `Failed to add season ${seasonId} to watchlist`);
+    const existing = await WatchListModel.findOne({
+      where: { userId: uId, seasonId: seId },
+    });
+    if (existing) return;
+
+    const newWatchListData = {
+      userId: uId,
+      seasonId: seId,
+    };
+
+    await this.helper.create(newWatchListData, true);
   }
 
   async removeSeason(userId: string, seasonId: string): Promise<boolean> {
@@ -157,13 +124,13 @@ export class WatchListRepositoryImpl
       seasonId: String(seasonId),
     });
 
-    return this.handleRepositoryError(async () => {
-      const result = await WatchListModel.delete({
-        userId: uId,
-        seasonId: seId,
-      });
-      return (result.affected || 0) > 0;
-    }, `Failed to remove season ${seasonId} from watchlist`);
+    const whereCondition = {
+      userId: uId,
+      seasonId: seId,
+    };
+
+    await this.helper.deleteRelationship(WatchListModel, whereCondition);
+    return true;
   }
 
   async addEpisode(userId: string, episodeId: string): Promise<void> {
@@ -172,18 +139,17 @@ export class WatchListRepositoryImpl
       episodeId,
     });
 
-    await this.handleRepositoryError(async () => {
-      const existing = await WatchListModel.findOne({
-        where: { userId: uId, episodeId: eId },
-      });
-      if (existing) return;
-      const newWatchList = WatchListModel.create({
-        id: uuidv4().split("-")[0],
-        userId: uId,
-        episodeId: eId,
-      });
-      await newWatchList.save();
-    }, `Failed to add episode ${episodeId} to watchlist`);
+    const existing = await WatchListModel.findOne({
+      where: { userId: uId, episodeId: eId },
+    });
+    if (existing) return;
+
+    const newWatchListData = {
+      userId: uId,
+      episodeId: eId,
+    };
+
+    await this.helper.create(newWatchListData, true);
   }
 
   async removeEpisode(userId: string, episodeId: string): Promise<boolean> {
@@ -192,30 +158,29 @@ export class WatchListRepositoryImpl
       episodeId: String(episodeId),
     });
 
-    return this.handleRepositoryError(async () => {
-      const result = await WatchListModel.delete({
-        userId: uId,
-        episodeId: eId,
-      });
-      return (result.affected || 0) > 0;
-    }, `Failed to remove episode ${episodeId} from watchlist`);
+    const whereCondition = {
+      userId: uId,
+      episodeId: eId,
+    };
+
+    await this.helper.deleteRelationship(WatchListModel, whereCondition);
+    return true;
   }
 
   async addMovie(userId: string, movieId: string): Promise<void> {
     const { userId: uId, movieId: mId } = this.validateIds({ userId, movieId });
 
-    await this.handleRepositoryError(async () => {
-      const existing = await WatchListModel.findOne({
-        where: { userId: uId, movieId: mId },
-      });
-      if (existing) return;
-      const newWatchList = WatchListModel.create({
-        id: uuidv4().split("-")[0],
-        userId: uId,
-        movieId: mId,
-      });
-      await newWatchList.save();
-    }, `Failed to add movie ${movieId} to watchlist`);
+    const existing = await WatchListModel.findOne({
+      where: { userId: uId, movieId: mId },
+    });
+    if (existing) return;
+
+    const newWatchListData = {
+      userId: uId,
+      movieId: mId,
+    };
+
+    await this.helper.create(newWatchListData, true);
   }
 
   async removeMovie(userId: string, movieId: string): Promise<boolean> {
@@ -224,27 +189,29 @@ export class WatchListRepositoryImpl
       movieId: String(movieId),
     });
 
-    return this.handleRepositoryError(async () => {
-      const result = await WatchListModel.delete({ userId: uId, movieId: mId });
-      return (result.affected || 0) > 0;
-    }, `Failed to remove movie ${movieId} from watchlist`);
+    const whereCondition = {
+      userId: uId,
+      movieId: mId,
+    };
+
+    await this.helper.deleteRelationship(WatchListModel, whereCondition);
+    return true;
   }
 
   async addVideo(userId: string, videoId: string): Promise<void> {
     const { userId: uId, videoId: vId } = this.validateIds({ userId, videoId });
 
-    await this.handleRepositoryError(async () => {
-      const existing = await WatchListModel.findOne({
-        where: { userId: uId, videoId: vId },
-      });
-      if (existing) return;
-      const newWatchList = WatchListModel.create({
-        id: uuidv4().split("-")[0],
-        userId: uId,
-        videoId: vId,
-      });
-      await newWatchList.save();
-    }, `Failed to add video ${videoId} to watchlist`);
+    const existing = await WatchListModel.findOne({
+      where: { userId: uId, videoId: vId },
+    });
+    if (existing) return;
+
+    const newWatchListData = {
+      userId: uId,
+      videoId: vId,
+    };
+
+    await this.helper.create(newWatchListData, true);
   }
 
   async removeVideo(userId: string, videoId: string): Promise<boolean> {
@@ -253,10 +220,13 @@ export class WatchListRepositoryImpl
       videoId: String(videoId),
     });
 
-    return this.handleRepositoryError(async () => {
-      const result = await WatchListModel.delete({ userId: uId, videoId: vId });
-      return (result.affected || 0) > 0;
-    }, `Failed to remove video ${videoId} from watchlist`);
+    const whereCondition = {
+      userId: uId,
+      videoId: vId,
+    };
+
+    await this.helper.deleteRelationship(WatchListModel, whereCondition);
+    return true;
   }
 
   async isVideoWatched(videoId: string, userId: string): Promise<boolean> {
@@ -265,12 +235,10 @@ export class WatchListRepositoryImpl
       videoId: String(videoId),
     });
 
-    return this.handleRepositoryError(async () => {
-      const existing = await WatchListModel.findOne({
-        where: { userId: uId, videoId: vId },
-      });
-      return existing !== null;
-    }, `Failed to check if video ${videoId} is watched by user ${userId}`);
+    const existing = await WatchListModel.findOne({
+      where: { userId: uId, videoId: vId },
+    });
+    return existing !== null;
   }
 
   async isSeriesWatched(seriesId: string, userId: string): Promise<boolean> {
@@ -279,12 +247,10 @@ export class WatchListRepositoryImpl
       seriesId: String(seriesId),
     });
 
-    return this.handleRepositoryError(async () => {
-      const existing = await WatchListModel.findOne({
-        where: { userId: uId, seriesId: sId },
-      });
-      return existing !== null;
-    }, `Failed to check if series ${seriesId} is watched by user ${userId}`);
+    const existing = await WatchListModel.findOne({
+      where: { userId: uId, seriesId: sId },
+    });
+    return existing !== null;
   }
 
   async isMovieWatched(movieId: string, userId: string): Promise<boolean> {
@@ -293,12 +259,10 @@ export class WatchListRepositoryImpl
       movieId: String(movieId),
     });
 
-    return this.handleRepositoryError(async () => {
-      const existing = await WatchListModel.findOne({
-        where: { userId: uId, movieId: mId },
-      });
-      return existing !== null;
-    }, `Failed to check if movie ${movieId} is watched by user ${userId}`);
+    const existing = await WatchListModel.findOne({
+      where: { userId: uId, movieId: mId },
+    });
+    return existing !== null;
   }
 
   async isSeasonWatched(seasonId: string, userId: string): Promise<boolean> {
@@ -307,11 +271,9 @@ export class WatchListRepositoryImpl
       seasonId: String(seasonId),
     });
 
-    return this.handleRepositoryError(async () => {
-      const existing = await WatchListModel.findOne({
-        where: { userId: uId, seasonId: sId },
-      });
-      return existing !== null;
-    }, `Failed to check if season ${seasonId} is watched by user ${userId}`);
+    const existing = await WatchListModel.findOne({
+      where: { userId: uId, seasonId: sId },
+    });
+    return existing !== null;
   }
 }

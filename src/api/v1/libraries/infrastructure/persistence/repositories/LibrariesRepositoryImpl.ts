@@ -9,6 +9,7 @@ import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/Vi
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import { LibraryItem, LibraryTypes } from "@/data/interfaces/Media";
+import { GenericRepositoryHelper } from "@/helpers/GenericRepositoryHelper";
 import logger from "@/utils/logger";
 import { v4 as uuidv4 } from "uuid";
 import { LibrariesRepositoryPort } from "../../../application/ports/LibrariesRepositoryPort";
@@ -24,6 +25,19 @@ export class LibrariesRepositoryImpl
   extends BaseRepository
   implements LibrariesRepositoryPort
 {
+  // Generic helper for common CRUD operations
+  private helper: GenericRepositoryHelper<LibraryModel, Library>;
+
+  constructor() {
+    super();
+
+    // Initialize helper
+    this.helper = new GenericRepositoryHelper(LibraryModel, {
+      entityName: "Library",
+      generateShortId: true,
+    });
+  }
+
   async getAll() {
     const libraries = await LibraryModel.find({
       order: { order: "ASC" },
@@ -609,31 +623,14 @@ export class LibrariesRepositoryImpl
   }
 
   async update(id: string, data: Partial<Library>): Promise<Library> {
-    const result = await LibraryModel.update({ id }, data);
-
-    if (result.affected === 0) {
-      throw new ApiError(404, messages.errors.notFound.library);
-    }
-
-    const updatedLibrary = await this.getById(id);
-
-    if (!updatedLibrary) {
-      throw new ApiError(
-        500,
-        `Failed to retrieve updated Library with ID ${id}`
-      );
-    }
-
-    return updatedLibrary;
+    const validatedId = this.validateId(id, "Library ID");
+    this.validateData(data, "Update data");
+    return this.helper.update(validatedId, data);
   }
 
   async delete(id: string): Promise<boolean> {
-    const result = await LibraryModel.delete({ id });
-
-    if (result.affected === 0) {
-      throw new Error(`Library with ID ${id} not found`);
-    }
-
+    const validatedId = this.validateId(id, "Library ID");
+    await this.helper.delete(validatedId);
     return true;
   }
 

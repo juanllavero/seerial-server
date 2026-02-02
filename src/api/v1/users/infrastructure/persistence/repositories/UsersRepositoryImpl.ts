@@ -3,6 +3,7 @@ import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/mode
 import { ServerConfigService } from "@/api/v1/servers/infrastructure/services/ServerConfigService";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
+import { GenericRepositoryHelper } from "@/helpers/GenericRepositoryHelper";
 import { UserType } from "@/utils/constants";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
@@ -14,14 +15,24 @@ export class UsersRepositoryImpl
   extends BaseRepository
   implements UsersRepositoryPort
 {
+  // Generic helper for common CRUD operations
+  private helper: GenericRepositoryHelper<UserModel, User>;
+
+  constructor() {
+    super();
+
+    // Initialize helper
+    this.helper = new GenericRepositoryHelper(UserModel, {
+      entityName: "User",
+      generateShortId: true,
+    });
+  }
+
   async findAll(): Promise<User[]> {
-    return this.handleRepositoryError(async () => {
-      const users = await UserModel.find({
-        where: { hideInLogin: false },
-        select: ["id", "username", "type", "avatar"], // Exclude sensitive fields like password
-      });
-      return users.map((user) => user as unknown as User);
-    }, `Failed to retrieve users`);
+    return this.helper.findAll({
+      where: { hideInLogin: false },
+      select: ["id", "username", "type", "avatar"], // Exclude sensitive fields like password
+    });
   }
 
   async authenticate(
@@ -76,72 +87,49 @@ export class UsersRepositoryImpl
       throw new ApiError(400, messages.errors.validation.userAdminNoPassword);
     }
 
-    return this.handleRepositoryError(async () => {
-      const hashedPassword = data.password
-        ? await bcrypt.hash(data.password, 10)
-        : null;
-      const user = UserModel.create({
-        ...data,
-        password: hashedPassword || undefined,
-        type: data.type || UserType.NORMAL,
-        allowRemote: data.allowRemote ?? true,
-        allowVideoTranscoding: data.allowVideoTranscoding ?? true,
-        allowDownloads: data.allowDownloads ?? true,
-        hideInLogin: data.hideInLogin ?? false,
-        maxSessions: data.maxSessions ?? 0,
-        serverId: ServerConfigService.serverConfig.id,
-      });
-      await user.save();
+    const hashedPassword = data.password
+      ? await bcrypt.hash(data.password, 10)
+      : null;
 
-      if (data.libraryIds) {
-        // Load the libraries and assign them to the user
-        const libraries = await LibraryModel.findByIds(data.libraryIds);
-        user.libraries = libraries;
-        await user.save();
-      }
+    const userData = {
+      ...data,
+      password: hashedPassword || undefined,
+      type: data.type || UserType.NORMAL,
+      allowRemote: data.allowRemote ?? true,
+      allowVideoTranscoding: data.allowVideoTranscoding ?? true,
+      allowDownloads: data.allowDownloads ?? true,
+      hideInLogin: data.hideInLogin ?? false,
+      maxSessions: data.maxSessions ?? 0,
+      serverId: ServerConfigService.serverConfig.id,
+    };
 
-      const safeUser = await UserModel.findOne({
-        where: { id: user.id },
-        select: { password: false },
-      });
-      return safeUser
-        ? (safeUser as unknown as User)
-        : (user as unknown as User);
-    }, `Failed to create user`);
+    const user = await this.helper.create(userData, true);
+
+    if (data.libraryIds) {
+      // Load the libraries and assign them to the user
+      const libraries = await LibraryModel.findByIds(data.libraryIds);
+      const userModel = user as unknown as UserModel;
+      userModel.libraries = libraries;
+      await userModel.save();
+    }
+
+    const safeUser = await UserModel.findOne({
+      where: { id: user.id },
+      select: { password: false },
+    });
+    return safeUser ? (safeUser as unknown as User) : (user as unknown as User);
   }
 
   async update(id: string, data: Partial<User>): Promise<User> {
-    return this.handleRepositoryError(async () => {
-      const user = await UserModel.findOne({ where: { id } });
+    if (data.password) {
+      data.password = await bcrypt.hash(data.password, 10);
+    }
 
-      if (!user) {
-        throw new ApiError(404, messages.errors.notFound.user);
-      }
-
-      if (data.password) {
-        data.password = await bcrypt.hash(data.password, 10);
-      }
-
-      Object.assign(user, data);
-      await user.save();
-
-      const safeUser = await UserModel.findOne({
-        where: { id },
-        select: { password: false },
-      });
-      return safeUser
-        ? (safeUser as unknown as User)
-        : (user as unknown as User);
-    }, `Failed to update user with id ${id}`);
+    return this.helper.update(id, data);
   }
 
   async delete(id: string): Promise<void> {
-    return this.handleRepositoryError(async () => {
-      const user = await UserModel.findOne({ where: { id } });
-      if (!user) {
-        throw new ApiError(404, messages.errors.notFound.user);
-      }
-      await user.remove();
-    }, `Failed to delete user with id ${id}`);
+    const validatedId = this.validateId(id, "User ID");
+    this.helper.delete(validatedId);
   }
 }

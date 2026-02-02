@@ -255,4 +255,69 @@ export class GenericRepositoryHelper<
       throw new Error(`Failed to retrieve all ${this.config.entityName}`);
     }
   }
+
+  /**
+   * Generic method to create a many-to-many relationship entity
+   */
+  async createRelationship<TRelationModel extends BaseEntity>(
+    relationModel: typeof BaseEntity & (new () => TRelationModel),
+    relationData: Partial<TRelationModel>,
+    checkExisting = true
+  ): Promise<TRelationModel> {
+    try {
+      // Check if relationship already exists if checkExisting is true
+      if (checkExisting && relationData) {
+        const existing = await relationModel.findOne({
+          where: relationData as any,
+        } as any);
+
+        if (existing) {
+          return existing;
+        }
+      }
+
+      // Generate ID if it doesn't exist
+      const dataToCreate = {
+        ...relationData,
+        id: (relationData as any).id || this.generateId(),
+      } as unknown as DeepPartial<TRelationModel>;
+
+      const created = relationModel.create(dataToCreate);
+      await (created as any).save();
+
+      return created as TRelationModel;
+    } catch (error) {
+      repositoryLogger.error(
+        error,
+        `Failed to create ${this.config.entityName} relationship`
+      );
+      throw new Error(
+        `Failed to create ${this.config.entityName} relationship`
+      );
+    }
+  }
+
+  /**
+   * Generic method to delete a many-to-many relationship entity
+   */
+  async deleteRelationship<TRelationModel extends BaseEntity>(
+    relationModel: typeof BaseEntity & (new () => TRelationModel),
+    whereCondition: Partial<TRelationModel>
+  ): Promise<void> {
+    try {
+      const result = await relationModel.delete(whereCondition as any);
+
+      if (!result.affected || result.affected === 0) {
+        throw new Error(`Relationship not found`);
+      }
+    } catch (error) {
+      repositoryLogger.error(
+        error,
+        `Failed to delete ${this.config.entityName} relationship`
+      );
+      throw new Error(
+        `Failed to delete ${this.config.entityName} relationship`
+      );
+    }
+  }
 }
