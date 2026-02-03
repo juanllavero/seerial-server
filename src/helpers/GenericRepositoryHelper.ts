@@ -6,6 +6,7 @@ import {
   FindOneOptions,
 } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
+import { createWithDefaults } from "./CreateWithDefaults";
 
 const repositoryLogger = logger.child({ category: "Generic Repository" });
 
@@ -153,10 +154,10 @@ export class GenericRepositoryHelper<
         id: (data as any).id || this.generateId(),
       } as unknown as DeepPartial<TModel>;
 
-      const created = this.model.create(dataToCreate);
-      await (created as any).save();
+      const created = createWithDefaults(this.model, dataToCreate);
 
-      return this.toDomain(created as TModel);
+      await created.save();
+      return this.toDomain(created);
     } catch (error) {
       repositoryLogger.error(
         error,

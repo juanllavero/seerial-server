@@ -20,8 +20,6 @@ build({
     "pino",
     "pino-pretty",
     "properties-reader",
-    "sequelize",
-    "sequelize-typescript",
     "swagger-ui-express",
     "tsoa",
     "ws",

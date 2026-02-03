@@ -1,6 +1,7 @@
 import logger from "@/utils/logger";
 import { BaseEntity } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
+import { createWithDefaults } from "./CreateWithDefaults";
 
 const relationHelperLogger = logger.child({ category: "Relation Helper" });
 
@@ -50,9 +51,9 @@ export class RelationshipCreationHelper<TModel, TDomain = TModel> {
         [relationField]: relationId,
       };
 
-      const newEntity = this.model.create(entityData);
-      await (newEntity as any).save();
+      const newEntity = createWithDefaults(this.model, entityData);
 
+      await newEntity.save();
       return newEntity as unknown as TDomain;
     } catch (error) {
       relationHelperLogger.error(
@@ -94,9 +95,9 @@ export class RelationshipCreationHelper<TModel, TDomain = TModel> {
         ...relations,
       };
 
-      const newEntity = this.model.create(entityData);
-      await (newEntity as any).save();
+      const newEntity = createWithDefaults(this.model, entityData);
 
+      await newEntity.save();
       return newEntity as unknown as TDomain;
     } catch (error) {
       relationHelperLogger.error(

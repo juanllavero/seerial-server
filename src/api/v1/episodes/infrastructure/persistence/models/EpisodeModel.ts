@@ -94,17 +94,17 @@ export class EpisodeModel extends BaseEntity {
     type: "integer",
     nullable: false,
     default: 0,
-    name: "episode_number",
+    name: "season_number",
   })
-  episodeNumber!: number;
+  seasonNumber!: number;
 
   @Column({
     type: "integer",
     nullable: false,
     default: 0,
-    name: "season_number",
+    name: "episode_number",
   })
-  seasonNumber!: number;
+  episodeNumber!: number;
 
   @Column({ type: "integer", nullable: false, default: 0 })
   order!: number;

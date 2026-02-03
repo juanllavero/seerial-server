@@ -32,8 +32,9 @@ export const errorHandlerMiddleware: ErrorRequestHandler = (
   res.status(status).json({
     success: false,
     error: {
-      code: err.code || "INTERNAL_ERROR",
-      message: err.expose ? err.message : "Something went wrong",
+      status: status,
+      code: err.name || "INTERNAL_ERROR",
+      message: err.message ? err.message : "Something went wrong",
     },
   });
 };

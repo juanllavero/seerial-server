@@ -32,9 +32,9 @@ export class ServerConfigService {
       [config] = await ServerModel.find({ take: 1 });
       if (!config) {
         const hostname = os.hostname(); // Get computer hostname
-        config = await ServerModel.create({
+        config = ServerModel.createWithDefaults({
           name: hostname || "Server",
-        });
+        }) as ServerModel;
         configLogger.info("Created new server config with defaults.");
       }
       this.serverConfig = config;
@@ -42,7 +42,10 @@ export class ServerConfigService {
       configLogger.error(err, "Error creating server config");
     }
 
-    if (!config) return;
+    if (!config) {
+      streamingLogger.error("No server config found.");
+      return;
+    }
 
     // Ensure JWT_SECRET exists
     const secretPath = fileSystemService.getExternalPath(
@@ -112,6 +115,16 @@ export class ServerConfigService {
         });
       });
       streamingLogger.info("Previous server closed.");
+    }
+
+    if (!this.serverConfig) {
+      streamingLogger.error("Server config not loaded");
+      return;
+    }
+
+    if (!this.serverConfig.httpsPort && !this.serverConfig.httpPort) {
+      streamingLogger.error("No ports configured");
+      return;
     }
 
     // Start HTTP server

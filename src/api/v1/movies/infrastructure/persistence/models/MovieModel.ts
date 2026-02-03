@@ -25,7 +25,7 @@ export class MovieModel extends BaseEntity {
   @Column({ type: "varchar", nullable: false, default: "", name: "imdb_id" })
   imdbId!: string;
 
-  @Column({ type: "integer", nullable: false, default: 0, name: "themdb_id" })
+  @Column({ type: "integer", nullable: false, default: -1, name: "themdb_id" })
   themdbId!: number;
 
   @Column({ type: "float", nullable: false, default: 0, name: "imdb_score" })

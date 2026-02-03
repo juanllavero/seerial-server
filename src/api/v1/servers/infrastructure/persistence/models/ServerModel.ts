@@ -1,4 +1,5 @@
 import { UserModel } from "@/api/v1/users/infrastructure/persistence/models/UserModel";
+import { defaults } from "@/data/defaults/ModelDefaults";
 import {
   BaseEntity,
   BeforeInsert,
@@ -136,5 +137,12 @@ export class ServerModel extends BaseEntity {
     if (!this.id) {
       this.id = uuidv4().split("-")[0];
     }
+  }
+
+  static createWithDefaults(data: Partial<ServerModel>) {
+    return ServerModel.create({
+      ...defaults.ServerModel,
+      ...data,
+    });
   }
 }
