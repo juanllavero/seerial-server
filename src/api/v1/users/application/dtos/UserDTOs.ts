@@ -1,3 +1,5 @@
+import { UserType } from "@/utils/constants";
+
 export interface LoginDTO {
   username: string;
   password: string;
@@ -14,13 +16,12 @@ export interface CreateUserDTO {
   password?: string;
   avatar?: string;
   allowRemote?: boolean;
-  type?: string;
+  type?: UserType;
   allowVideoTranscoding?: boolean;
   internetBitrateLimit?: number;
   allowDownloads?: boolean;
   hideInLogin?: boolean;
   maxSessions?: number;
-  serverId?: string;
 }
 
 export interface UpdateUserDTO {
@@ -28,13 +29,12 @@ export interface UpdateUserDTO {
   password?: string;
   avatar?: string;
   allowRemote?: boolean;
-  type?: string;
+  type?: UserType;
   allowVideoTranscoding?: boolean;
   internetBitrateLimit?: number;
   allowDownloads?: boolean;
   hideInLogin?: boolean;
   maxSessions?: number;
-  serverId?: string;
 }
 
 export interface UserResponse {
@@ -54,5 +54,4 @@ export interface UserDTO {
   allowDownloads: boolean;
   hideInLogin: boolean;
   maxSessions: number;
-  serverId: string;
 }

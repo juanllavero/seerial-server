@@ -11,6 +11,7 @@ import {
   BeforeRemove,
   Column,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryColumn,
@@ -182,7 +183,10 @@ export class SeriesModel extends BaseEntity {
   @Column({ type: "varchar", nullable: true, name: "subs_mode" })
   subsMode?: string;
 
-  @ManyToOne(() => LibraryModel, { onDelete: "CASCADE" })
+  @ManyToOne(() => LibraryModel, (library) => library.series, {
+    onDelete: "CASCADE",
+  })
+  @JoinColumn({ name: "library_id" })
   library!: LibraryModel;
 
   @OneToMany(() => CollectionSeriesModel, (cs) => cs.series, { cascade: true })

@@ -1,14 +1,13 @@
-import { ServerModel } from "@/api/v1/servers/infrastructure/persistence/models/ServerModel";
 import {
   BaseEntity,
   BeforeInsert,
   Column,
   Entity,
-  ManyToOne,
   OneToMany,
   PrimaryColumn,
 } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
+import { UserType } from "../../../domain/User";
 import { UserLibraryModel } from "./UserLibraryModel";
 
 @Entity({ name: "User" })
@@ -34,7 +33,7 @@ export class UserModel extends BaseEntity {
   allowRemote!: boolean;
 
   @Column({ type: "varchar", nullable: false, default: "normal" })
-  type!: string;
+  type!: UserType;
 
   @Column({
     type: "boolean",
@@ -70,12 +69,6 @@ export class UserModel extends BaseEntity {
     name: "max_sessions",
   }) // 0 for unlimited
   maxSessions!: number;
-
-  @Column({ type: "varchar", nullable: false, name: "server_id" })
-  serverId!: string;
-
-  @ManyToOne(() => ServerModel, { onDelete: "CASCADE" })
-  server!: ServerModel;
 
   @OneToMany(() => UserLibraryModel, (userLibrary) => userLibrary.user, {
     cascade: true,

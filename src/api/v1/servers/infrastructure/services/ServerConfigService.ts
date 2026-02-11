@@ -35,6 +35,7 @@ export class ServerConfigService {
         config = ServerModel.createWithDefaults({
           name: hostname || "Server",
         }) as ServerModel;
+        await config.save();
         configLogger.info("Created new server config with defaults.");
       }
       this.serverConfig = config;

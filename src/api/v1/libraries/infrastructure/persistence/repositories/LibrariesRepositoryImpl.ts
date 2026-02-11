@@ -1,11 +1,13 @@
 import { AlbumModel } from "@/api/v1/albums/infrastructure/persistence/models/AlbumModel";
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
+import { CollectionModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionModel";
 import { EpisodeModel } from "@/api/v1/episodes/infrastructure/persistence/models/EpisodeModel";
 import { MovieModel } from "@/api/v1/movies/infrastructure/persistence/models/MovieModel";
 import { SeasonModel } from "@/api/v1/seasons/infrastructure/persistence/models/SeasonModel";
 import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/SeriesModel";
 import { DatabaseManager } from "@/api/v1/shared/infrastructure/persistence/DatabaseManager";
 import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/VideoModel";
+import { WatchList } from "@/api/v1/watch-lists/domain/WatchList";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import { LibraryItem, LibraryTypes } from "@/data/interfaces/Media";
@@ -13,6 +15,7 @@ import { GenericRepositoryHelper } from "@/helpers/GenericRepositoryHelper";
 import logger from "@/utils/logger";
 import { v4 as uuidv4 } from "uuid";
 import { LibrariesRepositoryPort } from "../../../application/ports/LibrariesRepositoryPort";
+import { LibraryManager } from "../../../application/services/LibraryManager";
 import { Library } from "../../../domain/Library";
 import { LibraryCollectionModel } from "../models/LibraryCollectionModel";
 import { LibraryModel } from "../models/LibraryModel";
@@ -57,11 +60,12 @@ export class LibrariesRepositoryImpl
         "movies",
         "movies.videos",
         "albums",
-        "collections",
-        "collections.movies",
-        "collections.shows",
-        "collections.albums",
-        "collections.libraries",
+        "libraryCollections",
+        "libraryCollections.collection",
+        "libraryCollections.collection.collectionMovies.movie",
+        "libraryCollections.collection.collectionSeries.series",
+        "libraryCollections.collection.collectionAlbums.album",
+        "libraryCollections.collection.libraryCollections.library",
       ],
     });
 
@@ -71,15 +75,18 @@ export class LibrariesRepositoryImpl
     const items: LibraryItem[] = [];
 
     // Get collections first
-    const collections = library.libraryCollections || [];
+    const collections =
+      library.libraryCollections.map((c) => c.collection) || [];
     for (const collection of collections) {
       const years = this.calculateYearsForCollection(collection);
       const numberOfItems =
-        (collection.collection.collectionMovies?.length || 0) +
-        (collection.collection.collectionSeries?.length || 0) +
-        (collection.collection.collectionAlbums?.length || 0);
-
-      const collectionData = collection.collection;
+        (collection.collectionMovies.map((m) => m.movie.libraryId === libraryId)
+          .length || 0) +
+        (collection.collectionSeries.map(
+          (s) => s.series.libraryId === libraryId
+        ).length || 0) +
+        (collection.collectionAlbums.map((a) => a.album.libraryId === libraryId)
+          .length || 0);
 
       // Find the junction table entry to get customOrder
       const libraryCollectionRepo = DatabaseManager.getRepository(
@@ -88,16 +95,21 @@ export class LibrariesRepositoryImpl
       const libraryCollection = await libraryCollectionRepo.findOne({
         where: {
           libraryId: libraryId,
-          collectionId: collectionData.id,
+          collectionId: collection.id,
         },
       });
 
+      const collectionImages = await LibraryManager.getCollectionImages(
+        collection,
+        type
+      );
+
       items.push({
-        id: collectionData.id,
-        title: collectionData.title,
+        id: collection.id,
+        title: collection.title,
         years: years,
-        coverSrc:
-          collectionData.posterSrc || collectionData.musicPosterSrc || "",
+        coverSrc: collection.posterSrc || collection.musicPosterSrc || "",
+        images: collectionImages,
         numberOfItems,
         order: libraryCollection?.customOrder || 0,
         watched: false, // Collections don't have watch state
@@ -110,17 +122,17 @@ export class LibrariesRepositoryImpl
     // Get items that don't belong to any collection
     const collectionMovieIds = new Set(
       collections.flatMap(
-        (c) => c.collection.collectionMovies?.map((m) => m.movie.id) || []
+        (c) => c.collectionMovies?.map((m) => m.movie.id) || []
       )
     );
     const collectionSeriesIds = new Set(
       collections.flatMap(
-        (c) => c.collection.collectionSeries?.map((s) => s.series.id) || []
+        (c) => c.collectionSeries?.map((s) => s.series.id) || []
       )
     );
     const collectionAlbumIds = new Set(
       collections.flatMap(
-        (c) => c.collection.collectionAlbums?.map((a) => a.album.id) || []
+        (c) => c.collectionAlbums?.map((a) => a.album.id) || []
       )
     );
 
@@ -189,12 +201,12 @@ export class LibrariesRepositoryImpl
     return items.sort((a, b) => a.order - b.order);
   }
 
-  private calculateYearsForCollection(collection: any): string {
+  private calculateYearsForCollection(collection: CollectionModel): string {
     const years: number[] = [];
 
     // Add movie years
-    if (collection.movies) {
-      for (const movie of collection.movies) {
+    if (collection.collectionMovies) {
+      for (const movie of collection.collectionMovies.map((m) => m.movie)) {
         if (movie.year) {
           years.push(parseInt(movie.year));
         }
@@ -202,8 +214,8 @@ export class LibrariesRepositoryImpl
     }
 
     // Add series years
-    if (collection.shows) {
-      for (const series of collection.shows) {
+    if (collection.collectionSeries) {
+      for (const series of collection.collectionSeries.map((s) => s.series)) {
         if (series.seasons) {
           for (const season of series.seasons) {
             if (season.year) {
@@ -215,8 +227,8 @@ export class LibrariesRepositoryImpl
     }
 
     // Add album years
-    if (collection.albums) {
-      for (const album of collection.albums) {
+    if (collection.collectionAlbums) {
+      for (const album of collection.collectionAlbums.map((a) => a.album)) {
         if (album.year) {
           years.push(parseInt(album.year));
         }
@@ -231,11 +243,11 @@ export class LibrariesRepositoryImpl
     return minYear === maxYear ? minYear.toString() : `${minYear}-${maxYear}`;
   }
 
-  private calculateYearsForSeries(series: any): string {
+  private calculateYearsForSeries(series: SeriesModel): string {
     if (!series.seasons || series.seasons.length === 0) return "-";
 
     const years = series.seasons
-      .map((season: any) => season.year)
+      .map((season: SeasonModel) => season.year)
       .filter((year: string) => year && year.trim() !== "");
 
     if (years.length === 0) return "-";
@@ -246,7 +258,7 @@ export class LibrariesRepositoryImpl
     return minYear === maxYear ? minYear.toString() : `${minYear}-${maxYear}`;
   }
 
-  private calculateWatchedState(series: any, userId: string): boolean {
+  private calculateWatchedState(series: SeriesModel, userId: string): boolean {
     if (!series.seasons) return false;
 
     for (const season of series.seasons) {
@@ -254,7 +266,7 @@ export class LibrariesRepositoryImpl
 
       for (const episode of season.episodes) {
         const watchedEpisode = episode.watchLists?.find(
-          (wl: any) => wl.userId === userId
+          (wl: WatchList) => wl.userId === userId
         );
         if (watchedEpisode) return true;
       }
@@ -263,7 +275,10 @@ export class LibrariesRepositoryImpl
     return false;
   }
 
-  private calculateRemainingEpisodes(series: any, userId: string): number {
+  private calculateRemainingEpisodes(
+    series: SeriesModel,
+    userId: string
+  ): number {
     if (!series.seasons) return 0;
 
     let totalEpisodes = 0;
@@ -276,7 +291,7 @@ export class LibrariesRepositoryImpl
 
       for (const episode of season.episodes) {
         const watchedEpisode = episode.watchLists?.find(
-          (wl: any) => wl.userId === userId
+          (wl: WatchList) => wl.userId === userId
         );
         if (watchedEpisode) watchedEpisodes++;
       }

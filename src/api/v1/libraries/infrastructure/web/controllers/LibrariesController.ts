@@ -38,7 +38,7 @@ export class LibrariesController extends Controller {
     const libraries = await useCases.getLibraries().execute();
     return {
       status: "success",
-      message: messages.success.update,
+      message: messages.success.fetch,
       data: libraries,
     };
   }

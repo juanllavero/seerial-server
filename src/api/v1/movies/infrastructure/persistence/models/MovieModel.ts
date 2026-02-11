@@ -8,6 +8,7 @@ import {
   BeforeInsert,
   Column,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryColumn,
@@ -225,7 +226,10 @@ export class MovieModel extends BaseEntity {
   })
   analyzingFiles!: boolean;
 
-  @ManyToOne(() => LibraryModel, { onDelete: "CASCADE" })
+  @ManyToOne(() => LibraryModel, (library) => library.movies, {
+    onDelete: "CASCADE",
+  })
+  @JoinColumn({ name: "library_id" })
   library!: LibraryModel;
 
   @OneToMany(() => CollectionMovieModel, (cm) => cm.movie, { cascade: true })

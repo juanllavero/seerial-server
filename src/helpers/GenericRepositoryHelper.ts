@@ -189,24 +189,18 @@ export class GenericRepositoryHelper<
    */
   async update(id: string, data: Partial<TDomain>): Promise<TDomain> {
     try {
-      const result = await this.model.update({ id } as any, data as any);
+      const preloaded = await this.model.preload({
+        ...(data as any),
+        id,
+      });
 
-      if (!result.affected || result.affected === 0) {
+      if (!preloaded) {
         throw new Error(`${this.config.entityName} with ID ${id} not found`);
       }
 
-      const updated = await this.findById(id);
-      if (!updated) {
-        throw new Error(
-          `Failed to retrieve updated ${this.config.entityName} with ID ${id}`
-        );
-      }
-
-      return updated;
+      const saved = await preloaded.save();
+      return this.toDomain(saved);
     } catch (error) {
-      if (error instanceof Error && error.message.includes("not found")) {
-        throw error;
-      }
       repositoryLogger.error(
         error,
         `Failed to update ${this.config.entityName} with ID ${id}`

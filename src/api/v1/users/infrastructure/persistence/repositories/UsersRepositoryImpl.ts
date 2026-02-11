@@ -1,6 +1,5 @@
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
 import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryModel";
-import { ServerConfigService } from "@/api/v1/servers/infrastructure/services/ServerConfigService";
 import { messages } from "@/config/messages";
 import ApiError from "@/data/ApiError";
 import { GenericRepositoryHelper } from "@/helpers/GenericRepositoryHelper";
@@ -102,7 +101,6 @@ export class UsersRepositoryImpl
       allowDownloads: data.allowDownloads ?? true,
       hideInLogin: data.hideInLogin ?? false,
       maxSessions: data.maxSessions ?? 0,
-      serverId: ServerConfigService.serverConfig.id,
     };
 
     const user = await this.helper.create(userData, true);

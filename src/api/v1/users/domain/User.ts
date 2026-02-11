@@ -1,5 +1,6 @@
 import { Library } from "../../libraries/domain/Library";
-import { Server } from "../../servers/domain/Server";
+
+export type UserType = "normal" | "admin";
 
 export interface User {
   id: string;
@@ -7,7 +8,7 @@ export interface User {
   password?: string;
   avatar?: string;
   allowRemote: boolean;
-  type: string;
+  type: UserType;
   allowVideoTranscoding: boolean;
   internetBitrateLimit?: number;
   allowDownloads: boolean;
@@ -15,7 +16,5 @@ export interface User {
   maxSessions: number;
 
   // Associations
-  serverId: string;
-  server: Server;
   libraries: Library[];
 }

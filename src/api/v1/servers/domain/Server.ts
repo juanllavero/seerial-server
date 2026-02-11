@@ -1,5 +1,3 @@
-import { User } from "../../users/domain/User";
-
 export interface Server {
   id: string;
   name: string;
@@ -28,5 +26,4 @@ export interface Server {
   enableAutoPortMapping: boolean;
   publicHttpPort: number;
   publicHttpsPort: number;
-  users: User[];
 }

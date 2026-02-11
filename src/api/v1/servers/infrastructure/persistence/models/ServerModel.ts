@@ -1,11 +1,9 @@
-import { UserModel } from "@/api/v1/users/infrastructure/persistence/models/UserModel";
 import { defaults } from "@/data/defaults/ModelDefaults";
 import {
   BaseEntity,
   BeforeInsert,
   Column,
   Entity,
-  OneToMany,
   PrimaryColumn,
 } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
@@ -126,10 +124,6 @@ export class ServerModel extends BaseEntity {
     name: "public_https_port",
   })
   publicHttpsPort!: number;
-
-  // Associations
-  @OneToMany(() => UserModel, (user) => user.server)
-  users!: UserModel[];
 
   // Lifecycle hooks
   @BeforeInsert()

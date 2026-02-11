@@ -10,6 +10,7 @@ import {
   BeforeRemove,
   Column,
   Entity,
+  JoinColumn,
   ManyToOne,
   OneToMany,
   PrimaryColumn,
@@ -48,7 +49,10 @@ export class AlbumModel extends BaseEntity {
   @Column({ type: "varchar", nullable: false, default: "" })
   folder!: string;
 
-  @ManyToOne(() => LibraryModel, { onDelete: "CASCADE" })
+  @ManyToOne(() => LibraryModel, (library) => library.albums, {
+    onDelete: "CASCADE",
+  })
+  @JoinColumn({ name: "library_id" })
   library!: LibraryModel;
 
   @OneToMany(() => CollectionAlbumModel, (ca) => ca.album, { cascade: true })

@@ -1,4 +1,4 @@
-import { Collection } from "@/api/v1/collections/domain/Collection";
+import { CollectionModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionModel";
 import {
   librariesRepo,
   useCases,
@@ -36,8 +36,8 @@ export class LibraryManager {
     return library;
   }
 
-  private static async getCollectionImages(
-    collection: Collection,
+  public static async getCollectionImages(
+    collection: CollectionModel,
     type: string
   ): Promise<{
     poster: string | null;
@@ -55,11 +55,11 @@ export class LibraryManager {
     let items: any[] = [];
 
     if (type === "Movies") {
-      items = collection.movies || [];
+      items = collection.collectionMovies.map((movie) => movie.movie) || [];
     } else if (type === "Shows") {
-      items = collection.shows || [];
+      items = collection.collectionSeries.map((series) => series.series) || [];
     } else if (type === "Music") {
-      items = collection.albums || [];
+      items = collection.collectionAlbums.map((album) => album.album) || [];
     }
 
     let posterPath: string | null = null;
