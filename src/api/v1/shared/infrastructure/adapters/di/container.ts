@@ -89,7 +89,7 @@ import { DeleteSeriesUseCase } from "@/api/v1/series/application/usecases/Delete
 import { FindSeriesByIdUseCase } from "@/api/v1/series/application/usecases/FindSeriesByIdUseCase";
 import { ProcessEpisodeUseCase } from "@/api/v1/series/application/usecases/ProcessEpisodeUseCase";
 import { RefreshMetadataUseCase } from "@/api/v1/series/application/usecases/RefreshMetadataUseCase";
-import { ScanSeriesUseCase } from "@/api/v1/series/application/usecases/Test";
+import { ScanSeriesUseCase } from "@/api/v1/series/application/usecases/ScanSeriesUseCase";
 import { UpdateEpisodeGroupUseCase } from "@/api/v1/series/application/usecases/UpdateEpisodeGroupUseCase";
 import { UpdateSeriesMetadataUseCase } from "@/api/v1/series/application/usecases/UpdateSeriesMetadataUseCase";
 import { UpdateSeriesUseCase } from "@/api/v1/series/application/usecases/UpdateSeriesUseCase";

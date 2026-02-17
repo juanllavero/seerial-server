@@ -38,20 +38,11 @@ export class ScanMusicUseCase {
   ) {}
 
   /**
-   * Main entry point. Returns immediately, processing continues in background.
+   * Main entry point.
    */
   async execute(library: Library, root: string): Promise<void> {
     musicLogger.info({ libraryId: library.id, root }, "Starting music scan");
 
-    this.executeScan(library, root).catch((error) => {
-      musicLogger.error(
-        { libraryId: library.id, root, error },
-        "Music scan failed"
-      );
-    });
-  }
-
-  private async executeScan(library: Library, root: string): Promise<void> {
     if (!(await this.fileSystemService.isFolder(root))) {
       musicLogger.warn({ root }, "Root is not a folder");
       return;
@@ -68,6 +59,30 @@ export class ScanMusicUseCase {
   }
 
   /**
+   * Checks if folder name indicates a disc folder
+   */
+  private isDiscFolder(folderName: string): boolean {
+    const normalized = folderName.toLowerCase().trim();
+    const patterns = [
+      /^disc?\s*\d+$/i, // Disc 1, Disk 2, disc 01
+      /^disco\s*\d+$/i, // Disco 1, Disco 01
+      /^cd\s*\d+$/i, // CD 1, CD01
+      /^\d+$/, // 1, 01, 001
+    ];
+    return patterns.some((p) => p.test(normalized));
+  }
+
+  /**
+   * Checks if folder name indicates an extras folder
+   */
+  private isExtrasFolder(folderPath: string): boolean {
+    return (
+      path.basename(folderPath).toLowerCase() === "extras" ||
+      path.basename(folderPath).toLowerCase() === "extra"
+    );
+  }
+
+  /**
    * Analyzes if root is a collection or single album
    */
   private async analyzeFolderStructure(root: string): Promise<{
@@ -75,32 +90,71 @@ export class ScanMusicUseCase {
     albumFolders: AlbumFolder[];
   }> {
     const contents = await this.fileSystemService.getFilesInFolder(root);
-    const musicFiles = await this.fileSystemService.getValidMusicFiles(root);
 
-    // Has music files directly = album
-    if (musicFiles.length > 0) {
-      return {
-        type: "album",
-        albumFolders: [{ path: root, musicFiles }],
-      };
-    }
-
-    // Find album folders inside
-    const albumFolders: AlbumFolder[] = [];
+    // Get direct music files
+    const directMusicFiles: string[] = [];
+    const subFolders: { name: string; path: string }[] = [];
 
     for (const item of contents) {
       const itemPath = `${root}/${item.name}`;
-      if (await this.fileSystemService.isFolder(itemPath)) {
-        const files = await this.fileSystemService.getValidMusicFiles(itemPath);
+      if (
+        (await this.fileSystemService.isFolder(itemPath)) &&
+        !this.isExtrasFolder(itemPath)
+      ) {
+        subFolders.push({ name: item.name, path: itemPath });
+      } else if (this.fileSystemService.isAudioFile(itemPath)) {
+        directMusicFiles.push(itemPath);
+      }
+    }
+
+    // Has direct music files = album
+    if (directMusicFiles.length > 0) {
+      return {
+        type: "album",
+        albumFolders: [{ path: root, musicFiles: directMusicFiles }],
+      };
+    }
+
+    // Check subfolders
+    const discFolders: string[] = [];
+    const albumFolders: AlbumFolder[] = [];
+
+    for (const folder of subFolders) {
+      if (this.isDiscFolder(folder.name)) {
+        discFolders.push(folder.path);
+      } else {
+        const files = await this.fileSystemService.getValidMusicFiles(
+          folder.path
+        );
         if (files.length > 0) {
-          albumFolders.push({ path: itemPath, musicFiles: files });
+          albumFolders.push({ path: folder.path, musicFiles: files });
         }
       }
     }
 
+    // Has disc folders = album
+    if (discFolders.length > 0) {
+      const allMusicFiles = await this.fileSystemService.getValidMusicFiles(
+        root
+      );
+      return {
+        type: "album",
+        albumFolders: [{ path: root, musicFiles: allMusicFiles }],
+      };
+    }
+
+    // Has album folders = collection
+    if (albumFolders.length > 0) {
+      return {
+        type: "collection",
+        albumFolders,
+      };
+    }
+
+    // Empty or no music
     return {
-      type: albumFolders.length > 0 ? "collection" : "album",
-      albumFolders,
+      type: "album",
+      albumFolders: [],
     };
   }
 
@@ -191,7 +245,6 @@ export class ScanMusicUseCase {
 
       const albumTitle = sampleMetadata.album || getFileName(albumFolder.path);
       const artistName = sampleMetadata.artists?.[0] || "Unknown Artist";
-
       // Search MusicBrainz for album + artist metadata
       const mbAlbum = await this.musicBrainz.searchRelease(
         albumTitle,
@@ -212,6 +265,7 @@ export class ScanMusicUseCase {
             ? new Date(mbAlbum.releaseDate).getFullYear().toString()
             : "",
           libraryId: library.id,
+          description: mbAlbum.annotation,
           folder: albumFolder.path,
           genres: sampleMetadata.genres || [],
           coverSrc: "",

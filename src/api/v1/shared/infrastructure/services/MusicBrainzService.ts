@@ -45,6 +45,7 @@ interface MusicBrainzReleaseDetail {
       name: string;
     };
   }>;
+  annotation: string;
   media?: Array<{
     position: number;
     "track-count": number;
@@ -63,6 +64,7 @@ export interface AlbumMetadata {
   artistMbid: string;
   releaseDate?: string;
   coverArtUrl?: string;
+  annotation: string;
   tracks: TrackMetadata[];
 }
 
@@ -159,7 +161,7 @@ export class MusicBrainzService {
    * Gets detailed information about a release including tracks
    */
   async getReleaseDetails(mbid: string): Promise<AlbumMetadata | null> {
-    const url = `${this.baseUrl}/release/${mbid}?inc=artist-credits+recordings&fmt=json`;
+    const url = `${this.baseUrl}/release/${mbid}?inc=artist-credits+recordings+annotation&fmt=json`;
 
     const release = await this.makeRequest<MusicBrainzReleaseDetail>(url);
 
@@ -209,6 +211,7 @@ export class MusicBrainzService {
       artist,
       artistMbid,
       releaseDate: release.date,
+      annotation: release.annotation || "",
       coverArtUrl,
       tracks,
     };
