@@ -16,10 +16,10 @@ export class AlbumArtistModel extends BaseEntity {
   @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @Column({ type: "varchar", nullable: false, name: "artist_id" })
+  @Column({ type: "varchar", nullable: false })
   artistId!: string;
 
-  @Column({ type: "varchar", nullable: false, name: "album_id" })
+  @Column({ type: "varchar", nullable: false })
   albumId!: string;
 
   @ManyToOne(() => ArtistModel, { onDelete: "CASCADE" })

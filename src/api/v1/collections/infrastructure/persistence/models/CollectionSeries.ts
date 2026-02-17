@@ -11,10 +11,10 @@ import { CollectionModel } from "./CollectionModel";
 
 @Entity({ name: "CollectionSeries" })
 export class CollectionSeriesModel extends BaseEntity {
-  @PrimaryColumn({ type: "varchar", nullable: false, name: "collection_id" })
+  @PrimaryColumn({ type: "varchar", nullable: false })
   collectionId!: string;
 
-  @PrimaryColumn({ type: "varchar", nullable: false, name: "series_id" })
+  @PrimaryColumn({ type: "varchar", nullable: false })
   seriesId!: string;
 
   @Column({

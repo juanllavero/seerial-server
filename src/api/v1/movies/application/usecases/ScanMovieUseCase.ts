@@ -1,17 +1,15 @@
-import { CollectionsRepositoryPort } from "@/api/v1/collections/application/ports/CollectionRepositoryPort";
+import { CollectionsRepositoryPort } from "@/api/v1/collections/application/ports/CollectionsRepositoryPort";
 import { Collection } from "@/api/v1/collections/domain/Collection";
 import { LibrariesRepositoryPort } from "@/api/v1/libraries/application/ports/LibrariesRepositoryPort";
 import { Library } from "@/api/v1/libraries/domain/Library";
 import { FileSystemServicePort } from "@/api/v1/shared/application/ports/FileSystemServicePort";
 import { MetadataProviderPort } from "@/api/v1/shared/application/ports/MetadataProviderPort";
-import {
-  notificationService,
-  useCases,
-} from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { NotificationServicePort } from "@/api/v1/shared/application/ports/NotificationServicePort";
 import { getOnlyRuntime } from "@/api/v1/shared/infrastructure/adapters/ffmpeg/mediaInfo";
 import { extractNameAndYear } from "@/api/v1/shared/infrastructure/services/FileSearchService";
+import { WriteQueue } from "@/api/v1/shared/infrastructure/services/WriteQueue";
 import { VideoRepositoryPort } from "@/api/v1/videos/application/ports/VideosRepositoryPort";
-import { Video } from "@/api/v1/videos/domain/Video";
+import { Video, VideoType } from "@/api/v1/videos/domain/Video";
 import logger from "@/utils/logger";
 import { getFileName } from "@/utils/utils";
 import { MovieResponse } from "moviedb-promise";
@@ -19,1203 +17,446 @@ import { Movie } from "../../domain/Movie";
 import { MoviesRepositoryPort } from "../ports/MoviesRepositoryPort";
 
 export class ScanMovieUseCase {
+  private readonly writeQueue = new WriteQueue();
+
   constructor(
     private readonly filesManager: FileSystemServicePort,
     private readonly librariesRepo: LibrariesRepositoryPort,
     private readonly movieRepository: MoviesRepositoryPort,
     private readonly videoRepo: VideoRepositoryPort,
     private readonly collectionRepo: CollectionsRepositoryPort,
-    private readonly metadataProvider: MetadataProviderPort
+    private readonly metadataProvider: MetadataProviderPort,
+    private readonly notificationService: NotificationServicePort
   ) {}
 
   async execute(library: Library, root: string): Promise<void> {
     logger.info(
-      {
-        libraryId: library.id,
-        rootFolder: root,
-      },
-      "Starting movie scan execution"
+      { libraryId: library.id, root },
+      "Starting movies scan execution"
     );
 
-    if (!(await this.filesManager.isFolder(root))) {
-      // ONLY ONE FILE
-      logger.info(
-        {
-          libraryId: library.id,
-          rootFile: root,
-        },
-        "Processing single movie file"
-      );
+    const isFolder = await this.filesManager.isFolder(root);
 
-      if (!this.filesManager.isVideoFile(root)) {
-        logger.warn(
-          {
-            libraryId: library.id,
-            rootFile: root,
-          },
-          "Single file is not a valid video file, skipping"
-        );
-        return;
-      }
-
-      await this.processFolder(library, root, [root]);
-    } else {
-      logger.info(
-        {
-          libraryId: library.id,
-          rootFolder: root,
-        },
-        "Processing movie folder, analyzing contents"
-      );
-
-      const filesInDir = await this.filesManager.getFilesInFolder(root);
-      const filesInRoot: string[] = [];
-      const folders: string[] = [];
-
-      for (const file of filesInDir) {
-        const filePath = `${root}/${file.name}`;
-        if (await this.filesManager.isFolder(filePath)) {
-          folders.push(filePath);
-        } else {
-          if (this.filesManager.isVideoFile(filePath))
-            filesInRoot.push(filePath);
-        }
-      }
-
-      logger.info(
-        {
-          libraryId: library.id,
-          rootFolder: root,
-          foldersFound: folders.length,
-          filesFound: filesInRoot.length,
-        },
-        "Analyzed folder contents"
-      );
-
-      if (folders.length > 0) {
-        // FOLDERS CORRESPONDING DIFFERENT MOVIES FROM A COLLECTION
-        logger.info(
-          {
-            libraryId: library.id,
-            rootFolder: root,
-            foldersCount: folders.length,
-          },
-          "Detected multiple movie folders, creating collection"
-        );
-
-        // Add collection or retrieve existing one
-        const collectionTitle = getFileName(root);
-        logger.debug(
-          {
-            libraryId: library.id,
-            collectionTitle,
-          },
-          "Creating or retrieving collection"
-        );
-
-        const collection = await this.collectionRepo.add({
-          title: collectionTitle,
+    // Edge case: Root is a direct file
+    if (!isFolder) {
+      if (this.filesManager.isVideoFile(root)) {
+        // Single file: write directly through queue
+        await this.writeQueue.enqueue(async () => {
+          await this.processMovieFolder(library, root, [root], []);
         });
 
-        if (collection) {
-          logger.info(
-            {
-              libraryId: library.id,
-              collectionId: collection.id,
-              collectionTitle: collection.title,
-            },
-            "Successfully created/retrieved collection"
-          );
-
-          await this.collectionRepo.addLibrary(library.id, collection.id);
-          logger.debug(
-            {
-              libraryId: library.id,
-              collectionId: collection.id,
-            },
-            "Added library to collection"
-          );
-        } else {
-          logger.error(
-            {
-              libraryId: library.id,
-              collectionTitle,
-            },
-            "Failed to create or retrieve collection"
-          );
-        }
-
-        // Update content in clients
-        notificationService.mutateLibrary(library.id);
-
-        logger.info(
-          {
-            libraryId: library.id,
-            foldersCount: folders.length,
-          },
-          "Processing movie folders in collection"
-        );
-
-        const processPromises = folders.map(async (folder) => {
-          logger.debug(
-            {
-              libraryId: library.id,
-              folder,
-              collectionId: collection?.id,
-            },
-            "Processing movie folder"
-          );
-
-          const files = await this.filesManager.getValidVideoFiles(folder);
-          await this.processFolder(
-            library,
-            folder,
-            files,
-            collection ?? undefined
-          );
-        });
-
-        try {
-          await Promise.all(processPromises);
-          logger.info(
-            {
-              libraryId: library.id,
-              foldersProcessed: folders.length,
-            },
-            "Successfully processed all movie folders in collection"
-          );
-        } catch (error) {
-          logger.error(
-            {
-              libraryId: library.id,
-              error: error instanceof Error ? error.message : String(error),
-            },
-            "Failed to process some movie folders in collection"
-          );
-        }
-      } else {
-        // MOVIE FILE/CONCERT FILES INSIDE FOLDER
-        logger.info(
-          {
-            libraryId: library.id,
-            rootFolder: root,
-            filesCount: filesInRoot.length,
-          },
-          "Processing single movie folder"
-        );
-
-        await this.processFolder(library, root, filesInRoot);
+        // Update the library at the end of the global process
+        await this.updateLibraryHelper(library);
       }
+
+      logger.info(
+        { libraryId: library.id, root },
+        "Added single file as movie"
+      );
+
+      return;
     }
 
-    // Update Library
-    try {
-      this.librariesRepo.update(library.id, library);
+    // Analyze folder structure
+    const contents = await this.filesManager.getFilesInFolder(root);
+
+    // Filter which ones are folders to decide if it's a Collection or a Movie
+    const subFolders = await Promise.all(
+      contents.map(async (f) => ({
+        path: `${root}/${f.name}`,
+        isDir: await this.filesManager.isFolder(`${root}/${f.name}`),
+      }))
+    );
+    const validFolders = subFolders.filter((f) => f.isDir).map((f) => f.path);
+
+    // Decision logic: Is it a movie collection or a single movie with folders?
+    // We assume that if there are folders inside, it's a collection, UNLESS the folder is named "extras".
+    const hasSubFolders = validFolders.length > 0;
+    const isMovieFolder =
+      !hasSubFolders || validFolders.every((f) => this.isExtrasFolder(f));
+
+    if (isMovieFolder) {
+      // Strategy: Single Movie
+      await this.handleSingleMovieScan(library, root);
+
       logger.info(
-        {
-          libraryId: library.id,
-        },
-        "Successfully updated library after movie scan"
+        { libraryId: library.id, root },
+        "Added single folder as movie"
       );
-    } catch (error) {
-      logger.error(
-        {
-          libraryId: library.id,
-          error: error instanceof Error ? error.message : String(error),
-        },
-        "Failed to update library after movie scan"
+    } else {
+      // Strategy: Collection (Multiple movie folders)
+      await this.handleCollectionScan(library, root, validFolders);
+
+      logger.info(
+        { libraryId: library.id, root },
+        "Added multiple folders as collection"
       );
+    }
+
+    // Update the library at the end of the global process
+    await this.updateLibraryHelper(library);
+  }
+
+  //#region SCANNING STRATEGIES
+
+  private async handleSingleMovieScan(
+    library: Library,
+    root: string
+  ): Promise<void> {
+    const { mainFiles, extraFiles } = await this.detectMovieFiles(root);
+    await this.writeQueue.enqueue(async () => {
+      await this.processMovieFolder(library, root, mainFiles, extraFiles);
+    });
+  }
+
+  private async handleCollectionScan(
+    library: Library,
+    root: string,
+    folders: string[]
+  ): Promise<void> {
+    const collectionTitle = getFileName(root);
+
+    // Create or retrieve collection
+    const collection = await this.writeQueue.enqueue(async () => {
+      let coll = await this.collectionRepo.getByName(collectionTitle);
+      if (!coll) {
+        coll = await this.collectionRepo.add({ title: collectionTitle });
+      }
+      if (coll) {
+        await this.collectionRepo.addLibrary(library.id, coll.id);
+      }
+      return coll;
+    });
+
+    if (!collection) {
+      logger.error({ root }, "Failed to process collection");
+      return;
+    }
+
+    this.notificationService.mutateLibrary(library.id);
+
+    // Read: detect files concurrently (no DB writes)
+    const detectionTasks = folders.map((folder) =>
+      this.detectMovieFiles(folder)
+    );
+    const detectionResults = await Promise.all(detectionTasks);
+
+    // Write: process movies sequentially through queue
+    for (let i = 0; i < folders.length; i++) {
+      const { mainFiles, extraFiles } = detectionResults[i];
+
+      if (mainFiles.length > 0) {
+        await this.writeQueue.enqueue(async () => {
+          await this.processMovieFolder(
+            library,
+            folders[i],
+            mainFiles,
+            extraFiles,
+            collection
+          );
+        });
+      }
     }
   }
 
+  //#endregion
+
   /**
-   * Processes the files inside the movie folder, creating the Movie object and searching for metadata
-   * @param rootFolder Root folder of the movie
-   * @param files Video files inside the root folder
-   * @param collection Collection from the movie
+   * Detects main and extra files based on the folder structure.
    */
-  async processFolder(
-    library: Library,
-    rootFolder: string,
-    files: string[],
-    collection?: Collection
-  ) {
-    logger.info(
-      {
-        libraryId: library.id,
-        rootFolder,
-        filesCount: files.length,
-        hasCollection: !!collection,
-        collectionId: collection?.id,
-      },
-      "Starting to process movie folder"
-    );
+  private async detectMovieFiles(
+    root: string
+  ): Promise<{ mainFiles: string[]; extraFiles: string[] }> {
+    const allFiles = await this.filesManager.getFilesInFolder(root);
+    const mainFiles: string[] = [];
+    const extraFiles: string[] = [];
 
-    let movie: Movie | null = null;
-    if (rootFolder in library.analyzedFolders) {
-      logger.info(
-        {
-          libraryId: library.id,
-          rootFolder,
-          movieId: library.analyzedFolders[rootFolder],
-        },
-        "Folder already analyzed, retrieving existing movie"
-      );
-
-      movie = await this.movieRepository.findById(
-        library.analyzedFolders[rootFolder] ?? ""
-      );
-
-      if (!movie) {
-        logger.error(
-          {
-            libraryId: library.id,
-            rootFolder,
-            expectedMovieId: library.analyzedFolders[rootFolder],
-          },
-          "Failed to find existing movie that should exist"
-        );
+    // Files in the root of the folder
+    for (const file of allFiles) {
+      const fullPath = `${root}/${file.name}`;
+      if (await this.filesManager.isFolder(fullPath)) {
+        // If it's an "extras" folder, scan inside
+        if (this.isExtrasFolder(fullPath)) {
+          const extrasInFolder = await this.filesManager.getValidVideoFiles(
+            fullPath
+          );
+          extraFiles.push(...extrasInFolder);
+        }
+      } else {
+        if (this.filesManager.isVideoFile(fullPath)) {
+          mainFiles.push(fullPath);
+        }
       }
     }
+    return { mainFiles, extraFiles };
+  }
 
-    let movieMetadata: MovieResponse | null | undefined = null;
+  /**
+   * Processes a single movie folder
+   * @param library Library to add movie to
+   * @param folderPath Path to folder
+   * @param mainFiles Main video files
+   * @param extraFiles Extra video files
+   * @param collection Collection to add movie to (if any)
+   * @returns
+   */
+  private async processMovieFolder(
+    library: Library,
+    folderPath: string,
+    mainFiles: string[],
+    extraFiles: string[],
+    collection?: Collection
+  ) {
+    // Get or create movie
+    const movie = await this.getOrCreateMovie(library, folderPath);
+    if (!movie) return;
 
-    const fileFullName = getFileName(rootFolder);
-    const nameAndYear = extractNameAndYear(fileFullName);
+    // Link to collection if it exists
+    if (collection) {
+      await this.collectionRepo
+        .addMovie(collection.id, movie.id)
+        .catch((e) => logger.warn(e));
+    }
+
+    // Search Metadata (if not locked or if it's new)
+    const nameAndYear = extractNameAndYear(getFileName(folderPath));
 
     let name = nameAndYear[0];
     let year = nameAndYear[1];
 
-    logger.debug(
-      {
-        libraryId: library.id,
-        rootFolder,
-        extractedName: name,
-        extractedYear: year,
-        fullFileName: fileFullName,
-      },
-      "Extracted movie name and year from folder path"
+    const movieMetadata = await this.searchMovieMetadata(
+      name,
+      year,
+      library.language
     );
 
-    movieMetadata = await this.searchMovie(name, year, library.language);
-
-    if (!movie) {
-      logger.info(
-        {
-          libraryId: library.id,
-          rootFolder,
-        },
-        "Creating new movie entry"
-      );
-
-      movie = await this.movieRepository.create({
-        libraryId: library.id,
-        folder: rootFolder,
-      });
-
-      if (!movie) {
-        logger.error(
-          {
-            libraryId: library.id,
-            rootFolder,
-          },
-          "Failed to create movie entry"
+    if (movieMetadata) {
+      await this.metadataProvider
+        .updateMovieMetadata(movie, movieMetadata, library.language, collection)
+        .catch((err) =>
+          logger.error({ err, movieId: movie.id }, "Failed update metadata")
         );
-        return;
-      }
-
-      logger.info(
-        {
-          libraryId: library.id,
-          rootFolder,
-          movieId: movie.id,
-        },
-        "Successfully created new movie entry"
-      );
-    }
-
-    try {
-      await useCases
-        .addAnalyzedFolder()
-        .execute(library.id, rootFolder, movie.id);
-
-      logger.debug(
-        {
-          libraryId: library.id,
-          rootFolder,
-          movieId: movie.id,
-        },
-        "Added folder to analyzed folders"
-      );
-    } catch (error) {
-      logger.error(
-        {
-          libraryId: library.id,
-          rootFolder,
-          movieId: movie.id,
-          error: error instanceof Error ? error.message : String(error),
-        },
-        "Failed to add folder to analyzed folders"
-      );
-    }
-
-    if (collection) {
-      try {
-        this.collectionRepo.addMovie(collection.id, movie.id);
-        logger.debug(
-          {
-            libraryId: library.id,
-            movieId: movie.id,
-            collectionId: collection.id,
-          },
-          "Added movie to collection"
-        );
-      } catch (error) {
-        logger.error(
-          {
-            libraryId: library.id,
-            movieId: movie.id,
-            collectionId: collection.id,
-            error: error instanceof Error ? error.message : String(error),
-          },
-          "Failed to add movie to collection"
-        );
+    } else {
+      // Fallback: use filename
+      if (!movie.name) {
+        // Only if it doesn't already have a name
+        movie.name = name;
+        movie.year = year !== "1" ? year : "";
+        await this.movieRepository.update(movie.id, movie);
       }
     }
 
-    if (!movieMetadata) {
-      logger.warn(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          rootFolder,
-          searchName: name,
-          searchYear: year,
-        },
-        "No movie metadata found in TMDb, processing without metadata"
-      );
+    // Partial notification for UI
+    this.notificationService.mutateMovie(movie);
 
-      //Save videos without metadata
-      movie.name = name;
-      movie.year = year !== "1" ? year : "";
+    // Process videos sequentially (already in queue)
+    const allFiles = [...mainFiles, ...extraFiles];
+    const types = [
+      ...mainFiles.map(() => VideoType.MAIN),
+      ...extraFiles.map(() => VideoType.EXTRA),
+    ];
 
-      logger.info(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filesCount: files.length,
-        },
-        "Processing video files without movie metadata"
-      );
-
-      const processPromises = files.map(async (file) => {
-        logger.debug(
-          {
-            libraryId: library.id,
-            movieId: movie.id,
-            filePath: file,
-          },
-          "Processing video file without metadata"
-        );
-
-        await this.saveMovieWithoutMetadata(library, movie, file);
-      });
-
-      try {
-        await Promise.all(processPromises);
-        logger.info(
-          {
-            libraryId: library.id,
-            movieId: movie.id,
-            filesProcessed: files.length,
-          },
-          "Successfully processed all video files without metadata"
-        );
-      } catch (error) {
-        logger.error(
-          {
-            libraryId: library.id,
-            movieId: movie.id,
-            error: error instanceof Error ? error.message : String(error),
-          },
-          "Failed to process some video files without metadata"
-        );
-      }
-
-      // Update content in clients
-      notificationService.mutateMovie(movie);
-      return;
-    }
-
-    logger.info(
-      {
-        libraryId: library.id,
-        movieId: movie.id,
-        tmdbId: movieMetadata.id,
-        movieTitle: movieMetadata.title,
-      },
-      "Found movie metadata, updating movie information"
-    );
-
-    try {
-      await this.metadataProvider.updateMovieMetadata(
+    for (let i = 0; i < allFiles.length; i++) {
+      await this.ensureVideoAndProcess(
+        library,
         movie,
-        movieMetadata,
-        library.language,
-        collection
-      );
-
-      logger.info(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-        },
-        "Successfully updated movie metadata"
-      );
-    } catch (error) {
-      logger.error(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          tmdbId: movieMetadata.id,
-          error: error instanceof Error ? error.message : String(error),
-        },
-        "Failed to update movie metadata"
-      );
-      // Continue anyway
-    }
-
-    // Update content in clients
-    notificationService.mutateLibrary(library.id);
-    notificationService.mutateMovie(movie);
-
-    logger.info(
-      {
-        libraryId: library.id,
-        movieId: movie.id,
-        filesCount: files.length,
-      },
-      "Processing video files with movie metadata"
-    );
-
-    const processPromises = files.map(async (file) => {
-      logger.debug(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath: file,
-        },
-        "Processing video file with metadata"
-      );
-
-      await this.processVideo(library, movie, file);
-    });
-
-    try {
-      await Promise.all(processPromises);
-      logger.info(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filesProcessed: files.length,
-        },
-        "Successfully processed all video files with metadata"
-      );
-    } catch (error) {
-      logger.error(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          error: error instanceof Error ? error.message : String(error),
-        },
-        "Failed to process some video files with metadata"
+        allFiles[i],
+        types[i],
+        !!movieMetadata
       );
     }
 
-    // Save data in DB
-    try {
-      useCases.updateLibrary().execute(library.id, library);
-      logger.debug(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-        },
-        "Updated library in database"
-      );
-    } catch (error) {
-      logger.error(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          error: error instanceof Error ? error.message : String(error),
-        },
-        "Failed to update library in database"
-      );
-    }
-
-    // Update content in clients
-    notificationService.mutateLibrary(library.id);
+    // Mutate content on clients
+    this.notificationService.mutateMovie(movie);
   }
 
   /**
-   * Searches in TheMovieDB for a specific movie name and year and returns the first match
-   * @param name Title of the movie
-   * @param year Release year of the movie
-   * @returns The first result of the search
+   * Handles the creation, identification (hash), and updating of videos.
    */
-  async searchMovie(name: string, year: string, language: string) {
-    logger.debug(
-      {
-        searchName: name,
-        searchYear: year,
-        language,
-      },
-      "Searching for movie in TMDb"
-    );
-
-    try {
-      const moviesSearch = await this.metadataProvider.searchMovies(name, year);
-
-      if (!moviesSearch || moviesSearch.length === 0) {
-        logger.warn(
-          {
-            searchName: name,
-            searchYear: year,
-            language,
-          },
-          "No movies found in TMDb search"
-        );
-        return undefined;
-      }
-
-      logger.debug(
-        {
-          searchName: name,
-          searchYear: year,
-          resultsCount: moviesSearch.length,
-          firstResultId: moviesSearch[0].id,
-          firstResultTitle: moviesSearch[0].title,
-        },
-        "Found movies in TMDb search, retrieving detailed movie data"
-      );
-
-      const movieData = await this.metadataProvider.getMovie(
-        moviesSearch[0].id ?? 0,
-        language
-      );
-
-      if (movieData) {
-        logger.info(
-          {
-            searchName: name,
-            searchYear: year,
-            movieId: movieData.id,
-            movieTitle: movieData.title,
-            releaseDate: movieData.release_date,
-          },
-          "Successfully retrieved movie metadata from TMDb"
-        );
-      } else {
-        logger.warn(
-          {
-            searchName: name,
-            searchYear: year,
-            expectedMovieId: moviesSearch[0].id,
-          },
-          "Failed to retrieve detailed movie data from TMDb"
-        );
-      }
-
-      return movieData;
-    } catch (error) {
-      logger.error(
-        {
-          searchName: name,
-          searchYear: year,
-          language,
-          error: error instanceof Error ? error.message : String(error),
-        },
-        "Failed to search for movie in TMDb"
-      );
-      return undefined;
-    }
-  }
-
-  /**
-   * Processes the video file associated to a movie without any metadata from TheMovieDB
-   * @param movie Movie object
-   * @param filePath Path to the video file
-   */
-  async saveMovieWithoutMetadata(
+  private async ensureVideoAndProcess(
     library: Library,
     movie: Movie,
-    filePath: string
+    filePath: string,
+    type: VideoType,
+    hasMetadata: boolean
   ) {
-    logger.debug(
-      {
-        libraryId: library.id,
-        movieId: movie.id,
-        filePath,
-      },
-      "Starting to save movie video without metadata"
-    );
-
-    let videos = await this.videoRepo.findByMovieId(movie.id);
-
-    let video: Video | null = null;
-    if (!videos?.find((v) => v.fileSrc === filePath)) {
-      logger.debug(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath,
-        },
-        "Video entry does not exist, creating new video entry"
-      );
-
-      video = await this.videoRepo.addAsMovie(movie.id);
-
-      if (!video) {
-        logger.error(
-          {
-            libraryId: library.id,
-            movieId: movie.id,
-            filePath,
-          },
-          "Failed to create video entry for movie"
-        );
-        return;
+    try {
+      let video: Video | null = null;
+      if (filePath in library.analyzedFiles) {
+        const videoId = library.analyzedFiles[filePath];
+        video = await this.videoRepo.findById(videoId);
       }
 
-      logger.debug(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath,
-          videoId: video.id,
-        },
-        "Successfully created video entry"
-      );
-    }
-
-    if (!video) {
-      logger.warn(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath,
-        },
-        "Video entry already exists, skipping video entry creation"
-      );
-      return;
-    }
-
-    video.movieId = movie.id;
-
-    try {
-      video.runtime = await getOnlyRuntime(video.fileSrc);
-      logger.debug(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath,
-          videoId: video.id,
-          runtime: video.runtime,
-        },
-        "Successfully retrieved video runtime"
-      );
-    } catch (error) {
-      logger.warn(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath,
-          videoId: video.id,
-          error: error instanceof Error ? error.message : String(error),
-        },
-        "Failed to get video runtime, continuing without runtime"
-      );
-    }
-
-    if (filePath in library.analyzedFiles) {
-      logger.debug(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath,
-          existingVideoId: library.analyzedFiles[filePath],
-        },
-        "File already analyzed, retrieving existing video entry"
-      );
-
-      video = await this.videoRepo.findById(
-        library.analyzedFiles[filePath] ?? ""
-      );
-
-      if (!video) {
-        logger.error(
-          {
-            libraryId: library.id,
-            movieId: movie.id,
-            filePath,
-            expectedVideoId: library.analyzedFiles[filePath],
-          },
-          "Failed to find existing video entry that should exist"
-        );
-        return;
-      }
-    }
-
-    if (!video) return;
-
-    try {
-      await useCases.addAnalyzedFile().execute(library.id, filePath, video.id);
-      logger.debug(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath,
-          videoId: video.id,
-        },
-        "Added file to analyzed files"
-      );
-    } catch (error) {
-      logger.error(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath,
-          videoId: video.id,
-          error: error instanceof Error ? error.message : String(error),
-        },
-        "Failed to add file to analyzed files"
-      );
-    }
-
-    video.fileSrc = filePath;
-    video.imgSrc = "resources/img/Default_video_thumbnail.jpg";
-
-    // Save data in DB
-    try {
-      useCases.updateMovie().execute(movie.id, movie);
-      useCases.updateVideo().execute(video.id, video);
-
-      logger.info(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath,
-          videoId: video.id,
-        },
-        "Successfully saved movie and video data to database"
-      );
-    } catch (error) {
-      logger.error(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath,
-          videoId: video.id,
-          error: error instanceof Error ? error.message : String(error),
-        },
-        "Failed to save movie and video data to database"
-      );
-    }
-
-    // Update content in clients
-    notificationService.mutateMovie(movie);
-    logger.debug(
-      {
-        libraryId: library.id,
-        movieId: movie.id,
-      },
-      "Sent movie mutation notification to clients"
-    );
-  }
-
-  /**
-   * Processes the video file associated to a movie
-   * @param movie Movie object
-   * @param filePath Path to the video file
-   */
-  async processVideo(library: Library, movie: Movie, filePath: string) {
-    logger.debug(
-      {
-        libraryId: library.id,
-        movieId: movie.id,
-        filePath,
-      },
-      "Starting to process movie video file"
-    );
-
-    let video: Video | null = null;
-
-    if (filePath in library.analyzedFiles) {
-      logger.debug(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath,
-          existingVideoId: library.analyzedFiles[filePath],
-        },
-        "File already analyzed, retrieving existing video entry"
-      );
-
-      video = await this.videoRepo.findById(
-        library.analyzedFiles[filePath] ?? ""
-      );
-
-      if (!video) {
-        logger.error(
-          {
-            libraryId: library.id,
-            movieId: movie.id,
-            filePath,
-            expectedVideoId: library.analyzedFiles[filePath],
-          },
-          "Failed to find existing video entry that should exist"
-        );
-        return;
-      }
-    } else {
-      logger.debug(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath,
-        },
-        "File not analyzed, checking for existing video entry by movie and file"
-      );
-
-      let videos = await this.videoRepo.findByMovieId(movie.id);
-
-      if (!videos?.find((v) => v.fileSrc === filePath)) {
-        logger.debug(
-          {
-            libraryId: library.id,
-            movieId: movie.id,
-            filePath,
-          },
-          "Video entry does not exist, creating new video entry"
-        );
-
-        video = await this.videoRepo.addAsMovie(movie.id, {
-          fileSrc: filePath,
-          movieId: movie.id,
-        });
-
-        if (!video) {
-          logger.error(
-            {
-              libraryId: library.id,
-              movieId: movie.id,
-              filePath,
-            },
-            "Failed to create video entry for movie"
+      if (video) {
+        // The video exists. Check if it has been moved.
+        if (video.fileSrc !== filePath) {
+          logger.info(
+            { oldPath: video.fileSrc, newPath: filePath },
+            "Video moved, updating path"
           );
-          return;
+          video.fileSrc = filePath;
+          await this.videoRepo.update(video.id, { fileSrc: filePath });
         }
-
-        logger.debug(
-          {
-            libraryId: library.id,
-            movieId: movie.id,
-            filePath,
-            videoId: video.id,
-          },
-          "Successfully created video entry"
-        );
-
-        try {
-          await useCases
-            .addAnalyzedFile()
-            .execute(library.id, filePath, video.id);
-          logger.debug(
-            {
-              libraryId: library.id,
-              movieId: movie.id,
-              filePath,
-              videoId: video.id,
-            },
-            "Added file to analyzed files"
-          );
-        } catch (error) {
-          logger.error(
-            {
-              libraryId: library.id,
-              movieId: movie.id,
-              filePath,
-              videoId: video.id,
-              error: error instanceof Error ? error.message : String(error),
-            },
-            "Failed to add file to analyzed files"
-          );
+        // Ensure it's linked to this movie (rare case of reassignment)
+        if (video.movieId !== movie.id) {
+          video.movieId = movie.id;
+          await this.videoRepo.update(video.id, { movieId: movie.id });
         }
-      }
-    }
-
-    if (!video) {
-      logger.error(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath,
-        },
-        "No video entry available for processing"
-      );
-      return;
-    }
-
-    try {
-      video.runtime = await getOnlyRuntime(video.fileSrc);
-      logger.debug(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath,
-          videoId: video.id,
-          runtime: video.runtime,
-        },
-        "Successfully retrieved video runtime"
-      );
-    } catch (error) {
-      logger.warn(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath,
-          videoId: video.id,
-          error: error instanceof Error ? error.message : String(error),
-        },
-        "Failed to get video runtime, continuing without runtime"
-      );
-    }
-
-    try {
-      await this.metadataProvider.updateVideoMetadataForMovie(video, movie);
-      logger.info(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath,
-          videoId: video.id,
-        },
-        "Successfully updated video metadata for movie"
-      );
-    } catch (error) {
-      logger.error(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath,
-          videoId: video.id,
-          error: error instanceof Error ? error.message : String(error),
-        },
-        "Failed to update video metadata for movie"
-      );
-    }
-
-    // Update content in clients
-    notificationService.mutateMovie(movie);
-    logger.debug(
-      {
-        libraryId: library.id,
-        movieId: movie.id,
-      },
-      "Sent movie mutation notification to clients"
-    );
-  }
-
-  /**
-   * Processes the video file associated to a movie extra
-   * @param movie Movie object
-   * @param filePath Path to the video file
-   */
-  async processVideoAsExtra(library: Library, movie: Movie, filePath: string) {
-    logger.debug(
-      {
-        libraryId: library.id,
-        movieId: movie.id,
-        filePath,
-      },
-      "Starting to process movie extra video file"
-    );
-
-    let video: Video | null = null;
-
-    if (filePath in library.analyzedFiles) {
-      logger.debug(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath,
-          existingVideoId: library.analyzedFiles[filePath],
-        },
-        "File already analyzed, retrieving existing video entry for extra"
-      );
-
-      video = await this.videoRepo.findById(
-        library.analyzedFiles[filePath] ?? ""
-      );
-
-      if (!video) {
-        logger.error(
-          {
-            libraryId: library.id,
-            movieId: movie.id,
-            filePath,
-            expectedVideoId: library.analyzedFiles[filePath],
-          },
-          "Failed to find existing video entry for extra that should exist"
-        );
-        return;
-      }
-    } else {
-      logger.debug(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath,
-        },
-        "File not analyzed, checking for existing video entry for extra"
-      );
-
-      let videos = await this.videoRepo.findByMovieId(movie.id);
-
-      if (!videos?.find((v) => v.fileSrc === filePath)) {
-        logger.debug(
-          {
-            libraryId: library.id,
-            movieId: movie.id,
-            filePath,
-          },
-          "Video entry for extra does not exist, creating new video entry"
-        );
-
-        video = await this.videoRepo.addAsMovie(movie.id, {
-          fileSrc: filePath,
-          movieId: movie.id,
-        });
-
-        if (!video) {
-          logger.error(
-            {
-              libraryId: library.id,
-              movieId: movie.id,
-              filePath,
-            },
-            "Failed to create video entry for movie extra"
-          );
-          return;
-        }
-
-        logger.debug(
-          {
-            libraryId: library.id,
-            movieId: movie.id,
-            filePath,
-            videoId: video.id,
-          },
-          "Successfully created video entry for extra"
-        );
-
-        library.analyzedFiles[filePath] = video.id;
-        logger.debug(
-          {
-            libraryId: library.id,
-            movieId: movie.id,
-            filePath,
-            videoId: video.id,
-          },
-          "Added extra file to analyzed files"
-        );
       } else {
-        // Video already exists, get it from the search
-        video = videos.find((v) => v.fileSrc === filePath) || null;
-        if (!video) {
-          logger.error(
-            {
-              libraryId: library.id,
-              movieId: movie.id,
-              filePath,
-            },
-            "Failed to find existing video entry for extra"
-          );
-          return;
+        // New Video
+        if (type === VideoType.MAIN) {
+          video = await this.videoRepo.addAsMovie(movie.id, {
+            fileSrc: filePath,
+          });
+        } else {
+          video = await this.videoRepo.addAsMovieExtra(movie.id, {
+            fileSrc: filePath,
+          });
         }
       }
-    }
 
-    if (!video) {
-      logger.error(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath,
-        },
-        "No video entry available for processing extra"
-      );
-      return;
-    }
+      if (!video) {
+        logger.error(
+          { filePath, movieId: movie.id },
+          "Failed to create/retrieve video"
+        );
+        return;
+      }
 
-    try {
-      video.runtime = await getOnlyRuntime(video.fileSrc);
-      logger.debug(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath,
-          videoId: video.id,
-          runtime: video.runtime,
-        },
-        "Successfully retrieved video runtime for extra"
-      );
-    } catch (error) {
-      logger.warn(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath,
-          videoId: video.id,
-          error: error instanceof Error ? error.message : String(error),
-        },
-        "Failed to get video runtime for extra, continuing without runtime"
-      );
-    }
+      // Register in the library as analyzed (Cache path -> ID)
+      library.analyzedFiles = {
+        ...library.analyzedFiles,
+        [filePath]: video.id,
+      };
 
-    // Save data in DB
-    try {
-      useCases.updateVideo().execute(video.id, video);
-      logger.info(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath,
-          videoId: video.id,
-        },
-        "Successfully saved movie extra video data to database"
-      );
+      await this.librariesRepo.addAnalyzedFile(library.id, filePath, video.id);
+
+      // Technical Analysis (FFmpeg) - Only if data is missing
+      if (!video.runtime || video.runtime === 0) {
+        try {
+          video.runtime = await getOnlyRuntime(filePath);
+          await this.videoRepo.update(video.id, { runtime: video.runtime });
+        } catch (e) {
+          logger.warn({ filePath }, "Failed to extract runtime");
+        }
+      }
+
+      // E. External Metadata (Usually only for Main features, or if extras are supported)
+      if (hasMetadata && type === VideoType.MAIN) {
+        await this.metadataProvider
+          .updateVideoMetadataForMovie(video, movie)
+          .catch(console.error);
+      } else if (!video.imgSrc) {
+        // Default placeholder
+        video.imgSrc = "resources/img/Default_video_thumbnail.jpg";
+        await this.videoRepo.update(video.id, { imgSrc: video.imgSrc });
+      }
     } catch (error) {
       logger.error(
-        {
-          libraryId: library.id,
-          movieId: movie.id,
-          filePath,
-          videoId: video.id,
-          error: error instanceof Error ? error.message : String(error),
-        },
-        "Failed to save movie extra video data to database"
+        { error, filePath, movieId: movie.id },
+        "Error processing video file"
       );
     }
+  }
 
-    // Update content in clients
-    notificationService.mutateMovie(movie);
-    logger.debug(
-      {
-        libraryId: library.id,
-        movieId: movie.id,
-      },
-      "Sent movie mutation notification to clients for extra"
+  //#region HELPERS
+
+  /**
+   * Gets existing movie or creates a new one
+   * @param library Library to add movie to
+   * @param folderPath Path to folder
+   * @returns Movie or null
+   */
+  private async getOrCreateMovie(
+    library: Library,
+    folderPath: string
+  ): Promise<Movie | null> {
+    // Check for library cache
+    if (folderPath in library.analyzedFolders) {
+      const cachedId = library.analyzedFolders[folderPath];
+      if (cachedId) return await this.movieRepository.findById(cachedId);
+    }
+
+    // Create new movie
+    const movie = await this.movieRepository.create({
+      libraryId: library.id,
+      folder: folderPath,
+    });
+
+    if (movie) {
+      library.analyzedFolders = {
+        ...library.analyzedFolders,
+        [folderPath]: movie.id,
+      };
+
+      await this.librariesRepo.addAnalyzedFolder(
+        library.id,
+        folderPath,
+        movie.id
+      );
+    }
+    return movie;
+  }
+
+  /**
+   * Search TMDB for movie metadata
+   * @param name Movie title
+   * @param year Release date
+   * @param lang Language
+   * @returns Movie metadata or null
+   */
+  private async searchMovieMetadata(
+    name: string,
+    year: string,
+    lang: string
+  ): Promise<MovieResponse | null> {
+    try {
+      const results = await this.metadataProvider.searchMovies(name, year);
+      if (!results || results.length === 0) return null;
+      return await this.metadataProvider.getMovie(results[0].id!, lang);
+    } catch (e) {
+      logger.warn({ name, year }, "TMDB Search failed");
+      return null;
+    }
+  }
+
+  /**
+   * Check if the given path is an extras folder
+   * @param path Path to check
+   * @returns true or false
+   */
+  private isExtrasFolder(path: string): boolean {
+    const name = getFileName(path).toLowerCase();
+    return (
+      name === "extras" ||
+      name === "extra" ||
+      name === "specials" ||
+      name === "trailers"
     );
   }
+
+  /**
+   * Updates the library in the database
+   * @param library The library to update
+   * @param movie The movie id to track updates
+   */
+  async updateLibraryHelper(library: Library, movie?: Movie) {
+    // Wrap in queue
+    await this.writeQueue.enqueue(async () => {
+      try {
+        await this.librariesRepo.update(library.id, library);
+      } catch (error) {
+        logger.error(
+          {
+            libraryId: library.id,
+            movieId: movie?.id,
+            error: error instanceof Error ? error.message : String(error),
+          },
+          "Failed to update library in database"
+        );
+      }
+    });
+  }
+
+  //#endregion
 }

@@ -47,6 +47,7 @@ export const defaults = {
     description: "",
     coverSrc: "",
     folder: "",
+    libraryId: "",
   },
   SongModel: {
     fileSrc: "",

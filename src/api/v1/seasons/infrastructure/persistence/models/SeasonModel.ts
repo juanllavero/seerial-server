@@ -18,7 +18,7 @@ export class SeasonModel extends BaseEntity {
   @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @Column({ type: "varchar", nullable: false, name: "series_id" })
+  @Column({ type: "varchar", nullable: false })
   seriesId!: string;
 
   @Column({ type: "integer", nullable: false, default: 0 })
@@ -31,7 +31,6 @@ export class SeasonModel extends BaseEntity {
     type: "boolean",
     nullable: false,
     default: false,
-    name: "name_lock",
   })
   nameLock!: boolean;
 
@@ -42,7 +41,6 @@ export class SeasonModel extends BaseEntity {
     type: "boolean",
     nullable: false,
     default: false,
-    name: "year_lock",
   })
   yearLock!: boolean;
 
@@ -53,7 +51,6 @@ export class SeasonModel extends BaseEntity {
     type: "boolean",
     nullable: false,
     default: false,
-    name: "overview_lock",
   })
   overviewLock!: boolean;
 
@@ -61,7 +58,6 @@ export class SeasonModel extends BaseEntity {
     type: "integer",
     nullable: false,
     default: 0,
-    name: "season_number",
   })
   seasonNumber!: number;
 
@@ -69,7 +65,6 @@ export class SeasonModel extends BaseEntity {
     type: "varchar",
     nullable: false,
     default: "",
-    name: "background_src",
   })
   backgroundSrc!: string;
 
@@ -77,14 +72,13 @@ export class SeasonModel extends BaseEntity {
     type: "simple-json",
     nullable: false,
     default: "[]",
-    name: "background_urls",
   })
   backgroundsUrls!: string[];
 
-  @Column({ type: "varchar", nullable: false, default: "", name: "video_src" })
+  @Column({ type: "varchar", nullable: false, default: "" })
   videoSrc!: string;
 
-  @Column({ type: "varchar", nullable: false, default: "", name: "music_src" })
+  @Column({ type: "varchar", nullable: false, default: "" })
   musicSrc!: string;
 
   @ManyToOne(() => SeriesModel, { onDelete: "CASCADE" })

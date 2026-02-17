@@ -14,7 +14,7 @@ export class PlayListModel extends BaseEntity {
   @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @Column({ type: "varchar", nullable: false, name: "user_id" })
+  @Column({ type: "varchar", nullable: false })
   userId!: string;
 
   @Column({ type: "varchar", nullable: false })

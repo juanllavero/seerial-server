@@ -12,6 +12,7 @@ export interface Video {
   id: string;
   title: string;
   fileSrc: string;
+  hash: string;
   runtime: number;
   imgSrc: string;
   imgUrls: string[];
@@ -32,4 +33,9 @@ export interface Video {
 
   episodeId?: string;
   movieId?: string;
+}
+
+export enum VideoType {
+  MAIN = "MAIN",
+  EXTRA = "EXTRA",
 }

@@ -36,23 +36,23 @@ export async function expressAuthentication(
 
       const user = await UserModel.findOne({
         where: { id: decoded.userId },
-        relations: ["libraries"],
+        //relations: ["libraries"],
       });
 
       if (!user) {
-        throw new Error(messages.errors.token.invalid);
+        throw new Error(messages.errors.notFound.user);
       }
 
       // Check library access if route involves a library
-      const libraryId = request.params?.libraryId || request.body?.libraryId;
-      if (user.type !== UserType.ADMIN && libraryId) {
-        const hasAccess = user.userLibraries?.some(
-          (lib) => lib.library && lib.library.id === libraryId
-        );
-        if (!hasAccess) {
-          throw new Error(messages.errors.token.noAccess);
-        }
-      }
+      // const libraryId = request.params?.libraryId || request.body?.libraryId;
+      // if (user.type !== UserType.ADMIN && libraryId) {
+      //   const hasAccess = user.userLibraries?.some(
+      //     (lib) => lib.library && lib.library.id === libraryId
+      //   );
+      //   if (!hasAccess) {
+      //     throw new Error(messages.errors.token.noAccess);
+      //   }
+      // }
 
       // Check remote access
       const ip = getClientIp(request);
@@ -120,7 +120,7 @@ export async function expressAuthentication(
     const ip = getClientIp(request);
     const isLocal = isLoopback(ip);
 
-    const token = request.cookies?.jwt as string | undefined;
+    const token = request.cookies?.token as string | undefined;
 
     // Local request: allow access
     if (isLocal) {

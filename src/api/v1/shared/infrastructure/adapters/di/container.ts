@@ -53,7 +53,6 @@ import { DeleteMovieDataUseCase } from "@/api/v1/movies/application/usecases/Del
 import { DeleteMovieUseCase } from "@/api/v1/movies/application/usecases/DeleteMovieUseCase";
 import { FindMovieByIdUseCase } from "@/api/v1/movies/application/usecases/FindMovieByIdUseCase";
 import { FindMovieByPathUseCase } from "@/api/v1/movies/application/usecases/FindMovieByPathUseCase";
-import { ProcessMovieFolderUseCase } from "@/api/v1/movies/application/usecases/ProcessMovieFolderUseCase";
 import { ScanMovieUseCase } from "@/api/v1/movies/application/usecases/ScanMovieUseCase";
 import { SearchMovieMetadataUseCase } from "@/api/v1/movies/application/usecases/SearchMovieMetadataUseCase";
 import { UpdateMovieMetadataUseCase } from "@/api/v1/movies/application/usecases/UpdateMovieMetadataUseCase";
@@ -90,7 +89,7 @@ import { DeleteSeriesUseCase } from "@/api/v1/series/application/usecases/Delete
 import { FindSeriesByIdUseCase } from "@/api/v1/series/application/usecases/FindSeriesByIdUseCase";
 import { ProcessEpisodeUseCase } from "@/api/v1/series/application/usecases/ProcessEpisodeUseCase";
 import { RefreshMetadataUseCase } from "@/api/v1/series/application/usecases/RefreshMetadataUseCase";
-import { ScanSeriesUseCase } from "@/api/v1/series/application/usecases/ScanSeriesUseCase";
+import { ScanSeriesUseCase } from "@/api/v1/series/application/usecases/Test";
 import { UpdateEpisodeGroupUseCase } from "@/api/v1/series/application/usecases/UpdateEpisodeGroupUseCase";
 import { UpdateSeriesMetadataUseCase } from "@/api/v1/series/application/usecases/UpdateSeriesMetadataUseCase";
 import { UpdateSeriesUseCase } from "@/api/v1/series/application/usecases/UpdateSeriesUseCase";
@@ -105,8 +104,7 @@ import { DeleteSongUseCase } from "@/api/v1/songs/application/usecases/DeleteSon
 import { FindSongByIdUseCase } from "@/api/v1/songs/application/usecases/FindSongByIdUseCase";
 import { FindSongByPathUseCase } from "@/api/v1/songs/application/usecases/FindSongByPathUseCase";
 import { FindSongsByAlbumIdUseCase } from "@/api/v1/songs/application/usecases/FindSongsByAlbumIdUseCase";
-import { ProcessSongFileUseCase } from "@/api/v1/songs/application/usecases/ProcessSongFileUseCase";
-import { ScanSongsUseCase } from "@/api/v1/songs/application/usecases/ScanSongsUseCase";
+import { ScanMusicUseCase } from "@/api/v1/songs/application/usecases/ScanSongsUseCase";
 import { UpdateSongUseCase } from "@/api/v1/songs/application/usecases/UpdateSongUseCase";
 import { SongsRepositoryImpl } from "@/api/v1/songs/infrastructure/persistence/repositories/SongsRepositoryImpl";
 import { AuthenticateUserUseCase } from "@/api/v1/users/application/usecases/AuthenticateUserUseCase";
@@ -248,7 +246,17 @@ export const useCases = {
 
   processEpisode: () => new ProcessEpisodeUseCase(mediaInfoService),
   refreshMetadata: () => new RefreshMetadataUseCase(metadataProvider),
-  scanSeries: () => new ScanSeriesUseCase(fileSystemService, metadataProvider),
+  scanSeries: () =>
+    new ScanSeriesUseCase(
+      fileSystemService,
+      librariesRepo,
+      seriesRepo,
+      seasonsRepo,
+      videosRepo,
+      episodesRepo,
+      metadataProvider,
+      notificationService
+    ),
 
   updateSeriesMetadata: () => new UpdateSeriesMetadataUseCase(seriesRepo),
   updateShowId: () => new UpdateShowIdUseCase(),
@@ -278,7 +286,6 @@ export const useCases = {
       fileSystemService
     ),
   searchMovieMetadata: () => new SearchMovieMetadataUseCase(tmdbApiClient),
-  processMovieFolder: () => new ProcessMovieFolderUseCase(fileSystemService),
   scanMovie: () =>
     new ScanMovieUseCase(
       fileSystemService,
@@ -286,7 +293,8 @@ export const useCases = {
       moviesRepo,
       videosRepo,
       collectionsRepo,
-      metadataProvider
+      metadataProvider,
+      notificationService
     ),
 
   // Albums
@@ -310,9 +318,16 @@ export const useCases = {
   createSong: () => new CreateSongUseCase(songsRepo),
   deleteSong: () => new DeleteSongUseCase(songsRepo),
   updateSong: () => new UpdateSongUseCase(songsRepo),
-  processSongFile: () =>
-    new ProcessSongFileUseCase(fileSystemService, songsRepo),
-  scanSongs: () => new ScanSongsUseCase(fileSystemService),
+  scanMusic: () =>
+    new ScanMusicUseCase(
+      fileSystemService,
+      librariesRepo,
+      albumsRepo,
+      songsRepo,
+      artistsRepo,
+      collectionsRepo,
+      notificationService
+    ),
 
   // Episodes
   getEpisodesBySeasonId: () => new FindEpisodesBySeasonIdUseCase(episodesRepo),

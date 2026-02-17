@@ -16,10 +16,10 @@ export class PlayListItemModel extends BaseEntity {
   @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @Column({ type: "varchar", nullable: false, name: "playlist_id" })
+  @Column({ type: "varchar", nullable: false })
   playlistId!: string;
 
-  @Column({ type: "varchar", nullable: false, name: "song_id" })
+  @Column({ type: "varchar", nullable: false })
   songId!: string;
 
   @ManyToOne(() => PlayListModel, { onDelete: "CASCADE" })

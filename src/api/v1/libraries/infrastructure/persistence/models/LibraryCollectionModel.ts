@@ -11,10 +11,10 @@ import { LibraryModel } from "./LibraryModel";
 
 @Entity({ name: "LibraryCollection" })
 export class LibraryCollectionModel extends BaseEntity {
-  @PrimaryColumn({ type: "varchar", nullable: false, name: "library_id" })
+  @PrimaryColumn({ type: "varchar", nullable: false })
   libraryId!: string;
 
-  @PrimaryColumn({ type: "varchar", nullable: false, name: "collection_id" })
+  @PrimaryColumn({ type: "varchar", nullable: false })
   collectionId!: string;
 
   @Column({

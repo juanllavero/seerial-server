@@ -25,6 +25,7 @@ import { WatchListModel } from "@/api/v1/watch-lists/infrastructure/persistence/
 import logger from "@/utils/logger";
 import fs from "fs";
 import { DataSource, EntityManager, EntityTarget, Repository } from "typeorm";
+import { SnakeNamingStrategy } from "typeorm-naming-strategies";
 
 const dbLogger = logger.child({ category: "Database" });
 
@@ -47,6 +48,7 @@ export class DatabaseManager {
       DatabaseManager.dataSource = new DataSource({
         type: "better-sqlite3",
         database: DatabaseManager.DB_PATH,
+        namingStrategy: new SnakeNamingStrategy(),
         entities: [
           CollectionModel,
           CollectionAlbumModel,

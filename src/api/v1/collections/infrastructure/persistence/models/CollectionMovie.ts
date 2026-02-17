@@ -11,10 +11,10 @@ import { CollectionModel } from "./CollectionModel";
 
 @Entity({ name: "CollectionMovie" })
 export class CollectionMovieModel extends BaseEntity {
-  @PrimaryColumn({ type: "varchar", nullable: false, name: "collection_id" })
+  @PrimaryColumn({ type: "varchar", nullable: false })
   collectionId!: string;
 
-  @PrimaryColumn({ type: "varchar", nullable: false, name: "movie_id" })
+  @PrimaryColumn({ type: "varchar", nullable: false })
   movieId!: string;
 
   @Column({

@@ -26,69 +26,71 @@ export class VideoModel extends BaseEntity {
   @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @Column({ type: "varchar", nullable: false, default: "", name: "title" })
+  @Column({ type: "varchar", nullable: false, default: "" })
   title!: string;
 
-  @Column({ type: "varchar", nullable: false, name: "file_src" })
+  @Column({ type: "varchar", nullable: false })
   fileSrc!: string;
+
+  @Column({ type: "varchar", nullable: false, default: "" })
+  hash!: string;
 
   @Column({ type: "integer", nullable: false, default: 0 })
   runtime!: number;
 
-  @Column({ type: "varchar", nullable: false, default: "", name: "img_src" })
+  @Column({ type: "varchar", nullable: false, default: "" })
   imgSrc!: string;
 
   @Column({
     type: "simple-json",
     nullable: false,
     default: "[]",
-    name: "img_urls",
   })
   imgUrls!: string[];
 
-  @Column({ type: "simple-json", nullable: true, name: "media_info" })
+  @Column({ type: "simple-json", nullable: true })
   mediaInfo?: MediaInfo;
 
-  @Column({ type: "simple-json", nullable: true, name: "video_tracks" })
+  @Column({ type: "simple-json", nullable: true })
   videoTracks?: VideoTrack[];
 
-  @Column({ type: "simple-json", nullable: true, name: "subtitle_tracks" })
+  @Column({ type: "simple-json", nullable: true })
   subtitleTracks?: SubtitleTrack[];
 
-  @Column({ type: "simple-json", nullable: true, name: "audio_tracks" })
+  @Column({ type: "simple-json", nullable: true })
   audioTracks?: AudioTrack[];
 
   @Column({ type: "simple-json", nullable: true })
   chapters?: Chapter[];
 
-  @Column({ type: "integer", nullable: true, name: "selected_audio_track" })
+  @Column({ type: "integer", nullable: true })
   selectedAudioTrack?: number;
 
-  @Column({ type: "integer", nullable: true, name: "selected_subtitle_track" })
+  @Column({ type: "integer", nullable: true })
   selectedSubtitleTrack?: number;
 
-  @Column({ type: "varchar", nullable: true, name: "extra_type" })
+  @Column({ type: "varchar", nullable: true })
   extraType?: string;
 
   @ManyToOne(() => EpisodeModel, { onDelete: "CASCADE" })
   @JoinColumn({ name: "episode_id" })
   episode?: EpisodeModel;
 
-  @Column({ type: "varchar", nullable: true, name: "episode_id" })
+  @Column({ type: "varchar", nullable: true })
   episodeId?: string;
 
   @ManyToOne(() => MovieModel, { onDelete: "CASCADE" })
   @JoinColumn({ name: "movie_id" })
   movie?: MovieModel;
 
-  @Column({ type: "varchar", nullable: true, name: "movie_id" })
+  @Column({ type: "varchar", nullable: true })
   movieId?: string;
 
   @ManyToOne(() => MovieModel, { onDelete: "CASCADE" })
   @JoinColumn({ name: "extra_id" })
   extra?: MovieModel;
 
-  @Column({ type: "varchar", nullable: true, name: "extra_id" })
+  @Column({ type: "varchar", nullable: true })
   extraId?: string;
 
   @OneToMany(

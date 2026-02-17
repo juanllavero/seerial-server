@@ -21,38 +21,38 @@ export class WatchListModel extends BaseEntity {
   @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @Column({ type: "varchar", nullable: false, name: "user_id" })
+  @Column({ type: "varchar", nullable: false })
   userId!: string;
 
-  @Column({ type: "varchar", nullable: true, name: "series_id" })
+  @Column({ type: "varchar", nullable: true })
   seriesId?: string;
 
   @ManyToOne(() => SeriesModel, { onDelete: "CASCADE" })
   @JoinColumn({ name: "series_id" })
   series?: SeriesModel;
 
-  @Column({ type: "varchar", nullable: true, name: "season_id" })
+  @Column({ type: "varchar", nullable: true })
   seasonId?: string;
 
   @ManyToOne(() => SeasonModel, { onDelete: "CASCADE" })
   @JoinColumn({ name: "season_id" })
   season?: SeasonModel;
 
-  @Column({ type: "varchar", nullable: true, name: "episode_id" })
+  @Column({ type: "varchar", nullable: true })
   episodeId?: string;
 
   @ManyToOne(() => EpisodeModel, { onDelete: "CASCADE" })
   @JoinColumn({ name: "episode_id" })
   episode?: EpisodeModel;
 
-  @Column({ type: "varchar", nullable: true, name: "movie_id" })
+  @Column({ type: "varchar", nullable: true })
   movieId?: string;
 
   @ManyToOne(() => MovieModel, { onDelete: "CASCADE" })
   @JoinColumn({ name: "movie_id" })
   movie?: MovieModel;
 
-  @Column({ type: "varchar", nullable: true, name: "video_id" })
+  @Column({ type: "varchar", nullable: true })
   videoId?: string;
 
   @ManyToOne(() => VideoModel, { onDelete: "CASCADE" })
@@ -63,7 +63,6 @@ export class WatchListModel extends BaseEntity {
     type: "integer",
     nullable: false,
     default: 0,
-    name: "time_watched",
   })
   timeWatched!: number;
 
@@ -71,14 +70,13 @@ export class WatchListModel extends BaseEntity {
     type: "varchar",
     nullable: false,
     default: "",
-    name: "last_watched",
   })
   lastWatched!: string;
 
-  @CreateDateColumn({ name: "created_at" })
+  @CreateDateColumn()
   createdAt!: Date;
 
-  @UpdateDateColumn({ name: "updated_at" })
+  @UpdateDateColumn()
   updatedAt!: Date;
 
   // Lifecycle hooks

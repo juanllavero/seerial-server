@@ -16,21 +16,20 @@ export class MyListModel extends BaseEntity {
   @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @Column({ type: "varchar", nullable: false, name: "user_id" })
+  @Column({ type: "varchar", nullable: false })
   userId!: string;
 
   @Column({
     type: "datetime",
     nullable: false,
-    name: "added_at",
     default: () => "CURRENT_TIMESTAMP",
   })
   addedAt!: Date;
 
-  @Column({ type: "varchar", nullable: true, name: "series_id" })
+  @Column({ type: "varchar", nullable: true })
   seriesId?: string;
 
-  @Column({ type: "varchar", nullable: true, name: "movie_id" })
+  @Column({ type: "varchar", nullable: true })
   movieId?: string;
 
   @ManyToOne(() => SeriesModel, { onDelete: "CASCADE" })

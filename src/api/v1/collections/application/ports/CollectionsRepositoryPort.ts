@@ -4,6 +4,7 @@ import { ReorderItemDTO } from "../dtos/CollectionDTOs";
 export interface CollectionsRepositoryPort {
   getAll(libraryId: string): Promise<Collection[]>;
   getById(id: string): Promise<Collection | null>;
+  getByName(name: string): Promise<Collection | null>;
   add(collection: Partial<Collection>): Promise<Collection | null>;
   update(id: string, data: Partial<Collection>): Promise<Collection>;
   delete(id: string): Promise<boolean>;

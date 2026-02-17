@@ -28,7 +28,6 @@ export class UserModel extends BaseEntity {
     type: "boolean",
     nullable: false,
     default: true,
-    name: "allow_remote",
   })
   allowRemote!: boolean;
 
@@ -39,18 +38,16 @@ export class UserModel extends BaseEntity {
     type: "boolean",
     nullable: false,
     default: true,
-    name: "allow_video_transcoding",
   })
   allowVideoTranscoding!: boolean;
 
-  @Column({ type: "integer", nullable: true, name: "internet_bitrate_limit" }) // In Mbps
+  @Column({ type: "integer", nullable: true }) // In Mbps
   internetBitrateLimit?: number;
 
   @Column({
     type: "boolean",
     nullable: false,
     default: true,
-    name: "allow_downloads",
   })
   allowDownloads!: boolean;
 
@@ -58,7 +55,6 @@ export class UserModel extends BaseEntity {
     type: "boolean",
     nullable: false,
     default: false,
-    name: "hide_in_login",
   })
   hideInLogin!: boolean;
 
@@ -66,7 +62,6 @@ export class UserModel extends BaseEntity {
     type: "integer",
     nullable: false,
     default: 0,
-    name: "max_sessions",
   }) // 0 for unlimited
   maxSessions!: number;
 

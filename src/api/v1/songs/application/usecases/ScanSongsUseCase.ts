@@ -1,231 +1,475 @@
+import { AlbumsRepositoryPort } from "@/api/v1/albums/application/ports/AlbumsRepositoryPort";
+import { Album } from "@/api/v1/albums/domain/Album";
+import { ArtistsRepositoryPort } from "@/api/v1/artists/application/ports/ArtistsRepositoryPort";
+import { CollectionsRepositoryPort } from "@/api/v1/collections/application/ports/CollectionsRepositoryPort";
+import { Collection } from "@/api/v1/collections/domain/Collection";
+import { LibrariesRepositoryPort } from "@/api/v1/libraries/application/ports/LibrariesRepositoryPort";
 import { Library } from "@/api/v1/libraries/domain/Library";
 import { FileSystemServicePort } from "@/api/v1/shared/application/ports/FileSystemServicePort";
-import {
-  notificationService,
-  useCases,
-} from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { NotificationServicePort } from "@/api/v1/shared/application/ports/NotificationServicePort";
+import { getAudioInfo } from "@/api/v1/shared/infrastructure/adapters/ffmpeg/audioInfo";
+import { MusicBrainzService } from "@/api/v1/shared/infrastructure/services/MusicBrainzService";
+import { WriteQueue } from "@/api/v1/shared/infrastructure/services/WriteQueue";
+import { SongsRepositoryPort } from "@/api/v1/songs/application/ports/SongsRepositoryPort";
 import logger from "@/utils/logger";
 import { getFileName } from "@/utils/utils";
+import fsPromises from "fs/promises";
+import path from "path";
 
-export class ScanSongsUseCase {
-  constructor(private readonly fileSystemService: FileSystemServicePort) {}
+const musicLogger = logger.child({ category: "Music Scan" });
 
+interface AlbumFolder {
+  path: string;
+  musicFiles: string[];
+}
+
+export class ScanMusicUseCase {
+  private readonly writeQueue = new WriteQueue();
+  private readonly musicBrainz = new MusicBrainzService();
+
+  constructor(
+    private readonly fileSystemService: FileSystemServicePort,
+    private readonly librariesRepo: LibrariesRepositoryPort,
+    private readonly albumsRepo: AlbumsRepositoryPort,
+    private readonly songsRepo: SongsRepositoryPort,
+    private readonly artistsRepo: ArtistsRepositoryPort,
+    private readonly collectionsRepo: CollectionsRepositoryPort,
+    private readonly notificationService: NotificationServicePort
+  ) {}
+
+  /**
+   * Main entry point. Returns immediately, processing continues in background.
+   */
   async execute(library: Library, root: string): Promise<void> {
-    logger.info(
-      {
-        libraryId: library.id,
-        rootFolder: root,
-      },
-      "Starting songs scan execution"
-    );
+    musicLogger.info({ libraryId: library.id, root }, "Starting music scan");
 
-    if (!(await this.fileSystemService.isFolder(root))) {
-      logger.error(
-        {
-          libraryId: library.id,
-          rootFolder: root,
-        },
-        "Root folder is not a valid folder, cannot proceed with songs scan"
+    this.executeScan(library, root).catch((error) => {
+      musicLogger.error(
+        { libraryId: library.id, root, error },
+        "Music scan failed"
       );
+    });
+  }
+
+  private async executeScan(library: Library, root: string): Promise<void> {
+    if (!(await this.fileSystemService.isFolder(root))) {
+      musicLogger.warn({ root }, "Root is not a folder");
       return;
     }
 
-    logger.info(
-      {
-        libraryId: library.id,
-        rootFolder: root,
-      },
-      "Root folder validated, proceeding with collection setup"
-    );
+    // Analyze folder structure
+    const structure = await this.analyzeFolderStructure(root);
 
-    // Add collection or retrieve existing one
-    const collectionTitle = getFileName(root);
-    logger.debug(
-      {
-        libraryId: library.id,
-        collectionTitle,
-      },
-      "Creating or retrieving music collection"
-    );
+    if (structure.type === "collection") {
+      await this.processCollection(library, root, structure.albumFolders);
+    } else {
+      await this.processAlbum(library, root, structure.albumFolders[0], null);
+    }
+  }
 
-    const collection = await useCases.addCollection().execute({
-      title: collectionTitle,
+  /**
+   * Analyzes if root is a collection or single album
+   */
+  private async analyzeFolderStructure(root: string): Promise<{
+    type: "collection" | "album";
+    albumFolders: AlbumFolder[];
+  }> {
+    const contents = await this.fileSystemService.getFilesInFolder(root);
+    const musicFiles = await this.fileSystemService.getValidMusicFiles(root);
+
+    // Has music files directly = album
+    if (musicFiles.length > 0) {
+      return {
+        type: "album",
+        albumFolders: [{ path: root, musicFiles }],
+      };
+    }
+
+    // Find album folders inside
+    const albumFolders: AlbumFolder[] = [];
+
+    for (const item of contents) {
+      const itemPath = `${root}/${item.name}`;
+      if (await this.fileSystemService.isFolder(itemPath)) {
+        const files = await this.fileSystemService.getValidMusicFiles(itemPath);
+        if (files.length > 0) {
+          albumFolders.push({ path: itemPath, musicFiles: files });
+        }
+      }
+    }
+
+    return {
+      type: albumFolders.length > 0 ? "collection" : "album",
+      albumFolders,
+    };
+  }
+
+  /**
+   * Processes a collection of albums
+   */
+  private async processCollection(
+    library: Library,
+    root: string,
+    albumFolders: AlbumFolder[]
+  ): Promise<void> {
+    const collection = await this.writeQueue.enqueue(async () => {
+      return await this.getOrCreateCollection(library, root);
     });
 
     if (!collection) {
-      logger.error(
-        {
-          libraryId: library.id,
-          collectionTitle,
-        },
-        "Failed to create or retrieve collection for songs"
-      );
+      musicLogger.error({ root }, "Failed to create collection");
       return;
     }
 
-    logger.info(
-      {
-        libraryId: library.id,
-        collectionId: collection.id,
-        collectionTitle: collection.title,
-      },
-      "Successfully created/retrieved collection for songs"
+    this.notificationService.broadcast(
+      JSON.stringify({
+        header: "MUSIC_SCAN_PROGRESS",
+        body: {
+          collectionId: collection.id,
+          status: "started",
+          processed: 0,
+          total: albumFolders.length,
+        },
+      })
     );
+
+    let processed = 0;
+    for (const albumFolder of albumFolders) {
+      await this.processAlbum(library, root, albumFolder, collection);
+      processed++;
+
+      if (processed % 5 === 0 || processed === albumFolders.length) {
+        this.notificationService.broadcast(
+          JSON.stringify({
+            header: "MUSIC_SCAN_PROGRESS",
+            body: {
+              collectionId: collection.id,
+              status: "processing",
+              processed,
+              total: albumFolders.length,
+            },
+          })
+        );
+      }
+    }
+
+    this.notificationService.mutateLibrary(library.id);
+    this.notificationService.broadcast(
+      JSON.stringify({
+        header: "MUSIC_SCAN_PROGRESS",
+        body: {
+          collectionId: collection.id,
+          status: "completed",
+          processed,
+          total: albumFolders.length,
+        },
+      })
+    );
+  }
+
+  /**
+   * Processes a single album folder
+   */
+  private async processAlbum(
+    library: Library,
+    rootFolder: string,
+    albumFolder: AlbumFolder,
+    collection: Collection | null
+  ): Promise<void> {
+    await this.writeQueue.enqueue(async () => {
+      // Extract sample metadata from first file
+      const sampleFile = albumFolder.musicFiles[0];
+      const sampleMetadata = await getAudioInfo(sampleFile);
+
+      if (!sampleMetadata) {
+        musicLogger.warn(
+          { path: albumFolder.path },
+          "No metadata in sample file"
+        );
+        return;
+      }
+
+      const albumTitle = sampleMetadata.album || getFileName(albumFolder.path);
+      const artistName = sampleMetadata.artists?.[0] || "Unknown Artist";
+
+      // Search MusicBrainz for album + artist metadata
+      const mbAlbum = await this.musicBrainz.searchRelease(
+        albumTitle,
+        artistName
+      );
+
+      let album: Album | null = null;
+
+      if (mbAlbum) {
+        musicLogger.info(
+          { path: albumFolder.path, mbid: mbAlbum.mbid },
+          "Found in MusicBrainz"
+        );
+
+        album = await this.albumsRepo.create({
+          title: mbAlbum.title,
+          year: mbAlbum.releaseDate
+            ? new Date(mbAlbum.releaseDate).getFullYear().toString()
+            : "",
+          libraryId: library.id,
+          folder: albumFolder.path,
+          genres: sampleMetadata.genres || [],
+          coverSrc: "",
+        });
+
+        // Download cover from MusicBrainz
+        if (album && mbAlbum.coverArtUrl) {
+          const coverPath = await this.downloadCover(
+            mbAlbum.coverArtUrl,
+            album.id
+          );
+          if (coverPath) {
+            album.coverSrc = coverPath;
+            await this.albumsRepo.update(album.id, { coverSrc: coverPath });
+
+            // Set collection cover if empty
+            if (collection && collection.musicPosterSrc === "") {
+              await this.collectionsRepo.update(collection.id, {
+                musicPosterSrc: coverPath,
+              });
+            }
+          }
+        }
+
+        // Process artist
+        if (album) {
+          await this.processArtist(mbAlbum.artist, album.id);
+        }
+      } else {
+        musicLogger.info(
+          { path: albumFolder.path },
+          "Not found in MusicBrainz"
+        );
+
+        album = await this.albumsRepo.create({
+          title: albumTitle,
+          year: sampleMetadata.date
+            ? new Date(sampleMetadata.date).getFullYear().toString()
+            : "",
+          libraryId: library.id,
+          folder: albumFolder.path,
+          genres: sampleMetadata.genres || [],
+          coverSrc: "",
+        });
+
+        // Search for local cover
+        if (album) {
+          const localCover = await this.findLocalCover(albumFolder.path);
+          if (localCover) {
+            const coverPath = await this.copyImageToEntity(
+              album.id,
+              localCover
+            );
+            if (coverPath) {
+              album.coverSrc = coverPath;
+              await this.albumsRepo.update(album.id, { coverSrc: coverPath });
+
+              if (collection && collection.musicPosterSrc === "") {
+                await this.collectionsRepo.update(collection.id, {
+                  musicPosterSrc: coverPath,
+                });
+              }
+            }
+          }
+
+          // Process artists from file
+          for (const artist of sampleMetadata.artists || []) {
+            await this.processArtist(artist, album.id);
+          }
+        }
+      }
+
+      if (!album) {
+        musicLogger.error({ path: albumFolder.path }, "Failed to create album");
+        return;
+      }
+
+      // Add to collection
+      if (collection) {
+        await this.collectionsRepo
+          .addAlbum(collection.id, album.id)
+          .catch((error) =>
+            musicLogger.error({ error }, "Failed to add album to collection")
+          );
+      }
+
+      this.notificationService.mutateLibrary(library.id);
+
+      // Process all songs in album using file metadata
+      for (const musicFile of albumFolder.musicFiles) {
+        await this.processSong(library, musicFile, album);
+      }
+    });
+  }
+
+  /**
+   * Processes a single song file using file metadata
+   */
+  private async processSong(
+    library: Library,
+    musicFile: string,
+    album: Album
+  ): Promise<void> {
+    try {
+      const metadata = await getAudioInfo(musicFile);
+      if (!metadata) return;
+
+      // Check if already processed
+      if (library.analyzedFiles[musicFile]) {
+        return;
+      }
+
+      const song = await this.songsRepo.create({
+        title: metadata.title || getFileName(musicFile),
+        albumId: album.id,
+        trackNumber: metadata.trackNumber || 0,
+        discNumber: metadata.discNumber || 1,
+        composers: metadata.composers || [],
+        artists: metadata.artists || [],
+        fileSrc: musicFile,
+        duration: metadata.duration ? metadata.duration * 60 : 0,
+        codec: metadata.codec || "",
+      });
+
+      if (!song) {
+        musicLogger.error({ musicFile }, "Failed to create song");
+        return;
+      }
+
+      // Update library cache
+      if (song.id) {
+        library.analyzedFiles = {
+          ...library.analyzedFiles,
+          [musicFile]: song.id,
+        };
+
+        await this.librariesRepo.addAnalyzedFile(
+          library.id,
+          musicFile,
+          song.id
+        );
+      }
+
+      musicLogger.debug({ musicFile, songId: song.id }, "Song processed");
+    } catch (error) {
+      musicLogger.error({ error, musicFile }, "Error processing song");
+    }
+  }
+
+  /**
+   * Gets or creates collection
+   */
+  private async getOrCreateCollection(
+    library: Library,
+    root: string
+  ): Promise<Collection | null> {
+    const title = getFileName(root);
+
+    const existing = await this.collectionsRepo.getByName(title);
+    if (existing) {
+      await this.collectionsRepo.addLibrary(library.id, existing.id);
+      return existing;
+    }
+
+    const collection = await this.collectionsRepo.add({ title });
+    if (collection) {
+      await this.collectionsRepo.addLibrary(library.id, collection.id);
+    }
+    return collection;
+  }
+
+  /**
+   * Processes artist (creates if needed and links to album)
+   */
+  private async processArtist(
+    artistName: string,
+    albumId: string
+  ): Promise<void> {
+    try {
+      let artist = await this.artistsRepo.getByName(artistName);
+      if (!artist) {
+        artist = await this.artistsRepo.add({ name: artistName });
+      }
+      if (artist && artist.id) {
+        await this.albumsRepo.addArtistToAlbum(artist.id, albumId);
+      }
+    } catch (error) {
+      musicLogger.error({ error, artistName }, "Failed to process artist");
+    }
+  }
+
+  /**
+   * Downloads cover from MusicBrainz
+   */
+  private async downloadCover(
+    url: string,
+    entityId: string
+  ): Promise<string | null> {
+    try {
+      const imageBuffer = await this.musicBrainz.downloadCoverArt(url);
+      if (!imageBuffer) return null;
+
+      const extension = url.endsWith(".png") ? "png" : "jpg";
+      const imageName = `cover.${extension}`;
+      const destinationFolder = this.fileSystemService.getExternalPath(
+        path.join("resources", "img", "posters", entityId)
+      );
+      const destinationPath = path.join(destinationFolder, imageName);
+
+      this.fileSystemService.createFolder(destinationFolder);
+      await fsPromises.writeFile(destinationPath, imageBuffer);
+
+      return path
+        .join("resources", "img", "posters", entityId, imageName)
+        .replace(/\\/g, "/");
+    } catch (error) {
+      musicLogger.error({ error, url }, "Error downloading cover");
+      return null;
+    }
+  }
+
+  /**
+   * Finds local cover in folder hierarchy
+   */
+  private async findLocalCover(albumPath: string): Promise<string | null> {
+    let imageSrc = await this.fileSystemService.findImageInFolder(albumPath);
+
+    if (!imageSrc) {
+      const parentFolder = path.resolve(albumPath, "..");
+      imageSrc = await this.fileSystemService.findImageInFolder(parentFolder);
+    }
+
+    return imageSrc;
+  }
+
+  /**
+   * Copies image to entity folder
+   */
+  private async copyImageToEntity(
+    entityId: string,
+    sourceImagePath: string
+  ): Promise<string | null> {
+    const imageName = path.basename(sourceImagePath);
+    const destinationFolder = this.fileSystemService.getExternalPath(
+      path.join("resources", "img", "posters", entityId)
+    );
+    const destinationPath = path.join(destinationFolder, imageName);
 
     try {
-      await useCases
-        .addLibraryToCollection()
-        .execute(library.id, collection.id);
-      logger.debug(
-        {
-          libraryId: library.id,
-          collectionId: collection.id,
-        },
-        "Successfully added library to collection"
-      );
+      this.fileSystemService.createFolder(destinationFolder);
+      await fsPromises.copyFile(sourceImagePath, destinationPath);
+
+      return path
+        .join("resources", "img", "posters", entityId, imageName)
+        .replace(/\\/g, "/");
     } catch (error) {
-      logger.error(
-        {
-          libraryId: library.id,
-          collectionId: collection.id,
-          error: error instanceof Error ? error.message : String(error),
-        },
-        "Failed to add library to collection"
-      );
-      return;
+      musicLogger.error({ error, sourceImagePath }, "Error copying image");
+      return null;
     }
-
-    // Get music files inside folder (4 folders of depth)
-    logger.info(
-      {
-        libraryId: library.id,
-        rootFolder: root,
-        collectionId: collection.id,
-      },
-      "Scanning for music files in folder and subfolders"
-    );
-
-    const musicFiles = await this.fileSystemService.getValidMusicFiles(root);
-
-    logger.info(
-      {
-        libraryId: library.id,
-        rootFolder: root,
-        musicFilesCount: musicFiles.length,
-      },
-      "Found music files to process"
-    );
-
-    if (musicFiles.length === 0) {
-      logger.warn(
-        {
-          libraryId: library.id,
-          rootFolder: root,
-          collectionId: collection.id,
-        },
-        "No music files found in folder, completing scan"
-      );
-      notificationService.mutateLibrary(library.id);
-      return;
-    }
-
-    // Cache albums to avoid heap overflow
-    logger.debug(
-      {
-        libraryId: library.id,
-        collectionId: collection.id,
-      },
-      "Caching existing albums to avoid heap overflow"
-    );
-
-    const allAlbums = (await useCases.getAlbums().execute(library.id)) || [];
-    const albumMap = new Map(allAlbums.map((album) => [album.title, album]));
-
-    logger.info(
-      {
-        libraryId: library.id,
-        cachedAlbumsCount: albumMap.size,
-      },
-      "Successfully cached existing albums"
-    );
-
-    //Process each file
-    let processedFiles = 0;
-    let skippedFiles = 0;
-
-    logger.info(
-      {
-        libraryId: library.id,
-        musicFilesCount: musicFiles.length,
-      },
-      "Starting to process individual music files"
-    );
-
-    for (const file of musicFiles) {
-      if (library.analyzedFiles[file]) {
-        logger.debug(
-          {
-            libraryId: library.id,
-            filePath: file,
-            existingSongId: library.analyzedFiles[file],
-          },
-          "File already analyzed, skipping"
-        );
-        skippedFiles++;
-        continue;
-      }
-
-      logger.info(
-        {
-          libraryId: library.id,
-          filePath: file,
-          collectionId: collection.id,
-        },
-        "Processing music file"
-      );
-
-      try {
-        await useCases
-          .processSongFile()
-          .execute(root, library, file, collection, albumMap);
-        processedFiles++;
-        logger.debug(
-          {
-            libraryId: library.id,
-            filePath: file,
-          },
-          "Successfully processed music file"
-        );
-      } catch (error) {
-        logger.error(
-          {
-            libraryId: library.id,
-            filePath: file,
-            collectionId: collection.id,
-            error: error instanceof Error ? error.message : String(error),
-          },
-          "Failed to process music file"
-        );
-      }
-    }
-
-    logger.info(
-      {
-        libraryId: library.id,
-        totalFiles: musicFiles.length,
-        processedFiles,
-        skippedFiles,
-      },
-      "Completed processing all music files"
-    );
-
-    // Update content in clients
-    notificationService.mutateLibrary(library.id);
-    logger.debug(
-      {
-        libraryId: library.id,
-      },
-      "Sent library mutation notification to clients"
-    );
   }
 }

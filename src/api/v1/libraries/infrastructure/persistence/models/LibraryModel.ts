@@ -38,20 +38,19 @@ export class LibraryModel extends BaseEntity {
   @Column({ type: "simple-json", nullable: false, default: "[]" })
   folders!: string[];
 
-  @Column({ type: "varchar", nullable: true, name: "prefer_audio_lan" })
+  @Column({ type: "varchar", nullable: true })
   preferAudioLan?: string;
 
-  @Column({ type: "varchar", nullable: true, name: "prefer_sub_lan" })
+  @Column({ type: "varchar", nullable: true })
   preferSubLan?: string;
 
-  @Column({ type: "varchar", nullable: true, name: "subs_mode" })
+  @Column({ type: "varchar", nullable: true })
   subsMode?: string;
 
   @Column({
     type: "simple-json",
     nullable: false,
     default: "{}",
-    name: "analyzed_files",
   })
   analyzedFiles!: Record<string, string>;
 
@@ -59,45 +58,36 @@ export class LibraryModel extends BaseEntity {
     type: "simple-json",
     nullable: false,
     default: "{}",
-    name: "analyzed_folders",
   })
   analyzedFolders!: Record<string, string>;
 
   @Column({
     type: "varchar",
     nullable: false,
-    name: "background_src",
     default: "",
   })
   backgroundSrc!: string;
 
   // Relationships
   @OneToMany(() => SeriesModel, (series) => series.library, {
-    cascade: true,
     onDelete: "CASCADE",
   })
   series!: SeriesModel[];
 
   @OneToMany(() => MovieModel, (movie) => movie.library, {
-    cascade: true,
     onDelete: "CASCADE",
   })
   movies!: MovieModel[];
 
   @OneToMany(() => AlbumModel, (album) => album.library, {
-    cascade: true,
     onDelete: "CASCADE",
   })
   albums!: AlbumModel[];
 
-  @OneToMany(() => LibraryCollectionModel, (lc) => lc.library, {
-    cascade: true,
-  })
+  @OneToMany(() => LibraryCollectionModel, (lc) => lc.library)
   libraryCollections!: LibraryCollectionModel[];
 
-  @OneToMany(() => UserLibraryModel, (userLibrary) => userLibrary.library, {
-    cascade: true,
-  })
+  @OneToMany(() => UserLibraryModel, (userLibrary) => userLibrary.library)
   userLibraries!: UserLibraryModel[];
 
   // Lifecycle hooks
@@ -111,27 +101,23 @@ export class LibraryModel extends BaseEntity {
   // Helper methods to add/remove analyzedFiles
   async addAnalyzedFile(filePath: string, videoId: string): Promise<void> {
     this.analyzedFiles = { ...this.analyzedFiles, [filePath]: videoId };
-    await this.save();
   }
 
   async removeAnalyzedFile(filePath: string): Promise<void> {
     const analyzedFiles = { ...this.analyzedFiles };
     delete analyzedFiles[filePath];
     this.analyzedFiles = analyzedFiles;
-    await this.save();
   }
 
   // Helper methods to add/remove analyzedFolders
   async addAnalyzedFolder(folderPath: string, videoId: string): Promise<void> {
     this.analyzedFolders = { ...this.analyzedFolders, [folderPath]: videoId };
-    await this.save();
   }
 
   async removeAnalyzedFolder(folderPath: string): Promise<void> {
     const analyzedFolders = { ...this.analyzedFolders };
     delete analyzedFolders[folderPath];
     this.analyzedFolders = analyzedFolders;
-    await this.save();
   }
 
   // Validation helper

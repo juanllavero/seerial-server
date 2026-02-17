@@ -158,7 +158,18 @@ export class GenericRepositoryHelper<
 
       await created.save();
       return this.toDomain(created);
-    } catch (error) {
+    } catch (error: any) {
+      if (
+        error.code === "23505" ||
+        error.code === "ER_DUP_ENTRY" ||
+        (error.message && error.message.includes("unique"))
+      ) {
+        repositoryLogger.warn(
+          `Unique constraint violation for ${this.config.entityName}. Returning undefined/error.`
+        );
+        throw new Error(`${this.config.entityName} already exists.`);
+      }
+
       repositoryLogger.error(
         error,
         `Failed to create ${this.config.entityName}`
@@ -189,18 +200,50 @@ export class GenericRepositoryHelper<
    */
   async update(id: string, data: Partial<TDomain>): Promise<TDomain> {
     try {
-      const preloaded = await this.model.preload({
-        ...(data as any),
+      const repository = this.model.getRepository();
+
+      // Get json and relations fields
+      const jsonColumns = repository.metadata.columns
+        .filter((column) => column.type === "simple-json")
+        .map((column) => column.propertyName);
+
+      const relationNames = repository.metadata.relations.map(
+        (relation) => relation.propertyName
+      );
+
+      // Separate JSON and remove relations
+      const updateData = { ...data } as any;
+      const jsonDataToUpdate: Record<string, any> = {};
+
+      for (const key of Object.keys(updateData)) {
+        if (relationNames.includes(key)) {
+          delete updateData[key]; // Avoid "library_id" null failure
+        } else if (jsonColumns.includes(key)) {
+          jsonDataToUpdate[key] = updateData[key];
+          delete updateData[key];
+        }
+      }
+
+      // Basic fields preload
+      const preloaded = await repository.preload({
+        ...updateData,
         id,
-      });
+      } as any);
 
       if (!preloaded) {
         throw new Error(`${this.config.entityName} with ID ${id} not found`);
       }
 
+      // Force JSON fields
+      for (const key of Object.keys(jsonDataToUpdate)) {
+        (preloaded as any)[key] = jsonDataToUpdate[key];
+      }
+
+      // Save in database
       const saved = await preloaded.save();
       return this.toDomain(saved);
     } catch (error) {
+      console.log({ data });
       repositoryLogger.error(
         error,
         `Failed to update ${this.config.entityName} with ID ${id}`

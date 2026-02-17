@@ -2,6 +2,7 @@ import os from "os";
 import path from "path";
 
 export const APP_NAME = "Seerial Media Server";
+export const APP_VERSION = "0.1.0";
 export const LOCAL_DATA_PATH = path.join(
   os.homedir(),
   process.platform === "win32"

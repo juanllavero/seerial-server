@@ -20,16 +20,16 @@ export class MovieModel extends BaseEntity {
   @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @Column({ type: "varchar", nullable: false, name: "library_id" })
+  @Column({ type: "varchar", nullable: false })
   libraryId!: string;
 
-  @Column({ type: "varchar", nullable: false, default: "", name: "imdb_id" })
+  @Column({ type: "varchar", nullable: false, default: "" })
   imdbId!: string;
 
-  @Column({ type: "integer", nullable: false, default: -1, name: "themdb_id" })
+  @Column({ type: "integer", nullable: false, default: -1 })
   themdbId!: number;
 
-  @Column({ type: "float", nullable: false, default: 0, name: "imdb_score" })
+  @Column({ type: "float", nullable: false, default: 0 })
   imdbScore!: number;
 
   @Column({ type: "float", nullable: false, default: 0 })
@@ -45,7 +45,6 @@ export class MovieModel extends BaseEntity {
     type: "boolean",
     nullable: false,
     default: false,
-    name: "name_lock",
   })
   nameLock!: boolean;
 
@@ -56,7 +55,6 @@ export class MovieModel extends BaseEntity {
     type: "boolean",
     nullable: false,
     default: false,
-    name: "overview_lock",
   })
   overviewLock!: boolean;
 
@@ -67,18 +65,16 @@ export class MovieModel extends BaseEntity {
     type: "boolean",
     nullable: false,
     default: false,
-    name: "year_lock",
   })
   yearLock!: boolean;
 
-  @Column({ type: "varchar", nullable: false, default: "", name: "tagline" })
+  @Column({ type: "varchar", nullable: false, default: "" })
   tagline!: string;
 
   @Column({
     type: "boolean",
     nullable: false,
     default: false,
-    name: "tagline_lock",
   })
   taglineLock!: boolean;
 
@@ -89,7 +85,6 @@ export class MovieModel extends BaseEntity {
     type: "boolean",
     nullable: false,
     default: false,
-    name: "genres_lock",
   })
   genresLock!: boolean;
 
@@ -97,7 +92,6 @@ export class MovieModel extends BaseEntity {
     type: "simple-json",
     nullable: false,
     default: "[]",
-    name: "production_studios",
   })
   productionStudios!: string[];
 
@@ -105,7 +99,6 @@ export class MovieModel extends BaseEntity {
     type: "boolean",
     nullable: false,
     default: false,
-    name: "production_studios_lock",
   })
   productionStudiosLock!: boolean;
 
@@ -113,7 +106,6 @@ export class MovieModel extends BaseEntity {
     type: "simple-json",
     nullable: false,
     default: "[]",
-    name: "directed_by",
   })
   directedBy!: string[];
 
@@ -121,7 +113,6 @@ export class MovieModel extends BaseEntity {
     type: "boolean",
     nullable: false,
     default: false,
-    name: "directed_by_lock",
   })
   directedByLock!: boolean;
 
@@ -129,7 +120,6 @@ export class MovieModel extends BaseEntity {
     type: "simple-json",
     nullable: false,
     default: "[]",
-    name: "written_by",
   })
   writtenBy!: string[];
 
@@ -137,7 +127,6 @@ export class MovieModel extends BaseEntity {
     type: "boolean",
     nullable: false,
     default: false,
-    name: "written_by_lock",
   })
   writtenByLock!: boolean;
 
@@ -148,7 +137,6 @@ export class MovieModel extends BaseEntity {
     type: "boolean",
     nullable: false,
     default: false,
-    name: "creator_lock",
   })
   creatorLock!: boolean;
 
@@ -156,7 +144,6 @@ export class MovieModel extends BaseEntity {
     type: "simple-json",
     nullable: false,
     default: "[]",
-    name: "music_composer",
   })
   musicComposer!: string[];
 
@@ -164,32 +151,29 @@ export class MovieModel extends BaseEntity {
     type: "boolean",
     nullable: false,
     default: false,
-    name: "music_composer_lock",
   })
   musicComposerLock!: boolean;
 
   @Column({ type: "simple-json", nullable: false, default: "[]" })
   cast!: CastData[];
 
-  @Column({ type: "varchar", nullable: true, default: "", name: "logo_src" })
+  @Column({ type: "varchar", nullable: true, default: "" })
   logoSrc!: string;
 
   @Column({
     type: "simple-json",
     nullable: false,
     default: "[]",
-    name: "logos_urls",
   })
   logosUrls!: string[];
 
-  @Column({ type: "varchar", nullable: true, default: "", name: "cover_src" })
+  @Column({ type: "varchar", nullable: true, default: "" })
   coverSrc!: string;
 
   @Column({
     type: "simple-json",
     nullable: false,
     default: "[]",
-    name: "covers_urls",
   })
   coversUrls!: string[];
 
@@ -197,7 +181,6 @@ export class MovieModel extends BaseEntity {
     type: "varchar",
     nullable: false,
     default: "",
-    name: "background_src",
   })
   backgroundSrc!: string;
 
@@ -205,14 +188,13 @@ export class MovieModel extends BaseEntity {
     type: "simple-json",
     nullable: false,
     default: "[]",
-    name: "background_urls",
   })
   backgroundsUrls!: string[];
 
-  @Column({ type: "varchar", nullable: false, default: "", name: "video_src" })
+  @Column({ type: "varchar", nullable: false, default: "" })
   videoSrc!: string;
 
-  @Column({ type: "varchar", nullable: false, default: "", name: "music_src" })
+  @Column({ type: "varchar", nullable: false, default: "" })
   musicSrc!: string;
 
   @Column({ type: "varchar", nullable: false, default: "" })
@@ -222,7 +204,6 @@ export class MovieModel extends BaseEntity {
     type: "boolean",
     nullable: false,
     default: false,
-    name: "analyzing_files",
   })
   analyzingFiles!: boolean;
 

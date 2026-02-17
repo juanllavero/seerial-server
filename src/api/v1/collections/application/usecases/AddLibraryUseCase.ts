@@ -1,4 +1,4 @@
-import { CollectionsRepositoryPort } from "../ports/CollectionRepositoryPort";
+import { CollectionsRepositoryPort } from "../ports/CollectionsRepositoryPort";
 
 export class AddLibraryToCollectionUseCase {
   constructor(private collectionRepo: CollectionsRepositoryPort) {}

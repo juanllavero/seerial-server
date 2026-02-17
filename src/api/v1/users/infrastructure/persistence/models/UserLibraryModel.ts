@@ -10,10 +10,10 @@ import { UserModel } from "./UserModel";
 
 @Entity({ name: "UserLibrary" })
 export class UserLibraryModel extends BaseEntity {
-  @PrimaryColumn({ type: "varchar", nullable: false, name: "user_id" })
+  @PrimaryColumn({ type: "varchar", nullable: false })
   userId!: string;
 
-  @PrimaryColumn({ type: "varchar", nullable: false, name: "library_id" })
+  @PrimaryColumn({ type: "varchar", nullable: false })
   libraryId!: string;
 
   @ManyToOne(() => UserModel, { onDelete: "CASCADE" })

@@ -19,34 +19,34 @@ export class ContinueWatchingModel extends BaseEntity {
   @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @Column({ type: "varchar", nullable: false, name: "user_id" })
+  @Column({ type: "varchar", nullable: false })
   userId!: string;
 
-  @Column({ type: "varchar", nullable: true, name: "series_id" })
+  @Column({ type: "varchar", nullable: true })
   seriesId?: string;
 
   @ManyToOne(() => SeriesModel, { onDelete: "CASCADE" })
   @JoinColumn({ name: "series_id" })
   series?: SeriesModel;
 
-  @Column({ type: "varchar", nullable: true, name: "movie_id" })
+  @Column({ type: "varchar", nullable: true })
   movieId?: string;
 
   @ManyToOne(() => MovieModel, { onDelete: "CASCADE" })
   @JoinColumn({ name: "movie_id" })
   movie?: MovieModel;
 
-  @Column({ type: "varchar", nullable: false, name: "video_id" })
+  @Column({ type: "varchar", nullable: false })
   videoId!: string;
 
   @ManyToOne(() => VideoModel, { onDelete: "CASCADE" })
   @JoinColumn({ name: "video_id" })
   video!: VideoModel;
 
-  @CreateDateColumn({ name: "created_at" })
+  @CreateDateColumn()
   createdAt!: Date;
 
-  @UpdateDateColumn({ name: "updated_at" })
+  @UpdateDateColumn()
   updatedAt!: Date;
 
   // Lifecycle hooks

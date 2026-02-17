@@ -21,7 +21,6 @@ export class ServerModel extends BaseEntity {
     type: "integer",
     nullable: false,
     default: 34200,
-    name: "http_port",
   })
   httpPort!: number;
 
@@ -30,7 +29,6 @@ export class ServerModel extends BaseEntity {
     type: "integer",
     nullable: false,
     default: 34400,
-    name: "https_port",
   })
   httpsPort!: number;
 
@@ -39,11 +37,10 @@ export class ServerModel extends BaseEntity {
     type: "boolean",
     nullable: false,
     default: false,
-    name: "tunnel_enabled",
   })
   tunnelEnabled!: boolean;
 
-  @Column({ type: "varchar", nullable: true, name: "tunnel_url" })
+  @Column({ type: "varchar", nullable: true })
   tunnelUrl?: string;
 
   // HTTPS enablement and certificate configuration
@@ -51,25 +48,24 @@ export class ServerModel extends BaseEntity {
     type: "boolean",
     nullable: false,
     default: false,
-    name: "https_enabled",
   })
   httpsEnabled!: boolean;
 
-  @Column({ type: "varchar", nullable: true, name: "ssl_cert_path" })
+  @Column({ type: "varchar", nullable: true })
   sslCertPath?: string;
 
-  @Column({ type: "varchar", nullable: true, name: "ssl_key_path" })
+  @Column({ type: "varchar", nullable: true })
   sslKeyPath?: string;
 
-  @Column({ type: "varchar", nullable: true, name: "ssl_password" }) // Store securely in application logic (e.g., encrypted)
+  @Column({ type: "varchar", nullable: true }) // Store securely in application logic (e.g., encrypted)
   sslPassword?: string;
 
   // Custom URL for access
-  @Column({ type: "varchar", nullable: true, name: "custom_url" })
+  @Column({ type: "varchar", nullable: true })
   customUrl?: string;
 
   // Proxy hosts for X-Forwarded-For
-  @Column({ type: "varchar", nullable: true, name: "proxy_hosts" }) // Comma-separated list
+  @Column({ type: "varchar", nullable: true }) // Comma-separated list
   proxyHosts?: string;
 
   // Force HTTPS
@@ -77,7 +73,6 @@ export class ServerModel extends BaseEntity {
     type: "boolean",
     nullable: false,
     default: false,
-    name: "force_https",
   })
   forceHttps!: boolean;
 
@@ -86,18 +81,16 @@ export class ServerModel extends BaseEntity {
     type: "boolean",
     nullable: false,
     default: true,
-    name: "allow_remote_connections",
   })
   allowRemoteConnections!: boolean;
 
-  @Column({ type: "varchar", nullable: true, name: "remote_ip_filter" }) // Comma-separated IPs or IP/mask
+  @Column({ type: "varchar", nullable: true }) // Comma-separated IPs or IP/mask
   remoteIpFilter?: string;
 
   @Column({
     type: "varchar",
     nullable: false,
     default: "whitelist",
-    name: "remote_ip_filter_mode",
   })
   remoteIpFilterMode!: string;
 
@@ -105,7 +98,6 @@ export class ServerModel extends BaseEntity {
     type: "boolean",
     nullable: false,
     default: false,
-    name: "enable_auto_port_mapping",
   })
   enableAutoPortMapping!: boolean;
 
@@ -113,7 +105,6 @@ export class ServerModel extends BaseEntity {
     type: "integer",
     nullable: false,
     default: 34200,
-    name: "public_http_port",
   })
   publicHttpPort!: number;
 
@@ -121,7 +112,6 @@ export class ServerModel extends BaseEntity {
     type: "integer",
     nullable: false,
     default: 34400,
-    name: "public_https_port",
   })
   publicHttpsPort!: number;
 

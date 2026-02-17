@@ -46,32 +46,29 @@ export class ScanLibraryUseCase {
       return undefined;
     }
 
-    logger.info(
-      {
-        libraryId: library.id,
-        libraryType: library.type,
-        folderCount: library.folders.length,
-      },
-      "Library successfully created or retrieved"
-    );
+    // Send SCAN_STARTED immediately
+    const message = {
+      header: "SCAN_STARTED",
+      body: library.id,
+    };
+    notificationService.broadcast(JSON.stringify(message));
+    notificationService.mutateLibrary(library.id);
 
-    // Get available threads
+    // Fire and forget - processing continues in background
+    this.executeScan(library).catch((error) => {
+      logger.error({ libraryId: library.id, error }, "Scan execution failed");
+    });
+
+    return library;
+  }
+
+  private async executeScan(library: Library): Promise<void> {
     let availableThreads = Math.max(os.cpus().length / 2, 1);
 
     if (library.type === "Music") {
       availableThreads = Math.min(availableThreads, 2);
     }
     const limit = pLimit(availableThreads);
-
-    logger.info(
-      {
-        libraryId: library.id,
-        availableThreads,
-        cpuCount: os.cpus().length,
-        libraryType: library.type,
-      },
-      "Calculated available threads for scanning"
-    );
 
     const tasks: Promise<void>[] = [];
 
@@ -88,45 +85,18 @@ export class ScanLibraryUseCase {
         rootFolder
       );
 
-      logger.info(
-        {
-          libraryId: library.id,
-          rootFolder,
-          fileCount: filesInFolder.length,
-        },
-        "Retrieved files from folder"
-      );
-
       for (const file of filesInFolder) {
         const filePath = path.join(file.parentPath, file.name);
 
         const task = limit(async () => {
-          logger.info(
-            {
-              libraryId: library.id,
-              filePath,
-              libraryType: library.type,
-            },
-            "Processing file for metadata extraction"
-          );
-
           try {
             if (library.type === "Shows") {
               await useCases.scanSeries().execute(library, filePath);
             } else if (library.type === "Movies") {
               await useCases.scanMovie().execute(library, filePath);
             } else {
-              await useCases.scanSongs().execute(library, filePath);
+              await useCases.scanMusic().execute(library, filePath);
             }
-
-            logger.info(
-              {
-                libraryId: library.id,
-                filePath,
-                libraryType: library.type,
-              },
-              "Successfully processed file"
-            );
           } catch (error) {
             logger.error(
               {
@@ -143,37 +113,30 @@ export class ScanLibraryUseCase {
       }
     }
 
-    // Send message to clients
-    const message = {
-      header: "SCAN_STARTED",
-      body: library.id,
-    };
-    notificationService.broadcast(JSON.stringify(message));
+    // Wait for all tasks to complete
+    await Promise.all(tasks);
 
-    Promise.all(tasks).then(() => {
-      const message = {
-        header: "SCAN_COMPLETE",
-        body: {
-          libraryId: library.id,
-        },
-      };
-      notificationService.broadcast(JSON.stringify(message));
-
-      logger.info(
-        {
-          libraryId: library.id,
-          messageType: "SCAN_COMPLETE",
-        },
-        "Scan completed successfully, sent notification to clients"
-      );
-    });
+    // Update Library
+    await this.librariesRepo.update(library.id, library);
 
     // Update content in clients
     notificationService.mutateLibrary(library.id);
 
-    // Update Library
-    this.librariesRepo.update(library.id, library);
+    // Send SCAN_COMPLETE after everything finishes
+    const message = {
+      header: "SCAN_COMPLETE",
+      body: {
+        libraryId: library.id,
+      },
+    };
+    notificationService.broadcast(JSON.stringify(message));
 
-    return library;
+    logger.info(
+      {
+        libraryId: library.id,
+        messageType: "SCAN_COMPLETE",
+      },
+      "Scan completed successfully, sent notification to clients"
+    );
   }
 }

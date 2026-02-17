@@ -25,7 +25,7 @@ export class AlbumModel extends BaseEntity {
   @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @Column({ type: "varchar", nullable: false, name: "library_id" })
+  @Column({ type: "varchar", nullable: false })
   libraryId!: string;
 
   @Column({ type: "integer", nullable: false, default: 0 })
@@ -43,7 +43,7 @@ export class AlbumModel extends BaseEntity {
   @Column({ type: "text", nullable: true, default: "" })
   description?: string;
 
-  @Column({ type: "text", nullable: true, default: "", name: "cover_src" })
+  @Column({ type: "text", nullable: true, default: "" })
   coverSrc!: string;
 
   @Column({ type: "varchar", nullable: false, default: "" })

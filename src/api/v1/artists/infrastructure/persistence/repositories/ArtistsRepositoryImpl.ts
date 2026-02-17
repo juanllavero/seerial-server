@@ -28,6 +28,10 @@ export class ArtistsRepositoryImpl
     });
   }
 
+  async getByName(name: string): Promise<Artist | null> {
+    return this.helper.findByField("name", name);
+  }
+
   async add(artistData: Partial<Artist>): Promise<Artist | null> {
     this.validateData(artistData, "Artist data");
 

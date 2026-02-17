@@ -19,7 +19,7 @@ export class EpisodeModel extends BaseEntity {
   @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @Column({ type: "varchar", nullable: false, name: "season_id" })
+  @Column({ type: "varchar", nullable: false })
   seasonId!: string;
 
   @Column({ type: "varchar", nullable: false, default: "" })

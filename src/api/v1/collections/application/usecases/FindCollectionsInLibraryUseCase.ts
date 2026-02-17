@@ -1,5 +1,5 @@
 import { Collection } from "../../domain/Collection";
-import { CollectionsRepositoryPort } from "../ports/CollectionRepositoryPort";
+import { CollectionsRepositoryPort } from "../ports/CollectionsRepositoryPort";
 
 export class FindCollectionsInLibraryUseCase {
   constructor(private collectionRepo: CollectionsRepositoryPort) {}

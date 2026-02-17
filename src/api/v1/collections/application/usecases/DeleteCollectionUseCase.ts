@@ -1,4 +1,4 @@
-import { CollectionsRepositoryPort } from "../ports/CollectionRepositoryPort";
+import { CollectionsRepositoryPort } from "../ports/CollectionsRepositoryPort";
 
 export class DeleteCollectionUseCase {
   constructor(private collectionRepo: CollectionsRepositoryPort) {}

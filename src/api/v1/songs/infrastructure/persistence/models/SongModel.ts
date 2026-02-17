@@ -17,10 +17,10 @@ export class SongModel extends BaseEntity {
   @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @Column({ type: "varchar", nullable: false, name: "file_src" })
+  @Column({ type: "varchar", nullable: false })
   fileSrc!: string;
 
-  @Column({ type: "varchar", nullable: false, name: "album_id" })
+  @Column({ type: "varchar", nullable: false })
   albumId!: string;
 
   @Column({ type: "varchar", nullable: false, default: "" })
@@ -33,14 +33,13 @@ export class SongModel extends BaseEntity {
     type: "integer",
     nullable: false,
     default: 0,
-    name: "track_number",
   })
   trackNumber!: number;
 
-  @Column({ type: "integer", nullable: false, default: 0, name: "disc_number" })
+  @Column({ type: "integer", nullable: false, default: 0 })
   discNumber!: number;
 
-  @Column({ type: "boolean", nullable: true, name: "has_dolby_atmos" })
+  @Column({ type: "boolean", nullable: true })
   hasDolbyAtmos!: boolean;
 
   @Column({ type: "varchar", nullable: false, default: "" })

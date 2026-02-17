@@ -1,4 +1,4 @@
-import { CollectionsRepositoryPort } from "@/api/v1/collections/application/ports/CollectionRepositoryPort";
+import { CollectionsRepositoryPort } from "@/api/v1/collections/application/ports/CollectionsRepositoryPort";
 import { CollectionModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionModel";
 import { FileSystemServicePort } from "@/api/v1/shared/application/ports/FileSystemServicePort";
 import { MetadataProviderPort } from "@/api/v1/shared/application/ports/MetadataProviderPort";

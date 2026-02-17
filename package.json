@@ -114,6 +114,7 @@
     "swagger-ui-express": "^5.0.1",
     "tsoa": "7.0.0-alpha.0",
     "typeorm": "^0.3.28",
+    "typeorm-naming-strategies": "^4.1.0",
     "uuid": "^13.0.0",
     "ws": "^8.19.0"
   },

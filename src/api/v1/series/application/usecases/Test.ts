@@ -6,7 +6,6 @@ import { Season } from "@/api/v1/seasons/domain/Season";
 import { FileSystemServicePort } from "@/api/v1/shared/application/ports/FileSystemServicePort";
 import { MetadataProviderPort } from "@/api/v1/shared/application/ports/MetadataProviderPort";
 import { NotificationServicePort } from "@/api/v1/shared/application/ports/NotificationServicePort";
-import { WriteQueue } from "@/api/v1/shared/infrastructure/services/WriteQueue";
 import { VideoRepositoryPort } from "@/api/v1/videos/application/ports/VideosRepositoryPort";
 import logger from "@/utils/logger";
 import {
@@ -17,27 +16,10 @@ import {
 } from "moviedb-promise";
 import path from "path";
 import { Episode as EpisodeLocal } from "../../../episodes/domain/Episode";
-import { Video } from "../../../videos/domain/Video";
 import { Series } from "../../domain/Series";
 import { SeriesRepositoryPort } from "../ports/SeriesRepositoryPort";
 
-interface EpisodeResolution {
-  videoSrc: string;
-  seasonMetadata: TvSeasonResponse | null;
-  episodeMetadata: Episode | null;
-  realSeason?: number;
-  realEpisode?: number;
-}
-
-interface EpisodeBatchUpdate {
-  episode: EpisodeLocal;
-  video: Video;
-  metadata: Episode;
-}
-
 export class ScanSeriesUseCase {
-  private readonly writeQueue = new WriteQueue();
-
   constructor(
     private readonly filesManager: FileSystemServicePort,
     private readonly librariesRepo: LibrariesRepositoryPort,
@@ -82,177 +64,9 @@ export class ScanSeriesUseCase {
       return;
     }
 
-    // Smart skip: check if any files changed
-    if (!(await this.hasFilesChanged(library, videoFiles))) {
-      logger.info(
-        {
-          libraryId: library.id,
-          root,
-          fileCount: videoFiles.length,
-        },
-        "All files already analyzed, skipping scan"
-      );
-      return;
-    }
+    let show: Series | null = null;
+    let exists: boolean = false;
 
-    // Get or create series (wrapped in queue)
-    const show = await this.writeQueue.enqueue(async () => {
-      return await this.getOrCreateSeries(library, root);
-    });
-
-    if (!show) {
-      logger.error(
-        {
-          libraryId: library.id,
-          root,
-        },
-        "Failed to get or create series"
-      );
-      return;
-    }
-
-    // Search and update metadata
-    await this.ensureSeriesMetadata(library, show, root);
-
-    // Update series analyzing status
-    await this.writeQueue.enqueue(async () => {
-      show.analyzingFiles = true;
-      await this.seriesRepo.update(show.id, show);
-    });
-
-    this.notificationService.mutateSeries(show);
-
-    // Broadcast scan started
-    this.notificationService.broadcast(
-      JSON.stringify({
-        header: "SERIES_SCAN_PROGRESS",
-        body: {
-          seriesId: show.id,
-          status: "started",
-          processed: 0,
-          total: videoFiles.length,
-        },
-      })
-    );
-
-    // Download seasons metadata
-    const showData = await this.metadataProvider.getTVShow(
-      show.themdbId,
-      library.language
-    );
-
-    if (!showData?.seasons) {
-      logger.error(
-        {
-          seriesId: show.id,
-          tmdbId: show.themdbId,
-          showData: showData,
-        },
-        "TV show data has no seasons, cannot proceed"
-      );
-      return;
-    }
-
-    const seasonPromises = showData.seasons.map((seasonBasic) =>
-      this.metadataProvider.getSeason(
-        showData.id!,
-        seasonBasic.season_number!,
-        library.language
-      )
-    );
-
-    const seasonsMetadata = (await Promise.all(seasonPromises)).filter(
-      Boolean
-    ) as TvSeasonResponse[];
-
-    if (seasonsMetadata.length === 0) {
-      logger.error(
-        {
-          seriesId: show.id,
-          tmdbId: show.themdbId,
-          seasonsRequested: showData.seasons.length,
-        },
-        "No valid season metadata downloaded, cannot proceed"
-      );
-      return;
-    }
-
-    // Download episode groups metadata if needed
-    let episodesGroup: EpisodeGroupResponse | undefined;
-    if (show.episodeGroupId) {
-      try {
-        episodesGroup = await this.metadataProvider.getEpisodeGroup(
-          show.episodeGroupId
-        );
-      } catch (error) {
-        logger.error(
-          {
-            seriesId: show.id,
-            episodeGroupId: show.episodeGroupId,
-            error: error instanceof Error ? error.message : String(error),
-          },
-          "Failed to download episode groups metadata"
-        );
-      }
-    }
-
-    // Process episodes
-    await this.processEpisodes(
-      library,
-      videoFiles,
-      show,
-      seasonsMetadata,
-      episodesGroup
-    );
-
-    // Check if series has valid seasons
-    const seasons = await this.seasonsRepo.findSeasonsBySeriesId(show.id);
-    if (!seasons || seasons.length < 1) {
-      logger.error(
-        {
-          seriesId: show.id,
-          seasonsFound: seasons?.length || 0,
-        },
-        "No valid seasons found after processing, deleting series"
-      );
-      await this.writeQueue.enqueue(async () => {
-        await this.seriesRepo.delete(show.id);
-      });
-      return;
-    }
-
-    // Update series analyzing status
-    await this.writeQueue.enqueue(async () => {
-      show.analyzingFiles = false;
-      await this.seriesRepo.update(show.id, show);
-    });
-
-    this.notificationService.mutateSeries(show);
-
-    // Broadcast scan completed
-    this.notificationService.broadcast(
-      JSON.stringify({
-        header: "SERIES_SCAN_PROGRESS",
-        body: {
-          seriesId: show.id,
-          status: "completed",
-          processed: videoFiles.length,
-          total: videoFiles.length,
-        },
-      })
-    );
-  }
-
-  //#region SERIES MANAGEMENT
-
-  /**
-   * Gets existing series or creates a new one
-   */
-  private async getOrCreateSeries(
-    library: Library,
-    root: string
-  ): Promise<Series | null> {
-    // Check for library cache
     if (root in library.analyzedFolders) {
       logger.info(
         {
@@ -262,48 +76,45 @@ export class ScanSeriesUseCase {
         },
         "Folder already analyzed, retrieving existing series"
       );
-      const show = await this.seriesRepo.findById(
+      show = await this.seriesRepo.findById(
         library.analyzedFolders[root] ?? ""
       );
-      if (show) return show;
+      if (show !== null) exists = true;
     }
 
-    // Create new series
-    logger.info(
-      {
+    if (show === null) {
+      logger.info(
+        {
+          libraryId: library.id,
+          root,
+        },
+        "Creating new series for folder"
+      );
+      show = await this.seriesRepo.create({
+        folder: root,
         libraryId: library.id,
-        root,
-      },
-      "Creating new series for folder"
-    );
+      });
+      if (!show) {
+        logger.error(
+          {
+            libraryId: library.id,
+            root,
+          },
+          "Failed to create series"
+        );
+        return;
+      }
 
-    const show = await this.seriesRepo.create({
-      folder: root,
-      libraryId: library.id,
-    });
+      // Add folder to library cache
+      library.analyzedFolders = {
+        ...library.analyzedFolders,
+        [root]: show.id,
+      };
 
-    if (!show) return null;
+      await this.librariesRepo.addAnalyzedFolder(library.id, root, show.id);
+    }
 
-    // Update library cache
-    library.analyzedFolders = {
-      ...library.analyzedFolders,
-      [root]: show.id,
-    };
-
-    await this.librariesRepo.addAnalyzedFolder(library.id, root, show.id);
-
-    return show;
-  }
-
-  /**
-   * Ensures series has TMDb ID and metadata
-   */
-  private async ensureSeriesMetadata(
-    library: Library,
-    show: Series,
-    root: string
-  ): Promise<void> {
-    // Search for themdbId if not set
+    // Search for themdbId
     if (show.themdbId === -1) {
       let finalName: string = root.split(/[/\\]/).pop() ?? "";
       const pattern = /^(.*?)(?:\s(\d{4}))?$/;
@@ -370,38 +181,176 @@ export class ScanSeriesUseCase {
         },
         "Failed to update series metadata"
       );
+      // Continue anyway, as this might not be critical
     }
-  }
 
-  /**
-   * Checks if any files have changed since last scan
-   */
-  private async hasFilesChanged(
-    library: Library,
-    videoFiles: string[]
-  ): Promise<boolean> {
-    // If any file is not in analyzedFiles, we have changes
-    const hasNewFiles = videoFiles.some(
-      (file) => !(file in library.analyzedFiles)
+    // Update series analyzing status
+    show.analyzingFiles = true;
+    try {
+      await this.seriesRepo.update(show.id, show);
+    } catch (error) {
+      logger.error(
+        {
+          seriesId: show.id,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        "Failed to update series analyzing status"
+      );
+      return;
+    }
+
+    // Send series mutation notification to clients
+    this.notificationService.mutateSeries(show);
+
+    // Download seasons metadata
+    let showData;
+    try {
+      showData = await this.metadataProvider.getTVShow(
+        show.themdbId,
+        library.language
+      );
+    } catch (error) {
+      logger.error(
+        {
+          seriesId: show.id,
+          tmdbId: show.themdbId,
+          language: library.language,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        "Failed to download TV show data from TMDb"
+      );
+      return;
+    }
+
+    if (!showData?.seasons) {
+      logger.error(
+        {
+          seriesId: show.id,
+          tmdbId: show.themdbId,
+          showData: showData,
+        },
+        "TV show data has no seasons, cannot proceed"
+      );
+      return;
+    }
+
+    const seasonPromises = showData.seasons.map((seasonBasic) =>
+      this.metadataProvider.getSeason(
+        showData.id!,
+        seasonBasic.season_number!,
+        library.language
+      )
     );
 
-    if (hasNewFiles) return true;
+    let seasonsMetadata: TvSeasonResponse[];
+    try {
+      seasonsMetadata = (await Promise.all(seasonPromises)).filter(
+        Boolean
+      ) as TvSeasonResponse[];
+    } catch (error) {
+      logger.error(
+        {
+          seriesId: show.id,
+          tmdbId: show.themdbId,
+          seasonsRequested: showData.seasons.length,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        "Failed to download season metadata from TMDb"
+      );
+      return;
+    }
 
-    // Check if all analyzed files still exist
-    const analyzedFilesForThisFolder = Object.keys(library.analyzedFiles);
-    const missingFiles = analyzedFilesForThisFolder.filter(
-      (file) => !videoFiles.includes(file)
+    if (seasonsMetadata.length === 0) {
+      logger.error(
+        {
+          seriesId: show.id,
+          tmdbId: show.themdbId,
+          seasonsRequested: showData.seasons.length,
+        },
+        "No valid season metadata downloaded, cannot proceed"
+      );
+      return;
+    }
+
+    // Download episode groups metadata if needed
+    let episodesGroup: EpisodeGroupResponse | undefined;
+    if (show.episodeGroupId) {
+      try {
+        episodesGroup = await this.metadataProvider.getEpisodeGroup(
+          show.episodeGroupId
+        );
+      } catch (error) {
+        logger.error(
+          {
+            seriesId: show.id,
+            episodeGroupId: show.episodeGroupId,
+            error: error instanceof Error ? error.message : String(error),
+          },
+          "Failed to download episode groups metadata"
+        );
+        // Continue without episode groups
+      }
+    }
+
+    await this.processEpisodes(
+      library,
+      videoFiles,
+      show,
+      seasonsMetadata,
+      episodesGroup
     );
 
-    return missingFiles.length > 0;
+    // Check if series has valid seasons
+    const seasons = await this.seasonsRepo.findSeasonsBySeriesId(show.id);
+    if (!seasons || seasons.length < 1) {
+      logger.error(
+        {
+          seriesId: show.id,
+          seasonsFound: seasons?.length || 0,
+        },
+        "No valid seasons found after processing, deleting series"
+      );
+      try {
+        await this.seriesRepo.delete(show.id);
+      } catch (error) {
+        logger.error(
+          {
+            seriesId: show.id,
+            error: error instanceof Error ? error.message : String(error),
+          },
+          "Failed to delete series with no valid seasons"
+        );
+      }
+      return;
+    }
+
+    // Update series analyzing status
+    show.analyzingFiles = false;
+    try {
+      await this.seriesRepo.update(show.id, show);
+    } catch (error) {
+      logger.error(
+        {
+          seriesId: show.id,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        "Failed to update series analyzing status to false"
+      );
+      return;
+    }
+
+    // Send series mutation notification to clients
+    this.notificationService.mutateSeries(show);
   }
-
-  //#endregion
-
-  //#region EPISODE PROCESSING
 
   /**
    * Processes all video files of a series to add the seasons and episodes
+   * @param library Library to add series to
+   * @param videoFiles List of video files
+   * @param show Series
+   * @param seasonsMetadata Metadata of seasons
+   * @param episodesGroup Metadata of episode groups
+   * @returns void
    */
   async processEpisodes(
     library: Library,
@@ -413,46 +362,13 @@ export class ScanSeriesUseCase {
     const seasonsIndex = this.indexSeasons(seasonsMetadata);
     const cumulativeEpisodes = this.buildCumulativeEpisodes(seasonsMetadata);
 
-    // Parallel episode detection
-    logger.info(
-      {
-        seriesId: show.id,
-        fileCount: videoFiles.length,
-      },
-      "Starting parallel episode pattern resolution"
-    );
-
-    const resolutionPromises = videoFiles.map((videoFile) =>
-      this.resolveEpisodeMetadata(
-        show,
-        videoFile,
-        seasonsMetadata,
-        seasonsIndex,
-        cumulativeEpisodes,
-        episodesGroup
-      ).then((resolution) => ({ videoSrc: videoFile, ...resolution }))
-    );
-
-    const resolutions = await Promise.all(resolutionPromises);
-
-    logger.info(
-      {
-        seriesId: show.id,
-        resolved: resolutions.filter((r) => r.episodeMetadata).length,
-        unresolved: resolutions.filter((r) => !r.episodeMetadata).length,
-      },
-      "Episode pattern resolution completed"
-    );
-
-    // Serial processing through queue with batch updates
     let processedFiles = 0;
     let skippedFiles = 0;
-    const batchUpdates: EpisodeBatchUpdate[] = [];
 
-    for (const resolution of resolutions) {
-      const alreadyAnalyzed = library.analyzedFiles[resolution.videoSrc];
+    for (const videoFile of videoFiles) {
+      const alreadyAnalyzed = library.analyzedFiles[videoFile];
       const hasEpisode = alreadyAnalyzed
-        ? await this.episodesRepo.findByVideoSrc(resolution.videoSrc)
+        ? await this.episodesRepo.findByVideoSrc(videoFile)
         : null;
 
       if (alreadyAnalyzed && hasEpisode) {
@@ -460,56 +376,22 @@ export class ScanSeriesUseCase {
         continue;
       }
 
-      if (!resolution.seasonMetadata || !resolution.episodeMetadata) {
-        logger.warn(
-          {
-            seriesId: show.id,
-            videoSrc: resolution.videoSrc,
-          },
-          "Could not resolve season/episode metadata for file, skipping"
-        );
-        continue;
-      }
-
       try {
-        await this.writeQueue.enqueue(async () => {
-          const result = await this.processEpisode(library, show, resolution);
-
-          if (result) {
-            batchUpdates.push(result);
-          }
-        });
+        await this.processEpisode(
+          library,
+          show,
+          videoFile,
+          seasonsMetadata,
+          seasonsIndex,
+          cumulativeEpisodes,
+          episodesGroup
+        );
         processedFiles++;
-
-        // Progress reporting
-        if (processedFiles % 5 === 0 || processedFiles === resolutions.length) {
-          this.notificationService.broadcast(
-            JSON.stringify({
-              header: "SERIES_SCAN_PROGRESS",
-              body: {
-                seriesId: show.id,
-                status: "processing",
-                processed: processedFiles + skippedFiles,
-                total: videoFiles.length,
-              },
-            })
-          );
-
-          logger.info(
-            {
-              seriesId: show.id,
-              status: "processing",
-              processed: processedFiles + skippedFiles,
-              total: videoFiles.length,
-            },
-            "Processing video files..."
-          );
-        }
       } catch (error) {
         logger.error(
           {
             seriesId: show.id,
-            videoFile: resolution.videoSrc,
+            videoFile,
             error: error instanceof Error ? error.message : String(error),
           },
           "Failed to process video file"
@@ -527,181 +409,6 @@ export class ScanSeriesUseCase {
       "Completed processing all video files"
     );
 
-    // Batch metadata updates
-    if (batchUpdates.length > 0) {
-      await this.batchUpdateEpisodeMetadata(show, batchUpdates);
-    }
-
-    // Post-processing: rename seasons
-    await this.postProcessSeasons(show, episodesGroup);
-  }
-
-  /**
-   * Processes a video file to add the season and episode
-   * Returns episode data for batch update if successful
-   */
-  async processEpisode(
-    library: Library,
-    show: Series,
-    resolution: EpisodeResolution
-  ): Promise<EpisodeBatchUpdate | null> {
-    const {
-      videoSrc,
-      seasonMetadata,
-      episodeMetadata,
-      realSeason,
-      realEpisode,
-    } = resolution;
-
-    if (!seasonMetadata || !episodeMetadata) {
-      logger.warn(
-        {
-          seriesId: show.id,
-          videoSrc,
-          realSeason,
-          realEpisode,
-        },
-        "Could not resolve season/episode metadata for file, skipping"
-      );
-      return null;
-    }
-
-    logger.info(
-      {
-        seriesId: show.id,
-        videoSrc,
-        seasonNumber: seasonMetadata.season_number,
-        episodeNumber: episodeMetadata.episode_number,
-        realSeason,
-        realEpisode,
-      },
-      "Successfully resolved episode metadata"
-    );
-
-    // Ensure season exists
-    const season = await this.ensureSeason(
-      show,
-      seasonMetadata,
-      realSeason,
-      realEpisode
-    );
-    if (!season) {
-      logger.error(
-        {
-          seriesId: show.id,
-          videoSrc,
-          seasonNumber: seasonMetadata.season_number,
-        },
-        "Failed to ensure season exists in database"
-      );
-      return null;
-    }
-
-    // Ensure episode exists
-    const episode = await this.ensureEpisode(
-      season,
-      episodeMetadata,
-      realEpisode,
-      library,
-      videoSrc
-    );
-    if (!episode) {
-      logger.error(
-        {
-          seriesId: show.id,
-          seasonId: season.id,
-          videoSrc,
-          episodeNumber: episodeMetadata.episode_number,
-        },
-        "Failed to ensure episode exists in database"
-      );
-      return null;
-    }
-
-    // Ensure video exists
-    let video = await this.videoRepo.findByEpisodeId(episode.id);
-    if (!video) {
-      video = await this.videoRepo.addAsEpisode(episode.id, {
-        fileSrc: videoSrc,
-      });
-      if (!video) {
-        logger.error(
-          {
-            seriesId: show.id,
-            episodeId: episode.id,
-            videoSrc,
-          },
-          "Failed to create video entry for episode"
-        );
-        return null;
-      }
-    }
-
-    this.notificationService.mutateSeason();
-
-    // Return data for batch update
-    return {
-      episode,
-      video,
-      metadata: episodeMetadata,
-    };
-  }
-
-  /**
-   * Batch update episode metadata to reduce API calls
-   */
-  private async batchUpdateEpisodeMetadata(
-    show: Series,
-    updates: EpisodeBatchUpdate[]
-  ): Promise<void> {
-    logger.info(
-      {
-        seriesId: show.id,
-        updateCount: updates.length,
-      },
-      "Starting batch metadata update for episodes"
-    );
-
-    // Process in chunks to avoid overwhelming the system
-    const chunkSize = 10;
-    for (let i = 0; i < updates.length; i += chunkSize) {
-      const chunk = updates.slice(i, i + chunkSize);
-
-      const updatePromises = chunk.map(({ episode, video, metadata }) =>
-        this.metadataProvider
-          .updateEpisodeMetadata(episode, video, show, metadata)
-          .catch((error) => {
-            logger.error(
-              {
-                seriesId: show.id,
-                episodeId: episode.id,
-                videoId: video.id,
-                error: error instanceof Error ? error.message : String(error),
-              },
-              "Failed to update episode metadata in batch"
-            );
-          })
-      );
-
-      await Promise.all(updatePromises);
-    }
-
-    logger.info(
-      {
-        seriesId: show.id,
-        updatedCount: updates.length,
-      },
-      "Completed batch metadata update"
-    );
-  }
-
-  /**
-   * Post-processes seasons to rename based on episode groups or fix duplicates
-   */
-  private async postProcessSeasons(
-    show: Series,
-    episodesGroup: EpisodeGroupResponse | undefined
-  ): Promise<void> {
     const seasons = await this.seasonsRepo.findSeasonsBySeriesId(show.id);
     if (!seasons) {
       logger.error(
@@ -719,18 +426,21 @@ export class ScanSeriesUseCase {
         const group = episodesGroup.groups.find(
           (g) => g.order === season.seasonNumber
         );
-        if (group && group.name && season.name !== group.name) {
-          season.name = group.name;
-          await this.seasonsRepo.update(season.id, season);
+        if (group) {
+          const oldName = season.name;
+          season.name = group.name ?? season.name;
+          if (oldName !== season.name) {
+            await this.seasonsRepo.update(season.id, season);
+          }
         }
       }
     } else if (seasons.length > 1 && seasons[0].name === seasons[1].name) {
       // Apply default season numbering due to duplicate names
       for (const season of seasons) {
         if (season.seasonNumber !== 0) {
-          const newName = `Season ${season.seasonNumber}`;
-          if (season.name !== newName) {
-            season.name = newName;
+          const oldName = season.name;
+          season.name = `Season ${season.seasonNumber}`;
+          if (oldName !== season.name) {
             await this.seasonsRepo.update(season.id, season);
           }
         }
@@ -738,12 +448,157 @@ export class ScanSeriesUseCase {
     }
   }
 
-  //#endregion
+  /**
+   * Processes a video file to add the season and episode
+   * @param library Library to add series to
+   * @param show Series
+   * @param videoSrc Video file path
+   * @param seasonsMetadata Metadata of seasons
+   * @param seasonsIndex Index of seasons
+   * @param cumulativeEpisodes Cumulative episodes of seasons
+   * @param episodesGroup Metadata of episode groups
+   * @returns void
+   */
+  async processEpisode(
+    library: Library,
+    show: Series,
+    videoSrc: string,
+    seasonsMetadata: TvSeasonResponse[],
+    seasonsIndex: Map<
+      number,
+      { season: TvSeasonResponse; episodesMap: Map<number, Episode> }
+    >,
+    cumulativeEpisodes: number[],
+    episodesGroup: EpisodeGroupResponse | undefined
+  ) {
+    const { seasonMetadata, episodeMetadata, realSeason, realEpisode } =
+      await this.resolveEpisodeMetadata(
+        show,
+        videoSrc,
+        seasonsMetadata,
+        seasonsIndex,
+        cumulativeEpisodes,
+        episodesGroup
+      );
 
-  //#region SEASON & EPISODE DB HELPERS
+    if (!seasonMetadata || !episodeMetadata) {
+      logger.warn(
+        {
+          seriesId: show.id,
+          videoSrc,
+          realSeason,
+          realEpisode,
+        },
+        "Could not resolve season/episode metadata for file, skipping"
+      );
+      return;
+    }
+
+    logger.info(
+      {
+        seriesId: show.id,
+        videoSrc,
+        seasonNumber: seasonMetadata.season_number,
+        episodeNumber: episodeMetadata.episode_number,
+        realSeason,
+        realEpisode,
+      },
+      "Successfully resolved episode metadata"
+    );
+
+    // Ensure season in DB
+    const season = await this.ensureSeason(
+      show,
+      seasonMetadata,
+      realSeason,
+      realEpisode
+    );
+    if (!season) {
+      logger.error(
+        {
+          seriesId: show.id,
+          videoSrc,
+          seasonNumber: seasonMetadata.season_number,
+        },
+        "Failed to ensure season exists in database"
+      );
+      return;
+    }
+
+    // Ensure episode in DB
+    let episode = await this.ensureEpisode(
+      season,
+      episodeMetadata,
+      realEpisode,
+      library,
+      videoSrc
+    );
+    if (!episode) {
+      logger.error(
+        {
+          seriesId: show.id,
+          seasonId: season.id,
+          videoSrc,
+          episodeNumber: episodeMetadata.episode_number,
+        },
+        "Failed to ensure episode exists in database"
+      );
+      return;
+    }
+
+    // Ensure video in DB
+    let video = await this.videoRepo.findByEpisodeId(episode.id);
+    if (!video) {
+      // Create video
+      video = await this.videoRepo.addAsEpisode(episode.id, {
+        fileSrc: videoSrc,
+      });
+      if (!video) {
+        logger.error(
+          {
+            seriesId: show.id,
+            episodeId: episode.id,
+            videoSrc,
+          },
+          "Failed to create video entry for episode"
+        );
+        return;
+      }
+    }
+
+    // Update episode metadata from TMDb
+    try {
+      await this.metadataProvider.updateEpisodeMetadata(
+        episode,
+        video,
+        show,
+        episodeMetadata
+      );
+    } catch (error) {
+      logger.error(
+        {
+          seriesId: show.id,
+          episodeId: episode.id,
+          videoId: video.id,
+          tmdbEpisodeId: episodeMetadata.id,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        "Failed to update episode metadata"
+      );
+      // Continue anyway
+    }
+
+    // Notify changes to clients
+    this.notificationService.mutateSeason();
+  }
 
   /**
    * Ensures a season exists in the database
+   * @param show Series
+   * @param seasonMetadata Metadata of season
+   * @param realSeason Real season number
+   * @param realEpisode Real episode number
+   * @returns Season or null
    */
   async ensureSeason(
     show: Series,
@@ -786,6 +641,12 @@ export class ScanSeriesUseCase {
 
   /**
    * Ensures an episode exists in the database
+   * @param season Season
+   * @param episodeMetadata Metadata of episode
+   * @param realEpisode Real episode number
+   * @param library Library
+   * @param videoSrc Video source
+   * @returns Episode or null
    */
   async ensureEpisode(
     season: Season,
@@ -823,7 +684,7 @@ export class ScanSeriesUseCase {
 
     if (!episode) return null;
 
-    // Update library cache
+    // Save file in library cache
     library.analyzedFiles = {
       ...library.analyzedFiles,
       [videoSrc]: episode.id,
@@ -834,12 +695,15 @@ export class ScanSeriesUseCase {
     return episode;
   }
 
-  //#endregion
-
-  //#region METADATA RESOLUTION
-
   /**
-   * Resolves episode metadata from filename
+   * Resolves episode metadata
+   * @param show Series
+   * @param videoSrc Video source
+   * @param seasonsMetadata Metadata of seasons
+   * @param seasonsIndex Index of seasons
+   * @param cumulativeEpisodes Cumulative episodes
+   * @param episodesGroup Metadata of episodes group
+   * @returns Season and episode metadata
    */
   async resolveEpisodeMetadata(
     show: Series,
@@ -866,7 +730,7 @@ export class ScanSeriesUseCase {
     const seasonEpisode: [number, number?] =
       this.extractEpisodeSeason(fullName);
 
-    if (Number.isNaN(seasonEpisode[0])) {
+    if (Number.isNaN(seasonEpisode)) {
       return { seasonMetadata, episodeMetadata };
     }
 
@@ -906,7 +770,14 @@ export class ScanSeriesUseCase {
   }
 
   /**
-   * Resolves episode by season and episode number
+   * Resolves episode metadata
+   * @param show Series
+   * @param episodeNumber Episode number
+   * @param seasonNumber Season number
+   * @param seasonsMetadata Metadata of seasons
+   * @param seasonsIndex Index of seasons
+   * @param episodesGroup Metadata of episodes group
+   * @returns Season and episode metadata
    */
   async resolveEpisodeBySeasonEpisode(
     show: Series,
@@ -922,6 +793,7 @@ export class ScanSeriesUseCase {
     seasonMetadata?: TvSeasonResponse;
     episodeMetadata?: Episode;
   } | null> {
+    // Look for the season in the metadata
     const exists = seasonsMetadata.some(
       (s) => s.season_number === seasonNumber
     );
@@ -955,7 +827,7 @@ export class ScanSeriesUseCase {
       return null;
     }
 
-    // Fast index lookup
+    // Fast index
     const seasonData = seasonsIndex.get(seasonNumber);
     if (seasonData && seasonData.episodesMap.has(episodeNumber)) {
       return {
@@ -969,7 +841,11 @@ export class ScanSeriesUseCase {
 
   /**
    * Get season and episode by absolute number
-   */
+   * @param absoluteNumber Absolute number
+   * @param seasonsMetadata Metadata of seasons
+   * @param cumulative Cumulative episodes
+   * @returns Season and Episode metadata or null
+   * */
   getSeasonEpisodeByAbsoluteNumber(
     absoluteNumber: number,
     seasonsMetadata: TvSeasonResponse[],
@@ -989,7 +865,7 @@ export class ScanSeriesUseCase {
   }
 
   /**
-   * Extracts episode and season numbers from filename
+   * Function to detect episode and season numbers in a video file name
    * @param filename path to the video file
    * @returns array of 1 to 2 elements corresponding with the episode and season number detected, or NaN if no episode was found
    */
@@ -997,7 +873,7 @@ export class ScanSeriesUseCase {
     const regexPatterns = [
       /[Ss](\d{1,4})[Ee](\d{1,4})(?:v\d+)?/i, // S01E02, s1e2, S1.E2, S01E01v2
       /[Ss](\d{1,4})[\.]?E(\d{1,4})(?:v\d+)?/i, // S1.E2, S1.E2v1
-      /[Ss](\d{1,4})[\s\-]+Ep?(\d{1,4})(?:v\d+)?/i, // S01 E02, S1 E2
+      /[Ss](\d{1,4})[\s\-]+Ep?(\d{1,4})(?:v\d+)?/i, // S01 E02, S1 E2, con v2 opcional
       /-\s?(\d{1,4})(?:v\d+)?(?!p)/, // - 01, - 01v1 (anime style)
       /(?:\b|^)(\d{1,4})(?:[^\d]+(\d{1,4}))?/i, // General case
     ];
@@ -1018,12 +894,8 @@ export class ScanSeriesUseCase {
       }
     }
 
-    return [NaN];
+    return [NaN]; // Return NaN if no episode found
   }
-
-  //#endregion
-
-  //#region INDEXING HELPERS
 
   /**
    * Function to index seasons by season number and episode number for faster access
@@ -1078,6 +950,4 @@ export class ScanSeriesUseCase {
     }
     return cumulative;
   }
-
-  //#endregion
 }

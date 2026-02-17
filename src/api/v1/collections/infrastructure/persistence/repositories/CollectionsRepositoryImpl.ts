@@ -5,7 +5,7 @@ import { DatabaseManager } from "@/api/v1/shared/infrastructure/persistence/Data
 import { getCollectionItemsKey } from "@/api/v1/shared/infrastructure/services/FileSearchService";
 import { GenericRepositoryHelper } from "@/helpers/GenericRepositoryHelper";
 import { ReorderItemDTO } from "../../../application/dtos/CollectionDTOs";
-import { CollectionsRepositoryPort } from "../../../application/ports/CollectionRepositoryPort";
+import { CollectionsRepositoryPort } from "../../../application/ports/CollectionsRepositoryPort";
 import { Collection } from "../../../domain/Collection";
 import { CollectionAlbumModel } from "../models/CollectionAlbum";
 import { CollectionModel } from "../models/CollectionModel";
@@ -46,9 +46,11 @@ export class CollectionsRepositoryImpl
 
   async getById(id: string): Promise<Collection | null> {
     const validatedId = this.validateId(id, "Collection ID");
-    return this.helper.findById(validatedId, {
-      relations: ["shows", "movies", "albums"],
-    });
+    return this.helper.findById(validatedId);
+  }
+
+  async getByName(name: string): Promise<Collection | null> {
+    return this.helper.findByField("title", name);
   }
 
   async getByLibraryId(libraryId: string, type: string): Promise<Collection[]> {

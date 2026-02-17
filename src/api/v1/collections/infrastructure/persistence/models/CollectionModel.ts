@@ -23,13 +23,13 @@ export class CollectionModel extends BaseEntity {
   @PrimaryColumn({ type: "varchar", nullable: false })
   id!: string;
 
-  @Column({ type: "varchar", nullable: false })
+  @Column({ type: "varchar", nullable: false, unique: true })
   title!: string;
 
   @Column({ type: "text", nullable: true, default: "" })
   description?: string;
 
-  @Column({ type: "varchar", nullable: true, default: "", name: "poster_src" })
+  @Column({ type: "varchar", nullable: true, default: "" })
   posterSrc!: string;
 
   @Column({
