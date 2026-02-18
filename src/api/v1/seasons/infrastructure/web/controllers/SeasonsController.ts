@@ -1,7 +1,7 @@
-import { MessageResponse } from "@/api/v1/shared/application/dtos/DTOs";
 import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
+import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
 import { messages } from "@/config/messages";
-import ApiError from "@/data/ApiError";
 import { IncludeType } from "@/types/common";
 import {
   Body,
@@ -17,10 +17,10 @@ import {
   Tags,
 } from "tsoa";
 import {
-  SeasonResponse,
   SetSeasonWatchStateDTO,
   UpdateSeasonDTO,
 } from "../../../application/dtos/SeasonDTOs";
+import { Season } from "../../../domain/Season";
 
 @Route("seasons")
 @Tags("Seasons")
@@ -33,14 +33,14 @@ export class SeasonsController extends Controller {
   public async get(
     @Path() id: string,
     @Query() include?: IncludeType
-  ): Promise<SeasonResponse> {
+  ): Promise<ApiResponse<Season>> {
     const result = await useCases.getSeasonById().execute(id, include);
 
-    return {
-      status: "success",
-      message: messages.success.fetch,
-      data: result,
-    };
+    if (!result) {
+      throw new NotFoundException(messages.errors.notFound.season);
+    }
+
+    return ApiResponse.success(result, messages.success.fetch);
   }
 
   /**
@@ -51,14 +51,9 @@ export class SeasonsController extends Controller {
   public async update(
     @Path() id: string,
     @Body() body: UpdateSeasonDTO
-  ): Promise<SeasonResponse> {
+  ): Promise<ApiResponse<Season>> {
     const result = await useCases.updateSeason().execute(id, body);
-
-    return {
-      status: "success",
-      message: messages.success.update,
-      data: result,
-    };
+    return ApiResponse.success(result, messages.success.update);
   }
 
   /**
@@ -66,10 +61,9 @@ export class SeasonsController extends Controller {
    */
   @Delete("{id}")
   @Security("adminAuth")
-  public async delete(@Path() id: string): Promise<MessageResponse> {
+  public async delete(@Path() id: string): Promise<ApiResponse<null>> {
     await useCases.deleteSeason().execute(id);
-
-    return { message: messages.success.delete };
+    return ApiResponse.success(null, messages.success.delete);
   }
 
   /**
@@ -80,13 +74,13 @@ export class SeasonsController extends Controller {
   public async setWatchState(
     @Path() id: string,
     @Body() body: SetSeasonWatchStateDTO
-  ): Promise<MessageResponse> {
+  ): Promise<ApiResponse<null>> {
     const { watched, userId } = body;
 
     const season = await useCases.getSeasonById().execute(id);
 
     if (!season) {
-      throw new ApiError(404, messages.errors.notFound.season);
+      throw new NotFoundException(messages.errors.notFound.season);
     }
 
     // Get first or last episode
@@ -98,6 +92,6 @@ export class SeasonsController extends Controller {
     // Set episode watched state
     await useCases.setEpisodeWatchState().execute(episode.id, userId, watched);
 
-    return { message: messages.success.update };
+    return ApiResponse.success(null, messages.success.update);
   }
 }

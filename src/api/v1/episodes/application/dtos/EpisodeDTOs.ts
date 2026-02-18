@@ -9,9 +9,3 @@ export interface UpdateEpisodeDTO {
 export interface SetEpisodeWatchStateDTO {
   state: boolean;
 }
-
-export interface EpisodeResponse {
-  status: string;
-  message: string;
-  data?: any;
-}

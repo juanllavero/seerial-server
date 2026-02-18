@@ -5,11 +5,14 @@ import {
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
 
-import ApiError from "@/data/ApiError";
 import { extraTypes, videoExtensions } from "@/utils/constants";
 import logger from "@/utils/logger";
 import * as fs from "fs/promises";
 import path from "path";
+import {
+  BadRequestException,
+  NotFoundException,
+} from "../web/exceptions/HTTPExceptions";
 
 const mediaDetailsLogger = logger.child({ category: "Media Details" });
 
@@ -52,9 +55,9 @@ export class MediaDetailsService {
         result = await useCases.getVideoByMovieId().execute(id);
         break;
       default:
-        throw new ApiError(400, messages.errors.validation.invalidData);
+        throw new BadRequestException(messages.errors.validation.invalidData);
     }
-    if (!result) throw new ApiError(404, `${type} with ID ${id} not found.`);
+    if (!result) throw new NotFoundException();
     return result;
   }
 
@@ -71,9 +74,9 @@ export class MediaDetailsService {
 
     if (itemType === "season") {
       const season = await useCases.getSeasonById().execute(id);
-      if (!season) throw new ApiError(404, "Season not found.");
+      if (!season) throw new NotFoundException(messages.errors.notFound.season);
       item = await useCases.getSeriesById().execute(season.seriesId);
-      if (!item) throw new ApiError(404, "Associated series not found.");
+      if (!item) throw new NotFoundException(messages.errors.notFound.series);
     } else {
       item =
         itemType === "movie"
@@ -81,14 +84,14 @@ export class MediaDetailsService {
           : await useCases.getSeriesById().execute(id);
     }
 
-    if (!item) throw new ApiError(404, `${itemType} not found.`);
+    if (!item) throw new NotFoundException(messages.errors.notFound[itemType]);
     libraryId = item.libraryId;
 
     const folder = fileSystemService.getExternalPath(
       `resources/${mediaType}/${libraryId}/`
     );
     const filename = await fileSystemService.getFileInFolder(folder, item.id);
-    if (!filename) throw new ApiError(404, "Background media file not found.");
+    if (!filename) throw new NotFoundException(messages.errors.notFound.file);
 
     return {
       url: `/media/${mediaType}/${libraryId}/${path.basename(filename)}`,
@@ -103,7 +106,7 @@ export class MediaDetailsService {
   public static async findLyricsForSong(songId: string) {
     const song = await useCases.getSongById().execute(songId);
     if (!song) {
-      throw new ApiError(404, "Song not found.");
+      throw new NotFoundException(messages.errors.notFound.song);
     }
 
     try {
@@ -139,10 +142,7 @@ export class MediaDetailsService {
       return results.filter((result) => result !== null);
     } catch (error) {
       mediaDetailsLogger.error(error, "Error searching for lyrics");
-      throw new ApiError(
-        500,
-        "An internal error occurred while searching for lyrics."
-      );
+      throw new Error("An internal error occurred while searching for lyrics.");
     }
   }
 
@@ -155,7 +155,7 @@ export class MediaDetailsService {
   public static async findMusicExtras(collectionId: string) {
     const collection = await useCases.getCollectionById().execute(collectionId);
     if (!collection) {
-      throw new ApiError(404, "Collection not found.");
+      throw new NotFoundException(messages.errors.notFound.collection);
     }
 
     const rootFolders = new Set<string>();

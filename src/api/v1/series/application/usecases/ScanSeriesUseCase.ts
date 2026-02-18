@@ -254,14 +254,6 @@ export class ScanSeriesUseCase {
   ): Promise<Series | null> {
     // Check for library cache
     if (root in library.analyzedFolders) {
-      logger.info(
-        {
-          libraryId: library.id,
-          seriesId: library.analyzedFolders[root],
-          root,
-        },
-        "Folder already analyzed, retrieving existing series"
-      );
       const show = await this.seriesRepo.findById(
         library.analyzedFolders[root] ?? ""
       );
@@ -269,13 +261,6 @@ export class ScanSeriesUseCase {
     }
 
     // Create new series
-    logger.info(
-      {
-        libraryId: library.id,
-        root,
-      },
-      "Creating new series for folder"
-    );
 
     const show = await this.seriesRepo.create({
       folder: root,
@@ -414,14 +399,6 @@ export class ScanSeriesUseCase {
     const cumulativeEpisodes = this.buildCumulativeEpisodes(seasonsMetadata);
 
     // Parallel episode detection
-    logger.info(
-      {
-        seriesId: show.id,
-        fileCount: videoFiles.length,
-      },
-      "Starting parallel episode pattern resolution"
-    );
-
     const resolutionPromises = videoFiles.map((videoFile) =>
       this.resolveEpisodeMetadata(
         show,
@@ -434,15 +411,6 @@ export class ScanSeriesUseCase {
     );
 
     const resolutions = await Promise.all(resolutionPromises);
-
-    logger.info(
-      {
-        seriesId: show.id,
-        resolved: resolutions.filter((r) => r.episodeMetadata).length,
-        unresolved: resolutions.filter((r) => !r.episodeMetadata).length,
-      },
-      "Episode pattern resolution completed"
-    );
 
     // Serial processing through queue with batch updates
     let processedFiles = 0;
@@ -494,16 +462,6 @@ export class ScanSeriesUseCase {
               },
             })
           );
-
-          logger.info(
-            {
-              seriesId: show.id,
-              status: "processing",
-              processed: processedFiles + skippedFiles,
-              total: videoFiles.length,
-            },
-            "Processing video files..."
-          );
         }
       } catch (error) {
         logger.error(
@@ -516,16 +474,6 @@ export class ScanSeriesUseCase {
         );
       }
     }
-
-    logger.info(
-      {
-        seriesId: show.id,
-        totalFiles: videoFiles.length,
-        processedFiles,
-        skippedFiles,
-      },
-      "Completed processing all video files"
-    );
 
     // Batch metadata updates
     if (batchUpdates.length > 0) {
@@ -565,18 +513,6 @@ export class ScanSeriesUseCase {
       );
       return null;
     }
-
-    logger.info(
-      {
-        seriesId: show.id,
-        videoSrc,
-        seasonNumber: seasonMetadata.season_number,
-        episodeNumber: episodeMetadata.episode_number,
-        realSeason,
-        realEpisode,
-      },
-      "Successfully resolved episode metadata"
-    );
 
     // Ensure season exists
     const season = await this.ensureSeason(
@@ -654,14 +590,6 @@ export class ScanSeriesUseCase {
     show: Series,
     updates: EpisodeBatchUpdate[]
   ): Promise<void> {
-    logger.info(
-      {
-        seriesId: show.id,
-        updateCount: updates.length,
-      },
-      "Starting batch metadata update for episodes"
-    );
-
     // Process in chunks to avoid overwhelming the system
     const chunkSize = 10;
     for (let i = 0; i < updates.length; i += chunkSize) {
@@ -685,14 +613,6 @@ export class ScanSeriesUseCase {
 
       await Promise.all(updatePromises);
     }
-
-    logger.info(
-      {
-        seriesId: show.id,
-        updatedCount: updates.length,
-      },
-      "Completed batch metadata update"
-    );
   }
 
   /**

@@ -3,6 +3,7 @@ import {
   tmdbApiClient,
   useCases,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
 import { User } from "@/api/v1/users/domain/User";
 import { messages } from "@/config/messages";
 import {
@@ -19,10 +20,11 @@ import {
 import {
   ServerConfigDTO,
   ServerConfigResponse,
-  ServerResponse,
+  ServerStatusResponse,
   UpdateServerConfigDTO,
   UpdateServerDTO,
 } from "../../../application/dtos/ServerDTOs";
+import { Server } from "../../../domain/Server";
 import { ServerConfigService } from "../../services/ServerConfigService";
 
 @Route("servers")
@@ -32,7 +34,7 @@ export class ServersController extends Controller {
    * Get server status
    */
   @Get()
-  public async getServerStatus(): Promise<any> {
+  public async getServerStatus(): Promise<ApiResponse<ServerStatusResponse>> {
     const getUsers = useCases.getAllUsers();
     const users: User[] = await getUsers.execute();
     const serverId = ServerConfigService.serverConfig.id;
@@ -47,12 +49,15 @@ export class ServersController extends Controller {
       }
     }
 
-    return {
-      id: serverId,
-      name: serverName,
-      status: apiKeyStatus,
-      users,
-    };
+    return ApiResponse.success(
+      {
+        id: serverId,
+        name: serverName,
+        status: apiKeyStatus,
+        users,
+      },
+      messages.success.fetch
+    );
   }
 
   /**
@@ -63,14 +68,9 @@ export class ServersController extends Controller {
   public async update(
     @Path() id: string,
     @Body() body: UpdateServerDTO
-  ): Promise<ServerResponse> {
+  ): Promise<ApiResponse<Server>> {
     const result = await useCases.updateServer().execute(id, body);
-
-    return {
-      status: "success",
-      message: messages.success.update,
-      data: result,
-    };
+    return ApiResponse.success(result, messages.success.update);
   }
 
   /**
@@ -80,7 +80,7 @@ export class ServersController extends Controller {
   @Security("adminAuth")
   public async getServerConfigKey(
     @Path() key: string
-  ): Promise<ServerConfigResponse> {
+  ): Promise<ApiResponse<ServerConfigResponse>> {
     const SERVER_CONFIG_FILE = fileSystemService.getExternalPath(
       "resources/config/serverConfig.json"
     );
@@ -106,7 +106,7 @@ export class ServersController extends Controller {
     );
 
     const value = configData[key] !== undefined ? configData[key] : null;
-    return { key, value };
+    return ApiResponse.success({ key, value }, messages.success.fetch);
   }
 
   /**
@@ -114,7 +114,7 @@ export class ServersController extends Controller {
    */
   @Get("config")
   @Security("adminAuth")
-  public async getServerConfig(): Promise<ServerConfigDTO> {
+  public async getServerConfig(): Promise<ApiResponse<ServerConfigDTO>> {
     const SERVER_CONFIG_FILE = fileSystemService.getExternalPath(
       "resources/config/serverConfig.json"
     );
@@ -138,7 +138,7 @@ export class ServersController extends Controller {
     const configData = JSON.parse(
       fileSystemService.readFileSync(SERVER_CONFIG_FILE, "utf8")
     );
-    return configData;
+    return ApiResponse.success(configData, messages.success.fetch);
   }
 
   /**
@@ -148,7 +148,7 @@ export class ServersController extends Controller {
   @Security("adminAuth")
   public async updateServerConfig(
     @Body() body: UpdateServerConfigDTO
-  ): Promise<ServerResponse> {
+  ): Promise<ApiResponse<ServerConfigDTO>> {
     const SERVER_CONFIG_FILE = fileSystemService.getExternalPath(
       "resources/config/serverConfig.json"
     );
@@ -180,10 +180,7 @@ export class ServersController extends Controller {
       SERVER_CONFIG_FILE,
       JSON.stringify(configData, null, 2)
     );
-    return {
-      status: "success",
-      message: "Configuration updated",
-      data: configData,
-    };
+
+    return ApiResponse.success(configData, messages.success.update);
   }
 }

@@ -1,8 +1,10 @@
 import { tmdbApiClient } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { messages } from "@/config/messages";
 import { MovieDb } from "moviedb-promise";
 import propertiesReader from "properties-reader";
 import { Body, Controller, Post, Route, Security, Tags } from "tsoa";
 import { fileSystemService } from "../../adapters/di/container";
+import { ApiResponse } from "../http/APIResponse";
 
 interface APIKeyDTO {
   apiKey: string;
@@ -22,7 +24,7 @@ export class APIKeyController extends Controller {
   @Security("adminAuth")
   public async configureApiKey(
     @Body() body: APIKeyDTO
-  ): Promise<APIKeyResponse> {
+  ): Promise<ApiResponse<APIKeyResponse>> {
     const { apiKey } = body;
 
     const properties =
@@ -33,14 +35,20 @@ export class APIKeyController extends Controller {
     properties.save(fileSystemService.propertiesFilePath);
 
     if (!apiKey) {
-      return { status: "INVALID_API_KEY" };
+      return ApiResponse.success(
+        { status: "INVALID_API_KEY" },
+        messages.success.fetch
+      );
     }
 
     const moviedb = new MovieDb(String(apiKey));
     tmdbApiClient.THEMOVIEDB_API_TOKEN = apiKey;
 
-    return {
-      status: moviedb ? "VALID_API_KEY" : "INVALID_API_KEY",
-    };
+    return ApiResponse.success(
+      {
+        status: moviedb ? "VALID_API_KEY" : "INVALID_API_KEY",
+      },
+      messages.success.fetch
+    );
   }
 }

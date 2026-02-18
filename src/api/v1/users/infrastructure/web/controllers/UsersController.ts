@@ -1,4 +1,6 @@
 import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { BadRequestException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
+import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
 import { messages } from "@/config/messages";
 import jwt from "jsonwebtoken";
 import {
@@ -17,9 +19,8 @@ import {
   LoginDTO,
   LoginResponseDTO,
   UpdateUserDTO,
-  UserResponse,
+  UserDTO,
 } from "../../../application/dtos/UserDTOs";
-import { User } from "../../../domain/User";
 
 @Route("users")
 @Tags("Users")
@@ -31,7 +32,7 @@ export class UsersController extends Controller {
   @Security("managementAuth")
   public async create(
     @Body() body: CreateUserDTO
-  ): Promise<{ token: string; user: User }> {
+  ): Promise<ApiResponse<{ token: string; user: UserDTO }>> {
     const user = await useCases.createUser().execute(body);
     // Generate token for auto-login after user creation
     const token = jwt.sign(
@@ -39,7 +40,7 @@ export class UsersController extends Controller {
       process.env.JWT_SECRET || "",
       { expiresIn: "30d" }
     );
-    return { token, user };
+    return ApiResponse.success({ token, user }, messages.success.create);
   }
 
   /**
@@ -50,14 +51,9 @@ export class UsersController extends Controller {
   public async update(
     @Path() id: string,
     @Body() body: UpdateUserDTO
-  ): Promise<UserResponse> {
+  ): Promise<ApiResponse<UserDTO>> {
     const result = await useCases.updateUser().execute(id, body);
-
-    return {
-      status: "success",
-      message: messages.success.update,
-      data: result,
-    };
+    return ApiResponse.success(result as UserDTO, messages.success.update);
   }
 
   /**
@@ -65,14 +61,9 @@ export class UsersController extends Controller {
    */
   @Delete("{id}")
   @Security("managementAuth")
-  public async delete(@Path() id: string): Promise<UserResponse> {
-    const result = await useCases.deleteUser().execute(id);
-
-    return {
-      status: "success",
-      message: messages.success.delete,
-      data: result,
-    };
+  public async delete(@Path() id: string): Promise<ApiResponse<null>> {
+    await useCases.deleteUser().execute(id);
+    return ApiResponse.success(null, messages.success.delete);
   }
 
   /**
@@ -80,14 +71,12 @@ export class UsersController extends Controller {
    */
   @Put("public")
   @Security("public")
-  public async findAll(): Promise<UserResponse> {
+  public async findAll(): Promise<ApiResponse<UserDTO[]>> {
     const result = await useCases.getAllUsers().execute();
-
-    return {
-      status: "success",
-      message: messages.success.fetch,
-      data: result,
-    };
+    return ApiResponse.success(
+      result.map((u) => u as UserDTO),
+      messages.success.fetch
+    );
   }
 
   /**
@@ -95,7 +84,9 @@ export class UsersController extends Controller {
    */
   @Post("login")
   @Security("public")
-  public async login(@Body() body: LoginDTO): Promise<LoginResponseDTO> {
+  public async login(
+    @Body() body: LoginDTO
+  ): Promise<ApiResponse<LoginResponseDTO>> {
     const { username, password } = body;
 
     const result = await useCases
@@ -104,7 +95,9 @@ export class UsersController extends Controller {
 
     if (!result) {
       this.setStatus(401);
-      return { user: null, error: "Invalid credentials" };
+      throw new BadRequestException(
+        messages.errors.server.userNotAuthenticated
+      );
     }
 
     const cookie = [
@@ -119,9 +112,6 @@ export class UsersController extends Controller {
 
     this.setHeader("Set-Cookie", cookie);
 
-    return {
-      token: result.token,
-      user: result.user,
-    };
+    return ApiResponse.success(result, messages.success.login);
   }
 }

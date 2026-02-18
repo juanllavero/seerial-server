@@ -11,9 +11,3 @@ export interface UpdatePlayListDTO {
 export interface AddSongToPlaylistDTO {
   songId: string;
 }
-
-export interface PlayListResponse {
-  status: string;
-  message: string;
-  data?: any;
-}

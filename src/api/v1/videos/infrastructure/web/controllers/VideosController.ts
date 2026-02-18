@@ -1,10 +1,10 @@
-import { MessageResponse } from "@/api/v1/shared/application/dtos/DTOs";
 import {
   useCases,
   videoExtractionService,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
+import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
 import { messages } from "@/config/messages";
-import ApiError from "@/data/ApiError";
 import {
   Body,
   Controller,
@@ -21,8 +21,8 @@ import {
 import {
   SetVideoWatchStateDTO,
   UpdateVideoDTO,
-  VideoResponse,
 } from "../../../application/dtos/VideoDTOs";
+import { Video } from "../../../domain/Video";
 
 @Route("videos")
 @Tags("Videos")
@@ -32,18 +32,14 @@ export class VideosController extends Controller {
    */
   @Get("{id}")
   @Security("cookieAuth")
-  public async get(@Path() id: string): Promise<VideoResponse> {
+  public async get(@Path() id: string): Promise<ApiResponse<Video>> {
     const result = await useCases.getVideoById().execute(id);
 
     if (!result) {
-      throw new ApiError(404, messages.errors.notFound.video);
+      throw new NotFoundException(messages.errors.notFound.video);
     }
 
-    return {
-      status: "success",
-      message: messages.success.fetch,
-      data: result,
-    };
+    return ApiResponse.success(result, messages.success.fetch);
   }
 
   /**
@@ -53,14 +49,14 @@ export class VideosController extends Controller {
   @Security("cookieAuth")
   public async getByEpisodeId(
     @Path() episodeId: string
-  ): Promise<VideoResponse> {
+  ): Promise<ApiResponse<Video>> {
     const result = await useCases.getVideoByEpisodeId().execute(episodeId);
 
-    return {
-      status: "success",
-      message: messages.success.fetch,
-      data: result,
-    };
+    if (!result) {
+      throw new NotFoundException(messages.errors.notFound.video);
+    }
+
+    return ApiResponse.success(result, messages.success.fetch);
   }
 
   /**
@@ -71,14 +67,9 @@ export class VideosController extends Controller {
   public async update(
     @Path() id: string,
     @Body() body: UpdateVideoDTO
-  ): Promise<VideoResponse> {
+  ): Promise<ApiResponse<Video>> {
     const result = await useCases.updateVideo().execute(id, body);
-
-    return {
-      status: "success",
-      message: messages.success.update,
-      data: result,
-    };
+    return ApiResponse.success(result, messages.success.update);
   }
 
   /**
@@ -86,9 +77,9 @@ export class VideosController extends Controller {
    */
   @Delete("{id}")
   @Security("adminAuth")
-  public async delete(@Path() id: string): Promise<MessageResponse> {
+  public async delete(@Path() id: string): Promise<ApiResponse<null>> {
     await useCases.deleteVideo().execute(id);
-    return { message: messages.success.delete };
+    return ApiResponse.success(null, messages.success.delete);
   }
 
   /**
@@ -96,14 +87,9 @@ export class VideosController extends Controller {
    */
   @Get("{id}/media-info")
   @Security("adminAuth")
-  public async updateMediaInfo(@Path() id: string): Promise<VideoResponse> {
+  public async updateMediaInfo(@Path() id: string): Promise<ApiResponse<null>> {
     const result = await useCases.updateMediaInfo().execute(id);
-
-    return {
-      status: "success",
-      message: messages.success.update,
-      data: result,
-    };
+    return ApiResponse.success(null, messages.success.update);
   }
 
   /**
@@ -111,14 +97,11 @@ export class VideosController extends Controller {
    */
   @Put("{id}/media-info")
   @Security("adminAuth")
-  public async updateMediaInfoPut(@Path() id: string): Promise<VideoResponse> {
+  public async updateMediaInfoPut(
+    @Path() id: string
+  ): Promise<ApiResponse<null>> {
     const result = await useCases.updateMediaInfo().execute(id);
-
-    return {
-      status: "success",
-      message: messages.success.update,
-      data: result,
-    };
+    return ApiResponse.success(null, messages.success.update);
   }
 
   /**
@@ -129,13 +112,13 @@ export class VideosController extends Controller {
   public async setWatchState(
     @Path() id: string,
     @Body() body: SetVideoWatchStateDTO
-  ): Promise<MessageResponse> {
+  ): Promise<ApiResponse<null>> {
     const { watched, userId } = body;
 
     const video = await useCases.getVideoById().execute(id);
 
     if (!video) {
-      throw new ApiError(404, messages.errors.notFound.video);
+      throw new NotFoundException(messages.errors.notFound.video);
     }
 
     if (watched) {
@@ -145,7 +128,7 @@ export class VideosController extends Controller {
     }
     await useCases.updateVideo().execute(video.id, video);
 
-    return { message: messages.success.update };
+    return ApiResponse.success(null, messages.success.update);
   }
 
   /**

@@ -1,74 +1,27 @@
-import { MessageResponse } from "@/api/v1/shared/application/dtos/DTOs";
 import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
+import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
 import { messages } from "@/config/messages";
-import ApiError from "@/data/ApiError";
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Path,
-  Post,
-  Put,
-  Route,
-  Security,
-  Tags,
-} from "tsoa";
-import {
-  ArtistResponse,
-  CreateArtistDTO,
-  UpdateArtistDTO,
-} from "../../../application/dtos/ArtistDTOs";
+import { Body, Controller, Get, Path, Put, Route, Security, Tags } from "tsoa";
+import { UpdateArtistDTO } from "../../../application/dtos/ArtistDTOs";
+import { Artist } from "../../../domain/Artist";
 
 @Route("artists")
 @Tags("Artists")
 export class ArtistsController extends Controller {
   /**
-   * Create a new artist
-   */
-  @Post()
-  @Security("adminAuth")
-  public async create(@Body() body: CreateArtistDTO): Promise<ArtistResponse> {
-    const { name } = body;
-
-    if (!name) {
-      throw new ApiError(400, messages.errors.validation.notEnoughParams);
-    }
-
-    const result = await useCases.addArtist().execute({ name });
-
-    if (!result) {
-      throw new ApiError(409, "Artist already exists");
-    }
-
-    return {
-      status: "success",
-      message: messages.success.create,
-      data: result,
-    };
-  }
-
-  /**
    * Get artist by ID
    */
   @Get("{id}")
   @Security("adminAuth")
-  public async getById(@Path() id: string): Promise<ArtistResponse> {
-    if (!id) {
-      throw new ApiError(400, messages.errors.validation.missingId);
-    }
-
+  public async getById(@Path() id: string): Promise<ApiResponse<Artist>> {
     const result = await useCases.getArtistById().execute(id);
 
     if (!result) {
-      throw new ApiError(404, "Artist not found");
+      throw new NotFoundException("Artist not found");
     }
 
-    return {
-      status: "success",
-      message: "Artist retrieved successfully",
-      data: result,
-    };
+    return ApiResponse.success(result, messages.success.fetch);
   }
 
   /**
@@ -79,32 +32,9 @@ export class ArtistsController extends Controller {
   public async update(
     @Path() id: string,
     @Body() body: UpdateArtistDTO
-  ): Promise<ArtistResponse> {
-    if (!id) {
-      throw new ApiError(400, messages.errors.validation.missingId);
-    }
-
+  ): Promise<ApiResponse<Artist>> {
     const result = await useCases.updateArtist().execute(id, body);
 
-    return {
-      status: "success",
-      message: messages.success.update,
-      data: result,
-    };
-  }
-
-  /**
-   * Delete an artist
-   */
-  @Delete("{id}")
-  @Security("adminAuth")
-  public async delete(@Path() id: string): Promise<MessageResponse> {
-    if (!id) {
-      throw new ApiError(400, messages.errors.validation.missingId);
-    }
-
-    await useCases.deleteArtist().execute(id);
-
-    return { message: messages.success.delete };
+    return ApiResponse.success(result, messages.success.update);
   }
 }

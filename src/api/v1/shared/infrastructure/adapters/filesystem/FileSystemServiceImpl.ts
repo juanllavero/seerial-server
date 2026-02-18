@@ -277,5 +277,12 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
   ): Promise<void> {
     return fs.promises.writeFile(filePath, content, encoding);
   }
+
+  public async writeImage(
+    filePath: string,
+    imageBuffer: Buffer
+  ): Promise<void> {
+    await fs.promises.writeFile(filePath, imageBuffer);
+  }
   //#endregion
 }

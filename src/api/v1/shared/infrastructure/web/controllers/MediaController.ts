@@ -1,5 +1,8 @@
+import { messages } from "@/config/messages";
 import { Get, Path, Query, Route, Security, Tags } from "tsoa";
 import { MediaDetailsService } from "../../services/MediaDetailsService";
+import { BadRequestException } from "../exceptions/HTTPExceptions";
+import { ApiResponse } from "../http/APIResponse";
 
 @Route("media")
 @Tags("Media")
@@ -12,8 +15,11 @@ export class MediaController {
   public async getDetails(
     @Path() type: string,
     @Query() id: string
-  ): Promise<any> {
-    return await MediaDetailsService.getDetails(type, id);
+  ): Promise<ApiResponse<any>> {
+    return ApiResponse.success(
+      await MediaDetailsService.getDetails(type, id),
+      messages.success.fetch
+    );
   }
 
   /**
@@ -25,9 +31,9 @@ export class MediaController {
     @Path() itemType: string,
     @Path() mediaType: string,
     @Query() id: string
-  ): Promise<any> {
+  ): Promise<ApiResponse<any>> {
     if (!["movie", "series", "season"].includes(itemType)) {
-      throw new Error(
+      throw new BadRequestException(
         "Invalid itemType. Must be 'movie', 'series', or 'season'."
       );
     }
@@ -36,10 +42,13 @@ export class MediaController {
       throw new Error("Invalid mediaType. Must be 'video' or 'music'.");
     }
 
-    return await MediaDetailsService.findMediaBackground(
-      mediaType as "video" | "music",
-      itemType as "movie" | "series" | "season",
-      id
+    return ApiResponse.success(
+      await MediaDetailsService.findMediaBackground(
+        mediaType as "video" | "music",
+        itemType as "movie" | "series" | "season",
+        id
+      ),
+      messages.success.fetch
     );
   }
 }

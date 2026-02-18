@@ -16,9 +16,3 @@ export interface UpdateMovieDTO {
 export interface SetMovieWatchStateDTO {
   watched: boolean;
 }
-
-export interface MovieResponse {
-  status: string;
-  message: string;
-  data?: any;
-}

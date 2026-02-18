@@ -1,7 +1,6 @@
 import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { messages } from "@/config/messages";
-
-import ApiError from "@/data/ApiError";
+import { NotFoundException } from "../web/exceptions/HTTPExceptions";
 
 // Interface for the structured video info response
 interface FormattedVideoInfo {
@@ -24,20 +23,22 @@ export class MediaService {
     videoId: string
   ): Promise<FormattedVideoInfo> {
     const video = await useCases.getVideoById().execute(videoId);
-    if (!video) throw new ApiError(404, messages.errors.notFound.video);
+    if (!video) throw new NotFoundException(messages.errors.notFound.video);
 
     if (video.episodeId) {
       const episode = await useCases.getEpisodeById().execute(video.episodeId);
-      if (!episode) throw new ApiError(404, messages.errors.notFound.episode);
+      if (!episode)
+        throw new NotFoundException(messages.errors.notFound.episode);
 
       const season = await useCases.getSeasonById().execute(episode.seasonId);
-      if (!season) throw new ApiError(404, messages.errors.notFound.season);
+      if (!season) throw new NotFoundException(messages.errors.notFound.season);
 
       const series = await useCases.getSeriesById().execute(season.seriesId);
-      if (!series) throw new ApiError(404, messages.errors.notFound.series);
+      if (!series) throw new NotFoundException(messages.errors.notFound.series);
 
       const library = await useCases.getLibrary().execute(series.libraryId);
-      if (!library) throw new ApiError(404, messages.errors.notFound.library);
+      if (!library)
+        throw new NotFoundException(messages.errors.notFound.library);
 
       return {
         title: series.name,
@@ -51,10 +52,11 @@ export class MediaService {
 
     if (video.movieId) {
       const movie = await useCases.getMoviebyId().execute(video.movieId);
-      if (!movie) throw new ApiError(404, messages.errors.notFound.movie);
+      if (!movie) throw new NotFoundException(messages.errors.notFound.movie);
 
       const library = await useCases.getLibrary().execute(movie.libraryId);
-      if (!library) throw new ApiError(404, messages.errors.notFound.library);
+      if (!library)
+        throw new NotFoundException(messages.errors.notFound.library);
 
       const year = new Date(movie.year).getFullYear();
 
@@ -68,10 +70,7 @@ export class MediaService {
       };
     }
 
-    throw new ApiError(
-      404,
-      "Video is not associated with any movie or episode."
-    );
+    throw new NotFoundException(messages.errors.notFound.video);
   }
 
   /**
@@ -86,7 +85,7 @@ export class MediaService {
     userId: string
   ): Promise<number> {
     const series = await useCases.getSeriesById().execute(seriesId, "all");
-    if (!series) throw new ApiError(404, messages.errors.notFound.series);
+    if (!series) throw new NotFoundException(messages.errors.notFound.series);
 
     let totalEpisodes = 0;
     let watchedEpisodes = 0;
@@ -115,7 +114,7 @@ export class MediaService {
     userId: string
   ): Promise<number> {
     const movie = await useCases.getMoviebyId().execute(movieId);
-    if (!movie) throw new ApiError(404, messages.errors.notFound.movie);
+    if (!movie) throw new NotFoundException(messages.errors.notFound.movie);
 
     const watchedCount = movie.videos.filter((video: any) =>
       video.watchLists.some((wl: any) => wl.userId === userId)

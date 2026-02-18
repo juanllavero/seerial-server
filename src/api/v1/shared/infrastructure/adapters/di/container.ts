@@ -53,8 +53,10 @@ import { DeleteMovieDataUseCase } from "@/api/v1/movies/application/usecases/Del
 import { DeleteMovieUseCase } from "@/api/v1/movies/application/usecases/DeleteMovieUseCase";
 import { FindMovieByIdUseCase } from "@/api/v1/movies/application/usecases/FindMovieByIdUseCase";
 import { FindMovieByPathUseCase } from "@/api/v1/movies/application/usecases/FindMovieByPathUseCase";
+import { RefreshMovieMetadataUseCase } from "@/api/v1/movies/application/usecases/RefreshMovieMetadataUseCase";
 import { ScanMovieUseCase } from "@/api/v1/movies/application/usecases/ScanMovieUseCase";
 import { SearchMovieMetadataUseCase } from "@/api/v1/movies/application/usecases/SearchMovieMetadataUseCase";
+import { UpdateMovieIdUseCase } from "@/api/v1/movies/application/usecases/UpdateMovieIdUseCase";
 import { UpdateMovieMetadataUseCase } from "@/api/v1/movies/application/usecases/UpdateMovieMetadataUseCase";
 import { UpdateMovieUseCase } from "@/api/v1/movies/application/usecases/UpdateMoviesUseCase";
 import { MoviesRepositoryImpl } from "@/api/v1/movies/infrastructure/persistence/repositories/MoviesRepositoryImpl";
@@ -245,7 +247,7 @@ export const useCases = {
   deleteSeriesData: () => new DeleteSeriesDataUseCase(),
 
   processEpisode: () => new ProcessEpisodeUseCase(mediaInfoService),
-  refreshMetadata: () => new RefreshMetadataUseCase(metadataProvider),
+  refreshSeriesMetadata: () => new RefreshMetadataUseCase(metadataProvider),
   scanSeries: () =>
     new ScanSeriesUseCase(
       fileSystemService,
@@ -257,7 +259,6 @@ export const useCases = {
       metadataProvider,
       notificationService
     ),
-
   updateSeriesMetadata: () => new UpdateSeriesMetadataUseCase(seriesRepo),
   updateShowId: () => new UpdateShowIdUseCase(),
   updateEpisodeGroup: () => new UpdateEpisodeGroupUseCase(),
@@ -286,6 +287,7 @@ export const useCases = {
       fileSystemService
     ),
   searchMovieMetadata: () => new SearchMovieMetadataUseCase(tmdbApiClient),
+  refreshMovieMetadata: () => new RefreshMovieMetadataUseCase(),
   scanMovie: () =>
     new ScanMovieUseCase(
       fileSystemService,
@@ -296,6 +298,7 @@ export const useCases = {
       metadataProvider,
       notificationService
     ),
+  updateMovieId: () => new UpdateMovieIdUseCase(),
 
   // Albums
   getAlbums: () => new FindAllAlbumsUseCase(albumsRepo),

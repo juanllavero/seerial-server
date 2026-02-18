@@ -1,9 +1,10 @@
-import ApiError from "@/data/ApiError";
+import { messages } from "@/config/messages";
 import fs from "fs";
 import os from "os";
 import path from "path";
 import { Get, Query, Route, Security, Tags } from "tsoa";
 import { SanitizationService } from "../../services/SanitizationService";
+import { ApiResponse } from "../http/APIResponse";
 
 interface FileItem {
   name: string;
@@ -18,7 +19,7 @@ export class FilesController {
    */
   @Get("drives")
   @Security("adminAuth")
-  public async getDrives(): Promise<string[]> {
+  public async getDrives(): Promise<ApiResponse<string[]>> {
     const drives = [];
     const platform = os.platform();
 
@@ -46,7 +47,7 @@ export class FilesController {
       }
     }
 
-    return drives;
+    return ApiResponse.success(drives, messages.success.fetch);
   }
 
   /**
@@ -54,18 +55,19 @@ export class FilesController {
    */
   @Get("folder")
   @Security("adminAuth")
-  public async getFolderContents(@Query() path: string): Promise<FileItem[]> {
-    try {
-      const sanitizedPath = SanitizationService.sanitizeDirectoryPath(
-        path,
-        SanitizationService.getSystemAllowedPaths(),
-        true // Must exist
-      );
+  public async getFolderContents(
+    @Query() path: string
+  ): Promise<ApiResponse<FileItem[]>> {
+    const sanitizedPath = SanitizationService.sanitizeDirectoryPath(
+      path,
+      SanitizationService.getSystemAllowedPaths(),
+      true // Must exist
+    );
 
-      return getFolderContent(sanitizedPath);
-    } catch (error: any) {
-      throw new ApiError(400, `Invalid folder path: ${error.message}`);
-    }
+    return ApiResponse.success(
+      getFolderContent(sanitizedPath),
+      messages.success.fetch
+    );
   }
 }
 

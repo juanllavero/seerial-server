@@ -1,7 +1,7 @@
-import { MessageResponse } from "@/api/v1/shared/application/dtos/DTOs";
 import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
+import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
 import { messages } from "@/config/messages";
-import ApiError from "@/data/ApiError";
 import {
   Body,
   Controller,
@@ -17,9 +17,9 @@ import {
 import {
   AddSongToPlaylistDTO,
   CreatePlayListDTO,
-  PlayListResponse,
   UpdatePlayListDTO,
 } from "../../../application/dtos/PlayListDTOs";
+import { PlayList } from "../../../domain/PlayList";
 
 @Route("playlists")
 @Tags("Playlists")
@@ -29,14 +29,9 @@ export class PlayListController extends Controller {
    */
   @Get()
   @Security("adminAuth")
-  public async getAll(): Promise<PlayListResponse> {
+  public async getAll(): Promise<ApiResponse<PlayList[]>> {
     const result = await useCases.getPlayLists().execute();
-
-    return {
-      status: "success",
-      message: messages.success.fetch,
-      data: result,
-    };
+    return ApiResponse.success(result, messages.success.fetch);
   }
 
   /**
@@ -44,18 +39,14 @@ export class PlayListController extends Controller {
    */
   @Get("{id}")
   @Security("adminAuth")
-  public async getById(@Path() id: string): Promise<PlayListResponse> {
+  public async getById(@Path() id: string): Promise<ApiResponse<PlayList>> {
     const result = await useCases.getPlayListById().execute(id);
 
     if (!result) {
-      throw new ApiError(404, "Playlist not found.");
+      throw new NotFoundException(messages.errors.notFound.playlist);
     }
 
-    return {
-      status: "success",
-      message: messages.success.fetch,
-      data: result,
-    };
+    return ApiResponse.success(result, messages.success.fetch);
   }
 
   /**
@@ -65,18 +56,9 @@ export class PlayListController extends Controller {
   @Security("adminAuth")
   public async create(
     @Body() body: CreatePlayListDTO
-  ): Promise<PlayListResponse> {
+  ): Promise<ApiResponse<PlayList>> {
     const result = await useCases.createPlayList().execute(body);
-
-    if (!result) {
-      throw new ApiError(500, messages.errors.server.internal);
-    }
-
-    return {
-      status: "success",
-      message: messages.success.create,
-      data: result,
-    };
+    return ApiResponse.success(result, messages.success.create);
   }
 
   /**
@@ -87,14 +69,9 @@ export class PlayListController extends Controller {
   public async update(
     @Path() id: string,
     @Body() body: UpdatePlayListDTO
-  ): Promise<PlayListResponse> {
+  ): Promise<ApiResponse<PlayList>> {
     const result = await useCases.updatePlayList().execute(id, body);
-
-    return {
-      status: "success",
-      message: messages.success.update,
-      data: result,
-    };
+    return ApiResponse.success(result, messages.success.update);
   }
 
   /**
@@ -102,9 +79,9 @@ export class PlayListController extends Controller {
    */
   @Delete("{id}")
   @Security("adminAuth")
-  public async delete(@Path() id: string): Promise<MessageResponse> {
+  public async delete(@Path() id: string): Promise<ApiResponse<null>> {
     await useCases.deletePlayList().execute(id);
-    return { message: messages.success.delete };
+    return ApiResponse.success(null, messages.success.delete);
   }
 
   /**
@@ -115,12 +92,11 @@ export class PlayListController extends Controller {
   public async addSong(
     @Path() id: string,
     @Body() body: AddSongToPlaylistDTO
-  ): Promise<MessageResponse> {
+  ): Promise<ApiResponse<null>> {
     const { songId } = body;
 
     await useCases.addSongToPlayList().execute(id, songId);
-
-    return { message: messages.success.create };
+    return ApiResponse.success(null, messages.success.create);
   }
 
   /**
@@ -131,8 +107,8 @@ export class PlayListController extends Controller {
   public async removeSong(
     @Path() id: string,
     @Path() songId: string
-  ): Promise<MessageResponse> {
+  ): Promise<ApiResponse<null>> {
     await useCases.removeSongFromPlayList().execute(id, songId);
-    return { message: messages.success.delete };
+    return ApiResponse.success(null, messages.success.delete);
   }
 }

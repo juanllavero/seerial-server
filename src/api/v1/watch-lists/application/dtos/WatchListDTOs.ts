@@ -4,9 +4,3 @@ export interface UpdateWatchStateDTO {
   watched: boolean;
   userId: string;
 }
-
-export interface WatchListResponse {
-  status: string;
-  message: string;
-  data?: any;
-}

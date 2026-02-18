@@ -1,4 +1,6 @@
 import { videoProcessingService } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
+import { messages } from "@/config/messages";
 import { verifyVideoStreamToken } from "@/middleware/video.middleware";
 import { Request as ExpressRequest } from "express";
 import jwt from "jsonwebtoken";
@@ -28,7 +30,7 @@ export class VideoStreamingController extends Controller {
   public async getStreamUrl(
     @Body() body: StreamUrlDTO,
     @Request() req: ExpressRequest
-  ): Promise<string> {
+  ): Promise<ApiResponse<string>> {
     const userId = (req as any).user?.id;
 
     const { filePath, start, audio, quality, bitrate, expiresIn } = body;
@@ -49,7 +51,7 @@ export class VideoStreamingController extends Controller {
     const params = new URLSearchParams({ token });
     const url = `/stream-video?${params.toString()}`;
 
-    return url;
+    return ApiResponse.success(url, messages.success.fetch);
   }
 
   /**
@@ -60,7 +62,7 @@ export class VideoStreamingController extends Controller {
   public async getVideoUrl(
     @Body() body: VideoUrlDTO,
     @Request() req: ExpressRequest
-  ): Promise<string> {
+  ): Promise<ApiResponse<string>> {
     const userId = (req as any).user?.id;
     const { filePath, expiresIn } = body;
 
@@ -76,7 +78,7 @@ export class VideoStreamingController extends Controller {
     const params = new URLSearchParams({ token });
     const url = `/video-file?${params.toString()}`;
 
-    return url;
+    return ApiResponse.success(url, messages.success.fetch);
   }
 
   /**

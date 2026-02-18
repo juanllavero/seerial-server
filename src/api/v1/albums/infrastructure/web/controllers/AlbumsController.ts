@@ -1,5 +1,5 @@
-import { MessageResponse } from "@/api/v1/shared/application/dtos/DTOs";
 import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
 import { messages } from "@/config/messages";
 import {
   Body,
@@ -12,10 +12,8 @@ import {
   Security,
   Tags,
 } from "tsoa";
-import {
-  AlbumResponse,
-  UpdateAlbumDTO,
-} from "../../../application/dtos/AlbumDTOs";
+import { UpdateAlbumDTO } from "../../../application/dtos/AlbumDTOs";
+import { Album } from "../../../domain/Album";
 
 @Route("albums")
 @Tags("Albums")
@@ -25,14 +23,10 @@ export class AlbumsController extends Controller {
    */
   @Get("{id}")
   @Security("cookieAuth")
-  public async get(@Path() id: string): Promise<AlbumResponse> {
+  public async get(@Path() id: string): Promise<ApiResponse<Album | null>> {
     const result = await useCases.getAlbumById().execute(id);
 
-    return {
-      status: "success",
-      message: messages.success.fetch,
-      data: result,
-    };
+    return ApiResponse.success(result, messages.success.fetch);
   }
 
   /**
@@ -43,14 +37,10 @@ export class AlbumsController extends Controller {
   public async update(
     @Path() id: string,
     @Body() body: UpdateAlbumDTO
-  ): Promise<AlbumResponse> {
+  ): Promise<ApiResponse<Album>> {
     const result = await useCases.updateAlbum().execute(id, body);
 
-    return {
-      status: "success",
-      message: messages.success.update,
-      data: result,
-    };
+    return ApiResponse.success(result, messages.success.update);
   }
 
   /**
@@ -58,9 +48,9 @@ export class AlbumsController extends Controller {
    */
   @Delete("{id}")
   @Security("adminAuth")
-  public async delete(@Path() id: string): Promise<MessageResponse> {
+  public async delete(@Path() id: string): Promise<ApiResponse<null>> {
     await useCases.deleteAlbum().execute(id);
 
-    return { message: messages.success.delete };
+    return ApiResponse.success(null, messages.success.delete);
   }
 }

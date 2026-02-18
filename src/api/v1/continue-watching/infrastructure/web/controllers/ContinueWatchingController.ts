@@ -1,8 +1,9 @@
-import { continueWatchingRepo } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
 import { getUserId } from "@/utils/auth";
 import { Request as ExpressRequest } from "express";
 import { Controller, Get, Request, Route, Security, Tags } from "tsoa";
-import { GetVideosUseCase } from "../../../application/usecases/GetVideosUseCase";
+import { ContinueWatchingVideo } from "../../../application/dtos/ContinueWatchingDTOs";
 
 @Route("continue-watching")
 @Tags("Continue Watching")
@@ -12,9 +13,12 @@ export class ContinueWatchingController extends Controller {
    */
   @Get()
   @Security("cookieAuth")
-  public async getVideos(@Request() req: ExpressRequest): Promise<any[]> {
+  public async getVideos(
+    @Request() req: ExpressRequest
+  ): Promise<ApiResponse<ContinueWatchingVideo[]>> {
     const userId = getUserId(req);
-    const useCase = new GetVideosUseCase(continueWatchingRepo);
-    return await useCase.execute(userId);
+    return ApiResponse.success(
+      await useCases.getContinueWatchingVideos().execute(userId)
+    );
   }
 }

@@ -1,7 +1,8 @@
-import { MessageResponse } from "@/api/v1/shared/application/dtos/DTOs";
 import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
+import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
 import { messages } from "@/config/messages";
-import ApiError from "@/data/ApiError";
+import { LibraryItem } from "@/data/interfaces/Media";
 import { getUserId } from "@/utils/auth";
 import { Request as ExpressRequest } from "express";
 import {
@@ -19,12 +20,11 @@ import {
 } from "tsoa";
 import {
   CreateLibraryDTO,
-  LibrariesResponse,
-  LibraryResponse,
   ReorderItemsDTO,
   ReorderLibrariesDTO,
   UpdateLibraryDTO,
 } from "../../../application/dtos/LibraryDTOs";
+import { Library } from "../../../domain/Library";
 
 @Route("libraries")
 @Tags("Libraries")
@@ -34,13 +34,9 @@ export class LibrariesController extends Controller {
    */
   @Get()
   @Security("adminAuth")
-  public async getAll(): Promise<LibrariesResponse> {
+  public async getAll(): Promise<ApiResponse<Library[]>> {
     const libraries = await useCases.getLibraries().execute();
-    return {
-      status: "success",
-      message: messages.success.fetch,
-      data: libraries,
-    };
+    return ApiResponse.success(libraries, messages.success.fetch);
   }
 
   /**
@@ -48,17 +44,13 @@ export class LibrariesController extends Controller {
    */
   @Get("{id}")
   @Security("adminAuth")
-  public async getById(@Path() id: string): Promise<LibraryResponse> {
+  public async getById(@Path() id: string): Promise<ApiResponse<Library>> {
     const library = await useCases.getLibrary().execute(id);
     if (!library) {
-      throw new ApiError(404, messages.errors.notFound.library);
+      throw new NotFoundException(messages.errors.notFound.library);
     }
 
-    return {
-      status: "success",
-      message: messages.success.fetch,
-      data: library,
-    };
+    return ApiResponse.success(library, messages.success.fetch);
   }
 
   /**
@@ -69,20 +61,16 @@ export class LibrariesController extends Controller {
   public async getContent(
     @Path() id: string,
     @Request() req: ExpressRequest
-  ): Promise<LibraryResponse> {
+  ): Promise<ApiResponse<LibraryItem[]>> {
     const userId = getUserId(req);
     const content = await useCases.getLibraryContent().execute(id, userId);
     if (!content) {
-      throw new ApiError(404, messages.errors.notFound.library);
+      throw new NotFoundException(messages.errors.notFound.library);
     }
 
     // TODO: get collection images before sending back the data
 
-    return {
-      status: "success",
-      message: messages.success.fetch,
-      data: content,
-    };
+    return ApiResponse.success(content, messages.success.fetch);
   }
 
   /**
@@ -90,20 +78,16 @@ export class LibrariesController extends Controller {
    */
   @Get("{id}/scan")
   @Security("adminAuth")
-  public async startScan(@Path() id: string): Promise<LibraryResponse> {
+  public async startScan(@Path() id: string): Promise<ApiResponse<Library>> {
     const library = await useCases.getLibrary().execute(id);
 
     if (!library) {
-      throw new ApiError(404, messages.errors.notFound.library);
+      throw new NotFoundException(messages.errors.notFound.library);
     }
 
     await useCases.scanLibrary().execute(library, false);
 
-    return {
-      status: "success",
-      message: messages.success.scan,
-      data: library,
-    };
+    return ApiResponse.success(library, messages.success.scan);
   }
 
   /**
@@ -113,7 +97,7 @@ export class LibrariesController extends Controller {
   @Security("adminAuth")
   public async create(
     @Body() body: CreateLibraryDTO
-  ): Promise<LibraryResponse> {
+  ): Promise<ApiResponse<Library>> {
     // The scanLibrary useCase expects a full Library object, so we need to create a temporary one
     const tempLibrary = {
       ...body,
@@ -133,14 +117,10 @@ export class LibrariesController extends Controller {
     const library = await useCases.scanLibrary().execute(tempLibrary, true);
 
     if (!library) {
-      throw new ApiError(404, messages.errors.create);
+      throw new NotFoundException(messages.errors.notFound.library);
     }
 
-    return {
-      status: "success",
-      message: messages.success.create,
-      data: library,
-    };
+    return ApiResponse.success(library, messages.success.create);
   }
 
   /**
@@ -151,14 +131,10 @@ export class LibrariesController extends Controller {
   public async update(
     @Path() id: string,
     @Body() body: UpdateLibraryDTO
-  ): Promise<LibraryResponse> {
+  ): Promise<ApiResponse<Library>> {
     const result = await useCases.updateLibrary().execute(id, body);
 
-    return {
-      status: "success",
-      message: messages.success.update,
-      data: result,
-    };
+    return ApiResponse.success(result, messages.success.update);
   }
 
   /**
@@ -166,10 +142,10 @@ export class LibrariesController extends Controller {
    */
   @Delete("{id}")
   @Security("adminAuth")
-  public async delete(@Path() id: string): Promise<MessageResponse> {
+  public async delete(@Path() id: string): Promise<ApiResponse<null>> {
     await useCases.deleteLibrary().execute(id);
 
-    return { message: messages.success.delete };
+    return ApiResponse.success(null, messages.success.delete);
   }
 
   /**
@@ -179,19 +155,11 @@ export class LibrariesController extends Controller {
   @Security("adminAuth")
   public async reorder(
     @Body() body: ReorderLibrariesDTO
-  ): Promise<LibraryResponse> {
+  ): Promise<ApiResponse<boolean>> {
     const { orderedLibraryIds } = body;
     const result = await useCases.reorderLibraries().execute(orderedLibraryIds);
 
-    if (!result) {
-      throw new ApiError(500, messages.errors.order);
-    }
-
-    return {
-      status: "success",
-      message: messages.success.order,
-      data: result,
-    };
+    return ApiResponse.success(result, messages.success.order);
   }
 
   /**
@@ -202,21 +170,13 @@ export class LibrariesController extends Controller {
   public async reorderItems(
     @Path() id: string,
     @Body() body: ReorderItemsDTO
-  ): Promise<LibraryResponse> {
+  ): Promise<ApiResponse<boolean>> {
     const { orderedItems } = body;
 
     const result = await useCases
       .reorderLibraryItems()
       .execute(id, orderedItems);
 
-    if (!result) {
-      throw new ApiError(500, messages.errors.order);
-    }
-
-    return {
-      status: "success",
-      message: messages.success.order,
-      data: result,
-    };
+    return ApiResponse.success(result, messages.success.order);
   }
 }

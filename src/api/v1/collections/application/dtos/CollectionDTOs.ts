@@ -20,9 +20,3 @@ export interface UpdateCollectionDTO {
   coversUrls?: string[];
   musicPosterSrc?: string;
 }
-
-export interface CollectionResponse {
-  status: string;
-  message: string;
-  data?: any;
-}

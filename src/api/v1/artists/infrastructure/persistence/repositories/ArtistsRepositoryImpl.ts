@@ -32,7 +32,7 @@ export class ArtistsRepositoryImpl
     return this.helper.findByField("name", name);
   }
 
-  async add(artistData: Partial<Artist>): Promise<Artist | null> {
+  async add(artistData: Partial<Artist>): Promise<Artist> {
     this.validateData(artistData, "Artist data");
 
     // Check if artist already exists by name

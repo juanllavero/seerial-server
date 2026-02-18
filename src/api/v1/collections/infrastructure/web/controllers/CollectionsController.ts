@@ -1,7 +1,6 @@
-import { MessageResponse } from "@/api/v1/shared/application/dtos/DTOs";
-import { collectionsRepo } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
 import { messages } from "@/config/messages";
-import ApiError from "@/data/ApiError";
 import {
   Body,
   Controller,
@@ -15,15 +14,11 @@ import {
   Tags,
 } from "tsoa";
 import {
-  CollectionResponse,
   MusicExtrasDTO,
   ReorderContentDTO,
   UpdateCollectionDTO,
 } from "../../../application/dtos/CollectionDTOs";
-import { DeleteCollectionUseCase } from "../../../application/usecases/DeleteCollectionUseCase";
-import { GetMusicExtrasUseCase } from "../../../application/usecases/GetMusicExtrasUseCase";
-import { ReorderCollectionItemsUseCase } from "../../../application/usecases/ReorderCollectionItemsUseCase";
-import { UpdateCollectionUseCase } from "../../../application/usecases/UpdateCollectionUseCase";
+import { Collection } from "../../../domain/Collection";
 
 @Route("collections")
 @Tags("Collections")
@@ -35,9 +30,10 @@ export class CollectionsController extends Controller {
   @Security("adminAuth")
   public async getMusicExtras(
     @Path() collectionId: string
-  ): Promise<MusicExtrasDTO> {
-    const useCase = new GetMusicExtrasUseCase();
-    return await useCase.execute(collectionId);
+  ): Promise<ApiResponse<MusicExtrasDTO>> {
+    const musicExtras = await useCases.getMusicExtras().execute(collectionId);
+
+    return ApiResponse.success(musicExtras, messages.success.fetch);
   }
 
   /**
@@ -48,13 +44,12 @@ export class CollectionsController extends Controller {
   public async reorderContent(
     @Path() id: string,
     @Body() body: ReorderContentDTO
-  ): Promise<MessageResponse> {
+  ): Promise<ApiResponse<null>> {
     const { orderedItems } = body;
 
-    const useCase = new ReorderCollectionItemsUseCase(collectionsRepo);
-    await useCase.execute(id, orderedItems);
+    await useCases.reorderCollectionItems().execute(id, orderedItems);
 
-    return { message: messages.success.order };
+    return ApiResponse.success(null, messages.success.order);
   }
 
   /**
@@ -62,13 +57,11 @@ export class CollectionsController extends Controller {
    */
   @Get("{id}")
   @Security("cookieAuth")
-  public async get(@Path() id: string): Promise<CollectionResponse> {
-    const collection = await collectionsRepo.getById(id);
-    return {
-      status: "success",
-      message: messages.success.fetch,
-      data: collection,
-    };
+  public async get(
+    @Path() id: string
+  ): Promise<ApiResponse<Collection | null>> {
+    const collection = await useCases.getCollectionById().execute(id);
+    return ApiResponse.success(collection, messages.success.fetch);
   }
 
   /**
@@ -79,15 +72,10 @@ export class CollectionsController extends Controller {
   public async update(
     @Path() id: string,
     @Body() body: UpdateCollectionDTO
-  ): Promise<CollectionResponse> {
-    const useCase = new UpdateCollectionUseCase(collectionsRepo);
-    const result = await useCase.execute(id, body);
+  ): Promise<ApiResponse<Collection>> {
+    const result = await useCases.updateCollection().execute(id, body);
 
-    return {
-      status: "success",
-      message: messages.success.update,
-      data: result,
-    };
+    return ApiResponse.success(result, messages.success.update);
   }
 
   /**
@@ -95,14 +83,9 @@ export class CollectionsController extends Controller {
    */
   @Delete("{id}")
   @Security("adminAuth")
-  public async delete(@Path() id: string): Promise<MessageResponse> {
-    const useCase = new DeleteCollectionUseCase(collectionsRepo);
-    const deleted = await useCase.execute(id);
+  public async delete(@Path() id: string): Promise<ApiResponse<null>> {
+    await useCases.deleteCollection().execute(id);
 
-    if (!deleted) {
-      throw new ApiError(404, messages.errors.delete);
-    }
-
-    return { message: messages.success.delete };
+    return ApiResponse.success(null, messages.success.delete);
   }
 }

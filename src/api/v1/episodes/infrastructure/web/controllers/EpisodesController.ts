@@ -1,12 +1,9 @@
-import { MessageResponse } from "@/api/v1/shared/application/dtos/DTOs";
+import { HTTPCodes } from "@/api/v1/shared/domain/types/HTTPCodes";
 import {
-  continueWatchingRepo,
   episodesRepo,
-  seasonsRepo,
-  seriesRepo,
-  videosRepo,
-  watchListRepo,
+  useCases,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
 import { messages } from "@/config/messages";
 import { Request as ExpressRequest } from "express";
 import {
@@ -18,18 +15,16 @@ import {
   Post,
   Put,
   Request,
+  Response,
   Route,
   Security,
   Tags,
 } from "tsoa";
 import {
-  EpisodeResponse,
   SetEpisodeWatchStateDTO,
   UpdateEpisodeDTO,
 } from "../../../application/dtos/EpisodeDTOs";
-import { DeleteEpisodeUseCase } from "../../../application/usecases/DeleteEpisodeUseCase";
-import { SetEpisodeWatchStateUseCase } from "../../../application/usecases/SetEpisodeWatchStateUseCase";
-import { UpdateEpisodeUseCase } from "../../../application/usecases/UpdateEpisodeUseCase";
+import { Episode } from "../../../domain/Episode";
 
 @Route("episodes")
 @Tags("Episodes")
@@ -39,13 +34,9 @@ export class EpisodesController extends Controller {
    */
   @Get("{id}")
   @Security("cookieAuth")
-  public async get(@Path() id: string): Promise<EpisodeResponse> {
+  public async get(@Path() id: string): Promise<ApiResponse<Episode | null>> {
     const episode = await episodesRepo.findById(id);
-    return {
-      status: "success",
-      message: messages.success.fetch,
-      data: episode,
-    };
+    return ApiResponse.success(episode, messages.success.fetch);
   }
 
   /**
@@ -56,15 +47,10 @@ export class EpisodesController extends Controller {
   public async update(
     @Path() id: string,
     @Body() body: UpdateEpisodeDTO
-  ): Promise<EpisodeResponse> {
-    const useCase = new UpdateEpisodeUseCase(episodesRepo);
-    const result = await useCase.execute(id, body);
+  ): Promise<ApiResponse<Episode>> {
+    const result = await useCases.updateEpisode().execute(id, body);
 
-    return {
-      status: "success",
-      message: messages.success.update,
-      data: result,
-    };
+    return ApiResponse.success(result, messages.success.update);
   }
 
   /**
@@ -72,11 +58,14 @@ export class EpisodesController extends Controller {
    */
   @Delete("{id}")
   @Security("adminAuth")
-  public async delete(@Path() id: string): Promise<MessageResponse> {
-    const useCase = new DeleteEpisodeUseCase(episodesRepo);
-    await useCase.execute(id);
+  @Response<ApiResponse<null>>(
+    HTTPCodes.VALIDATION_ERROR,
+    messages.errors.validation.invalidData
+  )
+  public async delete(@Path() id: string): Promise<ApiResponse<null>> {
+    await useCases.deleteEpisode().execute(id);
 
-    return { message: messages.success.delete };
+    return ApiResponse.success(null, messages.success.delete);
   }
 
   /**
@@ -88,24 +77,12 @@ export class EpisodesController extends Controller {
     @Path() id: string,
     @Body() body: SetEpisodeWatchStateDTO,
     @Request() req: ExpressRequest
-  ): Promise<EpisodeResponse> {
+  ): Promise<ApiResponse<null>> {
     const { state } = body;
     const userId = (req as any).user?.id;
 
-    const useCase = new SetEpisodeWatchStateUseCase(
-      episodesRepo,
-      seasonsRepo,
-      seriesRepo,
-      videosRepo,
-      watchListRepo,
-      continueWatchingRepo
-    );
+    await useCases.setEpisodeWatchState().execute(id, userId, state);
 
-    await useCase.execute(id, userId, state);
-
-    return {
-      status: "success",
-      message: `Episode watch state updated to ${state}`,
-    };
+    return ApiResponse.success(null, messages.success.update);
   }
 }

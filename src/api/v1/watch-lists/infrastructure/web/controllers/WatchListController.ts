@@ -1,10 +1,8 @@
 import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
 import { messages } from "@/config/messages";
 import { Body, Controller, Put, Route, Security, Tags } from "tsoa";
-import {
-  UpdateWatchStateDTO,
-  WatchListResponse,
-} from "../../../application/dtos/WatchListDTOs";
+import { UpdateWatchStateDTO } from "../../../application/dtos/WatchListDTOs";
 
 @Route("watch-lists")
 @Tags("Watch Lists")
@@ -16,20 +14,16 @@ export class WatchListController extends Controller {
   @Security("cookieAuth")
   public async updateWatchState(
     @Body() body: UpdateWatchStateDTO
-  ): Promise<WatchListResponse> {
+  ): Promise<ApiResponse<null>> {
     const { videoId, timeWatched, watched, userId } = body;
 
-    const result = await useCases.updateWatchStateUseCase().execute({
+    await useCases.updateWatchStateUseCase().execute({
       videoId,
       timeWatched,
       watched,
       userId,
     });
 
-    return {
-      status: "success",
-      message: messages.success.update,
-      data: result,
-    };
+    return ApiResponse.success(null, messages.success.update);
   }
 }

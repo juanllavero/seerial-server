@@ -6,9 +6,3 @@ export interface UpdateAlbumDTO {
   description?: string;
   coverSrc?: string;
 }
-
-export interface AlbumResponse {
-  status: string;
-  message: string;
-  data?: any;
-}

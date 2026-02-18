@@ -50,4 +50,7 @@ export interface FileSystemServicePort {
     content: string,
     encoding?: string
   ): Promise<void>;
+
+  // Image writing
+  writeImage(filePath: string, imageBuffer: Buffer): Promise<void>;
 }

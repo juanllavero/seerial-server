@@ -1,13 +1,14 @@
-import { MessageResponse } from "@/api/v1/shared/application/dtos/DTOs";
 import {
   externalSearchService,
   useCases,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { MediaService } from "@/api/v1/shared/infrastructure/services/MediaService";
+import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
+import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
 import { messages } from "@/config/messages";
-import ApiError from "@/data/ApiError";
 import { IncludeType } from "@/types/common";
 import { Request as ExpressRequest } from "express";
+import { TvEpisodeGroupsResponse, TvResult } from "moviedb-promise";
 import {
   Body,
   Controller,
@@ -24,12 +25,12 @@ import {
 } from "tsoa";
 import {
   RefreshMetadataDTO,
-  SeriesResponse,
   SetSeriesWatchStateDTO,
   UpdateEpisodeGroupDTO,
   UpdateSeriesDTO,
   UpdateShowIdDTO,
 } from "../../../application/dtos/SeriesDTOs";
+import { Series } from "../../../domain/Series";
 
 @Route("series")
 @Tags("Series")
@@ -41,15 +42,11 @@ export class SeriesController extends Controller {
   @Security("adminAuth")
   public async refreshMetadata(
     @Body() body: RefreshMetadataDTO
-  ): Promise<SeriesResponse> {
+  ): Promise<ApiResponse<null>> {
     const { id } = body;
 
-    await useCases.refreshMetadata().execute(id);
-
-    return {
-      status: "success",
-      message: messages.success.update,
-    };
+    await useCases.refreshSeriesMetadata().execute(id);
+    return ApiResponse.success(null, messages.success.update);
   }
 
   /**
@@ -59,15 +56,11 @@ export class SeriesController extends Controller {
   @Security("adminAuth")
   public async updateShowId(
     @Body() body: UpdateShowIdDTO
-  ): Promise<SeriesResponse> {
+  ): Promise<ApiResponse<null>> {
     const { id, themdbId } = body;
 
     await useCases.updateShowId().execute(id, themdbId);
-
-    return {
-      status: "success",
-      message: messages.success.update,
-    };
+    return ApiResponse.success(null, messages.success.update);
   }
 
   /**
@@ -78,15 +71,11 @@ export class SeriesController extends Controller {
   public async updateEpisodeGroup(
     @Path() id: string,
     @Body() body: UpdateEpisodeGroupDTO
-  ): Promise<SeriesResponse> {
+  ): Promise<ApiResponse<null>> {
     const { themdbId, episodeGroupId } = body;
 
     await useCases.updateEpisodeGroup().execute(id, themdbId, episodeGroupId);
-
-    return {
-      status: "success",
-      message: messages.success.update,
-    };
+    return ApiResponse.success(null, messages.success.update);
   }
 
   /**
@@ -97,14 +86,9 @@ export class SeriesController extends Controller {
   public async update(
     @Path() id: string,
     @Body() body: UpdateSeriesDTO
-  ): Promise<SeriesResponse> {
+  ): Promise<ApiResponse<Series>> {
     const result = await useCases.updateSeries().execute(id, body);
-
-    return {
-      status: "success",
-      message: messages.success.update,
-      data: result,
-    };
+    return ApiResponse.success(result, messages.success.update);
   }
 
   /**
@@ -112,9 +96,9 @@ export class SeriesController extends Controller {
    */
   @Delete("{id}")
   @Security("adminAuth")
-  public async delete(@Path() id: string): Promise<MessageResponse> {
+  public async delete(@Path() id: string): Promise<ApiResponse<null>> {
     await useCases.deleteSeries().execute(id);
-    return { message: messages.success.delete };
+    return ApiResponse.success(null, messages.success.delete);
   }
 
   /**
@@ -125,13 +109,13 @@ export class SeriesController extends Controller {
   public async setWatchState(
     @Path() id: string,
     @Body() body: SetSeriesWatchStateDTO
-  ): Promise<MessageResponse> {
+  ): Promise<ApiResponse<null>> {
     const { watched, userId } = body;
 
     const series = await useCases.getSeriesById().execute(id);
 
     if (!series) {
-      throw new ApiError(404, messages.errors.notFound.series);
+      throw new NotFoundException(messages.errors.notFound.series);
     }
 
     for (const season of series.seasons) {
@@ -188,7 +172,7 @@ export class SeriesController extends Controller {
     }
     await useCases.updateSeries().execute(series.id, series);
 
-    return { message: messages.success.update };
+    return ApiResponse.success(null, messages.success.update);
   }
 
   /**
@@ -199,18 +183,14 @@ export class SeriesController extends Controller {
   public async get(
     @Path() id: string,
     @Query() include?: IncludeType
-  ): Promise<SeriesResponse> {
+  ): Promise<ApiResponse<Series>> {
     const series = await useCases.getSeriesById().execute(id, include);
 
     if (!series) {
-      throw new ApiError(404, messages.errors.notFound.series);
+      throw new NotFoundException(messages.errors.notFound.series);
     }
 
-    return {
-      status: "success",
-      message: messages.success.fetch,
-      data: series,
-    };
+    return ApiResponse.success(series, messages.success.fetch);
   }
 
   /**
@@ -221,8 +201,9 @@ export class SeriesController extends Controller {
   public async searchSeries(
     @Query() name: string,
     @Query() year?: string
-  ): Promise<any> {
-    return await externalSearchService.searchTvShows(name, year);
+  ): Promise<ApiResponse<TvResult[]>> {
+    const result = await externalSearchService.searchTvShows(name, year);
+    return ApiResponse.success(result, messages.success.fetch);
   }
 
   /**
@@ -230,8 +211,11 @@ export class SeriesController extends Controller {
    */
   @Get("episode-groups/search")
   @Security("adminAuth")
-  public async searchEpisodeGroups(@Query() id: string): Promise<any> {
-    return await externalSearchService.searchEpisodeGroups(id);
+  public async searchEpisodeGroups(
+    @Query() id: string
+  ): Promise<ApiResponse<TvEpisodeGroupsResponse | null>> {
+    const result = await externalSearchService.searchEpisodeGroups(id);
+    return ApiResponse.success(result, messages.success.fetch);
   }
 
   /**
@@ -242,9 +226,10 @@ export class SeriesController extends Controller {
   public async getRemainingEpisodes(
     @Path() id: string,
     @Request() req: ExpressRequest
-  ): Promise<any> {
+  ): Promise<ApiResponse<number>> {
     const userId = (req as any).user?.id;
-    return await MediaService.countRemainingEpisodes(id, userId);
+    const result = await MediaService.countRemainingEpisodes(id, userId);
+    return ApiResponse.success(result, messages.success.fetch);
   }
 
   /**
@@ -255,8 +240,9 @@ export class SeriesController extends Controller {
   public async isSeriesInMyList(
     @Path() id: string,
     @Request() req: ExpressRequest
-  ): Promise<any> {
+  ): Promise<ApiResponse<boolean>> {
     const userId = (req as any).user?.id;
-    return await MediaService.isSeriesInMyList(id, userId);
+    const result = await useCases.isSeriesInMyList().execute(id, userId);
+    return ApiResponse.success(result, messages.success.fetch);
   }
 }

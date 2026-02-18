@@ -1,13 +1,13 @@
 import { messages } from "@/config/messages";
-import ApiError from "@/data/ApiError";
 import { downloadImage, isValidURL } from "@/utils/utils";
 import path from "path";
 import { Body, Controller, Post, Route, Security, Tags } from "tsoa";
-import { MessageResponse } from "../../../application/dtos/DTOs";
 import {
   downloaderService,
   fileSystemService,
 } from "../../adapters/di/container";
+import { BadRequestException } from "../exceptions/HTTPExceptions";
+import { ApiResponse } from "../http/APIResponse";
 
 interface DownloadVideoDTO {
   url: string;
@@ -37,12 +37,11 @@ export class DownloadController extends Controller {
   @Security("adminAuth")
   public async downloadVideo(
     @Body() body: DownloadVideoDTO
-  ): Promise<MessageResponse> {
+  ): Promise<ApiResponse<null>> {
     const { url, downloadFolder, fileName } = body;
 
     await downloaderService.downloadVideo(url, downloadFolder, fileName);
-
-    return { message: messages.success.download };
+    return ApiResponse.success(null, messages.success.download);
   }
 
   /**
@@ -52,12 +51,11 @@ export class DownloadController extends Controller {
   @Security("adminAuth")
   public async downloadMusic(
     @Body() body: DownloadMusicDTO
-  ): Promise<MessageResponse> {
+  ): Promise<ApiResponse<null>> {
     const { url, downloadFolder, fileName } = body;
 
     await downloaderService.downloadAudio(url, downloadFolder, fileName);
-
-    return { message: messages.success.download };
+    return ApiResponse.success(null, messages.success.download);
   }
 
   /**
@@ -67,11 +65,11 @@ export class DownloadController extends Controller {
   @Security("adminAuth")
   public async downloadImage(
     @Body() body: DownloadImageDTO
-  ): Promise<MessageResponse> {
+  ): Promise<ApiResponse<null>> {
     let { url, downloadFolder, fileName } = body;
 
     if (!isValidURL(url)) {
-      throw new ApiError(400, messages.errors.validation.invalidData);
+      throw new BadRequestException(messages.errors.validation.invalidData);
     }
 
     // If the file name doesn't have an extension, add .jpg
@@ -84,6 +82,6 @@ export class DownloadController extends Controller {
       path.join(fileSystemService.resourcesPath, downloadFolder, fileName)
     );
 
-    return { message: messages.success.download };
+    return ApiResponse.success(null, messages.success.download);
   }
 }

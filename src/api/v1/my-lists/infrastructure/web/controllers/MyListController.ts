@@ -1,4 +1,8 @@
+import { Movie } from "@/api/v1/movies/domain/Movie";
+import { Series } from "@/api/v1/series/domain/Series";
 import { myListRepo } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
+import { messages } from "@/config/messages";
 import { getUserId } from "@/utils/auth";
 import { Request as ExpressRequest } from "express";
 import { Controller, Get, Path, Request, Route, Security, Tags } from "tsoa";
@@ -11,8 +15,13 @@ export class MyListController extends Controller {
    */
   @Get("movies")
   @Security("cookieAuth")
-  public async getMyListMovies(@Request() req: ExpressRequest): Promise<any[]> {
-    return myListRepo.getMoviesFromMyList(getUserId(req));
+  public async getMyListMovies(
+    @Request() req: ExpressRequest
+  ): Promise<ApiResponse<Movie[]>> {
+    return ApiResponse.success(
+      await myListRepo.getMoviesFromMyList(getUserId(req)),
+      messages.success.fetch
+    );
   }
 
   /**
@@ -20,8 +29,13 @@ export class MyListController extends Controller {
    */
   @Get("series")
   @Security("cookieAuth")
-  public async getMyListSeries(@Request() req: ExpressRequest): Promise<any[]> {
-    return myListRepo.getSeriesFromMyList(getUserId(req));
+  public async getMyListSeries(
+    @Request() req: ExpressRequest
+  ): Promise<ApiResponse<Series[]>> {
+    return ApiResponse.success(
+      await myListRepo.getSeriesFromMyList(getUserId(req)),
+      messages.success.fetch
+    );
   }
 
   /**
@@ -32,9 +46,12 @@ export class MyListController extends Controller {
   public async isMovieInMyList(
     @Path() id: string,
     @Request() req: ExpressRequest
-  ): Promise<any> {
+  ): Promise<ApiResponse<boolean>> {
     const userId = getUserId(req);
-    return await myListRepo.isMovieInMyList(id, userId);
+    return ApiResponse.success(
+      await myListRepo.isMovieInMyList(id, userId),
+      messages.success.fetch
+    );
   }
 
   /**
@@ -45,8 +62,11 @@ export class MyListController extends Controller {
   public async isSeriesInMyList(
     @Path() id: string,
     @Request() req: ExpressRequest
-  ): Promise<any> {
+  ): Promise<ApiResponse<boolean>> {
     const userId = getUserId(req);
-    return await myListRepo.isSeriesInMyList(id, userId);
+    return ApiResponse.success(
+      await myListRepo.isSeriesInMyList(id, userId),
+      messages.success.fetch
+    );
   }
 }

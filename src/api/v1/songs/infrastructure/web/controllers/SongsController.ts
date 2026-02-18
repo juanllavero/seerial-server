@@ -1,12 +1,12 @@
-import { MessageResponse } from "@/api/v1/shared/application/dtos/DTOs";
 import {
   audioProcessingService,
   fileSystemService,
   useCases,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { MediaDetailsService } from "@/api/v1/shared/infrastructure/services/MediaDetailsService";
+import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
+import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
 import { messages } from "@/config/messages";
-import ApiError from "@/data/ApiError";
 import {
   Body,
   Controller,
@@ -22,9 +22,9 @@ import {
 } from "tsoa";
 import {
   AddLyricsDTO,
-  SongResponse,
   UpdateSongDTO,
 } from "../../../application/dtos/SongDTOs";
+import { Song } from "../../../domain/Song";
 
 @Route("songs")
 @Tags("Songs")
@@ -37,14 +37,9 @@ export class SongsController extends Controller {
   public async update(
     @Path() id: string,
     @Body() body: UpdateSongDTO
-  ): Promise<SongResponse> {
+  ): Promise<ApiResponse<Song>> {
     const result = await useCases.updateSong().execute(id, body);
-
-    return {
-      status: "success",
-      message: messages.success.update,
-      data: result,
-    };
+    return ApiResponse.success(result, messages.success.update);
   }
 
   /**
@@ -52,10 +47,9 @@ export class SongsController extends Controller {
    */
   @Delete("{id}")
   @Security("adminAuth")
-  public async delete(@Path() id: string): Promise<MessageResponse> {
+  public async delete(@Path() id: string): Promise<ApiResponse<null>> {
     await useCases.deleteSong().execute(id);
-
-    return { message: messages.success.delete };
+    return ApiResponse.success(null, messages.success.delete);
   }
 
   /**
@@ -63,8 +57,11 @@ export class SongsController extends Controller {
    */
   @Get("{id}/lyrics")
   @Security("adminAuth")
-  public async getSongsLyrics(@Path() id: string): Promise<any> {
-    return await MediaDetailsService.findLyricsForSong(id);
+  public async getSongsLyrics(
+    @Path() id: string
+  ): Promise<ApiResponse<{ content: string; language: string }[]>> {
+    const result = await MediaDetailsService.findLyricsForSong(id);
+    return ApiResponse.success(result, messages.success.fetch);
   }
 
   /**
@@ -72,13 +69,15 @@ export class SongsController extends Controller {
    */
   @Post("lyrics")
   @Security("adminAuth")
-  public async addSongsLyrics(@Body() body: AddLyricsDTO): Promise<any> {
+  public async addSongsLyrics(
+    @Body() body: AddLyricsDTO
+  ): Promise<ApiResponse<string>> {
     const { songId, language, content } = body;
 
     const song = await useCases.getSongById().execute(songId);
 
     if (!song) {
-      throw new ApiError(404, messages.errors.notFound.song);
+      throw new NotFoundException(messages.errors.notFound.song);
     }
 
     const songDirectory = fileSystemService.dirname(song.fileSrc);
@@ -97,11 +96,7 @@ export class SongsController extends Controller {
     const fullSavePath = fileSystemService.join(songDirectory, finalFilename);
 
     await fileSystemService.writeFile(fullSavePath, content, "utf-8");
-
-    return {
-      message: "Lyrics file created successfully",
-      path: fullSavePath,
-    };
+    return ApiResponse.success(finalFilename, messages.success.create);
   }
 
   /**

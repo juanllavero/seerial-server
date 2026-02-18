@@ -35,15 +35,3 @@ export interface GetLibraryContentDTO {
   type: string;
   flat?: string;
 }
-
-export interface LibraryResponse {
-  status: string;
-  message: string;
-  data?: any;
-}
-
-export interface LibrariesResponse {
-  status: string;
-  message: string;
-  data?: any;
-}

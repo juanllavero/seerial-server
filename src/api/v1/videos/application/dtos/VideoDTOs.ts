@@ -15,9 +15,3 @@ export interface SetVideoWatchStateDTO {
   watched: boolean;
   userId: string;
 }
-
-export interface VideoResponse {
-  status: string;
-  message: string;
-  data?: any;
-}

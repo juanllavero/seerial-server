@@ -37,12 +37,6 @@ export interface UpdateUserDTO {
   maxSessions?: number;
 }
 
-export interface UserResponse {
-  status: string;
-  message: string;
-  data?: any;
-}
-
 export interface UserDTO {
   id: string;
   username: string;

@@ -1,3 +1,5 @@
+import { UserDTO } from "@/api/v1/users/application/dtos/UserDTOs";
+
 export interface UpdateServerDTO {
   name?: string;
   httpPort?: number;
@@ -19,10 +21,11 @@ export interface UpdateServerDTO {
   publicHttpsPort?: number;
 }
 
-export interface ServerResponse {
+export interface ServerStatusResponse {
+  id: string;
+  name: string;
   status: string;
-  message: string;
-  data?: any;
+  users: UserDTO[];
 }
 
 export interface ServerConfigDTO {

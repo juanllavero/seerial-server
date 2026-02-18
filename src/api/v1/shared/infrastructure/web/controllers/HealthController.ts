@@ -1,6 +1,8 @@
 import { ServerModel } from "@/api/v1/servers/infrastructure/persistence/models/ServerModel";
+import { messages } from "@/config/messages";
 import { Controller, Get, Route, Tags } from "tsoa";
 import { fileSystemService, tmdbApiClient } from "../../adapters/di/container";
+import { ApiResponse } from "../http/APIResponse";
 
 type HealthStatus = "ok" | "degraded" | "down";
 
@@ -25,7 +27,7 @@ export class HealthController extends Controller {
    * @returns Health status of the application
    */
   @Get()
-  public async health(): Promise<HealthResponse> {
+  public async health(): Promise<ApiResponse<HealthResponse>> {
     const checks = {
       filesystem: await this.checkFilesystem(),
       database: await this.checkDatabase(),
@@ -35,13 +37,16 @@ export class HealthController extends Controller {
 
     const overall = this.calculateOverallStatus(checks);
 
-    return {
-      status: overall,
-      checks,
-      uptime: process.uptime(),
-      timestamp: Date.now(),
-      version: process.env.APP_VERSION ?? "dev",
-    };
+    return ApiResponse.success(
+      {
+        status: overall,
+        checks,
+        uptime: process.uptime(),
+        timestamp: Date.now(),
+        version: process.env.VERSION || "unknown",
+      },
+      messages.success.fetch
+    );
   }
 
   private async checkFilesystem(): Promise<HealthStatus> {

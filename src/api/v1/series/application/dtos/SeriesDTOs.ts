@@ -47,9 +47,3 @@ export interface SetSeriesWatchStateDTO {
   watched: boolean;
   userId: string;
 }
-
-export interface SeriesResponse {
-  status: string;
-  message: string;
-  data?: any;
-}

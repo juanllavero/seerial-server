@@ -1,5 +1,10 @@
 import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import {
+  BadRequestException,
+  NotFoundException,
+} from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
 import { Video } from "@/api/v1/videos/domain/Video";
+import { messages } from "@/config/messages";
 import { WatchList } from "../../domain/WatchList";
 import { WatchListRepositoryPort } from "../ports/WatchListRepositoryPort";
 
@@ -11,29 +16,30 @@ export class UpdateWatchStateUseCase {
     timeWatched: number;
     watched: boolean;
     userId: string;
-  }): Promise<{ message: string }> {
+  }): Promise<void> {
     const { videoId, timeWatched, watched, userId } = params;
 
     if (videoId == null || timeWatched == null || watched == null || !userId) {
-      throw new Error("Not enough parameters");
+      throw new BadRequestException(messages.errors.validation.notEnoughParams);
     }
 
     const video = await useCases.getVideoById().execute(videoId);
-    if (!video) throw new Error("Video not found");
+    if (!video) throw new NotFoundException(messages.errors.notFound.video);
 
     if (video.episodeId) {
       const episode = await useCases.getEpisodeById().execute(video.episodeId);
-      if (!episode) throw new Error("Episode not found");
+      if (!episode)
+        throw new NotFoundException(messages.errors.notFound.episode);
 
       const season = await useCases.getSeasonById().execute(episode.seasonId);
-      if (!season) throw new Error("Season not found");
+      if (!season) throw new NotFoundException(messages.errors.notFound.season);
 
       await useCases
         .setEpisodeWatchState()
         .execute(episode.id, userId, watched);
     } else if (video.movieId) {
       const movie = await useCases.getMoviebyId().execute(video.movieId);
-      if (!movie) throw new Error("Movie not found");
+      if (!movie) throw new NotFoundException(messages.errors.notFound.movie);
 
       if (watched) {
         await this.watchListRepo.addVideo(userId, video.id);
@@ -71,6 +77,5 @@ export class UpdateWatchStateUseCase {
       } as Partial<WatchList>);
 
     // Here we could also persist video progress if needed
-    return { message: "Watch state updated" };
   }
 }

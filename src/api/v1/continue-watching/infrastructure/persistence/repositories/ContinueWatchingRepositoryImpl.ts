@@ -1,5 +1,6 @@
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
 import { GenericRepositoryHelper } from "@/helpers/GenericRepositoryHelper";
+import { ContinueWatchingVideo } from "../../../application/dtos/ContinueWatchingDTOs";
 import { ContinueWatchingRepositoryPort } from "../../../application/ports/ContinueWatchingRepositoryPort";
 import { ContinueWatching } from "../../../domain/ContinueWatching";
 import { ContinueWatchingModel } from "../models/ContinueWatchingModel";
@@ -24,7 +25,7 @@ export class ContinueWatchingRepositoryImpl
     });
   }
 
-  async getVideos(userId: string): Promise<any[]> {
+  async getVideos(userId: string): Promise<ContinueWatchingVideo[]> {
     const validatedId = this.validateId(userId, "User ID");
 
     const elements = await ContinueWatchingModel.find({

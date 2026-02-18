@@ -16,12 +16,6 @@ export interface AddLyricsDTO {
   content: string;
 }
 
-export interface SongResponse {
-  status: string;
-  message: string;
-  data?: any;
-}
-
 export interface LyricsResponse {
   message: string;
   path: string;

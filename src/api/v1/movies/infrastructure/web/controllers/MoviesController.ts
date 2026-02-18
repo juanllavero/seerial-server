@@ -1,15 +1,14 @@
-import { MessageResponse } from "@/api/v1/shared/application/dtos/DTOs";
 import {
   externalSearchService,
-  librariesRepo,
-  moviesRepo,
   myListRepo,
   useCases,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { MediaService } from "@/api/v1/shared/infrastructure/services/MediaService";
+import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
+import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
 import { messages } from "@/config/messages";
-import ApiError from "@/data/ApiError";
 import { Request as ExpressRequest } from "express";
+import { MovieResult } from "moviedb-promise";
 import {
   Body,
   Controller,
@@ -26,14 +25,10 @@ import {
 } from "tsoa";
 import {
   ChangeIdentificationDTO,
-  MovieResponse,
   SetMovieWatchStateDTO,
   UpdateMovieDTO,
 } from "../../../application/dtos/MovieDTOs";
-import { DeleteMovieUseCase } from "../../../application/usecases/DeleteMovieUseCase";
-import { RefreshMovieMetadataUseCase } from "../../../application/usecases/RefreshMovieMetadataUseCase";
-import { UpdateMovieIdUseCase } from "../../../application/usecases/UpdateMovieIdUseCase";
-import { UpdateMovieUseCase } from "../../../application/usecases/UpdateMoviesUseCase";
+import { Movie } from "../../../domain/Movie";
 
 @Route("movies")
 @Tags("Movies")
@@ -45,11 +40,9 @@ export class MoviesController extends Controller {
   @Security("adminAuth")
   public async refreshMovieMetadata(
     @Path() id: string
-  ): Promise<MessageResponse> {
-    const useCase = new RefreshMovieMetadataUseCase();
-    await useCase.execute(id);
-
-    return { message: messages.success.update };
+  ): Promise<ApiResponse<null>> {
+    await useCases.refreshMovieMetadata().execute(id);
+    return ApiResponse.success(null, messages.success.update);
   }
 
   /**
@@ -60,11 +53,9 @@ export class MoviesController extends Controller {
   public async changeIdentification(
     @Path() id: string,
     @Body() body: ChangeIdentificationDTO
-  ): Promise<MessageResponse> {
-    const useCase = new UpdateMovieIdUseCase();
-    await useCase.execute(id, body.themdbId);
-
-    return { message: messages.success.update };
+  ): Promise<ApiResponse<null>> {
+    await useCases.updateMovieId().execute(id, body.themdbId);
+    return ApiResponse.success(null, messages.success.update);
   }
 
   /**
@@ -75,15 +66,9 @@ export class MoviesController extends Controller {
   public async update(
     @Path() id: string,
     @Body() body: UpdateMovieDTO
-  ): Promise<MovieResponse> {
-    const useCase = new UpdateMovieUseCase(moviesRepo);
-    const result = await useCase.execute(id, body);
-
-    return {
-      status: "success",
-      message: messages.success.update,
-      data: result,
-    };
+  ): Promise<ApiResponse<Movie>> {
+    const result = await useCases.updateMovie().execute(id, body);
+    return ApiResponse.success(result, messages.success.update);
   }
 
   /**
@@ -91,11 +76,9 @@ export class MoviesController extends Controller {
    */
   @Delete("{id}")
   @Security("adminAuth")
-  public async delete(@Path() id: string): Promise<MessageResponse> {
-    const useCase = new DeleteMovieUseCase(librariesRepo, moviesRepo);
-    await useCase.execute(id);
-
-    return { message: messages.success.delete };
+  public async delete(@Path() id: string): Promise<ApiResponse<null>> {
+    await useCases.deleteMovie().execute(id);
+    return ApiResponse.success(null, messages.success.delete);
   }
 
   /**
@@ -107,14 +90,14 @@ export class MoviesController extends Controller {
     @Path() id: string,
     @Body() body: SetMovieWatchStateDTO,
     @Request() req: ExpressRequest
-  ): Promise<MessageResponse> {
+  ): Promise<ApiResponse<null>> {
     const userId = (req as any).user?.id;
     const { watched } = body;
 
     const movie = await useCases.getMoviebyId().execute(id);
 
     if (!movie) {
-      throw new ApiError(404, messages.errors.notFound.movie);
+      throw new NotFoundException(messages.errors.notFound.movie);
     }
 
     if (watched) {
@@ -140,7 +123,7 @@ export class MoviesController extends Controller {
       }
     }
 
-    return { message: messages.success.update };
+    return ApiResponse.success(null, messages.success.update);
   }
 
   /**
@@ -148,18 +131,14 @@ export class MoviesController extends Controller {
    */
   @Get("{id}")
   @Security("cookieAuth")
-  public async get(@Path() id: string): Promise<MovieResponse> {
+  public async get(@Path() id: string): Promise<ApiResponse<Movie>> {
     const movie = await useCases.getMoviebyId().execute(id);
 
     if (!movie) {
-      throw new ApiError(404, messages.errors.notFound.movie);
+      throw new NotFoundException(messages.errors.notFound.movie);
     }
 
-    return {
-      status: "success",
-      message: messages.success.fetch,
-      data: movie,
-    };
+    return ApiResponse.success(movie, messages.success.fetch);
   }
 
   /**
@@ -170,8 +149,9 @@ export class MoviesController extends Controller {
   public async searchMovies(
     @Query() name: string,
     @Query() year?: string
-  ): Promise<any> {
-    return await externalSearchService.searchMovies(name, year);
+  ): Promise<ApiResponse<MovieResult[]>> {
+    const result = await externalSearchService.searchMovies(name, year);
+    return ApiResponse.success(result, messages.success.fetch);
   }
 
   /**
@@ -179,8 +159,9 @@ export class MoviesController extends Controller {
    */
   @Get("imdb-score")
   @Security("adminAuth")
-  public async getImdbScore(@Query() id: string): Promise<any> {
-    return await externalSearchService.getImdbScore(id);
+  public async getImdbScore(@Query() id: string): Promise<ApiResponse<number>> {
+    const score = await externalSearchService.getImdbScore(id);
+    return ApiResponse.success(score, messages.success.fetch);
   }
 
   /**
@@ -191,9 +172,11 @@ export class MoviesController extends Controller {
   public async getRemainingVideos(
     @Path() id: string,
     @Request() req: ExpressRequest
-  ): Promise<any> {
+  ): Promise<ApiResponse<number>> {
     const userId = (req as any).user?.id;
-    return await MediaService.countRemainingVideos(id, userId);
+    const count = await MediaService.countRemainingVideos(id, userId);
+
+    return ApiResponse.success(count, messages.success.fetch);
   }
 
   /**
@@ -204,8 +187,10 @@ export class MoviesController extends Controller {
   public async isMovieInMyList(
     @Path() id: string,
     @Request() req: ExpressRequest
-  ): Promise<any> {
+  ): Promise<ApiResponse<boolean>> {
     const userId = (req as any).user?.id;
-    return await myListRepo.isMovieInMyList(id, userId);
+    const isMovieInMyList = await myListRepo.isMovieInMyList(id, userId);
+
+    return ApiResponse.success(isMovieInMyList, messages.success.fetch);
   }
 }

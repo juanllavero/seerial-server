@@ -1,8 +1,15 @@
-import { MessageResponse } from "@/api/v1/shared/application/dtos/DTOs";
-import { imageProcessingService } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import {
+  fileSystemService,
+  imageProcessingService,
+} from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { SanitizationService } from "@/api/v1/shared/infrastructure/services/SanitizationService";
+import {
+  BadRequestException,
+  NotEnoughParamsException,
+} from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
+import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
 import { messages } from "@/config/messages";
-import ApiError from "@/data/ApiError";
+import path from "path";
 import {
   Controller,
   FormField,
@@ -26,31 +33,31 @@ export class ImagesController extends Controller {
   public async uploadImage(
     @FormField() destPath: string,
     @UploadedFile() image: Express.Multer.File
-  ): Promise<MessageResponse> {
-    try {
-      // Validate file name
-      if (!SanitizationService.isValidFileName(image.originalname)) {
-        throw new ApiError(400, "Invalid file name");
-      }
-
-      const sanitizedDestPath = SanitizationService.sanitizeDirectoryPath(
-        destPath,
-        SanitizationService.getSystemAllowedPaths(),
-        false
-      );
-
-      // Combine the paths
-      const finalPath = SanitizationService.safeJoinPath(
-        sanitizedDestPath,
-        image.originalname
-      );
-
-      return {
-        message: `Image uploaded successfully to ${finalPath}`,
-      };
-    } catch (error: any) {
-      throw new ApiError(400, `Invalid path: ${error.message}`);
+  ): Promise<ApiResponse<null>> {
+    // Validate file name
+    if (!SanitizationService.isValidFileName(image.originalname)) {
+      throw new BadRequestException();
     }
+
+    const sanitizedDestPath = SanitizationService.sanitizeDirectoryPath(
+      destPath,
+      SanitizationService.getSystemAllowedPaths(),
+      false
+    );
+
+    // Combine the paths
+    const finalPath = SanitizationService.safeJoinPath(
+      sanitizedDestPath,
+      image.originalname
+    );
+
+    // Ensure destination directory exists
+    fileSystemService.createFolder(path.dirname(finalPath));
+
+    // Write image buffer to the destination path
+    await fileSystemService.writeImage(finalPath, image.buffer);
+
+    return ApiResponse.success(null, messages.success.upload);
   }
 
   /**
@@ -58,23 +65,21 @@ export class ImagesController extends Controller {
    */
   @Get()
   @Security("cookieAuthFast")
-  public async getDirectoryListing(@Query() path: string): Promise<any> {
+  public async getDirectoryListing(
+    @Query() path: string
+  ): Promise<ApiResponse<any>> {
     const imagesPath = path;
 
-    try {
-      const sanitizedPath = SanitizationService.sanitizeDirectoryPath(
-        decodeURIComponent(imagesPath),
-        SanitizationService.getSystemAllowedPaths(),
-        true
-      );
+    const sanitizedPath = SanitizationService.sanitizeDirectoryPath(
+      decodeURIComponent(imagesPath),
+      SanitizationService.getSystemAllowedPaths(),
+      true
+    );
 
-      const images = await imageProcessingService.getDirectoryListing(
-        sanitizedPath
-      );
-      return images;
-    } catch (error: any) {
-      throw new ApiError(400, `Invalid path: ${error.message}`);
-    }
+    const images = await imageProcessingService.getDirectoryListing(
+      sanitizedPath
+    );
+    return ApiResponse.success(images, messages.success.fetch);
   }
 
   /**
@@ -87,22 +92,18 @@ export class ImagesController extends Controller {
     @Query() width?: number,
     @Query() height?: number
   ): Promise<void> {
-    try {
-      const sanitizedPath = SanitizationService.sanitizeImagePath(
-        path,
-        SanitizationService.getSystemAllowedPaths(),
-        true // Must exist
-      );
+    const sanitizedPath = SanitizationService.sanitizeImagePath(
+      path,
+      SanitizationService.getSystemAllowedPaths(),
+      true // Must exist
+    );
 
-      await imageProcessingService.streamLocalImage({
-        filePath: sanitizedPath,
-        res: (this as any).response,
-        width: width ? parseInt(width as any, 10) : undefined,
-        height: height ? parseInt(height as any, 10) : undefined,
-      });
-    } catch (error: any) {
-      throw new ApiError(400, `Invalid image path: ${error.message}`);
-    }
+    await imageProcessingService.streamLocalImage({
+      filePath: sanitizedPath,
+      res: (this as any).response,
+      width: width ? parseInt(width as any, 10) : undefined,
+      height: height ? parseInt(height as any, 10) : undefined,
+    });
   }
 
   /**
@@ -134,9 +135,9 @@ export class ImagesController extends Controller {
     @Query() minLight?: number,
     @Query() maxLight?: number,
     @Query() sat?: number
-  ): Promise<any> {
+  ): Promise<ApiResponse<any>> {
     if (!url && !localPath) {
-      throw new ApiError(400, messages.errors.validation.notEnoughParams);
+      throw new NotEnoughParamsException();
     }
 
     const imageSource = (localPath as string) || (url as string);
@@ -154,7 +155,7 @@ export class ImagesController extends Controller {
       options
     );
 
-    return result;
+    return ApiResponse.success(result, messages.success.fetch);
   }
 
   /**
@@ -169,14 +170,14 @@ export class ImagesController extends Controller {
     @Query() localPath?: string
   ): Promise<void> {
     if ((!url && !localPath) || !width || !height) {
-      throw new ApiError(400, messages.errors.validation.notEnoughParams);
+      throw new NotEnoughParamsException();
     }
 
     const finalWidth = width;
     const finalHeight = height;
 
     if (isNaN(finalWidth) || isNaN(finalHeight)) {
-      throw new ApiError(400, messages.errors.validation.invalidData);
+      throw new BadRequestException();
     }
 
     const imageSource = (localPath as string) || (url as string);

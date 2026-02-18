@@ -16,9 +16,3 @@ export interface SetSeasonWatchStateDTO {
   watched: boolean;
   userId: string;
 }
-
-export interface SeasonResponse {
-  status: string;
-  message: string;
-  data?: any;
-}

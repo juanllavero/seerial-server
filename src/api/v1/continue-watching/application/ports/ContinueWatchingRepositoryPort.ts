@@ -1,5 +1,7 @@
+import { ContinueWatchingVideo } from "../dtos/ContinueWatchingDTOs";
+
 export interface ContinueWatchingRepositoryPort {
-  getVideos(userId: string): Promise<any[]>;
+  getVideos(userId: string): Promise<ContinueWatchingVideo[]>;
   getCurrentEpisode(seriesId: string): Promise<any>;
   add(
     videoId: string,

@@ -19,7 +19,7 @@ import swaggerUi from "swagger-ui-express";
 import swaggerDocument from "../swagger.json";
 import { ServerConfigService } from "./api/v1/servers/infrastructure/services/ServerConfigService";
 import { DatabaseManager } from "./api/v1/shared/infrastructure/persistence/DatabaseManager";
-import { errorHandlerMiddleware } from "./middleware/errorHandler.middleware";
+import { globalErrorHandler } from "./api/v1/shared/infrastructure/web/exceptions/GlobalErrorHandler";
 import { requestsIDsMiddleware } from "./middleware/requestID.middleware";
 import { sanitizationMiddleware } from "./middleware/sanitization.middleware";
 import { RegisterRoutes } from "./routes/routes";
@@ -127,7 +127,7 @@ app.whenReady().then(async () => {
   });
 
   // Error handling middleware
-  appServer.use(errorHandlerMiddleware);
+  appServer.use(globalErrorHandler);
 
   // Start server
   await ServerConfigService.startServer(appServer);
