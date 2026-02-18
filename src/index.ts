@@ -20,7 +20,7 @@ import swaggerDocument from "../swagger.json";
 import { ServerConfigService } from "./api/v1/servers/infrastructure/services/ServerConfigService";
 import { DatabaseManager } from "./api/v1/shared/infrastructure/persistence/DatabaseManager";
 import { globalErrorHandler } from "./api/v1/shared/infrastructure/web/exceptions/GlobalErrorHandler";
-import { requestsIDsMiddleware } from "./middleware/requestID.middleware";
+import { requestsIDsMiddleware } from "./middleware/request.id.middleware";
 import { sanitizationMiddleware } from "./middleware/sanitization.middleware";
 import { RegisterRoutes } from "./routes/routes";
 import { createTray } from "./utils/appTray";
