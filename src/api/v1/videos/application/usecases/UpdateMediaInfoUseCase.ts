@@ -1,6 +1,6 @@
 import { getMediaInfo } from "@/api/v1/shared/infrastructure/adapters/ffmpeg/mediaInfo";
+import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
 import { messages } from "@/config/messages";
-import ApiError from "@/data/ApiError";
 import { Video } from "../../domain/Video";
 import { VideoRepositoryPort } from "../ports/VideosRepositoryPort";
 
@@ -11,13 +11,13 @@ export class UpdateMediaInfoUseCase {
     const video = await this.videoRepo.findById(id);
 
     if (!video) {
-      throw new ApiError(400, messages.errors.notFound.video);
+      throw new NotFoundException(messages.errors.notFound.file);
     }
 
     const mediaInfo = await getMediaInfo(video.fileSrc);
 
     if (!mediaInfo) {
-      throw new ApiError(400, messages.errors.notFound.mediaInfo);
+      throw new NotFoundException(messages.errors.notFound.mediaInfo);
     }
 
     video.mediaInfo = mediaInfo.mediaInfo;

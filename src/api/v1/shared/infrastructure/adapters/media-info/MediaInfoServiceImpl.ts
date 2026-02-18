@@ -3,7 +3,6 @@ import {
   getChapters,
   getMediaInfo,
 } from "@/api/v1/shared/infrastructure/adapters/ffmpeg/mediaInfo";
-import ApiError from "@/data/ApiError";
 import logger from "@/utils/logger";
 import { MediaInfoServicePort } from "../../../application/ports/MediaInfoServicePort";
 
@@ -25,7 +24,7 @@ export class MediaInfoServiceImpl implements MediaInfoServicePort {
         error,
         `FFprobe error for audio metadata on ${filePath}`
       );
-      throw new ApiError(500, `Failed to get audio metadata: ${error.message}`);
+      throw new Error(`Failed to get audio metadata for ${filePath}`);
     }
   }
 
@@ -42,7 +41,7 @@ export class MediaInfoServiceImpl implements MediaInfoServicePort {
         error,
         `FFprobe error for chapters on ${filePath}`
       );
-      throw new ApiError(500, `Failed to extract chapters: ${error.message}`);
+      throw new Error(`Failed to extract chapters for ${filePath}`);
     }
   }
 
@@ -59,7 +58,7 @@ export class MediaInfoServiceImpl implements MediaInfoServicePort {
         error,
         `FFprobe error for media info on ${filePath}`
       );
-      throw new ApiError(500, `Failed to get media info: ${error.message}`);
+      throw new Error(`Failed to get media info for ${filePath}`);
     }
   }
 }

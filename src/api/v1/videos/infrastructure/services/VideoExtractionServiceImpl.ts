@@ -3,8 +3,11 @@ import {
   executeFfmpeg,
   executeFfmpegPipeToStream,
 } from "@/api/v1/shared/infrastructure/adapters/ffmpeg/nativeFfmpeg";
+import {
+  BadRequestException,
+  NotFoundException,
+} from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
 import { messages } from "@/config/messages";
-import ApiError from "@/data/ApiError";
 import logger from "@/utils/logger";
 import crypto from "crypto";
 import fs from "fs-extra";
@@ -27,7 +30,7 @@ export class VideoExtractionServiceImpl implements VideoExtractionServicePort {
     const timeParam = time || "10";
 
     if (!videoUrl) {
-      throw new ApiError(400, messages.errors.validation.notEnoughParams);
+      throw new BadRequestException(messages.errors.validation.notEnoughParams);
     }
 
     const videoSrc = videoUrl.startsWith("resources")
@@ -83,11 +86,11 @@ export class VideoExtractionServiceImpl implements VideoExtractionServicePort {
     const startTimeNum = startTime || 0;
 
     if (isNaN(trackIdNum)) {
-      throw new ApiError(400, messages.errors.validation.invalidData);
+      throw new BadRequestException(messages.errors.validation.invalidData);
     }
 
     if (!fs.existsSync(videoPath)) {
-      throw new ApiError(404, messages.errors.notFound.file);
+      throw new NotFoundException(messages.errors.notFound.file);
     }
 
     const hash = crypto

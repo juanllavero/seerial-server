@@ -1,7 +1,7 @@
 import { LibrariesRepositoryPort } from "@/api/v1/libraries/application/ports/LibrariesRepositoryPort";
 import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
 import { messages } from "@/config/messages";
-import ApiError from "@/data/ApiError";
 import { VideoRepositoryPort } from "../ports/VideosRepositoryPort";
 
 export class DeleteVideoUseCase {
@@ -12,7 +12,7 @@ export class DeleteVideoUseCase {
 
   async execute(videoId: string): Promise<void> {
     const video = await this.videoRepository.findById(videoId);
-    if (!video) throw new ApiError(404, messages.errors.notFound.video);
+    if (!video) throw new NotFoundException(messages.errors.notFound.video);
 
     // Delete local media files and folders
     await useCases.deleteVideoData().execute(videoId);

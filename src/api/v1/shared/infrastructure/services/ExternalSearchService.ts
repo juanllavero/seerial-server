@@ -3,7 +3,6 @@ import {
   imdbScoreService,
   metadataProvider,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
-import ApiError from "@/data/ApiError"; // Adjust path
 import logger from "@/utils/logger";
 
 const externalSearchLogger = logger.child({ category: "External Search" });
@@ -20,7 +19,7 @@ export class ExternalSearchService {
       return await metadataProvider.searchMovies(name, year ?? "");
     } catch (error) {
       externalSearchLogger.error(error, "Error searching movies on TheMovieDB");
-      throw new ApiError(503, "External movie search service is unavailable.");
+      throw new Error("External movie search service is unavailable.");
     }
   }
 
@@ -38,10 +37,7 @@ export class ExternalSearchService {
         error,
         "Error searching TV shows on TheMovieDB"
       );
-      throw new ApiError(
-        503,
-        "External TV show search service is unavailable."
-      );
+      throw new Error("External TV show search service is unavailable.");
     }
   }
 
@@ -58,10 +54,7 @@ export class ExternalSearchService {
         error,
         "Error searching episode groups on TheMovieDB"
       );
-      throw new ApiError(
-        503,
-        "External episode group search service is unavailable."
-      );
+      throw new Error("External episode group search service is unavailable.");
     }
   }
 
@@ -75,7 +68,7 @@ export class ExternalSearchService {
       return await imdbScoreService.getIMDBScore(imdbId);
     } catch (error) {
       externalSearchLogger.error(error, "Error fetching IMDB score");
-      throw new ApiError(503, "External IMDB score service is unavailable.");
+      throw new Error("External IMDB score service is unavailable.");
     }
   }
 
@@ -92,7 +85,7 @@ export class ExternalSearchService {
         error,
         "Error searching for downloadable media"
       );
-      throw new ApiError(500, "Failed to search for downloadable media.");
+      throw new Error("Failed to search for downloadable media.");
     }
   }
 }

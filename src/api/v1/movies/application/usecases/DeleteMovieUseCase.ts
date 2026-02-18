@@ -1,7 +1,7 @@
 import { LibrariesRepositoryPort } from "@/api/v1/libraries/application/ports/LibrariesRepositoryPort";
 import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
 import { messages } from "@/config/messages";
-import ApiError from "@/data/ApiError";
 import { MoviesRepositoryPort } from "../ports/MoviesRepositoryPort";
 
 export class DeleteMovieUseCase {
@@ -14,7 +14,7 @@ export class DeleteMovieUseCase {
     const movie = await this.moviesRepo.findById(id);
 
     if (!movie) {
-      throw new ApiError(404, messages.errors.notFound.movie);
+      throw new NotFoundException(messages.errors.notFound.movie);
     }
 
     for (const video of movie.videos) {

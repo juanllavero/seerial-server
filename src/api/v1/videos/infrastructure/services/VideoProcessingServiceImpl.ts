@@ -1,6 +1,9 @@
 import { executeFfmpegPipeToStream } from "@/api/v1/shared/infrastructure/adapters/ffmpeg/nativeFfmpeg";
+import {
+  BadRequestException,
+  NotFoundException,
+} from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
 import { messages } from "@/config/messages";
-import ApiError from "@/data/ApiError";
 import logger from "@/utils/logger";
 import { VideoProcessingServicePort } from "../../application/ports/VideoProcessingServicePort";
 
@@ -37,7 +40,7 @@ export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
       );
 
       if (!require("fs").existsSync(sanitizedVideoPath)) {
-        throw new ApiError(404, messages.errors.notFound.video);
+        throw new NotFoundException(messages.errors.notFound.video);
       }
 
       res.setHeader("Content-Type", "video/mp4");
@@ -124,7 +127,7 @@ export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
         logger.debug({ message: "FFmpeg output", stderr: streaming.stderr });
       }, 1000);
     } catch (error: any) {
-      throw new ApiError(400, `Invalid video path: ${error.message}`);
+      throw new BadRequestException(`Invalid video path: ${videoPath}`);
     }
   }
 
@@ -141,7 +144,7 @@ export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
       );
 
       if (!fs.existsSync(sanitizedVideoPath)) {
-        throw new ApiError(404, messages.errors.notFound.video);
+        throw new NotFoundException(messages.errors.notFound.video);
       }
 
       const stat = fs.statSync(sanitizedVideoPath);
@@ -182,7 +185,7 @@ export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
         fs.createReadStream(sanitizedVideoPath).pipe(res);
       }
     } catch (error: any) {
-      throw new ApiError(400, `Invalid video path: ${error.message}`);
+      throw new BadRequestException(`Invalid video path: ${videoPath}`);
     }
   }
 

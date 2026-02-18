@@ -1,7 +1,7 @@
 import { fileSystemService } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { executeFfmpeg } from "@/api/v1/shared/infrastructure/adapters/ffmpeg/nativeFfmpeg";
+import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
 import { messages } from "@/config/messages";
-import ApiError from "@/data/ApiError";
 import { audioExtensions } from "@/utils/constants";
 import crypto from "crypto";
 import { Request, Response } from "express";
@@ -35,7 +35,7 @@ export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
     isWeb: boolean
   ): Promise<string> {
     if (!fs.existsSync(originalPath)) {
-      throw new ApiError(404, messages.errors.notFound.file);
+      throw new NotFoundException(messages.errors.notFound.file);
     }
 
     const fileExtension = path.extname(originalPath).toLowerCase();
@@ -74,7 +74,7 @@ export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
     } catch (error) {
       // Clean failed file if created
       if (fs.existsSync(cachedFilePath)) fs.unlinkSync(cachedFilePath);
-      throw new ApiError(500, messages.errors.server.internal);
+      throw new Error(messages.errors.server.internal);
     }
   }
 

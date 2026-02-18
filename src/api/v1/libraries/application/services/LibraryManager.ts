@@ -4,7 +4,8 @@ import {
   useCases,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { clearLibrary } from "@/api/v1/shared/infrastructure/services/FileSearchService";
-import ApiError from "@/data/ApiError";
+import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
+import { messages } from "@/config/messages";
 import { imageExtensions } from "@/utils/constants";
 import logger from "@/utils/logger";
 import fs from "fs";
@@ -31,7 +32,7 @@ export class LibraryManager {
     const useCase = new GetLibraryUseCase(librariesRepo);
     const library = await useCase.execute(id);
     if (!library) {
-      throw new ApiError(404, `Library with ID ${id} not found.`);
+      throw new NotFoundException(messages.errors.notFound.library);
     }
     return library;
   }

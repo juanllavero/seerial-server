@@ -6,10 +6,10 @@ import { MovieModel } from "@/api/v1/movies/infrastructure/persistence/models/Mo
 import { SeasonModel } from "@/api/v1/seasons/infrastructure/persistence/models/SeasonModel";
 import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/SeriesModel";
 import { DatabaseManager } from "@/api/v1/shared/infrastructure/persistence/DatabaseManager";
+import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
 import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/VideoModel";
 import { WatchList } from "@/api/v1/watch-lists/domain/WatchList";
 import { messages } from "@/config/messages";
-import ApiError from "@/data/ApiError";
 import { LibraryItem, LibraryTypes } from "@/data/interfaces/Media";
 import { GenericRepositoryHelper } from "@/helpers/GenericRepositoryHelper";
 import logger from "@/utils/logger";
@@ -666,7 +666,7 @@ export class LibrariesRepositoryImpl
     const library = await this.getLibraryModel(libraryId);
 
     if (!library) {
-      throw new ApiError(404, messages.errors.notFound.library);
+      throw new NotFoundException(messages.errors.notFound.library);
     }
 
     await library.addAnalyzedFile(file, videoId);
@@ -679,7 +679,7 @@ export class LibrariesRepositoryImpl
     const library = await this.getLibraryModel(libraryId);
 
     if (!library) {
-      throw new ApiError(404, messages.errors.notFound.library);
+      throw new NotFoundException(messages.errors.notFound.library);
     }
 
     await library.removeAnalyzedFile(file);
@@ -696,7 +696,7 @@ export class LibrariesRepositoryImpl
     const library = await this.getLibraryModel(libraryId);
 
     if (!library) {
-      throw new ApiError(404, messages.errors.notFound.library);
+      throw new NotFoundException(messages.errors.notFound.library);
     }
 
     await library.addAnalyzedFolder(folder, videoId);
@@ -712,7 +712,7 @@ export class LibrariesRepositoryImpl
     const library = await this.getLibraryModel(libraryId);
 
     if (!library) {
-      throw new ApiError(404, messages.errors.notFound.library);
+      throw new NotFoundException(messages.errors.notFound.library);
     }
 
     await library.removeAnalyzedFolder(folder);

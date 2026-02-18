@@ -4,8 +4,8 @@ import { MoviesRepositoryPort } from "@/api/v1/movies/application/ports/MoviesRe
 import { Movie } from "@/api/v1/movies/domain/Movie";
 import { SeriesRepositoryPort } from "@/api/v1/series/application/ports/SeriesRepositoryPort";
 import { Series } from "@/api/v1/series/domain/Series";
+import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
 import { messages } from "@/config/messages";
-import ApiError from "@/data/ApiError";
 import { LibrariesRepositoryPort } from "../ports/LibrariesRepositoryPort";
 
 export class DeleteLibraryUseCase {
@@ -20,7 +20,7 @@ export class DeleteLibraryUseCase {
     const library = await this.librariesRepo.getById(id);
 
     if (!library) {
-      throw new ApiError(404, messages.errors.notFound.library);
+      throw new NotFoundException(messages.errors.notFound.library);
     }
 
     // Before deleting the library, we need to handle associated media

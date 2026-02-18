@@ -56,3 +56,12 @@ export class UnauthorizedException extends HttpException {
     super(HTTPCodes.UNAUTHORIZED, message);
   }
 }
+
+/**
+ * Exception for 403 Forbidden scenarios.
+ */
+export class ForbiddenException extends HttpException {
+  constructor(message: string = "Forbidden") {
+    super(HTTPCodes.FORBIDDEN, message);
+  }
+}

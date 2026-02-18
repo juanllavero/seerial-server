@@ -1,9 +1,10 @@
 import { ContinueWatchingRepositoryPort } from "@/api/v1/continue-watching/application/ports/ContinueWatchingRepositoryPort"; // Asumido
 import { SeasonsRepositoryPort } from "@/api/v1/seasons/application/ports/SeasonsRepositoryPort";
 import { SeriesRepositoryPort } from "@/api/v1/series/application/ports/SeriesRepositoryPort"; // Asumido
+import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
 import { VideoRepositoryPort } from "@/api/v1/videos/application/ports/VideosRepositoryPort";
 import { WatchListRepositoryPort } from "@/api/v1/watch-lists/application/ports/WatchListRepositoryPort"; // Asumido
-import ApiError from "@/data/ApiError";
+import { messages } from "@/config/messages";
 import { EpisodeRepositoryPort } from "../ports/EpisodeRepositoryPort";
 
 export class SetEpisodeWatchStateUseCase {
@@ -23,13 +24,15 @@ export class SetEpisodeWatchStateUseCase {
   ): Promise<void> {
     // 1. Get the needed data
     const episodeToUpdate = await this.episodeRepo.findById(episodeId);
-    if (!episodeToUpdate) throw new ApiError(404, "Episode not found");
+    if (!episodeToUpdate)
+      throw new NotFoundException(messages.errors.notFound.episode);
 
     const season = await this.seasonRepo.findById(episodeToUpdate.seasonId);
-    if (!season) throw new ApiError(404, "Season not found");
+    if (!season) throw new NotFoundException(messages.errors.notFound.season);
 
     const series = await this.seriesRepo.findById(season.seriesId, "few");
-    if (!series || !series.seasons) throw new ApiError(404, "Series not found");
+    if (!series || !series.seasons)
+      throw new NotFoundException(messages.errors.notFound.series);
 
     // 2. Business logic
     const previousEpisodeId = await this.continueWatchingRepo.getCurrentEpisode(

@@ -1,7 +1,7 @@
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
 import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryModel";
+import { UnauthorizedException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
 import { messages } from "@/config/messages";
-import ApiError from "@/data/ApiError";
 import { GenericRepositoryHelper } from "@/helpers/GenericRepositoryHelper";
 import { UserType } from "@/utils/constants";
 import bcrypt from "bcrypt";
@@ -85,7 +85,9 @@ export class UsersRepositoryImpl
     }>
   ): Promise<User> {
     if (data.type === "admin" && (!data.password || !data.password.trim())) {
-      throw new ApiError(400, messages.errors.validation.userAdminNoPassword);
+      throw new UnauthorizedException(
+        messages.errors.validation.userAdminNoPassword
+      );
     }
 
     const hashedPassword = data.password

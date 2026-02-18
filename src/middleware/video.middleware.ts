@@ -1,5 +1,8 @@
+import {
+  ForbiddenException,
+  UnauthorizedException,
+} from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
 import { messages } from "@/config/messages";
-import ApiError from "@/data/ApiError";
 import { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
@@ -19,7 +22,7 @@ export const verifyVideoStreamToken = (
   const token = req.query.token as string;
 
   if (!token) {
-    return next(new ApiError(401, messages.errors.token.missing));
+    return next(new UnauthorizedException(messages.errors.token.missing));
   }
 
   try {
@@ -27,6 +30,6 @@ export const verifyVideoStreamToken = (
     req.videoParams = decoded;
     next();
   } catch (err) {
-    return next(new ApiError(403, messages.errors.token.invalid));
+    return next(new ForbiddenException(messages.errors.token.invalid));
   }
 };

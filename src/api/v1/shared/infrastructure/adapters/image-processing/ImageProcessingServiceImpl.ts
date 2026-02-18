@@ -1,5 +1,4 @@
 import { messages } from "@/config/messages";
-import ApiError from "@/data/ApiError";
 import logger from "@/utils/logger";
 import axios from "axios";
 import { Response } from "express";
@@ -8,6 +7,7 @@ import { Vibrant } from "node-vibrant/node";
 import path from "path";
 import sharp from "sharp";
 import { ImageProcessingServicePort } from "../../../application/ports/ImageProcessingServicePort";
+import { NotFoundException } from "../../web/exceptions/HTTPExceptions";
 import { fileSystemService } from "../di/container";
 
 const imageProcessingLogger = logger.child({ category: "Image Processing" });
@@ -45,10 +45,7 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
       };
     } catch (error) {
       imageProcessingLogger.error(error, "node-vibrant error");
-      throw new ApiError(
-        500,
-        "The image could not be processed to extract colors."
-      );
+      throw new Error("The image could not be processed to extract colors.");
     }
   }
 
@@ -94,10 +91,7 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
         error,
         "Error processing transparent image effect"
       );
-      throw new ApiError(
-        500,
-        "An error occurred while processing the image effect."
-      );
+      throw new Error("An error occurred while processing the image effect.");
     }
   }
 
@@ -120,7 +114,7 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
         error,
         `Error reading directory ${absolutePath}`
       );
-      throw new ApiError(500, "Error reading images folder.");
+      throw new Error("Error reading images folder.");
     }
   }
 
@@ -138,7 +132,7 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
       const inputStream = fs.createReadStream(resolvedPath);
       this._compressAndStream(inputStream, res, { width, height });
     } catch (error) {
-      throw new ApiError(404, messages.errors.notFound.file);
+      throw new NotFoundException(messages.errors.notFound.file);
     }
   }
 
@@ -163,8 +157,7 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
         "Error downloading or processing image from URL"
       );
       if (!res.headersSent) {
-        throw new ApiError(
-          500,
+        throw new Error(
           "Could not download or process the image from the URL."
         );
       }
