@@ -13,8 +13,6 @@ The project follows a modular architecture organized as follows:
   - Each domain follows a hexagonal architecture with:
     - `infrastructure/web/controllers/`: Web controllers (adapters for HTTP)
     - `infrastructure/adapters/`: External service adapters (e.g., metadata providers, IMDB scores)
-- `src/ffmpeg/`: FFmpeg utilities for media processing
-- `src/managers/`: Core managers for various functionalities (e.g., MediaManager, ConfigManager)
 - `src/middleware/`: Express middleware for authentication, sanitization, etc.
 - `src/utils/`: Utility functions and helpers
 - `src/__tests__/`: Test files using Jest
