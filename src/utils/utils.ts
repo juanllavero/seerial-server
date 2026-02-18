@@ -1,11 +1,9 @@
 /**
- * Fetches data from a given URL and returns the parsed JSON response.
- *
- * @param url - The URL to fetch data from.
- * @returns A promise that resolves to the parsed JSON data.
+ * Get the name of a language
+ * @param code Language code
+ * @param locale Language locale
+ * @returns Language name
  */
-export const fetcher = (url: string) => fetch(url).then((res) => res.json())
-
 export const getLanguageName = (code: string, locale: string) => {
   if (typeof Intl.DisplayNames === 'function') {
     const displayNames = new Intl.DisplayNames([locale], { type: 'language' })

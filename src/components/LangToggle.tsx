@@ -1,14 +1,13 @@
-import React from 'react'
 import {
   Select,
-  SelectTrigger,
   SelectContent,
   SelectItem,
+  SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { setAppLanguage } from '@/localization/helpers/language_helpers'
 import langs from '@/localization/langs'
 import { useTranslation } from 'react-i18next'
-import { setAppLanguage } from '@/helpers/language_helpers'
 
 export default function LangToggle() {
   const { i18n } = useTranslation()

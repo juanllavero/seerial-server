@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { useTranslation } from 'react-i18next'
 import { BrowserRouter } from 'react-router-dom'
-import { updateAppLanguage } from './helpers/language_helpers'
+import { updateAppLanguage } from './localization/helpers/language_helpers'
 import './localization/i18n'
 import { AppRoutes } from './routes/routes'
 
