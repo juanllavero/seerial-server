@@ -21,6 +21,7 @@ import {
   UpdateUserDTO,
   UserDTO,
 } from "../../../application/dtos/UserDTOs";
+import { toUserDTO } from "../../../domain/User";
 
 @Route("users")
 @Tags("Users")
@@ -40,7 +41,10 @@ export class UsersController extends Controller {
       process.env.JWT_SECRET || "",
       { expiresIn: "30d" }
     );
-    return ApiResponse.success({ token, user }, messages.success.create);
+    return ApiResponse.success(
+      { token, user: toUserDTO(user) },
+      messages.success.create
+    );
   }
 
   /**
@@ -53,7 +57,7 @@ export class UsersController extends Controller {
     @Body() body: UpdateUserDTO
   ): Promise<ApiResponse<UserDTO>> {
     const result = await useCases.updateUser().execute(id, body);
-    return ApiResponse.success(result as UserDTO, messages.success.update);
+    return ApiResponse.success(toUserDTO(result), messages.success.update);
   }
 
   /**
@@ -74,7 +78,7 @@ export class UsersController extends Controller {
   public async findAll(): Promise<ApiResponse<UserDTO[]>> {
     const result = await useCases.getAllUsers().execute();
     return ApiResponse.success(
-      result.map((u) => u as UserDTO),
+      result.map((u) => toUserDTO(u)),
       messages.success.fetch
     );
   }
@@ -93,7 +97,7 @@ export class UsersController extends Controller {
       .authenticateUser()
       .execute(username, password);
 
-    if (!result) {
+    if (!result || !result.user) {
       this.setStatus(401);
       throw new BadRequestException(
         messages.errors.server.userNotAuthenticated
@@ -112,6 +116,12 @@ export class UsersController extends Controller {
 
     this.setHeader("Set-Cookie", cookie);
 
-    return ApiResponse.success(result, messages.success.login);
+    return ApiResponse.success(
+      {
+        user: toUserDTO(result.user),
+        token: result.token,
+      },
+      messages.success.login
+    );
   }
 }

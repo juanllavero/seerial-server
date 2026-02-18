@@ -1,4 +1,5 @@
 import { Library } from "../../libraries/domain/Library";
+import { UserDTO } from "../application/dtos/UserDTOs";
 
 export type UserType = "normal" | "admin";
 
@@ -18,3 +19,16 @@ export interface User {
   // Associations
   libraries: Library[];
 }
+
+export const toUserDTO = (user: User): UserDTO => ({
+  id: user.id,
+  username: user.username,
+  avatar: user.avatar,
+  allowRemote: user.allowRemote,
+  type: user.type,
+  allowVideoTranscoding: user.allowVideoTranscoding,
+  internetBitrateLimit: user.internetBitrateLimit,
+  allowDownloads: user.allowDownloads,
+  hideInLogin: user.hideInLogin,
+  maxSessions: user.maxSessions,
+});
