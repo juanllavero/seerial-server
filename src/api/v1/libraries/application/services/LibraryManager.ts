@@ -1,11 +1,14 @@
 import { CollectionModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionModel";
 import {
+  fileSystemService,
+  imageProcessingService,
   librariesRepo,
   useCases,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { clearLibrary } from "@/api/v1/shared/infrastructure/services/FileSearchService";
 import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
 import { messages } from "@/config/messages";
+import { LibraryType, LibraryTypes } from "@/data/interfaces/Media";
 import { imageExtensions } from "@/utils/constants";
 import logger from "@/utils/logger";
 import fs from "fs";
@@ -39,19 +42,24 @@ export class LibraryManager {
 
   public static async getCollectionImages(
     collection: CollectionModel,
-    type: string
+    type: LibraryType
   ): Promise<{
     poster: string | null;
     background: string | null;
     images: string[];
   }> {
-    if (!collection) {
-      return {
-        images: [],
-        poster: null,
-        background: null,
-      };
-    }
+    const coverSrc =
+      type === LibraryTypes.MUSIC && collection.musicPosterSrc !== ""
+        ? collection.musicPosterSrc
+        : collection.posterSrc !== ""
+        ? collection.posterSrc
+        : "";
+
+    const backgroundSrc =
+      collection.backgroundSrc !== "" ? collection.backgroundSrc : "";
+
+    if (coverSrc !== "" && backgroundSrc !== "")
+      return { poster: coverSrc, background: backgroundSrc, images: [] };
 
     let items: any[] = [];
 
@@ -108,6 +116,57 @@ export class LibraryManager {
       poster: posterPath,
       background: backgroundPath,
       images: imagePaths,
+    };
+  }
+
+  /**
+   * Resolves collection posterSrc and backgroundSrc.
+   * The poster could be a collage of the covers of the items in the collection.
+   */
+  static async resolveCollectionImages(
+    collection: CollectionModel,
+    libraryId: string,
+    libraryType: LibraryType
+  ): Promise<{
+    poster: string | null;
+    background: string | null;
+  }> {
+    const collectionImages = await LibraryManager.getCollectionImages(
+      collection,
+      libraryType
+    );
+
+    if (collectionImages.images.length === 0)
+      return {
+        poster: collectionImages.poster,
+        background: collectionImages.background,
+      };
+
+    // Generate collage
+    const ratio = libraryType === LibraryTypes.MUSIC ? "square" : "poster";
+    const collageBuffer = await imageProcessingService.generateCollage(
+      collectionImages.images,
+      ratio,
+      libraryType
+    );
+
+    // Save collage image
+    const outputDir = fileSystemService.getExternalPath(
+      fileSystemService.join("resources", "img", "collages", collection.id)
+    );
+    fileSystemService.createFolder(outputDir);
+    const fileName = `collage-${collection.id}-${libraryId}.jpg`;
+    const filePath = fileSystemService.join(outputDir, fileName);
+    fileSystemService.writeImage(filePath, collageBuffer);
+
+    return {
+      poster: fileSystemService.join(
+        "img",
+        "collages",
+        collection.id,
+        fileName
+      ),
+      background: collectionImages.background,
     };
   }
 

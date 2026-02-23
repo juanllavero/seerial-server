@@ -99,8 +99,9 @@ export class LibrariesRepositoryImpl
         },
       });
 
-      const collectionImages = await LibraryManager.getCollectionImages(
+      const collectionImages = await LibraryManager.resolveCollectionImages(
         collection,
+        libraryId,
         type
       );
 
@@ -108,8 +109,8 @@ export class LibrariesRepositoryImpl
         id: collection.id,
         title: collection.title,
         years: years,
-        coverSrc: collection.posterSrc || collection.musicPosterSrc || "",
-        images: collectionImages,
+        coverSrc: collectionImages.poster ?? "",
+        backgroundSrc: collectionImages.background ?? "",
         numberOfItems,
         order: libraryCollection?.customOrder || 0,
         watched: false, // Collections don't have watch state

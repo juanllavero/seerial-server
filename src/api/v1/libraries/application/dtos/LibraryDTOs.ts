@@ -1,4 +1,4 @@
-import { LibraryType } from "../../infrastructure/persistence/models/LibraryModel";
+import { LibraryType } from "@/data/interfaces/Media";
 
 export interface CreateLibraryDTO {
   name: string;

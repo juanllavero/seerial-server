@@ -1,3 +1,6 @@
+import { LibraryType } from "@/data/interfaces/Media";
+import { CollageTileRatio } from "../../infrastructure/adapters/image-processing/ImageProcessingServiceImpl";
+
 export interface ImageProcessingServicePort {
   getImageColorPalette(
     imageSource: string,
@@ -30,4 +33,9 @@ export interface ImageProcessingServicePort {
     width?: number;
     height?: number;
   }): Promise<void>;
+  generateCollage(
+    imageSrcs: string[],
+    ratio: CollageTileRatio,
+    libraryType: LibraryType
+  ): Promise<Buffer>;
 }

@@ -68,8 +68,6 @@ export class LibrariesController extends Controller {
       throw new NotFoundException(messages.errors.notFound.library);
     }
 
-    // TODO: get collection images before sending back the data
-
     return ApiResponse.success(content, messages.success.fetch);
   }
 

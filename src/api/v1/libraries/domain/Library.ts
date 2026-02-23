@@ -1,8 +1,8 @@
+import { LibraryType } from "@/data/interfaces/Media";
 import { Album } from "../../albums/domain/Album";
 import { Collection } from "../../collections/domain/Collection";
 import { Movie } from "../../movies/domain/Movie";
 import { Series } from "../../series/domain/Series";
-import { LibraryType } from "../infrastructure/persistence/models/LibraryModel";
 
 export interface Library {
   id: string;

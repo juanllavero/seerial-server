@@ -2,6 +2,7 @@ import { AlbumModel } from "@/api/v1/albums/infrastructure/persistence/models/Al
 import { MovieModel } from "@/api/v1/movies/infrastructure/persistence/models/MovieModel";
 import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/SeriesModel";
 import { UserLibraryModel } from "@/api/v1/users/infrastructure/persistence/models/UserLibraryModel";
+import { LibraryType } from "@/data/interfaces/Media";
 import {
   BaseEntity,
   BeforeInsert,
@@ -12,8 +13,6 @@ import {
 } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
 import { LibraryCollectionModel } from "./LibraryCollectionModel";
-
-export type LibraryType = "Shows" | "Movies" | "Music";
 
 @Entity({ name: "Library" })
 export class LibraryModel extends BaseEntity {

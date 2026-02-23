@@ -56,8 +56,8 @@ appServer.use(
 appServer.use(
   "/users/login",
   rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 20, // 10 attempts per IP
+    windowMs: 10 * 60 * 1000, // 10 minutes
+    max: 20, // 20 attempts per IP
     message: "Too many login attempts, please try again later",
   })
 );

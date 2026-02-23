@@ -1,4 +1,5 @@
 import { messages } from "@/config/messages";
+import { LibraryType, LibraryTypes } from "@/data/interfaces/Media";
 import logger from "@/utils/logger";
 import axios from "axios";
 import { Response } from "express";
@@ -11,6 +12,13 @@ import { NotFoundException } from "../../web/exceptions/HTTPExceptions";
 import { fileSystemService } from "../di/container";
 
 const imageProcessingLogger = logger.child({ category: "Image Processing" });
+
+export type CollageTileRatio = "square" | "poster"; // 1:1 or 2:3
+
+interface CollageDimensions {
+  width: number;
+  height: number;
+}
 
 interface Swatch {
   rgb: [number, number, number];
@@ -331,6 +339,101 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
     });
 
     inputStream.pipe(transformer).pipe(res);
+  }
+  //#endregion
+
+  //#region Collection Images
+
+  private async loadImageBuffer(
+    src: string,
+    libraryType: LibraryType
+  ): Promise<Buffer> {
+    const defaultPath = fileSystemService.getExternalPath(
+      fileSystemService.join(
+        "resources",
+        "img",
+        "default",
+        `${
+          libraryType === LibraryTypes.MUSIC
+            ? "music"
+            : libraryType === LibraryTypes.MOVIES
+            ? "movie"
+            : "series"
+        }.jpg`
+      )
+    );
+    if (!src) return fs.readFileSync(defaultPath);
+
+    try {
+      if (src.startsWith("http")) {
+        const res = await axios.get(src, {
+          responseType: "arraybuffer",
+          timeout: 5000,
+        });
+        return Buffer.from(res.data);
+      } else {
+        const filePath = fileSystemService.getExternalPath(src);
+        return fs.readFileSync(filePath);
+      }
+    } catch {
+      return fs.readFileSync(defaultPath);
+    }
+  }
+
+  private async resizeToTile(
+    src: string,
+    width: number,
+    height: number,
+    libraryType: LibraryType
+  ): Promise<Buffer> {
+    const raw = await this.loadImageBuffer(src, libraryType);
+    return sharp(raw).resize(width, height, { fit: "cover" }).toBuffer();
+  }
+
+  private getCollageDimensions(ratio: CollageTileRatio): CollageDimensions {
+    const TILE_WIDTH = 200;
+    return {
+      width: TILE_WIDTH,
+      height:
+        ratio === "square" ? TILE_WIDTH : Math.round((TILE_WIDTH * 3) / 2), // 200x200 o 200x300
+    };
+  }
+
+  /**
+   * Generates a 2x2 collage with 1-4 images.
+   */
+  async generateCollage(
+    imageSrcs: string[],
+    ratio: CollageTileRatio = "poster",
+    libraryType: LibraryType
+  ): Promise<Buffer> {
+    const { width: tileW, height: tileH } = this.getCollageDimensions(ratio);
+    const totalW = tileW * 2;
+    const totalH = tileH * 2;
+
+    const sources = [...imageSrcs.slice(0, 4)];
+    while (sources.length < 4) sources.push("");
+
+    const tiles = await Promise.all(
+      sources.map((src) => this.resizeToTile(src, tileW, tileH, libraryType))
+    );
+
+    return sharp({
+      create: {
+        width: totalW,
+        height: totalH,
+        channels: 3,
+        background: { r: 30, g: 30, b: 30 },
+      },
+    })
+      .composite([
+        { input: tiles[0], top: 0, left: 0 },
+        { input: tiles[1], top: 0, left: tileW },
+        { input: tiles[2], top: tileH, left: 0 },
+        { input: tiles[3], top: tileH, left: tileW },
+      ])
+      .jpeg({ quality: 85 })
+      .toBuffer();
   }
   //#endregion
 }

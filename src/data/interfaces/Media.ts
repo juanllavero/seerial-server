@@ -28,18 +28,13 @@ export interface LibraryItem {
   title: string;
   years?: string;
   coverSrc?: string;
+  backgroundSrc?: string;
   numberOfItems: number;
 
   order: number;
   watched: boolean;
   remainingItems: number;
   analyzingFiles: boolean;
-
-  images?: {
-    poster: string | null;
-    background: string | null;
-    images: string[];
-  };
 
   type: ItemType;
 }
@@ -51,3 +46,5 @@ export enum LibraryTypes {
   MOVIES = "Movies",
   MUSIC = "Music",
 }
+
+export type LibraryType = "Shows" | "Movies" | "Music";
