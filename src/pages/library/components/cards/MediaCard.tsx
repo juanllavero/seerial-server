@@ -1,14 +1,12 @@
 import Card from '@/components/cards/Card'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
-import { authenticatedFetcher } from '@/config/api'
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
 import { useServerStore } from '@/context/server.context'
 import { LibraryTypes } from '@/data/enums/LibraryTypes'
 import {
   Collection,
-  CollectionImages,
   Library,
   LibraryItem,
   Movie,
@@ -19,16 +17,14 @@ import { DropdownContent } from '@/data/interfaces/Utils'
 import { useCardWidth } from '@/hooks/useCardWidth'
 import {
   getOnlyYear,
-  getPosterImage,
   refreshMetadata,
   toggleMovieWatched,
   toggleSeriesWatched,
 } from '@/utils/ReactUtils'
 import { Pencil } from 'lucide-react'
-import { memo, useEffect } from 'react'
+import { memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
 
 interface MediaCardProps {
@@ -97,13 +93,6 @@ function MediaCard({ item, library }: MediaCardProps) {
   const isMovies = !isCollection && library.type === LibraryTypes.MOVIES
   const isMusic = !isCollection && library.type === LibraryTypes.MUSIC
 
-  const { data: collectionImages } = useSWR<CollectionImages>(
-    isCollection
-      ? `/api/collection-images?collectionId=${id}&type=${queryType}`
-      : null,
-    authenticatedFetcher,
-  )
-
   let title: string
   let subtitle: string
   let imgSrc: string
@@ -134,21 +123,7 @@ function MediaCard({ item, library }: MediaCardProps) {
         <Pencil size={16} />
       </Button>
     )
-    if (collectionImages) {
-      const images = collectionImages.images ?? []
-      collageComponent =
-        images.length > 1 ? getPosterImage(id, images, queryType) : undefined
-      imgSrc =
-        collection.coverSrc !== ''
-          ? collection.coverSrc
-          : collectionImages.poster && collectionImages.poster !== ''
-            ? collectionImages.poster
-            : images.length > 0
-              ? images[0]
-              : errorSrc
-    } else {
-      imgSrc = errorSrc
-    }
+    imgSrc = collection.coverSrc !== '' ? collection.coverSrc : errorSrc
   } else if (isShows) {
     const series = item.data as Series
     remaining = item.remainingItems ?? 0
@@ -220,13 +195,13 @@ function MediaCard({ item, library }: MediaCardProps) {
     return null // Fallback, should not happen
   }
 
-  useEffect(() => {
-    if (isCollection && collectionImages?.background) {
-      setCurrentBackground(
-        (item.data as Collection).backgroundSrc || collectionImages.background,
-      )
-    }
-  }, [collectionImages, setCurrentBackground, isCollection, item.data])
+  // useEffect(() => {
+  //   if (isCollection && collectionImages?.background) {
+  //     setCurrentBackground(
+  //       (item.data as Collection).backgroundSrc || collectionImages.background,
+  //     )
+  //   }
+  // }, [collectionImages, setCurrentBackground, isCollection, item.data])
 
   const menuContent: DropdownContent = {
     items: [

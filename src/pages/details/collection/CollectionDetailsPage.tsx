@@ -16,9 +16,6 @@ import {
 } from '@/data/interfaces/Media'
 import { Album } from '@/data/interfaces/Music'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
-import AlbumCard from '@/pages/library/components/cards/AlbumCard'
-import MovieCard from '@/pages/library/components/cards/MovieCard'
-import SeriesCard from '@/pages/library/components/cards/SeriesCard'
 import { CollectionKey, ContentType } from '@/types/types'
 import { getCoverSize, getTitleSize } from '@/utils/ReactUtils'
 import { Ellipsis, Pencil } from 'lucide-react'
@@ -231,8 +228,14 @@ function CollectionDetailsPage() {
             handleDragEnd(sourceIndex, destinationIndex, 'albums')
           }
           renderItem={(item: Album) => (
-            <div key={item.id} className={isMobile ? 'w-45' : ''}>
-              <AlbumCard album={item} />
+            <div key={item.id} clastemsName={isMobile ? 'w-45' : ''}>
+              <AlbumCard
+                album={{
+                  type: 'album',
+                  order: 0,
+                  data: item,
+                }}
+              />
             </div>
           )}
         />

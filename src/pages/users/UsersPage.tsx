@@ -27,10 +27,12 @@ export default function UsersPage() {
   const [errorMessage, setErrorMessage] = useState('')
 
   // Fetch users registered in the server
-  const { data: users, isLoading: gettingUsers } = useSWR<BasicUser[]>(
+  const { data, isLoading: gettingUsers } = useSWR<any>(
     API.users.findAllPublic,
     authenticatedFetcher,
   )
+
+  const users = data && (data.data as BasicUser[])
 
   const defaultSection = users && users.length > 0 ? 'profiles' : 'manual'
   const [view, setView] = useState(defaultSection) // 'profiles', 'manual', 'addUser', 'servers'
@@ -143,7 +145,7 @@ export default function UsersPage() {
               </h1>
               {/* Users Grid */}
               <div className="mb-8 flex flex-wrap justify-center gap-6">
-                {users.map((user) => (
+                {users.map((user: BasicUser) => (
                   <button
                     key={user.id}
                     onClick={() => handleUserClick(user)}
