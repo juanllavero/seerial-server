@@ -2,13 +2,14 @@ import Loading from '@/components/Loading'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import LazyImage from '@/components/ui/LazyImage'
-import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
+import { API, authenticatedFetch } from '@/config/api'
 import { useWebSocketStore } from '@/context/ws.context'
+import { Episode, Season, Series } from '@/data/interfaces/Media'
+import { useGet } from '@/hooks/media/useGet'
 import { formatDate } from '@/utils/ReactUtils'
 import { PlayIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
-import useSWR from 'swr'
 import VideoTracks from './components/VideoTracks'
 
 function EpisodeDetailsPage() {
@@ -21,23 +22,22 @@ function EpisodeDetailsPage() {
     data: episode,
     isLoading,
     mutate,
-  } = useSWR(
-    episodeId ? API.episodes.get(episodeId) : null,
-    authenticatedFetcher,
+  } = useGet<Episode>(episodeId ? API.episodes.get(episodeId) : '')
+
+  const { data: season } = useGet<Season>(
+    episode ? API.seasons.get(episode.seasonId) : '',
   )
 
-  const { data: season } = useSWR(
-    episode ? API.seasons.get(episode.seasonId) : null,
-    authenticatedFetcher,
-  )
-
-  const { data: series } = useSWR(
-    season ? API.series.get(season.seriesId) : null,
-    authenticatedFetcher,
+  const { data: series } = useGet<Series>(
+    season ? API.series.get(season.seriesId) : '',
   )
 
   if (isLoading) {
     return <Loading />
+  }
+
+  if (!episode) {
+    return null
   }
 
   return (

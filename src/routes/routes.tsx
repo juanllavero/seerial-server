@@ -2,7 +2,7 @@ import { lazy, memo } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import Root from './__root'
 
-const UsersPage = lazy(() => import('@/pages/users/UsersPage'))
+const LoginPage = lazy(() => import('@/pages/login/LoginPage'))
 const TVLinkPage = lazy(() => import('@/pages/link/TVLinkPage'))
 const HomePage = lazy(() => import('@/pages/home/HomePage'))
 const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'))
@@ -32,7 +32,7 @@ export function AppRoutes() {
     <Routes>
       <Route path="/" element={<Root />}>
         {/* Login Pages */}
-        <Route path="/users" element={<UsersPage />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/link" element={<TVLinkPage />} />
 
         {/* Default to Home Page */}

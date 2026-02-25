@@ -1,12 +1,10 @@
 import { useIsMobile } from '@/components/hooks/use-mobile'
+import HorizontalList from '@/components/lists/HorizontalList'
 import FlexBox from '@/components/ui/FlexBox'
 import { Movie, Video } from '@/data/interfaces/Media'
-import HorizontalList from '@/components/lists/HorizontalList'
-import { useNavigate } from 'react-router-dom'
-import React from 'react'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import VideoCard from './cards/VideoCard'
-import { useServerStore } from '@/context/server.context'
 
 interface MovieContentProps {
   movie: Movie

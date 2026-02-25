@@ -1,6 +1,6 @@
 import Image from '@/components/ui/Image'
 import { authenticatedFetch } from '@/config/api'
-import { useServerStore } from '@/context/server.context'
+import { useServerStore } from '@/context/auth.store'
 import { CENTRAL_SERVER } from '@/utils/constants'
 import { t } from 'i18next'
 import { useEffect, useState } from 'react'

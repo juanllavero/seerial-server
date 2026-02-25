@@ -16,9 +16,9 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
+import { useServerStore } from '@/context/auth.store'
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
-import { useServerStore } from '@/context/server.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { LibraryTypes } from '@/data/enums/LibraryTypes'
 import { Library } from '@/data/interfaces/Media'

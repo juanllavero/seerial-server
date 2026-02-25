@@ -6,19 +6,19 @@ import FlexBox from '@/components/ui/FlexBox'
 import { MarkWatchedIcon, UnmarkWatchedIcon } from '@/components/ui/IconLibrary'
 import LazyImage from '@/components/ui/LazyImage'
 import { Skeleton } from '@/components/ui/skeleton'
-import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
+import { API, authenticatedFetch } from '@/config/api'
+import { useServerStore } from '@/context/auth.store'
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
-import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import { Series } from '@/data/interfaces/Media'
-import { APIResponse } from '@/data/interfaces/Utils'
+import { useGet } from '@/hooks/media/useGet'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { t } from 'i18next'
 import { Pencil } from 'lucide-react'
 import { useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import useSWR, { mutate } from 'swr'
+import { mutate } from 'swr'
 import { shallow } from 'zustand/shallow'
 import CastList from '../components/CastList'
 import SeasonContent from '../components/SeasonsContent'
@@ -58,12 +58,9 @@ function SeriesDetailsPage() {
     data: series,
     isLoading,
     error,
-  } = useSWR<APIResponse<Series>>(
-    `${API.series.get(seriesId ?? '')}?include=all`,
-    authenticatedFetcher,
-  )
+  } = useGet<Series>(`${API.series.get(seriesId ?? '')}?include=all`)
 
-  const seriesData = series ? series.data : undefined
+  const seriesData = series ? series : undefined
 
   // Get selected season data
   const season =

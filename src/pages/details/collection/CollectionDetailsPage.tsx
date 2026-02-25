@@ -4,7 +4,7 @@ import { SortableHorizontalList } from '@/components/lists/SortableHorizontalLis
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Skeleton } from '@/components/ui/skeleton'
-import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
+import { API, authenticatedFetch } from '@/config/api'
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
 import { useWebSocketStore } from '@/context/ws.context'
@@ -15,6 +15,7 @@ import {
   Series,
 } from '@/data/interfaces/Media'
 import { Album } from '@/data/interfaces/Music'
+import { useGet } from '@/hooks/media/useGet'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { CollectionKey, ContentType } from '@/types/types'
 import { getCoverSize, getTitleSize } from '@/utils/ReactUtils'
@@ -22,7 +23,6 @@ import { Ellipsis, Pencil } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router-dom'
-import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
 import '../DetailsPage.css'
 import CollectionImage from './CollectionImage'
@@ -49,16 +49,12 @@ function CollectionDetailsPage() {
     data: collection,
     isLoading,
     mutate,
-  } = useSWR<Collection>(
-    API.collections.get(collectionId ?? ''),
-    authenticatedFetcher,
-  )
+  } = useGet<Collection>(API.collections.get(collectionId ?? ''))
 
-  const { data: collectionImages } = useSWR<CollectionImages>(
+  const { data: collectionImages } = useGet<CollectionImages>(
     collection
       ? `/api/collection-images?collectionId=${collection.id}&&type=${type}`
-      : null,
-    authenticatedFetcher,
+      : '',
   )
 
   const [localCollection, setLocalCollection] = useState<Collection | null>(

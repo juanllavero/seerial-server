@@ -1,11 +1,10 @@
 import { SortableGrid } from '@/components/lists/SortableGrid'
-import { API, authenticatedFetcher } from '@/config/api'
+import { API } from '@/config/api'
 import { LibraryTypes } from '@/data/enums/LibraryTypes'
 import { Library, LibraryItem } from '@/data/interfaces/Media'
-import { APIResponse } from '@/data/interfaces/Utils'
+import { useGet } from '@/hooks/media/useGet'
 import { useReorderableList } from '@/hooks/useReorderableList'
 import { memo } from 'react'
-import useSWR from 'swr'
 import MediaCard from './cards/MediaCard'
 
 interface MediaListProps {
@@ -21,15 +20,12 @@ function MediaList({ library, mutateLibrary }: MediaListProps) {
         ? 'Shows'
         : 'Movies'
 
-  const { data, isLoading } = useSWR<APIResponse<LibraryItem[]>>(
+  const { data: libraryItems, isLoading } = useGet<LibraryItem[]>(
     `${API.libraries.content(library.id)}?type=${queryType}`,
-    authenticatedFetcher,
   )
 
-  const libraryItems = data && data.data ? data.data : []
-
   const { items, handleDragEnd } = useReorderableList(
-    libraryItems,
+    libraryItems || [],
     library.id,
     mutateLibrary,
   )

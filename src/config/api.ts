@@ -8,58 +8,79 @@ import axios from 'axios'
 // Base Configuration
 // ============================================================================
 
-export const API_BASE_URL = '/api'
+export const DEFAULT_API_BASE_URL = '/api'
+
+/**
+ * Initialize baseURL from persisted server on module load.
+ * This ensures that even before the store hydrates, axios points at the
+ * correct server when the page is refreshed.
+ */
+function getInitialBaseUrl(): string {
+  try {
+    const raw = localStorage.getItem('auth:server')
+    if (raw) {
+      const server = JSON.parse(raw)
+      if (server?.url) return `${server.url}/api`
+    }
+  } catch {
+    // ignore
+  }
+  return DEFAULT_API_BASE_URL
+}
 
 export const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: getInitialBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
   withCredentials: true,
 })
 
+/**
+ * Dynamically updates the axios base URL to point at a different server.
+ * Called by auth.store whenever the user selects a server.
+ */
+export function setApiBaseUrl(serverUrl: string) {
+  apiClient.defaults.baseURL = `${serverUrl}/api`
+}
+
+/**
+ * Creates a one-off axios instance targeting a specific server URL.
+ * Used during discovery/probing so we don't mutate the global client.
+ */
+export function createServerClient(serverUrl: string) {
+  return axios.create({
+    baseURL: `${serverUrl}/api`,
+    headers: { 'Content-Type': 'application/json' },
+    withCredentials: false,
+  })
+}
+
 // ============================================================================
 // Authenticated Fetch Functions
 // ============================================================================
 
-/**
- * Authenticated fetch function using axios
- * Replaces the original authenticatedFetch but with axios
- *
- * @param url - Endpoint URL (relative to baseURL)
- * @param type - HTTP method (GET, POST, PUT, DELETE, etc.)
- * @param body - Request body for POST/PUT/PATCH
- */
 export async function authenticatedFetch(
   url: string,
   type: string = 'GET',
   body?: any,
 ) {
-  const config = {
-    method: type,
-    url,
-  }
+  const config = { method: type, url }
 
   if (body && type !== 'GET') {
-    return await apiClient.request({ ...config, data: body })
+    return await apiClient
+      .request({ ...config, data: body })
+      .then((res) => res.data)
   }
 
-  return await apiClient.request(config)
+  return await apiClient.request(config).then((res) => res.data)
 }
 
-/**
- * Fetcher for useSWR - automatically includes baseURL and credentials
- * Usage: useSWR(API.movies.myList('123'), authenticatedFetcher)
- */
 export const authenticatedFetcher = async (url: string) => {
   const res = await apiClient.get(url)
   return res.data
 }
 
-/**
- * Fetcher with params for useSWR
- * Usage: useSWR([API.movies.search, { name: 'Inception' }], fetcherWithParams)
- */
 export const fetcherWithParams = async ([url, params]: [string, any]) => {
   const res = await apiClient.get(url, { params })
   return res.data
@@ -91,7 +112,6 @@ export const api = {
 // ============================================================================
 
 export const API = {
-  // Movies
   movies: {
     get: (id: string) => `/movies/${id}`,
     refreshMetadata: (id: string) => `/movies/${id}/metadata`,
@@ -104,16 +124,12 @@ export const API = {
     remainingVideos: (id: string) => `/movies/${id}/remaining-videos`,
     myList: (id: string) => `/movies/${id}/my-list`,
   },
-
-  // Video Streaming
   videoStreaming: {
     transcodedUrl: '/video-streaming/transcoded-url',
     passthroughUrl: '/video-streaming/passthrough-url',
     transcoded: '/video-streaming/transcoded',
     passthrough: '/video-streaming/passthrough',
   },
-
-  // Videos
   videos: {
     get: (id: string) => `/videos/${id}`,
     getByEpisodeId: (episodeId: string) => `/videos/by-episode/${episodeId}`,
@@ -125,8 +141,6 @@ export const API = {
     thumbnail: '/videos/thumbnail',
     subtitles: '/videos/subtitles',
   },
-
-  // Users
   users: {
     create: '/users',
     update: (id: string) => `/users/${id}`,
@@ -134,8 +148,6 @@ export const API = {
     findAllPublic: '/users/public',
     login: '/users/login',
   },
-
-  // Songs
   songs: {
     update: (id: string) => `/songs/${id}`,
     delete: (id: string) => `/songs/${id}`,
@@ -143,46 +155,32 @@ export const API = {
     addLyrics: '/songs/lyrics',
     stream: '/songs/stream',
   },
-
-  // Search
   search: {
     media: '/search/media',
   },
-
-  // Media
   media: {
     details: (type: string) => `/media/details/${type}`,
     background: (itemType: string, mediaType: string) =>
       `/media/${itemType}/${mediaType}`,
   },
-
-  // Files
   files: {
     drives: '/files/drives',
     folder: '/files/folder',
   },
-
-  // Downloads
   downloads: {
     video: '/downloads/video',
     music: '/downloads/music',
     image: '/downloads/image',
   },
-
-  // Configuration
   configuration: {
     apiKey: '/configuration/api-key',
   },
-
-  // Servers
   servers: {
     status: '/servers',
     update: (id: string) => `/servers/${id}`,
     configKey: (key: string) => `/servers/config/${key}`,
     config: '/servers/config',
   },
-
-  // Series
   series: {
     get: (id: string) => `/series/${id}`,
     refreshMetadata: '/series/metadata',
@@ -196,16 +194,12 @@ export const API = {
     remainingEpisodes: (id: string) => `/series/${id}/remaining-episodes`,
     myList: (id: string) => `/series/${id}/my-list`,
   },
-
-  // Seasons
   seasons: {
     get: (id: string) => `/seasons/${id}`,
     update: (id: string) => `/seasons/${id}`,
     delete: (id: string) => `/seasons/${id}`,
     setWatchState: (id: string) => `/seasons/${id}/watch-state`,
   },
-
-  // Playlists
   playlists: {
     getAll: '/playlists',
     create: '/playlists',
@@ -216,16 +210,12 @@ export const API = {
     removeSong: (id: string, songId: string) =>
       `/playlists/${id}/songs/${songId}`,
   },
-
-  // My List
   myList: {
     movies: '/my-list/movies',
     series: '/my-list/series',
     isMovieInList: (id: string) => `/my-list/movies/${id}/check`,
     isSeriesInList: (id: string) => `/my-list/series/${id}/check`,
   },
-
-  // Libraries
   libraries: {
     getAll: '/libraries',
     create: '/libraries',
@@ -237,8 +227,6 @@ export const API = {
     reorder: '/libraries/order',
     reorderItems: (id: string) => `/libraries/${id}/order`,
   },
-
-  // Images
   images: {
     upload: '/images',
     directoryListing: '/images',
@@ -247,21 +235,15 @@ export const API = {
     colors: '/images/colors',
     transparent: '/images/effects/transparent',
   },
-
-  // Episodes
   episodes: {
     get: (id: string) => `/episodes/${id}`,
     update: (id: string) => `/episodes/${id}`,
     delete: (id: string) => `/episodes/${id}`,
     setWatchState: (id: string) => `/episodes/${id}/watch-state`,
   },
-
-  // Continue Watching
   continueWatching: {
     getVideos: '/continue-watching',
   },
-
-  // Collections
   collections: {
     get: (id: string) => `/collections/${id}`,
     musicExtras: (collectionId: string) =>
@@ -270,23 +252,17 @@ export const API = {
     update: (id: string) => `/collections/${id}`,
     delete: (id: string) => `/collections/${id}`,
   },
-
-  // Artists
   artists: {
     create: '/artists',
     getById: (id: string) => `/artists/${id}`,
     update: (id: string) => `/artists/${id}`,
     delete: (id: string) => `/artists/${id}`,
   },
-
-  // Albums
   albums: {
     get: (id: string) => `/albums/${id}`,
     update: (id: string) => `/albums/${id}`,
     delete: (id: string) => `/albums/${id}`,
   },
-
-  // Watch Lists
   watchLists: {
     updateWatchState: '/watch-lists/watch-state',
   },

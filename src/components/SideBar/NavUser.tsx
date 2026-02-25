@@ -13,7 +13,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { useServerStore } from '@/context/server.context'
+import { useServerStore } from '@/context/auth.store'
 import { cn } from '@/utils/tailwind'
 import { ChevronRight, LogOut, Settings, UserRound } from 'lucide-react'
 import { useState } from 'react'
@@ -22,9 +22,11 @@ import { shallow } from 'zustand/shallow'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 export function NavUser() {
   const navigate = useNavigate()
-  const { user } = useServerStore(
+  const { user, setCurrentUser, setSelectedServer } = useServerStore(
     (state) => ({
       user: state.currentUser,
+      setCurrentUser: state.setCurrentUser,
+      setSelectedServer: state.setSelectedServer,
     }),
     shallow,
   )
@@ -37,10 +39,13 @@ export function NavUser() {
   }
 
   const handleChangeProfile = () => {
-    navigate('/users')
+    setCurrentUser(null)
+    navigate('/login')
   }
 
-  const handleLogout = () => {
+  const handleChangeServer = () => {
+    setCurrentUser(null)
+    setSelectedServer(null)
     navigate('/login')
   }
 
@@ -113,7 +118,7 @@ export function NavUser() {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}>
+            <DropdownMenuItem onClick={handleChangeServer}>
               <LogOut />
               Change server
             </DropdownMenuItem>

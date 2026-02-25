@@ -1,19 +1,22 @@
-import { useServerStore } from '@/context/server.context'
+import { useServerStore } from '@/context/auth.store'
 import BaseLayout from '@/layouts/BaseLayout'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { shallow } from 'zustand/shallow'
 
+const PUBLIC_PATHS = ['/login', '/link']
+
 function Root() {
   const location = useLocation()
-  const { user } = useServerStore(
-    (state) => ({
-      user: state.currentUser,
-    }),
+  const { user, server } = useServerStore(
+    (state) => ({ user: state.currentUser, server: state.selectedServer }),
     shallow,
   )
 
-  if (!user && location.pathname !== '/users') {
-    return <Navigate to="/users" replace />
+  const isPublic = PUBLIC_PATHS.includes(location.pathname)
+
+  if (!user || !server) {
+    if (!isPublic) return <Navigate to="/login" replace />
+    return <Outlet />
   }
 
   return (

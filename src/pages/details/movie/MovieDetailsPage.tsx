@@ -10,20 +10,20 @@ import {
 } from '@/components/ui/IconLibrary'
 import LazyImage from '@/components/ui/LazyImage'
 import { Skeleton } from '@/components/ui/skeleton'
-import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
+import { API, authenticatedFetch } from '@/config/api'
+import { useServerStore } from '@/context/auth.store'
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.context'
-import { useServerStore } from '@/context/server.context'
 import { useSettingsStore } from '@/context/settings.context'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Movie } from '@/data/interfaces/Media'
+import { useGet } from '@/hooks/media/useGet'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { formatTimeForView } from '@/utils/ReactUtils'
 import { t } from 'i18next'
 import { Pencil } from 'lucide-react'
 import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
 import CastList from '../components/CastList'
 import MovieContent from '../components/MovieContent'
@@ -52,7 +52,7 @@ function MovieDetailsPage() {
     isLoading,
     error,
     mutate,
-  } = useSWR<Movie>(API.movies.get(movieId ?? ''), authenticatedFetcher)
+  } = useGet<Movie>(API.movies.get(movieId ?? ''))
 
   const isMobile = useIsMobile()
   const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true

@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { API, authenticatedFetch } from '@/config/api'
-import { useServerStore } from '@/context/server.context'
+import { useServerStore } from '@/context/auth.store'
 import { Video } from '@/data/interfaces/Media'
 import { ChevronLeft, Maximize2, Minimize2 } from 'lucide-react'
 import React from 'react'

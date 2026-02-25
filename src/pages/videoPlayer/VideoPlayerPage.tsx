@@ -1,6 +1,6 @@
 import Loading from '@/components/Loading'
 import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
-import { useServerStore } from '@/context/server.context'
+import { useServerStore } from '@/context/auth.store'
 import { Video } from '@/data/interfaces/Media'
 import { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
 import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'

@@ -1,4 +1,4 @@
-import { useServerStore } from '@/context/server.context'
+import { useServerStore } from '@/context/auth.store'
 import { UserType } from '@/utils/constants'
 import { shallow } from 'zustand/shallow'
 

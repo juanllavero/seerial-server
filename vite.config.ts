@@ -19,6 +19,7 @@ export default defineConfig({
     },
   },
   server: {
+    port: 5180,
     proxy: {
       //Redirects API requests to the server
       '/api': {
