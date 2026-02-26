@@ -39,7 +39,7 @@ export class CollectionsRepositoryImpl
 
     return (
       collections?.libraryCollections.map(
-        (c) => c.collection as unknown as Collection
+        (c) => c.collection as unknown as Collection,
       ) || []
     );
   }
@@ -64,7 +64,7 @@ export class CollectionsRepositoryImpl
     });
 
     return (data?.libraryCollections || []).map(
-      (c) => c.collection as unknown as Collection
+      (c) => c.collection as unknown as Collection,
     );
   }
 
@@ -105,7 +105,7 @@ export class CollectionsRepositoryImpl
     await this.helper.createRelationship(
       CollectionAlbumModel,
       relationData,
-      true
+      true,
     );
   }
 
@@ -120,7 +120,7 @@ export class CollectionsRepositoryImpl
     await this.helper.createRelationship(
       CollectionMovieModel,
       relationData,
-      true
+      true,
     );
   }
 
@@ -135,7 +135,7 @@ export class CollectionsRepositoryImpl
     await this.helper.createRelationship(
       CollectionSeriesModel,
       relationData,
-      true
+      true,
     );
   }
 
@@ -150,7 +150,7 @@ export class CollectionsRepositoryImpl
     await this.helper.createRelationship(
       LibraryCollectionModel,
       relationData,
-      true
+      true,
     );
   }
 
@@ -192,7 +192,7 @@ export class CollectionsRepositoryImpl
 
   async reorderContent(
     collectionId: string,
-    orderedItems: ReorderItemDTO[]
+    orderedItems: ReorderItemDTO[],
   ): Promise<void> {
     const validatedId = this.validateId(collectionId, "Collection ID");
 
@@ -212,17 +212,17 @@ export class CollectionsRepositoryImpl
       await queryRunner.manager.update(
         CollectionMovieModel,
         { collectionId: validatedId },
-        { customOrder: tempOrder }
+        { customOrder: tempOrder },
       );
       await queryRunner.manager.update(
         CollectionSeriesModel,
         { collectionId: validatedId },
-        { customOrder: tempOrder }
+        { customOrder: tempOrder },
       );
       await queryRunner.manager.update(
         CollectionAlbumModel,
         { collectionId: validatedId },
-        { customOrder: tempOrder }
+        { customOrder: tempOrder },
       );
 
       for (const [index, item] of orderedItems.entries()) {
@@ -233,19 +233,19 @@ export class CollectionsRepositoryImpl
           await queryRunner.manager.update(
             CollectionMovieModel,
             { collectionId: validatedId, movieId: item.id },
-            { customOrder: newOrder }
+            { customOrder: newOrder },
           );
         } else if (type === "series" || type === "show" || type === "shows") {
           await queryRunner.manager.update(
             CollectionSeriesModel,
             { collectionId: validatedId, seriesId: item.id },
-            { customOrder: newOrder }
+            { customOrder: newOrder },
           );
         } else if (type === "album" || type === "albums") {
           await queryRunner.manager.update(
             CollectionAlbumModel,
             { collectionId: validatedId, albumId: item.id },
-            { customOrder: newOrder }
+            { customOrder: newOrder },
           );
         }
       }

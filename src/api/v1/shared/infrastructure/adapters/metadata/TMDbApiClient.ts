@@ -1,5 +1,4 @@
 import logger from "@/utils/logger";
-import path from "path";
 import propertiesReader from "properties-reader";
 import { fileSystemService } from "../di/container";
 
@@ -12,7 +11,7 @@ export class TMDbApiClient {
 
   async makeRequest(
     endpoint: string,
-    queryParams: Record<string, any> = {}
+    queryParams: Record<string, any> = {},
   ): Promise<any> {
     const url = new URL(`${this.BASE_URL}/${endpoint}`);
 
@@ -51,12 +50,12 @@ export class TMDbApiClient {
     if (this.connectionStatus) return true;
 
     const propertiesFilePath = fileSystemService.getExternalPath(
-      path.join("resources", "config", "keys.properties")
+      fileSystemService.join("resources", "config", "keys.properties"),
     );
 
     if (!fileSystemService.isFile(propertiesFilePath)) {
       console.warn(
-        "keys.properties file not found, omitting connection with TMDB."
+        "keys.properties file not found, omitting connection with TMDB.",
       );
       return false;
     }

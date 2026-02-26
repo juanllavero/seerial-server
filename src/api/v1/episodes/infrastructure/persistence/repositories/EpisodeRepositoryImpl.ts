@@ -1,4 +1,5 @@
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
+import { BadRequestException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
 import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/VideoModel";
 import { GenericRepositoryHelper } from "@/helpers/GenericRepositoryHelper";
 import { v4 as uuidv4 } from "uuid";
@@ -36,7 +37,8 @@ export class EpisodeRepositoryImpl
   }
 
   async findByVideoSrc(videoSrc: string): Promise<Episode | null> {
-    if (!videoSrc) throw new Error("Video source path is required");
+    if (!videoSrc)
+      throw new BadRequestException("Video source path is required");
 
     const video = await VideoModel.findOne({ where: { fileSrc: videoSrc } });
     if (!video || !video.episodeId) return null;

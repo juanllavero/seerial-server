@@ -1,3 +1,8 @@
+import {
+  ForbiddenException,
+  NotFoundException,
+  UnauthorizedException,
+} from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
 import { UserModel } from "@/api/v1/users/infrastructure/persistence/models/UserModel";
 import { messages } from "@/config/messages";
 import { UserType } from "@/utils/constants";
@@ -14,7 +19,7 @@ import logger from "../utils/logger";
 export async function expressAuthentication(
   request: Request,
   securityName: string,
-  scopes?: string[]
+  scopes?: string[],
 ): Promise<any> {
   if (securityName === "public") {
     // No authentication required
@@ -26,7 +31,7 @@ export async function expressAuthentication(
     const token = request.cookies.token;
 
     if (!token) {
-      throw new Error(messages.errors.token.missing);
+      throw new UnauthorizedException(messages.errors.token.missing);
     }
 
     try {
@@ -40,7 +45,7 @@ export async function expressAuthentication(
       });
 
       if (!user) {
-        throw new Error(messages.errors.notFound.user);
+        throw new NotFoundException(messages.errors.notFound.user);
       }
 
       // Check library access if route involves a library
@@ -57,7 +62,7 @@ export async function expressAuthentication(
       // Check remote access
       const ip = getClientIp(request);
       if (!isLoopback(ip) && !user.allowRemote) {
-        throw new Error(messages.errors.token.noRemoteAccess);
+        throw new UnauthorizedException(messages.errors.token.noRemoteAccess);
       }
 
       // Check session limit (omitted in original tsoa auth for simplicity)
@@ -65,7 +70,7 @@ export async function expressAuthentication(
       return user;
     } catch (err) {
       logger.error(err, "[Authentication] Error");
-      throw new Error(messages.errors.token.invalid);
+      throw new UnauthorizedException(messages.errors.token.invalid);
     }
   }
 
@@ -73,7 +78,7 @@ export async function expressAuthentication(
     // Fast authentication without additional checks
     const token = request.cookies.token;
     if (!token) {
-      throw new Error(messages.errors.token.missing);
+      throw new UnauthorizedException(messages.errors.token.missing);
     }
 
     try {
@@ -82,13 +87,13 @@ export async function expressAuthentication(
       };
       const user = await UserModel.findOne({ where: { id: decoded.userId } });
       if (!user) {
-        throw new Error(messages.errors.token.invalid);
+        throw new UnauthorizedException(messages.errors.token.invalid);
       }
 
       return user;
     } catch (err) {
       logger.error(err, "[Authentication] Error");
-      throw new Error(messages.errors.token.invalid);
+      throw new UnauthorizedException(messages.errors.token.invalid);
     }
   }
 
@@ -96,7 +101,7 @@ export async function expressAuthentication(
     // Admin authentication
     const token = request.cookies.token;
     if (!token) {
-      throw new Error(messages.errors.token.missing);
+      throw new UnauthorizedException(messages.errors.token.missing);
     }
 
     try {
@@ -106,12 +111,12 @@ export async function expressAuthentication(
       };
       const user = await UserModel.findOne({ where: { id: decoded.userId } });
       if (!user || user.type !== UserType.ADMIN) {
-        throw new Error(messages.errors.token.noAccess);
+        throw new ForbiddenException(messages.errors.token.noAccess);
       }
       return user;
     } catch (err) {
       logger.error(err, "[Authentication] Error");
-      throw new Error(messages.errors.token.invalid);
+      throw new UnauthorizedException(messages.errors.token.invalid);
     }
   }
 
@@ -140,7 +145,7 @@ export async function expressAuthentication(
 
     // Remote request: check token and admin user
     if (!token) {
-      throw new Error(messages.errors.token.missing);
+      throw new UnauthorizedException(messages.errors.token.missing);
     }
 
     try {
@@ -152,17 +157,17 @@ export async function expressAuthentication(
       const decoded = jwt.verify(token, secret) as { userId: string };
       const user = await UserModel.findOne({ where: { id: decoded.userId } });
       if (!user) {
-        throw new Error(messages.errors.token.invalid);
+        throw new UnauthorizedException(messages.errors.token.invalid);
       }
 
       if (user.type === UserType.ADMIN) {
         return user;
       }
 
-      throw new Error(messages.errors.token.noAccess);
+      throw new ForbiddenException(messages.errors.token.noAccess);
     } catch (err) {
       logger.error(err, "[Authentication] Error");
-      throw new Error(messages.errors.token.invalid);
+      throw new UnauthorizedException(messages.errors.token.invalid);
     }
   }
 

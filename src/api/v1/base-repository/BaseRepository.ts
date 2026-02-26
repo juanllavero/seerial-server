@@ -1,30 +1,11 @@
 import logger from "@/utils/logger";
+import {
+  BadRequestException,
+  NotFoundException,
+  RepositoryException,
+} from "../shared/infrastructure/web/exceptions/HTTPExceptions";
 
 const repositoryLogger = logger.child({ category: "Repository" });
-
-/**
- * Custom error types for better error handling
- */
-export class RepositoryError extends Error {
-  constructor(message: string, public readonly cause?: Error) {
-    super(message);
-    this.name = "RepositoryError";
-  }
-}
-
-export class ValidationError extends RepositoryError {
-  constructor(message: string) {
-    super(message);
-    this.name = "ValidationError";
-  }
-}
-
-export class NotFoundError extends RepositoryError {
-  constructor(entityName: string, identifier: string) {
-    super(`${entityName} with identifier ${identifier} not found`);
-    this.name = "NotFoundError";
-  }
-}
 
 /**
  * Enhanced base repository with improved validations and error handling
@@ -35,8 +16,8 @@ export abstract class BaseRepository {
    */
   protected validateId(id: string, fieldName = "ID"): string {
     if (!id || typeof id !== "string" || id.trim() === "") {
-      throw new ValidationError(
-        `${fieldName} is required and must be a non-empty string`
+      throw new BadRequestException(
+        `${fieldName} is required and must be a non-empty string`,
       );
     }
     return id.trim();
@@ -60,7 +41,9 @@ export abstract class BaseRepository {
    */
   protected validateData<T>(data: T, fieldName = "Data"): T {
     if (!data || (typeof data === "object" && Object.keys(data).length === 0)) {
-      throw new ValidationError(`${fieldName} is required and cannot be empty`);
+      throw new BadRequestException(
+        `${fieldName} is required and cannot be empty`,
+      );
     }
     return data;
   }
@@ -75,28 +58,28 @@ export abstract class BaseRepository {
       minLength?: number;
       maxLength?: number;
       pattern?: RegExp;
-    }
+    },
   ): string {
     if (!value || typeof value !== "string") {
-      throw new ValidationError(`${fieldName} must be a valid string`);
+      throw new BadRequestException(`${fieldName} must be a valid string`);
     }
 
     const trimmed = value.trim();
 
     if (options?.minLength && trimmed.length < options.minLength) {
-      throw new ValidationError(
-        `${fieldName} must be at least ${options.minLength} characters long`
+      throw new BadRequestException(
+        `${fieldName} must be at least ${options.minLength} characters long`,
       );
     }
 
     if (options?.maxLength && trimmed.length > options.maxLength) {
-      throw new ValidationError(
-        `${fieldName} must not exceed ${options.maxLength} characters`
+      throw new BadRequestException(
+        `${fieldName} must not exceed ${options.maxLength} characters`,
       );
     }
 
     if (options?.pattern && !options.pattern.test(trimmed)) {
-      throw new ValidationError(`${fieldName} format is invalid`);
+      throw new BadRequestException(`${fieldName} format is invalid`);
     }
 
     return trimmed;
@@ -108,18 +91,18 @@ export abstract class BaseRepository {
   protected async handleRepositoryError<T>(
     operation: () => Promise<T>,
     errorMessage: string,
-    entityName?: string
+    entityName?: string,
   ): Promise<T> {
     try {
       return await operation();
     } catch (error) {
       // Re-throw validation errors
-      if (error instanceof ValidationError) {
+      if (error instanceof BadRequestException) {
         throw error;
       }
 
       // Re-throw not found errors
-      if (error instanceof NotFoundError) {
+      if (error instanceof NotFoundException) {
         throw error;
       }
 
@@ -130,9 +113,9 @@ export abstract class BaseRepository {
 
       // Log and wrap unexpected errors
       repositoryLogger.error(error, errorMessage);
-      throw new RepositoryError(
+      throw new RepositoryException(
         errorMessage,
-        error instanceof Error ? error : undefined
+        error instanceof Error ? error : undefined,
       );
     }
   }
@@ -142,10 +125,10 @@ export abstract class BaseRepository {
    */
   protected ensureAffected(
     affectedCount: number,
-    notFoundMessage: string
+    notFoundMessage: string,
   ): void {
     if (affectedCount === 0) {
-      throw new Error(notFoundMessage);
+      throw new NotFoundException(notFoundMessage);
     }
   }
 
@@ -156,7 +139,7 @@ export abstract class BaseRepository {
   protected async safeOperation<T>(
     operation: () => Promise<T>,
     defaultValue: T,
-    errorMessage: string
+    errorMessage: string,
   ): Promise<T> {
     try {
       return await operation();

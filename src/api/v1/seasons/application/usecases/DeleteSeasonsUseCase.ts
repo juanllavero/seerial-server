@@ -1,4 +1,5 @@
 import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
 import { SeasonsRepositoryPort } from "../ports/SeasonsRepositoryPort";
 
 export class DeleteSeasonUseCase {
@@ -6,7 +7,7 @@ export class DeleteSeasonUseCase {
 
   async execute(id: string): Promise<void> {
     const season = await this.seasonsRepo.findById(id, "few");
-    if (!season) throw new Error(`Season with ID ${id} not found`);
+    if (!season) throw new NotFoundException(`Season with ID ${id} not found`);
 
     // Delete episodes
     for (const episode of season.episodes || []) {

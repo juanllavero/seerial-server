@@ -65,3 +65,12 @@ export class ForbiddenException extends HttpException {
     super(HTTPCodes.FORBIDDEN, message);
   }
 }
+
+/**
+ * Exception for 500 Repository Error scenarios.
+ */
+export class RepositoryException extends HttpException {
+  constructor(message: string = "Internal Server Error", errors?: any) {
+    super(HTTPCodes.SERVER_ERROR, message, errors);
+  }
+}

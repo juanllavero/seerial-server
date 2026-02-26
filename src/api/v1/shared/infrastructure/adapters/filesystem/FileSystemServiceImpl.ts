@@ -19,7 +19,7 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
   public extPath = "/";
   public resourcesPath = this.getExternalPath("resources");
   public propertiesFilePath = this.getExternalPath(
-    "resources/config/keys.properties"
+    this.join("resources", "config", "keys.properties"),
   );
 
   public properties: Reader | undefined = undefined;
@@ -135,7 +135,7 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
   //#region GET FILES
   public async getFileInFolder(
     pathStr: string,
-    fileName: string
+    fileName: string,
   ): Promise<string | null> {
     try {
       const entries = await fs.promises.readdir(pathStr, {
@@ -169,7 +169,7 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
       const sanitizedPath = SanitizationService.sanitizeDirectoryPath(
         folderPath,
         SanitizationService.getSystemAllowedPaths(),
-        true
+        true,
       );
       const filesAndFolders = await this.getFilesInFolder(sanitizedPath);
       for (const fileOrFolder of filesAndFolders) {
@@ -195,7 +195,7 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
     const searchDepth = 4;
     const exploreDirectory = async (
       currentPath: string,
-      currentDepth: number
+      currentDepth: number,
     ): Promise<void> => {
       const entries = await this.getFilesInFolder(currentPath);
       for (const entry of entries) {
@@ -263,7 +263,7 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
 
   public readFileSync(
     filePath: string,
-    encoding: BufferEncoding = "utf-8"
+    encoding: BufferEncoding = "utf-8",
   ): string {
     return fs.readFileSync(filePath, encoding);
   }
@@ -273,14 +273,14 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
   public async writeFile(
     filePath: string,
     content: string,
-    encoding: BufferEncoding = "utf-8"
+    encoding: BufferEncoding = "utf-8",
   ): Promise<void> {
     return fs.promises.writeFile(filePath, content, encoding);
   }
 
   public async writeImage(
     filePath: string,
-    imageBuffer: Buffer
+    imageBuffer: Buffer,
   ): Promise<void> {
     await fs.promises.writeFile(filePath, imageBuffer);
   }

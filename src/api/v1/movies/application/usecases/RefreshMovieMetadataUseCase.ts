@@ -3,6 +3,7 @@ import {
   notificationService,
   useCases,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
 import logger from "@/utils/logger";
 
 const refreshMovieMetadataLogger = logger.child({
@@ -29,7 +30,7 @@ export class RefreshMovieMetadataUseCase {
     const library = await getLibraryById.execute(movie.libraryId);
     if (!library) {
       refreshMovieMetadataLogger.error(
-        `No library found for movie: ${movie.name}`
+        `No library found for movie: ${movie.name}`,
       );
       return;
     }
@@ -43,11 +44,11 @@ export class RefreshMovieMetadataUseCase {
       // Get metadata from TheMovieDB
       const movieMetadata = await metadataProvider.getMovie(
         movie.themdbId,
-        library.language
+        library.language,
       );
       if (!movieMetadata) {
-        throw new Error(
-          `No metadata found in TheMovieDB for movie: ${movie.themdbId}`
+        throw new NotFoundException(
+          `No metadata found in TheMovieDB for movie: ${movie.themdbId}`,
         );
       }
 
@@ -55,7 +56,7 @@ export class RefreshMovieMetadataUseCase {
       await metadataProvider.updateMovieMetadata(
         movie,
         movieMetadata,
-        library.language
+        library.language,
       );
 
       // Update videos metadata
@@ -69,7 +70,7 @@ export class RefreshMovieMetadataUseCase {
     } catch (error) {
       refreshMovieMetadataLogger.error(
         error,
-        `Error refreshing movie "${movie.name}"`
+        `Error refreshing movie "${movie.name}"`,
       );
     } finally {
       // Update UI

@@ -42,7 +42,7 @@ export class LibraryManager {
 
   public static async getCollectionImages(
     collection: CollectionModel,
-    type: LibraryType
+    type: LibraryType,
   ): Promise<{
     poster: string | null;
     background: string | null;
@@ -52,8 +52,8 @@ export class LibraryManager {
       type === LibraryTypes.MUSIC && collection.musicPosterSrc !== ""
         ? collection.musicPosterSrc
         : collection.posterSrc !== ""
-        ? collection.posterSrc
-        : "";
+          ? collection.posterSrc
+          : "";
 
     const backgroundSrc =
       collection.backgroundSrc !== "" ? collection.backgroundSrc : "";
@@ -96,7 +96,7 @@ export class LibraryManager {
         } catch (error) {
           libraryManagerLogger.error(
             error,
-            `Error reading folder ${baseFolder}`
+            `Error reading folder ${baseFolder}`,
           );
         }
       }
@@ -126,14 +126,14 @@ export class LibraryManager {
   static async resolveCollectionImages(
     collection: CollectionModel,
     libraryId: string,
-    libraryType: LibraryType
+    libraryType: LibraryType,
   ): Promise<{
     poster: string | null;
     background: string | null;
   }> {
     const collectionImages = await LibraryManager.getCollectionImages(
       collection,
-      libraryType
+      libraryType,
     );
 
     if (collectionImages.images.length === 0)
@@ -147,25 +147,33 @@ export class LibraryManager {
     const collageBuffer = await imageProcessingService.generateCollage(
       collectionImages.images,
       ratio,
-      libraryType
+      libraryType,
     );
 
     // Save collage image
     const outputDir = fileSystemService.getExternalPath(
-      fileSystemService.join("resources", "img", "collages", collection.id)
+      fileSystemService.join("resources", "img", "collages", collection.id),
     );
     fileSystemService.createFolder(outputDir);
     const fileName = `collage-${collection.id}-${libraryId}.jpg`;
     const filePath = fileSystemService.join(outputDir, fileName);
     fileSystemService.writeImage(filePath, collageBuffer);
 
+    const collectionPoster = fileSystemService.join(
+      "img",
+      "collages",
+      collection.id,
+      fileName,
+    );
+
+    collection.posterSrc = collectionImages.poster || collection.posterSrc;
+    collection.backgroundSrc =
+      collectionImages.background || collection.backgroundSrc;
+
+    await collection.save();
+
     return {
-      poster: fileSystemService.join(
-        "img",
-        "collages",
-        collection.id,
-        fileName
-      ),
+      poster: collectionPoster,
       background: collectionImages.background,
     };
   }
