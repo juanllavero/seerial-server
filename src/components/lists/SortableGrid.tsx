@@ -17,13 +17,11 @@ export function SortableGrid({
     return monitorForElements({
       onDrop: ({ source, location }) => {
         const target = location.current.dropTargets[0]
-        console.log({ target })
         if (!target) return
 
         const sourceData = source.data as { id: string; index: number }
         const targetData = target.data as { id: string; index: number }
 
-        console.log({ sourceData, targetData })
         if (sourceData.id === targetData.id) return
 
         const sourceIndex = sourceData.index
@@ -37,7 +35,7 @@ export function SortableGrid({
   return (
     items &&
     items.map((item, index) => (
-      <SortableItem key={item.data.id} id={item.data.id} index={index}>
+      <SortableItem key={item.id} id={item.id} index={index}>
         {renderItem(item)}
       </SortableItem>
     ))

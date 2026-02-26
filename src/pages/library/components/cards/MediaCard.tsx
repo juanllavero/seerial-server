@@ -3,20 +3,11 @@ import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
 import { useServerStore } from '@/context/auth.store'
 import useDataStore from '@/context/data.context'
-import { useDialogStore } from '@/context/dialog.context'
-import { LibraryTypes } from '@/data/enums/LibraryTypes'
-import {
-  Collection,
-  Library,
-  LibraryItem,
-  Movie,
-  Series,
-} from '@/data/interfaces/Media'
-import { Album } from '@/data/interfaces/Music'
+import { useDialogStore } from '@/context/dialog.store'
+import { LibraryItem } from '@/data/interfaces/Media'
 import { DropdownContent } from '@/data/interfaces/Utils'
 import { useCardWidth } from '@/hooks/useCardWidth'
 import {
-  getOnlyYear,
   refreshMetadata,
   toggleMovieWatched,
   toggleSeriesWatched,
@@ -29,10 +20,10 @@ import { shallow } from 'zustand/shallow'
 
 interface MediaCardProps {
   item: LibraryItem
-  library: Library
+  libraryType: string
 }
 
-function MediaCard({ item, library }: MediaCardProps) {
+function MediaCard({ item, libraryType }: MediaCardProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { cardWidth } = useCardWidth()
@@ -43,165 +34,61 @@ function MediaCard({ item, library }: MediaCardProps) {
     (state) => ({ user: state.currentUser }),
     shallow,
   )
-  const {
-    selectSeries,
-    selectMovie,
-    selectAlbum,
-    selectCollection,
-    setCurrentBackground,
-  } = useDataStore(
-    (state) => ({
-      selectSeries: state.selectSeries,
-      selectMovie: state.selectMovie,
-      selectAlbum: state.selectAlbum,
-      selectCollection: state.selectCollection,
-      setCurrentBackground: state.setCurrentBackground,
-    }),
-    shallow,
-  )
-  const {
-    openSeriesDialog,
-    openMovieDialog,
-    openAlbumDialog,
-    openCollectionDialog,
-    openIdentificationDialog,
-    openEpisodesGroupDialog,
-  } = useDialogStore(
-    (state) => ({
-      openSeriesDialog: state.openSeriesDialog,
-      openMovieDialog: state.openMovieDialog,
-      openAlbumDialog: state.openAlbumDialog,
-      openCollectionDialog: state.openCollectionDialog,
-      openIdentificationDialog: state.openIdentificationDialog,
-      openEpisodesGroupDialog: state.openEpisodesGroupDialog,
-    }),
+  const { selectSeries, selectMovie, selectAlbum, selectCollection } =
+    useDataStore(
+      (state) => ({
+        selectSeries: state.selectSeries,
+        selectMovie: state.selectMovie,
+        selectAlbum: state.selectAlbum,
+        selectCollection: state.selectCollection,
+      }),
+      shallow,
+    )
+  const { openDialog } = useDialogStore(
+    (state) => ({ openDialog: state.openDialog }),
     shallow,
   )
 
-  const queryType =
-    library.type === LibraryTypes.MUSIC
-      ? 'Music'
-      : library.type === LibraryTypes.SHOWS
-        ? 'Shows'
-        : 'Movies'
-  const aspectRatio = queryType === 'Music' ? 1 : 2 / 3
-  const errorSrc =
-    queryType === 'Music' ? '/img/songDefault.png' : '/img/fileNotFound.jpg'
-  const id = item.data.id
-  const isCollection = item.type === 'collection'
-  const isShows = !isCollection && library.type === LibraryTypes.SHOWS
-  const isMovies = !isCollection && library.type === LibraryTypes.MOVIES
-  const isMusic = !isCollection && library.type === LibraryTypes.MUSIC
+  const { type, id } = item
+  const isCollection = type === 'collection'
+  const isShows = type === 'series'
+  const isMovies = type === 'movie'
+  const isMusic = type === 'album'
 
-  let title: string
-  let subtitle: string
-  let imgSrc: string
-  let collageComponent: React.ReactNode | undefined = undefined
-  let watched: boolean | undefined = false
-  let cornerNumber: number | undefined = undefined
+  const aspectRatio = isMusic ? 1 : 2 / 3
+  const errorSrc = isMusic ? '/img/songDefault.png' : '/img/fileNotFound.jpg'
+  const imgSrc =
+    item.coverSrc && item.coverSrc !== '' ? item.coverSrc : errorSrc
+  const title = item.title
+  const subtitle = item.years ?? '-'
+  const watched = item.watched
+  const cornerNumber = isShows ? item.remainingItems : undefined
+
   let action: () => void
-  let editModal: React.ReactNode
-  let remaining = 0
 
   if (isCollection) {
-    const collection = item.data as Collection
-    title = collection.title
-    subtitle = `${collection.numberOfItems ?? 0} ${t('elements')}`
     action = () => {
       selectCollection(id)
-      navigate(`/details/collection/${id}/${queryType}`)
+      navigate(`/collection/${id}/${libraryType}`)
     }
-    editModal = (
-      <Button
-        variant={'ghost'}
-        size={'icon'}
-        onClick={(e) => {
-          e.stopPropagation()
-          openCollectionDialog(collection)
-        }}
-      >
-        <Pencil size={16} />
-      </Button>
-    )
-    imgSrc = collection.coverSrc !== '' ? collection.coverSrc : errorSrc
   } else if (isShows) {
-    const series = item.data as Series
-    remaining = item.remainingItems ?? 0
-    title = series.name
-    subtitle = getOnlyYear(series.year).toString()
-    watched = remaining === 0
-    cornerNumber = remaining
-    imgSrc = series.coverSrc
     action = () => {
       selectSeries(id)
       navigate(`series/${id}`)
     }
-    editModal = (
-      <Button
-        variant={'ghost'}
-        size={'icon'}
-        onClick={(e) => {
-          e.stopPropagation()
-          openSeriesDialog(series)
-        }}
-      >
-        <Pencil size={16} />
-      </Button>
-    )
   } else if (isMovies) {
-    const movie = item.data as Movie
-    title = movie.name
-    subtitle = getOnlyYear(movie.year).toString()
-    watched = movie.watchStatus !== undefined
-    imgSrc = movie.coverSrc
     action = () => {
       selectMovie(id)
       navigate(`movie/${id}`)
     }
-    editModal = (
-      <Button
-        variant={'ghost'}
-        size={'icon'}
-        onClick={(e) => {
-          e.stopPropagation()
-          openMovieDialog(movie)
-        }}
-      >
-        <Pencil size={16} />
-      </Button>
-    )
   } else if (isMusic) {
-    const album = item.data as Album
-    title = album.title
-    subtitle = album.year ?? '-'
-    imgSrc = album.coverSrc
     action = () => {
       selectAlbum(id)
       navigate(`album/${id}`)
     }
-    editModal = (
-      <Button
-        variant={'ghost'}
-        size={'icon'}
-        onClick={(e) => {
-          e.stopPropagation()
-          openAlbumDialog(album)
-        }}
-      >
-        <Pencil size={16} />
-      </Button>
-    )
   } else {
-    return null // Fallback, should not happen
+    return null
   }
-
-  // useEffect(() => {
-  //   if (isCollection && collectionImages?.background) {
-  //     setCurrentBackground(
-  //       (item.data as Collection).backgroundSrc || collectionImages.background,
-  //     )
-  //   }
-  // }, [collectionImages, setCurrentBackground, isCollection, item.data])
 
   const menuContent: DropdownContent = {
     items: [
@@ -224,10 +111,10 @@ function MediaCard({ item, library }: MediaCardProps) {
                 {
                   title: t('correctIdentification'),
                   action: () =>
-                    openIdentificationDialog(
-                      isShows ? (item.data as Series) : undefined,
-                      isMovies ? (item.data as Movie) : undefined,
-                    ),
+                    openDialog('identification', {
+                      seriesId: isShows ? id : undefined,
+                      movieId: isMovies ? id : undefined,
+                    }),
                 },
               ]
             : []),
@@ -235,7 +122,7 @@ function MediaCard({ item, library }: MediaCardProps) {
             ? [
                 {
                   title: t('changeEpisodesGroup'),
-                  action: () => openEpisodesGroupDialog(item.data as Series),
+                  action: () => openDialog('episodesGroup', { seriesId: id }),
                 },
               ]
             : []),
@@ -246,8 +133,8 @@ function MediaCard({ item, library }: MediaCardProps) {
                   action: () =>
                     user &&
                     (isShows
-                      ? toggleSeriesWatched(item.data as Series, user.id)
-                      : toggleMovieWatched(item.data as Movie, user.id)),
+                      ? toggleSeriesWatched(id, !watched, user.id)
+                      : toggleMovieWatched(id, !watched, user.id)),
                 },
               ]
             : []),
@@ -266,12 +153,18 @@ function MediaCard({ item, library }: MediaCardProps) {
     ],
   }
 
+  const openEditDialog = () => {
+    if (isCollection) openDialog('collection', { id })
+    else if (isShows) openDialog('series', { id })
+    else if (isMovies) openDialog('movie', { id })
+    else if (isMusic) openDialog('album', { id })
+  }
+
   return (
     <Card
       itemKey={id}
       width={width}
       imgSrc={imgSrc}
-      collageComponent={collageComponent}
       aspectRatio={aspectRatio}
       title={title}
       subtitle={subtitle}
@@ -282,7 +175,18 @@ function MediaCard({ item, library }: MediaCardProps) {
       loading={false}
       hidePlayButton
       menu={menuContent}
-      editModal={editModal}
+      editModal={
+        <Button
+          variant={'ghost'}
+          size={'icon'}
+          onClick={(e) => {
+            e.stopPropagation()
+            openEditDialog()
+          }}
+        >
+          <Pencil size={16} />
+        </Button>
+      }
       errorSrc={errorSrc}
     />
   )

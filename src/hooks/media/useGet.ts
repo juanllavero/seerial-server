@@ -9,7 +9,10 @@ interface ApiResponse<T> {
   timestamp: string
 }
 
-export const useGet = <T>(url: string, swrOptions?: SWRConfiguration) => {
+export const useGet = <T>(
+  url: string | null,
+  swrOptions?: SWRConfiguration,
+) => {
   const {
     data: response,
     isLoading,

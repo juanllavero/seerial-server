@@ -39,7 +39,6 @@ export default function BaseLayout({
   const [showNewImage, setShowNewImage] = useState(false)
 
   const location = useLocation()
-  const inDetailsPage = location.pathname.includes('/details/')
   const inMusicPage = location.pathname.includes('/album/')
 
   useEffect(() => {

@@ -50,7 +50,7 @@ function ContinueWatching({ goToContent }: ContinueWatchingProps) {
               }`}
               action={() =>
                 goToContent(
-                  `/details/${video.episodeId ? 'episode' : 'movie'}/${video.episodeId ? video.episodeId : video.movieId}`,
+                  `/${video.episodeId ? 'episode' : 'movie'}/${video.episodeId ? video.episodeId : video.movieId}`,
                 )
               }
               playButtonAction={() =>

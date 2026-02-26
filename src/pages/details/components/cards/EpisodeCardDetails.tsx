@@ -3,7 +3,6 @@ import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { useServerStore } from '@/context/auth.store'
-import { useDialogStore } from '@/context/dialog.context'
 import { Episode } from '@/data/interfaces/Media'
 import { getVideoProgress } from '@/utils/ReactUtils'
 import { Pencil } from 'lucide-react'
@@ -14,6 +13,7 @@ interface EpisodeCardDetailsProps {
   playEpisode: (episode: Episode) => void
   goToDetails: (episode: Episode) => void
   getEpisodeMenu: (episode: Episode) => any
+  editEpisode: (episode: any) => void
 }
 
 function EpisodeCardDetails({
@@ -21,11 +21,11 @@ function EpisodeCardDetails({
   playEpisode,
   goToDetails,
   getEpisodeMenu,
+  editEpisode,
 }: EpisodeCardDetailsProps) {
   const user = useServerStore((state) => state.currentUser)
   const { t } = useTranslation()
   const isMobile = useIsMobile()
-  const openEpisodeDialog = useDialogStore((state) => state.openEpisodeDialog)
 
   const watchedList = episode.video.watchLists.find(
     (list: any) => list.userId === user?.id,
@@ -54,7 +54,7 @@ function EpisodeCardDetails({
               size={'icon'}
               onClick={(e) => {
                 e.stopPropagation()
-                openEpisodeDialog(episode)
+                editEpisode(episode)
               }}
             >
               <Pencil size={16} />

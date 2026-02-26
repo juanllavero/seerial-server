@@ -1,6 +1,5 @@
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import FlexBox from '@/components/ui/FlexBox'
-import Image from '@/components/ui/Image'
 import { Cast } from '@/data/interfaces/Media'
 
 interface CastCardProps {
@@ -20,14 +19,17 @@ function CastCard({ index, person }: CastCardProps) {
       key={'Cast Person ' + index}
       padding="1rem"
     >
-      <Image
+      {/* <Image
         src={person.profileImage}
         aspectRatio={1}
         width={isMobile ? 25 : 40}
         fallbackSrc="local/img/castDefault.png"
         className={`aspect-square w-${isMobile ? '25' : '40'} h-${isMobile ? '25' : '40'} rounded-full`}
         alt={person.name}
-      />
+      /> */}
+      <div
+        className={`aspect-square bg-white w-${isMobile ? '25' : '40'} h-${isMobile ? '25' : '40'} rounded-full`}
+      ></div>
       <span className={isMobile ? 'text-xs' : ''}>{person.name}</span>
       <span
         className={isMobile ? 'text-xs' : 'text-sm'}

@@ -3,7 +3,7 @@ import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
 import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import { useServerStore } from '@/context/auth.store'
-import { useDialogStore } from '@/context/dialog.context'
+import { useDialogStore } from '@/context/dialog.store'
 import { Movie } from '@/data/interfaces/Media'
 import { refreshMetadata, toggleMovieWatched } from '@/utils/ReactUtils'
 import { Pencil } from 'lucide-react'
@@ -19,13 +19,13 @@ interface MyListMoviesProps {
 
 function MyListMovies({ goToContent }: MyListMoviesProps) {
   const { t } = useTranslation()
-  const { openIdentificationDialog, openMovieDialog } = useDialogStore(
+  const { openDialog } = useDialogStore(
     (state) => ({
-      openIdentificationDialog: state.openIdentificationDialog,
-      openMovieDialog: state.openMovieDialog,
+      openDialog: state.openDialog,
     }),
     shallow,
   )
+
   const { user } = useServerStore(
     (state) => ({
       user: state.currentUser,
@@ -80,7 +80,8 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
                     },
                     {
                       title: t('correctIdentification'),
-                      action: () => openIdentificationDialog(undefined, movie),
+                      action: () =>
+                        openDialog('identification', { movieId: movie.id }),
                     },
                     {
                       title:
@@ -88,7 +89,13 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
                           ? t('markUnwatched')
                           : t('markWatched'),
 
-                      action: () => user && toggleMovieWatched(movie, user.id),
+                      action: () =>
+                        user &&
+                        toggleMovieWatched(
+                          movie.id,
+                          !movie.watchStatus,
+                          user.id,
+                        ),
                     },
                   ],
                 },
@@ -110,14 +117,14 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
                 size={'icon'}
                 onClick={(e) => {
                   e.stopPropagation()
-                  openMovieDialog(movie)
+                  openDialog('movie', { id: movie.id })
                 }}
               >
                 <Pencil size={16} />
               </Button>
             }
             hidePlayButton
-            action={() => goToContent(`/details/movie/${movie.id}`)}
+            action={() => goToContent(`/movie/${movie.id}`)}
           />
         ))
       ) : (

@@ -1,6 +1,6 @@
 import { ModalWrapper } from '@/components/ModalWrapper'
 import { API, authenticatedFetch } from '@/config/api'
-import { useDialogStore } from '@/context/dialog.context'
+import { useDialogStore } from '@/context/dialog.store'
 import { useWebSocketStore } from '@/context/ws.context'
 import { Album } from '@/data/interfaces/Music'
 import { ImageType } from '@/utils/constants'

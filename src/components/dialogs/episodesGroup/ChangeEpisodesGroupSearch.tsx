@@ -1,7 +1,7 @@
 import Loading from '@/components/Loading'
 import FlexBox from '@/components/ui/FlexBox'
 import { API, authenticatedFetch } from '@/config/api'
-import { useDialogStore } from '@/context/dialog.context'
+import { useDialogStore } from '@/context/dialog.store'
 import { useWebSocketStore } from '@/context/ws.context'
 import { EpisodeGroupResult } from '@/data/interfaces/Utils'
 import { getEpisodeGroupType } from '@/utils/ReactUtils'

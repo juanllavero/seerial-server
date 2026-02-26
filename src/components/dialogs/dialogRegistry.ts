@@ -1,9 +1,8 @@
 import { lazy } from 'react'
 
-// Registry of dialog components
 export const dialogRegistry = {
   library: lazy(() => import('./library/LibraryDialog')),
-  removeLibrary: lazy(() => import('./remove/RemoveLibraryDialog')),
+
   collection: lazy(() => import('./collection/CollectionDialog')),
   movie: lazy(() => import('./movie/MovieDialog')),
   series: lazy(() => import('./series/SeriesDialog')),
@@ -17,6 +16,14 @@ export const dialogRegistry = {
   episodesGroup: lazy(
     () => import('./episodesGroup/ChangeEpisodesGroupDialog'),
   ),
+  deleteSeries: lazy(() => import('./delete/DeleteDialog')),
+  deleteMovie: lazy(() => import('./delete/DeleteDialog')),
+  deleteSeason: lazy(() => import('./delete/DeleteDialog')),
+  deleteEpisode: lazy(() => import('./delete/DeleteDialog')),
+  deleteAlbum: lazy(() => import('./delete/DeleteDialog')),
+  deleteSong: lazy(() => import('./delete/DeleteDialog')),
+  deleteCollection: lazy(() => import('./delete/DeleteDialog')),
+  deleteLibrary: lazy(() => import('./delete/DeleteDialog')),
 } as const
 
 export type DialogType = keyof typeof dialogRegistry

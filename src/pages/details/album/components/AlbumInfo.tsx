@@ -1,24 +1,24 @@
+import useScreenHeight from '@/components/hooks/use-height'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { useIsTablet } from '@/components/hooks/use-tablet'
+import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
+import { PauseIcon, PlayIcon } from '@/components/ui/IconLibrary'
+import Image from '@/components/ui/Image'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useDialogStore } from '@/context/dialog.context'
+import { useDialogStore } from '@/context/dialog.store'
 import useMusicStore from '@/context/music.context'
 import { Album, Song } from '@/data/interfaces/Music'
-import { Pencil, Shuffle } from 'lucide-react'
-import Image from '@/components/ui/Image'
-import { useTranslation } from 'react-i18next'
-import { PauseIcon, PlayIcon } from '@/components/ui/IconLibrary'
-import useScreenHeight from '@/components/hooks/use-height'
-import { shallow } from 'zustand/shallow'
-import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
-import { getCoverSize, getTitleSize } from '@/utils/ReactUtils'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
+import { getCoverSize, getTitleSize } from '@/utils/ReactUtils'
+import { Pencil, Shuffle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { shallow } from 'zustand/shallow'
 
 interface AlbumInfoProps {
   isLoading: boolean
-  album?: Album
+  album: Album
 }
 
 function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
@@ -47,7 +47,10 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
     }),
     shallow,
   )
-  const openAlbumDialog = useDialogStore((state) => state.openAlbumDialog)
+  const { openDialog } = useDialogStore(
+    (state) => ({ openDialog: state.openDialog }),
+    shallow,
+  )
 
   const getTotalDuration = (songs: Song[]) => {
     return songs.reduce((acc, song) => acc + song.duration / 60, 0).toFixed(0)
@@ -137,11 +140,7 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
               variant={'ghost'}
               title={t('editButton')}
               className="rounded-full"
-              onClick={() => {
-                if (album) {
-                  openAlbumDialog(album)
-                }
-              }}
+              onClick={() => openDialog('album', { id: album.id })}
             >
               <Pencil />
             </Button>

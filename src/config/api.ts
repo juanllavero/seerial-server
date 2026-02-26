@@ -195,7 +195,8 @@ export const API = {
     myList: (id: string) => `/series/${id}/my-list`,
   },
   seasons: {
-    get: (id: string) => `/seasons/${id}`,
+    get: (id: string, include?: string) =>
+      `/seasons/${id}?include=${include ?? 'none'}`,
     update: (id: string) => `/seasons/${id}`,
     delete: (id: string) => `/seasons/${id}`,
     setWatchState: (id: string) => `/seasons/${id}/watch-state`,

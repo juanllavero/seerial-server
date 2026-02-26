@@ -1,8 +1,8 @@
 import { Button } from '@/components/ui/button'
-import { useDialogStore } from '@/context/dialog.context'
+import { useDialogStore } from '@/context/dialog.store'
+import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { useTranslation } from 'react-i18next'
 import AlertContent from './AlertContent'
-import { useIsAdmin } from '@/hooks/useIsAdmin'
 
 function NoContent() {
   const { t } = useTranslation()

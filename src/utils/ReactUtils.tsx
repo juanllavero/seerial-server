@@ -1,6 +1,6 @@
 import Image from '@/components/ui/Image'
 import { ScreenHeight } from '@/data/enums/Screen'
-import { Collection, Movie, Series, Video } from '@/data/interfaces/Media'
+import { Collection, Video } from '@/data/interfaces/Media'
 
 import { API, authenticatedFetch } from '@/config/api'
 import { useWebSocketStore } from '@/context/ws.context'
@@ -26,32 +26,36 @@ export const getVideoProgress = (video: Video, watchedTime?: number) => {
   return undefined
 }
 
-export const toggleMovieWatched = (movie: Movie, userId: string) => {
-  if (movie) {
-    authenticatedFetch(API.movies.setWatchState(movie.id), 'POST', {
-      movieId: movie.id,
-      watched: movie.watchStatus === undefined,
-      userId,
-    }).then(() => {
-      mutate((key: string) => key.startsWith(`/api/myListMovies`))
-      mutate((key: string) => key.startsWith(`/api/library-content`))
-      mutate((key: string) => key.startsWith(`/api/details/movie`))
-    })
-  }
+export const toggleMovieWatched = (
+  id: string,
+  newState: boolean,
+  userId: string,
+) => {
+  authenticatedFetch(API.movies.setWatchState(id), 'POST', {
+    movieId: id,
+    watched: newState,
+    userId,
+  }).then(() => {
+    mutate((key: string) => key.startsWith(`/api/myListMovies`))
+    mutate((key: string) => key.startsWith(`/api/library-content`))
+    mutate((key: string) => key.startsWith(`/api/movie`))
+  })
 }
 
-export const toggleSeriesWatched = (series: Series, userId: string) => {
-  if (series) {
-    authenticatedFetch(API.series.setWatchState(series.id), 'POST', {
-      seriesId: series.id,
-      watched: series.watchStatus === undefined,
-      userId,
-    }).then(() => {
-      mutate((key: string) => key.startsWith(`/api/myListSeries`))
-      mutate((key: string) => key.startsWith(`/api/library-content`))
-      mutate((key: string) => key.startsWith(`/api/details/series`))
-    })
-  }
+export const toggleSeriesWatched = (
+  id: string,
+  newState: boolean,
+  userId: string,
+) => {
+  authenticatedFetch(API.series.setWatchState(id), 'POST', {
+    seriesId: id,
+    watched: newState,
+    userId,
+  }).then(() => {
+    mutate((key: string) => key.startsWith(`/api/myListSeries`))
+    mutate((key: string) => key.startsWith(`/api/library-content`))
+    mutate((key: string) => key.startsWith(`/api/series`))
+  })
 }
 
 export const refreshMetadata = async (type: 'show' | 'movie', id: string) => {

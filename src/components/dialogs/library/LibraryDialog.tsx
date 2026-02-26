@@ -1,203 +1,207 @@
-import { API, authenticatedFetch } from '@/config/api'
-import { useDialogStore } from '@/context/dialog.context'
+import { API } from '@/config/api'
+import { useDialogStore } from '@/context/dialog.store'
 import { useWebSocketStore } from '@/context/ws.context'
+import { Library } from '@/data/interfaces/Media'
+import { useCreate } from '@/hooks/media/useCreateContent'
+import { useGet } from '@/hooks/media/useGet'
+import { useUpdate } from '@/hooks/media/useUpdate'
+import useFormState from '@/hooks/useFormState'
+import { showToast } from '@/utils/ReactUtils'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { mutate } from 'swr'
-import { shallow } from 'zustand/shallow'
 import { ModalWrapper } from '../../ModalWrapper'
 import AdvancedTabContent from './AdvancedTabContent'
 import FoldersTabContent from './FoldersTabContent'
 import GeneralTabContent from './GeneralTabContent'
+
+interface LibraryFormState {
+  type: string | undefined
+  name: string
+  language: string | undefined
+  folders: string[]
+  preferAudioLan: string
+  preferSubLan: string
+  subsMode: string
+}
 
 function LibraryDialog() {
   const { t, i18n } = useTranslation()
   const navigate = useNavigate()
   const currentLanguage = i18n.language?.split('-')[0] ?? 'en'
   const connectWS = useWebSocketStore((state) => state.connectWS)
-  const { libraryDialog, closeLibraryDialog } = useDialogStore(
-    (state) => ({
-      libraryDialog: state.libraryDialog,
-      closeLibraryDialog: state.closeLibraryDialog,
-    }),
-    shallow,
+  const { error: updateError, update } = useUpdate<Library>()
+  const { error: createError, create } = useCreate<Library>()
+  const { payload, closeDialog } = useDialogStore()
+  const { id } = payload as { id?: string }
+
+  // Fetch Data
+  const { data: library } = useGet<Library>(
+    id ? API.libraries.getById(id) : null,
   )
+
+  // State Management
   const [loading, setLoading] = useState<boolean>(false)
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 
-  // Form Data
-  const [type, setType] = useState<string | undefined>()
-  const [name, setName] = useState<string>('')
-  const [language, setLanguage] = useState<string | undefined>()
-  const [folders, setFolders] = useState<string[]>()
-  const [preferAudioLan, setPreferAudioLan] = useState<string>(currentLanguage)
-  const [preferSubLan, setPreferSubLan] = useState<string>(currentLanguage)
-  const [subsMode, setSubsMode] = useState<string>('autoSubs')
+  // Form Data Management
+  const form = useFormState<LibraryFormState>(
+    {
+      type: undefined,
+      name: '',
+      language: undefined,
+      folders: [],
+      preferAudioLan: currentLanguage,
+      preferSubLan: currentLanguage,
+      subsMode: 'autoSubs',
+    },
+    {
+      preferAudioLan: currentLanguage,
+      preferSubLan: currentLanguage,
+    },
+  )
 
+  // Initialization
   useEffect(() => {
-    if (libraryDialog && !libraryDialog.libraryToEdit) {
-      setType(undefined)
-      setName('')
-      setLanguage(undefined)
-      setFolders(undefined)
-      setPreferAudioLan(currentLanguage)
-      setPreferSubLan(currentLanguage)
-      setSubsMode('autoSubs')
+    if (!library && id) return
+
+    if (!id) {
+      // Adding new library
+      form.resetFormState({
+        type: undefined,
+        name: '',
+        language: undefined,
+        folders: [],
+        preferAudioLan: currentLanguage,
+        preferSubLan: currentLanguage,
+        subsMode: 'autoSubs',
+      })
       setSelectedTab(t('generalButton'))
-    } else if (libraryDialog && libraryDialog.libraryToEdit) {
-      setType(libraryDialog.libraryToEdit.type)
-      setName(libraryDialog.libraryToEdit.name)
-      setLanguage(libraryDialog.libraryToEdit.language)
-      setFolders(libraryDialog.libraryToEdit.folders)
-      setPreferAudioLan(
-        libraryDialog.libraryToEdit.preferAudioLan ?? currentLanguage,
-      )
-      setPreferSubLan(
-        libraryDialog.libraryToEdit.preferSubLan ?? currentLanguage,
-      )
-      setSubsMode(libraryDialog.libraryToEdit.subsMode ?? 'autoSubs')
+    } else if (library) {
+      // Editing existing library
+      form.resetFormState({
+        type: library.type,
+        name: library.name,
+        language: library.language,
+        folders: library.folders,
+        preferAudioLan: library.preferAudioLan ?? currentLanguage,
+        preferSubLan: library.preferSubLan ?? currentLanguage,
+        subsMode: library.subsMode ?? 'autoSubs',
+      })
       setSelectedTab(t('generalButton'))
     }
-  }, [libraryDialog])
+  }, [library, id, currentLanguage, t, form])
 
   const handleAddEditLibrary = async () => {
     setLoading(true)
-
     await connectWS()
 
-    if (libraryDialog.libraryToEdit) {
-      const newLibrary = {
-        id: libraryDialog.libraryToEdit.id,
-        name,
-        language: language ?? 'en',
-        type: type ?? 'Shows',
-        order: 0,
-        folders: folders ?? [],
-        preferAudioLan,
-        preferSubLan,
-        subsMode,
+    const libraryData = {
+      name: form.name,
+      language: form.language ?? 'en',
+      type: form.type ?? 'Shows',
+      folders: form.folders ?? [],
+      preferAudioLan: form.preferAudioLan,
+      preferSubLan: form.preferSubLan,
+      subsMode: form.subsMode,
+    }
+
+    if (id) {
+      const updatedLibrary = await update(API.libraries.update(id), libraryData)
+
+      if (updateError || !updatedLibrary) {
+        showToast('error', t('libraryUpdateError'))
+        setLoading(false)
+        return
       }
 
-      await authenticatedFetch(API.libraries.create, 'PUT', {
-        libraryId: libraryDialog.libraryToEdit.id,
-        updatedLibrary: newLibrary,
-      })
+      closeDialog()
+    } else {
+      const newLibrary = await create(API.libraries.create, libraryData)
 
-      // Mutate libraries list
-      mutate((key: string) => key.startsWith(API.libraries.create))
+      if (createError || !newLibrary) {
+        showToast('error', t('libraryCreateError'))
+        setLoading(false)
+        return
+      }
 
-      closeLibraryDialog()
-
-      setLoading(false)
-      return
+      closeDialog()
+      navigate(`/library/${newLibrary.id}/${libraryData.type}`)
     }
-
-    const newLibrary = {
-      name,
-      language: language ?? 'en',
-      type: type ?? 'Shows',
-      folders: folders ?? [],
-      preferAudioLan,
-      preferSubLan,
-      subsMode,
-    }
-
-    const response = await authenticatedFetch(
-      API.libraries.create,
-      'POST',
-      newLibrary,
-    )
-
-    closeLibraryDialog()
-
-    if (!response || !response.data) {
-      setLoading(false)
-      return
-    }
-
-    // Mutate libraries list
-    mutate((key: string) => key.startsWith(API.libraries.create))
-
-    console.log({ okay: response.data, response })
-    const data = await response.data
-    console.log({ data })
-    const libraryId = data.id
 
     setLoading(false)
-
-    // Navigate to new library page
-    navigate(`/library/${libraryId}/${type ?? 'Shows'}`)
   }
 
   const handleSaveOrNext = () => {
-    if (libraryDialog.libraryToEdit) {
+    if (id) {
       handleAddEditLibrary()
     } else {
       setSelectedTab(t('folders'))
     }
   }
 
+  const isOpen = !!id
+
   return (
     <ModalWrapper
-      title={
-        libraryDialog.libraryToEdit
-          ? t('libraryWindowTitleEdit')
-          : t('libraryWindowTitle')
-      }
+      title={id ? t('libraryWindowTitleEdit') : t('libraryWindowTitle')}
       tabs={[
         {
           title: t('generalButton'),
           content: (
             <GeneralTabContent
-              type={type}
-              setType={setType}
-              name={name}
+              type={form.type}
+              setType={form.setType}
+              name={form.name}
               disableButton={loading}
-              setName={setName}
-              setLanguage={setLanguage}
+              setName={form.setName}
+              setLanguage={form.setLanguage}
               onSave={handleSaveOrNext}
-              close={closeLibraryDialog}
-              edit={libraryDialog.libraryToEdit !== undefined}
+              close={closeDialog}
+              edit={id !== undefined}
             />
           ),
         },
         {
           title: t('folders'),
-          disabled: !type,
+          disabled: !form.type,
           content: (
             <FoldersTabContent
-              folders={folders ?? []}
-              setFolders={setFolders}
-              close={closeLibraryDialog}
+              folders={form.folders ?? []}
+              setFolders={form.setFolders}
+              close={closeDialog}
               handleAddLibrary={handleAddEditLibrary}
-              buttonDisabled={!folders || folders.length === 0 || loading}
-              edit={libraryDialog.libraryToEdit !== undefined}
+              buttonDisabled={
+                !form.folders || form.folders.length === 0 || loading
+              }
+              edit={id !== undefined}
             />
           ),
         },
         {
           title: t('details'),
-          disabled: !folders || folders.length === 0,
+          disabled: !form.folders || form.folders.length === 0,
           content: (
             <AdvancedTabContent
-              preferAudioLan={preferAudioLan}
-              setPreferAudioLan={setPreferAudioLan}
-              preferSubLan={preferSubLan}
-              setPreferSubLan={setPreferSubLan}
-              subsMode={subsMode}
-              setSubsMode={setSubsMode}
-              close={closeLibraryDialog}
-              buttonDisabled={!folders || folders.length === 0 || loading}
+              preferAudioLan={form.preferAudioLan}
+              setPreferAudioLan={form.setPreferAudioLan}
+              preferSubLan={form.preferSubLan}
+              setPreferSubLan={form.setPreferSubLan}
+              subsMode={form.subsMode}
+              setSubsMode={form.setSubsMode}
+              close={closeDialog}
+              buttonDisabled={
+                !form.folders || form.folders.length === 0 || loading
+              }
               handleAddLibrary={handleAddEditLibrary}
-              edit={libraryDialog.libraryToEdit !== undefined}
+              edit={id !== undefined}
             />
           ),
         },
       ]}
       width={'30rem'}
-      isOpen={libraryDialog.isOpen}
-      close={closeLibraryDialog}
+      isOpen={isOpen}
+      close={closeDialog}
       hideButtons
       activeTab={selectedTab}
       onTabChange={(newTab) => setSelectedTab(newTab)}

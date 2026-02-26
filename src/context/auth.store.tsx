@@ -1,4 +1,9 @@
-import { API, authenticatedFetch, setApiBaseUrl } from '@/config/api'
+import {
+  API,
+  authenticatedFetch,
+  createServerClient,
+  setApiBaseUrl,
+} from '@/config/api'
 import { PersistedServer } from '@/data/interfaces/Servers'
 import { BasicUser } from '@/data/interfaces/Users'
 import { createWithEqualityFn } from 'zustand/traditional'
@@ -37,6 +42,8 @@ interface AuthState {
   // ── Server ────────────────────────────────────────────────────────────────
   selectedServer: PersistedServer | null
   setSelectedServer: (server: PersistedServer | null) => void
+  serverOnline: boolean | null
+  serverCheckError: string | null
 
   // ── User ──────────────────────────────────────────────────────────────────
   currentUser: BasicUser | null
@@ -46,6 +53,10 @@ interface AuthState {
   apiKeyStatus: boolean
   gettingApiKeyStatus: boolean
   setApiKey: (apiKey: string) => Promise<void>
+
+  // ── Initialization ────────────────────────────────────────────────────────
+  initializeStatusChecks: () => Promise<void>
+  gettingServerStatus: boolean
 }
 
 // ============================================================================
@@ -63,8 +74,11 @@ if (persistedServer?.url) {
 export const useServerStore = createWithEqualityFn<AuthState>((set) => ({
   selectedServer: persistedServer,
   currentUser: persistedUser,
+  serverOnline: null,
+  serverCheckError: null,
   apiKeyStatus: false,
   gettingApiKeyStatus: false,
+  gettingServerStatus: false,
 
   setSelectedServer: (server) => {
     if (server) {
@@ -81,7 +95,7 @@ export const useServerStore = createWithEqualityFn<AuthState>((set) => ({
       save(KEYS.USER, user)
     } else {
       remove(KEYS.USER)
-      document.cookie = 'jwt=; path=/; max-age=0'
+      document.cookie = 'token=; path=/; max-age=0'
     }
     set({ currentUser: user })
   },
@@ -101,6 +115,37 @@ export const useServerStore = createWithEqualityFn<AuthState>((set) => ({
       })
     } catch {
       set({ apiKeyStatus: false, gettingApiKeyStatus: false })
+    }
+  },
+
+  initializeStatusChecks: async () => {
+    set({ gettingServerStatus: true })
+
+    // Get current state to access selectedServer
+    const state = useServerStore.getState()
+
+    // Check server status if a server is persisted
+    if (state.selectedServer) {
+      try {
+        const client = createServerClient(state.selectedServer.url)
+        // Try to reach the /servers endpoint for a quick check
+        const response = await client.get('/servers')
+        set({
+          serverOnline: true,
+          serverCheckError: null,
+          apiKeyStatus: response.data?.data?.status === 'VALID_API_KEY',
+          gettingServerStatus: false,
+          gettingApiKeyStatus: false,
+        })
+      } catch (error) {
+        set({
+          serverOnline: false,
+          serverCheckError:
+            error instanceof Error ? error.message : 'Server unreachable',
+          apiKeyStatus: false,
+          gettingServerStatus: false,
+        })
+      }
     }
   },
 }))

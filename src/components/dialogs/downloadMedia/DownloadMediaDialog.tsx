@@ -1,8 +1,8 @@
 import { ModalWrapper } from '@/components/ModalWrapper'
-import { useDialogStore } from '@/context/dialog.context'
+import { useDialogStore } from '@/context/dialog.store'
 import { useTranslation } from 'react-i18next'
-import DownloadMediaSearch from './DownloadMediaSearch'
 import { shallow } from 'zustand/shallow'
+import DownloadMediaSearch from './DownloadMediaSearch'
 
 function DownloadMediaDialog() {
   const { downloadMediaDialog, closeDownloadMediaDialog } = useDialogStore(

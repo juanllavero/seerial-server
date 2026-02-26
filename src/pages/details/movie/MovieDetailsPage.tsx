@@ -13,9 +13,8 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { API, authenticatedFetch } from '@/config/api'
 import { useServerStore } from '@/context/auth.store'
 import useDataStore from '@/context/data.context'
-import { useDialogStore } from '@/context/dialog.context'
+import { useDialogStore } from '@/context/dialog.store'
 import { useSettingsStore } from '@/context/settings.context'
-import { useWebSocketStore } from '@/context/ws.context'
 import { Movie } from '@/data/interfaces/Media'
 import { useGet } from '@/hooks/media/useGet'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
@@ -41,8 +40,10 @@ function MovieDetailsPage() {
     shallow,
   )
   const clientSettings = useSettingsStore((state) => state.clientSettings)
-  const wsMessage = useWebSocketStore((state) => state.wsMessage)
-  const openMovieDialog = useDialogStore((state) => state.openMovieDialog)
+  const { openDialog } = useDialogStore(
+    (state) => ({ openDialog: state.openDialog }),
+    shallow,
+  )
   const isAdmin = useIsAdmin()
   const navigate = useNavigate()
 
@@ -252,7 +253,7 @@ function MovieDetailsPage() {
                 title={t('editButton')}
                 onClick={() => {
                   if (movie) {
-                    openMovieDialog(movie)
+                    openDialog('movie', { id: movie.id })
                   }
                 }}
               >

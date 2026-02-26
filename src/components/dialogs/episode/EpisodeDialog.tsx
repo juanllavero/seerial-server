@@ -1,95 +1,54 @@
-import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
-import { useDialogStore } from '@/context/dialog.context'
-import { useWebSocketStore } from '@/context/ws.context'
-import { Episode } from '@/data/interfaces/Media'
-import { showToast } from '@/utils/ReactUtils'
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { useTranslation } from 'react-i18next'
-import useSWR, { mutate } from 'swr'
-import { shallow } from 'zustand/shallow'
+import { API } from '@/config/api'
+import { useDialogStore } from '@/context/dialog.store'
+import { Episode, Series } from '@/data/interfaces/Media'
+import { useGet } from '@/hooks/media/useGet'
+import useEditDialog from '@/hooks/useEditDialog'
 import { ModalWrapper } from '../../ModalWrapper'
 import GenericFormTab from '../components/GenericFormTab'
 import ImageListTab from '../components/ImageListTab'
-import {
-  episodeInfoConfig,
-  generateDefaultValues,
-  generateResetValues,
-  generateSubmitData,
-} from '../forms.config'
+import { episodeInfoConfig } from '../forms.config'
 import EpisodeMediaInfoTab from './components/EpisodeMediaInfoTab'
 
+interface EpisodeImageState {
+  images: string[]
+  localFolder: string
+  selectedImage: string
+}
+
 function EpisodeDialog() {
-  const { t } = useTranslation()
-  const connectWS = useWebSocketStore((state) => state.connectWS)
-  const { episodeDialog, closeEpisodeDialog } = useDialogStore(
-    (state) => ({
-      episodeDialog: state.episodeDialog,
-      closeEpisodeDialog: state.closeEpisodeDialog,
-    }),
-    shallow,
-  )
-  const { control, reset, handleSubmit } = useForm({
-    defaultValues: generateDefaultValues(episodeInfoConfig),
-  })
-
-  const [selectedTab, setSelectedTab] = useState<string | undefined>()
-
-  const [images, setImages] = useState<string[]>([])
-  const [localFolder, setLocalFolder] = useState<string>('')
-  const [selectedImage, setSelectedImage] = useState<string>('')
-
-  const [episode, setEpisode] = useState<Episode | undefined>(
-    episodeDialog.episodeToEdit,
-  )
-
-  const { data: series } = useSWR(
+  const { payload, closeDialog } = useDialogStore()
+  const { id } = payload as { id: string }
+  const { data: episode } = useGet<Episode>(API.episodes.get(id))
+  const { data: series } = useGet<Series>(
     episode
       ? API.media.details(`seriesBySeasonId?id=${episode.seasonId}`)
       : null,
-    authenticatedFetcher,
   )
 
-  useEffect(() => {
-    if (episodeDialog && episodeDialog.episodeToEdit) {
-      reset(generateResetValues(episodeDialog.episodeToEdit, episodeInfoConfig))
-      setEpisode(episodeDialog.episodeToEdit)
-      setImages(episodeDialog.episodeToEdit.video.imgUrls || [])
-      setSelectedImage(episodeDialog.episodeToEdit.video.imgSrc || '')
-      setLocalFolder(`img/thumbnails/video/${episodeDialog.episodeToEdit.id}`)
-      setSelectedTab(t('generalButton'))
-    }
-  }, [episodeDialog, reset])
+  const { control, images, selectedTab, setSelectedTab, handleUpdate, t } =
+    useEditDialog<Episode, EpisodeImageState>({
+      entity: episode,
+      configs: [episodeInfoConfig],
+      initialImages: { images: [], localFolder: '', selectedImage: '' },
+      getImagesFromEntity: (e) => ({
+        images: e.video.imgUrls || [],
+        selectedImage: e.video.imgSrc || '',
+        localFolder: `img/thumbnails/video/${e.id}`,
+      }),
+      getExtraSubmitData: (imgs, e) => ({
+        imgSrc: imgs.selectedImage ?? e.video.imgSrc,
+      }),
+      apiUpdateUrl: episode ? API.episodes.update(episode.id) : '',
+      errorMessage: 'Error updating episode',
+    })
 
   if (!episode || !series) return null
 
-  const handleEditEpisode = handleSubmit(async (data) => {
-    await connectWS()
-
-    const submitData = generateSubmitData(data, episode, episodeInfoConfig)
-
-    try {
-      await authenticatedFetch(API.episodes.update(episode.id), 'PUT', {
-        ...submitData,
-        imgSrc: selectedImage ?? episode.video.imgSrc,
-      })
-
-      mutate((key: string) => key.startsWith(API.media.details('season')))
-      mutate((key: string) => key.startsWith(API.media.details('episode')))
-
-      closeEpisodeDialog()
-    } catch (error) {
-      showToast('error', 'Error updating episode')
-    }
-  })
-
-  const getWindowTitle = () => {
-    return `${t('editButton')} ${series.name} - ${episode.name} ${`(${t('seasonLetter')}${episode.seasonNumber}${t('episodeLetter')}${episode.episodeNumber})`}`
-  }
+  const title = `${t('editButton')} ${series.name} - ${episode.name} (${t('seasonLetter')}${episode.seasonNumber}${t('episodeLetter')}${episode.episodeNumber})`
 
   return (
     <ModalWrapper
-      title={getWindowTitle()}
+      title={title}
       tabs={[
         {
           title: t('generalButton'),
@@ -101,10 +60,10 @@ function EpisodeDialog() {
           title: t('thumbnailsButton'),
           content: (
             <ImageListTab
-              imagesList={images}
-              localFolder={localFolder}
-              selectImage={setSelectedImage}
-              selectedImage={selectedImage}
+              imagesList={images.images}
+              localFolder={images.localFolder}
+              selectImage={images.setSelectedImage}
+              selectedImage={images.selectedImage}
             />
           ),
         },
@@ -114,11 +73,11 @@ function EpisodeDialog() {
         },
       ]}
       width="50rem"
-      isOpen={episodeDialog.isOpen}
-      close={closeEpisodeDialog}
-      onAccept={handleEditEpisode}
+      isOpen={true}
+      close={closeDialog}
+      onAccept={handleUpdate}
       activeTab={selectedTab}
-      onTabChange={(newTab) => setSelectedTab(newTab)}
+      onTabChange={setSelectedTab}
     />
   )
 }

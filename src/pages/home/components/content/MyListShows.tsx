@@ -3,7 +3,7 @@ import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
 import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import { useServerStore } from '@/context/auth.store'
-import { useDialogStore } from '@/context/dialog.context'
+import { useDialogStore } from '@/context/dialog.store'
 import { Series } from '@/data/interfaces/Media'
 import { refreshMetadata, toggleSeriesWatched } from '@/utils/ReactUtils'
 import { Pencil } from 'lucide-react'
@@ -19,15 +19,9 @@ interface MyListShowsProps {
 
 function MyListShows({ goToContent }: MyListShowsProps) {
   const { t } = useTranslation()
-  const {
-    openIdentificationDialog,
-    openEpisodesGroupDialog,
-    openSeriesDialog,
-  } = useDialogStore(
+  const { openDialog } = useDialogStore(
     (state) => ({
-      openIdentificationDialog: state.openIdentificationDialog,
-      openEpisodesGroupDialog: state.openEpisodesGroupDialog,
-      openSeriesDialog: state.openSeriesDialog,
+      openDialog: state.openDialog,
     }),
     shallow,
   )
@@ -85,11 +79,15 @@ function MyListShows({ goToContent }: MyListShowsProps) {
                     },
                     {
                       title: t('correctIdentification'),
-                      action: () => openIdentificationDialog(series, undefined),
+                      action: () =>
+                        openDialog('identification', {
+                          seriesId: series.id,
+                        }),
                     },
                     {
                       title: t('changeEpisodesGroup'),
-                      action: () => openEpisodesGroupDialog(series),
+                      action: () =>
+                        openDialog('episodesGroup', { seriesId: series.id }),
                     },
                     {
                       title:
@@ -97,7 +95,12 @@ function MyListShows({ goToContent }: MyListShowsProps) {
                           ? t('markUnwatched')
                           : t('markWatched'),
                       action: () =>
-                        user && toggleSeriesWatched(series, user.id),
+                        user &&
+                        toggleSeriesWatched(
+                          series.id,
+                          !series.watchStatus,
+                          user.id,
+                        ),
                     },
                   ],
                 },
@@ -124,13 +127,13 @@ function MyListShows({ goToContent }: MyListShowsProps) {
                 size={'icon'}
                 onClick={(e) => {
                   e.stopPropagation()
-                  openSeriesDialog(series)
+                  openDialog('series', { id: series.id })
                 }}
               >
                 <Pencil size={16} />
               </Button>
             }
-            action={() => goToContent(`/details/series/${series.id}`)}
+            action={() => goToContent(`/series/${series.id}`)}
           />
         ))
       ) : (

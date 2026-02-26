@@ -1,9 +1,14 @@
 import { useIsMobile } from '@/components/hooks/use-mobile'
+import { SortableGrid } from '@/components/lists/SortableGrid'
 import Grid from '@/components/ui/Grid'
-import { Library } from '@/data/interfaces/Media'
+import { API } from '@/config/api'
+import { LibraryTypes } from '@/data/enums/LibraryTypes'
+import { Library, LibraryItem } from '@/data/interfaces/Media'
+import { useGet } from '@/hooks/media/useGet'
 import { useCardWidth } from '@/hooks/useCardWidth'
+import { useReorderableList } from '@/hooks/useReorderableList'
 import { memo } from 'react'
-import MediaList from './MediaList'
+import MediaCard from './cards/MediaCard'
 
 interface LibraryContentProps {
   library: Library
@@ -14,7 +19,24 @@ function LibraryContent({ library, mutateLibrary }: LibraryContentProps) {
   const isMobile = useIsMobile()
   const { cardWidth } = useCardWidth()
 
-  if (!library) return null
+  const queryType =
+    library.type === LibraryTypes.MUSIC
+      ? 'Music'
+      : library.type === LibraryTypes.SHOWS
+        ? 'Shows'
+        : 'Movies'
+
+  const { data: libraryItems, isLoading } = useGet<LibraryItem[]>(
+    `${API.libraries.content(library.id)}?type=${queryType}`,
+  )
+
+  const { items, handleDragEnd } = useReorderableList(
+    libraryItems || [],
+    library.id,
+    mutateLibrary,
+  )
+
+  if (isLoading) return null
 
   return (
     <Grid
@@ -32,7 +54,13 @@ function LibraryContent({ library, mutateLibrary }: LibraryContentProps) {
       alignItems="start"
       hideScrollbar
     >
-      <MediaList library={library} mutateLibrary={mutateLibrary} />
+      <SortableGrid
+        items={items}
+        onDragEnd={handleDragEnd}
+        renderItem={(item: LibraryItem) => (
+          <MediaCard key={item.id} item={item} libraryType={library.type} />
+        )}
+      />
     </Grid>
   )
 }

@@ -20,11 +20,22 @@ export interface CollectionImages {
 }
 
 export interface LibraryItem {
-  type: string
+  id: string
+  title: string
+  years?: string
+  coverSrc?: string
+  backgroundSrc?: string
+  numberOfItems: number
+
   order: number
-  data: Collection | Series | Movie | Album
-  remainingItems?: number
+  watched: boolean
+  remainingItems: number
+  analyzingFiles: boolean
+
+  type: ItemType
 }
+
+export type ItemType = 'series' | 'movie' | 'album' | 'collection'
 
 export interface Library {
   id: string

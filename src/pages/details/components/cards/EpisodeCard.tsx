@@ -3,7 +3,6 @@ import { useIsMobile } from '@/components/hooks/use-mobile'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import { Button } from '@/components/ui/button'
 import { useServerStore } from '@/context/auth.store'
-import { useDialogStore } from '@/context/dialog.context'
 import { useCardWidth } from '@/hooks/useCardWidth'
 import { getVideoProgress } from '@/utils/ReactUtils'
 import { t } from 'i18next'
@@ -14,6 +13,7 @@ interface EpisodeCardProps {
   playEpisode: (episode: any) => void
   goToDetails: (episode: any) => void
   getEpisodeMenu: (episode: any) => any
+  editEpisode: (episode: any) => void
 }
 
 function EpisodeCard({
@@ -21,12 +21,12 @@ function EpisodeCard({
   goToDetails,
   playEpisode,
   getEpisodeMenu,
+  editEpisode,
 }: EpisodeCardProps) {
   const user = useServerStore((state) => state.currentUser)
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
   const { cardWidth } = useCardWidth()
-  const openEpisodeDialog = useDialogStore((state) => state.openEpisodeDialog)
 
   const watchedList = episode.video.watchLists.find(
     (list: any) => list.userId === user?.id,
@@ -53,7 +53,7 @@ function EpisodeCard({
           size={'icon'}
           onClick={(e) => {
             e.stopPropagation()
-            openEpisodeDialog(episode)
+            editEpisode(episode)
           }}
         >
           <Pencil size={16} />

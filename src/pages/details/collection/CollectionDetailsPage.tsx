@@ -1,3 +1,4 @@
+import Card from '@/components/cards/Card'
 import useScreenHeight from '@/components/hooks/use-height'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { SortableHorizontalList } from '@/components/lists/SortableHorizontalList'
@@ -6,14 +7,8 @@ import FlexBox from '@/components/ui/FlexBox'
 import { Skeleton } from '@/components/ui/skeleton'
 import { API, authenticatedFetch } from '@/config/api'
 import useDataStore from '@/context/data.context'
-import { useDialogStore } from '@/context/dialog.context'
-import { useWebSocketStore } from '@/context/ws.context'
-import {
-  Collection,
-  CollectionImages,
-  Movie,
-  Series,
-} from '@/data/interfaces/Media'
+import { useDialogStore } from '@/context/dialog.store'
+import { Collection, Movie, Series } from '@/data/interfaces/Media'
 import { Album } from '@/data/interfaces/Music'
 import { useGet } from '@/hooks/media/useGet'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
@@ -30,9 +25,9 @@ import CollectionImage from './CollectionImage'
 function CollectionDetailsPage() {
   const { collectionId, type } = useParams()
   const isAdmin = useIsAdmin()
-  const wsMessage = useWebSocketStore((state) => state.wsMessage)
-  const openCollectionDialog = useDialogStore(
-    (state) => state.openCollectionDialog,
+  const { openDialog } = useDialogStore(
+    (state) => ({ openDialog: state.openDialog }),
+    shallow,
   )
   const { setCurrentBackground, currentBackground } = useDataStore(
     (state) => ({
@@ -45,17 +40,12 @@ function CollectionDetailsPage() {
   const isMobile = useIsMobile()
   const screenHeight = useScreenHeight()
 
+  // Get collection data
   const {
     data: collection,
     isLoading,
     mutate,
   } = useGet<Collection>(API.collections.get(collectionId ?? ''))
-
-  const { data: collectionImages } = useGet<CollectionImages>(
-    collection
-      ? `/api/collection-images?collectionId=${collection.id}&&type=${type}`
-      : '',
-  )
 
   const [localCollection, setLocalCollection] = useState<Collection | null>(
     null,
@@ -68,18 +58,15 @@ function CollectionDetailsPage() {
   }, [collection])
 
   useEffect(() => {
-    const image =
-      collection && collection.backgroundSrc && collection.backgroundSrc !== ''
-        ? collection.backgroundSrc
-        : collectionImages &&
-            collectionImages.background &&
-            collectionImages.background !== ''
-          ? collectionImages.background
-          : currentBackground
-    if (collection && image !== currentBackground) {
-      setCurrentBackground(image)
+    if (
+      collection &&
+      collection.backgroundSrc &&
+      collection.backgroundSrc !== '' &&
+      collection.backgroundSrc !== currentBackground
+    ) {
+      setCurrentBackground(collection.backgroundSrc)
     }
-  }, [collection, collectionImages, setCurrentBackground])
+  }, [collection, setCurrentBackground])
 
   async function handleDragEnd(
     sourceIndex: number,
@@ -172,15 +159,15 @@ function CollectionDetailsPage() {
     if (!collection) return 'N/A'
 
     const years =
-      type === 'Music'
+      type === 'Music' && collection.albums
         ? collection.albums
             .map((album) => album.year)
             .filter((year) => year !== '')
-        : type === 'Movies'
+        : type === 'Movies' && collection.movies
           ? collection.movies
               .map((movie) => movie.year)
               .filter((year) => year !== '')
-          : type === 'Shows'
+          : type === 'Shows' && collection.shows
             ? collection.shows
                 .map((show) => show.year)
                 .filter((year) => year !== '')
@@ -224,13 +211,31 @@ function CollectionDetailsPage() {
             handleDragEnd(sourceIndex, destinationIndex, 'albums')
           }
           renderItem={(item: Album) => (
-            <div key={item.id} clastemsName={isMobile ? 'w-45' : ''}>
-              <AlbumCard
-                album={{
-                  type: 'album',
-                  order: 0,
-                  data: item,
+            <div key={item.id} className={isMobile ? 'w-45' : ''}>
+              <Card
+                itemKey={item.id}
+                imgSrc={item.coverSrc}
+                aspectRatio={1}
+                width={isMobile ? 100 : 150}
+                title={item.title}
+                subtitle={
+                  item.year ? new Date(item.year).getFullYear().toString() : ''
+                }
+                action={() => {
+                  window.location.href = `/album/${item.id}`
                 }}
+                hideButtons={false}
+                menu={undefined}
+                loading={false}
+                editModal={undefined}
+                cornerData={undefined}
+                centerText={false}
+                hidePlayButton={false}
+                progress={0}
+                cornerNumber={0}
+                collageComponent={undefined}
+                watched={false}
+                errorSrc={'/img/fileNotFound.jpg'}
               />
             </div>
           )}
@@ -254,7 +259,31 @@ function CollectionDetailsPage() {
           }
           renderItem={(item: Movie) => (
             <div key={item.id} className={isMobile ? 'w-45' : ''}>
-              <MovieCard movie={item} />
+              <Card
+                itemKey={item.id}
+                imgSrc={item.coverSrc}
+                aspectRatio={1}
+                width={isMobile ? 100 : 150}
+                title={item.name}
+                subtitle={
+                  item.year ? new Date(item.year).getFullYear().toString() : ''
+                }
+                action={() => {
+                  window.location.href = `/movie/${item.id}`
+                }}
+                hideButtons={false}
+                menu={undefined}
+                loading={false}
+                editModal={undefined}
+                cornerData={undefined}
+                centerText={false}
+                hidePlayButton={false}
+                progress={0}
+                cornerNumber={0}
+                collageComponent={undefined}
+                watched={false}
+                errorSrc={'/img/fileNotFound.jpg'}
+              />
             </div>
           )}
         />
@@ -270,7 +299,31 @@ function CollectionDetailsPage() {
           }
           renderItem={(item: Series) => (
             <div key={item.id} className={isMobile ? 'w-45' : ''}>
-              <SeriesCard series={item} remainingEpisodes={0} />
+              <Card
+                itemKey={item.id}
+                imgSrc={item.coverSrc}
+                aspectRatio={1}
+                width={isMobile ? 100 : 150}
+                title={item.name}
+                subtitle={
+                  item.year ? new Date(item.year).getFullYear().toString() : ''
+                }
+                action={() => {
+                  window.location.href = `/series/${item.id}`
+                }}
+                hideButtons={false}
+                menu={undefined}
+                loading={false}
+                editModal={undefined}
+                cornerData={undefined}
+                centerText={false}
+                hidePlayButton={false}
+                progress={0}
+                cornerNumber={0}
+                collageComponent={undefined}
+                watched={false}
+                errorSrc={'/img/fileNotFound.jpg'}
+              />
             </div>
           )}
         />
@@ -335,7 +388,9 @@ function CollectionDetailsPage() {
                   title={t('editButton')}
                   onClick={() => {
                     if (collection) {
-                      openCollectionDialog(collection)
+                      openDialog('collection', {
+                        id: collection.id,
+                      })
                     }
                   }}
                 >
@@ -364,7 +419,7 @@ function CollectionDetailsPage() {
       ) : (
         orderMap[type as ContentType].map((key) => {
           const items = collection[key]
-          return items.length > 0 ? renderMap[key](items) : null
+          return items && items.length > 0 ? renderMap[key](items) : null
         })
       )}
     </FlexBox>

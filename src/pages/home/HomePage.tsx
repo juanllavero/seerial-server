@@ -6,15 +6,23 @@ import { Library } from '@/data/interfaces/Media'
 import { useGet } from '@/hooks/media/useGet'
 import { useEffect } from 'react'
 import { shallow } from 'zustand/shallow'
+import HomePageContent from './components/content/HomePageContent'
 import NoAPIKey from './components/NoAPIKey'
 import NoContent from './components/NoContent'
-import HomePageContent from './components/content/HomePageContent'
+import NotAvailableServer from './components/NotAvailableServer'
 
 export default function HomePage() {
-  const { apiKeyStatus, gettingServerStatus } = useServerStore(
+  const {
+    serverOnline,
+    apiKeyStatus,
+    gettingServerStatus,
+    gettingApiKeyStatus,
+  } = useServerStore(
     (state) => ({
+      serverOnline: state.serverOnline,
       apiKeyStatus: state.apiKeyStatus,
-      gettingServerStatus: state.gettingApiKeyStatus,
+      gettingServerStatus: state.gettingServerStatus,
+      gettingApiKeyStatus: state.gettingApiKeyStatus,
     }),
     shallow,
   )
@@ -33,8 +41,12 @@ export default function HomePage() {
     selectLibrary(null)
   }, [])
 
-  if (loadingLibraries || gettingServerStatus) {
+  if (loadingLibraries || gettingServerStatus || gettingApiKeyStatus) {
     return <LoadingInsideSidebar />
+  }
+
+  if (!serverOnline) {
+    return <NotAvailableServer />
   }
 
   if (!apiKeyStatus) {

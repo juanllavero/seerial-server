@@ -1,23 +1,30 @@
-import Loading from '@/components/Loading'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import LazyImage from '@/components/ui/LazyImage'
+import { Skeleton } from '@/components/ui/skeleton'
 import { API, authenticatedFetch } from '@/config/api'
-import { useWebSocketStore } from '@/context/ws.context'
+import { useDialogStore } from '@/context/dialog.store'
 import { Episode, Season, Series } from '@/data/interfaces/Media'
 import { useGet } from '@/hooks/media/useGet'
+import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { formatDate } from '@/utils/ReactUtils'
-import { PlayIcon } from 'lucide-react'
+import { Pencil, PlayIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
+import { shallow } from 'zustand/shallow'
 import VideoTracks from './components/VideoTracks'
 
 function EpisodeDetailsPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
-  const wsMessage = useWebSocketStore((state) => state.wsMessage)
+  const { openDialog } = useDialogStore(
+    (state) => ({ openDialog: state.openDialog }),
+    shallow,
+  )
   const { episodeId } = useParams()
+  const isAdmin = useIsAdmin()
 
+  // Get episode data
   const {
     data: episode,
     isLoading,
@@ -33,7 +40,7 @@ function EpisodeDetailsPage() {
   )
 
   if (isLoading) {
-    return <Loading />
+    return <Skeleton className="h-100 w-100" />
   }
 
   if (!episode) {
@@ -63,7 +70,7 @@ function EpisodeDetailsPage() {
       <FlexBox direction="column" gap={1}>
         <FlexBox direction="column">
           <span
-            onClick={() => navigate(`/details/series/${series?.id}`)}
+            onClick={() => navigate(`/series/${series?.id}`)}
             className="a_text cursor-pointer text-4xl font-black uppercase"
           >
             {series ? series.name : 'None'}
@@ -104,6 +111,20 @@ function EpisodeDetailsPage() {
             {t('playButton')}
           </FlexBox>
         </Button>
+
+        {isAdmin && (
+          <Button
+            variant={'ghost'}
+            title={t('editButton')}
+            onClick={() => {
+              if (season) {
+                openDialog('episode', { id: season.id })
+              }
+            }}
+          >
+            <Pencil />
+          </Button>
+        )}
       </FlexBox>
     </FlexBox>
   )

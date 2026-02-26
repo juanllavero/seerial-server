@@ -5,7 +5,6 @@ import FlexBox from '@/components/ui/FlexBox'
 import { Skeleton } from '@/components/ui/skeleton'
 import { API } from '@/config/api'
 import { useGradientStore } from '@/context/gradientBackground.context'
-import { useWebSocketStore } from '@/context/ws.context'
 import { Album } from '@/data/interfaces/Music'
 import { useGet } from '@/hooks/media/useGet'
 import { useEffect } from 'react'
@@ -16,15 +15,13 @@ import AlbumInfo from './components/AlbumInfo'
 
 function AlbumDetailsPage() {
   const { albumId } = useParams()
-  const wsMessage = useWebSocketStore((state) => state.wsMessage)
   const selectBackground = useGradientStore((state) => state.selectBackground)
 
-  // Get series data
+  // Get album data
   const {
     data: album,
     isLoading,
     error,
-    mutate,
   } = useGet<Album>(API.albums.get(albumId ?? ''))
 
   const isMobile = useIsMobile()
@@ -36,7 +33,7 @@ function AlbumDetailsPage() {
     }
   }, [album])
 
-  if (error) {
+  if (error || !album) {
     return <NotFound />
   }
 

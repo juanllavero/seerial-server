@@ -1,10 +1,10 @@
 import { Suspense, useMemo } from 'react'
+import Loading from '../Loading'
 import { dialogRegistry, DialogType } from './dialogRegistry'
 
-// Loading fallback component
 const DialogLoading = () => (
   <div className="flex items-center justify-center p-4">
-    <div className="text-sm text-gray-500">Loading...</div>
+    <Loading />
   </div>
 )
 
@@ -15,15 +15,11 @@ interface DynamicDialogProps {
 
 function DynamicDialog({ type, isOpen }: DynamicDialogProps) {
   const DialogComponent = useMemo(() => {
-    if (isOpen) {
-      return dialogRegistry[type]
-    }
+    if (isOpen) return dialogRegistry[type]
     return null
   }, [type, isOpen])
 
-  if (!isOpen || !DialogComponent) {
-    return null
-  }
+  if (!isOpen || !DialogComponent) return null
 
   return (
     <Suspense fallback={<DialogLoading />}>
