@@ -199,7 +199,6 @@ function LibraryDialog() {
           ),
         },
       ]}
-      width={'30rem'}
       isOpen={isOpen}
       close={closeDialog}
       hideButtons

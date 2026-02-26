@@ -69,7 +69,6 @@ function SeasonDialog() {
           ),
         },
       ]}
-      width="50rem"
       isOpen={true}
       close={closeDialog}
       onAccept={handleUpdate}

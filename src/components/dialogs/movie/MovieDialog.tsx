@@ -117,7 +117,6 @@ function MovieDialog() {
           ),
         },
       ]}
-      width="50rem"
       isOpen={true}
       close={closeDialog}
       onAccept={handleUpdate}

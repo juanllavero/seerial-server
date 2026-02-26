@@ -1,17 +1,8 @@
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import React, { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useIsMobile } from './hooks/use-mobile'
-import { useIsTablet } from './hooks/use-tablet'
 import {
   Drawer,
   DrawerContent,
@@ -40,6 +31,7 @@ interface ModalWrapperProps {
   openDialog?: () => void
   activeTab?: string
   width?: string
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
   onTabChange?: (tab: string) => void
 }
 
@@ -54,12 +46,11 @@ export function ModalWrapper({
   openDialog,
   activeTab,
   onTabChange,
-  width = 'auto',
+  size = 'lg',
 }: ModalWrapperProps) {
   const { t } = useTranslation()
   const [open, setOpen] = React.useState(false)
   const dialogRef = React.useRef(null)
-  const isTablet = useIsTablet()
   const isMobile = useIsMobile()
 
   const [internalActiveTab, setInternalActiveTab] = React.useState(
@@ -77,111 +68,28 @@ export function ModalWrapper({
     }
   }
 
-  if (isTablet || isMobile) {
-    return (
-      <Drawer
-        open={isOpen ?? open}
-        onOpenChange={(newOpen) => {
-          setOpen(newOpen)
-          if (newOpen && openDialog) {
-            openDialog()
-          } else if (!newOpen && close) {
-            close()
-          }
-        }}
-      >
-        {button && <DrawerTrigger asChild>{button}</DrawerTrigger>}
-        <DrawerContent ref={dialogRef}>
-          <DrawerHeader>
-            <DrawerTitle>{title}</DrawerTitle>
-          </DrawerHeader>
-          {tabs && tabs.length > 1 ? (
-            <Tabs
-              value={currentTab} // Controlar la tab activa
-              onValueChange={handleTabChange} // Manejar cambios de tab
-              className="w-full"
-            >
-              <TabsList className={`mt-2 flex w-full`}>
-                {tabs
-                  .filter((tab) => !tab.hidden)
-                  .map((tab) => (
-                    <TabsTrigger
-                      key={'Tab' + tab.title}
-                      value={tab.title}
-                      disabled={tab.disabled}
-                    >
-                      {tab.title}
-                    </TabsTrigger>
-                  ))}
-              </TabsList>
-              {tabs
-                .filter((tab) => !tab.hidden)
-                .map((tab) => (
-                  <TabsContent
-                    key={tab.title}
-                    value={tab.title}
-                    className="py-4"
-                    style={{
-                      width: '100%',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    {Array.isArray(tab.content)
-                      ? tab.content.map((item, index) => (
-                          <div key={index}>{item}</div>
-                        ))
-                      : tab.content}
-                  </TabsContent>
-                ))}
-            </Tabs>
-          ) : tabs && tabs.length === 1 ? (
-            <div className="w-full">{tabs[0]?.content ?? <></>}</div>
-          ) : null}
-          {!hideButtons && (
-            <DrawerFooter className="pt-0">
-              <FlexBox
-                direction={isMobile ? 'column' : 'row'}
-                gap={isMobile ? 0.5 : 1}
-                width={'100%'}
-              >
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => {
-                    if (close) {
-                      close()
-                    } else {
-                      setOpen(false)
-                    }
-                  }}
-                >
-                  {t('cancelButton')}
-                </Button>
-                <Button
-                  className="w-full"
-                  onClick={() => {
-                    if (onAccept) {
-                      onAccept()
-                    }
-
-                    if (close) {
-                      close()
-                    } else {
-                      setOpen(false)
-                    }
-                  }}
-                >
-                  {t('saveButton')}
-                </Button>
-              </FlexBox>
-            </DrawerFooter>
-          )}
-        </DrawerContent>
-      </Drawer>
-    )
+  const getWidthClassName = (size: string) => {
+    if (isMobile) {
+      return 'data-[vaul-drawer-direction=right]:w-full'
+    }
+    switch (size) {
+      case 'sm':
+        return 'data-[vaul-drawer-direction=right]:w-1/4'
+      case 'md':
+        return 'data-[vaul-drawer-direction=right]:w-1/3'
+      case 'lg':
+        return 'data-[vaul-drawer-direction=right]:w-1/2'
+      case 'xl':
+        return 'data-[vaul-drawer-direction=right]:w-3/4'
+      case 'full':
+        return 'data-[vaul-drawer-direction=right]:w-full'
+      default:
+        return 'data-[vaul-drawer-direction=right]:w-1/2'
+    }
   }
+
   return (
-    <Dialog
+    <Drawer
       open={isOpen ?? open}
       onOpenChange={(newOpen) => {
         setOpen(newOpen)
@@ -191,19 +99,16 @@ export function ModalWrapper({
           close()
         }
       }}
+      direction="right"
     >
-      {button && <DialogTrigger asChild>{button}</DialogTrigger>}
-      <DialogContent ref={dialogRef} className="h-fit w-fit">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-        </DialogHeader>
+      {button && <DrawerTrigger asChild>{button}</DrawerTrigger>}
+      <DrawerContent ref={dialogRef} widthClassName={getWidthClassName(size)}>
+        <DrawerHeader>
+          <DrawerTitle className="text-2xl">{title}</DrawerTitle>
+        </DrawerHeader>
         {tabs && tabs.length > 1 ? (
-          <Tabs
-            value={currentTab} // Controlar la tab activa
-            onValueChange={handleTabChange} // Manejar cambios de tab
-            className="w-full"
-          >
-            <TabsList className={`mt-2 flex w-full`}>
+          <Tabs value={currentTab} onValueChange={handleTabChange}>
+            <TabsList className={`m-2 flex`}>
               {tabs
                 .filter((tab) => !tab.hidden)
                 .map((tab) => (
@@ -222,10 +127,10 @@ export function ModalWrapper({
                 <TabsContent
                   key={tab.title}
                   value={tab.title}
-                  className="py-4"
+                  className="p-4"
                   style={{
-                    width: width,
-                    justifyContent: 'left',
+                    width: '100%',
+                    justifyContent: 'center',
                   }}
                 >
                   {Array.isArray(tab.content)
@@ -240,37 +145,45 @@ export function ModalWrapper({
           <div className="w-full">{tabs[0]?.content ?? <></>}</div>
         ) : null}
         {!hideButtons && (
-          <DialogFooter className="pt-0">
-            <Button
-              variant="outline"
-              onClick={() => {
-                if (close) {
-                  close()
-                } else {
-                  setOpen(false)
-                }
-              }}
+          <DrawerFooter className="pt-0">
+            <FlexBox
+              direction={isMobile ? 'column' : 'row'}
+              gap={isMobile ? 0.5 : 1}
+              width={'100%'}
             >
-              {t('cancelButton')}
-            </Button>
-            <Button
-              onClick={() => {
-                if (onAccept) {
-                  onAccept()
-                }
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  if (close) {
+                    close()
+                  } else {
+                    setOpen(false)
+                  }
+                }}
+              >
+                {t('cancelButton')}
+              </Button>
+              <Button
+                className="w-full"
+                onClick={() => {
+                  if (onAccept) {
+                    onAccept()
+                  }
 
-                if (close) {
-                  close()
-                } else {
-                  setOpen(false)
-                }
-              }}
-            >
-              {t('saveButton')}
-            </Button>
-          </DialogFooter>
+                  if (close) {
+                    close()
+                  } else {
+                    setOpen(false)
+                  }
+                }}
+              >
+                {t('saveButton')}
+              </Button>
+            </FlexBox>
+          </DrawerFooter>
         )}
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   )
 }

@@ -68,10 +68,9 @@ const NavLibraries = () => {
     }),
     shallow,
   )
-  const { openLibraryDialog, openRemoveLibraryDialog } = useDialogStore(
+  const { openDialog } = useDialogStore(
     (state) => ({
-      openLibraryDialog: state.openLibraryDialog,
-      openRemoveLibraryDialog: state.openRemoveLibraryDialog,
+      openDialog: state.openDialog,
     }),
     shallow,
   )
@@ -203,7 +202,7 @@ const NavLibraries = () => {
                             )
 
                             if (library) {
-                              openLibraryDialog(library)
+                              openDialog('library', { id: library.id })
                             }
                           }}
                         >
@@ -216,7 +215,9 @@ const NavLibraries = () => {
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          onClick={() => openRemoveLibraryDialog(item.id)}
+                          onClick={() =>
+                            openDialog('removeLibrary', { id: item.id })
+                          }
                         >
                           <Trash2 className="text-muted-foreground" />
                           <span>{t('removeLibrary')}</span>
@@ -244,7 +245,7 @@ const NavLibraries = () => {
                   tooltip={t('libraryWindowTitle')}
                   onClick={() => {
                     if (!analyzing) {
-                      openLibraryDialog()
+                      openDialog('library', {})
                     }
                   }}
                 >

@@ -72,7 +72,6 @@ function EpisodeDialog() {
           content: <EpisodeMediaInfoTab video={episode.video} />,
         },
       ]}
-      width="50rem"
       isOpen={true}
       close={closeDialog}
       onAccept={handleUpdate}
