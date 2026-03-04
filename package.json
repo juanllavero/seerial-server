@@ -1,142 +1,25 @@
 {
-  "name": "seerial-server",
-  "version": "0.2.0",
-  "main": "dist/index.js",
-  "description": "Media management server for the suite Seerial",
+  "name": "seerial",
+  "version": "1.0.0",
+  "description": "Media management solution",
   "author": "Juan Llavero",
-  "license": "MIT",
-  "private": true,
-  "build": {
-    "appId": "es.seerial.media",
-    "productName": "Seerial Media Server",
-    "files": [
-      "dist/**",
-      "assets/**",
-      "node_modules/**",
-      "package.json"
-    ],
-    "asar": true,
-    "asarUnpack": [
-      "node_modules/ffprobe-static",
-      "node_modules/ffmpeg-static"
-    ],
-    "win": {
-      "target": "nsis",
-      "icon": "assets/icons/icon.ico"
-    },
-    "linux": {
-      "target": [
-        "AppImage"
-      ],
-      "category": "Utility"
-    },
-    "directories": {
-      "output": "prod",
-      "buildResources": "assets"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "installerIcon": "assets/icons/icon.ico",
-      "uninstallerIcon": "assets/icons/icon.ico",
-      "installerHeaderIcon": "assets/icons/icon.ico",
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "Seerial Media Server"
-    },
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "juanllavero",
-        "repo": "seerial-server"
-      }
-    ],
-    "extraMetadata": {
-      "description": "Media management server for the suite Seerial"
-    }
-  },
-  "type": "commonjs",
+  "license": "GPL-3.0-only",
+  "main": "index.js",
   "scripts": {
-    "// 1. Install dependencies and build the web client": "",
-    "build:web": "cd seerial-web && pnpm install && pnpm run build",
-    "// 2. Compile typescript server": "",
-    "build:server": "tsc -p tsconfig.json && tsc-alias -p tsconfig.json",
-    "// 3. Copy build web files and server assets": "",
-    "postbuild": "copyfiles -u 2 seerial-web/dist/**/* dist/web && copyfiles -u 1 assets/**/* dist/assets/",
-    "// MAIN BUILD SCRIPT": "",
-    "build": "pnpm run build:web && pnpm run build:server && pnpm run postbuild",
-    "// DEV SCRIPTS": "",
-    "dev:web": "cd seerial-web && pnpm run dev",
-    "dev:server": "pnpm run build:server && copyfiles -u 1 assets/**/* dist/assets/ && electron dist/index.js",
-    "dev": "concurrently \"pnpm:dev:web\" \"pnpm:dev:server\"",
-    "// BUILD SCRIPTS": "",
-    "build-win": "pnpm run build && electron-builder --win",
-    "build-mac": "pnpm run build && electron-builder --mac",
-    "build-linux": "pnpm run build && electron-builder --linux",
-    "publish": "node dist/utils/publish.js",
-    "lint": "tsc --noEmit",
-    "tsoa:spec": "tsoa spec",
-    "tsoa:routes": "tsoa routes",
-    "tsoa:generate": "tsoa spec && tsoa routes",
-    "tests": "jest --verbose"
+    "// === RUN APPS INDIVIDUALLY ===": "",
+    "dev:server": "pnpm --filter @seerial/server dev",
+    "dev:web": "pnpm --filter @seerial/web dev",
+    "dev:desktop": "pnpm --filter @seerial/desktop dev",
+    "dev:tv": "pnpm --filter @seerial/tv start",
+    "// === RUN WEB AND SERVER ===": "",
+    "dev": "pnpm --filter @seerial/server --filter @seerial/web --parallel dev",
+    "// === GLOBAL ===": "",
+    "lint": "lerna run lint",
+    "build": "lerna run build"
   },
-  "dependencies": {
-    "@tsoa/runtime": "7.0.0-alpha.0",
-    "@types/bcrypt": "^6.0.0",
-    "axios": "^1.12.2",
-    "bcrypt": "^6.0.0",
-    "cheerio": "^1.1.2",
-    "cookie-parser": "^1.4.7",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
-    "express": "^5.1.0",
-    "express-rate-limit": "^8.1.0",
-    "ffmpeg-static": "^5.2.0",
-    "ffprobe-static": "^3.1.0",
-    "follow-redirects": "^1.15.11",
-    "fs-extra": "^11.3.2",
-    "helmet": "^8.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "moviedb-promise": "^4.0.7",
-    "multer": "^2.0.2",
-    "nat-upnp": "^1.1.1",
-    "ngrok": "5.0.0-beta.2",
-    "node-vibrant": "^4.0.3",
-    "p-limit": "^7.1.1",
-    "pino": "^10.2.1",
-    "properties-reader": "^2.3.0",
-    "reflect-metadata": "^0.2.2",
-    "sequelize": "^6.37.7",
-    "sequelize-typescript": "^2.1.6",
-    "sharp": "^0.34.4",
-    "sqlite3": "^5.1.7",
-    "swagger-ui-express": "^5.0.1",
-    "tsoa": "7.0.0-alpha.0",
-    "uuid": "^13.0.0",
-    "ws": "^8.18.3"
-  },
+  "keywords": [],
+  "packageManager": "pnpm@10.30.2",
   "devDependencies": {
-    "@types/cookie-parser": "^1.4.10",
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.3",
-    "@types/ffprobe-static": "^2.0.3",
-    "@types/follow-redirects": "^1.14.4",
-    "@types/fs-extra": "^11.0.4",
-    "@types/jest": "^30.0.0",
-    "@types/jsonwebtoken": "^9.0.10",
-    "@types/multer": "^2.0.0",
-    "@types/nat-upnp": "^1.1.5",
-    "@types/properties-reader": "^2.1.3",
-    "@types/swagger-ui-express": "^4.1.6",
-    "@types/ws": "^8.18.1",
-    "concurrently": "^9.2.1",
-    "copyfiles": "^2.4.1",
-    "electron": "^38.2.2",
-    "electron-builder": "^26.0.12",
-    "electron-icon-builder": "^2.0.1",
-    "jest": "^30.2.0",
-    "ts-jest": "^29.4.6",
-    "tsc-alias": "^1.8.16",
-    "typescript": "^5.9.3"
+    "lerna": "^9.0.5"
   }
 }

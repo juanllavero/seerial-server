@@ -1,0 +1,58 @@
+.background-layer {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  transition: opacity 0.5s ease-in-out;
+
+  background-blend-mode: hue;
+  background-color: rgba(46, 46, 46, 0.9);
+
+  z-index: -1;
+}
+
+.background-gradient {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: none;
+  filter: brightness(0.55);
+  transition: opacity 0.5s ease-in-out;
+
+  z-index: -1;
+
+  /* Forzar capa de composición */
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.background-layer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('/img/noise.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: 0.06;
+  pointer-events: none;
+}
+
+.fade-in {
+  opacity: 0;
+  animation: fade-in 0.5s forwards;
+}
+
+.fade-in-slow {
+  opacity: 0;
+  animation: fade-in 1s forwards;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

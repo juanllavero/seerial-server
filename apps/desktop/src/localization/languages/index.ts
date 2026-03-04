@@ -1,0 +1,15 @@
+import { ar } from './ar'
+import { br } from './br'
+import { cn } from './cn'
+import { de } from './de'
+import { en } from './en'
+import { es } from './es-ES'
+import { fr } from './fr'
+import { hi } from './hi'
+import { it } from './it'
+import { ja } from './ja'
+import { ko } from './ko'
+import { pt } from './pt'
+import { tw } from './tw'
+
+export { ar, br, cn, de, en, es, fr, hi, it, ja, ko, pt, tw }

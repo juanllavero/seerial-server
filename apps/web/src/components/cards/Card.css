@@ -1,0 +1,83 @@
+.card {
+  position: relative;
+
+  --border-radius: 5px;
+  border-radius: var(--border-radius);
+
+  border: 2px solid transparent;
+  transition: all 0.2s ease-in-out;
+
+  & img {
+    border-radius: var(--border-radius);
+  }
+
+  & .card-hover {
+    border-radius: var(--border-radius);
+    position: absolute;
+    opacity: 0;
+
+    color: white;
+    cursor: pointer;
+
+    background-color: rgba(0, 0, 0, 0.726);
+    z-index: 11;
+
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  & .progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 1;
+    z-index: 10;
+
+    transition: opacity 0.1s ease-in-out;
+  }
+
+  & .rightCorner {
+    position: absolute;
+    top: 0;
+    right: 0;
+    opacity: 1;
+
+    z-index: 10;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 5px;
+    background-color: rgba(0, 0, 0, 0.802);
+
+    transition: opacity 0.1s ease-in-out;
+  }
+
+  &:hover {
+    border-color: var(--app-color);
+    & .card-hover {
+      opacity: 1;
+    }
+    & .progress {
+      opacity: 0;
+    }
+  }
+}
+
+.loading {
+  & .card-hover {
+    opacity: 1 !important;
+
+    & button {
+      display: none;
+    }
+  }
+}
+
+#subtitle {
+  color: var(--font-color);
+  font-size: 0.8rem;
+}
