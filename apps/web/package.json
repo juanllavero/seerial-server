@@ -1,5 +1,7 @@
 {
   "name": "@seerial/web",
+  "author": "Juan Llavero",
+  "license": "GPL-3.0-only",
   "private": true,
   "version": "0.1.0",
   "type": "module",
@@ -58,6 +60,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
+    "@seerial/config": "workspace:*",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/lodash": "^4.17.23",
     "@types/node": "^22.19.7",

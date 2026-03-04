@@ -1,25 +1,16 @@
 {
+  "extends": "@seerial/config/tsconfig.base.json",
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
     "lib": ["DOM", "ESNext"],
     "jsx": "react-jsx",
-    "experimentalDecorators": true,
-    "composite": true,
-    "declaration": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowJs": false,
-    "esModuleInterop": true,
-    "noImplicitAny": true,
-    "sourceMap": true,
-    "strict": true,
+    "moduleResolution": "bundler",
+    "outDir": "dist",
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    },
-    "outDir": "dist",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true
+    }
   },
   "include": ["src/**/*", "src/jsx-env.d.ts"]
 }

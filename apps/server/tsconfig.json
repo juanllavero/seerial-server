@@ -1,25 +1,18 @@
 {
+  "extends": "@seerial/config/tsconfig.base.json",
   "compilerOptions": {
-    "incremental": true,
-    "tsBuildInfoFile": ".tsbuildinfo",
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
     "target": "ES2021",
-    "lib": ["ES2021"],
     "module": "CommonJS",
     "moduleResolution": "Node",
     "outDir": "dist",
     "rootDir": "src",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": false,
-    "resolveJsonModule": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
     }
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "dist"]
 }

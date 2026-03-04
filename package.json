@@ -2,13 +2,22 @@
   "name": "seerial",
   "version": "1.0.0",
   "description": "Media management solution",
+  "author": "Juan Llavero",
+  "license": "GPL-3.0-only",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "// === RUN APPS INDIVIDUALLY ===": "",
+    "dev:server": "pnpm --filter @seerial/server dev",
+    "dev:web": "pnpm --filter @seerial/web dev",
+    "dev:desktop": "pnpm --filter @seerial/desktop dev",
+    "dev:tv": "pnpm --filter @seerial/tv start",
+    "// === RUN WEB AND SERVER ===": "",
+    "dev": "pnpm --filter @seerial/server --filter @seerial/web --parallel dev",
+    "// === GLOBAL ===": "",
+    "lint": "lerna run lint",
+    "build": "lerna run build"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
   "packageManager": "pnpm@10.30.2",
   "devDependencies": {
     "lerna": "^9.0.5"

@@ -1,6 +1,8 @@
 {
   "name": "@seerial/tv",
   "main": "expo-router/entry",
+  "author": "Juan Llavero",
+  "license": "GPL-3.0-only",
   "version": "1.0.0",
   "scripts": {
     "start": "EXPO_TV=1 expo start",

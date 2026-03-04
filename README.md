@@ -1,104 +1,73 @@
 ![Seerial Banner](assets/banner.svg)
 
-# Seerial Media Server
+# Seerial Suite
 
-This is the server application for the suite Seerial. It is a multimedia management server that provides user media to different client applications. Built with a focus on scalability and maintainability using modern web technologies.
+![License](https://img.shields.io/badge/license-GPL--3.0--only-blue.svg)
+![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)
+![pnpm](https://img.shields.io/badge/pnpm-workspace-orange.svg)
+![Lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)
 
-## Project Structure
+Seerial is an open-source media management suite, designed to offer a seamless experience across multiple devices.
 
-The project follows a modular architecture organized as follows:
+This repository is a **Monorepo** managed with [pnpm workspaces](https://pnpm.io/workspaces) and [Lerna](https://lerna.js.org/), containing the backend server as well as all official clients (Web, Desktop, and TV).
 
-- `src/api/v1/`: API version 1 modules
-  - Domain-specific directories (e.g., albums, movies, series, users) containing business logic
-  - Each domain follows a hexagonal architecture with:
-    - `infrastructure/web/controllers/`: Web controllers (adapters for HTTP)
-    - `infrastructure/adapters/`: External service adapters (e.g., metadata providers, IMDB scores)
-- `src/middleware/`: Express middleware for authentication, sanitization, etc.
-- `src/utils/`: Utility functions and helpers
-- `src/__tests__/`: Test files using Jest
-- `seerial-web/`: Frontend web application (React/Vite-based client)
-- `assets/`: Static assets (icons, etc.)
+---
 
-## Architecture
+## Monorepo Architecture
 
-The server implements the **Hexagonal Architecture** (also known as Ports and Adapters architecture). This design pattern separates the core business logic from external concerns, making the system more testable and maintainable.
+The project is divided into two main sections: runnable applications (`apps/`) and shared libraries/configurations (`packages/`).
 
-- **Core Domain**: Business logic and use cases
-- **Ports**: Interfaces defining contracts for external interactions
-- **Adapters**: Implementations of ports for specific technologies (e.g., web controllers, database adapters, external API clients)
+### Applications (`apps/`)
 
-## Technologies
+- **`@seerial/server`**: Main backend built with Node.js, Express, TypeORM, and packable with Electron.
+- **`@seerial/web`**: Main web client built with React and Vite.
+- **`@seerial/desktop`**: Cross-platform desktop application using Tauri and React.
+- **`@seerial/tv`**: Native smart TV application built with Expo / React Native TV.
 
-- **Node.js & TypeScript**: Runtime and primary language for type safety
-- **Express.js**: Web framework for building REST APIs
-- **TSOA**: Framework for building REST APIs with TypeScript decorators, auto-generating OpenAPI specs and routes
-- **Jest**: Testing framework for unit and integration tests
-- **Sequelize**: ORM for database interactions (SQLite by default)
-- **FFmpeg**: Media processing library for video/audio handling
-- **Electron**: Cross-platform desktop application framework
-- **Sharp**: Image processing library
-- **Axios**: HTTP client for external API calls
-- **Swagger UI**: API documentation interface
+### Shared Packages (`packages/`)
 
-## Getting Started
+- **`@seerial/config`**: Global and standardized configurations for ESLint and TypeScript.
+- **`@seerial/shared-types`**: Data models, DTOs, and shared TypeScript interfaces across the backend and clients.
+
+---
+
+## Quick Start Guide
 
 ### Prerequisites
 
-- Node.js (v16+)
-- pnpm (recommended) or npm
+- [Node.js](https://nodejs.org/) (v18 or higher recommended)
+- [pnpm](https://pnpm.io/installation) (Main package manager)
 
 ### Installation
 
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/juanllavero/seerial-server.git
-   cd seerial-server
-   ```
-
-2. Install dependencies:
-   ```bash
-   pnpm install
-   ```
-
-### Development
-
-Run the development server:
+By using `pnpm workspaces`, all dependencies across the ecosystem are installed and linked with a single command from the root:
 
 ```bash
-pnpm run dev
+# 1. Clone the repository
+git clone [https://github.com/juanllavero/seerial.git](https://github.com/juanllavero/seerial.git)
+cd seerial
+
+# 2. Install all dependencies across all apps
+pnpm install
 ```
 
-This will start both the web client and the Electron server concurrently.
+### Main Development Commands
 
-### Building
+Thanks to the global scripts configured in the root, you can easily spin up any part of the suite:
 
-Build for production:
+- **`pnpm run dev`**: Starts the Server and the Web Client simultaneously in parallel.
+- **`pnpm run dev:server`**: Starts only the backend in development mode.
+- **`pnpm run dev:web`**: Starts only the web frontend (Vite).
+- **`pnpm run dev:desktop`**: Starts the desktop app development environment (Tauri).
+- **`pnpm run dev:tv`**: Starts the Expo server for the TV app.
 
-```bash
-pnpm run build
-```
+### Maintenance Commands
 
-Build platform-specific executables:
+- **`pnpm run lint`**: Runs the linters across all packages in the monorepo in parallel to ensure code quality.
+- **`pnpm run build`**: Builds all applications for production.
 
-```bash
-pnpm run build-win    # Windows
-pnpm run build-mac    # macOS
-pnpm run build-linux  # Linux
-```
-
-### Testing
-
-Run tests:
-
-```bash
-pnpm run tests
-```
-
-### API Documentation
-
-After running the server, visit `http://localhost:3000/api-docs` for Swagger UI documentation generated by TSOA.
+---
 
 ## License
 
-GNU GENERAL PUBLIC LICENSE - see [LICENSE](LICENSE) for details.
+This project is licensed under the **GNU General Public License v3.0 only** (`GPL-3.0-only`). See the [LICENSE](./LICENSE) file for more details.
