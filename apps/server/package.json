@@ -1,5 +1,5 @@
 {
-  "name": "seerial-server",
+  "name": "@seerial/server",
   "version": "0.2.0",
   "main": "dist/index.js",
   "description": "Media management server for the suite Seerial",
