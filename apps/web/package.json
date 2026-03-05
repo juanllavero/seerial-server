@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "lint": "biome check .",
     "preview": "vite preview"
   },
   "homepage": ".",
@@ -59,7 +59,6 @@
     "zustand": "^5.0.10"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.2",
     "@seerial/config": "workspace:*",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/lodash": "^4.17.23",
@@ -68,16 +67,12 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^4.7.0",
     "babel-plugin-react-compiler": "^1.0.0",
-    "eslint": "^9.39.2",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-react-refresh": "^0.4.26",
     "globals": "^15.15.0",
     "postcss": "^8.5.6",
     "prettier": "^3.8.0",
     "prettier-plugin-tailwindcss": "^0.6.14",
     "tailwindcss": "^4.1.18",
     "typescript": "~5.7.3",
-    "typescript-eslint": "^8.53.0",
     "vite": "^7.3.1"
   }
 }

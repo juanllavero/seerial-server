@@ -15,7 +15,7 @@ This repository is a **Monorepo** managed with [pnpm workspaces](https://pnpm.io
 
 ## Monorepo Architecture
 
-The project is divided into two main sections: runnable applications (`apps/`) and shared libraries/configurations (`packages/`).
+The project is divided into two main sections: runnable applications (`apps/`) and shared libraries/configurations (`libs/`).
 
 ### Applications (`apps/`)
 
@@ -24,7 +24,7 @@ The project is divided into two main sections: runnable applications (`apps/`) a
 - **`@seerial/desktop`**: Cross-platform desktop application using Tauri and React.
 - **`@seerial/tv`**: Native smart TV application built with Expo / React Native TV.
 
-### Shared Packages (`packages/`)
+### Shared Packages (`libs/`)
 
 - **`@seerial/config`**: Global and standardized configurations for ESLint and TypeScript.
 - **`@seerial/shared-types`**: Data models, DTOs, and shared TypeScript interfaces across the backend and clients.

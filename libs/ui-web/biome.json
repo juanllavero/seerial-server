@@ -1,0 +1,22 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.0.0/schema.json",
+  "root": false,
+  "extends": "//",
+  "linter": {
+    "rules": {
+      "a11y": {
+        "useAltText": "error",
+        "useKeyWithClickEvents": "error",
+        "useKeyWithMouseEvents": "error",
+        "useAriaPropsForRole": "error",
+        "useSemanticElements": "warn",
+        "noSvgWithoutTitle": "warn",
+        "useHtmlLang": "error",
+        "useValidAnchor": "error"
+      }
+    }
+  },
+  "files": {
+    "includes": ["src/**/*.ts", "src/**/*.tsx"]
+  }
+}

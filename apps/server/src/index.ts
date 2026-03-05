@@ -5,6 +5,7 @@ import {
   tmdbApiClient,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import * as ConfigManager from "@/api/v1/shared/infrastructure/services/ConfigService";
+import compression from "compression";
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import { config } from "dotenv";
@@ -32,6 +33,9 @@ config({
 process.env.APP_ROOT = path.join(__dirname, "../../");
 export const appServer = express();
 
+// Add compression middleware to compress responses and save bandwidth
+appServer.use(compression());
+
 // Sanitization middleware
 appServer.use(sanitizationMiddleware);
 
@@ -49,7 +53,7 @@ appServer.use(
     exposedHeaders: ["Content-Range", "Accept-Ranges", "Content-Length"],
     methods: ["GET", "PUT", "POST", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-  })
+  }),
 );
 
 // Rate limit for login endpoint
@@ -59,7 +63,7 @@ appServer.use(
     windowMs: 10 * 60 * 1000, // 10 minutes
     max: 20, // 20 attempts per IP
     message: "Too many login attempts, please try again later",
-  })
+  }),
 );
 
 // Limit the max number of requests per minute
@@ -69,7 +73,7 @@ appServer.use(
     max: 1000, // max 1000 requests per minute
     standardHeaders: true,
     legacyHeaders: false,
-  })
+  }),
 );
 
 // Configure helmet middleware to avoid some security vulnerabilities
@@ -77,7 +81,7 @@ appServer.use(
   helmet({
     contentSecurityPolicy: false, // Disable CSP
     crossOriginEmbedderPolicy: false, // Avoid problems with video streaming
-  })
+  }),
 );
 
 appServer.use(express.json({ limit: "50mb" }));
@@ -85,7 +89,7 @@ appServer.use(express.urlencoded({ limit: "50mb", extended: true }));
 appServer.use(cookieParser());
 appServer.use(
   "/media",
-  express.static(fileSystemService.getExternalPath("resources"))
+  express.static(fileSystemService.getExternalPath("resources")),
 );
 
 // Global server and WebSocket manager

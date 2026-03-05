@@ -1,0 +1,24 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.4.5/schema.json",
+  "root": false,
+  "extends": "//",
+  "linter": {
+    "rules": {
+      "correctness": {
+        "useExhaustiveDependencies": "off",
+        "useHookAtTopLevel": "off"
+      },
+      "a11y": {
+        "useAltText": "off",
+        "useKeyWithClickEvents": "off",
+        "useKeyWithMouseEvents": "off",
+        "useAriaPropsForRole": "off",
+        "useSemanticElements": "off",
+        "noAccessKey": "off"
+      }
+    }
+  },
+  "files": {
+    "includes": ["src/**/*.ts", "!src/**/*.spec.ts", "!src/**/*.test.ts"]
+  }
+}
