@@ -1,11 +1,11 @@
+import ISO6391 from 'iso-639-1'
+import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
 import { useSettingsStore } from '@/context/settings.context'
-import ISO6391 from 'iso-639-1'
-import { useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
 
 interface AdvancedTabContentProps {
   preferAudioLan: string
@@ -59,16 +59,12 @@ function AdvancedTabContent({
 
   const getPrefAudioLan = async () => {
     const prefAudio = await getServerSetting('preferAudioLan', currentLanguage)
-    return (
-      ISO6391.getNativeName(String(prefAudio).split('-')[0]) || currentLanguage
-    )
+    return ISO6391.getNativeName(String(prefAudio).split('-')[0]) || currentLanguage
   }
 
   const getPrefSubLan = async () => {
     const prefSub = await getServerSetting('preferSubsLan', currentLanguage)
-    return (
-      ISO6391.getNativeName(String(prefSub).split('-')[0]) || currentLanguage
-    )
+    return ISO6391.getNativeName(String(prefSub).split('-')[0]) || currentLanguage
   }
 
   const getSubsMode = async () => {
@@ -103,9 +99,7 @@ function AdvancedTabContent({
           <SelectableWrapper
             options={languagesOptions}
             defaultValue={preferAudioLan ?? currentLanguage}
-            onValueChange={(_key: string, value: string) =>
-              setPreferAudioLan(value)
-            }
+            onValueChange={(_key: string, value: string) => setPreferAudioLan(value)}
           />
         </LabeledInputWrapper>
 
@@ -121,9 +115,7 @@ function AdvancedTabContent({
           <SelectableWrapper
             options={languagesOptions}
             defaultValue={preferSubLan ?? currentLanguage}
-            onValueChange={(_key: string, value: string) =>
-              setPreferSubLan(value)
-            }
+            onValueChange={(_key: string, value: string) => setPreferSubLan(value)}
           />
         </LabeledInputWrapper>
       </FlexBox>

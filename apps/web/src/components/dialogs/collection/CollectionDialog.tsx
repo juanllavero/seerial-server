@@ -1,13 +1,13 @@
+import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { shallow } from 'zustand/shallow'
 import { ModalWrapper } from '@/components/ModalWrapper'
 import { API, authenticatedFetch } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.store'
 import { useWebSocketStore } from '@/context/ws.context'
-import { Collection } from '@/data/interfaces/Media'
+import type { Collection } from '@/data/interfaces/Media'
 import { ImageType } from '@/utils/constants'
 import { showToast } from '@/utils/ReactUtils'
-import { useEffect, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { shallow } from 'zustand/shallow'
 import ImageListTab from '../components/ImageListTab'
 import CollectionInfoTab from './components/CollectionInfoTab'
 
@@ -23,9 +23,7 @@ function CollectionDialog() {
   )
   const [selectedTab, setSelectedTab] = useState<string | undefined>()
 
-  const [collection, setCollection] = useState<Collection | undefined>(
-    undefined,
-  )
+  const [collection, setCollection] = useState<Collection | undefined>(undefined)
 
   // Covers
   const [covers, setCovers] = useState<string[]>([])
@@ -51,12 +49,8 @@ function CollectionDialog() {
       setSelectedCover(collectionDialog.collectionToEdit.coverSrc || '')
       setLocalCoverFolder(`img/posters/${collectionDialog.collectionToEdit.id}`)
       setBackgrounds(collectionDialog.collectionToEdit.backgroundsUrls || [])
-      setSelectedBackground(
-        collectionDialog.collectionToEdit.backgroundSrc || '',
-      )
-      setLocalBackgroundFolder(
-        `img/backgrounds/${collectionDialog.collectionToEdit.id}`,
-      )
+      setSelectedBackground(collectionDialog.collectionToEdit.backgroundSrc || '')
+      setLocalBackgroundFolder(`img/backgrounds/${collectionDialog.collectionToEdit.id}`)
       setSelectedTab(t('generalButton'))
     }
   }, [collectionDialog])
@@ -66,17 +60,13 @@ function CollectionDialog() {
   const handleEditCollection = async () => {
     await connectWS()
 
-    const response = await authenticatedFetch(
-      API.collections.get(collection.id),
-      'PUT',
-      {
-        ...collection,
-        title,
-        description,
-        posterSrc: selectedCover,
-        backgroundSrc: selectedBackground,
-      },
-    )
+    const response = await authenticatedFetch(API.collections.get(collection.id), 'PUT', {
+      ...collection,
+      title,
+      description,
+      posterSrc: selectedCover,
+      backgroundSrc: selectedBackground,
+    })
 
     if (!response || !response.data) {
       showToast('error', 'Error updating episode')

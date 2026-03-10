@@ -21,8 +21,8 @@ import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.store'
 import { useWebSocketStore } from '@/context/ws.context'
 import { LibraryTypes } from '@/data/enums/LibraryTypes'
-import { Library } from '@/data/interfaces/Media'
-import { APIResponse } from '@/data/interfaces/Utils'
+import type { Library } from '@/data/interfaces/Media'
+import type { APIResponse } from '@/data/interfaces/Utils'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { t } from 'i18next'
 import {
@@ -103,11 +103,9 @@ const NavLibraries = () => {
 
   React.useEffect(() => {
     if (librariesItems) {
-      setActiveItem(
-        librariesItems.find((item) => item.id === selectedLibraryId) || null,
-      )
+      setActiveItem(librariesItems.find((item) => item.id === selectedLibraryId) || null)
     }
-  }, [selectedLibraryId])
+  }, [selectedLibraryId, librariesItems])
 
   const librariesItems =
     libraries && libraries.length > 0
@@ -147,9 +145,7 @@ const NavLibraries = () => {
                     <a
                       href={''}
                       className={`flex items-center gap-2 ${
-                        activeItem && activeItem.id === item.id
-                          ? 'bg-transparent'
-                          : ''
+                        activeItem && activeItem.id === item.id ? 'bg-transparent' : ''
                       }`}
                       onClick={(e) => {
                         e.preventDefault()
@@ -158,10 +154,7 @@ const NavLibraries = () => {
                         navigate(`/library/${item.id}`)
                       }}
                       style={{
-                        color:
-                          activeItem && activeItem.id === item.id
-                            ? 'var(--app-color)'
-                            : '',
+                        color: activeItem && activeItem.id === item.id ? 'var(--app-color)' : '',
                       }}
                     >
                       {analyzingLibraryId === item.id && analyzing ? (
@@ -172,10 +165,7 @@ const NavLibraries = () => {
                       <span
                         className="font-semibold"
                         style={{
-                          color:
-                            activeItem && activeItem.id === item.id
-                              ? 'var(--app-color)'
-                              : '',
+                          color: activeItem && activeItem.id === item.id ? 'var(--app-color)' : '',
                         }}
                       >
                         {item.name}
@@ -197,9 +187,7 @@ const NavLibraries = () => {
                       >
                         <DropdownMenuItem
                           onClick={() => {
-                            const library = libraries.find(
-                              (library) => library.id === item.id,
-                            )
+                            const library = libraries.find((library) => library.id === item.id)
 
                             if (library) {
                               openDialog('library', { id: library.id })
@@ -215,9 +203,7 @@ const NavLibraries = () => {
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          onClick={() =>
-                            openDialog('removeLibrary', { id: item.id })
-                          }
+                          onClick={() => openDialog('removeLibrary', { id: item.id })}
                         >
                           <Trash2 className="text-muted-foreground" />
                           <span>{t('removeLibrary')}</span>
@@ -253,13 +239,13 @@ const NavLibraries = () => {
                     href={''}
                     className="flex items-center gap-2"
                     style={{
-                      color: !analyzing ? '' : '#999999',
-                      cursor: !analyzing ? '' : 'not-allowed',
+                      color: analyzing ? '#999999' : '',
+                      cursor: analyzing ? 'not-allowed' : '',
                     }}
                     onClick={(e) => e.preventDefault()}
                   >
                     <Plus />
-                    <span style={{ color: !analyzing ? '' : '#999999' }}>
+                    <span style={{ color: analyzing ? '#999999' : '' }}>
                       {t('libraryWindowTitle')}
                     </span>
                   </a>

@@ -1,22 +1,18 @@
+import { Pencil } from 'lucide-react'
+import { memo } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
+import { shallow } from 'zustand/shallow'
 import Card from '@/components/cards/Card'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
 import { useServerStore } from '@/context/auth.store'
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.store'
-import { LibraryItem } from '@/data/interfaces/Media'
-import { DropdownContent } from '@/data/interfaces/Utils'
+import type { LibraryItem } from '@/data/interfaces/Media'
+import type { DropdownContent } from '@/data/interfaces/Utils'
 import { useCardWidth } from '@/hooks/useCardWidth'
-import {
-  refreshMetadata,
-  toggleMovieWatched,
-  toggleSeriesWatched,
-} from '@/utils/ReactUtils'
-import { Pencil } from 'lucide-react'
-import { memo } from 'react'
-import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
-import { shallow } from 'zustand/shallow'
+import { refreshMetadata, toggleMovieWatched, toggleSeriesWatched } from '@/utils/ReactUtils'
 
 interface MediaCardProps {
   item: LibraryItem
@@ -30,24 +26,17 @@ function MediaCard({ item, libraryType }: MediaCardProps) {
   const isMobile = useIsMobile()
   const width = isMobile ? '100%' : cardWidth * 1.2
 
-  const { user } = useServerStore(
-    (state) => ({ user: state.currentUser }),
+  const { user } = useServerStore((state) => ({ user: state.currentUser }), shallow)
+  const { selectSeries, selectMovie, selectAlbum, selectCollection } = useDataStore(
+    (state) => ({
+      selectSeries: state.selectSeries,
+      selectMovie: state.selectMovie,
+      selectAlbum: state.selectAlbum,
+      selectCollection: state.selectCollection,
+    }),
     shallow,
   )
-  const { selectSeries, selectMovie, selectAlbum, selectCollection } =
-    useDataStore(
-      (state) => ({
-        selectSeries: state.selectSeries,
-        selectMovie: state.selectMovie,
-        selectAlbum: state.selectAlbum,
-        selectCollection: state.selectCollection,
-      }),
-      shallow,
-    )
-  const { openDialog } = useDialogStore(
-    (state) => ({ openDialog: state.openDialog }),
-    shallow,
-  )
+  const { openDialog } = useDialogStore((state) => ({ openDialog: state.openDialog }), shallow)
 
   const { type, id } = item
   const isCollection = type === 'collection'
@@ -57,8 +46,7 @@ function MediaCard({ item, libraryType }: MediaCardProps) {
 
   const aspectRatio = isMusic ? 1 : 2 / 3
   const errorSrc = isMusic ? '/img/songDefault.png' : '/img/fileNotFound.jpg'
-  const imgSrc =
-    item.coverSrc && item.coverSrc !== '' ? item.coverSrc : errorSrc
+  const imgSrc = item.coverSrc && item.coverSrc !== '' ? item.coverSrc : errorSrc
   const title = item.title
   const subtitle = item.years ?? '-'
   const watched = item.watched

@@ -7,24 +7,12 @@ const TVLinkPage = lazy(() => import('@/pages/link/TVLinkPage'))
 const HomePage = lazy(() => import('@/pages/home/HomePage'))
 const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'))
 const LibraryPage = lazy(() => import('@/pages/library/LibraryPage'))
-const MovieDetailsPage = lazy(
-  () => import('@/pages/details/movie/MovieDetailsPage'),
-)
-const SeriesDetailsPage = lazy(
-  () => import('@/pages/details/series/SeriesDetailsPage'),
-)
-const AlbumDetailsPage = lazy(
-  () => import('@/pages/details/album/AlbumDetailsPage'),
-)
-const CollectionDetailsPage = lazy(
-  () => import('@/pages/details/collection/CollectionDetailsPage'),
-)
-const EpisodeDetailsPage = lazy(
-  () => import('@/pages/details/episode/EpisodeDetailsPage'),
-)
-const VideoPlayerPage = lazy(
-  () => import('@/pages/videoPlayer/VideoPlayerPage'),
-)
+const MovieDetailsPage = lazy(() => import('@/pages/details/movie/MovieDetailsPage'))
+const SeriesDetailsPage = lazy(() => import('@/pages/details/series/SeriesDetailsPage'))
+const AlbumDetailsPage = lazy(() => import('@/pages/details/album/AlbumDetailsPage'))
+const CollectionDetailsPage = lazy(() => import('@/pages/details/collection/CollectionDetailsPage'))
+const EpisodeDetailsPage = lazy(() => import('@/pages/details/episode/EpisodeDetailsPage'))
+const VideoPlayerPage = lazy(() => import('@/pages/videoPlayer/VideoPlayerPage'))
 const SideBarLayout = lazy(() => import('@/pages/sidebarLayout/SideBarLayout'))
 
 export function AppRoutes() {
@@ -42,29 +30,14 @@ export function AppRoutes() {
         <Route element={<SideBarLayout />}>
           <Route path="/home" element={<HomePage />} />
           <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/library/:libraryId" element={<LibraryPage />}></Route>
-          <Route
-            path="/library/:libraryId/movie/:movieId"
-            element={<MovieDetailsPage />}
-          />
-          <Route
-            path="/library/:libraryId/series/:seriesId"
-            element={<SeriesDetailsPage />}
-          />
-          <Route
-            path="/library/:libraryId/album/:albumId"
-            element={<AlbumDetailsPage />}
-          />
-          <Route
-            path="/library/:libraryId/episode/:episodeId"
-            element={<EpisodeDetailsPage />}
-          />
+          <Route path="/library/:libraryId" element={<LibraryPage />} />
+          <Route path="/library/:libraryId/movie/:movieId" element={<MovieDetailsPage />} />
+          <Route path="/library/:libraryId/series/:seriesId" element={<SeriesDetailsPage />} />
+          <Route path="/library/:libraryId/album/:albumId" element={<AlbumDetailsPage />} />
+          <Route path="/library/:libraryId/episode/:episodeId" element={<EpisodeDetailsPage />} />
 
           {/* Collection Details Page */}
-          <Route
-            path="/collection/:collectionId/:type"
-            element={<CollectionDetailsPage />}
-          />
+          <Route path="/collection/:collectionId/:type" element={<CollectionDetailsPage />} />
         </Route>
 
         {/* Video Player */}

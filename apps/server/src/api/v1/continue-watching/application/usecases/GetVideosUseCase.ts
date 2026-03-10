@@ -1,5 +1,5 @@
-import { ContinueWatchingVideo } from "../dtos/ContinueWatchingDTOs";
-import { ContinueWatchingRepositoryPort } from "../ports/ContinueWatchingRepositoryPort";
+import type { ContinueWatchingVideo } from '../dtos/ContinueWatchingDTOs';
+import type { ContinueWatchingRepositoryPort } from '../ports/ContinueWatchingRepositoryPort';
 
 export class GetVideosUseCase {
   constructor(private continueWatchingRepo: ContinueWatchingRepositoryPort) {}

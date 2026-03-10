@@ -1,17 +1,15 @@
-import logger from "@/utils/logger";
-import axios from "axios";
-import * as cheerio from "cheerio";
-import { IMDBScoreServicePort } from "../../../application/ports/IMDBScoreServicePort";
+import axios from 'axios';
+import * as cheerio from 'cheerio';
+import logger from '@/utils/logger';
+import type { IMDBScoreServicePort } from '../../../application/ports/IMDBScoreServicePort';
 
-const imdbLogger = logger.child({ category: "IMDB Score" });
+const imdbLogger = logger.child({ category: 'IMDB Score' });
 
 export class IMDBScoreServiceImpl implements IMDBScoreServicePort {
-  constructor() {}
-
   axiosClient = axios.create({
     headers: {
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
     },
     timeout: 5000, // 5s timeout to avoid long waits
   });
@@ -26,19 +24,19 @@ export class IMDBScoreServiceImpl implements IMDBScoreServicePort {
 
       // Avoid errors if jsonLdScript is null or undefined
       if (!jsonLdScript) {
-        throw new Error("JSON-LD script not found");
+        throw new Error('JSON-LD script not found');
       }
 
       const jsonData = JSON.parse(jsonLdScript);
       const rating = jsonData.aggregateRating?.ratingValue;
 
-      if (typeof rating !== "number" && typeof rating !== "string") {
-        throw new Error("Rating not found or invalid");
+      if (typeof rating !== 'number' && typeof rating !== 'string') {
+        throw new Error('Rating not found or invalid');
       }
 
       // Convert to number directly (handles comma or period depending on region)
-      return Number(rating.toString().replace(",", "."));
-    } catch (error: any) {
+      return Number(rating.toString().replace(',', '.'));
+    } catch (error: unknown) {
       imdbLogger.error(error, `Error obtaining score for ${imdbID}`);
       return -1;
     }

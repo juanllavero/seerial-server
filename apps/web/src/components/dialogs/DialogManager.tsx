@@ -1,6 +1,6 @@
 import { useDialogStore } from '@/context/dialog.store'
 import DynamicDialog from './DynamicDialog'
-import { DialogType } from './dialogRegistry'
+import type { DialogType } from './dialogRegistry'
 
 function DialogManager() {
   const { open } = useDialogStore()

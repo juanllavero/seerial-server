@@ -1,7 +1,7 @@
-import { DropdownContent } from '@/data/interfaces/Utils'
-import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { Check, EllipsisVertical } from 'lucide-react'
 import React, { useState } from 'react'
+import type { DropdownContent } from '@/data/interfaces/Utils'
+import { useIsAdmin } from '@/hooks/useIsAdmin'
 import DropdownWrapper from '../DropdownWrapper'
 import Loading from '../Loading'
 import { Button } from '../ui/button'
@@ -74,19 +74,13 @@ function Card({
     >
       <div className={`card ${loading ? 'loading' : ''}`}>
         {progress && !watched && (
-          <FlexBox
-            className="progress"
-            justify="end"
-            align="end"
-            width="100%"
-            height={'100%'}
-          >
+          <FlexBox className="progress" justify="end" align="end" width="100%" height={'100%'}>
             <Progress value={progress} className="rounded-xs" />
           </FlexBox>
         )}
         {(cornerNumber || watched) && (
           <div className="rightCorner">
-            <span>{!watched ? cornerNumber : <Check size={20} />}</span>
+            <span>{watched ? <Check size={20} /> : cornerNumber}</span>
           </div>
         )}
         <FlexBox
@@ -98,13 +92,7 @@ function Card({
           height="100%"
         >
           {!hideButtons && isAdmin && (
-            <FlexBox
-              justify="space-between"
-              align="start"
-              width="100%"
-              padding=".3rem"
-              gap={0.1}
-            >
+            <FlexBox justify="space-between" align="start" width="100%" padding=".3rem" gap={0.1}>
               <Button variant={'ghost'}>{cornerData}</Button>
               <Button variant={'ghost'}>{cornerData}</Button>
             </FlexBox>
@@ -118,7 +106,7 @@ function Card({
           >
             {loading ? (
               <Loading />
-            ) : !hidePlayButton ? (
+            ) : hidePlayButton ? null : (
               <Button
                 variant={'ghost'}
                 className="bg-accent h-fit w-fit rounded-full p-3"
@@ -132,12 +120,9 @@ function Card({
                   backgroundColor: playButtonHovered ? 'var(--app-color)' : '',
                 }}
               >
-                <PlayIcon
-                  size={35}
-                  color={playButtonHovered ? '#1a1a1a' : 'white'}
-                />
+                <PlayIcon size={35} color={playButtonHovered ? '#1a1a1a' : 'white'} />
               </Button>
-            ) : null}
+            )}
           </FlexBox>
           {!hideButtons && menu && isAdmin && (
             <FlexBox
@@ -153,11 +138,7 @@ function Card({
               <DropdownWrapper
                 content={menu}
                 button={
-                  <Button
-                    variant={'ghost'}
-                    size={'icon'}
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                  <Button variant={'ghost'} size={'icon'} onClick={(e) => e.stopPropagation()}>
                     <EllipsisVertical size={20} />
                   </Button>
                 }

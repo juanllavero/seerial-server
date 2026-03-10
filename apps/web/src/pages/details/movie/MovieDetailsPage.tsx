@@ -1,13 +1,14 @@
+import { t } from 'i18next'
+import { Pencil } from 'lucide-react'
+import { useEffect } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { shallow } from 'zustand/shallow'
 import ExpandableText from '@/components/ExpandableText'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import NotFound from '@/components/NotFound'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
-import {
-  MarkWatchedIcon,
-  PlayIcon,
-  UnmarkWatchedIcon,
-} from '@/components/ui/IconLibrary'
+import { MarkWatchedIcon, PlayIcon, UnmarkWatchedIcon } from '@/components/ui/IconLibrary'
 import LazyImage from '@/components/ui/LazyImage'
 import { Skeleton } from '@/components/ui/skeleton'
 import { API, authenticatedFetch } from '@/config/api'
@@ -15,15 +16,10 @@ import { useServerStore } from '@/context/auth.store'
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.store'
 import { useSettingsStore } from '@/context/settings.context'
-import { Movie } from '@/data/interfaces/Media'
+import type { Movie } from '@/data/interfaces/Media'
 import { useGet } from '@/hooks/media/useGet'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { formatTimeForView } from '@/utils/ReactUtils'
-import { t } from 'i18next'
-import { Pencil } from 'lucide-react'
-import { useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { shallow } from 'zustand/shallow'
 import CastList from '../components/CastList'
 import MovieContent from '../components/MovieContent'
 import '../DetailsPage.css'
@@ -40,20 +36,12 @@ function MovieDetailsPage() {
     shallow,
   )
   const clientSettings = useSettingsStore((state) => state.clientSettings)
-  const { openDialog } = useDialogStore(
-    (state) => ({ openDialog: state.openDialog }),
-    shallow,
-  )
+  const { openDialog } = useDialogStore((state) => ({ openDialog: state.openDialog }), shallow)
   const isAdmin = useIsAdmin()
   const navigate = useNavigate()
 
   // Get movie data
-  const {
-    data: movie,
-    isLoading,
-    error,
-    mutate,
-  } = useGet<Movie>(API.movies.get(movieId ?? ''))
+  const { data: movie, isLoading, error, mutate } = useGet<Movie>(API.movies.get(movieId ?? ''))
 
   const isMobile = useIsMobile()
   const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true
@@ -169,21 +157,15 @@ function MovieDetailsPage() {
           ) : (
             <FlexBox direction="column" gap={0.2}>
               {movie.directedBy && movie.directedBy.length !== 0 ? (
-                <span id="directedBy">
-                  {t('directedBy') + ' ' + movie.directedBy || ''}
-                </span>
+                <span id="directedBy">{t('directedBy') + ' ' + movie.directedBy || ''}</span>
               ) : null}
               <FlexBox gap={1.3} margin="0 0 0.3rem 0">
-                <span id="date">
-                  {new Date(movie.year).getFullYear() || null}
-                </span>
+                <span id="date">{new Date(movie.year).getFullYear() || null}</span>
                 {movie.videos && movie.videos.length === 1 && (
                   <span>{formatTimeForView(movie.videos[0].runtime)}</span>
                 )}
               </FlexBox>
-              <span id="genres">
-                {movie.genres ? movie.genres.join(', ') || '' : ''}
-              </span>
+              <span id="genres">{movie.genres ? movie.genres.join(', ') || '' : ''}</span>
             </FlexBox>
           )}
 
@@ -194,17 +176,9 @@ function MovieDetailsPage() {
             ) : (
               <>
                 {movie.imdbScore > 0 ? (
-                  <img
-                    src="/img/logos/imdb.png"
-                    className="h-8 w-8"
-                    alt="IMDB logo"
-                  />
+                  <img src="/img/logos/imdb.png" className="h-8 w-8" alt="IMDB logo" />
                 ) : (
-                  <img
-                    src="/svg/themoviedb.svg"
-                    className="h-8 w-8"
-                    alt="TheMovieDB logo"
-                  />
+                  <img src="/svg/themoviedb.svg" className="h-8 w-8" alt="TheMovieDB logo" />
                 )}
                 <span className="text-sm font-bold">
                   {movie.imdbScore > 0
@@ -231,18 +205,10 @@ function MovieDetailsPage() {
               <>
                 <Button
                   variant={'ghost'}
-                  title={
-                    movie && movie.watchStatus
-                      ? t('markUnwatched')
-                      : t('markWatched')
-                  }
+                  title={movie && movie.watchStatus ? t('markUnwatched') : t('markWatched')}
                   onClick={toggleMovieWatched}
                 >
-                  {movie && movie.watchStatus ? (
-                    <UnmarkWatchedIcon />
-                  ) : (
-                    <MarkWatchedIcon />
-                  )}
+                  {movie && movie.watchStatus ? <UnmarkWatchedIcon /> : <MarkWatchedIcon />}
                 </Button>
                 <MyListButton movieId={movieId ?? ''} />
               </>

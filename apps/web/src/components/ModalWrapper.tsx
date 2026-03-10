@@ -1,7 +1,7 @@
+import React, { type ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import React, { ReactNode } from 'react'
-import { useTranslation } from 'react-i18next'
 import { useIsMobile } from './hooks/use-mobile'
 import {
   Drawer,
@@ -53,9 +53,7 @@ export function ModalWrapper({
   const dialogRef = React.useRef(null)
   const isMobile = useIsMobile()
 
-  const [internalActiveTab, setInternalActiveTab] = React.useState(
-    tabs[0]?.title || 'tab1',
-  )
+  const [internalActiveTab, setInternalActiveTab] = React.useState(tabs[0]?.title || 'tab1')
   const currentTab = activeTab !== undefined ? activeTab : internalActiveTab
 
   const handleTabChange = (newTab: string) => {
@@ -112,11 +110,7 @@ export function ModalWrapper({
               {tabs
                 .filter((tab) => !tab.hidden)
                 .map((tab) => (
-                  <TabsTrigger
-                    key={'Tab' + tab.title}
-                    value={tab.title}
-                    disabled={tab.disabled}
-                  >
+                  <TabsTrigger key={`Tab${tab.title}`} value={tab.title} disabled={tab.disabled}>
                     {tab.title}
                   </TabsTrigger>
                 ))}
@@ -134,15 +128,13 @@ export function ModalWrapper({
                   }}
                 >
                   {Array.isArray(tab.content)
-                    ? tab.content.map((item, index) => (
-                        <div key={index}>{item}</div>
-                      ))
+                    ? tab.content.map((item) => <div key={tab.title}>{item}</div>)
                     : tab.content}
                 </TabsContent>
               ))}
           </Tabs>
         ) : tabs && tabs.length === 1 ? (
-          <div className="w-full">{tabs[0]?.content ?? <></>}</div>
+          <div className="w-full">{tabs[0]?.content}</div>
         ) : null}
         {!hideButtons && (
           <DrawerFooter className="pt-0">

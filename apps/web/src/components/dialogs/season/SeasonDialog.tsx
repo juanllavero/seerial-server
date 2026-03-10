@@ -1,7 +1,7 @@
 import { ModalWrapper } from '@/components/ModalWrapper'
 import { API } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.store'
-import { Season, Series } from '@/data/interfaces/Media'
+import type { Season, Series } from '@/data/interfaces/Media'
 import { useGet } from '@/hooks/media/useGet'
 import useEditDialog from '@/hooks/useEditDialog'
 import GenericFormTab from '../components/GenericFormTab'
@@ -19,30 +19,30 @@ function SeasonDialog() {
   const { payload, closeDialog } = useDialogStore()
   const { id } = payload as { id: string }
   const { data: season } = useGet<Season>(API.seasons.get(id))
-  const { data: series } = useGet<Series>(
-    season ? API.series.get(season.seriesId) : null,
-  )
+  const { data: series } = useGet<Series>(season ? API.series.get(season.seriesId) : null)
 
-  const { control, images, selectedTab, setSelectedTab, handleUpdate, t } =
-    useEditDialog<Season, SeasonImageState>({
-      entity: season,
-      configs: [seasonInfoConfig],
-      initialImages: {
-        backgrounds: [],
-        localBackgroundFolder: '',
-        selectedBackground: '',
-      },
-      getImagesFromEntity: (s) => ({
-        backgrounds: s.backgroundsUrls || [],
-        selectedBackground: s.backgroundSrc || '',
-        localBackgroundFolder: `img/backgrounds/${s.id}`,
-      }),
-      getExtraSubmitData: (imgs, s) => ({
-        backgroundSrc: imgs.selectedBackground ?? s.backgroundSrc,
-      }),
-      apiUpdateUrl: season ? API.seasons.update(season.id) : '',
-      errorMessage: 'Error updating season',
-    })
+  const { control, images, selectedTab, setSelectedTab, handleUpdate, t } = useEditDialog<
+    Season,
+    SeasonImageState
+  >({
+    entity: season,
+    configs: [seasonInfoConfig],
+    initialImages: {
+      backgrounds: [],
+      localBackgroundFolder: '',
+      selectedBackground: '',
+    },
+    getImagesFromEntity: (s) => ({
+      backgrounds: s.backgroundsUrls || [],
+      selectedBackground: s.backgroundSrc || '',
+      localBackgroundFolder: `img/backgrounds/${s.id}`,
+    }),
+    getExtraSubmitData: (imgs, s) => ({
+      backgroundSrc: imgs.selectedBackground ?? s.backgroundSrc,
+    }),
+    apiUpdateUrl: season ? API.seasons.update(season.id) : '',
+    errorMessage: 'Error updating season',
+  })
 
   if (!season) return null
 
@@ -52,9 +52,7 @@ function SeasonDialog() {
       tabs={[
         {
           title: t('generalButton'),
-          content: (
-            <GenericFormTab config={seasonInfoConfig} control={control} />
-          ),
+          content: <GenericFormTab config={seasonInfoConfig} control={control} />,
         },
         { title: t('media'), content: <MediaTab season={season} /> },
         {

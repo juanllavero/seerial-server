@@ -1,6 +1,6 @@
-import { isAbsolutePath } from '@/utils/ReactUtils'
 import { extractColors } from 'extract-colors'
 import { createWithEqualityFn } from 'zustand/traditional'
+import { isAbsolutePath } from '@/utils/ReactUtils'
 
 const BLACK_GRADIENT = ['#000000', '#000000', '#000000', '#000000']
 
@@ -28,10 +28,7 @@ interface GradientState {
   songColors: string[]
   selectBackground: (selectedBackground: string) => void
   restoreGradient: (isSong: boolean) => void
-  generateGradient: (
-    background: string | undefined,
-    isSong: boolean,
-  ) => Promise<void>
+  generateGradient: (background: string | undefined, isSong: boolean) => Promise<void>
 }
 
 export const useGradientStore = createWithEqualityFn<GradientState>((set) => ({

@@ -1,5 +1,5 @@
-import { DiscoveredServer } from '@/data/interfaces/Servers'
 import { Server, WifiOff } from 'lucide-react'
+import type { DiscoveredServer } from '@/data/interfaces/Servers'
 
 interface ServerCardProps {
   server: DiscoveredServer
@@ -43,16 +43,10 @@ function ServerCard({ server, onSelect }: ServerCardProps) {
 
       {/* Info */}
       <div className="text-center">
-        <p
-          className={`text-base font-semibold ${isOffline ? 'text-white/30' : 'text-white'}`}
-        >
-          {server.name === server.url
-            ? extractHostname(server.url)
-            : server.name}
+        <p className={`text-base font-semibold ${isOffline ? 'text-white/30' : 'text-white'}`}>
+          {server.name === server.url ? extractHostname(server.url) : server.name}
         </p>
-        <p className="mt-1 font-mono text-xs text-white/40">
-          {extractHostname(server.url)}
-        </p>
+        <p className="mt-1 font-mono text-xs text-white/40">{extractHostname(server.url)}</p>
       </div>
 
       {/* Status badge */}

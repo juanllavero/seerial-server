@@ -1,16 +1,13 @@
-import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
-import { MovieModel } from "@/api/v1/movies/infrastructure/persistence/models/MovieModel";
-import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/SeriesModel";
-import { GenericRepositoryHelper } from "@/helpers/GenericRepositoryHelper";
-import logger from "@/utils/logger";
-import { In, Raw } from "typeorm";
-import { MyListRepositoryPort } from "../../../application/ports/MyListRepositoryPort";
-import { MyListModel } from "../models/MyListModel";
+import { In, Raw } from 'typeorm';
+import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
+import { MovieModel } from '@/api/v1/movies/infrastructure/persistence/models/MovieModel';
+import { SeriesModel } from '@/api/v1/series/infrastructure/persistence/models/SeriesModel';
+import { GenericRepositoryHelper } from '@/helpers/GenericRepositoryHelper';
+import logger from '@/utils/logger';
+import type { MyListRepositoryPort } from '../../../application/ports/MyListRepositoryPort';
+import { MyListModel } from '../models/MyListModel';
 
-export class MyListRepositoryImpl
-  extends BaseRepository
-  implements MyListRepositoryPort
-{
+export class MyListRepositoryImpl extends BaseRepository implements MyListRepositoryPort {
   // Generic helper for common CRUD operations
   private helper: GenericRepositoryHelper<MyListModel, any>;
 
@@ -19,7 +16,7 @@ export class MyListRepositoryImpl
 
     // Initialize helper
     this.helper = new GenericRepositoryHelper(MyListModel, {
-      entityName: "MyList",
+      entityName: 'MyList',
       generateShortId: true,
     });
   }
@@ -113,13 +110,13 @@ export class MyListRepositoryImpl
   }
 
   async removeItemFromMyList(itemId: string) {
-    const validatedId = this.validateId(itemId, "MyList ID");
+    const validatedId = this.validateId(itemId, 'MyList ID');
     return this.helper.delete(validatedId);
   }
 
   // Get
   async getMoviesFromMyList(userId: string) {
-    const validatedId = this.validateId(userId, "User ID");
+    const validatedId = this.validateId(userId, 'User ID');
 
     // Get the IDs of the movies saved in MyList
     const myListMovies = await MyListModel.find({
@@ -127,7 +124,7 @@ export class MyListRepositoryImpl
         movieId: Raw((alias: string) => `${alias} IS NOT NULL`),
         userId: validatedId,
       },
-      order: { addedAt: "DESC" },
+      order: { addedAt: 'DESC' },
     });
 
     const movieIds = myListMovies.map((item) => item.movieId).filter(Boolean);
@@ -145,7 +142,7 @@ export class MyListRepositoryImpl
   }
 
   async getSeriesFromMyList(userId: string) {
-    const validatedId = this.validateId(userId, "User ID");
+    const validatedId = this.validateId(userId, 'User ID');
 
     // Get the IDs of the series saved in MyList
     const myListSeries = await MyListModel.find({
@@ -153,7 +150,7 @@ export class MyListRepositoryImpl
         seriesId: Raw((alias: string) => `${alias} IS NOT NULL`),
         userId: validatedId,
       },
-      order: { addedAt: "DESC" },
+      order: { addedAt: 'DESC' },
     });
 
     const seriesIds = myListSeries.map((item) => item.seriesId).filter(Boolean);

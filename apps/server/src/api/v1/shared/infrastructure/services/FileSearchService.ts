@@ -1,14 +1,14 @@
-import { AlbumModel } from "@/api/v1/albums/infrastructure/persistence/models/AlbumModel";
-import { MovieModel } from "@/api/v1/movies/infrastructure/persistence/models/MovieModel";
-import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/SeriesModel";
+import { existsSync } from 'fs-extra';
+import * as path from 'path';
+import { parse } from 'path';
+import { AlbumModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumModel';
+import { MovieModel } from '@/api/v1/movies/infrastructure/persistence/models/MovieModel';
+import { SeriesModel } from '@/api/v1/series/infrastructure/persistence/models/SeriesModel';
 import {
   notificationService,
   useCases,
-} from "@/api/v1/shared/infrastructure/adapters/di/container";
-import logger from "@/utils/logger";
-import { existsSync } from "fs-extra";
-import * as path from "path";
-import { parse } from "path";
+} from '@/api/v1/shared/infrastructure/adapters/di/container';
+import logger from '@/utils/logger';
 
 /**
  * Delete removed files from library
@@ -54,9 +54,7 @@ export async function clearLibrary(libraryId: string) {
 
     if (!checkedRoots.has(resolvedRoot)) {
       if (!existsSync(resolvedRoot)) {
-        logger.info(
-          `Root folder ${resolvedRoot} is not connected. Its files will be skipped.`
-        );
+        logger.info(`Root folder ${resolvedRoot} is not connected. Its files will be skipped.`);
         checkedRoots.add(resolvedRoot);
         continue;
       }
@@ -67,7 +65,7 @@ export async function clearLibrary(libraryId: string) {
     const fileExists = existsSync(filePath);
 
     if (!fileExists) {
-      if (type === "Shows") {
+      if (type === 'Shows') {
         const episode = await useCases.getEpisodeByPath().execute(filePath);
 
         if (!episode) continue;
@@ -77,12 +75,11 @@ export async function clearLibrary(libraryId: string) {
 
         const season = await useCases.getSeasonById().execute(seasonId);
 
-        if (!season || (season.episodes && season.episodes.length > 0))
-          continue;
+        if (!season || (season.episodes && season.episodes.length > 0)) continue;
 
         const seriesId = season.seriesId;
         await useCases.deleteSeries().execute(seriesId);
-      } else if (type === "Movies") {
+      } else if (type === 'Movies') {
         const movie = await useCases.getMovieByPath().execute(filePath);
 
         if (!movie) continue;
@@ -94,7 +91,7 @@ export async function clearLibrary(libraryId: string) {
         if (!song) continue;
 
         const albumId = song.albumId;
-        await useCases.deleteSong().execute(song.id ?? "");
+        await useCases.deleteSong().execute(song.id ?? '');
 
         const album = await useCases.getAlbumById().execute(albumId);
 
@@ -108,9 +105,9 @@ export async function clearLibrary(libraryId: string) {
   }
 
   if (
-    (type === "Shows" && library.series && library.series.length === 0) ||
-    (type === "Movies" && library.movies && library.movies.length === 0) ||
-    (type === "Music" && library.albums && library.albums.length === 0)
+    (type === 'Shows' && library.series && library.series.length === 0) ||
+    (type === 'Movies' && library.movies && library.movies.length === 0) ||
+    (type === 'Music' && library.albums && library.albums.length === 0)
   ) {
     await useCases.deleteLibrary().execute(libraryId);
   }
@@ -126,14 +123,14 @@ export async function clearLibrary(libraryId: string) {
  */
 export function getCollectionItemsKey(value: string) {
   switch (value) {
-    case "Movies":
-      return "movies";
-    case "Series":
-      return "shows";
-    case "Shows":
-      return "shows";
-    case "Music":
-      return "albums";
+    case 'Movies':
+      return 'movies';
+    case 'Series':
+      return 'shows';
+    case 'Shows':
+      return 'shows';
+    case 'Music':
+      return 'albums';
     default:
       throw new Error(`Invalid item value provided: ${value}`);
   }
@@ -146,13 +143,13 @@ export function getCollectionItemsKey(value: string) {
  */
 export function getItemModel(type: string) {
   switch (type) {
-    case "Movies":
+    case 'Movies':
       return MovieModel;
-    case "Series":
+    case 'Series':
       return SeriesModel;
-    case "Shows":
+    case 'Shows':
       return SeriesModel;
-    case "Music":
+    case 'Music':
       return AlbumModel;
     default:
       throw new Error(`Invalid item type provided: ${type}`);
@@ -162,28 +159,28 @@ export function getItemModel(type: string) {
 export function extractNameAndYear(source: string) {
   // Remove parentheses and extra spaces
   const cleanSource = source
-    .replace(/[()]/g, "")
-    .replace(/\s{2,}/g, " ")
+    .replace(/[()]/g, '')
+    .replace(/\s{2,}/g, ' ')
     .trim();
 
   // Regex to get name and year
   const regex = /^(.*?)(?:[\s.-]*(\d{4}))?$/;
   const match = cleanSource.match(regex);
 
-  let name = "";
-  let year = "1";
+  let name = '';
+  let year = '1';
 
   if (match) {
     name = match[1];
-    year = match[2] || "1";
+    year = match[2] || '1';
   } else {
     name = cleanSource;
   }
 
   // Clean and format the name
   name = name
-    .replace(/[-_]/g, " ")
-    .replace(/\s{2,}/g, " ")
+    .replace(/[-_]/g, ' ')
+    .replace(/\s{2,}/g, ' ')
     .trim();
 
   return [name, year];
@@ -192,7 +189,7 @@ export function extractNameAndYear(source: string) {
 export async function changeIdentificationShow(
   showId: string,
   newTheMovieDBID: number,
-  newepisodeGroupId?: string
+  newepisodeGroupId?: string,
 ) {
   const show = await useCases.getSeriesById().execute(showId);
 
@@ -233,10 +230,7 @@ export async function changeIdentificationShow(
   await useCases.scanSeries().execute(library, show.folder);
 }
 
-export async function changeIdentificationMovie(
-  movieId: string,
-  newTheMovieDBID: number
-) {
+export async function changeIdentificationMovie(movieId: string, newTheMovieDBID: number) {
   const movie = await useCases.getMoviebyId().execute(movieId);
 
   if (!movie) return;
@@ -249,9 +243,7 @@ export async function changeIdentificationMovie(
   if (!library) return;
 
   // Restore folder in library
-  await useCases
-    .addAnalyzedFolder()
-    .execute(library.id, movie.folder, movie.id);
+  await useCases.addAnalyzedFolder().execute(library.id, movie.folder, movie.id);
 
   // Remove videos
   const videos = await useCases.getVideoByMovieId().execute(movieId);

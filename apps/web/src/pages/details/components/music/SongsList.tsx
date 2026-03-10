@@ -1,9 +1,9 @@
-import FlexBox from '@/components/ui/FlexBox'
-import { Album, Song } from '@/data/interfaces/Music'
 import { useTranslation } from 'react-i18next'
-import MusicCard from './MusicCard'
-import useMusicStore from '@/context/music.context'
 import { shallow } from 'zustand/shallow'
+import FlexBox from '@/components/ui/FlexBox'
+import useMusicStore from '@/context/music.context'
+import type { Album, Song } from '@/data/interfaces/Music'
+import MusicCard from './MusicCard'
 
 interface SongsListProps {
   album: Album
@@ -11,17 +11,16 @@ interface SongsListProps {
 
 function SongsList({ album }: SongsListProps) {
   const { t } = useTranslation()
-  const { currentSong, selectSong, setSongQueue, togglePlayPause, setIsShown } =
-    useMusicStore(
-      (state) => ({
-        currentSong: state.currentSong,
-        selectSong: state.selectSong,
-        setSongQueue: state.setSongQueue,
-        togglePlayPause: state.togglePlayPause,
-        setIsShown: state.setIsShown,
-      }),
-      shallow,
-    )
+  const { currentSong, selectSong, setSongQueue, togglePlayPause, setIsShown } = useMusicStore(
+    (state) => ({
+      currentSong: state.currentSong,
+      selectSong: state.selectSong,
+      setSongQueue: state.setSongQueue,
+      togglePlayPause: state.togglePlayPause,
+      setIsShown: state.setIsShown,
+    }),
+    shallow,
+  )
 
   const hasDiscs = album.songs.some((song) => song.discNumber > 0)
 
@@ -49,17 +48,14 @@ function SongsList({ album }: SongsListProps) {
     )
   }
 
-  const groupedByDisc = album.songs.reduce(
-    (acc: { [key: number]: Song[] }, song) => {
-      const discNumber = song.discNumber || 0 // Ensure discNumber is 0 if null/undefined
-      if (!acc[discNumber]) {
-        acc[discNumber] = []
-      }
-      acc[discNumber].push(song)
-      return acc
-    },
-    {},
-  )
+  const groupedByDisc = album.songs.reduce((acc: { [key: number]: Song[] }, song) => {
+    const discNumber = song.discNumber || 0 // Ensure discNumber is 0 if null/undefined
+    if (!acc[discNumber]) {
+      acc[discNumber] = []
+    }
+    acc[discNumber].push(song)
+    return acc
+  }, {})
 
   // Convert the grouped object into an array sorted by disc number, with disc 0 at the end
   const discEntries = Object.entries(groupedByDisc).sort(([discA], [discB]) => {
@@ -79,9 +75,7 @@ function SongsList({ album }: SongsListProps) {
         <FlexBox key={discNumber} direction="column" gap={1} width={'100%'}>
           <span className="text-xl font-semibold">
             {/* Change title for disc 0 to 'extras' */}
-            {Number(discNumber) === 0
-              ? t('extras')
-              : `${t('disc')} ${discNumber}`}
+            {Number(discNumber) === 0 ? t('extras') : `${t('disc')} ${discNumber}`}
           </span>
           {songs.map((song, index) => (
             <MusicCard

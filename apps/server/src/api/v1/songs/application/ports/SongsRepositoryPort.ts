@@ -1,4 +1,4 @@
-import { Song } from "../../domain/Song";
+import type { Song } from '../../domain/Song';
 
 export interface SongsRepositoryPort {
   findById(id: string): Promise<Song | null>;

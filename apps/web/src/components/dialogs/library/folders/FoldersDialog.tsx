@@ -1,6 +1,6 @@
-import { ModalWrapper } from '@/components/ModalWrapper'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
+import { ModalWrapper } from '@/components/ModalWrapper'
 import FoldersDialogContent from './FoldersDialogContent'
 
 interface FoldersDialogProps {

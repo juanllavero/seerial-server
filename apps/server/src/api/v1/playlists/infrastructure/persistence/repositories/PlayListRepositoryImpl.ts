@@ -1,16 +1,13 @@
-import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
-import { GenericRepositoryHelper } from "@/helpers/GenericRepositoryHelper";
-import logger from "@/utils/logger";
-import { v4 as uuidv4 } from "uuid";
-import { PlayListRepositoryPort } from "../../../application/ports/PlayListRepositoryPort";
-import { PlayList } from "../../../domain/PlayList";
-import { PlayListItemModel } from "../models/PlayListItemModel";
-import { PlayListModel } from "../models/PlayListModel";
+import { v4 as uuidv4 } from 'uuid';
+import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
+import { GenericRepositoryHelper } from '@/helpers/GenericRepositoryHelper';
+import logger from '@/utils/logger';
+import type { PlayListRepositoryPort } from '../../../application/ports/PlayListRepositoryPort';
+import type { PlayList } from '../../../domain/PlayList';
+import { PlayListItemModel } from '../models/PlayListItemModel';
+import { PlayListModel } from '../models/PlayListModel';
 
-export class PlayListRepositoryImpl
-  extends BaseRepository
-  implements PlayListRepositoryPort
-{
+export class PlayListRepositoryImpl extends BaseRepository implements PlayListRepositoryPort {
   // Generic helper for common CRUD operations
   private helper: GenericRepositoryHelper<PlayListModel, PlayList>;
 
@@ -19,26 +16,26 @@ export class PlayListRepositoryImpl
 
     // Initialize helper
     this.helper = new GenericRepositoryHelper(PlayListModel, {
-      entityName: "PlayList",
+      entityName: 'PlayList',
       generateShortId: true,
     });
   }
 
   async findAll(): Promise<PlayList[]> {
     return this.helper.findAll({
-      relations: ["songs"],
+      relations: ['songs'],
     });
   }
 
   async findById(id: string): Promise<PlayList | null> {
-    const validatedId = this.validateId(id, "PlayList ID");
+    const validatedId = this.validateId(id, 'PlayList ID');
     return this.helper.findById(validatedId, {
-      relations: ["songs"],
+      relations: ['songs'],
     });
   }
 
   async create(playList: PlayList): Promise<PlayList> {
-    this.validateData(playList, "PlayList data");
+    this.validateData(playList, 'PlayList data');
 
     // Check if playlist already exists by ID
     if (playList.id) {
@@ -52,20 +49,20 @@ export class PlayListRepositoryImpl
     // Generate UUID if it doesn't exist
     const dataToCreate = {
       ...playList,
-      id: playList.id || uuidv4().split("-")[0],
+      id: playList.id || uuidv4().split('-')[0],
     };
 
     return this.helper.create(dataToCreate, true);
   }
 
   async update(id: string, data: Partial<PlayList>): Promise<PlayList> {
-    const validatedId = this.validateId(id, "PlayList ID");
-    this.validateData(data, "Update data");
+    const validatedId = this.validateId(id, 'PlayList ID');
+    this.validateData(data, 'Update data');
     return this.helper.update(validatedId, data);
   }
 
   async delete(id: string): Promise<void> {
-    const validatedId = this.validateId(id, "PlayList ID");
+    const validatedId = this.validateId(id, 'PlayList ID');
     return this.helper.delete(validatedId);
   }
 
@@ -91,17 +88,10 @@ export class PlayListRepositoryImpl
       songId: validated.songId,
     };
 
-    await this.helper.createRelationship(
-      PlayListItemModel,
-      newRelationData,
-      true
-    );
+    await this.helper.createRelationship(PlayListItemModel, newRelationData, true);
   }
 
-  async removeSongFromPlaylist(
-    playlistId: string,
-    songId: string
-  ): Promise<void> {
+  async removeSongFromPlaylist(playlistId: string, songId: string): Promise<void> {
     const validated = this.validateIds({ playlistId, songId });
 
     const whereCondition = {

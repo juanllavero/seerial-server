@@ -1,25 +1,22 @@
+import type React from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router-dom'
+import { Toaster } from 'sonner'
+import { shallow } from 'zustand/shallow'
 import DialogManager from '@/components/dialogs/DialogManager'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import DesktopMusicPlayer from '@/components/musicPlayer/desktop/DesktopMusicPlayer'
 import DesktopMusicPlayerExpanded from '@/components/musicPlayer/desktop/DesktopMusicPlayerExpanded'
-import MobileMusicPlayer from '@/components/musicPlayer/mobile/MobileMusicPlayer'
 import MusicPlayer from '@/components/musicPlayer/MusicPlayer'
+import MobileMusicPlayer from '@/components/musicPlayer/mobile/MobileMusicPlayer'
 import { useServerStore } from '@/context/auth.store'
 import useDataStore from '@/context/data.context'
 import { useGradientStore } from '@/context/gradientBackground.context'
-import React, { useEffect, useRef, useState } from 'react'
-import { useLocation } from 'react-router-dom'
-import { Toaster } from 'sonner'
-import { shallow } from 'zustand/shallow'
 import '../styles/utils.css'
 import GradientBackground from './backgrounds/GradientBackground'
 import './BaseLayout.css'
 
-export default function BaseLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function BaseLayout({ children }: { children: React.ReactNode }) {
   const { user } = useServerStore(
     (state) => ({
       user: state.currentUser,
@@ -27,14 +24,10 @@ export default function BaseLayout({
     shallow,
   )
   const selectedBackground = useDataStore((state) => state.currentBackground)
-  const selectedBackgroundForGradient = useGradientStore(
-    (state) => state.selectedBackground,
-  )
+  const selectedBackgroundForGradient = useGradientStore((state) => state.selectedBackground)
   const generateGradient = useGradientStore((state) => state.generateGradient)
   const prevBackground = useRef<string | undefined>(undefined)
-  const [currentBackground, setCurrentBackground] = useState<
-    string | undefined
-  >(undefined)
+  const [currentBackground, setCurrentBackground] = useState<string | undefined>(undefined)
   const isMobile = useIsMobile()
   const [showNewImage, setShowNewImage] = useState(false)
 
@@ -81,10 +74,7 @@ export default function BaseLayout({
 
   return (
     <div className="relative">
-      <GradientBackground
-        imageSrc={selectedBackgroundForGradient}
-        showGradient={inMusicPage}
-      />
+      <GradientBackground imageSrc={selectedBackgroundForGradient} showGradient={inMusicPage} />
 
       {/* Current background */}
       {/* <div

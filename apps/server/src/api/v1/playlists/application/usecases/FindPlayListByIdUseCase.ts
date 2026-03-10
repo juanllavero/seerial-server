@@ -1,5 +1,5 @@
-import { PlayList } from "../../domain/PlayList";
-import { PlayListRepositoryPort } from "../ports/PlayListRepositoryPort";
+import type { PlayList } from '../../domain/PlayList';
+import type { PlayListRepositoryPort } from '../ports/PlayListRepositoryPort';
 
 export class FindPlayListByIdUseCase {
   constructor(private playlistRepo: PlayListRepositoryPort) {}

@@ -1,24 +1,23 @@
+import React from 'react'
+import { useTranslation } from 'react-i18next'
+import { shallow } from 'zustand/shallow'
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
 import { useSettingsStore } from '@/context/settings.context'
-import React from 'react'
-import { useTranslation } from 'react-i18next'
 import ContentWrapper from './utils/ContentWrapper'
-import { shallow } from 'zustand/shallow'
 
 function ClientQuality() {
   const { t } = useTranslation()
-  const { setClientSetting, clientSettings, setClientSettings } =
-    useSettingsStore(
-      (state) => ({
-        setClientSetting: state.setClientSetting,
-        clientSettings: state.clientSettings,
-        setClientSettings: state.setClientSettings,
-      }),
-      shallow,
-    )
+  const { setClientSetting, clientSettings, setClientSettings } = useSettingsStore(
+    (state) => ({
+      setClientSetting: state.setClientSetting,
+      clientSettings: state.clientSettings,
+      setClientSettings: state.setClientSettings,
+    }),
+    shallow,
+  )
   const [isDirty, setIsDirty] = React.useState(false)
   const [showMessage, setShowMessage] = React.useState(false)
 
@@ -39,16 +38,12 @@ function ClientQuality() {
   ]
 
   const [localQuality, setLocalQuality] = React.useState(
-    qualityOptions.find(
-      (option) =>
-        option.key === (clientSettings['localVideoQuality'] as string),
-    )?.key || qualityOptions[0].key,
+    qualityOptions.find((option) => option.key === (clientSettings['localVideoQuality'] as string))
+      ?.key || qualityOptions[0].key,
   )
   const [onlineQuality, setOnlineQuality] = React.useState(
-    qualityOptions.find(
-      (option) =>
-        option.key === (clientSettings['onlineVideoQuality'] as string),
-    )?.key || qualityOptions[0].key,
+    qualityOptions.find((option) => option.key === (clientSettings['onlineVideoQuality'] as string))
+      ?.key || qualityOptions[0].key,
   )
 
   const handleSave = () => {
@@ -107,9 +102,7 @@ function ClientQuality() {
           {t('saveButton')}
         </Button>
         {showMessage && (
-          <span className="text-muted-foreground text-sm">
-            ✔ {t('changesSaved')}
-          </span>
+          <span className="text-muted-foreground text-sm">✔ {t('changesSaved')}</span>
         )}
       </FlexBox>
     </ContentWrapper>

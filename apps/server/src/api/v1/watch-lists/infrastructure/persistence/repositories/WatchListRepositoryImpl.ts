@@ -1,14 +1,12 @@
-import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
-import { GenericRepositoryHelper } from "@/helpers/GenericRepositoryHelper";
-import { v4 as uuidv4 } from "uuid";
-import { WatchListRepositoryPort } from "../../../application/ports/WatchListRepositoryPort";
-import { WatchList } from "../../../domain/WatchList";
-import { WatchListModel } from "../models/WatchListModel";
+import type { FindOptionsWhere } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
+import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
+import { GenericRepositoryHelper } from '@/helpers/GenericRepositoryHelper';
+import type { WatchListRepositoryPort } from '../../../application/ports/WatchListRepositoryPort';
+import type { WatchList } from '../../../domain/WatchList';
+import { WatchListModel } from '../models/WatchListModel';
 
-export class WatchListRepositoryImpl
-  extends BaseRepository
-  implements WatchListRepositoryPort
-{
+export class WatchListRepositoryImpl extends BaseRepository implements WatchListRepositoryPort {
   // Generic helper for common CRUD operations
   private helper: GenericRepositoryHelper<WatchListModel, WatchList>;
 
@@ -17,26 +15,26 @@ export class WatchListRepositoryImpl
 
     // Initialize helper
     this.helper = new GenericRepositoryHelper(WatchListModel, {
-      entityName: "WatchList",
+      entityName: 'WatchList',
       generateShortId: true,
     });
   }
 
   async findByVideoId(videoId: string): Promise<WatchList | null> {
-    const validatedId = this.validateId(videoId, "Video ID");
-    return this.helper.findByField("videoId", validatedId);
+    const validatedId = this.validateId(videoId, 'Video ID');
+    return this.helper.findByField('videoId', validatedId);
   }
 
   async findById(id: string): Promise<WatchList | null> {
-    const validatedId = this.validateId(id, "WatchList ID");
+    const validatedId = this.validateId(id, 'WatchList ID');
     return this.helper.findById(validatedId);
   }
 
   async create(data: WatchList): Promise<WatchList> {
-    this.validateData(data, "WatchList data");
+    this.validateData(data, 'WatchList data');
 
     // If the record already exists for the same unique pair (e.g., videoId+userId), return it
-    const where: any = { userId: data.userId };
+    const where: FindOptionsWhere<WatchListModel> = { userId: data.userId };
     if (data.videoId) where.videoId = data.videoId;
     if (data.movieId) where.movieId = data.movieId;
     if (data.episodeId) where.episodeId = data.episodeId;
@@ -48,20 +46,20 @@ export class WatchListRepositoryImpl
 
     const dataToCreate = {
       ...data,
-      id: data.id || uuidv4().split("-")[0],
+      id: data.id || uuidv4().split('-')[0],
     };
 
     return this.helper.create(dataToCreate, true);
   }
 
   async update(id: string, data: Partial<WatchList>): Promise<WatchList> {
-    const validatedId = this.validateId(id, "WatchList item ID");
-    this.validateData(data, "Update data");
+    const validatedId = this.validateId(id, 'WatchList item ID');
+    this.validateData(data, 'Update data');
     return this.helper.update(validatedId, data);
   }
 
   async delete(id: string): Promise<void> {
-    const validatedId = this.validateId(id, "WatchList item ID");
+    const validatedId = this.validateId(id, 'WatchList item ID');
     return this.helper.delete(validatedId);
   }
 

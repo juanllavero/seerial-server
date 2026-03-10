@@ -1,3 +1,7 @@
+import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import useSWR from 'swr'
+import { shallow } from 'zustand/shallow'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import { ModalWrapper } from '@/components/ModalWrapper'
@@ -7,11 +11,7 @@ import { Input } from '@/components/ui/input'
 import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.store'
 import { useWebSocketStore } from '@/context/ws.context'
-import { MediaSearchResult } from '@/data/interfaces/Utils'
-import { useEffect, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
-import { shallow } from 'zustand/shallow'
+import type { MediaSearchResult } from '@/data/interfaces/Utils'
 import DownloadMediaCard from './DownloadMediaCard'
 import DownloadMediaCardSkeleton from './DownloadMediaCardSkeleton'
 
@@ -19,17 +19,16 @@ function DownloadMediaSearch() {
   const { t } = useTranslation()
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
-  const { connectWS, downloadAudio, downloadVideo, downloaded, setDownloaded } =
-    useWebSocketStore(
-      (state) => ({
-        connectWS: state.connectWS,
-        downloadAudio: state.downloadAudio,
-        downloadVideo: state.downloadVideo,
-        downloaded: state.downloaded,
-        setDownloaded: state.setDownloaded,
-      }),
-      shallow,
-    )
+  const { connectWS, downloadAudio, downloadVideo, downloaded, setDownloaded } = useWebSocketStore(
+    (state) => ({
+      connectWS: state.connectWS,
+      downloadAudio: state.downloadAudio,
+      downloadVideo: state.downloadVideo,
+      downloaded: state.downloaded,
+      setDownloaded: state.setDownloaded,
+    }),
+    shallow,
+  )
   const {
     downloadMediaDialog: { type, seriesToEdit, seasonToEdit, movieToEdit },
     closeDownloadMediaDialog,
@@ -41,18 +40,14 @@ function DownloadMediaSearch() {
     shallow,
   )
   const [openPlayer, setOpenPlayer] = useState<boolean>(false)
-  const [playerResult, setPlayerResult] = useState<MediaSearchResult | null>(
-    null,
-  )
+  const [playerResult, setPlayerResult] = useState<MediaSearchResult | null>(null)
   const [searching, setSearching] = useState<boolean>(false)
   const [searchResults, setSearchResults] = useState<MediaSearchResult[]>([])
   const [searchText, setSearchText] = useState<string>('')
   const searchButtonRef = useRef<HTMLButtonElement>(null)
 
-  const isShow: boolean =
-    seriesToEdit !== undefined && seasonToEdit === undefined
-  const isSeason: boolean =
-    seasonToEdit !== undefined && seriesToEdit === undefined
+  const isShow: boolean = seriesToEdit !== undefined && seasonToEdit === undefined
+  const isSeason: boolean = seasonToEdit !== undefined && seriesToEdit === undefined
 
   const { data: series } = useSWR(
     seasonToEdit ? `${API.series.get(seasonToEdit.seriesId)}` : null,
@@ -170,18 +165,10 @@ function DownloadMediaSearch() {
         </FlexBox>
       </FlexBox>
 
-      <FlexBox
-        direction="column"
-        scroll="vertical"
-        hideScrollbar
-        height={'100%'}
-        width={'100%'}
-      >
+      <FlexBox direction="column" scroll="vertical" hideScrollbar height={'100%'} width={'100%'}>
         {/* Results List */}
         {searching ? (
-          Array.from({ length: 4 }).map((_, index) => (
-            <DownloadMediaCardSkeleton key={index} />
-          ))
+          Array.from({ length: 4 }).map((_, index) => <DownloadMediaCardSkeleton key={index} />)
         ) : searchResults && searchResults.length > 0 ? (
           searchResults.map((result: MediaSearchResult, index: number) => (
             <DownloadMediaCard
@@ -214,7 +201,7 @@ function DownloadMediaSearch() {
                 gyroscope; 
                 picture-in-picture; 
                 web-share"
-              ></iframe>
+              />
             ),
           },
         ]}

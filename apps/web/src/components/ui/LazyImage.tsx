@@ -1,6 +1,6 @@
+import { memo, useEffect, useState } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { isAbsolutePath } from '@/utils/ReactUtils'
-import { memo, useEffect, useState } from 'react'
 
 interface LazyImageProps {
   src?: string
@@ -94,7 +94,7 @@ function LazyImage({
         width={width === 'auto' ? undefined : width}
         height={maxHeight ? maxHeight : height === 'auto' ? undefined : height}
         loading="lazy"
-        style={{ borderRadius: !rounded ? '5px' : undefined }}
+        style={{ borderRadius: rounded ? undefined : '5px' }}
         onLoad={() => {
           setLoaded(true)
           onLoad?.()

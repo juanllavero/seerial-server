@@ -47,16 +47,11 @@ export function generateResetValues(entity: any, ...configs: FormConfig[]) {
     config.fields.forEach((field) => {
       const entityValue = entity[field.name]
       values[field.name] =
-        entityValue !== undefined
-          ? entityValue
-          : field.type === 'array'
-            ? []
-            : ''
+        entityValue !== undefined ? entityValue : field.type === 'array' ? [] : ''
 
       if (field.hasLock) {
         const lockValue = entity[`${field.name}Lock`]
-        values[`${field.name}Lock`] =
-          lockValue !== undefined ? lockValue : false
+        values[`${field.name}Lock`] = lockValue !== undefined ? lockValue : false
       }
     })
   })

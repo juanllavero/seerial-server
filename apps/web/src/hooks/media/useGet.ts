@@ -1,6 +1,6 @@
-import { authenticatedFetcher } from '@/config/api'
 import { useMemo } from 'react'
-import useSWR, { SWRConfiguration } from 'swr'
+import useSWR, { type SWRConfiguration } from 'swr'
+import { authenticatedFetcher } from '@/config/api'
 
 interface ApiResponse<T> {
   success: boolean
@@ -9,16 +9,8 @@ interface ApiResponse<T> {
   timestamp: string
 }
 
-export const useGet = <T>(
-  url: string | null,
-  swrOptions?: SWRConfiguration,
-) => {
-  const {
-    data: response,
-    isLoading,
-    error,
-    mutate,
-  } = useSWR(url, authenticatedFetcher, swrOptions)
+export const useGet = <T>(url: string | null, swrOptions?: SWRConfiguration) => {
+  const { data: response, isLoading, error, mutate } = useSWR(url, authenticatedFetcher, swrOptions)
 
   const { data, responseError } = useMemo(() => {
     if (!response) {

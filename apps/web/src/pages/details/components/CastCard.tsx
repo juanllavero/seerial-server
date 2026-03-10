@@ -1,6 +1,6 @@
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import FlexBox from '@/components/ui/FlexBox'
-import { Cast } from '@/data/interfaces/Media'
+import type { Cast } from '@/data/interfaces/Media'
 
 interface CastCardProps {
   index: string | number
@@ -29,12 +29,9 @@ function CastCard({ index, person }: CastCardProps) {
       /> */}
       <div
         className={`aspect-square bg-white w-${isMobile ? '25' : '40'} h-${isMobile ? '25' : '40'} rounded-full`}
-      ></div>
+      />
       <span className={isMobile ? 'text-xs' : ''}>{person.name}</span>
-      <span
-        className={isMobile ? 'text-xs' : 'text-sm'}
-        style={{ color: 'lightgray' }}
-      >
+      <span className={isMobile ? 'text-xs' : 'text-sm'} style={{ color: 'lightgray' }}>
         {person.character}
       </span>
     </FlexBox>

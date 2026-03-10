@@ -1,8 +1,8 @@
+import { useTranslation } from 'react-i18next'
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
-import { useTranslation } from 'react-i18next'
 
 interface CollectionInfoTabProps {
   title: string
@@ -31,11 +31,7 @@ function CollectionInfoTab({
       scroll="vertical"
     >
       <LabeledInputWrapper label={t('title')}>
-        <Input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          width={'100%'}
-        />
+        <Input value={title} onChange={(e) => setTitle(e.target.value)} width={'100%'} />
       </LabeledInputWrapper>
 
       <LabeledInputWrapper label={t('overview')}>

@@ -1,6 +1,6 @@
-import { API, authenticatedFetch } from '@/config/api'
-import { LibraryItem } from '@/data/interfaces/Media'
 import { useEffect, useState } from 'react'
+import { API, authenticatedFetch } from '@/config/api'
+import type { LibraryItem } from '@/data/interfaces/Media'
 
 export function useReorderableList(
   swrData: LibraryItem[] | undefined,

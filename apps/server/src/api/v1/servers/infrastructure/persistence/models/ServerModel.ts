@@ -1,24 +1,18 @@
-import { defaults } from "@/data/defaults/ModelDefaults";
-import {
-  BaseEntity,
-  BeforeInsert,
-  Column,
-  Entity,
-  PrimaryColumn,
-} from "typeorm";
-import { v4 as uuidv4 } from "uuid";
+import { BaseEntity, BeforeInsert, Column, Entity, PrimaryColumn } from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
+import { defaults } from '@/data/defaults/ModelDefaults';
 
-@Entity({ name: "Server" })
+@Entity({ name: 'Server' })
 export class ServerModel extends BaseEntity {
-  @PrimaryColumn({ type: "varchar", nullable: false })
+  @PrimaryColumn({ type: 'varchar', nullable: false })
   id!: string;
 
-  @Column({ type: "varchar", nullable: false })
+  @Column({ type: 'varchar', nullable: false })
   name!: string;
 
   // HTTP port configuration
   @Column({
-    type: "integer",
+    type: 'integer',
     nullable: false,
     default: 34200,
   })
@@ -26,7 +20,7 @@ export class ServerModel extends BaseEntity {
 
   // HTTPS port configuration
   @Column({
-    type: "integer",
+    type: 'integer',
     nullable: false,
     default: 34400,
   })
@@ -34,43 +28,43 @@ export class ServerModel extends BaseEntity {
 
   // Tunnel configuration
   @Column({
-    type: "boolean",
+    type: 'boolean',
     nullable: false,
     default: false,
   })
   tunnelEnabled!: boolean;
 
-  @Column({ type: "varchar", nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   tunnelUrl?: string;
 
   // HTTPS enablement and certificate configuration
   @Column({
-    type: "boolean",
+    type: 'boolean',
     nullable: false,
     default: false,
   })
   httpsEnabled!: boolean;
 
-  @Column({ type: "varchar", nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   sslCertPath?: string;
 
-  @Column({ type: "varchar", nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   sslKeyPath?: string;
 
-  @Column({ type: "varchar", nullable: true }) // Store securely in application logic (e.g., encrypted)
+  @Column({ type: 'varchar', nullable: true }) // Store securely in application logic (e.g., encrypted)
   sslPassword?: string;
 
   // Custom URL for access
-  @Column({ type: "varchar", nullable: true })
+  @Column({ type: 'varchar', nullable: true })
   customUrl?: string;
 
   // Proxy hosts for X-Forwarded-For
-  @Column({ type: "varchar", nullable: true }) // Comma-separated list
+  @Column({ type: 'varchar', nullable: true }) // Comma-separated list
   proxyHosts?: string;
 
   // Force HTTPS
   @Column({
-    type: "boolean",
+    type: 'boolean',
     nullable: false,
     default: false,
   })
@@ -78,38 +72,38 @@ export class ServerModel extends BaseEntity {
 
   // Remote access options
   @Column({
-    type: "boolean",
+    type: 'boolean',
     nullable: false,
     default: true,
   })
   allowRemoteConnections!: boolean;
 
-  @Column({ type: "varchar", nullable: true }) // Comma-separated IPs or IP/mask
+  @Column({ type: 'varchar', nullable: true }) // Comma-separated IPs or IP/mask
   remoteIpFilter?: string;
 
   @Column({
-    type: "varchar",
+    type: 'varchar',
     nullable: false,
-    default: "whitelist",
+    default: 'whitelist',
   })
   remoteIpFilterMode!: string;
 
   @Column({
-    type: "boolean",
+    type: 'boolean',
     nullable: false,
     default: false,
   })
   enableAutoPortMapping!: boolean;
 
   @Column({
-    type: "integer",
+    type: 'integer',
     nullable: false,
     default: 34200,
   })
   publicHttpPort!: number;
 
   @Column({
-    type: "integer",
+    type: 'integer',
     nullable: false,
     default: 34400,
   })
@@ -119,7 +113,7 @@ export class ServerModel extends BaseEntity {
   @BeforeInsert()
   generateId() {
     if (!this.id) {
-      this.id = uuidv4().split("-")[0];
+      this.id = uuidv4().split('-')[0];
     }
   }
 

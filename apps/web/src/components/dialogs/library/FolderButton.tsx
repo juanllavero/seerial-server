@@ -1,7 +1,7 @@
-import { Button } from '@/components/ui/button'
-import FlexBox from '@/components/ui/FlexBox'
 import { X } from 'lucide-react'
 import React from 'react'
+import { Button } from '@/components/ui/button'
+import FlexBox from '@/components/ui/FlexBox'
 
 interface FolderButtonProps {
   index: number
@@ -21,11 +21,7 @@ function FolderButton({ index, folder, removeFolder }: FolderButtonProps) {
       css={{ backgroundColor: '#595959', borderRadius: '5px' }}
     >
       <span className="mr-2 ml-1">{folder}</span>
-      <Button
-        variant={'ghost'}
-        size={'icon'}
-        onClick={() => removeFolder(folder)}
-      >
+      <Button variant={'ghost'} size={'icon'} onClick={() => removeFolder(folder)}>
         <X />
       </Button>
     </FlexBox>

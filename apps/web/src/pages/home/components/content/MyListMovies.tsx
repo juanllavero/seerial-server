@@ -1,15 +1,15 @@
+import { Pencil } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import useSWR, { mutate } from 'swr'
+import { shallow } from 'zustand/shallow'
 import Card from '@/components/cards/Card'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
 import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import { useServerStore } from '@/context/auth.store'
 import { useDialogStore } from '@/context/dialog.store'
-import { Movie } from '@/data/interfaces/Media'
+import type { Movie } from '@/data/interfaces/Media'
 import { refreshMetadata, toggleMovieWatched } from '@/utils/ReactUtils'
-import { Pencil } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
-import useSWR, { mutate } from 'swr'
-import { shallow } from 'zustand/shallow'
 import HorizontalList from '../../../../components/lists/HorizontalList'
 import HorizontalListSkeleton from './HorizontalListSkeleton'
 
@@ -52,9 +52,7 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
             width={isMobile ? 130 : 180}
             aspectRatio={2 / 3}
             title={movie.name}
-            subtitle={
-              movie.year ? new Date(movie.year).getFullYear().toString() : 'N/A'
-            }
+            subtitle={movie.year ? new Date(movie.year).getFullYear().toString() : 'N/A'}
             watched={movie.watchStatus !== undefined}
             menu={{
               items: [
@@ -68,9 +66,7 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
                           movieId: movie.id,
                           userId: user?.id,
                         }).then(() => {
-                          mutate((key: string) =>
-                            key.startsWith(API.myList.movies),
-                          )
+                          mutate((key: string) => key.startsWith(API.myList.movies))
                         })
                       },
                     },
@@ -80,22 +76,14 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
                     },
                     {
                       title: t('correctIdentification'),
-                      action: () =>
-                        openDialog('identification', { movieId: movie.id }),
+                      action: () => openDialog('identification', { movieId: movie.id }),
                     },
                     {
                       title:
-                        movie.watchStatus !== undefined
-                          ? t('markUnwatched')
-                          : t('markWatched'),
+                        movie.watchStatus !== undefined ? t('markUnwatched') : t('markWatched'),
 
                       action: () =>
-                        user &&
-                        toggleMovieWatched(
-                          movie.id,
-                          !movie.watchStatus,
-                          user.id,
-                        ),
+                        user && toggleMovieWatched(movie.id, !movie.watchStatus, user.id),
                     },
                   ],
                 },

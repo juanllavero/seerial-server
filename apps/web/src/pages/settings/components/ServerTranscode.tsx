@@ -1,27 +1,26 @@
+import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { shallow } from 'zustand/shallow'
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
 import { useSettingsStore } from '@/context/settings.context'
-import React, { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { shallow } from 'zustand/shallow'
 import ContentWrapper from './utils/ContentWrapper'
 
 function ServerTranscode() {
   const { t } = useTranslation()
   const [isDirty, setIsDirty] = React.useState(false)
   const [showMessage, setShowMessage] = React.useState(false)
-  const { setServerSetting, serverSettings, setServerSettings } =
-    useSettingsStore(
-      (state) => ({
-        setServerSetting: state.setServerSetting,
-        serverSettings: state.serverSettings,
-        setServerSettings: state.setServerSettings,
-      }),
-      shallow,
-    )
+  const { setServerSetting, serverSettings, setServerSettings } = useSettingsStore(
+    (state) => ({
+      setServerSetting: state.setServerSetting,
+      serverSettings: state.serverSettings,
+      setServerSettings: state.setServerSettings,
+    }),
+    shallow,
+  )
 
   const transcoderOptions = [
     {
@@ -89,16 +88,12 @@ function ServerTranscode() {
     setIsDirty(true)
   }
 
-  const handleDefaultBufferChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleDefaultBufferChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDefaultBuffer(parseInt(e.target.value))
     setIsDirty(true)
   }
 
-  const handleMaxTranscodingChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleMaxTranscodingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMaxTranscoding(parseInt(e.target.value))
     setIsDirty(true)
   }
@@ -128,17 +123,11 @@ function ServerTranscode() {
 
   return (
     <ContentWrapper group={t('server')} section={t('transcode')}>
-      <LabeledInputWrapper
-        label={t('tempFolder')}
-        text={t('tempFolderMessage')}
-      >
+      <LabeledInputWrapper label={t('tempFolder')} text={t('tempFolderMessage')}>
         <Input type="text" value={tempFolder} onChange={handleSelectFolder} />
       </LabeledInputWrapper>
 
-      <LabeledInputWrapper
-        label={t('defaultBuffer')}
-        text={t('defaultBufferMessage')}
-      >
+      <LabeledInputWrapper label={t('defaultBuffer')} text={t('defaultBufferMessage')}>
         <Input
           type="number"
           min={0}
@@ -149,10 +138,7 @@ function ServerTranscode() {
         />
       </LabeledInputWrapper>
 
-      <LabeledInputWrapper
-        label={t('transcoderPreset')}
-        text={t('transcoderPresetMessage')}
-      >
+      <LabeledInputWrapper label={t('transcoderPreset')} text={t('transcoderPresetMessage')}>
         <SelectableWrapper
           defaultValue={transcoderPreset}
           onValueChange={handleTranscoderPresetChange}
@@ -175,9 +161,7 @@ function ServerTranscode() {
           {t('saveButton')}
         </Button>
         {showMessage && (
-          <span className="text-muted-foreground text-sm">
-            ✔ {t('changesSaved')}
-          </span>
+          <span className="text-muted-foreground text-sm">✔ {t('changesSaved')}</span>
         )}
       </FlexBox>
     </ContentWrapper>

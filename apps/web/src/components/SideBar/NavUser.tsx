@@ -1,3 +1,7 @@
+import { ChevronRight, LogOut, Settings, UserRound } from 'lucide-react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { shallow } from 'zustand/shallow'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,10 +19,6 @@ import {
 } from '@/components/ui/sidebar'
 import { useServerStore } from '@/context/auth.store'
 import { cn } from '@/utils/tailwind'
-import { ChevronRight, LogOut, Settings, UserRound } from 'lucide-react'
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { shallow } from 'zustand/shallow'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 export function NavUser() {
   const navigate = useNavigate()
@@ -99,9 +99,7 @@ export function NavUser() {
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">
-                    {user.username}
-                  </span>
+                  <span className="truncate font-semibold">{user.username}</span>
                 </div>
               </div>
             </DropdownMenuLabel>

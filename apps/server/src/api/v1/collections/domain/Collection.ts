@@ -1,6 +1,6 @@
-import { Album } from "../../albums/domain/Album";
-import { Movie } from "../../movies/domain/Movie";
-import { Series } from "../../series/domain/Series";
+import type { Album } from '../../albums/domain/Album';
+import type { Movie } from '../../movies/domain/Movie';
+import type { Series } from '../../series/domain/Series';
 
 export interface Collection {
   id: string;

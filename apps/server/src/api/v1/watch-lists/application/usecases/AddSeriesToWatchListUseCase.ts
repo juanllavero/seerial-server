@@ -1,4 +1,4 @@
-import { WatchListRepositoryPort } from "../ports/WatchListRepositoryPort";
+import type { WatchListRepositoryPort } from '../ports/WatchListRepositoryPort';
 
 export class AddSeriesToWatchListUseCase {
   constructor(private watchListRepo: WatchListRepositoryPort) {}

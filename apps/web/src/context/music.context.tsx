@@ -1,6 +1,6 @@
 import { createWithEqualityFn } from 'zustand/traditional'
 import { RepeateMode } from '@/data/enums/Music'
-import { Album, Song } from '@/data/interfaces/Music'
+import type { Album, Song } from '@/data/interfaces/Music'
 
 interface MusicState {
   currentSong: Song | null
@@ -117,8 +117,7 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
   },
 
   // Queue
-  addSong: (song) =>
-    set((state) => ({ songQueue: [...state.songQueue, song] })),
+  addSong: (song) => set((state) => ({ songQueue: [...state.songQueue, song] })),
   removeSong: (element) =>
     set((state) => ({
       songQueue: state.songQueue.filter((s) => s.id !== element.id),
@@ -174,8 +173,7 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
   // Utils
   setSongQueue: (queue) => set({ songQueue: queue }),
   setIsShown: (musicPlayerShown) => set({ isShown: musicPlayerShown }),
-  setIsExpanded: (musicPlayerContracted) =>
-    set({ isExpanded: musicPlayerContracted }),
+  setIsExpanded: (musicPlayerContracted) => set({ isExpanded: musicPlayerContracted }),
 
   // Audio Controls
   togglePlayPause: () => {
@@ -203,23 +201,14 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
   },
 
   handlePrevious: () => {
-    const {
-      currentSong,
-      currentTime,
-      songQueue,
-      repeateMode,
-      selectSong,
-      seekTo,
-    } = get()
+    const { currentSong, currentTime, songQueue, repeateMode, selectSong, seekTo } = get()
 
     if (currentTime >= 3) {
       seekTo(0)
       return
     }
 
-    const currentIndex = songQueue.findIndex(
-      (song) => song.id === currentSong?.id,
-    )
+    const currentIndex = songQueue.findIndex((song) => song.id === currentSong?.id)
     if (currentIndex > 0) {
       selectSong(songQueue[currentIndex - 1])
     } else if (repeateMode === RepeateMode.REPEAT_ALL) {
@@ -231,9 +220,7 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
 
   handleNext: () => {
     const { currentSong, songQueue, repeateMode, selectSong } = get()
-    const currentIndex = songQueue.findIndex(
-      (song) => song.id === currentSong?.id,
-    )
+    const currentIndex = songQueue.findIndex((song) => song.id === currentSong?.id)
     if (currentIndex < songQueue.length - 1) {
       selectSong(songQueue[currentIndex + 1])
     } else if (repeateMode === RepeateMode.REPEAT_ALL) {
@@ -297,10 +284,7 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
       if (repeateMode === RepeateMode.REPEAT_ONE) {
         audio.currentTime = 0
         audio.play()
-      } else if (
-        repeateMode === RepeateMode.REPEAT_ALL &&
-        songQueue.length > 1
-      ) {
+      } else if (repeateMode === RepeateMode.REPEAT_ALL && songQueue.length > 1) {
         handleNext()
       } else {
         get().resetPlayerState()
@@ -360,9 +344,7 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
   getAudioSrc: () => {
     const { currentSong } = get()
     // Note: selectedServer is not available in the store, so this assumes it's passed or handled elsewhere
-    return currentSong
-      ? `/audio-stream?path=${currentSong.fileSrc}&isWeb=true`
-      : ''
+    return currentSong ? `/audio-stream?path=${currentSong.fileSrc}&isWeb=true` : ''
   },
 }))
 

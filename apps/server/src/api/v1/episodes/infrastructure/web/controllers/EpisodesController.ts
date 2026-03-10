@@ -1,11 +1,4 @@
-import { HTTPCodes } from "@/api/v1/shared/domain/types/HTTPCodes";
-import {
-  episodesRepo,
-  useCases,
-} from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
-import { messages } from "@/config/messages";
-import { Request as ExpressRequest } from "express";
+import type { Request as ExpressRequest } from 'express';
 import {
   Body,
   Controller,
@@ -19,21 +12,25 @@ import {
   Route,
   Security,
   Tags,
-} from "tsoa";
-import {
+} from 'tsoa';
+import { HTTPCodes } from '@/api/v1/shared/domain/types/HTTPCodes';
+import { episodesRepo, useCases } from '@/api/v1/shared/infrastructure/adapters/di/container';
+import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
+import { messages } from '@/config/messages';
+import type {
   SetEpisodeWatchStateDTO,
   UpdateEpisodeDTO,
-} from "../../../application/dtos/EpisodeDTOs";
-import { Episode } from "../../../domain/Episode";
+} from '../../../application/dtos/EpisodeDTOs';
+import type { Episode } from '../../../domain/Episode';
 
-@Route("episodes")
-@Tags("Episodes")
+@Route('episodes')
+@Tags('Episodes')
 export class EpisodesController extends Controller {
   /**
    * Get episode by ID
    */
-  @Get("{id}")
-  @Security("cookieAuth")
+  @Get('{id}')
+  @Security('cookieAuth')
   public async get(@Path() id: string): Promise<ApiResponse<Episode | null>> {
     const episode = await episodesRepo.findById(id);
     return ApiResponse.success(episode, messages.success.fetch);
@@ -42,11 +39,11 @@ export class EpisodesController extends Controller {
   /**
    * Update episode details
    */
-  @Put("{id}")
-  @Security("adminAuth")
+  @Put('{id}')
+  @Security('adminAuth')
   public async update(
     @Path() id: string,
-    @Body() body: UpdateEpisodeDTO
+    @Body() body: UpdateEpisodeDTO,
   ): Promise<ApiResponse<Episode>> {
     const result = await useCases.updateEpisode().execute(id, body);
 
@@ -56,12 +53,9 @@ export class EpisodesController extends Controller {
   /**
    * Delete an episode
    */
-  @Delete("{id}")
-  @Security("adminAuth")
-  @Response<ApiResponse<null>>(
-    HTTPCodes.VALIDATION_ERROR,
-    messages.errors.validation.invalidData
-  )
+  @Delete('{id}')
+  @Security('adminAuth')
+  @Response<ApiResponse<null>>(HTTPCodes.VALIDATION_ERROR, messages.errors.validation.invalidData)
   public async delete(@Path() id: string): Promise<ApiResponse<null>> {
     await useCases.deleteEpisode().execute(id);
 
@@ -71,12 +65,12 @@ export class EpisodesController extends Controller {
   /**
    * Set episode watch state for a user
    */
-  @Post("{id}/watch-state")
-  @Security("adminAuth")
+  @Post('{id}/watch-state')
+  @Security('adminAuth')
   public async setWatchState(
     @Path() id: string,
     @Body() body: SetEpisodeWatchStateDTO,
-    @Request() req: ExpressRequest
+    @Request() req: ExpressRequest,
   ): Promise<ApiResponse<null>> {
     const { state } = body;
     const userId = (req as any).user?.id;

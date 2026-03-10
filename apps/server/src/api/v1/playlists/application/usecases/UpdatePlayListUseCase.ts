@@ -1,6 +1,6 @@
-import { PlayList } from "../../domain/PlayList";
-import { UpdatePlayListDTO } from "../dtos/PlayListDTOs";
-import { PlayListRepositoryPort } from "../ports/PlayListRepositoryPort";
+import type { PlayList } from '../../domain/PlayList';
+import type { UpdatePlayListDTO } from '../dtos/PlayListDTOs';
+import type { PlayListRepositoryPort } from '../ports/PlayListRepositoryPort';
 
 export class UpdatePlayListUseCase {
   constructor(private playlistRepo: PlayListRepositoryPort) {}

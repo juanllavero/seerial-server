@@ -1,11 +1,9 @@
-import { ScreenHeight } from '@/data/enums/Screen'
-import { useState, useEffect } from 'react'
 import { debounce } from 'lodash'
+import { useEffect, useState } from 'react'
+import { ScreenHeight } from '@/data/enums/Screen'
 
 const useScreenHeight = () => {
-  const [screenHeight, setScreenHeight] = useState<ScreenHeight>(
-    ScreenHeight.QHD,
-  )
+  const [screenHeight, setScreenHeight] = useState<ScreenHeight>(ScreenHeight.QHD)
 
   const updateSize = () => {
     const height = window.innerHeight

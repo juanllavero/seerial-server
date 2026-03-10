@@ -1,6 +1,6 @@
-import { Movie } from "../../movies/domain/Movie";
-import { Series } from "../../series/domain/Series";
-import { Video } from "../../videos/domain/Video";
+import type { Movie } from '../../movies/domain/Movie';
+import type { Series } from '../../series/domain/Series';
+import type { Video } from '../../videos/domain/Video';
 
 export interface ContinueWatching {
   id: string;

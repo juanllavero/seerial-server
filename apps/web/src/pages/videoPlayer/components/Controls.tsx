@@ -1,22 +1,14 @@
+import { TrackNextIcon, TrackPreviousIcon } from '@radix-ui/react-icons'
+import { Captions, Music2, Pause, PlayIcon, Volume1, Volume2, VolumeOff } from 'lucide-react'
+import { type MouseEventHandler, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import DropdownWrapper from '@/components/DropdownWrapper'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Video } from '@/data/interfaces/Media'
-import { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
+import type { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
 import { useLanguageName } from '@/localization/TrackLanguages'
 import { formatTime } from '@/utils/ReactUtils'
-import { TrackPreviousIcon, TrackNextIcon } from '@radix-ui/react-icons'
-import {
-  Pause,
-  PlayIcon,
-  Music2,
-  Captions,
-  Volume1,
-  Volume2,
-  VolumeOff,
-} from 'lucide-react'
-import { MouseEventHandler, useState } from 'react'
-import { useTranslation } from 'react-i18next'
 
 interface ControlsProps {
   videoRef: React.RefObject<HTMLVideoElement | null>
@@ -133,7 +125,7 @@ function Controls({
             <div className="preview-time">
               <span>{formatTime(previewTime)}</span>
             </div>
-            <div className="thumb-indicator"></div>
+            <div className="thumb-indicator" />
           </div>
         </div>
 
@@ -172,9 +164,7 @@ function Controls({
             </Button>
           </FlexBox>
 
-          <span className="ml-2 text-sm">
-            Ends at {getEndTime(currentTime)}
-          </span>
+          <span className="ml-2 text-sm">Ends at {getEndTime(currentTime)}</span>
         </FlexBox>
         <FlexBox gap={0.5}>
           {tracks.audioTracks && tracks.audioTracks.length > 1 && (
@@ -207,9 +197,7 @@ function Controls({
           )}
           {tracks.subtitleTracks &&
             tracks.subtitleTracks.filter(
-              (track) =>
-                track.codec !== 'HDMV_PGS_SUBTITLE' &&
-                track.codec !== 'DVD_SUBTITLE',
+              (track) => track.codec !== 'HDMV_PGS_SUBTITLE' && track.codec !== 'DVD_SUBTITLE',
             ).length > 1 && (
               <DropdownWrapper
                 onOpenChange={setDropdownOpen}
@@ -219,8 +207,7 @@ function Controls({
                       items: tracks.subtitleTracks
                         .filter(
                           (track) =>
-                            track.codec !== 'HDMV_PGS_SUBTITLE' &&
-                            track.codec !== 'DVD_SUBTITLE',
+                            track.codec !== 'HDMV_PGS_SUBTITLE' && track.codec !== 'DVD_SUBTITLE',
                         )
                         .map((track) => ({
                           title: `${track.title} ${track.displayTitle} ${selectedSubtitleTrack?.id === track.id ? '✓' : ''}`,

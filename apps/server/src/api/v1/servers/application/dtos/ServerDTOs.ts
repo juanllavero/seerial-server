@@ -1,4 +1,4 @@
-import { UserDTO } from "@/api/v1/users/application/dtos/UserDTOs";
+import type { UserDTO } from '@/api/v1/users/application/dtos/UserDTOs';
 
 export interface UpdateServerDTO {
   name?: string;

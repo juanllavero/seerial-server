@@ -1,11 +1,11 @@
+import { ChevronLeft, Maximize2, Minimize2 } from 'lucide-react'
+import type React from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { API, authenticatedFetch } from '@/config/api'
 import { useServerStore } from '@/context/auth.store'
-import { Video } from '@/data/interfaces/Media'
-import { ChevronLeft, Maximize2, Minimize2 } from 'lucide-react'
-import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import type { Video } from '@/data/interfaces/Media'
 
 interface VideoInfo {
   title: string

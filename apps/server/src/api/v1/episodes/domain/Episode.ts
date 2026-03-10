@@ -1,4 +1,4 @@
-import { Video } from "../../videos/domain/Video";
+import type { Video } from '../../videos/domain/Video';
 
 export interface Episode {
   id: string;

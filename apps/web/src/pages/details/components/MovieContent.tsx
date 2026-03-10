@@ -1,9 +1,9 @@
+import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import HorizontalList from '@/components/lists/HorizontalList'
 import FlexBox from '@/components/ui/FlexBox'
-import { Movie, Video } from '@/data/interfaces/Media'
-import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
+import type { Movie, Video } from '@/data/interfaces/Media'
 import VideoCard from './cards/VideoCard'
 
 interface MovieContentProps {

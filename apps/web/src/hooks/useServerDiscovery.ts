@@ -1,7 +1,7 @@
-import { createServerClient } from '@/config/api'
-import { DiscoveredServer, PersistedServer } from '@/data/interfaces/Servers'
-import { BasicUser } from '@/data/interfaces/Users'
 import { useCallback, useEffect, useState } from 'react'
+import { createServerClient } from '@/config/api'
+import type { DiscoveredServer, PersistedServer } from '@/data/interfaces/Servers'
+import type { BasicUser } from '@/data/interfaces/Users'
 
 const DEFAULT_PORT = 34200
 const PROBE_TIMEOUT = 5000
@@ -38,27 +38,20 @@ interface ProbeResult {
  * then /api/servers to get name and users.
  * Returns null if the server is unreachable or times out.
  */
-async function probeServer(
-  url: string,
-  timeout = PROBE_TIMEOUT,
-): Promise<ProbeResult | null> {
+async function probeServer(url: string, timeout = PROBE_TIMEOUT): Promise<ProbeResult | null> {
   const client = createServerClient(url)
 
   try {
     // Quick reachability check
     await Promise.race([
       client.get('/health'),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('timeout')), timeout),
-      ),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), timeout)),
     ])
 
     // Get server metadata (name + users)
     const { data } = await Promise.race([
       client.get('/servers'),
-      new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error('timeout')), timeout),
-      ),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('timeout')), timeout)),
     ])
 
     return {
@@ -98,14 +91,9 @@ export function useServerDiscovery() {
   const [servers, setServers] = useState<DiscoveredServer[]>([])
 
   // Patch a single server entry by key
-  const patch = useCallback(
-    (key: string, updates: Partial<DiscoveredServer>) => {
-      setServers((prev) =>
-        prev.map((s) => (s.key === key ? { ...s, ...updates } : s)),
-      )
-    },
-    [],
-  )
+  const patch = useCallback((key: string, updates: Partial<DiscoveredServer>) => {
+    setServers((prev) => prev.map((s) => (s.key === key ? { ...s, ...updates } : s)))
+  }, [])
 
   // Probe a server and update its card
   const probeAndUpdate = useCallback(
@@ -152,10 +140,7 @@ export function useServerDiscovery() {
 
       setServers((prev) => {
         if (prev.find((s) => s.key === url)) return prev
-        return [
-          ...prev,
-          { key: url, name: url, url, status: 'checking', users: [] },
-        ]
+        return [...prev, { key: url, name: url, url, status: 'checking', users: [] }]
       })
 
       const result = await probeServer(url)

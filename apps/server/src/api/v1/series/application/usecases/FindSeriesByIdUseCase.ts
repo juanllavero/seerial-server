@@ -1,6 +1,6 @@
-import { IncludeType } from "@/types/common";
-import { Series } from "../../domain/Series";
-import { SeriesRepositoryPort } from "../ports/SeriesRepositoryPort";
+import type { IncludeType } from '@/types/common';
+import type { Series } from '../../domain/Series';
+import type { SeriesRepositoryPort } from '../ports/SeriesRepositoryPort';
 
 export class FindSeriesByIdUseCase {
   constructor(private seriesRepo: SeriesRepositoryPort) {}

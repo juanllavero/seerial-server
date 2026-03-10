@@ -1,12 +1,8 @@
+import type React from 'react'
+import { createContext, useContext, useState } from 'react'
 import { useToast } from '@/components/hooks/use-toast'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import React, { createContext, useContext, useState } from 'react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 type ConfirmOptions = {
   title?: string
@@ -71,9 +67,7 @@ export function ConfirmProvider({ children }: { children: React.ReactNode }) {
               <Button variant="outline" onClick={() => handleClose(false)}>
                 {options?.cancelText ?? 'Cancel'}
               </Button>
-              <Button onClick={() => handleClose(true)}>
-                {options?.confirmText ?? 'Confirm'}
-              </Button>
+              <Button onClick={() => handleClose(true)}>{options?.confirmText ?? 'Confirm'}</Button>
             </div>
           </div>
         </DialogContent>

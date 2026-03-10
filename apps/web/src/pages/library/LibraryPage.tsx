@@ -1,12 +1,12 @@
-import LoadingInsideSidebar from '@/components/LoadingInsideSidebar'
-import { API } from '@/config/api'
-import useDataStore from '@/context/data.context'
-import { Library } from '@/data/interfaces/Media'
-import { useGet } from '@/hooks/media/useGet'
-import NoContent from '@/pages/home/components/NoContent'
 import { memo, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
 import { shallow } from 'zustand/shallow'
+import LoadingInsideSidebar from '@/components/LoadingInsideSidebar'
+import { API } from '@/config/api'
+import useDataStore from '@/context/data.context'
+import type { Library } from '@/data/interfaces/Media'
+import { useGet } from '@/hooks/media/useGet'
+import NoContent from '@/pages/home/components/NoContent'
 import LibraryContent from './components/LibraryContent'
 
 function LibraryPage() {

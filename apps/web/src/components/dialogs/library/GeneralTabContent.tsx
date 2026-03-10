@@ -1,15 +1,15 @@
+import ISO6391 from 'iso-639-1'
+import { use, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
+import { useIsMobile } from '@/components/hooks/use-mobile'
+import { useIsTablet } from '@/components/hooks/use-tablet'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
 import { themdbLanguages } from '@/utils/TheMovieDBLanguages'
-import ISO6391 from 'iso-639-1'
-import { use, useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
 import LibraryTypeButton from './LibraryTypeButton'
-import { useIsTablet } from '@/components/hooks/use-tablet'
-import { useIsMobile } from '@/components/hooks/use-mobile'
 
 interface GeneralTabContentProps {
   type: string | undefined
@@ -95,26 +95,16 @@ function GeneralTabContent({
             direction="column"
           >
             <LabeledInputWrapper label={t('name')}>
-              <Input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
+              <Input type="text" value={name} onChange={(e) => setName(e.target.value)} />
             </LabeledInputWrapper>
 
             <LabeledInputWrapper label={t('languageText')}>
               <SelectableWrapper
-                defaultValue={
-                  ISO6391.getNativeName(currentLanguage) || currentLanguage
-                }
-                onValueChange={(_key: string, value: string) =>
-                  setLanguage(value)
-                }
+                defaultValue={ISO6391.getNativeName(currentLanguage) || currentLanguage}
+                onValueChange={(_key: string, value: string) => setLanguage(value)}
                 options={themdbLanguages.map((language) => ({
                   key: language.iso_639_1,
-                  value:
-                    ISO6391.getNativeName(language.iso_639_1) ||
-                    language.iso_639_1,
+                  value: ISO6391.getNativeName(language.iso_639_1) || language.iso_639_1,
                 }))}
               />
             </LabeledInputWrapper>

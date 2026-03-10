@@ -1,10 +1,10 @@
-import { Input } from '@/components/ui/input'
-import { API, authenticatedFetch } from '@/config/api'
-import { PersistedServer } from '@/data/interfaces/Servers'
-import { BasicUser } from '@/data/interfaces/Users'
 import { ArrowLeft } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Input } from '@/components/ui/input'
+import { API, authenticatedFetch } from '@/config/api'
+import type { PersistedServer } from '@/data/interfaces/Servers'
+import type { BasicUser } from '@/data/interfaces/Users'
 import UserCard from './UserCard'
 
 type View = 'profiles' | 'manual' | 'addUser'
@@ -16,16 +16,9 @@ interface UserSelectorProps {
   onLogin: (user: BasicUser) => void
 }
 
-function UserSelector({
-  server,
-  users,
-  onServerChange,
-  onLogin,
-}: UserSelectorProps) {
+function UserSelector({ server, users, onServerChange, onLogin }: UserSelectorProps) {
   const navigate = useNavigate()
-  const [view, setView] = useState<View>(
-    users.length > 0 ? 'profiles' : 'manual',
-  )
+  const [view, setView] = useState<View>(users.length > 0 ? 'profiles' : 'manual')
 
   const [selectedUser, setSelectedUser] = useState<BasicUser | null>(null)
   const [profilePassword, setProfilePassword] = useState('')
@@ -61,8 +54,7 @@ function UserSelector({
     }
   }
 
-  const handleProfileLogin = () =>
-    doLogin(selectedUser!.username, profilePassword)
+  const handleProfileLogin = () => doLogin(selectedUser!.username, profilePassword)
   const handleManualLogin = () => doLogin(username, password)
 
   const handleAddUser = async () => {
@@ -139,9 +131,7 @@ function UserSelector({
               autoFocus
             />
             {error && (
-              <p className="mb-3 animate-pulse text-sm font-medium text-red-400">
-                {error}
-              </p>
+              <p className="mb-3 animate-pulse text-sm font-medium text-red-400">{error}</p>
             )}
             <PrimaryButton onClick={handleProfileLogin} isLoading={isLoading}>
               Iniciar Sesión
@@ -239,9 +229,7 @@ function UserSelector({
           placeholder="Contraseña"
         />
         <div>
-          <label className="mb-2 block text-sm font-medium text-white/70">
-            Tipo de usuario
-          </label>
+          <label className="mb-2 block text-sm font-medium text-white/70">Tipo de usuario</label>
           <select
             value={newUserType}
             onChange={(e) => setNewUserType(e.target.value)}
@@ -256,10 +244,7 @@ function UserSelector({
         <PrimaryButton
           onClick={handleAddUser}
           isLoading={isLoading}
-          disabled={
-            !newUsername.trim() ||
-            (newUserType === 'admin' && !newPassword.trim())
-          }
+          disabled={!newUsername.trim() || (newUserType === 'admin' && !newPassword.trim())}
         >
           Añadir
         </PrimaryButton>
@@ -342,9 +327,7 @@ function FieldInput({
 }) {
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-white/70">
-        {label}
-      </label>
+      <label className="mb-2 block text-sm font-medium text-white/70">{label}</label>
       <Input
         type={type}
         value={value}
@@ -358,9 +341,7 @@ function FieldInput({
 }
 
 function ErrorText({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="animate-pulse text-sm font-medium text-red-400">{children}</p>
-  )
+  return <p className="animate-pulse text-sm font-medium text-red-400">{children}</p>
 }
 
 export default UserSelector

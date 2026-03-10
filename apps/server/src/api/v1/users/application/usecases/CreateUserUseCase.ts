@@ -1,5 +1,5 @@
-import { User } from "../../domain/User";
-import { UsersRepositoryPort } from "../ports/UsersRepositoryPort";
+import type { User } from '../../domain/User';
+import type { UsersRepositoryPort } from '../ports/UsersRepositoryPort';
 
 export class CreateUserUseCase {
   constructor(private usersRepo: UsersRepositoryPort) {}

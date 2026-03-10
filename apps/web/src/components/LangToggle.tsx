@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import {
   Select,
   SelectContent,
@@ -7,7 +8,6 @@ import {
 } from '@/components/ui/select'
 import { setAppLanguage } from '@/localization/helpers/language_helpers'
 import langs from '@/localization/langs'
-import { useTranslation } from 'react-i18next'
 
 export default function LangToggle() {
   const { i18n } = useTranslation()

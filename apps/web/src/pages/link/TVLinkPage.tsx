@@ -1,10 +1,10 @@
+import { t } from 'i18next'
+import { useEffect, useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import Image from '@/components/ui/Image'
 import { authenticatedFetch } from '@/config/api'
 import { useServerStore } from '@/context/auth.store'
 import { CENTRAL_SERVER } from '@/utils/constants'
-import { t } from 'i18next'
-import { useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
 
 export default function TVLinkPage() {
   const user = useServerStore((state) => state.currentUser)
@@ -37,11 +37,9 @@ export default function TVLinkPage() {
     setError(null)
 
     try {
-      const response = await authenticatedFetch(
-        `https://${CENTRAL_SERVER}/users/link`,
-        'POST',
-        { user_code: autoCode.toUpperCase() },
-      )
+      const response = await authenticatedFetch(`https://${CENTRAL_SERVER}/users/link`, 'POST', {
+        user_code: autoCode.toUpperCase(),
+      })
 
       if (response && response.data) {
         setSuccess(true)
@@ -73,11 +71,9 @@ export default function TVLinkPage() {
     setError(null)
 
     try {
-      const response = await authenticatedFetch(
-        `https://${CENTRAL_SERVER}/users/link`,
-        'POST',
-        { user_code: code },
-      )
+      const response = await authenticatedFetch(`https://${CENTRAL_SERVER}/users/link`, 'POST', {
+        user_code: code,
+      })
 
       if (response && response.data) {
         setSuccess(true)
@@ -106,9 +102,7 @@ export default function TVLinkPage() {
       <div className="bg-background flex min-h-screen flex-col items-center justify-center px-4">
         <div className="bg-primary-foreground w-full max-w-2xl rounded-lg p-8 px-15 text-center shadow-2xl">
           <div className="mb-6 text-6xl">✅</div>
-          <h2 className="mb-4 text-3xl font-black text-white">
-            {t('successfulLink')}
-          </h2>
+          <h2 className="mb-4 text-3xl font-black text-white">{t('successfulLink')}</h2>
           <p className="mb-6 text-gray-400">{t('successfulLinkMessage')}</p>
         </div>
       </div>
@@ -124,18 +118,14 @@ export default function TVLinkPage() {
 
       {/* Card */}
       <div className="bg-primary-foreground w-full max-w-2xl rounded-lg p-8 px-15 shadow-2xl">
-        <h2 className="mb-6 text-center text-4xl font-black text-white">
-          {t('linkAccount')}
-        </h2>
+        <h2 className="mb-6 text-center text-4xl font-black text-white">{t('linkAccount')}</h2>
 
-        <p className="mb-8 text-center leading-relaxed text-gray-400">
-          {t('linkAccountMessage')}
-        </p>
+        <p className="mb-8 text-center leading-relaxed text-gray-400">{t('linkAccountMessage')}</p>
 
         {/* Loading state */}
         {isLoading && !error && (
           <div className="mb-6 rounded-lg border border-blue-500/50 bg-blue-500/20 p-4 text-center text-blue-400">
-            <div className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-400 border-t-transparent"></div>
+            <div className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-2 border-blue-400 border-t-transparent" />
             {t('linkingDevice')}
           </div>
         )}

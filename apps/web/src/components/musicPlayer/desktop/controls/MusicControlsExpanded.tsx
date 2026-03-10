@@ -1,3 +1,19 @@
+import {
+  EllipsisVertical,
+  ListMusic,
+  Maximize2,
+  MicVocal,
+  Minimize2,
+  Repeat,
+  Repeat1,
+  Shuffle,
+  Volume2,
+  VolumeOff,
+} from 'lucide-react'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import useSWR from 'swr'
+import { shallow } from 'zustand/shallow'
 import CustomSlider from '@/components/CustomSlider'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { useIsTablet } from '@/components/hooks/use-tablet'
@@ -15,34 +31,15 @@ import { Slider } from '@/components/ui/slider'
 import { API, authenticatedFetcher } from '@/config/api'
 import useMusicStore from '@/context/music.context'
 import { RepeateMode } from '@/data/enums/Music'
-import { LRCFile } from '@/data/interfaces/Music'
+import type { LRCFile } from '@/data/interfaces/Music'
 import { formatTime } from '@/utils/ReactUtils'
-import {
-  EllipsisVertical,
-  ListMusic,
-  Maximize2,
-  MicVocal,
-  Minimize2,
-  Repeat,
-  Repeat1,
-  Shuffle,
-  Volume2,
-  VolumeOff,
-} from 'lucide-react'
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
-import { shallow } from 'zustand/shallow'
 
 interface MusicControlsExpandedProps {
   title: string
   subtitle: string
 }
 
-function MusicControlsExpanded({
-  title,
-  subtitle,
-}: MusicControlsExpandedProps) {
+function MusicControlsExpanded({ title, subtitle }: MusicControlsExpandedProps) {
   const {
     album,
     currentSong,
@@ -158,11 +155,7 @@ function MusicControlsExpanded({
                 onClick={() => setIsExpanded(!isExpanded)}
                 className="bg-black/80 text-white hover:bg-black/90"
               >
-                {isExpanded ? (
-                  <Minimize2 className="h-5 w-5" />
-                ) : (
-                  <Maximize2 className="h-5 w-5" />
-                )}
+                {isExpanded ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
               </Button>
             </div>
           )}
@@ -175,9 +168,7 @@ function MusicControlsExpanded({
       </div>
 
       {/* Central Controls */}
-      <div
-        className={`flex w-full flex-col items-center ${isTablet ? 'max-w-80' : 'max-w-180'}`}
-      >
+      <div className={`flex w-full flex-col items-center ${isTablet ? 'max-w-80' : 'max-w-180'}`}>
         {/* Controles centrales */}
         <div className={`flex items-center space-x-4`}>
           <Button
@@ -297,14 +288,8 @@ function MusicControlsExpanded({
           className="flex w-full items-center gap-2 text-sm"
           onClick={(e) => e.stopPropagation()}
         >
-          <span className="w-12 text-right">
-            {currentTime ? formatTime(currentTime) : '00:00'}
-          </span>
-          <CustomSlider
-            value={progress}
-            buffered={buffered}
-            onChange={handleProgressChange}
-          />
+          <span className="w-12 text-right">{currentTime ? formatTime(currentTime) : '00:00'}</span>
+          <CustomSlider value={progress} buffered={buffered} onChange={handleProgressChange} />
           <span>{formatTime(duration)}</span>
         </div>
       </div>
@@ -321,10 +306,7 @@ function MusicControlsExpanded({
           size={'icon'}
           title={t('lyrics')}
         >
-          <MicVocal
-            className="h-5 w-5"
-            style={{ color: showLyrics ? 'var(--app-color)' : '' }}
-          />
+          <MicVocal className="h-5 w-5" style={{ color: showLyrics ? 'var(--app-color)' : '' }} />
         </Button>
         <Button
           variant="fullGhost"
@@ -335,10 +317,7 @@ function MusicControlsExpanded({
           size={'icon'}
           title={t('queue')}
         >
-          <ListMusic
-            className="h-5 w-5"
-            style={{ color: showQueue ? 'var(--app-color)' : '' }}
-          />
+          <ListMusic className="h-5 w-5" style={{ color: showQueue ? 'var(--app-color)' : '' }} />
         </Button>
         <Button
           variant="fullGhost"

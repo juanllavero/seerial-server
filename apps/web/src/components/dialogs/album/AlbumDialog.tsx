@@ -1,14 +1,14 @@
-import { ModalWrapper } from '@/components/ModalWrapper'
-import { API, authenticatedFetch } from '@/config/api'
-import { useDialogStore } from '@/context/dialog.store'
-import { useWebSocketStore } from '@/context/ws.context'
-import { Album } from '@/data/interfaces/Music'
-import { ImageType } from '@/utils/constants'
-import { showToast } from '@/utils/ReactUtils'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { mutate } from 'swr'
 import { shallow } from 'zustand/shallow'
+import { ModalWrapper } from '@/components/ModalWrapper'
+import { API, authenticatedFetch } from '@/config/api'
+import { useDialogStore } from '@/context/dialog.store'
+import { useWebSocketStore } from '@/context/ws.context'
+import type { Album } from '@/data/interfaces/Music'
+import { ImageType } from '@/utils/constants'
+import { showToast } from '@/utils/ReactUtils'
 import ImageListTab from '../components/ImageListTab'
 import AlbumInfoTab from './components/AlbumInfoTab'
 
@@ -58,18 +58,14 @@ function AlbumDialog() {
   const handleEditAlbum = async () => {
     await connectWS()
 
-    const response = await authenticatedFetch(
-      API.albums.update(album.id),
-      'PUT',
-      {
-        ...album,
-        title: title,
-        year: year,
-        description: description,
-        coverSrc: selectedPoster ?? '',
-        genres: genres,
-      },
-    )
+    const response = await authenticatedFetch(API.albums.update(album.id), 'PUT', {
+      ...album,
+      title: title,
+      year: year,
+      description: description,
+      coverSrc: selectedPoster ?? '',
+      genres: genres,
+    })
 
     if (!response || !response.data) {
       showToast('error', 'Error updating episode')

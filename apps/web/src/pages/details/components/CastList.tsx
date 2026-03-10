@@ -1,7 +1,7 @@
-import { Cast } from '@/data/interfaces/Media'
-import HorizontalList from '@/components/lists/HorizontalList'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
+import HorizontalList from '@/components/lists/HorizontalList'
+import type { Cast } from '@/data/interfaces/Media'
 import CastCard from './CastCard'
 
 interface CastListProps {
@@ -14,11 +14,7 @@ function CastList({ cast }: CastListProps) {
   return (
     <HorizontalList title={t('cast')}>
       {cast.map((person, index) => (
-        <CastCard
-          key={person.name + index}
-          index={person.name + index}
-          person={person}
-        />
+        <CastCard key={person.name + index} index={person.name + index} person={person} />
       ))}
     </HorizontalList>
   )

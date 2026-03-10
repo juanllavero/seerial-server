@@ -5,11 +5,10 @@
 ![License](https://img.shields.io/badge/license-GPL--3.0--only-blue.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)
 ![pnpm](https://img.shields.io/badge/pnpm-workspace-orange.svg)
-![Lerna](https://img.shields.io/badge/maintained%20with-lerna-cc00ff.svg)
 
 Seerial is an open-source media management suite, designed to offer a seamless experience across multiple devices.
 
-This repository is a **Monorepo** managed with [pnpm workspaces](https://pnpm.io/workspaces) and [Lerna](https://lerna.js.org/), containing the backend server as well as all official clients (Web, Desktop, and TV).
+This repository is a **Monorepo** managed with [pnpm workspaces](https://pnpm.io/workspaces), containing the backend server as well as all official clients (Web, Desktop, and TV).
 
 ---
 

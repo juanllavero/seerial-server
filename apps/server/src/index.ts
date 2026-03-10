@@ -1,37 +1,39 @@
+import type http from 'node:http';
+import type https from 'node:https';
+import path from 'node:path';
+import { showWelcome } from '@seerial/cli';
+import compression from 'compression';
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import { config } from 'dotenv';
+import { app } from 'electron';
+import type { Express, NextFunction, Request, Response } from 'express';
+import express from 'express';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
+import swaggerUi from 'swagger-ui-express';
 import {
   downloaderService,
   fileSystemService,
   notificationService,
   tmdbApiClient,
-} from "@/api/v1/shared/infrastructure/adapters/di/container";
-import * as ConfigManager from "@/api/v1/shared/infrastructure/services/ConfigService";
-import compression from "compression";
-import cookieParser from "cookie-parser";
-import cors from "cors";
-import { config } from "dotenv";
-import { app } from "electron";
-import express, { Request, Response } from "express";
-import rateLimit from "express-rate-limit";
-import helmet from "helmet";
-import http from "http";
-import https from "https";
-import path from "path";
-import swaggerUi from "swagger-ui-express";
-import swaggerDocument from "../swagger.json";
-import { ServerConfigService } from "./api/v1/servers/infrastructure/services/ServerConfigService";
-import { DatabaseManager } from "./api/v1/shared/infrastructure/persistence/DatabaseManager";
-import { globalErrorHandler } from "./api/v1/shared/infrastructure/web/exceptions/GlobalErrorHandler";
-import { requestsIDsMiddleware } from "./middleware/request.id.middleware";
-import { sanitizationMiddleware } from "./middleware/sanitization.middleware";
-import { RegisterRoutes } from "./routes/routes";
-import { createTray } from "./utils/appTray";
+} from '@/api/v1/shared/infrastructure/adapters/di/container';
+import * as ConfigManager from '@/api/v1/shared/infrastructure/services/ConfigService';
+import swaggerDocument from '../swagger.json';
+import { ServerConfigService } from './api/v1/servers/infrastructure/services/ServerConfigService';
+import { DatabaseManager } from './api/v1/shared/infrastructure/persistence/DatabaseManager';
+import { globalErrorHandler } from './api/v1/shared/infrastructure/web/exceptions/GlobalErrorHandler';
+import { requestsIDsMiddleware } from './middleware/request.id.middleware';
+import { sanitizationMiddleware } from './middleware/sanitization.middleware';
+import { RegisterRoutes } from './routes/routes';
+import { createTray } from './utils/appTray';
 
 // Initialize app and environment
 config({
   quiet: true,
 });
-process.env.APP_ROOT = path.join(__dirname, "../../");
-export const appServer = express();
+process.env.APP_ROOT = path.join(__dirname, '../../');
+export const appServer: Express = express();
 
 // Add compression middleware to compress responses and save bandwidth
 appServer.use(compression());
@@ -50,19 +52,19 @@ appServer.use(
       callback(null, origin); // Return same origin
     },
     credentials: true, // Allow cookies
-    exposedHeaders: ["Content-Range", "Accept-Ranges", "Content-Length"],
-    methods: ["GET", "PUT", "POST", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    exposedHeaders: ['Content-Range', 'Accept-Ranges', 'Content-Length'],
+    methods: ['GET', 'PUT', 'POST', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   }),
 );
 
 // Rate limit for login endpoint
 appServer.use(
-  "/users/login",
+  '/users/login',
   rateLimit({
     windowMs: 10 * 60 * 1000, // 10 minutes
     max: 20, // 20 attempts per IP
-    message: "Too many login attempts, please try again later",
+    message: 'Too many login attempts, please try again later',
   }),
 );
 
@@ -84,13 +86,10 @@ appServer.use(
   }),
 );
 
-appServer.use(express.json({ limit: "50mb" }));
-appServer.use(express.urlencoded({ limit: "50mb", extended: true }));
+appServer.use(express.json({ limit: '50mb' }));
+appServer.use(express.urlencoded({ limit: '50mb', extended: true }));
 appServer.use(cookieParser());
-appServer.use(
-  "/media",
-  express.static(fileSystemService.getExternalPath("resources")),
-);
+appServer.use('/media', express.static(fileSystemService.getExternalPath('resources')));
 
 // Global server and WebSocket manager
 export let server: http.Server | https.Server;
@@ -111,23 +110,23 @@ app.whenReady().then(async () => {
   await ServerConfigService.loadOrCreateServerConfig();
 
   // Swagger UI
-  appServer.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+  appServer.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
   // Register generated tsoa routes
   RegisterRoutes(appServer);
 
   // Serve static web files
-  const webPath = path.join(__dirname, "web");
+  const webPath = path.join(__dirname, 'web');
   appServer.use(express.static(webPath));
 
   // Capture all requests and redirect to index.html
-  appServer.use((req: Request, res: Response, next) => {
+  appServer.use((req: Request, res: Response, next: NextFunction) => {
     // If the request is for a file (has an extension), skip to next middleware
     if (path.extname(req.path)) {
       return next();
     }
 
-    res.sendFile(path.join(webPath, "index.html"));
+    res.sendFile(path.join(webPath, 'index.html'));
   });
 
   // Error handling middleware
@@ -144,9 +143,19 @@ app.whenReady().then(async () => {
 
   // Create tray
   createTray();
+
+  showWelcome({
+    appName: 'Seerial API',
+    data: [
+      { dato1: 'API URL', dato2: 'http://localhost:8080/api/v1', color: 'cyan' },
+      { dato1: 'Database', dato2: 'Connected (PostgreSQL)', color: 'green' },
+      { dato1: 'Environment', dato2: 'Development', color: 'yellow' },
+      { dato1: 'Cache', dato2: 'Redis (Disabled)', color: 'gray' },
+    ],
+  });
 });
 
 // Prevent default quit behavior on macOS
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") app.quit();
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit();
 });

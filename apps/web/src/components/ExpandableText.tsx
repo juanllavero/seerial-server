@@ -1,5 +1,5 @@
-import { useState, useRef, useLayoutEffect, useEffect, memo } from 'react'
 import { ChevronDown } from 'lucide-react'
+import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 interface ExpandableTextProps {
@@ -29,16 +29,16 @@ const ExpandableText = ({ text, className = '' }: ExpandableTextProps) => {
     checkTruncation()
     window.addEventListener('resize', checkTruncation)
     return () => window.removeEventListener('resize', checkTruncation)
-  }, [text])
+  }, [])
 
   useEffect(() => {
-    if (!isExpanded) {
+    if (isExpanded) {
+      setIsClamped(false)
+    } else {
       const timer = setTimeout(() => {
         setIsClamped(true)
       }, 300)
       return () => clearTimeout(timer)
-    } else {
-      setIsClamped(false)
     }
   }, [isExpanded])
 
@@ -53,13 +53,12 @@ const ExpandableText = ({ text, className = '' }: ExpandableTextProps) => {
         className="overflow-hidden transition-all duration-300 ease-in-out"
         style={{ maxHeight: isExpanded ? `${fullHeight}px` : '72px' }}
       >
-        <div className={`text-pretty ${isClamped ? 'line-clamp-3' : ''}`}>
-          {text}
-        </div>
+        <div className={`text-pretty ${isClamped ? 'line-clamp-3' : ''}`}>{text}</div>
       </div>
 
       {showButton && (
         <button
+          type="button"
           onClick={() => setIsExpanded(!isExpanded)}
           className="mt-2 ml-auto flex w-full items-center text-sm"
           onMouseEnter={() => setIsHovered(true)}

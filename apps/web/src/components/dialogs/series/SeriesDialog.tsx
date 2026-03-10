@@ -1,7 +1,7 @@
 import { ModalWrapper } from '@/components/ModalWrapper'
 import { API } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.store'
-import { Series } from '@/data/interfaces/Media'
+import type { Series } from '@/data/interfaces/Media'
 import { useGet } from '@/hooks/media/useGet'
 import useEditDialog from '@/hooks/useEditDialog'
 import { ImageType } from '@/utils/constants'
@@ -24,33 +24,35 @@ function SeriesDialog() {
   const { id } = payload as { id: string }
   const { data: series } = useGet<Series>(API.series.get(id))
 
-  const { control, images, selectedTab, setSelectedTab, handleUpdate, t } =
-    useEditDialog<Series, SeriesImageState>({
-      entity: series,
-      configs: [seriesInfoConfig, seriesTagsConfig],
-      initialImages: {
-        logos: [],
-        localLogoFolder: '',
-        selectedLogo: '',
-        posters: [],
-        localPosterFolder: '',
-        selectedPoster: '',
-      },
-      getImagesFromEntity: (s) => ({
-        logos: s.logosUrls || [],
-        posters: s.coversUrls || [],
-        selectedLogo: s.logoSrc || '',
-        selectedPoster: s.coverSrc || '',
-        localLogoFolder: `img/logos/${s.id}`,
-        localPosterFolder: `img/posters/${s.id}`,
-      }),
-      getExtraSubmitData: (imgs, s) => ({
-        logoSrc: imgs.selectedLogo ?? s.logoSrc,
-        coverSrc: imgs.selectedPoster ?? s.coverSrc,
-      }),
-      apiUpdateUrl: series ? API.series.update(series.id) : '',
-      errorMessage: 'Error updating series',
-    })
+  const { control, images, selectedTab, setSelectedTab, handleUpdate, t } = useEditDialog<
+    Series,
+    SeriesImageState
+  >({
+    entity: series,
+    configs: [seriesInfoConfig, seriesTagsConfig],
+    initialImages: {
+      logos: [],
+      localLogoFolder: '',
+      selectedLogo: '',
+      posters: [],
+      localPosterFolder: '',
+      selectedPoster: '',
+    },
+    getImagesFromEntity: (s) => ({
+      logos: s.logosUrls || [],
+      posters: s.coversUrls || [],
+      selectedLogo: s.logoSrc || '',
+      selectedPoster: s.coverSrc || '',
+      localLogoFolder: `img/logos/${s.id}`,
+      localPosterFolder: `img/posters/${s.id}`,
+    }),
+    getExtraSubmitData: (imgs, s) => ({
+      logoSrc: imgs.selectedLogo ?? s.logoSrc,
+      coverSrc: imgs.selectedPoster ?? s.coverSrc,
+    }),
+    apiUpdateUrl: series ? API.series.update(series.id) : '',
+    errorMessage: 'Error updating series',
+  })
 
   if (!series) return null
 
@@ -60,15 +62,11 @@ function SeriesDialog() {
       tabs={[
         {
           title: t('generalButton'),
-          content: (
-            <GenericFormTab config={seriesInfoConfig} control={control} />
-          ),
+          content: <GenericFormTab config={seriesInfoConfig} control={control} />,
         },
         {
           title: t('tags'),
-          content: (
-            <GenericFormTab config={seriesTagsConfig} control={control} />
-          ),
+          content: <GenericFormTab config={seriesTagsConfig} control={control} />,
         },
         { title: t('media'), content: <MediaTab series={series} /> },
         {

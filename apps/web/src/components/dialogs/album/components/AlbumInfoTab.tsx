@@ -1,9 +1,9 @@
+import { useTranslation } from 'react-i18next'
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
 import TagInput from '@/components/ui/tags-input'
-import { useTranslation } from 'react-i18next'
 
 interface AlbumInfoTabProps {
   title: string
@@ -41,28 +41,16 @@ function AlbumInfoTab({
     >
       <FlexBox gap={1} width={'100%'} direction={isTablet ? 'column' : 'row'}>
         <LabeledInputWrapper label={t('name')}>
-          <Input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-          />
+          <Input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
         </LabeledInputWrapper>
 
         <LabeledInputWrapper label={t('year')}>
-          <Input
-            type="text"
-            value={year}
-            onChange={(e) => setYear(e.target.value)}
-          />
+          <Input type="text" value={year} onChange={(e) => setYear(e.target.value)} />
         </LabeledInputWrapper>
       </FlexBox>
 
       <LabeledInputWrapper label={t('genres')}>
-        <TagInput
-          value={genres}
-          onChange={setGenres}
-          placeholder="Añadir género..."
-        />
+        <TagInput value={genres} onChange={setGenres} placeholder="Añadir género..." />
       </LabeledInputWrapper>
 
       <LabeledInputWrapper label={t('overview')}>

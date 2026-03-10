@@ -1,25 +1,25 @@
-import { spawn, type ChildProcess } from "child_process";
-import ffmpegPath from "ffmpeg-static";
-import ffprobePath from "ffprobe-static";
+import { type ChildProcess, spawn } from 'child_process';
+import ffmpegPath from 'ffmpeg-static';
+import ffprobePath from 'ffprobe-static';
 
-export const ffmpegPathFinal = ffmpegPath ?? "";
-export const ffprobePathFinal = ffprobePath.path ?? "";
+export const ffmpegPathFinal = ffmpegPath ?? '';
+export const ffprobePathFinal = ffprobePath.path ?? '';
 
 const MAX_BUFFER_SIZE = 10 * 1024 * 1024; // 10MB
 
 // If app.asar is used, use app.asar.unpacked
 export const getFfmpegPath = () => {
-  let path = ffmpegPath ?? "";
-  if (path.includes("app.asar")) {
-    path = path.replace("app.asar", "app.asar.unpacked");
+  let path = ffmpegPath ?? '';
+  if (path.includes('app.asar')) {
+    path = path.replace('app.asar', 'app.asar.unpacked');
   }
   return path;
 };
 
 export const getFfprobePath = () => {
-  let path = ffprobePath.path ?? "";
-  if (path.includes("app.asar")) {
-    path = path.replace("app.asar", "app.asar.unpacked");
+  let path = ffprobePath.path ?? '';
+  if (path.includes('app.asar')) {
+    path = path.replace('app.asar', 'app.asar.unpacked');
   }
   return path;
 };
@@ -47,7 +47,7 @@ export interface StreamingProcess {
 export function executeFfmpeg(args: string[]): Promise<void> {
   return new Promise((resolve, reject) => {
     let ffmpegProcess: ChildProcess | null = null;
-    let stderr = "";
+    let stderr = '';
     let isResolved = false;
 
     const cleanup = () => {
@@ -58,12 +58,12 @@ export function executeFfmpeg(args: string[]): Promise<void> {
         ffmpegProcess.stdin?.destroy();
 
         if (!ffmpegProcess.killed) {
-          ffmpegProcess.kill("SIGTERM");
+          ffmpegProcess.kill('SIGTERM');
 
           // Kill after timeout if not exited
           setTimeout(() => {
             if (ffmpegProcess && !ffmpegProcess.killed) {
-              ffmpegProcess.kill("SIGKILL");
+              ffmpegProcess.kill('SIGKILL');
             }
           }, 5000);
         }
@@ -72,23 +72,23 @@ export function executeFfmpeg(args: string[]): Promise<void> {
 
     try {
       ffmpegProcess = spawn(getFfmpegPath(), args, {
-        stdio: ["pipe", "pipe", "pipe"],
+        stdio: ['pipe', 'pipe', 'pipe'],
       });
 
-      ffmpegProcess.stderr?.on("data", (data) => {
-        const chunk = data.toString("utf8");
+      ffmpegProcess.stderr?.on('data', (data) => {
+        const chunk = data.toString('utf8');
         if (stderr.length + chunk.length > MAX_BUFFER_SIZE) {
           cleanup();
           if (!isResolved) {
             isResolved = true;
-            reject(new Error("FFMPEG stderr buffer exceeded limit"));
+            reject(new Error('FFMPEG stderr buffer exceeded limit'));
           }
           return;
         }
         stderr += chunk;
       });
 
-      ffmpegProcess.on("close", (code) => {
+      ffmpegProcess.on('close', (code) => {
         if (isResolved) return;
         isResolved = true;
 
@@ -101,14 +101,14 @@ export function executeFfmpeg(args: string[]): Promise<void> {
         }
       });
 
-      ffmpegProcess.on("error", (err) => {
+      ffmpegProcess.on('error', (err) => {
         if (isResolved) return;
         isResolved = true;
         cleanup();
         reject(new Error(`FFMPEG spawn error: ${err.message}`));
       });
 
-      ffmpegProcess.on("disconnect", () => {
+      ffmpegProcess.on('disconnect', () => {
         if (!isResolved) {
           cleanup();
         }
@@ -123,14 +123,11 @@ export function executeFfmpeg(args: string[]): Promise<void> {
 /**
  * Execute ffprobe command and return parsed JSON data
  */
-export function executeFfprobe(
-  filePath: string,
-  timeoutMs: number = 10000
-): Promise<any> {
+export function executeFfprobe(filePath: string, timeoutMs: number = 10000): Promise<any> {
   return new Promise((resolve, reject) => {
     let ffprobeProcess: ChildProcess | null = null;
-    let stdout = "";
-    let stderr = "";
+    let stdout = '';
+    let stderr = '';
     let isResolved = false;
 
     const cleanup = () => {
@@ -140,11 +137,11 @@ export function executeFfprobe(
         ffprobeProcess.stdin?.destroy();
 
         if (!ffprobeProcess.killed) {
-          ffprobeProcess.kill("SIGTERM");
+          ffprobeProcess.kill('SIGTERM');
 
           setTimeout(() => {
             if (ffprobeProcess && !ffprobeProcess.killed) {
-              ffprobeProcess.kill("SIGKILL");
+              ffprobeProcess.kill('SIGKILL');
             }
           }, 5000);
         }
@@ -155,44 +152,44 @@ export function executeFfprobe(
       cleanup();
       if (!isResolved) {
         isResolved = true;
-        reject(new Error("ffprobe timed out"));
+        reject(new Error('ffprobe timed out'));
       }
     }, timeoutMs);
 
     try {
       const args = [
-        "-v",
-        "quiet",
-        "-print_format",
-        "json",
-        "-show_format",
-        "-show_streams",
+        '-v',
+        'quiet',
+        '-print_format',
+        'json',
+        '-show_format',
+        '-show_streams',
         filePath,
       ];
 
       ffprobeProcess = spawn(getFfprobePath(), args, {
-        stdio: ["pipe", "pipe", "pipe"],
+        stdio: ['pipe', 'pipe', 'pipe'],
       });
 
-      ffprobeProcess.stdout?.on("data", (data) => {
-        const chunk = data.toString("utf8");
+      ffprobeProcess.stdout?.on('data', (data) => {
+        const chunk = data.toString('utf8');
         if (stdout.length + chunk.length > MAX_BUFFER_SIZE) {
           cleanup();
           clearTimeout(timeout);
           if (!isResolved) {
             isResolved = true;
-            reject(new Error("ffprobe stdout buffer exceeded limit"));
+            reject(new Error('ffprobe stdout buffer exceeded limit'));
           }
           return;
         }
         stdout += chunk;
       });
 
-      ffprobeProcess.stderr?.on("data", (data) => {
-        stderr += data.toString("utf8");
+      ffprobeProcess.stderr?.on('data', (data) => {
+        stderr += data.toString('utf8');
       });
 
-      ffprobeProcess.on("close", (code) => {
+      ffprobeProcess.on('close', (code) => {
         clearTimeout(timeout);
         if (isResolved) return;
         isResolved = true;
@@ -211,7 +208,7 @@ export function executeFfprobe(
         }
       });
 
-      ffprobeProcess.on("error", (err) => {
+      ffprobeProcess.on('error', (err) => {
         clearTimeout(timeout);
         cleanup();
         if (!isResolved) {
@@ -220,7 +217,7 @@ export function executeFfprobe(
         }
       });
 
-      ffprobeProcess.on("disconnect", () => {
+      ffprobeProcess.on('disconnect', () => {
         if (!isResolved) {
           cleanup();
         }
@@ -238,11 +235,11 @@ export function executeFfprobe(
  */
 export function executeFfmpegPipe(
   args: string[],
-  outputStream: NodeJS.WritableStream
+  outputStream: NodeJS.WritableStream,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     let ffmpegProcess: ChildProcess | null = null;
-    let stderr = "";
+    let stderr = '';
     let isResolved = false;
 
     const cleanup = () => {
@@ -252,11 +249,11 @@ export function executeFfmpegPipe(
         ffmpegProcess.stdin?.destroy();
 
         if (!ffmpegProcess.killed) {
-          ffmpegProcess.kill("SIGTERM");
+          ffmpegProcess.kill('SIGTERM');
 
           setTimeout(() => {
             if (ffmpegProcess && !ffmpegProcess.killed) {
-              ffmpegProcess.kill("SIGKILL");
+              ffmpegProcess.kill('SIGKILL');
             }
           }, 5000);
         }
@@ -265,17 +262,17 @@ export function executeFfmpegPipe(
 
     try {
       ffmpegProcess = spawn(getFfmpegPath(), args, {
-        stdio: ["pipe", "pipe", "pipe"],
+        stdio: ['pipe', 'pipe', 'pipe'],
       });
 
       // Pipe stdout to output stream
       const pipeStream = ffmpegProcess.stdout?.pipe(outputStream);
 
-      pipeStream?.on("finish", () => {
+      pipeStream?.on('finish', () => {
         // Pipe ended, no need to wait for ffmpeg to exit
       });
 
-      outputStream.on("error", (err) => {
+      outputStream.on('error', (err) => {
         cleanup();
         if (!isResolved) {
           isResolved = true;
@@ -283,11 +280,11 @@ export function executeFfmpegPipe(
         }
       });
 
-      ffmpegProcess.stderr?.on("data", (data) => {
-        stderr += data.toString("utf8");
+      ffmpegProcess.stderr?.on('data', (data) => {
+        stderr += data.toString('utf8');
       });
 
-      ffmpegProcess.on("close", (code) => {
+      ffmpegProcess.on('close', (code) => {
         if (isResolved) return;
         isResolved = true;
 
@@ -300,7 +297,7 @@ export function executeFfmpegPipe(
         }
       });
 
-      ffmpegProcess.on("error", (err) => {
+      ffmpegProcess.on('error', (err) => {
         cleanup();
         if (!isResolved) {
           isResolved = true;
@@ -308,7 +305,7 @@ export function executeFfmpegPipe(
         }
       });
 
-      ffmpegProcess.on("disconnect", () => {
+      ffmpegProcess.on('disconnect', () => {
         if (!isResolved) {
           cleanup();
         }
@@ -320,14 +317,11 @@ export function executeFfmpegPipe(
   });
 }
 
-export function executeFfprobeRaw(
-  args: string[],
-  timeoutMs: number = 10000
-): Promise<string> {
+export function executeFfprobeRaw(args: string[], timeoutMs: number = 10000): Promise<string> {
   return new Promise((resolve, reject) => {
     let ffprobeProcess: ChildProcess | null = null;
-    let stdout = "";
-    let stderr = "";
+    let stdout = '';
+    let stderr = '';
     let isResolved = false;
 
     const cleanup = () => {
@@ -337,11 +331,11 @@ export function executeFfprobeRaw(
         ffprobeProcess.stdin?.destroy();
 
         if (!ffprobeProcess.killed) {
-          ffprobeProcess.kill("SIGTERM");
+          ffprobeProcess.kill('SIGTERM');
 
           setTimeout(() => {
             if (ffprobeProcess && !ffprobeProcess.killed) {
-              ffprobeProcess.kill("SIGKILL");
+              ffprobeProcess.kill('SIGKILL');
             }
           }, 5000);
         }
@@ -352,24 +346,24 @@ export function executeFfprobeRaw(
       cleanup();
       if (!isResolved) {
         isResolved = true;
-        reject(new Error("ffprobe timed out"));
+        reject(new Error('ffprobe timed out'));
       }
     }, timeoutMs);
 
     try {
       ffprobeProcess = spawn(getFfprobePath(), args, {
-        stdio: ["pipe", "pipe", "pipe"],
+        stdio: ['pipe', 'pipe', 'pipe'],
       });
 
-      ffprobeProcess.stdout?.on("data", (data) => {
-        stdout += data.toString("utf8");
+      ffprobeProcess.stdout?.on('data', (data) => {
+        stdout += data.toString('utf8');
       });
 
-      ffprobeProcess.stderr?.on("data", (data) => {
-        stderr += data.toString("utf8");
+      ffprobeProcess.stderr?.on('data', (data) => {
+        stderr += data.toString('utf8');
       });
 
-      ffprobeProcess.on("close", (code) => {
+      ffprobeProcess.on('close', (code) => {
         clearTimeout(timeout);
         if (isResolved) return;
         isResolved = true;
@@ -383,7 +377,7 @@ export function executeFfprobeRaw(
         }
       });
 
-      ffprobeProcess.on("error", (err) => {
+      ffprobeProcess.on('error', (err) => {
         clearTimeout(timeout);
         cleanup();
         if (!isResolved) {
@@ -392,7 +386,7 @@ export function executeFfprobeRaw(
         }
       });
 
-      ffprobeProcess.on("disconnect", () => {
+      ffprobeProcess.on('disconnect', () => {
         if (!isResolved) {
           cleanup();
         }
@@ -413,14 +407,14 @@ export function executeFfmpegPipeToStream(
   args: string[],
   outputStream: NodeJS.WritableStream,
   onError?: (err: Error) => void,
-  onClose?: (code: number | null) => void
+  onClose?: (code: number | null) => void,
 ): StreamingProcess {
   let ffmpegProcess: ChildProcess | null = null;
-  let stderr = "";
+  let stderr = '';
   let isCancelled = false;
   let isFinished = false;
 
-  const cleanup = (signal: NodeJS.Signals = "SIGTERM") => {
+  const cleanup = (signal: NodeJS.Signals = 'SIGTERM') => {
     if (isCancelled || !ffmpegProcess) return;
     isCancelled = true;
 
@@ -436,10 +430,10 @@ export function executeFfmpegPipeToStream(
       ffmpegProcess.kill(signal);
 
       // Kill after timeout if not exited
-      if (signal === "SIGTERM") {
+      if (signal === 'SIGTERM') {
         setTimeout(() => {
           if (ffmpegProcess && !ffmpegProcess.killed) {
-            ffmpegProcess.kill("SIGKILL");
+            ffmpegProcess.kill('SIGKILL');
           }
         }, 5000);
       }
@@ -447,21 +441,21 @@ export function executeFfmpegPipeToStream(
   };
 
   const cancel = () => {
-    cleanup("SIGTERM");
+    cleanup('SIGTERM');
   };
 
   try {
     ffmpegProcess = spawn(getFfmpegPath(), args, {
-      stdio: ["pipe", "pipe", "pipe"],
+      stdio: ['pipe', 'pipe', 'pipe'],
     });
 
     // Pipe output to stream
     ffmpegProcess.stdout?.pipe(outputStream, { end: false });
 
     // Debugging
-    ffmpegProcess.stderr?.on("data", (data) => {
+    ffmpegProcess.stderr?.on('data', (data) => {
       if (!isCancelled) {
-        const chunk = data.toString("utf8");
+        const chunk = data.toString('utf8');
         // Limit buffer size
         if (stderr.length < MAX_BUFFER_SIZE) {
           stderr += chunk;
@@ -470,7 +464,7 @@ export function executeFfmpegPipeToStream(
     });
 
     // Manage errors on output stream
-    outputStream.on("error", (err) => {
+    outputStream.on('error', (err) => {
       if (!isFinished) {
         isFinished = true;
         cleanup();
@@ -481,14 +475,14 @@ export function executeFfmpegPipeToStream(
     });
 
     // Manage stream close
-    outputStream.on("close", () => {
+    outputStream.on('close', () => {
       if (!isFinished && !isCancelled) {
         cleanup();
       }
     });
 
     // Manage close of ffmpeg process
-    ffmpegProcess.on("close", (code) => {
+    ffmpegProcess.on('close', (code) => {
       if (isFinished) return;
       isFinished = true;
 
@@ -505,7 +499,7 @@ export function executeFfmpegPipeToStream(
     });
 
     // Spawn error handling
-    ffmpegProcess.on("error", (err) => {
+    ffmpegProcess.on('error', (err) => {
       if (isFinished) return;
       isFinished = true;
 
@@ -517,7 +511,7 @@ export function executeFfmpegPipeToStream(
     });
 
     // Disconnect handling
-    ffmpegProcess.on("disconnect", () => {
+    ffmpegProcess.on('disconnect', () => {
       if (!isFinished) {
         cleanup();
       }

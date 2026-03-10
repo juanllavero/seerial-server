@@ -1,15 +1,15 @@
+import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import { API } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.store'
 import { useWebSocketStore } from '@/context/ws.context'
-import { Library } from '@/data/interfaces/Media'
+import type { Library } from '@/data/interfaces/Media'
 import { useCreate } from '@/hooks/media/useCreateContent'
 import { useGet } from '@/hooks/media/useGet'
 import { useUpdate } from '@/hooks/media/useUpdate'
 import useFormState from '@/hooks/useFormState'
 import { showToast } from '@/utils/ReactUtils'
-import { useEffect, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
 import { ModalWrapper } from '../../ModalWrapper'
 import AdvancedTabContent from './AdvancedTabContent'
 import FoldersTabContent from './FoldersTabContent'
@@ -36,9 +36,7 @@ function LibraryDialog() {
   const { id } = payload as { id?: string }
 
   // Fetch Data
-  const { data: library } = useGet<Library>(
-    id ? API.libraries.getById(id) : null,
-  )
+  const { data: library } = useGet<Library>(id ? API.libraries.getById(id) : null)
 
   // State Management
   const [loading, setLoading] = useState<boolean>(false)
@@ -171,9 +169,7 @@ function LibraryDialog() {
               setFolders={form.setFolders}
               close={closeDialog}
               handleAddLibrary={handleAddEditLibrary}
-              buttonDisabled={
-                !form.folders || form.folders.length === 0 || loading
-              }
+              buttonDisabled={!form.folders || form.folders.length === 0 || loading}
               edit={id !== undefined}
             />
           ),
@@ -190,9 +186,7 @@ function LibraryDialog() {
               subsMode={form.subsMode}
               setSubsMode={form.setSubsMode}
               close={closeDialog}
-              buttonDisabled={
-                !form.folders || form.folders.length === 0 || loading
-              }
+              buttonDisabled={!form.folders || form.folders.length === 0 || loading}
               handleAddLibrary={handleAddEditLibrary}
               edit={id !== undefined}
             />

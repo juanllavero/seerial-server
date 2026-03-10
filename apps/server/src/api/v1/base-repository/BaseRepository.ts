@@ -1,11 +1,11 @@
-import logger from "@/utils/logger";
+import logger from '@/utils/logger';
 import {
   BadRequestException,
   NotFoundException,
   RepositoryException,
-} from "../shared/infrastructure/web/exceptions/HTTPExceptions";
+} from '../shared/infrastructure/web/exceptions/HTTPExceptions';
 
-const repositoryLogger = logger.child({ category: "Repository" });
+const repositoryLogger = logger.child({ category: 'Repository' });
 
 /**
  * Enhanced base repository with improved validations and error handling
@@ -14,11 +14,9 @@ export abstract class BaseRepository {
   /**
    * Validate that an ID is valid
    */
-  protected validateId(id: string, fieldName = "ID"): string {
-    if (!id || typeof id !== "string" || id.trim() === "") {
-      throw new BadRequestException(
-        `${fieldName} is required and must be a non-empty string`,
-      );
+  protected validateId(id: string, fieldName = 'ID'): string {
+    if (!id || typeof id !== 'string' || id.trim() === '') {
+      throw new BadRequestException(`${fieldName} is required and must be a non-empty string`);
     }
     return id.trim();
   }
@@ -39,11 +37,9 @@ export abstract class BaseRepository {
   /**
    * Validate that an object is not empty
    */
-  protected validateData<T>(data: T, fieldName = "Data"): T {
-    if (!data || (typeof data === "object" && Object.keys(data).length === 0)) {
-      throw new BadRequestException(
-        `${fieldName} is required and cannot be empty`,
-      );
+  protected validateData<T>(data: T, fieldName = 'Data'): T {
+    if (!data || (typeof data === 'object' && Object.keys(data).length === 0)) {
+      throw new BadRequestException(`${fieldName} is required and cannot be empty`);
     }
     return data;
   }
@@ -60,7 +56,7 @@ export abstract class BaseRepository {
       pattern?: RegExp;
     },
   ): string {
-    if (!value || typeof value !== "string") {
+    if (!value || typeof value !== 'string') {
       throw new BadRequestException(`${fieldName} must be a valid string`);
     }
 
@@ -73,9 +69,7 @@ export abstract class BaseRepository {
     }
 
     if (options?.maxLength && trimmed.length > options.maxLength) {
-      throw new BadRequestException(
-        `${fieldName} must not exceed ${options.maxLength} characters`,
-      );
+      throw new BadRequestException(`${fieldName} must not exceed ${options.maxLength} characters`);
     }
 
     if (options?.pattern && !options.pattern.test(trimmed)) {
@@ -107,26 +101,20 @@ export abstract class BaseRepository {
       }
 
       // Re-throw business errors (like "not found")
-      if (error instanceof Error && error.message.includes("not found")) {
+      if (error instanceof Error && error.message.includes('not found')) {
         throw error;
       }
 
       // Log and wrap unexpected errors
       repositoryLogger.error(error, errorMessage);
-      throw new RepositoryException(
-        errorMessage,
-        error instanceof Error ? error : undefined,
-      );
+      throw new RepositoryException(errorMessage, error instanceof Error ? error : undefined);
     }
   }
 
   /**
    * Ensure that an operation affected at least one row
    */
-  protected ensureAffected(
-    affectedCount: number,
-    notFoundMessage: string,
-  ): void {
+  protected ensureAffected(affectedCount: number, notFoundMessage: string): void {
     if (affectedCount === 0) {
       throw new NotFoundException(notFoundMessage);
     }

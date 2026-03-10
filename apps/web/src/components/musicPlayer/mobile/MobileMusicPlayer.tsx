@@ -1,36 +1,29 @@
-import Image from '@/components/ui/Image'
-import { API, authenticatedFetcher } from '@/config/api'
-import useMusicStore from '@/context/music.context'
-import { LRCFile } from '@/data/interfaces/Music'
-import MusicGradient from '@/layouts/backgrounds/MusicGradient'
 import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
+import Image from '@/components/ui/Image'
+import { API, authenticatedFetcher } from '@/config/api'
+import useMusicStore from '@/context/music.context'
+import type { LRCFile } from '@/data/interfaces/Music'
+import MusicGradient from '@/layouts/backgrounds/MusicGradient'
 import LRCVisualizer from '../lyrics/LRCVisualizer'
 import ExpandedMobileMusicControls from './controls/ExpandedMobileMusicControls'
 import MinimizedBar from './controls/MinimizedBar'
 
 const MobileMusicPlayer = () => {
-  const {
-    currentSong,
-    album,
-    isExpanded,
-    setIsExpanded,
-    isShown,
-    showLyrics,
-    setShowLyrics,
-  } = useMusicStore(
-    (state) => ({
-      currentSong: state.currentSong,
-      album: state.album,
-      isExpanded: state.isExpanded,
-      setIsExpanded: state.setIsExpanded,
-      setShowLyrics: state.setShowLyrics,
-      isShown: state.isShown,
-      showLyrics: state.showLyrics,
-    }),
-    shallow,
-  )
+  const { currentSong, album, isExpanded, setIsExpanded, isShown, showLyrics, setShowLyrics } =
+    useMusicStore(
+      (state) => ({
+        currentSong: state.currentSong,
+        album: state.album,
+        isExpanded: state.isExpanded,
+        setIsExpanded: state.setIsExpanded,
+        setShowLyrics: state.setShowLyrics,
+        isShown: state.isShown,
+        showLyrics: state.showLyrics,
+      }),
+      shallow,
+    )
   const [dragStart, setDragStart] = useState<number | null>(null)
   const [dragOffset, setDragOffset] = useState<number | null>(0)
   const [isDragging, setIsDragging] = useState(false)
@@ -71,8 +64,7 @@ const MobileMusicPlayer = () => {
   const expandProgress = calculateExpandProgress()
 
   // Interpolate player height
-  const currentHeight =
-    minimizedHeight + (maxHeight - minimizedHeight) * expandProgress
+  const currentHeight = minimizedHeight + (maxHeight - minimizedHeight) * expandProgress
 
   const handleTouchStart = (e: React.TouchEvent) => {
     const touch = e.touches[0]
@@ -94,9 +86,7 @@ const MobileMusicPlayer = () => {
   const handleTouchMove = (e: any) => {
     if (!isDragging || !dragStart) return
     const touch = e.touches[0]
-    const deltaY = isExpanded
-      ? touch.clientY - dragStart
-      : dragStart - touch.clientY
+    const deltaY = isExpanded ? touch.clientY - dragStart : dragStart - touch.clientY
     const maxDrag = window.innerHeight * 0.8
 
     // Verificar si el toque está fuera del viewport (arriba o abajo)
@@ -227,21 +217,18 @@ const MobileMusicPlayer = () => {
     const horizontalMargin = 32
     const verticalMargin = 20
     const maxWidth = viewportWidth - horizontalMargin
-    const availableHeight =
-      viewportHeight - headerHeight - controlsHeight - verticalMargin * 2
+    const availableHeight = viewportHeight - headerHeight - controlsHeight - verticalMargin * 2
     let size = Math.min(maxWidth, availableHeight)
     const minSize = 180
     const maxSize = viewportWidth * 0.9
     size = Math.max(minSize, Math.min(size, maxSize))
-    const totalVerticalSpace =
-      headerHeight + size + controlsHeight + verticalMargin * 2
+    const totalVerticalSpace = headerHeight + size + controlsHeight + verticalMargin * 2
     if (totalVerticalSpace > viewportHeight) {
       const excessHeight = totalVerticalSpace - viewportHeight
       size = Math.max(minSize, size - excessHeight - 20)
     }
     const left = (viewportWidth - size) / 2
-    const availableVerticalSpace =
-      viewportHeight - headerHeight - controlsHeight
+    const availableVerticalSpace = viewportHeight - headerHeight - controlsHeight
     const top = headerHeight + (availableVerticalSpace - size) / 2
 
     return { size, left, top }
@@ -269,12 +256,9 @@ const MobileMusicPlayer = () => {
   const minimizedLeft = 16
   const minimizedTop = 12
 
-  const currentSize =
-    minimizedSize + (expandedCoverStyles.size - minimizedSize) * expandProgress
-  const currentLeft =
-    minimizedLeft + (expandedCoverStyles.left - minimizedLeft) * expandProgress
-  const currentTop =
-    minimizedTop + (expandedCoverStyles.top - minimizedTop) * expandProgress
+  const currentSize = minimizedSize + (expandedCoverStyles.size - minimizedSize) * expandProgress
+  const currentLeft = minimizedLeft + (expandedCoverStyles.left - minimizedLeft) * expandProgress
+  const currentTop = minimizedTop + (expandedCoverStyles.top - minimizedTop) * expandProgress
 
   const handleBarClick = () => {
     if (!isDragging && !isExpanded) {

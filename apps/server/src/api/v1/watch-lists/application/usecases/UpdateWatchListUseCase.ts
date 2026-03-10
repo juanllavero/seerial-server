@@ -1,5 +1,5 @@
-import { WatchList } from "../../domain/WatchList";
-import { WatchListRepositoryPort } from "../ports/WatchListRepositoryPort";
+import type { WatchList } from '../../domain/WatchList';
+import type { WatchListRepositoryPort } from '../ports/WatchListRepositoryPort';
 
 export class UpdateWatchListUseCase {
   constructor(private watchListRepo: WatchListRepositoryPort) {}

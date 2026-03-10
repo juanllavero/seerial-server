@@ -1,23 +1,23 @@
-import { CollectionModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionModel";
+import fs from 'fs';
+import * as fsPromises from 'fs/promises';
+import path from 'path';
+import type { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
 import {
   fileSystemService,
   imageProcessingService,
   librariesRepo,
   useCases,
-} from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { clearLibrary } from "@/api/v1/shared/infrastructure/services/FileSearchService";
-import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
-import { messages } from "@/config/messages";
-import { LibraryType, LibraryTypes } from "@/data/interfaces/Media";
-import { imageExtensions } from "@/utils/constants";
-import logger from "@/utils/logger";
-import fs from "fs";
-import * as fsPromises from "fs/promises";
-import path from "path";
-import { GetLibrariesUseCase } from "../usecases/GetLibrariesUseCase";
-import { GetLibraryUseCase } from "../usecases/GetLibraryUseCase";
+} from '@/api/v1/shared/infrastructure/adapters/di/container';
+import { clearLibrary } from '@/api/v1/shared/infrastructure/services/FileSearchService';
+import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
+import { messages } from '@/config/messages';
+import { type LibraryType, LibraryTypes } from '@/data/interfaces/Media';
+import { imageExtensions } from '@/utils/constants';
+import logger from '@/utils/logger';
+import { GetLibrariesUseCase } from '../usecases/GetLibrariesUseCase';
+import { GetLibraryUseCase } from '../usecases/GetLibraryUseCase';
 
-const libraryManagerLogger = logger.child({ category: "Library Manager" });
+const libraryManagerLogger = logger.child({ category: 'Library Manager' });
 
 export class LibraryManager {
   /**
@@ -49,25 +49,24 @@ export class LibraryManager {
     images: string[];
   }> {
     const coverSrc =
-      type === LibraryTypes.MUSIC && collection.musicPosterSrc !== ""
+      type === LibraryTypes.MUSIC && collection.musicPosterSrc !== ''
         ? collection.musicPosterSrc
-        : collection.posterSrc !== ""
+        : collection.posterSrc !== ''
           ? collection.posterSrc
-          : "";
+          : '';
 
-    const backgroundSrc =
-      collection.backgroundSrc !== "" ? collection.backgroundSrc : "";
+    const backgroundSrc = collection.backgroundSrc !== '' ? collection.backgroundSrc : '';
 
-    if (coverSrc !== "" && backgroundSrc !== "")
+    if (coverSrc !== '' && backgroundSrc !== '')
       return { poster: coverSrc, background: backgroundSrc, images: [] };
 
     let items: any[] = [];
 
-    if (type === "Movies") {
+    if (type === 'Movies') {
       items = collection.collectionMovies.map((movie) => movie.movie) || [];
-    } else if (type === "Shows") {
+    } else if (type === 'Shows') {
       items = collection.collectionSeries.map((series) => series.series) || [];
-    } else if (type === "Music") {
+    } else if (type === 'Music') {
       items = collection.collectionAlbums.map((album) => album.album) || [];
     }
 
@@ -77,7 +76,7 @@ export class LibraryManager {
 
     // Get the folder of the first item (root folder of the collection in this library)
     if (items.length > 0 && items[0].folder) {
-      baseFolder = items[0].folder ?? "";
+      baseFolder = items[0].folder ?? '';
       if (baseFolder !== null && fs.existsSync(baseFolder)) {
         try {
           const filesInFolder = await fsPromises.readdir(baseFolder);
@@ -86,18 +85,15 @@ export class LibraryManager {
           for (const file of filesInFolder) {
             const fileNameWithoutExt = path.parse(file).name.toLowerCase();
             if (imageExtensions.includes(path.extname(file).toLowerCase())) {
-              if (fileNameWithoutExt === "poster") {
+              if (fileNameWithoutExt === 'poster') {
                 posterPath = path.join(baseFolder, file);
-              } else if (fileNameWithoutExt === "background") {
+              } else if (fileNameWithoutExt === 'background') {
                 backgroundPath = path.join(baseFolder, file);
               }
             }
           }
         } catch (error) {
-          libraryManagerLogger.error(
-            error,
-            `Error reading folder ${baseFolder}`,
-          );
+          libraryManagerLogger.error(error, `Error reading folder ${baseFolder}`);
         }
       }
     }
@@ -131,10 +127,7 @@ export class LibraryManager {
     poster: string | null;
     background: string | null;
   }> {
-    const collectionImages = await LibraryManager.getCollectionImages(
-      collection,
-      libraryType,
-    );
+    const collectionImages = await LibraryManager.getCollectionImages(collection, libraryType);
 
     if (collectionImages.images.length === 0)
       return {
@@ -143,7 +136,7 @@ export class LibraryManager {
       };
 
     // Generate collage
-    const ratio = libraryType === LibraryTypes.MUSIC ? "square" : "poster";
+    const ratio = libraryType === LibraryTypes.MUSIC ? 'square' : 'poster';
     const collageBuffer = await imageProcessingService.generateCollage(
       collectionImages.images,
       ratio,
@@ -152,23 +145,17 @@ export class LibraryManager {
 
     // Save collage image
     const outputDir = fileSystemService.getExternalPath(
-      fileSystemService.join("resources", "img", "collages", collection.id),
+      fileSystemService.join('resources', 'img', 'collages', collection.id),
     );
     fileSystemService.createFolder(outputDir);
     const fileName = `collage-${collection.id}-${libraryId}.jpg`;
     const filePath = fileSystemService.join(outputDir, fileName);
     fileSystemService.writeImage(filePath, collageBuffer);
 
-    const collectionPoster = fileSystemService.join(
-      "img",
-      "collages",
-      collection.id,
-      fileName,
-    );
+    const collectionPoster = fileSystemService.join('img', 'collages', collection.id, fileName);
 
     collection.posterSrc = collectionImages.poster || collection.posterSrc;
-    collection.backgroundSrc =
-      collectionImages.background || collection.backgroundSrc;
+    collection.backgroundSrc = collectionImages.background || collection.backgroundSrc;
 
     await collection.save();
 
@@ -182,7 +169,7 @@ export class LibraryManager {
    * Starts a background scan of a library's files.
    */
   public static async startLibraryScan(libraryId: string) {
-    const library = await this.getLibraryById(libraryId); // reuses own method
+    const library = await LibraryManager.getLibraryById(libraryId); // reuses own method
     await clearLibrary(libraryId);
     // This is a fire-and-forget operation, so no await is needed here.
     useCases.scanLibrary().execute(library, false);

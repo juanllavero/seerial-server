@@ -1,15 +1,15 @@
-import { ServerConfigService } from "@/api/v1/servers/infrastructure/services/ServerConfigService";
-import { app, Menu, shell, Tray } from "electron";
-import path from "path";
+import path from 'node:path';
+import { app, Menu, shell, Tray } from 'electron';
+import { ServerConfigService } from '@/api/v1/servers/infrastructure/services/ServerConfigService';
 
 let tray: Tray | null = null;
 export function createTray() {
   const iconPath = path.join(
     __dirname,
-    "..",
-    "assets",
-    "icons",
-    process.platform === "win32" ? "icon.ico" : "icon.png"
+    '..',
+    'assets',
+    'icons',
+    process.platform === 'win32' ? 'icon.ico' : 'icon.png',
   );
 
   tray = new Tray(iconPath);
@@ -21,17 +21,15 @@ export function createTray() {
   // Context menu
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: "Open Seerial...",
+      label: 'Open Seerial...',
       click: () => {
-        shell.openExternal(
-          `http://localhost:${ServerConfigService.serverConfig.httpPort}/`
-        );
+        shell.openExternal(`http://localhost:${ServerConfigService.serverConfig.httpPort}/`);
       },
     },
-    { type: "separator" },
+    { type: 'separator' },
     {
-      label: "Start Seerial Media Server at Login",
-      type: "checkbox",
+      label: 'Start Seerial Media Server at Login',
+      type: 'checkbox',
       checked: startAtLoginChecked,
       click: (menuItem) => {
         const enabled = menuItem.checked;
@@ -43,32 +41,30 @@ export function createTray() {
         startAtLoginChecked = enabled;
       },
     },
-    { type: "separator" },
+    { type: 'separator' },
     {
-      label: "About Seerial",
+      label: 'About Seerial',
       click: () => {
         shell.openExternal(`https://seerial.es`);
       },
     },
-    { type: "separator" },
+    { type: 'separator' },
     {
-      label: "Exit",
+      label: 'Exit',
       click: () => {
         app.quit();
       },
     },
   ]);
 
-  tray.setToolTip("Seerial App");
+  tray.setToolTip('Seerial App');
   tray.setContextMenu(contextMenu);
 
-  tray.on("click", () => {
+  tray.on('click', () => {
     // Do nothing
   });
 
-  tray.on("double-click", () => {
-    shell.openExternal(
-      `http://localhost:${ServerConfigService.serverConfig.httpPort}/`
-    );
+  tray.on('double-click', () => {
+    shell.openExternal(`http://localhost:${ServerConfigService.serverConfig.httpPort}/`);
   });
 }

@@ -10,12 +10,8 @@ export const dialogRegistry = {
   episode: lazy(() => import('./episode/EpisodeDialog')),
   album: lazy(() => import('./album/AlbumDialog')),
   downloadMedia: lazy(() => import('./downloadMedia/DownloadMediaDialog')),
-  identification: lazy(
-    () => import('./identification/ChangeIdentificationDialog'),
-  ),
-  episodesGroup: lazy(
-    () => import('./episodesGroup/ChangeEpisodesGroupDialog'),
-  ),
+  identification: lazy(() => import('./identification/ChangeIdentificationDialog')),
+  episodesGroup: lazy(() => import('./episodesGroup/ChangeEpisodesGroupDialog')),
   deleteSeries: lazy(() => import('./delete/DeleteDialog')),
   deleteMovie: lazy(() => import('./delete/DeleteDialog')),
   deleteSeason: lazy(() => import('./delete/DeleteDialog')),

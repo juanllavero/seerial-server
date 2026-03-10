@@ -1,13 +1,13 @@
+import { ChevronLeft, FileIcon, FolderIcon, HomeIcon } from 'lucide-react'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import useSWR from 'swr'
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import Loading from '@/components/Loading'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
 import { API, authenticatedFetcher } from '@/config/api'
-import { ChevronLeft, FileIcon, FolderIcon, HomeIcon } from 'lucide-react'
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
 
 interface FoldersDialogContentProps {
   folders: string[]
@@ -17,23 +17,14 @@ interface FoldersDialogContentProps {
 
 type Folder = { name: string; isFolder: boolean }
 
-function FoldersDialogContent({
-  folders,
-  setFolders,
-  close,
-}: FoldersDialogContentProps) {
+function FoldersDialogContent({ folders, setFolders, close }: FoldersDialogContentProps) {
   const { t } = useTranslation()
   const [currentPath, setCurrentPath] = useState<string>('')
 
-  const { data: drives, isLoading } = useSWR<string[]>(
-    API.files.drives,
-    authenticatedFetcher,
-  )
+  const { data: drives, isLoading } = useSWR<string[]>(API.files.drives, authenticatedFetcher)
 
   const { data: folderContent } = useSWR<Folder[]>(
-    currentPath !== ''
-      ? `${API.files.folder}?path=${encodeURIComponent(currentPath)}`
-      : null,
+    currentPath !== '' ? `${API.files.folder}?path=${encodeURIComponent(currentPath)}` : null,
     authenticatedFetcher,
   )
 
@@ -59,8 +50,7 @@ function FoldersDialogContent({
       setCurrentPath(upperPath || '') // Go back if no upper path
     } else {
       // Check if the current path ends with '/home' o '\'
-      const separator =
-        currentPath.endsWith('/home') || currentPath.endsWith('\\') ? '' : '\\'
+      const separator = currentPath.endsWith('/home') || currentPath.endsWith('\\') ? '' : '\\'
       setCurrentPath(`${currentPath}${separator}${folder}`)
     }
   }
@@ -104,12 +94,7 @@ function FoldersDialogContent({
                   <FolderIcon /> {item.name}
                 </FlexBox>
               ) : (
-                <FlexBox
-                  gap={0.5}
-                  key={index}
-                  width={'17rem'}
-                  css={{ color: '#a6a6a6' }}
-                >
+                <FlexBox gap={0.5} key={index} width={'17rem'} css={{ color: '#a6a6a6' }}>
                   <FileIcon />{' '}
                   <span
                     className="line-clamp-3 w-fit max-w-md overflow-hidden text-ellipsis"
@@ -146,12 +131,7 @@ function FoldersDialogContent({
     <FlexBox direction="column" gap={1} height={'32rem'}>
       <FlexBox width={'100%'}>
         <LabeledInputWrapper label={t('addFolder')}>
-          <Input
-            type="text"
-            readOnly
-            value={currentPath}
-            className="w-110 bg-white text-black"
-          />
+          <Input type="text" readOnly value={currentPath} className="w-110 bg-white text-black" />
         </LabeledInputWrapper>
       </FlexBox>
       <FlexBox>
@@ -166,19 +146,11 @@ function FoldersDialogContent({
                 css={{ cursor: 'pointer' }}
               >
                 {index === 0 ? <HomeIcon /> : <FolderIcon />}{' '}
-                {index === 0
-                  ? getUserFromPath(drive)
-                  : drive.replace(/[\/\\]$/, '')}
+                {index === 0 ? getUserFromPath(drive) : drive.replace(/[/\\]$/, '')}
               </FlexBox>
             ))}
         </FlexBox>
-        <FlexBox
-          direction="column"
-          width={'20rem'}
-          height={'23rem'}
-          scroll="vertical"
-          gap={0.5}
-        >
+        <FlexBox direction="column" width={'20rem'} height={'23rem'} scroll="vertical" gap={0.5}>
           {currentPath && renderFolderContent()}
         </FlexBox>
       </FlexBox>

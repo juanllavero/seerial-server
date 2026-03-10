@@ -1,3 +1,9 @@
+import i18next from 'i18next'
+import { Plus } from 'lucide-react'
+import { memo, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import useSWR from 'swr'
+import { shallow } from 'zustand/shallow'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import Loading from '@/components/Loading'
 import { Button } from '@/components/ui/button'
@@ -10,14 +16,8 @@ import {
 } from '@/components/ui/select'
 import { API, authenticatedFetcher } from '@/config/api'
 import useMusicStore from '@/context/music.context'
-import { LRCFile, LRCLine } from '@/data/interfaces/Music'
+import type { LRCFile, LRCLine } from '@/data/interfaces/Music'
 import { getLanguageName } from '@/utils/utils'
-import i18next from 'i18next'
-import { Plus } from 'lucide-react'
-import { memo, useEffect, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
-import { shallow } from 'zustand/shallow'
 
 const LRCVisualizer = () => {
   const { t } = useTranslation()
@@ -58,9 +58,7 @@ const LRCVisualizer = () => {
         if (metadataMatch) {
           return
         }
-        const timeMatch = trimmedLine.match(
-          /\[(\d{1,2}):(\d{2})\.(\d{2,3})\](.*)/,
-        )
+        const timeMatch = trimmedLine.match(/\[(\d{1,2}):(\d{2})\.(\d{2,3})\](.*)/)
         if (timeMatch) {
           const minutes = parseInt(timeMatch[1])
           const seconds = parseInt(timeMatch[2])
@@ -92,17 +90,14 @@ const LRCVisualizer = () => {
   useEffect(() => {
     if (!isUserScrolling && containerRef.current && lines.length > 0) {
       const container = containerRef.current
-      const currentLineElement = container.children[0]?.children[
-        currentLineIndex
-      ] as HTMLElement
+      const currentLineElement = container.children[0]?.children[currentLineIndex] as HTMLElement
 
       if (!currentLineElement) return
 
       const lineHeight = currentLineElement.offsetHeight
       const containerHeight = container.clientHeight
 
-      const targetScrollTop =
-        currentLineElement.offsetTop - containerHeight / 2 + lineHeight / 2
+      const targetScrollTop = currentLineElement.offsetTop - containerHeight / 2 + lineHeight / 2
 
       container.scrollTo({
         top: Math.max(0, targetScrollTop),
@@ -132,14 +127,12 @@ const LRCVisualizer = () => {
     if (index < currentLineIndex) return 'opacity-0'
     return 'opacity-50'
   }
-  const getLineScale = (index: number) =>
-    index === currentLineIndex ? 'scale-105' : 'scale-100'
+  const getLineScale = (index: number) => (index === currentLineIndex ? 'scale-105' : 'scale-100')
   const getLineBlur = (index: number) => {
     if (isUserScrolling) return '' // No blur on scroll
     return index === currentLineIndex ? '' : 'blur-[2px]'
   }
-  const capitalize = (text: string) =>
-    text.charAt(0).toUpperCase() + text.slice(1)
+  const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
 
   if (isLoading) return <Loading />
 
@@ -155,15 +148,11 @@ const LRCVisualizer = () => {
             <div className="absolute z-200 mt-20 flex flex-col gap-2 rounded-xl bg-black/50 p-5">
               {lyrics && lyrics.length > 1 && (
                 <>
-                  <span className="text-xl font-black">
-                    {t('languageText')}
-                  </span>
+                  <span className="text-xl font-black">{t('languageText')}</span>
                   <Select
                     value={selectedLRCFile?.language}
                     onValueChange={(value) => {
-                      setSelectedLRCFile(
-                        lyrics.find((l) => l.language === value) ?? null,
-                      )
+                      setSelectedLRCFile(lyrics.find((l) => l.language === value) ?? null)
                     }}
                   >
                     <SelectTrigger className="w-fit min-w-40">
@@ -171,16 +160,8 @@ const LRCVisualizer = () => {
                     </SelectTrigger>
                     <SelectContent>
                       {lyrics?.map((lrcFile) => (
-                        <SelectItem
-                          key={lrcFile.language}
-                          value={lrcFile.language}
-                        >
-                          {capitalize(
-                            getLanguageName(
-                              lrcFile.language,
-                              i18next.language,
-                            ) ?? '',
-                          )}
+                        <SelectItem key={lrcFile.language} value={lrcFile.language}>
+                          {capitalize(getLanguageName(lrcFile.language, i18next.language) ?? '')}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -214,9 +195,7 @@ const LRCVisualizer = () => {
             })
           ) : (
             <div className="flex h-full min-h-75 w-full items-center justify-center">
-              <span className="text-center text-2xl font-bold">
-                {t('lyricsNotFound')}
-              </span>
+              <span className="text-center text-2xl font-bold">{t('lyricsNotFound')}</span>
             </div>
           )}
         </div>

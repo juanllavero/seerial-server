@@ -1,7 +1,7 @@
-import { DiscoveredServer } from '@/data/interfaces/Servers'
-import { useServerDiscovery } from '@/hooks/useServerDiscovery'
 import { Plus } from 'lucide-react'
 import { useState } from 'react'
+import type { DiscoveredServer } from '@/data/interfaces/Servers'
+import { useServerDiscovery } from '@/hooks/useServerDiscovery'
 import AddServerDialog from './AddServerDialog'
 import ServerCard from './ServerCard'
 
@@ -35,11 +35,7 @@ function ServerSelector({ onServerSelected }: ServerSelectorProps) {
       ) : (
         <div className="mb-10 grid grid-cols-2 justify-items-center gap-4 sm:grid-cols-3 md:grid-cols-4">
           {allServers.map((server) => (
-            <ServerCard
-              key={server.key}
-              server={server}
-              onSelect={onServerSelected}
-            />
+            <ServerCard key={server.key} server={server} onSelect={onServerSelected} />
           ))}
         </div>
       )}
@@ -56,11 +52,7 @@ function ServerSelector({ onServerSelected }: ServerSelectorProps) {
       </div>
 
       {/* Add server dialog */}
-      <AddServerDialog
-        open={showAddDialog}
-        onOpenChange={setShowAddDialog}
-        onAdd={addServer}
-      />
+      <AddServerDialog open={showAddDialog} onOpenChange={setShowAddDialog} onAdd={addServer} />
     </>
   )
 }

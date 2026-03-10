@@ -1,10 +1,10 @@
-import { ServerModel } from "@/api/v1/servers/infrastructure/persistence/models/ServerModel";
-import { messages } from "@/config/messages";
-import { Controller, Get, Route, Tags } from "tsoa";
-import { fileSystemService, tmdbApiClient } from "../../adapters/di/container";
-import { ApiResponse } from "../http/APIResponse";
+import { Controller, Get, Route, Tags } from 'tsoa';
+import { ServerModel } from '@/api/v1/servers/infrastructure/persistence/models/ServerModel';
+import { messages } from '@/config/messages';
+import { fileSystemService, tmdbApiClient } from '../../adapters/di/container';
+import { ApiResponse } from '../http/APIResponse';
 
-type HealthStatus = "ok" | "degraded" | "down";
+type HealthStatus = 'ok' | 'degraded' | 'down';
 
 interface HealthResponse {
   status: HealthStatus;
@@ -19,8 +19,8 @@ interface HealthResponse {
   version: string;
 }
 
-@Route("health")
-@Tags("Health")
+@Route('health')
+@Tags('Health')
 export class HealthController extends Controller {
   /**
    *  Check application health status and dependencies
@@ -43,58 +43,56 @@ export class HealthController extends Controller {
         checks,
         uptime: process.uptime(),
         timestamp: Date.now(),
-        version: process.env.VERSION || "unknown",
+        version: process.env.VERSION || 'unknown',
       },
-      messages.success.fetch
+      messages.success.fetch,
     );
   }
 
   private async checkFilesystem(): Promise<HealthStatus> {
     try {
-      const path = fileSystemService.getExternalPath("resources");
+      const path = fileSystemService.getExternalPath('resources');
       fileSystemService.isFolder(path);
-      return "ok";
+      return 'ok';
     } catch {
-      return "down";
+      return 'down';
     }
   }
 
   private async checkDatabase(): Promise<HealthStatus> {
     try {
       await ServerModel.find({ take: 1 });
-      return "ok";
+      return 'ok';
     } catch {
-      return "down";
+      return 'down';
     }
   }
 
   private async checkFFmpeg(): Promise<HealthStatus> {
     try {
       await new Promise((resolve, reject) => {
-        const { exec } = require("child_process");
-        exec("ffmpeg -version", (err: any) => (err ? reject() : resolve(true)));
+        const { exec } = require('child_process');
+        exec('ffmpeg -version', (err: any) => (err ? reject() : resolve(true)));
       });
-      return "ok";
+      return 'ok';
     } catch {
-      return "degraded"; // Not critical if FFmpeg is missing, only used for conversion and media info extraction
+      return 'degraded'; // Not critical if FFmpeg is missing, only used for conversion and media info extraction
     }
   }
 
   private async checkTMDB(): Promise<HealthStatus> {
     try {
-      if (!tmdbApiClient.THEMOVIEDB_API_TOKEN) return "degraded";
+      if (!tmdbApiClient.THEMOVIEDB_API_TOKEN) return 'degraded';
       const ok = await tmdbApiClient.getAPIKeyStatus();
-      return ok ? "ok" : "degraded";
+      return ok ? 'ok' : 'degraded';
     } catch {
-      return "degraded";
+      return 'degraded';
     }
   }
 
-  private calculateOverallStatus(
-    checks: Record<string, HealthStatus>
-  ): HealthStatus {
-    if (Object.values(checks).includes("down")) return "down";
-    if (Object.values(checks).includes("degraded")) return "degraded";
-    return "ok";
+  private calculateOverallStatus(checks: Record<string, HealthStatus>): HealthStatus {
+    if (Object.values(checks).includes('down')) return 'down';
+    if (Object.values(checks).includes('degraded')) return 'degraded';
+    return 'ok';
   }
 }

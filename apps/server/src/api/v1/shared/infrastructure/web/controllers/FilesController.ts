@@ -1,24 +1,24 @@
-import { messages } from "@/config/messages";
-import fs from "fs";
-import os from "os";
-import path from "path";
-import { Get, Query, Route, Security, Tags } from "tsoa";
-import { SanitizationService } from "../../services/SanitizationService";
-import { ApiResponse } from "../http/APIResponse";
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { Get, Query, Route, Security, Tags } from 'tsoa';
+import { messages } from '@/config/messages';
+import { SanitizationService } from '../../services/SanitizationService';
+import { ApiResponse } from '../http/APIResponse';
 
 interface FileItem {
   name: string;
   isFolder: boolean;
 }
 
-@Route("files")
-@Tags("Files")
+@Route('files')
+@Tags('Files')
 export class FilesController {
   /**
    * Get system drives
    */
-  @Get("drives")
-  @Security("adminAuth")
+  @Get('drives')
+  @Security('adminAuth')
   public async getDrives(): Promise<ApiResponse<string[]>> {
     const drives = [];
     const platform = os.platform();
@@ -27,8 +27,8 @@ export class FilesController {
     const userHome = os.homedir();
     drives.push(userHome); // Add the user's directory as the first element
 
-    if (platform === "win32") {
-      const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    if (platform === 'win32') {
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
       for (let i = 0; i < letters.length; i++) {
         const drive = `${letters[i]}:\\`;
         if (fs.existsSync(drive)) {
@@ -37,8 +37,8 @@ export class FilesController {
       }
     } else {
       // For Unix-like systems such as macOS or Linux
-      drives.push("/"); // Add the root directory
-      const volumes = "/Volumes"; // In macOS, external volumes are in /Volumes
+      drives.push('/'); // Add the root directory
+      const volumes = '/Volumes'; // In macOS, external volumes are in /Volumes
       if (fs.existsSync(volumes)) {
         const mountedVolumes = fs.readdirSync(volumes);
         mountedVolumes.forEach((volume) => {
@@ -53,21 +53,16 @@ export class FilesController {
   /**
    * Get folder contents
    */
-  @Get("folder")
-  @Security("adminAuth")
-  public async getFolderContents(
-    @Query() path: string
-  ): Promise<ApiResponse<FileItem[]>> {
+  @Get('folder')
+  @Security('adminAuth')
+  public async getFolderContents(@Query() path: string): Promise<ApiResponse<FileItem[]>> {
     const sanitizedPath = SanitizationService.sanitizeDirectoryPath(
       path,
       SanitizationService.getSystemAllowedPaths(),
-      true // Must exist
+      true, // Must exist
     );
 
-    return ApiResponse.success(
-      getFolderContent(sanitizedPath),
-      messages.success.fetch
-    );
+    return ApiResponse.success(getFolderContent(sanitizedPath), messages.success.fetch);
   }
 }
 
@@ -82,7 +77,7 @@ const getFolderContent = (dirPath: string) => {
 
   items.forEach((item) => {
     // Filter hidden files and folders
-    if (item.name.startsWith(".")) return;
+    if (item.name.startsWith('.')) return;
 
     if (item.isDirectory()) {
       contents.push({ name: item.name, isFolder: true });

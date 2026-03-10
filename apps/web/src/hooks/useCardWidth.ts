@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 export const useCardWidth = () => {
   const [cardWidth, setCardWidth] = useState(() => {
@@ -19,17 +19,11 @@ export const useCardWidth = () => {
     }
 
     window.addEventListener('storage', handleStorageChange)
-    window.addEventListener(
-      'cardWidthChange',
-      handleCardWidthChange as EventListener,
-    )
+    window.addEventListener('cardWidthChange', handleCardWidthChange as EventListener)
 
     return () => {
       window.removeEventListener('storage', handleStorageChange)
-      window.removeEventListener(
-        'cardWidthChange',
-        handleCardWidthChange as EventListener,
-      )
+      window.removeEventListener('cardWidthChange', handleCardWidthChange as EventListener)
     }
   }, [])
 
@@ -38,9 +32,7 @@ export const useCardWidth = () => {
     localStorage.setItem('cardWidth', newWidth.toString())
 
     // Fire custom event for the same tab
-    window.dispatchEvent(
-      new CustomEvent('cardWidthChange', { detail: newWidth }),
-    )
+    window.dispatchEvent(new CustomEvent('cardWidthChange', { detail: newWidth }))
   }
 
   return { cardWidth, updateCardWidth }

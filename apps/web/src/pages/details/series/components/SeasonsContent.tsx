@@ -1,3 +1,6 @@
+import React, { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
+import { shallow } from 'zustand/shallow'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import NotFound from '@/components/NotFound'
@@ -7,12 +10,9 @@ import SelectableWrapper from '@/components/ui/SelectableWrapper'
 import { Skeleton } from '@/components/ui/skeleton'
 import { API } from '@/config/api'
 import useDataStore from '@/context/data.context'
-import { Season } from '@/data/interfaces/Media'
-import { SelectableOption } from '@/data/interfaces/Utils'
+import type { Season } from '@/data/interfaces/Media'
+import type { SelectableOption } from '@/data/interfaces/Utils'
 import { useGet } from '@/hooks/media/useGet'
-import React, { useEffect, useRef } from 'react'
-import { useTranslation } from 'react-i18next'
-import { shallow } from 'zustand/shallow'
 import EpisodesList from './EpisodesList'
 
 function SeasonContent() {
@@ -43,19 +43,13 @@ function SeasonContent() {
     isLoading,
     error,
     mutate,
-  } = useGet<Season>(
-    selectedSeasonId ? API.seasons.get(selectedSeasonId, 'all') : null,
-  )
+  } = useGet<Season>(selectedSeasonId ? API.seasons.get(selectedSeasonId, 'all') : null)
 
   useEffect(() => {
     if ((isTablet || isMobile) && distribution !== 1) {
       prevDistribution.current = distribution
       setDistribution(1)
-    } else if (
-      !isTablet &&
-      !isMobile &&
-      distribution !== prevDistribution.current
-    ) {
+    } else if (!isTablet && !isMobile && distribution !== prevDistribution.current) {
       setDistribution(prevDistribution.current)
     }
   }, [isMobile, isTablet, setDistribution, distribution])

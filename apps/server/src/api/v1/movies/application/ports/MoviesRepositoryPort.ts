@@ -1,4 +1,4 @@
-import { Movie } from "../../domain/Movie";
+import type { Movie } from '../../domain/Movie';
 
 export interface MoviesRepositoryPort {
   findAll(libraryId: string): Promise<Movie[]>;

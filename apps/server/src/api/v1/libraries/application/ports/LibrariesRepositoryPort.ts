@@ -1,5 +1,5 @@
-import { LibraryItem } from "@/data/interfaces/Media";
-import { Library } from "../../domain/Library";
+import type { LibraryItem } from '@/data/interfaces/Media';
+import type { Library } from '../../domain/Library';
 
 export interface LibrariesRepositoryPort {
   getAll(): Promise<Library[]>;
@@ -11,23 +11,12 @@ export interface LibrariesRepositoryPort {
   getBySeasonId(seasonId: string): Promise<Library | null>;
   getByVideoId(videoId: string): Promise<Library | null>;
   reorder(orderedLibrariesIds: string[]): Promise<boolean>;
-  reorderItems(
-    libraryId: string,
-    orderedItems: { id: string; type: string }[]
-  ): Promise<boolean>;
+  reorderItems(libraryId: string, orderedItems: { id: string; type: string }[]): Promise<boolean>;
   create(library: Partial<Library>): Promise<Library | null>;
   update(id: string, data: Partial<Library>): Promise<Library>;
   delete(id: string): Promise<boolean>;
-  addAnalyzedFolder(
-    libraryId: string,
-    file: string,
-    videoId: string
-  ): Promise<Library>;
-  addAnalyzedFile(
-    libraryId: string,
-    folder: string,
-    videoId: string
-  ): Promise<Library>;
+  addAnalyzedFolder(libraryId: string, file: string, videoId: string): Promise<Library>;
+  addAnalyzedFile(libraryId: string, folder: string, videoId: string): Promise<Library>;
   removeAnalyzedFile(libraryId: string, file: string): Promise<Library>;
   removeAnalyzedFolder(libraryId: string, folder: string): Promise<Library>;
 }

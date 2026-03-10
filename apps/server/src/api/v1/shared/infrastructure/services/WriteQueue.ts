@@ -46,7 +46,7 @@ export class WriteQueue {
     // If this operation fails, the next one will still execute
     this.queue = resultPromise.then(
       () => {}, // Success: ignore result
-      () => {} // Error: swallow error
+      () => {}, // Error: swallow error
     );
 
     return resultPromise;

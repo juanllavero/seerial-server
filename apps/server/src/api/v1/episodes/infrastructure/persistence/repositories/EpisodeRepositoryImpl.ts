@@ -1,16 +1,13 @@
-import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
-import { BadRequestException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
-import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/VideoModel";
-import { GenericRepositoryHelper } from "@/helpers/GenericRepositoryHelper";
-import { v4 as uuidv4 } from "uuid";
-import { EpisodeRepositoryPort } from "../../../application/ports/EpisodeRepositoryPort";
-import { Episode } from "../../../domain/Episode";
-import { EpisodeModel } from "../models/EpisodeModel";
+import { v4 as uuidv4 } from 'uuid';
+import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
+import { BadRequestException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
+import { VideoModel } from '@/api/v1/videos/infrastructure/persistence/models/VideoModel';
+import { GenericRepositoryHelper } from '@/helpers/GenericRepositoryHelper';
+import type { EpisodeRepositoryPort } from '../../../application/ports/EpisodeRepositoryPort';
+import type { Episode } from '../../../domain/Episode';
+import { EpisodeModel } from '../models/EpisodeModel';
 
-export class EpisodeRepositoryImpl
-  extends BaseRepository
-  implements EpisodeRepositoryPort
-{
+export class EpisodeRepositoryImpl extends BaseRepository implements EpisodeRepositoryPort {
   // Generic helper for common CRUD operations
   private helper: GenericRepositoryHelper<EpisodeModel, Episode>;
 
@@ -19,26 +16,25 @@ export class EpisodeRepositoryImpl
 
     // Initialize helper
     this.helper = new GenericRepositoryHelper(EpisodeModel, {
-      entityName: "Episode",
+      entityName: 'Episode',
       generateShortId: true,
     });
   }
 
   async findAllBySeasonId(seasonId: string): Promise<Episode[]> {
-    const validatedId = this.validateId(seasonId, "Season ID");
-    return this.helper.findManyByField("seasonId", validatedId);
+    const validatedId = this.validateId(seasonId, 'Season ID');
+    return this.helper.findManyByField('seasonId', validatedId);
   }
 
   async findById(episodeId: string): Promise<Episode | null> {
-    const validatedId = this.validateId(episodeId, "Episode ID");
+    const validatedId = this.validateId(episodeId, 'Episode ID');
     return this.helper.findById(validatedId, {
-      relations: ["video", "video.watchLists"],
+      relations: ['video', 'video.watchLists'],
     });
   }
 
   async findByVideoSrc(videoSrc: string): Promise<Episode | null> {
-    if (!videoSrc)
-      throw new BadRequestException("Video source path is required");
+    if (!videoSrc) throw new BadRequestException('Video source path is required');
 
     const video = await VideoModel.findOne({ where: { fileSrc: videoSrc } });
     if (!video || !video.episodeId) return null;
@@ -47,7 +43,7 @@ export class EpisodeRepositoryImpl
   }
 
   async create(data: Partial<Episode>): Promise<Episode | null> {
-    this.validateData(data, "Episode data");
+    this.validateData(data, 'Episode data');
 
     if (data.id) {
       const existing = await EpisodeModel.findOne({ where: { id: data.id } });
@@ -56,20 +52,20 @@ export class EpisodeRepositoryImpl
 
     const episodeData = {
       ...data,
-      id: data.id || uuidv4().split("-")[0],
+      id: data.id || uuidv4().split('-')[0],
     };
 
     return this.helper.create(episodeData, true);
   }
 
   async update(id: string, data: Partial<Episode>): Promise<Episode> {
-    const validatedId = this.validateId(id, "Episode ID");
-    this.validateData(data, "Update data");
+    const validatedId = this.validateId(id, 'Episode ID');
+    this.validateData(data, 'Update data');
     return this.helper.update(validatedId, data);
   }
 
   async delete(id: string): Promise<void> {
-    const validatedId = this.validateId(id, "Episode ID");
+    const validatedId = this.validateId(id, 'Episode ID');
     return this.helper.delete(validatedId);
   }
 }

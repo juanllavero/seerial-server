@@ -1,5 +1,5 @@
-import { Collection } from "../../domain/Collection";
-import { ReorderItemDTO } from "../dtos/CollectionDTOs";
+import type { Collection } from '../../domain/Collection';
+import type { ReorderItemDTO } from '../dtos/CollectionDTOs';
 
 export interface CollectionsRepositoryPort {
   getAll(libraryId: string): Promise<Collection[]>;
@@ -16,8 +16,5 @@ export interface CollectionsRepositoryPort {
   addLibrary(libraryId: string, collectionId: string): Promise<void>;
 
   // Special operation: reorder with transaction
-  reorderContent(
-    collectionId: string,
-    orderedItems: ReorderItemDTO[]
-  ): Promise<void>;
+  reorderContent(collectionId: string, orderedItems: ReorderItemDTO[]): Promise<void>;
 }

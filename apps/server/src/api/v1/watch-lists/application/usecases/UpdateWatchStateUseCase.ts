@@ -1,12 +1,12 @@
-import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { useCases } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import {
   BadRequestException,
   NotFoundException,
-} from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
-import { Video } from "@/api/v1/videos/domain/Video";
-import { messages } from "@/config/messages";
-import { WatchList } from "../../domain/WatchList";
-import { WatchListRepositoryPort } from "../ports/WatchListRepositoryPort";
+} from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
+import type { Video } from '@/api/v1/videos/domain/Video';
+import { messages } from '@/config/messages';
+import type { WatchList } from '../../domain/WatchList';
+import type { WatchListRepositoryPort } from '../ports/WatchListRepositoryPort';
 
 export class UpdateWatchStateUseCase {
   constructor(private watchListRepo: WatchListRepositoryPort) {}
@@ -28,15 +28,12 @@ export class UpdateWatchStateUseCase {
 
     if (video.episodeId) {
       const episode = await useCases.getEpisodeById().execute(video.episodeId);
-      if (!episode)
-        throw new NotFoundException(messages.errors.notFound.episode);
+      if (!episode) throw new NotFoundException(messages.errors.notFound.episode);
 
       const season = await useCases.getSeasonById().execute(episode.seasonId);
       if (!season) throw new NotFoundException(messages.errors.notFound.season);
 
-      await useCases
-        .setEpisodeWatchState()
-        .execute(episode.id, userId, watched);
+      await useCases.setEpisodeWatchState().execute(episode.id, userId, watched);
     } else if (video.movieId) {
       const movie = await useCases.getMoviebyId().execute(video.movieId);
       if (!movie) throw new NotFoundException(messages.errors.notFound.movie);
@@ -51,7 +48,7 @@ export class UpdateWatchStateUseCase {
         movie.videos.filter((v: Video) =>
           v.id === video.id
             ? watched
-            : v.watchLists.filter((wl: any) => wl.userId === userId).length > 0
+            : v.watchLists.filter((wl: any) => wl.userId === userId).length > 0,
         ).length === movie.videos.length;
 
       if (allWatched) {
@@ -60,9 +57,7 @@ export class UpdateWatchStateUseCase {
         await this.watchListRepo.removeMovie(userId, movie.id);
       }
 
-      await useCases
-        .addVideoToContinueWatching()
-        .execute(video.id, userId, movie.id);
+      await useCases.addVideoToContinueWatching().execute(video.id, userId, movie.id);
     }
 
     // Ensure a watchList exists for the video

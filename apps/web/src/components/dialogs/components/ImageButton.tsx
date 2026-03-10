@@ -35,9 +35,7 @@ function ImageButton({
   return (
     <div
       className={`relative cursor-pointer overflow-hidden rounded-lg transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-black/20 ${
-        isSelected
-          ? 'border-2 shadow-lg'
-          : 'border-2 border-transparent hover:border-gray-300'
+        isSelected ? 'border-2 shadow-lg' : 'border-2 border-transparent hover:border-gray-300'
       } w-${width} h-${height}`}
       style={
         isSelected
@@ -56,18 +54,8 @@ function ImageButton({
           className="absolute top-0 right-0 z-10 flex h-6 w-6 items-center justify-center rounded-bl-lg"
           style={{ backgroundColor: 'var(--app-color', color: 'black' }}
         >
-          <svg
-            className="h-4 w-4 text-black"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={3}
-              d="M5 13l4 4L19 7"
-            />
+          <svg className="h-4 w-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
           </svg>
         </div>
       )}
@@ -76,9 +64,7 @@ function ImageButton({
         key={image}
         src={imageUrl}
         fallbackSrc={
-          type === ImageType.POSTER
-            ? '/img/fileNotFound.jpg'
-            : '/img/Default_video_thumbnail.jpg'
+          type === ImageType.POSTER ? '/img/fileNotFound.jpg' : '/img/Default_video_thumbnail.jpg'
         }
         alt={image}
         aspectRatio={

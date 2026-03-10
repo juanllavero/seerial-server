@@ -1,17 +1,11 @@
-import { Movie } from "@/api/v1/movies/domain/Movie";
-import { Series } from "@/api/v1/series/domain/Series";
-import { MyListItem } from "../../domain/MyList";
+import type { Movie } from '@/api/v1/movies/domain/Movie';
+import type { Series } from '@/api/v1/series/domain/Series';
+import type { MyListItem } from '../../domain/MyList';
 
 export interface MyListRepositoryPort {
   // Add
-  addMovieToMyList: (
-    movieId: string,
-    userId: string
-  ) => Promise<MyListItem | null>;
-  addSeriesToMyList: (
-    seriesId: string,
-    userId: string
-  ) => Promise<MyListItem | null>;
+  addMovieToMyList: (movieId: string, userId: string) => Promise<MyListItem | null>;
+  addSeriesToMyList: (seriesId: string, userId: string) => Promise<MyListItem | null>;
 
   // Remove
   removeMovieFromMyList: (movieId: string, userId: string) => Promise<void>;

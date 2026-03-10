@@ -1,9 +1,7 @@
-import React from 'react'
-
+import { X } from 'lucide-react'
+import React, { type KeyboardEvent, useEffect, useRef, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { X } from 'lucide-react'
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 
 interface TagInputProps {
   value: string[]
@@ -98,9 +96,7 @@ export default function TagInput({
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
         placeholder={value.length === 0 ? placeholder : ''}
-        disabled={
-          disabled || (maxTags !== undefined && value.length >= maxTags)
-        }
+        disabled={disabled || (maxTags !== undefined && value.length >= maxTags)}
         className="focus-visible:text-primary min-w-[120px] flex-1 border-0 bg-transparent p-2 focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
       />
     </div>

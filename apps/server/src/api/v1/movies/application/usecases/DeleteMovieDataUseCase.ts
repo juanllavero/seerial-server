@@ -1,4 +1,4 @@
-import { fileSystemService } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { fileSystemService } from '@/api/v1/shared/infrastructure/adapters/di/container';
 
 export class DeleteMovieDataUseCase {
   constructor() {}

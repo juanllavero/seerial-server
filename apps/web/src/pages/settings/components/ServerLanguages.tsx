@@ -1,3 +1,7 @@
+import ISO6391 from 'iso-639-1'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { shallow } from 'zustand/shallow'
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import Loading from '@/components/Loading'
 import { Button } from '@/components/ui/button'
@@ -5,23 +9,18 @@ import { Checkbox } from '@/components/ui/checkbox'
 import FlexBox from '@/components/ui/FlexBox'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
 import { useSettingsStore } from '@/context/settings.context'
-import ISO6391 from 'iso-639-1'
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { shallow } from 'zustand/shallow'
 import ContentWrapper from './utils/ContentWrapper'
 
 function ServerLanguages() {
   const { t, i18n } = useTranslation()
-  const { setServerSetting, serverSettings, setServerSettings } =
-    useSettingsStore(
-      (state) => ({
-        setServerSetting: state.setServerSetting,
-        serverSettings: state.serverSettings,
-        setServerSettings: state.setServerSettings,
-      }),
-      shallow,
-    )
+  const { setServerSetting, serverSettings, setServerSettings } = useSettingsStore(
+    (state) => ({
+      setServerSetting: state.setServerSetting,
+      serverSettings: state.serverSettings,
+      setServerSettings: state.setServerSettings,
+    }),
+    shallow,
+  )
   const currentLanguage = i18n.language?.split('-')[0] ?? 'en'
   const [isDirty, setIsDirty] = useState(false)
 
@@ -46,19 +45,16 @@ function ServerLanguages() {
     (serverSettings['autoSelectTracks'] as boolean) ?? true,
   )
   const [preferAudioLan, setPreferAudioLan] = useState<string>(
-    ISO6391.getNativeName(
-      (serverSettings['preferAudioLan'] as string).split('-')[0],
-    ) || currentLanguage,
+    ISO6391.getNativeName((serverSettings['preferAudioLan'] as string).split('-')[0]) ||
+      currentLanguage,
   )
   const [subsMode, setSubsMode] = useState<string>(
-    subtitleModeOptions.find(
-      (option) => option.key === serverSettings['subsMode'],
-    )?.value || subtitleModeOptions[0].value,
+    subtitleModeOptions.find((option) => option.key === serverSettings['subsMode'])?.value ||
+      subtitleModeOptions[0].value,
   )
   const [preferSubLan, setPreferSubLan] = useState<string>(
-    ISO6391.getNativeName(
-      (serverSettings['preferSubsLan'] as string).split('-')[0],
-    ) || currentLanguage,
+    ISO6391.getNativeName((serverSettings['preferSubsLan'] as string).split('-')[0]) ||
+      currentLanguage,
   )
 
   const languageCodes = ISO6391.getAllCodes()
@@ -118,10 +114,7 @@ function ServerLanguages() {
       ) : (
         <>
           <LabeledInputWrapper direction="row" label={t('autoSelectTracks')}>
-            <Checkbox
-              checked={autoSelectTracks}
-              onCheckedChange={handleAutoSelectTracksChange}
-            />
+            <Checkbox checked={autoSelectTracks} onCheckedChange={handleAutoSelectTracksChange} />
           </LabeledInputWrapper>
 
           <LabeledInputWrapper direction="row" label={t('preferAudio')}>
@@ -153,9 +146,7 @@ function ServerLanguages() {
               {t('saveButton')}
             </Button>
             {showMessage && (
-              <span className="text-muted-foreground text-sm">
-                ✔ {t('changesSaved')}
-              </span>
+              <span className="text-muted-foreground text-sm">✔ {t('changesSaved')}</span>
             )}
           </FlexBox>
         </>

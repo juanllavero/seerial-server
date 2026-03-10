@@ -1,12 +1,12 @@
-import {
+import type {
   AudioTrack,
   Chapter,
   MediaInfo,
   SubtitleTrack,
   VideoTrack,
-} from "@/data/interfaces/MediaInfo";
-import { ContinueWatching } from "../../continue-watching/domain/ContinueWatching";
-import { WatchList } from "../../watch-lists/domain/WatchList";
+} from '@/data/interfaces/MediaInfo';
+import type { ContinueWatching } from '../../continue-watching/domain/ContinueWatching';
+import type { WatchList } from '../../watch-lists/domain/WatchList';
 
 export interface Video {
   id: string;
@@ -36,6 +36,6 @@ export interface Video {
 }
 
 export enum VideoType {
-  MAIN = "MAIN",
-  EXTRA = "EXTRA",
+  MAIN = 'MAIN',
+  EXTRA = 'EXTRA',
 }

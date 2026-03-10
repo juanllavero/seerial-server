@@ -1,58 +1,45 @@
+import { exec, spawn } from 'node:child_process';
+import path from 'node:path';
+import { promisify } from 'node:util';
+import ffmpegPath from 'ffmpeg-static';
+import { https } from 'follow-redirects';
+import fs, { chmodSync, createWriteStream, existsSync, mkdirSync, unlinkSync } from 'fs';
 import {
   downloaderService,
   fileSystemService,
   notificationService,
-} from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { MediaSearchResult } from "@/data/interfaces/SearchResults";
-import logger from "@/utils/logger";
-import { exec, spawn } from "child_process";
-import ffmpegPath from "ffmpeg-static";
-import { https } from "follow-redirects";
-import fs, {
-  chmodSync,
-  createWriteStream,
-  existsSync,
-  mkdirSync,
-  unlinkSync,
-} from "fs";
-import path from "path";
-import { promisify } from "util";
-import { DownloaderServicePort } from "../../../application/ports/DownloaderServicePort";
+} from '@/api/v1/shared/infrastructure/adapters/di/container';
+import type { MediaSearchResult } from '@/data/interfaces/SearchResults';
+import logger from '@/utils/logger';
+import type { DownloaderServicePort } from '../../../application/ports/DownloaderServicePort';
 
-const downloaderLogger = logger.child({ category: "Downloader" });
+const downloaderLogger = logger.child({ category: 'Downloader' });
 
-let ffmpegPathFinal = ffmpegPath ?? "";
+let ffmpegPathFinal = ffmpegPath ?? '';
 
 // If app.asar is used, use app.asar.unpacked
-if (ffmpegPathFinal.includes("app.asar")) {
-  ffmpegPathFinal = ffmpegPathFinal.replace("app.asar", "app.asar.unpacked");
+if (ffmpegPathFinal.includes('app.asar')) {
+  ffmpegPathFinal = ffmpegPathFinal.replace('app.asar', 'app.asar.unpacked');
 }
 
 const execAsync = promisify(exec);
 
 export class DownloaderServiceImpl implements DownloaderServicePort {
-  constructor() {}
-
   private getBinDir = (): string => {
-    return fileSystemService.getExternalPath(path.join("resources", "lib"));
+    return fileSystemService.getExternalPath(path.join('resources', 'lib'));
   };
 
   getYtDlpPath = (): string => {
-    const binDir = fileSystemService.getExternalPath(
-      path.join("resources", "lib")
-    );
-    return path.join(
-      binDir,
-      process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp"
-    );
+    const binDir = fileSystemService.getExternalPath(path.join('resources', 'lib'));
+    return path.join(binDir, process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp');
   };
 
   private getDownloadURL(): string {
-    if (process.platform === "win32")
-      return "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe";
-    if (process.platform === "darwin")
-      return "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos";
-    return "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux";
+    if (process.platform === 'win32')
+      return 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe';
+    if (process.platform === 'darwin')
+      return 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos';
+    return 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_linux';
   }
 
   /**
@@ -63,7 +50,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
     const ytDlpPath = this.getYtDlpPath();
 
     if (existsSync(ytDlpPath)) {
-      downloaderLogger.info({ message: "yt-dlp is already in:", ytDlpPath });
+      downloaderLogger.info({ message: 'yt-dlp is already in:', ytDlpPath });
       return;
     }
 
@@ -71,7 +58,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
 
     const url = this.getDownloadURL();
 
-    downloaderLogger.info({ message: "Downloading yt-dlp from:", url });
+    downloaderLogger.info({ message: 'Downloading yt-dlp from:', url });
 
     return new Promise((resolve, reject) => {
       const file = createWriteStream(ytDlpPath);
@@ -80,19 +67,17 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
         .get(url, (response) => {
           if (response.statusCode !== 200) {
             reject(
-              new Error(
-                `[DepCheck]: Error downloading yt-dlp. HTTP code ${response.statusCode}`
-              )
+              new Error(`[DepCheck]: Error downloading yt-dlp. HTTP code ${response.statusCode}`),
             );
             return;
           }
 
           response.pipe(file);
 
-          file.on("finish", () => {
+          file.on('finish', () => {
             file.close(() => {
               try {
-                if (process.platform !== "win32") {
+                if (process.platform !== 'win32') {
                   chmodSync(ytDlpPath, 0o755); // Add executable permission
                 }
                 resolve();
@@ -102,7 +87,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
             });
           });
         })
-        .on("error", (err) => {
+        .on('error', (err) => {
           // Clean partially downloaded file
           try {
             if (existsSync(ytDlpPath)) unlinkSync(ytDlpPath);
@@ -112,10 +97,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
     });
   }
 
-  public async searchVideos(
-    query: string,
-    numberOfResults: number
-  ): Promise<MediaSearchResult[]> {
+  public async searchVideos(query: string, numberOfResults: number): Promise<MediaSearchResult[]> {
     const searchQuery = `"${downloaderService.getYtDlpPath()}" "ytsearch${
       numberOfResults > 0 ? numberOfResults : 1
     }:${query}" --dump-json --default-search ytsearch --no-playlist --no-check-certificate --geo-bypass --flat-playlist --skip-download --quiet --ignore-errors --ffmpeg-location ${ffmpegPathFinal}`;
@@ -127,31 +109,25 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
 
       // JSON parse
       const entries = stdout
-        .split("\n")
+        .split('\n')
         .filter((line) => line.trim())
         .map((line) => JSON.parse(line));
 
+      // biome-ignore lint/suspicious/noExplicitAny: <External data>
       return entries.map((entry: any) => ({
         id: entry.id,
         title: entry.title,
         url: entry.url,
         duration: entry.duration,
-        thumbnail:
-          entry.thumbnails && entry.thumbnails.length > 0
-            ? entry.thumbnails[0].url
-            : "",
+        thumbnail: entry.thumbnails && entry.thumbnails.length > 0 ? entry.thumbnails[0].url : '',
       }));
     } catch (error) {
-      downloaderLogger.error(error, "Error executing yt-dlp");
+      downloaderLogger.error(error, 'Error executing yt-dlp');
       return [];
     }
   }
 
-  public async downloadVideo(
-    url: string,
-    downloadFolder: string,
-    fileName: string
-  ): Promise<void> {
+  public async downloadVideo(url: string, downloadFolder: string, fileName: string): Promise<void> {
     const folder = fileSystemService.getExternalPath(downloadFolder);
 
     // Make sure the download path has a trailing slash
@@ -162,7 +138,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
       try {
         fs.unlinkSync(outputPath);
       } catch (error) {
-        downloaderLogger.error({ error, outputPath }, "File not removed");
+        downloaderLogger.error({ error, outputPath }, 'File not removed');
       }
     }
 
@@ -172,11 +148,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
     this.downloadContent(command, fileName);
   }
 
-  public async downloadAudio(
-    url: string,
-    downloadFolder: string,
-    fileName: string
-  ): Promise<void> {
+  public async downloadAudio(url: string, downloadFolder: string, fileName: string): Promise<void> {
     const folder = fileSystemService.getExternalPath(downloadFolder);
 
     // Make sure the download path has a trailing slash
@@ -187,7 +159,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
       try {
         fs.unlinkSync(outputPath);
       } catch (error) {
-        downloaderLogger.error({ error, outputPath }, "File not removed");
+        downloaderLogger.error({ error, outputPath }, 'File not removed');
       }
     }
 
@@ -203,7 +175,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
         shell: true,
       });
 
-      process.stdout.on("data", (data: Buffer) => {
+      process.stdout.on('data', (data: Buffer) => {
         const output = data.toString();
 
         // Parse progress percentage from yt-dlp output
@@ -213,7 +185,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
 
           // Generate message for WebSockets
           const message = {
-            header: "DOWNLOAD_PROGRESS",
+            header: 'DOWNLOAD_PROGRESS',
             body: String(progress),
           };
 
@@ -222,15 +194,15 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
         }
       });
 
-      process.stderr.on("data", (data: Buffer) => {
-        downloaderLogger.error({ stderr: data.toString() }, "Download stderr");
+      process.stderr.on('data', (data: Buffer) => {
+        downloaderLogger.error({ stderr: data.toString() }, 'Download stderr');
       });
 
-      process.on("close", (code: number) => {
+      process.on('close', (code: number) => {
         if (code === 0) {
           // Generate message for WebSockets
           const message = {
-            header: "DOWNLOAD_COMPLETE",
+            header: 'DOWNLOAD_COMPLETE',
             body: fileName,
           };
 
@@ -239,7 +211,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
         } else {
           // Generate message for WebSockets
           const message = {
-            header: "DOWNLOAD_ERROR",
+            header: 'DOWNLOAD_ERROR',
             body: code,
           };
 
@@ -248,7 +220,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
         }
       });
     } catch (error) {
-      downloaderLogger.error(error, "Error executing yt-dlp");
+      downloaderLogger.error(error, 'Error executing yt-dlp');
     }
   }
 }

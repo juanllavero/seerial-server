@@ -1,4 +1,4 @@
-import { LibrariesRepositoryPort } from "../ports/LibrariesRepositoryPort";
+import type { LibrariesRepositoryPort } from '../ports/LibrariesRepositoryPort';
 
 export class GetLibraryByVideoIdUseCase {
   constructor(private librariesRepo: LibrariesRepositoryPort) {}

@@ -1,4 +1,5 @@
-declare module "@skymansion/imdb" {
+/** biome-ignore-all lint/suspicious/noExplicitAny: <external library types> */
+declare module '@skymansion/imdb' {
   class IMDb {
     private baseUrl: string;
 
@@ -17,12 +18,12 @@ declare module "@skymansion/imdb" {
     search(
       name: string,
       year?: number,
-      type: "movie" | "tvSeries"
+      type: 'movie' | 'tvSeries',
     ): Promise<{
       title: string;
       id: string;
-      type: "movie" | "tvSeries";
-      year: number | "Unknown";
+      type: 'movie' | 'tvSeries';
+      year: number | 'Unknown';
       cast: string;
       image: string;
       matchConfidence: number;
@@ -47,7 +48,7 @@ declare module "@skymansion/imdb" {
       results: any[],
       originalName: string,
       targetYear: number | undefined,
-      targetType: "movie" | "tvSeries"
+      targetType: 'movie' | 'tvSeries',
     ): any | null;
 
     /**
@@ -62,7 +63,7 @@ declare module "@skymansion/imdb" {
       item: any,
       originalName: string,
       targetYear: number | undefined,
-      targetType: "movie" | "tvSeries"
+      targetType: 'movie' | 'tvSeries',
     ): number;
 
     /**
@@ -73,8 +74,8 @@ declare module "@skymansion/imdb" {
     ReturnResult(result: any): {
       title: string;
       id: string;
-      type: "movie" | "tvSeries";
-      year: number | "Unknown";
+      type: 'movie' | 'tvSeries';
+      year: number | 'Unknown';
       cast: string;
       image: string;
       matchConfidence: number;
@@ -88,7 +89,7 @@ declare module "@skymansion/imdb" {
      */
     getIMDbMovieDetails(
       movieId: string,
-      Confidence: number
+      Confidence: number,
     ): Promise<{
       title: string;
       img: string;
@@ -111,7 +112,7 @@ declare module "@skymansion/imdb" {
      */
     getMovieData(
       name: string,
-      year?: number
+      year?: number,
     ): Promise<
       | {
           title: string;
@@ -126,7 +127,7 @@ declare module "@skymansion/imdb" {
           director?: string;
           CorrectConfidence: number;
         }
-      | "data not found"
+      | 'data not found'
     >;
 
     /**
@@ -137,7 +138,7 @@ declare module "@skymansion/imdb" {
      */
     getTvShowData(
       name: string,
-      year?: number
+      year?: number,
     ): Promise<
       | {
           title: string;
@@ -152,7 +153,7 @@ declare module "@skymansion/imdb" {
           director?: string;
           CorrectConfidence: number;
         }
-      | "data not found"
+      | 'data not found'
     >;
   }
 

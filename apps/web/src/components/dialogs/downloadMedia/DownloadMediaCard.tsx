@@ -1,12 +1,12 @@
-import { formatTime } from '@/utils/ReactUtils'
+import { AlertCircle, Download, Play } from 'lucide-react'
+import { shallow } from 'zustand/shallow'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { AlertCircle, Download, Play } from 'lucide-react'
-import { useWebSocketStore } from '@/context/ws.context'
-import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { MediaSearchResult } from '@/data/interfaces/Utils'
-import { shallow } from 'zustand/shallow'
+import { useWebSocketStore } from '@/context/ws.context'
+import type { MediaSearchResult } from '@/data/interfaces/Utils'
+import { formatTime } from '@/utils/ReactUtils'
 
 interface DownloadMediaCardProps {
   result: MediaSearchResult
@@ -14,25 +14,17 @@ interface DownloadMediaCardProps {
   downloadMedia: (result: MediaSearchResult) => void
 }
 
-function DownloadMediaCard({
-  result,
-  playMedia,
-  downloadMedia,
-}: DownloadMediaCardProps) {
-  const {
-    downloading,
-    errorDownloading,
-    downloadPercentage,
-    downloadingElementId,
-  } = useWebSocketStore(
-    (state) => ({
-      downloading: state.downloading,
-      errorDownloading: state.errorDownloading,
-      downloadPercentage: state.downloadPercentage,
-      downloadingElementId: state.downloadingElementId,
-    }),
-    shallow,
-  )
+function DownloadMediaCard({ result, playMedia, downloadMedia }: DownloadMediaCardProps) {
+  const { downloading, errorDownloading, downloadPercentage, downloadingElementId } =
+    useWebSocketStore(
+      (state) => ({
+        downloading: state.downloading,
+        errorDownloading: state.errorDownloading,
+        downloadPercentage: state.downloadPercentage,
+        downloadingElementId: state.downloadingElementId,
+      }),
+      shallow,
+    )
 
   const getDownloadButtonContent = () => {
     if (downloading && downloadingElementId === result.id) {
@@ -63,10 +55,7 @@ function DownloadMediaCard({
     <Card className="w-full transition-shadow hover:shadow-md">
       <CardContent className="p-4">
         <div className="flex gap-4">
-          <div
-            className="relative flex-shrink-0 cursor-pointer"
-            onClick={() => playMedia(result)}
-          >
+          <div className="relative flex-shrink-0 cursor-pointer" onClick={() => playMedia(result)}>
             <img
               src={result.thumbnail}
               alt={result.title}

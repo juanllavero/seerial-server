@@ -1,5 +1,5 @@
-import { LibraryType } from "@/data/interfaces/Media";
-import { CollageTileRatio } from "../../infrastructure/adapters/image-processing/ImageProcessingServiceImpl";
+import type { LibraryType } from '@/data/interfaces/Media';
+import type { CollageTileRatio } from '../../infrastructure/adapters/image-processing/ImageProcessingServiceImpl';
 
 export interface ImageProcessingServicePort {
   getImageColorPalette(
@@ -7,20 +7,14 @@ export interface ImageProcessingServicePort {
     options: {
       targetLightness: { min: number; max: number };
       saturationFactor: number;
-    }
+    },
   ): Promise<{
     originalPalette: any;
     colors: string[];
     css: string;
   }>;
-  createTransparentImage(
-    source: string,
-    width: number,
-    height: number
-  ): Promise<Buffer>;
-  getDirectoryListing(
-    relativePath: string
-  ): Promise<{ name: string; url: string }[]>;
+  createTransparentImage(source: string, width: number, height: number): Promise<Buffer>;
+  getDirectoryListing(relativePath: string): Promise<{ name: string; url: string }[]>;
   streamLocalImage(options: {
     filePath: string;
     res: any;
@@ -36,6 +30,6 @@ export interface ImageProcessingServicePort {
   generateCollage(
     imageSrcs: string[],
     ratio: CollageTileRatio,
-    libraryType: LibraryType
+    libraryType: LibraryType,
   ): Promise<Buffer>;
 }

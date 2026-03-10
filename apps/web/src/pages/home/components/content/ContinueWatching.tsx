@@ -1,11 +1,11 @@
+import { useTranslation } from 'react-i18next'
+import useSWR from 'swr'
 import Card from '@/components/cards/Card'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Skeleton } from '@/components/ui/skeleton'
 import { API, authenticatedFetcher } from '@/config/api'
-import { Video } from '@/data/interfaces/Media'
+import type { Video } from '@/data/interfaces/Media'
 import { getVideoProgress } from '@/utils/ReactUtils'
-import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
 import HorizontalList from '../../../../components/lists/HorizontalList'
 
 interface ContinueWatchingProps {
@@ -53,9 +53,7 @@ function ContinueWatching({ goToContent }: ContinueWatchingProps) {
                   `/${video.episodeId ? 'episode' : 'movie'}/${video.episodeId ? video.episodeId : video.movieId}`,
                 )
               }
-              playButtonAction={() =>
-                goToContent(`/video-player/${video.videoId}`)
-              }
+              playButtonAction={() => goToContent(`/video-player/${video.videoId}`)}
             />
           ))
         : isLoading

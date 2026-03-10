@@ -1,21 +1,18 @@
+import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
+import useSWR from 'swr'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { PlayIcon } from '@/components/ui/IconLibrary'
 import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
-import { Episode, Season } from '@/data/interfaces/Media'
-import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
-import useSWR from 'swr'
+import type { Episode, Season } from '@/data/interfaces/Media'
 
 interface PlayButtonProps {
   currentlyWatchingEpisodeId?: string
   selectedSeasonId: string | null
 }
 
-function PlayButton({
-  currentlyWatchingEpisodeId,
-  selectedSeasonId,
-}: PlayButtonProps) {
+function PlayButton({ currentlyWatchingEpisodeId, selectedSeasonId }: PlayButtonProps) {
   const navigate = useNavigate()
   const { t } = useTranslation()
 
@@ -26,16 +23,14 @@ function PlayButton({
 
   // Get current episode
   const { data: episode } = useSWR<Episode>(
-    currentlyWatchingEpisodeId
-      ? API.episodes.get(currentlyWatchingEpisodeId)
-      : null,
+    currentlyWatchingEpisodeId ? API.episodes.get(currentlyWatchingEpisodeId) : null,
     authenticatedFetcher,
   )
 
   const getPlayButtonText = () => {
-    return !episode
-      ? t('playButton')
-      : `${t('continueWatching')} — ${t('seasonLetter')}${episode.seasonNumber}${t('episodeLetter')}${episode.episodeNumber}`
+    return episode
+      ? `${t('continueWatching')} — ${t('seasonLetter')}${episode.seasonNumber}${t('episodeLetter')}${episode.episodeNumber}`
+      : t('playButton')
   }
 
   return (
@@ -43,9 +38,7 @@ function PlayButton({
       onClick={async () => {
         const episodeId = episode ? episode.id : season?.episodes[0].id
 
-        const response = await authenticatedFetch(
-          API.videos.getByEpisodeId(episodeId ?? ''),
-        )
+        const response = await authenticatedFetch(API.videos.getByEpisodeId(episodeId ?? ''))
 
         if (!response.data) {
           return

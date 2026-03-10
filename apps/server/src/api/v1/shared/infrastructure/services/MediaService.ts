@@ -1,6 +1,6 @@
-import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { messages } from "@/config/messages";
-import { NotFoundException } from "../web/exceptions/HTTPExceptions";
+import { useCases } from '@/api/v1/shared/infrastructure/adapters/di/container';
+import { messages } from '@/config/messages';
+import { NotFoundException } from '../web/exceptions/HTTPExceptions';
 
 // Interface for the structured video info response
 interface FormattedVideoInfo {
@@ -19,16 +19,13 @@ export class MediaService {
    * @param videoId - The ID of the video file.
    * @returns A promise that resolves to a formatted video info object.
    */
-  public static async getFormattedVideoInfo(
-    videoId: string
-  ): Promise<FormattedVideoInfo> {
+  public static async getFormattedVideoInfo(videoId: string): Promise<FormattedVideoInfo> {
     const video = await useCases.getVideoById().execute(videoId);
     if (!video) throw new NotFoundException(messages.errors.notFound.video);
 
     if (video.episodeId) {
       const episode = await useCases.getEpisodeById().execute(video.episodeId);
-      if (!episode)
-        throw new NotFoundException(messages.errors.notFound.episode);
+      if (!episode) throw new NotFoundException(messages.errors.notFound.episode);
 
       const season = await useCases.getSeasonById().execute(episode.seasonId);
       if (!season) throw new NotFoundException(messages.errors.notFound.season);
@@ -37,16 +34,15 @@ export class MediaService {
       if (!series) throw new NotFoundException(messages.errors.notFound.series);
 
       const library = await useCases.getLibrary().execute(series.libraryId);
-      if (!library)
-        throw new NotFoundException(messages.errors.notFound.library);
+      if (!library) throw new NotFoundException(messages.errors.notFound.library);
 
       return {
         title: series.name,
         subtitle: episode.name,
         info: `S${episode.seasonNumber}E${episode.episodeNumber}`,
-        preferAudioLan: series.preferAudioLan || library.preferAudioLan || "",
-        preferSubtitleLan: series.preferSubLan || library.preferSubLan || "",
-        subsMode: series.subsMode || library.subsMode || "",
+        preferAudioLan: series.preferAudioLan || library.preferAudioLan || '',
+        preferSubtitleLan: series.preferSubLan || library.preferSubLan || '',
+        subsMode: series.subsMode || library.subsMode || '',
       };
     }
 
@@ -55,18 +51,17 @@ export class MediaService {
       if (!movie) throw new NotFoundException(messages.errors.notFound.movie);
 
       const library = await useCases.getLibrary().execute(movie.libraryId);
-      if (!library)
-        throw new NotFoundException(messages.errors.notFound.library);
+      if (!library) throw new NotFoundException(messages.errors.notFound.library);
 
       const year = new Date(movie.year).getFullYear();
 
       return {
         title: movie.name,
-        subtitle: "",
+        subtitle: '',
         info: `${year}`,
-        preferAudioLan: library.preferAudioLan || "",
-        preferSubtitleLan: library.preferSubLan || "",
-        subsMode: library.subsMode || "",
+        preferAudioLan: library.preferAudioLan || '',
+        preferSubtitleLan: library.preferSubLan || '',
+        subsMode: library.subsMode || '',
       };
     }
 
@@ -80,11 +75,8 @@ export class MediaService {
    * @param userId - The ID of the user.
    * @returns A promise that resolves to the count of remaining episodes.
    */
-  public static async countRemainingEpisodes(
-    seriesId: string,
-    userId: string
-  ): Promise<number> {
-    const series = await useCases.getSeriesById().execute(seriesId, "all");
+  public static async countRemainingEpisodes(seriesId: string, userId: string): Promise<number> {
+    const series = await useCases.getSeriesById().execute(seriesId, 'all');
     if (!series) throw new NotFoundException(messages.errors.notFound.series);
 
     let totalEpisodes = 0;
@@ -109,15 +101,12 @@ export class MediaService {
    * @param userId - The ID of the user.
    * @returns A promise that resolves to the count of remaining videos.
    */
-  public static async countRemainingVideos(
-    movieId: string,
-    userId: string
-  ): Promise<number> {
+  public static async countRemainingVideos(movieId: string, userId: string): Promise<number> {
     const movie = await useCases.getMoviebyId().execute(movieId);
     if (!movie) throw new NotFoundException(messages.errors.notFound.movie);
 
     const watchedCount = movie.videos.filter((video: any) =>
-      video.watchLists.some((wl: any) => wl.userId === userId)
+      video.watchLists.some((wl: any) => wl.userId === userId),
     ).length;
 
     return movie.videos.length - watchedCount;
@@ -127,13 +116,8 @@ export class MediaService {
    * Checks if a series is in a user's "My List".
    * @returns A promise that resolves to a boolean.
    */
-  public static async isSeriesInMyList(
-    seriesId: string,
-    userId: string
-  ): Promise<boolean> {
-    const seriesInList = await useCases
-      .isSeriesInMyList()
-      .execute(seriesId, userId);
+  public static async isSeriesInMyList(seriesId: string, userId: string): Promise<boolean> {
+    const seriesInList = await useCases.isSeriesInMyList().execute(seriesId, userId);
     return seriesInList !== null;
   }
 
@@ -141,13 +125,8 @@ export class MediaService {
    * Checks if a movie is in a user's "My List".
    * @returns A promise that resolves to a boolean.
    */
-  public static async isMovieInMyList(
-    movieId: string,
-    userId: string
-  ): Promise<boolean> {
-    const movieInList = await useCases
-      .isMovieInMyList()
-      .execute(movieId, userId);
+  public static async isMovieInMyList(movieId: string, userId: string): Promise<boolean> {
+    const movieInList = await useCases.isMovieInMyList().execute(movieId, userId);
     return movieInList !== null;
   }
 }

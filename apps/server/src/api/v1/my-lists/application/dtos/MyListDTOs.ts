@@ -1,7 +1,10 @@
+import type { Movie } from '@/api/v1/movies/domain/Movie';
+import type { Series } from '@/api/v1/series/domain/Series';
+
 export interface MyListMoviesDTO {
-  movies: any[];
+  movies: Movie[];
 }
 
 export interface MyListSeriesDTO {
-  series: any[];
+  series: Series[];
 }

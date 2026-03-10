@@ -1,6 +1,6 @@
-import { Episode } from "../../episodes/domain/Episode";
-import { Movie } from "../../movies/domain/Movie";
-import { Video } from "../../videos/domain/Video";
+import type { Episode } from '../../episodes/domain/Episode';
+import type { Movie } from '../../movies/domain/Movie';
+import type { Video } from '../../videos/domain/Video';
 
 export interface WatchList {
   id: string;

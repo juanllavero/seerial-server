@@ -1,8 +1,8 @@
-import FlexBox from '@/components/ui/FlexBox'
-import { Album } from '@/data/interfaces/Music'
-import SongsList from './music/SongsList'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { useIsTablet } from '@/components/hooks/use-tablet'
+import FlexBox from '@/components/ui/FlexBox'
+import type { Album } from '@/data/interfaces/Music'
+import SongsList from './music/SongsList'
 
 interface AlbumContentProps {
   album: Album

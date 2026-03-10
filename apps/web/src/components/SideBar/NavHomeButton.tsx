@@ -1,21 +1,13 @@
 import { t } from 'i18next'
 import { House } from 'lucide-react'
-import {
-  SidebarGroup,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from '../ui/sidebar'
-import { useLocation, useNavigate } from 'react-router-dom'
 import { memo, useMemo } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { SidebarGroup, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '../ui/sidebar'
 
 const NavHomeButton = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const inHome = useMemo(
-    () => location.pathname.includes('/home'),
-    [location.pathname],
-  )
+  const inHome = useMemo(() => location.pathname.includes('/home'), [location.pathname])
 
   const home = {
     id: '0',

@@ -1,9 +1,9 @@
+import type { Control } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import FlexBox from '@/components/ui/FlexBox'
-import { Control } from 'react-hook-form'
-import { useTranslation } from 'react-i18next'
-import { FormConfig, FormField } from '../forms.config'
+import type { FormConfig, FormField } from '../forms.config'
 import LockInput from './LockInput'
 
 interface GenericFormTabProps {
@@ -25,9 +25,7 @@ function GenericFormTab({ config, control }: GenericFormTabProps) {
           control={control}
           lockName={lockName}
           type={field.type === 'textarea' ? 'textarea' : undefined}
-          placeholder={
-            field.placeholder ? t(field.placeholder) : `${t(field.label)}...`
-          }
+          placeholder={field.placeholder ? t(field.placeholder) : `${t(field.label)}...`}
         />
       </LabeledInputWrapper>
     )
@@ -48,9 +46,7 @@ function GenericFormTab({ config, control }: GenericFormTabProps) {
           key={groupIndex}
           gap={1}
           width="100%"
-          direction={
-            isTablet && group.direction === 'row' ? 'column' : group.direction
-          }
+          direction={isTablet && group.direction === 'row' ? 'column' : group.direction}
         >
           {group.fields.map((fieldName) => {
             const field = config.fields.find((f) => f.name === fieldName)

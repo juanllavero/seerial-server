@@ -1,8 +1,8 @@
-import { LibraryType } from "@/data/interfaces/Media";
-import { Album } from "../../albums/domain/Album";
-import { Collection } from "../../collections/domain/Collection";
-import { Movie } from "../../movies/domain/Movie";
-import { Series } from "../../series/domain/Series";
+import type { LibraryType } from '@/data/interfaces/Media';
+import type { Album } from '../../albums/domain/Album';
+import type { Collection } from '../../collections/domain/Collection';
+import type { Movie } from '../../movies/domain/Movie';
+import type { Series } from '../../series/domain/Series';
 
 export interface Library {
   id: string;

@@ -1,25 +1,24 @@
-import GradientBackground from '@/layouts/backgrounds/GradientBackground'
 import { memo } from 'react'
+import { shallow } from 'zustand/shallow'
 import useMusicStore from '@/context/music.context'
+import GradientBackground from '@/layouts/backgrounds/GradientBackground'
+import MusicGradient from '@/layouts/backgrounds/MusicGradient'
+import LRCVisualizer from '../lyrics/LRCVisualizer'
+import NextSongs from '../menu/NextSongs'
 import MusicPlayerCover from './cover/Cover'
 import MusicPlayerHeader from './header/Header'
-import NextSongs from '../menu/NextSongs'
-import LRCVisualizer from '../lyrics/LRCVisualizer'
-import { shallow } from 'zustand/shallow'
-import MusicGradient from '@/layouts/backgrounds/MusicGradient'
 
 function DesktopMusicPlayerExpanded() {
-  const { album, isExpanded, currentSong, showLyrics, showQueue } =
-    useMusicStore(
-      (state) => ({
-        album: state.album,
-        isExpanded: state.isExpanded,
-        currentSong: state.currentSong,
-        showLyrics: state.showLyrics,
-        showQueue: state.showQueue,
-      }),
-      shallow,
-    )
+  const { album, isExpanded, currentSong, showLyrics, showQueue } = useMusicStore(
+    (state) => ({
+      album: state.album,
+      isExpanded: state.isExpanded,
+      currentSong: state.currentSong,
+      showLyrics: state.showLyrics,
+      showQueue: state.showQueue,
+    }),
+    shallow,
+  )
 
   if (!album || !currentSong) return null
 
@@ -74,7 +73,7 @@ function DesktopMusicPlayerExpanded() {
         </div>
       </div>
 
-      <div className="h-40 w-screen"></div>
+      <div className="h-40 w-screen" />
     </div>
   )
 }

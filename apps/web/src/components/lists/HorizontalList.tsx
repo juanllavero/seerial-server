@@ -1,8 +1,8 @@
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import React, { useEffect, useRef, useState, useCallback } from 'react'
 
 interface HorizontalListProps {
   title?: string
@@ -23,8 +23,7 @@ function HorizontalList({ title, className, children }: HorizontalListProps) {
     if (!container) return
 
     const isAtStart = container.scrollLeft <= 0
-    const isAtEnd =
-      container.scrollWidth - container.clientWidth - container.scrollLeft <= 1
+    const isAtEnd = container.scrollWidth - container.clientWidth - container.scrollLeft <= 1
     const needsButtons = container.scrollWidth > container.clientWidth
 
     setShowButtons(needsButtons)
@@ -42,9 +41,7 @@ function HorizontalList({ title, className, children }: HorizontalListProps) {
       updateButtonState()
     })
     resizeObserver.observe(container)
-    Array.from(container.children).forEach((child) =>
-      resizeObserver.observe(child),
-    )
+    Array.from(container.children).forEach((child) => resizeObserver.observe(child))
 
     return () => resizeObserver.disconnect()
   }, [children, updateButtonState])
@@ -105,9 +102,7 @@ function HorizontalList({ title, className, children }: HorizontalListProps) {
         padding={`0 ${paddingValue}`}
         height={'3rem'}
       >
-        <span className={`text-${isMobile ? 'xl' : '2xl'} font-semibold`}>
-          {title}
-        </span>
+        <span className={`text-${isMobile ? 'xl' : '2xl'} font-semibold`}>{title}</span>
         {showButtons && (
           <FlexBox>
             <Button

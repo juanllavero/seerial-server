@@ -1,5 +1,5 @@
-import { Episode } from "../../episodes/domain/Episode";
-import { WatchList } from "../../watch-lists/domain/WatchList";
+import type { Episode } from '../../episodes/domain/Episode';
+import type { WatchList } from '../../watch-lists/domain/WatchList';
 
 export interface Season {
   id: string;

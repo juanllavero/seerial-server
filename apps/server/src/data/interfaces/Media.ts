@@ -39,12 +39,12 @@ export interface LibraryItem {
   type: ItemType;
 }
 
-export type ItemType = "series" | "movie" | "album" | "collection";
+export type ItemType = 'series' | 'movie' | 'album' | 'collection';
 
 export enum LibraryTypes {
-  SHOWS = "Shows",
-  MOVIES = "Movies",
-  MUSIC = "Music",
+  SHOWS = 'Shows',
+  MOVIES = 'Movies',
+  MUSIC = 'Music',
 }
 
-export type LibraryType = "Shows" | "Movies" | "Music";
+export type LibraryType = 'Shows' | 'Movies' | 'Music';

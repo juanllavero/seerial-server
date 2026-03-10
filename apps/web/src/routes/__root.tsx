@@ -1,7 +1,7 @@
-import { useServerStore } from '@/context/auth.store'
-import BaseLayout from '@/layouts/BaseLayout'
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { shallow } from 'zustand/shallow'
+import { useServerStore } from '@/context/auth.store'
+import BaseLayout from '@/layouts/BaseLayout'
 
 const PUBLIC_PATHS = ['/login', '/link']
 const ALLOWED_PATHS_WHEN_SERVER_DOWN = ['/home', '/settings']

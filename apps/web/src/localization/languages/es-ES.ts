@@ -24,8 +24,7 @@ export const es = {
     linkAccountMessage:
       'Para enlazar tu cuenta, introduce el código de 4 caracteres mostrado en tu app.',
     successfulLink: '!El dispositivo se ha enlazado correctamente!',
-    successfulLinkMessage:
-      'Ya puedes usar tu app TV. Redirigiendo a la pantalla principal...',
+    successfulLinkMessage: 'Ya puedes usar tu app TV. Redirigiendo a la pantalla principal...',
     friends: 'Amigos',
     servers: 'Servidores',
     invitations: 'Invitaciones',
@@ -55,8 +54,7 @@ export const es = {
     extraInterview: 'Entrevista',
     continueWatchingEmpty: 'Aquí aparecerán los contenidos que estés viendo',
     noContent: 'Aún no has añadido contenido a tu lista',
-    lyricsNotFound:
-      'No se han encontrado letras sincronizadas para esta canción',
+    lyricsNotFound: 'No se han encontrado letras sincronizadas para esta canción',
     lyrics: 'Letras',
     addLyrics: 'Añadir Letras',
     queue: 'Cola',
@@ -67,8 +65,7 @@ export const es = {
     watchListShows: 'Mi Lista: Series',
     watchListMovies: 'Mi Lista: Películas',
     serverError: 'El servidor no está disponible',
-    serverErrorMessage:
-      'Verifique que tenga conexión a internet y que el servidor esté conectado',
+    serverErrorMessage: 'Verifique que tenga conexión a internet y que el servidor esté conectado',
     apiKey: 'Clave API',
     apiKeyTitle: 'No se ha encontrado una clave API para TheMovieDB',
     apiKeyMessage: 'Añada una clave API. Puede conseguirla en ',
@@ -121,22 +118,18 @@ export const es = {
     h12: 'cada 12 horas',
     daily: 'Diario',
     asTask: 'como tarea programada',
-    asTaskAndFileUpdate:
-      'como tarea programada y cuando se añadan nuevos archivos',
-    autoScan:
-      'Escanear bibliotecas cuando se detecte un cambio en sus carpetas',
+    asTaskAndFileUpdate: 'como tarea programada y cuando se añadan nuevos archivos',
+    autoScan: 'Escanear bibliotecas cuando se detecte un cambio en sus carpetas',
     scanOptions: 'Escaneo periódico de la biblioteca',
     tempFolder: 'Carpeta temporal para el transcodificador',
-    tempFolderMessage:
-      'Carpeta que el transcodificador usará para almacenar archivos temporales',
+    tempFolderMessage: 'Carpeta que el transcodificador usará para almacenar archivos temporales',
     defaultBuffer: 'Búfer predeterminado para el transcodificador',
     defaultBufferMessage:
       'Segundos del video a almacenar para proporcionar una mejor experiencia de visualización',
     transcoderPreset: 'Preajuste de calidad x264 del transcodificador',
     transcoderPresetMessage:
       'Preajuste usado para x264 en la conversión de video en segundo plano. Valores más lentos generarán un video de mejor calidad y tamaño de archivo menor, pero también tomarán más tiempo para procesar',
-    maxTranscoding:
-      'Número máximo de procesos de transcodificación de video simultáneos',
+    maxTranscoding: 'Número máximo de procesos de transcodificación de video simultáneos',
     timeFormat: 'Formato de hora',
     playButton: 'Reproducir',
     editButton: 'Editar',
@@ -220,8 +213,7 @@ export const es = {
     libraryExists: 'La biblioteca ya existe',
     emptyField: 'Este campo no puede estar vacío',
     videoErrorFormat: "El vídeo tiene que acabar en '.mkv' o '.mp4'",
-    audioErrorFormat:
-      "El audio tiene que acabar en '.mp3', '.wav', '.flac' o '.aac'",
+    audioErrorFormat: "El audio tiene que acabar en '.mp3', '.wav', '.flac' o '.aac'",
     sortingError: 'El orden tiene que ser un número',
     audioNotFound: 'Audio no encontrado',
     allImages: 'Todas las imágenes',
@@ -300,8 +292,7 @@ export const es = {
     interpolationCheck: 'Habilitar interpolación de fotogramas',
     chapters: 'Capítulos',
     generatingThumbnails: 'Generando miniaturas',
-    generateThumbnailsText:
-      "Sólo aplica a los vídeos de las bibliotecas de tipo 'Películas'",
+    generateThumbnailsText: "Sólo aplica a los vídeos de las bibliotecas de tipo 'Películas'",
     generateThumbnailsCheck: 'Generar miniaturas de capítulos',
     analyzingLocalFiles: 'Analizando archivos locales',
     playBackgroundMusic: 'Reproducir música de fondo',

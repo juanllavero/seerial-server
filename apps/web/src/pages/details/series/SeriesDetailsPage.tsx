@@ -1,3 +1,9 @@
+import { t } from 'i18next'
+import { Pencil } from 'lucide-react'
+import { useEffect } from 'react'
+import { useParams } from 'react-router-dom'
+import { mutate } from 'swr'
+import { shallow } from 'zustand/shallow'
 import ExpandableText from '@/components/ExpandableText'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import NotFound from '@/components/NotFound'
@@ -11,30 +17,19 @@ import { useServerStore } from '@/context/auth.store'
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.store'
 import { useSettingsStore } from '@/context/settings.context'
-import { Series } from '@/data/interfaces/Media'
+import type { Series } from '@/data/interfaces/Media'
 import { useGet } from '@/hooks/media/useGet'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
-import { t } from 'i18next'
-import { Pencil } from 'lucide-react'
-import { useEffect } from 'react'
-import { useParams } from 'react-router-dom'
-import { mutate } from 'swr'
-import { shallow } from 'zustand/shallow'
 import CastList from '../components/CastList'
 import '../DetailsPage.css'
 import MyListButton from './components/MyListButton'
 import PlayButton from './components/PlayButton'
-import SeasonContent from './components/SeasonsContent'
 import SeasonSelectable from './components/SeasonSelectable'
+import SeasonContent from './components/SeasonsContent'
 
 function SeriesDetailsPage() {
   const { seriesId } = useParams()
-  const {
-    selectedSeasonId,
-    selectSeason,
-    setCurrentBackground,
-    currentBackground,
-  } = useDataStore(
+  const { selectedSeasonId, selectSeason, setCurrentBackground, currentBackground } = useDataStore(
     (state) => ({
       selectedSeasonId: state.selectedSeasonId,
       selectSeason: state.selectSeason,
@@ -51,10 +46,7 @@ function SeriesDetailsPage() {
     shallow,
   )
   const clientSettings = useSettingsStore((state) => state.clientSettings)
-  const { openDialog } = useDialogStore(
-    (state) => ({ openDialog: state.openDialog }),
-    shallow,
-  )
+  const { openDialog } = useDialogStore((state) => ({ openDialog: state.openDialog }), shallow)
 
   // Get series data
   const {
@@ -65,24 +57,14 @@ function SeriesDetailsPage() {
 
   // Get selected season data
   const season =
-    series && series.seasons
-      ? series.seasons.find((s) => s.id === selectedSeasonId)
-      : undefined
+    series && series.seasons ? series.seasons.find((s) => s.id === selectedSeasonId) : undefined
 
   const isMobile = useIsMobile()
   const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true
 
   useEffect(() => {
-    if (
-      !isLoading &&
-      series &&
-      ((season && season.id !== selectedSeasonId) || !season)
-    ) {
-      selectSeason(
-        series.seasons && series.seasons.length > 0
-          ? series.seasons[0].id
-          : null,
-      )
+    if (!isLoading && series && ((season && season.id !== selectedSeasonId) || !season)) {
+      selectSeason(series.seasons && series.seasons.length > 0 ? series.seasons[0].id : null)
     }
   }, [series, season, isLoading, selectedSeasonId, selectSeason])
 
@@ -226,11 +208,7 @@ function SeriesDetailsPage() {
 
           {/* Score */}
           <FlexBox gap={0.5} justify="center" align="center">
-            <img
-              src="/svg/themoviedb.svg"
-              className="h-8 w-8"
-              alt="TheMovieDB logo"
-            />
+            <img src="/svg/themoviedb.svg" className="h-8 w-8" alt="TheMovieDB logo" />
             <span className="text-sm font-bold">
               {isLoading ? (
                 <Skeleton className="h-5 w-8" />
@@ -244,26 +222,16 @@ function SeriesDetailsPage() {
           <FlexBox gap={1} wrap="wrap">
             <PlayButton
               selectedSeasonId={selectedSeasonId}
-              currentlyWatchingEpisodeId={
-                series ? series.currentlyWatchingEpisodeId : undefined
-              }
+              currentlyWatchingEpisodeId={series ? series.currentlyWatchingEpisodeId : undefined}
             />
             {!isMobile && (
               <>
                 <Button
                   variant={'ghost'}
-                  title={
-                    season && season.watchStatus
-                      ? t('markUnwatched')
-                      : t('markWatched')
-                  }
+                  title={season && season.watchStatus ? t('markUnwatched') : t('markWatched')}
                   onClick={toggleSeasonWatched}
                 >
-                  {season && season.watchStatus ? (
-                    <UnmarkWatchedIcon />
-                  ) : (
-                    <MarkWatchedIcon />
-                  )}
+                  {season && season.watchStatus ? <UnmarkWatchedIcon /> : <MarkWatchedIcon />}
                 </Button>
                 <MyListButton seriesId={seriesId ?? ''} />
               </>
@@ -308,11 +276,7 @@ function SeriesDetailsPage() {
       </FlexBox>
 
       {/* Season Content */}
-      {isLoading || !series || !season ? (
-        <Skeleton className="h-300 w-200" />
-      ) : (
-        <SeasonContent />
-      )}
+      {isLoading || !series || !season ? <Skeleton className="h-300 w-200" /> : <SeasonContent />}
 
       {/* Cast */}
       {isLoading || !series ? (

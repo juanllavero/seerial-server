@@ -1,9 +1,9 @@
+import { Lock, LockOpen } from 'lucide-react'
+import { type Control, useController } from 'react-hook-form'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
 import TagInput from '@/components/ui/tags-input'
 import { Textarea } from '@/components/ui/textarea'
-import { Lock, LockOpen } from 'lucide-react'
-import { Control, useController } from 'react-hook-form'
 import './LockInput.css'
 
 interface LockInputProps {
@@ -14,13 +14,7 @@ interface LockInputProps {
   placeholder?: string
 }
 
-function LockInput({
-  name,
-  control,
-  lockName,
-  type = 'text',
-  placeholder = '',
-}: LockInputProps) {
+function LockInput({ name, control, lockName, type = 'text', placeholder = '' }: LockInputProps) {
   const {
     field: { value, onChange },
   } = useController({
@@ -54,11 +48,7 @@ function LockInput({
         </div>
       )}
       {Array.isArray(value) ? (
-        <TagInput
-          value={value}
-          onChange={handleChange}
-          placeholder={placeholder}
-        />
+        <TagInput value={value} onChange={handleChange} placeholder={placeholder} />
       ) : type === 'textarea' ? (
         <Textarea
           value={value || ''}

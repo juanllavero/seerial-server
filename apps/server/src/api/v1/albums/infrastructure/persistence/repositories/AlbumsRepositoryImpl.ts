@@ -1,14 +1,11 @@
-import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
-import { GenericRepositoryHelper } from "@/helpers/GenericRepositoryHelper";
-import { AlbumsRepositoryPort } from "../../../application/ports/AlbumsRepositoryPort";
-import { Album } from "../../../domain/Album";
-import { AlbumArtistModel } from "../models/AlbumArtistModel";
-import { AlbumModel } from "../models/AlbumModel";
+import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
+import { GenericRepositoryHelper } from '@/helpers/GenericRepositoryHelper';
+import type { AlbumsRepositoryPort } from '../../../application/ports/AlbumsRepositoryPort';
+import type { Album } from '../../../domain/Album';
+import { AlbumArtistModel } from '../models/AlbumArtistModel';
+import { AlbumModel } from '../models/AlbumModel';
 
-export class AlbumsRepositoryImpl
-  extends BaseRepository
-  implements AlbumsRepositoryPort
-{
+export class AlbumsRepositoryImpl extends BaseRepository implements AlbumsRepositoryPort {
   // Generic helper for common CRUD operations
   private helper: GenericRepositoryHelper<AlbumModel, Album>;
 
@@ -17,22 +14,22 @@ export class AlbumsRepositoryImpl
 
     // Initialize helper
     this.helper = new GenericRepositoryHelper(AlbumModel, {
-      entityName: "Album",
+      entityName: 'Album',
       generateShortId: true,
     });
   }
 
   async findAll(libraryId: string): Promise<Album[]> {
-    const validatedId = this.validateId(libraryId, "Library ID");
-    return this.helper.findManyByField("libraryId", validatedId);
+    const validatedId = this.validateId(libraryId, 'Library ID');
+    return this.helper.findManyByField('libraryId', validatedId);
   }
 
   async findById(id: string, includeSongs = true): Promise<Album | null> {
-    const validatedId = this.validateId(id, "Album ID");
+    const validatedId = this.validateId(id, 'Album ID');
 
-    const relations = ["artists"];
+    const relations = ['artists'];
     if (includeSongs) {
-      relations.push("songs");
+      relations.push('songs');
     }
 
     return this.helper.findById(validatedId, {
@@ -41,24 +38,24 @@ export class AlbumsRepositoryImpl
   }
 
   async create(album: Partial<Album>): Promise<Album> {
-    this.validateData(album, "Album data");
+    this.validateData(album, 'Album data');
     return this.helper.create(album, true);
   }
 
   async update(id: string, data: Partial<Album>): Promise<Album> {
-    const validatedId = this.validateId(id, "Album ID");
-    this.validateData(data, "Update data");
+    const validatedId = this.validateId(id, 'Album ID');
+    this.validateData(data, 'Update data');
     return this.helper.update(validatedId, data);
   }
 
   async delete(id: string): Promise<void> {
-    const validatedId = this.validateId(id, "Album ID");
+    const validatedId = this.validateId(id, 'Album ID');
     return this.helper.delete(validatedId);
   }
 
   async addArtistToAlbum(
     artistId: string,
-    albumId: string
+    albumId: string,
   ): Promise<{ id: string; artistId: string; albumId: string }> {
     const validated = this.validateIds({ artistId, albumId });
 
@@ -70,16 +67,13 @@ export class AlbumsRepositoryImpl
     const createdRelation = await this.helper.createRelationship(
       AlbumArtistModel,
       relationData,
-      true
+      true,
     );
 
     return createdRelation as any;
   }
 
-  async removeArtistFromAlbum(
-    artistId: string,
-    albumId: string
-  ): Promise<void> {
+  async removeArtistFromAlbum(artistId: string, albumId: string): Promise<void> {
     const validated = this.validateIds({ artistId, albumId });
 
     const whereCondition = {

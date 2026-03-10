@@ -1,5 +1,5 @@
+import { useRef, useState } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useState, useRef } from 'react'
 
 function VideoPlayer({
   videoUrl,
@@ -33,9 +33,7 @@ function VideoPlayer({
       setThumbnail(thumbnailUrl)
     } catch (e) {
       console.error(e)
-      setError(
-        'No se pudo generar el thumbnail. Revisa la consola para ver errores de CORS.',
-      )
+      setError('No se pudo generar el thumbnail. Revisa la consola para ver errores de CORS.')
     }
   }
 
@@ -54,9 +52,7 @@ function VideoPlayer({
         video.currentTime = 0
         setHasPlayedOnce(true)
       }
-      video
-        .play()
-        .catch((err) => console.error('Error al intentar reproducir:', err))
+      video.play().catch((err) => console.error('Error al intentar reproducir:', err))
     }
   }
 
@@ -123,9 +119,7 @@ function VideoPlayer({
       )}
 
       {/* Skeleton and Error message */}
-      {!thumbnail && !error && (
-        <Skeleton className="h-full w-full rounded-xl" />
-      )}
+      {!thumbnail && !error && <Skeleton className="h-full w-full rounded-xl" />}
       {error && <div style={{ color: 'red' }}>{error}</div>}
     </div>
   )

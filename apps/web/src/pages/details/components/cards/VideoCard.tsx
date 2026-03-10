@@ -1,10 +1,10 @@
+import { Pencil } from 'lucide-react'
+import React from 'react'
 import Card from '@/components/cards/Card'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
-import { Video } from '@/data/interfaces/Media'
+import type { Video } from '@/data/interfaces/Media'
 import { getVideoProgress } from '@/utils/ReactUtils'
-import { Pencil } from 'lucide-react'
-import React from 'react'
 
 interface VideoCardProps {
   video: Video
@@ -14,13 +14,7 @@ interface VideoCardProps {
   getVideoMenu: (video: Video) => any
 }
 
-function VideoCard({
-  video,
-  title,
-  subtitle,
-  playVideo,
-  getVideoMenu,
-}: VideoCardProps) {
+function VideoCard({ video, title, subtitle, playVideo, getVideoMenu }: VideoCardProps) {
   const isMobile = useIsMobile()
 
   return (

@@ -4,6 +4,6 @@ export interface VideoExtractionServicePort {
     videoPath: string,
     trackId: number,
     startTime: number,
-    res: any
+    res: any,
   ): Promise<void>;
 }

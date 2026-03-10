@@ -1,6 +1,6 @@
 import { Suspense, useMemo } from 'react'
 import Loading from '../Loading'
-import { dialogRegistry, DialogType } from './dialogRegistry'
+import { type DialogType, dialogRegistry } from './dialogRegistry'
 
 const DialogLoading = () => (
   <div className="flex items-center justify-center p-4">

@@ -1,3 +1,9 @@
+import { Ellipsis, Pencil } from 'lucide-react'
+import type React from 'react'
+import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useParams } from 'react-router-dom'
+import { shallow } from 'zustand/shallow'
 import Card from '@/components/cards/Card'
 import useScreenHeight from '@/components/hooks/use-height'
 import { useIsMobile } from '@/components/hooks/use-mobile'
@@ -8,27 +14,19 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { API, authenticatedFetch } from '@/config/api'
 import useDataStore from '@/context/data.context'
 import { useDialogStore } from '@/context/dialog.store'
-import { Collection, Movie, Series } from '@/data/interfaces/Media'
-import { Album } from '@/data/interfaces/Music'
+import type { Collection, Movie, Series } from '@/data/interfaces/Media'
+import type { Album } from '@/data/interfaces/Music'
 import { useGet } from '@/hooks/media/useGet'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
-import { CollectionKey, ContentType } from '@/types/types'
+import type { CollectionKey, ContentType } from '@/types/types'
 import { getCoverSize, getTitleSize } from '@/utils/ReactUtils'
-import { Ellipsis, Pencil } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { useParams } from 'react-router-dom'
-import { shallow } from 'zustand/shallow'
 import '../DetailsPage.css'
 import CollectionImage from './CollectionImage'
 
 function CollectionDetailsPage() {
   const { collectionId, type } = useParams()
   const isAdmin = useIsAdmin()
-  const { openDialog } = useDialogStore(
-    (state) => ({ openDialog: state.openDialog }),
-    shallow,
-  )
+  const { openDialog } = useDialogStore((state) => ({ openDialog: state.openDialog }), shallow)
   const { setCurrentBackground, currentBackground } = useDataStore(
     (state) => ({
       setCurrentBackground: state.setCurrentBackground,
@@ -47,9 +45,7 @@ function CollectionDetailsPage() {
     mutate,
   } = useGet<Collection>(API.collections.get(collectionId ?? ''))
 
-  const [localCollection, setLocalCollection] = useState<Collection | null>(
-    null,
-  )
+  const [localCollection, setLocalCollection] = useState<Collection | null>(null)
 
   useEffect(() => {
     if (collection) {
@@ -138,14 +134,10 @@ function CollectionDetailsPage() {
     }
 
     try {
-      await authenticatedFetch(
-        API.collections.reorderContent(collectionId ?? ''),
-        'POST',
-        {
-          collectionId: collectionId,
-          orderedItems: orderedItemsForApi,
-        },
-      )
+      await authenticatedFetch(API.collections.reorderContent(collectionId ?? ''), 'POST', {
+        collectionId: collectionId,
+        orderedItems: orderedItemsForApi,
+      })
     } catch (error) {
       if (collection) {
         setLocalCollection(collection)
@@ -160,17 +152,11 @@ function CollectionDetailsPage() {
 
     const years =
       type === 'Music' && collection.albums
-        ? collection.albums
-            .map((album) => album.year)
-            .filter((year) => year !== '')
+        ? collection.albums.map((album) => album.year).filter((year) => year !== '')
         : type === 'Movies' && collection.movies
-          ? collection.movies
-              .map((movie) => movie.year)
-              .filter((year) => year !== '')
+          ? collection.movies.map((movie) => movie.year).filter((year) => year !== '')
           : type === 'Shows' && collection.shows
-            ? collection.shows
-                .map((show) => show.year)
-                .filter((year) => year !== '')
+            ? collection.shows.map((show) => show.year).filter((year) => year !== '')
             : []
 
     if (years.length === 0) {
@@ -197,13 +183,7 @@ function CollectionDetailsPage() {
 
   const renderMap: Record<CollectionKey, (items: any[]) => React.ReactNode> = {
     albums: (items: Album[]) => (
-      <FlexBox
-        key={'Albums'}
-        direction="column"
-        justify="center"
-        align="center"
-        width={'100%'}
-      >
+      <FlexBox key={'Albums'} direction="column" justify="center" align="center" width={'100%'}>
         <SortableHorizontalList
           title={t('albums')}
           items={items}
@@ -218,9 +198,7 @@ function CollectionDetailsPage() {
                 aspectRatio={1}
                 width={isMobile ? 100 : 150}
                 title={item.title}
-                subtitle={
-                  item.year ? new Date(item.year).getFullYear().toString() : ''
-                }
+                subtitle={item.year ? new Date(item.year).getFullYear().toString() : ''}
                 action={() => {
                   window.location.href = `/album/${item.id}`
                 }}
@@ -265,9 +243,7 @@ function CollectionDetailsPage() {
                 aspectRatio={1}
                 width={isMobile ? 100 : 150}
                 title={item.name}
-                subtitle={
-                  item.year ? new Date(item.year).getFullYear().toString() : ''
-                }
+                subtitle={item.year ? new Date(item.year).getFullYear().toString() : ''}
                 action={() => {
                   window.location.href = `/movie/${item.id}`
                 }}
@@ -305,9 +281,7 @@ function CollectionDetailsPage() {
                 aspectRatio={1}
                 width={isMobile ? 100 : 150}
                 title={item.name}
-                subtitle={
-                  item.year ? new Date(item.year).getFullYear().toString() : ''
-                }
+                subtitle={item.year ? new Date(item.year).getFullYear().toString() : ''}
                 action={() => {
                   window.location.href = `/series/${item.id}`
                 }}
@@ -353,7 +327,7 @@ function CollectionDetailsPage() {
           <FlexBox className="image-container">
             {isLoading || !collection ? (
               <Skeleton
-                className={`${!isMobile ? getCoverSize(screenHeight, type !== 'Music', false) : `h-screen ${type === 'Music' ? 'max-h-[55dvw]' : 'max-h-[80dvw]'} w-screen max-w-[55dvw]`}`}
+                className={`${isMobile ? `h-screen ${type === 'Music' ? 'max-h-[55dvw]' : 'max-h-[80dvw]'} w-screen max-w-[55dvw]` : getCoverSize(screenHeight, type !== 'Music', false)}`}
               />
             ) : (
               <CollectionImage collection={collection} type={type ?? ''} />
@@ -371,9 +345,7 @@ function CollectionDetailsPage() {
           {isLoading || !collection ? (
             <Skeleton className="h-15 w-90" />
           ) : (
-            <span
-              className={`${getTitleSize(screenHeight, isMobile)} font-black`}
-            >
+            <span className={`${getTitleSize(screenHeight, isMobile)} font-black`}>
               {collection.title}
             </span>
           )}

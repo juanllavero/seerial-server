@@ -1,16 +1,12 @@
+import { useEffect, useState } from 'react'
+import useSWR from 'swr'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import Loading from '@/components/Loading'
 import FlexBox from '@/components/ui/FlexBox'
 import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
-import { Video } from '@/data/interfaces/Media'
-import {
-  AudioTrack,
-  SubtitleTrack,
-  VideoTrack,
-} from '@/data/interfaces/MediaInfo'
+import type { Video } from '@/data/interfaces/Media'
+import type { AudioTrack, SubtitleTrack, VideoTrack } from '@/data/interfaces/MediaInfo'
 import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
-import { useEffect, useState } from 'react'
-import useSWR from 'swr'
 
 interface EpisodeMediaInfoTabProps {
   video: Video
@@ -42,10 +38,7 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
       setLoaded(false)
 
       const attemptFetch = async () => {
-        const result = await authenticatedFetch(
-          API.videos.updateMediaInfo(video.id),
-          'PUT',
-        )
+        const result = await authenticatedFetch(API.videos.updateMediaInfo(video.id), 'PUT')
 
         return result && result.data ? await result.data : null
       }
@@ -68,11 +61,7 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
 
       // Process the data if it was obtained in either of the attempts
       const audioTrack = getAudioTrack(videoInfo.preferAudioLan, video)
-      const subtitleTrack = getSubtitleTrack(
-        videoInfo.preferSubtitleLan,
-        videoInfo.subsMode,
-        video,
-      )
+      const subtitleTrack = getSubtitleTrack(videoInfo.preferSubtitleLan, videoInfo.subsMode, video)
       const videoTrack = data.videoTracks[0] ?? null
 
       if (videoTrack && video.videoTracks) {
@@ -100,23 +89,17 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
         ...data,
         videoTracks: data.videoTracks
           ? data.videoTracks.map((track: VideoTrack) =>
-              track.id === (videoTrack?.id ?? '')
-                ? (videoTrack ?? track)
-                : track,
+              track.id === (videoTrack?.id ?? '') ? (videoTrack ?? track) : track,
             )
           : [],
         audioTracks: data.audioTracks
           ? data.audioTracks.map((track: AudioTrack) =>
-              track.id === (audioTrack?.id ?? '')
-                ? (audioTrack ?? track)
-                : track,
+              track.id === (audioTrack?.id ?? '') ? (audioTrack ?? track) : track,
             )
           : [],
         subtitleTracks: data.subtitleTracks
           ? data.subtitleTracks.map((track: SubtitleTrack) =>
-              track.id === (subtitleTrack?.id ?? '')
-                ? (subtitleTrack ?? track)
-                : track,
+              track.id === (subtitleTrack?.id ?? '') ? (subtitleTrack ?? track) : track,
             )
           : [],
       })
@@ -270,9 +253,7 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
         </FlexBox>
         <FlexBox gap={0.5}>
           <span style={{ color: 'lightgray' }}>Container</span>
-          <span className="font-semibold">
-            {mediaInfo.mediaInfo?.container}
-          </span>
+          <span className="font-semibold">{mediaInfo.mediaInfo?.container}</span>
         </FlexBox>
       </FlexBox>
       <FlexBox direction="column" gap={1}>
@@ -291,16 +272,12 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
             </div>
           ))}
         {mediaInfo.subtitleTracks &&
-          mediaInfo.subtitleTracks.map(
-            (track: SubtitleTrack, index: number) => (
-              <div key={index + '-subs'}>
-                <span className="mt-2 mb-1 text-lg font-semibold">
-                  Subtitle
-                </span>
-                {getSubtitleInfo(track)}
-              </div>
-            ),
-          )}
+          mediaInfo.subtitleTracks.map((track: SubtitleTrack, index: number) => (
+            <div key={index + '-subs'}>
+              <span className="mt-2 mb-1 text-lg font-semibold">Subtitle</span>
+              {getSubtitleInfo(track)}
+            </div>
+          ))}
       </FlexBox>
     </FlexBox>
   )

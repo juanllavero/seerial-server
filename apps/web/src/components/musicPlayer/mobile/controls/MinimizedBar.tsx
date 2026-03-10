@@ -1,8 +1,8 @@
+import { shallow } from 'zustand/shallow'
 import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
 import { Button } from '@/components/ui/button'
 import { PauseIcon, PlayIcon, StopIcon } from '@/components/ui/IconLibrary'
 import useMusicStore from '@/context/music.context'
-import { shallow } from 'zustand/shallow'
 
 interface MinimizedBarProps {
   barOpacity: number
@@ -65,12 +65,8 @@ function MinimizedBar({
           onClick={handleBarClick}
         >
           <div className="text-sm">
-            <div className="truncate text-lg font-black">
-              {currentSong?.title}
-            </div>
-            <div className="truncate text-sm font-bold text-gray-200">
-              {album?.title}
-            </div>
+            <div className="truncate text-lg font-black">{currentSong?.title}</div>
+            <div className="truncate text-sm font-bold text-gray-200">{album?.title}</div>
           </div>
         </div>
 

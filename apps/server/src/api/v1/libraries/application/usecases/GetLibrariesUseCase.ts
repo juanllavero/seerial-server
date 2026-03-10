@@ -1,5 +1,5 @@
-import { Library } from "../../domain/Library";
-import { LibrariesRepositoryPort } from "../ports/LibrariesRepositoryPort";
+import type { Library } from '../../domain/Library';
+import type { LibrariesRepositoryPort } from '../ports/LibrariesRepositoryPort';
 
 export class GetLibrariesUseCase {
   constructor(private librariesRepo: LibrariesRepositoryPort) {}

@@ -4,7 +4,7 @@
 
 ## Overview
 
-Seerial is a media management suite structured as a monorepo managed with **pnpm workspaces** and **Lerna**. This document defines the architectural decisions that govern all client applications, ensuring consistency, code reuse, and maintainability across the three clients: Web, Desktop, and TV.
+Seerial is a media management suite structured as a monorepo managed with **pnpm workspaces**. This document defines the architectural decisions that govern all client applications, ensuring consistency, code reuse, and maintainability across the three clients: Web, Desktop, and TV.
 
 ---
 
@@ -30,7 +30,6 @@ seerial/
 │
 ├── assets/
 ├── pnpm-workspace.yaml
-├── lerna.json
 ├── turbo.json
 └── package.json
 ```

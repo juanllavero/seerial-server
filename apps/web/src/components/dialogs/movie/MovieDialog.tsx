@@ -1,7 +1,7 @@
 import { ModalWrapper } from '@/components/ModalWrapper'
 import { API } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.store'
-import { Movie } from '@/data/interfaces/Media'
+import type { Movie } from '@/data/interfaces/Media'
 import { useGet } from '@/hooks/media/useGet'
 import useEditDialog from '@/hooks/useEditDialog'
 import { ImageType } from '@/utils/constants'
@@ -27,40 +27,42 @@ function MovieDialog() {
   const { id } = payload as { id: string }
   const { data: movie } = useGet<Movie>(API.movies.get(id))
 
-  const { control, images, selectedTab, setSelectedTab, handleUpdate, t } =
-    useEditDialog<Movie, MovieImageState>({
-      entity: movie,
-      configs: [movieInfoConfig, movieTagsConfig],
-      initialImages: {
-        logos: [],
-        localLogoFolder: '',
-        selectedLogo: '',
-        backgrounds: [],
-        localBackgroundFolder: '',
-        selectedBackground: '',
-        posters: [],
-        localPosterFolder: '',
-        selectedPoster: '',
-      },
-      getImagesFromEntity: (m) => ({
-        logos: m.logosUrls || [],
-        backgrounds: m.backgroundsUrls || [],
-        posters: m.coversUrls || [],
-        selectedLogo: m.logoSrc || '',
-        selectedPoster: m.coverSrc || '',
-        selectedBackground: m.backgroundSrc || '',
-        localLogoFolder: `img/logos/${m.id}`,
-        localBackgroundFolder: `img/backgrounds/${m.id}`,
-        localPosterFolder: `img/posters/${m.id}`,
-      }),
-      getExtraSubmitData: (imgs, m) => ({
-        logoSrc: imgs.selectedLogo ?? m.logoSrc,
-        coverSrc: imgs.selectedPoster ?? m.coverSrc,
-        backgroundSrc: imgs.selectedBackground ?? m.backgroundSrc,
-      }),
-      apiUpdateUrl: movie ? API.movies.update(movie.id) : '',
-      errorMessage: 'Error updating movie',
-    })
+  const { control, images, selectedTab, setSelectedTab, handleUpdate, t } = useEditDialog<
+    Movie,
+    MovieImageState
+  >({
+    entity: movie,
+    configs: [movieInfoConfig, movieTagsConfig],
+    initialImages: {
+      logos: [],
+      localLogoFolder: '',
+      selectedLogo: '',
+      backgrounds: [],
+      localBackgroundFolder: '',
+      selectedBackground: '',
+      posters: [],
+      localPosterFolder: '',
+      selectedPoster: '',
+    },
+    getImagesFromEntity: (m) => ({
+      logos: m.logosUrls || [],
+      backgrounds: m.backgroundsUrls || [],
+      posters: m.coversUrls || [],
+      selectedLogo: m.logoSrc || '',
+      selectedPoster: m.coverSrc || '',
+      selectedBackground: m.backgroundSrc || '',
+      localLogoFolder: `img/logos/${m.id}`,
+      localBackgroundFolder: `img/backgrounds/${m.id}`,
+      localPosterFolder: `img/posters/${m.id}`,
+    }),
+    getExtraSubmitData: (imgs, m) => ({
+      logoSrc: imgs.selectedLogo ?? m.logoSrc,
+      coverSrc: imgs.selectedPoster ?? m.coverSrc,
+      backgroundSrc: imgs.selectedBackground ?? m.backgroundSrc,
+    }),
+    apiUpdateUrl: movie ? API.movies.update(movie.id) : '',
+    errorMessage: 'Error updating movie',
+  })
 
   if (!movie) return null
 
@@ -70,15 +72,11 @@ function MovieDialog() {
       tabs={[
         {
           title: t('generalButton'),
-          content: (
-            <GenericFormTab config={movieInfoConfig} control={control} />
-          ),
+          content: <GenericFormTab config={movieInfoConfig} control={control} />,
         },
         {
           title: t('tags'),
-          content: (
-            <GenericFormTab config={movieTagsConfig} control={control} />
-          ),
+          content: <GenericFormTab config={movieTagsConfig} control={control} />,
         },
         { title: t('media'), content: <MediaTab movie={movie} /> },
         {

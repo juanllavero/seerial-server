@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   Select,
   SelectContent,
@@ -5,8 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { SelectableOption } from '@/data/interfaces/Utils'
-import { useState } from 'react'
+import type { SelectableOption } from '@/data/interfaces/Utils'
 
 interface SeasonSelectableProps {
   placeholder?: string
@@ -22,8 +22,7 @@ function SeasonSelectable({
   options,
 }: SeasonSelectableProps) {
   const [selectedSeason, setSelectedSeason] = useState<string | null>(null)
-  const getUniqueValue = (option: SelectableOption) =>
-    `${option.key}::${option.value}`
+  const getUniqueValue = (option: SelectableOption) => `${option.key}::${option.value}`
 
   const handleValueChange = (uniqueValue: string) => {
     const [key, value] = uniqueValue.split('::')
@@ -31,18 +30,13 @@ function SeasonSelectable({
     onValueChange(key, value)
   }
 
-  const defaultUniqueValue = options.find(
-    (option) => option.value === defaultValue,
-  )
+  const defaultUniqueValue = options.find((option) => option.value === defaultValue)
     ? getUniqueValue(options.find((option) => option.value === defaultValue)!)
     : undefined
 
   return (
     <Select defaultValue={defaultUniqueValue} onValueChange={handleValueChange}>
-      <SelectTrigger
-        className="w-fit space-x-2 border-0 pl-0 outline-0"
-        iconSize={5}
-      >
+      <SelectTrigger className="w-fit space-x-2 border-0 pl-0 outline-0" iconSize={5}>
         <span className="text-xl font-semibold" style={{ color: '#ebebeb' }}>
           {selectedSeason ?? defaultValue}
         </span>

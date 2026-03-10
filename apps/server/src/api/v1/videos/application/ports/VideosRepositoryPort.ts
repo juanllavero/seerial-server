@@ -1,4 +1,4 @@
-import { Video } from "../../domain/Video";
+import type { Video } from '../../domain/Video';
 
 export interface VideoRepositoryPort {
   findById(id: string, includeSongs?: boolean): Promise<Video | null>;
@@ -10,12 +10,6 @@ export interface VideoRepositoryPort {
   update(id: string, video: Partial<Video>): Promise<Video>;
   delete(id: string): Promise<void>;
   addAsMovie(movieId: string, video?: Partial<Video>): Promise<Video | null>;
-  addAsMovieExtra(
-    movieId: string,
-    video?: Partial<Video>
-  ): Promise<Video | null>;
-  addAsEpisode(
-    episodeId: string,
-    video?: Partial<Video>
-  ): Promise<Video | null>;
+  addAsMovieExtra(movieId: string, video?: Partial<Video>): Promise<Video | null>;
+  addAsEpisode(episodeId: string, video?: Partial<Video>): Promise<Video | null>;
 }

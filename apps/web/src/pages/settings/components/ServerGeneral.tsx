@@ -1,25 +1,24 @@
+import { Check, CloudDownload } from 'lucide-react'
+import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { shallow } from 'zustand/shallow'
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import FlexBox from '@/components/ui/FlexBox'
 import { useSettingsStore } from '@/context/settings.context'
-import { Check, CloudDownload } from 'lucide-react'
-import React, { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { shallow } from 'zustand/shallow'
 import ContentWrapper from './utils/ContentWrapper'
 
 function ServerGeneral({ isLoaded }: { isLoaded: boolean }) {
   const { t } = useTranslation()
-  const { setServerSetting, serverSettings, setServerSettings } =
-    useSettingsStore(
-      (state) => ({
-        setServerSetting: state.setServerSetting,
-        serverSettings: state.serverSettings,
-        setServerSettings: state.setServerSettings,
-      }),
-      shallow,
-    )
+  const { setServerSetting, serverSettings, setServerSettings } = useSettingsStore(
+    (state) => ({
+      setServerSetting: state.setServerSetting,
+      serverSettings: state.serverSettings,
+      setServerSettings: state.setServerSettings,
+    }),
+    shallow,
+  )
   const [isDirty, setIsDirty] = React.useState(false)
   const [showMessage, setShowMessage] = useState(false)
 
@@ -69,11 +68,7 @@ function ServerGeneral({ isLoaded }: { isLoaded: boolean }) {
         </FlexBox>
       </FlexBox>
 
-      <LabeledInputWrapper
-        direction="row"
-        label={t('autoUpdate')}
-        text={t('autoUpdateMessage')}
-      >
+      <LabeledInputWrapper direction="row" label={t('autoUpdate')} text={t('autoUpdateMessage')}>
         <Checkbox
           checked={autoUpdate}
           disabled={!isLoaded}
@@ -86,9 +81,7 @@ function ServerGeneral({ isLoaded }: { isLoaded: boolean }) {
           {t('saveButton')}
         </Button>
         {showMessage && (
-          <span className="text-muted-foreground text-sm">
-            ✔ {t('changesSaved')}
-          </span>
+          <span className="text-muted-foreground text-sm">✔ {t('changesSaved')}</span>
         )}
       </FlexBox>
     </ContentWrapper>

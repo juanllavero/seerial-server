@@ -1,4 +1,4 @@
-import { MyListRepositoryPort } from "../ports/MyListRepositoryPort";
+import type { MyListRepositoryPort } from '../ports/MyListRepositoryPort';
 
 export class IsSeriesInMyListUseCase {
   constructor(private myListRepo: MyListRepositoryPort) {}

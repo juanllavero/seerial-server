@@ -1,4 +1,4 @@
-import { ContinueWatchingRepositoryPort } from "../ports/ContinueWatchingRepositoryPort";
+import type { ContinueWatchingRepositoryPort } from '../ports/ContinueWatchingRepositoryPort';
 
 export class AddVideoUseCase {
   constructor(private continueWatchingRepo: ContinueWatchingRepositoryPort) {}
@@ -7,7 +7,7 @@ export class AddVideoUseCase {
     videoId: string,
     userId: string,
     seriesId?: string,
-    movieId?: string
+    movieId?: string,
   ): Promise<void> {
     await this.continueWatchingRepo.add(videoId, userId, seriesId, movieId);
   }

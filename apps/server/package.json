@@ -64,7 +64,8 @@
     "build-mac": "pnpm run build && electron-builder --mac",
     "build-linux": "pnpm run build && electron-builder --linux",
     "publish": "node dist/utils/publish.js",
-    "lint": "tsc --noEmit",
+    "lint": "biome check . && tsc --noEmit",
+    "lint:fix": "biome check --write .",
     "tsoa:spec": "tsoa spec",
     "tsoa:routes": "tsoa routes",
     "tsoa:generate": "tsoa spec && tsoa routes",
@@ -108,6 +109,7 @@
     "ws": "^8.19.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.6",
     "@electron/rebuild": "^4.0.3",
     "@types/better-sqlite3": "^7.6.13",
     "@types/compression": "^1.8.1",

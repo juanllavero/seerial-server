@@ -1,20 +1,20 @@
-import { CollectionsRepositoryPort } from "@/api/v1/collections/application/ports/CollectionsRepositoryPort";
-import { Collection } from "@/api/v1/collections/domain/Collection";
-import { LibrariesRepositoryPort } from "@/api/v1/libraries/application/ports/LibrariesRepositoryPort";
-import { Library } from "@/api/v1/libraries/domain/Library";
-import { FileSystemServicePort } from "@/api/v1/shared/application/ports/FileSystemServicePort";
-import { MetadataProviderPort } from "@/api/v1/shared/application/ports/MetadataProviderPort";
-import { NotificationServicePort } from "@/api/v1/shared/application/ports/NotificationServicePort";
-import { getOnlyRuntime } from "@/api/v1/shared/infrastructure/adapters/ffmpeg/mediaInfo";
-import { extractNameAndYear } from "@/api/v1/shared/infrastructure/services/FileSearchService";
-import { WriteQueue } from "@/api/v1/shared/infrastructure/services/WriteQueue";
-import { VideoRepositoryPort } from "@/api/v1/videos/application/ports/VideosRepositoryPort";
-import { Video, VideoType } from "@/api/v1/videos/domain/Video";
-import logger from "@/utils/logger";
-import { getFileName } from "@/utils/utils";
-import { MovieResponse } from "moviedb-promise";
-import { Movie } from "../../domain/Movie";
-import { MoviesRepositoryPort } from "../ports/MoviesRepositoryPort";
+import type { MovieResponse } from 'moviedb-promise';
+import type { CollectionsRepositoryPort } from '@/api/v1/collections/application/ports/CollectionsRepositoryPort';
+import type { Collection } from '@/api/v1/collections/domain/Collection';
+import type { LibrariesRepositoryPort } from '@/api/v1/libraries/application/ports/LibrariesRepositoryPort';
+import type { Library } from '@/api/v1/libraries/domain/Library';
+import type { FileSystemServicePort } from '@/api/v1/shared/application/ports/FileSystemServicePort';
+import type { MetadataProviderPort } from '@/api/v1/shared/application/ports/MetadataProviderPort';
+import type { NotificationServicePort } from '@/api/v1/shared/application/ports/NotificationServicePort';
+import { getOnlyRuntime } from '@/api/v1/shared/infrastructure/adapters/ffmpeg/mediaInfo';
+import { extractNameAndYear } from '@/api/v1/shared/infrastructure/services/FileSearchService';
+import { WriteQueue } from '@/api/v1/shared/infrastructure/services/WriteQueue';
+import type { VideoRepositoryPort } from '@/api/v1/videos/application/ports/VideosRepositoryPort';
+import { type Video, VideoType } from '@/api/v1/videos/domain/Video';
+import logger from '@/utils/logger';
+import { getFileName } from '@/utils/utils';
+import type { Movie } from '../../domain/Movie';
+import type { MoviesRepositoryPort } from '../ports/MoviesRepositoryPort';
 
 export class ScanMovieUseCase {
   private readonly writeQueue = new WriteQueue();
@@ -26,14 +26,11 @@ export class ScanMovieUseCase {
     private readonly videoRepo: VideoRepositoryPort,
     private readonly collectionRepo: CollectionsRepositoryPort,
     private readonly metadataProvider: MetadataProviderPort,
-    private readonly notificationService: NotificationServicePort
+    private readonly notificationService: NotificationServicePort,
   ) {}
 
   async execute(library: Library, root: string): Promise<void> {
-    logger.info(
-      { libraryId: library.id, root },
-      "Starting movies scan execution"
-    );
+    logger.info({ libraryId: library.id, root }, 'Starting movies scan execution');
 
     const isFolder = await this.filesManager.isFolder(root);
 
@@ -49,10 +46,7 @@ export class ScanMovieUseCase {
         await this.updateLibraryHelper(library);
       }
 
-      logger.info(
-        { libraryId: library.id, root },
-        "Added single file as movie"
-      );
+      logger.info({ libraryId: library.id, root }, 'Added single file as movie');
 
       return;
     }
@@ -65,32 +59,25 @@ export class ScanMovieUseCase {
       contents.map(async (f) => ({
         path: `${root}/${f.name}`,
         isDir: await this.filesManager.isFolder(`${root}/${f.name}`),
-      }))
+      })),
     );
     const validFolders = subFolders.filter((f) => f.isDir).map((f) => f.path);
 
     // Decision logic: Is it a movie collection or a single movie with folders?
     // We assume that if there are folders inside, it's a collection, UNLESS the folder is named "extras".
     const hasSubFolders = validFolders.length > 0;
-    const isMovieFolder =
-      !hasSubFolders || validFolders.every((f) => this.isExtrasFolder(f));
+    const isMovieFolder = !hasSubFolders || validFolders.every((f) => this.isExtrasFolder(f));
 
     if (isMovieFolder) {
       // Strategy: Single Movie
       await this.handleSingleMovieScan(library, root);
 
-      logger.info(
-        { libraryId: library.id, root },
-        "Added single folder as movie"
-      );
+      logger.info({ libraryId: library.id, root }, 'Added single folder as movie');
     } else {
       // Strategy: Collection (Multiple movie folders)
       await this.handleCollectionScan(library, root, validFolders);
 
-      logger.info(
-        { libraryId: library.id, root },
-        "Added multiple folders as collection"
-      );
+      logger.info({ libraryId: library.id, root }, 'Added multiple folders as collection');
     }
 
     // Update the library at the end of the global process
@@ -99,10 +86,7 @@ export class ScanMovieUseCase {
 
   //#region SCANNING STRATEGIES
 
-  private async handleSingleMovieScan(
-    library: Library,
-    root: string
-  ): Promise<void> {
+  private async handleSingleMovieScan(library: Library, root: string): Promise<void> {
     const { mainFiles, extraFiles } = await this.detectMovieFiles(root);
     await this.writeQueue.enqueue(async () => {
       await this.processMovieFolder(library, root, mainFiles, extraFiles);
@@ -112,7 +96,7 @@ export class ScanMovieUseCase {
   private async handleCollectionScan(
     library: Library,
     root: string,
-    folders: string[]
+    folders: string[],
   ): Promise<void> {
     const collectionTitle = getFileName(root);
 
@@ -129,16 +113,14 @@ export class ScanMovieUseCase {
     });
 
     if (!collection) {
-      logger.error({ root }, "Failed to process collection");
+      logger.error({ root }, 'Failed to process collection');
       return;
     }
 
     this.notificationService.mutateLibrary(library.id);
 
     // Read: detect files concurrently (no DB writes)
-    const detectionTasks = folders.map((folder) =>
-      this.detectMovieFiles(folder)
-    );
+    const detectionTasks = folders.map((folder) => this.detectMovieFiles(folder));
     const detectionResults = await Promise.all(detectionTasks);
 
     // Write: process movies sequentially through queue
@@ -147,13 +129,7 @@ export class ScanMovieUseCase {
 
       if (mainFiles.length > 0) {
         await this.writeQueue.enqueue(async () => {
-          await this.processMovieFolder(
-            library,
-            folders[i],
-            mainFiles,
-            extraFiles,
-            collection
-          );
+          await this.processMovieFolder(library, folders[i], mainFiles, extraFiles, collection);
         });
       }
     }
@@ -165,7 +141,7 @@ export class ScanMovieUseCase {
    * Detects main and extra files based on the folder structure.
    */
   private async detectMovieFiles(
-    root: string
+    root: string,
   ): Promise<{ mainFiles: string[]; extraFiles: string[] }> {
     const allFiles = await this.filesManager.getFilesInFolder(root);
     const mainFiles: string[] = [];
@@ -177,9 +153,7 @@ export class ScanMovieUseCase {
       if (await this.filesManager.isFolder(fullPath)) {
         // If it's an "extras" folder, scan inside
         if (this.isExtrasFolder(fullPath)) {
-          const extrasInFolder = await this.filesManager.getValidVideoFiles(
-            fullPath
-          );
+          const extrasInFolder = await this.filesManager.getValidVideoFiles(fullPath);
           extraFiles.push(...extrasInFolder);
         }
       } else {
@@ -205,7 +179,7 @@ export class ScanMovieUseCase {
     folderPath: string,
     mainFiles: string[],
     extraFiles: string[],
-    collection?: Collection
+    collection?: Collection,
   ) {
     // Get or create movie
     const movie = await this.getOrCreateMovie(library, folderPath);
@@ -213,35 +187,27 @@ export class ScanMovieUseCase {
 
     // Link to collection if it exists
     if (collection) {
-      await this.collectionRepo
-        .addMovie(collection.id, movie.id)
-        .catch((e) => logger.warn(e));
+      await this.collectionRepo.addMovie(collection.id, movie.id).catch((e) => logger.warn(e));
     }
 
     // Search Metadata (if not locked or if it's new)
     const nameAndYear = extractNameAndYear(getFileName(folderPath));
 
-    let name = nameAndYear[0];
-    let year = nameAndYear[1];
+    const name = nameAndYear[0];
+    const year = nameAndYear[1];
 
-    const movieMetadata = await this.searchMovieMetadata(
-      name,
-      year,
-      library.language
-    );
+    const movieMetadata = await this.searchMovieMetadata(name, year, library.language);
 
     if (movieMetadata) {
       await this.metadataProvider
         .updateMovieMetadata(movie, movieMetadata, library.language, collection)
-        .catch((err) =>
-          logger.error({ err, movieId: movie.id }, "Failed update metadata")
-        );
+        .catch((err) => logger.error({ err, movieId: movie.id }, 'Failed update metadata'));
     } else {
       // Fallback: use filename
       if (!movie.name) {
         // Only if it doesn't already have a name
         movie.name = name;
-        movie.year = year !== "1" ? year : "";
+        movie.year = year !== '1' ? year : '';
         await this.movieRepository.update(movie.id, movie);
       }
     }
@@ -257,13 +223,7 @@ export class ScanMovieUseCase {
     ];
 
     for (let i = 0; i < allFiles.length; i++) {
-      await this.ensureVideoAndProcess(
-        library,
-        movie,
-        allFiles[i],
-        types[i],
-        !!movieMetadata
-      );
+      await this.ensureVideoAndProcess(library, movie, allFiles[i], types[i], !!movieMetadata);
     }
 
     // Mutate content on clients
@@ -278,7 +238,7 @@ export class ScanMovieUseCase {
     movie: Movie,
     filePath: string,
     type: VideoType,
-    hasMetadata: boolean
+    hasMetadata: boolean,
   ) {
     try {
       let video: Video | null = null;
@@ -290,10 +250,7 @@ export class ScanMovieUseCase {
       if (video) {
         // The video exists. Check if it has been moved.
         if (video.fileSrc !== filePath) {
-          logger.info(
-            { oldPath: video.fileSrc, newPath: filePath },
-            "Video moved, updating path"
-          );
+          logger.info({ oldPath: video.fileSrc, newPath: filePath }, 'Video moved, updating path');
           video.fileSrc = filePath;
           await this.videoRepo.update(video.id, { fileSrc: filePath });
         }
@@ -316,10 +273,7 @@ export class ScanMovieUseCase {
       }
 
       if (!video) {
-        logger.error(
-          { filePath, movieId: movie.id },
-          "Failed to create/retrieve video"
-        );
+        logger.error({ filePath, movieId: movie.id }, 'Failed to create/retrieve video');
         return;
       }
 
@@ -337,25 +291,20 @@ export class ScanMovieUseCase {
           video.runtime = await getOnlyRuntime(filePath);
           await this.videoRepo.update(video.id, { runtime: video.runtime });
         } catch (e) {
-          logger.warn({ filePath }, "Failed to extract runtime");
+          logger.warn({ filePath }, 'Failed to extract runtime');
         }
       }
 
       // E. External Metadata (Usually only for Main features, or if extras are supported)
       if (hasMetadata && type === VideoType.MAIN) {
-        await this.metadataProvider
-          .updateVideoMetadataForMovie(video, movie)
-          .catch(console.error);
+        await this.metadataProvider.updateVideoMetadataForMovie(video, movie).catch(console.error);
       } else if (!video.imgSrc) {
         // Default placeholder
-        video.imgSrc = "resources/img/Default_video_thumbnail.jpg";
+        video.imgSrc = 'resources/img/Default_video_thumbnail.jpg';
         await this.videoRepo.update(video.id, { imgSrc: video.imgSrc });
       }
     } catch (error) {
-      logger.error(
-        { error, filePath, movieId: movie.id },
-        "Error processing video file"
-      );
+      logger.error({ error, filePath, movieId: movie.id }, 'Error processing video file');
     }
   }
 
@@ -367,10 +316,7 @@ export class ScanMovieUseCase {
    * @param folderPath Path to folder
    * @returns Movie or null
    */
-  private async getOrCreateMovie(
-    library: Library,
-    folderPath: string
-  ): Promise<Movie | null> {
+  private async getOrCreateMovie(library: Library, folderPath: string): Promise<Movie | null> {
     // Check for library cache
     if (folderPath in library.analyzedFolders) {
       const cachedId = library.analyzedFolders[folderPath];
@@ -389,11 +335,7 @@ export class ScanMovieUseCase {
         [folderPath]: movie.id,
       };
 
-      await this.librariesRepo.addAnalyzedFolder(
-        library.id,
-        folderPath,
-        movie.id
-      );
+      await this.librariesRepo.addAnalyzedFolder(library.id, folderPath, movie.id);
     }
     return movie;
   }
@@ -408,14 +350,14 @@ export class ScanMovieUseCase {
   private async searchMovieMetadata(
     name: string,
     year: string,
-    lang: string
+    lang: string,
   ): Promise<MovieResponse | null> {
     try {
       const results = await this.metadataProvider.searchMovies(name, year);
       if (!results || results.length === 0) return null;
       return await this.metadataProvider.getMovie(results[0].id!, lang);
     } catch (e) {
-      logger.warn({ name, year }, "TMDB Search failed");
+      logger.warn({ name, year }, 'TMDB Search failed');
       return null;
     }
   }
@@ -427,12 +369,7 @@ export class ScanMovieUseCase {
    */
   private isExtrasFolder(path: string): boolean {
     const name = getFileName(path).toLowerCase();
-    return (
-      name === "extras" ||
-      name === "extra" ||
-      name === "specials" ||
-      name === "trailers"
-    );
+    return name === 'extras' || name === 'extra' || name === 'specials' || name === 'trailers';
   }
 
   /**
@@ -452,7 +389,7 @@ export class ScanMovieUseCase {
             movieId: movie?.id,
             error: error instanceof Error ? error.message : String(error),
           },
-          "Failed to update library in database"
+          'Failed to update library in database',
         );
       }
     });

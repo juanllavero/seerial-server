@@ -1,3 +1,6 @@
+import { useTranslation } from 'react-i18next'
+import useSWR from 'swr'
+import { shallow } from 'zustand/shallow'
 import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
 import FlexBox from '@/components/ui/FlexBox'
 import { PauseIcon, PlayIcon } from '@/components/ui/IconLibrary'
@@ -5,31 +8,22 @@ import LazyImage from '@/components/ui/LazyImage'
 import { API, authenticatedFetcher } from '@/config/api'
 import useMusicStore from '@/context/music.context'
 import { formatTime } from '@/utils/ReactUtils'
-import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
-import { shallow } from 'zustand/shallow'
 import './NextSongs.css'
 
 function NextSongs() {
   const { t } = useTranslation()
-  const {
-    songQueue,
-    currentSong,
-    selectSong,
-    isPlaying,
-    isLoading,
-    togglePlayPause,
-  } = useMusicStore(
-    (state) => ({
-      songQueue: state.songQueue,
-      currentSong: state.currentSong,
-      selectSong: state.selectSong,
-      isPlaying: state.isPlaying,
-      isLoading: state.isLoading,
-      togglePlayPause: state.togglePlayPause,
-    }),
-    shallow,
-  )
+  const { songQueue, currentSong, selectSong, isPlaying, isLoading, togglePlayPause } =
+    useMusicStore(
+      (state) => ({
+        songQueue: state.songQueue,
+        currentSong: state.currentSong,
+        selectSong: state.selectSong,
+        isPlaying: state.isPlaying,
+        isLoading: state.isLoading,
+        togglePlayPause: state.togglePlayPause,
+      }),
+      shallow,
+    )
   const { data: album } = useSWR(
     currentSong ? API.albums.get(currentSong.albumId) : null,
     authenticatedFetcher,
@@ -70,19 +64,9 @@ function NextSongs() {
                 }
               }}
             >
-              <LazyImage
-                url={album.coverSrc}
-                aspectRatio="1"
-                height={'2.5rem'}
-              />
+              <LazyImage url={album.coverSrc} aspectRatio="1" height={'2.5rem'} />
               <div className="shadowImage">
-                {isLoading ? (
-                  <SmallSpinner />
-                ) : isPlaying ? (
-                  <PauseIcon />
-                ) : (
-                  <PlayIcon />
-                )}
+                {isLoading ? <SmallSpinner /> : isPlaying ? <PauseIcon /> : <PlayIcon />}
               </div>
             </div>
             <FlexBox direction="column">

@@ -1,3 +1,5 @@
+import { t } from 'i18next'
+import { Pencil } from 'lucide-react'
 import Card from '@/components/cards/Card'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { useIsTablet } from '@/components/hooks/use-tablet'
@@ -5,8 +7,6 @@ import { Button } from '@/components/ui/button'
 import { useServerStore } from '@/context/auth.store'
 import { useCardWidth } from '@/hooks/useCardWidth'
 import { getVideoProgress } from '@/utils/ReactUtils'
-import { t } from 'i18next'
-import { Pencil } from 'lucide-react'
 
 interface EpisodeCardProps {
   episode: any
@@ -28,9 +28,7 @@ function EpisodeCard({
   const isTablet = useIsTablet()
   const { cardWidth } = useCardWidth()
 
-  const watchedList = episode.video.watchLists.find(
-    (list: any) => list.userId === user?.id,
-  )
+  const watchedList = episode.video.watchLists.find((list: any) => list.userId === user?.id)
 
   const timeWatched = watchedList?.timeWatched ?? 0
 

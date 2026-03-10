@@ -1,3 +1,5 @@
+import { Plus } from 'lucide-react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -7,8 +9,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Plus } from 'lucide-react'
-import { useState } from 'react'
 
 interface AddServerDialogProps {
   open: boolean
@@ -57,9 +57,7 @@ function AddServerDialog({ open, onOpenChange, onAdd }: AddServerDialogProps) {
         {/* Fields */}
         <div className="space-y-4">
           <div>
-            <label className="mb-2 block text-sm font-medium text-white/70">
-              Dirección IP
-            </label>
+            <label className="mb-2 block text-sm font-medium text-white/70">Dirección IP</label>
             <Input
               type="text"
               value={host}
@@ -73,9 +71,7 @@ function AddServerDialog({ open, onOpenChange, onAdd }: AddServerDialogProps) {
           </div>
 
           <div>
-            <label className="mb-2 block text-sm font-medium text-white/70">
-              Puerto
-            </label>
+            <label className="mb-2 block text-sm font-medium text-white/70">Puerto</label>
             <Input
               type="number"
               value={port}
@@ -87,11 +83,7 @@ function AddServerDialog({ open, onOpenChange, onAdd }: AddServerDialogProps) {
             />
           </div>
 
-          {error && (
-            <p className="animate-pulse text-sm font-medium text-red-400">
-              {error}
-            </p>
-          )}
+          {error && <p className="animate-pulse text-sm font-medium text-red-400">{error}</p>}
         </div>
 
         <DialogFooter className="mt-6 flex gap-3 sm:gap-3">

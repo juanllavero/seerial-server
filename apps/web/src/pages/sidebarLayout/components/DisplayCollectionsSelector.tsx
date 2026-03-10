@@ -7,15 +7,14 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useLocalStorage } from '@/hooks/useLocalStorage'
-import { DisplayCollections } from '@/types/types'
+import type { DisplayCollections } from '@/types/types'
 
 const DisplayCollectionsSelector: React.FC = () => {
   const { t } = useTranslation()
-  const [displayCollections, setDisplayCollections] =
-    useLocalStorage<DisplayCollections>(
-      'displayCollections',
-      'collectionsAndElements',
-    )
+  const [displayCollections, setDisplayCollections] = useLocalStorage<DisplayCollections>(
+    'displayCollections',
+    'collectionsAndElements',
+  )
 
   // Define options with translation keys
   const options: { value: DisplayCollections; label: string }[] = [
@@ -27,9 +26,7 @@ const DisplayCollectionsSelector: React.FC = () => {
   return (
     <Select
       value={displayCollections}
-      onValueChange={(value: DisplayCollections) =>
-        setDisplayCollections(value)
-      }
+      onValueChange={(value: DisplayCollections) => setDisplayCollections(value)}
     >
       <SelectTrigger className="w-fit">
         <SelectValue placeholder={t('selectOption')} />

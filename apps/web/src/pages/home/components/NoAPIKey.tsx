@@ -1,10 +1,10 @@
+import React from 'react'
+import { useTranslation } from 'react-i18next'
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
 import { useServerStore } from '@/context/auth.store'
-import React from 'react'
-import { useTranslation } from 'react-i18next'
 import AlertContent from './AlertContent'
 
 function NoAPIKey() {

@@ -1,26 +1,25 @@
-import Loading from '@/components/Loading'
-import { useServerStore } from '@/context/auth.store'
-import { DiscoveredServer } from '@/data/interfaces/Servers'
-import { BasicUser } from '@/data/interfaces/Users'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { shallow } from 'zustand/shallow'
+import Loading from '@/components/Loading'
+import { useServerStore } from '@/context/auth.store'
+import type { DiscoveredServer } from '@/data/interfaces/Servers'
+import type { BasicUser } from '@/data/interfaces/Users'
 import ServerSelector from './components/servers/ServerSelector'
 import UserSelector from './components/users/UserSelector'
 import LoginLayout from './layout/LoginLayout'
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const { selectedServer, currentUser, setSelectedServer, setCurrentUser } =
-    useServerStore(
-      (s) => ({
-        selectedServer: s.selectedServer,
-        currentUser: s.currentUser,
-        setSelectedServer: s.setSelectedServer,
-        setCurrentUser: s.setCurrentUser,
-      }),
-      shallow,
-    )
+  const { selectedServer, currentUser, setSelectedServer, setCurrentUser } = useServerStore(
+    (s) => ({
+      selectedServer: s.selectedServer,
+      currentUser: s.currentUser,
+      setSelectedServer: s.setSelectedServer,
+      setCurrentUser: s.setCurrentUser,
+    }),
+    shallow,
+  )
 
   const [discoveredUsers, setDiscoveredUsers] = useState<BasicUser[]>([])
 

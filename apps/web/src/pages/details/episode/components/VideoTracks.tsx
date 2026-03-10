@@ -1,19 +1,15 @@
-import Loading from '@/components/Loading'
-import FlexBox from '@/components/ui/FlexBox'
-import SelectableWrapper from '@/components/ui/SelectableWrapper'
-import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
-import { Video } from '@/data/interfaces/Media'
-import {
-  AudioTrack,
-  SubtitleTrack,
-  VideoTrack,
-} from '@/data/interfaces/MediaInfo'
-import { useLanguageName } from '@/localization/TrackLanguages'
-import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
 import { t } from 'i18next'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
+import Loading from '@/components/Loading'
+import FlexBox from '@/components/ui/FlexBox'
+import SelectableWrapper from '@/components/ui/SelectableWrapper'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
+import type { Video } from '@/data/interfaces/Media'
+import type { AudioTrack, SubtitleTrack, VideoTrack } from '@/data/interfaces/MediaInfo'
+import { useLanguageName } from '@/localization/TrackLanguages'
+import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
 
 interface VideoInfo {
   title: string
@@ -36,19 +32,15 @@ function VideoTracks({ video, mutate }: VideoTracksProps) {
     authenticatedFetcher,
   )
 
-  const [selectedVideoTrack, setSelectedVideoTrack] =
-    useState<VideoTrack | null>(
-      video?.videoTracks?.find((track: VideoTrack) => track.selected) || null,
-    )
-  const [selectedAudioTrack, setSelectedAudioTrack] =
-    useState<AudioTrack | null>(
-      video?.audioTracks?.find((track: AudioTrack) => track.selected) || null,
-    )
-  const [selectedSubtitleTrack, setSelectedSubtitleTrack] =
-    useState<SubtitleTrack | null>(
-      video?.subtitleTracks?.find((track: SubtitleTrack) => track.selected) ||
-        null,
-    )
+  const [selectedVideoTrack, setSelectedVideoTrack] = useState<VideoTrack | null>(
+    video?.videoTracks?.find((track: VideoTrack) => track.selected) || null,
+  )
+  const [selectedAudioTrack, setSelectedAudioTrack] = useState<AudioTrack | null>(
+    video?.audioTracks?.find((track: AudioTrack) => track.selected) || null,
+  )
+  const [selectedSubtitleTrack, setSelectedSubtitleTrack] = useState<SubtitleTrack | null>(
+    video?.subtitleTracks?.find((track: SubtitleTrack) => track.selected) || null,
+  )
   const [tracks, setTracks] = useState<{
     videoTracks: VideoTrack[]
     audioTracks: AudioTrack[]
@@ -66,13 +58,9 @@ function VideoTracks({ video, mutate }: VideoTracksProps) {
     hasFetched.current = true
 
     const fetchData = async () => {
-      const result = await authenticatedFetch(
-        API.videos.updateMediaInfo(video.id),
-        'PUT',
-        {
-          videoId: video.id,
-        },
-      )
+      const result = await authenticatedFetch(API.videos.updateMediaInfo(video.id), 'PUT', {
+        videoId: video.id,
+      })
 
       if (!result || !result.data) {
         return
@@ -84,11 +72,7 @@ function VideoTracks({ video, mutate }: VideoTracksProps) {
       setTracks({ videoTracks, audioTracks, subtitleTracks })
 
       const audioTrack = getAudioTrack(videoInfo.preferAudioLan, video)
-      const subtitleTrack = getSubtitleTrack(
-        videoInfo.preferSubtitleLan,
-        videoInfo.subsMode,
-        video,
-      )
+      const subtitleTrack = getSubtitleTrack(videoInfo.preferSubtitleLan, videoInfo.subsMode, video)
       const videoTrack = videoTracks[0] ?? null
 
       setSelectedVideoTrack(videoTrack)
@@ -123,15 +107,11 @@ function VideoTracks({ video, mutate }: VideoTracksProps) {
   }, [video, videoInfo])
 
   const handleVideoTrackChange = (key: string, _value: string) => {
-    setSelectedVideoTrack(
-      tracks.videoTracks.find((track) => track.id === Number(key)) ?? null,
-    )
+    setSelectedVideoTrack(tracks.videoTracks.find((track) => track.id === Number(key)) ?? null)
   }
 
   const handleAudioTrackChange = (key: string, _value: string) => {
-    setSelectedAudioTrack(
-      tracks.audioTracks.find((track) => track.id === Number(key)) ?? null,
-    )
+    setSelectedAudioTrack(tracks.audioTracks.find((track) => track.id === Number(key)) ?? null)
   }
 
   const handleSubtitleTrackChange = (key: string, _value: string) => {
@@ -142,8 +122,7 @@ function VideoTracks({ video, mutate }: VideoTracksProps) {
 
   if (isLoading) return <Loading />
 
-  if (!video || !videoInfo || !tracks || tracks.audioTracks.length === 0)
-    return null
+  if (!video || !videoInfo || !tracks || tracks.audioTracks.length === 0) return null
 
   return (
     <FlexBox gap={1} padding="0 0 0 1rem">
@@ -174,8 +153,7 @@ function VideoTracks({ video, mutate }: VideoTracksProps) {
         height={'10rem'}
       >
         {tracks.videoTracks &&
-        tracks.videoTracks.filter((track) => track.codec !== 'MJPEG')?.length >
-          1 ? (
+        tracks.videoTracks.filter((track) => track.codec !== 'MJPEG')?.length > 1 ? (
           <SelectableWrapper
             value={selectedVideoTrack?.displayTitle ?? ''}
             onValueChange={handleVideoTrackChange}
@@ -191,9 +169,7 @@ function VideoTracks({ video, mutate }: VideoTracksProps) {
             }
           />
         ) : (
-          <span className="font-semibold">
-            {selectedVideoTrack?.displayTitle ?? t('none')}
-          </span>
+          <span className="font-semibold">{selectedVideoTrack?.displayTitle ?? t('none')}</span>
         )}
 
         {tracks.audioTracks && tracks.audioTracks.length > 1 ? (
@@ -239,8 +215,7 @@ function VideoTracks({ video, mutate }: VideoTracksProps) {
                     ...tracks.subtitleTracks
                       .filter(
                         (track) =>
-                          track.codec !== 'HDMV_PGS_SUBTITLE' &&
-                          track.codec !== 'DVD_SUBTITLE',
+                          track.codec !== 'HDMV_PGS_SUBTITLE' && track.codec !== 'DVD_SUBTITLE',
                       )
                       .map((track: SubtitleTrack) => ({
                         key: track.id.toString(),

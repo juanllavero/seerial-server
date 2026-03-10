@@ -1,5 +1,8 @@
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import {
-  FormConfig,
+  type FormConfig,
   generateDefaultValues,
   generateResetValues,
   generateSubmitData,
@@ -9,9 +12,6 @@ import { useWebSocketStore } from '@/context/ws.context'
 import { useUpdate } from '@/hooks/media/useUpdate'
 import useFormState from '@/hooks/useFormState'
 import { showToast } from '@/utils/ReactUtils'
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { useTranslation } from 'react-i18next'
 
 interface UseEditDialogOptions<TEntity, TImages extends Record<string, any>> {
   entity: TEntity | null
@@ -24,10 +24,7 @@ interface UseEditDialogOptions<TEntity, TImages extends Record<string, any>> {
   closeOnSuccess?: boolean
 }
 
-function useEditDialog<
-  TEntity extends Record<string, any>,
-  TImages extends Record<string, any>,
->({
+function useEditDialog<TEntity extends Record<string, any>, TImages extends Record<string, any>>({
   entity,
   configs,
   initialImages,

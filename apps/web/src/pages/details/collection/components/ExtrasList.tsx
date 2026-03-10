@@ -1,11 +1,11 @@
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import HorizontalList from '@/components/lists/HorizontalList'
-import Loading from '@/components/Loading'
-import { API, authenticatedFetcher } from '@/config/api'
-import { Collection } from '@/data/interfaces/Media'
-import { MusicExtra } from '@/data/interfaces/Music'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
+import { useIsMobile } from '@/components/hooks/use-mobile'
+import Loading from '@/components/Loading'
+import HorizontalList from '@/components/lists/HorizontalList'
+import { API, authenticatedFetcher } from '@/config/api'
+import type { Collection } from '@/data/interfaces/Media'
+import type { MusicExtra } from '@/data/interfaces/Music'
 import VideoThumbnail from './VideoThumbnail'
 
 interface ExtrasListProps {
@@ -49,16 +49,11 @@ function ExtrasList({ collection }: ExtrasListProps) {
       {extras.map((extra, index) => (
         <div key={'Extra media ' + index} className="space-y-2">
           <div className={isMobile ? 'w-80' : 'w-100'}>
-            <VideoThumbnail
-              key={index}
-              videoUrl={`/api/video-file?path=${extra.src}`}
-            />
+            <VideoThumbnail key={index} videoUrl={`/api/video-file?path=${extra.src}`} />
           </div>
           <div className="flex flex-col">
             <span className="text-md font-semibold">{extra.title}</span>
-            <span className="text-sm">
-              {getExtraTypeTranslation(extra.type)}
-            </span>
+            <span className="text-sm">{getExtraTypeTranslation(extra.type)}</span>
           </div>
         </div>
       ))}

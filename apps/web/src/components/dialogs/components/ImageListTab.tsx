@@ -1,3 +1,7 @@
+import type React from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import useSWR, { mutate } from 'swr'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
@@ -5,9 +9,6 @@ import { Input } from '@/components/ui/input'
 import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import { ImageType } from '@/utils/constants'
 import { generateRandoumUUID, showToast } from '@/utils/ReactUtils'
-import React, { useEffect, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import useSWR, { mutate } from 'swr'
 import ImageButton from './ImageButton'
 
 interface LocalImage {
@@ -53,9 +54,7 @@ function ImageListTab({
   }
 
   // Handle file selection
-  const handleFileSelect = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
 
     if (file) {
@@ -131,13 +130,7 @@ function ImageListTab({
 
   return (
     <FlexBox direction="column" gap={1} height={isTablet ? '25rem' : '35rem'}>
-      <FlexBox
-        gap={1}
-        justify="center"
-        align="center"
-        width={'100%'}
-        padding="0 0.5rem"
-      >
+      <FlexBox gap={1} justify="center" align="center" width={'100%'} padding="0 0.5rem">
         {/* Hidden input for file selection */}
         <input
           type="file"

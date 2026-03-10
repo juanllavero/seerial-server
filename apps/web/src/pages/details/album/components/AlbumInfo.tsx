@@ -1,3 +1,6 @@
+import { Pencil, Shuffle } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { shallow } from 'zustand/shallow'
 import useScreenHeight from '@/components/hooks/use-height'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { useIsTablet } from '@/components/hooks/use-tablet'
@@ -9,12 +12,9 @@ import Image from '@/components/ui/Image'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useDialogStore } from '@/context/dialog.store'
 import useMusicStore from '@/context/music.context'
-import { Album, Song } from '@/data/interfaces/Music'
+import type { Album, Song } from '@/data/interfaces/Music'
 import { useIsAdmin } from '@/hooks/useIsAdmin'
 import { getCoverSize, getTitleSize } from '@/utils/ReactUtils'
-import { Pencil, Shuffle } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
-import { shallow } from 'zustand/shallow'
 
 interface AlbumInfoProps {
   isLoading: boolean
@@ -47,10 +47,7 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
     }),
     shallow,
   )
-  const { openDialog } = useDialogStore(
-    (state) => ({ openDialog: state.openDialog }),
-    shallow,
-  )
+  const { openDialog } = useDialogStore((state) => ({ openDialog: state.openDialog }), shallow)
 
   const getTotalDuration = (songs: Song[]) => {
     return songs.reduce((acc, song) => acc + song.duration / 60, 0).toFixed(0)
@@ -71,11 +68,11 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
         <FlexBox className="image-container">
           {isLoading || !album ? (
             <Skeleton
-              className={`${!isMobile ? getCoverSize(screenHeight, false, false) : 'h-screen max-h-[55dvw] w-screen max-w-[55dvw]'}`}
+              className={`${isMobile ? 'h-screen max-h-[55dvw] w-screen max-w-[55dvw]' : getCoverSize(screenHeight, false, false)}`}
             />
           ) : (
             <div
-              className={`${!isMobile ? getCoverSize(screenHeight, false, false) : 'max-w-[55dvw]'}`}
+              className={`${isMobile ? 'max-w-[55dvw]' : getCoverSize(screenHeight, false, false)}`}
             >
               <Image
                 url={album.coverSrc}
@@ -105,11 +102,7 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
             textTransform: 'capitalize',
           }}
         >
-          {isLoading || !album ? (
-            <Skeleton className="h-15 w-90" />
-          ) : (
-            album.title
-          )}
+          {isLoading || !album ? <Skeleton className="h-15 w-90" /> : album.title}
         </span>
         <div>
           {isLoading || !album ? (
@@ -173,9 +166,7 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
 
               // Shuffle play
               if (album && album.songs && album.songs.length > 0) {
-                const randomIndex = Math.floor(
-                  Math.random() * album.songs.length,
-                )
+                const randomIndex = Math.floor(Math.random() * album.songs.length)
                 selectSong(album.songs[randomIndex])
                 setIsShown(true)
                 setSongQueue([...album.songs].sort(() => Math.random() - 0.5))
@@ -187,11 +178,7 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
         </FlexBox>
         <FlexBox>
           <span className="font-semibold">
-            {isLoading || !album ? (
-              <Skeleton className="h-30 w-90" />
-            ) : (
-              album.description || ''
-            )}
+            {isLoading || !album ? <Skeleton className="h-30 w-90" /> : album.description || ''}
           </span>
         </FlexBox>
       </FlexBox>

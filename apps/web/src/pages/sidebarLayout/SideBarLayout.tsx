@@ -1,22 +1,15 @@
-import AppSidebar from '@/components/SideBar/AppSidebar'
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar'
-import { Outlet, useLocation } from 'react-router-dom'
-import CardWidthSlider from './components/CardWidthSlider'
 import { useMemo } from 'react'
-import useMusicStore from '@/context/music.context'
-import { useIsTablet } from '@/components/hooks/use-tablet'
+import { Outlet, useLocation } from 'react-router-dom'
 import { useIsMobile } from '@/components/hooks/use-mobile'
+import { useIsTablet } from '@/components/hooks/use-tablet'
+import AppSidebar from '@/components/SideBar/AppSidebar'
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+import useMusicStore from '@/context/music.context'
+import CardWidthSlider from './components/CardWidthSlider'
 
 const SideBarLayout = () => {
   const location = useLocation()
-  const inSettings = useMemo(
-    () => location.pathname.includes('/settings'),
-    [location.pathname],
-  )
+  const inSettings = useMemo(() => location.pathname.includes('/settings'), [location.pathname])
   const isMobile = useIsMobile()
   const isTablet = useIsTablet()
   const hasSong = useMusicStore((state) => Boolean(state.currentSong))
@@ -32,7 +25,7 @@ const SideBarLayout = () => {
                 {isMobile || !isTablet ? (
                   <SidebarTrigger className="mr-3 ml-3" />
                 ) : (
-                  <div className="w-5"></div>
+                  <div className="w-5" />
                 )}
                 <CardWidthSlider />
               </>

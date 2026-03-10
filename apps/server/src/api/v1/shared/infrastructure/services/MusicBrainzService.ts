@@ -1,22 +1,22 @@
-import { APP_NAME, APP_VERSION } from "@/utils/constants";
-import logger from "@/utils/logger";
+import { APP_NAME, APP_VERSION } from '@/utils/constants';
+import logger from '@/utils/logger';
 
-const musicBrainzLogger = logger.child({ category: "MusicBrainz" });
+const musicBrainzLogger = logger.child({ category: 'MusicBrainz' });
 
 interface MusicBrainzRelease {
   id: string;
   title: string;
   date?: string;
-  "artist-credit"?: Array<{
+  'artist-credit'?: Array<{
     name: string;
     artist: {
       id: string;
       name: string;
     };
   }>;
-  "release-group"?: {
+  'release-group'?: {
     id: string;
-    "primary-type"?: string;
+    'primary-type'?: string;
   };
 }
 
@@ -25,7 +25,7 @@ interface MusicBrainzRecording {
   title: string;
   length?: number; // milliseconds
   position?: number;
-  "artist-credit"?: Array<{
+  'artist-credit'?: Array<{
     name: string;
     artist: {
       id: string;
@@ -38,7 +38,7 @@ interface MusicBrainzReleaseDetail {
   id: string;
   title: string;
   date?: string;
-  "artist-credit"?: Array<{
+  'artist-credit'?: Array<{
     name: string;
     artist: {
       id: string;
@@ -48,7 +48,7 @@ interface MusicBrainzReleaseDetail {
   annotation: string;
   media?: Array<{
     position: number;
-    "track-count": number;
+    'track-count': number;
     tracks?: MusicBrainzRecording[];
   }>;
 }
@@ -77,8 +77,8 @@ export interface TrackMetadata {
 }
 
 export class MusicBrainzService {
-  private readonly baseUrl = "https://musicbrainz.org/ws/2";
-  private readonly coverArtUrl = "https://coverartarchive.org/release";
+  private readonly baseUrl = 'https://musicbrainz.org/ws/2';
+  private readonly coverArtUrl = 'https://coverartarchive.org/release';
   private readonly userAgent = `${APP_NAME}/${APP_VERSION} ( app.seerial@gmail.com )`;
   private lastRequestTime = 0;
   private readonly rateLimit = 1000; // 1 request per second
@@ -91,9 +91,7 @@ export class MusicBrainzService {
     const timeSinceLastRequest = now - this.lastRequestTime;
 
     if (timeSinceLastRequest < this.rateLimit) {
-      await new Promise((resolve) =>
-        setTimeout(resolve, this.rateLimit - timeSinceLastRequest)
-      );
+      await new Promise((resolve) => setTimeout(resolve, this.rateLimit - timeSinceLastRequest));
     }
 
     this.lastRequestTime = Date.now();
@@ -108,25 +106,19 @@ export class MusicBrainzService {
     try {
       const response = await fetch(url, {
         headers: {
-          "User-Agent": this.userAgent,
-          Accept: "application/json",
+          'User-Agent': this.userAgent,
+          Accept: 'application/json',
         },
       });
 
       if (!response.ok) {
-        musicBrainzLogger.warn(
-          { status: response.status, url },
-          "MusicBrainz API request failed"
-        );
+        musicBrainzLogger.warn({ status: response.status, url }, 'MusicBrainz API request failed');
         return null;
       }
 
       return (await response.json()) as T;
     } catch (error) {
-      musicBrainzLogger.error(
-        { error, url },
-        "Error making MusicBrainz request"
-      );
+      musicBrainzLogger.error({ error, url }, 'Error making MusicBrainz request');
       return null;
     }
   }
@@ -134,22 +126,14 @@ export class MusicBrainzService {
   /**
    * Searches for releases by album name and artist
    */
-  async searchRelease(
-    albumName: string,
-    artistName: string
-  ): Promise<AlbumMetadata | null> {
+  async searchRelease(albumName: string, artistName: string): Promise<AlbumMetadata | null> {
     const query = `release:"${albumName}" AND artist:"${artistName}"`;
-    const url = `${this.baseUrl}/release/?query=${encodeURIComponent(
-      query
-    )}&limit=1&fmt=json`;
+    const url = `${this.baseUrl}/release/?query=${encodeURIComponent(query)}&limit=1&fmt=json`;
 
     const result = await this.makeRequest<MusicBrainzSearchResult>(url);
 
     if (!result?.releases || result.releases.length === 0) {
-      musicBrainzLogger.info(
-        { albumName, artistName },
-        "No releases found in MusicBrainz"
-      );
+      musicBrainzLogger.info({ albumName, artistName }, 'No releases found in MusicBrainz');
       return null;
     }
 
@@ -166,14 +150,13 @@ export class MusicBrainzService {
     const release = await this.makeRequest<MusicBrainzReleaseDetail>(url);
 
     if (!release) {
-      musicBrainzLogger.warn({ mbid }, "Failed to get release details");
+      musicBrainzLogger.warn({ mbid }, 'Failed to get release details');
       return null;
     }
 
-    const artistCredit = release["artist-credit"]?.[0];
-    const artist =
-      artistCredit?.artist?.name || artistCredit?.name || "Unknown Artist";
-    const artistMbid = artistCredit?.artist?.id || "";
+    const artistCredit = release['artist-credit']?.[0];
+    const artist = artistCredit?.artist?.name || artistCredit?.name || 'Unknown Artist';
+    const artistMbid = artistCredit?.artist?.id || '';
 
     // Extract tracks from all media (discs)
     const tracks: TrackMetadata[] = [];
@@ -184,16 +167,14 @@ export class MusicBrainzService {
 
         if (media.tracks) {
           for (const track of media.tracks) {
-            const trackArtists = track["artist-credit"]?.map(
-              (ac) => ac.artist?.name || ac.name
+            const trackArtists = track['artist-credit']?.map(
+              (ac) => ac.artist?.name || ac.name,
             ) || [artist];
 
             tracks.push({
               title: track.title,
               position: track.position || 0,
-              duration: track.length
-                ? Math.round(track.length / 1000)
-                : undefined,
+              duration: track.length ? Math.round(track.length / 1000) : undefined,
               artists: trackArtists,
               discNumber,
             });
@@ -211,7 +192,7 @@ export class MusicBrainzService {
       artist,
       artistMbid,
       releaseDate: release.date,
-      annotation: release.annotation || "",
+      annotation: release.annotation || '',
       coverArtUrl,
       tracks,
     };
@@ -228,8 +209,8 @@ export class MusicBrainzService {
     try {
       const response = await fetch(url, {
         headers: {
-          "User-Agent": this.userAgent,
-          Accept: "application/json",
+          'User-Agent': this.userAgent,
+          Accept: 'application/json',
         },
       });
 
@@ -244,7 +225,7 @@ export class MusicBrainzService {
 
       return frontImage?.image || data.images?.[0]?.image;
     } catch (error) {
-      musicBrainzLogger.warn({ error, mbid }, "Failed to fetch cover art");
+      musicBrainzLogger.warn({ error, mbid }, 'Failed to fetch cover art');
       return undefined;
     }
   }
@@ -258,7 +239,7 @@ export class MusicBrainzService {
     try {
       const response = await fetch(url, {
         headers: {
-          "User-Agent": this.userAgent,
+          'User-Agent': this.userAgent,
         },
       });
 
@@ -267,7 +248,7 @@ export class MusicBrainzService {
       const arrayBuffer = await response.arrayBuffer();
       return Buffer.from(arrayBuffer);
     } catch (error) {
-      musicBrainzLogger.error({ error, url }, "Error downloading cover art");
+      musicBrainzLogger.error({ error, url }, 'Error downloading cover art');
       return null;
     }
   }
@@ -277,9 +258,7 @@ export class MusicBrainzService {
    */
   async searchArtist(artistName: string): Promise<string | null> {
     const query = `artist:"${artistName}"`;
-    const url = `${this.baseUrl}/artist/?query=${encodeURIComponent(
-      query
-    )}&limit=1&fmt=json`;
+    const url = `${this.baseUrl}/artist/?query=${encodeURIComponent(query)}&limit=1&fmt=json`;
 
     const result = await this.makeRequest<{
       artists?: Array<{ id: string; name: string }>;

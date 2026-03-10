@@ -1,14 +1,14 @@
+import { Download, Trash2 } from 'lucide-react'
+import { memo } from 'react'
+import { useTranslation } from 'react-i18next'
+import useSWR from 'swr'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Skeleton } from '@/components/ui/skeleton'
 import { API, authenticatedFetcher } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.store'
-import { Movie, Season, Series } from '@/data/interfaces/Media'
-import { Download, Trash2 } from 'lucide-react'
-import { memo } from 'react'
-import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
+import type { Movie, Season, Series } from '@/data/interfaces/Media'
 
 interface MediaTabProps {
   series?: Series
@@ -19,9 +19,7 @@ interface MediaTabProps {
 function MediaTab({ series, season, movie }: MediaTabProps) {
   const { t } = useTranslation()
   const isTablet = useIsTablet()
-  const openDownloadMediaDialog = useDialogStore(
-    (state) => state.openDownloadMediaDialog,
-  )
+  const openDownloadMediaDialog = useDialogStore((state) => state.openDownloadMediaDialog)
 
   const type = series ? 'series' : season ? 'season' : 'movie'
   const id = series ? series.id : season ? season.id : movie?.id
@@ -31,28 +29,20 @@ function MediaTab({ series, season, movie }: MediaTabProps) {
     data: video,
     isLoading: loadingVideo,
     error: videoError,
-  } = useSWR(
-    `${API.media.background(type, 'video')}?id=${id}`,
-    authenticatedFetcher,
-    {
-      revalidateAll: true,
-      refreshInterval: 1000,
-    },
-  )
+  } = useSWR(`${API.media.background(type, 'video')}?id=${id}`, authenticatedFetcher, {
+    revalidateAll: true,
+    refreshInterval: 1000,
+  })
 
   // Background music
   const {
     data: music,
     isLoading: loadingMusic,
     error: musicError,
-  } = useSWR(
-    `${API.media.background(type, 'music')}?id=${id}`,
-    authenticatedFetcher,
-    {
-      revalidateAll: true,
-      refreshInterval: 1000,
-    },
-  )
+  } = useSWR(`${API.media.background(type, 'music')}?id=${id}`, authenticatedFetcher, {
+    revalidateAll: true,
+    refreshInterval: 1000,
+  })
 
   const openDownloadDialog = (type: 'music' | 'video') => {
     openDownloadMediaDialog(type, series, season, movie)

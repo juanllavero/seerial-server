@@ -1,13 +1,13 @@
-import Loading from '@/components/Loading'
-import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
-import { useServerStore } from '@/context/auth.store'
-import { Video } from '@/data/interfaces/Media'
-import { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
-import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
 import { useEffect, useRef, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import useSWR from 'swr'
 import { shallow } from 'zustand/shallow'
+import Loading from '@/components/Loading'
+import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
+import { useServerStore } from '@/context/auth.store'
+import type { Video } from '@/data/interfaces/Media'
+import type { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
+import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
 import Controls from './components/Controls'
 import HTMLVideoPlayer from './components/HTMLVideoPlayer'
 import TopBar from './components/TopBar'
@@ -35,10 +35,7 @@ function VideoPlayerPage() {
     data: video,
     isLoading: loadingVideo,
     mutate,
-  } = useSWR<Video>(
-    videoId ? API.videos.get(videoId) : null,
-    authenticatedFetcher,
-  )
+  } = useSWR<Video>(videoId ? API.videos.get(videoId) : null, authenticatedFetcher)
 
   // Get video info
   const { data: videoInfo, isLoading: loadingVideoInfo } = useSWR<VideoInfo>(
@@ -46,9 +43,7 @@ function VideoPlayerPage() {
     authenticatedFetcher,
   )
 
-  const watchedList = video?.watchLists?.find(
-    (list: any) => list.userId === user?.id,
-  )
+  const watchedList = video?.watchLists?.find((list: any) => list.userId === user?.id)
 
   const timeWatched = watchedList?.timeWatched ?? 0
 
@@ -75,14 +70,12 @@ function VideoPlayerPage() {
   const [wasPaused, setWasPaused] = useState(false)
   const [isScrubbing, setIsScrubbing] = useState(false)
 
-  const [selectedAudioTrack, setSelectedAudioTrack] =
-    useState<AudioTrack | null>(
-      video?.audioTracks?.find((track) => track.selected) || null,
-    )
-  const [selectedSubtitleTrack, setSelectedSubtitleTrack] =
-    useState<SubtitleTrack | null>(
-      video?.subtitleTracks?.find((track) => track.selected) || null,
-    )
+  const [selectedAudioTrack, setSelectedAudioTrack] = useState<AudioTrack | null>(
+    video?.audioTracks?.find((track) => track.selected) || null,
+  )
+  const [selectedSubtitleTrack, setSelectedSubtitleTrack] = useState<SubtitleTrack | null>(
+    video?.subtitleTracks?.find((track) => track.selected) || null,
+  )
   const [tracks, setTracks] = useState<{
     audioTracks: AudioTrack[]
     subtitleTracks: SubtitleTrack[]
@@ -171,21 +164,14 @@ function VideoPlayerPage() {
     if (!videoPlayer || !e.target || !timelineRef.current) return
 
     const rect = timelineRef.current.getBoundingClientRect()
-    const percent =
-      Math.min(Math.max(0, e.clientX - rect.left), rect.width) / rect.width
+    const percent = Math.min(Math.max(0, e.clientX - rect.left), rect.width) / rect.width
 
     setPreviewTime(duration * percent)
-    timelineRef.current.style.setProperty(
-      '--preview-position',
-      percent.toString(),
-    )
+    timelineRef.current.style.setProperty('--preview-position', percent.toString())
 
     if (isScrubbing) {
       e.preventDefault()
-      timelineRef.current.style.setProperty(
-        '--progress-position',
-        percent.toString(),
-      )
+      timelineRef.current.style.setProperty('--progress-position', percent.toString())
     }
   }
 
@@ -193,8 +179,7 @@ function VideoPlayerPage() {
     if (!videoRef.current || !timelineRef.current) return
 
     const rect = timelineRef.current.getBoundingClientRect()
-    const percent =
-      Math.min(Math.max(0, e.clientX - rect.left), rect.width) / rect.width
+    const percent = Math.min(Math.max(0, e.clientX - rect.left), rect.width) / rect.width
 
     const scrubbing = (e.buttons & 1) === 1
     setIsScrubbing(scrubbing)
@@ -241,12 +226,12 @@ function VideoPlayerPage() {
 
     if (!videoPlayer) return
 
-    if (!isFullscreen) {
-      document.documentElement.requestFullscreen()
-      setIsFullscreen(true)
-    } else {
+    if (isFullscreen) {
       document.exitFullscreen()
       setIsFullscreen(false)
+    } else {
+      document.documentElement.requestFullscreen()
+      setIsFullscreen(true)
     }
   }
 
@@ -269,9 +254,7 @@ function VideoPlayerPage() {
       }
       // Update buffer bar
       if (videoPlayer.buffered.length > 0 && duration > 0) {
-        const bufferedEnd = videoPlayer.buffered.end(
-          videoPlayer.buffered.length - 1,
-        )
+        const bufferedEnd = videoPlayer.buffered.end(videoPlayer.buffered.length - 1)
         timelineRef.current?.style.setProperty(
           '--buffer-position',
           (bufferedEnd / duration).toString(),
@@ -381,11 +364,7 @@ function VideoPlayerPage() {
       setTracks({ audioTracks, subtitleTracks })
 
       const audioTrack = getAudioTrack(videoInfo.preferAudioLan, video)
-      const subtitleTrack = getSubtitleTrack(
-        videoInfo.preferSubtitleLan,
-        videoInfo.subsMode,
-        video,
-      )
+      const subtitleTrack = getSubtitleTrack(videoInfo.preferSubtitleLan, videoInfo.subsMode, video)
       const videoTrack = videoTracks[0] ?? null
 
       setSelectedAudioTrack(audioTrack)
@@ -474,7 +453,7 @@ function VideoPlayerPage() {
 
       {/* Video Player */}
       <div
-        className={`player-container relative m-0 flex h-screen w-screen justify-center bg-black p-0 ${!showControls ? 'hide-cursor' : ''}`}
+        className={`player-container relative m-0 flex h-screen w-screen justify-center bg-black p-0 ${showControls ? '' : 'hide-cursor'}`}
         style={{
           backgroundColor: videoLoaded ? 'black' : 'transparent',
           transition: 'background-color .1s ease-in-out',

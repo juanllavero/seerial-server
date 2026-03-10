@@ -1,7 +1,4 @@
-import {
-  draggable,
-  dropTargetForElements,
-} from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
+import { draggable, dropTargetForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
 import { useEffect, useRef, useState } from 'react'
 
 interface SortableItemProps {

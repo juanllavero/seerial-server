@@ -1,4 +1,4 @@
-import { BasicUser, User } from './Users'
+import type { BasicUser, User } from './Users'
 
 export type ServerStatus = 'checking' | 'online' | 'offline'
 

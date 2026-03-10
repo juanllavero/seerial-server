@@ -1,7 +1,7 @@
-import { Library } from "@/api/v1/libraries/domain/Library";
-import { Season } from "@/api/v1/seasons/domain/Season";
-import { Series } from "@/api/v1/series/domain/Series";
-import { Episode } from "moviedb-promise";
+import type { Episode } from 'moviedb-promise';
+import type { Library } from '@/api/v1/libraries/domain/Library';
+import type { Season } from '@/api/v1/seasons/domain/Season';
+import type { Series } from '@/api/v1/series/domain/Series';
 
 export interface HomeInfoElement {
   library: Library;

@@ -1,7 +1,7 @@
-import { Library } from "../../libraries/domain/Library";
-import { UserDTO } from "../application/dtos/UserDTOs";
+import type { Library } from '../../libraries/domain/Library';
+import type { UserDTO } from '../application/dtos/UserDTOs';
 
-export type UserType = "normal" | "admin";
+export type UserType = 'normal' | 'admin';
 
 export interface User {
   id: string;

@@ -1,5 +1,5 @@
-import { BasicUser } from '@/data/interfaces/Users'
 import { UserIcon } from 'lucide-react'
+import type { BasicUser } from '@/data/interfaces/Users'
 
 interface UserCardProps {
   user: BasicUser
@@ -46,9 +46,7 @@ function UserCard({ user, isSelected, onSelect }: UserCardProps) {
       <div className="text-center">
         <p className="text-base font-semibold text-white">{user.username}</p>
         {user.type === 'admin' && (
-          <p className="mt-1 text-xs font-medium text-yellow-400">
-            Administrador
-          </p>
+          <p className="mt-1 text-xs font-medium text-yellow-400">Administrador</p>
         )}
       </div>
     </button>

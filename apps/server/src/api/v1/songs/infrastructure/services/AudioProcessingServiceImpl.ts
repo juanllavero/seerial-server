@@ -1,23 +1,19 @@
-import { fileSystemService } from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { executeFfmpeg } from "@/api/v1/shared/infrastructure/adapters/ffmpeg/nativeFfmpeg";
-import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
-import { messages } from "@/config/messages";
-import { audioExtensions } from "@/utils/constants";
-import crypto from "crypto";
-import { Request, Response } from "express";
-import fs from "fs";
-import path from "path";
-import { AudioProcessingServicePort } from "../../application/ports/AudioProcessingServicePort";
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import type { Request, Response } from 'express';
+import { fileSystemService } from '@/api/v1/shared/infrastructure/adapters/di/container';
+import { executeFfmpeg } from '@/api/v1/shared/infrastructure/adapters/ffmpeg/nativeFfmpeg';
+import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
+import { messages } from '@/config/messages';
+import { audioExtensions } from '@/utils/constants';
+import type { AudioProcessingServicePort } from '../../application/ports/AudioProcessingServicePort';
 
 export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
   private cacheDir: string;
 
   constructor() {
-    this.cacheDir = path.join(
-      fileSystemService.resourcesPath,
-      "cache",
-      "audio"
-    );
+    this.cacheDir = path.join(fileSystemService.resourcesPath, 'cache', 'audio');
     if (!fs.existsSync(this.cacheDir)) {
       fs.mkdirSync(this.cacheDir, { recursive: true });
     }
@@ -30,10 +26,7 @@ export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
    * @param isWeb Whether the client is a web platform that requires compatible codecs.
    * @returns The path to the audio file ready to be transmitted.
    */
-  async getStreamableAudioPath(
-    originalPath: string,
-    isWeb: boolean
-  ): Promise<string> {
+  async getStreamableAudioPath(originalPath: string, isWeb: boolean): Promise<string> {
     if (!fs.existsSync(originalPath)) {
       throw new NotFoundException(messages.errors.notFound.file);
     }
@@ -47,10 +40,7 @@ export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
     }
 
     // Conversion and cache logic
-    const originalPathHash = crypto
-      .createHash("md5")
-      .update(originalPath)
-      .digest("hex");
+    const originalPathHash = crypto.createHash('md5').update(originalPath).digest('hex');
     const cachedFilePath = path.join(this.cacheDir, `${originalPathHash}.mp3`);
 
     // Check if cached file already exists
@@ -61,12 +51,12 @@ export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
     // Needs conversion
     try {
       await executeFfmpeg([
-        "-i",
+        '-i',
         originalPath,
-        "-acodec",
-        "libmp3lame",
-        "-ab",
-        "320k",
+        '-acodec',
+        'libmp3lame',
+        '-ab',
+        '320k',
         cachedFilePath,
       ]);
 
@@ -88,21 +78,21 @@ export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
     const range = req.headers.range;
 
     if (range) {
-      const parts = range.replace(/bytes=/, "").split("-");
+      const parts = range.replace(/bytes=/, '').split('-');
       const start = parseInt(parts[0], 10);
       const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
       const chunkSize = end - start + 1;
       const file = fs.createReadStream(filePath, { start, end });
       const head = {
-        "Content-Range": `bytes ${start}-${end}/${fileSize}`,
-        "Accept-Ranges": "bytes",
-        "Content-Length": chunkSize,
-        "Content-Type": "audio/mpeg",
+        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': chunkSize,
+        'Content-Type': 'audio/mpeg',
       };
       res.writeHead(206, head);
       file.pipe(res);
     } else {
-      const head = { "Content-Length": fileSize, "Content-Type": "audio/mpeg" };
+      const head = { 'Content-Length': fileSize, 'Content-Type': 'audio/mpeg' };
       res.writeHead(200, head);
       fs.createReadStream(filePath).pipe(res);
     }

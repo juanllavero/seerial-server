@@ -1,20 +1,20 @@
-import {
+import path from 'node:path';
+import type {
   AudioTrack,
   Chapter as ChapterData,
   MediaInfo,
   MediaInfoData,
   SubtitleTrack,
   VideoTrack,
-} from "@/data/interfaces/MediaInfo";
-import logger from "@/utils/logger";
-import path from "path";
-import { executeFfprobe, executeFfprobeRaw } from "./nativeFfmpeg";
+} from '@/data/interfaces/MediaInfo';
+import logger from '@/utils/logger';
+import { executeFfprobe, executeFfprobeRaw } from './nativeFfmpeg';
 import {
   formatTime,
   processAudioData,
   processSubtitleData,
   processVideoData,
-} from "./utils/ffmpegUtils";
+} from './utils/ffmpegUtils';
 
 /**
  * Retrieves the duration of a video/audio file.
@@ -22,8 +22,8 @@ import {
  * @returns The duration or 0.
  */
 export async function getOnlyRuntime(mediaFile: string): Promise<number> {
-  if (!mediaFile || typeof mediaFile !== "string") {
-    logger.error("getOnlyRuntime: Invalid media file path provided.");
+  if (!mediaFile || typeof mediaFile !== 'string') {
+    logger.error('getOnlyRuntime: Invalid media file path provided.');
     return 0;
   }
 
@@ -31,23 +31,23 @@ export async function getOnlyRuntime(mediaFile: string): Promise<number> {
     const data = await executeFfprobe(mediaFile);
     const duration = data?.format?.duration;
 
-    if (typeof duration === "number" && !isNaN(duration)) {
+    if (typeof duration === 'number' && !Number.isNaN(duration)) {
       return duration / 60;
     }
 
     return 0;
-  } catch (err) {
+  } catch (_err) {
     return 0;
   }
 }
 
 export async function getMediaInfo(
   videoPath: string,
-  extractChapters: boolean = true
+  extractChapters: boolean = true,
 ): Promise<MediaInfoData | undefined> {
-  if (!videoPath || videoPath === "") {
+  if (!videoPath || videoPath === '') {
     logger.error({
-      message: "Video file does not exist or path is empty",
+      message: 'Video file does not exist or path is empty',
       videoPath,
     });
     return undefined;
@@ -60,40 +60,38 @@ export async function getMediaInfo(
 
     // Configura la información general del medio
     let fileSize = format.size ? format.size : 0;
-    let sizeSufix = " GB";
-    fileSize = fileSize / Math.pow(1024, 3);
+    let sizeSufix = ' GB';
+    fileSize = fileSize / 1024 ** 3;
 
     if (fileSize < 1) {
-      fileSize = fileSize * Math.pow(1024, 1);
-      sizeSufix = " MB";
+      fileSize = fileSize * 1024 ** 1;
+      sizeSufix = ' MB';
     }
 
     const mediaInfo: MediaInfo = {
       file: path.basename(videoPath),
       location: videoPath,
-      bitrate: format.bit_rate
-        ? (format.bit_rate / Math.pow(10, 3)).toFixed(2) + " kbps"
-        : "0",
-      duration: format.duration ? formatTime(format.duration) : "0",
+      bitrate: format.bit_rate ? `${(format.bit_rate / 10 ** 3).toFixed(2)} kbps` : '0',
+      duration: format.duration ? formatTime(format.duration) : '0',
       size: fileSize.toFixed(2) + sizeSufix,
-      container: path.extname(videoPath).replace(".", "").toUpperCase(),
+      container: path.extname(videoPath).replace('.', '').toUpperCase(),
     };
 
     // Get the duration
     const duration = format.duration ? format.duration / 60 : 0;
 
     // Limpia las listas anteriores de pistas
-    let videoTracks: VideoTrack[] = [];
-    let audioTracks: AudioTrack[] = [];
-    let subtitleTracks: SubtitleTrack[] = [];
+    const videoTracks: VideoTrack[] = [];
+    const audioTracks: AudioTrack[] = [];
+    const subtitleTracks: SubtitleTrack[] = [];
 
     for (const stream of streams) {
       const codecType = stream.codec_type;
-      if (codecType === "video") {
+      if (codecType === 'video') {
         videoTracks.push(processVideoData(stream));
-      } else if (codecType === "audio") {
+      } else if (codecType === 'audio') {
         audioTracks.push(processAudioData(stream));
-      } else if (codecType === "subtitle") {
+      } else if (codecType === 'subtitle') {
         subtitleTracks.push(processSubtitleData(stream));
       }
     }
@@ -109,7 +107,7 @@ export async function getMediaInfo(
       duration,
     };
   } catch (err) {
-    logger.error(err, "Failed to get media info");
+    logger.error(err, 'Failed to get media info');
     throw err; // Re-lanzar para manejo externo si es necesario
   }
 }
@@ -119,13 +117,13 @@ export async function getChapters(videoPath: string): Promise<ChapterData[]> {
 
   try {
     const stdout = await executeFfprobeRaw([
-      "-v",
-      "error",
-      "-show_entries",
-      "chapter",
-      "-of",
-      "json",
-      "-i",
+      '-v',
+      'error',
+      '-show_entries',
+      'chapter',
+      '-of',
+      'json',
+      '-i',
       videoPath,
     ]);
 
@@ -134,27 +132,27 @@ export async function getChapters(videoPath: string): Promise<ChapterData[]> {
     if (chapters.length > 0) {
       for (const chapter of chapters) {
         const chapterData: ChapterData = {
-          title: chapter.title || "Sin título",
+          title: chapter.title || 'Sin título',
           time: chapter.start_time || 0,
           displayTime: formatTime(chapter.start_time || 0),
-          thumbnailSrc: "",
+          thumbnailSrc: '',
         };
         chaptersArray.push(chapterData);
       }
       logger.info({
-        message: "Chapters extracted",
+        message: 'Chapters extracted',
         chapterCount: chaptersArray.length,
       });
     } else {
       logger.info({
-        message: "No chapters found in the file",
+        message: 'No chapters found in the file',
         file: videoPath,
       });
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     logger.error({
       err: error,
-      message: "Error getting chapters",
+      message: 'Error getting chapters',
       file: videoPath,
     });
   }

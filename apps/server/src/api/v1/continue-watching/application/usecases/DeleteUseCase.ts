@@ -1,4 +1,4 @@
-import { ContinueWatchingRepositoryPort } from "../ports/ContinueWatchingRepositoryPort";
+import type { ContinueWatchingRepositoryPort } from '../ports/ContinueWatchingRepositoryPort';
 
 export class DeleteUseCase {
   constructor(private continueWatchingRepo: ContinueWatchingRepositoryPort) {}

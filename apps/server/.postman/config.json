@@ -5,9 +5,7 @@
   "entities": {
     "collections": [],
     "environments": [],
-    "specs": [
-      "..\\swagger.json"
-    ],
+    "specs": ["..\\swagger.json"],
     "flows": [],
     "globals": [],
     "mocks": []

@@ -1,7 +1,8 @@
+import type React from 'react'
+import { useEffect, useRef, useState } from 'react'
 import FlexBox from '@/components/ui/FlexBox'
 import { Slider } from '@/components/ui/slider'
 import { useCardWidth } from '@/hooks/useCardWidth'
-import React, { useEffect, useRef, useState } from 'react'
 
 interface CardWidthSliderProps {
   onWidthChange?: (width: number) => void
@@ -12,9 +13,7 @@ const CardWidthSlider: React.FC<CardWidthSliderProps> = ({ onWidthChange }) => {
   const [localWidth, setLocalWidth] = useState(cardWidth)
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const hideSlider =
-    window.location.pathname === '/home' ||
-    window.location.pathname === '/profile'
+  const hideSlider = window.location.pathname === '/home' || window.location.pathname === '/profile'
 
   useEffect(() => {
     setLocalWidth(cardWidth)

@@ -1,3 +1,6 @@
+import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { shallow } from 'zustand/shallow'
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import Loading from '@/components/Loading'
 import { Button } from '@/components/ui/button'
@@ -7,10 +10,7 @@ import LazyImage from '@/components/ui/LazyImage'
 import { API, authenticatedFetch } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.store'
 import { useWebSocketStore } from '@/context/ws.context'
-import { IdentificationResult } from '@/data/interfaces/Utils'
-import { useEffect, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { shallow } from 'zustand/shallow'
+import type { IdentificationResult } from '@/data/interfaces/Utils'
 import './CorrectIdentificationSearch.css'
 
 function CorrectIdentificationSearch() {
@@ -23,9 +23,7 @@ function CorrectIdentificationSearch() {
     }),
     shallow,
   )
-  const [identificationResults, setIdentificationResults] = useState<
-    IdentificationResult[]
-  >([])
+  const [identificationResults, setIdentificationResults] = useState<IdentificationResult[]>([])
   const [name, setName] = useState('')
   const [year, setYear] = useState('')
   const searchButtonRef = useRef<HTMLButtonElement>(null)
@@ -119,49 +117,37 @@ function CorrectIdentificationSearch() {
         </FlexBox>
       </FlexBox>
 
-      <FlexBox
-        direction="column"
-        scroll="vertical"
-        hideScrollbar
-        height={'100%'}
-        width={'100%'}
-      >
+      <FlexBox direction="column" scroll="vertical" hideScrollbar height={'100%'} width={'100%'}>
         {/* Results List */}
         {identificationResults && identificationResults.length > 0 ? (
-          identificationResults.map(
-            (result: IdentificationResult, index: number) => (
-              <FlexBox
-                className="identification-card"
-                key={index}
-                onClick={() => saveIdentification(result.id)}
-                padding="1rem"
-                gap={1}
-              >
-                <FlexBox direction="column" gap={0.5} width={'75%'}>
-                  <span className="font-semibold">
-                    {isShow ? result.name : result.title}
-                  </span>
-                  <span className="text-sm" style={{ color: 'lightgray' }}>
-                    {isShow
-                      ? ((result.first_air_date ?? '') as string).split('-')[0]
-                      : (result.release_date ?? '')}
-                  </span>
-                  <span className="mt-1 line-clamp-4 text-ellipsis">
-                    {result.overview}
-                  </span>
-                </FlexBox>
-
-                <FlexBox width={'25%'}>
-                  <LazyImage
-                    src={`https://image.tmdb.org/t/p/original/${result.poster_path}`}
-                    alt={result.name ?? result.title ?? 'Poster'}
-                    width={'100%'}
-                    height={'auto'}
-                  />
-                </FlexBox>
+          identificationResults.map((result: IdentificationResult, index: number) => (
+            <FlexBox
+              className="identification-card"
+              key={index}
+              onClick={() => saveIdentification(result.id)}
+              padding="1rem"
+              gap={1}
+            >
+              <FlexBox direction="column" gap={0.5} width={'75%'}>
+                <span className="font-semibold">{isShow ? result.name : result.title}</span>
+                <span className="text-sm" style={{ color: 'lightgray' }}>
+                  {isShow
+                    ? ((result.first_air_date ?? '') as string).split('-')[0]
+                    : (result.release_date ?? '')}
+                </span>
+                <span className="mt-1 line-clamp-4 text-ellipsis">{result.overview}</span>
               </FlexBox>
-            ),
-          )
+
+              <FlexBox width={'25%'}>
+                <LazyImage
+                  src={`https://image.tmdb.org/t/p/original/${result.poster_path}`}
+                  alt={result.name ?? result.title ?? 'Poster'}
+                  width={'100%'}
+                  height={'auto'}
+                />
+              </FlexBox>
+            </FlexBox>
+          ))
         ) : identificationResults && identificationResults.length === 0 ? (
           <span>{t('noResults')}</span>
         ) : (

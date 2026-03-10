@@ -1,9 +1,9 @@
+import { t } from 'i18next'
+import useSWR from 'swr'
 import { Button } from '@/components/ui/button'
 import { AddToListIcon, RemoveFromListIcon } from '@/components/ui/IconLibrary'
 import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import { useServerStore } from '@/context/auth.store'
-import { t } from 'i18next'
-import useSWR from 'swr'
 
 interface MyListButtonProps {
   movieId: string
@@ -28,18 +28,10 @@ function MyListButton({ movieId }: MyListButtonProps) {
   return (
     <Button
       variant={'ghost'}
-      title={
-        inMyList && inMyList.isInMyList
-          ? t('removeFromMyList')
-          : t('addToMyList')
-      }
+      title={inMyList && inMyList.isInMyList ? t('removeFromMyList') : t('addToMyList')}
       onClick={toggleMyList}
     >
-      {inMyList && inMyList.isInMyList ? (
-        <RemoveFromListIcon />
-      ) : (
-        <AddToListIcon />
-      )}
+      {inMyList && inMyList.isInMyList ? <RemoveFromListIcon /> : <AddToListIcon />}
     </Button>
   )
 }

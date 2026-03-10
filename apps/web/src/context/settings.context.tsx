@@ -1,7 +1,7 @@
-import { API, authenticatedFetch } from '@/config/api'
-import { Settings, SettingsSection, ValueOption } from '@/data/interfaces/Utils'
-import { defaultWebConfig } from '@/utils/defaults'
 import { createWithEqualityFn } from 'zustand/traditional'
+import { API, authenticatedFetch } from '@/config/api'
+import { type Settings, SettingsSection, type ValueOption } from '@/data/interfaces/Utils'
+import { defaultWebConfig } from '@/utils/defaults'
 
 interface SettingsStore {
   clientSettings: Settings
@@ -13,10 +13,7 @@ interface SettingsStore {
   setServerSettings: (settings: Settings) => void
 
   getAllServerSettings: () => Promise<void>
-  getServerSetting: (
-    key: string,
-    defaultValue: ValueOption,
-  ) => Promise<ValueOption>
+  getServerSetting: (key: string, defaultValue: ValueOption) => Promise<ValueOption>
   setServerSetting: (key: string, value: ValueOption) => void
 
   getAllClientSettings: () => void
@@ -29,8 +26,7 @@ export const useSettingsStore = createWithEqualityFn<SettingsStore>((set) => ({
   serverSettings: {},
   settingsSection: SettingsSection.ClientGeneral,
 
-  setSettingsSection: (section: SettingsSection) =>
-    set(() => ({ settingsSection: section })),
+  setSettingsSection: (section: SettingsSection) => set(() => ({ settingsSection: section })),
 
   setClientSettings: (settings: Settings) => {
     localStorage.setItem('clientSettings', JSON.stringify(settings))

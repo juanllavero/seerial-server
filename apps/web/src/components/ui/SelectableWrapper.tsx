@@ -1,12 +1,6 @@
-import { SelectableOption } from '@/data/interfaces/Utils'
 import React from 'react'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './select'
+import type { SelectableOption } from '@/data/interfaces/Utils'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './select'
 
 interface SelectableWrapperProps {
   placeholder?: string
@@ -25,17 +19,14 @@ function SelectableWrapper({
   onValueChange,
   options,
 }: SelectableWrapperProps) {
-  const getUniqueValue = (option: SelectableOption) =>
-    `${option.key}::${option.value}`
+  const getUniqueValue = (option: SelectableOption) => `${option.key}::${option.value}`
 
   const handleValueChange = (uniqueValue: string) => {
     const [key, value] = uniqueValue.split('::')
     onValueChange(key, value)
   }
 
-  const defaultUniqueValue = options.find(
-    (option) => option.value === defaultValue,
-  )
+  const defaultUniqueValue = options.find((option) => option.value === defaultValue)
     ? getUniqueValue(options.find((option) => option.value === defaultValue)!)
     : undefined
 

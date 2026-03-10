@@ -1,4 +1,4 @@
-import { Episode } from "../../domain/Episode";
+import type { Episode } from '../../domain/Episode';
 
 export interface EpisodeRepositoryPort {
   create(data: Partial<Episode>): Promise<Episode | null>;

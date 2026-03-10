@@ -8,11 +8,7 @@ interface SortableGridProps {
   renderItem: (item: any) => React.ReactNode
 }
 
-export function SortableGrid({
-  items,
-  onDragEnd,
-  renderItem,
-}: SortableGridProps) {
+export function SortableGrid({ items, onDragEnd, renderItem }: SortableGridProps) {
   useEffect(() => {
     return monitorForElements({
       onDrop: ({ source, location }) => {

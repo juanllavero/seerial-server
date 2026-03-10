@@ -1,12 +1,7 @@
-import {
-  API,
-  authenticatedFetch,
-  createServerClient,
-  setApiBaseUrl,
-} from '@/config/api'
-import { PersistedServer } from '@/data/interfaces/Servers'
-import { BasicUser } from '@/data/interfaces/Users'
 import { createWithEqualityFn } from 'zustand/traditional'
+import { API, authenticatedFetch, createServerClient, setApiBaseUrl } from '@/config/api'
+import type { PersistedServer } from '@/data/interfaces/Servers'
+import type { BasicUser } from '@/data/interfaces/Users'
 
 // ============================================================================
 // Storage helpers
@@ -103,11 +98,7 @@ export const useServerStore = createWithEqualityFn<AuthState>((set) => ({
   setApiKey: async (apiKey) => {
     set({ gettingApiKeyStatus: true })
     try {
-      const response = await authenticatedFetch(
-        API.configuration.apiKey,
-        'POST',
-        { apiKey },
-      )
+      const response = await authenticatedFetch(API.configuration.apiKey, 'POST', { apiKey })
       const data = response?.data
       set({
         apiKeyStatus: data?.data?.status === 'VALID_API_KEY',
@@ -140,8 +131,7 @@ export const useServerStore = createWithEqualityFn<AuthState>((set) => ({
       } catch (error) {
         set({
           serverOnline: false,
-          serverCheckError:
-            error instanceof Error ? error.message : 'Server unreachable',
+          serverCheckError: error instanceof Error ? error.message : 'Server unreachable',
           apiKeyStatus: false,
           gettingServerStatus: false,
         })

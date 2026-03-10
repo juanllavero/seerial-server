@@ -1,27 +1,26 @@
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { shallow } from 'zustand/shallow'
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import FlexBox from '@/components/ui/FlexBox'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
 import { useSettingsStore } from '@/context/settings.context'
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { shallow } from 'zustand/shallow'
 import ContentWrapper from './utils/ContentWrapper'
 
 function ServerLibraries() {
   const { t } = useTranslation()
   const [isDirty, setIsDirty] = useState<boolean>(false)
   const [showMessage, setShowMessage] = useState(false)
-  const { setServerSetting, serverSettings, setServerSettings } =
-    useSettingsStore(
-      (state) => ({
-        setServerSetting: state.setServerSetting,
-        serverSettings: state.serverSettings,
-        setServerSettings: state.setServerSettings,
-      }),
-      shallow,
-    )
+  const { setServerSetting, serverSettings, setServerSettings } = useSettingsStore(
+    (state) => ({
+      setServerSetting: state.setServerSetting,
+      serverSettings: state.serverSettings,
+      setServerSettings: state.setServerSettings,
+    }),
+    shallow,
+  )
 
   const scanOptions = [
     {
@@ -77,14 +76,12 @@ function ServerLibraries() {
     (serverSettings['autoScan'] as boolean) ?? false,
   )
   const [autoScanPeriod, setAutoScanPeriod] = useState<string>(
-    scanOptions.find(
-      (option) => option.key === serverSettings['autoScanPeriod'],
-    )?.value || scanOptions[0].value,
+    scanOptions.find((option) => option.key === serverSettings['autoScanPeriod'])?.value ||
+      scanOptions[0].value,
   )
   const [generateChapters, setGenerateThumbnails] = useState<string>(
-    chapterOptions.find(
-      (option) => option.key === serverSettings['generateChapters'],
-    )?.value || chapterOptions[0].value,
+    chapterOptions.find((option) => option.key === serverSettings['generateChapters'])?.value ||
+      chapterOptions[0].value,
   )
 
   const handleAutoScanChange = (checked: boolean) => {
@@ -154,9 +151,7 @@ function ServerLibraries() {
           {t('saveButton')}
         </Button>
         {showMessage && (
-          <span className="text-muted-foreground text-sm">
-            ✔ {t('changesSaved')}
-          </span>
+          <span className="text-muted-foreground text-sm">✔ {t('changesSaved')}</span>
         )}
       </FlexBox>
     </ContentWrapper>

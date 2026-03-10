@@ -1,5 +1,5 @@
-import { MyListItem } from "../../domain/MyList";
-import { MyListRepositoryPort } from "../ports/MyListRepositoryPort";
+import type { MyListItem } from '../../domain/MyList';
+import type { MyListRepositoryPort } from '../ports/MyListRepositoryPort';
 
 export class AddMovieToMyListUseCase {
   constructor(private myListRepo: MyListRepositoryPort) {}

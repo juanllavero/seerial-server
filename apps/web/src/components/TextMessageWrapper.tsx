@@ -8,18 +8,11 @@ interface TextMessageWrapperProps {
   error?: boolean
 }
 
-function TextMessageWrapper({
-  message,
-  error = false,
-}: TextMessageWrapperProps) {
+function TextMessageWrapper({ message, error = false }: TextMessageWrapperProps) {
   return (
     <Alert variant={error ? 'destructive' : 'success'}>
       <FlexBox justify="start" align="center" gap={1}>
-        {error ? (
-          <AlertCircle className="h-4 w-4" />
-        ) : (
-          <Check className="h-4 w-4" />
-        )}
+        {error ? <AlertCircle className="h-4 w-4" /> : <Check className="h-4 w-4" />}
         <AlertDescription>{message}</AlertDescription>
       </FlexBox>
     </Alert>

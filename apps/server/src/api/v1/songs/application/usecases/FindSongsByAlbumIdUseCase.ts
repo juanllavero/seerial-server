@@ -1,5 +1,5 @@
-import { Song } from "../../domain/Song";
-import { SongsRepositoryPort } from "../ports/SongsRepositoryPort";
+import type { Song } from '../../domain/Song';
+import type { SongsRepositoryPort } from '../ports/SongsRepositoryPort';
 
 export class FindSongsByAlbumIdUseCase {
   constructor(private songsRepo: SongsRepositoryPort) {}

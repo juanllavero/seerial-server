@@ -1,11 +1,11 @@
-import { ContinueWatchingRepositoryPort } from "@/api/v1/continue-watching/application/ports/ContinueWatchingRepositoryPort"; // Asumido
-import { SeasonsRepositoryPort } from "@/api/v1/seasons/application/ports/SeasonsRepositoryPort";
-import { SeriesRepositoryPort } from "@/api/v1/series/application/ports/SeriesRepositoryPort"; // Asumido
-import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
-import { VideoRepositoryPort } from "@/api/v1/videos/application/ports/VideosRepositoryPort";
-import { WatchListRepositoryPort } from "@/api/v1/watch-lists/application/ports/WatchListRepositoryPort"; // Asumido
-import { messages } from "@/config/messages";
-import { EpisodeRepositoryPort } from "../ports/EpisodeRepositoryPort";
+import type { ContinueWatchingRepositoryPort } from '@/api/v1/continue-watching/application/ports/ContinueWatchingRepositoryPort'; // Asumido
+import type { SeasonsRepositoryPort } from '@/api/v1/seasons/application/ports/SeasonsRepositoryPort';
+import type { SeriesRepositoryPort } from '@/api/v1/series/application/ports/SeriesRepositoryPort'; // Asumido
+import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
+import type { VideoRepositoryPort } from '@/api/v1/videos/application/ports/VideosRepositoryPort';
+import type { WatchListRepositoryPort } from '@/api/v1/watch-lists/application/ports/WatchListRepositoryPort'; // Asumido
+import { messages } from '@/config/messages';
+import type { EpisodeRepositoryPort } from '../ports/EpisodeRepositoryPort';
 
 export class SetEpisodeWatchStateUseCase {
   constructor(
@@ -14,47 +14,33 @@ export class SetEpisodeWatchStateUseCase {
     private seriesRepo: SeriesRepositoryPort,
     private videoRepo: VideoRepositoryPort,
     private watchListRepo: WatchListRepositoryPort,
-    private continueWatchingRepo: ContinueWatchingRepositoryPort
+    private continueWatchingRepo: ContinueWatchingRepositoryPort,
   ) {}
 
-  async execute(
-    episodeId: string,
-    userId: string,
-    state: boolean
-  ): Promise<void> {
+  async execute(episodeId: string, userId: string, state: boolean): Promise<void> {
     // 1. Get the needed data
     const episodeToUpdate = await this.episodeRepo.findById(episodeId);
-    if (!episodeToUpdate)
-      throw new NotFoundException(messages.errors.notFound.episode);
+    if (!episodeToUpdate) throw new NotFoundException(messages.errors.notFound.episode);
 
     const season = await this.seasonRepo.findById(episodeToUpdate.seasonId);
     if (!season) throw new NotFoundException(messages.errors.notFound.season);
 
-    const series = await this.seriesRepo.findById(season.seriesId, "few");
-    if (!series || !series.seasons)
-      throw new NotFoundException(messages.errors.notFound.series);
+    const series = await this.seriesRepo.findById(season.seriesId, 'few');
+    if (!series || !series.seasons) throw new NotFoundException(messages.errors.notFound.series);
 
     // 2. Business logic
-    const previousEpisodeId = await this.continueWatchingRepo.getCurrentEpisode(
-      series.id
-    );
+    const previousEpisodeId = await this.continueWatchingRepo.getCurrentEpisode(series.id);
     let nextEpisodeId: string | null = null;
 
     // Get and order all seasons and episodes
     const allSeasons = (
-      await Promise.all(
-        series.seasons.map((s) => this.seasonRepo.findById(s.id, "all"))
-      )
+      await Promise.all(series.seasons.map((s) => this.seasonRepo.findById(s.id, 'all')))
     )
       .filter((s) => !!s)
       .sort((a, b) => a.seasonNumber - b.seasonNumber);
 
     for (const s of allSeasons) {
-      const episodes = (
-        await Promise.all(
-          s.episodes.map((e) => this.episodeRepo.findById(e.id))
-        )
-      )
+      const episodes = (await Promise.all(s.episodes.map((e) => this.episodeRepo.findById(e.id))))
         .filter((e) => !!e)
         .sort((a, b) => a.episodeNumber - b.episodeNumber);
 
@@ -106,10 +92,7 @@ export class SetEpisodeWatchStateUseCase {
           await this.watchListRepo.removeVideo(video.id, userId);
         }
 
-        const isWatched = await this.watchListRepo.isVideoWatched(
-          video.id,
-          userId
-        );
+        const isWatched = await this.watchListRepo.isVideoWatched(video.id, userId);
         if (!isWatched) allWatchedThisSeason = false;
       }
 

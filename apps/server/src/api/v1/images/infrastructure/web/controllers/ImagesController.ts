@@ -1,38 +1,28 @@
+import path from 'path';
+import { Controller, FormField, Get, Post, Query, Route, Security, Tags, UploadedFile } from 'tsoa';
 import {
   fileSystemService,
   imageProcessingService,
-} from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { SanitizationService } from "@/api/v1/shared/infrastructure/services/SanitizationService";
+} from '@/api/v1/shared/infrastructure/adapters/di/container';
+import { SanitizationService } from '@/api/v1/shared/infrastructure/services/SanitizationService';
 import {
   BadRequestException,
   NotEnoughParamsException,
-} from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
-import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
-import { messages } from "@/config/messages";
-import path from "path";
-import {
-  Controller,
-  FormField,
-  Get,
-  Post,
-  Query,
-  Route,
-  Security,
-  Tags,
-  UploadedFile,
-} from "tsoa";
+} from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
+import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
+import { messages } from '@/config/messages';
 
-@Route("images")
-@Tags("Images")
+@Route('images')
+@Tags('Images')
 export class ImagesController extends Controller {
   /**
    * Upload image file
    */
   @Post()
-  @Security("cookieAuthFast")
+  @Security('cookieAuthFast')
   public async uploadImage(
     @FormField() destPath: string,
-    @UploadedFile() image: Express.Multer.File
+    @UploadedFile() image: Express.Multer.File,
   ): Promise<ApiResponse<null>> {
     // Validate file name
     if (!SanitizationService.isValidFileName(image.originalname)) {
@@ -42,14 +32,11 @@ export class ImagesController extends Controller {
     const sanitizedDestPath = SanitizationService.sanitizeDirectoryPath(
       destPath,
       SanitizationService.getSystemAllowedPaths(),
-      false
+      false,
     );
 
     // Combine the paths
-    const finalPath = SanitizationService.safeJoinPath(
-      sanitizedDestPath,
-      image.originalname
-    );
+    const finalPath = SanitizationService.safeJoinPath(sanitizedDestPath, image.originalname);
 
     // Ensure destination directory exists
     fileSystemService.createFolder(path.dirname(finalPath));
@@ -64,38 +51,34 @@ export class ImagesController extends Controller {
    * Get directory listing
    */
   @Get()
-  @Security("cookieAuthFast")
-  public async getDirectoryListing(
-    @Query() path: string
-  ): Promise<ApiResponse<any>> {
+  @Security('cookieAuthFast')
+  public async getDirectoryListing(@Query() path: string): Promise<ApiResponse<any>> {
     const imagesPath = path;
 
     const sanitizedPath = SanitizationService.sanitizeDirectoryPath(
       decodeURIComponent(imagesPath),
       SanitizationService.getSystemAllowedPaths(),
-      true
+      true,
     );
 
-    const images = await imageProcessingService.getDirectoryListing(
-      sanitizedPath
-    );
+    const images = await imageProcessingService.getDirectoryListing(sanitizedPath);
     return ApiResponse.success(images, messages.success.fetch);
   }
 
   /**
    * Get local image with optional resizing
    */
-  @Get("local")
-  @Security("cookieAuthFast")
+  @Get('local')
+  @Security('cookieAuthFast')
   public async getLocalImage(
     @Query() path: string,
     @Query() width?: number,
-    @Query() height?: number
+    @Query() height?: number,
   ): Promise<void> {
     const sanitizedPath = SanitizationService.sanitizeImagePath(
       path,
       SanitizationService.getSystemAllowedPaths(),
-      true // Must exist
+      true, // Must exist
     );
 
     await imageProcessingService.streamLocalImage({
@@ -109,12 +92,12 @@ export class ImagesController extends Controller {
   /**
    * Get remote image with optional resizing
    */
-  @Get("compressed")
-  @Security("cookieAuthFast")
+  @Get('compressed')
+  @Security('cookieAuthFast')
   public async getRemoteImage(
     @Query() url: string,
     @Query() width?: number,
-    @Query() height?: number
+    @Query() height?: number,
   ): Promise<void> {
     await imageProcessingService.streamRemoteImage({
       url,
@@ -127,14 +110,14 @@ export class ImagesController extends Controller {
   /**
    * Get image color palette
    */
-  @Get("colors")
-  @Security("cookieAuthFast")
+  @Get('colors')
+  @Security('cookieAuthFast')
   public async getImageColorPalette(
     @Query() url?: string,
     @Query() localPath?: string,
     @Query() minLight?: number,
     @Query() maxLight?: number,
-    @Query() sat?: number
+    @Query() sat?: number,
   ): Promise<ApiResponse<any>> {
     if (!url && !localPath) {
       throw new NotEnoughParamsException();
@@ -150,10 +133,7 @@ export class ImagesController extends Controller {
       saturationFactor: sat ? sat : 1.0,
     };
 
-    const result = await imageProcessingService.getImageColorPalette(
-      imageSource,
-      options
-    );
+    const result = await imageProcessingService.getImageColorPalette(imageSource, options);
 
     return ApiResponse.success(result, messages.success.fetch);
   }
@@ -161,13 +141,13 @@ export class ImagesController extends Controller {
   /**
    * Create transparent image
    */
-  @Get("effects/transparent")
-  @Security("cookieAuthFast")
+  @Get('effects/transparent')
+  @Security('cookieAuthFast')
   public async createTransparentImage(
     @Query() width: number,
     @Query() height: number,
     @Query() url?: string,
-    @Query() localPath?: string
+    @Query() localPath?: string,
   ): Promise<void> {
     if ((!url && !localPath) || !width || !height) {
       throw new NotEnoughParamsException();
@@ -182,15 +162,14 @@ export class ImagesController extends Controller {
 
     const imageSource = (localPath as string) || (url as string);
 
-    const finalImageBuffer =
-      await imageProcessingService.createTransparentImage(
-        imageSource,
-        finalWidth,
-        finalHeight
-      );
+    const finalImageBuffer = await imageProcessingService.createTransparentImage(
+      imageSource,
+      finalWidth,
+      finalHeight,
+    );
 
     const res = (this as any).response;
-    res.setHeader("Content-Type", "image/png");
+    res.setHeader('Content-Type', 'image/png');
     res.send(finalImageBuffer);
   }
 }

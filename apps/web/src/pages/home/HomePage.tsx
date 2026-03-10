@@ -1,23 +1,18 @@
+import { useEffect } from 'react'
+import { shallow } from 'zustand/shallow'
 import LoadingInsideSidebar from '@/components/LoadingInsideSidebar'
 import { API } from '@/config/api'
 import { useServerStore } from '@/context/auth.store'
 import useDataStore from '@/context/data.context'
-import { Library } from '@/data/interfaces/Media'
+import type { Library } from '@/data/interfaces/Media'
 import { useGet } from '@/hooks/media/useGet'
-import { useEffect } from 'react'
-import { shallow } from 'zustand/shallow'
 import HomePageContent from './components/content/HomePageContent'
 import NoAPIKey from './components/NoAPIKey'
 import NoContent from './components/NoContent'
 import NotAvailableServer from './components/NotAvailableServer'
 
 export default function HomePage() {
-  const {
-    serverOnline,
-    apiKeyStatus,
-    gettingServerStatus,
-    gettingApiKeyStatus,
-  } = useServerStore(
+  const { serverOnline, apiKeyStatus, gettingServerStatus, gettingApiKeyStatus } = useServerStore(
     (state) => ({
       serverOnline: state.serverOnline,
       apiKeyStatus: state.apiKeyStatus,
@@ -29,13 +24,10 @@ export default function HomePage() {
   const selectLibrary = useDataStore((state) => state.selectLibrary)
 
   // Get Libraries
-  const { data: libraries, isLoading: loadingLibraries } = useGet<Library[]>(
-    API.libraries.getAll,
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-    },
-  )
+  const { data: libraries, isLoading: loadingLibraries } = useGet<Library[]>(API.libraries.getAll, {
+    revalidateOnFocus: false,
+    revalidateIfStale: false,
+  })
 
   useEffect(() => {
     selectLibrary(null)

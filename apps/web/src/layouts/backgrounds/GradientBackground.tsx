@@ -1,5 +1,5 @@
-import { authenticatedFetch } from '@/config/api'
 import { useEffect, useRef, useState } from 'react'
+import { authenticatedFetch } from '@/config/api'
 
 interface GradientBackgroundProps {
   showGradient?: boolean
@@ -53,10 +53,7 @@ const GradientBackground = ({
   }, [showGradient, imageSrc])
 
   return (
-    <div
-      className="absolute inset-0 overflow-hidden"
-      style={{ zIndex: index, width, height }}
-    >
+    <div className="absolute inset-0 overflow-hidden" style={{ zIndex: index, width, height }}>
       {[0, 1].map((i) => (
         <canvas
           key={i}
@@ -65,9 +62,7 @@ const GradientBackground = ({
           style={{
             width,
             height,
-            background: gradientCSS
-              ? gradientCSS.replace('background: ', '').replace(';', '')
-              : '',
+            background: gradientCSS ? gradientCSS.replace('background: ', '').replace(';', '') : '',
           }}
         />
       ))}

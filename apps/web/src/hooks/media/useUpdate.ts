@@ -1,5 +1,5 @@
-import { apiClient } from '@/config/api'
 import { useState } from 'react'
+import { apiClient } from '@/config/api'
 
 interface ApiResponse<T> {
   success: boolean
@@ -33,8 +33,7 @@ export const useUpdate = <T>(): UseUpdateReturn<T> => {
         return null
       }
     } catch (err: any) {
-      const errorMessage =
-        err.response?.data?.message || err.message || 'An error occurred'
+      const errorMessage = err.response?.data?.message || err.message || 'An error occurred'
       setError(errorMessage)
       return null
     } finally {

@@ -1,5 +1,5 @@
-import { UserType } from '@/utils/constants'
-import { Server } from 'http'
+import type { Server } from 'http'
+import type { UserType } from '@/utils/constants'
 
 export interface User {
   id: string

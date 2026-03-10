@@ -1,14 +1,15 @@
-import logger from "@/utils/logger";
-import {
+import type {
   BaseEntity,
   DeepPartial,
   FindManyOptions,
   FindOneOptions,
-} from "typeorm";
-import { v4 as uuidv4 } from "uuid";
-import { createWithDefaults } from "./CreateWithDefaults";
+  FindOptionsWhere,
+} from 'typeorm';
+import { v4 as uuidv4 } from 'uuid';
+import logger from '@/utils/logger';
+import { createWithDefaults } from './CreateWithDefaults';
 
-const repositoryLogger = logger.child({ category: "Generic Repository" });
+const repositoryLogger = logger.child({ category: 'Generic Repository' });
 
 /**
  * Configuration for generic repository operations
@@ -22,13 +23,10 @@ export interface RepositoryConfig {
  * Generic Repository Helper to reduce code duplication
  * This helper encapsulates common CRUD operations
  */
-export class GenericRepositoryHelper<
-  TModel extends BaseEntity,
-  TDomain = TModel
-> {
+export class GenericRepositoryHelper<TModel extends BaseEntity, TDomain = TModel> {
   constructor(
     private model: typeof BaseEntity & (new () => TModel),
-    private config: RepositoryConfig
+    private config: RepositoryConfig,
   ) {}
 
   /**
@@ -36,7 +34,7 @@ export class GenericRepositoryHelper<
    */
   private generateId(): string {
     const uuid = uuidv4();
-    return this.config.generateShortId ? uuid.split("-")[0] : uuid;
+    return this.config.generateShortId ? uuid.split('-')[0] : uuid;
   }
 
   /**
@@ -56,25 +54,17 @@ export class GenericRepositoryHelper<
   /**
    * Generic find by ID with optional relations
    */
-  async findById(
-    id: string,
-    options?: FindOneOptions<TModel>
-  ): Promise<TDomain | null> {
+  async findById(id: string, options?: FindOneOptions<TModel>): Promise<TDomain | null> {
     try {
       const entity = await this.model.findOne({
-        where: { id } as any,
+        where: { id } as unknown as FindOptionsWhere<TModel>,
         ...options,
       });
 
       return entity ? this.toDomain(entity) : null;
     } catch (error) {
-      repositoryLogger.error(
-        error,
-        `Failed to retrieve ${this.config.entityName} with ID ${id}`
-      );
-      throw new Error(
-        `Failed to retrieve ${this.config.entityName} with ID ${id}`
-      );
+      repositoryLogger.error(error, `Failed to retrieve ${this.config.entityName} with ID ${id}`);
+      throw new Error(`Failed to retrieve ${this.config.entityName} with ID ${id}`);
     }
   }
 
@@ -83,24 +73,19 @@ export class GenericRepositoryHelper<
    */
   async findByField(
     field: string,
-    value: any,
-    options?: FindOneOptions<TModel>
+    value: unknown,
+    options?: FindOneOptions<TModel>,
   ): Promise<TDomain | null> {
     try {
       const entity = await this.model.findOne({
-        where: { [field]: value } as any,
+        where: { [field]: value } as unknown as FindOptionsWhere<TModel>,
         ...options,
       });
 
       return entity ? this.toDomain(entity) : null;
     } catch (error) {
-      repositoryLogger.error(
-        error,
-        `Failed to retrieve ${this.config.entityName} by ${field}`
-      );
-      throw new Error(
-        `Failed to retrieve ${this.config.entityName} by ${field}`
-      );
+      repositoryLogger.error(error, `Failed to retrieve ${this.config.entityName} by ${field}`);
+      throw new Error(`Failed to retrieve ${this.config.entityName} by ${field}`);
     }
   }
 
@@ -109,24 +94,19 @@ export class GenericRepositoryHelper<
    */
   async findManyByField(
     field: string,
-    value: any,
-    options?: FindManyOptions<TModel>
+    value: unknown,
+    options?: FindManyOptions<TModel>,
   ): Promise<TDomain[]> {
     try {
       const entities = await this.model.find({
-        where: { [field]: value } as any,
+        where: { [field]: value } as unknown as FindOptionsWhere<TModel>,
         ...options,
       });
 
       return this.toDomainArray(entities);
     } catch (error) {
-      repositoryLogger.error(
-        error,
-        `Failed to retrieve ${this.config.entityName} by ${field}`
-      );
-      throw new Error(
-        `Failed to retrieve ${this.config.entityName} by ${field}`
-      );
+      repositoryLogger.error(error, `Failed to retrieve ${this.config.entityName} by ${field}`);
+      throw new Error(`Failed to retrieve ${this.config.entityName} by ${field}`);
     }
   }
 
@@ -136,13 +116,12 @@ export class GenericRepositoryHelper<
   async create(data: Partial<TDomain>, checkExisting = true): Promise<TDomain> {
     try {
       // Check if entity already exists by ID
-      if (checkExisting && (data as any).id) {
-        const existing = await this.findById((data as any).id);
+      const dataWithId = data as Partial<TDomain> & { id?: string };
+      if (checkExisting && dataWithId.id) {
+        const existing = await this.findById(dataWithId.id);
         if (existing) {
           repositoryLogger.info(
-            `${this.config.entityName} with ID ${
-              (data as any).id
-            } already exists`
+            `${this.config.entityName} with ID ${dataWithId.id} already exists`,
           );
           return existing;
         }
@@ -151,29 +130,27 @@ export class GenericRepositoryHelper<
       // Generate ID if it doesn't exist
       const dataToCreate = {
         ...data,
-        id: (data as any).id || this.generateId(),
+        id: dataWithId.id || this.generateId(),
       } as unknown as DeepPartial<TModel>;
 
       const created = createWithDefaults(this.model, dataToCreate);
 
       await created.save();
       return this.toDomain(created);
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const dbError = error as { code?: string; message?: string };
       if (
-        error.code === "23505" ||
-        error.code === "ER_DUP_ENTRY" ||
-        (error.message && error.message.includes("unique"))
+        dbError.code === '23505' ||
+        dbError.code === 'ER_DUP_ENTRY' ||
+        (typeof dbError.message === 'string' && dbError.message.includes('unique'))
       ) {
         repositoryLogger.warn(
-          `Unique constraint violation for ${this.config.entityName}. Returning undefined/error.`
+          `Unique constraint violation for ${this.config.entityName}. Returning undefined/error.`,
         );
         throw new Error(`${this.config.entityName} already exists.`);
       }
 
-      repositoryLogger.error(
-        error,
-        `Failed to create ${this.config.entityName}`
-      );
+      repositoryLogger.error(error, `Failed to create ${this.config.entityName}`);
       throw new Error(`Failed to create ${this.config.entityName}`);
     }
   }
@@ -185,7 +162,7 @@ export class GenericRepositoryHelper<
     data: Partial<TDomain>,
     relationField: string,
     relationId: string,
-    checkExisting = true
+    checkExisting = true,
   ): Promise<TDomain> {
     const dataWithRelation = {
       ...data,
@@ -204,16 +181,14 @@ export class GenericRepositoryHelper<
 
       // Get json and relations fields
       const jsonColumns = repository.metadata.columns
-        .filter((column) => column.type === "simple-json")
+        .filter((column) => column.type === 'simple-json')
         .map((column) => column.propertyName);
 
-      const relationNames = repository.metadata.relations.map(
-        (relation) => relation.propertyName
-      );
+      const relationNames = repository.metadata.relations.map((relation) => relation.propertyName);
 
       // Separate JSON and remove relations
-      const updateData = { ...data } as any;
-      const jsonDataToUpdate: Record<string, any> = {};
+      const updateData = { ...data } as Record<string, unknown>;
+      const jsonDataToUpdate: Record<string, unknown> = {};
 
       for (const key of Object.keys(updateData)) {
         if (relationNames.includes(key)) {
@@ -228,7 +203,7 @@ export class GenericRepositoryHelper<
       const preloaded = await repository.preload({
         ...updateData,
         id,
-      } as any);
+      } as unknown as DeepPartial<TModel>);
 
       if (!preloaded) {
         throw new Error(`${this.config.entityName} with ID ${id} not found`);
@@ -236,7 +211,7 @@ export class GenericRepositoryHelper<
 
       // Force JSON fields
       for (const key of Object.keys(jsonDataToUpdate)) {
-        (preloaded as any)[key] = jsonDataToUpdate[key];
+        (preloaded as Record<string, unknown>)[key] = jsonDataToUpdate[key];
       }
 
       // Save in database
@@ -244,13 +219,8 @@ export class GenericRepositoryHelper<
       return this.toDomain(saved);
     } catch (error) {
       console.log({ data });
-      repositoryLogger.error(
-        error,
-        `Failed to update ${this.config.entityName} with ID ${id}`
-      );
-      throw new Error(
-        `Failed to update ${this.config.entityName} with ID ${id}`
-      );
+      repositoryLogger.error(error, `Failed to update ${this.config.entityName} with ID ${id}`);
+      throw new Error(`Failed to update ${this.config.entityName} with ID ${id}`);
     }
   }
 
@@ -259,22 +229,17 @@ export class GenericRepositoryHelper<
    */
   async delete(id: string): Promise<void> {
     try {
-      const result = await this.model.delete({ id } as any);
+      const result = await this.model.delete({ id } as unknown as FindOptionsWhere<TModel>);
 
       if (!result.affected || result.affected === 0) {
         throw new Error(`${this.config.entityName} with ID ${id} not found`);
       }
     } catch (error) {
-      if (error instanceof Error && error.message.includes("not found")) {
+      if (error instanceof Error && error.message.includes('not found')) {
         throw error;
       }
-      repositoryLogger.error(
-        error,
-        `Failed to delete ${this.config.entityName} with ID ${id}`
-      );
-      throw new Error(
-        `Failed to delete ${this.config.entityName} with ID ${id}`
-      );
+      repositoryLogger.error(error, `Failed to delete ${this.config.entityName} with ID ${id}`);
+      throw new Error(`Failed to delete ${this.config.entityName} with ID ${id}`);
     }
   }
 
@@ -286,10 +251,7 @@ export class GenericRepositoryHelper<
       const entities = await this.model.find(options);
       return this.toDomainArray(entities);
     } catch (error) {
-      repositoryLogger.error(
-        error,
-        `Failed to retrieve all ${this.config.entityName}`
-      );
+      repositoryLogger.error(error, `Failed to retrieve all ${this.config.entityName}`);
       throw new Error(`Failed to retrieve all ${this.config.entityName}`);
     }
   }
@@ -300,38 +262,35 @@ export class GenericRepositoryHelper<
   async createRelationship<TRelationModel extends BaseEntity>(
     relationModel: typeof BaseEntity & (new () => TRelationModel),
     relationData: Partial<TRelationModel>,
-    checkExisting = true
+    checkExisting = true,
   ): Promise<TRelationModel> {
     try {
       // Check if relationship already exists if checkExisting is true
       if (checkExisting && relationData) {
         const existing = await relationModel.findOne({
-          where: relationData as any,
-        } as any);
+          where: relationData as FindOptionsWhere<TRelationModel>,
+        });
 
         if (existing) {
           return existing;
         }
       }
 
+      const relationDataWithId = relationData as Partial<TRelationModel> & { id?: string };
+
       // Generate ID if it doesn't exist
       const dataToCreate = {
         ...relationData,
-        id: (relationData as any).id || this.generateId(),
+        id: relationDataWithId.id || this.generateId(),
       } as unknown as DeepPartial<TRelationModel>;
 
       const created = relationModel.create(dataToCreate);
-      await (created as any).save();
+      await created.save();
 
       return created as TRelationModel;
     } catch (error) {
-      repositoryLogger.error(
-        error,
-        `Failed to create ${this.config.entityName} relationship`
-      );
-      throw new Error(
-        `Failed to create ${this.config.entityName} relationship`
-      );
+      repositoryLogger.error(error, `Failed to create ${this.config.entityName} relationship`);
+      throw new Error(`Failed to create ${this.config.entityName} relationship`);
     }
   }
 
@@ -340,22 +299,19 @@ export class GenericRepositoryHelper<
    */
   async deleteRelationship<TRelationModel extends BaseEntity>(
     relationModel: typeof BaseEntity & (new () => TRelationModel),
-    whereCondition: Partial<TRelationModel>
+    whereCondition: Partial<TRelationModel>,
   ): Promise<void> {
     try {
-      const result = await relationModel.delete(whereCondition as any);
+      const result = await relationModel.delete(
+        whereCondition as unknown as FindOptionsWhere<TRelationModel>,
+      );
 
       if (!result.affected || result.affected === 0) {
         throw new Error(`Relationship not found`);
       }
     } catch (error) {
-      repositoryLogger.error(
-        error,
-        `Failed to delete ${this.config.entityName} relationship`
-      );
-      throw new Error(
-        `Failed to delete ${this.config.entityName} relationship`
-      );
+      repositoryLogger.error(error, `Failed to delete ${this.config.entityName} relationship`);
+      throw new Error(`Failed to delete ${this.config.entityName} relationship`);
     }
   }
 }

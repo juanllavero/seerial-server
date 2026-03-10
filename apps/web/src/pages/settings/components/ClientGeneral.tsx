@@ -1,3 +1,6 @@
+import React from 'react'
+import { useTranslation } from 'react-i18next'
+import { shallow } from 'zustand/shallow'
 import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import LangToggle from '@/components/LangToggle'
 import { Button } from '@/components/ui/button'
@@ -6,10 +9,7 @@ import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
 import SelectableWrapper from '@/components/ui/SelectableWrapper'
 import { useSettingsStore } from '@/context/settings.context'
-import React from 'react'
-import { useTranslation } from 'react-i18next'
 import ContentWrapper from './utils/ContentWrapper'
-import { shallow } from 'zustand/shallow'
 
 const TimeFormatOptions = [
   {
@@ -24,27 +24,22 @@ const TimeFormatOptions = [
 
 function ClientGeneral() {
   const { t } = useTranslation()
-  const { setClientSetting, clientSettings, setClientSettings } =
-    useSettingsStore(
-      (state) => ({
-        setClientSetting: state.setClientSetting,
-        clientSettings: state.clientSettings,
-        setClientSettings: state.setClientSettings,
-      }),
-      shallow,
-    )
+  const { setClientSetting, clientSettings, setClientSettings } = useSettingsStore(
+    (state) => ({
+      setClientSetting: state.setClientSetting,
+      clientSettings: state.clientSettings,
+      setClientSettings: state.setClientSettings,
+    }),
+    shallow,
+  )
   const [isDirty, setIsDirty] = React.useState(false)
   const [showMessage, setShowMessage] = React.useState(false)
 
-  const [playMusic, setPlayMusic] = React.useState(
-    clientSettings['playBackgroundMusic'] as boolean,
-  )
+  const [playMusic, setPlayMusic] = React.useState(clientSettings['playBackgroundMusic'] as boolean)
   const [musicVolume, setMusicVolume] = React.useState(
     clientSettings['backgroundMusicVolume'] as number,
   )
-  const [timeFormat, setTimeFormat] = React.useState(
-    clientSettings['timeFormat'] as string,
-  )
+  const [timeFormat, setTimeFormat] = React.useState(clientSettings['timeFormat'] as string)
 
   const handlePlayBackgroundMusicChange = (checked: boolean) => {
     setPlayMusic(checked)
@@ -93,19 +88,11 @@ function ClientGeneral() {
         label={t('playBackgroundMusic')}
         text={t('playBackgroundMusicMessage')}
       >
-        <Checkbox
-          checked={playMusic}
-          onCheckedChange={handlePlayBackgroundMusicChange}
-        />
+        <Checkbox checked={playMusic} onCheckedChange={handlePlayBackgroundMusicChange} />
       </LabeledInputWrapper>
 
       <LabeledInputWrapper label={t('musicVolume')}>
-        <Input
-          min={0}
-          max={100}
-          value={musicVolume}
-          onChange={handleMusicVolumeChange}
-        />
+        <Input min={0} max={100} value={musicVolume} onChange={handleMusicVolumeChange} />
       </LabeledInputWrapper>
 
       <LabeledInputWrapper direction="row" label={t('timeFormat')}>
@@ -121,9 +108,7 @@ function ClientGeneral() {
           {t('saveButton')}
         </Button>
         {showMessage && (
-          <span className="text-muted-foreground text-sm">
-            ✔ {t('changesSaved')}
-          </span>
+          <span className="text-muted-foreground text-sm">✔ {t('changesSaved')}</span>
         )}
       </FlexBox>
     </ContentWrapper>

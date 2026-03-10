@@ -1,17 +1,17 @@
+import { ListMusic } from 'lucide-react'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { shallow } from 'zustand/shallow'
+import { useIsMobile } from '@/components/hooks/use-mobile'
+import { useIsTablet } from '@/components/hooks/use-tablet'
+import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
+import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { PauseIcon, PlayIcon } from '@/components/ui/IconLibrary'
 import useMusicStore from '@/context/music.context'
-import { Song } from '@/data/interfaces/Music'
+import type { Song } from '@/data/interfaces/Music'
 import { formatTime, showToast } from '@/utils/ReactUtils'
-import { useState } from 'react'
 import MusicWave from './MusicWave'
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import { useIsTablet } from '@/components/hooks/use-tablet'
-import { shallow } from 'zustand/shallow'
-import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
-import { useTranslation } from 'react-i18next'
-import { Button } from '@/components/ui/button'
-import { ListMusic } from 'lucide-react'
 
 interface MusicCardProps {
   index: number
@@ -57,11 +57,7 @@ function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
     >
       <FlexBox gap={1} align="center">
         {!isMobile && (
-          <FlexBox
-            justify="center"
-            align="center"
-            css={{ width: '2rem', cursor: 'pointer' }}
-          >
+          <FlexBox justify="center" align="center" css={{ width: '2rem', cursor: 'pointer' }}>
             {isHovered ? (
               <div
                 onClick={() => {
@@ -83,8 +79,7 @@ function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
             ) : (
               <span
                 style={{
-                  color:
-                    currentSong === song ? 'var(--app-color)' : 'lightgray',
+                  color: currentSong === song ? 'var(--app-color)' : 'lightgray',
                 }}
               >
                 {index + 1}

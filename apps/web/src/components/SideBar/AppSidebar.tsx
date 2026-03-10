@@ -1,28 +1,20 @@
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-} from '@/components/ui/sidebar'
+import { memo, useMemo } from 'react'
+import { useLocation } from 'react-router-dom'
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from '@/components/ui/sidebar'
+import useMusicStore from '@/context/music.context'
+import NavHomeButton from './NavHomeButton'
 import NavLibraries from './NavLibraries'
 import { NavUser } from './NavUser'
-import NavHomeButton from './NavHomeButton'
 import NavSettings from './settings/NavSettings'
-import { useLocation } from 'react-router-dom'
-import { memo, useMemo } from 'react'
-import useMusicStore from '@/context/music.context'
 
 function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation()
-  const inSettings = useMemo(
-    () => location.pathname.includes('/settings'),
-    [location.pathname],
-  )
+  const inSettings = useMemo(() => location.pathname.includes('/settings'), [location.pathname])
   const hasSong = useMusicStore((state) => Boolean(state.currentSong))
 
   return (
     <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader></SidebarHeader>
+      <SidebarHeader />
       <SidebarContent>
         <NavHomeButton />
         {inSettings ? <NavSettings /> : <NavLibraries />}

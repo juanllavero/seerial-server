@@ -1,10 +1,4 @@
-import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
-import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
-import { messages } from "@/config/messages";
-import { LibraryItem } from "@/data/interfaces/Media";
-import { getUserId } from "@/utils/auth";
-import { Request as ExpressRequest } from "express";
+import type { Request as ExpressRequest } from 'express';
 import {
   Body,
   Controller,
@@ -17,23 +11,29 @@ import {
   Route,
   Security,
   Tags,
-} from "tsoa";
-import {
+} from 'tsoa';
+import { useCases } from '@/api/v1/shared/infrastructure/adapters/di/container';
+import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
+import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
+import { messages } from '@/config/messages';
+import type { LibraryItem } from '@/data/interfaces/Media';
+import { getUserId } from '@/utils/auth';
+import type {
   CreateLibraryDTO,
   ReorderItemsDTO,
   ReorderLibrariesDTO,
   UpdateLibraryDTO,
-} from "../../../application/dtos/LibraryDTOs";
-import { Library } from "../../../domain/Library";
+} from '../../../application/dtos/LibraryDTOs';
+import type { Library } from '../../../domain/Library';
 
-@Route("libraries")
-@Tags("Libraries")
+@Route('libraries')
+@Tags('Libraries')
 export class LibrariesController extends Controller {
   /**
    * Get all libraries
    */
   @Get()
-  @Security("adminAuth")
+  @Security('adminAuth')
   public async getAll(): Promise<ApiResponse<Library[]>> {
     const libraries = await useCases.getLibraries().execute();
     return ApiResponse.success(libraries, messages.success.fetch);
@@ -42,8 +42,8 @@ export class LibrariesController extends Controller {
   /**
    * Get library by ID
    */
-  @Get("{id}")
-  @Security("adminAuth")
+  @Get('{id}')
+  @Security('adminAuth')
   public async getById(@Path() id: string): Promise<ApiResponse<Library>> {
     const library = await useCases.getLibrary().execute(id);
     if (!library) {
@@ -56,11 +56,11 @@ export class LibrariesController extends Controller {
   /**
    * Get library content
    */
-  @Get("{id}/content")
-  @Security("adminAuth")
+  @Get('{id}/content')
+  @Security('adminAuth')
   public async getContent(
     @Path() id: string,
-    @Request() req: ExpressRequest
+    @Request() req: ExpressRequest,
   ): Promise<ApiResponse<LibraryItem[]>> {
     const userId = getUserId(req);
     const content = await useCases.getLibraryContent().execute(id, userId);
@@ -74,8 +74,8 @@ export class LibrariesController extends Controller {
   /**
    * Start library scan
    */
-  @Get("{id}/scan")
-  @Security("adminAuth")
+  @Get('{id}/scan')
+  @Security('adminAuth')
   public async startScan(@Path() id: string): Promise<ApiResponse<Library>> {
     const library = await useCases.getLibrary().execute(id);
 
@@ -92,19 +92,17 @@ export class LibrariesController extends Controller {
    * Create a new library
    */
   @Post()
-  @Security("adminAuth")
-  public async create(
-    @Body() body: CreateLibraryDTO
-  ): Promise<ApiResponse<Library>> {
+  @Security('adminAuth')
+  public async create(@Body() body: CreateLibraryDTO): Promise<ApiResponse<Library>> {
     // The scanLibrary useCase expects a full Library object, so we need to create a temporary one
     const tempLibrary = {
       ...body,
-      id: "",
+      id: '',
       order: 0,
       hidden: false,
       analyzedFiles: {},
       analyzedFolders: {},
-      backgroundSrc: "",
+      backgroundSrc: '',
       series: [],
       movies: [],
       albums: [],
@@ -124,11 +122,11 @@ export class LibrariesController extends Controller {
   /**
    * Update library details
    */
-  @Put("{id}")
-  @Security("adminAuth")
+  @Put('{id}')
+  @Security('adminAuth')
   public async update(
     @Path() id: string,
-    @Body() body: UpdateLibraryDTO
+    @Body() body: UpdateLibraryDTO,
   ): Promise<ApiResponse<Library>> {
     const result = await useCases.updateLibrary().execute(id, body);
 
@@ -138,8 +136,8 @@ export class LibrariesController extends Controller {
   /**
    * Delete a library
    */
-  @Delete("{id}")
-  @Security("adminAuth")
+  @Delete('{id}')
+  @Security('adminAuth')
   public async delete(@Path() id: string): Promise<ApiResponse<null>> {
     await useCases.deleteLibrary().execute(id);
 
@@ -149,11 +147,9 @@ export class LibrariesController extends Controller {
   /**
    * Reorder libraries
    */
-  @Post("order")
-  @Security("adminAuth")
-  public async reorder(
-    @Body() body: ReorderLibrariesDTO
-  ): Promise<ApiResponse<boolean>> {
+  @Post('order')
+  @Security('adminAuth')
+  public async reorder(@Body() body: ReorderLibrariesDTO): Promise<ApiResponse<boolean>> {
     const { orderedLibraryIds } = body;
     const result = await useCases.reorderLibraries().execute(orderedLibraryIds);
 
@@ -163,17 +159,15 @@ export class LibrariesController extends Controller {
   /**
    * Reorder library items
    */
-  @Post("{id}/order")
-  @Security("adminAuth")
+  @Post('{id}/order')
+  @Security('adminAuth')
   public async reorderItems(
     @Path() id: string,
-    @Body() body: ReorderItemsDTO
+    @Body() body: ReorderItemsDTO,
   ): Promise<ApiResponse<boolean>> {
     const { orderedItems } = body;
 
-    const result = await useCases
-      .reorderLibraryItems()
-      .execute(id, orderedItems);
+    const result = await useCases.reorderLibraryItems().execute(id, orderedItems);
 
     return ApiResponse.success(result, messages.success.order);
   }

@@ -1,11 +1,5 @@
-import {
-  AudioTrack,
-  Chapter,
-  MediaInfo,
-  SubtitleTrack,
-  VideoTrack,
-} from './MediaInfo'
-import { Album } from './Music'
+import type { AudioTrack, Chapter, MediaInfo, SubtitleTrack, VideoTrack } from './MediaInfo'
+import type { Album } from './Music'
 
 export interface Cast {
   name: string

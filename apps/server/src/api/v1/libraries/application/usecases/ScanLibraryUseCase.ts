@@ -1,19 +1,19 @@
-import { FileSystemServicePort } from "@/api/v1/shared/application/ports/FileSystemServicePort";
+import os from 'os';
+import pLimit from 'p-limit';
+import path from 'path';
+import type { FileSystemServicePort } from '@/api/v1/shared/application/ports/FileSystemServicePort';
 import {
   notificationService,
   useCases,
-} from "@/api/v1/shared/infrastructure/adapters/di/container";
-import logger from "@/utils/logger";
-import os from "os";
-import pLimit from "p-limit";
-import path from "path";
-import { Library } from "../../domain/Library";
-import { LibrariesRepositoryPort } from "../ports/LibrariesRepositoryPort";
+} from '@/api/v1/shared/infrastructure/adapters/di/container';
+import logger from '@/utils/logger';
+import type { Library } from '../../domain/Library';
+import type { LibrariesRepositoryPort } from '../ports/LibrariesRepositoryPort';
 
 export class ScanLibraryUseCase {
   constructor(
     private readonly filesManager: FileSystemServicePort,
-    private readonly librariesRepo: LibrariesRepositoryPort
+    private readonly librariesRepo: LibrariesRepositoryPort,
   ) {}
 
   async execute(newLibrary: Library, addNewLibrary: boolean) {
@@ -23,17 +23,17 @@ export class ScanLibraryUseCase {
         libraryName: newLibrary?.name,
         libraryType: newLibrary?.type,
       },
-      "Starting library scan execution"
+      'Starting library scan execution',
     );
 
     if (!newLibrary) {
-      logger.error("No library provided for scan");
+      logger.error('No library provided for scan');
       return undefined;
     }
 
     const library = addNewLibrary
       ? await this.librariesRepo.create(newLibrary)
-      : await this.librariesRepo.getById(newLibrary.id ?? "");
+      : await this.librariesRepo.getById(newLibrary.id ?? '');
 
     if (!library) {
       logger.error(
@@ -41,14 +41,14 @@ export class ScanLibraryUseCase {
           addNewLibrary,
           libraryId: newLibrary.id,
         },
-        "Failed to create or retrieve library"
+        'Failed to create or retrieve library',
       );
       return undefined;
     }
 
     // Send SCAN_STARTED immediately
     const message = {
-      header: "SCAN_STARTED",
+      header: 'SCAN_STARTED',
       body: library.id,
     };
     notificationService.broadcast(JSON.stringify(message));
@@ -56,7 +56,7 @@ export class ScanLibraryUseCase {
 
     // Fire and forget - processing continues in background
     this.executeScan(library).catch((error) => {
-      logger.error({ libraryId: library.id, error }, "Scan execution failed");
+      logger.error({ libraryId: library.id, error }, 'Scan execution failed');
     });
 
     return library;
@@ -65,7 +65,7 @@ export class ScanLibraryUseCase {
   private async executeScan(library: Library): Promise<void> {
     let availableThreads = Math.max(os.cpus().length / 2, 1);
 
-    if (library.type === "Music") {
+    if (library.type === 'Music') {
       availableThreads = Math.min(availableThreads, 2);
     }
     const limit = pLimit(availableThreads);
@@ -78,21 +78,19 @@ export class ScanLibraryUseCase {
           libraryId: library.id,
           rootFolder,
         },
-        "Starting to scan folder"
+        'Starting to scan folder',
       );
 
-      const filesInFolder = await this.filesManager.getFilesInFolder(
-        rootFolder
-      );
+      const filesInFolder = await this.filesManager.getFilesInFolder(rootFolder);
 
       for (const file of filesInFolder) {
         const filePath = path.join(file.parentPath, file.name);
 
         const task = limit(async () => {
           try {
-            if (library.type === "Shows") {
+            if (library.type === 'Shows') {
               await useCases.scanSeries().execute(library, filePath);
-            } else if (library.type === "Movies") {
+            } else if (library.type === 'Movies') {
               await useCases.scanMovie().execute(library, filePath);
             } else {
               await useCases.scanMusic().execute(library, filePath);
@@ -105,7 +103,7 @@ export class ScanLibraryUseCase {
                 libraryType: library.type,
                 error: error instanceof Error ? error.message : String(error),
               },
-              "Failed to process file"
+              'Failed to process file',
             );
           }
         });
@@ -124,7 +122,7 @@ export class ScanLibraryUseCase {
 
     // Send SCAN_COMPLETE after everything finishes
     const message = {
-      header: "SCAN_COMPLETE",
+      header: 'SCAN_COMPLETE',
       body: {
         libraryId: library.id,
       },
@@ -134,9 +132,9 @@ export class ScanLibraryUseCase {
     logger.info(
       {
         libraryId: library.id,
-        messageType: "SCAN_COMPLETE",
+        messageType: 'SCAN_COMPLETE',
       },
-      "Scan completed successfully, sent notification to clients"
+      'Scan completed successfully, sent notification to clients',
     );
   }
 }

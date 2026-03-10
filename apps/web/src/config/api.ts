@@ -60,17 +60,11 @@ export function createServerClient(serverUrl: string) {
 // Authenticated Fetch Functions
 // ============================================================================
 
-export async function authenticatedFetch(
-  url: string,
-  type: string = 'GET',
-  body?: any,
-) {
+export async function authenticatedFetch(url: string, type: string = 'GET', body?: any) {
   const config = { method: type, url }
 
   if (body && type !== 'GET') {
-    return await apiClient
-      .request({ ...config, data: body })
-      .then((res) => res.data)
+    return await apiClient.request({ ...config, data: body }).then((res) => res.data)
   }
 
   return await apiClient.request(config).then((res) => res.data)
@@ -94,17 +88,14 @@ export const api = {
   get: <T = any>(url: string, params?: any) =>
     apiClient.get<T>(url, { params }).then((res) => res.data),
 
-  post: <T = any>(url: string, data?: any) =>
-    apiClient.post<T>(url, data).then((res) => res.data),
+  post: <T = any>(url: string, data?: any) => apiClient.post<T>(url, data).then((res) => res.data),
 
-  put: <T = any>(url: string, data?: any) =>
-    apiClient.put<T>(url, data).then((res) => res.data),
+  put: <T = any>(url: string, data?: any) => apiClient.put<T>(url, data).then((res) => res.data),
 
   patch: <T = any>(url: string, data?: any) =>
     apiClient.patch<T>(url, data).then((res) => res.data),
 
-  delete: <T = any>(url: string) =>
-    apiClient.delete<T>(url).then((res) => res.data),
+  delete: <T = any>(url: string) => apiClient.delete<T>(url).then((res) => res.data),
 }
 
 // ============================================================================
@@ -160,8 +151,7 @@ export const API = {
   },
   media: {
     details: (type: string) => `/media/details/${type}`,
-    background: (itemType: string, mediaType: string) =>
-      `/media/${itemType}/${mediaType}`,
+    background: (itemType: string, mediaType: string) => `/media/${itemType}/${mediaType}`,
   },
   files: {
     drives: '/files/drives',
@@ -195,8 +185,7 @@ export const API = {
     myList: (id: string) => `/series/${id}/my-list`,
   },
   seasons: {
-    get: (id: string, include?: string) =>
-      `/seasons/${id}?include=${include ?? 'none'}`,
+    get: (id: string, include?: string) => `/seasons/${id}?include=${include ?? 'none'}`,
     update: (id: string) => `/seasons/${id}`,
     delete: (id: string) => `/seasons/${id}`,
     setWatchState: (id: string) => `/seasons/${id}/watch-state`,
@@ -208,8 +197,7 @@ export const API = {
     update: (id: string) => `/playlists/${id}`,
     delete: (id: string) => `/playlists/${id}`,
     addSong: (id: string) => `/playlists/${id}/songs`,
-    removeSong: (id: string, songId: string) =>
-      `/playlists/${id}/songs/${songId}`,
+    removeSong: (id: string, songId: string) => `/playlists/${id}/songs/${songId}`,
   },
   myList: {
     movies: '/my-list/movies',
@@ -247,8 +235,7 @@ export const API = {
   },
   collections: {
     get: (id: string) => `/collections/${id}`,
-    musicExtras: (collectionId: string) =>
-      `/collections/${collectionId}/music-extras`,
+    musicExtras: (collectionId: string) => `/collections/${collectionId}/music-extras`,
     reorderContent: (id: string) => `/collections/${id}/items/order`,
     update: (id: string) => `/collections/${id}`,
     delete: (id: string) => `/collections/${id}`,

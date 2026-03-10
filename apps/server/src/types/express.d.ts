@@ -1,5 +1,5 @@
-import { UserDTO } from "@/api/v1/users/application/dtos/UserDTOs";
-import "express";
+import type { UserDTO } from '@/api/v1/users/application/dtos/UserDTOs';
+import 'express';
 
 declare global {
   namespace Express {

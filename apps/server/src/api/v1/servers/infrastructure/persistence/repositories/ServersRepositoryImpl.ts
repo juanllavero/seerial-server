@@ -1,19 +1,16 @@
-import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
-import { GenericRepositoryHelper } from "@/helpers/GenericRepositoryHelper";
-import logger from "@/utils/logger";
-import { v4 as uuidv4 } from "uuid";
-import { ServersRepositoryPort } from "../../../application/ports/ServersRepositoryPort";
-import { Server } from "../../../domain/Server";
-import { ServerModel } from "../models/ServerModel";
+import { v4 as uuidv4 } from 'uuid';
+import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
+import { GenericRepositoryHelper } from '@/helpers/GenericRepositoryHelper';
+import logger from '@/utils/logger';
+import type { ServersRepositoryPort } from '../../../application/ports/ServersRepositoryPort';
+import type { Server } from '../../../domain/Server';
+import { ServerModel } from '../models/ServerModel';
 
 /**
  * Implementation of ServersRepositoryPort for server configuration management.
  * Provides CRUD operations for server entities using Sequelize ORM.
  */
-export class ServersRepositoryImpl
-  extends BaseRepository
-  implements ServersRepositoryPort
-{
+export class ServersRepositoryImpl extends BaseRepository implements ServersRepositoryPort {
   /** Helper for common CRUD operations on ServerModel */
   private helper: GenericRepositoryHelper<ServerModel, Server>;
 
@@ -24,7 +21,7 @@ export class ServersRepositoryImpl
   constructor() {
     super();
     this.helper = new GenericRepositoryHelper(ServerModel, {
-      entityName: "Server",
+      entityName: 'Server',
       generateShortId: true,
     });
   }
@@ -47,7 +44,7 @@ export class ServersRepositoryImpl
    * @returns Promise resolving to the created Server instance or null
    */
   async create(server: Server): Promise<Server | null> {
-    this.validateData(server, "Server data");
+    this.validateData(server, 'Server data');
 
     if (server.id) {
       const existingServer = await ServerModel.findOne({
@@ -61,7 +58,7 @@ export class ServersRepositoryImpl
 
     const dataToCreate = {
       ...server,
-      id: server.id || uuidv4().split("-")[0],
+      id: server.id || uuidv4().split('-')[0],
     };
 
     return this.helper.create(dataToCreate, true);
@@ -76,8 +73,8 @@ export class ServersRepositoryImpl
    * @returns Promise resolving to the updated Server instance
    */
   async update(id: string, data: Partial<Server>): Promise<Server> {
-    const validatedId = this.validateId(id, "Server ID");
-    this.validateData(data, "Update data");
+    const validatedId = this.validateId(id, 'Server ID');
+    this.validateData(data, 'Update data');
     return this.helper.update(validatedId, data);
   }
 }

@@ -1,7 +1,7 @@
-import { Button } from '@/components/ui/button'
-import FlexBox from '@/components/ui/FlexBox'
 import { Film, Music, TvMinimal } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { Button } from '@/components/ui/button'
+import FlexBox from '@/components/ui/FlexBox'
 
 interface LibraryTypeButtonProps {
   selectedType: string | undefined
@@ -10,12 +10,7 @@ interface LibraryTypeButtonProps {
   onClick: () => void
 }
 
-function LibraryTypeButton({
-  selectedType,
-  type,
-  disabled,
-  onClick,
-}: LibraryTypeButtonProps) {
+function LibraryTypeButton({ selectedType, type, disabled, onClick }: LibraryTypeButtonProps) {
   const { t } = useTranslation()
   return (
     <Button
@@ -27,13 +22,7 @@ function LibraryTypeButton({
         color: selectedType?.toLowerCase() === type ? 'var(--app-color)' : '',
       }}
     >
-      <FlexBox
-        direction="column"
-        gap={1}
-        justify="center"
-        align="center"
-        padding="1rem"
-      >
+      <FlexBox direction="column" gap={1} justify="center" align="center" padding="1rem">
         {type === 'movies' ? (
           <Film size={'2rem'} />
         ) : type === 'shows' ? (
@@ -44,8 +33,7 @@ function LibraryTypeButton({
         <span
           className="font-semibold"
           style={{
-            color:
-              selectedType?.toLowerCase() === type ? 'var(--app-color)' : '',
+            color: selectedType?.toLowerCase() === type ? 'var(--app-color)' : '',
           }}
         >
           {t(type)}

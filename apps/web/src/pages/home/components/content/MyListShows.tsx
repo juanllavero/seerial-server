@@ -1,15 +1,15 @@
+import { Pencil } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import useSWR, { mutate } from 'swr'
+import { shallow } from 'zustand/shallow'
 import Card from '@/components/cards/Card'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { Button } from '@/components/ui/button'
 import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
 import { useServerStore } from '@/context/auth.store'
 import { useDialogStore } from '@/context/dialog.store'
-import { Series } from '@/data/interfaces/Media'
+import type { Series } from '@/data/interfaces/Media'
 import { refreshMetadata, toggleSeriesWatched } from '@/utils/ReactUtils'
-import { Pencil } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
-import useSWR, { mutate } from 'swr'
-import { shallow } from 'zustand/shallow'
 import HorizontalList from '../../../../components/lists/HorizontalList'
 import HorizontalListSkeleton from './HorizontalListSkeleton'
 
@@ -65,9 +65,7 @@ function MyListShows({ goToContent }: MyListShowsProps) {
                           seriesId: series.id,
                           userId: user?.id,
                         }).then(() => {
-                          mutate((key: string) =>
-                            key.startsWith(API.myList.series),
-                          )
+                          mutate((key: string) => key.startsWith(API.myList.series))
                         })
                       },
                     },
@@ -86,21 +84,13 @@ function MyListShows({ goToContent }: MyListShowsProps) {
                     },
                     {
                       title: t('changeEpisodesGroup'),
-                      action: () =>
-                        openDialog('episodesGroup', { seriesId: series.id }),
+                      action: () => openDialog('episodesGroup', { seriesId: series.id }),
                     },
                     {
                       title:
-                        series.watchStatus !== undefined
-                          ? t('markUnwatched')
-                          : t('markWatched'),
+                        series.watchStatus !== undefined ? t('markUnwatched') : t('markWatched'),
                       action: () =>
-                        user &&
-                        toggleSeriesWatched(
-                          series.id,
-                          !series.watchStatus,
-                          user.id,
-                        ),
+                        user && toggleSeriesWatched(series.id, !series.watchStatus, user.id),
                     },
                   ],
                 },
@@ -116,11 +106,7 @@ function MyListShows({ goToContent }: MyListShowsProps) {
                 },
               ],
             }}
-            subtitle={
-              series.year
-                ? new Date(series.year).getFullYear().toString()
-                : 'N/A'
-            }
+            subtitle={series.year ? new Date(series.year).getFullYear().toString() : 'N/A'}
             editModal={
               <Button
                 variant={'ghost'}

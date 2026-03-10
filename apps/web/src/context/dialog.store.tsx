@@ -40,10 +40,7 @@ type DialogName = keyof DialogPayloads
 interface DialogState {
   open: DialogName | null
   payload: DialogPayloads[DialogName] | null
-  openDialog: <T extends DialogName>(
-    name: T,
-    payload: DialogPayloads[T],
-  ) => void
+  openDialog: <T extends DialogName>(name: T, payload: DialogPayloads[T]) => void
   closeDialog: () => void
 }
 

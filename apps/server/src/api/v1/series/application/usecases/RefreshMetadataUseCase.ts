@@ -1,11 +1,11 @@
-import { MetadataProviderPort } from "@/api/v1/shared/application/ports/MetadataProviderPort";
+import type { MetadataProviderPort } from '@/api/v1/shared/application/ports/MetadataProviderPort';
 import {
   notificationService,
   useCases,
-} from "@/api/v1/shared/infrastructure/adapters/di/container";
-import logger from "@/utils/logger";
+} from '@/api/v1/shared/infrastructure/adapters/di/container';
+import logger from '@/utils/logger';
 
-const refreshMetadataLogger = logger.child({ category: "Refresh Metadata" });
+const refreshMetadataLogger = logger.child({ category: 'Refresh Metadata' });
 
 /**
  * Refreshes all the metadata of an existing series, including all its seasons and episodes.
@@ -35,10 +35,7 @@ export class RefreshMetadataUseCase {
       notificationService.mutateSeries(series);
 
       // Update show metadata
-      await this.metadataProvider.updateSeriesMetadata(
-        series,
-        library.language
-      );
+      await this.metadataProvider.updateSeriesMetadata(series, library.language);
 
       // Update seasons and episodes metadata
       const seasons = await useCases.getSeasons().execute(series.id);
@@ -50,28 +47,24 @@ export class RefreshMetadataUseCase {
           const seasonTMDb = await this.metadataProvider.getSeason(
             series.themdbId,
             season.seasonNumber,
-            library.language
+            library.language,
           );
           if (!seasonTMDb?.episodes) continue;
 
-          const episodes = await useCases
-            .getEpisodesBySeasonId()
-            .execute(season.id);
+          const episodes = await useCases.getEpisodesBySeasonId().execute(season.id);
           if (episodes) {
             for (const episode of episodes) {
               const episodeTMDb = seasonTMDb.episodes.find(
-                (e) => e.episode_number === episode.episodeNumber
+                (e) => e.episode_number === episode.episodeNumber,
               );
-              const video = await useCases
-                .getVideoByEpisodeId()
-                .execute(episode.id);
+              const video = await useCases.getVideoByEpisodeId().execute(episode.id);
 
               if (episodeTMDb && video) {
                 await this.metadataProvider.updateEpisodeMetadata(
                   episode,
                   video,
                   series,
-                  episodeTMDb
+                  episodeTMDb,
                 );
               }
             }
@@ -79,10 +72,7 @@ export class RefreshMetadataUseCase {
         }
       }
     } catch (error) {
-      refreshMetadataLogger.error(
-        error,
-        `Error refreshing show "${series.name}"`
-      );
+      refreshMetadataLogger.error(error, `Error refreshing show "${series.name}"`);
     } finally {
       // Update UI
       series.analyzingFiles = false;

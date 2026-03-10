@@ -1,6 +1,6 @@
 import { API } from '@/config/api'
 import { useDialogStore } from '@/context/dialog.store'
-import { Episode, Series } from '@/data/interfaces/Media'
+import type { Episode, Series } from '@/data/interfaces/Media'
 import { useGet } from '@/hooks/media/useGet'
 import useEditDialog from '@/hooks/useEditDialog'
 import { ModalWrapper } from '../../ModalWrapper'
@@ -20,27 +20,27 @@ function EpisodeDialog() {
   const { id } = payload as { id: string }
   const { data: episode } = useGet<Episode>(API.episodes.get(id))
   const { data: series } = useGet<Series>(
-    episode
-      ? API.media.details(`seriesBySeasonId?id=${episode.seasonId}`)
-      : null,
+    episode ? API.media.details(`seriesBySeasonId?id=${episode.seasonId}`) : null,
   )
 
-  const { control, images, selectedTab, setSelectedTab, handleUpdate, t } =
-    useEditDialog<Episode, EpisodeImageState>({
-      entity: episode,
-      configs: [episodeInfoConfig],
-      initialImages: { images: [], localFolder: '', selectedImage: '' },
-      getImagesFromEntity: (e) => ({
-        images: e.video.imgUrls || [],
-        selectedImage: e.video.imgSrc || '',
-        localFolder: `img/thumbnails/video/${e.id}`,
-      }),
-      getExtraSubmitData: (imgs, e) => ({
-        imgSrc: imgs.selectedImage ?? e.video.imgSrc,
-      }),
-      apiUpdateUrl: episode ? API.episodes.update(episode.id) : '',
-      errorMessage: 'Error updating episode',
-    })
+  const { control, images, selectedTab, setSelectedTab, handleUpdate, t } = useEditDialog<
+    Episode,
+    EpisodeImageState
+  >({
+    entity: episode,
+    configs: [episodeInfoConfig],
+    initialImages: { images: [], localFolder: '', selectedImage: '' },
+    getImagesFromEntity: (e) => ({
+      images: e.video.imgUrls || [],
+      selectedImage: e.video.imgSrc || '',
+      localFolder: `img/thumbnails/video/${e.id}`,
+    }),
+    getExtraSubmitData: (imgs, e) => ({
+      imgSrc: imgs.selectedImage ?? e.video.imgSrc,
+    }),
+    apiUpdateUrl: episode ? API.episodes.update(episode.id) : '',
+    errorMessage: 'Error updating episode',
+  })
 
   if (!episode || !series) return null
 
@@ -52,9 +52,7 @@ function EpisodeDialog() {
       tabs={[
         {
           title: t('generalButton'),
-          content: (
-            <GenericFormTab config={episodeInfoConfig} control={control} />
-          ),
+          content: <GenericFormTab config={episodeInfoConfig} control={control} />,
         },
         {
           title: t('thumbnailsButton'),

@@ -1,6 +1,6 @@
+import type React from 'react'
 import FlexBox from '@/components/ui/FlexBox'
 import { WarningIcon } from '@/components/ui/IconLibrary'
-import React from 'react'
 
 interface AlertContentProps {
   title: string

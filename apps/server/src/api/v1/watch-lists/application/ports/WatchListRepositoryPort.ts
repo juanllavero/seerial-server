@@ -1,4 +1,4 @@
-import { WatchList } from "../../domain/WatchList";
+import type { WatchList } from '../../domain/WatchList';
 
 export interface WatchListRepositoryPort {
   findByVideoId(videoId: string): Promise<WatchList | null>;

@@ -1,5 +1,5 @@
-import { isAbsolutePath } from '@/utils/ReactUtils'
 import { useEffect, useRef, useState } from 'react'
+import { isAbsolutePath } from '@/utils/ReactUtils'
 import { useIsMobile } from '../hooks/use-mobile'
 import { useIsTablet } from '../hooks/use-tablet'
 import { Skeleton } from './skeleton'
@@ -129,13 +129,13 @@ const Image: React.FC<ImageProps> = ({
   }
 
   const handleImageError = () => {
-    if (!hasError) {
+    if (hasError) {
+      setIsLoading(false)
+    } else {
       setHasError(true)
       if (imgRef.current) {
         imgRef.current.src = fallbackSrc ?? ''
       }
-    } else {
-      setIsLoading(false)
     }
   }
 
@@ -164,12 +164,7 @@ const Image: React.FC<ImageProps> = ({
       {/* Fallback when every image fails */}
       {!isLoading && hasError && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400">
-          <svg
-            className="h-12 w-12"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg className="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"

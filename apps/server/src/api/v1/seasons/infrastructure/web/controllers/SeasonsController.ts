@@ -1,38 +1,23 @@
-import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
-import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
-import { messages } from "@/config/messages";
-import { IncludeType } from "@/types/common";
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Path,
-  Post,
-  Put,
-  Query,
-  Route,
-  Security,
-  Tags,
-} from "tsoa";
-import {
-  SetSeasonWatchStateDTO,
-  UpdateSeasonDTO,
-} from "../../../application/dtos/SeasonDTOs";
-import { Season } from "../../../domain/Season";
+import { Body, Controller, Delete, Get, Path, Post, Put, Query, Route, Security, Tags } from 'tsoa';
+import { useCases } from '@/api/v1/shared/infrastructure/adapters/di/container';
+import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
+import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
+import { messages } from '@/config/messages';
+import type { IncludeType } from '@/types/common';
+import type { SetSeasonWatchStateDTO, UpdateSeasonDTO } from '../../../application/dtos/SeasonDTOs';
+import type { Season } from '../../../domain/Season';
 
-@Route("seasons")
-@Tags("Seasons")
+@Route('seasons')
+@Tags('Seasons')
 export class SeasonsController extends Controller {
   /**
    * Get season details by ID
    */
-  @Get("{id}")
-  @Security("cookieAuth")
+  @Get('{id}')
+  @Security('cookieAuth')
   public async get(
     @Path() id: string,
-    @Query() include?: IncludeType
+    @Query() include?: IncludeType,
   ): Promise<ApiResponse<Season>> {
     const result = await useCases.getSeasonById().execute(id, include);
 
@@ -46,11 +31,11 @@ export class SeasonsController extends Controller {
   /**
    * Update season details
    */
-  @Put("{id}")
-  @Security("adminAuth")
+  @Put('{id}')
+  @Security('adminAuth')
   public async update(
     @Path() id: string,
-    @Body() body: UpdateSeasonDTO
+    @Body() body: UpdateSeasonDTO,
   ): Promise<ApiResponse<Season>> {
     const result = await useCases.updateSeason().execute(id, body);
     return ApiResponse.success(result, messages.success.update);
@@ -59,8 +44,8 @@ export class SeasonsController extends Controller {
   /**
    * Delete a season
    */
-  @Delete("{id}")
-  @Security("adminAuth")
+  @Delete('{id}')
+  @Security('adminAuth')
   public async delete(@Path() id: string): Promise<ApiResponse<null>> {
     await useCases.deleteSeason().execute(id);
     return ApiResponse.success(null, messages.success.delete);
@@ -69,11 +54,11 @@ export class SeasonsController extends Controller {
   /**
    * Set season watch state for a user
    */
-  @Post("{id}/watch-state")
-  @Security("adminAuth")
+  @Post('{id}/watch-state')
+  @Security('adminAuth')
   public async setWatchState(
     @Path() id: string,
-    @Body() body: SetSeasonWatchStateDTO
+    @Body() body: SetSeasonWatchStateDTO,
   ): Promise<ApiResponse<null>> {
     const { watched, userId } = body;
 
@@ -85,9 +70,7 @@ export class SeasonsController extends Controller {
 
     // Get first or last episode
     const episodeIndex = watched === true ? season.episodes.length - 1 : 0;
-    const episode = season.episodes.sort(
-      (a, b) => a.episodeNumber - b.episodeNumber
-    )[episodeIndex];
+    const episode = season.episodes.sort((a, b) => a.episodeNumber - b.episodeNumber)[episodeIndex];
 
     // Set episode watched state
     await useCases.setEpisodeWatchState().execute(episode.id, userId, watched);

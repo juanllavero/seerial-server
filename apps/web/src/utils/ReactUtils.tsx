@@ -1,17 +1,14 @@
-import Image from '@/components/ui/Image'
-import { ScreenHeight } from '@/data/enums/Screen'
-import { Collection, Video } from '@/data/interfaces/Media'
-
-import { API, authenticatedFetch } from '@/config/api'
-import { useWebSocketStore } from '@/context/ws.context'
 import { t } from 'i18next'
 import { toast } from 'sonner'
 import { mutate } from 'swr'
+import Image from '@/components/ui/Image'
+import { API, authenticatedFetch } from '@/config/api'
+import { useWebSocketStore } from '@/context/ws.context'
+import { ScreenHeight } from '@/data/enums/Screen'
+import type { Collection, Video } from '@/data/interfaces/Media'
 import { iso1to3 } from './utils'
 
-const tailwindSizes = [
-  40, 48, 56, 60, 64, 72, 80, 96, 100, 112, 120, 128, 144, 160, 192,
-]
+const tailwindSizes = [40, 48, 56, 60, 64, 72, 80, 96, 100, 112, 120, 128, 144, 160, 192]
 
 export const getVideoProgress = (video: Video, watchedTime?: number) => {
   const timeWatched = watchedTime
@@ -26,11 +23,7 @@ export const getVideoProgress = (video: Video, watchedTime?: number) => {
   return undefined
 }
 
-export const toggleMovieWatched = (
-  id: string,
-  newState: boolean,
-  userId: string,
-) => {
+export const toggleMovieWatched = (id: string, newState: boolean, userId: string) => {
   authenticatedFetch(API.movies.setWatchState(id), 'POST', {
     movieId: id,
     watched: newState,
@@ -42,11 +35,7 @@ export const toggleMovieWatched = (
   })
 }
 
-export const toggleSeriesWatched = (
-  id: string,
-  newState: boolean,
-  userId: string,
-) => {
+export const toggleSeriesWatched = (id: string, newState: boolean, userId: string) => {
   authenticatedFetch(API.series.setWatchState(id), 'POST', {
     seriesId: id,
     watched: newState,
@@ -210,9 +199,7 @@ export const getAudioTrack = (prefAudioLan: string, video: Video) => {
     return video.audioTracks[video.selectedAudioTrack]
   } else {
     if (prefAudioLan !== '') {
-      const track = video.audioTracks.find(
-        (track) => track.language === prefAudioLan,
-      )
+      const track = video.audioTracks.find((track) => track.language === prefAudioLan)
       if (track) return track
     }
 
@@ -220,11 +207,7 @@ export const getAudioTrack = (prefAudioLan: string, video: Video) => {
   }
 }
 
-export const getSubtitleTrack = (
-  prefSubsLan: string,
-  subsMode: string,
-  video: Video,
-) => {
+export const getSubtitleTrack = (prefSubsLan: string, subsMode: string, video: Video) => {
   if (!video.subtitleTracks || video.subtitleTracks.length === 0) return null
 
   if (
@@ -248,9 +231,7 @@ export const getSubtitleTrack = (
       case 'autoSubs':
       case 'alwaysSubs':
         return (
-          video.subtitleTracks.findLast(
-            (track) => track.languageTag === targetLang,
-          ) ?? defaultTrack
+          video.subtitleTracks.findLast((track) => track.languageTag === targetLang) ?? defaultTrack
         )
       default:
         return null
@@ -275,13 +256,7 @@ export const generateRandoumUUID = () => {
  * @param type The type of the toast
  */
 export const showToast = (
-  type:
-    | 'success'
-    | 'error'
-    | 'warning'
-    | 'info'
-    | 'message'
-    | 'default' = 'default',
+  type: 'success' | 'error' | 'warning' | 'info' | 'message' | 'default' = 'default',
   message: string,
   title?: string,
   duration?: number,
@@ -366,36 +341,22 @@ export const isAbsolutePath = (pathString: string): boolean => {
 export const getFirstImage = (collection: Collection, type: string) => {
   if (type === 'Movies' && collection.movies && collection.movies.length > 0) {
     return collection.movies[0].coverSrc
-  } else if (
-    type === 'Series' &&
-    collection.shows &&
-    collection.shows.length > 0
-  ) {
+  } else if (type === 'Series' && collection.shows && collection.shows.length > 0) {
     return collection.shows[0].coverSrc
-  } else if (
-    type === 'Music' &&
-    collection.albums &&
-    collection.albums.length > 0
-  ) {
+  } else if (type === 'Music' && collection.albums && collection.albums.length > 0) {
     return collection.albums[0].coverSrc
   }
   return ''
 }
 
-export const getPosterImage = (
-  collectionId: string,
-  images: string[],
-  type: string,
-) => {
+export const getPosterImage = (collectionId: string, images: string[], type: string) => {
   // If no images, return null or a placeholder
   if (images.length === 0) {
     return (
       <div className="flex h-full w-full items-center justify-center">
         <Image
           key={'Placeholder image for ' + type + ' collection' + collectionId}
-          src={
-            type === 'Music' ? '/img/songDefault.png' : '/img/fileNotFound.jpg'
-          }
+          src={type === 'Music' ? '/img/songDefault.png' : '/img/fileNotFound.jpg'}
           alt={`Collection item ${collectionId}`}
           className="h-full w-full object-cover"
           aspectRatio={type === 'Music' ? 1 : 2 / 3}
@@ -408,9 +369,7 @@ export const getPosterImage = (
   if (images.length > 1 && images.length < 4) {
     const placeholdersNeeded = 4 - images.length
     for (let i = 0; i < placeholdersNeeded; i++) {
-      images.push(
-        `local/img/${type === 'Music' ? 'songDefault.png' : 'fileNotFound.jpg'}`,
-      )
+      images.push(`local/img/${type === 'Music' ? 'songDefault.png' : 'fileNotFound.jpg'}`)
     }
   }
 
@@ -430,11 +389,7 @@ export const getPosterImage = (
             url={src}
             alt={`Collection item ${index + 1}`}
             className="h-full w-full object-cover"
-            fallbackSrc={
-              type === 'Music'
-                ? '/img/songDefault.png'
-                : '/img/fileNotFound.jpg'
-            }
+            fallbackSrc={type === 'Music' ? '/img/songDefault.png' : '/img/fileNotFound.jpg'}
             aspectRatio={type === 'Music' ? 1 : 2 / 3}
           />
         )

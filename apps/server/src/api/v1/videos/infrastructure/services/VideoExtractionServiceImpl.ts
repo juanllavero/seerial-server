@@ -1,20 +1,20 @@
-import { fileSystemService } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import crypto from 'node:crypto';
+import os from 'node:os';
+import fs from 'fs-extra';
+import { fileSystemService } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import {
   executeFfmpeg,
   executeFfmpegPipeToStream,
-} from "@/api/v1/shared/infrastructure/adapters/ffmpeg/nativeFfmpeg";
+} from '@/api/v1/shared/infrastructure/adapters/ffmpeg/nativeFfmpeg';
 import {
   BadRequestException,
   NotFoundException,
-} from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
-import { messages } from "@/config/messages";
-import logger from "@/utils/logger";
-import crypto from "crypto";
-import fs from "fs-extra";
-import os from "os";
-import { VideoExtractionServicePort } from "../../application/ports/VideoExtractionServicePort";
+} from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
+import { messages } from '@/config/messages';
+import logger from '@/utils/logger';
+import type { VideoExtractionServicePort } from '../../application/ports/VideoExtractionServicePort';
 
-const videoExtractionLogger = logger.child({ category: "Video Extraction" });
+const videoExtractionLogger = logger.child({ category: 'Video Extraction' });
 
 export class VideoExtractionServiceImpl implements VideoExtractionServicePort {
   constructor() {}
@@ -22,54 +22,38 @@ export class VideoExtractionServiceImpl implements VideoExtractionServicePort {
   /**
    * Extract video thumbnail and stream it to response
    */
-  public async streamVideoThumbnail(
-    videoUrl: string,
-    time: string,
-    res: any
-  ): Promise<void> {
-    const timeParam = time || "10";
+  public async streamVideoThumbnail(videoUrl: string, time: string, res: any): Promise<void> {
+    const timeParam = time || '10';
 
     if (!videoUrl) {
       throw new BadRequestException(messages.errors.validation.notEnoughParams);
     }
 
-    const videoSrc = videoUrl.startsWith("resources")
+    const videoSrc = videoUrl.startsWith('resources')
       ? fileSystemService.getExternalPath(videoUrl)
       : videoUrl;
 
-    res.setHeader("Content-Type", "image/jpeg");
+    res.setHeader('Content-Type', 'image/jpeg');
 
-    const args = [
-      "-i",
-      videoSrc,
-      "-ss",
-      timeParam,
-      "-frames:v",
-      "1",
-      "-f",
-      "mjpeg",
-    ];
+    const args = ['-i', videoSrc, '-ss', timeParam, '-frames:v', '1', '-f', 'mjpeg'];
 
     executeFfmpegPipeToStream(
       args,
       res,
       (err) => {
-        videoExtractionLogger.error(err, "FFMPEG error generating thumbnail");
+        videoExtractionLogger.error(err, 'FFMPEG error generating thumbnail');
         if (!res.headersSent) {
           res.status(500).send(messages.errors.server.internal);
         }
       },
       (code) => {
         if (code !== 0) {
-          videoExtractionLogger.error(
-            { exitCode: code },
-            "FFmpeg error: process exited"
-          );
+          videoExtractionLogger.error({ exitCode: code }, 'FFmpeg error: process exited');
           if (!res.headersSent) {
             res.status(500).send(messages.errors.server.internal);
           }
         }
-      }
+      },
     );
   }
 
@@ -80,7 +64,7 @@ export class VideoExtractionServiceImpl implements VideoExtractionServicePort {
     videoPath: string,
     trackId: number,
     startTime: number,
-    res: any
+    res: any,
   ): Promise<void> {
     const trackIdNum = trackId;
     const startTimeNum = startTime || 0;
@@ -94,14 +78,14 @@ export class VideoExtractionServiceImpl implements VideoExtractionServicePort {
     }
 
     const hash = crypto
-      .createHash("md5")
+      .createHash('md5')
       .update(videoPath + trackIdNum + startTimeNum)
-      .digest("hex");
-    const cacheDir = fileSystemService.join(os.tmpdir(), "video_subs_cache");
+      .digest('hex');
+    const cacheDir = fileSystemService.join(os.tmpdir(), 'video_subs_cache');
     await fs.ensureDir(cacheDir);
     const cachedFile = fileSystemService.join(cacheDir, `${hash}.vtt`);
 
-    res.setHeader("Content-Type", "text/vtt");
+    res.setHeader('Content-Type', 'text/vtt');
 
     if (await fs.pathExists(cachedFile)) {
       return fs.createReadStream(cachedFile).pipe(res);
@@ -109,23 +93,15 @@ export class VideoExtractionServiceImpl implements VideoExtractionServicePort {
 
     const args: string[] = [];
     if (startTimeNum > 0) {
-      args.push("-ss", startTimeNum.toString());
+      args.push('-ss', startTimeNum.toString());
     }
-    args.push(
-      "-i",
-      videoPath,
-      "-map",
-      `0:s:${trackIdNum}`,
-      "-f",
-      "webvtt",
-      cachedFile
-    );
+    args.push('-i', videoPath, '-map', `0:s:${trackIdNum}`, '-f', 'webvtt', cachedFile);
 
     try {
       await executeFfmpeg(args);
       fs.createReadStream(cachedFile).pipe(res);
     } catch (error) {
-      videoExtractionLogger.error(error, "FFMPEG error generating subtitles");
+      videoExtractionLogger.error(error, 'FFMPEG error generating subtitles');
       if (!res.headersSent) {
         res.status(500).send(messages.errors.server.internal);
       }

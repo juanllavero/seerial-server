@@ -1,15 +1,14 @@
 import { useTranslation } from 'react-i18next'
+import { shallow } from 'zustand/shallow'
+import { useSettingsStore } from '@/context/settings.context'
+import { SettingsSection } from '@/data/interfaces/Utils'
 import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
+  SidebarMenuButton,
   SidebarMenuItem,
 } from '../../ui/sidebar'
-
-import { SidebarMenuButton } from '../../ui/sidebar'
-import { useSettingsStore } from '@/context/settings.context'
-import { SettingsSection } from '@/data/interfaces/Utils'
-import { shallow } from 'zustand/shallow'
 
 const ClientSettings = () => {
   const { t } = useTranslation()
@@ -29,18 +28,12 @@ const ClientSettings = () => {
             asChild
             tooltip={t('generalButton')}
             onClick={() => setSettingsSection(SettingsSection.ClientGeneral)}
-            className={`${
-              settingsSection === SettingsSection.ClientGeneral
-                ? 'bg-accent'
-                : ''
-            }`}
+            className={`${settingsSection === SettingsSection.ClientGeneral ? 'bg-accent' : ''}`}
           >
             <span
               style={{
                 color:
-                  settingsSection === SettingsSection.ClientGeneral
-                    ? 'var(--app-color)'
-                    : 'white',
+                  settingsSection === SettingsSection.ClientGeneral ? 'var(--app-color)' : 'white',
               }}
             >
               {t('generalButton')}
@@ -52,18 +45,12 @@ const ClientSettings = () => {
             asChild
             tooltip={t('quality')}
             onClick={() => setSettingsSection(SettingsSection.ClientQuality)}
-            className={`${
-              settingsSection === SettingsSection.ClientQuality
-                ? 'bg-accent'
-                : ''
-            }`}
+            className={`${settingsSection === SettingsSection.ClientQuality ? 'bg-accent' : ''}`}
           >
             <span
               style={{
                 color:
-                  settingsSection === SettingsSection.ClientQuality
-                    ? 'var(--app-color)'
-                    : 'white',
+                  settingsSection === SettingsSection.ClientQuality ? 'var(--app-color)' : 'white',
               }}
             >
               {t('quality')}
@@ -75,18 +62,12 @@ const ClientSettings = () => {
             asChild
             tooltip={t('player')}
             onClick={() => setSettingsSection(SettingsSection.ClientPlayer)}
-            className={`${
-              settingsSection === SettingsSection.ClientPlayer
-                ? 'bg-accent'
-                : ''
-            }`}
+            className={`${settingsSection === SettingsSection.ClientPlayer ? 'bg-accent' : ''}`}
           >
             <span
               style={{
                 color:
-                  settingsSection === SettingsSection.ClientPlayer
-                    ? 'var(--app-color)'
-                    : 'white',
+                  settingsSection === SettingsSection.ClientPlayer ? 'var(--app-color)' : 'white',
               }}
             >
               {t('player')}

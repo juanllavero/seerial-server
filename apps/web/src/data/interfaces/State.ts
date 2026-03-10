@@ -1,4 +1,4 @@
-import { Episode, Library, Season, Series } from './Media'
+import type { Episode, Library, Season, Series } from './Media'
 
 export interface HomeInfoElement {
   library: Library

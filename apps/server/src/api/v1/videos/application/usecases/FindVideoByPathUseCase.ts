@@ -1,5 +1,5 @@
-import { Video } from "../../domain/Video";
-import { VideoRepositoryPort } from "../ports/VideosRepositoryPort";
+import type { Video } from '../../domain/Video';
+import type { VideoRepositoryPort } from '../ports/VideosRepositoryPort';
 
 export class FindVideoByPathUseCase {
   constructor(private videoRepo: VideoRepositoryPort) {}

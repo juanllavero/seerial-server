@@ -71,9 +71,8 @@ function useFormState<T extends Record<string, any>>(
   const setters = {} as FormSetters<T>
 
   for (const key in schema) {
-    if (Object.prototype.hasOwnProperty.call(schema, key)) {
-      const setterName =
-        `set${key.charAt(0).toUpperCase()}${key.slice(1)}` as keyof FormSetters<T>
+    if (Object.hasOwn(schema, key)) {
+      const setterName = `set${key.charAt(0).toUpperCase()}${key.slice(1)}` as keyof FormSetters<T>
       setters[setterName] = ((value: any) => {
         setFormStateInternal((prev) => ({ ...prev, [key]: value }))
       }) as any
