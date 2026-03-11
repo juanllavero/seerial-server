@@ -1,5 +1,8 @@
 import { executeFfmpegPipeToStream } from '@/api/v1/shared/infrastructure/adapters/ffmpeg/nativeFfmpeg';
-import type { SanitizationService } from '@/api/v1/shared/infrastructure/services/SanitizationService';
+import {
+  getSystemAllowedPaths,
+  sanitizeVideoPath,
+} from '@/api/v1/shared/infrastructure/services/SanitizationService';
 import {
   BadRequestException,
   NotFoundException,
@@ -22,19 +25,17 @@ const validBitrates: number[] = [
 ];
 
 export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
-  constructor(private readonly sanitizationService: SanitizationService) {} // Inject SanitizationService
-
   transcodeAndStreamVideo(params: any, res: any): void {
     const { path: videoPath, start: videoStart, audio: audioTrack, quality, bitrate } = params;
 
     try {
-      const sanitizedVideoPath = this.sanitizationService.sanitizeVideoPath(
+      const sanitizedVideoPath = sanitizeVideoPath(
         videoPath,
-        this.sanitizationService.getSystemAllowedPaths(),
+        getSystemAllowedPaths(),
         true, // Must exist
       );
 
-      if (!require('fs').existsSync(sanitizedVideoPath)) {
+      if (!require('node:fs').existsSync(sanitizedVideoPath)) {
         throw new NotFoundException(messages.errors.notFound.video);
       }
 
@@ -109,20 +110,20 @@ export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
       setTimeout(() => {
         logger.debug({ message: 'FFmpeg output', stderr: streaming.stderr });
       }, 1000);
-    } catch (error: any) {
+    } catch (_error) {
       throw new BadRequestException(`Invalid video path: ${videoPath}`);
     }
   }
 
   streamDirectVideoFile(req: any, res: any): void {
     const { path: videoPath } = req.videoParams;
-    const fs = require('fs');
-    const path = require('path');
+    const fs = require('node:fs');
+    const path = require('node:path');
 
     try {
-      const sanitizedVideoPath = this.sanitizationService.sanitizeVideoPath(
+      const sanitizedVideoPath = sanitizeVideoPath(
         videoPath,
-        this.sanitizationService.getSystemAllowedPaths(),
+        getSystemAllowedPaths(),
         true, // Must exist
       );
 
@@ -140,7 +141,7 @@ export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
         const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
 
         if (start >= fileSize) {
-          res.status(416).send('Requested range not satisfiable\n' + start + ' >= ' + fileSize);
+          res.status(416).send(`Requested range not satisfiable\n${start} >= ${fileSize}`);
           return;
         }
 
@@ -163,7 +164,7 @@ export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
         });
         fs.createReadStream(sanitizedVideoPath).pipe(res);
       }
-    } catch (error: any) {
+    } catch (_error) {
       throw new BadRequestException(`Invalid video path: ${videoPath}`);
     }
   }

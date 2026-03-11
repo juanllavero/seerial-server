@@ -23,7 +23,7 @@ const dangerousPatterns = [
  * @returns Sanitized file path
  * @throws Error if the path is invalid or insecure
  */
-function sanitizeFilePath(filePath: string, allowedBasePaths?: string[]): string {
+export function sanitizeFilePath(filePath: string, allowedBasePaths?: string[]): string {
   if (!filePath || typeof filePath !== 'string') {
     throw new Error('Invalid file path: path must be a non-empty string');
   }
@@ -69,7 +69,7 @@ function sanitizeFilePath(filePath: string, allowedBasePaths?: string[]): string
  * @param shouldExist If the directory should exist
  * @returns Sanitized directory path
  */
-function sanitizeDirectoryPath(
+export function sanitizeDirectoryPath(
   dirPath: string,
   allowedBasePaths?: string[],
   shouldExist: boolean = false,
@@ -98,7 +98,7 @@ function sanitizeDirectoryPath(
  * @param shouldExist If the file should exist
  * @returns Sanitized file path
  */
-function sanitizeFilePathWithExtension(
+export function sanitizeFilePathWithExtension(
   filePath: string,
   allowedExtensions: string[],
   allowedBasePaths?: string[],
@@ -128,7 +128,7 @@ function sanitizeFilePathWithExtension(
 /**
  * Sanitizes a video path
  */
-function sanitizeVideoPath(
+export function sanitizeVideoPath(
   videoPath: string,
   allowedBasePaths?: string[],
   shouldExist: boolean = true,
@@ -139,7 +139,7 @@ function sanitizeVideoPath(
 /**
  * Sanitizes an audio path
  */
-function sanitizeAudioPath(
+export function sanitizeAudioPath(
   audioPath: string,
   allowedBasePaths?: string[],
   shouldExist: boolean = true,
@@ -150,7 +150,7 @@ function sanitizeAudioPath(
 /**
  * Sanitizes an image path
  */
-function sanitizeImagePath(
+export function sanitizeImagePath(
   imagePath: string,
   allowedBasePaths?: string[],
   shouldExist: boolean = true,
@@ -162,7 +162,7 @@ function sanitizeImagePath(
  * Gets the default allowed paths of the system
  * Includes the user's home directory and mounted volumes
  */
-function getSystemAllowedPaths(): string[] {
+export function getSystemAllowedPaths(): string[] {
   const allowedPaths: string[] = [];
   const platform = os.platform();
 
@@ -206,7 +206,7 @@ function getSystemAllowedPaths(): string[] {
  * @param allowedBasePaths Allowed base paths (optional)
  * @returns Array of sanitized file paths
  */
-function sanitizeMultipleFilePaths(
+export function sanitizeMultipleFilePaths(
   filePaths: string[],
   allowedExtensions?: string[],
   allowedBasePaths?: string[],
@@ -229,7 +229,7 @@ function sanitizeMultipleFilePaths(
  * @param fileName File name
  * @returns Combined and sanitized path
  */
-function safeJoinPath(basePath: string, fileName: string): string {
+export function safeJoinPath(basePath: string, fileName: string): string {
   // Sanitize the base path
   const sanitizedBase = sanitizeDirectoryPath(basePath);
 
@@ -264,7 +264,7 @@ function safeJoinPath(basePath: string, fileName: string): string {
  * @param fileName File name to validate
  * @returns true if the file name is valid
  */
-function isValidFileName(fileName: string): boolean {
+export function isValidFileName(fileName: string): boolean {
   if (!fileName || typeof fileName !== 'string') {
     return false;
   }
@@ -286,19 +286,3 @@ function isValidFileName(fileName: string): boolean {
 
   return true;
 }
-
-const sanitizationService = {
-  sanitizeFilePath,
-  sanitizeDirectoryPath,
-  sanitizeFilePathWithExtension,
-  sanitizeVideoPath,
-  sanitizeAudioPath,
-  sanitizeImagePath,
-  getSystemAllowedPaths,
-  sanitizeMultipleFilePaths,
-  safeJoinPath,
-  isValidFileName,
-};
-
-export type SanitizationService = typeof sanitizationService;
-export const SanitizationService = sanitizationService;

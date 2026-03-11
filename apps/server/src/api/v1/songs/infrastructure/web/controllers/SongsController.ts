@@ -4,7 +4,7 @@ import {
   fileSystemService,
   useCases,
 } from '@/api/v1/shared/infrastructure/adapters/di/container';
-import { MediaDetailsService } from '@/api/v1/shared/infrastructure/services/MediaDetailsService';
+import { findLyricsForSong } from '@/api/v1/shared/infrastructure/services/MediaDetailsService';
 import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
 import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
 import { messages } from '@/config/messages';
@@ -42,7 +42,7 @@ export class SongsController extends Controller {
   public async getSongsLyrics(
     @Path() id: string,
   ): Promise<ApiResponse<{ content: string; language: string }[]>> {
-    const result = await MediaDetailsService.findLyricsForSong(id);
+    const result = await findLyricsForSong(id);
     return ApiResponse.success(result, messages.success.fetch);
   }
 

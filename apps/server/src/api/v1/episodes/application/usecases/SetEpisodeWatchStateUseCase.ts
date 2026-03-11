@@ -1,9 +1,9 @@
-import type { ContinueWatchingRepositoryPort } from '@/api/v1/continue-watching/application/ports/ContinueWatchingRepositoryPort'; // Asumido
+import type { ContinueWatchingRepositoryPort } from '@/api/v1/continue-watching/application/ports/ContinueWatchingRepositoryPort';
 import type { SeasonsRepositoryPort } from '@/api/v1/seasons/application/ports/SeasonsRepositoryPort';
-import type { SeriesRepositoryPort } from '@/api/v1/series/application/ports/SeriesRepositoryPort'; // Asumido
+import type { SeriesRepositoryPort } from '@/api/v1/series/application/ports/SeriesRepositoryPort';
 import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
 import type { VideoRepositoryPort } from '@/api/v1/videos/application/ports/VideosRepositoryPort';
-import type { WatchListRepositoryPort } from '@/api/v1/watch-lists/application/ports/WatchListRepositoryPort'; // Asumido
+import type { WatchListRepositoryPort } from '@/api/v1/watch-lists/application/ports/WatchListRepositoryPort';
 import { messages } from '@/config/messages';
 import type { EpisodeRepositoryPort } from '../ports/EpisodeRepositoryPort';
 
@@ -29,7 +29,7 @@ export class SetEpisodeWatchStateUseCase {
     if (!series || !series.seasons) throw new NotFoundException(messages.errors.notFound.series);
 
     // 2. Business logic
-    const previousEpisodeId = await this.continueWatchingRepo.getCurrentEpisode(series.id);
+    const previousEpisode = await this.continueWatchingRepo.getCurrentEpisode(series.id);
     let nextEpisodeId: string | null = null;
 
     // Get and order all seasons and episodes
@@ -106,8 +106,8 @@ export class SetEpisodeWatchStateUseCase {
     // 3. update continue watching
     await this.continueWatchingRepo.deleteAll(userId, series.id);
 
-    if (previousEpisodeId) {
-      const prevVideo = await this.videoRepo.findByEpisodeId(previousEpisodeId);
+    if (previousEpisode) {
+      const prevVideo = await this.videoRepo.findByEpisodeId(previousEpisode.id);
       if (prevVideo) {
         await this.continueWatchingRepo.delete(prevVideo.id, userId);
       }

@@ -1,6 +1,6 @@
-import os from 'os';
+import os from 'node:os';
+import path from 'node:path';
 import pLimit from 'p-limit';
-import path from 'path';
 import type { FileSystemServicePort } from '@/api/v1/shared/application/ports/FileSystemServicePort';
 import {
   notificationService,
@@ -14,7 +14,7 @@ export class ScanLibraryUseCase {
   constructor(
     private readonly filesManager: FileSystemServicePort,
     private readonly librariesRepo: LibrariesRepositoryPort,
-  ) {}
+  ) { }
 
   async execute(newLibrary: Library, addNewLibrary: boolean) {
     logger.info(

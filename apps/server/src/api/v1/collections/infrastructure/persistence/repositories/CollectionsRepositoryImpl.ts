@@ -53,7 +53,7 @@ export class CollectionsRepositoryImpl extends BaseRepository implements Collect
 
     const data = await LibraryModel.findOne({
       where: { id: validatedId },
-      relations: ['collections', `collections.${collectionItemsKey}` as any],
+      relations: ['collections', `collections.${collectionItemsKey}` as string],
     });
 
     return (data?.libraryCollections || []).map((c) => c.collection as unknown as Collection);

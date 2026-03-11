@@ -1,6 +1,6 @@
+import * as path from 'node:path';
+import { parse } from 'node:path';
 import { existsSync } from 'fs-extra';
-import * as path from 'path';
-import { parse } from 'path';
 import { AlbumModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumModel';
 import { MovieModel } from '@/api/v1/movies/infrastructure/persistence/models/MovieModel';
 import { SeriesModel } from '@/api/v1/series/infrastructure/persistence/models/SeriesModel';

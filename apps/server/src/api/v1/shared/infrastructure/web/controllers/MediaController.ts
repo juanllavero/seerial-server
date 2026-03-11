@@ -1,6 +1,6 @@
 import { Get, Path, Query, Route, Security, Tags } from 'tsoa';
 import { messages } from '@/config/messages';
-import { MediaDetailsService } from '../../services/MediaDetailsService';
+import { findMediaBackground, getDetails } from '../../services/MediaDetailsService';
 import { BadRequestException } from '../exceptions/HTTPExceptions';
 import { ApiResponse } from '../http/APIResponse';
 
@@ -13,10 +13,7 @@ export class MediaController {
   @Get('details/{type}')
   @Security('cookieAuth')
   public async getDetails(@Path() type: string, @Query() id: string): Promise<ApiResponse<any>> {
-    return ApiResponse.success(
-      await MediaDetailsService.getDetails(type, id),
-      messages.success.fetch,
-    );
+    return ApiResponse.success(await getDetails(type, id), messages.success.fetch);
   }
 
   /**
@@ -38,7 +35,7 @@ export class MediaController {
     }
 
     return ApiResponse.success(
-      await MediaDetailsService.findMediaBackground(
+      await findMediaBackground(
         mediaType as 'video' | 'music',
         itemType as 'movie' | 'series' | 'season',
         id,

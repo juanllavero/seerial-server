@@ -15,7 +15,7 @@ import { type LibraryItem, LibraryTypes } from '@/data/interfaces/Media';
 import { GenericRepositoryHelper } from '@/helpers/GenericRepositoryHelper';
 import logger from '@/utils/logger';
 import type { LibrariesRepositoryPort } from '../../../application/ports/LibrariesRepositoryPort';
-import { LibraryManager } from '../../../application/services/LibraryManager';
+import { resolveCollectionImages } from '../../../application/services/LibraryManager';
 import type { Library } from '../../../domain/Library';
 import { LibraryCollectionModel } from '../models/LibraryCollectionModel';
 import { LibraryModel } from '../models/LibraryModel';
@@ -68,158 +68,159 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
 
     if (!library) return [];
 
-    const type = library.type;
-    const items: LibraryItem[] = [];
+    const collections = library.libraryCollections?.map((libraryCollection) => libraryCollection.collection) || [];
+    const collectionItems = await this.buildCollectionItems(collections, libraryId, library.type);
+    const standaloneItems = this.buildStandaloneItems(library, collections, userId);
 
-    // Get collections first
-    const collections = library.libraryCollections.map((c) => c.collection) || [];
+    return [...collectionItems, ...standaloneItems].sort((a, b) => a.order - b.order);
+  }
+
+  private async buildCollectionItems(
+    collections: CollectionModel[],
+    libraryId: string,
+    type: Library['type'],
+  ): Promise<LibraryItem[]> {
+    const libraryCollectionRepo = DatabaseManager.getRepository(LibraryCollectionModel);
+    const collectionItems: LibraryItem[] = [];
+
     for (const collection of collections) {
+      const numberOfItems = this.countCollectionItems(collection, libraryId);
       const years = this.calculateYearsForCollection(collection);
-      const numberOfItems =
-        (collection.collectionMovies.map((m) => m.movie.libraryId === libraryId).length || 0) +
-        (collection.collectionSeries.map((s) => s.series.libraryId === libraryId).length || 0) +
-        (collection.collectionAlbums.map((a) => a.album.libraryId === libraryId).length || 0);
 
-      // Find the junction table entry to get customOrder
-      const libraryCollectionRepo = DatabaseManager.getRepository(LibraryCollectionModel);
-      const libraryCollection = await libraryCollectionRepo.findOne({
-        where: {
-          libraryId: libraryId,
-          collectionId: collection.id,
-        },
-      });
+      const [libraryCollection, collectionImages] = await Promise.all([
+        libraryCollectionRepo.findOne({
+          where: {
+            libraryId,
+            collectionId: collection.id,
+          },
+        }),
+        resolveCollectionImages(collection, libraryId, type),
+      ]);
 
-      const collectionImages = await LibraryManager.resolveCollectionImages(
-        collection,
-        libraryId,
-        type,
-      );
-
-      items.push({
+      collectionItems.push({
         id: collection.id,
         title: collection.title,
-        years: years,
+        years,
         coverSrc: collectionImages.poster ?? '',
         backgroundSrc: collectionImages.background ?? '',
         numberOfItems,
         order: libraryCollection?.customOrder || 0,
-        watched: false, // Collections don't have watch state
+        watched: false,
         remainingItems: 0,
-        analyzingFiles: false, // Collections don't have analyzingFiles
+        analyzingFiles: false,
         type: 'collection',
       });
     }
 
-    // Get items that don't belong to any collection
-    const collectionMovieIds = new Set(
-      collections.flatMap((c) => c.collectionMovies?.map((m) => m.movie.id) || []),
-    );
-    const collectionSeriesIds = new Set(
-      collections.flatMap((c) => c.collectionSeries?.map((s) => s.series.id) || []),
-    );
-    const collectionAlbumIds = new Set(
-      collections.flatMap((c) => c.collectionAlbums?.map((a) => a.album.id) || []),
-    );
+    return collectionItems;
+  }
 
-    if (type === LibraryTypes.MOVIES) {
-      for (const movie of library.movies || []) {
-        if (collectionMovieIds.has(movie.id)) continue; // Skip if belongs to collection
+  private countCollectionItems(collection: CollectionModel, libraryId: string): number {
+    const moviesCount = collection.collectionMovies?.map((movie) => movie.movie.libraryId === libraryId).length || 0;
+    const seriesCount = collection.collectionSeries?.map((series) => series.series.libraryId === libraryId).length || 0;
+    const albumsCount = collection.collectionAlbums?.map((album) => album.album.libraryId === libraryId).length || 0;
 
-        const years = movie.year || '-';
-        const numberOfItems = movie.videos?.length || 0;
+    return moviesCount + seriesCount + albumsCount;
+  }
 
-        items.push({
-          id: movie.id,
-          title: movie.name,
-          years: years,
-          coverSrc: movie.coverSrc,
-          numberOfItems,
-          order: movie.order,
-          watched: false,
-          remainingItems: 0,
-          analyzingFiles: movie.analyzingFiles,
-          type: 'movie',
-        });
-      }
-    } else if (type === LibraryTypes.SHOWS) {
-      for (const series of library.series || []) {
-        if (collectionSeriesIds.has(series.id)) continue; // Skip if belongs to collection
+  private buildStandaloneItems(
+    library: LibraryModel,
+    collections: CollectionModel[],
+    userId: string,
+  ): LibraryItem[] {
+    const collectionMovieIds = new Set(collections.flatMap((collection) => collection.collectionMovies?.map((movie) => movie.movie.id) || []));
+    const collectionSeriesIds = new Set(collections.flatMap((collection) => collection.collectionSeries?.map((series) => series.series.id) || []));
+    const collectionAlbumIds = new Set(collections.flatMap((collection) => collection.collectionAlbums?.map((album) => album.album.id) || []));
 
-        const years = this.calculateYearsForSeries(series);
-        const watched = this.calculateWatchedState(series, userId);
-        const remainingItems = this.calculateRemainingEpisodes(series, userId);
-
-        items.push({
-          id: series.id,
-          title: series.name,
-          years: years,
-          coverSrc: series.coverSrc,
-          numberOfItems: 0,
-          order: series.order,
-          watched,
-          remainingItems,
-          analyzingFiles: series.analyzingFiles,
-          type: 'series',
-        });
-      }
-    } else if (type === LibraryTypes.MUSIC) {
-      for (const album of library.albums || []) {
-        if (collectionAlbumIds.has(album.id)) continue; // Skip if belongs to collection
-
-        const years = album.year || '-';
-
-        items.push({
-          id: album.id,
-          title: album.title,
-          years: years,
-          coverSrc: album.coverSrc,
-          numberOfItems: 0,
-          order: album.order,
-          watched: false,
-          remainingItems: 0,
-          analyzingFiles: false,
-          type: 'album',
-        });
-      }
+    switch (library.type) {
+      case LibraryTypes.MOVIES:
+        return this.buildMovieItems(library, collectionMovieIds);
+      case LibraryTypes.SHOWS:
+        return this.buildSeriesItems(library, collectionSeriesIds, userId);
+      case LibraryTypes.MUSIC:
+        return this.buildAlbumItems(library, collectionAlbumIds);
+      default:
+        return [];
     }
+  }
 
-    return items.sort((a, b) => a.order - b.order);
+  private buildMovieItems(library: LibraryModel, collectionMovieIds: Set<string>): LibraryItem[] {
+    return (library.movies || [])
+      .filter((movie) => !collectionMovieIds.has(movie.id))
+      .map((movie) => ({
+        id: movie.id,
+        title: movie.name,
+        years: movie.year || '-',
+        coverSrc: movie.coverSrc,
+        numberOfItems: movie.videos?.length || 0,
+        order: movie.order,
+        watched: false,
+        remainingItems: 0,
+        analyzingFiles: movie.analyzingFiles,
+        type: 'movie',
+      }));
+  }
+
+  private buildSeriesItems(
+    library: LibraryModel,
+    collectionSeriesIds: Set<string>,
+    userId: string,
+  ): LibraryItem[] {
+    return (library.series || [])
+      .filter((series) => !collectionSeriesIds.has(series.id))
+      .map((series) => ({
+        id: series.id,
+        title: series.name,
+        years: this.calculateYearsForSeries(series),
+        coverSrc: series.coverSrc,
+        numberOfItems: 0,
+        order: series.order,
+        watched: this.calculateWatchedState(series, userId),
+        remainingItems: this.calculateRemainingEpisodes(series, userId),
+        analyzingFiles: series.analyzingFiles,
+        type: 'series',
+      }));
+  }
+
+  private buildAlbumItems(library: LibraryModel, collectionAlbumIds: Set<string>): LibraryItem[] {
+    return (library.albums || [])
+      .filter((album) => !collectionAlbumIds.has(album.id))
+      .map((album) => ({
+        id: album.id,
+        title: album.title,
+        years: album.year || '-',
+        coverSrc: album.coverSrc,
+        numberOfItems: 0,
+        order: album.order,
+        watched: false,
+        remainingItems: 0,
+        analyzingFiles: false,
+        type: 'album',
+      }));
   }
 
   private calculateYearsForCollection(collection: CollectionModel): string {
-    const years: number[] = [];
+    const movieYears = (collection.collectionMovies || [])
+      .map((movie) => movie.movie.year)
+      .filter((year): year is string => Boolean(year))
+      .map((year) => Number.parseInt(year, 10));
 
-    // Add movie years
-    if (collection.collectionMovies) {
-      for (const movie of collection.collectionMovies.map((m) => m.movie)) {
-        if (movie.year) {
-          years.push(parseInt(movie.year));
-        }
-      }
-    }
+    const seriesYears = (collection.collectionSeries || []).flatMap((series) =>
+      (series.series.seasons || [])
+        .map((season) => season.year)
+        .filter((year): year is string => Boolean(year))
+        .map((year) => Number.parseInt(year, 10)),
+    );
 
-    // Add series years
-    if (collection.collectionSeries) {
-      for (const series of collection.collectionSeries.map((s) => s.series)) {
-        if (series.seasons) {
-          for (const season of series.seasons) {
-            if (season.year) {
-              years.push(parseInt(season.year));
-            }
-          }
-        }
-      }
-    }
+    const albumYears = (collection.collectionAlbums || [])
+      .map((album) => album.album.year)
+      .filter((year): year is string => Boolean(year))
+      .map((year) => Number.parseInt(year, 10));
 
-    // Add album years
-    if (collection.collectionAlbums) {
-      for (const album of collection.collectionAlbums.map((a) => a.album)) {
-        if (album.year) {
-          years.push(parseInt(album.year));
-        }
-      }
-    }
+    return this.formatYearRange([...movieYears, ...seriesYears, ...albumYears]);
+  }
 
+  private formatYearRange(years: number[]): string {
     if (years.length === 0) return '-';
 
     const minYear = Math.min(...years);
@@ -235,12 +236,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       .map((season: SeasonModel) => season.year)
       .filter((year: string) => year && year.trim() !== '');
 
-    if (years.length === 0) return '-';
-
-    const minYear = Math.min(...years.map((y: string) => parseInt(y)));
-    const maxYear = Math.max(...years.map((y: string) => parseInt(y)));
-
-    return minYear === maxYear ? minYear.toString() : `${minYear}-${maxYear}`;
+    return this.formatYearRange(years.map((year) => Number.parseInt(year, 10)));
   }
 
   private calculateWatchedState(series: SeriesModel, userId: string): boolean {
@@ -289,7 +285,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       }
 
       return library as unknown as Library;
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error(error, 'Error fetching library');
       return null;
     }
@@ -467,7 +463,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
 
       await queryRunner.commitTransaction();
       return true;
-    } catch (error) {
+    } catch (_error) {
       await queryRunner.rollbackTransaction();
       return false;
     } finally {
@@ -561,7 +557,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
 
       await queryRunner.commitTransaction();
       return true;
-    } catch (error) {
+    } catch (_error) {
       await queryRunner.rollbackTransaction();
       return false;
     } finally {
@@ -687,7 +683,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       }
 
       return library;
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error(error, 'Error fetching library');
       return null;
     }

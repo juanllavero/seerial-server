@@ -1,4 +1,4 @@
-import type http from 'http';
+import type http from 'node:http';
 import type { Album } from '@/api/v1/albums/domain/Album';
 import type { Collection } from '@/api/v1/collections/domain/Collection';
 import type { Movie } from '@/api/v1/movies/domain/Movie';

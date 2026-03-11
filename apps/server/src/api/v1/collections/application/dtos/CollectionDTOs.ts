@@ -4,7 +4,9 @@ export interface ReorderItemDTO {
 }
 
 export interface MusicExtrasDTO {
-  [key: string]: any;
+  title: string;
+  src: string;
+  type: string;
 }
 
 export interface ReorderContentDTO {

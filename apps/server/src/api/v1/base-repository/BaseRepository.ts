@@ -85,7 +85,6 @@ export abstract class BaseRepository {
   protected async handleRepositoryError<T>(
     operation: () => Promise<T>,
     errorMessage: string,
-    entityName?: string,
   ): Promise<T> {
     try {
       return await operation();

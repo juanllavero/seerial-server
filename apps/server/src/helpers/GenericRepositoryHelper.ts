@@ -218,7 +218,6 @@ export class GenericRepositoryHelper<TModel extends BaseEntity, TDomain = TModel
       const saved = await preloaded.save();
       return this.toDomain(saved);
     } catch (error) {
-      console.log({ data });
       repositoryLogger.error(error, `Failed to update ${this.config.entityName} with ID ${id}`);
       throw new Error(`Failed to update ${this.config.entityName} with ID ${id}`);
     }

@@ -278,7 +278,7 @@ export const useCases = {
       collectionsRepo,
       fileSystemService,
     ),
-  searchMovieMetadata: () => new SearchMovieMetadataUseCase(tmdbApiClient),
+  searchMovieMetadata: () => new SearchMovieMetadataUseCase(),
   refreshMovieMetadata: () => new RefreshMovieMetadataUseCase(),
   scanMovie: () =>
     new ScanMovieUseCase(

@@ -70,7 +70,7 @@ export class AlbumsRepositoryImpl extends BaseRepository implements AlbumsReposi
       true,
     );
 
-    return createdRelation as any;
+    return createdRelation as AlbumArtistModel;
   }
 
   async removeArtistFromAlbum(artistId: string, albumId: string): Promise<void> {

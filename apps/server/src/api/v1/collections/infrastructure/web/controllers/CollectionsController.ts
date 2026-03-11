@@ -17,7 +17,9 @@ export class CollectionsController extends Controller {
    */
   @Get('{collectionId}/music-extras')
   @Security('adminAuth')
-  public async getMusicExtras(@Path() collectionId: string): Promise<ApiResponse<MusicExtrasDTO>> {
+  public async getMusicExtras(
+    @Path() collectionId: string,
+  ): Promise<ApiResponse<MusicExtrasDTO[]>> {
     const musicExtras = await useCases.getMusicExtras().execute(collectionId);
 
     return ApiResponse.success(musicExtras, messages.success.fetch);

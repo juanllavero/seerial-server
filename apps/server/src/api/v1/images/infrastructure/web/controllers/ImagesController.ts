@@ -1,10 +1,17 @@
-import path from 'path';
+import path from 'node:path';
+import type { Response } from 'express';
 import { Controller, FormField, Get, Post, Query, Route, Security, Tags, UploadedFile } from 'tsoa';
 import {
   fileSystemService,
   imageProcessingService,
 } from '@/api/v1/shared/infrastructure/adapters/di/container';
-import { SanitizationService } from '@/api/v1/shared/infrastructure/services/SanitizationService';
+import {
+  getSystemAllowedPaths,
+  isValidFileName,
+  safeJoinPath,
+  sanitizeDirectoryPath,
+  sanitizeImagePath,
+} from '@/api/v1/shared/infrastructure/services/SanitizationService';
 import {
   BadRequestException,
   NotEnoughParamsException,
@@ -15,6 +22,18 @@ import { messages } from '@/config/messages';
 @Route('images')
 @Tags('Images')
 export class ImagesController extends Controller {
+  private get expressResponse(): Response {
+    return (this as unknown as { response: Response }).response;
+  }
+
+  private normalizeDimension(value?: number): number | undefined {
+    if (value === undefined) {
+      return undefined;
+    }
+
+    return Math.trunc(Number(value));
+  }
+
   /**
    * Upload image file
    */
@@ -25,18 +44,14 @@ export class ImagesController extends Controller {
     @UploadedFile() image: Express.Multer.File,
   ): Promise<ApiResponse<null>> {
     // Validate file name
-    if (!SanitizationService.isValidFileName(image.originalname)) {
+    if (!isValidFileName(image.originalname)) {
       throw new BadRequestException();
     }
 
-    const sanitizedDestPath = SanitizationService.sanitizeDirectoryPath(
-      destPath,
-      SanitizationService.getSystemAllowedPaths(),
-      false,
-    );
+    const sanitizedDestPath = sanitizeDirectoryPath(destPath, getSystemAllowedPaths(), false);
 
     // Combine the paths
-    const finalPath = SanitizationService.safeJoinPath(sanitizedDestPath, image.originalname);
+    const finalPath = safeJoinPath(sanitizedDestPath, image.originalname);
 
     // Ensure destination directory exists
     fileSystemService.createFolder(path.dirname(finalPath));
@@ -52,12 +67,12 @@ export class ImagesController extends Controller {
    */
   @Get()
   @Security('cookieAuthFast')
-  public async getDirectoryListing(@Query() path: string): Promise<ApiResponse<any>> {
+  public async getDirectoryListing(@Query() path: string): Promise<ApiResponse<unknown>> {
     const imagesPath = path;
 
-    const sanitizedPath = SanitizationService.sanitizeDirectoryPath(
+    const sanitizedPath = sanitizeDirectoryPath(
       decodeURIComponent(imagesPath),
-      SanitizationService.getSystemAllowedPaths(),
+      getSystemAllowedPaths(),
       true,
     );
 
@@ -75,17 +90,17 @@ export class ImagesController extends Controller {
     @Query() width?: number,
     @Query() height?: number,
   ): Promise<void> {
-    const sanitizedPath = SanitizationService.sanitizeImagePath(
+    const sanitizedPath = sanitizeImagePath(
       path,
-      SanitizationService.getSystemAllowedPaths(),
+      getSystemAllowedPaths(),
       true, // Must exist
     );
 
     await imageProcessingService.streamLocalImage({
       filePath: sanitizedPath,
-      res: (this as any).response,
-      width: width ? parseInt(width as any, 10) : undefined,
-      height: height ? parseInt(height as any, 10) : undefined,
+      res: this.expressResponse,
+      width: this.normalizeDimension(width),
+      height: this.normalizeDimension(height),
     });
   }
 
@@ -101,9 +116,9 @@ export class ImagesController extends Controller {
   ): Promise<void> {
     await imageProcessingService.streamRemoteImage({
       url,
-      res: (this as any).response,
-      width: width ? parseInt(width as any, 10) : undefined,
-      height: height ? parseInt(height as any, 10) : undefined,
+      res: this.expressResponse,
+      width: this.normalizeDimension(width),
+      height: this.normalizeDimension(height),
     });
   }
 
@@ -118,12 +133,12 @@ export class ImagesController extends Controller {
     @Query() minLight?: number,
     @Query() maxLight?: number,
     @Query() sat?: number,
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<unknown>> {
     if (!url && !localPath) {
       throw new NotEnoughParamsException();
     }
 
-    const imageSource = (localPath as string) || (url as string);
+    const imageSource = localPath ?? url;
 
     const options = {
       targetLightness: {
@@ -133,7 +148,7 @@ export class ImagesController extends Controller {
       saturationFactor: sat ? sat : 1.0,
     };
 
-    const result = await imageProcessingService.getImageColorPalette(imageSource, options);
+    const result = await imageProcessingService.getImageColorPalette(imageSource ?? '', options);
 
     return ApiResponse.success(result, messages.success.fetch);
   }
@@ -156,20 +171,19 @@ export class ImagesController extends Controller {
     const finalWidth = width;
     const finalHeight = height;
 
-    if (isNaN(finalWidth) || isNaN(finalHeight)) {
+    if (Number.isNaN(finalWidth) || Number.isNaN(finalHeight)) {
       throw new BadRequestException();
     }
 
-    const imageSource = (localPath as string) || (url as string);
+    const imageSource = localPath ?? url;
 
     const finalImageBuffer = await imageProcessingService.createTransparentImage(
-      imageSource,
+      imageSource ?? '',
       finalWidth,
       finalHeight,
     );
 
-    const res = (this as any).response;
-    res.setHeader('Content-Type', 'image/png');
-    res.send(finalImageBuffer);
+    this.expressResponse.setHeader('Content-Type', 'image/png');
+    this.expressResponse.send(finalImageBuffer);
   }
 }

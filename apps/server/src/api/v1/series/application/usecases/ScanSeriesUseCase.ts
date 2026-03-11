@@ -1,10 +1,10 @@
+import path from 'node:path';
 import type {
   Episode,
   EpisodeGroupResponse,
   Episode as MovieDBEpisode,
   TvSeasonResponse,
 } from 'moviedb-promise';
-import path from 'path';
 import type { EpisodeRepositoryPort } from '@/api/v1/episodes/application/ports/EpisodeRepositoryPort';
 import type { LibrariesRepositoryPort } from '@/api/v1/libraries/application/ports/LibrariesRepositoryPort';
 import type { Library } from '@/api/v1/libraries/domain/Library';
@@ -47,7 +47,7 @@ export class ScanSeriesUseCase {
     private readonly episodesRepo: EpisodeRepositoryPort,
     private readonly metadataProvider: MetadataProviderPort,
     private readonly notificationService: NotificationServicePort,
-  ) {}
+  ) { }
 
   async execute(library: Library, root: string): Promise<void> {
     logger.info(
@@ -856,7 +856,8 @@ export class ScanSeriesUseCase {
     for (const regex of regexPatterns) {
       const match = filename.match(regex);
       if (match) {
-        let episode, season;
+        let episode: number;
+        let season: number | undefined;
         if (regex === regexPatterns[3] && match[2]) {
           // Only consider the second number as the episode if two numbers are present
           episode = parseInt(match[2], 10);

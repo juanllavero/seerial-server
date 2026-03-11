@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { Get, Query, Route, Security, Tags } from 'tsoa';
 import { messages } from '@/config/messages';
-import { SanitizationService } from '../../services/SanitizationService';
+import { getSystemAllowedPaths, sanitizeDirectoryPath } from '../../services/SanitizationService';
 import { ApiResponse } from '../http/APIResponse';
 
 interface FileItem {
@@ -56,9 +56,9 @@ export class FilesController {
   @Get('folder')
   @Security('adminAuth')
   public async getFolderContents(@Query() path: string): Promise<ApiResponse<FileItem[]>> {
-    const sanitizedPath = SanitizationService.sanitizeDirectoryPath(
+    const sanitizedPath = sanitizeDirectoryPath(
       path,
-      SanitizationService.getSystemAllowedPaths(),
+      getSystemAllowedPaths(),
       true, // Must exist
     );
 

@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'node:fs';
 import type { MovieResponse } from 'moviedb-promise';
 import type { CollectionsRepositoryPort } from '@/api/v1/collections/application/ports/CollectionsRepositoryPort';
 import type { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
@@ -14,7 +14,7 @@ export class UpdateMovieMetadataUseCase {
     private readonly movieRepository: MoviesRepositoryPort,
     private readonly collectionRepository: CollectionsRepositoryPort,
     private readonly fileSystemService: FileSystemServicePort,
-  ) {}
+  ) { }
 
   async execute(
     movie: MovieModel,
@@ -130,21 +130,21 @@ export class UpdateMovieMetadataUseCase {
 
     // Create folders if they do not exist
     const outputLogosDir = this.fileSystemService.getExternalPath(
-      'resources/img/logos/' + movie.id,
+      `resources/img/logos/${movie.id}`,
     );
     if (!fs.existsSync(outputLogosDir)) {
       fs.mkdirSync(outputLogosDir);
     }
 
     const outputPostersDir = this.fileSystemService.getExternalPath(
-      'resources/img/posters/' + movie.id,
+      `resources/img/posters/${movie.id}`,
     );
     if (!fs.existsSync(outputPostersDir)) {
       fs.mkdirSync(outputPostersDir);
     }
 
     const outputPostersCollectionDir = this.fileSystemService.getExternalPath(
-      'resources/img/posters/' + collection?.id,
+      `resources/img/posters/${collection?.id}`,
     );
 
     if (collection && !fs.existsSync(outputPostersCollectionDir)) {
@@ -152,7 +152,7 @@ export class UpdateMovieMetadataUseCase {
     }
 
     const outputImageDir = this.fileSystemService.getExternalPath(
-      'resources/img/backgrounds/' + movie.id,
+      `resources/img/backgrounds/${movie.id}`,
     );
     if (!fs.existsSync(outputImageDir)) {
       fs.mkdirSync(outputImageDir);

@@ -120,7 +120,7 @@ export class ContinueWatchingRepositoryImpl
     userId: string,
     seriesId?: string,
     movieId?: string,
-  ): Promise<ContinueWatching | null> {
+  ): Promise<ContinueWatching> {
     const validated = this.validateIds({ videoId, userId });
 
     // Verify if the video is already in Continue Watching

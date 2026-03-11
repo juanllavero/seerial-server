@@ -1,11 +1,11 @@
-import crypto from 'crypto';
-import type { Express } from 'express';
-import fs from 'fs';
-import http from 'http';
-import https from 'https';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import http from 'node:http';
+import https from 'node:https';
+import os from 'node:os';
+import type { Express, NextFunction, Request, Response } from 'express';
 import upnp from 'nat-upnp';
 import ngrok from 'ngrok';
-import os from 'os';
 import { ServerModel } from '@/api/v1/servers/infrastructure/persistence/models/ServerModel';
 import { fileSystemService } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { appServer } from '@/index';
@@ -17,14 +17,14 @@ const streamingLogger = logger.child({ category: 'Streaming Server' });
 const tunnelLogger = logger.child({ category: 'Tunnel' });
 const upnpLogger = logger.child({ category: 'UPnP' });
 
-export class ServerConfigService {
-  static serverConfig: ServerModel;
-  static sslOptions: { key: string; cert: string; passphrase?: string } | null = null;
-  static httpServer: http.Server | null = null;
-  static httpsServer: https.Server | null = null;
-  public static mainServer: http.Server | https.Server;
+export const ServerConfigService = {
+  serverConfig: undefined as unknown as ServerModel,
+  sslOptions: null as { key: string; cert: string; passphrase?: string } | null,
+  httpServer: null as http.Server | null,
+  httpsServer: null as https.Server | null,
+  mainServer: undefined as unknown as http.Server | https.Server,
 
-  static async loadOrCreateServerConfig() {
+  async loadOrCreateServerConfig() {
     let config: ServerModel | null = null;
 
     try {
@@ -37,7 +37,7 @@ export class ServerConfigService {
         await config.save();
         configLogger.info('Created new server config with defaults.');
       }
-      ServerConfigService.serverConfig = config;
+      this.serverConfig = config;
     } catch (err) {
       configLogger.error(err, 'Error creating server config');
     }
@@ -59,12 +59,12 @@ export class ServerConfigService {
     // Load SSL if enabled
     if (config.httpsEnabled && config.sslCertPath && config.sslKeyPath) {
       try {
-        ServerConfigService.sslOptions = {
+        this.sslOptions = {
           cert: fs.readFileSync(config.sslCertPath, 'utf-8'),
           key: fs.readFileSync(config.sslKeyPath, 'utf-8'),
         };
         if (config.sslPassword) {
-          ServerConfigService.sslOptions.passphrase = config.sslPassword; // Assume secure storage
+          this.sslOptions.passphrase = config.sslPassword; // Assume secure storage
         }
         sslLogger.info('Loaded SSL certificates.');
       } catch (err) {
@@ -77,7 +77,7 @@ export class ServerConfigService {
     // Apply remote access filters
     if (config.allowRemoteConnections && config.remoteIpFilter) {
       const filters = config.remoteIpFilter.split(',').map((f) => f.trim());
-      appServer.use((req: any, res: any, next) => {
+      appServer.use((req: Request, res: Response, next: NextFunction) => {
         const clientIp = req.ip;
         const isAllowed =
           config.remoteIpFilterMode === 'whitelist'
@@ -99,12 +99,12 @@ export class ServerConfigService {
     }
 
     configLogger.info('Server config loaded.');
-  }
+  },
 
-  static async startServer(app: Express) {
-    if (ServerConfigService.mainServer && ServerConfigService.mainServer.listening) {
+  async startServer(app: Express) {
+    if (this.mainServer?.listening) {
       await new Promise<void>((resolve, reject) => {
-        ServerConfigService.mainServer.close((err) => {
+        this.mainServer.close((err) => {
           if (err) {
             streamingLogger.error(err, 'Error closing previous server');
             return reject(err);
@@ -115,50 +115,53 @@ export class ServerConfigService {
       streamingLogger.info('Previous server closed.');
     }
 
-    if (!ServerConfigService.serverConfig) {
+    if (!this.serverConfig) {
       streamingLogger.error('Server config not loaded');
       return;
     }
 
-    if (!ServerConfigService.serverConfig.httpsPort && !ServerConfigService.serverConfig.httpPort) {
+    if (!this.serverConfig.httpsPort && !this.serverConfig.httpPort) {
       streamingLogger.error('No ports configured');
       return;
     }
 
     // Start HTTP server
-    ServerConfigService.httpServer = http.createServer(app);
-    ServerConfigService.httpServer.listen(ServerConfigService.serverConfig.httpPort, () => {
+    this.httpServer = http.createServer(app);
+    this.httpServer.listen(this.serverConfig.httpPort, () => {
       streamingLogger.info(
-        `HTTP server started on http://localhost:${ServerConfigService.serverConfig.httpPort}`,
+        `HTTP server started on http://localhost:${this.serverConfig.httpPort}`,
       );
     });
 
     // Start HTTPS server if enabled
-    if (ServerConfigService.serverConfig.httpsEnabled && ServerConfigService.sslOptions) {
-      ServerConfigService.httpsServer = https.createServer(ServerConfigService.sslOptions, app);
-      ServerConfigService.httpsServer.listen(ServerConfigService.serverConfig.httpsPort, () => {
+    if (this.serverConfig.httpsEnabled && this.sslOptions) {
+      this.httpsServer = https.createServer(this.sslOptions, app);
+      this.httpsServer.listen(this.serverConfig.httpsPort, () => {
         streamingLogger.info(
-          `HTTPS server started on https://localhost:${ServerConfigService.serverConfig.httpsPort}`,
+          `HTTPS server started on https://localhost:${this.serverConfig.httpsPort}`,
         );
       });
     }
 
     // Set main server
-    ServerConfigService.mainServer = ServerConfigService.serverConfig.httpsEnabled
-      ? (ServerConfigService.httpsServer as any)
-      : ServerConfigService.httpServer;
+    const selectedMainServer = this.serverConfig.httpsEnabled ? this.httpsServer : this.httpServer;
+    if (!selectedMainServer) {
+      streamingLogger.error('Failed to initialize main server instance');
+      return;
+    }
+    this.mainServer = selectedMainServer;
 
     // Handle forceHttps
     if (
-      ServerConfigService.serverConfig.forceHttps &&
-      ServerConfigService.serverConfig.httpsEnabled
+      this.serverConfig.forceHttps &&
+      this.serverConfig.httpsEnabled
     ) {
       app.use((req, res, next) => {
         if (!req.secure) {
           res.redirect(
             `https://${req.headers.host?.replace(
-              `:${ServerConfigService.serverConfig.httpPort}`,
-              `:${ServerConfigService.serverConfig.httpsPort}`,
+              `:${this.serverConfig.httpPort}`,
+              `:${this.serverConfig.httpsPort}`,
             )}${req.url}`,
           );
         } else {
@@ -169,39 +172,39 @@ export class ServerConfigService {
 
     // Setup tunnel if enabled
     if (
-      ServerConfigService.serverConfig.tunnelEnabled &&
-      !ServerConfigService.serverConfig.tunnelUrl
+      this.serverConfig.tunnelEnabled &&
+      !this.serverConfig.tunnelUrl
     ) {
       try {
-        const port = ServerConfigService.serverConfig.httpsEnabled
-          ? ServerConfigService.serverConfig.httpsPort
-          : ServerConfigService.serverConfig.httpPort;
+        const port = this.serverConfig.httpsEnabled
+          ? this.serverConfig.httpsPort
+          : this.serverConfig.httpPort;
         const url = await ngrok.connect({
           port,
           proto: 'http',
         });
-        ServerConfigService.serverConfig.tunnelUrl = url;
-        await ServerConfigService.serverConfig.save();
+        this.serverConfig.tunnelUrl = url;
+        await this.serverConfig.save();
         tunnelLogger.info(`ngrok tunnel established at ${url}`);
       } catch (err) {
         tunnelLogger.error(err, 'Failed to establish ngrok tunnel');
       }
     }
-  }
+  },
 
-  static async setupPortMapping() {
-    if (!ServerConfigService.serverConfig.enableAutoPortMapping) return;
+  async setupPortMapping() {
+    if (!this.serverConfig.enableAutoPortMapping) return;
 
     const client = upnp.createClient();
     const portsToMap = [
       {
-        private: ServerConfigService.serverConfig.httpPort,
-        public: ServerConfigService.serverConfig.publicHttpPort,
+        private: this.serverConfig.httpPort,
+        public: this.serverConfig.publicHttpPort,
         protocol: 'tcp',
       },
       {
-        private: ServerConfigService.serverConfig.httpsPort,
-        public: ServerConfigService.serverConfig.publicHttpsPort,
+        private: this.serverConfig.httpsPort,
+        public: this.serverConfig.publicHttpsPort,
         protocol: 'tcp',
       },
     ];
@@ -214,7 +217,7 @@ export class ServerConfigService {
           protocol: mapping.protocol,
           ttl: 0,
         },
-        (err: any) => {
+        (err: unknown) => {
           if (err) {
             upnpLogger.error(err, `Error mapping port ${mapping.private} to ${mapping.public}`);
           } else {
@@ -223,11 +226,11 @@ export class ServerConfigService {
         },
       );
     }
-  }
+  },
 
-  static async restartServer() {
+  async restartServer() {
     streamingLogger.info('Restarting server...');
-    await ServerConfigService.startServer(appServer);
-    await ServerConfigService.setupPortMapping();
-  }
-}
+    await this.startServer(appServer);
+    await this.setupPortMapping();
+  },
+};

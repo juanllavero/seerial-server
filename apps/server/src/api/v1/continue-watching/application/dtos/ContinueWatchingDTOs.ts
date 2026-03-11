@@ -1,7 +1,3 @@
-export interface ContinueWatchingVideosDTO {
-  videos: any[];
-}
-
 export interface ContinueWatchingVideo {
   id: string;
   title: string;
