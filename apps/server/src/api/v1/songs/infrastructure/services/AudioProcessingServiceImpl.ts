@@ -61,7 +61,7 @@ export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
       ]);
 
       return cachedFilePath;
-    } catch (error) {
+    } catch (_error) {
       // Clean failed file if created
       if (fs.existsSync(cachedFilePath)) fs.unlinkSync(cachedFilePath);
       throw new Error(messages.errors.server.internal);

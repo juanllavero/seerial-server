@@ -1,15 +1,18 @@
 import { In, Raw } from 'typeorm';
 import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
+import type { Movie } from '@/api/v1/movies/domain/Movie';
 import { MovieModel } from '@/api/v1/movies/infrastructure/persistence/models/MovieModel';
+import type { Series } from '@/api/v1/series/domain/Series';
 import { SeriesModel } from '@/api/v1/series/infrastructure/persistence/models/SeriesModel';
 import { GenericRepositoryHelper } from '@/helpers/GenericRepositoryHelper';
 import logger from '@/utils/logger';
 import type { MyListRepositoryPort } from '../../../application/ports/MyListRepositoryPort';
+import type { MyListItem } from '../../../domain/MyList';
 import { MyListModel } from '../models/MyListModel';
 
 export class MyListRepositoryImpl extends BaseRepository implements MyListRepositoryPort {
   // Generic helper for common CRUD operations
-  private helper: GenericRepositoryHelper<MyListModel, any>;
+  private helper: GenericRepositoryHelper<MyListModel, MyListModel>;
 
   constructor() {
     super();
@@ -35,7 +38,7 @@ export class MyListRepositoryImpl extends BaseRepository implements MyListReposi
 
     if (existingElement) {
       logger.info(`The movie with ID ${movieId} is already in My List`);
-      return existingElement as unknown as any;
+      return existingElement as unknown as MyListItem;
     }
 
     const newElementData = {
@@ -59,7 +62,7 @@ export class MyListRepositoryImpl extends BaseRepository implements MyListReposi
 
     if (existingElement) {
       logger.info(`Show with ID ${seriesId} is already in My List`);
-      return existingElement as unknown as any;
+      return existingElement as unknown as MyListItem;
     }
 
     const newElementData = {
@@ -138,7 +141,7 @@ export class MyListRepositoryImpl extends BaseRepository implements MyListReposi
       },
     });
 
-    return movies.map((m) => m as unknown as any);
+    return movies as unknown as Movie[];
   }
 
   async getSeriesFromMyList(userId: string) {
@@ -164,7 +167,7 @@ export class MyListRepositoryImpl extends BaseRepository implements MyListReposi
       },
     });
 
-    return series.map((s) => s as unknown as any);
+    return series as unknown as Series[];
   }
 
   async isMovieInMyList(movieId: string, userId: string) {
@@ -177,7 +180,7 @@ export class MyListRepositoryImpl extends BaseRepository implements MyListReposi
       },
     });
 
-    return item ? (item as unknown as any) : null;
+    return Boolean(item);
   }
 
   async isSeriesInMyList(seriesId: string, userId: string) {
@@ -190,6 +193,6 @@ export class MyListRepositoryImpl extends BaseRepository implements MyListReposi
       },
     });
 
-    return item ? (item as unknown as any) : null;
+    return Boolean(item);
   }
 }

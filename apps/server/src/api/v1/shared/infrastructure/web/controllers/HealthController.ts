@@ -71,8 +71,8 @@ export class HealthController extends Controller {
   private async checkFFmpeg(): Promise<HealthStatus> {
     try {
       await new Promise((resolve, reject) => {
-        const { exec } = require('child_process');
-        exec('ffmpeg -version', (err: any) => (err ? reject() : resolve(true)));
+        const { exec } = require('node:child_process');
+        exec('ffmpeg -version', (err: Error | null) => (err ? reject() : resolve(true)));
       });
       return 'ok';
     } catch {

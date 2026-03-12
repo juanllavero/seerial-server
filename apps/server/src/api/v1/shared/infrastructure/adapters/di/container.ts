@@ -139,7 +139,6 @@ import { WatchListRepositoryImpl } from '@/api/v1/watch-lists/infrastructure/per
 import { AudioProcessingServiceImpl } from '../../../../songs/infrastructure/services/AudioProcessingServiceImpl';
 import { VideoProcessingServiceImpl } from '../../../../videos/infrastructure/services/VideoProcessingServiceImpl';
 import { ExternalSearchService } from '../../services/ExternalSearchService';
-import { SanitizationService } from '../../services/SanitizationService';
 import { DownloaderServiceImpl } from '../downloader/DownloaderServiceImpl';
 import { FileSystemServiceImpl } from '../filesystem/FileSystemServiceImpl';
 import { ImageProcessingServiceImpl } from '../image-processing/ImageProcessingServiceImpl';
@@ -159,9 +158,8 @@ export const mediaInfoService = new MediaInfoServiceImpl();
 export const audioProcessingService = new AudioProcessingServiceImpl();
 export const notificationService = new NotificationServiceImpl();
 export const downloaderService = new DownloaderServiceImpl();
-export const sanitizationService = new SanitizationService();
 export const externalSearchService = new ExternalSearchService();
-export const videoProcessingService = new VideoProcessingServiceImpl(sanitizationService);
+export const videoProcessingService = new VideoProcessingServiceImpl();
 export const imageProcessingService = new ImageProcessingServiceImpl(fileSystemService);
 
 // Providers
@@ -272,12 +270,7 @@ export const useCases = {
   deleteMovieData: () => new DeleteMovieDataUseCase(),
 
   updateMovieMetadata: () =>
-    new UpdateMovieMetadataUseCase(
-      metadataProvider,
-      moviesRepo,
-      collectionsRepo,
-      fileSystemService,
-    ),
+    new UpdateMovieMetadataUseCase(metadataProvider, moviesRepo, fileSystemService),
   searchMovieMetadata: () => new SearchMovieMetadataUseCase(),
   refreshMovieMetadata: () => new RefreshMovieMetadataUseCase(),
   scanMovie: () =>

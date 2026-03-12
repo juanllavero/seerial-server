@@ -47,7 +47,7 @@ export class ScanSeriesUseCase {
     private readonly episodesRepo: EpisodeRepositoryPort,
     private readonly metadataProvider: MetadataProviderPort,
     private readonly notificationService: NotificationServicePort,
-  ) { }
+  ) {}
 
   async execute(library: Library, root: string): Promise<void> {
     logger.info(
@@ -150,9 +150,27 @@ export class ScanSeriesUseCase {
       return;
     }
 
-    const seasonPromises = showData.seasons.map((seasonBasic) =>
-      this.metadataProvider.getSeason(showData.id!, seasonBasic.season_number!, library.language),
-    );
+    const showDataId = showData.id;
+    if (!showDataId) {
+      logger.error(
+        {
+          seriesId: show.id,
+          tmdbId: show.themdbId,
+        },
+        'TV show data has no TMDb id, cannot proceed',
+      );
+      return;
+    }
+
+    const seasonPromises = showData.seasons
+      .filter((seasonBasic) => seasonBasic.season_number != null)
+      .map((seasonBasic) =>
+        this.metadataProvider.getSeason(
+          showDataId,
+          seasonBasic.season_number as number,
+          library.language,
+        ),
+      );
 
     const seasonsMetadata = (await Promise.all(seasonPromises)).filter(
       Boolean,
@@ -592,7 +610,7 @@ export class ScanSeriesUseCase {
     if (show.episodeGroupId && episodesGroup?.groups) {
       for (const season of seasons) {
         const group = episodesGroup.groups.find((g) => g.order === season.seasonNumber);
-        if (group && group.name && season.name !== group.name) {
+        if (group?.name && season.name !== group.name) {
           season.name = group.name;
           await this.seasonsRepo.update(season.id, season);
         }
@@ -784,38 +802,53 @@ export class ScanSeriesUseCase {
     const exists = seasonsMetadata.some((s) => s.season_number === seasonNumber);
 
     if (!exists && show.episodeGroupId) {
-      if (!episodesGroup) {
-        episodesGroup = await this.metadataProvider.getEpisodeGroup(show.episodeGroupId);
-      }
-      if (!episodesGroup?.groups) return null;
-
-      for (const group of episodesGroup.groups) {
-        if (group.order !== seasonNumber || !group.episodes) continue;
-        const ep = group.episodes.find((e) => e.order && e.order + 1 === episodeNumber);
-        if (!ep) continue;
-
-        const seasonMeta = seasonsMetadata.find((s) => s.season_number === ep.season_number);
-        const episodeMeta = seasonMeta?.episodes?.find(
-          (e) => e.episode_number === ep.episode_number,
-        );
-
-        if (seasonMeta && episodeMeta) {
-          return { seasonMetadata: seasonMeta, episodeMetadata: episodeMeta };
-        }
-      }
-      return null;
+      const resolvedGroup =
+        episodesGroup ?? (await this.metadataProvider.getEpisodeGroup(show.episodeGroupId));
+      if (!resolvedGroup) return null;
+      return this.findEpisodeInGroup(resolvedGroup, seasonNumber, episodeNumber, seasonsMetadata);
     }
 
-    // Fast index lookup
-    const seasonData = seasonsIndex.get(seasonNumber);
-    if (seasonData && seasonData.episodesMap.has(episodeNumber)) {
-      return {
-        seasonMetadata: seasonData.season,
-        episodeMetadata: seasonData.episodesMap.get(episodeNumber)!,
-      };
+    return this.findEpisodeInSeasonIndex(seasonsIndex, seasonNumber, episodeNumber);
+  }
+
+  private findEpisodeInGroup(
+    episodesGroup: EpisodeGroupResponse,
+    seasonNumber: number,
+    episodeNumber: number,
+    seasonsMetadata: TvSeasonResponse[],
+  ): { seasonMetadata?: TvSeasonResponse; episodeMetadata?: Episode } | null {
+    if (!episodesGroup?.groups) return null;
+
+    for (const group of episodesGroup.groups) {
+      if (group.order !== seasonNumber || !group.episodes) continue;
+      const ep = group.episodes.find((e) => e.order && e.order + 1 === episodeNumber);
+      if (!ep) continue;
+
+      const seasonMeta = seasonsMetadata.find((s) => s.season_number === ep.season_number);
+      const episodeMeta = seasonMeta?.episodes?.find((e) => e.episode_number === ep.episode_number);
+
+      if (seasonMeta && episodeMeta) {
+        return { seasonMetadata: seasonMeta, episodeMetadata: episodeMeta };
+      }
     }
 
     return null;
+  }
+
+  private findEpisodeInSeasonIndex(
+    seasonsIndex: Map<number, { season: TvSeasonResponse; episodesMap: Map<number, Episode> }>,
+    seasonNumber: number,
+    episodeNumber: number,
+  ): { seasonMetadata?: TvSeasonResponse; episodeMetadata?: Episode } | null {
+    const seasonData = seasonsIndex.get(seasonNumber);
+    const episodeMetadata = seasonData?.episodesMap.get(episodeNumber);
+
+    if (!seasonData || !episodeMetadata) return null;
+
+    return {
+      seasonMetadata: seasonData.season,
+      episodeMetadata,
+    };
   }
 
   /**
@@ -831,7 +864,7 @@ export class ScanSeriesUseCase {
         const season = seasonsMetadata[i];
         const previousCount = i > 0 ? cumulative[i - 1] : 0;
         const episodeIndex = absoluteNumber - previousCount - 1; // Index from 0
-        if (season.episodes && season.episodes[episodeIndex]) {
+        if (season.episodes?.[episodeIndex]) {
           return { season, episode: season.episodes[episodeIndex] };
         }
       }

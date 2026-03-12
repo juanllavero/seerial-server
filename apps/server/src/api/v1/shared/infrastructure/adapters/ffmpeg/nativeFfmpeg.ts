@@ -1,4 +1,4 @@
-import { type ChildProcess, spawn } from 'child_process';
+import { type ChildProcess, spawn } from 'node:child_process';
 import ffmpegPath from 'ffmpeg-static';
 import ffprobePath from 'ffprobe-static';
 
@@ -6,6 +6,11 @@ export const ffmpegPathFinal = ffmpegPath ?? '';
 export const ffprobePathFinal = ffprobePath.path ?? '';
 
 const MAX_BUFFER_SIZE = 10 * 1024 * 1024; // 10MB
+interface FfprobeResult {
+  format: Record<string, unknown>;
+  streams: Array<Record<string, unknown>>;
+  [key: string]: unknown;
+}
 
 // If app.asar is used, use app.asar.unpacked
 export const getFfmpegPath = () => {
@@ -91,7 +96,6 @@ export function executeFfmpeg(args: string[]): Promise<void> {
       ffmpegProcess.on('close', (code) => {
         if (isResolved) return;
         isResolved = true;
-
         cleanup();
 
         if (code === 0) {
@@ -123,7 +127,10 @@ export function executeFfmpeg(args: string[]): Promise<void> {
 /**
  * Execute ffprobe command and return parsed JSON data
  */
-export function executeFfprobe(filePath: string, timeoutMs: number = 10000): Promise<any> {
+export function executeFfprobe(
+  filePath: string,
+  timeoutMs: number = 10000,
+): Promise<FfprobeResult> {
   return new Promise((resolve, reject) => {
     let ffprobeProcess: ChildProcess | null = null;
     let stdout = '';
@@ -198,7 +205,7 @@ export function executeFfprobe(filePath: string, timeoutMs: number = 10000): Pro
 
         if (code === 0) {
           try {
-            const data = JSON.parse(stdout);
+            const data = JSON.parse(stdout) as FfprobeResult;
             resolve(data);
           } catch (err) {
             reject(new Error(`Failed to parse ffprobe output: ${err}`));
@@ -523,8 +530,12 @@ export function executeFfmpegPipeToStream(
     }
   }
 
+  if (!ffmpegProcess) {
+    throw new Error('FFMPEG process failed to initialize');
+  }
+
   return {
-    process: ffmpegProcess!,
+    process: ffmpegProcess,
     cancel,
     stderr,
   };

@@ -30,6 +30,8 @@ import type {
 } from '../../../application/dtos/MovieDTOs';
 import type { Movie } from '../../../domain/Movie';
 
+type AuthenticatedRequest = ExpressRequest & { user?: { id?: string } };
+
 @Route('movies')
 @Tags('Movies')
 export class MoviesController extends Controller {
@@ -89,7 +91,7 @@ export class MoviesController extends Controller {
     @Body() body: SetMovieWatchStateDTO,
     @Request() req: ExpressRequest,
   ): Promise<ApiResponse<null>> {
-    const userId = (req as any).user?.id;
+    const userId = (req as AuthenticatedRequest).user?.id as string;
     const { watched } = body;
 
     const movie = await useCases.getMoviebyId().execute(id);
@@ -168,7 +170,7 @@ export class MoviesController extends Controller {
     @Path() id: string,
     @Request() req: ExpressRequest,
   ): Promise<ApiResponse<number>> {
-    const userId = (req as any).user?.id;
+    const userId = (req as AuthenticatedRequest).user?.id as string;
     const count = await MediaService.countRemainingVideos(id, userId);
 
     return ApiResponse.success(count, messages.success.fetch);
@@ -183,7 +185,7 @@ export class MoviesController extends Controller {
     @Path() id: string,
     @Request() req: ExpressRequest,
   ): Promise<ApiResponse<boolean>> {
-    const userId = (req as any).user?.id;
+    const userId = (req as AuthenticatedRequest).user?.id as string;
     const isMovieInMyList = await myListRepo.isMovieInMyList(id, userId);
 
     return ApiResponse.success(isMovieInMyList, messages.success.fetch);

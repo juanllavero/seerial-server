@@ -32,6 +32,8 @@ import type {
 } from '../../../application/dtos/SeriesDTOs';
 import type { Series } from '../../../domain/Series';
 
+type AuthenticatedRequest = ExpressRequest & { user?: { id?: string } };
+
 @Route('series')
 @Tags('Series')
 export class SeriesController extends Controller {
@@ -115,48 +117,59 @@ export class SeriesController extends Controller {
     }
 
     for (const season of series.seasons) {
-      const seasonWithEpisodes = await useCases.getSeasonById().execute(season.id);
-
-      if (!seasonWithEpisodes) continue;
-
-      for (const episode of seasonWithEpisodes.episodes) {
-        const episodeDB = await useCases.getEpisodeById().execute(episode.id);
-
-        if (!episodeDB) continue;
-
-        const video = await useCases.getVideoByEpisodeId().execute(episodeDB.id);
-
-        if (!video) continue;
-
-        if (watched) {
-          await useCases.addVideoToWatchList().execute(video.id, userId);
-        } else {
-          await useCases.removeVideoFromWatchList().execute(video.id, userId);
-        }
-        await useCases.updateVideo().execute(video.id, video);
-
-        // Manage continue watching
-        if (watched === true) {
-          await useCases.removeVideoFromContinueWatching().execute(video.id, userId);
-        }
-      }
-
-      if (watched) {
-        await useCases.addSeasonToWatchList().execute(seasonWithEpisodes.id, userId);
-      } else {
-        await useCases.removeSeasonFromWatchList().execute(seasonWithEpisodes.id, userId);
-      }
-      await useCases.updateSeason().execute(seasonWithEpisodes.id, seasonWithEpisodes);
+      await this.setSeasonWatchState(season.id, userId, watched);
     }
 
-    if (watched) {
-      await useCases.addSeriesToWatchList().execute(id, userId);
-    } else {
-      await useCases.removeSeriesFromWatchList().execute(id, userId);
-    }
+    await this.setSeriesWatchListState(id, userId, watched);
     await useCases.updateSeries().execute(series.id, series);
 
     return ApiResponse.success(null, messages.success.update);
+  }
+
+  private async setSeasonWatchState(
+    seasonId: string,
+    userId: string,
+    watched: boolean,
+  ): Promise<void> {
+    const seasonWithEpisodes = await useCases.getSeasonById().execute(seasonId);
+    if (!seasonWithEpisodes) return;
+
+    for (const episode of seasonWithEpisodes.episodes) {
+      const episodeDB = await useCases.getEpisodeById().execute(episode.id);
+      if (!episodeDB) continue;
+
+      const video = await useCases.getVideoByEpisodeId().execute(episodeDB.id);
+      if (!video) continue;
+
+      if (watched) {
+        await useCases.addVideoToWatchList().execute(video.id, userId);
+        await useCases.removeVideoFromContinueWatching().execute(video.id, userId);
+      } else {
+        await useCases.removeVideoFromWatchList().execute(video.id, userId);
+      }
+
+      await useCases.updateVideo().execute(video.id, video);
+    }
+
+    if (watched) {
+      await useCases.addSeasonToWatchList().execute(seasonWithEpisodes.id, userId);
+    } else {
+      await useCases.removeSeasonFromWatchList().execute(seasonWithEpisodes.id, userId);
+    }
+    await useCases.updateSeason().execute(seasonWithEpisodes.id, seasonWithEpisodes);
+  }
+
+  private async setSeriesWatchListState(
+    seriesId: string,
+    userId: string,
+    watched: boolean,
+  ): Promise<void> {
+    if (watched) {
+      await useCases.addSeriesToWatchList().execute(seriesId, userId);
+      return;
+    }
+
+    await useCases.removeSeriesFromWatchList().execute(seriesId, userId);
   }
 
   /**
@@ -211,7 +224,7 @@ export class SeriesController extends Controller {
     @Path() id: string,
     @Request() req: ExpressRequest,
   ): Promise<ApiResponse<number>> {
-    const userId = (req as any).user?.id;
+    const userId = (req as AuthenticatedRequest).user?.id as string;
     const result = await MediaService.countRemainingEpisodes(id, userId);
     return ApiResponse.success(result, messages.success.fetch);
   }
@@ -225,7 +238,7 @@ export class SeriesController extends Controller {
     @Path() id: string,
     @Request() req: ExpressRequest,
   ): Promise<ApiResponse<boolean>> {
-    const userId = (req as any).user?.id;
+    const userId = (req as AuthenticatedRequest).user?.id as string;
     const result = await useCases.isSeriesInMyList().execute(id, userId);
     return ApiResponse.success(result, messages.success.fetch);
   }

@@ -1,4 +1,14 @@
+import type { Request as ExpressRequest, Response as ExpressResponse } from 'express';
+
+export interface TranscodeVideoParams {
+  path: string;
+  start: string | number;
+  audio: string | number;
+  quality: string | number;
+  bitrate: number;
+}
+
 export interface VideoProcessingServicePort {
-  transcodeAndStreamVideo(params: any, res: any): void;
-  streamDirectVideoFile(req: any, res: any): void;
+  transcodeAndStreamVideo(params: TranscodeVideoParams, res: ExpressResponse): void;
+  streamDirectVideoFile(req: ExpressRequest, res: ExpressResponse): void;
 }

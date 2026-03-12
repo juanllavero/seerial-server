@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import type { MovieResponse } from 'moviedb-promise';
-import type { CollectionsRepositoryPort } from '@/api/v1/collections/application/ports/CollectionsRepositoryPort';
 import type { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
 import type { FileSystemServicePort } from '@/api/v1/shared/application/ports/FileSystemServicePort';
 import type { MetadataProviderPort } from '@/api/v1/shared/application/ports/MetadataProviderPort';
@@ -12,9 +11,8 @@ export class UpdateMovieMetadataUseCase {
   constructor(
     private readonly metadataProvider: MetadataProviderPort,
     private readonly movieRepository: MoviesRepositoryPort,
-    private readonly collectionRepository: CollectionsRepositoryPort,
     private readonly fileSystemService: FileSystemServicePort,
-  ) { }
+  ) {}
 
   async execute(
     movie: MovieModel,
@@ -60,55 +58,7 @@ export class UpdateMovieMetadataUseCase {
     const credits = await this.metadataProvider.getMovieCredits(themdbId, language);
     if (!credits) return;
 
-    if (credits.crew) {
-      if (!movie.directedByLock) {
-        movie.directedBy.splice(0, movie.directedBy.length);
-        for (const person of credits.crew) {
-          if (person.name && person.job === 'Director' && movie.directedBy)
-            movie.directedBy = [...movie.directedBy, person.name];
-        }
-      }
-
-      if (!movie.writtenByLock) {
-        movie.writtenBy.splice(0, movie.writtenBy.length);
-        for (const person of credits.crew) {
-          if (person.name && (person.job === 'Writer' || person.job === 'Novel') && movie.writtenBy)
-            movie.writtenBy = [...movie.writtenBy, person.name];
-        }
-      }
-
-      if (!movie.creatorLock) movie.creator.splice(0, movie.creator.length);
-      if (!movie.musicComposerLock) movie.musicComposer.splice(0, movie.musicComposer.length);
-
-      for (const person of credits.crew) {
-        if (
-          person.job &&
-          (person.job === 'Author' ||
-            person.job === 'Novel' ||
-            person.job === 'Original Series Creator' ||
-            person.job === 'Comic Book' ||
-            person.job === 'Idea' ||
-            person.job === 'Original Story' ||
-            person.job === 'Story' ||
-            person.job === 'Story by' ||
-            person.job === 'Book' ||
-            person.job === 'Original Concept') &&
-          !movie.creatorLock &&
-          person.name
-        ) {
-          movie.creator = [...movie.creator, person.name];
-        }
-
-        if (
-          person.job &&
-          person.job === 'Original Music Composer' &&
-          !movie.musicComposerLock &&
-          person.name
-        ) {
-          movie.musicComposer = [...movie.musicComposer, person.name];
-        }
-      }
-    }
+    this.updateCrewCredits(movie, credits.crew ?? []);
 
     if (credits.cast) {
       movie.cast = credits.cast.map((person) => ({
@@ -119,6 +69,62 @@ export class UpdateMovieMetadataUseCase {
           : '',
       }));
     }
+  }
+
+  private updateCrewCredits(movie: MovieModel, crew: Array<{ name?: string; job?: string }>): void {
+    this.updateDirectedBy(movie, crew);
+    this.updateWrittenBy(movie, crew);
+    this.updateCreator(movie, crew);
+    this.updateMusicComposer(movie, crew);
+  }
+
+  private updateDirectedBy(movie: MovieModel, crew: Array<{ name?: string; job?: string }>): void {
+    if (movie.directedByLock) return;
+    movie.directedBy.splice(0, movie.directedBy.length);
+    movie.directedBy = crew
+      .filter((person) => person.name && person.job === 'Director')
+      .map((person) => person.name as string);
+  }
+
+  private updateWrittenBy(movie: MovieModel, crew: Array<{ name?: string; job?: string }>): void {
+    if (movie.writtenByLock) return;
+    movie.writtenBy.splice(0, movie.writtenBy.length);
+    movie.writtenBy = crew
+      .filter((person) => person.name && (person.job === 'Writer' || person.job === 'Novel'))
+      .map((person) => person.name as string);
+  }
+
+  private updateCreator(movie: MovieModel, crew: Array<{ name?: string; job?: string }>): void {
+    if (movie.creatorLock) return;
+
+    const creatorJobs = new Set([
+      'Author',
+      'Novel',
+      'Original Series Creator',
+      'Comic Book',
+      'Idea',
+      'Original Story',
+      'Story',
+      'Story by',
+      'Book',
+      'Original Concept',
+    ]);
+
+    movie.creator.splice(0, movie.creator.length);
+    movie.creator = crew
+      .filter((person) => person.name && person.job && creatorJobs.has(person.job))
+      .map((person) => person.name as string);
+  }
+
+  private updateMusicComposer(
+    movie: MovieModel,
+    crew: Array<{ name?: string; job?: string }>,
+  ): void {
+    if (movie.musicComposerLock) return;
+    movie.musicComposer.splice(0, movie.musicComposer.length);
+    movie.musicComposer = crew
+      .filter((person) => person.name && person.job === 'Original Music Composer')
+      .map((person) => person.name as string);
   }
 
   private async downloadMovieImages(

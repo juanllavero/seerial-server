@@ -649,52 +649,7 @@ export class MetadataProviderImpl implements MetadataProviderPort {
     const credits = await metadataProvider.getMovieCredits(themdbId, language);
     if (!credits) return;
 
-    if (credits.crew) {
-      if (!movie.directedByLock && movie.directedBy) {
-        movie.directedBy.splice(0, movie.directedBy.length);
-        for (const person of credits.crew) {
-          if (person.name && person.job === 'Director' && movie.directedBy)
-            movie.directedBy = [...movie.directedBy, person.name];
-        }
-      }
-
-      if (!movie.writtenByLock && movie.writtenBy) {
-        movie.writtenBy.splice(0, movie.writtenBy.length);
-        for (const person of credits.crew) {
-          if (person.name && (person.job === 'Writer' || person.job === 'Novel') && movie.writtenBy)
-            movie.writtenBy = [...movie.writtenBy, person.name];
-        }
-      }
-
-      if (!movie.creatorLock && movie.creator && movie.creator.length > 0)
-        movie.creator.splice(0, movie.creator.length);
-
-      if (!movie.musicComposerLock && movie.musicComposer && movie.musicComposer.length > 0)
-        movie.musicComposer.splice(0, movie.musicComposer.length);
-
-      for (const person of credits.crew) {
-        if (
-          !movie.creatorLock &&
-          person.job &&
-          (person.job === 'Author' ||
-            person.job === 'Novel' ||
-            person.job === 'Original Series Creator' ||
-            person.job === 'Comic Book' ||
-            person.job === 'Idea' ||
-            person.job === 'Original Story' ||
-            person.job === 'Story' ||
-            person.job === 'Story by' ||
-            person.job === 'Book' ||
-            person.job === 'Original Concept')
-        )
-          if (person.name && !movie.creatorLock && movie.creator)
-            movie.creator = [...movie.creator, person.name];
-
-        if (!movie.musicComposerLock && person.job && person.job === 'Original Music Composer')
-          if (person.name && !movie.musicComposerLock && movie.musicComposer)
-            movie.musicComposer = [...movie.musicComposer, person.name];
-      }
-    }
+    this.updateMovieCrew(movie, credits.crew ?? []);
 
     if (credits.cast) {
       movie.cast = credits.cast.map((person) => ({
@@ -747,71 +702,123 @@ export class MetadataProviderImpl implements MetadataProviderPort {
       const images = await metadataProvider.getMovieImages(movie.themdbId);
       if (!images) return;
 
-      // Create folders if they do not exist
-      const outputLogosDir = fileSystemService.getExternalPath('resources/img/logos/' + movie.id);
-      if (!fs.existsSync(outputLogosDir)) {
-        fs.mkdirSync(outputLogosDir);
-      }
-
-      const outputPostersDir = fileSystemService.getExternalPath(
-        `resources/img/posters/${movie.id}`,
-      );
-      if (!fs.existsSync(outputPostersDir)) {
-        fs.mkdirSync(outputPostersDir);
-      }
-
-      const outputPostersCollectionDir = fileSystemService.getExternalPath(
-        `resources/img/posters/${collection?.id}`,
-      );
-
-      if (collection) {
-        if (!fs.existsSync(outputPostersCollectionDir)) {
-          fs.mkdirSync(outputPostersCollectionDir);
-        }
-      }
-
-      const outputImageDir = fileSystemService.getExternalPath(
-        `resources/img/backgrounds/${movie.id}`,
-      );
-      if (!fs.existsSync(outputImageDir)) {
-        fs.mkdirSync(outputImageDir);
-      }
-
-      // Backdrops
-      if (images.backdrops && images.backdrops.length > 0) {
-        movie.backgroundsUrls = images.backdrops.map((img) => `${this.BASE_URL}${img.file_path}`);
-        movie.backgroundSrc = movie.backgroundsUrls[0];
-      }
-
-      // Logos
-      if (images.logos && images.logos.length > 0) {
-        movie.logosUrls = images.logos.map((img) => `${this.BASE_URL}${img.file_path}`);
-        movie.logoSrc = movie.logosUrls[0];
-      }
-
-      // Posters
-      if (images.posters && images.posters.length > 0) {
-        movie.coversUrls = images.posters.map((img) => `${this.BASE_URL}${img.file_path}`);
-        movie.coverSrc = movie.coversUrls[0];
-
-        // If there is a collection, add poster to collection
-        if (collection) {
-          if (!collection.coversUrls) {
-            collection.coversUrls = [];
-          }
-          collection.coversUrls.push(movie.coversUrls[0]);
-          if (!collection.coverSrc) {
-            collection.coverSrc = movie.coversUrls[0];
-          }
-
-          await useCases.updateCollection().execute(collection.id, collection);
-        }
-      }
+      this.ensureMovieImageDirectories(movie.id, collection?.id);
+      this.assignMovieImageUrls(movie, images);
+      await this.assignCollectionPoster(collection, movie);
 
       await useCases.updateMovie().execute(movie.id, movie);
     } catch (error) {
       metadataManagerLogger.error(error, `Error descargando imágenes para la película ${movie.id}`);
     }
+  }
+
+  private updateMovieCrew(movie: Movie, crew: Array<{ name?: string; job?: string }>): void {
+    this.updateDirectedBy(movie, crew);
+    this.updateWrittenBy(movie, crew);
+    this.updateCreator(movie, crew);
+    this.updateMusicComposer(movie, crew);
+  }
+
+  private updateDirectedBy(movie: Movie, crew: Array<{ name?: string; job?: string }>): void {
+    if (movie.directedByLock || !movie.directedBy) return;
+    movie.directedBy.splice(0, movie.directedBy.length);
+    movie.directedBy = crew
+      .filter((person) => person.name && person.job === 'Director')
+      .map((person) => person.name as string);
+  }
+
+  private updateWrittenBy(movie: Movie, crew: Array<{ name?: string; job?: string }>): void {
+    if (movie.writtenByLock || !movie.writtenBy) return;
+    movie.writtenBy.splice(0, movie.writtenBy.length);
+    movie.writtenBy = crew
+      .filter((person) => person.name && (person.job === 'Writer' || person.job === 'Novel'))
+      .map((person) => person.name as string);
+  }
+
+  private updateCreator(movie: Movie, crew: Array<{ name?: string; job?: string }>): void {
+    if (movie.creatorLock || !movie.creator) return;
+
+    const creatorJobs = new Set([
+      'Author',
+      'Novel',
+      'Original Series Creator',
+      'Comic Book',
+      'Idea',
+      'Original Story',
+      'Story',
+      'Story by',
+      'Book',
+      'Original Concept',
+    ]);
+
+    movie.creator.splice(0, movie.creator.length);
+    movie.creator = crew
+      .filter((person) => person.name && person.job && creatorJobs.has(person.job))
+      .map((person) => person.name as string);
+  }
+
+  private updateMusicComposer(movie: Movie, crew: Array<{ name?: string; job?: string }>): void {
+    if (movie.musicComposerLock || !movie.musicComposer) return;
+    movie.musicComposer.splice(0, movie.musicComposer.length);
+    movie.musicComposer = crew
+      .filter((person) => person.name && person.job === 'Original Music Composer')
+      .map((person) => person.name as string);
+  }
+
+  private ensureMovieImageDirectories(movieId: string, collectionId?: string): void {
+    const dirs = [
+      fileSystemService.getExternalPath(`resources/img/logos/${movieId}`),
+      fileSystemService.getExternalPath(`resources/img/posters/${movieId}`),
+      fileSystemService.getExternalPath(`resources/img/backgrounds/${movieId}`),
+    ];
+
+    if (collectionId) {
+      dirs.push(fileSystemService.getExternalPath(`resources/img/posters/${collectionId}`));
+    }
+
+    for (const dir of dirs) {
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir);
+      }
+    }
+  }
+
+  private assignMovieImageUrls(
+    movie: Movie,
+    images: Awaited<ReturnType<typeof metadataProvider.getMovieImages>>,
+  ): void {
+    if (images?.backdrops && images.backdrops.length > 0) {
+      movie.backgroundsUrls = images.backdrops.map((img) => `${this.BASE_URL}${img.file_path}`);
+      movie.backgroundSrc = movie.backgroundsUrls[0];
+    }
+
+    if (images?.logos && images.logos.length > 0) {
+      movie.logosUrls = images.logos.map((img) => `${this.BASE_URL}${img.file_path}`);
+      movie.logoSrc = movie.logosUrls[0];
+    }
+
+    if (images?.posters && images.posters.length > 0) {
+      movie.coversUrls = images.posters.map((img) => `${this.BASE_URL}${img.file_path}`);
+      movie.coverSrc = movie.coversUrls[0];
+    }
+  }
+
+  private async assignCollectionPoster(
+    collection: Collection | undefined,
+    movie: Movie,
+  ): Promise<void> {
+    if (!collection || !movie.coversUrls?.length) return;
+
+    if (!collection.coversUrls) {
+      collection.coversUrls = [];
+    }
+    collection.coversUrls.push(movie.coversUrls[0]);
+
+    if (!collection.coverSrc) {
+      collection.coverSrc = movie.coversUrls[0];
+    }
+
+    await useCases.updateCollection().execute(collection.id, collection);
   }
 
   /**

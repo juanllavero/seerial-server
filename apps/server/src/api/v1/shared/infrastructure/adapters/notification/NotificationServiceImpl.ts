@@ -33,8 +33,8 @@ export class NotificationServiceImpl implements NotificationServicePort {
 
     // Handle WebSocket connection when HTTP server detects an upgrade
     server.on('upgrade', (req, socket, head) => {
-      this.wss!.handleUpgrade(req, socket, head, (ws) => {
-        this.wss!.emit('connection', ws, req);
+      this.wss?.handleUpgrade(req, socket, head, (ws) => {
+        this.wss?.emit('connection', ws, req);
       });
     });
 

@@ -1,4 +1,4 @@
-import type { Request as ExpressRequest } from 'express';
+import type { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import jwt from 'jsonwebtoken';
 import { Body, Controller, Get, Post, Request, Route, Security, Tags } from 'tsoa';
 import { videoProcessingService } from '@/api/v1/shared/infrastructure/adapters/di/container';
@@ -6,6 +6,11 @@ import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse
 import { messages } from '@/config/messages';
 import { verifyVideoStreamToken } from '@/middleware/video.middleware';
 import type { StreamUrlDTO, VideoUrlDTO } from '../../../application/dtos/VideoStreamingDTOs';
+import type { TranscodeVideoParams } from '../../../application/ports/VideoProcessingServicePort';
+
+type AuthenticatedRequest = ExpressRequest & { user?: { id?: string } };
+type TsoaContext = { response: ExpressResponse };
+type VideoParamsRequest = ExpressRequest & { videoParams: TranscodeVideoParams };
 
 @Route('video-streaming')
 @Tags('Video Streaming')
@@ -19,10 +24,11 @@ export class VideoStreamingController extends Controller {
     @Body() body: StreamUrlDTO,
     @Request() req: ExpressRequest,
   ): Promise<ApiResponse<string>> {
-    const userId = (req as any).user?.id;
+    const userId = (req as AuthenticatedRequest).user?.id as string;
 
     const { filePath, start, audio, quality, bitrate, expiresIn } = body;
 
+    const jwtSecret = process.env.JWT_SECRET || 'default-secret';
     const token = jwt.sign(
       {
         userId,
@@ -32,7 +38,7 @@ export class VideoStreamingController extends Controller {
         quality: quality || '0',
         bitrate: bitrate || 0,
       },
-      process.env.JWT_SECRET!,
+      jwtSecret,
       { expiresIn: (expiresIn ?? '2m') as jwt.SignOptions['expiresIn'] },
     );
 
@@ -51,7 +57,7 @@ export class VideoStreamingController extends Controller {
     @Body() body: VideoUrlDTO,
     @Request() req: ExpressRequest,
   ): Promise<ApiResponse<string>> {
-    const userId = (req as any).user?.id;
+    const userId = (req as AuthenticatedRequest).user?.id as string;
     const { filePath, expiresIn } = body;
 
     const token = jwt.sign(
@@ -78,15 +84,15 @@ export class VideoStreamingController extends Controller {
     // Apply video stream token verification middleware manually
     await new Promise<void>((resolve, reject) => {
       const middleware = verifyVideoStreamToken;
-      middleware(req, (this as any).response, (err?: any) => {
+      middleware(req, (this as unknown as TsoaContext).response, (err?: unknown) => {
         if (err) reject(err);
         else resolve();
       });
     });
 
     videoProcessingService.transcodeAndStreamVideo(
-      (req as any).videoParams,
-      (this as any).response,
+      (req as VideoParamsRequest).videoParams,
+      (this as unknown as TsoaContext).response,
     );
   }
 
@@ -99,12 +105,12 @@ export class VideoStreamingController extends Controller {
     // Apply video stream token verification middleware manually
     await new Promise<void>((resolve, reject) => {
       const middleware = verifyVideoStreamToken;
-      middleware(req, (this as any).response, (err?: any) => {
+      middleware(req, (this as unknown as TsoaContext).response, (err?: unknown) => {
         if (err) reject(err);
         else resolve();
       });
     });
 
-    videoProcessingService.streamDirectVideoFile(req, (this as any).response);
+    videoProcessingService.streamDirectVideoFile(req, (this as unknown as TsoaContext).response);
   }
 }

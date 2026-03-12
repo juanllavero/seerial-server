@@ -128,9 +128,7 @@ export const ServerConfigService = {
     // Start HTTP server
     this.httpServer = http.createServer(app);
     this.httpServer.listen(this.serverConfig.httpPort, () => {
-      streamingLogger.info(
-        `HTTP server started on http://localhost:${this.serverConfig.httpPort}`,
-      );
+      streamingLogger.info(`HTTP server started on http://localhost:${this.serverConfig.httpPort}`);
     });
 
     // Start HTTPS server if enabled
@@ -152,10 +150,7 @@ export const ServerConfigService = {
     this.mainServer = selectedMainServer;
 
     // Handle forceHttps
-    if (
-      this.serverConfig.forceHttps &&
-      this.serverConfig.httpsEnabled
-    ) {
+    if (this.serverConfig.forceHttps && this.serverConfig.httpsEnabled) {
       app.use((req, res, next) => {
         if (!req.secure) {
           res.redirect(
@@ -171,10 +166,7 @@ export const ServerConfigService = {
     }
 
     // Setup tunnel if enabled
-    if (
-      this.serverConfig.tunnelEnabled &&
-      !this.serverConfig.tunnelUrl
-    ) {
+    if (this.serverConfig.tunnelEnabled && !this.serverConfig.tunnelUrl) {
       try {
         const port = this.serverConfig.httpsEnabled
           ? this.serverConfig.httpsPort

@@ -28,7 +28,9 @@ export async function getOnlyRuntime(mediaFile: string): Promise<number> {
   }
 
   try {
-    const data = await executeFfprobe(mediaFile);
+    const data = (await executeFfprobe(mediaFile)) as {
+      format?: { duration?: number };
+    };
     const duration = data?.format?.duration;
 
     if (typeof duration === 'number' && !Number.isNaN(duration)) {
@@ -54,7 +56,17 @@ export async function getMediaInfo(
   }
 
   try {
-    const data = await executeFfprobe(videoPath);
+    const data = (await executeFfprobe(videoPath)) as {
+      format: {
+        size?: number;
+        bit_rate?: number;
+        duration?: number;
+      };
+      streams: Array<{
+        codec_type?: string;
+        [key: string]: unknown;
+      }>;
+    };
     const format = data.format;
     const streams = data.streams;
 

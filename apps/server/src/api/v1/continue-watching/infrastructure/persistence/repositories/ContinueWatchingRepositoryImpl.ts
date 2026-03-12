@@ -40,72 +40,87 @@ export class ContinueWatchingRepositoryImpl
 
     // Map to extract the videos with the necessary data
     const videos = elements
-      .map((item) => {
-        const itemVideo = item?.video;
-        if (!itemVideo) return null;
-
-        const filteredWatchList =
-          itemVideo.watchLists?.filter((wl) => wl.userId === validatedId) || [];
-
-        const timeWatched =
-          filteredWatchList.length > 0 ? (filteredWatchList[0].timeWatched ?? 0) : 0;
-
-        // Validate episode
-        if (itemVideo.episode) {
-          const episode = itemVideo.episode;
-          const season = episode?.season;
-          const series = season?.series;
-
-          if (!episode || !season || !series) return null;
-
-          return {
-            id: item.id,
-            title: series.name ?? 'Not found',
-            subtitle: episode.name,
-            episodeNumber: episode.episodeNumber ?? 0,
-            seasonNumber: episode.seasonNumber ?? 0,
-            date: episode.year ?? '',
-            duration: itemVideo.runtime ?? 0,
-            timeWatched: timeWatched,
-            genres: series.genres ?? [],
-            overview: episode.overview ?? season.overview ?? series.overview ?? '',
-            backgroundImage: season.backgroundSrc,
-            posterImage: series.coverSrc,
-            logoImage: series.logoSrc,
-            videoImage: itemVideo.imgSrc,
-            episodeId: episode.id,
-            videoId: itemVideo.id,
-          };
-        }
-
-        // Validate movie
-        if (itemVideo.movie) {
-          const movie = itemVideo.movie;
-
-          if (!movie) return null;
-
-          return {
-            id: item.id,
-            title: movie.name ?? 'Not found',
-            date: movie.year ?? '',
-            duration: itemVideo.runtime ?? 0,
-            timeWatched: timeWatched,
-            genres: movie.genres ?? [],
-            overview: movie.overview,
-            backgroundImage: movie.backgroundSrc,
-            posterImage: movie.coverSrc,
-            logoImage: movie.logoSrc,
-            videoImage: itemVideo.imgSrc,
-            movieId: movie.id,
-            videoId: itemVideo.id,
-          };
-        }
-
-        return null;
-      })
+      .map((item) => this.mapContinueWatchingVideo(item, validatedId))
       .filter((video) => video !== null); // Filter nulls
 
     return videos;
+  }
+
+  private mapContinueWatchingVideo(
+    item: ContinueWatchingModel,
+    validatedId: string,
+  ): ContinueWatchingVideo | null {
+    const itemVideo = item?.video;
+    if (!itemVideo) return null;
+
+    const timeWatched =
+      itemVideo.watchLists?.filter((wl) => wl.userId === validatedId)?.[0]?.timeWatched ?? 0;
+
+    if (itemVideo.episode) {
+      return this.mapEpisodeVideo(item, timeWatched);
+    }
+
+    if (itemVideo.movie) {
+      return this.mapMovieVideo(item, timeWatched);
+    }
+
+    return null;
+  }
+
+  private mapEpisodeVideo(
+    item: ContinueWatchingModel,
+    timeWatched: number,
+  ): ContinueWatchingVideo | null {
+    const itemVideo = item.video;
+    const episode = itemVideo?.episode;
+    const season = episode?.season;
+    const series = season?.series;
+
+    if (!itemVideo || !episode || !season || !series) return null;
+
+    return {
+      id: item.id,
+      title: series.name ?? 'Not found',
+      subtitle: episode.name,
+      episodeNumber: episode.episodeNumber ?? 0,
+      seasonNumber: episode.seasonNumber ?? 0,
+      date: episode.year ?? '',
+      duration: itemVideo.runtime ?? 0,
+      timeWatched,
+      genres: series.genres ?? [],
+      overview: episode.overview ?? season.overview ?? series.overview ?? '',
+      backgroundImage: season.backgroundSrc,
+      posterImage: series.coverSrc,
+      logoImage: series.logoSrc,
+      videoImage: itemVideo.imgSrc,
+      episodeId: episode.id,
+      videoId: itemVideo.id,
+    };
+  }
+
+  private mapMovieVideo(
+    item: ContinueWatchingModel,
+    timeWatched: number,
+  ): ContinueWatchingVideo | null {
+    const itemVideo = item.video;
+    const movie = itemVideo?.movie;
+    if (!itemVideo || !movie) return null;
+
+    return {
+      id: item.id,
+      title: movie.name ?? 'Not found',
+      date: movie.year ?? '',
+      duration: itemVideo.runtime ?? 0,
+      timeWatched,
+      genres: movie.genres ?? [],
+      overview: movie.overview,
+      backgroundImage: movie.backgroundSrc,
+      posterImage: movie.coverSrc,
+      logoImage: movie.logoSrc,
+      videoImage: itemVideo.imgSrc,
+      movieId: movie.id,
+      videoId: itemVideo.id,
+    };
   }
 
   async getCurrentEpisode(seriesId: string): Promise<ContinueWatching | null> {
@@ -134,7 +149,7 @@ export class ContinueWatchingRepositoryImpl
 
     // Remove videos from Continue Watching
     if (seriesId || movieId) {
-      const whereClause: any = { userId: validated.userId };
+      const whereClause: Record<string, string> = { userId: validated.userId };
 
       if (seriesId) {
         whereClause.seriesId = seriesId;
@@ -161,7 +176,7 @@ export class ContinueWatchingRepositoryImpl
   async delete(videoId: string, userId?: string): Promise<void> {
     const validatedVideoId = this.validateId(videoId, 'Video ID');
 
-    const whereCondition: any = { videoId: validatedVideoId };
+    const whereCondition: Record<string, string> = { videoId: validatedVideoId };
     if (userId) {
       whereCondition.userId = this.validateId(userId, 'User ID');
     }
@@ -179,7 +194,7 @@ export class ContinueWatchingRepositoryImpl
       return false;
     }
 
-    const whereClause: any = { userId: validatedId };
+    const whereClause: Record<string, string> = { userId: validatedId };
 
     if (seriesId) {
       whereClause.seriesId = seriesId;

@@ -26,82 +26,18 @@ export async function clearLibrary(libraryId: string) {
   )
     return;
 
+  const fileToRootFolder = getFileToRootFolderMap(
+    Object.keys(library.analyzedFiles),
+    library.folders,
+  );
   const type = library.type;
-
-  // Map to associate each file with its closest root folder
-  const fileToRootFolder: Record<string, string> = {};
-
-  // Group files by their root folder
-  for (const filePath of Object.keys(library.analyzedFiles)) {
-    const matchingRootFolder = library.folders
-      .filter((folder: string) => filePath.startsWith(folder))
-      .sort((a: string, b: string) => b.length - a.length)[0]; // Sort by length in descending order to get the most specific one
-
-    if (matchingRootFolder) {
-      fileToRootFolder[filePath] = matchingRootFolder;
-    } else {
-      // If there is no matching root folder, use the file's root
-      const { root } = parse(filePath);
-      fileToRootFolder[filePath] = root;
-    }
-  }
-
-  // Check each root folder and its associated files
-  const checkedRoots = new Set<string>(); // To avoid checking the same root multiple times
+  const rootConnectivity = new Map<string, boolean>();
 
   for (const [filePath, rootFolder] of Object.entries(fileToRootFolder)) {
-    const resolvedRoot = path.resolve(rootFolder);
+    if (!isRootConnected(rootFolder, rootConnectivity)) continue;
+    if (existsSync(filePath)) continue;
 
-    if (!checkedRoots.has(resolvedRoot)) {
-      if (!existsSync(resolvedRoot)) {
-        logger.info(`Root folder ${resolvedRoot} is not connected. Its files will be skipped.`);
-        checkedRoots.add(resolvedRoot);
-        continue;
-      }
-      checkedRoots.add(resolvedRoot);
-    }
-
-    // If the root is connected, check the file
-    const fileExists = existsSync(filePath);
-
-    if (!fileExists) {
-      if (type === 'Shows') {
-        const episode = await useCases.getEpisodeByPath().execute(filePath);
-
-        if (!episode) continue;
-
-        const seasonId = episode.seasonId;
-        await useCases.deleteEpisode().execute(episode.id);
-
-        const season = await useCases.getSeasonById().execute(seasonId);
-
-        if (!season || (season.episodes && season.episodes.length > 0)) continue;
-
-        const seriesId = season.seriesId;
-        await useCases.deleteSeries().execute(seriesId);
-      } else if (type === 'Movies') {
-        const movie = await useCases.getMovieByPath().execute(filePath);
-
-        if (!movie) continue;
-
-        await useCases.deleteMovie().execute(movie.id);
-      } else {
-        const song = await useCases.getSongByPath().execute(filePath);
-
-        if (!song) continue;
-
-        const albumId = song.albumId;
-        await useCases.deleteSong().execute(song.id ?? '');
-
-        const album = await useCases.getAlbumById().execute(albumId);
-
-        const songs = await useCases.getSongsByAlbum().execute(albumId);
-
-        if (!album || songs.length > 0) continue;
-
-        await useCases.deleteAlbum().execute(albumId);
-      }
-    }
+    await removeMissingFileFromLibrary(library.type, filePath);
   }
 
   if (
@@ -114,6 +50,81 @@ export async function clearLibrary(libraryId: string) {
 
   // Update library in client
   notificationService.mutateLibrary(libraryId);
+}
+
+function getFileToRootFolderMap(filePaths: string[], folders: string[]): Record<string, string> {
+  const fileToRootFolder: Record<string, string> = {};
+
+  for (const filePath of filePaths) {
+    const matchingRootFolder = folders
+      .filter((folder) => filePath.startsWith(folder))
+      .sort((a, b) => b.length - a.length)[0];
+
+    fileToRootFolder[filePath] = matchingRootFolder || parse(filePath).root;
+  }
+
+  return fileToRootFolder;
+}
+
+function isRootConnected(rootFolder: string, rootConnectivity: Map<string, boolean>): boolean {
+  const resolvedRoot = path.resolve(rootFolder);
+  const cached = rootConnectivity.get(resolvedRoot);
+  if (cached !== undefined) return cached;
+
+  if (existsSync(resolvedRoot)) {
+    rootConnectivity.set(resolvedRoot, true);
+    return true;
+  }
+
+  logger.info(`Root folder ${resolvedRoot} is not connected. Its files will be skipped.`);
+  rootConnectivity.set(resolvedRoot, false);
+  return false;
+}
+
+async function removeMissingFileFromLibrary(type: string, filePath: string): Promise<void> {
+  if (type === 'Shows') {
+    await removeMissingShowFile(filePath);
+    return;
+  }
+
+  if (type === 'Movies') {
+    await removeMissingMovieFile(filePath);
+    return;
+  }
+
+  await removeMissingMusicFile(filePath);
+}
+
+async function removeMissingShowFile(filePath: string): Promise<void> {
+  const episode = await useCases.getEpisodeByPath().execute(filePath);
+  if (!episode) return;
+
+  await useCases.deleteEpisode().execute(episode.id);
+
+  const season = await useCases.getSeasonById().execute(episode.seasonId);
+  if (!season || (season.episodes && season.episodes.length > 0)) return;
+
+  await useCases.deleteSeries().execute(season.seriesId);
+}
+
+async function removeMissingMovieFile(filePath: string): Promise<void> {
+  const movie = await useCases.getMovieByPath().execute(filePath);
+  if (!movie) return;
+  await useCases.deleteMovie().execute(movie.id);
+}
+
+async function removeMissingMusicFile(filePath: string): Promise<void> {
+  const song = await useCases.getSongByPath().execute(filePath);
+  if (!song) return;
+
+  const albumId = song.albumId;
+  await useCases.deleteSong().execute(song.id ?? '');
+
+  const album = await useCases.getAlbumById().execute(albumId);
+  const songs = await useCases.getSongsByAlbum().execute(albumId);
+  if (!album || songs.length > 0) return;
+
+  await useCases.deleteAlbum().execute(albumId);
 }
 
 /**

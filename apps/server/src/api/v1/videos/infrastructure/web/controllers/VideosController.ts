@@ -1,3 +1,4 @@
+import type { Response as ExpressResponse } from 'express';
 import { Body, Controller, Delete, Get, Path, Post, Put, Query, Route, Security, Tags } from 'tsoa';
 import {
   useCases,
@@ -8,6 +9,8 @@ import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse
 import { messages } from '@/config/messages';
 import type { SetVideoWatchStateDTO, UpdateVideoDTO } from '../../../application/dtos/VideoDTOs';
 import type { Video } from '../../../domain/Video';
+
+type TsoaContext = { response: ExpressResponse };
 
 @Route('videos')
 @Tags('Videos')
@@ -71,7 +74,7 @@ export class VideosController extends Controller {
   @Get('{id}/media-info')
   @Security('adminAuth')
   public async updateMediaInfo(@Path() id: string): Promise<ApiResponse<null>> {
-    const result = await useCases.updateMediaInfo().execute(id);
+    const _result = await useCases.updateMediaInfo().execute(id);
     return ApiResponse.success(null, messages.success.update);
   }
 
@@ -81,7 +84,7 @@ export class VideosController extends Controller {
   @Put('{id}/media-info')
   @Security('adminAuth')
   public async updateMediaInfoPut(@Path() id: string): Promise<ApiResponse<null>> {
-    const result = await useCases.updateMediaInfo().execute(id);
+    const _result = await useCases.updateMediaInfo().execute(id);
     return ApiResponse.success(null, messages.success.update);
   }
 
@@ -118,7 +121,11 @@ export class VideosController extends Controller {
   @Get('thumbnail')
   @Security('adminAuth')
   public async getVideoThumbnail(@Query() url: string, @Query() time?: string): Promise<void> {
-    await videoExtractionService.streamVideoThumbnail(url, time || '10', (this as any).response);
+    await videoExtractionService.streamVideoThumbnail(
+      url,
+      time || '10',
+      (this as unknown as TsoaContext).response,
+    );
   }
 
   /**
@@ -135,7 +142,7 @@ export class VideosController extends Controller {
       videoPathParam,
       trackId,
       startTime || 0,
-      (this as any).response,
+      (this as unknown as TsoaContext).response,
     );
   }
 }

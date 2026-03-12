@@ -1,3 +1,4 @@
+import type { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import { Body, Controller, Delete, Get, Path, Post, Put, Query, Route, Security, Tags } from 'tsoa';
 import {
   audioProcessingService,
@@ -10,6 +11,8 @@ import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse
 import { messages } from '@/config/messages';
 import type { AddLyricsDTO, UpdateSongDTO } from '../../../application/dtos/SongDTOs';
 import type { Song } from '../../../domain/Song';
+
+type TsoaContext = { request: ExpressRequest; response: ExpressResponse };
 
 @Route('songs')
 @Tags('Songs')
@@ -95,8 +98,8 @@ export class SongsController extends Controller {
     // Stream the file
     audioProcessingService.streamFile(
       streamablePath,
-      (this as any).request,
-      (this as any).response,
+      (this as unknown as TsoaContext).request,
+      (this as unknown as TsoaContext).response,
     );
   }
 }

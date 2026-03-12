@@ -48,7 +48,7 @@ export class UpdateWatchStateUseCase {
         movie.videos.filter((v: Video) =>
           v.id === video.id
             ? watched
-            : v.watchLists.filter((wl: any) => wl.userId === userId).length > 0,
+            : v.watchLists.filter((wl: WatchList) => wl.userId === userId).length > 0,
         ).length === movie.videos.length;
 
       if (allWatched) {

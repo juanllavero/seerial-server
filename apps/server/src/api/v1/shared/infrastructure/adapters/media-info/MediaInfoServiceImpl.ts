@@ -14,7 +14,7 @@ export class MediaInfoServiceImpl implements MediaInfoServicePort {
    * @param filePath - The absolute path to the media file.
    * @returns A promise that resolves to the audio metadata.
    */
-  async getAudioMetadata(filePath: string): Promise<any> {
+  async getAudioMetadata(filePath: string): Promise<unknown> {
     try {
       return await getAudioInfo(decodeURIComponent(filePath));
     } catch (error: unknown) {
@@ -28,7 +28,7 @@ export class MediaInfoServiceImpl implements MediaInfoServicePort {
    * @param filePath - The absolute path to the media file.
    * @returns A promise that resolves to the chapter data.
    */
-  async getMediaChapters(filePath: string): Promise<any> {
+  async getMediaChapters(filePath: string): Promise<unknown> {
     try {
       return await getChapters(decodeURIComponent(filePath));
     } catch (error: unknown) {
@@ -42,7 +42,7 @@ export class MediaInfoServiceImpl implements MediaInfoServicePort {
    * @param filePath - The absolute path to the media file.
    * @returns A promise that resolves to the media info.
    */
-  async getMediaInformation(filePath: string): Promise<any> {
+  async getMediaInformation(filePath: string): Promise<unknown> {
     try {
       return await getMediaInfo(decodeURIComponent(filePath));
     } catch (error: unknown) {

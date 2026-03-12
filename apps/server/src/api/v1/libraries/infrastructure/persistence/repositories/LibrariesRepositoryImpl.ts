@@ -68,7 +68,8 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
 
     if (!library) return [];
 
-    const collections = library.libraryCollections?.map((libraryCollection) => libraryCollection.collection) || [];
+    const collections =
+      library.libraryCollections?.map((libraryCollection) => libraryCollection.collection) || [];
     const collectionItems = await this.buildCollectionItems(collections, libraryId, library.type);
     const standaloneItems = this.buildStandaloneItems(library, collections, userId);
 
@@ -116,9 +117,13 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
   }
 
   private countCollectionItems(collection: CollectionModel, libraryId: string): number {
-    const moviesCount = collection.collectionMovies?.map((movie) => movie.movie.libraryId === libraryId).length || 0;
-    const seriesCount = collection.collectionSeries?.map((series) => series.series.libraryId === libraryId).length || 0;
-    const albumsCount = collection.collectionAlbums?.map((album) => album.album.libraryId === libraryId).length || 0;
+    const moviesCount =
+      collection.collectionMovies?.map((movie) => movie.movie.libraryId === libraryId).length || 0;
+    const seriesCount =
+      collection.collectionSeries?.map((series) => series.series.libraryId === libraryId).length ||
+      0;
+    const albumsCount =
+      collection.collectionAlbums?.map((album) => album.album.libraryId === libraryId).length || 0;
 
     return moviesCount + seriesCount + albumsCount;
   }
@@ -128,9 +133,21 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     collections: CollectionModel[],
     userId: string,
   ): LibraryItem[] {
-    const collectionMovieIds = new Set(collections.flatMap((collection) => collection.collectionMovies?.map((movie) => movie.movie.id) || []));
-    const collectionSeriesIds = new Set(collections.flatMap((collection) => collection.collectionSeries?.map((series) => series.series.id) || []));
-    const collectionAlbumIds = new Set(collections.flatMap((collection) => collection.collectionAlbums?.map((album) => album.album.id) || []));
+    const collectionMovieIds = new Set(
+      collections.flatMap(
+        (collection) => collection.collectionMovies?.map((movie) => movie.movie.id) || [],
+      ),
+    );
+    const collectionSeriesIds = new Set(
+      collections.flatMap(
+        (collection) => collection.collectionSeries?.map((series) => series.series.id) || [],
+      ),
+    );
+    const collectionAlbumIds = new Set(
+      collections.flatMap(
+        (collection) => collection.collectionAlbums?.map((album) => album.album.id) || [],
+      ),
+    );
 
     switch (library.type) {
       case LibraryTypes.MOVIES:

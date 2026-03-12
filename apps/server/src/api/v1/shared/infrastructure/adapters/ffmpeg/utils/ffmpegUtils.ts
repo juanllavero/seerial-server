@@ -1,9 +1,44 @@
 import type { AudioTrack, SubtitleTrack, VideoTrack } from '@/data/interfaces/MediaInfo';
 
+interface FfmpegStream {
+  index?: number;
+  codec_name?: string;
+  codec_long_name?: string;
+  tags?: Record<string, string>;
+  avg_frame_rate?: string;
+  width?: string;
+  height?: string;
+  codedWidth?: string;
+  codedHeight?: string;
+  chroma_location?: string;
+  color_space?: string;
+  display_aspect_ratio?: string;
+  profile?: string;
+  refs?: string;
+  color_range?: string;
+  channels?: number;
+  channel_layout?: string;
+  bits_per_raw_sample?: string;
+  sample_rate?: string;
+  language?: string;
+  disposition?: { forced?: number };
+}
+
+function mapAudioProfile(profile?: string): string {
+  if (profile === 'DTS-HD MA') return 'ma';
+  if (profile === 'LC') return 'lc';
+  return '';
+}
+
+function getAudioCodecDisplayName(stream: FfmpegStream): string {
+  if (stream.profile === 'DTS-HD MA') return stream.profile;
+  return stream.codec_name?.toUpperCase() || '';
+}
+
 // Process video data
-export function processVideoData(stream: any): VideoTrack {
+export function processVideoData(stream: FfmpegStream): VideoTrack {
   const videoTrack: VideoTrack = {
-    id: stream.index,
+    id: stream.index ?? 0,
     codec: stream.codec_name?.toUpperCase() || '',
     displayTitle: '',
     selected: false,
@@ -37,19 +72,19 @@ export function processVideoData(stream: any): VideoTrack {
     }
   }
 
-  videoTrack.codedWidth = stream.width ? stream.width : stream.codedWidth;
-  videoTrack.codedHeight = stream.height ? stream.height : stream.codedHeight;
+  videoTrack.codedWidth = stream.width || stream.codedWidth || '';
+  videoTrack.codedHeight = stream.height || stream.codedHeight || '';
 
   resolution = formatResolution(videoTrack.codedWidth, videoTrack.codedHeight);
 
-  if (stream.chroma_location) videoTrack.chromaLocation = stream['chroma_location'];
+  if (stream.chroma_location) videoTrack.chromaLocation = stream.chroma_location;
 
   if (stream.color_space) {
     if (stream.color_space === 'bt2020nc') hdr = 'HDR10';
     videoTrack.colorSpace = stream.color_space;
   }
 
-  if (stream.display_aspect_ratio) videoTrack.aspectRatio = stream['display_aspect_ratio'];
+  if (stream.display_aspect_ratio) videoTrack.aspectRatio = stream.display_aspect_ratio;
 
   if (stream.profile) videoTrack.profile = stream.profile;
 
@@ -64,9 +99,9 @@ export function processVideoData(stream: any): VideoTrack {
 }
 
 // Process audio data
-export function processAudioData(stream: any): AudioTrack {
+export function processAudioData(stream: FfmpegStream): AudioTrack {
   const audioTrack: AudioTrack = {
-    id: stream.index,
+    id: stream.index ?? 0,
     codec: stream.codec_name?.toUpperCase() || '',
     displayTitle: '',
     language: '',
@@ -102,18 +137,15 @@ export function processAudioData(stream: any): AudioTrack {
     if (languageName) audioTrack.language = languageName;
   }
 
-  if (stream.bits_per_raw_sample !== 'N/A') audioTrack.bitDepth = stream.bits_per_raw_sample;
-
-  if (stream.profile) {
-    if (stream.profile === 'DTS-HD MA') audioTrack.profile = 'ma';
-    else if (stream.profile === 'LC') audioTrack.profile = 'lc';
+  if (stream.bits_per_raw_sample && stream.bits_per_raw_sample !== 'N/A') {
+    audioTrack.bitDepth = stream.bits_per_raw_sample;
   }
+
+  audioTrack.profile = mapAudioProfile(stream.profile);
 
   if (stream.sample_rate) audioTrack.samplingRate = `${stream.sample_rate} hz`;
 
-  let codecDisplayName: string = '';
-  if (stream.profile && stream.profile === 'DTS-HD MA') codecDisplayName = stream.profile;
-  else codecDisplayName = stream.codec_name.toUpperCase();
+  const codecDisplayName = getAudioCodecDisplayName(stream);
 
   audioTrack.displayTitle = `(${codecDisplayName} ${audioTrack.channels})`;
 
@@ -121,9 +153,9 @@ export function processAudioData(stream: any): AudioTrack {
 }
 
 // Process subtitle data
-export function processSubtitleData(stream: any): SubtitleTrack {
+export function processSubtitleData(stream: FfmpegStream): SubtitleTrack {
   const subtitleTrack: SubtitleTrack = {
-    id: stream.index,
+    id: stream.index ?? 0,
     codec: stream.codec_name?.toUpperCase() || '',
     displayTitle: '',
     language: '',
@@ -134,7 +166,7 @@ export function processSubtitleData(stream: any): SubtitleTrack {
   };
 
   let codecDisplayName: string = '';
-  codecDisplayName = stream.codec_name.toUpperCase();
+  codecDisplayName = stream.codec_name?.toUpperCase() || '';
 
   if (codecDisplayName === 'HDMV_PGS_SUBTITLE') codecDisplayName = 'PGS';
   else if (codecDisplayName === 'SUBRIP') codecDisplayName = 'SRT';
@@ -145,16 +177,14 @@ export function processSubtitleData(stream: any): SubtitleTrack {
 
   if (stream.tags?.language) {
     subtitleTrack.languageTag = stream.tags.language;
-    subtitleTrack.language = stream.language;
+    subtitleTrack.language = stream.language || '';
   }
 
   if (stream.tags?.title) {
     subtitleTrack.title = stream.tags.title;
   }
 
-  subtitleTrack.displayTitle = `${
-    stream.disposition.forced === 1 ? '(Forced)' : ''
-  } (${codecDisplayName})`;
+  subtitleTrack.displayTitle = `${stream.disposition?.forced === 1 ? '(Forced)' : ''}(${codecDisplayName})`;
 
   return subtitleTrack;
 }

@@ -25,12 +25,12 @@ type CollectionImageSourceItem = {
 };
 
 /**
-   * Fetches all libraries.
-   */
+ * Fetches all libraries.
+ */
 export const getAllLibraries = async () => {
   const useCase = new GetLibrariesUseCase(librariesRepo);
   return await useCase.execute();
-}
+};
 
 /**
  * Fetches a single library by its ID.
@@ -42,7 +42,7 @@ export const getLibraryById = async (id: string) => {
     throw new NotFoundException(messages.errors.notFound.library);
   }
   return library;
-}
+};
 
 export const getCollectionImages = async (
   collection: CollectionModel,
@@ -67,7 +67,7 @@ export const getCollectionImages = async (
     background: backgroundPath,
     images: imagePaths,
   };
-}
+};
 
 const resolveCoverSource = (collection: CollectionModel, type: LibraryType): string => {
   if (type === LibraryTypes.MUSIC && collection.musicPosterSrc !== '') {
@@ -181,7 +181,7 @@ export const resolveCollectionImages = async (
     poster: collectionPoster,
     background: collectionImages.background,
   };
-}
+};
 
 /**
  * Starts a background scan of a library's files.
@@ -192,4 +192,4 @@ export const startLibraryScan = async (libraryId: string) => {
   // This is a fire-and-forget operation, so no await is needed here.
   useCases.scanLibrary().execute(library, false);
   return `Scan initiated for library: ${library.name}`;
-}
+};

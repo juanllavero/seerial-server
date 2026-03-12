@@ -9,7 +9,7 @@ export interface ImageProcessingServicePort {
       saturationFactor: number;
     },
   ): Promise<{
-    originalPalette: any;
+    originalPalette: unknown;
     colors: string[];
     css: string;
   }>;
@@ -17,13 +17,13 @@ export interface ImageProcessingServicePort {
   getDirectoryListing(relativePath: string): Promise<{ name: string; url: string }[]>;
   streamLocalImage(options: {
     filePath: string;
-    res: any;
+    res: unknown;
     width?: number;
     height?: number;
   }): Promise<void>;
   streamRemoteImage(options: {
     url: string;
-    res: any;
+    res: unknown;
     width?: number;
     height?: number;
   }): Promise<void>;

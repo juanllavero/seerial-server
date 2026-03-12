@@ -32,7 +32,7 @@ export interface FileSystemServicePort {
   findImageInFolder(folderPath: string): Promise<string | null>;
 
   // JSON
-  createJSONFile(filePath: string, content: any): void;
+  createJSONFile(filePath: string, content: unknown): void;
 
   // Path operations
   dirname(filePath: string): string;

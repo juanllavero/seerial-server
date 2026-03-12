@@ -28,7 +28,7 @@ export interface ReorderLibrariesDTO {
 }
 
 export interface ReorderItemsDTO {
-  orderedItems: any[];
+  orderedItems: Array<{ id: string; type: string }>;
 }
 
 export interface GetLibraryContentDTO {

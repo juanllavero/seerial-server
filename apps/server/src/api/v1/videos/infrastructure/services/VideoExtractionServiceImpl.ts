@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import os from 'node:os';
+import type { Response as ExpressResponse } from 'express';
 import fs from 'fs-extra';
 import { fileSystemService } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import {
@@ -17,12 +18,14 @@ import type { VideoExtractionServicePort } from '../../application/ports/VideoEx
 const videoExtractionLogger = logger.child({ category: 'Video Extraction' });
 
 export class VideoExtractionServiceImpl implements VideoExtractionServicePort {
-  constructor() {}
-
   /**
    * Extract video thumbnail and stream it to response
    */
-  public async streamVideoThumbnail(videoUrl: string, time: string, res: any): Promise<void> {
+  public async streamVideoThumbnail(
+    videoUrl: string,
+    time: string,
+    res: ExpressResponse,
+  ): Promise<void> {
     const timeParam = time || '10';
 
     if (!videoUrl) {
@@ -64,12 +67,12 @@ export class VideoExtractionServiceImpl implements VideoExtractionServicePort {
     videoPath: string,
     trackId: number,
     startTime: number,
-    res: any,
+    res: ExpressResponse,
   ): Promise<void> {
     const trackIdNum = trackId;
     const startTimeNum = startTime || 0;
 
-    if (isNaN(trackIdNum)) {
+    if (Number.isNaN(trackIdNum)) {
       throw new BadRequestException(messages.errors.validation.invalidData);
     }
 
@@ -88,7 +91,8 @@ export class VideoExtractionServiceImpl implements VideoExtractionServicePort {
     res.setHeader('Content-Type', 'text/vtt');
 
     if (await fs.pathExists(cachedFile)) {
-      return fs.createReadStream(cachedFile).pipe(res);
+      fs.createReadStream(cachedFile).pipe(res);
+      return;
     }
 
     const args: string[] = [];

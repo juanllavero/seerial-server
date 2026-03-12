@@ -12,7 +12,10 @@ export class MediaController {
    */
   @Get('details/{type}')
   @Security('cookieAuth')
-  public async getDetails(@Path() type: string, @Query() id: string): Promise<ApiResponse<any>> {
+  public async getDetails(
+    @Path() type: string,
+    @Query() id: string,
+  ): Promise<ApiResponse<unknown>> {
     return ApiResponse.success(await getDetails(type, id), messages.success.fetch);
   }
 
@@ -25,7 +28,7 @@ export class MediaController {
     @Path() itemType: string,
     @Path() mediaType: string,
     @Query() id: string,
-  ): Promise<ApiResponse<any>> {
+  ): Promise<ApiResponse<unknown>> {
     if (!['movie', 'series', 'season'].includes(itemType)) {
       throw new BadRequestException("Invalid itemType. Must be 'movie', 'series', or 'season'.");
     }

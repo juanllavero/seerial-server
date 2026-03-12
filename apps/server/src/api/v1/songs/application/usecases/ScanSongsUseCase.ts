@@ -219,107 +219,27 @@ export class ScanMusicUseCase {
    */
   private async processAlbum(
     library: Library,
-    rootFolder: string,
+    _rootFolder: string,
     albumFolder: AlbumFolder,
     collection: Collection | null,
   ): Promise<void> {
     await this.writeQueue.enqueue(async () => {
-      // Extract sample metadata from first file
-      const sampleFile = albumFolder.musicFiles[0];
-      const sampleMetadata = await getAudioInfo(sampleFile);
+      const sampleMetadata = await this.getSampleMetadata(albumFolder);
+      if (!sampleMetadata) return;
 
-      if (!sampleMetadata) {
-        musicLogger.warn({ path: albumFolder.path }, 'No metadata in sample file');
-        return;
-      }
-
-      const albumTitle = sampleMetadata.album || getFileName(albumFolder.path);
-      const artistName = sampleMetadata.artists?.[0] || 'Unknown Artist';
-      // Search MusicBrainz for album + artist metadata
-      const mbAlbum = await this.musicBrainz.searchRelease(albumTitle, artistName);
-
-      let album: Album | null = null;
-
-      if (mbAlbum) {
-        musicLogger.info({ path: albumFolder.path, mbid: mbAlbum.mbid }, 'Found in MusicBrainz');
-
-        album = await this.albumsRepo.create({
-          title: mbAlbum.title,
-          year: mbAlbum.releaseDate ? new Date(mbAlbum.releaseDate).getFullYear().toString() : '',
-          libraryId: library.id,
-          description: mbAlbum.annotation,
-          folder: albumFolder.path,
-          genres: sampleMetadata.genres || [],
-          coverSrc: '',
-        });
-
-        // Download cover from MusicBrainz
-        if (album && mbAlbum.coverArtUrl) {
-          const coverPath = await this.downloadCover(mbAlbum.coverArtUrl, album.id);
-          if (coverPath) {
-            album.coverSrc = coverPath;
-            await this.albumsRepo.update(album.id, { coverSrc: coverPath });
-
-            // Set collection cover if empty
-            if (collection && collection.musicPosterSrc === '') {
-              await this.collectionsRepo.update(collection.id, {
-                musicPosterSrc: coverPath,
-              });
-            }
-          }
-        }
-
-        // Process artist
-        if (album) {
-          await this.processArtist(mbAlbum.artist, album.id);
-        }
-      } else {
-        musicLogger.info({ path: albumFolder.path }, 'Not found in MusicBrainz');
-
-        album = await this.albumsRepo.create({
-          title: albumTitle,
-          year: sampleMetadata.date ? new Date(sampleMetadata.date).getFullYear().toString() : '',
-          libraryId: library.id,
-          folder: albumFolder.path,
-          genres: sampleMetadata.genres || [],
-          coverSrc: '',
-        });
-
-        // Search for local cover
-        if (album) {
-          const localCover = await this.findLocalCover(albumFolder.path);
-          if (localCover) {
-            const coverPath = await this.copyImageToEntity(album.id, localCover);
-            if (coverPath) {
-              album.coverSrc = coverPath;
-              await this.albumsRepo.update(album.id, { coverSrc: coverPath });
-
-              if (collection && collection.musicPosterSrc === '') {
-                await this.collectionsRepo.update(collection.id, {
-                  musicPosterSrc: coverPath,
-                });
-              }
-            }
-          }
-
-          // Process artists from file
-          for (const artist of sampleMetadata.artists || []) {
-            await this.processArtist(artist, album.id);
-          }
-        }
-      }
+      const album = await this.createAlbumFromMetadata(
+        library,
+        albumFolder,
+        sampleMetadata,
+        collection,
+      );
 
       if (!album) {
         musicLogger.error({ path: albumFolder.path }, 'Failed to create album');
         return;
       }
 
-      // Add to collection
-      if (collection) {
-        await this.collectionsRepo
-          .addAlbum(collection.id, album.id)
-          .catch((error) => musicLogger.error({ error }, 'Failed to add album to collection'));
-      }
+      await this.addAlbumToCollection(collection, album.id);
 
       this.notificationService.mutateLibrary(library.id);
 
@@ -328,6 +248,136 @@ export class ScanMusicUseCase {
         await this.processSong(library, musicFile, album);
       }
     });
+  }
+
+  private async getSampleMetadata(
+    albumFolder: AlbumFolder,
+  ): Promise<NonNullable<Awaited<ReturnType<typeof getAudioInfo>>> | null> {
+    const sampleFile = albumFolder.musicFiles[0];
+    const sampleMetadata = await getAudioInfo(sampleFile);
+
+    if (!sampleMetadata) {
+      musicLogger.warn({ path: albumFolder.path }, 'No metadata in sample file');
+      return null;
+    }
+
+    return sampleMetadata;
+  }
+
+  private async createAlbumFromMetadata(
+    library: Library,
+    albumFolder: AlbumFolder,
+    sampleMetadata: NonNullable<Awaited<ReturnType<typeof getAudioInfo>>>,
+    collection: Collection | null,
+  ): Promise<Album | null> {
+    const albumTitle = sampleMetadata.album || getFileName(albumFolder.path);
+    const artistName = sampleMetadata.artists?.[0] || 'Unknown Artist';
+    const mbAlbum = await this.musicBrainz.searchRelease(albumTitle, artistName);
+
+    if (mbAlbum) {
+      return this.createMusicBrainzAlbum(library, albumFolder, sampleMetadata, collection, mbAlbum);
+    }
+
+    return this.createLocalAlbum(library, albumFolder, sampleMetadata, collection, albumTitle);
+  }
+
+  private async createMusicBrainzAlbum(
+    library: Library,
+    albumFolder: AlbumFolder,
+    sampleMetadata: NonNullable<Awaited<ReturnType<typeof getAudioInfo>>>,
+    collection: Collection | null,
+    mbAlbum: {
+      mbid: string;
+      title: string;
+      releaseDate?: string;
+      annotation?: string;
+      coverArtUrl?: string;
+      artist: string;
+    },
+  ): Promise<Album | null> {
+    musicLogger.info({ path: albumFolder.path, mbid: mbAlbum.mbid }, 'Found in MusicBrainz');
+
+    const album = await this.albumsRepo.create({
+      title: mbAlbum.title,
+      year: mbAlbum.releaseDate ? new Date(mbAlbum.releaseDate).getFullYear().toString() : '',
+      libraryId: library.id,
+      description: mbAlbum.annotation,
+      folder: albumFolder.path,
+      genres: sampleMetadata.genres || [],
+      coverSrc: '',
+    });
+
+    if (!album) return null;
+
+    if (mbAlbum.coverArtUrl) {
+      await this.applyAlbumCover(album, collection, async () =>
+        this.downloadCover(mbAlbum.coverArtUrl as string, album.id),
+      );
+    }
+
+    await this.processArtist(mbAlbum.artist, album.id);
+    return album;
+  }
+
+  private async createLocalAlbum(
+    library: Library,
+    albumFolder: AlbumFolder,
+    sampleMetadata: NonNullable<Awaited<ReturnType<typeof getAudioInfo>>>,
+    collection: Collection | null,
+    albumTitle: string,
+  ): Promise<Album | null> {
+    musicLogger.info({ path: albumFolder.path }, 'Not found in MusicBrainz');
+
+    const album = await this.albumsRepo.create({
+      title: albumTitle,
+      year: sampleMetadata.date ? new Date(sampleMetadata.date).getFullYear().toString() : '',
+      libraryId: library.id,
+      folder: albumFolder.path,
+      genres: sampleMetadata.genres || [],
+      coverSrc: '',
+    });
+
+    if (!album) return null;
+
+    const localCover = await this.findLocalCover(albumFolder.path);
+    if (localCover) {
+      await this.applyAlbumCover(album, collection, async () =>
+        this.copyImageToEntity(album.id, localCover),
+      );
+    }
+
+    for (const artist of sampleMetadata.artists || []) {
+      await this.processArtist(artist, album.id);
+    }
+
+    return album;
+  }
+
+  private async applyAlbumCover(
+    album: Album,
+    collection: Collection | null,
+    resolveCoverPath: () => Promise<string | null>,
+  ): Promise<void> {
+    const coverPath = await resolveCoverPath();
+    if (!coverPath) return;
+
+    album.coverSrc = coverPath;
+    await this.albumsRepo.update(album.id, { coverSrc: coverPath });
+
+    if (collection && collection.musicPosterSrc === '') {
+      await this.collectionsRepo.update(collection.id, { musicPosterSrc: coverPath });
+    }
+  }
+
+  private async addAlbumToCollection(
+    collection: Collection | null,
+    albumId: string,
+  ): Promise<void> {
+    if (!collection) return;
+
+    await this.collectionsRepo
+      .addAlbum(collection.id, albumId)
+      .catch((error) => musicLogger.error({ error }, 'Failed to add album to collection'));
   }
 
   /**
@@ -404,7 +454,7 @@ export class ScanMusicUseCase {
       if (!artist) {
         artist = await this.artistsRepo.add({ name: artistName });
       }
-      if (artist && artist.id) {
+      if (artist?.id) {
         await this.albumsRepo.addArtistToAlbum(artist.id, albumId);
       }
     } catch (error) {

@@ -23,6 +23,8 @@ import type {
 } from '../../../application/dtos/EpisodeDTOs';
 import type { Episode } from '../../../domain/Episode';
 
+type AuthenticatedRequest = ExpressRequest & { user?: { id?: string } };
+
 @Route('episodes')
 @Tags('Episodes')
 export class EpisodesController extends Controller {
@@ -73,7 +75,7 @@ export class EpisodesController extends Controller {
     @Request() req: ExpressRequest,
   ): Promise<ApiResponse<null>> {
     const { state } = body;
-    const userId = (req as any).user?.id;
+    const userId = (req as AuthenticatedRequest).user?.id as string;
 
     await useCases.setEpisodeWatchState().execute(id, userId, state);
 

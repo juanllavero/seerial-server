@@ -12,12 +12,15 @@ export async function getAudioInfo(audioPath: string): Promise<AudioInfo | undef
   }
 
   try {
-    const data = await executeFfprobe(audioPath);
+    const data = (await executeFfprobe(audioPath)) as {
+      format: { duration?: number; tags?: Record<string, string> };
+      streams: Array<{ codec_type?: string; codec_name?: string }>;
+    };
     const format = data.format;
     const tags = format.tags || {};
-    const streams = data.streams;
+    const streams = data.streams as Array<{ codec_type?: string; codec_name?: string }>;
 
-    const codec = streams.find((s: any) => s.codec_type === 'audio')?.codec_name || 'unknown';
+    const codec = streams.find((s) => s.codec_type === 'audio')?.codec_name || 'unknown';
     const duration = format.duration ? format.duration / 60 : 0;
     const artist = tags.album_artist || tags.artist || tags.ARTIST || '';
     const album = tags.album || tags.ALBUM || '';
@@ -28,7 +31,7 @@ export async function getAudioInfo(audioPath: string): Promise<AudioInfo | undef
       [];
     const title = tags.title || tags.TITLE || '';
     const discNumber = tags.disc ? Number.parseInt(tags.disc.split('/')[0], 10) : 0;
-    const trackNumber = tags.track ? (tags.track ?? 0) : tags.TRACK ? (tags.TRACK ?? 0) : 0;
+    const trackNumber = Number.parseInt((tags.track || tags.TRACK || '0').split('/')[0], 10) || 0;
     const composers =
       tags.composer?.split(',').map((c: string) => c.trim()) ??
       tags.COMPOSER?.split(',').map((c: string) => c.trim()) ??

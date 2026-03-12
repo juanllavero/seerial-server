@@ -16,8 +16,6 @@ const refreshMovieMetadataLogger = logger.child({
  * * @param movieId The ID of the movie in the local database.
  */
 export class RefreshMovieMetadataUseCase {
-  constructor() {}
-
   async execute(movieId: string): Promise<void> {
     const getMovieById = useCases.getMoviebyId();
     const movie = await getMovieById.execute(movieId);

@@ -14,7 +14,7 @@ export class ScanLibraryUseCase {
   constructor(
     private readonly filesManager: FileSystemServicePort,
     private readonly librariesRepo: LibrariesRepositoryPort,
-  ) { }
+  ) {}
 
   async execute(newLibrary: Library, addNewLibrary: boolean) {
     logger.info(

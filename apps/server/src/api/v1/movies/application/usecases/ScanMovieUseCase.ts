@@ -278,33 +278,63 @@ export class ScanMovieUseCase {
       }
 
       // Register in the library as analyzed (Cache path -> ID)
-      library.analyzedFiles = {
-        ...library.analyzedFiles,
-        [filePath]: video.id,
-      };
-
-      await this.librariesRepo.addAnalyzedFile(library.id, filePath, video.id);
+      await this.registerAnalyzedVideo(library, filePath, video.id);
 
       // Technical Analysis (FFmpeg) - Only if data is missing
-      if (!video.runtime || video.runtime === 0) {
-        try {
-          video.runtime = await getOnlyRuntime(filePath);
-          await this.videoRepo.update(video.id, { runtime: video.runtime });
-        } catch (e) {
-          logger.warn({ filePath }, 'Failed to extract runtime');
-        }
-      }
+      await this.ensureRuntime(video, filePath);
 
       // E. External Metadata (Usually only for Main features, or if extras are supported)
-      if (hasMetadata && type === VideoType.MAIN) {
-        await this.metadataProvider.updateVideoMetadataForMovie(video, movie).catch(console.error);
-      } else if (!video.imgSrc) {
-        // Default placeholder
-        video.imgSrc = 'resources/img/Default_video_thumbnail.jpg';
-        await this.videoRepo.update(video.id, { imgSrc: video.imgSrc });
-      }
+      await this.updateVideoMetadata(video, movie, hasMetadata, type);
     } catch (error) {
       logger.error({ error, filePath, movieId: movie.id }, 'Error processing video file');
+    }
+  }
+
+  private async registerAnalyzedVideo(
+    library: Library,
+    filePath: string,
+    videoId: string,
+  ): Promise<void> {
+    library.analyzedFiles = {
+      ...library.analyzedFiles,
+      [filePath]: videoId,
+    };
+
+    await this.librariesRepo.addAnalyzedFile(library.id, filePath, videoId);
+  }
+
+  private async ensureRuntime(video: Video, filePath: string): Promise<void> {
+    if (video.runtime && video.runtime > 0) return;
+
+    try {
+      video.runtime = await getOnlyRuntime(filePath);
+      await this.videoRepo.update(video.id, { runtime: video.runtime });
+    } catch (_e) {
+      logger.warn({ filePath }, 'Failed to extract runtime');
+    }
+  }
+
+  private async updateVideoMetadata(
+    video: Video,
+    movie: Movie,
+    hasMetadata: boolean,
+    type: VideoType,
+  ): Promise<void> {
+    if (hasMetadata && type === VideoType.MAIN) {
+      try {
+        await this.metadataProvider.updateVideoMetadataForMovie(video, movie);
+      } catch (error) {
+        logger.warn(
+          { error, videoId: video.id, movieId: movie.id },
+          'Failed to update video metadata',
+        );
+      }
+      return;
+    }
+
+    if (!video.imgSrc) {
+      video.imgSrc = 'resources/img/Default_video_thumbnail.jpg';
+      await this.videoRepo.update(video.id, { imgSrc: video.imgSrc });
     }
   }
 
@@ -355,8 +385,10 @@ export class ScanMovieUseCase {
     try {
       const results = await this.metadataProvider.searchMovies(name, year);
       if (!results || results.length === 0) return null;
-      return await this.metadataProvider.getMovie(results[0].id!, lang);
-    } catch (e) {
+      const firstResultId = results[0]?.id;
+      if (!firstResultId) return null;
+      return await this.metadataProvider.getMovie(firstResultId, lang);
+    } catch (_e) {
       logger.warn({ name, year }, 'TMDB Search failed');
       return null;
     }

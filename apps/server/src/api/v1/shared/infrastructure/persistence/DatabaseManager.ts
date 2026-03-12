@@ -30,6 +30,8 @@ import logger from '@/utils/logger';
 const dbLogger = logger.child({ category: 'Database' });
 
 export class DatabaseManager {
+  private constructor() {}
+
   public static get DB_PATH(): string {
     return fileSystemService.getExternalPath('resources/db/data.db');
   }
@@ -101,8 +103,9 @@ export class DatabaseManager {
       await DatabaseManager.dataSource.synchronize(); // For dev; for prod, use migrations
 
       dbLogger.info('Database initialized successfully with TypeORM and better-sqlite3');
-    } catch (error: any) {
-      throw new Error(`Database initialization failed: ${error.message}`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Database initialization failed: ${message}`);
     }
   }
 
@@ -153,7 +156,7 @@ export class DatabaseManager {
    * @param sql The SQL query to execute
    * @param parameters Optional query parameters
    */
-  public static async query(sql: string, parameters?: any[]): Promise<any> {
+  public static async query(sql: string, parameters?: unknown[]): Promise<unknown> {
     try {
       const dataSource = DatabaseManager.getDataSource();
       return await dataSource.query(sql, parameters);

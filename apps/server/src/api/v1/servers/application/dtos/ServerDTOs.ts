@@ -45,8 +45,8 @@ export interface ServerConfigDTO {
 
 export interface ServerConfigResponse {
   key?: string;
-  value?: any;
-  [key: string]: any;
+  value?: unknown;
+  [key: string]: unknown;
 }
 
 export interface UpdateServerConfigDTO {

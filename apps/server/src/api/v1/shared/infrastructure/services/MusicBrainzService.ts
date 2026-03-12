@@ -157,31 +157,7 @@ export class MusicBrainzService {
     const artistCredit = release['artist-credit']?.[0];
     const artist = artistCredit?.artist?.name || artistCredit?.name || 'Unknown Artist';
     const artistMbid = artistCredit?.artist?.id || '';
-
-    // Extract tracks from all media (discs)
-    const tracks: TrackMetadata[] = [];
-
-    if (release.media) {
-      for (const media of release.media) {
-        const discNumber = media.position;
-
-        if (media.tracks) {
-          for (const track of media.tracks) {
-            const trackArtists = track['artist-credit']?.map(
-              (ac) => ac.artist?.name || ac.name,
-            ) || [artist];
-
-            tracks.push({
-              title: track.title,
-              position: track.position || 0,
-              duration: track.length ? Math.round(track.length / 1000) : undefined,
-              artists: trackArtists,
-              discNumber,
-            });
-          }
-        }
-      }
-    }
+    const tracks = this.extractTracks(release, artist);
 
     // Get cover art
     const coverArtUrl = await this.getCoverArt(mbid);
@@ -196,6 +172,36 @@ export class MusicBrainzService {
       coverArtUrl,
       tracks,
     };
+  }
+
+  private extractTracks(
+    release: MusicBrainzReleaseDetail,
+    fallbackArtist: string,
+  ): TrackMetadata[] {
+    if (!release.media) return [];
+
+    const tracks: TrackMetadata[] = [];
+
+    for (const media of release.media) {
+      const discNumber = media.position;
+      if (!media.tracks) continue;
+
+      for (const track of media.tracks) {
+        const trackArtists = track['artist-credit']?.map((ac) => ac.artist?.name || ac.name) || [
+          fallbackArtist,
+        ];
+
+        tracks.push({
+          title: track.title,
+          position: track.position || 0,
+          duration: track.length ? Math.round(track.length / 1000) : undefined,
+          artists: trackArtists,
+          discNumber,
+        });
+      }
+    }
+
+    return tracks;
   }
 
   /**
@@ -218,10 +224,12 @@ export class MusicBrainzService {
         return undefined;
       }
 
-      const data = (await response.json()) as any;
+      const data = (await response.json()) as {
+        images?: Array<{ front?: boolean; image?: string }>;
+      };
 
       // Get front cover image
-      const frontImage = data.images?.find((img: any) => img.front === true);
+      const frontImage = data.images?.find((img) => img.front === true);
 
       return frontImage?.image || data.images?.[0]?.image;
     } catch (error) {

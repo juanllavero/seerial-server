@@ -1,3 +1,4 @@
+import type { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import { executeFfmpegPipeToStream } from '@/api/v1/shared/infrastructure/adapters/ffmpeg/nativeFfmpeg';
 import {
   getSystemAllowedPaths,
@@ -9,7 +10,10 @@ import {
 } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
 import { messages } from '@/config/messages';
 import logger from '@/utils/logger';
-import type { VideoProcessingServicePort } from '../../application/ports/VideoProcessingServicePort';
+import type {
+  TranscodeVideoParams,
+  VideoProcessingServicePort,
+} from '../../application/ports/VideoProcessingServicePort';
 
 const videoProcessingLogger = logger.child({ category: 'Video Processing' });
 
@@ -25,8 +29,10 @@ const validBitrates: number[] = [
 ];
 
 export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
-  transcodeAndStreamVideo(params: any, res: any): void {
+  transcodeAndStreamVideo(params: TranscodeVideoParams, res: ExpressResponse): void {
     const { path: videoPath, start: videoStart, audio: audioTrack, quality, bitrate } = params;
+    const qualityValue = String(quality);
+    const startValue = String(videoStart);
 
     try {
       const sanitizedVideoPath = sanitizeVideoPath(
@@ -44,14 +50,14 @@ export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
 
       const args = ['-i', sanitizedVideoPath, '-acodec', 'opus', '-ab', '128k', '-f', 'mp4'];
 
-      const isQualityZero = quality === '0' || quality === 0;
-      const isValidResolution = Object.keys(resolutionMap).includes(quality);
+      const isQualityZero = qualityValue === '0';
+      const isValidResolution = Object.keys(resolutionMap).includes(qualityValue);
       const isValidBitrate = validBitrates.includes(bitrate);
 
       if (isQualityZero || !isValidResolution || !isValidBitrate) {
         args.push('-vcodec', 'copy');
       } else {
-        const resolutionHeight = resolutionMap[quality as ResolutionKey];
+        const resolutionHeight = resolutionMap[qualityValue as ResolutionKey];
         args.push(
           '-vcodec',
           'libx264',
@@ -68,7 +74,7 @@ export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
         '-movflags',
         'frag_keyframe+empty_moov',
         '-ss',
-        videoStart,
+        startValue,
         '-map',
         '0:v:0',
         '-map',
@@ -115,7 +121,7 @@ export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
     }
   }
 
-  streamDirectVideoFile(req: any, res: any): void {
+  streamDirectVideoFile(req: ExpressRequest, res: ExpressResponse): void {
     const { path: videoPath } = req.videoParams;
     const fs = require('node:fs');
     const path = require('node:path');

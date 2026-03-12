@@ -1,5 +1,5 @@
 export interface MediaInfoServicePort {
-  getAudioMetadata(filePath: string): Promise<any>;
-  getMediaChapters(filePath: string): Promise<any>;
-  getMediaInformation(filePath: string): Promise<any>;
+  getAudioMetadata(filePath: string): Promise<unknown>;
+  getMediaChapters(filePath: string): Promise<unknown>;
+  getMediaInformation(filePath: string): Promise<unknown>;
 }

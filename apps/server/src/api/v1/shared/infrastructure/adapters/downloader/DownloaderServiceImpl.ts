@@ -1,9 +1,9 @@
 import { exec, spawn } from 'node:child_process';
+import fs, { chmodSync, createWriteStream, existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import ffmpegPath from 'ffmpeg-static';
 import { https } from 'follow-redirects';
-import fs, { chmodSync, createWriteStream, existsSync, mkdirSync, unlinkSync } from 'fs';
 import {
   downloaderService,
   fileSystemService,

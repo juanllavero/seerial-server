@@ -4,12 +4,25 @@ import { fileSystemService } from '../di/container';
 
 const movieDbLogger = logger.child({ category: 'MovieDB' });
 
+type TMDbApiResponse = {
+  results: unknown[];
+  cast: unknown[];
+  crew: unknown[];
+  backdrops: unknown[];
+  posters: unknown[];
+  stills: unknown[];
+  [key: string]: unknown;
+};
+
 export class TMDbApiClient {
   private BASE_URL = 'https://api.themoviedb.org/3';
   public THEMOVIEDB_API_TOKEN: string = '';
   public connectionStatus: boolean = false;
 
-  async makeRequest(endpoint: string, queryParams: Record<string, any> = {}): Promise<any> {
+  async makeRequest<T = TMDbApiResponse>(
+    endpoint: string,
+    queryParams: Record<string, string | number | boolean | null | undefined> = {},
+  ): Promise<T> {
     const url = new URL(`${this.BASE_URL}/${endpoint}`);
 
     Object.entries(queryParams).forEach(([key, value]) => {
@@ -25,7 +38,7 @@ export class TMDbApiClient {
       },
     });
 
-    return await response.json();
+    return (await response.json()) as T;
   }
 
   getAPIKeyStatus = async (): Promise<boolean> => {
