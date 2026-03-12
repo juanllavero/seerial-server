@@ -78,7 +78,7 @@ describe('TMDbApiClient - Integration Tests', () => {
       }
 
       // Test with a known movie ID (The Shawshank Redemption)
-      const result = await client.makeRequest('movie/278', {
+      const result = await client.makeRequest<{ id: number; title: string }>('movie/278', {
         language: 'en-US',
       });
 
@@ -95,7 +95,9 @@ describe('TMDbApiClient - Integration Tests', () => {
         return;
       }
 
-      const result = await client.makeRequest('search/movie', {
+      const result = await client.makeRequest<{
+        results: Array<{ id: number; title: string }>;
+      }>('search/movie', {
         query: 'The Matrix',
         language: 'en-US',
         page: 1,
@@ -136,7 +138,7 @@ describe('TMDbApiClient - Integration Tests', () => {
       }
 
       // Test with Breaking Bad (TV show ID: 1396)
-      const result = await client.makeRequest('tv/1396', {
+      const result = await client.makeRequest<{ id: number; name: string }>('tv/1396', {
         language: 'en-US',
       });
 

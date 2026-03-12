@@ -25,7 +25,7 @@ export class MyListRepositoryImpl extends BaseRepository implements MyListReposi
   }
 
   // Add
-  async addMovieToMyList(movieId: string, userId: string) {
+  async addMovieToMyList(movieId: string, userId: string): Promise<MyListItem | null> {
     const validated = this.validateIds({ movieId, userId });
 
     // Check if the movie is already in the list
@@ -46,10 +46,11 @@ export class MyListRepositoryImpl extends BaseRepository implements MyListReposi
       userId: validated.userId,
     };
 
-    return this.helper.create(newElementData, true);
+    const createdElement = await this.helper.create(newElementData, true);
+    return createdElement as unknown as MyListItem;
   }
 
-  async addSeriesToMyList(seriesId: string, userId: string) {
+  async addSeriesToMyList(seriesId: string, userId: string): Promise<MyListItem | null> {
     const validated = this.validateIds({ seriesId, userId });
 
     // Check if the series is already in the list
@@ -70,7 +71,8 @@ export class MyListRepositoryImpl extends BaseRepository implements MyListReposi
       userId: validated.userId,
     };
 
-    return this.helper.create(newElementData, true);
+    const createdElement = await this.helper.create(newElementData, true);
+    return createdElement as unknown as MyListItem;
   }
 
   // Remove

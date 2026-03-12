@@ -100,11 +100,13 @@ export async function getMediaInfo(
     for (const stream of streams) {
       const codecType = stream.codec_type;
       if (codecType === 'video') {
-        videoTracks.push(processVideoData(stream));
+        videoTracks.push(processVideoData(stream as Parameters<typeof processVideoData>[0]));
       } else if (codecType === 'audio') {
-        audioTracks.push(processAudioData(stream));
+        audioTracks.push(processAudioData(stream as Parameters<typeof processAudioData>[0]));
       } else if (codecType === 'subtitle') {
-        subtitleTracks.push(processSubtitleData(stream));
+        subtitleTracks.push(
+          processSubtitleData(stream as Parameters<typeof processSubtitleData>[0]),
+        );
       }
     }
 
