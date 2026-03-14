@@ -1,7 +1,7 @@
 import type http from 'node:http';
 import type https from 'node:https';
 import path from 'node:path';
-import { showWelcome } from '@seerial/cli';
+import { appReadyMessage, showAppName, showMessage } from '@seerial/cli';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -96,12 +96,16 @@ export let server: http.Server | https.Server;
 
 // Start the app
 app.whenReady().then(async () => {
+  showAppName('SEERIAL SERVER');
+
   // Initialize dependencies
   await downloaderService.downloadYoutubeDownloader();
   await DatabaseManager.initializeDB();
   fileSystemService.initFolders();
   fileSystemService.loadProperties();
   await ConfigManager.loadConfig();
+
+  showMessage('Database Initialized');
 
   // Initialize MovieDB
   await tmdbApiClient.initialize();
@@ -135,6 +139,8 @@ app.whenReady().then(async () => {
   // Start server
   await ServerConfigService.startServer(appServer);
 
+  showMessage('Server Initialized');
+
   // Initialize NotificationService through DI container
   notificationService.init(ServerConfigService.mainServer);
 
@@ -144,14 +150,11 @@ app.whenReady().then(async () => {
   // Create tray
   createTray();
 
-  showWelcome({
-    appName: 'Seerial API',
-    data: [
-      { dato1: 'API URL', dato2: 'http://localhost:8080/api/v1', color: 'cyan' },
-      { dato1: 'Database', dato2: 'Connected (PostgreSQL)', color: 'green' },
-      { dato1: 'Environment', dato2: 'Development', color: 'yellow' },
-      { dato1: 'Cache', dato2: 'Redis (Disabled)', color: 'gray' },
-    ],
+  const httpPort = ServerConfigService.serverConfig.httpPort;
+  appReadyMessage({
+    url: `http://localhost:${httpPort}/api/v1`,
+    swaggerUrl: `http://localhost:${httpPort}/api-docs`,
+    env: 'development',
   });
 });
 
