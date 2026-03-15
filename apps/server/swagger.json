@@ -3430,11 +3430,7 @@
 					"title",
 					"info",
 					"genres",
-					"score",
-					"description",
-					"directedBy",
-					"watched",
-					"inMyList"
+					"description"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -3478,7 +3474,12 @@
 						"$ref": "#/components/schemas/ItemType"
 					},
 					"details": {
-						"$ref": "#/components/schemas/DetailsData"
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/DetailsData"
+							}
+						],
+						"nullable": true
 					}
 				},
 				"required": [

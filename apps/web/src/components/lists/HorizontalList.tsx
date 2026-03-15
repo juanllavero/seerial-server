@@ -1,91 +1,78 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import { Button } from '@/components/ui/button'
-import FlexBox from '@/components/ui/FlexBox'
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useIsMobile } from '@/components/hooks/use-mobile';
+import { Button } from '@/components/ui/button';
+import {
+  Carousel,
+  type CarouselApi,
+  CarouselContent,
+  CarouselItem,
+} from '@/components/ui/carousel';
+import FlexBox from '@/components/ui/FlexBox';
 
 interface HorizontalListProps {
-  title?: string
-  className?: string
-  children: React.ReactNode
+  title?: string;
+  className?: string;
+  children: React.ReactNode;
 }
 
 function HorizontalList({ title, className, children }: HorizontalListProps) {
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const [showButtons, setShowButtons] = useState(false)
-  const [disableLeft, setDisableLeft] = useState(true)
-  const [disableRight, setDisableRight] = useState(false)
+  const childrenCount = React.Children.count(children);
+  const [carouselApi, setCarouselApi] = useState<CarouselApi>();
 
-  const isMobile = useIsMobile()
+  const [showButtons, setShowButtons] = useState(false);
+  const [disableLeft, setDisableLeft] = useState(true);
+  const [disableRight, setDisableRight] = useState(false);
+
+  const isMobile = useIsMobile();
 
   const updateButtonState = useCallback(() => {
-    const container = scrollContainerRef.current
-    if (!container) return
+    if (!carouselApi) return;
 
-    const isAtStart = container.scrollLeft <= 0
-    const isAtEnd = container.scrollWidth - container.clientWidth - container.scrollLeft <= 1
-    const needsButtons = container.scrollWidth > container.clientWidth
+    const canScrollPrev = carouselApi.canScrollPrev();
+    const canScrollNext = carouselApi.canScrollNext();
+    const needsButtons = canScrollPrev || canScrollNext;
 
-    setShowButtons(needsButtons)
-    setDisableLeft(isAtStart)
-    setDisableRight(isAtEnd)
-  }, [])
+    setShowButtons(needsButtons);
+    setDisableLeft(!canScrollPrev);
+    setDisableRight(!canScrollNext);
+  }, [carouselApi]);
 
   useEffect(() => {
-    const container = scrollContainerRef.current
-    if (!container) return
+    if (!carouselApi) return;
 
-    updateButtonState()
+    if (childrenCount === 0) {
+      setShowButtons(false);
+      setDisableLeft(true);
+      setDisableRight(true);
+      return;
+    }
 
-    const resizeObserver = new ResizeObserver(() => {
-      updateButtonState()
-    })
-    resizeObserver.observe(container)
-    Array.from(container.children).forEach((child) => resizeObserver.observe(child))
+    // Reinitialize when slides are added or removed.
+    carouselApi.reInit();
+    updateButtonState();
 
-    return () => resizeObserver.disconnect()
-  }, [children, updateButtonState])
+    carouselApi.on('select', updateButtonState);
+    carouselApi.on('reInit', updateButtonState);
+
+    return () => {
+      carouselApi.off('select', updateButtonState);
+      carouselApi.off('reInit', updateButtonState);
+    };
+  }, [carouselApi, childrenCount, updateButtonState]);
 
   const handleScrollRight = useCallback(() => {
-    const container = scrollContainerRef.current
-    if (!container) return
-
-    const scrollAmount = container.clientWidth
-    let newScrollLeft = container.scrollLeft + scrollAmount
-
-    if (newScrollLeft > container.scrollWidth - container.clientWidth) {
-      newScrollLeft = container.scrollWidth - container.clientWidth
-    }
-
-    container.scrollTo({
-      left: newScrollLeft,
-      behavior: 'smooth',
-    })
-  }, [])
+    if (!carouselApi) return;
+    carouselApi.scrollNext();
+  }, [carouselApi]);
 
   const handleScrollLeft = useCallback(() => {
-    const container = scrollContainerRef.current
-    if (!container) return
+    if (!carouselApi) return;
+    carouselApi.scrollPrev();
+  }, [carouselApi]);
 
-    const scrollAmount = container.clientWidth
-    let newScrollLeft = container.scrollLeft - scrollAmount
-
-    if (newScrollLeft < 0) {
-      newScrollLeft = 0
-    }
-
-    container.scrollTo({
-      left: newScrollLeft,
-      behavior: 'smooth',
-    })
-  }, [])
-
-  const handleScrollEvent = () => {
-    setTimeout(updateButtonState, 200)
-  }
-
-  const gapValue = isMobile ? 1.5 : 0.5
-  const paddingValue = '1rem'
+  const gapValue = isMobile ? 1.5 : 0.5;
+  const paddingValue = '1rem';
 
   return (
     <FlexBox
@@ -124,28 +111,29 @@ function HorizontalList({ title, className, children }: HorizontalListProps) {
           </FlexBox>
         )}
       </FlexBox>
-      <div
-        ref={scrollContainerRef}
-        onScroll={handleScrollEvent}
-        className="hide-scrollbar" // Asegúrate de que esta clase oculte el scrollbar
-        style={{
-          display: 'flex',
-          gap: `${gapValue}rem`,
-          padding: `0 ${paddingValue}`,
-          width: '100%',
-          overflowX: 'auto',
-          // Estas propiedades mejoran la experiencia de scroll en dispositivos táctiles
-          scrollSnapType: 'x mandatory',
-          scrollBehavior: 'smooth',
+      <Carousel
+        opts={{
+          align: 'start',
+          dragFree: true,
+          containScroll: 'trimSnaps',
         }}
+        setApi={setCarouselApi}
       >
-        {/* Envolvemos cada hijo para aplicar el snap-align */}
-        {React.Children.map(children, (child) => (
-          <div style={{ scrollSnapAlign: 'start' }}>{child}</div>
-        ))}
-      </div>
+        <CarouselContent
+          className="ml-0"
+          style={{
+            gap: `${gapValue}rem`,
+            padding: `0 ${paddingValue}`,
+            width: '100%',
+          }}
+        >
+          {React.Children.map(children, (child) => (
+            <CarouselItem className="basis-auto pl-0">{child}</CarouselItem>
+          ))}
+        </CarouselContent>
+      </Carousel>
     </FlexBox>
-  )
+  );
 }
 
-export default HorizontalList
+export default HorizontalList;

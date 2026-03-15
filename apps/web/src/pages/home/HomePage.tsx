@@ -1,15 +1,15 @@
-import { useEffect } from 'react'
-import { shallow } from 'zustand/shallow'
-import LoadingInsideSidebar from '@/components/LoadingInsideSidebar'
-import { API } from '@/config/api'
-import { useServerStore } from '@/context/auth.store'
-import useDataStore from '@/context/data.context'
-import type { Library } from '@/data/interfaces/Media'
-import { useGet } from '@/hooks/media/useGet'
-import HomePageContent from './components/content/HomePageContent'
-import NoAPIKey from './components/NoAPIKey'
-import NoContent from './components/NoContent'
-import NotAvailableServer from './components/NotAvailableServer'
+import { useEffect } from 'react';
+import { shallow } from 'zustand/shallow';
+import LoadingInsideSidebar from '@/components/LoadingInsideSidebar';
+import { API } from '@/config/api';
+import { useServerStore } from '@/context/auth.store';
+import useDataStore from '@/context/data.context';
+import type { Library } from '@/data/interfaces/Media';
+import { useGet } from '@/hooks/media/useGet';
+import HomePageContent from './components/content/HomePageContent';
+import NoAPIKey from './components/NoAPIKey';
+import NoContent from './components/NoContent';
+import NotAvailableServer from './components/NotAvailableServer';
 
 export default function HomePage() {
   const { serverOnline, apiKeyStatus, gettingServerStatus, gettingApiKeyStatus } = useServerStore(
@@ -20,34 +20,34 @@ export default function HomePage() {
       gettingApiKeyStatus: state.gettingApiKeyStatus,
     }),
     shallow,
-  )
-  const selectLibrary = useDataStore((state) => state.selectLibrary)
+  );
+  const selectLibrary = useDataStore((state) => state.selectLibrary);
 
   // Get Libraries
   const { data: libraries, isLoading: loadingLibraries } = useGet<Library[]>(API.libraries.getAll, {
     revalidateOnFocus: false,
     revalidateIfStale: false,
-  })
+  });
 
   useEffect(() => {
-    selectLibrary(null)
-  }, [])
+    selectLibrary(null);
+  }, [selectLibrary]);
 
   if (loadingLibraries || gettingServerStatus || gettingApiKeyStatus) {
-    return <LoadingInsideSidebar />
+    return <LoadingInsideSidebar />;
   }
 
   if (!serverOnline) {
-    return <NotAvailableServer />
+    return <NotAvailableServer />;
   }
 
   if (!apiKeyStatus) {
-    return <NoAPIKey />
+    return <NoAPIKey />;
   }
 
   if (!libraries || libraries.length === 0) {
-    return <NoContent />
+    return <NoContent />;
   }
 
-  return <HomePageContent />
+  return <HomePageContent />;
 }
