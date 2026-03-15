@@ -9,7 +9,7 @@ import type { WatchList } from '../../domain/WatchList';
 import type { WatchListRepositoryPort } from '../ports/WatchListRepositoryPort';
 
 export class UpdateWatchStateUseCase {
-  constructor(private watchListRepo: WatchListRepositoryPort) {}
+  constructor(private watchListRepo: WatchListRepositoryPort) { }
 
   async execute(params: {
     videoId: string;
@@ -57,7 +57,11 @@ export class UpdateWatchStateUseCase {
         await this.watchListRepo.removeMovie(userId, movie.id);
       }
 
-      await useCases.addVideoToContinueWatching().execute(video.id, userId, movie.id);
+      if (watched) {
+        await useCases.removeVideoFromContinueWatching().execute(video.id, userId);
+      } else {
+        await useCases.addVideoToContinueWatching().execute(video.id, userId, undefined, movie.id);
+      }
     }
 
     // Ensure a watchList exists for the video
@@ -68,6 +72,7 @@ export class UpdateWatchStateUseCase {
     if (watchList)
       await this.watchListRepo.update(watchList.id, {
         timeWatched,
+        watched,
         lastWatched: new Date().toLocaleString(),
       } as Partial<WatchList>);
 

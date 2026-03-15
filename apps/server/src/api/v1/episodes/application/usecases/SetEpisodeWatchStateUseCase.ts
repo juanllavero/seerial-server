@@ -1,4 +1,3 @@
-import type { ContinueWatchingRepositoryPort } from '@/api/v1/continue-watching/application/ports/ContinueWatchingRepositoryPort';
 import type { SeasonsRepositoryPort } from '@/api/v1/seasons/application/ports/SeasonsRepositoryPort';
 import type { SeriesRepositoryPort } from '@/api/v1/series/application/ports/SeriesRepositoryPort';
 import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
@@ -14,19 +13,12 @@ export class SetEpisodeWatchStateUseCase {
     private seriesRepo: SeriesRepositoryPort,
     private videoRepo: VideoRepositoryPort,
     private watchListRepo: WatchListRepositoryPort,
-    private continueWatchingRepo: ContinueWatchingRepositoryPort,
-  ) {}
+  ) { }
 
   async execute(episodeId: string, userId: string, state: boolean): Promise<void> {
     const context = await this.getContext(episodeId);
-    const previousEpisode = await this.continueWatchingRepo.getCurrentEpisode(context.series.id);
     const nextEpisodeId = await this.updateSeasonWatchState(context, userId, state);
-    await this.updateContinueWatching(
-      context.series.id,
-      userId,
-      nextEpisodeId,
-      previousEpisode?.id,
-    );
+    await this.updateContinueWatching(context.series.id, userId, nextEpisodeId);
   }
 
   private async getContext(episodeId: string) {
@@ -101,16 +93,16 @@ export class SetEpisodeWatchStateUseCase {
       if (!video) continue;
 
       if (watched) {
-        await this.watchListRepo.addVideo(video.id, userId);
+        await this.watchListRepo.addVideo(userId, video.id);
       } else {
-        await this.watchListRepo.removeVideo(video.id, userId);
+        await this.watchListRepo.removeVideo(userId, video.id);
       }
     }
 
     if (watched) {
-      await this.watchListRepo.addSeason(seasonId, userId);
+      await this.watchListRepo.addSeason(userId, seasonId);
     } else {
-      await this.watchListRepo.removeSeason(seasonId, userId);
+      await this.watchListRepo.removeSeason(userId, seasonId);
     }
   }
 
@@ -130,16 +122,16 @@ export class SetEpisodeWatchStateUseCase {
       if (!video) continue;
 
       if (episode.episodeNumber < episodeNumberToUpdate) {
-        await this.watchListRepo.addVideo(video.id, userId);
+        await this.watchListRepo.addVideo(userId, video.id);
       } else if (episode.episodeNumber === episodeNumberToUpdate) {
         if (state) {
-          await this.watchListRepo.addVideo(video.id, userId);
+          await this.watchListRepo.addVideo(userId, video.id);
           nextEpisodeId = i < episodes.length - 1 ? episodes[i + 1].id : null;
         } else {
           nextEpisodeId = episode.id;
         }
       } else {
-        await this.watchListRepo.removeVideo(video.id, userId);
+        await this.watchListRepo.removeVideo(userId, video.id);
       }
 
       const isWatched = await this.watchListRepo.isVideoWatched(video.id, userId);
@@ -147,9 +139,9 @@ export class SetEpisodeWatchStateUseCase {
     }
 
     if (allWatchedThisSeason) {
-      await this.watchListRepo.addSeason(seasonId, userId);
+      await this.watchListRepo.addSeason(userId, seasonId);
     } else {
-      await this.watchListRepo.removeSeason(seasonId, userId);
+      await this.watchListRepo.removeSeason(userId, seasonId);
     }
 
     return nextEpisodeId;
@@ -159,26 +151,18 @@ export class SetEpisodeWatchStateUseCase {
     seriesId: string,
     userId: string,
     nextEpisodeId: string | null,
-    previousEpisodeId?: string,
   ): Promise<void> {
-    await this.continueWatchingRepo.deleteAll(userId, seriesId);
-
-    if (previousEpisodeId) {
-      const previousVideo = await this.videoRepo.findByEpisodeId(previousEpisodeId);
-      if (previousVideo) {
-        await this.continueWatchingRepo.delete(previousVideo.id, userId);
-      }
-    }
+    await this.watchListRepo.clearContinueWatching(userId, seriesId);
 
     if (!nextEpisodeId) {
-      await this.watchListRepo.addSeries(seriesId, userId);
+      await this.watchListRepo.addSeries(userId, seriesId);
       return;
     }
 
-    await this.watchListRepo.removeSeries(seriesId, userId);
+    await this.watchListRepo.removeSeries(userId, seriesId);
     const nextVideo = await this.videoRepo.findByEpisodeId(nextEpisodeId);
     if (nextVideo) {
-      await this.continueWatchingRepo.add(nextVideo.id, userId, seriesId);
+      await this.watchListRepo.addContinueWatchingVideo(nextVideo.id, userId, seriesId);
     }
   }
 }

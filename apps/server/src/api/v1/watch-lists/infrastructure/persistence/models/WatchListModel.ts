@@ -67,6 +67,13 @@ export class WatchListModel extends BaseEntity {
   timeWatched!: number;
 
   @Column({
+    type: 'boolean',
+    nullable: false,
+    default: false,
+  })
+  watched!: boolean;
+
+  @Column({
     type: 'varchar',
     nullable: false,
     default: '',

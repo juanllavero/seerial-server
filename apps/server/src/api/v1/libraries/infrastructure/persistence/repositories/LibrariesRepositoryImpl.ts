@@ -1,17 +1,18 @@
+import type { DetailsData } from '@seerial/domain';
 import { v4 as uuidv4 } from 'uuid';
 import { AlbumModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumModel';
 import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
-import type { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
+import { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
 import { EpisodeModel } from '@/api/v1/episodes/infrastructure/persistence/models/EpisodeModel';
 import { MovieModel } from '@/api/v1/movies/infrastructure/persistence/models/MovieModel';
 import { SeasonModel } from '@/api/v1/seasons/infrastructure/persistence/models/SeasonModel';
 import { SeriesModel } from '@/api/v1/series/infrastructure/persistence/models/SeriesModel';
+import { useCases } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { DatabaseManager } from '@/api/v1/shared/infrastructure/persistence/DatabaseManager';
 import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
 import { VideoModel } from '@/api/v1/videos/infrastructure/persistence/models/VideoModel';
-import type { WatchList } from '@/api/v1/watch-lists/domain/WatchList';
 import { messages } from '@/config/messages';
-import { type LibraryItem, LibraryTypes } from '@/data/interfaces/Media';
+import { type ItemType, type LibraryItem, LibraryTypes } from '@/data/interfaces/Media';
 import { GenericRepositoryHelper } from '@/helpers/GenericRepositoryHelper';
 import logger from '@/utils/logger';
 import type { LibrariesRepositoryPort } from '../../../application/ports/LibrariesRepositoryPort';
@@ -51,10 +52,14 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       where: { id: libraryId },
       relations: [
         'series',
+        'series.watchLists',
+        'series.myLists',
         'series.seasons',
         'series.seasons.episodes',
         'series.seasons.episodes.watchLists',
         'movies',
+        'movies.watchLists',
+        'movies.myLists',
         'movies.videos',
         'albums',
         'libraryCollections',
@@ -71,7 +76,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     const collections =
       library.libraryCollections?.map((libraryCollection) => libraryCollection.collection) || [];
     const collectionItems = await this.buildCollectionItems(collections, libraryId, library.type);
-    const standaloneItems = this.buildStandaloneItems(library, collections, userId);
+    const standaloneItems = await this.buildStandaloneItems(library, collections, userId);
 
     return [...collectionItems, ...standaloneItems].sort((a, b) => a.order - b.order);
   }
@@ -110,6 +115,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
         remainingItems: 0,
         analyzingFiles: false,
         type: 'collection',
+        details: await this.generateItemDetails(collection, 'collection')
       });
     }
 
@@ -128,11 +134,11 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     return moviesCount + seriesCount + albumsCount;
   }
 
-  private buildStandaloneItems(
+  private async buildStandaloneItems(
     library: LibraryModel,
     collections: CollectionModel[],
     userId: string,
-  ): LibraryItem[] {
+  ): Promise<LibraryItem[]> {
     const collectionMovieIds = new Set(
       collections.flatMap(
         (collection) => collection.collectionMovies?.map((movie) => movie.movie.id) || [],
@@ -151,20 +157,20 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
 
     switch (library.type) {
       case LibraryTypes.MOVIES:
-        return this.buildMovieItems(library, collectionMovieIds);
+        return await this.buildMovieItems(library, collectionMovieIds);
       case LibraryTypes.SHOWS:
-        return this.buildSeriesItems(library, collectionSeriesIds, userId);
+        return await this.buildSeriesItems(library, collectionSeriesIds, userId);
       case LibraryTypes.MUSIC:
-        return this.buildAlbumItems(library, collectionAlbumIds);
+        return await this.buildAlbumItems(library, collectionAlbumIds);
       default:
         return [];
     }
   }
 
-  private buildMovieItems(library: LibraryModel, collectionMovieIds: Set<string>): LibraryItem[] {
-    return (library.movies || [])
+  private async buildMovieItems(library: LibraryModel, collectionMovieIds: Set<string>): Promise<LibraryItem[]> {
+    return Promise.all((library.movies || [])
       .filter((movie) => !collectionMovieIds.has(movie.id))
-      .map((movie) => ({
+      .map(async (movie) => ({
         id: movie.id,
         title: movie.name,
         years: movie.year || '-',
@@ -175,17 +181,18 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
         remainingItems: 0,
         analyzingFiles: movie.analyzingFiles,
         type: 'movie',
-      }));
+        details: await this.generateItemDetails(movie, 'movie'),
+      })));
   }
 
-  private buildSeriesItems(
+  private async buildSeriesItems(
     library: LibraryModel,
     collectionSeriesIds: Set<string>,
     userId: string,
-  ): LibraryItem[] {
-    return (library.series || [])
+  ): Promise<LibraryItem[]> {
+    return Promise.all((library.series || [])
       .filter((series) => !collectionSeriesIds.has(series.id))
-      .map((series) => ({
+      .map(async (series) => ({
         id: series.id,
         title: series.name,
         years: this.calculateYearsForSeries(series),
@@ -196,13 +203,14 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
         remainingItems: this.calculateRemainingEpisodes(series, userId),
         analyzingFiles: series.analyzingFiles,
         type: 'series',
-      }));
+        details: await this.generateItemDetails(series, 'series', userId),
+      })));
   }
 
-  private buildAlbumItems(library: LibraryModel, collectionAlbumIds: Set<string>): LibraryItem[] {
-    return (library.albums || [])
+  private async buildAlbumItems(library: LibraryModel, collectionAlbumIds: Set<string>): Promise<LibraryItem[]> {
+    return Promise.all((library.albums || [])
       .filter((album) => !collectionAlbumIds.has(album.id))
-      .map((album) => ({
+      .map(async (album) => ({
         id: album.id,
         title: album.title,
         years: album.year || '-',
@@ -213,7 +221,98 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
         remainingItems: 0,
         analyzingFiles: false,
         type: 'album',
-      }));
+        details: await this.generateItemDetails(album, 'album'),
+      })));
+  }
+
+  private async generateItemDetails(
+    element: MovieModel | SeriesModel | AlbumModel | CollectionModel,
+    type: ItemType,
+    userId: string = '',
+  ): Promise<DetailsData | null> {
+    switch (type) {
+      case 'movie':
+        return element instanceof MovieModel
+          ? this.buildMovieDetails(element, userId)
+          : null;
+      case 'series':
+        return element instanceof SeriesModel
+          ? this.buildSeriesDetails(element, userId)
+          : null;
+      case 'album':
+        return element instanceof AlbumModel
+          ? this.buildAlbumDetails(element)
+          : null;
+      case 'collection':
+        return element instanceof CollectionModel
+          ? this.buildCollectionDetails(element)
+          : null;
+      default:
+        return null;
+    }
+  }
+
+  private buildMovieDetails(element: MovieModel, userId: string): DetailsData {
+    return {
+      title: element.name,
+      info: [],
+      genres: element.genres ? element.genres.join(', ') : '',
+      score: element.score,
+      imdbScore: element.imdbScore,
+      description: element.overview || '',
+      directedBy: element.directedBy ? element.directedBy.join(', ') : '',
+      watched: element.watchLists ? element.watchLists.some((wl) => wl.userId === userId) : false,
+      inMyList: element.myLists ? element.myLists.some((ml) => ml.userId === userId) : false,
+      subtitle: undefined,
+      tagline: element.tagline || '',
+      coverSrc: element.coverSrc || '',
+      backgroundSrc: element.backgroundSrc || '',
+    };
+  }
+
+  private async buildSeriesDetails(element: SeriesModel, userId: string): Promise<DetailsData> {
+    const currentSeason = await useCases.getCurrentlyWatchingSeason().execute(element.id, userId);
+
+    return {
+      title: element.name,
+      info: [],
+      genres: element.genres ? element.genres.join(', ') : '',
+      score: element.score,
+      imdbScore: undefined,
+      description: element.overview || '',
+      directedBy: element.creator ? element.creator.join(', ') : '',
+      watched: element.watchLists ? element.watchLists.some((wl) => wl.userId === userId) : false,
+      inMyList: element.myLists ? element.myLists.some((ml) => ml.userId === userId) : false,
+      subtitle: undefined,
+      tagline: element.tagline || '',
+      coverSrc: element.coverSrc || '',
+      backgroundSrc: currentSeason?.backgroundSrc || '',
+    };
+  }
+
+  private buildAlbumDetails(element: AlbumModel): DetailsData {
+    return {
+      title: element.title,
+      info: [],
+      genres: element.genres ? element.genres.join(', ') : '',
+      score: 0,
+      imdbScore: undefined,
+      description: element.description || '',
+      subtitle: undefined,
+      coverSrc: element.coverSrc || '',
+    };
+  }
+
+  private buildCollectionDetails(element: CollectionModel): DetailsData {
+    return {
+      title: element.title,
+      info: [],
+      genres: '',
+      description: element.description || '',
+      subtitle: undefined,
+      coverSrc: element.posterSrc || '',
+      backgroundSrc: element.backgroundSrc || '',
+    };
   }
 
   private calculateYearsForCollection(collection: CollectionModel): string {
@@ -263,7 +362,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       if (!season.episodes) continue;
 
       for (const episode of season.episodes) {
-        const watchedEpisode = episode.watchLists?.find((wl: WatchList) => wl.userId === userId);
+        const watchedEpisode = episode.watchLists?.find((wl) => wl.userId === userId);
         if (watchedEpisode) return true;
       }
     }
@@ -283,7 +382,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       totalEpisodes += season.episodes.length;
 
       for (const episode of season.episodes) {
-        const watchedEpisode = episode.watchLists?.find((wl: WatchList) => wl.userId === userId);
+        const watchedEpisode = episode.watchLists?.find((wl) => wl.userId === userId);
         if (watchedEpisode) watchedEpisodes++;
       }
     }

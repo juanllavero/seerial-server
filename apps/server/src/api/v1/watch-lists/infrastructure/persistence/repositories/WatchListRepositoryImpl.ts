@@ -1,7 +1,11 @@
+import type { Episode, Season, Video } from '@seerial/domain';
 import type { FindOptionsWhere } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
+import { MovieModel } from '@/api/v1/movies/infrastructure/persistence/models/MovieModel';
+import { SeasonModel } from '@/api/v1/seasons/infrastructure/persistence/models/SeasonModel';
 import { GenericRepositoryHelper } from '@/helpers/GenericRepositoryHelper';
+import type { ContinueWatchingVideoDTO } from '../../../application/dtos/WatchListDTOs';
 import type { WatchListRepositoryPort } from '../../../application/ports/WatchListRepositoryPort';
 import type { WatchList } from '../../../domain/WatchList';
 import { WatchListModel } from '../models/WatchListModel';
@@ -28,6 +32,121 @@ export class WatchListRepositoryImpl extends BaseRepository implements WatchList
   async findById(id: string): Promise<WatchList | null> {
     const validatedId = this.validateId(id, 'WatchList ID');
     return this.helper.findById(validatedId);
+  }
+
+  async findCurrentSeason(seriesId: string, userId?: string): Promise<Season | null> {
+    const validatedSeriesId = this.validateId(seriesId, 'Series ID');
+    const validatedUserId = userId ? this.validateId(userId, 'User ID') : undefined;
+
+    const seasons = await SeasonModel.find({
+      where: { seriesId: validatedSeriesId },
+      relations: ['episodes', 'episodes.video', 'episodes.video.watchLists'],
+      order: { seasonNumber: 'ASC' },
+    });
+
+    if (seasons.length === 0) return null;
+
+    let currentSeason: SeasonModel | null = null;
+
+    for (const season of seasons) {
+      const hasProgress = season.episodes.some((episode) => {
+        const watchList = episode.video?.watchLists?.find(
+          (wl) => !validatedUserId || wl.userId === validatedUserId,
+        );
+
+        if (!watchList) return false;
+        return watchList.watched || watchList.timeWatched > 0;
+      });
+
+      if (hasProgress) {
+        currentSeason = season;
+      }
+    }
+
+    return (currentSeason ?? seasons[0]) as unknown as Season;
+  }
+
+  async findCurrentEpisode(seasonId: string, userId?: string): Promise<Episode | null> {
+    const validatedSeasonId = this.validateId(seasonId, 'Season ID');
+    const validatedUserId = userId ? this.validateId(userId, 'User ID') : undefined;
+
+    const season = await SeasonModel.findOne({
+      where: { id: validatedSeasonId },
+      relations: ['episodes', 'episodes.video', 'episodes.video.watchLists'],
+    });
+
+    if (!season || !season.episodes.length) return null;
+
+    const orderedEpisodes = [...season.episodes].sort((a, b) => a.episodeNumber - b.episodeNumber);
+
+    const inProgress = orderedEpisodes
+      .map((episode) => {
+        const watchList = episode.video?.watchLists?.find(
+          (wl) => !validatedUserId || wl.userId === validatedUserId,
+        );
+        return { episode, watchList };
+      })
+      .filter(({ watchList }) => !!watchList && !watchList.watched && watchList.timeWatched > 0)
+      .sort((a, b) => (b.watchList?.timeWatched ?? 0) - (a.watchList?.timeWatched ?? 0))[0]?.episode;
+
+    if (inProgress) {
+      return inProgress as unknown as Episode;
+    }
+
+    const nextToWatch = orderedEpisodes.find((episode) => {
+      const watchList = episode.video?.watchLists?.find(
+        (wl) => !validatedUserId || wl.userId === validatedUserId,
+      );
+
+      return !watchList || !watchList.watched;
+    });
+
+    return (nextToWatch ?? orderedEpisodes[orderedEpisodes.length - 1]) as unknown as Episode;
+  }
+
+  async findCurrentVideo(movieId: string, userId?: string): Promise<Video | null> {
+    const validatedMovieId = this.validateId(movieId, 'Movie ID');
+    const validatedUserId = userId ? this.validateId(userId, 'User ID') : undefined;
+
+    const movie = await MovieModel.findOne({
+      where: { id: validatedMovieId },
+      relations: ['videos', 'videos.watchLists'],
+    });
+
+    if (!movie || !movie.videos.length) return null;
+
+    const orderedVideos = [...movie.videos].sort((a, b) => {
+      const titleCompare = (a.title ?? '').localeCompare(b.title ?? '');
+      return titleCompare !== 0 ? titleCompare : a.id.localeCompare(b.id);
+    });
+
+    const inProgress = orderedVideos
+      .map((video) => {
+        const watchList = video.watchLists?.find(
+          (wl) => !validatedUserId || wl.userId === validatedUserId,
+        );
+        return { video, watchList };
+      })
+      .filter(({ watchList }) => !!watchList && !watchList.watched && watchList.timeWatched > 0)
+      .sort((a, b) => (b.watchList?.timeWatched ?? 0) - (a.watchList?.timeWatched ?? 0))[0]?.video;
+
+    if (inProgress) {
+      return inProgress as unknown as Video;
+    }
+
+    const nextToWatch = orderedVideos.find((video) => {
+      const watchList = video.watchLists?.find(
+        (wl) => !validatedUserId || wl.userId === validatedUserId,
+      );
+
+      return !watchList || !watchList.watched;
+    });
+
+    if (nextToWatch) {
+      return nextToWatch as unknown as Video;
+    }
+
+    return orderedVideos[0] as unknown as Video;
   }
 
   async create(data: WatchList): Promise<WatchList> {
@@ -72,11 +191,18 @@ export class WatchListRepositoryImpl extends BaseRepository implements WatchList
     const existing = await WatchListModel.findOne({
       where: { userId: uId, seriesId: sId },
     });
-    if (existing) return;
+    if (existing) {
+      if (!existing.watched) {
+        existing.watched = true;
+        await existing.save();
+      }
+      return;
+    }
 
     const newWatchListData = {
       userId: uId,
       seriesId: sId,
+      watched: true,
     };
 
     await this.helper.create(newWatchListData, true);
@@ -106,11 +232,18 @@ export class WatchListRepositoryImpl extends BaseRepository implements WatchList
     const existing = await WatchListModel.findOne({
       where: { userId: uId, seasonId: seId },
     });
-    if (existing) return;
+    if (existing) {
+      if (!existing.watched) {
+        existing.watched = true;
+        await existing.save();
+      }
+      return;
+    }
 
     const newWatchListData = {
       userId: uId,
       seasonId: seId,
+      watched: true,
     };
 
     await this.helper.create(newWatchListData, true);
@@ -140,11 +273,18 @@ export class WatchListRepositoryImpl extends BaseRepository implements WatchList
     const existing = await WatchListModel.findOne({
       where: { userId: uId, episodeId: eId },
     });
-    if (existing) return;
+    if (existing) {
+      if (!existing.watched) {
+        existing.watched = true;
+        await existing.save();
+      }
+      return;
+    }
 
     const newWatchListData = {
       userId: uId,
       episodeId: eId,
+      watched: true,
     };
 
     await this.helper.create(newWatchListData, true);
@@ -171,11 +311,18 @@ export class WatchListRepositoryImpl extends BaseRepository implements WatchList
     const existing = await WatchListModel.findOne({
       where: { userId: uId, movieId: mId },
     });
-    if (existing) return;
+    if (existing) {
+      if (!existing.watched) {
+        existing.watched = true;
+        await existing.save();
+      }
+      return;
+    }
 
     const newWatchListData = {
       userId: uId,
       movieId: mId,
+      watched: true,
     };
 
     await this.helper.create(newWatchListData, true);
@@ -202,11 +349,18 @@ export class WatchListRepositoryImpl extends BaseRepository implements WatchList
     const existing = await WatchListModel.findOne({
       where: { userId: uId, videoId: vId },
     });
-    if (existing) return;
+    if (existing) {
+      if (!existing.watched) {
+        existing.watched = true;
+        await existing.save();
+      }
+      return;
+    }
 
     const newWatchListData = {
       userId: uId,
       videoId: vId,
+      watched: true,
     };
 
     await this.helper.create(newWatchListData, true);
@@ -234,7 +388,7 @@ export class WatchListRepositoryImpl extends BaseRepository implements WatchList
     });
 
     const existing = await WatchListModel.findOne({
-      where: { userId: uId, videoId: vId },
+      where: { userId: uId, videoId: vId, watched: true },
     });
     return existing !== null;
   }
@@ -246,7 +400,7 @@ export class WatchListRepositoryImpl extends BaseRepository implements WatchList
     });
 
     const existing = await WatchListModel.findOne({
-      where: { userId: uId, seriesId: sId },
+      where: { userId: uId, seriesId: sId, watched: true },
     });
     return existing !== null;
   }
@@ -258,7 +412,7 @@ export class WatchListRepositoryImpl extends BaseRepository implements WatchList
     });
 
     const existing = await WatchListModel.findOne({
-      where: { userId: uId, movieId: mId },
+      where: { userId: uId, movieId: mId, watched: true },
     });
     return existing !== null;
   }
@@ -270,8 +424,171 @@ export class WatchListRepositoryImpl extends BaseRepository implements WatchList
     });
 
     const existing = await WatchListModel.findOne({
-      where: { userId: uId, seasonId: sId },
+      where: { userId: uId, seasonId: sId, watched: true },
     });
     return existing !== null;
+  }
+
+  async isEpisodeWatched(episodeId: string, userId: string): Promise<boolean> {
+    const { userId: uId, episodeId: eId } = this.validateIds({
+      userId: String(userId),
+      episodeId: String(episodeId),
+    });
+
+    const existing = await WatchListModel.findOne({
+      where: { userId: uId, episodeId: eId, watched: true },
+    });
+    return existing !== null;
+  }
+
+  async getContinueWatchingVideos(userId: string): Promise<ContinueWatchingVideoDTO[]> {
+    const validatedUserId = this.validateId(userId, 'User ID');
+
+    const elements = await WatchListModel.find({
+      where: { userId: validatedUserId, watched: false },
+      relations: [
+        'video',
+        'video.episode',
+        'video.episode.season',
+        'video.episode.season.series',
+        'video.movie',
+      ],
+      order: { updatedAt: 'DESC' },
+    });
+
+    return elements
+      .filter((item) => !!item.video && (item.timeWatched > 0 || !!item.seriesId || !!item.movieId))
+      .map((item) => this.mapContinueWatchingVideo(item))
+      .filter((video): video is ContinueWatchingVideoDTO => video !== null);
+  }
+
+  private mapContinueWatchingVideo(item: WatchListModel): ContinueWatchingVideoDTO | null {
+    const itemVideo = item.video;
+    if (!itemVideo) return null;
+
+    if (itemVideo.episode?.season?.series) {
+      const episode = itemVideo.episode;
+      const season = episode.season;
+      const series = season.series;
+
+      return {
+        id: item.id,
+        title: series.name ?? 'Not found',
+        subtitle: episode.name,
+        episodeNumber: episode.episodeNumber ?? 0,
+        seasonNumber: episode.seasonNumber ?? 0,
+        date: episode.year ?? '',
+        duration: itemVideo.runtime ?? 0,
+        timeWatched: item.timeWatched ?? 0,
+        genres: series.genres ?? [],
+        overview: episode.overview ?? season.overview ?? series.overview ?? '',
+        backgroundImage: season.backgroundSrc,
+        posterImage: series.coverSrc,
+        logoImage: series.logoSrc,
+        videoImage: itemVideo.imgSrc,
+        episodeId: episode.id,
+        videoId: itemVideo.id,
+      };
+    }
+
+    if (itemVideo.movie) {
+      const movie = itemVideo.movie;
+
+      return {
+        id: item.id,
+        title: movie.name ?? 'Not found',
+        date: movie.year ?? '',
+        duration: itemVideo.runtime ?? 0,
+        timeWatched: item.timeWatched ?? 0,
+        genres: movie.genres ?? [],
+        overview: movie.overview,
+        backgroundImage: movie.backgroundSrc,
+        posterImage: movie.coverSrc,
+        logoImage: movie.logoSrc,
+        videoImage: itemVideo.imgSrc,
+        movieId: movie.id,
+        videoId: itemVideo.id,
+      };
+    }
+
+    return null;
+  }
+
+  async addContinueWatchingVideo(
+    videoId: string,
+    userId: string,
+    seriesId?: string,
+    movieId?: string,
+  ): Promise<WatchList> {
+    const validated = this.validateIds({ videoId, userId });
+    const validatedSeriesId = seriesId ? this.validateId(seriesId, 'Series ID') : undefined;
+    const validatedMovieId = movieId ? this.validateId(movieId, 'Movie ID') : undefined;
+
+    if (validatedSeriesId || validatedMovieId) {
+      await this.clearContinueWatching(validated.userId, validatedSeriesId, validatedMovieId);
+    }
+
+    const existing = await WatchListModel.findOne({
+      where: { userId: validated.userId, videoId: validated.videoId },
+    });
+
+    if (existing) {
+      existing.watched = false;
+      if (validatedSeriesId) existing.seriesId = validatedSeriesId;
+      if (validatedMovieId) existing.movieId = validatedMovieId;
+      return (await existing.save()) as unknown as WatchList;
+    }
+
+    const dataToCreate = {
+      id: uuidv4().split('-')[0],
+      userId: validated.userId,
+      videoId: validated.videoId,
+      seriesId: validatedSeriesId,
+      movieId: validatedMovieId,
+      watched: false,
+      timeWatched: 0,
+      lastWatched: '',
+    };
+
+    return this.helper.create(dataToCreate, true);
+  }
+
+  async removeContinueWatchingVideo(videoId: string, userId?: string): Promise<void> {
+    const validatedVideoId = this.validateId(videoId, 'Video ID');
+
+    const whereCondition: Record<string, string | boolean> = {
+      videoId: validatedVideoId,
+      watched: false,
+    };
+
+    if (userId) {
+      whereCondition.userId = this.validateId(userId, 'User ID');
+    }
+
+    await WatchListModel.delete(whereCondition);
+  }
+
+  async clearContinueWatching(userId: string, seriesId?: string, movieId?: string): Promise<boolean> {
+    const validatedUserId = this.validateId(userId, 'User ID');
+
+    if (!seriesId && !movieId) {
+      return false;
+    }
+
+    const whereCondition: Record<string, string | boolean> = {
+      userId: validatedUserId,
+      watched: false,
+    };
+
+    if (seriesId) {
+      whereCondition.seriesId = this.validateId(seriesId, 'Series ID');
+    }
+
+    if (movieId) {
+      whereCondition.movieId = this.validateId(movieId, 'Movie ID');
+    }
+
+    const result = await WatchListModel.delete(whereCondition);
+    return (result.affected || 0) > 0;
   }
 }

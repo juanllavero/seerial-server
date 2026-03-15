@@ -21,12 +21,6 @@ import { GetMusicExtrasUseCase } from '@/api/v1/collections/application/usecases
 import { ReorderCollectionItemsUseCase } from '@/api/v1/collections/application/usecases/ReorderCollectionItemsUseCase';
 import { UpdateCollectionUseCase } from '@/api/v1/collections/application/usecases/UpdateCollectionUseCase';
 import { CollectionsRepositoryImpl } from '@/api/v1/collections/infrastructure/persistence/repositories/CollectionsRepositoryImpl';
-import { AddVideoUseCase } from '@/api/v1/continue-watching/application/usecases/AddVideoUseCase';
-import { DeleteAllUseCase } from '@/api/v1/continue-watching/application/usecases/DeleteAllUseCase';
-import { DeleteUseCase } from '@/api/v1/continue-watching/application/usecases/DeleteUseCase';
-import { GetCurrentEpisodeUseCase } from '@/api/v1/continue-watching/application/usecases/GetCurrentEpisodeUseCase';
-import { GetVideosUseCase } from '@/api/v1/continue-watching/application/usecases/GetVideosUseCase';
-import { ContinueWatchingRepositoryImpl } from '@/api/v1/continue-watching/infrastructure/persistence/repositories/ContinueWatchingRepositoryImpl';
 import { CreateEpisodeUseCase } from '@/api/v1/episodes/application/usecases/CreateEpisodeUseCase';
 import { DeleteEpisodeUseCase } from '@/api/v1/episodes/application/usecases/DeleteEpisodeUseCase';
 import { FindEpisodeByIdUseCase } from '@/api/v1/episodes/application/usecases/FindEpisodeByIdUseCase';
@@ -126,10 +120,17 @@ import { UpdateMediaInfoUseCase } from '@/api/v1/videos/application/usecases/Upd
 import { UpdateVideoUseCase } from '@/api/v1/videos/application/usecases/UpdateVideosUseCase';
 import { VideosRepositoryImpl } from '@/api/v1/videos/infrastructure/persistence/repositories/VideosRepositoryImpl';
 import { VideoExtractionServiceImpl } from '@/api/v1/videos/infrastructure/services/VideoExtractionServiceImpl';
+import { AddContinueWatchingVideoUseCase } from '@/api/v1/watch-lists/application/usecases/AddContinueWatchingVideoUseCase';
 import { AddMovieToWatchListUseCase } from '@/api/v1/watch-lists/application/usecases/AddMovieToWatchListUseCase';
 import { AddSeasonToWatchListUseCase } from '@/api/v1/watch-lists/application/usecases/AddSeasonToWatchListUseCase';
 import { AddSeriesToWatchListUseCase } from '@/api/v1/watch-lists/application/usecases/AddSeriesToWatchListUseCase';
 import { AddVideoToWatchListUseCase } from '@/api/v1/watch-lists/application/usecases/AddVideoToWatchListUseCase';
+import { ClearContinueWatchingUseCase } from '@/api/v1/watch-lists/application/usecases/ClearContinueWatchingUseCase';
+import { GetContinueWatchingVideosUseCase } from '@/api/v1/watch-lists/application/usecases/GetContinueWatchingVideosUseCase';
+import { GetCurrentEpisodeUseCase as GetCurrentWatchListEpisodeUseCase } from '@/api/v1/watch-lists/application/usecases/GetCurrentEpisodeUseCase';
+import { GetCurrentSeasonUseCase } from '@/api/v1/watch-lists/application/usecases/GetCurrentlSeasonUseCase';
+import { GetCurrentVideoUseCase as GetCurrentWatchListVideoUseCase } from '@/api/v1/watch-lists/application/usecases/GetCurrentVideoUseCase';
+import { RemoveContinueWatchingVideoUseCase } from '@/api/v1/watch-lists/application/usecases/RemoveContinueWatchingVideoUseCase';
 import { RemoveMovieFromWatchListUseCase } from '@/api/v1/watch-lists/application/usecases/RemoveMovieFromWatchListUseCase';
 import { RemoveSeasonFromWatchListUseCase } from '@/api/v1/watch-lists/application/usecases/RemoveSeasonFromWatchListUseCase';
 import { RemoveSeriesFromWatchListUseCase } from '@/api/v1/watch-lists/application/usecases/RemoveSeriesFromWatchListUseCase';
@@ -177,7 +178,6 @@ export const videosRepo = new VideosRepositoryImpl();
 export const songsRepo = new SongsRepositoryImpl();
 export const artistsRepo = new ArtistsRepositoryImpl();
 export const collectionsRepo = new CollectionsRepositoryImpl();
-export const continueWatchingRepo = new ContinueWatchingRepositoryImpl();
 export const watchListRepo = new WatchListRepositoryImpl();
 export const myListRepo = new MyListRepositoryImpl();
 export const playlistRepo = new PlayListRepositoryImpl();
@@ -332,7 +332,6 @@ export const useCases = {
       seriesRepo,
       videosRepo,
       watchListRepo,
-      continueWatchingRepo,
     ),
 
   // Videos
@@ -356,11 +355,10 @@ export const useCases = {
   removeSongFromPlayList: () => new RemoveSongFromPlayListUseCase(playlistRepo),
 
   // ContinueWatching
-  addVideoToContinueWatching: () => new AddVideoUseCase(continueWatchingRepo),
-  removeVideoFromContinueWatching: () => new DeleteUseCase(continueWatchingRepo),
-  removeAllFromContinueWatching: () => new DeleteAllUseCase(continueWatchingRepo),
-  getCurrentContinueWatchingEpisode: () => new GetCurrentEpisodeUseCase(continueWatchingRepo),
-  getContinueWatchingVideos: () => new GetVideosUseCase(continueWatchingRepo),
+  addVideoToContinueWatching: () => new AddContinueWatchingVideoUseCase(watchListRepo),
+  removeVideoFromContinueWatching: () => new RemoveContinueWatchingVideoUseCase(watchListRepo),
+  removeAllFromContinueWatching: () => new ClearContinueWatchingUseCase(watchListRepo),
+  getContinueWatchingVideos: () => new GetContinueWatchingVideosUseCase(watchListRepo),
 
   // MyLists
   addMovieToMyList: () => new AddMovieToMyListUseCase(myListRepo),
@@ -384,4 +382,7 @@ export const useCases = {
   addSeriesToWatchList: () => new AddSeriesToWatchListUseCase(watchListRepo),
   removeSeriesFromWatchList: () => new RemoveSeriesFromWatchListUseCase(watchListRepo),
   updateWatchStateUseCase: () => new UpdateWatchStateUseCase(watchListRepo),
+  getCurrentlyWatchingSeason: () => new GetCurrentSeasonUseCase(watchListRepo),
+  getCurrentlyWatchingEpisode: () => new GetCurrentWatchListEpisodeUseCase(watchListRepo),
+  getCurrentlyWatchingVideo: () => new GetCurrentWatchListVideoUseCase(watchListRepo),
 };

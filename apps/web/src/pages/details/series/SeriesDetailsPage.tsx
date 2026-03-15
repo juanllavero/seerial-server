@@ -1,34 +1,34 @@
-import { t } from 'i18next'
-import { Pencil } from 'lucide-react'
-import { useEffect } from 'react'
-import { useParams } from 'react-router-dom'
-import { mutate } from 'swr'
-import { shallow } from 'zustand/shallow'
-import ExpandableText from '@/components/ExpandableText'
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import NotFound from '@/components/NotFound'
-import { Button } from '@/components/ui/button'
-import FlexBox from '@/components/ui/FlexBox'
-import { MarkWatchedIcon, UnmarkWatchedIcon } from '@/components/ui/IconLibrary'
-import LazyImage from '@/components/ui/LazyImage'
-import { Skeleton } from '@/components/ui/skeleton'
-import { API, authenticatedFetch } from '@/config/api'
-import { useServerStore } from '@/context/auth.store'
-import useDataStore from '@/context/data.context'
-import { useDialogStore } from '@/context/dialog.store'
-import { useSettingsStore } from '@/context/settings.context'
-import type { Series } from '@/data/interfaces/Media'
-import { useGet } from '@/hooks/media/useGet'
-import { useIsAdmin } from '@/hooks/useIsAdmin'
-import CastList from '../components/CastList'
-import '../DetailsPage.css'
-import MyListButton from './components/MyListButton'
-import PlayButton from './components/PlayButton'
-import SeasonSelectable from './components/SeasonSelectable'
-import SeasonContent from './components/SeasonsContent'
+import { t } from 'i18next';
+import { Pencil } from 'lucide-react';
+import { useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { mutate } from 'swr';
+import { shallow } from 'zustand/shallow';
+import ExpandableText from '@/components/ExpandableText';
+import { useIsMobile } from '@/components/hooks/use-mobile';
+import NotFound from '@/components/NotFound';
+import { Button } from '@/components/ui/button';
+import FlexBox from '@/components/ui/FlexBox';
+import { MarkWatchedIcon, UnmarkWatchedIcon } from '@/components/ui/IconLibrary';
+import LazyImage from '@/components/ui/LazyImage';
+import { Skeleton } from '@/components/ui/skeleton';
+import { API, authenticatedFetch } from '@/config/api';
+import { useServerStore } from '@/context/auth.store';
+import useDataStore from '@/context/data.context';
+import { useDialogStore } from '@/context/dialog.store';
+import { useSettingsStore } from '@/context/settings.context';
+import type { Series } from '@/data/interfaces/Media';
+import { useGet } from '@/hooks/media/useGet';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
+import CastList from '../components/CastList';
+import '../DetailsPage.css';
+import MyListButton from './components/MyListButton';
+import PlayButton from './components/PlayButton';
+import SeasonSelectable from './components/SeasonSelectable';
+import SeasonContent from './components/SeasonsContent';
 
 function SeriesDetailsPage() {
-  const { seriesId } = useParams()
+  const { seriesId } = useParams();
   const { selectedSeasonId, selectSeason, setCurrentBackground, currentBackground } = useDataStore(
     (state) => ({
       selectedSeasonId: state.selectedSeasonId,
@@ -37,53 +37,53 @@ function SeriesDetailsPage() {
       currentBackground: state.currentBackground,
     }),
     shallow,
-  )
-  const isAdmin = useIsAdmin()
+  );
+  const isAdmin = useIsAdmin();
   const { user } = useServerStore(
     (state) => ({
       user: state.currentUser,
     }),
     shallow,
-  )
-  const clientSettings = useSettingsStore((state) => state.clientSettings)
-  const { openDialog } = useDialogStore((state) => ({ openDialog: state.openDialog }), shallow)
+  );
+  const clientSettings = useSettingsStore((state) => state.clientSettings);
+  const { openDialog } = useDialogStore((state) => ({ openDialog: state.openDialog }), shallow);
 
   // Get series data
   const {
     data: series,
     isLoading,
     error,
-  } = useGet<Series>(`${API.series.get(seriesId ?? '')}?include=all`)
+  } = useGet<Series>(`${API.series.get(seriesId ?? '')}?include=all`);
 
   // Get selected season data
   const season =
-    series && series.seasons ? series.seasons.find((s) => s.id === selectedSeasonId) : undefined
+    series && series.seasons ? series.seasons.find((s) => s.id === selectedSeasonId) : undefined;
 
-  const isMobile = useIsMobile()
-  const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true
+  const isMobile = useIsMobile();
+  const showPoster: boolean = (clientSettings.showPosters as boolean) ?? true;
 
   useEffect(() => {
     if (!isLoading && series && ((season && season.id !== selectedSeasonId) || !season)) {
-      selectSeason(series.seasons && series.seasons.length > 0 ? series.seasons[0].id : null)
+      selectSeason(series.seasons && series.seasons.length > 0 ? series.seasons[0].id : null);
     }
-  }, [series, season, isLoading, selectedSeasonId, selectSeason])
+  }, [series, season, isLoading, selectedSeasonId, selectSeason]);
 
   // Set background image src
   useEffect(() => {
     if (season && season.backgroundSrc !== currentBackground) {
-      setCurrentBackground(season.backgroundSrc)
+      setCurrentBackground(season.backgroundSrc);
     }
     // } else if (currentBackground) {
     //   setCurrentBackground(undefined)
     // }
-  }, [season, setCurrentBackground, currentBackground])
+  }, [season, setCurrentBackground, currentBackground]);
 
   const renderLogoOrText = () => {
     if (isLoading || !series) {
-      return <Skeleton style={{ width: '350px', height: '200px' }} />
+      return <Skeleton style={{ width: '350px', height: '200px' }} />;
     }
 
-    const logoUrl = series.logoSrc
+    const logoUrl = series.logoSrc;
 
     if (logoUrl && logoUrl !== '') {
       return (
@@ -93,7 +93,7 @@ function SeriesDetailsPage() {
           width={isMobile ? '100%' : 350}
           errorSrc="/img/Default_video_thumbnail.jpg"
         />
-      )
+      );
     } else {
       return (
         <span
@@ -104,9 +104,9 @@ function SeriesDetailsPage() {
         >
           {series.name}
         </span>
-      )
+      );
     }
-  }
+  };
 
   const toggleSeasonWatched = async () => {
     if (season) {
@@ -115,18 +115,18 @@ function SeriesDetailsPage() {
         watched: !season.watchStatus,
         userId: user?.id,
       }).then(() => {
-        mutate((key: string) => key.startsWith(API.series.get(seriesId ?? '')))
-        mutate((key: string) => key.startsWith(API.seasons.get(season.id)))
-      })
+        mutate((key: string) => key.startsWith(API.series.get(seriesId ?? '')));
+        mutate((key: string) => key.startsWith(API.seasons.get(season.id)));
+      });
     }
-  }
+  };
 
   const selectSeasonOption = (key: string, _value: string) => {
-    selectSeason(series?.seasons[Number(key)]?.id || null)
-  }
+    selectSeason(series?.seasons[Number(key)]?.id || null);
+  };
 
   if (error) {
-    return <NotFound />
+    return <NotFound />;
   }
 
   return (
@@ -180,7 +180,7 @@ function SeriesDetailsPage() {
                   return {
                     key: String(index),
                     value: season.name,
-                  }
+                  };
                 })}
               onValueChange={selectSeasonOption}
             />
@@ -242,7 +242,7 @@ function SeriesDetailsPage() {
                 title={t('editButton')}
                 onClick={() => {
                   if (season) {
-                    openDialog('season', { id: season.id })
+                    openDialog('season', { id: season.id });
                   }
                 }}
               >
@@ -285,7 +285,7 @@ function SeriesDetailsPage() {
         <CastList cast={series.cast ?? []} />
       )}
     </FlexBox>
-  )
+  );
 }
 
-export default SeriesDetailsPage
+export default SeriesDetailsPage;

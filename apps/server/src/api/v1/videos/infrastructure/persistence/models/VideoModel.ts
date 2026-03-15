@@ -9,7 +9,6 @@ import {
   PrimaryColumn,
 } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { ContinueWatchingModel } from '@/api/v1/continue-watching/infrastructure/persistence/models/ContinueWatchingModel';
 import { EpisodeModel } from '@/api/v1/episodes/infrastructure/persistence/models/EpisodeModel';
 import { MovieModel } from '@/api/v1/movies/infrastructure/persistence/models/MovieModel';
 import { WatchListModel } from '@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel';
@@ -92,12 +91,6 @@ export class VideoModel extends BaseEntity {
 
   @Column({ type: 'varchar', nullable: true })
   extraId?: string;
-
-  @OneToMany(
-    () => ContinueWatchingModel,
-    (continueWatching) => continueWatching.video,
-  )
-  continueWatching!: ContinueWatchingModel[];
 
   @OneToMany(
     () => WatchListModel,

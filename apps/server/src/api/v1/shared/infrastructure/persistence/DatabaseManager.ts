@@ -8,7 +8,6 @@ import { CollectionAlbumModel } from '@/api/v1/collections/infrastructure/persis
 import { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
 import { CollectionMovieModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionMovie';
 import { CollectionSeriesModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionSeries';
-import { ContinueWatchingModel } from '@/api/v1/continue-watching/infrastructure/persistence/models/ContinueWatchingModel';
 import { EpisodeModel } from '@/api/v1/episodes/infrastructure/persistence/models/EpisodeModel';
 import { LibraryCollectionModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryCollectionModel';
 import { LibraryModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryModel';
@@ -30,7 +29,7 @@ import logger from '@/utils/logger';
 const dbLogger = logger.child({ category: 'Database' });
 
 export class DatabaseManager {
-  private constructor() {}
+  private constructor() { }
 
   public static get DB_PATH(): string {
     return fileSystemService.getExternalPath('resources/db/data.db');
@@ -57,7 +56,6 @@ export class DatabaseManager {
           CollectionMovieModel,
           CollectionSeriesModel,
           LibraryCollectionModel,
-          ContinueWatchingModel,
           WatchListModel,
           EpisodeModel,
           LibraryModel,

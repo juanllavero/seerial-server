@@ -72,6 +72,7 @@
     "tests": "jest --verbose"
   },
   "dependencies": {
+    "@seerial/domain": "workspace:*",
     "@tsoa/runtime": "7.0.0-alpha.0",
     "@types/bcrypt": "^6.0.0",
     "axios": "^1.13.4",
