@@ -1,57 +1,56 @@
-import { Ellipsis, Pencil } from 'lucide-react'
-import type React from 'react'
-import { useEffect, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { useParams } from 'react-router-dom'
-import { shallow } from 'zustand/shallow'
-import Card from '@/components/cards/Card'
-import useScreenHeight from '@/components/hooks/use-height'
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import { SortableHorizontalList } from '@/components/lists/SortableHorizontalList'
-import { Button } from '@/components/ui/button'
-import FlexBox from '@/components/ui/FlexBox'
-import { Skeleton } from '@/components/ui/skeleton'
-import { API, authenticatedFetch } from '@/config/api'
-import useDataStore from '@/context/data.context'
-import { useDialogStore } from '@/context/dialog.store'
-import type { Collection, Movie, Series } from '@/data/interfaces/Media'
-import type { Album } from '@/data/interfaces/Music'
-import { useGet } from '@/hooks/media/useGet'
-import { useIsAdmin } from '@/hooks/useIsAdmin'
-import type { CollectionKey, ContentType } from '@/types/types'
-import { getCoverSize, getTitleSize } from '@/utils/ReactUtils'
-import '../DetailsPage.css'
-import CollectionImage from './CollectionImage'
+import { API, useCreate, useGet } from '@seerial/api';
+import type { Album, Collection, Movie, Series } from '@seerial/domain';
+import { Ellipsis, Pencil } from 'lucide-react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useParams } from 'react-router-dom';
+import { shallow } from 'zustand/shallow';
+import Card from '@/components/cards/Card';
+import useScreenHeight from '@/components/hooks/use-height';
+import { useIsMobile } from '@/components/hooks/use-mobile';
+import { SortableHorizontalList } from '@/components/lists/SortableHorizontalList';
+import { Button } from '@/components/ui/button';
+import FlexBox from '@/components/ui/FlexBox';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useDataStore } from '@seerial/stores';
+import { useDialogStore } from '@/context/dialog.store';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
+import type { CollectionKey, ContentType } from '@/types/types';
+import { getCoverSize, getTitleSize } from '@/utils/ReactUtils';
+import '../DetailsPage.css';
+import CollectionImage from './CollectionImage';
 
 function CollectionDetailsPage() {
-  const { collectionId, type } = useParams()
-  const isAdmin = useIsAdmin()
-  const { openDialog } = useDialogStore((state) => ({ openDialog: state.openDialog }), shallow)
+  const { collectionId, type } = useParams();
+  const isAdmin = useIsAdmin();
+  const { openDialog } = useDialogStore((state) => ({ openDialog: state.openDialog }), shallow);
   const { setCurrentBackground, currentBackground } = useDataStore(
     (state) => ({
       setCurrentBackground: state.setCurrentBackground,
       currentBackground: state.currentBackground,
     }),
     shallow,
-  )
-  const { t } = useTranslation()
-  const isMobile = useIsMobile()
-  const screenHeight = useScreenHeight()
+  );
+  const { t } = useTranslation();
+  const isMobile = useIsMobile();
+  const screenHeight = useScreenHeight();
 
   // Get collection data
   const {
     data: collection,
     isLoading,
     mutate,
-  } = useGet<Collection>(API.collections.get(collectionId ?? ''))
+  } = useGet<Collection>(API.collections.get(collectionId ?? ''));
+  const { create } = useCreate<unknown>();
 
-  const [localCollection, setLocalCollection] = useState<Collection | null>(null)
+  const [localCollection, setLocalCollection] = useState<Collection | null>(null);
 
   useEffect(() => {
     if (collection) {
-      setLocalCollection(collection)
+      setLocalCollection(collection);
     }
-  }, [collection])
+  }, [collection]);
 
   useEffect(() => {
     if (
@@ -60,95 +59,95 @@ function CollectionDetailsPage() {
       collection.backgroundSrc !== '' &&
       collection.backgroundSrc !== currentBackground
     ) {
-      setCurrentBackground(collection.backgroundSrc)
+      setCurrentBackground(collection.backgroundSrc);
     }
-  }, [collection, setCurrentBackground])
+  }, [collection, setCurrentBackground]);
 
   async function handleDragEnd(
     sourceIndex: number,
     destinationIndex: number,
     listKey: 'movies' | 'shows' | 'albums',
   ) {
-    if (!localCollection) return
+    if (!localCollection) return;
 
-    let reorderedList: Movie[] | Series[] | Album[]
-    let orderedItemsForApi: { id: string; type: string }[]
+    let reorderedList: Movie[] | Series[] | Album[];
+    let orderedItemsForApi: { id: string; type: string }[];
 
     switch (listKey) {
       case 'movies': {
-        const list = [...localCollection.movies]
-        const [movedItem] = list.splice(sourceIndex, 1)
-        list.splice(destinationIndex, 0, movedItem)
-        reorderedList = list
+        const list = [...localCollection.movies];
+        const [movedItem] = list.splice(sourceIndex, 1);
+        list.splice(destinationIndex, 0, movedItem);
+        reorderedList = list;
 
         setLocalCollection((prev) => ({
           ...prev!,
           movies: list,
-        }))
+        }));
 
         orderedItemsForApi = list.map((item) => ({
           id: item.id,
           type: 'movie',
-        }))
-        break
+        }));
+        break;
       }
 
       case 'shows': {
-        const list = [...localCollection.shows]
-        const [movedItem] = list.splice(sourceIndex, 1)
-        list.splice(destinationIndex, 0, movedItem)
-        reorderedList = list
+        const list = [...localCollection.shows];
+        const [movedItem] = list.splice(sourceIndex, 1);
+        list.splice(destinationIndex, 0, movedItem);
+        reorderedList = list;
 
         setLocalCollection((prev) => ({
           ...prev!,
           shows: list,
-        }))
+        }));
 
         orderedItemsForApi = list.map((item) => ({
           id: item.id,
           type: 'show',
-        }))
-        break
+        }));
+        break;
       }
 
       case 'albums': {
-        const list = [...localCollection.albums]
-        const [movedItem] = list.splice(sourceIndex, 1)
-        list.splice(destinationIndex, 0, movedItem)
-        reorderedList = list
+        const list = [...localCollection.albums];
+        const [movedItem] = list.splice(sourceIndex, 1);
+        list.splice(destinationIndex, 0, movedItem);
+        reorderedList = list;
 
         setLocalCollection((prev) => ({
           ...prev!,
           albums: list,
-        }))
+        }));
 
         orderedItemsForApi = list.map((item) => ({
           id: item.id,
           type: 'album',
-        }))
-        break
+        }));
+        break;
       }
 
       default:
-        return
+        return;
     }
 
     try {
-      await authenticatedFetch(API.collections.reorderContent(collectionId ?? ''), 'POST', {
+      await create(API.collections.reorderContent(collectionId ?? ''), {
         collectionId: collectionId,
         orderedItems: orderedItemsForApi,
-      })
+      });
     } catch (error) {
       if (collection) {
-        setLocalCollection(collection)
+        setLocalCollection(collection);
       }
     } finally {
-      mutate()
+      mutate();
     }
   }
 
   function getYearRange(): string {
-    if (!collection) return 'N/A'
+    if (!collection) return 'N/A';
 
     const years =
       type === 'Music' && collection.albums
@@ -157,21 +156,21 @@ function CollectionDetailsPage() {
           ? collection.movies.map((movie) => movie.year).filter((year) => year !== '')
           : type === 'Shows' && collection.shows
             ? collection.shows.map((show) => show.year).filter((year) => year !== '')
-            : []
+            : [];
 
     if (years.length === 0) {
-      return 'N/A'
+      return 'N/A';
     }
 
-    const numericYears = years.map((year) => (year ? parseInt(year, 10) : 0))
+    const numericYears = years.map((year) => (year ? parseInt(year, 10) : 0));
 
-    const minYear = Math.min(...numericYears)
-    const maxYear = Math.max(...numericYears)
+    const minYear = Math.min(...numericYears);
+    const maxYear = Math.max(...numericYears);
 
     if (minYear === maxYear) {
-      return `${minYear}`
+      return `${minYear}`;
     } else {
-      return `${minYear} - ${maxYear}`
+      return `${minYear} - ${maxYear}`;
     }
   }
 
@@ -179,7 +178,7 @@ function CollectionDetailsPage() {
     Music: ['albums', 'movies', 'shows'],
     Shows: ['shows', 'movies', 'albums'],
     Movies: ['movies', 'shows', 'albums'],
-  }
+  };
 
   const renderMap: Record<CollectionKey, (items: any[]) => React.ReactNode> = {
     albums: (items: Album[]) => (
@@ -200,7 +199,7 @@ function CollectionDetailsPage() {
                 title={item.title}
                 subtitle={item.year ? new Date(item.year).getFullYear().toString() : ''}
                 action={() => {
-                  window.location.href = `/album/${item.id}`
+                  window.location.href = `/album/${item.id}`;
                 }}
                 hideButtons={false}
                 menu={undefined}
@@ -245,7 +244,7 @@ function CollectionDetailsPage() {
                 title={item.name}
                 subtitle={item.year ? new Date(item.year).getFullYear().toString() : ''}
                 action={() => {
-                  window.location.href = `/movie/${item.id}`
+                  window.location.href = `/movie/${item.id}`;
                 }}
                 hideButtons={false}
                 menu={undefined}
@@ -283,7 +282,7 @@ function CollectionDetailsPage() {
                 title={item.name}
                 subtitle={item.year ? new Date(item.year).getFullYear().toString() : ''}
                 action={() => {
-                  window.location.href = `/series/${item.id}`
+                  window.location.href = `/series/${item.id}`;
                 }}
                 hideButtons={false}
                 menu={undefined}
@@ -303,7 +302,7 @@ function CollectionDetailsPage() {
         />
       </FlexBox>
     ),
-  }
+  };
 
   return (
     <FlexBox
@@ -362,7 +361,7 @@ function CollectionDetailsPage() {
                     if (collection) {
                       openDialog('collection', {
                         id: collection.id,
-                      })
+                      });
                     }
                   }}
                 >
@@ -390,12 +389,12 @@ function CollectionDetailsPage() {
         <Skeleton className="h-30 w-90" />
       ) : (
         orderMap[type as ContentType].map((key) => {
-          const items = collection[key]
-          return items && items.length > 0 ? renderMap[key](items) : null
+          const items = collection[key];
+          return items && items.length > 0 ? renderMap[key](items) : null;
         })
       )}
     </FlexBox>
-  )
+  );
 }
 
-export default CollectionDetailsPage
+export default CollectionDetailsPage;

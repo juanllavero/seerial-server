@@ -1,27 +1,26 @@
-import type React from 'react'
-import { useEffect, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import useSWR, { mutate } from 'swr'
-import { useIsTablet } from '@/components/hooks/use-tablet'
-import { Button } from '@/components/ui/button'
-import FlexBox from '@/components/ui/FlexBox'
-import { Input } from '@/components/ui/input'
-import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
-import { ImageType } from '@/utils/constants'
-import { generateRandoumUUID, showToast } from '@/utils/ReactUtils'
-import ImageButton from './ImageButton'
+import { API, useCreate, useGet } from '@seerial/api';
+import type React from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useIsTablet } from '@/components/hooks/use-tablet';
+import { Button } from '@/components/ui/button';
+import FlexBox from '@/components/ui/FlexBox';
+import { Input } from '@/components/ui/input';
+import { ImageType } from '@/utils/constants';
+import { generateRandoumUUID, showToast } from '@/utils/ReactUtils';
+import ImageButton from './ImageButton';
 
 interface LocalImage {
-  name: string
-  url: string
+  name: string;
+  url: string;
 }
 
 interface ImageListTabProps {
-  imagesList: string[]
-  localFolder: string
-  selectImage: (image: string) => void
-  selectedImage: string
-  type?: ImageType
+  imagesList: string[];
+  localFolder: string;
+  selectImage: (image: string) => void;
+  selectedImage: string;
+  type?: ImageType;
 }
 
 function ImageListTab({
@@ -31,102 +30,106 @@ function ImageListTab({
   selectedImage,
   type = ImageType.BACKDROP,
 }: ImageListTabProps) {
-  const { t } = useTranslation()
-  const [pastingUrl, setPastingUrl] = useState<boolean>(false)
-  const [urlToDownload, setUrlToDownload] = useState<string>('')
-  const isTablet = useIsTablet()
+  const { t } = useTranslation();
+  const [pastingUrl, setPastingUrl] = useState<boolean>(false);
+  const [urlToDownload, setUrlToDownload] = useState<string>('');
+  const isTablet = useIsTablet();
 
   // Upload image
-  const [imageUrl, setImageUrl] = useState<string | null>(null)
-  const [isUploading, setIsUploading] = useState<boolean>(false)
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
 
   // Reference to hidden file input
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: localImages, isLoading } = useSWR<LocalImage[]>(
+  const {
+    data: localImages,
+    isLoading,
+    mutate,
+  } = useGet<LocalImage[]>(
     localFolder ? `${API.images.directoryListing}?path=${localFolder}` : null,
-    authenticatedFetcher,
-  )
+  );
+  const { create } = useCreate<unknown>();
 
   const handleImageUpload = () => {
-    setImageUrl(null)
-    fileInputRef.current?.click()
-  }
+    setImageUrl(null);
+    fileInputRef.current?.click();
+  };
 
   // Handle file selection
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
+    const file = event.target.files?.[0];
 
     if (file) {
       // Verify if the file is an image
       if (!file.type.startsWith('image/')) {
-        showToast('error', t('invalidImageError'))
-        return
+        showToast('error', t('invalidImageError'));
+        return;
       }
 
       // Create URL for preview
-      const imageUrl = URL.createObjectURL(file)
-      setImageUrl(imageUrl)
+      const imageUrl = URL.createObjectURL(file);
+      setImageUrl(imageUrl);
 
       // Send the image to the server
-      await uploadImage(file)
+      await uploadImage(file);
     }
 
     // Clear the input after selection
     if (fileInputRef.current) {
-      fileInputRef.current.value = ''
+      fileInputRef.current.value = '';
     }
-  }
+  };
 
   const uploadImage = async (file: File) => {
-    setIsUploading(true)
-    const formData = new FormData()
-    formData.append('destPath', localFolder)
-    formData.append('image', file)
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append('destPath', localFolder);
+    formData.append('image', file);
 
     try {
-      await authenticatedFetch(API.images.upload, 'POST', formData)
+      await create(API.images.upload, formData as unknown as Partial<unknown>);
 
-      mutate(`${API.images.directoryListing}?path=${localFolder}`)
+      mutate();
 
-      showToast('success', t('imageLoaded'))
+      showToast('success', t('imageLoaded'));
     } catch (err) {
-      showToast('error', t('errorImageUpload'))
+      showToast('error', t('errorImageUpload'));
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
-  }
+  };
 
   const downloadImage = async (url: string) => {
-    setIsUploading(true)
+    setIsUploading(true);
 
     try {
-      await authenticatedFetch(API.downloads.image, 'POST', {
+      await create(API.downloads.image, {
         url: url,
         downloadFolder: localFolder,
         fileName: `${generateRandoumUUID()}.${url.split('.').pop()}`,
-      })
+      });
 
-      mutate(`${API.images.directoryListing}?path=${localFolder}`)
+      mutate();
 
-      showToast('success', t('imageLoaded'))
+      showToast('success', t('imageLoaded'));
     } catch (err) {
-      showToast('error', t('errorImageUpload'))
+      showToast('error', t('errorImageUpload'));
     } finally {
-      setIsUploading(false)
+      setIsUploading(false);
     }
-  }
+  };
 
   // Clean up the object URL when the component unmounts
   useEffect(() => {
     return () => {
       if (imageUrl) {
-        URL.revokeObjectURL(imageUrl)
+        URL.revokeObjectURL(imageUrl);
       }
-    }
-  }, [imageUrl])
+    };
+  }, [imageUrl]);
 
-  console.log({ localImages })
+  console.log({ localImages });
 
   return (
     <FlexBox direction="column" gap={1} height={isTablet ? '25rem' : '35rem'}>
@@ -151,16 +154,16 @@ function ImageListTab({
             <Button
               variant={'secondary'}
               onClick={() => {
-                setPastingUrl(false)
-                selectImage(urlToDownload)
+                setPastingUrl(false);
+                selectImage(urlToDownload);
               }}
             >
               {t('cancelButton')}
             </Button>
             <Button
               onClick={() => {
-                setPastingUrl(false)
-                downloadImage(urlToDownload)
+                setPastingUrl(false);
+                downloadImage(urlToDownload);
               }}
             >
               {t('downloadButton')}
@@ -212,7 +215,7 @@ function ImageListTab({
           ))}
       </FlexBox>
     </FlexBox>
-  )
+  );
 }
 
-export default ImageListTab
+export default ImageListTab;

@@ -1,60 +1,65 @@
-import { Download, Trash2 } from 'lucide-react'
-import { memo } from 'react'
-import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
-import { useIsTablet } from '@/components/hooks/use-tablet'
-import { Button } from '@/components/ui/button'
-import FlexBox from '@/components/ui/FlexBox'
-import { Skeleton } from '@/components/ui/skeleton'
-import { API, authenticatedFetcher } from '@/config/api'
-import { useDialogStore } from '@/context/dialog.store'
-import type { Movie, Season, Series } from '@/data/interfaces/Media'
+import { useGetMediaBackground } from '@seerial/api';
+import type { Movie, Season, Series } from '@seerial/domain';
+import { Download, Trash2 } from 'lucide-react';
+import { memo } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useIsTablet } from '@/components/hooks/use-tablet';
+import { Button } from '@/components/ui/button';
+import FlexBox from '@/components/ui/FlexBox';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useDialogStore } from '@/context/dialog.store';
 
 interface MediaTabProps {
-  series?: Series
-  season?: Season
-  movie?: Movie
+  series?: Series;
+  season?: Season;
+  movie?: Movie;
+}
+
+interface MediaResource {
+  url: string;
 }
 
 function MediaTab({ series, season, movie }: MediaTabProps) {
-  const { t } = useTranslation()
-  const isTablet = useIsTablet()
-  const openDownloadMediaDialog = useDialogStore((state) => state.openDownloadMediaDialog)
+  const { t } = useTranslation();
+  const isTablet = useIsTablet();
+  const openDownloadMediaDialog = useDialogStore((state) => state.openDownloadMediaDialog);
 
-  const type = series ? 'series' : season ? 'season' : 'movie'
-  const id = series ? series.id : season ? season.id : movie?.id
+  const type = series ? 'series' : season ? 'season' : 'movie';
+  const id = series ? series.id : season ? season.id : movie?.id;
 
   // Background video
   const {
     data: video,
     isLoading: loadingVideo,
     error: videoError,
-  } = useSWR(`${API.media.background(type, 'video')}?id=${id}`, authenticatedFetcher, {
-    revalidateAll: true,
-    refreshInterval: 1000,
-  })
+  } = useGetMediaBackground<MediaResource>(type, 'video', {
+    enabled: Boolean(id),
+    params: { id },
+    refetchInterval: 1000,
+  });
 
   // Background music
   const {
     data: music,
     isLoading: loadingMusic,
     error: musicError,
-  } = useSWR(`${API.media.background(type, 'music')}?id=${id}`, authenticatedFetcher, {
-    revalidateAll: true,
-    refreshInterval: 1000,
-  })
+  } = useGetMediaBackground<MediaResource>(type, 'music', {
+    enabled: Boolean(id),
+    params: { id },
+    refetchInterval: 1000,
+  });
 
   const openDownloadDialog = (type: 'music' | 'video') => {
-    openDownloadMediaDialog(type, series, season, movie)
-  }
+    openDownloadMediaDialog(type, series, season, movie);
+  };
 
   const removeVideo = () => {
     //Handles remove video
-  }
+  };
 
   const removeMusic = () => {
     //Handles remove music
-  }
+  };
 
   const renderVideoSection = () => {
     if (loadingVideo) {
@@ -69,7 +74,7 @@ function MediaTab({ series, season, movie }: MediaTabProps) {
           </div>
           <Skeleton className={`w-full ${isTablet ? 'h-48' : 'h-64'}`} />
         </div>
-      )
+      );
     }
 
     if (videoError || !video) {
@@ -95,7 +100,7 @@ function MediaTab({ series, season, movie }: MediaTabProps) {
             </p>
           </div>
         </div>
-      )
+      );
     }
 
     return (
@@ -128,14 +133,14 @@ function MediaTab({ series, season, movie }: MediaTabProps) {
           className={`w-full ${isTablet ? 'h-48' : 'h-64'} rounded-lg`}
           src={`/api/${video.url}`}
           onError={(e) => {
-            console.error('Video loading error:', e)
+            console.error('Video loading error:', e);
           }}
         >
           {t('videoNotSupported')}
         </video>
       </div>
-    )
-  }
+    );
+  };
 
   const renderMusicSection = () => {
     if (loadingMusic) {
@@ -150,7 +155,7 @@ function MediaTab({ series, season, movie }: MediaTabProps) {
           </div>
           <Skeleton className="h-12 w-full" />
         </div>
-      )
+      );
     }
 
     if (musicError || !music) {
@@ -174,7 +179,7 @@ function MediaTab({ series, season, movie }: MediaTabProps) {
             </p>
           </div>
         </div>
-      )
+      );
     }
 
     return (
@@ -207,14 +212,14 @@ function MediaTab({ series, season, movie }: MediaTabProps) {
           className="w-full"
           src={`/api/${music.url}`}
           onError={(e) => {
-            console.error('Audio loading error:', e)
+            console.error('Audio loading error:', e);
           }}
         >
           {t('audioNotSupported')}
         </audio>
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <FlexBox
@@ -230,7 +235,7 @@ function MediaTab({ series, season, movie }: MediaTabProps) {
       {renderVideoSection()}
       {renderMusicSection()}
     </FlexBox>
-  )
+  );
 }
 
-export default memo(MediaTab)
+export default memo(MediaTab);

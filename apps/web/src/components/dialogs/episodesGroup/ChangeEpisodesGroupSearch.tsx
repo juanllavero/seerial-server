@@ -1,65 +1,74 @@
-import { useEffect, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { shallow } from 'zustand/shallow'
-import Loading from '@/components/Loading'
-import FlexBox from '@/components/ui/FlexBox'
-import { API, authenticatedFetch } from '@/config/api'
-import { useDialogStore } from '@/context/dialog.store'
-import { useWebSocketStore } from '@/context/ws.context'
-import type { EpisodeGroupResult } from '@/data/interfaces/Utils'
-import { getEpisodeGroupType } from '@/utils/ReactUtils'
-import './ChangeEpisodesGroupSearch.css'
+import { useGet, useGetSeries, useUpdateSeriesEpisodeGroup } from '@seerial/api';
+import type { Series } from '@seerial/domain';
+import { useTranslation } from 'react-i18next';
+import { shallow } from 'zustand/shallow';
+import Loading from '@/components/Loading';
+import FlexBox from '@/components/ui/FlexBox';
+import { API } from '@/config/api';
+import { useDialogStore } from '@/context/dialog.store';
+import { useWebSocketStore } from '@seerial/stores';
+import { getEpisodeGroupType } from '@/utils/ReactUtils';
+import './ChangeEpisodesGroupSearch.css';
+
+interface EpisodeGroupResult {
+  description: string;
+  episode_count: number;
+  group_count: number;
+  id: string;
+  name: string;
+  network: null;
+  type: number;
+}
 
 function ChangeEpisodesGroupSearch() {
-  const { t } = useTranslation()
-  const connectWS = useWebSocketStore((state) => state.connectWS)
-  const { episodesGroupDialog, closeEpisodesGroupDialog } = useDialogStore(
+  const { t } = useTranslation();
+  const connectWS = useWebSocketStore((state) => state.connectWS);
+  const { open, payload, closeDialog } = useDialogStore(
     (state) => ({
-      episodesGroupDialog: state.episodesGroupDialog,
-      closeEpisodesGroupDialog: state.closeEpisodesGroupDialog,
+      open: state.open,
+      payload: state.payload,
+      closeDialog: state.closeDialog,
     }),
     shallow,
-  )
-  const [episodeGroupsResults, setEpisodeGroupsResults] = useState<EpisodeGroupResult[]>([])
+  );
+  const seriesId =
+    open === 'episodesGroup' && payload && 'seriesId' in payload ? payload.seriesId : undefined;
 
-  useEffect(() => {
-    search()
-  }, [])
+  const { data: series } = useGetSeries<Series>(seriesId ?? '', {
+    enabled: Boolean(seriesId),
+  });
 
-  const search = () => {
-    authenticatedFetch(
-      `${API.series.searchEpisodeGroups}?id=${episodesGroupDialog.seriesToEdit?.themdbId}`,
-    )
-      .then((response) => response.data)
-      .then((data) => {
-        setEpisodeGroupsResults(data)
-      })
-      .catch((error) => console.error(error))
-  }
+  const { mutateAsync: updateEpisodeGroup } = useUpdateSeriesEpisodeGroup(seriesId ?? '');
+
+  const searchUrl = series?.themdbId
+    ? `${API.series.searchEpisodeGroups}?id=${series.themdbId}`
+    : null;
+
+  const { data: episodeGroupsResults, isLoading } = useGet<EpisodeGroupResult[]>(searchUrl, {
+    enabled: Boolean(searchUrl),
+  });
 
   const saveIdentification = async (id: string) => {
-    await connectWS()
-    authenticatedFetch(
-      API.series.updateEpisodeGroup(episodesGroupDialog.seriesToEdit?.id ?? ''),
-      'POST',
-      {
-        themdbId: episodesGroupDialog.seriesToEdit?.themdbId,
-        episodeGroupId: id,
-      },
-    )
+    await connectWS();
+    await updateEpisodeGroup({
+      themdbId: series?.themdbId,
+      episodeGroupId: id,
+    });
 
-    closeEpisodesGroupDialog()
-  }
+    closeDialog();
+  };
 
   return (
     <FlexBox direction="column" gap={1} height={'35rem'} width={'35rem'}>
       <FlexBox direction="column" scroll="vertical" hideScrollbar height={'100%'} width={'100%'}>
         {/* Results List */}
-        {episodeGroupsResults && episodeGroupsResults.length > 0 ? (
-          episodeGroupsResults.map((result: EpisodeGroupResult, index: number) => (
+        {isLoading ? (
+          <Loading />
+        ) : episodeGroupsResults && episodeGroupsResults.length > 0 ? (
+          episodeGroupsResults.map((result: EpisodeGroupResult) => (
             <FlexBox
               className="episode-group-card"
-              key={index}
+              key={result.id}
               onClick={() => saveIdentification(result.id)}
               padding="1rem"
               width={'100%'}
@@ -83,7 +92,7 @@ function ChangeEpisodesGroupSearch() {
         )}
       </FlexBox>
     </FlexBox>
-  )
+  );
 }
 
-export default ChangeEpisodesGroupSearch
+export default ChangeEpisodesGroupSearch;

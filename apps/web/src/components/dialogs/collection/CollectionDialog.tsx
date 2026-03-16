@@ -1,84 +1,85 @@
-import { useEffect, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { shallow } from 'zustand/shallow'
-import { ModalWrapper } from '@/components/ModalWrapper'
-import { API, authenticatedFetch } from '@/config/api'
-import { useDialogStore } from '@/context/dialog.store'
-import { useWebSocketStore } from '@/context/ws.context'
-import type { Collection } from '@/data/interfaces/Media'
-import { ImageType } from '@/utils/constants'
-import { showToast } from '@/utils/ReactUtils'
-import ImageListTab from '../components/ImageListTab'
-import CollectionInfoTab from './components/CollectionInfoTab'
+import { API, useUpdate } from '@seerial/api';
+import type { Collection } from '@seerial/domain';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { shallow } from 'zustand/shallow';
+import { ModalWrapper } from '@/components/ModalWrapper';
+import { useDialogStore } from '@/context/dialog.store';
+import { useWebSocketStore } from '@seerial/stores';
+import { ImageType } from '@/utils/constants';
+import { showToast } from '@/utils/ReactUtils';
+import ImageListTab from '../components/ImageListTab';
+import CollectionInfoTab from './components/CollectionInfoTab';
 
 function CollectionDialog() {
-  const { t } = useTranslation()
-  const connectWS = useWebSocketStore((state) => state.connectWS)
+  const { t } = useTranslation();
+  const connectWS = useWebSocketStore((state) => state.connectWS);
   const { collectionDialog, closeCollectionDialog } = useDialogStore(
     (state) => ({
       collectionDialog: state.collectionDialog,
       closeCollectionDialog: state.closeCollectionDialog,
     }),
     shallow,
-  )
-  const [selectedTab, setSelectedTab] = useState<string | undefined>()
+  );
+  const [selectedTab, setSelectedTab] = useState<string | undefined>();
 
-  const [collection, setCollection] = useState<Collection | undefined>(undefined)
+  const [collection, setCollection] = useState<Collection | undefined>(undefined);
 
   // Covers
-  const [covers, setCovers] = useState<string[]>([])
-  const [localCoverFolder, setLocalCoverFolder] = useState<string>('')
-  const [selectedCover, setSelectedCover] = useState<string>('')
+  const [covers, setCovers] = useState<string[]>([]);
+  const [localCoverFolder, setLocalCoverFolder] = useState<string>('');
+  const [selectedCover, setSelectedCover] = useState<string>('');
 
   // Background
-  const [backgrounds, setBackgrounds] = useState<string[]>([])
-  const [localBackgroundFolder, setLocalBackgroundFolder] = useState<string>('')
-  const [selectedBackground, setSelectedBackground] = useState<string>('')
+  const [backgrounds, setBackgrounds] = useState<string[]>([]);
+  const [localBackgroundFolder, setLocalBackgroundFolder] = useState<string>('');
+  const [selectedBackground, setSelectedBackground] = useState<string>('');
 
   // Attributes
-  const [title, setTitle] = useState<string>('')
-  const [description, setDescription] = useState<string>('')
+  const [title, setTitle] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
+  const { update } = useUpdate<Collection>();
 
   useEffect(() => {
     if (collectionDialog && collectionDialog.collectionToEdit) {
-      setTitle(collectionDialog.collectionToEdit.title || '')
-      setDescription(collectionDialog.collectionToEdit.description || '')
+      setTitle(collectionDialog.collectionToEdit.title || '');
+      setDescription(collectionDialog.collectionToEdit.description || '');
 
-      setCollection(collectionDialog.collectionToEdit)
-      setCovers(collectionDialog.collectionToEdit.coversUrls || [])
-      setSelectedCover(collectionDialog.collectionToEdit.coverSrc || '')
-      setLocalCoverFolder(`img/posters/${collectionDialog.collectionToEdit.id}`)
-      setBackgrounds(collectionDialog.collectionToEdit.backgroundsUrls || [])
-      setSelectedBackground(collectionDialog.collectionToEdit.backgroundSrc || '')
-      setLocalBackgroundFolder(`img/backgrounds/${collectionDialog.collectionToEdit.id}`)
-      setSelectedTab(t('generalButton'))
+      setCollection(collectionDialog.collectionToEdit);
+      setCovers(collectionDialog.collectionToEdit.coversUrls || []);
+      setSelectedCover(collectionDialog.collectionToEdit.coverSrc || '');
+      setLocalCoverFolder(`img/posters/${collectionDialog.collectionToEdit.id}`);
+      setBackgrounds(collectionDialog.collectionToEdit.backgroundsUrls || []);
+      setSelectedBackground(collectionDialog.collectionToEdit.backgroundSrc || '');
+      setLocalBackgroundFolder(`img/backgrounds/${collectionDialog.collectionToEdit.id}`);
+      setSelectedTab(t('generalButton'));
     }
-  }, [collectionDialog])
+  }, [collectionDialog]);
 
-  if (!collection) return null
+  if (!collection) return null;
 
   const handleEditCollection = async () => {
-    await connectWS()
+    await connectWS();
 
-    const response = await authenticatedFetch(API.collections.get(collection.id), 'PUT', {
+    const response = await update(API.collections.update(collection.id), {
       ...collection,
       title,
       description,
       posterSrc: selectedCover,
       backgroundSrc: selectedBackground,
-    })
+    });
 
-    if (!response || !response.data) {
-      showToast('error', 'Error updating episode')
-      return
+    if (!response) {
+      showToast('error', 'Error updating episode');
+      return;
     }
 
-    closeCollectionDialog()
-  }
+    closeCollectionDialog();
+  };
 
   const getWindowTitle = () => {
-    return `${t('editButton')} ${collection.title}`
-  }
+    return `${t('editButton')} ${collection.title}`;
+  };
 
   return (
     <ModalWrapper
@@ -126,7 +127,7 @@ function CollectionDialog() {
       activeTab={selectedTab}
       onTabChange={(newTab) => setSelectedTab(newTab)}
     />
-  )
+  );
 }
 
-export default CollectionDialog
+export default CollectionDialog;

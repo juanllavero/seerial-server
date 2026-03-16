@@ -1,38 +1,38 @@
-import { TrackNextIcon, TrackPreviousIcon } from '@radix-ui/react-icons'
-import { Captions, Music2, Pause, PlayIcon, Volume1, Volume2, VolumeOff } from 'lucide-react'
-import { type MouseEventHandler, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import DropdownWrapper from '@/components/DropdownWrapper'
-import { Button } from '@/components/ui/button'
-import FlexBox from '@/components/ui/FlexBox'
-import { Video } from '@/data/interfaces/Media'
-import type { AudioTrack, SubtitleTrack } from '@/data/interfaces/MediaInfo'
-import { useLanguageName } from '@/localization/TrackLanguages'
-import { formatTime } from '@/utils/ReactUtils'
+import { TrackNextIcon, TrackPreviousIcon } from '@radix-ui/react-icons';
+import type { AudioTrack, SubtitleTrack } from '@seerial/domain';
+import { Video } from '@seerial/domain';
+import { Captions, Music2, Pause, PlayIcon, Volume1, Volume2, VolumeOff } from 'lucide-react';
+import { type MouseEventHandler, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import DropdownWrapper from '@/components/DropdownWrapper';
+import { Button } from '@/components/ui/button';
+import FlexBox from '@/components/ui/FlexBox';
+import { useLanguageName } from '@/localization/TrackLanguages';
+import { formatTime } from '@/utils/ReactUtils';
 
 interface ControlsProps {
-  videoRef: React.RefObject<HTMLVideoElement | null>
-  timelineRef: React.RefObject<HTMLDivElement | null>
-  isPlaying: boolean
-  togglePlay: () => void
-  toggleMute: () => void
-  volume: number
-  setVolume: (value: number) => void
-  handleSubtitleTrackChange: (track: SubtitleTrack | null) => void
-  handleAudioTrackChange: (track: AudioTrack) => void
-  currentTime: number
-  duration: number
-  previewTime: number
-  selectedAudioTrack: AudioTrack | null
-  selectedSubtitleTrack: SubtitleTrack | null
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+  timelineRef: React.RefObject<HTMLDivElement | null>;
+  isPlaying: boolean;
+  togglePlay: () => void;
+  toggleMute: () => void;
+  volume: number;
+  setVolume: (value: number) => void;
+  handleSubtitleTrackChange: (track: SubtitleTrack | null) => void;
+  handleAudioTrackChange: (track: AudioTrack) => void;
+  currentTime: number;
+  duration: number;
+  previewTime: number;
+  selectedAudioTrack: AudioTrack | null;
+  selectedSubtitleTrack: SubtitleTrack | null;
   tracks: {
-    audioTracks: AudioTrack[]
-    subtitleTracks: SubtitleTrack[]
-  }
-  handleTimelineUpdate: (event: React.MouseEvent<HTMLDivElement>) => void
-  toggleScrubbing: MouseEventHandler<HTMLDivElement>
-  showControls: boolean
-  setInControls: (value: boolean) => void
+    audioTracks: AudioTrack[];
+    subtitleTracks: SubtitleTrack[];
+  };
+  handleTimelineUpdate: (event: React.MouseEvent<HTMLDivElement>) => void;
+  toggleScrubbing: MouseEventHandler<HTMLDivElement>;
+  showControls: boolean;
+  setInControls: (value: boolean) => void;
 }
 
 function Controls({
@@ -56,45 +56,45 @@ function Controls({
   showControls,
   setInControls,
 }: ControlsProps) {
-  const { i18n } = useTranslation()
-  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const { i18n } = useTranslation();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   // Gets the end time of the video
   const getEndTime = (currentSecond: number) => {
-    const remainingTime = duration - currentSecond
-    const now = new Date()
-    const endTime = new Date(now.getTime() + remainingTime * 1000)
+    const remainingTime = duration - currentSecond;
+    const now = new Date();
+    const endTime = new Date(now.getTime() + remainingTime * 1000);
 
-    const hours = endTime.getHours().toString().padStart(2, '0')
-    const minutes = endTime.getMinutes().toString().padStart(2, '0')
+    const hours = endTime.getHours().toString().padStart(2, '0');
+    const minutes = endTime.getMinutes().toString().padStart(2, '0');
 
-    return `${hours}:${minutes}`
-  }
+    return `${hours}:${minutes}`;
+  };
 
   const getVolumeIcon = () => {
-    const volume = videoRef.current?.volume
+    const volume = videoRef.current?.volume;
 
     if (!volume || volume === 0 || videoRef.current?.muted) {
-      return <VolumeOff />
+      return <VolumeOff />;
     } else if (volume < 0.5) {
-      return <Volume1 />
+      return <Volume1 />;
     } else {
-      return <Volume2 />
+      return <Volume2 />;
     }
-  }
+  };
 
   const handleVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const videoPlayer = videoRef.current
-    if (!videoPlayer) return
+    const videoPlayer = videoRef.current;
+    if (!videoPlayer) return;
 
-    const newVolume = Number(event.target.value)
+    const newVolume = Number(event.target.value);
 
-    setVolume(newVolume)
-    videoPlayer.volume = newVolume
+    setVolume(newVolume);
+    videoPlayer.volume = newVolume;
 
-    const percent = newVolume * 100
-    event.target.style.background = `linear-gradient(to right, var(--app-color) ${percent}%, white ${percent}%)`
-  }
+    const percent = newVolume * 100;
+    event.target.style.background = `linear-gradient(to right, var(--app-color) ${percent}%, white ${percent}%)`;
+  };
 
   return (
     <FlexBox
@@ -106,7 +106,7 @@ function Controls({
       onClick={(e) => e?.stopPropagation()}
       onMouseEnter={() => setInControls(true)}
       onMouseLeave={() => {
-        if (!dropdownOpen) setInControls(false)
+        if (!dropdownOpen) setInControls(false);
       }}
       padding="5rem 1rem 1rem 1rem"
       className={`bottom-shadow fixed bottom-0 z-1 gap-4 ${isPlaying && !showControls ? '' : 'active'}`}
@@ -136,8 +136,8 @@ function Controls({
           <Button
             variant={'ghost'}
             onClick={(e) => {
-              e.stopPropagation()
-              togglePlay()
+              e.stopPropagation();
+              togglePlay();
             }}
             size={'icon'}
           >
@@ -147,7 +147,7 @@ function Controls({
             <Button
               variant={'ghost'}
               onClick={(e) => {
-                e.stopPropagation()
+                e.stopPropagation();
               }}
               size={'icon'}
             >
@@ -156,7 +156,7 @@ function Controls({
             <Button
               variant={'ghost'}
               onClick={(e) => {
-                e.stopPropagation()
+                e.stopPropagation();
               }}
               size={'icon'}
             >
@@ -176,7 +176,7 @@ function Controls({
                     items: tracks.audioTracks.map((track) => ({
                       title: `${useLanguageName(selectedAudioTrack?.languageTag ?? '', i18n.language)} ${selectedAudioTrack?.displayTitle} ${selectedAudioTrack?.id === track.id ? '✓' : ''}`,
                       action: () => {
-                        handleAudioTrackChange(track)
+                        handleAudioTrackChange(track);
                       },
                     })),
                   },
@@ -187,7 +187,7 @@ function Controls({
                   variant={'ghost'}
                   size="icon"
                   onClick={(e) => {
-                    e.stopPropagation()
+                    e.stopPropagation();
                   }}
                 >
                   <Music2 />
@@ -212,7 +212,7 @@ function Controls({
                         .map((track) => ({
                           title: `${track.title} ${track.displayTitle} ${selectedSubtitleTrack?.id === track.id ? '✓' : ''}`,
                           action: () => {
-                            handleSubtitleTrackChange(track)
+                            handleSubtitleTrackChange(track);
                           },
                         })),
                     },
@@ -224,7 +224,7 @@ function Controls({
                     variant={'ghost'}
                     size="icon"
                     onClick={(e) => {
-                      e.stopPropagation()
+                      e.stopPropagation();
                     }}
                   >
                     <Captions />
@@ -238,8 +238,8 @@ function Controls({
               variant={'ghost'}
               size="icon"
               onClick={(e) => {
-                e.stopPropagation()
-                toggleMute()
+                e.stopPropagation();
+                toggleMute();
               }}
             >
               {getVolumeIcon()}
@@ -252,8 +252,8 @@ function Controls({
               step={0.05}
               value={volume}
               onChange={(e) => {
-                e.stopPropagation()
-                handleVolumeChange(e)
+                e.stopPropagation();
+                handleVolumeChange(e);
               }}
               style={{
                 background: `linear-gradient(to right, var(--app-color) ${volume * 100}%, white ${volume * 100}%)`,
@@ -263,7 +263,7 @@ function Controls({
         </FlexBox>
       </FlexBox>
     </FlexBox>
-  )
+  );
 }
 
-export default Controls
+export default Controls;

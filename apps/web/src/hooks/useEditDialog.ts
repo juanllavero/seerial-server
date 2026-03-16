@@ -1,3 +1,4 @@
+import { useUpdate } from '@seerial/api'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -8,8 +9,7 @@ import {
   generateSubmitData,
 } from '@/components/dialogs/forms.config'
 import { useDialogStore } from '@/context/dialog.store'
-import { useWebSocketStore } from '@/context/ws.context'
-import { useUpdate } from '@/hooks/media/useUpdate'
+import { useWebSocketStore } from '@seerial/stores'
 import useFormState from '@/hooks/useFormState'
 import { showToast } from '@/utils/ReactUtils'
 

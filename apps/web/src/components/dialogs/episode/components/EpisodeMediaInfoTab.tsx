@@ -1,88 +1,92 @@
-import { useEffect, useState } from 'react'
-import useSWR from 'swr'
-import { useIsTablet } from '@/components/hooks/use-tablet'
-import Loading from '@/components/Loading'
-import FlexBox from '@/components/ui/FlexBox'
-import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
-import type { Video } from '@/data/interfaces/Media'
-import type { AudioTrack, SubtitleTrack, VideoTrack } from '@/data/interfaces/MediaInfo'
-import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
+import { useGetVideoMediaInfo, useUpdateVideoMediaInfo } from '@seerial/api';
+import type { AudioTrack, SubtitleTrack, Video, VideoTrack } from '@seerial/domain';
+import { useEffect, useState } from 'react';
+import { useIsTablet } from '@/components/hooks/use-tablet';
+import Loading from '@/components/Loading';
+import FlexBox from '@/components/ui/FlexBox';
+import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils';
 
 interface EpisodeMediaInfoTabProps {
-  video: Video
+  video: Video;
 }
 
 interface VideoInfo {
-  title: string
-  subtitle: string
-  preferAudioLan: string
-  preferSubtitleLan: string
-  subsMode: string
+  title: string;
+  subtitle: string;
+  preferAudioLan: string;
+  preferSubtitleLan: string;
+  subsMode: string;
 }
 
 function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
-  const isTablet = useIsTablet()
-  const [loaded, setLoaded] = useState(false)
-  const [mediaInfo, setMediaInfo] = useState<Video | null>(null)
+  const isTablet = useIsTablet();
+  const [loaded, setLoaded] = useState(false);
+  const [mediaInfo, setMediaInfo] = useState<Video | null>(null);
 
   // Get video info
-  const { data: videoInfo } = useSWR<VideoInfo>(
-    video.id ? API.videos.getMediaInfo(video.id) : null,
-    authenticatedFetcher,
-  )
+  const { data: videoInfo } = useGetVideoMediaInfo<VideoInfo>(video.id, {
+    enabled: Boolean(video.id),
+  });
+  const { mutateAsync: updateVideoMediaInfo } = useUpdateVideoMediaInfo(video.id);
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!videoInfo) return
+      if (!videoInfo) return;
 
-      setLoaded(false)
+      setLoaded(false);
 
       const attemptFetch = async () => {
-        const result = await authenticatedFetch(API.videos.updateMediaInfo(video.id), 'PUT')
-
-        return result && result.data ? await result.data : null
-      }
+        try {
+          return await updateVideoMediaInfo({ videoId: video.id });
+        } catch {
+          return null;
+        }
+      };
 
       // First attempt
-      let data = await attemptFetch()
+      let data = await attemptFetch();
 
       // If there are no data after the first attempt, wait 2 seconds and make second attempt
       if (!data) {
-        await new Promise((resolve) => setTimeout(resolve, 2000)) // Wait 2 seconds
-        data = await attemptFetch()
+        await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
+        data = await attemptFetch();
 
         // If the second attempt fails, wait 4 seconds and set loaded as true
         if (!data) {
-          await new Promise((resolve) => setTimeout(resolve, 2000)) // Wait 4 seconds
-          setLoaded(true)
-          return
+          await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 4 seconds
+          setLoaded(true);
+          return;
         }
       }
 
       // Process the data if it was obtained in either of the attempts
-      const audioTrack = getAudioTrack(videoInfo.preferAudioLan, video)
-      const subtitleTrack = getSubtitleTrack(videoInfo.preferSubtitleLan, videoInfo.subsMode, video)
-      const videoTrack = data.videoTracks[0] ?? null
+      const audioTrack = getAudioTrack(videoInfo.preferAudioLan, video);
+      const subtitleTrack = getSubtitleTrack(
+        videoInfo.preferSubtitleLan,
+        videoInfo.subsMode,
+        video,
+      );
+      const videoTrack = data.videoTracks[0] ?? null;
 
       if (videoTrack && video.videoTracks) {
         for (const videoTrack of video.videoTracks) {
-          videoTrack.selected = false
+          videoTrack.selected = false;
         }
-        videoTrack.selected = true
+        videoTrack.selected = true;
       }
 
       if (audioTrack && video.audioTracks) {
         for (const audioTrack of video.audioTracks) {
-          audioTrack.selected = false
+          audioTrack.selected = false;
         }
-        audioTrack.selected = true
+        audioTrack.selected = true;
       }
 
       if (subtitleTrack && video.subtitleTracks) {
         for (const subTrack of video.subtitleTracks) {
-          subTrack.selected = false
+          subTrack.selected = false;
         }
-        subtitleTrack.selected = true
+        subtitleTrack.selected = true;
       }
 
       setMediaInfo({
@@ -102,13 +106,13 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
               track.id === (subtitleTrack?.id ?? '') ? (subtitleTrack ?? track) : track,
             )
           : [],
-      })
+      });
 
-      setLoaded(true)
-    }
+      setLoaded(true);
+    };
 
-    fetchData()
-  }, [])
+    fetchData();
+  }, [updateVideoMediaInfo, video, videoInfo]);
 
   const getVideoInfo = (track: VideoTrack) => {
     const mediaInfoFieldsVideo = [
@@ -125,7 +129,7 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
       { key: 'Ref Frames', value: track.refFrames },
       { key: 'Color Range', value: track.colorRange },
       { key: 'Display Title', value: track.displayTitle },
-    ]
+    ];
 
     return (
       <>
@@ -141,8 +145,8 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
             ),
         )}
       </>
-    )
-  }
+    );
+  };
 
   const getAudioInfo = (track: AudioTrack) => {
     const mediaInfoFieldsAudio = [
@@ -157,7 +161,7 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
       { key: 'Profile', value: track.profile },
       { key: 'Sampling Rate', value: track.samplingRate },
       { key: 'Display Title', value: track.displayTitle },
-    ]
+    ];
 
     return (
       <>
@@ -173,8 +177,8 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
             ),
         )}
       </>
-    )
-  }
+    );
+  };
 
   const getSubtitleInfo = (track: SubtitleTrack) => {
     const mediaInfoFieldsSubs = [
@@ -184,7 +188,7 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
       { key: 'Language tag', value: track.languageTag },
       { key: 'Title', value: track.title },
       { key: 'Display Title', value: track.displayTitle },
-    ]
+    ];
 
     return (
       <>
@@ -200,8 +204,8 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
             ),
         )}
       </>
-    )
-  }
+    );
+  };
 
   if (!loaded || !mediaInfo) {
     return (
@@ -215,7 +219,7 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
       >
         <Loading />
       </FlexBox>
-    )
+    );
   }
 
   return (
@@ -280,7 +284,7 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
           ))}
       </FlexBox>
     </FlexBox>
-  )
+  );
 }
 
-export default EpisodeMediaInfoTab
+export default EpisodeMediaInfoTab;

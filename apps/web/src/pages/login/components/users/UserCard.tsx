@@ -1,10 +1,10 @@
-import { UserIcon } from 'lucide-react'
-import type { BasicUser } from '@/data/interfaces/Users'
+import type { BasicUser } from '@seerial/domain';
+import { UserIcon } from 'lucide-react';
 
 interface UserCardProps {
-  user: BasicUser
-  isSelected: boolean
-  onSelect: (user: BasicUser) => void
+  user: BasicUser;
+  isSelected: boolean;
+  onSelect: (user: BasicUser) => void;
 }
 
 function UserCard({ user, isSelected, onSelect }: UserCardProps) {
@@ -50,7 +50,7 @@ function UserCard({ user, isSelected, onSelect }: UserCardProps) {
         )}
       </div>
     </button>
-  )
+  );
 }
 
-export default UserCard
+export default UserCard;

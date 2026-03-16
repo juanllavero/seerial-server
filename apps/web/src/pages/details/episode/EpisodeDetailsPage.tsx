@@ -1,43 +1,42 @@
-import { Pencil, PlayIcon } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
-import { useNavigate, useParams } from 'react-router-dom'
-import { shallow } from 'zustand/shallow'
-import { Button } from '@/components/ui/button'
-import FlexBox from '@/components/ui/FlexBox'
-import LazyImage from '@/components/ui/LazyImage'
-import { Skeleton } from '@/components/ui/skeleton'
-import { API, authenticatedFetch } from '@/config/api'
-import { useDialogStore } from '@/context/dialog.store'
-import type { Episode, Season, Series } from '@/data/interfaces/Media'
-import { useGet } from '@/hooks/media/useGet'
-import { useIsAdmin } from '@/hooks/useIsAdmin'
-import { formatDate } from '@/utils/ReactUtils'
-import VideoTracks from './components/VideoTracks'
+import { API, useGet } from '@seerial/api';
+import type { Episode, Season, Series } from '@seerial/domain';
+import { Pencil, PlayIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate, useParams } from 'react-router-dom';
+import { shallow } from 'zustand/shallow';
+import { Button } from '@/components/ui/button';
+import FlexBox from '@/components/ui/FlexBox';
+import LazyImage from '@/components/ui/LazyImage';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useDialogStore } from '@/context/dialog.store';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { formatDate } from '@/utils/ReactUtils';
+import VideoTracks from './components/VideoTracks';
 
 function EpisodeDetailsPage() {
-  const { t } = useTranslation()
-  const navigate = useNavigate()
-  const { openDialog } = useDialogStore((state) => ({ openDialog: state.openDialog }), shallow)
-  const { episodeId } = useParams()
-  const isAdmin = useIsAdmin()
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const { openDialog } = useDialogStore((state) => ({ openDialog: state.openDialog }), shallow);
+  const { episodeId } = useParams();
+  const isAdmin = useIsAdmin();
 
   // Get episode data
   const {
     data: episode,
     isLoading,
     mutate,
-  } = useGet<Episode>(episodeId ? API.episodes.get(episodeId) : '')
+  } = useGet<Episode>(episodeId ? API.episodes.get(episodeId) : '');
 
-  const { data: season } = useGet<Season>(episode ? API.seasons.get(episode.seasonId) : '')
+  const { data: season } = useGet<Season>(episode ? API.seasons.get(episode.seasonId) : '');
 
-  const { data: series } = useGet<Series>(season ? API.series.get(season.seriesId) : '')
+  const { data: series } = useGet<Series>(season ? API.series.get(season.seriesId) : '');
 
   if (isLoading) {
-    return <Skeleton className="h-100 w-100" />
+    return <Skeleton className="h-100 w-100" />;
   }
 
   if (!episode) {
-    return null
+    return null;
   }
 
   return (
@@ -79,16 +78,11 @@ function EpisodeDetailsPage() {
 
         <Button
           onClick={async () => {
-            const episodeId = episode ? episode.id : season?.episodes[0].id
-
-            const response = await authenticatedFetch(API.videos.getByEpisodeId(episodeId ?? ''))
-
-            if (!response.data) {
-              return
+            if (!episode.video?.id) {
+              return;
             }
 
-            const data = await response.data
-            navigate(`/video-player/${data.id}`)
+            navigate(`/video-player/${episode.video.id}`);
           }}
         >
           <FlexBox align="center" gap={0.5} className="text-black">
@@ -103,7 +97,7 @@ function EpisodeDetailsPage() {
             title={t('editButton')}
             onClick={() => {
               if (season) {
-                openDialog('episode', { id: season.id })
+                openDialog('episode', { id: season.id });
               }
             }}
           >
@@ -112,7 +106,7 @@ function EpisodeDetailsPage() {
         )}
       </FlexBox>
     </FlexBox>
-  )
+  );
 }
 
-export default EpisodeDetailsPage
+export default EpisodeDetailsPage;

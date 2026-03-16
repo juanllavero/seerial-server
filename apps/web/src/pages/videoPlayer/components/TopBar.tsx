@@ -1,31 +1,31 @@
-import { ChevronLeft, Maximize2, Minimize2 } from 'lucide-react'
-import type React from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Button } from '@/components/ui/button'
-import FlexBox from '@/components/ui/FlexBox'
-import { API, authenticatedFetch } from '@/config/api'
-import { useServerStore } from '@/context/auth.store'
-import type { Video } from '@/data/interfaces/Media'
+import type { Video } from '@seerial/domain';
+import { ChevronLeft, Maximize2, Minimize2 } from 'lucide-react';
+import type React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import FlexBox from '@/components/ui/FlexBox';
+import { API, authenticatedFetch } from '@/config/api';
+import { useServerStore } from '@seerial/stores';
 
 interface VideoInfo {
-  title: string
-  subtitle: string
-  preferAudioLan: string
-  preferSubtitleLan: string
-  subsMode: string
+  title: string;
+  subtitle: string;
+  preferAudioLan: string;
+  preferSubtitleLan: string;
+  subsMode: string;
 }
 
 interface TopBarProps {
-  video: Video
-  videoRef: React.RefObject<HTMLVideoElement | null>
-  videoInfo: VideoInfo | undefined
-  isPlaying: boolean
-  isFullscreen: boolean
-  handleFullscreen: () => void
-  showControls: boolean
-  currentTime: number
-  setVideoLoaded: (value: boolean) => void
-  setIsPlaying: (value: boolean) => void
+  video: Video;
+  videoRef: React.RefObject<HTMLVideoElement | null>;
+  videoInfo: VideoInfo | undefined;
+  isPlaying: boolean;
+  isFullscreen: boolean;
+  handleFullscreen: () => void;
+  showControls: boolean;
+  currentTime: number;
+  setVideoLoaded: (value: boolean) => void;
+  setIsPlaying: (value: boolean) => void;
 }
 
 function TopBar({
@@ -40,24 +40,24 @@ function TopBar({
   setVideoLoaded,
   setIsPlaying,
 }: TopBarProps) {
-  const navigate = useNavigate()
-  const user = useServerStore((state) => state.currentUser)
+  const navigate = useNavigate();
+  const user = useServerStore((state) => state.currentUser);
 
   const handleGoBack = async () => {
-    if (!video) return
+    if (!video) return;
 
-    setVideoLoaded(false)
-    setIsPlaying(false)
+    setVideoLoaded(false);
+    setIsPlaying(false);
 
     await authenticatedFetch(API.videos.setWatchState(video.id), 'PUT', {
       videoId: video.id,
       timeWatched: currentTime,
       watched: currentTime > video.runtime * 60 * 0.9,
       userId: user?.id,
-    })
+    });
 
-    navigate(-1)
-  }
+    navigate(-1);
+  };
 
   return (
     <FlexBox
@@ -72,8 +72,8 @@ function TopBar({
         <Button
           variant={'ghost'}
           onClick={(e) => {
-            e.stopPropagation()
-            handleGoBack()
+            e.stopPropagation();
+            handleGoBack();
           }}
         >
           <ChevronLeft />
@@ -85,14 +85,14 @@ function TopBar({
       <Button
         variant={'ghost'}
         onClick={(e) => {
-          e.stopPropagation()
-          handleFullscreen()
+          e.stopPropagation();
+          handleFullscreen();
         }}
       >
         {isFullscreen ? <Minimize2 /> : <Maximize2 />}
       </Button>
     </FlexBox>
-  )
+  );
 }
 
-export default TopBar
+export default TopBar;

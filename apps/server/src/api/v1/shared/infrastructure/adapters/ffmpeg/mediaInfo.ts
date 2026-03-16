@@ -6,7 +6,7 @@ import type {
   MediaInfoData,
   SubtitleTrack,
   VideoTrack,
-} from '@/data/interfaces/MediaInfo';
+} from '@seerial/domain';
 import logger from '@/utils/logger';
 import { executeFfprobe, executeFfprobeRaw } from './nativeFfmpeg';
 import {

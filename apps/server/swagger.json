@@ -5220,6 +5220,33 @@
 				}
 			}
 		},
+		"/users/logout": {
+			"post": {
+				"operationId": "Logout",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "User logout",
+				"tags": [
+					"Users"
+				],
+				"security": [
+					{
+						"public": []
+					}
+				],
+				"parameters": []
+			}
+		},
 		"/songs/{id}": {
 			"put": {
 				"operationId": "Update",

@@ -1,67 +1,70 @@
-import { t } from 'i18next'
-import { Pencil } from 'lucide-react'
-import { useEffect } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
-import { shallow } from 'zustand/shallow'
-import ExpandableText from '@/components/ExpandableText'
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import NotFound from '@/components/NotFound'
-import { Button } from '@/components/ui/button'
-import FlexBox from '@/components/ui/FlexBox'
-import { MarkWatchedIcon, PlayIcon, UnmarkWatchedIcon } from '@/components/ui/IconLibrary'
-import LazyImage from '@/components/ui/LazyImage'
-import { Skeleton } from '@/components/ui/skeleton'
-import { API, authenticatedFetch } from '@/config/api'
-import { useServerStore } from '@/context/auth.store'
-import useDataStore from '@/context/data.context'
-import { useDialogStore } from '@/context/dialog.store'
-import { useSettingsStore } from '@/context/settings.context'
-import type { Movie } from '@/data/interfaces/Media'
-import { useGet } from '@/hooks/media/useGet'
-import { useIsAdmin } from '@/hooks/useIsAdmin'
-import { formatTimeForView } from '@/utils/ReactUtils'
-import CastList from '../components/CastList'
-import MovieContent from '../components/MovieContent'
-import '../DetailsPage.css'
-import MyListButton from './components/MyListButton'
+import { API, useGet, useSetMovieWatchState } from '@seerial/api';
+import type { Movie } from '@seerial/domain';
+import { t } from 'i18next';
+import { Pencil } from 'lucide-react';
+import { useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { shallow } from 'zustand/shallow';
+import ExpandableText from '@/components/ExpandableText';
+import { useIsMobile } from '@/components/hooks/use-mobile';
+import NotFound from '@/components/NotFound';
+import { Button } from '@/components/ui/button';
+import FlexBox from '@/components/ui/FlexBox';
+import { MarkWatchedIcon, PlayIcon, UnmarkWatchedIcon } from '@/components/ui/IconLibrary';
+import LazyImage from '@/components/ui/LazyImage';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useServerStore } from '@seerial/stores';
+import { useDataStore } from '@seerial/stores';
+import { useDialogStore } from '@/context/dialog.store';
+import { useSettingsStore } from '@/context/settings.context';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { formatTimeForView } from '@/utils/ReactUtils';
+import CastList from '../components/CastList';
+import MovieContent from '../components/MovieContent';
+import '../DetailsPage.css';
+import MyListButton from './components/MyListButton';
 
 function MovieDetailsPage() {
-  const { movieId } = useParams()
-  const user = useServerStore((state) => state.currentUser)
+  const { movieId } = useParams();
+  const user = useServerStore((state) => state.currentUser);
   const { setCurrentBackground, currentBackground } = useDataStore(
     (state) => ({
       setCurrentBackground: state.setCurrentBackground,
       currentBackground: state.currentBackground,
     }),
     shallow,
-  )
-  const clientSettings = useSettingsStore((state) => state.clientSettings)
-  const { openDialog } = useDialogStore((state) => ({ openDialog: state.openDialog }), shallow)
-  const isAdmin = useIsAdmin()
-  const navigate = useNavigate()
+  );
+  const clientSettings = useSettingsStore((state) => state.clientSettings);
+  const { openDialog } = useDialogStore((state) => ({ openDialog: state.openDialog }), shallow);
+  const isAdmin = useIsAdmin();
+  const navigate = useNavigate();
 
   // Get movie data
-  const { data: movie, isLoading, error, mutate } = useGet<Movie>(API.movies.get(movieId ?? ''))
+  const { data: movie, isLoading, error, mutate } = useGet<Movie>(API.movies.get(movieId ?? ''));
+  const { mutateAsync: setMovieWatchState } = useSetMovieWatchState<
+    unknown,
+    { movieId: string; watched: boolean; userId?: string }
+  >(movie?.id ?? '');
 
-  const isMobile = useIsMobile()
-  const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true
+  const isMobile = useIsMobile();
+  const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true;
 
   // Set background image src
   useEffect(() => {
     if (movie && movie.backgroundSrc !== currentBackground) {
-      setCurrentBackground(movie.backgroundSrc)
+      setCurrentBackground(movie.backgroundSrc);
     }
     // } else if (currentBackground) {
     //   setCurrentBackground(undefined)
     // }
-  }, [movie, setCurrentBackground, currentBackground])
+  }, [movie, setCurrentBackground, currentBackground]);
 
   const renderLogoOrText = () => {
     if (isLoading || !movie) {
-      return <Skeleton style={{ width: '350px', height: '200px' }} />
+      return <Skeleton style={{ width: '350px', height: '200px' }} />;
     }
 
-    const logoUrl = movie.logoSrc
+    const logoUrl = movie.logoSrc;
 
     if (logoUrl && logoUrl !== '') {
       return (
@@ -71,7 +74,7 @@ function MovieDetailsPage() {
           width={isMobile ? '100%' : 350}
           errorSrc="/img/Default_video_thumbnail.jpg"
         />
-      )
+      );
     } else {
       return (
         <span
@@ -82,28 +85,27 @@ function MovieDetailsPage() {
         >
           {movie.name}
         </span>
-      )
+      );
     }
-  }
+  };
 
   const toggleMovieWatched = async () => {
     if (movie) {
-      authenticatedFetch(`/api/setMovieWatched`, 'POST', {
+      await setMovieWatchState({
         movieId: movie.id,
         watched: !movie.watchStatus,
         userId: user?.id,
-      }).then(() => {
-        mutate()
-      })
+      });
+      mutate();
     }
-  }
+  };
 
   const getPlayButtonText = () => {
-    return t('playButton')
-  }
+    return t('playButton');
+  };
 
   if (error) {
-    return <NotFound />
+    return <NotFound />;
   }
 
   return (
@@ -192,7 +194,7 @@ function MovieDetailsPage() {
             <Button
               onClick={() => {
                 if (movie && movie.videos && movie.videos.length > 0) {
-                  navigate(`/video-player/${movie.videos[0].id}`)
+                  navigate(`/video-player/${movie.videos[0].id}`);
                 }
               }}
             >
@@ -219,7 +221,7 @@ function MovieDetailsPage() {
                 title={t('editButton')}
                 onClick={() => {
                   if (movie) {
-                    openDialog('movie', { id: movie.id })
+                    openDialog('movie', { id: movie.id });
                   }
                 }}
               >
@@ -260,7 +262,7 @@ function MovieDetailsPage() {
         <CastList cast={movie.cast ?? []} />
       )}
     </FlexBox>
-  )
+  );
 }
 
-export default MovieDetailsPage
+export default MovieDetailsPage;

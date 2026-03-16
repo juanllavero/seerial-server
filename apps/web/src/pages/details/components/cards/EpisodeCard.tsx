@@ -4,7 +4,7 @@ import Card from '@/components/cards/Card'
 import { useIsMobile } from '@/components/hooks/use-mobile'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import { Button } from '@/components/ui/button'
-import { useServerStore } from '@/context/auth.store'
+import { useServerStore } from '@seerial/stores'
 import { useCardWidth } from '@/hooks/useCardWidth'
 import { getVideoProgress } from '@/utils/ReactUtils'
 

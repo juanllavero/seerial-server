@@ -1,17 +1,17 @@
-import { AlertCircle, Download, Play } from 'lucide-react'
-import { shallow } from 'zustand/shallow'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
-import { useWebSocketStore } from '@/context/ws.context'
-import type { MediaSearchResult } from '@/data/interfaces/Utils'
-import { formatTime } from '@/utils/ReactUtils'
+import type { MediaSearchResult } from '@seerial/domain';
+import { AlertCircle, Download, Play } from 'lucide-react';
+import { shallow } from 'zustand/shallow';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
+import { useWebSocketStore } from '@seerial/stores';
+import { formatTime } from '@/utils/ReactUtils';
 
 interface DownloadMediaCardProps {
-  result: MediaSearchResult
-  playMedia: (result: MediaSearchResult) => void
-  downloadMedia: (result: MediaSearchResult) => void
+  result: MediaSearchResult;
+  playMedia: (result: MediaSearchResult) => void;
+  downloadMedia: (result: MediaSearchResult) => void;
 }
 
 function DownloadMediaCard({ result, playMedia, downloadMedia }: DownloadMediaCardProps) {
@@ -24,7 +24,7 @@ function DownloadMediaCard({ result, playMedia, downloadMedia }: DownloadMediaCa
         downloadingElementId: state.downloadingElementId,
       }),
       shallow,
-    )
+    );
 
   const getDownloadButtonContent = () => {
     if (downloading && downloadingElementId === result.id) {
@@ -33,23 +33,23 @@ function DownloadMediaCard({ result, playMedia, downloadMedia }: DownloadMediaCa
           <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
           <span className="text-sm">{Math.round(downloadPercentage)}%</span>
         </div>
-      )
+      );
     } else if (errorDownloading && downloadingElementId === result.id) {
-      return <AlertCircle className="h-4 w-4" />
+      return <AlertCircle className="h-4 w-4" />;
     }
 
-    return <Download className="h-4 w-4" />
-  }
+    return <Download className="h-4 w-4" />;
+  };
 
   const getDownloadButtonClass = () => {
     if (downloading && downloadingElementId === result.id) {
-      return 'bg-blue-500 hover:bg-blue-600'
+      return 'bg-blue-500 hover:bg-blue-600';
     } else if (errorDownloading) {
-      return 'bg-red-500 hover:bg-red-600'
+      return 'bg-red-500 hover:bg-red-600';
     }
 
-    return 'bg-gray-500 hover:bg-gray-600'
-  }
+    return 'bg-gray-500 hover:bg-gray-600';
+  };
 
   return (
     <Card className="w-full transition-shadow hover:shadow-md">
@@ -61,9 +61,9 @@ function DownloadMediaCard({ result, playMedia, downloadMedia }: DownloadMediaCa
               alt={result.title}
               className="h-18 w-32 rounded-lg object-cover"
               onError={(e) => {
-                const target = e.target as HTMLImageElement
+                const target = e.target as HTMLImageElement;
                 target.src =
-                  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjkwIiB2aWV3Qm94PSIwIDAgMTI4IDkwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjkwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNNTIgMzJMNzYgNDVMNTIgNThWMzJaIiBmaWxsPSIjOUM5Q0EwIi8+Cjwvc3ZnPgo='
+                  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjkwIiB2aWV3Qm94PSIwIDAgMTI4IDkwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjkwIiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNNTIgMzJMNzYgNDVMNTIgNThWMzJaIiBmaWxsPSIjOUM5Q0EwIi8+Cjwvc3ZnPgo=';
               }}
             />
             <div className="bg-opacity-30 absolute inset-0 flex items-center justify-center rounded-lg bg-black opacity-0 transition-opacity hover:opacity-100">
@@ -114,7 +114,7 @@ function DownloadMediaCard({ result, playMedia, downloadMedia }: DownloadMediaCa
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
 
-export default DownloadMediaCard
+export default DownloadMediaCard;

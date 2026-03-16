@@ -1,6 +1,6 @@
 import { Minimize2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import useMusicStore from '@/context/music.context'
+import { useMusicStore } from '@seerial/stores'
 
 function MusicPlayerHeader() {
   const setIsExpanded = useMusicStore((state) => state.setIsExpanded)

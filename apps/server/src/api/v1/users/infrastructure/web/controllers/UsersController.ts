@@ -105,4 +105,27 @@ export class UsersController extends Controller {
       messages.success.login,
     );
   }
+
+  /**
+   * User logout
+   */
+  @Post('logout')
+  @Security('public')
+  public async logout(): Promise<ApiResponse<null>> {
+    const cookie = [
+      'token=',
+      'HttpOnly',
+      'Path=/',
+      'SameSite=Lax',
+      'Max-Age=0',
+      'Expires=Thu, 01 Jan 1970 00:00:00 GMT',
+      process.env.NODE_ENV === 'production' ? 'Secure' : null,
+    ]
+      .filter(Boolean)
+      .join('; ');
+
+    this.setHeader('Set-Cookie', cookie);
+
+    return ApiResponse.success(null, 'Logged out successfully');
+  }
 }

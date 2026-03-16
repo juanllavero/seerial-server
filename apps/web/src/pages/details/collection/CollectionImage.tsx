@@ -1,25 +1,23 @@
-import { useEffect, useState } from 'react'
-import useSWR from 'swr'
-import useScreenHeight from '@/components/hooks/use-height'
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import Image from '@/components/ui/Image'
-import { authenticatedFetcher } from '@/config/api'
-import type { Collection, CollectionImages } from '@/data/interfaces/Media'
-import { getCoverSize, getFirstImage, getPosterImage } from '@/utils/ReactUtils'
+import { useGet } from '@seerial/api';
+import type { Collection, CollectionImages } from '@seerial/domain';
+import { useEffect, useState } from 'react';
+import useScreenHeight from '@/components/hooks/use-height';
+import { useIsMobile } from '@/components/hooks/use-mobile';
+import Image from '@/components/ui/Image';
+import { getCoverSize, getFirstImage, getPosterImage } from '@/utils/ReactUtils';
 
 interface CollectionImageProps {
-  collection: Collection
-  type: string
+  collection: Collection;
+  type: string;
 }
 
 function CollectionImage({ collection, type }: CollectionImageProps) {
-  const screenHeight = useScreenHeight()
-  const isMobile = useIsMobile()
-  const [posterImage, setPosterImage] = useState<string>('')
-  const { data: collectionImages } = useSWR<CollectionImages>(
-    `/api/collection-images?collectionId=${collection.id}&&type=${type}`,
-    authenticatedFetcher,
-  )
+  const screenHeight = useScreenHeight();
+  const isMobile = useIsMobile();
+  const [posterImage, setPosterImage] = useState<string>('');
+  const { data: collectionImages } = useGet<CollectionImages>(
+    `/collection-images?collectionId=${collection.id}&&type=${type}`,
+  );
 
   useEffect(() => {
     if (collectionImages) {
@@ -29,9 +27,9 @@ function CollectionImage({ collection, type }: CollectionImageProps) {
           : collectionImages.poster && collectionImages.poster !== ''
             ? collectionImages.poster
             : getFirstImage(collection, type),
-      )
+      );
     }
-  }, [collectionImages])
+  }, [collectionImages]);
 
   if (collectionImages && collectionImages.images && collectionImages.images.length > 1) {
     return (
@@ -40,7 +38,7 @@ function CollectionImage({ collection, type }: CollectionImageProps) {
       >
         {getPosterImage(collection.id, collectionImages.images ?? [], type)}
       </div>
-    )
+    );
   }
 
   return (
@@ -54,7 +52,7 @@ function CollectionImage({ collection, type }: CollectionImageProps) {
         alt={'Collection Image'}
       />
     </div>
-  )
+  );
 }
 
-export default CollectionImage
+export default CollectionImage;

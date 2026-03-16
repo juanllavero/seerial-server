@@ -12,6 +12,8 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "@seerial/api": "workspace:*",
+    "@seerial/domain": "workspace:*",
     "@noriginmedia/norigin-spatial-navigation": "^2.3.0",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-aspect-ratio": "^1.1.7",

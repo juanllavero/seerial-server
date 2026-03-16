@@ -17,7 +17,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar'
-import { useServerStore } from '@/context/auth.store'
+import { useServerStore } from '@seerial/stores'
 import { cn } from '@/utils/tailwind'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 export function NavUser() {

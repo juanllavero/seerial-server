@@ -1,17 +1,15 @@
 import { TooltipProvider } from '@radix-ui/react-tooltip';
-import { createSeerialQueryClient } from '@seerial/api';
+import { seerialQueryClient } from '@seerial/api';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { useTranslation } from 'react-i18next';
 import { BrowserRouter } from 'react-router-dom';
 import { shallow } from 'zustand/shallow';
-import { useServerStore } from '@/context/auth.store';
+import { useServerStore } from '@seerial/stores';
 import { updateAppLanguage } from './localization/helpers/language_helpers';
 import './localization/i18n';
 import { AppRoutes } from './routes/routes';
-
-const queryClient = createSeerialQueryClient();
 
 function App() {
   const { i18n } = useTranslation();
@@ -44,7 +42,7 @@ if (!rootElement) {
 
 const root = createRoot(rootElement);
 root.render(
-  <QueryClientProvider client={queryClient}>
+  <QueryClientProvider client={seerialQueryClient}>
     <TooltipProvider>
       <App />
     </TooltipProvider>

@@ -1,31 +1,30 @@
-import { ModalWrapper } from '@/components/ModalWrapper'
-import { API } from '@/config/api'
-import { useDialogStore } from '@/context/dialog.store'
-import type { Movie } from '@/data/interfaces/Media'
-import { useGet } from '@/hooks/media/useGet'
-import useEditDialog from '@/hooks/useEditDialog'
-import { ImageType } from '@/utils/constants'
-import GenericFormTab from '../components/GenericFormTab'
-import ImageListTab from '../components/ImageListTab'
-import { movieInfoConfig, movieTagsConfig } from '../forms.config'
-import MediaTab from '../MediaTab'
+import { API, useGet } from '@seerial/api';
+import type { Movie } from '@seerial/domain';
+import { ModalWrapper } from '@/components/ModalWrapper';
+import { useDialogStore } from '@/context/dialog.store';
+import useEditDialog from '@/hooks/useEditDialog';
+import { ImageType } from '@/utils/constants';
+import GenericFormTab from '../components/GenericFormTab';
+import ImageListTab from '../components/ImageListTab';
+import { movieInfoConfig, movieTagsConfig } from '../forms.config';
+import MediaTab from '../MediaTab';
 
 interface MovieImageState {
-  logos: string[]
-  localLogoFolder: string
-  selectedLogo: string
-  backgrounds: string[]
-  localBackgroundFolder: string
-  selectedBackground: string
-  posters: string[]
-  localPosterFolder: string
-  selectedPoster: string
+  logos: string[];
+  localLogoFolder: string;
+  selectedLogo: string;
+  backgrounds: string[];
+  localBackgroundFolder: string;
+  selectedBackground: string;
+  posters: string[];
+  localPosterFolder: string;
+  selectedPoster: string;
 }
 
 function MovieDialog() {
-  const { payload, closeDialog } = useDialogStore()
-  const { id } = payload as { id: string }
-  const { data: movie } = useGet<Movie>(API.movies.get(id))
+  const { payload, closeDialog } = useDialogStore();
+  const { id } = payload as { id: string };
+  const { data: movie } = useGet<Movie>(API.movies.get(id));
 
   const { control, images, selectedTab, setSelectedTab, handleUpdate, t } = useEditDialog<
     Movie,
@@ -62,9 +61,9 @@ function MovieDialog() {
     }),
     apiUpdateUrl: movie ? API.movies.update(movie.id) : '',
     errorMessage: 'Error updating movie',
-  })
+  });
 
-  if (!movie) return null
+  if (!movie) return null;
 
   return (
     <ModalWrapper
@@ -121,7 +120,7 @@ function MovieDialog() {
       activeTab={selectedTab}
       onTabChange={setSelectedTab}
     />
-  )
+  );
 }
 
-export default MovieDialog
+export default MovieDialog;

@@ -1,14 +1,14 @@
-import React from 'react'
-import type { SelectableOption } from '@/data/interfaces/Utils'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './select'
+import type { SelectableOption } from '@seerial/domain';
+import React from 'react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './select';
 
 interface SelectableWrapperProps {
-  placeholder?: string
-  defaultValue?: string
-  value?: string
-  width?: string
-  onValueChange: (key: string, value: string) => void
-  options: SelectableOption[]
+  placeholder?: string;
+  defaultValue?: string;
+  value?: string;
+  width?: string;
+  onValueChange: (key: string, value: string) => void;
+  options: SelectableOption[];
 }
 
 function SelectableWrapper({
@@ -19,20 +19,20 @@ function SelectableWrapper({
   onValueChange,
   options,
 }: SelectableWrapperProps) {
-  const getUniqueValue = (option: SelectableOption) => `${option.key}::${option.value}`
+  const getUniqueValue = (option: SelectableOption) => `${option.key}::${option.value}`;
 
   const handleValueChange = (uniqueValue: string) => {
-    const [key, value] = uniqueValue.split('::')
-    onValueChange(key, value)
-  }
+    const [key, value] = uniqueValue.split('::');
+    onValueChange(key, value);
+  };
 
   const defaultUniqueValue = options.find((option) => option.value === defaultValue)
     ? getUniqueValue(options.find((option) => option.value === defaultValue)!)
-    : undefined
+    : undefined;
 
   const controlledValue = options.find((option) => option.value === value)
     ? getUniqueValue(options.find((option) => option.value === value)!)
-    : undefined
+    : undefined;
 
   return (
     <Select
@@ -51,7 +51,7 @@ function SelectableWrapper({
         ))}
       </SelectContent>
     </Select>
-  )
+  );
 }
 
-export default SelectableWrapper
+export default SelectableWrapper;

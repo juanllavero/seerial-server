@@ -1,4 +1,4 @@
-import useMusicStore from '@/context/music.context'
+import { useMusicStore } from '@seerial/stores'
 import '@/styles/animations.css'
 import { memo } from 'react'
 

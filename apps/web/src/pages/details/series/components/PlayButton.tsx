@@ -1,51 +1,58 @@
-import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
-import useSWR from 'swr'
-import { Button } from '@/components/ui/button'
-import FlexBox from '@/components/ui/FlexBox'
-import { PlayIcon } from '@/components/ui/IconLibrary'
-import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
-import type { Episode, Season } from '@/data/interfaces/Media'
+import { useGetEpisode, useGetSeason, useGetVideoByEpisodeId } from '@seerial/api';
+import type { Episode, Season } from '@seerial/domain';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import FlexBox from '@/components/ui/FlexBox';
+import { PlayIcon } from '@/components/ui/IconLibrary';
 
 interface PlayButtonProps {
-  currentlyWatchingEpisodeId?: string
-  selectedSeasonId: string | null
+  currentlyWatchingEpisodeId?: string;
+  selectedSeasonId: string | null;
 }
 
 function PlayButton({ currentlyWatchingEpisodeId, selectedSeasonId }: PlayButtonProps) {
-  const navigate = useNavigate()
-  const { t } = useTranslation()
+  const navigate = useNavigate();
+  const { t } = useTranslation();
 
-  const { data: season } = useSWR<Season>(
-    selectedSeasonId ? API.seasons.get(selectedSeasonId) : null,
-    authenticatedFetcher,
-  )
+  const { data: season } = useGetSeason<Season>(selectedSeasonId ?? '', undefined, {
+    enabled: Boolean(selectedSeasonId),
+  });
 
   // Get current episode
-  const { data: episode } = useSWR<Episode>(
-    currentlyWatchingEpisodeId ? API.episodes.get(currentlyWatchingEpisodeId) : null,
-    authenticatedFetcher,
-  )
+  const { data: episode } = useGetEpisode<Episode>(currentlyWatchingEpisodeId ?? '', {
+    enabled: Boolean(currentlyWatchingEpisodeId),
+  });
+
+  const fallbackEpisodeId = season?.episodes?.[0]?.id ?? null;
+  const resolvedEpisodeId = episode?.id ?? fallbackEpisodeId;
+
+  const { refetch: refetchVideoByEpisode } = useGetVideoByEpisodeId<{ id: string }>(
+    resolvedEpisodeId ?? '',
+    {
+      enabled: false,
+    },
+  );
 
   const getPlayButtonText = () => {
     return episode
       ? `${t('continueWatching')} — ${t('seasonLetter')}${episode.seasonNumber}${t('episodeLetter')}${episode.episodeNumber}`
-      : t('playButton')
-  }
+      : t('playButton');
+  };
 
   return (
     <Button
       onClick={async () => {
-        const episodeId = episode ? episode.id : season?.episodes[0].id
-
-        const response = await authenticatedFetch(API.videos.getByEpisodeId(episodeId ?? ''))
-
-        if (!response.data) {
-          return
+        if (!resolvedEpisodeId) {
+          return;
         }
 
-        const data = await response.data
-        navigate(`/video-player/${data.id}`)
+        const response = await refetchVideoByEpisode();
+        if (!response.data?.id) {
+          return;
+        }
+
+        navigate(`/video-player/${response.data.id}`);
       }}
     >
       <FlexBox align="center" gap={0.5} className="text-black">
@@ -53,7 +60,7 @@ function PlayButton({ currentlyWatchingEpisodeId, selectedSeasonId }: PlayButton
         {getPlayButtonText()}
       </FlexBox>
     </Button>
-  )
+  );
 }
 
-export default PlayButton
+export default PlayButton;

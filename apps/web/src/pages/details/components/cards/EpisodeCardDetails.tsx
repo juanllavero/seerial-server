@@ -1,19 +1,19 @@
-import { Pencil } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
-import Card from '@/components/cards/Card'
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import { Button } from '@/components/ui/button'
-import FlexBox from '@/components/ui/FlexBox'
-import { useServerStore } from '@/context/auth.store'
-import type { Episode } from '@/data/interfaces/Media'
-import { getVideoProgress } from '@/utils/ReactUtils'
+import type { Episode } from '@seerial/domain';
+import { Pencil } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import Card from '@/components/cards/Card';
+import { useIsMobile } from '@/components/hooks/use-mobile';
+import { Button } from '@/components/ui/button';
+import FlexBox from '@/components/ui/FlexBox';
+import { useServerStore } from '@seerial/stores';
+import { getVideoProgress } from '@/utils/ReactUtils';
 
 interface EpisodeCardDetailsProps {
-  episode: any
-  playEpisode: (episode: Episode) => void
-  goToDetails: (episode: Episode) => void
-  getEpisodeMenu: (episode: Episode) => any
-  editEpisode: (episode: any) => void
+  episode: any;
+  playEpisode: (episode: Episode) => void;
+  goToDetails: (episode: Episode) => void;
+  getEpisodeMenu: (episode: Episode) => any;
+  editEpisode: (episode: any) => void;
 }
 
 function EpisodeCardDetails({
@@ -23,13 +23,13 @@ function EpisodeCardDetails({
   getEpisodeMenu,
   editEpisode,
 }: EpisodeCardDetailsProps) {
-  const user = useServerStore((state) => state.currentUser)
-  const { t } = useTranslation()
-  const isMobile = useIsMobile()
+  const user = useServerStore((state) => state.currentUser);
+  const { t } = useTranslation();
+  const isMobile = useIsMobile();
 
-  const watchedList = episode.video.watchLists.find((list: any) => list.userId === user?.id)
+  const watchedList = episode.video.watchLists.find((list: any) => list.userId === user?.id);
 
-  const timeWatched = watchedList?.timeWatched ?? 0
+  const timeWatched = watchedList?.timeWatched ?? 0;
 
   return (
     <FlexBox justify="start" align="center" gap={1} width={'100%'}>
@@ -51,8 +51,8 @@ function EpisodeCardDetails({
               variant={'ghost'}
               size={'icon'}
               onClick={(e) => {
-                e.stopPropagation()
-                editEpisode(episode)
+                e.stopPropagation();
+                editEpisode(episode);
               }}
             >
               <Pencil size={16} />
@@ -69,7 +69,7 @@ function EpisodeCardDetails({
         <span className={`line-clamp-${isMobile ? '2' : '4'} text-sm`}>{episode.overview}</span>
       </FlexBox>
     </FlexBox>
-  )
+  );
 }
 
-export default EpisodeCardDetails
+export default EpisodeCardDetails;

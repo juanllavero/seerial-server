@@ -1,12 +1,11 @@
-import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
-import { mutate } from 'swr'
-import AlertWrapper from '@/components/AlertWrapper'
-import { API } from '@/config/api'
-import { useDialogStore } from '@/context/dialog.store'
-import { useWebSocketStore } from '@/context/ws.context'
-import { useDelete } from '@/hooks/media/useDelete'
-import { showToast } from '@/utils/ReactUtils'
+import { API, useDelete } from '@seerial/api';
+import { useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import AlertWrapper from '@/components/AlertWrapper';
+import { useDialogStore } from '@/context/dialog.store';
+import { useWebSocketStore } from '@seerial/stores';
+import { showToast } from '@/utils/ReactUtils';
 
 type DeleteDialogName =
   | 'deleteLibrary'
@@ -16,13 +15,13 @@ type DeleteDialogName =
   | 'deleteEpisode'
   | 'deleteAlbum'
   | 'deleteSong'
-  | 'deleteCollection'
+  | 'deleteCollection';
 
 interface DeleteConfig {
-  titleKey: string
-  descriptionKey: string
-  endpoint: (id: string) => string
-  navigateTo?: string
+  titleKey: string;
+  descriptionKey: string;
+  endpoint: (id: string) => string;
+  navigateTo?: string;
 }
 
 const deleteConfigMap: Record<DeleteDialogName, DeleteConfig> = {
@@ -67,18 +66,19 @@ const deleteConfigMap: Record<DeleteDialogName, DeleteConfig> = {
     descriptionKey: 'deleteCollectionMessage',
     endpoint: (id) => API.collections.delete(id),
   },
-}
+};
 
 function DeleteDialog() {
-  const { t } = useTranslation()
-  const navigate = useNavigate()
-  const { error, deleteRequest } = useDelete()
-  const connectWS = useWebSocketStore((state) => state.connectWS)
-  const { open, payload, closeDialog } = useDialogStore()
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { error, deleteRequest } = useDelete();
+  const connectWS = useWebSocketStore((state) => state.connectWS);
+  const { open, payload, closeDialog } = useDialogStore();
 
-  const dialogType = open as DeleteDialogName
-  const config = deleteConfigMap[dialogType]
-  const { id } = payload as { id: string }
+  const dialogType = open as DeleteDialogName;
+  const config = deleteConfigMap[dialogType];
+  const { id } = payload as { id: string };
 
   return (
     <AlertWrapper
@@ -87,19 +87,19 @@ function DeleteDialog() {
       description={t(config.descriptionKey)}
       actionMessage={t('removeButton')}
       action={async () => {
-        connectWS()
-        const deleted = await deleteRequest(config.endpoint(id))
+        connectWS();
+        const deleted = await deleteRequest(config.endpoint(id));
 
-        if (!deleted) showToast('error', error || 'Error deleting item')
+        if (!deleted) showToast('error', error || 'Error deleting item');
 
-        mutate((key: string) => key.endsWith(config.endpoint(id)))
-        if (config.navigateTo) navigate(config.navigateTo)
-        closeDialog()
+        await queryClient.invalidateQueries({ queryKey: ['crud'] });
+        if (config.navigateTo) navigate(config.navigateTo);
+        closeDialog();
       }}
       isDeleteAlert
       closeDialog={closeDialog}
     />
-  )
+  );
 }
 
-export default DeleteDialog
+export default DeleteDialog;

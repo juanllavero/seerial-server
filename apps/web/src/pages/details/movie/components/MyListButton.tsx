@@ -1,39 +1,39 @@
-import { t } from 'i18next'
-import useSWR from 'swr'
-import { Button } from '@/components/ui/button'
-import { AddToListIcon, RemoveFromListIcon } from '@/components/ui/IconLibrary'
-import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
-import { useServerStore } from '@/context/auth.store'
+import { API, useCreate, useIsMovieInMyList } from '@seerial/api';
+import { t } from 'i18next';
+import { Button } from '@/components/ui/button';
+import { AddToListIcon, RemoveFromListIcon } from '@/components/ui/IconLibrary';
+import { useServerStore } from '@seerial/stores';
+
+interface InMyListResponse {
+  isInMyList: boolean;
+}
 
 interface MyListButtonProps {
-  movieId: string
+  movieId: string;
 }
 
 function MyListButton({ movieId }: MyListButtonProps) {
-  const user = useServerStore((state) => state.currentUser)
+  const user = useServerStore((state) => state.currentUser);
+  const { create } = useCreate<unknown>();
   // Get if movie is in My List
-  const { data: inMyList, mutate: mutateInMyList } = useSWR(
-    API.myList.isMovieInList,
-    authenticatedFetcher,
-  )
+  const { data: inMyList, refetch } = useIsMovieInMyList<InMyListResponse>(movieId);
 
-  const toggleMyList = () => {
-    authenticatedFetch(API.myList.movies, 'POST', {
+  const toggleMyList = async () => {
+    await create(API.myList.movies, {
       movieId: movieId,
       userId: user?.id,
-    }).then(() => {
-      mutateInMyList()
-    })
-  }
+    });
+    void refetch();
+  };
   return (
     <Button
       variant={'ghost'}
-      title={inMyList && inMyList.isInMyList ? t('removeFromMyList') : t('addToMyList')}
+      title={inMyList?.isInMyList ? t('removeFromMyList') : t('addToMyList')}
       onClick={toggleMyList}
     >
-      {inMyList && inMyList.isInMyList ? <RemoveFromListIcon /> : <AddToListIcon />}
+      {inMyList?.isInMyList ? <RemoveFromListIcon /> : <AddToListIcon />}
     </Button>
-  )
+  );
 }
 
-export default MyListButton
+export default MyListButton;

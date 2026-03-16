@@ -1,4 +1,5 @@
 import type { DetailsData } from '@seerial/domain';
+import { type ItemType, type LibraryItem, LibraryTypes } from '@seerial/domain';
 import { v4 as uuidv4 } from 'uuid';
 import { AlbumModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumModel';
 import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
@@ -12,7 +13,6 @@ import { DatabaseManager } from '@/api/v1/shared/infrastructure/persistence/Data
 import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
 import { VideoModel } from '@/api/v1/videos/infrastructure/persistence/models/VideoModel';
 import { messages } from '@/config/messages';
-import { type ItemType, type LibraryItem, LibraryTypes } from '@/data/interfaces/Media';
 import { GenericRepositoryHelper } from '@/helpers/GenericRepositoryHelper';
 import logger from '@/utils/logger';
 import type { LibrariesRepositoryPort } from '../../../application/ports/LibrariesRepositoryPort';

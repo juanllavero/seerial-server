@@ -14,6 +14,8 @@
   "homepage": ".",
   "dependencies": {
     "@seerial/api": "workspace:*",
+    "@seerial/domain": "workspace:*",
+    "@seerial/stores": "workspace:*",
     "@tanstack/react-query": "^5.90.2",
     "@atlaskit/pragmatic-drag-and-drop": "^1.7.7",
     "@atlaskit/pragmatic-drag-and-drop-hitbox": "^1.1.0",

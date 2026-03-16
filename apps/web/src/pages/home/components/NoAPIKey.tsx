@@ -4,7 +4,7 @@ import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
 import { Button } from '@/components/ui/button'
 import FlexBox from '@/components/ui/FlexBox'
 import { Input } from '@/components/ui/input'
-import { useServerStore } from '@/context/auth.store'
+import { useServerStore } from '@seerial/stores'
 import AlertContent from './AlertContent'
 
 function NoAPIKey() {

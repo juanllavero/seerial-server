@@ -1,48 +1,43 @@
-import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import Loading from '@/components/Loading'
-import HorizontalList from '@/components/lists/HorizontalList'
-import { API, authenticatedFetcher } from '@/config/api'
-import type { Collection } from '@/data/interfaces/Media'
-import type { MusicExtra } from '@/data/interfaces/Music'
-import VideoThumbnail from './VideoThumbnail'
+import { useGetCollectionMusicExtras } from '@seerial/api';
+import type { Collection, MusicExtra } from '@seerial/domain';
+import { useTranslation } from 'react-i18next';
+import { useIsMobile } from '@/components/hooks/use-mobile';
+import Loading from '@/components/Loading';
+import HorizontalList from '@/components/lists/HorizontalList';
+import VideoThumbnail from './VideoThumbnail';
 
 interface ExtrasListProps {
-  collection: Collection
+  collection: Collection;
 }
 
 function ExtrasList({ collection }: ExtrasListProps) {
-  const { t } = useTranslation()
-  const isMobile = useIsMobile()
+  const { t } = useTranslation();
+  const isMobile = useIsMobile();
 
-  const { data: extras, isLoading } = useSWR<MusicExtra[]>(
-    API.collections.musicExtras(collection.id),
-    authenticatedFetcher,
-  )
+  const { data: extras, isLoading } = useGetCollectionMusicExtras<MusicExtra[]>(collection.id);
 
   const getExtraTypeTranslation = (type: string) => {
     switch (type) {
       case 'lyrics':
-        return t('extraLyrics')
+        return t('extraLyrics');
       case 'video':
-        return t('extraVideo')
+        return t('extraVideo');
       case 'behindTheScenes':
-        return t('extraBehindTheScenes')
+        return t('extraBehindTheScenes');
       case 'live':
-        return t('extraLive')
+        return t('extraLive');
       case 'interview':
-        return t('extraInterview')
+        return t('extraInterview');
       case 'concert':
-        return t('extraConcert')
+        return t('extraConcert');
       default:
-        return ''
+        return '';
     }
-  }
+  };
 
-  if (isLoading) return <Loading />
+  if (isLoading) return <Loading />;
 
-  if (!extras || extras.length === 0) return null
+  if (!extras || extras.length === 0) return null;
 
   return (
     <HorizontalList title="Extras">
@@ -58,7 +53,7 @@ function ExtrasList({ collection }: ExtrasListProps) {
         </div>
       ))}
     </HorizontalList>
-  )
+  );
 }
 
-export default ExtrasList
+export default ExtrasList;

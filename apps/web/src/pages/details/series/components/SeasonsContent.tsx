@@ -1,30 +1,28 @@
-import React, { useEffect, useRef } from 'react'
-import { useTranslation } from 'react-i18next'
-import { shallow } from 'zustand/shallow'
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import { useIsTablet } from '@/components/hooks/use-tablet'
-import NotFound from '@/components/NotFound'
-import FlexBox from '@/components/ui/FlexBox'
-import Grid from '@/components/ui/Grid'
-import SelectableWrapper from '@/components/ui/SelectableWrapper'
-import { Skeleton } from '@/components/ui/skeleton'
-import { API } from '@/config/api'
-import useDataStore from '@/context/data.context'
-import type { Season } from '@/data/interfaces/Media'
-import type { SelectableOption } from '@/data/interfaces/Utils'
-import { useGet } from '@/hooks/media/useGet'
-import EpisodesList from './EpisodesList'
+import { API, useGet } from '@seerial/api';
+import type { Season, SelectableOption } from '@seerial/domain';
+import React, { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
+import { shallow } from 'zustand/shallow';
+import { useIsMobile } from '@/components/hooks/use-mobile';
+import { useIsTablet } from '@/components/hooks/use-tablet';
+import NotFound from '@/components/NotFound';
+import FlexBox from '@/components/ui/FlexBox';
+import Grid from '@/components/ui/Grid';
+import SelectableWrapper from '@/components/ui/SelectableWrapper';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useDataStore } from '@seerial/stores';
+import EpisodesList from './EpisodesList';
 
 function SeasonContent() {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
   const { selectedSeasonId } = useDataStore(
     (state) => ({
       selectedSeasonId: state.selectedSeasonId,
     }),
     shallow,
-  )
-  const [distribution, setDistribution] = React.useState(0)
-  const prevDistribution = useRef(distribution)
+  );
+  const [distribution, setDistribution] = React.useState(0);
+  const prevDistribution = useRef(distribution);
   const distributionOptions: SelectableOption[] = [
     {
       key: '0',
@@ -34,30 +32,30 @@ function SeasonContent() {
       key: '1',
       value: t('list'),
     },
-  ]
-  const isMobile = useIsMobile()
-  const isTablet = useIsTablet()
+  ];
+  const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
 
   const {
     data: season,
     isLoading,
     error,
     mutate,
-  } = useGet<Season>(selectedSeasonId ? API.seasons.get(selectedSeasonId, 'all') : null)
+  } = useGet<Season>(selectedSeasonId ? API.seasons.get(selectedSeasonId, 'all') : null);
 
   useEffect(() => {
     if ((isTablet || isMobile) && distribution !== 1) {
-      prevDistribution.current = distribution
-      setDistribution(1)
+      prevDistribution.current = distribution;
+      setDistribution(1);
     } else if (!isTablet && !isMobile && distribution !== prevDistribution.current) {
-      setDistribution(prevDistribution.current)
+      setDistribution(prevDistribution.current);
     }
-  }, [isMobile, isTablet, setDistribution, distribution])
+  }, [isMobile, isTablet, setDistribution, distribution]);
 
   const selectDistributionOption = (key: string, _value: string) => {
-    prevDistribution.current = Number(key)
-    setDistribution(Number(key))
-  }
+    prevDistribution.current = Number(key);
+    setDistribution(Number(key));
+  };
 
   // Loading Skeleton
   if (isLoading) {
@@ -94,12 +92,12 @@ function SeasonContent() {
           </FlexBox>
         )}
       </FlexBox>
-    )
+    );
   }
 
   // No content
   if (!season || error) {
-    return <NotFound />
+    return <NotFound />;
   }
 
   // Episodes
@@ -137,7 +135,7 @@ function SeasonContent() {
         />
       )}
     </FlexBox>
-  )
+  );
 }
 
-export default SeasonContent
+export default SeasonContent;

@@ -1,36 +1,35 @@
-import { useEffect } from 'react'
-import { useParams } from 'react-router-dom'
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import { useIsTablet } from '@/components/hooks/use-tablet'
-import NotFound from '@/components/NotFound'
-import FlexBox from '@/components/ui/FlexBox'
-import { Skeleton } from '@/components/ui/skeleton'
-import { API } from '@/config/api'
-import { useGradientStore } from '@/context/gradientBackground.context'
-import type { Album } from '@/data/interfaces/Music'
-import { useGet } from '@/hooks/media/useGet'
-import AlbumContent from '../components/AlbumContent'
-import '../DetailsPage.css'
-import AlbumInfo from './components/AlbumInfo'
+import { API, useGet } from '@seerial/api';
+import type { Album } from '@seerial/domain';
+import { useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import { useIsMobile } from '@/components/hooks/use-mobile';
+import { useIsTablet } from '@/components/hooks/use-tablet';
+import NotFound from '@/components/NotFound';
+import FlexBox from '@/components/ui/FlexBox';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useGradientStore } from '@seerial/stores';
+import AlbumContent from '../components/AlbumContent';
+import '../DetailsPage.css';
+import AlbumInfo from './components/AlbumInfo';
 
 function AlbumDetailsPage() {
-  const { albumId } = useParams()
-  const selectBackground = useGradientStore((state) => state.selectBackground)
+  const { albumId } = useParams();
+  const selectBackground = useGradientStore((state) => state.selectBackground);
 
   // Get album data
-  const { data: album, isLoading, error } = useGet<Album>(API.albums.get(albumId ?? ''))
+  const { data: album, isLoading, error } = useGet<Album>(API.albums.get(albumId ?? ''));
 
-  const isMobile = useIsMobile()
-  const isTablet = useIsTablet()
+  const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
 
   useEffect(() => {
     if (album) {
-      selectBackground(album.coverSrc)
+      selectBackground(album.coverSrc);
     }
-  }, [album])
+  }, [album]);
 
   if (error || !album) {
-    return <NotFound />
+    return <NotFound />;
   }
 
   return (
@@ -50,7 +49,7 @@ function AlbumDetailsPage() {
       {/* Album Content */}
       {isLoading || !album ? <Skeleton className="h-300 w-200" /> : <AlbumContent album={album} />}
     </FlexBox>
-  )
+  );
 }
 
-export default AlbumDetailsPage
+export default AlbumDetailsPage;

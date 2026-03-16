@@ -1,5 +1,4 @@
-import type { Movie, Series } from '@/data/interfaces/Media'
-import type { Album } from '@/data/interfaces/Music'
+import type { Album, Movie, Series } from '@seerial/domain'
 
 type DisplayCollections = 'collectionsAndElements' | 'onlyCollections' | 'onlyElements'
 

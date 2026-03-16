@@ -1,17 +1,17 @@
-import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
-import { shallow } from 'zustand/shallow'
-import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
-import FlexBox from '@/components/ui/FlexBox'
-import { PauseIcon, PlayIcon } from '@/components/ui/IconLibrary'
-import LazyImage from '@/components/ui/LazyImage'
-import { API, authenticatedFetcher } from '@/config/api'
-import useMusicStore from '@/context/music.context'
-import { formatTime } from '@/utils/ReactUtils'
-import './NextSongs.css'
+import { useGetAlbum } from '@seerial/api';
+import type { Album } from '@seerial/domain';
+import { useTranslation } from 'react-i18next';
+import { shallow } from 'zustand/shallow';
+import SmallSpinner from '@/components/SideBar/loading/SmallSpinner';
+import FlexBox from '@/components/ui/FlexBox';
+import { PauseIcon, PlayIcon } from '@/components/ui/IconLibrary';
+import LazyImage from '@/components/ui/LazyImage';
+import { useMusicStore } from '@seerial/stores';
+import { formatTime } from '@/utils/ReactUtils';
+import './NextSongs.css';
 
 function NextSongs() {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
   const { songQueue, currentSong, selectSong, isPlaying, isLoading, togglePlayPause } =
     useMusicStore(
       (state) => ({
@@ -23,13 +23,12 @@ function NextSongs() {
         togglePlayPause: state.togglePlayPause,
       }),
       shallow,
-    )
-  const { data: album } = useSWR(
-    currentSong ? API.albums.get(currentSong.albumId) : null,
-    authenticatedFetcher,
-  )
+    );
+  const { data: album } = useGetAlbum<Album>(currentSong?.albumId ?? '', {
+    enabled: Boolean(currentSong?.albumId),
+  });
 
-  if (!album) return null
+  if (!album) return null;
 
   return (
     <FlexBox
@@ -58,9 +57,9 @@ function NextSongs() {
               className="imgContainer"
               onClick={() => {
                 if (currentSong === item) {
-                  togglePlayPause()
+                  togglePlayPause();
                 } else {
-                  selectSong(item)
+                  selectSong(item);
                 }
               }}
             >
@@ -78,7 +77,7 @@ function NextSongs() {
         </FlexBox>
       ))}
     </FlexBox>
-  )
+  );
 }
 
-export default NextSongs
+export default NextSongs;

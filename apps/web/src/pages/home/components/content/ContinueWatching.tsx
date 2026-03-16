@@ -1,12 +1,18 @@
+import { useGetContinueWatching } from '@seerial/api';
+import type { Video } from '@seerial/domain';
 import { useTranslation } from 'react-i18next';
-import useSWR from 'swr';
 import Card from '@/components/cards/Card';
 import { useIsMobile } from '@/components/hooks/use-mobile';
 import { Skeleton } from '@/components/ui/skeleton';
-import { API, authenticatedFetcher } from '@/config/api';
-import type { Video } from '@/data/interfaces/Media';
 import { getVideoProgress } from '@/utils/ReactUtils';
 import HorizontalList from '../../../../components/lists/HorizontalList';
+
+type ContinueWatchingVideo = Video & {
+  subtitle?: string;
+  date?: string;
+  seasonNumber?: number;
+  episodeNumber?: number;
+};
 
 interface ContinueWatchingProps {
   goToContent: (url: string) => void;
@@ -17,22 +23,18 @@ function ContinueWatching({ goToContent }: ContinueWatchingProps) {
   const isMobile = useIsMobile();
 
   // Get Continue Watching items
-  const { data: continueWatching, isLoading } = useSWR<Video[]>(
-    API.continueWatching.getVideos,
-    authenticatedFetcher,
-  );
+  const { data: continueWatching, isLoading } = useGetContinueWatching<ContinueWatchingVideo[]>();
 
-  const skeletons = Array.from({ length: 10 }, (_, index) => (
-    <Skeleton
-      key={`ContinueWatching ${index}`}
-      className={isMobile ? 'h-39.5 min-w-70' : 'h-53.5 min-w-95'}
-    />
+  const skeletonIds = Array.from({ length: 10 }, (_value, i) => `ContinueWatching-${i}`);
+
+  const skeletons = skeletonIds.map((id) => (
+    <Skeleton key={id} className={isMobile ? 'h-39.5 min-w-70' : 'h-53.5 min-w-95'} />
   ));
 
   return (
     <HorizontalList title={t('continueWatching')}>
       {continueWatching && continueWatching.length > 0
-        ? continueWatching.map((video: Video) => (
+        ? continueWatching.map((video: ContinueWatchingVideo) => (
             <Card
               key={`Home Card ${video.id}`}
               itemKey={`Home Card ${video.id}`}
@@ -54,7 +56,7 @@ function ContinueWatching({ goToContent }: ContinueWatchingProps) {
                   `/${video.episodeId ? 'episode' : 'movie'}/${video.episodeId ? video.episodeId : video.movieId}`,
                 )
               }
-              playButtonAction={() => goToContent(`/video-player/${video.videoId}`)}
+              playButtonAction={() => goToContent(`/video-player/${video.id}`)}
             />
           ))
         : isLoading

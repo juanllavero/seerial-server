@@ -1,15 +1,15 @@
-import React from 'react'
-import { useTranslation } from 'react-i18next'
-import HorizontalList from '@/components/lists/HorizontalList'
-import type { Cast } from '@/data/interfaces/Media'
-import CastCard from './CastCard'
+import type { Cast } from '@seerial/domain';
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import HorizontalList from '@/components/lists/HorizontalList';
+import CastCard from './CastCard';
 
 interface CastListProps {
-  cast: Cast[]
+  cast: Cast[];
 }
 
 function CastList({ cast }: CastListProps) {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
 
   return (
     <HorizontalList title={t('cast')}>
@@ -17,7 +17,7 @@ function CastList({ cast }: CastListProps) {
         <CastCard key={person.name + index} index={person.name + index} person={person} />
       ))}
     </HorizontalList>
-  )
+  );
 }
 
-export default CastList
+export default CastList;

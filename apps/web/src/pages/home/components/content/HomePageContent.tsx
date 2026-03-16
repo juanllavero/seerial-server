@@ -1,15 +1,15 @@
-import { useNavigate } from 'react-router-dom'
-import FlexBox from '@/components/ui/FlexBox'
-import ContinueWatching from './ContinueWatching'
-import MyListMovies from './MyListMovies'
-import MyListShows from './MyListShows'
+import { useNavigate } from 'react-router-dom';
+import FlexBox from '@/components/ui/FlexBox';
+import ContinueWatching from './ContinueWatching';
+import MyListMovies from './MyListMovies';
+import MyListShows from './MyListShows';
 
 function HomePageContent() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const goToContent = (url: string) => {
-    navigate(url)
-  }
+    navigate(url);
+  };
 
   return (
     <FlexBox
@@ -28,7 +28,7 @@ function HomePageContent() {
       {/* User's Movies in WatchList */}
       <MyListMovies goToContent={goToContent} />
     </FlexBox>
-  )
+  );
 }
 
-export default HomePageContent
+export default HomePageContent;

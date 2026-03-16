@@ -4,7 +4,7 @@ import { useIsMobile } from '@/components/hooks/use-mobile'
 import { useIsTablet } from '@/components/hooks/use-tablet'
 import AppSidebar from '@/components/SideBar/AppSidebar'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
-import useMusicStore from '@/context/music.context'
+import { useMusicStore } from '@seerial/stores'
 import CardWidthSlider from './components/CardWidthSlider'
 
 const SideBarLayout = () => {

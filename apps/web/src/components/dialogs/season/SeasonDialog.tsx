@@ -1,25 +1,24 @@
-import { ModalWrapper } from '@/components/ModalWrapper'
-import { API } from '@/config/api'
-import { useDialogStore } from '@/context/dialog.store'
-import type { Season, Series } from '@/data/interfaces/Media'
-import { useGet } from '@/hooks/media/useGet'
-import useEditDialog from '@/hooks/useEditDialog'
-import GenericFormTab from '../components/GenericFormTab'
-import ImageListTab from '../components/ImageListTab'
-import { seasonInfoConfig } from '../forms.config'
-import MediaTab from '../MediaTab'
+import { API, useGet } from '@seerial/api';
+import type { Season, Series } from '@seerial/domain';
+import { ModalWrapper } from '@/components/ModalWrapper';
+import { useDialogStore } from '@/context/dialog.store';
+import useEditDialog from '@/hooks/useEditDialog';
+import GenericFormTab from '../components/GenericFormTab';
+import ImageListTab from '../components/ImageListTab';
+import { seasonInfoConfig } from '../forms.config';
+import MediaTab from '../MediaTab';
 
 interface SeasonImageState {
-  backgrounds: string[]
-  localBackgroundFolder: string
-  selectedBackground: string
+  backgrounds: string[];
+  localBackgroundFolder: string;
+  selectedBackground: string;
 }
 
 function SeasonDialog() {
-  const { payload, closeDialog } = useDialogStore()
-  const { id } = payload as { id: string }
-  const { data: season } = useGet<Season>(API.seasons.get(id))
-  const { data: series } = useGet<Series>(season ? API.series.get(season.seriesId) : null)
+  const { payload, closeDialog } = useDialogStore();
+  const { id } = payload as { id: string };
+  const { data: season } = useGet<Season>(API.seasons.get(id));
+  const { data: series } = useGet<Series>(season ? API.series.get(season.seriesId) : null);
 
   const { control, images, selectedTab, setSelectedTab, handleUpdate, t } = useEditDialog<
     Season,
@@ -42,9 +41,9 @@ function SeasonDialog() {
     }),
     apiUpdateUrl: season ? API.seasons.update(season.id) : '',
     errorMessage: 'Error updating season',
-  })
+  });
 
-  if (!season) return null
+  if (!season) return null;
 
   return (
     <ModalWrapper
@@ -73,7 +72,7 @@ function SeasonDialog() {
       activeTab={selectedTab}
       onTabChange={setSelectedTab}
     />
-  )
+  );
 }
 
-export default SeasonDialog
+export default SeasonDialog;

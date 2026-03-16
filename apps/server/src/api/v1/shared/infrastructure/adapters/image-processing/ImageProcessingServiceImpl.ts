@@ -1,11 +1,11 @@
 import path from 'node:path';
+import { type LibraryType, LibraryTypes } from '@seerial/domain';
 import axios from 'axios';
 import type { Response } from 'express';
 import fs from 'fs-extra';
 import { Vibrant } from 'node-vibrant/node';
 import sharp from 'sharp';
 import { messages } from '@/config/messages';
-import { type LibraryType, LibraryTypes } from '@/data/interfaces/Media';
 import logger from '@/utils/logger';
 import type { FileSystemServicePort } from '../../../application/ports/FileSystemServicePort';
 import type { ImageProcessingServicePort } from '../../../application/ports/ImageProcessingServicePort';
@@ -49,7 +49,7 @@ interface Palette {
 }
 
 export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
-  constructor(private readonly fileSystemService: FileSystemServicePort) {}
+  constructor(private readonly fileSystemService: FileSystemServicePort) { }
 
   async getImageColorPalette(imageSource: string, options: PaletteOptions) {
     try {
@@ -338,12 +338,11 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
         'resources',
         'img',
         'default',
-        `${
-          libraryType === LibraryTypes.MUSIC
-            ? 'music'
-            : libraryType === LibraryTypes.MOVIES
-              ? 'movie'
-              : 'series'
+        `${libraryType === LibraryTypes.MUSIC
+          ? 'music'
+          : libraryType === LibraryTypes.MOVIES
+            ? 'movie'
+            : 'series'
         }.jpg`,
       ),
     );

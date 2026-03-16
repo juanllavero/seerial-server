@@ -1,26 +1,26 @@
-import { DotsVerticalIcon } from '@radix-ui/react-icons'
-import { ChevronDown, ListMusic, MicVocal, Repeat, Repeat1, Shuffle } from 'lucide-react'
-import { forwardRef } from 'react'
-import { shallow } from 'zustand/shallow'
-import CustomSlider from '@/components/CustomSlider'
-import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
-import { Button } from '@/components/ui/button'
+import { DotsVerticalIcon } from '@radix-ui/react-icons';
+import type { LRCFile } from '@seerial/domain';
+import { ChevronDown, ListMusic, MicVocal, Repeat, Repeat1, Shuffle } from 'lucide-react';
+import { forwardRef } from 'react';
+import { shallow } from 'zustand/shallow';
+import CustomSlider from '@/components/CustomSlider';
+import SmallSpinner from '@/components/SideBar/loading/SmallSpinner';
+import { Button } from '@/components/ui/button';
 import {
   DolbyAtmosIcon,
   NextTrackIcon,
   PauseIcon,
   PlayIcon,
   PrevTrackIcon,
-} from '@/components/ui/IconLibrary'
-import useMusicStore from '@/context/music.context'
-import { RepeateMode } from '@/data/enums/Music'
-import type { LRCFile } from '@/data/interfaces/Music'
-import { formatTime } from '@/utils/ReactUtils'
+} from '@/components/ui/IconLibrary';
+import { useMusicStore } from '@seerial/stores';
+import { RepeateMode } from '@/data/enums/Music';
+import { formatTime } from '@/utils/ReactUtils';
 
 interface ExpandedMobileMusicControlsProps {
-  controlsOpacity: number
-  controlsTransform: string
-  lyrics: LRCFile[]
+  controlsOpacity: number;
+  controlsTransform: string;
+  lyrics: LRCFile[];
 }
 
 const ExpandedMobileMusicControls = forwardRef<HTMLDivElement, ExpandedMobileMusicControlsProps>(
@@ -73,18 +73,18 @@ const ExpandedMobileMusicControls = forwardRef<HTMLDivElement, ExpandedMobileMus
         setIsExpanded: state.setIsExpanded,
       }),
       shallow,
-    )
+    );
 
     const handleProgressChange = (progressValue: number) => {
       if (duration > 0) {
-        const timeInSeconds = (progressValue / 100) * duration
-        seekTo(timeInSeconds)
+        const timeInSeconds = (progressValue / 100) * duration;
+        seekTo(timeInSeconds);
       }
-    }
+    };
 
     const handleCloseExpanded = () => {
-      setIsExpanded(false)
-    }
+      setIsExpanded(false);
+    };
 
     return (
       <div className="absolute inset-0 flex flex-col justify-between text-white" ref={ref}>
@@ -229,10 +229,10 @@ const ExpandedMobileMusicControls = forwardRef<HTMLDivElement, ExpandedMobileMus
           </div>
         </div>
       </div>
-    )
+    );
   },
-)
+);
 
-ExpandedMobileMusicControls.displayName = 'ExpandedMobileMusicControls'
+ExpandedMobileMusicControls.displayName = 'ExpandedMobileMusicControls';
 
-export default ExpandedMobileMusicControls
+export default ExpandedMobileMusicControls;

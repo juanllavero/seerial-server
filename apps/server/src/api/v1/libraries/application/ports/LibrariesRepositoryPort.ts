@@ -1,4 +1,4 @@
-import type { LibraryItem } from '@/data/interfaces/Media';
+import type { LibraryItem } from '@seerial/domain';
 import type { Library } from '../../domain/Library';
 
 export interface LibrariesRepositoryPort {

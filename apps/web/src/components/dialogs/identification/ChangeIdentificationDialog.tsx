@@ -1,18 +1,18 @@
-import { useTranslation } from 'react-i18next'
-import { shallow } from 'zustand/shallow'
-import { ModalWrapper } from '@/components/ModalWrapper'
-import { useDialogStore } from '@/context/dialog.store'
-import CorrectIdentificationSearch from './CorrectIdentificationSearch'
+import { useTranslation } from 'react-i18next';
+import { shallow } from 'zustand/shallow';
+import { ModalWrapper } from '@/components/ModalWrapper';
+import { useDialogStore } from '@/context/dialog.store';
+import CorrectIdentificationSearch from './CorrectIdentificationSearch';
 
 function ChangeIdentificationDialog() {
-  const { identificationDialog, closeIdentificationDialog } = useDialogStore(
+  const { open, closeDialog } = useDialogStore(
     (state) => ({
-      identificationDialog: state.identificationDialog,
-      closeIdentificationDialog: state.closeIdentificationDialog,
+      open: state.open,
+      closeDialog: state.closeDialog,
     }),
     shallow,
-  )
-  const { t } = useTranslation()
+  );
+  const { t } = useTranslation();
 
   return (
     <ModalWrapper
@@ -23,11 +23,11 @@ function ChangeIdentificationDialog() {
           content: <CorrectIdentificationSearch />,
         },
       ]}
-      isOpen={identificationDialog.isOpen}
-      close={closeIdentificationDialog}
+      isOpen={open === 'identification'}
+      close={closeDialog}
       hideButtons
     />
-  )
+  );
 }
 
-export default ChangeIdentificationDialog
+export default ChangeIdentificationDialog;

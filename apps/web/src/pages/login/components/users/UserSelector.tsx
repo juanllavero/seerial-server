@@ -1,86 +1,95 @@
-import { ArrowLeft } from 'lucide-react'
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { Input } from '@/components/ui/input'
-import { API, authenticatedFetch } from '@/config/api'
-import type { PersistedServer } from '@/data/interfaces/Servers'
-import type { BasicUser } from '@/data/interfaces/Users'
-import UserCard from './UserCard'
+import type { BasicUser, PersistedServer } from '@seerial/domain';
+import { ArrowLeft } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Input } from '@/components/ui/input';
+import { API, api } from '@/config/api';
+import UserCard from './UserCard';
 
-type View = 'profiles' | 'manual' | 'addUser'
+type View = 'profiles' | 'manual' | 'addUser';
 
 interface UserSelectorProps {
-  server: PersistedServer
-  users: BasicUser[]
-  onServerChange: () => void
-  onLogin: (user: BasicUser) => void
+  server: PersistedServer;
+  users: BasicUser[];
+  onServerChange: () => void;
+  onLogin: (user: BasicUser) => void;
 }
 
 function UserSelector({ server, users, onServerChange, onLogin }: UserSelectorProps) {
-  const navigate = useNavigate()
-  const [view, setView] = useState<View>(users.length > 0 ? 'profiles' : 'manual')
+  const navigate = useNavigate();
+  const [view, setView] = useState<View>(users.length > 0 ? 'profiles' : 'manual');
 
-  const [selectedUser, setSelectedUser] = useState<BasicUser | null>(null)
-  const [profilePassword, setProfilePassword] = useState('')
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [newUsername, setNewUsername] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [newUserType, setNewUserType] = useState('normal')
+  const [selectedUser, setSelectedUser] = useState<BasicUser | null>(null);
+  const [profilePassword, setProfilePassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [newUsername, setNewUsername] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newUserType, setNewUserType] = useState('normal');
 
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const showError = (msg: string) => {
-    setError(msg)
-    setTimeout(() => setError(''), 5000)
-  }
+    setError(msg);
+    setTimeout(() => setError(''), 5000);
+  };
 
   const doLogin = async (loginUsername: string, loginPassword: string) => {
-    setIsLoading(true)
-    setError('')
+    setIsLoading(true);
+    setError('');
     try {
-      const response = await authenticatedFetch(API.users.login, 'POST', {
-        username: loginUsername,
-        password: loginPassword ?? '',
-      })
-      document.cookie = `jwt=${response.data.token}; path=/; max-age=2592000; samesite=strict`
-      onLogin(response.data.user)
-      navigate('/home')
+      const response = await api.post<{ data?: { token?: string; user?: BasicUser } }>(
+        API.users.login,
+        {
+          username: loginUsername,
+          password: loginPassword ?? '',
+        },
+      );
+      document.cookie = `jwt=${response.data?.token}; path=/; max-age=2592000; samesite=strict`;
+      if (response.data?.user) {
+        onLogin(response.data.user);
+      }
+      navigate('/home');
     } catch {
-      showError('Contraseña incorrecta')
+      showError('Contraseña incorrecta');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
-  const handleProfileLogin = () => doLogin(selectedUser!.username, profilePassword)
-  const handleManualLogin = () => doLogin(username, password)
+  const handleProfileLogin = () => doLogin(selectedUser!.username, profilePassword);
+  const handleManualLogin = () => doLogin(username, password);
 
   const handleAddUser = async () => {
-    setIsLoading(true)
-    setError('')
+    setIsLoading(true);
+    setError('');
     try {
-      const response = await authenticatedFetch(API.users.create, 'POST', {
-        username: newUsername,
-        password: newPassword,
-        type: newUserType,
-      })
-      document.cookie = `jwt=${response.data.token}; path=/; max-age=2592000; samesite=strict`
-      onLogin(response.data.user)
-      navigate('/home')
+      const response = await api.post<{ data?: { token?: string; user?: BasicUser } }>(
+        API.users.create,
+        {
+          username: newUsername,
+          password: newPassword,
+          type: newUserType,
+        },
+      );
+      document.cookie = `jwt=${response.data?.token}; path=/; max-age=2592000; samesite=strict`;
+      if (response.data?.user) {
+        onLogin(response.data.user);
+      }
+      navigate('/home');
     } catch {
-      showError('Error al crear usuario')
+      showError('Error al crear usuario');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const resetAndGoBack = () => {
-    setSelectedUser(null)
-    setError('')
-    setView(users.length > 0 ? 'profiles' : 'manual')
-  }
+    setSelectedUser(null);
+    setError('');
+    setView(users.length > 0 ? 'profiles' : 'manual');
+  };
 
   // ── Profiles view ──────────────────────────────────────────────────────────
   if (view === 'profiles') {
@@ -109,9 +118,9 @@ function UserSelector({ server, users, onServerChange, onLogin }: UserSelectorPr
               user={user}
               isSelected={selectedUser?.id === user.id}
               onSelect={(u) => {
-                setSelectedUser(u === selectedUser ? null : u)
-                setProfilePassword('')
-                setError('')
+                setSelectedUser(u === selectedUser ? null : u);
+                setProfilePassword('');
+                setError('');
               }}
             />
           ))}
@@ -143,24 +152,24 @@ function UserSelector({ server, users, onServerChange, onLogin }: UserSelectorPr
         <div className="mx-auto flex max-w-md flex-col gap-3">
           <SecondaryButton
             onClick={() => {
-              setView('manual')
-              setSelectedUser(null)
-              setError('')
+              setView('manual');
+              setSelectedUser(null);
+              setError('');
             }}
           >
             Acceder manualmente
           </SecondaryButton>
           <SecondaryButton
             onClick={() => {
-              setView('addUser')
-              setError('')
+              setView('addUser');
+              setError('');
             }}
           >
             Añadir usuario
           </SecondaryButton>
         </div>
       </>
-    )
+    );
   }
 
   // ── Manual login view ──────────────────────────────────────────────────────
@@ -196,15 +205,15 @@ function UserSelector({ server, users, onServerChange, onLogin }: UserSelectorPr
           </PrimaryButton>
           <SecondaryButton
             onClick={() => {
-              setView('addUser')
-              setError('')
+              setView('addUser');
+              setError('');
             }}
           >
             Añadir usuario
           </SecondaryButton>
         </div>
       </>
-    )
+    );
   }
 
   // ── Add user view ──────────────────────────────────────────────────────────
@@ -250,7 +259,7 @@ function UserSelector({ server, users, onServerChange, onLogin }: UserSelectorPr
         </PrimaryButton>
       </div>
     </>
-  )
+  );
 }
 
 // ── Small sub-components ───────────────────────────────────────────────────
@@ -264,7 +273,7 @@ function BackButton({ onClick }: { onClick: () => void }) {
       <ArrowLeft size={20} />
       <span>Volver</span>
     </button>
-  )
+  );
 }
 
 function PrimaryButton({
@@ -273,10 +282,10 @@ function PrimaryButton({
   disabled,
   children,
 }: {
-  onClick: () => void
-  isLoading?: boolean
-  disabled?: boolean
-  children: React.ReactNode
+  onClick: () => void;
+  isLoading?: boolean;
+  disabled?: boolean;
+  children: React.ReactNode;
 }) {
   return (
     <button
@@ -290,15 +299,15 @@ function PrimaryButton({
         children
       )}
     </button>
-  )
+  );
 }
 
 function SecondaryButton({
   onClick,
   children,
 }: {
-  onClick: () => void
-  children: React.ReactNode
+  onClick: () => void;
+  children: React.ReactNode;
 }) {
   return (
     <button
@@ -307,7 +316,7 @@ function SecondaryButton({
     >
       {children}
     </button>
-  )
+  );
 }
 
 function FieldInput({
@@ -318,12 +327,12 @@ function FieldInput({
   placeholder,
   type = 'text',
 }: {
-  label: string
-  value: string
-  onChange: (v: string) => void
-  onEnter?: () => void
-  placeholder?: string
-  type?: string
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  onEnter?: () => void;
+  placeholder?: string;
+  type?: string;
 }) {
   return (
     <div>
@@ -337,11 +346,11 @@ function FieldInput({
         className="w-full rounded-md bg-black px-5 py-7"
       />
     </div>
-  )
+  );
 }
 
 function ErrorText({ children }: { children: React.ReactNode }) {
-  return <p className="animate-pulse text-sm font-medium text-red-400">{children}</p>
+  return <p className="animate-pulse text-sm font-medium text-red-400">{children}</p>;
 }
 
-export default UserSelector
+export default UserSelector;

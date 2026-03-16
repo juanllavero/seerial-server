@@ -1,16 +1,15 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { shallow } from 'zustand/shallow'
-import Loading from '@/components/Loading'
-import { useServerStore } from '@/context/auth.store'
-import type { DiscoveredServer } from '@/data/interfaces/Servers'
-import type { BasicUser } from '@/data/interfaces/Users'
-import ServerSelector from './components/servers/ServerSelector'
-import UserSelector from './components/users/UserSelector'
-import LoginLayout from './layout/LoginLayout'
+import type { BasicUser, DiscoveredServer } from '@seerial/domain';
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { shallow } from 'zustand/shallow';
+import Loading from '@/components/Loading';
+import { useServerStore } from '@seerial/stores';
+import ServerSelector from './components/servers/ServerSelector';
+import UserSelector from './components/users/UserSelector';
+import LoginLayout from './layout/LoginLayout';
 
 export default function LoginPage() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const { selectedServer, currentUser, setSelectedServer, setCurrentUser } = useServerStore(
     (s) => ({
       selectedServer: s.selectedServer,
@@ -19,33 +18,33 @@ export default function LoginPage() {
       setCurrentUser: s.setCurrentUser,
     }),
     shallow,
-  )
+  );
 
-  const [discoveredUsers, setDiscoveredUsers] = useState<BasicUser[]>([])
+  const [discoveredUsers, setDiscoveredUsers] = useState<BasicUser[]>([]);
 
   // Redirect immediately if session is fully restored
   useEffect(() => {
     if (selectedServer && currentUser) {
-      navigate('/home')
+      navigate('/home');
     }
-  }, [selectedServer, currentUser, navigate])
+  }, [selectedServer, currentUser, navigate]);
 
   if (selectedServer && currentUser) {
-    return <Loading />
+    return <Loading />;
   }
 
   // ── Step 1: select server ──────────────────────────────────────────────────
   if (!selectedServer) {
     const handleServerSelected = (server: DiscoveredServer) => {
-      setSelectedServer({ name: server.name, url: server.url })
-      setDiscoveredUsers(server.users)
-    }
+      setSelectedServer({ name: server.name, url: server.url });
+      setDiscoveredUsers(server.users);
+    };
 
     return (
       <LoginLayout>
         <ServerSelector onServerSelected={handleServerSelected} />
       </LoginLayout>
-    )
+    );
   }
 
   // ── Step 2: select/login user ──────────────────────────────────────────────
@@ -55,11 +54,11 @@ export default function LoginPage() {
         server={selectedServer}
         users={discoveredUsers}
         onServerChange={() => {
-          setSelectedServer(null)
-          setDiscoveredUsers([])
+          setSelectedServer(null);
+          setDiscoveredUsers([]);
         }}
         onLogin={setCurrentUser}
       />
     </LoginLayout>
-  )
+  );
 }

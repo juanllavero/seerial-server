@@ -1,24 +1,23 @@
-import { useEffect, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
-import { shallow } from 'zustand/shallow'
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import { useIsTablet } from '@/components/hooks/use-tablet'
-import { ModalWrapper } from '@/components/ModalWrapper'
-import { Button } from '@/components/ui/button'
-import FlexBox from '@/components/ui/FlexBox'
-import { Input } from '@/components/ui/input'
-import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
-import { useDialogStore } from '@/context/dialog.store'
-import { useWebSocketStore } from '@/context/ws.context'
-import type { MediaSearchResult } from '@/data/interfaces/Utils'
-import DownloadMediaCard from './DownloadMediaCard'
-import DownloadMediaCardSkeleton from './DownloadMediaCardSkeleton'
+import { useGetSeries, useSearchMedia } from '@seerial/api';
+import type { MediaSearchResult } from '@seerial/domain';
+import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { shallow } from 'zustand/shallow';
+import { useIsMobile } from '@/components/hooks/use-mobile';
+import { useIsTablet } from '@/components/hooks/use-tablet';
+import { ModalWrapper } from '@/components/ModalWrapper';
+import { Button } from '@/components/ui/button';
+import FlexBox from '@/components/ui/FlexBox';
+import { Input } from '@/components/ui/input';
+import { useDialogStore } from '@/context/dialog.store';
+import { useWebSocketStore } from '@seerial/stores';
+import DownloadMediaCard from './DownloadMediaCard';
+import DownloadMediaCardSkeleton from './DownloadMediaCardSkeleton';
 
 function DownloadMediaSearch() {
-  const { t } = useTranslation()
-  const isMobile = useIsMobile()
-  const isTablet = useIsTablet()
+  const { t } = useTranslation();
+  const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
   const { connectWS, downloadAudio, downloadVideo, downloaded, setDownloaded } = useWebSocketStore(
     (state) => ({
       connectWS: state.connectWS,
@@ -28,7 +27,7 @@ function DownloadMediaSearch() {
       setDownloaded: state.setDownloaded,
     }),
     shallow,
-  )
+  );
   const {
     downloadMediaDialog: { type, seriesToEdit, seasonToEdit, movieToEdit },
     closeDownloadMediaDialog,
@@ -38,68 +37,64 @@ function DownloadMediaSearch() {
       closeDownloadMediaDialog: state.closeDownloadMediaDialog,
     }),
     shallow,
-  )
-  const [openPlayer, setOpenPlayer] = useState<boolean>(false)
-  const [playerResult, setPlayerResult] = useState<MediaSearchResult | null>(null)
-  const [searching, setSearching] = useState<boolean>(false)
-  const [searchResults, setSearchResults] = useState<MediaSearchResult[]>([])
-  const [searchText, setSearchText] = useState<string>('')
-  const searchButtonRef = useRef<HTMLButtonElement>(null)
+  );
+  const [openPlayer, setOpenPlayer] = useState<boolean>(false);
+  const [playerResult, setPlayerResult] = useState<MediaSearchResult | null>(null);
+  const [searchText, setSearchText] = useState<string>('');
+  const [submittedSearchText, setSubmittedSearchText] = useState<string>('');
+  const searchButtonRef = useRef<HTMLButtonElement>(null);
 
-  const isShow: boolean = seriesToEdit !== undefined && seasonToEdit === undefined
-  const isSeason: boolean = seasonToEdit !== undefined && seriesToEdit === undefined
+  const isShow: boolean = seriesToEdit !== undefined && seasonToEdit === undefined;
+  const isSeason: boolean = seasonToEdit !== undefined && seriesToEdit === undefined;
 
-  const { data: series } = useSWR(
-    seasonToEdit ? `${API.series.get(seasonToEdit.seriesId)}` : null,
-    authenticatedFetcher,
-  )
+  const { data: series } = useGetSeries<{ name: string; libraryId: string }>(
+    seasonToEdit?.seriesId ?? '',
+    {
+      enabled: Boolean(seasonToEdit?.seriesId),
+    },
+  );
+
+  const {
+    data: searchResults,
+    isFetching: searching,
+    error: searchError,
+  } = useSearchMedia<MediaSearchResult[]>({
+    enabled: submittedSearchText !== '',
+    params: { query: submittedSearchText },
+    queryKey: ['search', 'media', submittedSearchText],
+  });
 
   useEffect(() => {
-    if (!seriesToEdit && !seasonToEdit && !movieToEdit) return
+    if (!seriesToEdit && !seasonToEdit && !movieToEdit) return;
 
     const baseText = isShow
       ? `${seriesToEdit?.name}`
       : isSeason
         ? `${series?.name} ${seasonToEdit?.name}`
-        : (movieToEdit?.name ?? '')
+        : (movieToEdit?.name ?? '');
 
-    if (baseText === '') return
+    if (baseText === '') return;
 
-    const searchText = baseText + (type === 'music' ? ' ost' : ' trailer')
+    const searchText = baseText + (type === 'music' ? ' ost' : ' trailer');
 
-    setSearchText(searchText)
-    search(searchText)
+    setSearchText(searchText);
+    setSubmittedSearchText(searchText);
 
     // Focus the search button when the dialog is opened
     setTimeout(() => {
-      searchButtonRef.current?.focus()
-    }, 0)
-  }, [seriesToEdit, seasonToEdit, movieToEdit])
+      searchButtonRef.current?.focus();
+    }, 0);
+  }, [seriesToEdit, seasonToEdit, movieToEdit]);
 
   useEffect(() => {
     if (downloaded) {
-      setDownloaded(false)
-      closeDownloadMediaDialog()
+      setDownloaded(false);
+      closeDownloadMediaDialog();
     }
-  }, [downloaded])
-
-  const search = (text: string) => {
-    setSearching(true)
-    authenticatedFetch(`${API.search.media}?query=${text}`)
-      .then(async (response) => {
-        if (response && response.data) {
-          const data = await response.data
-          setSearchResults(data)
-        }
-      })
-      .catch((error) => {
-        console.error(error)
-      })
-      .finally(() => setSearching(false))
-  }
+  }, [downloaded]);
 
   const downloadMedia = async (media: MediaSearchResult) => {
-    await connectWS()
+    await connectWS();
 
     if (type === 'music') {
       await downloadAudio(
@@ -115,7 +110,7 @@ function DownloadMediaSearch() {
           : isSeason
             ? (seasonToEdit?.id ?? '')
             : (movieToEdit?.id ?? ''),
-      )
+      );
     } else {
       await downloadVideo(
         media.id,
@@ -130,18 +125,18 @@ function DownloadMediaSearch() {
           : isSeason
             ? (seasonToEdit?.id ?? '')
             : (movieToEdit?.id ?? ''),
-      )
+      );
     }
-  }
+  };
 
   const playMedia = (result: MediaSearchResult) => {
-    setPlayerResult(result)
-    setOpenPlayer(true)
-  }
+    setPlayerResult(result);
+    setOpenPlayer(true);
+  };
 
   const getVideoId = (url: string) => {
-    return url.match(/(?:v=|\/embed\/|\.be\/)([\w-]{11})/)?.[1]
-  }
+    return url.match(/(?:v=|\/embed\/|\.be\/)([\w-]{11})/)?.[1];
+  };
 
   return (
     <FlexBox
@@ -159,7 +154,7 @@ function DownloadMediaSearch() {
           onChange={(e) => setSearchText(e.target.value)}
         />
         <FlexBox align="end" justify="end">
-          <Button onClick={() => search(searchText)} ref={searchButtonRef}>
+          <Button onClick={() => setSubmittedSearchText(searchText)} ref={searchButtonRef}>
             {t('searchButton')}
           </Button>
         </FlexBox>
@@ -169,6 +164,8 @@ function DownloadMediaSearch() {
         {/* Results List */}
         {searching ? (
           Array.from({ length: 4 }).map((_, index) => <DownloadMediaCardSkeleton key={index} />)
+        ) : searchError ? (
+          <span>{t('noResults')}</span>
         ) : searchResults && searchResults.length > 0 ? (
           searchResults.map((result: MediaSearchResult, index: number) => (
             <DownloadMediaCard
@@ -210,7 +207,7 @@ function DownloadMediaSearch() {
         hideButtons
       />
     </FlexBox>
-  )
+  );
 }
 
-export default DownloadMediaSearch
+export default DownloadMediaSearch;

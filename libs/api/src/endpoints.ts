@@ -38,6 +38,7 @@ export const API = {
         delete: (id: string) => `/users/${id}`,
         findAllPublic: '/users/public',
         login: '/users/login',
+        logout: '/users/logout',
     },
     songs: {
         update: (id: string) => `/songs/${id}`,

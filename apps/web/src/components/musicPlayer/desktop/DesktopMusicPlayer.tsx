@@ -1,6 +1,6 @@
 import { memo } from 'react'
 import { shallow } from 'zustand/shallow'
-import useMusicStore from '@/context/music.context'
+import { useMusicStore } from '@seerial/stores'
 import MusicControlsExpanded from './controls/MusicControlsExpanded'
 
 function DesktopMusicPlayer() {

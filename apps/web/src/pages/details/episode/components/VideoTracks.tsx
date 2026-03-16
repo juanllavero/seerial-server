@@ -1,128 +1,128 @@
-import { t } from 'i18next'
-import { useEffect, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
-import Loading from '@/components/Loading'
-import FlexBox from '@/components/ui/FlexBox'
-import SelectableWrapper from '@/components/ui/SelectableWrapper'
-import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
-import type { Video } from '@/data/interfaces/Media'
-import type { AudioTrack, SubtitleTrack, VideoTrack } from '@/data/interfaces/MediaInfo'
-import { useLanguageName } from '@/localization/TrackLanguages'
-import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils'
+import { useGetVideoMediaInfo, useUpdateVideoMediaInfo } from '@seerial/api';
+import type { AudioTrack, SubtitleTrack, Video, VideoTrack } from '@seerial/domain';
+import { t } from 'i18next';
+import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import Loading from '@/components/Loading';
+import FlexBox from '@/components/ui/FlexBox';
+import SelectableWrapper from '@/components/ui/SelectableWrapper';
+import { useLanguageName } from '@/localization/TrackLanguages';
+import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils';
 
 interface VideoInfo {
-  title: string
-  subtitle: string
-  preferAudioLan: string
-  preferSubtitleLan: string
-  subsMode: string
+  title: string;
+  subtitle: string;
+  preferAudioLan: string;
+  preferSubtitleLan: string;
+  subsMode: string;
 }
 
 interface VideoTracksProps {
-  video: Video | null
-  mutate: () => void
+  video: Video | null;
+  mutate: () => void;
 }
 
 function VideoTracks({ video, mutate }: VideoTracksProps) {
-  const { i18n } = useTranslation()
+  const { i18n } = useTranslation();
   // Get video info
-  const { data: videoInfo, isLoading } = useSWR<VideoInfo>(
-    video ? API.videos.getMediaInfo(video.id) : null,
-    authenticatedFetcher,
-  )
+  const { data: videoInfo, isLoading } = useGetVideoMediaInfo<VideoInfo>(video?.id ?? '', {
+    enabled: Boolean(video?.id),
+  });
+  const { mutateAsync: updateVideoMediaInfo } = useUpdateVideoMediaInfo<Video, { videoId: string }>(
+    video?.id ?? '',
+  );
 
   const [selectedVideoTrack, setSelectedVideoTrack] = useState<VideoTrack | null>(
     video?.videoTracks?.find((track: VideoTrack) => track.selected) || null,
-  )
+  );
   const [selectedAudioTrack, setSelectedAudioTrack] = useState<AudioTrack | null>(
     video?.audioTracks?.find((track: AudioTrack) => track.selected) || null,
-  )
+  );
   const [selectedSubtitleTrack, setSelectedSubtitleTrack] = useState<SubtitleTrack | null>(
     video?.subtitleTracks?.find((track: SubtitleTrack) => track.selected) || null,
-  )
+  );
   const [tracks, setTracks] = useState<{
-    videoTracks: VideoTrack[]
-    audioTracks: AudioTrack[]
-    subtitleTracks: SubtitleTrack[]
+    videoTracks: VideoTrack[];
+    audioTracks: AudioTrack[];
+    subtitleTracks: SubtitleTrack[];
   }>({
     videoTracks: video?.videoTracks || [],
     audioTracks: video?.audioTracks || [],
     subtitleTracks: video?.subtitleTracks || [],
-  })
+  });
 
-  const hasFetched = useRef(false)
+  const hasFetched = useRef(false);
 
   useEffect(() => {
-    if (!video || !videoInfo || hasFetched.current) return
-    hasFetched.current = true
+    if (!video || !videoInfo || hasFetched.current) return;
+    hasFetched.current = true;
 
     const fetchData = async () => {
-      const result = await authenticatedFetch(API.videos.updateMediaInfo(video.id), 'PUT', {
-        videoId: video.id,
-      })
+      const data = await updateVideoMediaInfo({ videoId: video.id }).catch(() => null);
 
-      if (!result || !result.data) {
-        return
+      if (!data) {
+        return;
       }
 
-      const data = await result.data
+      const { videoTracks = [], audioTracks = [], subtitleTracks = [] } = data;
+      setTracks({ videoTracks, audioTracks, subtitleTracks });
 
-      const { videoTracks, audioTracks, subtitleTracks } = data
-      setTracks({ videoTracks, audioTracks, subtitleTracks })
+      const audioTrack = getAudioTrack(videoInfo.preferAudioLan, video);
+      const subtitleTrack = getSubtitleTrack(
+        videoInfo.preferSubtitleLan,
+        videoInfo.subsMode,
+        video,
+      );
+      const videoTrack = videoTracks[0] ?? null;
 
-      const audioTrack = getAudioTrack(videoInfo.preferAudioLan, video)
-      const subtitleTrack = getSubtitleTrack(videoInfo.preferSubtitleLan, videoInfo.subsMode, video)
-      const videoTrack = videoTracks[0] ?? null
-
-      setSelectedVideoTrack(videoTrack)
-      setSelectedAudioTrack(audioTrack)
-      setSelectedSubtitleTrack(subtitleTrack)
+      setSelectedVideoTrack(videoTrack);
+      setSelectedAudioTrack(audioTrack);
+      setSelectedSubtitleTrack(subtitleTrack);
 
       if (videoTrack && videoTracks) {
         for (const videoTrack of videoTracks) {
-          videoTrack.selected = false
+          videoTrack.selected = false;
         }
-        videoTrack.selected = true
+        videoTrack.selected = true;
       }
 
       if (audioTrack && audioTracks) {
         for (const audioTrack of audioTracks) {
-          audioTrack.selected = false
+          audioTrack.selected = false;
         }
-        audioTrack.selected = true
+        audioTrack.selected = true;
       }
 
       if (subtitleTrack && subtitleTracks) {
         for (const subTrack of subtitleTracks) {
-          subTrack.selected = false
+          subTrack.selected = false;
         }
-        subtitleTrack.selected = true
+        subtitleTrack.selected = true;
       }
 
-      mutate()
-    }
+      mutate();
+    };
 
-    fetchData()
-  }, [video, videoInfo])
+    fetchData();
+  }, [mutate, updateVideoMediaInfo, video, videoInfo]);
 
   const handleVideoTrackChange = (key: string, _value: string) => {
-    setSelectedVideoTrack(tracks.videoTracks.find((track) => track.id === Number(key)) ?? null)
-  }
+    setSelectedVideoTrack(tracks.videoTracks.find((track) => track.id === Number(key)) ?? null);
+  };
 
   const handleAudioTrackChange = (key: string, _value: string) => {
-    setSelectedAudioTrack(tracks.audioTracks.find((track) => track.id === Number(key)) ?? null)
-  }
+    setSelectedAudioTrack(tracks.audioTracks.find((track) => track.id === Number(key)) ?? null);
+  };
 
   const handleSubtitleTrackChange = (key: string, _value: string) => {
     setSelectedSubtitleTrack(
       tracks.subtitleTracks.find((track) => track.id === Number(key)) ?? null,
-    )
-  }
+    );
+  };
 
-  if (isLoading) return <Loading />
+  if (isLoading) return <Loading />;
 
-  if (!video || !videoInfo || !tracks || tracks.audioTracks.length === 0) return null
+  if (!video || !videoInfo || !tracks || tracks.audioTracks.length === 0) return null;
 
   return (
     <FlexBox gap={1} padding="0 0 0 1rem">
@@ -232,7 +232,7 @@ function VideoTracks({ video, mutate }: VideoTracksProps) {
         )}
       </FlexBox>
     </FlexBox>
-  )
+  );
 }
 
-export default VideoTracks
+export default VideoTracks;

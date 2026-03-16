@@ -1,19 +1,19 @@
-import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import HorizontalList from '@/components/lists/HorizontalList'
-import FlexBox from '@/components/ui/FlexBox'
-import type { Movie, Video } from '@/data/interfaces/Media'
-import VideoCard from './cards/VideoCard'
+import type { Movie, Video } from '@seerial/domain';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { useIsMobile } from '@/components/hooks/use-mobile';
+import HorizontalList from '@/components/lists/HorizontalList';
+import FlexBox from '@/components/ui/FlexBox';
+import VideoCard from './cards/VideoCard';
 
 interface MovieContentProps {
-  movie: Movie
+  movie: Movie;
 }
 
 function MovieContent({ movie }: MovieContentProps) {
-  const { t } = useTranslation()
-  const navigate = useNavigate()
-  const isMobile = useIsMobile()
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const getEpisodeMenu = () => {
     return {
@@ -31,14 +31,14 @@ function MovieContent({ movie }: MovieContentProps) {
           ],
         },
       ],
-    }
-  }
+    };
+  };
 
   const playEpisode = async (video: Video) => {
-    navigate(`/video-player/${video.id}`)
-  }
+    navigate(`/video-player/${video.id}`);
+  };
 
-  const onlyMovie = movie.videos.length === 1
+  const onlyMovie = movie.videos.length === 1;
 
   return (
     <FlexBox
@@ -76,7 +76,7 @@ function MovieContent({ movie }: MovieContentProps) {
         </HorizontalList>
       )}
     </FlexBox>
-  )
+  );
 }
 
-export default MovieContent
+export default MovieContent;

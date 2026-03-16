@@ -1,4 +1,4 @@
-import type { LibraryType } from '@/data/interfaces/Media';
+import type { LibraryType } from '@seerial/domain';
 import type { CollageTileRatio } from '../../infrastructure/adapters/image-processing/ImageProcessingServiceImpl';
 
 export interface ImageProcessingServicePort {

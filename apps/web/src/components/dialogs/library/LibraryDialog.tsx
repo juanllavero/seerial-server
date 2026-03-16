@@ -1,46 +1,43 @@
-import { useEffect, useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
-import { API } from '@/config/api'
-import { useDialogStore } from '@/context/dialog.store'
-import { useWebSocketStore } from '@/context/ws.context'
-import type { Library } from '@/data/interfaces/Media'
-import { useCreate } from '@/hooks/media/useCreateContent'
-import { useGet } from '@/hooks/media/useGet'
-import { useUpdate } from '@/hooks/media/useUpdate'
-import useFormState from '@/hooks/useFormState'
-import { showToast } from '@/utils/ReactUtils'
-import { ModalWrapper } from '../../ModalWrapper'
-import AdvancedTabContent from './AdvancedTabContent'
-import FoldersTabContent from './FoldersTabContent'
-import GeneralTabContent from './GeneralTabContent'
+import { API, useCreate, useGet, useUpdate } from '@seerial/api';
+import type { Library } from '@seerial/domain';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { useDialogStore } from '@/context/dialog.store';
+import { useWebSocketStore } from '@seerial/stores';
+import useFormState from '@/hooks/useFormState';
+import { showToast } from '@/utils/ReactUtils';
+import { ModalWrapper } from '../../ModalWrapper';
+import AdvancedTabContent from './AdvancedTabContent';
+import FoldersTabContent from './FoldersTabContent';
+import GeneralTabContent from './GeneralTabContent';
 
 interface LibraryFormState {
-  type: string | undefined
-  name: string
-  language: string | undefined
-  folders: string[]
-  preferAudioLan: string
-  preferSubLan: string
-  subsMode: string
+  type: string | undefined;
+  name: string;
+  language: string | undefined;
+  folders: string[];
+  preferAudioLan: string;
+  preferSubLan: string;
+  subsMode: string;
 }
 
 function LibraryDialog() {
-  const { t, i18n } = useTranslation()
-  const navigate = useNavigate()
-  const currentLanguage = i18n.language?.split('-')[0] ?? 'en'
-  const connectWS = useWebSocketStore((state) => state.connectWS)
-  const { error: updateError, update } = useUpdate<Library>()
-  const { error: createError, create } = useCreate<Library>()
-  const { payload, closeDialog } = useDialogStore()
-  const { id } = payload as { id?: string }
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
+  const currentLanguage = i18n.language?.split('-')[0] ?? 'en';
+  const connectWS = useWebSocketStore((state) => state.connectWS);
+  const { error: updateError, update } = useUpdate<Library>();
+  const { error: createError, create } = useCreate<Library>();
+  const { payload, closeDialog } = useDialogStore();
+  const { id } = payload as { id?: string };
 
   // Fetch Data
-  const { data: library } = useGet<Library>(id ? API.libraries.getById(id) : null)
+  const { data: library } = useGet<Library>(id ? API.libraries.getById(id) : null);
 
   // State Management
-  const [loading, setLoading] = useState<boolean>(false)
-  const [selectedTab, setSelectedTab] = useState<string | undefined>()
+  const [loading, setLoading] = useState<boolean>(false);
+  const [selectedTab, setSelectedTab] = useState<string | undefined>();
 
   // Form Data Management
   const form = useFormState<LibraryFormState>(
@@ -57,11 +54,11 @@ function LibraryDialog() {
       preferAudioLan: currentLanguage,
       preferSubLan: currentLanguage,
     },
-  )
+  );
 
   // Initialization
   useEffect(() => {
-    if (!library && id) return
+    if (!library && id) return;
 
     if (!id) {
       // Adding new library
@@ -73,8 +70,8 @@ function LibraryDialog() {
         preferAudioLan: currentLanguage,
         preferSubLan: currentLanguage,
         subsMode: 'autoSubs',
-      })
-      setSelectedTab(t('generalButton'))
+      });
+      setSelectedTab(t('generalButton'));
     } else if (library) {
       // Editing existing library
       form.resetFormState({
@@ -85,60 +82,60 @@ function LibraryDialog() {
         preferAudioLan: library.preferAudioLan ?? currentLanguage,
         preferSubLan: library.preferSubLan ?? currentLanguage,
         subsMode: library.subsMode ?? 'autoSubs',
-      })
-      setSelectedTab(t('generalButton'))
+      });
+      setSelectedTab(t('generalButton'));
     }
-  }, [library, id, currentLanguage, t, form])
+  }, [library, id, currentLanguage, t, form]);
 
   const handleAddEditLibrary = async () => {
-    setLoading(true)
-    await connectWS()
+    setLoading(true);
+    await connectWS();
 
     const libraryData = {
       name: form.name,
       language: form.language ?? 'en',
-      type: form.type ?? 'Shows',
+      type: (form.type ?? 'Shows') as Library['type'],
       folders: form.folders ?? [],
       preferAudioLan: form.preferAudioLan,
       preferSubLan: form.preferSubLan,
       subsMode: form.subsMode,
-    }
+    };
 
     if (id) {
-      const updatedLibrary = await update(API.libraries.update(id), libraryData)
+      const updatedLibrary = await update(API.libraries.update(id), libraryData);
 
       if (updateError || !updatedLibrary) {
-        showToast('error', t('libraryUpdateError'))
-        setLoading(false)
-        return
+        showToast('error', t('libraryUpdateError'));
+        setLoading(false);
+        return;
       }
 
-      closeDialog()
+      closeDialog();
     } else {
-      const newLibrary = await create(API.libraries.create, libraryData)
+      const newLibrary = await create(API.libraries.create, libraryData);
 
       if (createError || !newLibrary) {
-        showToast('error', t('libraryCreateError'))
-        setLoading(false)
-        return
+        showToast('error', t('libraryCreateError'));
+        setLoading(false);
+        return;
       }
 
-      closeDialog()
-      navigate(`/library/${newLibrary.id}/${libraryData.type}`)
+      closeDialog();
+      navigate(`/library/${newLibrary.id}/${libraryData.type}`);
     }
 
-    setLoading(false)
-  }
+    setLoading(false);
+  };
 
   const handleSaveOrNext = () => {
     if (id) {
-      handleAddEditLibrary()
+      handleAddEditLibrary();
     } else {
-      setSelectedTab(t('folders'))
+      setSelectedTab(t('folders'));
     }
-  }
+  };
 
-  const isOpen = !!id
+  const isOpen = !!id;
 
   return (
     <ModalWrapper
@@ -199,7 +196,7 @@ function LibraryDialog() {
       activeTab={selectedTab}
       onTabChange={(newTab) => setSelectedTab(newTab)}
     />
-  )
+  );
 }
 
-export default LibraryDialog
+export default LibraryDialog;

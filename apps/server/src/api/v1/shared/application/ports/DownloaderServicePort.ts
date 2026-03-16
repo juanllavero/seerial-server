@@ -1,4 +1,4 @@
-import type { MediaSearchResult } from '@/data/interfaces/SearchResults';
+import type { MediaSearchResult } from '@seerial/domain';
 
 export interface DownloaderServicePort {
   downloadYoutubeDownloader(): Promise<void>;

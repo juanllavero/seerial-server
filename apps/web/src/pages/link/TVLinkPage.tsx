@@ -1,100 +1,109 @@
-import { t } from 'i18next'
-import { useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import Image from '@/components/ui/Image'
-import { authenticatedFetch } from '@/config/api'
-import { useServerStore } from '@/context/auth.store'
-import { CENTRAL_SERVER } from '@/utils/constants'
+import { t } from 'i18next';
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import Image from '@/components/ui/Image';
+import { publicApiClient } from '@/config/api';
+import { useServerStore } from '@seerial/stores';
+import { CENTRAL_SERVER } from '@/utils/constants';
 
 export default function TVLinkPage() {
-  const user = useServerStore((state) => state.currentUser)
-  const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
-  const [code, setCode] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const user = useServerStore((state) => state.currentUser);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [code, setCode] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleAutoLink = useCallback(
+    async (autoCode: string) => {
+      if (!user) return;
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await publicApiClient.post<{ error?: string }>(
+          `https://${CENTRAL_SERVER}/users/link`,
+          {
+            user_code: autoCode.toUpperCase(),
+          },
+        );
+        const data = response.data;
+
+        if (data && !data.error) {
+          setSuccess(true);
+          setTimeout(() => {
+            navigate('/home');
+          }, 2000);
+        } else {
+          setError(data?.error || 'Failed to link device');
+        }
+      } catch (err) {
+        console.error('Auto-link error:', err);
+        setError('Network error occurred');
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [navigate, user],
+  );
 
   // Obtener código de los parámetros URL si existe
   useEffect(() => {
-    const urlCode = searchParams.get('code')
+    const urlCode = searchParams.get('code');
     if (urlCode) {
       // Limpiar el código y establecerlo
-      const cleanCode = urlCode.slice(0, 4)
-      setCode(cleanCode.toUpperCase())
+      const cleanCode = urlCode.slice(0, 4);
+      setCode(cleanCode.toUpperCase());
 
       // Si el código tiene 4 dígitos, intentar vincularlo automáticamente
       if (cleanCode.length === 4 && user) {
-        handleAutoLink(cleanCode)
+        handleAutoLink(cleanCode);
       }
     }
-  }, [searchParams, user])
-
-  const handleAutoLink = async (autoCode: string) => {
-    if (!user) return
-
-    setIsLoading(true)
-    setError(null)
-
-    try {
-      const response = await authenticatedFetch(`https://${CENTRAL_SERVER}/users/link`, 'POST', {
-        user_code: autoCode.toUpperCase(),
-      })
-
-      if (response && response.data) {
-        setSuccess(true)
-        setTimeout(() => {
-          navigate('/home')
-        }, 2000)
-      } else {
-        const errorData = await response?.data
-        setError(errorData?.error || 'Failed to link device')
-      }
-    } catch (err) {
-      console.error('Auto-link error:', err)
-      setError('Network error occurred')
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  }, [searchParams, user, handleAutoLink]);
 
   const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.slice(0, 4)
-    setCode(value.toUpperCase())
-    setError(null)
-  }
+    const value = e.target.value.slice(0, 4);
+    setCode(value.toUpperCase());
+    setError(null);
+  };
 
   const handleLink = async () => {
-    if (code.length !== 4) return
+    if (code.length !== 4) return;
 
-    setIsLoading(true)
-    setError(null)
+    setIsLoading(true);
+    setError(null);
 
     try {
-      const response = await authenticatedFetch(`https://${CENTRAL_SERVER}/users/link`, 'POST', {
-        user_code: code,
-      })
+      const response = await publicApiClient.post<{ error?: string }>(
+        `https://${CENTRAL_SERVER}/users/link`,
+        {
+          user_code: code,
+        },
+      );
+      const data = response.data;
 
-      if (response && response.data) {
-        setSuccess(true)
+      if (data && !data.error) {
+        setSuccess(true);
         setTimeout(() => {
-          navigate('/home')
-        }, 2000)
+          navigate('/home');
+        }, 2000);
       } else {
-        const errorData = await response?.data
-        setError(errorData?.error || 'Failed to link device')
+        setError(data?.error || 'Failed to link device');
       }
     } catch (err) {
-      console.error('Link error:', err)
-      setError('Network error occurred')
+      console.error('Link error:', err);
+      setError('Network error occurred');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   if (!user) {
-    navigate('/login?from=link')
-    return null
+    navigate('/login?from=link');
+    return null;
   }
 
   if (success) {
@@ -106,7 +115,7 @@ export default function TVLinkPage() {
           <p className="mb-6 text-gray-400">{t('successfulLinkMessage')}</p>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -152,6 +161,7 @@ export default function TVLinkPage() {
 
         {/* Link Button */}
         <button
+          type="button"
           onClick={handleLink}
           disabled={code.length !== 4 || isLoading}
           style={{ fontWeight: 'bold' }}
@@ -171,6 +181,7 @@ export default function TVLinkPage() {
           {t('signedAsMessage')} {user.username}
         </p>
         <button
+          type="button"
           onClick={() => navigate('/login')}
           className="text-sm text-orange-500 underline transition-colors duration-200 hover:text-orange-400"
         >
@@ -178,5 +189,5 @@ export default function TVLinkPage() {
         </button>
       </div>
     </div>
-  )
+  );
 }

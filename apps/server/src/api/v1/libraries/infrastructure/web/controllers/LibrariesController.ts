@@ -1,3 +1,4 @@
+import type { LibraryItem } from '@seerial/domain';
 import type { Request as ExpressRequest } from 'express';
 import {
   Body,
@@ -16,7 +17,6 @@ import { useCases } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
 import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
 import { messages } from '@/config/messages';
-import type { LibraryItem } from '@/data/interfaces/Media';
 import { getUserId } from '@/utils/auth';
 import type {
   CreateLibraryDTO,

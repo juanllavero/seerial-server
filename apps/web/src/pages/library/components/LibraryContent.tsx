@@ -1,38 +1,41 @@
-import { memo } from 'react'
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import { SortableGrid } from '@/components/lists/SortableGrid'
-import Grid from '@/components/ui/Grid'
-import { API } from '@/config/api'
-import { LibraryTypes } from '@/data/enums/LibraryTypes'
-import type { Library, LibraryItem } from '@/data/interfaces/Media'
-import { useGet } from '@/hooks/media/useGet'
-import { useCardWidth } from '@/hooks/useCardWidth'
-import { useReorderableList } from '@/hooks/useReorderableList'
-import MediaCard from './cards/MediaCard'
+import { API, useGet } from '@seerial/api';
+import type { Library, LibraryItem } from '@seerial/domain';
+import { memo } from 'react';
+import { useIsMobile } from '@/components/hooks/use-mobile';
+import { SortableGrid } from '@/components/lists/SortableGrid';
+import Grid from '@/components/ui/Grid';
+import { LibraryTypes } from '@/data/enums/LibraryTypes';
+import { useCardWidth } from '@/hooks/useCardWidth';
+import { useReorderableList } from '@/hooks/useReorderableList';
+import MediaCard from './cards/MediaCard';
 
 interface LibraryContentProps {
-  library: Library
-  mutateLibrary: () => void
+  library: Library;
+  mutateLibrary: () => void;
 }
 
 function LibraryContent({ library, mutateLibrary }: LibraryContentProps) {
-  const isMobile = useIsMobile()
-  const { cardWidth } = useCardWidth()
+  const isMobile = useIsMobile();
+  const { cardWidth } = useCardWidth();
 
   const queryType =
     library.type === LibraryTypes.MUSIC
       ? 'Music'
       : library.type === LibraryTypes.SHOWS
         ? 'Shows'
-        : 'Movies'
+        : 'Movies';
 
   const { data: libraryItems, isLoading } = useGet<LibraryItem[]>(
     `${API.libraries.content(library.id)}?type=${queryType}`,
-  )
+  );
 
-  const { items, handleDragEnd } = useReorderableList(libraryItems || [], library.id, mutateLibrary)
+  const { items, handleDragEnd } = useReorderableList(
+    libraryItems || [],
+    library.id,
+    mutateLibrary,
+  );
 
-  if (isLoading) return null
+  if (isLoading) return null;
 
   return (
     <Grid
@@ -58,7 +61,7 @@ function LibraryContent({ library, mutateLibrary }: LibraryContentProps) {
         )}
       />
     </Grid>
-  )
+  );
 }
 
-export default memo(LibraryContent)
+export default memo(LibraryContent);

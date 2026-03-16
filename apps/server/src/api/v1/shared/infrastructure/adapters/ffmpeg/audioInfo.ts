@@ -1,4 +1,4 @@
-import type { AudioInfo } from '@/data/interfaces/MediaInfo';
+import type { AudioInfo } from '@seerial/domain';
 import logger from '@/utils/logger';
 import { executeFfprobe } from './nativeFfmpeg';
 

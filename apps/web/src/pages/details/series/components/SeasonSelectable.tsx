@@ -1,18 +1,18 @@
-import { useState } from 'react'
+import type { SelectableOption } from '@seerial/domain';
+import { useState } from 'react';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import type { SelectableOption } from '@/data/interfaces/Utils'
+} from '@/components/ui/select';
 
 interface SeasonSelectableProps {
-  placeholder?: string
-  defaultValue: string
-  onValueChange: (key: string, value: string) => void
-  options: SelectableOption[]
+  placeholder?: string;
+  defaultValue: string;
+  onValueChange: (key: string, value: string) => void;
+  options: SelectableOption[];
 }
 
 function SeasonSelectable({
@@ -21,18 +21,18 @@ function SeasonSelectable({
   onValueChange,
   options,
 }: SeasonSelectableProps) {
-  const [selectedSeason, setSelectedSeason] = useState<string | null>(null)
-  const getUniqueValue = (option: SelectableOption) => `${option.key}::${option.value}`
+  const [selectedSeason, setSelectedSeason] = useState<string | null>(null);
+  const getUniqueValue = (option: SelectableOption) => `${option.key}::${option.value}`;
 
   const handleValueChange = (uniqueValue: string) => {
-    const [key, value] = uniqueValue.split('::')
-    setSelectedSeason(value)
-    onValueChange(key, value)
-  }
+    const [key, value] = uniqueValue.split('::');
+    setSelectedSeason(value);
+    onValueChange(key, value);
+  };
 
   const defaultUniqueValue = options.find((option) => option.value === defaultValue)
     ? getUniqueValue(options.find((option) => option.value === defaultValue)!)
-    : undefined
+    : undefined;
 
   return (
     <Select defaultValue={defaultUniqueValue} onValueChange={handleValueChange}>
@@ -49,7 +49,7 @@ function SeasonSelectable({
         ))}
       </SelectContent>
     </Select>
-  )
+  );
 }
 
-export default SeasonSelectable
+export default SeasonSelectable;

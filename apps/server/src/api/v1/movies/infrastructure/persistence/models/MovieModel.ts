@@ -1,3 +1,4 @@
+import type { CastData } from '@seerial/domain';
 import {
   BaseEntity,
   BeforeInsert,
@@ -14,7 +15,6 @@ import { LibraryModel } from '@/api/v1/libraries/infrastructure/persistence/mode
 import { MyListModel } from '@/api/v1/my-lists/infrastructure/persistence/models/MyListModel';
 import { VideoModel } from '@/api/v1/videos/infrastructure/persistence/models/VideoModel';
 import { WatchListModel } from '@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel';
-import type { CastData } from '@/data/interfaces/Media';
 
 @Entity({ name: 'Movie' })
 export class MovieModel extends BaseEntity {

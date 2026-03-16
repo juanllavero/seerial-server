@@ -1,3 +1,10 @@
+import type {
+  AudioTrack,
+  Chapter,
+  MediaInfo,
+  SubtitleTrack,
+  VideoTrack,
+} from '@seerial/domain';
 import {
   BaseEntity,
   BeforeInsert,
@@ -12,13 +19,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { EpisodeModel } from '@/api/v1/episodes/infrastructure/persistence/models/EpisodeModel';
 import { MovieModel } from '@/api/v1/movies/infrastructure/persistence/models/MovieModel';
 import { WatchListModel } from '@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel';
-import type {
-  AudioTrack,
-  Chapter,
-  MediaInfo,
-  SubtitleTrack,
-  VideoTrack,
-} from '@/data/interfaces/MediaInfo';
 
 @Entity({ name: 'Video' })
 export class VideoModel extends BaseEntity {

@@ -1,6 +1,6 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { shallow } from 'zustand/shallow'
-import { useServerStore } from '@/context/auth.store'
+import { useServerStore } from '@seerial/stores'
 import BaseLayout from '@/layouts/BaseLayout'
 
 const PUBLIC_PATHS = ['/login', '/link']

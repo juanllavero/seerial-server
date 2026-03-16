@@ -1,15 +1,15 @@
-import { Server, WifiOff } from 'lucide-react'
-import type { DiscoveredServer } from '@/data/interfaces/Servers'
+import type { DiscoveredServer } from '@seerial/domain';
+import { Server, WifiOff } from 'lucide-react';
 
 interface ServerCardProps {
-  server: DiscoveredServer
-  onSelect: (server: DiscoveredServer) => void
+  server: DiscoveredServer;
+  onSelect: (server: DiscoveredServer) => void;
 }
 
 function ServerCard({ server, onSelect }: ServerCardProps) {
-  const isChecking = server.status === 'checking'
-  const isOffline = server.status === 'offline'
-  const isDisabled = isChecking || isOffline
+  const isChecking = server.status === 'checking';
+  const isOffline = server.status === 'offline';
+  const isDisabled = isChecking || isOffline;
 
   return (
     <button
@@ -62,16 +62,16 @@ function ServerCard({ server, onSelect }: ServerCardProps) {
         </span>
       )}
     </button>
-  )
+  );
 }
 
 function extractHostname(url: string): string {
   try {
-    const u = new URL(url)
-    return u.port ? `${u.hostname}:${u.port}` : u.hostname
+    const u = new URL(url);
+    return u.port ? `${u.hostname}:${u.port}` : u.hostname;
   } catch {
-    return url
+    return url;
   }
 }
 
-export default ServerCard
+export default ServerCard;

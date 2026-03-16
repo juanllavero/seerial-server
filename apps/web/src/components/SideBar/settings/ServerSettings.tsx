@@ -1,29 +1,28 @@
-import { useTranslation } from 'react-i18next'
-import { shallow } from 'zustand/shallow'
-
-import { useSettingsStore } from '@/context/settings.context'
-import { SettingsSection } from '@/data/interfaces/Utils'
-import { useIsAdmin } from '@/hooks/useIsAdmin'
+import { SettingsSection } from '@seerial/domain';
+import { useTranslation } from 'react-i18next';
+import { shallow } from 'zustand/shallow';
+import { useSettingsStore } from '@/context/settings.context';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '../../ui/sidebar'
+} from '../../ui/sidebar';
 
 const ServerSettings = () => {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
   const { settingsSection, setSettingsSection } = useSettingsStore(
     (state) => ({
       settingsSection: state.settingsSection,
       setSettingsSection: state.setSettingsSection,
     }),
     shallow,
-  )
-  const isAdmin = useIsAdmin()
+  );
+  const isAdmin = useIsAdmin();
 
-  if (!isAdmin) return null
+  if (!isAdmin) return null;
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{t('server')}</SidebarGroupLabel>
@@ -104,7 +103,7 @@ const ServerSettings = () => {
         </SidebarMenuItem>
       </SidebarMenu>
     </SidebarGroup>
-  )
-}
+  );
+};
 
-export default ServerSettings
+export default ServerSettings;

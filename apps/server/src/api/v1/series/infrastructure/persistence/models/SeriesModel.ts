@@ -1,3 +1,4 @@
+import type { CastData } from '@seerial/domain';
 import {
   BaseEntity,
   BeforeInsert,
@@ -16,7 +17,6 @@ import { MyListModel } from '@/api/v1/my-lists/infrastructure/persistence/models
 import { SeasonModel } from '@/api/v1/seasons/infrastructure/persistence/models/SeasonModel';
 import { useCases } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { WatchListModel } from '@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel';
-import type { CastData } from '@/data/interfaces/Media';
 import logger from '@/utils/logger';
 
 const seriesLogger = logger.child({ category: 'Series' });

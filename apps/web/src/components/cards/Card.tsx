@@ -1,38 +1,38 @@
-import { Check, EllipsisVertical } from 'lucide-react'
-import React, { useState } from 'react'
-import type { DropdownContent } from '@/data/interfaces/Utils'
-import { useIsAdmin } from '@/hooks/useIsAdmin'
-import DropdownWrapper from '../DropdownWrapper'
-import Loading from '../Loading'
-import { Button } from '../ui/button'
-import FlexBox from '../ui/FlexBox'
-import { PlayIcon } from '../ui/IconLibrary'
-import LazyImage from '../ui/LazyImage'
-import { Progress } from '../ui/progress'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
-import './Card.css'
+import type { DropdownContent } from '@seerial/domain';
+import { Check, EllipsisVertical } from 'lucide-react';
+import React, { useState } from 'react';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
+import DropdownWrapper from '../DropdownWrapper';
+import Loading from '../Loading';
+import { Button } from '../ui/button';
+import FlexBox from '../ui/FlexBox';
+import { PlayIcon } from '../ui/IconLibrary';
+import LazyImage from '../ui/LazyImage';
+import { Progress } from '../ui/progress';
+import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import './Card.css';
 
 interface CardProps {
-  itemKey: string
-  imgSrc: string
-  aspectRatio: number
-  width: string | number
-  title: string
-  subtitle: string
-  action: () => void
-  playButtonAction?: () => void
-  hideButtons?: boolean
-  menu?: DropdownContent
-  loading?: boolean
-  editModal?: React.ReactNode
-  cornerData?: string
-  centerText?: boolean
-  hidePlayButton?: boolean
-  progress?: number
-  cornerNumber?: number
-  collageComponent?: React.ReactNode
-  watched?: boolean
-  errorSrc?: string
+  itemKey: string;
+  imgSrc: string;
+  aspectRatio: number;
+  width: string | number;
+  title: string;
+  subtitle: string;
+  action: () => void;
+  playButtonAction?: () => void;
+  hideButtons?: boolean;
+  menu?: DropdownContent;
+  loading?: boolean;
+  editModal?: React.ReactNode;
+  cornerData?: string;
+  centerText?: boolean;
+  hidePlayButton?: boolean;
+  progress?: number;
+  cornerNumber?: number;
+  collageComponent?: React.ReactNode;
+  watched?: boolean;
+  errorSrc?: string;
 }
 
 function Card({
@@ -57,8 +57,8 @@ function Card({
   collageComponent,
   errorSrc,
 }: CardProps) {
-  const [playButtonHovered, setPlayButtonHovered] = useState(false)
-  const isAdmin = useIsAdmin()
+  const [playButtonHovered, setPlayButtonHovered] = useState(false);
+  const isAdmin = useIsAdmin();
 
   return (
     <FlexBox
@@ -68,8 +68,8 @@ function Card({
       width={width}
       key={itemKey}
       onClick={(e) => {
-        if (e) e.stopPropagation()
-        action()
+        if (e) e.stopPropagation();
+        action();
       }}
     >
       <div className={`card ${loading ? 'loading' : ''}`}>
@@ -113,8 +113,8 @@ function Card({
                 onMouseEnter={() => setPlayButtonHovered(true)}
                 onMouseLeave={() => setPlayButtonHovered(false)}
                 onClick={(e) => {
-                  e.stopPropagation()
-                  if (playButtonAction) playButtonAction()
+                  e.stopPropagation();
+                  if (playButtonAction) playButtonAction();
                 }}
                 style={{
                   backgroundColor: playButtonHovered ? 'var(--app-color)' : '',
@@ -130,7 +130,7 @@ function Card({
               align="end"
               width="100%"
               onClick={(e) => {
-                if (e) e.stopPropagation()
+                if (e) e.stopPropagation();
               }}
               padding=".3rem"
             >
@@ -184,7 +184,7 @@ function Card({
         <span id="subtitle">{subtitle}</span>
       </div>
     </FlexBox>
-  )
+  );
 }
 
-export default React.memo(Card)
+export default React.memo(Card);

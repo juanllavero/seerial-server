@@ -1,21 +1,21 @@
-import { Pencil } from 'lucide-react'
-import React from 'react'
-import Card from '@/components/cards/Card'
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import { Button } from '@/components/ui/button'
-import type { Video } from '@/data/interfaces/Media'
-import { getVideoProgress } from '@/utils/ReactUtils'
+import type { Video } from '@seerial/domain';
+import { Pencil } from 'lucide-react';
+import React from 'react';
+import Card from '@/components/cards/Card';
+import { useIsMobile } from '@/components/hooks/use-mobile';
+import { Button } from '@/components/ui/button';
+import { getVideoProgress } from '@/utils/ReactUtils';
 
 interface VideoCardProps {
-  video: Video
-  title: string
-  subtitle: string
-  playVideo: (video: Video) => void
-  getVideoMenu: (video: Video) => any
+  video: Video;
+  title: string;
+  subtitle: string;
+  playVideo: (video: Video) => void;
+  getVideoMenu: (video: Video) => any;
 }
 
 function VideoCard({ video, title, subtitle, playVideo, getVideoMenu }: VideoCardProps) {
-  const isMobile = useIsMobile()
+  const isMobile = useIsMobile();
 
   return (
     <Card
@@ -34,7 +34,7 @@ function VideoCard({ video, title, subtitle, playVideo, getVideoMenu }: VideoCar
           variant={'ghost'}
           size={'icon'}
           onClick={(e) => {
-            e.stopPropagation()
+            e.stopPropagation();
           }}
         >
           <Pencil size={16} />
@@ -42,7 +42,7 @@ function VideoCard({ video, title, subtitle, playVideo, getVideoMenu }: VideoCar
       }
       errorSrc="/img/Default_video_thumbnail.jpg"
     />
-  )
+  );
 }
 
-export default VideoCard
+export default VideoCard;

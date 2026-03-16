@@ -1,16 +1,16 @@
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import { useIsTablet } from '@/components/hooks/use-tablet'
-import FlexBox from '@/components/ui/FlexBox'
-import type { Album } from '@/data/interfaces/Music'
-import SongsList from './music/SongsList'
+import type { Album } from '@seerial/domain';
+import { useIsMobile } from '@/components/hooks/use-mobile';
+import { useIsTablet } from '@/components/hooks/use-tablet';
+import FlexBox from '@/components/ui/FlexBox';
+import SongsList from './music/SongsList';
 
 interface AlbumContentProps {
-  album: Album
+  album: Album;
 }
 
 function AlbumContent({ album }: AlbumContentProps) {
-  const isMobile = useIsMobile()
-  const isTablet = useIsTablet()
+  const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
   return (
     <FlexBox
       direction="column"
@@ -26,7 +26,7 @@ function AlbumContent({ album }: AlbumContentProps) {
     >
       <SongsList album={album} />
     </FlexBox>
-  )
+  );
 }
 
-export default AlbumContent
+export default AlbumContent;

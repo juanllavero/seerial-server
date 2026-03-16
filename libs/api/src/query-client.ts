@@ -13,3 +13,5 @@ export function createSeerialQueryClient(): QueryClient {
         },
     })
 }
+
+export const seerialQueryClient = createSeerialQueryClient()

@@ -1,16 +1,16 @@
-import { useEffect } from 'react'
-import { shallow } from 'zustand/shallow'
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import FlexBox from '@/components/ui/FlexBox'
-import { useSettingsStore } from '@/context/settings.context'
-import { SettingsSection } from '@/data/interfaces/Utils'
-import ClientGeneral from './components/ClientGeneral'
-import ClientPlayer from './components/ClientPlayer'
-import ClientQuality from './components/ClientQuality'
-import ServerGeneral from './components/ServerGeneral'
-import ServerLanguages from './components/ServerLanguages'
-import ServerLibraries from './components/ServerLibraries'
-import ServerTranscode from './components/ServerTranscode'
+import { SettingsSection } from '@seerial/domain';
+import { useEffect } from 'react';
+import { shallow } from 'zustand/shallow';
+import { useIsMobile } from '@/components/hooks/use-mobile';
+import FlexBox from '@/components/ui/FlexBox';
+import { useSettingsStore } from '@/context/settings.context';
+import ClientGeneral from './components/ClientGeneral';
+import ClientPlayer from './components/ClientPlayer';
+import ClientQuality from './components/ClientQuality';
+import ServerGeneral from './components/ServerGeneral';
+import ServerLanguages from './components/ServerLanguages';
+import ServerLibraries from './components/ServerLibraries';
+import ServerTranscode from './components/ServerTranscode';
 
 function SettingsPage() {
   const { getAllClientSettings, getAllServerSettings, clientSettings, serverSettings } =
@@ -22,16 +22,16 @@ function SettingsPage() {
         serverSettings: state.serverSettings,
       }),
       shallow,
-    )
-  const settingsSection = useSettingsStore((state) => state.settingsSection)
-  const isMobile = useIsMobile()
+    );
+  const settingsSection = useSettingsStore((state) => state.settingsSection);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
-    getAllServerSettings()
-    getAllClientSettings()
-  }, [])
+    getAllServerSettings();
+    getAllClientSettings();
+  }, []);
 
-  const isLoaded = Object.keys(serverSettings).length > 0 && Object.keys(clientSettings).length > 0
+  const isLoaded = Object.keys(serverSettings).length > 0 && Object.keys(clientSettings).length > 0;
 
   return (
     <FlexBox gap={isMobile ? 0.5 : 4} padding={isMobile ? '1rem' : '2rem'}>
@@ -57,7 +57,7 @@ function SettingsPage() {
         <ServerGeneral isLoaded={isLoaded} />
       )}
     </FlexBox>
-  )
+  );
 }
 
-export default SettingsPage
+export default SettingsPage;

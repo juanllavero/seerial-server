@@ -1,18 +1,18 @@
-import { useTranslation } from 'react-i18next'
-import { shallow } from 'zustand/shallow'
-import { ModalWrapper } from '@/components/ModalWrapper'
-import { useDialogStore } from '@/context/dialog.store'
-import ChangeEpisodesGroupSearch from './ChangeEpisodesGroupSearch'
+import { useTranslation } from 'react-i18next';
+import { shallow } from 'zustand/shallow';
+import { ModalWrapper } from '@/components/ModalWrapper';
+import { useDialogStore } from '@/context/dialog.store';
+import ChangeEpisodesGroupSearch from './ChangeEpisodesGroupSearch';
 
 function ChangeEpisodesGroupDialog() {
-  const { episodesGroupDialog, closeEpisodesGroupDialog } = useDialogStore(
+  const { open, closeDialog } = useDialogStore(
     (state) => ({
-      episodesGroupDialog: state.episodesGroupDialog,
-      closeEpisodesGroupDialog: state.closeEpisodesGroupDialog,
+      open: state.open,
+      closeDialog: state.closeDialog,
     }),
     shallow,
-  )
-  const { t } = useTranslation()
+  );
+  const { t } = useTranslation();
 
   return (
     <ModalWrapper
@@ -23,11 +23,11 @@ function ChangeEpisodesGroupDialog() {
           content: <ChangeEpisodesGroupSearch />,
         },
       ]}
-      isOpen={episodesGroupDialog.isOpen}
-      close={closeEpisodesGroupDialog}
+      isOpen={open === 'episodesGroup'}
+      close={closeDialog}
       hideButtons
     />
-  )
+  );
 }
 
-export default ChangeEpisodesGroupDialog
+export default ChangeEpisodesGroupDialog;

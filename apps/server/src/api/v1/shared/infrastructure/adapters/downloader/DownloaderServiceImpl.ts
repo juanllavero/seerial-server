@@ -2,6 +2,7 @@ import { exec, spawn } from 'node:child_process';
 import fs, { chmodSync, createWriteStream, existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import path from 'node:path';
 import { promisify } from 'node:util';
+import type { MediaSearchResult } from '@seerial/domain';
 import ffmpegPath from 'ffmpeg-static';
 import { https } from 'follow-redirects';
 import {
@@ -9,7 +10,6 @@ import {
   fileSystemService,
   notificationService,
 } from '@/api/v1/shared/infrastructure/adapters/di/container';
-import type { MediaSearchResult } from '@/data/interfaces/SearchResults';
 import logger from '@/utils/logger';
 import type { DownloaderServicePort } from '../../../application/ports/DownloaderServicePort';
 
@@ -91,16 +91,15 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
           // Clean partially downloaded file
           try {
             if (existsSync(ytDlpPath)) unlinkSync(ytDlpPath);
-          } catch {}
+          } catch { }
           reject(err);
         });
     });
   }
 
   public async searchVideos(query: string, numberOfResults: number): Promise<MediaSearchResult[]> {
-    const searchQuery = `"${downloaderService.getYtDlpPath()}" "ytsearch${
-      numberOfResults > 0 ? numberOfResults : 1
-    }:${query}" --dump-json --default-search ytsearch --no-playlist --no-check-certificate --geo-bypass --flat-playlist --skip-download --quiet --ignore-errors --ffmpeg-location ${ffmpegPathFinal}`;
+    const searchQuery = `"${downloaderService.getYtDlpPath()}" "ytsearch${numberOfResults > 0 ? numberOfResults : 1
+      }:${query}" --dump-json --default-search ytsearch --no-playlist --no-check-certificate --geo-bypass --flat-playlist --skip-download --quiet --ignore-errors --ffmpeg-location ${ffmpegPathFinal}`;
 
     try {
       const { stdout } = await execAsync(searchQuery);

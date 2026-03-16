@@ -1,3 +1,5 @@
+import { useGetSongLyrics } from '@seerial/api';
+import type { LRCFile } from '@seerial/domain';
 import {
   EllipsisVertical,
   ListMusic,
@@ -9,34 +11,31 @@ import {
   Shuffle,
   Volume2,
   VolumeOff,
-} from 'lucide-react'
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
-import { shallow } from 'zustand/shallow'
-import CustomSlider from '@/components/CustomSlider'
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import { useIsTablet } from '@/components/hooks/use-tablet'
-import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
-import { Button } from '@/components/ui/button'
+} from 'lucide-react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { shallow } from 'zustand/shallow';
+import CustomSlider from '@/components/CustomSlider';
+import { useIsMobile } from '@/components/hooks/use-mobile';
+import { useIsTablet } from '@/components/hooks/use-tablet';
+import SmallSpinner from '@/components/SideBar/loading/SmallSpinner';
+import { Button } from '@/components/ui/button';
 import {
   NextTrackIcon,
   PauseIcon,
   PlayIcon,
   PrevTrackIcon,
   StopIcon,
-} from '@/components/ui/IconLibrary'
-import Image from '@/components/ui/Image'
-import { Slider } from '@/components/ui/slider'
-import { API, authenticatedFetcher } from '@/config/api'
-import useMusicStore from '@/context/music.context'
-import { RepeateMode } from '@/data/enums/Music'
-import type { LRCFile } from '@/data/interfaces/Music'
-import { formatTime } from '@/utils/ReactUtils'
+} from '@/components/ui/IconLibrary';
+import Image from '@/components/ui/Image';
+import { Slider } from '@/components/ui/slider';
+import { useMusicStore } from '@seerial/stores';
+import { RepeateMode } from '@/data/enums/Music';
+import { formatTime } from '@/utils/ReactUtils';
 
 interface MusicControlsExpandedProps {
-  title: string
-  subtitle: string
+  title: string;
+  subtitle: string;
 }
 
 function MusicControlsExpanded({ title, subtitle }: MusicControlsExpandedProps) {
@@ -101,28 +100,27 @@ function MusicControlsExpanded({ title, subtitle }: MusicControlsExpandedProps) 
       handleChangeRepeatState: state.handleChangeRepeatState,
     }),
     shallow,
-  )
-  const { t } = useTranslation()
-  const isMobile = useIsMobile()
-  const isTablet = useIsTablet()
-  const [coverHover, setCoverHover] = useState<boolean>(false)
+  );
+  const { t } = useTranslation();
+  const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
+  const [coverHover, setCoverHover] = useState<boolean>(false);
 
   // Get Lyrics in order to show lyrics button
-  const { data: lyrics } = useSWR<LRCFile[]>(
-    currentSong && isShown ? API.songs.lyrics(currentSong.id) : null,
-    authenticatedFetcher,
-  )
+  const { data: lyrics } = useGetSongLyrics<LRCFile[]>(currentSong?.id ?? '', {
+    enabled: Boolean(currentSong?.id && isShown),
+  });
 
   const handleProgressChange = (progressValue: number) => {
     if (duration > 0) {
-      const timeInSeconds = (progressValue / 100) * duration
-      seekTo(timeInSeconds)
+      const timeInSeconds = (progressValue / 100) * duration;
+      seekTo(timeInSeconds);
     }
-  }
+  };
 
   const handleVolumeChange = (volume: number[]) => {
-    setVolume(volume[0])
-  }
+    setVolume(volume[0]);
+  };
 
   return (
     <div
@@ -177,8 +175,8 @@ function MusicControlsExpanded({ title, subtitle }: MusicControlsExpandedProps) 
             className="rounded-full text-white"
             title={t('shuffle')}
             onClick={(e) => {
-              e.stopPropagation()
-              setIsShuffling(!isShuffling)
+              e.stopPropagation();
+              setIsShuffling(!isShuffling);
             }}
           >
             {isShuffling ? (
@@ -197,8 +195,8 @@ function MusicControlsExpanded({ title, subtitle }: MusicControlsExpandedProps) 
             variant="fullGhost"
             size="icon"
             onClick={(e) => {
-              e.stopPropagation()
-              resetPlayerState()
+              e.stopPropagation();
+              resetPlayerState();
             }}
             className="rounded-full text-white opacity-75"
             title={t('stop')}
@@ -210,8 +208,8 @@ function MusicControlsExpanded({ title, subtitle }: MusicControlsExpandedProps) 
             variant="fullGhost"
             size="icon"
             onClick={(e) => {
-              e.stopPropagation()
-              handlePrevious()
+              e.stopPropagation();
+              handlePrevious();
             }}
             className="rounded-full text-white opacity-75"
             title={t('previous')}
@@ -223,8 +221,8 @@ function MusicControlsExpanded({ title, subtitle }: MusicControlsExpandedProps) 
             variant="fullGhost"
             size="icon"
             onClick={(e) => {
-              e.stopPropagation()
-              togglePlayPause()
+              e.stopPropagation();
+              togglePlayPause();
             }}
             className="h-15 w-15 rounded-full text-white"
             title={isPlaying ? t('pause') : t('play')}
@@ -242,8 +240,8 @@ function MusicControlsExpanded({ title, subtitle }: MusicControlsExpandedProps) 
             variant="fullGhost"
             size="icon"
             onClick={(e) => {
-              e.stopPropagation()
-              handleNext()
+              e.stopPropagation();
+              handleNext();
             }}
             className="rounded-full text-white opacity-75"
             title={t('next')}
@@ -255,8 +253,8 @@ function MusicControlsExpanded({ title, subtitle }: MusicControlsExpandedProps) 
             variant="fullGhost"
             size="icon"
             onClick={(e) => {
-              e.stopPropagation()
-              resetPlayerState()
+              e.stopPropagation();
+              resetPlayerState();
             }}
             className="rounded-full text-white opacity-75"
             title={t('stop')}
@@ -267,8 +265,8 @@ function MusicControlsExpanded({ title, subtitle }: MusicControlsExpandedProps) 
             variant="fullGhost"
             size={'icon'}
             onClick={(e) => {
-              e.stopPropagation()
-              handleChangeRepeatState(e)
+              e.stopPropagation();
+              handleChangeRepeatState(e);
             }}
             className="rounded-full text-white"
             title={t('repeat')}
@@ -299,8 +297,8 @@ function MusicControlsExpanded({ title, subtitle }: MusicControlsExpandedProps) 
         <Button
           variant="fullGhost"
           onClick={(e) => {
-            e.stopPropagation()
-            setShowLyrics(!showLyrics)
+            e.stopPropagation();
+            setShowLyrics(!showLyrics);
           }}
           disabled={!lyrics || lyrics.length === 0}
           size={'icon'}
@@ -311,8 +309,8 @@ function MusicControlsExpanded({ title, subtitle }: MusicControlsExpandedProps) 
         <Button
           variant="fullGhost"
           onClick={(e) => {
-            e.stopPropagation()
-            setShowQueue(!showQueue)
+            e.stopPropagation();
+            setShowQueue(!showQueue);
           }}
           size={'icon'}
           title={t('queue')}
@@ -323,9 +321,9 @@ function MusicControlsExpanded({ title, subtitle }: MusicControlsExpandedProps) 
           variant="fullGhost"
           size={'icon'}
           onClick={(e) => {
-            e.stopPropagation()
-            setVolume(volume === 0 ? prevVolume : 0)
-            setPrevVolume(volume)
+            e.stopPropagation();
+            setVolume(volume === 0 ? prevVolume : 0);
+            setPrevVolume(volume);
           }}
           title={volume === 0 ? t('unmute') : t('mute')}
         >
@@ -345,7 +343,7 @@ function MusicControlsExpanded({ title, subtitle }: MusicControlsExpandedProps) 
         />
       </div>
     </div>
-  )
+  );
 }
 
-export default MusicControlsExpanded
+export default MusicControlsExpanded;

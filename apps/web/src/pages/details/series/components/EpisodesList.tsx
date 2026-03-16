@@ -1,41 +1,39 @@
-import { t } from 'i18next'
-import { useNavigate } from 'react-router-dom'
-import { shallow } from 'zustand/shallow'
-import FlexBox from '@/components/ui/FlexBox'
-import { API, authenticatedFetch } from '@/config/api'
-import { useServerStore } from '@/context/auth.store'
-import { useDialogStore } from '@/context/dialog.store'
-import type { Episode } from '@/data/interfaces/Media'
-import EpisodeCard from '../../components/cards/EpisodeCard'
-import EpisodeCardDetails from '../../components/cards/EpisodeCardDetails'
+import { API, useCreate } from '@seerial/api';
+import type { Episode } from '@seerial/domain';
+import { t } from 'i18next';
+import { useNavigate } from 'react-router-dom';
+import { shallow } from 'zustand/shallow';
+import FlexBox from '@/components/ui/FlexBox';
+import { useServerStore } from '@seerial/stores';
+import { useDialogStore } from '@/context/dialog.store';
+import EpisodeCard from '../../components/cards/EpisodeCard';
+import EpisodeCardDetails from '../../components/cards/EpisodeCardDetails';
 
 interface EpisodesListProps {
-  episodes: Episode[]
-  distribution: number
-  seriesId: string
-  seasonId: string
-  mutate: any
+  episodes: Episode[];
+  distribution: number;
+  seriesId: string;
+  seasonId: string;
+  mutate: any;
 }
 
 function EpisodesList({ episodes, distribution, seriesId, seasonId, mutate }: EpisodesListProps) {
-  const navigate = useNavigate()
-  const { user } = useServerStore((state) => ({ user: state.currentUser }), shallow)
-  const { openDialog } = useDialogStore((state) => ({ openDialog: state.openDialog }), shallow)
+  const navigate = useNavigate();
+  const { user } = useServerStore((state) => ({ user: state.currentUser }), shallow);
+  const { openDialog } = useDialogStore((state) => ({ openDialog: state.openDialog }), shallow);
+  const { create } = useCreate<unknown>();
 
   const goToEpisodePage = (episode: Episode) => {
-    navigate(`/episode/${episode.id}`)
-  }
+    navigate(`/episode/${episode.id}`);
+  };
 
-  const playEpisode = async (episodeId: Episode) => {
-    const response = await authenticatedFetch(API.videos.getByEpisodeId(episodeId.id))
-
-    if (!response.data) {
-      return
+  const playEpisode = async (episodeToPlay: Episode) => {
+    if (!episodeToPlay.video?.id) {
+      return;
     }
 
-    const data = await response.data
-    navigate(`/video-player/${data.id}`)
-  }
+    navigate(`/video-player/${episodeToPlay.video.id}`);
+  };
 
   const getEpisodeMenu = (episode: Episode) => {
     return {
@@ -52,35 +50,35 @@ function EpisodesList({ episodes, distribution, seriesId, seasonId, mutate }: Ep
             },
             {
               title: t('markWatched'),
-              action: () => {
-                authenticatedFetch(API.episodes.setWatchState(episode.id), 'POST', {
+              action: async () => {
+                await create(API.episodes.setWatchState(episode.id), {
                   episodeId: episode.id,
                   watched: true,
                   userId: user?.id,
-                }).finally(() => {
-                  mutate((key: string) => key.startsWith(API.series.get(seriesId || '')))
-                  mutate((key: string) => key.startsWith(API.seasons.get(seasonId || '')))
-                })
+                });
+
+                mutate((key: string) => key.startsWith(API.series.get(seriesId || '')));
+                mutate((key: string) => key.startsWith(API.seasons.get(seasonId || '')));
               },
             },
             {
               title: t('markUnwatched'),
-              action: () => {
-                authenticatedFetch(API.episodes.setWatchState(episode.id), 'POST', {
+              action: async () => {
+                await create(API.episodes.setWatchState(episode.id), {
                   episodeId: episode.id,
                   watched: false,
                   userId: user?.id,
-                }).finally(() => {
-                  mutate((key: string) => key.startsWith(API.series.get(seriesId || '')))
-                  mutate((key: string) => key.startsWith(API.seasons.get(seasonId || '')))
-                })
+                });
+
+                mutate((key: string) => key.startsWith(API.series.get(seriesId || '')));
+                mutate((key: string) => key.startsWith(API.seasons.get(seasonId || '')));
               },
             },
           ],
         },
       ],
-    }
-  }
+    };
+  };
 
   return (
     <>
@@ -116,7 +114,7 @@ function EpisodesList({ episodes, distribution, seriesId, seasonId, mutate }: Ep
         </FlexBox>
       )}
     </>
-  )
+  );
 }
 
-export default EpisodesList
+export default EpisodesList;

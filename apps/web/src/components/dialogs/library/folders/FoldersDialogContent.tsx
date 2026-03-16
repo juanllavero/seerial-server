@@ -1,63 +1,62 @@
-import { ChevronLeft, FileIcon, FolderIcon, HomeIcon } from 'lucide-react'
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
-import LabeledInputWrapper from '@/components/form/LabeledInputWrapper'
-import Loading from '@/components/Loading'
-import { Button } from '@/components/ui/button'
-import FlexBox from '@/components/ui/FlexBox'
-import { Input } from '@/components/ui/input'
-import { API, authenticatedFetcher } from '@/config/api'
+import { useGetFileDrives, useGetFileFolder } from '@seerial/api';
+import { ChevronLeft, FileIcon, FolderIcon, HomeIcon } from 'lucide-react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import LabeledInputWrapper from '@/components/form/LabeledInputWrapper';
+import Loading from '@/components/Loading';
+import { Button } from '@/components/ui/button';
+import FlexBox from '@/components/ui/FlexBox';
+import { Input } from '@/components/ui/input';
 
 interface FoldersDialogContentProps {
-  folders: string[]
-  setFolders: (folders: string[]) => void
-  close: () => void
+  folders: string[];
+  setFolders: (folders: string[]) => void;
+  close: () => void;
 }
 
-type Folder = { name: string; isFolder: boolean }
+type Folder = { name: string; isFolder: boolean };
 
 function FoldersDialogContent({ folders, setFolders, close }: FoldersDialogContentProps) {
-  const { t } = useTranslation()
-  const [currentPath, setCurrentPath] = useState<string>('')
+  const { t } = useTranslation();
+  const [currentPath, setCurrentPath] = useState<string>('');
 
-  const { data: drives, isLoading } = useSWR<string[]>(API.files.drives, authenticatedFetcher)
+  const { data: drives, isLoading } = useGetFileDrives<string[]>();
 
-  const { data: folderContent } = useSWR<Folder[]>(
-    currentPath !== '' ? `${API.files.folder}?path=${encodeURIComponent(currentPath)}` : null,
-    authenticatedFetcher,
-  )
+  const { data: folderContent } = useGetFileFolder<Folder[]>({
+    enabled: currentPath !== '',
+    params: { path: currentPath },
+  });
 
   // Handler to navigate into folders or go back
   const handleFolderClick = (folder: string) => {
-    if (!drives) return
+    if (!drives) return;
     if (folder === '.. [Back]') {
       if (
         drives.includes(currentPath) ||
         drives.includes(`${currentPath}\\`) ||
         drives.includes(`${currentPath}/`)
       )
-        return
+        return;
 
-      let upperPath = currentPath.split('\\').slice(0, -1).join('\\')
+      let upperPath = currentPath.split('\\').slice(0, -1).join('\\');
 
       // Check if the current path is a drive unit (E.g. C:, D:, F:)
-      const isDriveUnit = /^[A-Z]:$/.test(upperPath)
+      const isDriveUnit = /^[A-Z]:$/.test(upperPath);
       if (isDriveUnit) {
-        upperPath += '\\'
+        upperPath += '\\';
       }
 
-      setCurrentPath(upperPath || '') // Go back if no upper path
+      setCurrentPath(upperPath || ''); // Go back if no upper path
     } else {
       // Check if the current path ends with '/home' o '\'
-      const separator = currentPath.endsWith('/home') || currentPath.endsWith('\\') ? '' : '\\'
-      setCurrentPath(`${currentPath}${separator}${folder}`)
+      const separator = currentPath.endsWith('/home') || currentPath.endsWith('\\') ? '' : '\\';
+      setCurrentPath(`${currentPath}${separator}${folder}`);
     }
-  }
+  };
 
   // Render folder content
   const renderFolderContent = () => {
-    if (isLoading) return <Loading />
+    if (isLoading) return <Loading />;
 
     return (
       <>
@@ -106,8 +105,8 @@ function FoldersDialogContent({ folders, setFolders, close }: FoldersDialogConte
               ),
             )}
       </>
-    )
-  }
+    );
+  };
 
   /**
    * Extracts the username from the given path.
@@ -115,17 +114,17 @@ function FoldersDialogContent({ folders, setFolders, close }: FoldersDialogConte
    * @returns {string} the username
    */
   const getUserFromPath = (path: string) => {
-    const parts = path.split(/[\\/]/)
-    return parts.pop()
-  }
+    const parts = path.split(/[\\/]/);
+    return parts.pop();
+  };
 
   const handleAddFolder = () => {
     if (currentPath && currentPath !== '' && !folders.includes(currentPath)) {
-      setFolders([...folders, currentPath])
+      setFolders([...folders, currentPath]);
     }
 
-    close()
-  }
+    close();
+  };
 
   return (
     <FlexBox direction="column" gap={1} height={'32rem'}>
@@ -161,7 +160,7 @@ function FoldersDialogContent({ folders, setFolders, close }: FoldersDialogConte
         <Button onClick={handleAddFolder}>{t('addButton')}</Button>
       </FlexBox>
     </FlexBox>
-  )
+  );
 }
 
-export default FoldersDialogContent
+export default FoldersDialogContent;

@@ -1,7 +1,7 @@
 import { memo, useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from '@/components/ui/sidebar'
-import useMusicStore from '@/context/music.context'
+import { useMusicStore } from '@seerial/stores'
 import NavHomeButton from './NavHomeButton'
 import NavLibraries from './NavLibraries'
 import { NavUser } from './NavUser'

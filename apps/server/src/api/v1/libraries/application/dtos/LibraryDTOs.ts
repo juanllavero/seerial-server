@@ -1,4 +1,4 @@
-import type { LibraryType } from '@/data/interfaces/Media';
+import type { LibraryType } from '@seerial/domain';
 
 export interface CreateLibraryDTO {
   name: string;

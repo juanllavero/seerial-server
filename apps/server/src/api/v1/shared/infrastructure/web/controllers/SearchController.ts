@@ -1,6 +1,6 @@
+import type { MediaSearchResult } from '@seerial/domain';
 import { Get, Query, Route, Security, Tags } from 'tsoa';
 import { messages } from '@/config/messages';
-import type { MediaSearchResult } from '@/data/interfaces/SearchResults';
 import { externalSearchService } from '../../adapters/di/container';
 import { ApiResponse } from '../http/APIResponse';
 

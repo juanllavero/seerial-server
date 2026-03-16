@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import * as fsPromises from 'node:fs/promises';
 import path from 'node:path';
+import { type LibraryType, LibraryTypes } from '@seerial/domain';
 import type { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
 import {
   fileSystemService,
@@ -11,7 +12,6 @@ import {
 import { clearLibrary } from '@/api/v1/shared/infrastructure/services/FileSearchService';
 import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
 import { messages } from '@/config/messages';
-import { type LibraryType, LibraryTypes } from '@/data/interfaces/Media';
 import { imageExtensions } from '@/utils/constants';
 import logger from '@/utils/logger';
 import { GetLibrariesUseCase } from '../usecases/GetLibrariesUseCase';

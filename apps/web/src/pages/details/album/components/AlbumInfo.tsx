@@ -1,32 +1,32 @@
-import { Pencil, Shuffle } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
-import { shallow } from 'zustand/shallow'
-import useScreenHeight from '@/components/hooks/use-height'
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import { useIsTablet } from '@/components/hooks/use-tablet'
-import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
-import { Button } from '@/components/ui/button'
-import FlexBox from '@/components/ui/FlexBox'
-import { PauseIcon, PlayIcon } from '@/components/ui/IconLibrary'
-import Image from '@/components/ui/Image'
-import { Skeleton } from '@/components/ui/skeleton'
-import { useDialogStore } from '@/context/dialog.store'
-import useMusicStore from '@/context/music.context'
-import type { Album, Song } from '@/data/interfaces/Music'
-import { useIsAdmin } from '@/hooks/useIsAdmin'
-import { getCoverSize, getTitleSize } from '@/utils/ReactUtils'
+import type { Album, Song } from '@seerial/domain';
+import { Pencil, Shuffle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { shallow } from 'zustand/shallow';
+import useScreenHeight from '@/components/hooks/use-height';
+import { useIsMobile } from '@/components/hooks/use-mobile';
+import { useIsTablet } from '@/components/hooks/use-tablet';
+import SmallSpinner from '@/components/SideBar/loading/SmallSpinner';
+import { Button } from '@/components/ui/button';
+import FlexBox from '@/components/ui/FlexBox';
+import { PauseIcon, PlayIcon } from '@/components/ui/IconLibrary';
+import Image from '@/components/ui/Image';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useDialogStore } from '@/context/dialog.store';
+import { useMusicStore } from '@seerial/stores';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { getCoverSize, getTitleSize } from '@/utils/ReactUtils';
 
 interface AlbumInfoProps {
-  isLoading: boolean
-  album: Album
+  isLoading: boolean;
+  album: Album;
 }
 
 function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
-  const { t } = useTranslation()
-  const isMobile = useIsMobile()
-  const isTablet = useIsTablet()
-  const isAdmin = useIsAdmin()
-  const screenHeight = useScreenHeight()
+  const { t } = useTranslation();
+  const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
+  const isAdmin = useIsAdmin();
+  const screenHeight = useScreenHeight();
   const {
     isPlaying,
     isLoaidng: loadingSong,
@@ -46,12 +46,12 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
       setIsShown: state.setIsShown,
     }),
     shallow,
-  )
-  const { openDialog } = useDialogStore((state) => ({ openDialog: state.openDialog }), shallow)
+  );
+  const { openDialog } = useDialogStore((state) => ({ openDialog: state.openDialog }), shallow);
 
   const getTotalDuration = (songs: Song[]) => {
-    return songs.reduce((acc, song) => acc + song.duration / 60, 0).toFixed(0)
-  }
+    return songs.reduce((acc, song) => acc + song.duration / 60, 0).toFixed(0);
+  };
 
   return (
     <FlexBox
@@ -142,11 +142,11 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
             className="h-15 rounded-full"
             onClick={() => {
               if (isShown) {
-                togglePlayPause()
+                togglePlayPause();
               } else if (album && album.songs && album.songs.length > 0) {
-                selectSong(album.songs[0])
-                setIsShown(true)
-                setSongQueue(album.songs)
+                selectSong(album.songs[0]);
+                setIsShown(true);
+                setSongQueue(album.songs);
               }
             }}
           >
@@ -162,14 +162,14 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
             variant={'ghost'}
             className="rounded-full"
             onClick={(e) => {
-              e.stopPropagation()
+              e.stopPropagation();
 
               // Shuffle play
               if (album && album.songs && album.songs.length > 0) {
-                const randomIndex = Math.floor(Math.random() * album.songs.length)
-                selectSong(album.songs[randomIndex])
-                setIsShown(true)
-                setSongQueue([...album.songs].sort(() => Math.random() - 0.5))
+                const randomIndex = Math.floor(Math.random() * album.songs.length);
+                selectSong(album.songs[randomIndex]);
+                setIsShown(true);
+                setSongQueue([...album.songs].sort(() => Math.random() - 0.5));
               }
             }}
           >
@@ -183,7 +183,7 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
         </FlexBox>
       </FlexBox>
     </FlexBox>
-  )
+  );
 }
 
-export default AlbumInfo
+export default AlbumInfo;

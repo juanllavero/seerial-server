@@ -1,24 +1,24 @@
-import { useTranslation } from 'react-i18next'
-import { shallow } from 'zustand/shallow'
-import { useSettingsStore } from '@/context/settings.context'
-import { SettingsSection } from '@/data/interfaces/Utils'
+import { SettingsSection } from '@seerial/domain';
+import { useTranslation } from 'react-i18next';
+import { shallow } from 'zustand/shallow';
+import { useSettingsStore } from '@/context/settings.context';
 import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '../../ui/sidebar'
+} from '../../ui/sidebar';
 
 const ClientSettings = () => {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
   const { settingsSection, setSettingsSection } = useSettingsStore(
     (state) => ({
       settingsSection: state.settingsSection,
       setSettingsSection: state.setSettingsSection,
     }),
     shallow,
-  )
+  );
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{t('client')}</SidebarGroupLabel>
@@ -76,7 +76,7 @@ const ClientSettings = () => {
         </SidebarMenuItem>
       </SidebarMenu>
     </SidebarGroup>
-  )
-}
+  );
+};
 
-export default ClientSettings
+export default ClientSettings;

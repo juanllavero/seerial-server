@@ -1,8 +1,9 @@
+import { API, useCreate, useGet } from '@seerial/api';
+import type { Series } from '@seerial/domain';
 import { t } from 'i18next';
 import { Pencil } from 'lucide-react';
 import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { mutate } from 'swr';
 import { shallow } from 'zustand/shallow';
 import ExpandableText from '@/components/ExpandableText';
 import { useIsMobile } from '@/components/hooks/use-mobile';
@@ -12,13 +13,10 @@ import FlexBox from '@/components/ui/FlexBox';
 import { MarkWatchedIcon, UnmarkWatchedIcon } from '@/components/ui/IconLibrary';
 import LazyImage from '@/components/ui/LazyImage';
 import { Skeleton } from '@/components/ui/skeleton';
-import { API, authenticatedFetch } from '@/config/api';
-import { useServerStore } from '@/context/auth.store';
-import useDataStore from '@/context/data.context';
+import { useServerStore } from '@seerial/stores';
+import { useDataStore } from '@seerial/stores';
 import { useDialogStore } from '@/context/dialog.store';
 import { useSettingsStore } from '@/context/settings.context';
-import type { Series } from '@/data/interfaces/Media';
-import { useGet } from '@/hooks/media/useGet';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import CastList from '../components/CastList';
 import '../DetailsPage.css';
@@ -53,7 +51,9 @@ function SeriesDetailsPage() {
     data: series,
     isLoading,
     error,
+    mutate: mutateSeries,
   } = useGet<Series>(`${API.series.get(seriesId ?? '')}?include=all`);
+  const { create } = useCreate<unknown>();
 
   // Get selected season data
   const season =
@@ -110,14 +110,13 @@ function SeriesDetailsPage() {
 
   const toggleSeasonWatched = async () => {
     if (season) {
-      authenticatedFetch(API.seasons.setWatchState(season.id), 'POST', {
+      await create(API.seasons.setWatchState(season.id), {
         seasonId: season.id,
         watched: !season.watchStatus,
         userId: user?.id,
-      }).then(() => {
-        mutate((key: string) => key.startsWith(API.series.get(seriesId ?? '')));
-        mutate((key: string) => key.startsWith(API.seasons.get(season.id)));
       });
+
+      mutateSeries();
     }
   };
 

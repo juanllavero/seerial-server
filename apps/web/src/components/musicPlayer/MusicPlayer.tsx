@@ -1,10 +1,9 @@
-import { memo, useEffect, useRef } from 'react'
-import useSWR from 'swr'
-import { shallow } from 'zustand/shallow'
-import { API, authenticatedFetcher } from '@/config/api'
-import { useGradientStore } from '@/context/gradientBackground.context'
-import useMusicStore from '@/context/music.context'
-import type { Album } from '@/data/interfaces/Music'
+import { useGetAlbum } from '@seerial/api';
+import type { Album } from '@seerial/domain';
+import { memo, useEffect, useRef } from 'react';
+import { shallow } from 'zustand/shallow';
+import { useGradientStore } from '@seerial/stores';
+import { useMusicStore } from '@seerial/stores';
 
 function MusicPlayer() {
   const { currentSong, initializeAudioRef, getAudioSrc, setAlbum } = useMusicStore(
@@ -15,33 +14,32 @@ function MusicPlayer() {
       setAlbum: state.setAlbum,
     }),
     shallow,
-  )
-  const generateGradient = useGradientStore((state) => state.generateGradient)
-  const localAudioRef = useRef<HTMLAudioElement>(null)
+  );
+  const generateGradient = useGradientStore((state) => state.generateGradient);
+  const localAudioRef = useRef<HTMLAudioElement>(null);
 
   // Get Album details
-  const { data: album } = useSWR<Album>(
-    currentSong && currentSong.albumId ? API.albums.get(currentSong.albumId) : null,
-    authenticatedFetcher,
-  )
+  const { data: album } = useGetAlbum<Album>(currentSong?.albumId ?? '', {
+    enabled: Boolean(currentSong?.albumId),
+  });
 
   useEffect(() => {
     if (localAudioRef.current) {
-      const cleanup = initializeAudioRef(localAudioRef)
+      const cleanup = initializeAudioRef(localAudioRef);
 
-      return cleanup
+      return cleanup;
     }
-  }, [currentSong, initializeAudioRef])
+  }, [currentSong, initializeAudioRef]);
 
   // Handle gradient background
   useEffect(() => {
     if (album) {
-      setAlbum(album)
-      generateGradient(album.coverSrc, true)
+      setAlbum(album);
+      generateGradient(album.coverSrc, true);
     }
-  }, [album])
+  }, [album]);
 
-  if (!album || !currentSong) return null
+  if (!album || !currentSong) return null;
 
   return (
     <audio
@@ -50,7 +48,7 @@ function MusicPlayer() {
       onError={(e) => console.error('Audio loading error:', e)}
       autoPlay
     />
-  )
+  );
 }
 
-export default memo(MusicPlayer)
+export default memo(MusicPlayer);

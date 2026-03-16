@@ -1,6 +1,6 @@
 import { memo } from 'react'
 import { shallow } from 'zustand/shallow'
-import useMusicStore from '@/context/music.context'
+import { useMusicStore } from '@seerial/stores'
 import GradientBackground from '@/layouts/backgrounds/GradientBackground'
 import MusicGradient from '@/layouts/backgrounds/MusicGradient'
 import LRCVisualizer from '../lyrics/LRCVisualizer'

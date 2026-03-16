@@ -2,7 +2,7 @@ import { shallow } from 'zustand/shallow'
 import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
 import { Button } from '@/components/ui/button'
 import { PauseIcon, PlayIcon, StopIcon } from '@/components/ui/IconLibrary'
-import useMusicStore from '@/context/music.context'
+import { useMusicStore } from '@seerial/stores'
 
 interface MinimizedBarProps {
   barOpacity: number

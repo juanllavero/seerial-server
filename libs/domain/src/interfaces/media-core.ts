@@ -49,10 +49,4 @@ export interface DetailsData {
 
 export type ItemType = "series" | "movie" | "album" | "collection";
 
-export enum LibraryTypes {
-    SHOWS = "Shows",
-    MOVIES = "Movies",
-    MUSIC = "Music",
-}
-
 export type LibraryType = "Shows" | "Movies" | "Music";

@@ -1,4 +1,4 @@
-import type { AudioTrack, SubtitleTrack, VideoTrack } from '@/data/interfaces/MediaInfo';
+import type { AudioTrack, SubtitleTrack, VideoTrack } from '@seerial/domain';
 
 interface FfmpegStream {
   index?: number;

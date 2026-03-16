@@ -1,21 +1,21 @@
-import { Plus } from 'lucide-react'
-import { useState } from 'react'
-import type { DiscoveredServer } from '@/data/interfaces/Servers'
-import { useServerDiscovery } from '@/hooks/useServerDiscovery'
-import AddServerDialog from './AddServerDialog'
-import ServerCard from './ServerCard'
+import type { DiscoveredServer } from '@seerial/domain';
+import { Plus } from 'lucide-react';
+import { useState } from 'react';
+import { useServerDiscovery } from '@/hooks/useServerDiscovery';
+import AddServerDialog from './AddServerDialog';
+import ServerCard from './ServerCard';
 
 interface ServerSelectorProps {
-  onServerSelected: (server: DiscoveredServer) => void
+  onServerSelected: (server: DiscoveredServer) => void;
 }
 
 function ServerSelector({ onServerSelected }: ServerSelectorProps) {
-  const { servers, addServer } = useServerDiscovery()
-  const [showAddDialog, setShowAddDialog] = useState(false)
+  const { servers, addServer } = useServerDiscovery();
+  const [showAddDialog, setShowAddDialog] = useState(false);
 
-  const onlineServers = servers.filter((s) => s.status !== 'offline')
-  const offlineServers = servers.filter((s) => s.status === 'offline')
-  const allServers = [...onlineServers, ...offlineServers]
+  const onlineServers = servers.filter((s) => s.status !== 'offline');
+  const offlineServers = servers.filter((s) => s.status === 'offline');
+  const allServers = [...onlineServers, ...offlineServers];
 
   return (
     <>
@@ -54,7 +54,7 @@ function ServerSelector({ onServerSelected }: ServerSelectorProps) {
       {/* Add server dialog */}
       <AddServerDialog open={showAddDialog} onOpenChange={setShowAddDialog} onAdd={addServer} />
     </>
-  )
+  );
 }
 
-export default ServerSelector
+export default ServerSelector;

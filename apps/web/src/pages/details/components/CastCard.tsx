@@ -1,14 +1,14 @@
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import FlexBox from '@/components/ui/FlexBox'
-import type { Cast } from '@/data/interfaces/Media'
+import type { Cast } from '@seerial/domain';
+import { useIsMobile } from '@/components/hooks/use-mobile';
+import FlexBox from '@/components/ui/FlexBox';
 
 interface CastCardProps {
-  index: string | number
-  person: Cast
+  index: string | number;
+  person: Cast;
 }
 
 function CastCard({ index, person }: CastCardProps) {
-  const isMobile = useIsMobile()
+  const isMobile = useIsMobile();
   return (
     <FlexBox
       direction="column"
@@ -35,7 +35,7 @@ function CastCard({ index, person }: CastCardProps) {
         {person.character}
       </span>
     </FlexBox>
-  )
+  );
 }
 
-export default CastCard
+export default CastCard;

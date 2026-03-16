@@ -1,26 +1,26 @@
-import { ListMusic } from 'lucide-react'
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { shallow } from 'zustand/shallow'
-import { useIsMobile } from '@/components/hooks/use-mobile'
-import { useIsTablet } from '@/components/hooks/use-tablet'
-import SmallSpinner from '@/components/SideBar/loading/SmallSpinner'
-import { Button } from '@/components/ui/button'
-import FlexBox from '@/components/ui/FlexBox'
-import { PauseIcon, PlayIcon } from '@/components/ui/IconLibrary'
-import useMusicStore from '@/context/music.context'
-import type { Song } from '@/data/interfaces/Music'
-import { formatTime, showToast } from '@/utils/ReactUtils'
-import MusicWave from './MusicWave'
+import type { Song } from '@seerial/domain';
+import { ListMusic } from 'lucide-react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { shallow } from 'zustand/shallow';
+import { useIsMobile } from '@/components/hooks/use-mobile';
+import { useIsTablet } from '@/components/hooks/use-tablet';
+import SmallSpinner from '@/components/SideBar/loading/SmallSpinner';
+import { Button } from '@/components/ui/button';
+import FlexBox from '@/components/ui/FlexBox';
+import { PauseIcon, PlayIcon } from '@/components/ui/IconLibrary';
+import { useMusicStore } from '@seerial/stores';
+import { formatTime, showToast } from '@/utils/ReactUtils';
+import MusicWave from './MusicWave';
 
 interface MusicCardProps {
-  index: number
-  song: Song
-  handlePlaySong: (song: Song) => void
+  index: number;
+  song: Song;
+  handlePlaySong: (song: Song) => void;
 }
 
 function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
   const { currentSong, isPlaying, isLoading, addToQueue } = useMusicStore(
     (state) => ({
       album: state.album,
@@ -30,12 +30,12 @@ function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
       addToQueue: state.addSong,
     }),
     shallow,
-  )
-  const [isHovered, setIsHovered] = useState(false)
-  const isMobile = useIsMobile()
-  const isTablet = useIsTablet()
+  );
+  const [isHovered, setIsHovered] = useState(false);
+  const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
 
-  const artists = song.artists.join(', ')
+  const artists = song.artists.join(', ');
 
   return (
     <FlexBox
@@ -51,7 +51,7 @@ function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => {
         if (isMobile || isTablet) {
-          handlePlaySong(song)
+          handlePlaySong(song);
         }
       }}
     >
@@ -62,7 +62,7 @@ function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
               <div
                 onClick={() => {
                   if (!isTablet) {
-                    handlePlaySong(song)
+                    handlePlaySong(song);
                   }
                 }}
               >
@@ -102,7 +102,7 @@ function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
       <div
         className="flex items-center space-x-2"
         onClick={(e) => {
-          e.stopPropagation()
+          e.stopPropagation();
         }}
       >
         <span>{formatTime(song.duration)}</span>
@@ -114,9 +114,9 @@ function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
                 size="icon"
                 title={t('addToQueue')}
                 onClick={(e) => {
-                  e.stopPropagation()
-                  addToQueue(song)
-                  showToast('success', t('addedToQueue'), '', 2000, 'top-right')
+                  e.stopPropagation();
+                  addToQueue(song);
+                  showToast('success', t('addedToQueue'), '', 2000, 'top-right');
                 }}
               >
                 <ListMusic />
@@ -126,7 +126,7 @@ function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
         )}
       </div>
     </FlexBox>
-  )
+  );
 }
 
-export default MusicCard
+export default MusicCard;

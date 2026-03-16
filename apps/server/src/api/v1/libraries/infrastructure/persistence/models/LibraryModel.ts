@@ -1,10 +1,10 @@
+import type { LibraryType } from '@seerial/domain';
 import { BaseEntity, BeforeInsert, Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { AlbumModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumModel';
 import { MovieModel } from '@/api/v1/movies/infrastructure/persistence/models/MovieModel';
 import { SeriesModel } from '@/api/v1/series/infrastructure/persistence/models/SeriesModel';
 import { UserLibraryModel } from '@/api/v1/users/infrastructure/persistence/models/UserLibraryModel';
-import type { LibraryType } from '@/data/interfaces/Media';
 import { LibraryCollectionModel } from './LibraryCollectionModel';
 
 @Entity({ name: 'Library' })

@@ -1,8 +1,8 @@
 /** biome-ignore-all lint/suspicious/noArrayIndexKey: <TODO> */
 /** biome-ignore-all assist/source/organizeImports: <TODO> */
 
-import type { DropdownContent } from '@/data/interfaces/Utils'
-import React from 'react'
+import type { DropdownContent } from '@seerial/domain';
+import React from 'react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,20 +16,20 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from './ui/dropdown-menu'
+} from './ui/dropdown-menu';
 
 interface DropdownWrapperProps {
-  onOpenChange?: (open: boolean) => void
-  content: DropdownContent
-  width?: string
-  button: React.ReactNode
+  onOpenChange?: (open: boolean) => void;
+  content: DropdownContent;
+  width?: string;
+  button: React.ReactNode;
 }
 
 function DropdownWrapper({ onOpenChange, content, button, width = 'w-56' }: DropdownWrapperProps) {
   return (
     <DropdownMenu
       onOpenChange={(open) => {
-        onOpenChange?.(open)
+        onOpenChange?.(open);
       }}
     >
       <DropdownMenuTrigger asChild>{button}</DropdownMenuTrigger>
@@ -88,7 +88,7 @@ function DropdownWrapper({ onOpenChange, content, button, width = 'w-56' }: Drop
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }
 
-export default DropdownWrapper
+export default DropdownWrapper;

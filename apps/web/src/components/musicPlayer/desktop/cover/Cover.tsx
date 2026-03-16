@@ -1,5 +1,5 @@
 import Image from '@/components/ui/Image'
-import useMusicStore from '@/context/music.context'
+import { useMusicStore } from '@seerial/stores'
 
 function MusicPlayerCover() {
   const album = useMusicStore((state) => state.album)

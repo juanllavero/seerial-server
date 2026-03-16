@@ -1,28 +1,27 @@
-import { ModalWrapper } from '@/components/ModalWrapper'
-import { API } from '@/config/api'
-import { useDialogStore } from '@/context/dialog.store'
-import type { Series } from '@/data/interfaces/Media'
-import { useGet } from '@/hooks/media/useGet'
-import useEditDialog from '@/hooks/useEditDialog'
-import { ImageType } from '@/utils/constants'
-import GenericFormTab from '../components/GenericFormTab'
-import ImageListTab from '../components/ImageListTab'
-import { seriesInfoConfig, seriesTagsConfig } from '../forms.config'
-import MediaTab from '../MediaTab'
+import { API, useGet } from '@seerial/api';
+import type { Series } from '@seerial/domain';
+import { ModalWrapper } from '@/components/ModalWrapper';
+import { useDialogStore } from '@/context/dialog.store';
+import useEditDialog from '@/hooks/useEditDialog';
+import { ImageType } from '@/utils/constants';
+import GenericFormTab from '../components/GenericFormTab';
+import ImageListTab from '../components/ImageListTab';
+import { seriesInfoConfig, seriesTagsConfig } from '../forms.config';
+import MediaTab from '../MediaTab';
 
 interface SeriesImageState {
-  logos: string[]
-  localLogoFolder: string
-  selectedLogo: string
-  posters: string[]
-  localPosterFolder: string
-  selectedPoster: string
+  logos: string[];
+  localLogoFolder: string;
+  selectedLogo: string;
+  posters: string[];
+  localPosterFolder: string;
+  selectedPoster: string;
 }
 
 function SeriesDialog() {
-  const { payload, closeDialog } = useDialogStore()
-  const { id } = payload as { id: string }
-  const { data: series } = useGet<Series>(API.series.get(id))
+  const { payload, closeDialog } = useDialogStore();
+  const { id } = payload as { id: string };
+  const { data: series } = useGet<Series>(API.series.get(id));
 
   const { control, images, selectedTab, setSelectedTab, handleUpdate, t } = useEditDialog<
     Series,
@@ -52,9 +51,9 @@ function SeriesDialog() {
     }),
     apiUpdateUrl: series ? API.series.update(series.id) : '',
     errorMessage: 'Error updating series',
-  })
+  });
 
-  if (!series) return null
+  if (!series) return null;
 
   return (
     <ModalWrapper
@@ -100,7 +99,7 @@ function SeriesDialog() {
       activeTab={selectedTab}
       onTabChange={setSelectedTab}
     />
-  )
+  );
 }
 
-export default SeriesDialog
+export default SeriesDialog;

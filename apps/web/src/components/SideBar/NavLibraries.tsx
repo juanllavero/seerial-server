@@ -1,30 +1,6 @@
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuAction,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarSeparator,
-  useSidebar,
-} from '@/components/ui/sidebar'
-import { API, authenticatedFetch, authenticatedFetcher } from '@/config/api'
-import { useServerStore } from '@/context/auth.store'
-import useDataStore from '@/context/data.context'
-import { useDialogStore } from '@/context/dialog.store'
-import { useWebSocketStore } from '@/context/ws.context'
-import { LibraryTypes } from '@/data/enums/LibraryTypes'
-import type { Library } from '@/data/interfaces/Media'
-import type { APIResponse } from '@/data/interfaces/Utils'
-import { useIsAdmin } from '@/hooks/useIsAdmin'
-import { t } from 'i18next'
+import { API, useCreate, useGetLibraries } from '@seerial/api';
+import type { Library } from '@seerial/domain';
+import { t } from 'i18next';
 import {
   Film,
   MoreVertical,
@@ -34,78 +10,90 @@ import {
   SearchIcon,
   Trash2,
   TvMinimal,
-} from 'lucide-react'
-import React, { memo } from 'react'
-import { useNavigate } from 'react-router-dom'
-import useSWR from 'swr'
-import { shallow } from 'zustand/shallow'
-import SmallSpinner from './loading/SmallSpinner'
+} from 'lucide-react';
+import React, { memo } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { shallow } from 'zustand/shallow';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuAction,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarSeparator,
+  useSidebar,
+} from '@/components/ui/sidebar';
+import { useServerStore } from '@seerial/stores';
+import { useDataStore } from '@seerial/stores';
+import { useDialogStore } from '@/context/dialog.store';
+import { useWebSocketStore } from '@seerial/stores';
+import { LibraryTypes } from '@/data/enums/LibraryTypes';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
+import SmallSpinner from './loading/SmallSpinner';
+
+interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  timestamp: string;
+}
 
 interface Item {
-  id: string
-  name: string
-  type: string
-  logo: React.ElementType
-  action: () => void
+  id: string;
+  name: string;
+  type: string;
+  logo: React.ElementType;
+  action: () => void;
 }
 
 const NavLibraries = () => {
-  const { isMobile } = useSidebar()
-  const connectWS = useWebSocketStore((state) => state.connectWS)
+  const { isMobile } = useSidebar();
+  const connectWS = useWebSocketStore((state) => state.connectWS);
   const { analyzing, analyzingLibraryId } = useWebSocketStore(
     (state) => ({
       analyzing: state.analyzing,
       analyzingLibraryId: state.analyzingLibraryId,
     }),
     shallow,
-  )
-  const navigate = useNavigate()
+  );
+  const navigate = useNavigate();
 
-  const isAdmin = useIsAdmin()
+  const isAdmin = useIsAdmin();
   const { apiKeyStatus } = useServerStore(
     (state) => ({
       apiKeyStatus: state.apiKeyStatus,
     }),
     shallow,
-  )
+  );
   const { openDialog } = useDialogStore(
     (state) => ({
       openDialog: state.openDialog,
     }),
     shallow,
-  )
+  );
   const { selectedLibraryId, selectLibrary } = useDataStore(
     (state) => ({
       selectedLibraryId: state.selectedLibraryId,
       selectLibrary: state.selectLibrary,
     }),
     shallow,
-  )
+  );
+  const { create: createRequest } = useCreate<void>();
 
-  const { data, isLoading } = useSWR<APIResponse<Library[]>>(
-    API.libraries.getAll,
-    authenticatedFetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-    },
-  )
+  const { data, isLoading } = useGetLibraries<ApiResponse<Library[]>>({
+    refetchOnWindowFocus: false,
+    staleTime: Number.POSITIVE_INFINITY,
+  });
 
-  const libraries = data ? data.data : []
-
-  const searchFiles = async (libraryId: string) => {
-    await connectWS()
-
-    authenticatedFetch(API.libraries.scan(libraryId), 'POST')
-  }
-
-  const [activeItem, setActiveItem] = React.useState<Item | null>(null)
-
-  React.useEffect(() => {
-    if (librariesItems) {
-      setActiveItem(librariesItems.find((item) => item.id === selectedLibraryId) || null)
-    }
-  }, [selectedLibraryId, librariesItems])
+  const libraries = data ? data.data : [];
 
   const librariesItems =
     libraries && libraries.length > 0
@@ -121,12 +109,26 @@ const NavLibraries = () => {
                   ? Film
                   : Music,
             action: () => {
-              selectLibrary(library.id)
-              navigate(`/library/${library.id}`)
+              selectLibrary(library.id);
+              navigate(`/library/${library.id}`);
             },
           })),
         ]
-      : []
+      : [];
+
+  const searchFiles = async (libraryId: string) => {
+    await connectWS();
+
+    await createRequest(API.libraries.scan(libraryId), undefined);
+  };
+
+  const [activeItem, setActiveItem] = React.useState<Item | null>(null);
+
+  React.useEffect(() => {
+    if (librariesItems) {
+      setActiveItem(librariesItems.find((item) => item.id === selectedLibraryId) || null);
+    }
+  }, [selectedLibraryId, librariesItems]);
 
   return (
     <>
@@ -148,10 +150,10 @@ const NavLibraries = () => {
                         activeItem && activeItem.id === item.id ? 'bg-transparent' : ''
                       }`}
                       onClick={(e) => {
-                        e.preventDefault()
+                        e.preventDefault();
 
-                        setActiveItem(item)
-                        navigate(`/library/${item.id}`)
+                        setActiveItem(item);
+                        navigate(`/library/${item.id}`);
                       }}
                       style={{
                         color: activeItem && activeItem.id === item.id ? 'var(--app-color)' : '',
@@ -187,10 +189,10 @@ const NavLibraries = () => {
                       >
                         <DropdownMenuItem
                           onClick={() => {
-                            const library = libraries.find((library) => library.id === item.id)
+                            const library = libraries.find((library) => library.id === item.id);
 
                             if (library) {
-                              openDialog('library', { id: library.id })
+                              openDialog('library', { id: library.id });
                             }
                           }}
                         >
@@ -231,7 +233,7 @@ const NavLibraries = () => {
                   tooltip={t('libraryWindowTitle')}
                   onClick={() => {
                     if (!analyzing) {
-                      openDialog('library', {})
+                      openDialog('library', {});
                     }
                   }}
                 >
@@ -256,7 +258,7 @@ const NavLibraries = () => {
         </>
       )}
     </>
-  )
-}
+  );
+};
 
-export default memo(NavLibraries)
+export default memo(NavLibraries);

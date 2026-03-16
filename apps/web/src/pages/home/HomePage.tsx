@@ -1,11 +1,10 @@
+import { API, useGet } from '@seerial/api';
+import type { Library } from '@seerial/domain';
 import { useEffect } from 'react';
 import { shallow } from 'zustand/shallow';
 import LoadingInsideSidebar from '@/components/LoadingInsideSidebar';
-import { API } from '@/config/api';
-import { useServerStore } from '@/context/auth.store';
-import useDataStore from '@/context/data.context';
-import type { Library } from '@/data/interfaces/Media';
-import { useGet } from '@/hooks/media/useGet';
+import { useServerStore } from '@seerial/stores';
+import { useDataStore } from '@seerial/stores';
 import HomePageContent from './components/content/HomePageContent';
 import NoAPIKey from './components/NoAPIKey';
 import NoContent from './components/NoContent';
