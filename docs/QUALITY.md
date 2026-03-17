@@ -70,9 +70,6 @@ apps/*
   └── libs/api
         └── libs/domain
               └── (no dependencies)
-
-libs/ui-web, libs/ui-tv
-  └── libs/domain (types only)
 ```
 
 ---

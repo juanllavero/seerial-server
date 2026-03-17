@@ -1,15 +1,15 @@
 # @seerial/desktop — Desktop Client Architecture
 
 **Date:** 2026 | **Status:** ✅ Defined  
-**Role:** Desktop media player (no content management)  
-**Stack:** Tauri + React (Vite, webview) + TanStack Query + Zustand  
+**Role:** Desktop HTPC Client (no content management)  
+**Stack:** Tauri + React (Vite, webview) + Zustand  
 **UI paradigm:** 10-foot interface inspired by Plex HTPC, keyboard/gamepad navigable
 
 ---
 
 ## 1. Responsibilities
 
-The desktop client is a **playback-only** application. It does not manage libraries or metadata — that is done through the web client. The UI is designed for a 10-foot viewing experience and is nearly identical to the TV client. Navigation is handled by keyboard and gamepad via **Norigin Spatial Navigation**.
+The desktop client is a **data visualization and media playback** application. It does not manage the content — that is done through the web client. The UI is designed for a 10-foot viewing experience and is inspired in TV apps. Navigation is handled by keyboard and gamepad via **Norigin Spatial Navigation**.
 
 The video player is **MPV**, embedded in the Tauri window via a native plugin. The React webview only renders the UI shell; it does not render the video itself.
 
@@ -140,24 +140,11 @@ On `/player`, React renders only the OSD (on-screen display) overlay. MPV render
 
 ---
 
-## 7. Design Contract with TV Client
-
-The desktop and TV clients share the same visual design language. Components are not shared at the code level (Desktop uses React DOM, TV uses React Native), but they follow a **common design contract** documented in [UI_TV_SHARED.md](./UI_TV_SHARED.md):
-
-- Same grid proportions and spacing scale
-- Same card structure (poster, title, progress bar, badge)
-- Same OSD layout
-- Same navigation model (rows of focusable cards, detail → player flow)
-
-This contract ensures that a user switching between the TV and desktop clients has an identical mental model.
-
----
-
 ## 8. Shared Libraries Consumed
 
-| Library | Usage |
+| Library  |  Usage |
 |---|---|
-| `@seerial/api` | All TanStack Query hooks |
+| `@seerial/api`    | All TanStack Query hooks            |
 | `@seerial/domain` | Domain types and business functions |
-| `@seerial/ui-web` | Base UI atoms (buttons, overlays) |
-| `@seerial/config` | Biome and TypeScript configuration |
+| `@seerial/stores` | Global context in Zustand           |
+| `@seerial/hooks`  | Global React hooks                  |

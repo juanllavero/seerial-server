@@ -4,7 +4,7 @@
 
 ## Overview
 
-Seerial is a media management suite structured as a monorepo managed with **pnpm workspaces**. This document defines the architectural decisions that govern all client applications, ensuring consistency, code reuse, and maintainability across the three clients: Web, Desktop, and TV.
+Seerial is a media management suite structured as a monorepo managed with **pnpm workspaces**. This document defines the architectural decisions that govern all client applications, ensuring consistency, code reuse, and maintainability across the two clients: Web and Desktop.
 
 ---
 
@@ -16,17 +16,14 @@ seerial/
 ├── apps/
 │   ├── server/         # @seerial/server    — Node.js backend (hexagonal architecture)
 │   ├── web/            # @seerial/web       — React + Vite CMS client
-│   ├── desktop/        # @seerial/desktop   — Tauri + React desktop player
-│   └── tv/             # @seerial/tv        — React Native TV player (Expo)
+│   └── desktop/        # @seerial/desktop   — Tauri + React desktop player
 │
 ├── libs/
 │   ├── api/            # @seerial/api       — TanStack Query hooks + API client
+│   ├── cli/            # @seerial/cli       — CLI tools
 │   ├── domain/         # @seerial/domain    — Domain types, mappers, business rules
 │   ├── hooks/          # @seerial/hooks     — hooks utilitarios compartidos
 │   ├── stores/         # @seerial/stores    — Zustand stores compartidos
-│   ├── ui-web/         # @seerial/ui-web    — Shared UI atoms for web & desktop
-│   ├── ui-tv/          # @seerial/ui-tv     — Shared UI atoms for TV & desktop (RN compatible)
-│   └── config/         # @seerial/config    — Biome, TypeScript, CI/CD shared configs
 │
 ├── assets/
 ├── pnpm-workspace.yaml
@@ -88,7 +85,7 @@ if (canResumePlayback(episode)) { ... }
 
 The core of the shared logic. Contains:
 
-- **TypeScript domain types** — `MediaItem`, `Series`, `Episode`, `Library`, `PlaybackSession`, etc.
+- **TypeScript domain types** — `Movie`, `Series`, `Episode`, `Library`, etc.
 - **Mappers** — functions that translate raw API responses into domain types.
 - **Domain functions** — pure functions that express business rules.
 
@@ -125,24 +122,6 @@ Rules:
 - The `apiClient` (Axios instance with interceptors) lives in `libs/api/src/client.ts`.
 - Query keys follow the pattern `['resource', id?, filters?]`.
 
-### `@seerial/ui-web`
-
-Unstyled or lightly styled UI atoms (Button, Input, Modal, Badge, Spinner) for use in `@seerial/web` and `@seerial/desktop`. Built with React DOM.
-
-### `@seerial/ui-tv`
-
-UI atoms compatible with React Native for use in `@seerial/tv`. The desktop client's Tauri webview **does not use this lib** — it uses `@seerial/ui-web`. However, the **layout logic and navigation patterns** (focus management, row/grid structure) are documented here as the shared design contract between TV and Desktop interfaces.
-
-> See [UI_TV_SHARED.md](./UI_TV_SHARED.md) for the strategy on maximizing code reuse between the TV and Desktop interfaces.
-
-### `@seerial/config`
-
-Zero-runtime library containing only configuration files:
-
-- `biome.json` — shared Biome config (lint + format)
-- `tsconfig.base.json` — shared TypeScript config
-- `turbo.json` (root-level) — pipeline definitions
-
 ---
 
 ## 4. State Management Strategy
@@ -153,6 +132,7 @@ No single tool manages all state. The decision tree:
 | ---------------------------------- | --------------------- | ---------------------- |
 | Server data (API)                  | TanStack Query        | `libs/api/`            |
 | Domain types & rules               | Pure TypeScript       | `libs/domain/`         |
+| Global context                     | Zustand               | `libs/stores/`         |
 | Form state                         | React Hook Form + Zod | Inside the component   |
 | Complex flows (wizard, multi-step) | Zustand               | `features/[f]/stores/` |
 | Filters & pagination               | URL (`searchParams`)  | Browser navigation bar |
@@ -168,13 +148,11 @@ No single tool manages all state. The decision tree:
 | ------------------ | -------------- | ---------------- | ----------------------------------- |
 | `@seerial/web`     | Web CMS        | ✅ Yes           | HTML native (`<video>`, `<audio>`)  |
 | `@seerial/desktop` | Desktop player | ❌ No            | MPV via Tauri                       |
-| `@seerial/tv`      | TV player      | ❌ No            | Native device player (React Native) |
 
 > Each client has its own dedicated architecture document:
 >
 > - [WEB_ARCHITECTURE.md](./WEB_ARCHITECTURE.md)
 > - [DESKTOP_ARCHITECTURE.md](./DESKTOP_ARCHITECTURE.md)
-> - [TV_ARCHITECTURE.md](./TV_ARCHITECTURE.md)
 
 ---
 

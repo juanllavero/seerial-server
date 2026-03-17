@@ -81,14 +81,12 @@ All TanStack Query hooks. The single source of truth for server state across all
 libs/api/
 ├── src/
 │   ├── client.ts             # Axios instance with base URL + interceptors
-│   ├── keys.ts               # Centralized query key factory
+│   ├── endpoints.ts          # API endpoints registered to use in hooks
 │   ├── hooks/
 │   │   ├── use-libraries.ts
 │   │   ├── use-series.ts
-│   │   ├── use-episode-detail.ts
-│   │   ├── use-movie-detail.ts
-│   │   ├── use-playback-session.ts
-│   │   └── use-report-progress.ts
+│   │   ├── use-episodes.ts
+│   │   ├── use-movies.ts
 │   └── index.ts
 ├── package.json
 └── tsconfig.json
@@ -183,7 +181,5 @@ export function useReportProgress() {
         ↓
 @seerial/api      ←────── consumed by all clients directly
         ↓
-apps/web, apps/desktop, apps/tv
+apps/web, apps/desktop
 ```
-
-`@seerial/ui-web` and `@seerial/ui-tv` depend only on `@seerial/domain` for types. They do not depend on `@seerial/api`.

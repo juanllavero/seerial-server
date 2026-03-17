@@ -2,13 +2,13 @@
 
 **Date:** 2026 | **Status:** ✅ Defined  
 **Role:** CMS — content management and playback via browser  
-**Stack:** React + Vite + React Router + TanStack Query + Zustand
+**Stack:** React + Vite + React Router + Zustand
 
 ---
 
 ## 1. Responsibilities
 
-The web client is the **only client that can manage content** (add libraries, edit metadata, scan for media). It also allows playback using the browser's native `<video>` and `<audio>` elements. It is always served alongside the server and is not designed to run independently.
+The web client is the **only client that can manage content** (add libraries, edit metadata). It also allows playback using the browser's native `<video>` and `<audio>` elements. It is always served alongside the server and is not designed to run independently.
 
 ---
 
@@ -114,7 +114,7 @@ features/[name]/
 | Player state (queue, progress, current item) | Zustand | `features/player/stores/usePlayerStore.ts` |
 | Active library filters & pagination | URL (`searchParams`) | React Router |
 | Form state (metadata editing) | React Hook Form + Zod | Inside the component |
-| Global UI (sidebar open, active theme) | React Context | `app/providers.tsx` |
+| Global UI (sidebar open, background image/gradient) | React Context | `app/providers.tsx` |
 
 ---
 
@@ -149,5 +149,5 @@ Management pages are separated into their own route group (`/management/*`) and 
 |---|---|
 | `@seerial/api` | All TanStack Query hooks |
 | `@seerial/domain` | Domain types and business functions |
-| `@seerial/ui-web` | Buttons, inputs, modals, badges |
-| `@seerial/config` | Biome and TypeScript configuration |
+| `@seerial/stores` | Global context in Zustand |
+| `@seerial/hooks` | Global React hooks |
