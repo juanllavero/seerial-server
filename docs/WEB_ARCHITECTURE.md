@@ -23,14 +23,29 @@ apps/web/
 │   │   ├── providers.tsx         # Root providers (QueryClient, Router, etc.)
 │   │   └── App.tsx               # Application root
 │   │
-│   ├── shared/
-│   │   ├── ui/                   # Local UI overrides / compositions built on @seerial/ui-web
-│   │   ├── layout/               # AppShell, Sidebar, Topbar
-│   │   └── hooks/                # App-wide hooks (useMediaQuery, useKeyboard, etc.)
+│   ├── pages/                    # Thin route-level components — no business logic
+│   │   ├── home/
+│   │   │   └── HomePage.tsx
+│   │   ├── library/
+│   │   │   └── LibraryPage.tsx
+│   │   ├── details/
+│   │   │   ├── MovieDetailsPage.tsx
+│   │   │   ├── SeriesDetailsPage.tsx
+│   │   │   ├── AlbumDetailsPage.tsx
+│   │   │   └── EpisodeDetailsPage.tsx
+│   │   ├── collection/
+│   │   │   └── CollectionPage.tsx
+│   │   ├── player/
+│   │   │   └── VideoPlayerPage.tsx
+│   │   ├── settings/
+│   │   │   └── SettingsPage.tsx
+│   │   └── auth/
+│   │       ├── LoginPage.tsx
+│   │       └── LinkPage.tsx
 │   │
 │   ├── features/
 │   │   ├── library/              # Browse libraries, grids, filters
-│   │   │   ├── components/
+│   │   │   ├── components/       # Sections and presentational components
 │   │   │   ├── hooks/
 │   │   │   ├── stores/
 │   │   │   └── index.ts
@@ -52,8 +67,15 @@ apps/web/
 │   │       ├── hooks/
 │   │       └── index.ts
 │   │
+│   ├── shared/
+│   │   ├── ui/                   # Shadcn/ui and custom components
+│   │   ├── layout/               # SidebarLayout
+│   │   └── hooks/                # App-wide hooks (useCardWidth)
+│   │
 │   └── styles/
-│       └── tokens.css            # CSS custom properties (colors, spacing, typography)
+│       ├── animations.css        # CSS animations
+│       ├── utils.css             # CSS utils
+│       └── global.css            # CSS global styles and tailwind import
 │
 ├── index.html
 ├── vite.config.ts
@@ -65,48 +87,70 @@ apps/web/
 
 ## 3. Routing
 
-React Router is defined in `src/routes/routes.tsx`. Routes are lazy-loaded by default.
+React Router is defined in `src/app/router.tsx`. Routes are lazy-loaded by default and each one maps directly to a page component in `src/pages/`.
 
 ```
 /                       → redirect to /home
-/login                  → Login page
-/link                   → TV linking flow
-/home                   → Home overview
-/settings               → Settings
-/library/:libraryId     → Library content grid
-/library/:libraryId/movie/:movieId       → Movie detail
-/library/:libraryId/series/:seriesId     → Series detail
-/library/:libraryId/album/:albumId       → Album detail
-/library/:libraryId/episode/:episodeId   → Episode detail
-/collection/:collectionId/:type          → Collection detail
-/video-player/:videoId                   → Fullscreen player
+/login                  → LoginPage
+/link                   → LinkPage
+/home                   → HomePage
+/settings               → SettingsPage
+/library/:libraryId                              → LibraryPage
+/library/:libraryId/movie/:movieId               → MovieDetailsPage
+/library/:libraryId/series/:seriesId             → SeriesDetailsPage
+/library/:libraryId/album/:albumId               → AlbumDetailsPage
+/library/:libraryId/episode/:episodeId           → EpisodeDetailsPage
+/collection/:collectionId/:type                  → CollectionPage
+/video-player/:videoId                           → VideoPlayerPage
 ```
-
-Each route corresponds to a page component inside `src/pages/**`:
-
-```
-src/pages/library/LibraryPage.tsx
-src/pages/details/series/SeriesDetailsPage.tsx
-src/pages/videoPlayer/VideoPlayerPage.tsx
-```
-
-Pages are thin orchestrators: they call hooks from `@seerial/api`, pass data to presentational components, and do not contain business logic.
 
 ---
 
-## 4. Feature Structure Detail
+## 4. Pages vs Features
 
-Each feature follows the same internal structure:
+### Pages (`src/pages/`)
+
+Pages are **thin orchestrators**. Their only responsibilities are:
+
+- Reading route params and search params
+- Calling hooks from features or `@seerial/api` to fetch data
+- Composing feature components into a layout
+- Passing data down as props
+
+Pages contain **no business logic, no stores, and no local state** beyond what React Router provides.
+
+```tsx
+// pages/library/LibraryPage.tsx
+export default function LibraryPage() {
+  const { libraryId } = useParams()
+  const { data } = useLibrary(libraryId)
+
+  return <LibraryView library={data} />  // component from features/library
+}
+```
+
+### Features (`src/features/`)
+
+Features own the **business logic, state, and UI sections** for a given domain. Each feature exposes its public API exclusively through its `index.ts` barrel — no other file may be imported from outside the feature.
 
 ```
 features/[name]/
-├── components/         # UI: pages, sections, and presentational components
-├── hooks/              # Feature-local hooks (useLibraryFilters, usePlayerControls)
-├── stores/             # Zustand stores for complex local UI state (wizard steps, player queue)
-└── index.ts            # Public barrel — the ONLY file other modules may import from
+├── components/   # Sections and presentational components (no page-level wrappers)
+├── hooks/        # Feature-local hooks (useLibraryFilters, usePlayerControls)
+├── stores/       # Zustand stores for complex local UI state (wizard steps, player queue)
+└── index.ts      # Public barrel — the ONLY file other modules may import from
 ```
 
-**Import rule:** `features/library` may never import from `features/player` directly. If shared logic is needed, it belongs in `shared/` or `libs/`.
+### Import rules
+
+```
+pages/      → may import from features/, shared/, @seerial/*
+features/   → may import from shared/, @seerial/*
+features/   → must NOT import from pages/ or other features/
+shared/     → must NOT import from features/ or pages/
+```
+
+If two features need to share logic, it belongs in `shared/` or in the relevant `@seerial/*` library.
 
 ---
 

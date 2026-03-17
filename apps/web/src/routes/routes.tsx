@@ -14,7 +14,7 @@ const CollectionDetailsPage = lazy(
   () => import('@/pages/details/collection/CollectionDetailsPage'),
 );
 const EpisodeDetailsPage = lazy(() => import('@/pages/details/episode/EpisodeDetailsPage'));
-const VideoPlayerPage = lazy(() => import('@/features/player'));
+const VideoPlayerPage = lazy(() => import('@/pages/videoPlayer/VideoPlayerPage'));
 const SideBarLayout = lazy(() => import('@/pages/sidebarLayout/SideBarLayout'));
 
 export function AppRoutes() {
