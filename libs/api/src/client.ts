@@ -3,7 +3,7 @@
  */
 
 import axios, { type AxiosInstance } from 'axios'
-import type { HttpMethod } from './endpoints'
+import { API, type HttpMethod } from './endpoints'
 
 export const DEFAULT_API_BASE_URL = '/api'
 
@@ -141,4 +141,55 @@ export const api = {
         const response = await apiClient.delete<TResponse>(url)
         return response.data
     },
+}
+
+type ServerConfigResponse<TConfig> = { data?: TConfig } | TConfig
+
+type ServerConfigValueResponse<TValue> = { data?: { value?: TValue } } | { value?: TValue }
+
+export async function getServerConfig<TConfig>(): Promise<TConfig> {
+    const response = await api.get<ServerConfigResponse<TConfig>>(API.servers.config)
+    return ((response as { data?: TConfig })?.data ?? response) as TConfig
+}
+
+export async function getServerConfigValue<TValue>(
+    key: string,
+    defaultValue: TValue,
+): Promise<TValue> {
+    const response = await api.get<ServerConfigValueResponse<TValue>>(API.servers.configKey(key))
+    const payload =
+        (response as { data?: { value?: TValue } })?.data ??
+        (response as { value?: TValue })
+
+    return payload?.value ?? defaultValue
+}
+
+export async function patchServerConfig(
+    key: string,
+    value: unknown,
+): Promise<void> {
+    await api.patch(API.servers.config, { [key]: value })
+}
+
+interface SignedStreamUrlResponse {
+    data?: string
+}
+
+interface SignedStreamUrlRequest {
+    filePath: string
+    start?: number
+    audio?: number
+    expiresIn?: string
+}
+
+export async function getSignedVideoStreamUrl(
+    request: SignedStreamUrlRequest,
+): Promise<string> {
+    const response = await authenticatedFetch<SignedStreamUrlResponse>(
+        API.videoStreaming.signedUrl,
+        'POST',
+        request,
+    )
+
+    return response.data ? `/api${response.data}` : ''
 }

@@ -1,5 +1,6 @@
 import {
     type QueryKey,
+    type QueryObserverResult,
     type UseMutationOptions,
     type UseMutationResult,
     type UseQueryOptions,
@@ -29,12 +30,16 @@ export type MutationHookOptions<TResponse, TVariables> = Omit<
     'mutationFn'
 >
 
+export type ApiQueryResult<TResponse> = UseQueryResult<TResponse, Error> & {
+    mutate: () => Promise<QueryObserverResult<TResponse, Error>>
+}
+
 export function useApiQuery<TResponse>(
     queryKey: QueryKey,
     path: string,
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> {
-    return useQuery<TResponse, Error>({
+): ApiQueryResult<TResponse> {
+    const query = useQuery<TResponse, Error>({
         queryKey: options?.queryKey ?? [...queryKey, options?.params],
         queryFn: async () => {
             const response = await apiClient.get<TResponse>(path, { params: options?.params })
@@ -42,6 +47,11 @@ export function useApiQuery<TResponse>(
         },
         ...options,
     })
+
+    return {
+        ...query,
+        mutate: () => query.refetch(),
+    }
 }
 
 export function useApiMutation<TResponse, TVariables>(

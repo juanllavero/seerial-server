@@ -1,5 +1,7 @@
 import { API, useCreate, useGet } from '@seerial/api';
-import type { Series } from '@seerial/domain';
+import type { Season, Series } from '@seerial/domain';
+import { useIsAdmin } from '@seerial/hooks';
+import { useDataStore, useServerStore } from '@seerial/stores';
 import { t } from 'i18next';
 import { Pencil } from 'lucide-react';
 import { useEffect } from 'react';
@@ -13,11 +15,8 @@ import FlexBox from '@/components/ui/FlexBox';
 import { MarkWatchedIcon, UnmarkWatchedIcon } from '@/components/ui/IconLibrary';
 import LazyImage from '@/components/ui/LazyImage';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useServerStore } from '@seerial/stores';
-import { useDataStore } from '@seerial/stores';
 import { useDialogStore } from '@/context/dialog.store';
 import { useSettingsStore } from '@/context/settings.context';
-import { useIsAdmin } from '@/hooks/useIsAdmin';
 import CastList from '../components/CastList';
 import '../DetailsPage.css';
 import MyListButton from './components/MyListButton';
@@ -56,8 +55,9 @@ function SeriesDetailsPage() {
   const { create } = useCreate<unknown>();
 
   // Get selected season data
-  const season =
-    series && series.seasons ? series.seasons.find((s) => s.id === selectedSeasonId) : undefined;
+  const season = series?.seasons
+    ? series.seasons.find((s: Season) => s.id === selectedSeasonId)
+    : undefined;
 
   const isMobile = useIsMobile();
   const showPoster: boolean = (clientSettings.showPosters as boolean) ?? true;
@@ -174,8 +174,8 @@ function SeriesDetailsPage() {
             <SeasonSelectable
               defaultValue={season ? season.name : series.seasons[0].name}
               options={series.seasons
-                .sort((a, b) => a.seasonNumber - b.seasonNumber)
-                .map((season, index) => {
+                .sort((a: Season, b: Season) => a.seasonNumber - b.seasonNumber)
+                .map((season: Season, index: number) => {
                   return {
                     key: String(index),
                     value: season.name,
@@ -199,7 +199,7 @@ function SeriesDetailsPage() {
             <span id="genres">
               {isLoading ? (
                 <Skeleton className="h-5 w-40" />
-              ) : series && series.genres && series.genres.length > 0 ? (
+              ) : series?.genres && series.genres.length > 0 ? (
                 series.genres.join(', ') || ''
               ) : null}
             </span>
@@ -227,10 +227,10 @@ function SeriesDetailsPage() {
               <>
                 <Button
                   variant={'ghost'}
-                  title={season && season.watchStatus ? t('markUnwatched') : t('markWatched')}
+                  title={season?.watchStatus ? t('markUnwatched') : t('markWatched')}
                   onClick={toggleSeasonWatched}
                 >
-                  {season && season.watchStatus ? <UnmarkWatchedIcon /> : <MarkWatchedIcon />}
+                  {season?.watchStatus ? <UnmarkWatchedIcon /> : <MarkWatchedIcon />}
                 </Button>
                 <MyListButton seriesId={seriesId ?? ''} />
               </>

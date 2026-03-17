@@ -1,10 +1,10 @@
-import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query'
+import type { UseMutationResult } from '@tanstack/react-query'
 import { API } from '../endpoints'
-import { asBody, asVoid, type MutationHookOptions, type QueryHookOptions, useApiMutation, useApiQuery } from './common'
+import { type ApiQueryResult, asBody, asVoid, type MutationHookOptions, type QueryHookOptions, useApiMutation, useApiQuery } from './common'
 
 export const useGetUsersPublic = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> => useApiQuery<TResponse>(['users', 'findAllPublic'], API.users.findAllPublic, options)
+): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['users', 'findAllPublic'], API.users.findAllPublic, options)
 
 export const useCreateUser = <TResponse = unknown, TBody = unknown>(
     options?: MutationHookOptions<TResponse, TBody>,

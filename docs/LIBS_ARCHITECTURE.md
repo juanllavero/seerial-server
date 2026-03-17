@@ -12,57 +12,44 @@ The foundation layer. Pure TypeScript — no React, no TanStack Query, no runtim
 
 ```
 libs/domain/
+├── index.ts                 # Package entrypoint (re-exports src/index.ts)
 ├── src/
-│   ├── media-item.ts         # Base type for any playable item
-│   ├── library.ts            # Library type, mapper, helpers
-│   ├── series.ts             # Series, Season types
-│   ├── episode.ts            # Episode type, mappers, domain functions
-│   ├── movie.ts              # Movie type, mappers, domain functions
-│   ├── playback-session.ts   # PlaybackSession, progress helpers
+│   ├── enums/
+│   │   └── index.ts
+│   ├── interfaces/
+│   │   ├── domain-media.ts
+│   │   ├── domain-server.ts
+│   │   ├── domain-user.ts
+│   │   ├── media-core.ts
+│   │   ├── media-info.ts
+│   │   ├── media-search.ts
+│   │   ├── server-discovery.ts
+│   │   └── utils.ts
+│   ├── mappers/
+│   │   └── user.ts
 │   └── index.ts              # Public barrel
 ├── package.json
-└── tsconfig.json
+└── biome.json
 ```
 
-### File anatomy
+### Module anatomy
 
-Each domain file follows a consistent three-part structure:
+Domain modules are organized by responsibility:
 
 ```typescript
-// libs/domain/src/episode.ts
-
-// 1. Domain type — business language, not API shape
-export interface Episode {
+// libs/domain/src/interfaces/domain-user.ts
+export interface BasicUser {
   id: string
-  seriesId: string
-  seasonNumber: number
-  episodeNumber: number
-  title: string
-  durationSeconds: number
-  progress: number            // 0–1, fraction watched
-  videoUrl: string
+  username: string
+  type: 'admin' | 'user'
 }
 
-// 2. Mapper — raw API response → domain type
-export function toEpisode(raw: ApiEpisode): Episode {
-  return {
-    id: raw.id,
-    seriesId: raw.series_id,
-    seasonNumber: raw.season_number,
-    episodeNumber: raw.episode_number,
-    title: raw.title,
-    durationSeconds: raw.duration,
-    progress: raw.progress ?? 0,
-    videoUrl: raw.stream_url,
-  }
+// libs/domain/src/mappers/user.ts
+export function mapUserApiToDomain(raw: unknown): BasicUser {
+  // Mapping implementation kept in domain to isolate API shape
+  // and expose stable domain contracts.
+  return raw as BasicUser
 }
-
-// 3. Domain functions — business rules as pure functions
-export const isWatched = (ep: Episode): boolean => ep.progress >= 0.9
-export const canResume = (ep: Episode): boolean =>
-  ep.progress > 0 && !isWatched(ep)
-export const resumePositionSeconds = (ep: Episode): number =>
-  Math.floor(ep.progress * ep.durationSeconds)
 ```
 
 ### Dependency rule
@@ -82,48 +69,45 @@ libs/api/
 ├── src/
 │   ├── client.ts             # Axios instance with base URL + interceptors
 │   ├── endpoints.ts          # API endpoints registered to use in hooks
+│   ├── query-client.ts       # Shared TanStack Query client singleton
 │   ├── hooks/
+│   │   ├── common.ts         # Shared hook primitives and option/result types
+│   │   ├── index.ts          # Hook layer barrel
+│   │   ├── use-crud.ts
 │   │   ├── use-libraries.ts
-│   │   ├── use-series.ts
-│   │   ├── use-episodes.ts
 │   │   ├── use-movies.ts
+│   │   ├── use-music.ts
+│   │   ├── use-series.ts
+│   │   ├── use-system.ts
+│   │   ├── use-users.ts
+│   │   └── use-videos.ts
 │   └── index.ts
 ├── package.json
-└── tsconfig.json
+└── biome.json
 ```
 
-### Query key factory
+### Query key strategy
 
-All query keys are defined centrally to enable precise cache invalidation:
+Query keys are composed in each hook module with a stable `['resource', 'action', ...params]` shape. For shared cache operations outside React components, `query-client.ts` exports a singleton used across packages.
 
 ```typescript
-// libs/api/src/keys.ts
-export const keys = {
-  libraries: () => ['libraries'] as const,
-  library: (id: string) => ['libraries', id] as const,
-  series: (id: string) => ['series', id] as const,
-  episode: (id: string) => ['episodes', id] as const,
-  movie: (id: string) => ['movies', id] as const,
-  session: (itemId: string) => ['session', itemId] as const,
-}
+// libs/api/src/hooks/use-libraries.ts
+useApiQuery(['libraries', 'getAll'], API.libraries.getAll, options)
 ```
 
 ### Hook anatomy
 
 ```typescript
-// libs/api/src/hooks/use-episode-detail.ts
-import { useQuery } from '@tanstack/react-query'
-import { toEpisode, type Episode } from '@seerial/domain'
-import { apiClient } from '../client'
-import { keys } from '../keys'
+// libs/api/src/hooks/use-movies.ts
+import type { ApiQueryResult, QueryHookOptions } from './common'
+import { API } from '../endpoints'
+import { useApiQuery } from './common'
 
-export function useEpisodeDetail(id: string) {
-  return useQuery<Episode>({
-    queryKey: keys.episode(id),
-    queryFn: () =>
-      apiClient.get(`/episodes/${id}`).then(res => toEpisode(res.data)),
-    enabled: !!id,
-  })
+export const useGetMovie = <TResponse = unknown>(
+  movieId: string,
+  options?: QueryHookOptions<TResponse>,
+): ApiQueryResult<TResponse> =>
+  useApiQuery<TResponse>(['movies', 'get', movieId], API.movies.get(movieId), options)
 }
 ```
 
@@ -153,21 +137,22 @@ The server URL comes from user settings (stored locally on each client) and is i
 Mutations follow the same pattern. Progress reporting example:
 
 ```typescript
-// libs/api/src/hooks/use-report-progress.ts
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { keys } from '../keys'
+// libs/api/src/hooks/use-videos.ts
+import type { MutationHookOptions } from './common'
+import { API } from '../endpoints'
+import { asBody, useApiMutation } from './common'
 
-export function useReportProgress() {
-  const qc = useQueryClient()
-
-  return useMutation({
-    mutationFn: ({ itemId, progress }: { itemId: string; progress: number }) =>
-      apiClient.post(`/progress/${itemId}`, { progress }),
-    onSuccess: (_, { itemId }) => {
-      qc.invalidateQueries({ queryKey: keys.session(itemId) })
-    },
-  })
-}
+export const useUpdateVideo = <TResponse = unknown, TBody = unknown>(
+  videoId: string,
+  options?: MutationHookOptions<TResponse, TBody>,
+) =>
+  useApiMutation<TResponse, TBody>(
+    ['videos', 'update', videoId],
+    API.videos.update(videoId),
+    'PUT',
+    asBody,
+    options,
+  )
 ```
 
 ---

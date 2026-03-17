@@ -1,15 +1,15 @@
-import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query'
+import type { UseMutationResult } from '@tanstack/react-query'
 import { API } from '../endpoints'
-import { asBody, asVoid, type MutationHookOptions, type QueryHookOptions, useApiMutation, useApiQuery } from './common'
+import { type ApiQueryResult, asBody, asVoid, type MutationHookOptions, type QueryHookOptions, useApiMutation, useApiQuery } from './common'
 
 export const useGetSongLyrics = <TResponse = unknown>(
     songId: string,
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> => useApiQuery<TResponse>(['songs', 'lyrics', songId], API.songs.lyrics(songId), options)
+): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['songs', 'lyrics', songId], API.songs.lyrics(songId), options)
 
 export const useStreamSong = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> => useApiQuery<TResponse>(['songs', 'stream'], API.songs.stream, options)
+): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['songs', 'stream'], API.songs.stream, options)
 
 export const useUpdateSong = <TResponse = unknown, TBody = unknown>(
     songId: string,
@@ -31,7 +31,7 @@ export const useAddSongLyrics = <TResponse = unknown, TBody = unknown>(
 export const useGetArtist = <TResponse = unknown>(
     artistId: string,
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> =>
+): ApiQueryResult<TResponse> =>
     useApiQuery<TResponse>(['artists', 'getById', artistId], API.artists.getById(artistId), options)
 
 export const useCreateArtist = <TResponse = unknown, TBody = unknown>(
@@ -54,7 +54,7 @@ export const useDeleteArtist = <TResponse = unknown>(
 export const useGetAlbum = <TResponse = unknown>(
     albumId: string,
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> => useApiQuery<TResponse>(['albums', 'get', albumId], API.albums.get(albumId), options)
+): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['albums', 'get', albumId], API.albums.get(albumId), options)
 
 export const useUpdateAlbum = <TResponse = unknown, TBody = unknown>(
     albumId: string,

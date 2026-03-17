@@ -1,6 +1,6 @@
+import { getServerConfig, getServerConfigValue, patchServerConfig } from '@seerial/api';
 import { type Settings, SettingsSection, type ValueOption } from '@seerial/domain';
 import { createWithEqualityFn } from 'zustand/traditional';
-import { API, api } from '@/config/api';
 import { defaultWebConfig } from '@/utils/defaults';
 
 interface SettingsStore {
@@ -44,22 +44,16 @@ export const useSettingsStore = createWithEqualityFn<SettingsStore>((set) => ({
 
   // --- SERVER SETTINGS ---
   getAllServerSettings: async () => {
-    const settings = await api.get<{ data?: Settings } | Settings>(API.servers.config);
-    const result = (settings as { data?: Settings })?.data ?? (settings as Settings);
-    set({ serverSettings: result ?? {} });
+    const settings = await getServerConfig<Settings>();
+    set({ serverSettings: settings ?? {} });
   },
 
   getServerSetting: async (key: string, defaultValue: ValueOption) => {
-    const setting = await api.get<{ data?: { value?: ValueOption } } | { value?: ValueOption }>(
-      API.servers.configKey(key),
-    );
-    const result =
-      (setting as { data?: { value?: ValueOption } })?.data ?? (setting as { value?: ValueOption });
-    return result ? result.value : defaultValue;
+    return getServerConfigValue<ValueOption>(key, defaultValue);
   },
 
   setServerSetting: async (key: string, value: ValueOption) => {
-    await api.patch(API.servers.config, { [key]: value });
+    await patchServerConfig(key, value);
   },
 
   // --- CLIENT SETTINGS (localStorage + defaults) ---

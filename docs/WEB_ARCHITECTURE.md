@@ -65,25 +65,29 @@ apps/web/
 
 ## 3. Routing
 
-React Router v6 with file-based route organization inside `app/router.tsx`. Routes are lazy-loaded by default.
+React Router is defined in `src/routes/routes.tsx`. Routes are lazy-loaded by default.
 
 ```
 /                       → redirect to /home
-/home                   → Library overview
-/library/:id            → Library content grid
-/library/:id/series/:id → Series detail
-/library/:id/movies/:id → Movie detail
-/player/:type/:id       → Fullscreen player
-/management             → CMS dashboard (add library, scan, etc.)
+/login                  → Login page
+/link                   → TV linking flow
+/home                   → Home overview
 /settings               → Settings
+/library/:libraryId     → Library content grid
+/library/:libraryId/movie/:movieId       → Movie detail
+/library/:libraryId/series/:seriesId     → Series detail
+/library/:libraryId/album/:albumId       → Album detail
+/library/:libraryId/episode/:episodeId   → Episode detail
+/collection/:collectionId/:type          → Collection detail
+/video-player/:videoId                   → Fullscreen player
 ```
 
-Each route corresponds to a page component inside its feature folder:
+Each route corresponds to a page component inside `src/pages/**`:
 
 ```
-features/library/components/LibraryPage.tsx
-features/series/components/SeriesDetailPage.tsx
-features/player/components/PlayerPage.tsx
+src/pages/library/LibraryPage.tsx
+src/pages/details/series/SeriesDetailsPage.tsx
+src/pages/videoPlayer/VideoPlayerPage.tsx
 ```
 
 Pages are thin orchestrators: they call hooks from `@seerial/api`, pass data to presentational components, and do not contain business logic.
@@ -139,7 +143,7 @@ This feature is exclusive to the web client. It includes:
 - Metadata editing
 - User management
 
-Management pages are separated into their own route group (`/management/*`) and lazy-loaded to keep the initial bundle small for users who only want to browse and play.
+Management actions are currently exposed through dialogs and contextual actions across content pages, rather than a dedicated `/management/*` route group.
 
 ---
 

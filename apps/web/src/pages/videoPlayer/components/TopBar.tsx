@@ -1,11 +1,11 @@
+import { useSetVideoWatchState } from '@seerial/api';
 import type { Video } from '@seerial/domain';
+import { useServerStore } from '@seerial/stores';
 import { ChevronLeft, Maximize2, Minimize2 } from 'lucide-react';
 import type React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import FlexBox from '@/components/ui/FlexBox';
-import { API, authenticatedFetch } from '@/config/api';
-import { useServerStore } from '@seerial/stores';
 
 interface VideoInfo {
   title: string;
@@ -42,6 +42,7 @@ function TopBar({
 }: TopBarProps) {
   const navigate = useNavigate();
   const user = useServerStore((state) => state.currentUser);
+  const { mutateAsync: setVideoWatchState } = useSetVideoWatchState(video.id);
 
   const handleGoBack = async () => {
     if (!video) return;
@@ -49,7 +50,7 @@ function TopBar({
     setVideoLoaded(false);
     setIsPlaying(false);
 
-    await authenticatedFetch(API.videos.setWatchState(video.id), 'PUT', {
+    await setVideoWatchState({
       videoId: video.id,
       timeWatched: currentTime,
       watched: currentTime > video.runtime * 60 * 0.9,

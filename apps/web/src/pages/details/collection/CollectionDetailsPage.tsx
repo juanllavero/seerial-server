@@ -1,5 +1,7 @@
-import { API, useCreate, useGet } from '@seerial/api';
+import { API, useCreate, useGet, useGetCollection } from '@seerial/api';
 import type { Album, Collection, Movie, Series } from '@seerial/domain';
+import { useIsAdmin } from '@seerial/hooks';
+import { useDataStore } from '@seerial/stores';
 import { Ellipsis, Pencil } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useState } from 'react';
@@ -13,9 +15,7 @@ import { SortableHorizontalList } from '@/components/lists/SortableHorizontalLis
 import { Button } from '@/components/ui/button';
 import FlexBox from '@/components/ui/FlexBox';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useDataStore } from '@seerial/stores';
 import { useDialogStore } from '@/context/dialog.store';
-import { useIsAdmin } from '@/hooks/useIsAdmin';
 import type { CollectionKey, ContentType } from '@/types/types';
 import { getCoverSize, getTitleSize } from '@/utils/ReactUtils';
 import '../DetailsPage.css';
@@ -37,11 +37,7 @@ function CollectionDetailsPage() {
   const screenHeight = useScreenHeight();
 
   // Get collection data
-  const {
-    data: collection,
-    isLoading,
-    mutate,
-  } = useGet<Collection>(API.collections.get(collectionId ?? ''));
+  const { data: collection, isLoading, mutate } = useGetCollection(collectionId ?? '');
   const { create } = useCreate<unknown>();
 
   const [localCollection, setLocalCollection] = useState<Collection | null>(null);
@@ -54,14 +50,13 @@ function CollectionDetailsPage() {
 
   useEffect(() => {
     if (
-      collection &&
-      collection.backgroundSrc &&
+      collection?.backgroundSrc &&
       collection.backgroundSrc !== '' &&
       collection.backgroundSrc !== currentBackground
     ) {
       setCurrentBackground(collection.backgroundSrc);
     }
-  }, [collection, setCurrentBackground]);
+  }, [collection, setCurrentBackground, currentBackground]);
 
   async function handleDragEnd(
     sourceIndex: number,
@@ -70,7 +65,6 @@ function CollectionDetailsPage() {
   ) {
     if (!localCollection) return;
 
-    let reorderedList: Movie[] | Series[] | Album[];
     let orderedItemsForApi: { id: string; type: string }[];
 
     switch (listKey) {
@@ -78,7 +72,6 @@ function CollectionDetailsPage() {
         const list = [...localCollection.movies];
         const [movedItem] = list.splice(sourceIndex, 1);
         list.splice(destinationIndex, 0, movedItem);
-        reorderedList = list;
 
         setLocalCollection((prev) => ({
           ...prev!,
@@ -96,7 +89,6 @@ function CollectionDetailsPage() {
         const list = [...localCollection.shows];
         const [movedItem] = list.splice(sourceIndex, 1);
         list.splice(destinationIndex, 0, movedItem);
-        reorderedList = list;
 
         setLocalCollection((prev) => ({
           ...prev!,
@@ -114,7 +106,6 @@ function CollectionDetailsPage() {
         const list = [...localCollection.albums];
         const [movedItem] = list.splice(sourceIndex, 1);
         list.splice(destinationIndex, 0, movedItem);
-        reorderedList = list;
 
         setLocalCollection((prev) => ({
           ...prev!,
@@ -137,7 +128,7 @@ function CollectionDetailsPage() {
         collectionId: collectionId,
         orderedItems: orderedItemsForApi,
       });
-    } catch (error) {
+    } catch (_error) {
       if (collection) {
         setLocalCollection(collection);
       }

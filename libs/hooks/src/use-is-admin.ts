@@ -1,5 +1,5 @@
 import type { BasicUser } from '@seerial/domain'
-import { useLocalStorage } from './useLocalStorage'
+import { useLocalStorage } from './use-local-storage'
 
 const AUTH_USER_STORAGE_KEY = 'auth:user'
 

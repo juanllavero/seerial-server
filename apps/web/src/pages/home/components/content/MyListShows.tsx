@@ -1,14 +1,14 @@
 import { API, useCreate, useGetMyListSeries } from '@seerial/api';
 import type { Series } from '@seerial/domain';
+import { useServerStore } from '@seerial/stores';
 import { Pencil } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { shallow } from 'zustand/shallow';
 import Card from '@/components/cards/Card';
 import { useIsMobile } from '@/components/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
-import { useServerStore } from '@seerial/stores';
 import { useDialogStore } from '@/context/dialog.store';
-import { refreshMetadata, toggleSeriesWatched } from '@/utils/ReactUtils';
+import { useMediaActions } from '@/utils/ReactUtils';
 import HorizontalList from '../../../../components/lists/HorizontalList';
 import HorizontalListSkeleton from './HorizontalListSkeleton';
 
@@ -37,6 +37,7 @@ function MyListShows({ goToContent }: MyListShowsProps) {
   // Get Shows in My List
   const { data: showsInMyList, isLoading, refetch } = useGetMyListSeries<SeriesListItem[]>();
   const { create } = useCreate<unknown>();
+  const { refreshMetadata, toggleSeriesWatched } = useMediaActions();
 
   return (
     <HorizontalList title={t('watchListShows')}>

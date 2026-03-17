@@ -1,24 +1,24 @@
-import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query'
+import type { UseMutationResult } from '@tanstack/react-query'
 import { API } from '../endpoints'
-import { asBody, asVoid, type MutationHookOptions, type QueryHookOptions, useApiMutation, useApiQuery } from './common'
+import { type ApiQueryResult, asBody, asVoid, type MutationHookOptions, type QueryHookOptions, useApiMutation, useApiQuery } from './common'
 
 export const useGetMovie = <TResponse = unknown>(
     movieId: string,
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> => useApiQuery<TResponse>(['movies', 'get', movieId], API.movies.get(movieId), options)
+): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['movies', 'get', movieId], API.movies.get(movieId), options)
 
 export const useSearchMovies = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> => useApiQuery<TResponse>(['movies', 'search'], API.movies.search, options)
+): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['movies', 'search'], API.movies.search, options)
 
 export const useGetMoviesImdbScore = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> => useApiQuery<TResponse>(['movies', 'imdbScore'], API.movies.imdbScore, options)
+): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['movies', 'imdbScore'], API.movies.imdbScore, options)
 
 export const useGetMovieRemainingVideos = <TResponse = unknown>(
     movieId: string,
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> =>
+): ApiQueryResult<TResponse> =>
     useApiQuery<TResponse>(['movies', 'remainingVideos', movieId], API.movies.remainingVideos(movieId), options)
 
 export const useRefreshMovieMetadata = <TResponse = unknown>(

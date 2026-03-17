@@ -1,4 +1,5 @@
 import type { DropdownContent, LibraryItem } from '@seerial/domain';
+import { useDataStore, useServerStore } from '@seerial/stores';
 import { Pencil } from 'lucide-react';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -7,11 +8,9 @@ import { shallow } from 'zustand/shallow';
 import Card from '@/components/cards/Card';
 import { useIsMobile } from '@/components/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
-import { useServerStore } from '@seerial/stores';
-import { useDataStore } from '@seerial/stores';
 import { useDialogStore } from '@/context/dialog.store';
 import { useCardWidth } from '@/hooks/useCardWidth';
-import { refreshMetadata, toggleMovieWatched, toggleSeriesWatched } from '@/utils/ReactUtils';
+import { useMediaActions } from '@/utils/ReactUtils';
 
 interface MediaCardProps {
   item: LibraryItem;
@@ -36,6 +35,7 @@ function MediaCard({ item, libraryType }: MediaCardProps) {
     shallow,
   );
   const { openDialog } = useDialogStore((state) => ({ openDialog: state.openDialog }), shallow);
+  const { refreshMetadata, toggleMovieWatched, toggleSeriesWatched } = useMediaActions();
 
   const { type, id } = item;
   const isCollection = type === 'collection';

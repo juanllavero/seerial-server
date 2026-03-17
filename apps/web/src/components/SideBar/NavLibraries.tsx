@@ -1,5 +1,7 @@
 import { API, useCreate, useGetLibraries } from '@seerial/api';
 import type { Library } from '@seerial/domain';
+import { useIsAdmin } from '@seerial/hooks';
+import { useDataStore, useServerStore, useWebSocketStore } from '@seerial/stores';
 import { t } from 'i18next';
 import {
   Film,
@@ -12,7 +14,7 @@ import {
   TvMinimal,
 } from 'lucide-react';
 import React, { memo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { shallow } from 'zustand/shallow';
 import {
   DropdownMenu,
@@ -31,12 +33,8 @@ import {
   SidebarSeparator,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { useServerStore } from '@seerial/stores';
-import { useDataStore } from '@seerial/stores';
 import { useDialogStore } from '@/context/dialog.store';
-import { useWebSocketStore } from '@seerial/stores';
 import { LibraryTypes } from '@/data/enums/LibraryTypes';
-import { useIsAdmin } from '@/hooks/useIsAdmin';
 import SmallSpinner from './loading/SmallSpinner';
 
 interface ApiResponse<T> {
@@ -144,8 +142,8 @@ const NavLibraries = () => {
               {librariesItems.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton asChild tooltip={item.name}>
-                    <a
-                      href={''}
+                    <Link
+                      to={`/library/${item.id}`}
                       className={`flex items-center gap-2 ${
                         activeItem && activeItem.id === item.id ? 'bg-transparent' : ''
                       }`}
@@ -153,7 +151,6 @@ const NavLibraries = () => {
                         e.preventDefault();
 
                         setActiveItem(item);
-                        navigate(`/library/${item.id}`);
                       }}
                       style={{
                         color: activeItem && activeItem.id === item.id ? 'var(--app-color)' : '',
@@ -172,7 +169,7 @@ const NavLibraries = () => {
                       >
                         {item.name}
                       </span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                   {isAdmin && (
                     <DropdownMenu>
@@ -237,8 +234,8 @@ const NavLibraries = () => {
                     }
                   }}
                 >
-                  <a
-                    href={''}
+                  <button
+                    type="button"
                     className="flex items-center gap-2"
                     style={{
                       color: analyzing ? '#999999' : '',
@@ -250,7 +247,7 @@ const NavLibraries = () => {
                     <span style={{ color: analyzing ? '#999999' : '' }}>
                       {t('libraryWindowTitle')}
                     </span>
-                  </a>
+                  </button>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

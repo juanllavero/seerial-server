@@ -1,27 +1,27 @@
-import { useTranslation } from 'react-i18next'
+import { useLocalStorage } from '@seerial/hooks';
+import { useTranslation } from 'react-i18next';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { useLocalStorage } from '@/hooks/useLocalStorage'
-import type { DisplayCollections } from '@/types/types'
+} from '@/components/ui/select';
+import type { DisplayCollections } from '@/types/types';
 
 const DisplayCollectionsSelector: React.FC = () => {
-  const { t } = useTranslation()
+  const { t } = useTranslation();
   const [displayCollections, setDisplayCollections] = useLocalStorage<DisplayCollections>(
     'displayCollections',
     'collectionsAndElements',
-  )
+  );
 
   // Define options with translation keys
   const options: { value: DisplayCollections; label: string }[] = [
     { value: 'collectionsAndElements', label: t('collectionsAndElements') },
     { value: 'onlyCollections', label: t('onlyCollections') },
     { value: 'onlyElements', label: t('onlyElements') },
-  ]
+  ];
 
   return (
     <Select
@@ -39,7 +39,7 @@ const DisplayCollectionsSelector: React.FC = () => {
         ))}
       </SelectContent>
     </Select>
-  )
-}
+  );
+};
 
-export default DisplayCollectionsSelector
+export default DisplayCollectionsSelector;

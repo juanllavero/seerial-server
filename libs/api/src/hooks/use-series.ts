@@ -1,25 +1,25 @@
-import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query'
+import type { UseMutationResult } from '@tanstack/react-query'
 import { API } from '../endpoints'
-import { asBody, asVoid, type MutationHookOptions, type QueryHookOptions, useApiMutation, useApiQuery } from './common'
+import { type ApiQueryResult, asBody, asVoid, type MutationHookOptions, type QueryHookOptions, useApiMutation, useApiQuery } from './common'
 
 export const useGetSeries = <TResponse = unknown>(
     seriesId: string,
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> => useApiQuery<TResponse>(['series', 'get', seriesId], API.series.get(seriesId), options)
+): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['series', 'get', seriesId], API.series.get(seriesId), options)
 
 export const useSearchSeries = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> => useApiQuery<TResponse>(['series', 'search'], API.series.search, options)
+): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['series', 'search'], API.series.search, options)
 
 export const useSearchSeriesEpisodeGroups = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> =>
+): ApiQueryResult<TResponse> =>
     useApiQuery<TResponse>(['series', 'searchEpisodeGroups'], API.series.searchEpisodeGroups, options)
 
 export const useGetSeriesRemainingEpisodes = <TResponse = unknown>(
     seriesId: string,
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> =>
+): ApiQueryResult<TResponse> =>
     useApiQuery<TResponse>(['series', 'remainingEpisodes', seriesId], API.series.remainingEpisodes(seriesId), options)
 
 export const useRefreshSeriesMetadata = <TResponse = unknown, TBody = unknown>(
@@ -78,7 +78,7 @@ export const useGetSeason = <TResponse = unknown>(
     seasonId: string,
     include?: string,
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> =>
+): ApiQueryResult<TResponse> =>
     useApiQuery<TResponse>(['seasons', 'get', seasonId, include], API.seasons.get(seasonId, include), options)
 
 export const useUpdateSeason = <TResponse = unknown, TBody = unknown>(
@@ -108,7 +108,7 @@ export const useSetSeasonWatchState = <TResponse = unknown, TBody = unknown>(
 export const useGetEpisode = <TResponse = unknown>(
     episodeId: string,
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> => useApiQuery<TResponse>(['episodes', 'get', episodeId], API.episodes.get(episodeId), options)
+): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['episodes', 'get', episodeId], API.episodes.get(episodeId), options)
 
 export const useUpdateEpisode = <TResponse = unknown, TBody = unknown>(
     episodeId: string,

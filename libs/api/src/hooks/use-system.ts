@@ -1,22 +1,22 @@
-import type { UseMutationResult, UseQueryResult } from '@tanstack/react-query'
+import type { UseMutationResult } from '@tanstack/react-query'
 import { API } from '../endpoints'
-import { asBody, type MutationHookOptions, type QueryHookOptions, useApiMutation, useApiQuery } from './common'
+import { type ApiQueryResult, asBody, type MutationHookOptions, type QueryHookOptions, useApiMutation, useApiQuery } from './common'
 
 export const useSearchMedia = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> => useApiQuery<TResponse>(['search', 'media'], API.search.media, options)
+): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['search', 'media'], API.search.media, options)
 
 export const useGetMediaDetails = <TResponse = unknown>(
     mediaType: string,
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> =>
+): ApiQueryResult<TResponse> =>
     useApiQuery<TResponse>(['media', 'details', mediaType], API.media.details(mediaType), options)
 
 export const useGetMediaBackground = <TResponse = unknown>(
     itemType: string,
     mediaType: string,
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> =>
+): ApiQueryResult<TResponse> =>
     useApiQuery<TResponse>(
         ['media', 'background', itemType, mediaType],
         API.media.background(itemType, mediaType),
@@ -25,41 +25,41 @@ export const useGetMediaBackground = <TResponse = unknown>(
 
 export const useGetFileDrives = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> => useApiQuery<TResponse>(['files', 'drives'], API.files.drives, options)
+): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['files', 'drives'], API.files.drives, options)
 
 export const useGetFileFolder = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> => useApiQuery<TResponse>(['files', 'folder'], API.files.folder, options)
+): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['files', 'folder'], API.files.folder, options)
 
 export const useDownloadVideo = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> => useApiQuery<TResponse>(['downloads', 'video'], API.downloads.video, options)
+): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['downloads', 'video'], API.downloads.video, options)
 
 export const useDownloadMusic = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> => useApiQuery<TResponse>(['downloads', 'music'], API.downloads.music, options)
+): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['downloads', 'music'], API.downloads.music, options)
 
 export const useDownloadImage = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> => useApiQuery<TResponse>(['downloads', 'image'], API.downloads.image, options)
+): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['downloads', 'image'], API.downloads.image, options)
 
 export const useGetApiKeyConfiguration = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> =>
+): ApiQueryResult<TResponse> =>
     useApiQuery<TResponse>(['configuration', 'apiKey'], API.configuration.apiKey, options)
 
 export const useGetServerStatus = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> => useApiQuery<TResponse>(['servers', 'status'], API.servers.status, options)
+): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['servers', 'status'], API.servers.status, options)
 
 export const useGetServerConfig = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> => useApiQuery<TResponse>(['servers', 'config'], API.servers.config, options)
+): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['servers', 'config'], API.servers.config, options)
 
 export const useGetServerConfigByKey = <TResponse = unknown>(
     key: string,
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> =>
+): ApiQueryResult<TResponse> =>
     useApiQuery<TResponse>(['servers', 'configKey', key], API.servers.configKey(key), options)
 
 export const useUpdateServer = <TResponse = unknown, TBody = unknown>(
@@ -81,20 +81,20 @@ export const useUpdateServerConfigByKey = <TResponse = unknown, TBody = unknown>
 
 export const useGetImageDirectoryListing = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> =>
+): ApiQueryResult<TResponse> =>
     useApiQuery<TResponse>(['images', 'directoryListing'], API.images.directoryListing, options)
 
 export const useGetLocalImage = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> => useApiQuery<TResponse>(['images', 'local'], API.images.local, options)
+): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['images', 'local'], API.images.local, options)
 
 export const useGetCompressedImage = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> => useApiQuery<TResponse>(['images', 'compressed'], API.images.compressed, options)
+): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['images', 'compressed'], API.images.compressed, options)
 
 export const useGetImageColors = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
-): UseQueryResult<TResponse> => useApiQuery<TResponse>(['images', 'colors'], API.images.colors, options)
+): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['images', 'colors'], API.images.colors, options)
 
 export const useUploadImage = <TResponse = unknown, TBody = unknown>(
     options?: MutationHookOptions<TResponse, TBody>,

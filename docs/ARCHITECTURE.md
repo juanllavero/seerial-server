@@ -22,8 +22,8 @@ seerial/
 │   ├── api/            # @seerial/api       — TanStack Query hooks + API client
 │   ├── cli/            # @seerial/cli       — CLI tools
 │   ├── domain/         # @seerial/domain    — Domain types, mappers, business rules
-│   ├── hooks/          # @seerial/hooks     — hooks utilitarios compartidos
-│   ├── stores/         # @seerial/stores    — Zustand stores compartidos
+│   ├── hooks/          # @seerial/hooks     — Shared utility hooks
+│   ├── stores/         # @seerial/stores    — Shared Zustand stores
 │
 ├── assets/
 ├── pnpm-workspace.yaml
@@ -104,7 +104,7 @@ This library has **zero dependencies** on React, TanStack Query, or any framewor
 Contains all TanStack Query hooks. It is the single source of truth for server state.
 
 ```typescript
-// libs/api/src/hooks/useEpisodeDetail.ts
+// libs/api/src/hooks/use-episode-detail.ts
 import { useQuery } from "@tanstack/react-query";
 import { toEpisode } from "@seerial/domain";
 

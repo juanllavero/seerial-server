@@ -1,4 +1,6 @@
 import type { Album, Song } from '@seerial/domain';
+import { useIsAdmin } from '@seerial/hooks';
+import { useMusicStore } from '@seerial/stores';
 import { Pencil, Shuffle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { shallow } from 'zustand/shallow';
@@ -12,8 +14,6 @@ import { PauseIcon, PlayIcon } from '@/components/ui/IconLibrary';
 import Image from '@/components/ui/Image';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDialogStore } from '@/context/dialog.store';
-import { useMusicStore } from '@seerial/stores';
-import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { getCoverSize, getTitleSize } from '@/utils/ReactUtils';
 
 interface AlbumInfoProps {

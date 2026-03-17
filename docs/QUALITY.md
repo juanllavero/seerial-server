@@ -24,7 +24,7 @@ Biome is a single Rust binary that replaces ESLint, Prettier, and import-sorting
 
 ## 2. Biome
 
-**Scope:** all `apps/` and `libs/` packages extend `libs/config/biome.json`.
+**Scope:** all `apps/` and `libs/` packages use package-level `biome.json` files with `root: false`, inheriting from the workspace root configuration.
 
 ### Critical rules enabled
 
@@ -38,11 +38,12 @@ Biome is a single Rust binary that replaces ESLint, Prettier, and import-sorting
 
 ### Config inheritance
 
-Each `apps/*` and `libs/*` package contains a minimal `biome.json` that extends the root config:
+Each `apps/*` and `libs/*` package contains a minimal `biome.json` that delegates to the workspace root:
 
 ```json
 {
-  "extends": ["../../libs/config/biome.json"]
+  "root": false,
+  "extends": "//"
 }
 ```
 
@@ -137,28 +138,7 @@ pre-commit:
 
 ---
 
-## 6. TypeScript Configuration
-
-All packages extend `libs/config/tsconfig.base.json`:
-
-```json
-{
-  "compilerOptions": {
-    "strict": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitReturns": true,
-    "exactOptionalPropertyTypes": true,
-    "moduleResolution": "bundler",
-    "jsx": "react-jsx"
-  }
-}
-```
-
-`noUncheckedIndexedAccess` is explicitly enabled because array access (`arr[0]`) in TypeScript is otherwise unsafely typed as `T` instead of `T | undefined`.
-
----
-
-## 7. Best Practices Reference
+## 6. Best Practices Reference
 
 | #   | Rule                                                                | Reason                                                          |
 | --- | ------------------------------------------------------------------- | --------------------------------------------------------------- |

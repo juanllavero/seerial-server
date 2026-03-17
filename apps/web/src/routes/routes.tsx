@@ -1,19 +1,21 @@
-import { lazy, memo } from 'react'
-import { Navigate, Route, Routes } from 'react-router-dom'
-import Root from './__root'
+import { lazy, memo } from 'react';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import Root from './__root';
 
-const LoginPage = lazy(() => import('@/pages/login/LoginPage'))
-const TVLinkPage = lazy(() => import('@/pages/link/TVLinkPage'))
-const HomePage = lazy(() => import('@/pages/home/HomePage'))
-const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'))
-const LibraryPage = lazy(() => import('@/pages/library/LibraryPage'))
-const MovieDetailsPage = lazy(() => import('@/pages/details/movie/MovieDetailsPage'))
-const SeriesDetailsPage = lazy(() => import('@/pages/details/series/SeriesDetailsPage'))
-const AlbumDetailsPage = lazy(() => import('@/pages/details/album/AlbumDetailsPage'))
-const CollectionDetailsPage = lazy(() => import('@/pages/details/collection/CollectionDetailsPage'))
-const EpisodeDetailsPage = lazy(() => import('@/pages/details/episode/EpisodeDetailsPage'))
-const VideoPlayerPage = lazy(() => import('@/pages/videoPlayer/VideoPlayerPage'))
-const SideBarLayout = lazy(() => import('@/pages/sidebarLayout/SideBarLayout'))
+const LoginPage = lazy(() => import('@/pages/login/LoginPage'));
+const TVLinkPage = lazy(() => import('@/pages/link/TVLinkPage'));
+const HomePage = lazy(() => import('@/pages/home/HomePage'));
+const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'));
+const LibraryPage = lazy(() => import('@/pages/library/LibraryPage'));
+const MovieDetailsPage = lazy(() => import('@/pages/details/movie/MovieDetailsPage'));
+const SeriesDetailsPage = lazy(() => import('@/pages/details/series/SeriesDetailsPage'));
+const AlbumDetailsPage = lazy(() => import('@/pages/details/album/AlbumDetailsPage'));
+const CollectionDetailsPage = lazy(
+  () => import('@/pages/details/collection/CollectionDetailsPage'),
+);
+const EpisodeDetailsPage = lazy(() => import('@/pages/details/episode/EpisodeDetailsPage'));
+const VideoPlayerPage = lazy(() => import('@/features/player'));
+const SideBarLayout = lazy(() => import('@/pages/sidebarLayout/SideBarLayout'));
 
 export function AppRoutes() {
   return (
@@ -44,17 +46,17 @@ export function AppRoutes() {
         <Route path="/video-player/:videoId" element={<VideoPlayerPage />} />
       </Route>
     </Routes>
-  )
+  );
 }
 
 // Export memoized components for consistency
-export const MemoizedHomePage = memo(HomePage)
-export const MemoizedSettingsPage = memo(SettingsPage)
-export const MemoizedLibraryPage = memo(LibraryPage)
-export const MemoizedMovieDetailsPage = memo(MovieDetailsPage)
-export const MemoizedSeriesDetailsPage = memo(SeriesDetailsPage)
-export const MemoizedAlbumDetailsPage = memo(AlbumDetailsPage)
-export const MemoizedCollectionDetailsPage = memo(CollectionDetailsPage)
-export const MemoizedEpisodeDetailsPage = memo(EpisodeDetailsPage)
-export const MemoizedVideoPlayerPage = memo(VideoPlayerPage)
-export const MemoizedSideBarLayout = memo(SideBarLayout)
+export const MemoizedHomePage = memo(HomePage);
+export const MemoizedSettingsPage = memo(SettingsPage);
+export const MemoizedLibraryPage = memo(LibraryPage);
+export const MemoizedMovieDetailsPage = memo(MovieDetailsPage);
+export const MemoizedSeriesDetailsPage = memo(SeriesDetailsPage);
+export const MemoizedAlbumDetailsPage = memo(AlbumDetailsPage);
+export const MemoizedCollectionDetailsPage = memo(CollectionDetailsPage);
+export const MemoizedEpisodeDetailsPage = memo(EpisodeDetailsPage);
+export const MemoizedVideoPlayerPage = memo(VideoPlayerPage);
+export const MemoizedSideBarLayout = memo(SideBarLayout);

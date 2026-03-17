@@ -1,14 +1,14 @@
 import { API, useCreate, useGetMyListMovies } from '@seerial/api';
 import type { Movie } from '@seerial/domain';
+import { useServerStore } from '@seerial/stores';
 import { Pencil } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { shallow } from 'zustand/shallow';
 import Card from '@/components/cards/Card';
 import { useIsMobile } from '@/components/hooks/use-mobile';
 import { Button } from '@/components/ui/button';
-import { useServerStore } from '@seerial/stores';
 import { useDialogStore } from '@/context/dialog.store';
-import { refreshMetadata, toggleMovieWatched } from '@/utils/ReactUtils';
+import { useMediaActions } from '@/utils/ReactUtils';
 import HorizontalList from '../../../../components/lists/HorizontalList';
 import HorizontalListSkeleton from './HorizontalListSkeleton';
 
@@ -38,6 +38,7 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
   // Get Movies in My List
   const { data: moviesInMyList, isLoading, refetch } = useGetMyListMovies<MovieListItem[]>();
   const { create } = useCreate<unknown>();
+  const { refreshMetadata, toggleMovieWatched } = useMediaActions();
 
   return (
     <HorizontalList title={t('watchListMovies')}>

@@ -1,5 +1,7 @@
 import { API, useGet, useSetMovieWatchState } from '@seerial/api';
 import type { Movie } from '@seerial/domain';
+import { useIsAdmin } from '@seerial/hooks';
+import { useDataStore, useServerStore } from '@seerial/stores';
 import { t } from 'i18next';
 import { Pencil } from 'lucide-react';
 import { useEffect } from 'react';
@@ -13,11 +15,8 @@ import FlexBox from '@/components/ui/FlexBox';
 import { MarkWatchedIcon, PlayIcon, UnmarkWatchedIcon } from '@/components/ui/IconLibrary';
 import LazyImage from '@/components/ui/LazyImage';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useServerStore } from '@seerial/stores';
-import { useDataStore } from '@seerial/stores';
 import { useDialogStore } from '@/context/dialog.store';
 import { useSettingsStore } from '@/context/settings.context';
-import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { formatTimeForView } from '@/utils/ReactUtils';
 import CastList from '../components/CastList';
 import MovieContent from '../components/MovieContent';
@@ -47,7 +46,7 @@ function MovieDetailsPage() {
   >(movie?.id ?? '');
 
   const isMobile = useIsMobile();
-  const showPoster: boolean = (clientSettings['showPosters'] as boolean) ?? true;
+  const showPoster: boolean = (clientSettings.showPosters as boolean) ?? true;
 
   // Set background image src
   useEffect(() => {
@@ -159,7 +158,7 @@ function MovieDetailsPage() {
           ) : (
             <FlexBox direction="column" gap={0.2}>
               {movie.directedBy && movie.directedBy.length !== 0 ? (
-                <span id="directedBy">{t('directedBy') + ' ' + movie.directedBy || ''}</span>
+                <span id="directedBy">{`${t('directedBy')} ${movie.directedBy}` || ''}</span>
               ) : null}
               <FlexBox gap={1.3} margin="0 0 0.3rem 0">
                 <span id="date">{new Date(movie.year).getFullYear() || null}</span>

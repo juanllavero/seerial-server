@@ -1,10 +1,10 @@
+import { API, useCreate } from '@seerial/api';
 import type { Collection, Video } from '@seerial/domain';
+import { useWebSocketStore } from '@seerial/stores';
+import { useQueryClient } from '@tanstack/react-query';
 import { t } from 'i18next';
 import { toast } from 'sonner';
-import { mutate } from 'swr';
 import Image from '@/components/ui/Image';
-import { API, api } from '@/config/api';
-import { useWebSocketStore } from '@seerial/stores';
 import { ScreenHeight } from '@/data/enums/Screen';
 import { iso1to3 } from './utils';
 
@@ -23,49 +23,53 @@ export const getVideoProgress = (video: Video, watchedTime?: number) => {
   return undefined;
 };
 
-export const toggleMovieWatched = (id: string, newState: boolean, userId: string) => {
-  api
-    .post(API.movies.setWatchState(id), {
+export const useMediaActions = () => {
+  const queryClient = useQueryClient();
+  const connectWS = useWebSocketStore((state) => state.connectWS);
+  const { create } = useCreate<unknown>();
+
+  const invalidateAllQueries = () => queryClient.invalidateQueries();
+
+  const toggleMovieWatched = async (id: string, newState: boolean, userId: string) => {
+    await create(API.movies.setWatchState(id), {
       movieId: id,
       watched: newState,
       userId,
-    })
-    .then(() => {
-      mutate((key: string) => key.startsWith(`/api/myListMovies`));
-      mutate((key: string) => key.startsWith(`/api/library-content`));
-      mutate((key: string) => key.startsWith(`/api/movie`));
     });
-};
+    await invalidateAllQueries();
+  };
 
-export const toggleSeriesWatched = (id: string, newState: boolean, userId: string) => {
-  api
-    .post(API.series.setWatchState(id), {
+  const toggleSeriesWatched = async (id: string, newState: boolean, userId: string) => {
+    await create(API.series.setWatchState(id), {
       seriesId: id,
       watched: newState,
       userId,
-    })
-    .then(() => {
-      mutate((key: string) => key.startsWith(`/api/myListSeries`));
-      mutate((key: string) => key.startsWith(`/api/library-content`));
-      mutate((key: string) => key.startsWith(`/api/series`));
     });
-};
+    await invalidateAllQueries();
+  };
 
-export const refreshMetadata = async (type: 'show' | 'movie', id: string) => {
-  const connectWS = useWebSocketStore((state) => state.connectWS);
+  const refreshMetadata = async (type: 'show' | 'movie', id: string) => {
+    await connectWS();
 
-  await connectWS();
-  const response =
-    type === 'show'
-      ? await api.post(API.series.refreshMetadata, { id })
-      : await api.post(API.movies.refreshMetadata(id));
+    const response =
+      type === 'show'
+        ? await create(API.series.refreshMetadata, { id })
+        : await create(API.movies.refreshMetadata(id), {});
 
-  if (!(response as { data?: unknown })?.data) {
-    showToast('error', t('refreshMetadataError'));
-    return;
-  }
+    if (!response) {
+      showToast('error', t('refreshMetadataError'));
+      return;
+    }
 
-  showToast('info', t('refreshMetadataStart'));
+    showToast('info', t('refreshMetadataStart'));
+    await invalidateAllQueries();
+  };
+
+  return {
+    refreshMetadata,
+    toggleMovieWatched,
+    toggleSeriesWatched,
+  };
 };
 
 //#region IMAGES AND TITLES

@@ -1,15 +1,15 @@
 import { API, useGet } from '@seerial/api';
 import type { Episode, Season, Series } from '@seerial/domain';
+import { useIsAdmin } from '@seerial/hooks';
 import { Pencil, PlayIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { shallow } from 'zustand/shallow';
 import { Button } from '@/components/ui/button';
 import FlexBox from '@/components/ui/FlexBox';
 import LazyImage from '@/components/ui/LazyImage';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDialogStore } from '@/context/dialog.store';
-import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { formatDate } from '@/utils/ReactUtils';
 import VideoTracks from './components/VideoTracks';
 
@@ -55,12 +55,12 @@ function EpisodeDetailsPage() {
 
       <FlexBox direction="column" gap={1}>
         <FlexBox direction="column">
-          <span
-            onClick={() => navigate(`/series/${series?.id}`)}
+          <Link
+            to={`/series/${series?.id}`}
             className="a_text cursor-pointer text-4xl font-black uppercase"
           >
             {series ? series.name : 'None'}
-          </span>
+          </Link>
           <span className="text-2xl font-semibold">{episode.name}</span>
         </FlexBox>
         <FlexBox gap={1}>

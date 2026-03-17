@@ -1,7 +1,7 @@
 import type { DropdownContent } from '@seerial/domain';
+import { useIsAdmin } from '@seerial/hooks';
 import { Check, EllipsisVertical } from 'lucide-react';
 import React, { useState } from 'react';
-import { useIsAdmin } from '@/hooks/useIsAdmin';
 import DropdownWrapper from '../DropdownWrapper';
 import Loading from '../Loading';
 import { Button } from '../ui/button';
