@@ -7,8 +7,8 @@ import { createRoot } from 'react-dom/client';
 import { useTranslation } from 'react-i18next';
 import { BrowserRouter } from 'react-router-dom';
 import { shallow } from 'zustand/shallow';
-import { updateAppLanguage } from '../localization/helpers/language_helpers';
-import '../localization/i18n';
+import { updateAppLanguage } from '../shared/localization/helpers/language-helpers';
+import '../shared/localization/i18n';
 import { AppRoutes } from './routes/routes';
 
 function App() {

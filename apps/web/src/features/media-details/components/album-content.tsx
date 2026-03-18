@@ -1,0 +1,32 @@
+import type { Album } from '@seerial/domain';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { useIsTablet } from '@/shared/hooks/use-tablet';
+import FlexBox from '@/shared/ui/flex-box';
+import SongsList from './music/songs-list';
+
+interface AlbumContentProps {
+  album: Album;
+}
+
+function AlbumContent({ album }: AlbumContentProps) {
+  const isMobile = useIsMobile();
+  const isTablet = useIsTablet();
+  return (
+    <FlexBox
+      direction="column"
+      className="flex-1"
+      gap={1}
+      scroll={!isMobile && !isTablet ? 'vertical' : undefined}
+      justify="start"
+      align="start"
+      margin="1rem 0 0 0"
+      padding={isMobile ? '0 1rem 4rem 1rem' : '0 1.5rem 4rem 1.5rem'}
+      height={!isMobile && !isTablet ? '100%' : 'auto'}
+      width={'100%'}
+    >
+      <SongsList album={album} />
+    </FlexBox>
+  );
+}
+
+export default AlbumContent;

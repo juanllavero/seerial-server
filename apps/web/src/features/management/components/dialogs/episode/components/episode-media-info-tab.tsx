@@ -1,0 +1,290 @@
+import { useGetVideoMediaInfo, useUpdateVideoMediaInfo } from '@seerial/api';
+import type { AudioTrack, SubtitleTrack, Video, VideoTrack } from '@seerial/domain';
+import { useEffect, useState } from 'react';
+import { useIsTablet } from '@/shared/hooks/use-tablet';
+import { getAudioTrack, getSubtitleTrack } from '@/shared/lib/react-utils';
+import FlexBox from '@/shared/ui/flex-box';
+import Loading from '@/shared/ui/loading';
+
+interface EpisodeMediaInfoTabProps {
+  video: Video;
+}
+
+interface VideoInfo {
+  title: string;
+  subtitle: string;
+  preferAudioLan: string;
+  preferSubtitleLan: string;
+  subsMode: string;
+}
+
+function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
+  const isTablet = useIsTablet();
+  const [loaded, setLoaded] = useState(false);
+  const [mediaInfo, setMediaInfo] = useState<Video | null>(null);
+
+  // Get video info
+  const { data: videoInfo } = useGetVideoMediaInfo<VideoInfo>(video.id, {
+    enabled: Boolean(video.id),
+  });
+  const { mutateAsync: updateVideoMediaInfo } = useUpdateVideoMediaInfo(video.id);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!videoInfo) return;
+
+      setLoaded(false);
+
+      const attemptFetch = async () => {
+        try {
+          return await updateVideoMediaInfo({ videoId: video.id });
+        } catch {
+          return null;
+        }
+      };
+
+      // First attempt
+      let data = await attemptFetch();
+
+      // If there are no data after the first attempt, wait 2 seconds and make second attempt
+      if (!data) {
+        await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
+        data = await attemptFetch();
+
+        // If the second attempt fails, wait 4 seconds and set loaded as true
+        if (!data) {
+          await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 4 seconds
+          setLoaded(true);
+          return;
+        }
+      }
+
+      // Process the data if it was obtained in either of the attempts
+      const audioTrack = getAudioTrack(videoInfo.preferAudioLan, video);
+      const subtitleTrack = getSubtitleTrack(
+        videoInfo.preferSubtitleLan,
+        videoInfo.subsMode,
+        video,
+      );
+      const videoTrack = data.videoTracks[0] ?? null;
+
+      if (videoTrack && video.videoTracks) {
+        for (const videoTrack of video.videoTracks) {
+          videoTrack.selected = false;
+        }
+        videoTrack.selected = true;
+      }
+
+      if (audioTrack && video.audioTracks) {
+        for (const audioTrack of video.audioTracks) {
+          audioTrack.selected = false;
+        }
+        audioTrack.selected = true;
+      }
+
+      if (subtitleTrack && video.subtitleTracks) {
+        for (const subTrack of video.subtitleTracks) {
+          subTrack.selected = false;
+        }
+        subtitleTrack.selected = true;
+      }
+
+      setMediaInfo({
+        ...data,
+        videoTracks: data.videoTracks
+          ? data.videoTracks.map((track: VideoTrack) =>
+              track.id === (videoTrack?.id ?? '') ? (videoTrack ?? track) : track,
+            )
+          : [],
+        audioTracks: data.audioTracks
+          ? data.audioTracks.map((track: AudioTrack) =>
+              track.id === (audioTrack?.id ?? '') ? (audioTrack ?? track) : track,
+            )
+          : [],
+        subtitleTracks: data.subtitleTracks
+          ? data.subtitleTracks.map((track: SubtitleTrack) =>
+              track.id === (subtitleTrack?.id ?? '') ? (subtitleTrack ?? track) : track,
+            )
+          : [],
+      });
+
+      setLoaded(true);
+    };
+
+    fetchData();
+  }, [updateVideoMediaInfo, video, videoInfo]);
+
+  const getVideoInfo = (track: VideoTrack) => {
+    const mediaInfoFieldsVideo = [
+      { key: 'Codec', value: track.codec },
+      { key: 'Codec Extended', value: track.codecExt },
+      { key: 'Bitrate', value: track.bitrate },
+      { key: 'Frame Rate', value: track.framerate },
+      { key: 'Coded Height', value: track.codedHeight },
+      { key: 'Coded Width', value: track.codedWidth },
+      { key: 'Chroma Location', value: track.chromaLocation },
+      { key: 'Color Space', value: track.colorSpace },
+      { key: 'Aspect Ratio', value: track.aspectRatio },
+      { key: 'Profile', value: track.profile },
+      { key: 'Ref Frames', value: track.refFrames },
+      { key: 'Color Range', value: track.colorRange },
+      { key: 'Display Title', value: track.displayTitle },
+    ];
+
+    return (
+      <>
+        {mediaInfoFieldsVideo.map(
+          (field, index) =>
+            field.value && (
+              <div key={index + 'video-media'}>
+                <span className="mr-2" style={{ color: 'lightgray' }}>
+                  {field.key}
+                </span>
+                <span className="font-semibold">{field.value}</span>
+              </div>
+            ),
+        )}
+      </>
+    );
+  };
+
+  const getAudioInfo = (track: AudioTrack) => {
+    const mediaInfoFieldsAudio = [
+      { key: 'Codec', value: track.codec },
+      { key: 'Codec Extended', value: track.codecExt },
+      { key: 'Channels', value: track.channels },
+      { key: 'Channel Layout', value: track.channelLayout },
+      { key: 'Bitrate', value: track.bitrate },
+      { key: 'Language', value: track.language },
+      { key: 'Language tag', value: track.languageTag },
+      { key: 'Bit Depth', value: track.bitDepth },
+      { key: 'Profile', value: track.profile },
+      { key: 'Sampling Rate', value: track.samplingRate },
+      { key: 'Display Title', value: track.displayTitle },
+    ];
+
+    return (
+      <>
+        {mediaInfoFieldsAudio.map(
+          (field, index) =>
+            field.value && (
+              <div key={index + 'audio-media'}>
+                <span className="mr-2" style={{ color: 'lightgray' }}>
+                  {field.key}
+                </span>
+                <span className="font-semibold">{field.value}</span>
+              </div>
+            ),
+        )}
+      </>
+    );
+  };
+
+  const getSubtitleInfo = (track: SubtitleTrack) => {
+    const mediaInfoFieldsSubs = [
+      { key: 'Codec', value: track.codec },
+      { key: 'Codec Extended', value: track.codecExt },
+      { key: 'Language', value: track.language },
+      { key: 'Language tag', value: track.languageTag },
+      { key: 'Title', value: track.title },
+      { key: 'Display Title', value: track.displayTitle },
+    ];
+
+    return (
+      <>
+        {mediaInfoFieldsSubs.map(
+          (field, index) =>
+            field.value && (
+              <div key={index + 'subs-media'}>
+                <span className="mr-2" style={{ color: 'lightgray' }}>
+                  {field.key}
+                </span>
+                <span className="font-semibold">{field.value}</span>
+              </div>
+            ),
+        )}
+      </>
+    );
+  };
+
+  if (!loaded || !mediaInfo) {
+    return (
+      <FlexBox
+        direction="column"
+        gap={1}
+        justify="space-between"
+        height={isTablet ? '25rem' : '35rem'}
+        hideScrollbar={isTablet}
+        scroll="vertical"
+      >
+        <Loading />
+      </FlexBox>
+    );
+  }
+
+  return (
+    <FlexBox
+      direction="column"
+      gap={1}
+      justify="space-between"
+      height={isTablet ? '25rem' : '35rem'}
+      width={isTablet ? '100%' : '50rem'}
+      padding="0 0.5rem"
+      hideScrollbar={isTablet}
+      scroll="vertical"
+    >
+      <FlexBox direction="column" className="left-media-info">
+        <span className="mb-1 text-lg font-semibold">Media info</span>
+        <FlexBox gap={0.5}>
+          <span style={{ color: 'lightgray' }}>Duration</span>
+          <span className="font-semibold">{mediaInfo.mediaInfo?.duration}</span>
+        </FlexBox>
+        <FlexBox gap={0.5}>
+          <span style={{ color: 'lightgray' }}>File</span>
+          <span className="font-semibold">{mediaInfo.mediaInfo?.file}</span>
+        </FlexBox>
+        <FlexBox gap={0.5}>
+          <span style={{ color: 'lightgray' }}>Location</span>
+          <span className="font-semibold">{mediaInfo.mediaInfo?.location}</span>
+        </FlexBox>
+        <FlexBox gap={0.5}>
+          <span style={{ color: 'lightgray' }}>Bitrate</span>
+          <span className="font-semibold">{mediaInfo.mediaInfo?.bitrate}</span>
+        </FlexBox>
+        <FlexBox gap={0.5}>
+          <span style={{ color: 'lightgray' }}>Size</span>
+          <span className="font-semibold">{mediaInfo.mediaInfo?.size}</span>
+        </FlexBox>
+        <FlexBox gap={0.5}>
+          <span style={{ color: 'lightgray' }}>Container</span>
+          <span className="font-semibold">{mediaInfo.mediaInfo?.container}</span>
+        </FlexBox>
+      </FlexBox>
+      <FlexBox direction="column" gap={1}>
+        {mediaInfo.videoTracks &&
+          mediaInfo.videoTracks.map((track: VideoTrack) => (
+            <div key={track.id + '-video'}>
+              <span className="mt-2 mb-1 text-lg font-semibold">Video</span>
+              {getVideoInfo(track)}
+            </div>
+          ))}
+        {mediaInfo.audioTracks &&
+          mediaInfo.audioTracks.map((audioTrack: AudioTrack, index: number) => (
+            <div key={index + '-audio'}>
+              <span className="mt-2 mb-1 text-lg font-semibold">Audio</span>
+              {getAudioInfo(audioTrack)}
+            </div>
+          ))}
+        {mediaInfo.subtitleTracks &&
+          mediaInfo.subtitleTracks.map((track: SubtitleTrack, index: number) => (
+            <div key={index + '-subs'}>
+              <span className="mt-2 mb-1 text-lg font-semibold">Subtitle</span>
+              {getSubtitleInfo(track)}
+            </div>
+          ))}
+      </FlexBox>
+    </FlexBox>
+  );
+}
+
+export default EpisodeMediaInfoTab;

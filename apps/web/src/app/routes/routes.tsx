@@ -1,21 +1,21 @@
 import { lazy, memo } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import Root from './__root';
+import Root from './root';
 
-const LoginPage = lazy(() => import('@/pages/login/LoginPage'));
-const TVLinkPage = lazy(() => import('@/pages/link/TVLinkPage'));
-const HomePage = lazy(() => import('@/pages/home/HomePage'));
-const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'));
-const LibraryPage = lazy(() => import('@/pages/library/LibraryPage'));
-const MovieDetailsPage = lazy(() => import('@/pages/details/movie/MovieDetailsPage'));
-const SeriesDetailsPage = lazy(() => import('@/pages/details/series/SeriesDetailsPage'));
-const AlbumDetailsPage = lazy(() => import('@/pages/details/album/AlbumDetailsPage'));
+const LoginPage = lazy(() => import('@/pages/login/login-page'));
+const TVLinkPage = lazy(() => import('@/pages/link/link-page'));
+const HomePage = lazy(() => import('@/pages/home/home-page'));
+const SettingsPage = lazy(() => import('@/pages/settings/settings-page'));
+const LibraryPage = lazy(() => import('@/pages/library/library-page'));
+const MovieDetailsPage = lazy(() => import('@/pages/details/movie/movie-details-page'));
+const SeriesDetailsPage = lazy(() => import('@/pages/details/series/series-details-page'));
+const AlbumDetailsPage = lazy(() => import('@/pages/details/album/album-details-page'));
 const CollectionDetailsPage = lazy(
-  () => import('@/pages/details/collection/CollectionDetailsPage'),
+  () => import('@/pages/details/collection/collection-details-page'),
 );
-const EpisodeDetailsPage = lazy(() => import('@/pages/details/episode/EpisodeDetailsPage'));
-const VideoPlayerPage = lazy(() => import('@/pages/videoPlayer/VideoPlayerPage'));
-const SideBarLayout = lazy(() => import('@/pages/sidebarLayout/SideBarLayout'));
+const EpisodeDetailsPage = lazy(() => import('@/pages/details/episode/episode-details-page'));
+const VideoPlayerPage = lazy(() => import('@/pages/video-player/video-player-page'));
+const SideBarLayout = lazy(() => import('@/pages/sidebar-layout/sidebar-layout'));
 
 export function AppRoutes() {
   return (
