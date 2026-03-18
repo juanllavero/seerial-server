@@ -1,4 +1,5 @@
 import {
+  API,
   useChangeMovieIdentification,
   useGet,
   useGetMovie,
@@ -6,6 +7,7 @@ import {
   useUpdateSeriesShowId,
 } from '@seerial/api';
 import type { Movie, Series } from '@seerial/domain';
+import { useWebSocketStore } from '@seerial/stores';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { shallow } from 'zustand/shallow';
@@ -15,9 +17,7 @@ import { Button } from '@/components/ui/button';
 import FlexBox from '@/components/ui/FlexBox';
 import { Input } from '@/components/ui/input';
 import LazyImage from '@/components/ui/LazyImage';
-import { API } from '@/config/api';
 import { useDialogStore } from '@/context/dialog.store';
-import { useWebSocketStore } from '@seerial/stores';
 import './CorrectIdentificationSearch.css';
 
 interface IdentificationResult {

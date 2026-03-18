@@ -1,10 +1,10 @@
+import { API, getSignedVideoStreamUrl, useGet, useUpdate } from '@seerial/api';
 import type { AudioTrack, SubtitleTrack, Video } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { shallow } from 'zustand/shallow';
 import Loading from '@/components/Loading';
-import { API, getSignedVideoStreamUrl, useGet, useUpdate } from '@/config/api';
 import { getAudioTrack, getSubtitleTrack } from '@/utils/ReactUtils';
 import Controls from './components/Controls';
 import HTMLVideoPlayer from './components/HTMLVideoPlayer';

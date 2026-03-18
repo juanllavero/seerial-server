@@ -1,9 +1,9 @@
+import { publicApiClient } from '@seerial/api';
+import { useServerStore } from '@seerial/stores';
 import { t } from 'i18next';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import Image from '@/components/ui/Image';
-import { publicApiClient } from '@/config/api';
-import { useServerStore } from '@seerial/stores';
 import { CENTRAL_SERVER } from '@/utils/constants';
 
 export default function TVLinkPage() {

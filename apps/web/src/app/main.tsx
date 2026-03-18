@@ -1,14 +1,14 @@
 import { TooltipProvider } from '@radix-ui/react-tooltip';
 import { seerialQueryClient } from '@seerial/api';
+import { useServerStore } from '@seerial/stores';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { useTranslation } from 'react-i18next';
 import { BrowserRouter } from 'react-router-dom';
 import { shallow } from 'zustand/shallow';
-import { useServerStore } from '@seerial/stores';
-import { updateAppLanguage } from './localization/helpers/language_helpers';
-import './localization/i18n';
+import { updateAppLanguage } from '../localization/helpers/language_helpers';
+import '../localization/i18n';
 import { AppRoutes } from './routes/routes';
 
 function App() {

@@ -1,12 +1,11 @@
-import { useGet, useGetSeries, useUpdateSeriesEpisodeGroup } from '@seerial/api';
+import { API, useGet, useGetSeries, useUpdateSeriesEpisodeGroup } from '@seerial/api';
 import type { Series } from '@seerial/domain';
+import { useWebSocketStore } from '@seerial/stores';
 import { useTranslation } from 'react-i18next';
 import { shallow } from 'zustand/shallow';
 import Loading from '@/components/Loading';
 import FlexBox from '@/components/ui/FlexBox';
-import { API } from '@/config/api';
 import { useDialogStore } from '@/context/dialog.store';
-import { useWebSocketStore } from '@seerial/stores';
 import { getEpisodeGroupType } from '@/utils/ReactUtils';
 import './ChangeEpisodesGroupSearch.css';
 

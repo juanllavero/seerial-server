@@ -21,27 +21,29 @@ apps/web/
 │   ├── app/
 │   │   ├── router.tsx            # React Router route definitions
 │   │   ├── providers.tsx         # Root providers (QueryClient, Router, etc.)
-│   │   └── App.tsx               # Application root
+│   │   └── main.tsx               # Application root
 │   │
 │   ├── pages/                    # Thin route-level components — no business logic
 │   │   ├── home/
-│   │   │   └── HomePage.tsx
+│   │   │   └── home-page.tsx
 │   │   ├── library/
-│   │   │   └── LibraryPage.tsx
+│   │   │   └── library-page.tsx
 │   │   ├── details/
-│   │   │   ├── MovieDetailsPage.tsx
-│   │   │   ├── SeriesDetailsPage.tsx
-│   │   │   ├── AlbumDetailsPage.tsx
-│   │   │   └── EpisodeDetailsPage.tsx
+│   │   │   ├── movie-details-page.tsx
+│   │   │   ├── series-details-page.tsx
+│   │   │   ├── album-details-page.tsx
+│   │   │   └── episode-details-page.tsx
 │   │   ├── collection/
-│   │   │   └── CollectionPage.tsx
+│   │   │   └── collection-page.tsx
 │   │   ├── player/
-│   │   │   └── VideoPlayerPage.tsx
+│   │   │   └── video-player-page.tsx
 │   │   ├── settings/
-│   │   │   └── SettingsPage.tsx
+│   │   │   └── settings-page.tsx
 │   │   └── auth/
-│   │       ├── LoginPage.tsx
-│   │       └── LinkPage.tsx
+│   │       ├── login/
+│   │       │   └── login-page.tsx
+│   │       └── qr-link/
+│   │           └── link-page.tsx
 │   │
 │   ├── features/
 │   │   ├── library/              # Browse libraries, grids, filters

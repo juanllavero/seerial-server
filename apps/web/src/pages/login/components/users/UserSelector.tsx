@@ -1,9 +1,9 @@
+import { API, api } from '@seerial/api';
 import type { BasicUser, PersistedServer } from '@seerial/domain';
 import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
-import { API, api } from '@/config/api';
 import UserCard from './UserCard';
 
 type View = 'profiles' | 'manual' | 'addUser';

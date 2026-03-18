@@ -1,5 +1,5 @@
+import { api } from '@seerial/api';
 import { useEffect, useRef, useState } from 'react';
-import { api } from '@/config/api';
 
 interface GradientBackgroundProps {
   showGradient?: boolean;
