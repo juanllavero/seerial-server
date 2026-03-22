@@ -13,7 +13,7 @@ export class SetEpisodeWatchStateUseCase {
     private seriesRepo: SeriesRepositoryPort,
     private videoRepo: VideoRepositoryPort,
     private watchListRepo: WatchListRepositoryPort,
-  ) { }
+  ) {}
 
   async execute(episodeId: string, userId: string, state: boolean): Promise<void> {
     const context = await this.getContext(episodeId);

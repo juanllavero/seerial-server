@@ -1,5 +1,5 @@
 import { useGetVideoMediaInfo, useUpdateVideoMediaInfo } from '@seerial/api';
-import type { AudioTrack, SubtitleTrack, Video, VideoTrack } from '@seerial/domain';
+import type { AudioTrack, MediaInfoData, SubtitleTrack, Video, VideoTrack } from '@seerial/domain';
 import { useEffect, useState } from 'react';
 import { useIsTablet } from '@/shared/hooks/use-tablet';
 import { getAudioTrack, getSubtitleTrack } from '@/shared/lib/react-utils';
@@ -18,100 +18,110 @@ interface VideoInfo {
   subsMode: string;
 }
 
+interface UpdateVideoMediaInfoBody {
+  videoId: string;
+}
+
+interface SelectableTrack {
+  id: number;
+  selected: boolean;
+}
+
+const wait = (milliseconds: number) => new Promise((resolve) => setTimeout(resolve, milliseconds));
+
+const fetchMediaInfoWithRetry = async (
+  fetchMediaInfo: () => Promise<MediaInfoData>,
+): Promise<MediaInfoData | null> => {
+  try {
+    return await fetchMediaInfo();
+  } catch {}
+
+  await wait(2000);
+
+  try {
+    return await fetchMediaInfo();
+  } catch {}
+
+  await wait(2000);
+
+  return null;
+};
+
+const applySelectedTrack = <T extends SelectableTrack>(
+  tracks: T[],
+  selectedTrackId: number | null,
+): T[] => {
+  if (selectedTrackId === null) {
+    return tracks;
+  }
+
+  return tracks.map((track) => ({
+    ...track,
+    selected: track.id === selectedTrackId,
+  }));
+};
+
+const buildMediaInfoData = (
+  data: MediaInfoData,
+  videoInfo: VideoInfo,
+  video: Video,
+): MediaInfoData => {
+  const selectedVideoTrackId = data.videoTracks[0]?.id ?? null;
+  const selectedAudioTrackId = getAudioTrack(videoInfo.preferAudioLan, video)?.id ?? null;
+  const selectedSubtitleTrackId =
+    getSubtitleTrack(videoInfo.preferSubtitleLan, videoInfo.subsMode, video)?.id ?? null;
+
+  return {
+    ...data,
+    videoTracks: applySelectedTrack(data.videoTracks, selectedVideoTrackId),
+    audioTracks: applySelectedTrack(data.audioTracks, selectedAudioTrackId),
+    subtitleTracks: applySelectedTrack(data.subtitleTracks, selectedSubtitleTrackId),
+  };
+};
+
 function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
   const isTablet = useIsTablet();
   const [loaded, setLoaded] = useState(false);
-  const [mediaInfo, setMediaInfo] = useState<Video | null>(null);
+  const [mediaInfo, setMediaInfo] = useState<MediaInfoData | null>(null);
 
   // Get video info
   const { data: videoInfo } = useGetVideoMediaInfo<VideoInfo>(video.id, {
     enabled: Boolean(video.id),
   });
-  const { mutateAsync: updateVideoMediaInfo } = useUpdateVideoMediaInfo(video.id);
+  const { mutateAsync: updateVideoMediaInfo } = useUpdateVideoMediaInfo<
+    MediaInfoData,
+    UpdateVideoMediaInfoBody
+  >(video.id);
 
   useEffect(() => {
+    let isActive = true;
+
     const fetchData = async () => {
       if (!videoInfo) return;
 
       setLoaded(false);
 
-      const attemptFetch = async () => {
-        try {
-          return await updateVideoMediaInfo({ videoId: video.id });
-        } catch {
-          return null;
-        }
-      };
+      const data = await fetchMediaInfoWithRetry(() => updateVideoMediaInfo({ videoId: video.id }));
 
-      // First attempt
-      let data = await attemptFetch();
+      if (!isActive) {
+        return;
+      }
 
-      // If there are no data after the first attempt, wait 2 seconds and make second attempt
       if (!data) {
-        await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 2 seconds
-        data = await attemptFetch();
-
-        // If the second attempt fails, wait 4 seconds and set loaded as true
-        if (!data) {
-          await new Promise((resolve) => setTimeout(resolve, 2000)); // Wait 4 seconds
-          setLoaded(true);
-          return;
-        }
+        setLoaded(true);
+        return;
       }
 
-      // Process the data if it was obtained in either of the attempts
-      const audioTrack = getAudioTrack(videoInfo.preferAudioLan, video);
-      const subtitleTrack = getSubtitleTrack(
-        videoInfo.preferSubtitleLan,
-        videoInfo.subsMode,
-        video,
-      );
-      const videoTrack = data.videoTracks[0] ?? null;
-
-      if (videoTrack && video.videoTracks) {
-        for (const videoTrack of video.videoTracks) {
-          videoTrack.selected = false;
-        }
-        videoTrack.selected = true;
-      }
-
-      if (audioTrack && video.audioTracks) {
-        for (const audioTrack of video.audioTracks) {
-          audioTrack.selected = false;
-        }
-        audioTrack.selected = true;
-      }
-
-      if (subtitleTrack && video.subtitleTracks) {
-        for (const subTrack of video.subtitleTracks) {
-          subTrack.selected = false;
-        }
-        subtitleTrack.selected = true;
-      }
-
-      setMediaInfo({
-        ...data,
-        videoTracks: data.videoTracks
-          ? data.videoTracks.map((track: VideoTrack) =>
-              track.id === (videoTrack?.id ?? '') ? (videoTrack ?? track) : track,
-            )
-          : [],
-        audioTracks: data.audioTracks
-          ? data.audioTracks.map((track: AudioTrack) =>
-              track.id === (audioTrack?.id ?? '') ? (audioTrack ?? track) : track,
-            )
-          : [],
-        subtitleTracks: data.subtitleTracks
-          ? data.subtitleTracks.map((track: SubtitleTrack) =>
-              track.id === (subtitleTrack?.id ?? '') ? (subtitleTrack ?? track) : track,
-            )
-          : [],
-      });
+      setMediaInfo(buildMediaInfoData(data, videoInfo, video));
 
       setLoaded(true);
     };
 
-    fetchData();
+    void fetchData();
+
+    return () => {
+      isActive = false;
+    };
   }, [updateVideoMediaInfo, video, videoInfo]);
 
   const getVideoInfo = (track: VideoTrack) => {
@@ -134,9 +144,9 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
     return (
       <>
         {mediaInfoFieldsVideo.map(
-          (field, index) =>
+          (field) =>
             field.value && (
-              <div key={index + 'video-media'}>
+              <div key={`video-media-${field.key}`}>
                 <span className="mr-2" style={{ color: 'lightgray' }}>
                   {field.key}
                 </span>
@@ -166,9 +176,9 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
     return (
       <>
         {mediaInfoFieldsAudio.map(
-          (field, index) =>
+          (field) =>
             field.value && (
-              <div key={index + 'audio-media'}>
+              <div key={`audio-media-${field.key}`}>
                 <span className="mr-2" style={{ color: 'lightgray' }}>
                   {field.key}
                 </span>
@@ -193,9 +203,9 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
     return (
       <>
         {mediaInfoFieldsSubs.map(
-          (field, index) =>
+          (field) =>
             field.value && (
-              <div key={index + 'subs-media'}>
+              <div key={`subs-media-${field.key}`}>
                 <span className="mr-2" style={{ color: 'lightgray' }}>
                   {field.key}
                 </span>
@@ -261,27 +271,24 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
         </FlexBox>
       </FlexBox>
       <FlexBox direction="column" gap={1}>
-        {mediaInfo.videoTracks &&
-          mediaInfo.videoTracks.map((track: VideoTrack) => (
-            <div key={track.id + '-video'}>
-              <span className="mt-2 mb-1 text-lg font-semibold">Video</span>
-              {getVideoInfo(track)}
-            </div>
-          ))}
-        {mediaInfo.audioTracks &&
-          mediaInfo.audioTracks.map((audioTrack: AudioTrack, index: number) => (
-            <div key={index + '-audio'}>
-              <span className="mt-2 mb-1 text-lg font-semibold">Audio</span>
-              {getAudioInfo(audioTrack)}
-            </div>
-          ))}
-        {mediaInfo.subtitleTracks &&
-          mediaInfo.subtitleTracks.map((track: SubtitleTrack, index: number) => (
-            <div key={index + '-subs'}>
-              <span className="mt-2 mb-1 text-lg font-semibold">Subtitle</span>
-              {getSubtitleInfo(track)}
-            </div>
-          ))}
+        {mediaInfo.videoTracks?.map((track: VideoTrack) => (
+          <div key={`video-${track.id}`}>
+            <span className="mt-2 mb-1 text-lg font-semibold">Video</span>
+            {getVideoInfo(track)}
+          </div>
+        ))}
+        {mediaInfo.audioTracks?.map((audioTrack: AudioTrack) => (
+          <div key={`audio-${audioTrack.id}`}>
+            <span className="mt-2 mb-1 text-lg font-semibold">Audio</span>
+            {getAudioInfo(audioTrack)}
+          </div>
+        ))}
+        {mediaInfo.subtitleTracks?.map((track: SubtitleTrack) => (
+          <div key={`subs-${track.id}`}>
+            <span className="mt-2 mb-1 text-lg font-semibold">Subtitle</span>
+            {getSubtitleInfo(track)}
+          </div>
+        ))}
       </FlexBox>
     </FlexBox>
   );

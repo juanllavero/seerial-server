@@ -87,7 +87,9 @@ export class WatchListRepositoryImpl extends BaseRepository implements WatchList
         return { episode, watchList };
       })
       .filter(({ watchList }) => !!watchList && !watchList.watched && watchList.timeWatched > 0)
-      .sort((a, b) => (b.watchList?.timeWatched ?? 0) - (a.watchList?.timeWatched ?? 0))[0]?.episode;
+      .sort(
+        (a, b) => (b.watchList?.timeWatched ?? 0) - (a.watchList?.timeWatched ?? 0),
+      )[0]?.episode;
 
     if (inProgress) {
       return inProgress as unknown as Episode;
@@ -568,7 +570,11 @@ export class WatchListRepositoryImpl extends BaseRepository implements WatchList
     await WatchListModel.delete(whereCondition);
   }
 
-  async clearContinueWatching(userId: string, seriesId?: string, movieId?: string): Promise<boolean> {
+  async clearContinueWatching(
+    userId: string,
+    seriesId?: string,
+    movieId?: string,
+  ): Promise<boolean> {
     const validatedUserId = this.validateId(userId, 'User ID');
 
     if (!seriesId && !movieId) {

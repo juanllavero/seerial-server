@@ -9,7 +9,7 @@ import type { WatchList } from '../../domain/WatchList';
 import type { WatchListRepositoryPort } from '../ports/WatchListRepositoryPort';
 
 export class UpdateWatchStateUseCase {
-  constructor(private watchListRepo: WatchListRepositoryPort) { }
+  constructor(private watchListRepo: WatchListRepositoryPort) {}
 
   async execute(params: {
     videoId: string;

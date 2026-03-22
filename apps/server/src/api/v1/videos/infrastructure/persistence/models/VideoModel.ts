@@ -1,10 +1,4 @@
-import type {
-  AudioTrack,
-  Chapter,
-  MediaInfo,
-  SubtitleTrack,
-  VideoTrack,
-} from '@seerial/domain';
+import type { AudioTrack, Chapter, MediaInfo, SubtitleTrack, VideoTrack } from '@seerial/domain';
 import {
   BaseEntity,
   BeforeInsert,

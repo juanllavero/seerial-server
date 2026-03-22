@@ -73,37 +73,36 @@ function FoldersDialogContent({ folders, setFolders, close }: FoldersDialogConte
         )}
 
         {/* Folders and files */}
-        {folderContent &&
-          folderContent
-            .filter(
-              (folder) =>
-                !folder.name.startsWith('$RECYCLE') &&
-                !folder.name.startsWith('{') &&
-                !folder.name.endsWith('.tmp'),
-            )
-            .map((item: { name: string; isFolder: boolean }, index) =>
-              item.isFolder ? (
-                <FlexBox
-                  gap={0.5}
-                  key={index}
-                  width={'17rem'}
-                  onClick={() => handleFolderClick(item.name)}
-                  css={{ cursor: 'pointer' }}
+        {folderContent
+          ?.filter(
+            (folder) =>
+              !folder.name.startsWith('$RECYCLE') &&
+              !folder.name.startsWith('{') &&
+              !folder.name.endsWith('.tmp'),
+          )
+          .map((item: { name: string; isFolder: boolean }, index) =>
+            item.isFolder ? (
+              <FlexBox
+                gap={0.5}
+                key={index}
+                width={'17rem'}
+                onClick={() => handleFolderClick(item.name)}
+                css={{ cursor: 'pointer' }}
+              >
+                <FolderIcon /> {item.name}
+              </FlexBox>
+            ) : (
+              <FlexBox gap={0.5} key={index} width={'17rem'} css={{ color: '#a6a6a6' }}>
+                <FileIcon />{' '}
+                <span
+                  className="line-clamp-3 w-fit max-w-md overflow-hidden text-ellipsis"
+                  style={{ color: '#a6a6a6' }}
                 >
-                  <FolderIcon /> {item.name}
-                </FlexBox>
-              ) : (
-                <FlexBox gap={0.5} key={index} width={'17rem'} css={{ color: '#a6a6a6' }}>
-                  <FileIcon />{' '}
-                  <span
-                    className="line-clamp-3 w-fit max-w-md overflow-hidden text-ellipsis"
-                    style={{ color: '#a6a6a6' }}
-                  >
-                    {item.name}
-                  </span>
-                </FlexBox>
-              ),
-            )}
+                  {item.name}
+                </span>
+              </FlexBox>
+            ),
+          )}
       </>
     );
   };

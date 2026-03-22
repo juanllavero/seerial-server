@@ -1,6 +1,61 @@
 import { ImageType } from '@/shared/lib/constants';
 import Image from '../../../../../shared/ui/image';
 
+const SELECTED_IMAGE_STYLE = {
+  borderColor: 'var(--app-color)',
+  boxShadow: '0 10px 15px -3px rgba(142, 220, 230, 0.3), 0 4px 6px -2px rgba(142, 220, 230, 0.05)',
+};
+
+function getImageUrl(image: string, isLocal: boolean) {
+  if (image.startsWith('http')) {
+    return image;
+  }
+
+  if (isLocal) {
+    return `/api/${image}`;
+  }
+
+  return `https://image.tmdb.org/t/p/original/${image}`;
+}
+
+function getImageDimensions(type: ImageType) {
+  const width = type === ImageType.POSTER ? 60 : 90;
+
+  if (type === ImageType.POSTER || type === ImageType.SQUARE) {
+    return { width, height: 90 };
+  }
+
+  if (type === ImageType.BACKDROP) {
+    return { width, height: 50 };
+  }
+
+  return { width, height: 40 };
+}
+
+function getAspectRatio(type: ImageType) {
+  if (type === ImageType.POSTER) {
+    return 2 / 3;
+  }
+
+  if (type === ImageType.BACKDROP) {
+    return 16 / 9;
+  }
+
+  if (type === ImageType.SQUARE) {
+    return 1;
+  }
+
+  return 3 / 1;
+}
+
+function getButtonClassName(isSelected: boolean, width: number, height: number) {
+  const selectionClass = isSelected
+    ? 'border-2 shadow-lg'
+    : 'border-2 border-transparent hover:border-gray-300';
+
+  return `relative cursor-pointer overflow-hidden rounded-lg transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-black/20 ${selectionClass} w-${width} h-${height}`;
+}
+
 interface ImageButtonProps {
   image: string;
   type: ImageType;
@@ -16,37 +71,17 @@ function ImageButton({
   isLocal = false,
   selectImage,
 }: ImageButtonProps) {
-  const imageUrl = image.startsWith('http')
-    ? image
-    : isLocal
-      ? `/api/${image}`
-      : `https://image.tmdb.org/t/p/original/${image}`;
+  const imageUrl = getImageUrl(image, isLocal);
 
   const isSelected = imageUrl === selectedImage;
-
-  const width = type === ImageType.POSTER ? 60 : 90;
-  const height =
-    type === ImageType.POSTER || type === ImageType.SQUARE
-      ? 90
-      : type === ImageType.BACKDROP
-        ? 50
-        : 40;
+  const { width, height } = getImageDimensions(type);
+  const aspectRatio = getAspectRatio(type);
 
   return (
     <button
       type="button"
-      className={`relative cursor-pointer overflow-hidden rounded-lg transition-all duration-300 ease-in-out hover:shadow-lg hover:shadow-black/20 ${
-        isSelected ? 'border-2 shadow-lg' : 'border-2 border-transparent hover:border-gray-300'
-      } w-${width} h-${height}`}
-      style={
-        isSelected
-          ? {
-              borderColor: 'var(--app-color)',
-              boxShadow:
-                '0 10px 15px -3px rgba(142, 220, 230, 0.3), 0 4px 6px -2px rgba(142, 220, 230, 0.05)',
-            }
-          : {}
-      }
+      className={getButtonClassName(isSelected, width, height)}
+      style={isSelected ? SELECTED_IMAGE_STYLE : undefined}
       onClick={() => selectImage(imageUrl)}
     >
       {/* Checkmark overlay for selected image */}
@@ -69,15 +104,7 @@ function ImageButton({
           type === ImageType.POSTER ? '/img/fileNotFound.jpg' : '/img/Default_video_thumbnail.jpg'
         }
         alt={image}
-        aspectRatio={
-          type === ImageType.POSTER
-            ? 2 / 3
-            : type === ImageType.BACKDROP
-              ? 16 / 9
-              : type === ImageType.SQUARE
-                ? 1
-                : 3 / 1
-        }
+        aspectRatio={aspectRatio}
         objectFit="contain"
         width={width}
         height={height}

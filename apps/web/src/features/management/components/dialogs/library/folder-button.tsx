@@ -1,18 +1,15 @@
 import { X } from 'lucide-react';
-import React from 'react';
 import { Button } from '@/shared/ui/button';
 import FlexBox from '@/shared/ui/flex-box';
 
 interface FolderButtonProps {
-  index: number;
   folder: string;
   removeFolder: (folder: string) => void;
 }
 
-function FolderButton({ index, folder, removeFolder }: FolderButtonProps) {
+function FolderButton({ folder, removeFolder }: FolderButtonProps) {
   return (
     <FlexBox
-      key={'Folder ' + index}
       gap={1}
       width={'100%'}
       align="center"

@@ -29,7 +29,7 @@ import logger from '@/utils/logger';
 const dbLogger = logger.child({ category: 'Database' });
 
 export class DatabaseManager {
-  private constructor() { }
+  private constructor() {}
 
   public static get DB_PATH(): string {
     return fileSystemService.getExternalPath('resources/db/data.db');

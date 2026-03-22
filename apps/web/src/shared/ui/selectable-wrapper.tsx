@@ -1,5 +1,4 @@
 import type { SelectableOption } from '@seerial/domain';
-import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './select';
 
 interface SelectableWrapperProps {
@@ -21,18 +20,19 @@ function SelectableWrapper({
 }: SelectableWrapperProps) {
   const getUniqueValue = (option: SelectableOption) => `${option.key}::${option.value}`;
 
+  const findUniqueValueByOptionValue = (optionValue?: string) => {
+    const option = options.find((currentOption) => currentOption.value === optionValue);
+    return option ? getUniqueValue(option) : undefined;
+  };
+
   const handleValueChange = (uniqueValue: string) => {
     const [key, value] = uniqueValue.split('::');
     onValueChange(key, value);
   };
 
-  const defaultUniqueValue = options.find((option) => option.value === defaultValue)
-    ? getUniqueValue(options.find((option) => option.value === defaultValue)!)
-    : undefined;
+  const defaultUniqueValue = findUniqueValueByOptionValue(defaultValue);
 
-  const controlledValue = options.find((option) => option.value === value)
-    ? getUniqueValue(options.find((option) => option.value === value)!)
-    : undefined;
+  const controlledValue = findUniqueValueByOptionValue(value);
 
   return (
     <Select

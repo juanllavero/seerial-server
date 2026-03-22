@@ -7,6 +7,7 @@ export interface FormField {
 }
 
 export interface FormGroup {
+  id: string;
   direction: 'row' | 'column';
   fields: string[];
 }
@@ -18,6 +19,27 @@ export interface FormConfig {
 
 type FormValue = string | string[] | boolean;
 
+function getDefaultFieldValue(field: FormField): FormValue {
+  return field.type === 'array' ? [] : '';
+}
+
+function getResetFieldValue(field: FormField, entityValue: unknown): FormValue {
+  if (Array.isArray(entityValue)) {
+    return entityValue.filter((value): value is string => typeof value === 'string');
+  }
+
+  if (typeof entityValue === 'string') {
+    return entityValue;
+  }
+
+  return getDefaultFieldValue(field);
+}
+
+function getResetLockValue(entityRecord: Record<string, unknown>, fieldName: string): boolean {
+  const lockValue = entityRecord[`${fieldName}Lock`];
+  return typeof lockValue === 'boolean' ? lockValue : false;
+}
+
 // Helper functions to optimize dialog components
 
 // Generate default values from multiple configs
@@ -26,11 +48,7 @@ export function generateDefaultValues(...configs: FormConfig[]) {
 
   configs.forEach((config) => {
     config.fields.forEach((field) => {
-      if (field.type === 'array') {
-        defaults[field.name] = [];
-      } else {
-        defaults[field.name] = '';
-      }
+      defaults[field.name] = getDefaultFieldValue(field);
 
       if (field.hasLock) {
         defaults[`${field.name}Lock`] = false;
@@ -48,20 +66,10 @@ export function generateResetValues(entity: object, ...configs: FormConfig[]) {
 
   configs.forEach((config) => {
     config.fields.forEach((field) => {
-      const entityValue = entityRecord[field.name];
-      if (Array.isArray(entityValue)) {
-        values[field.name] = entityValue.filter(
-          (value): value is string => typeof value === 'string',
-        );
-      } else if (typeof entityValue === 'string') {
-        values[field.name] = entityValue;
-      } else {
-        values[field.name] = field.type === 'array' ? [] : '';
-      }
+      values[field.name] = getResetFieldValue(field, entityRecord[field.name]);
 
       if (field.hasLock) {
-        const lockValue = entityRecord[`${field.name}Lock`];
-        values[`${field.name}Lock`] = typeof lockValue === 'boolean' ? lockValue : false;
+        values[`${field.name}Lock`] = getResetLockValue(entityRecord, field.name);
       }
     });
   });
@@ -99,10 +107,12 @@ export const seriesInfoConfig: FormConfig = {
   ],
   groups: [
     {
+      id: 'basicInfo',
       direction: 'row',
       fields: ['name', 'year'],
     },
     {
+      id: 'additionalInfo',
       direction: 'column',
       fields: ['tagline', 'overview'],
     },
@@ -123,6 +133,7 @@ export const seriesTagsConfig: FormConfig = {
   ],
   groups: [
     {
+      id: 'tags',
       direction: 'column',
       fields: ['genres', 'creator', 'productionStudios', 'musicComposer'],
     },
@@ -137,10 +148,12 @@ export const seasonInfoConfig: FormConfig = {
   ],
   groups: [
     {
+      id: 'basicInfo',
       direction: 'row',
       fields: ['name', 'year'],
     },
     {
+      id: 'additionalInfo',
       direction: 'column',
       fields: ['overview'],
     },
@@ -157,14 +170,17 @@ export const episodeInfoConfig: FormConfig = {
   ],
   groups: [
     {
+      id: 'basicInfo',
       direction: 'row',
       fields: ['name', 'year'],
     },
     {
+      id: 'additionalInfo',
       direction: 'column',
       fields: ['overview'],
     },
     {
+      id: 'credits',
       direction: 'row',
       fields: ['directedBy', 'writtenBy'],
     },
@@ -186,10 +202,12 @@ export const movieInfoConfig: FormConfig = {
   ],
   groups: [
     {
+      id: 'basicInfo',
       direction: 'row',
       fields: ['name', 'year'],
     },
     {
+      id: 'additionalInfo',
       direction: 'column',
       fields: ['productionStudios', 'tagline', 'overview'],
     },
@@ -206,6 +224,7 @@ export const movieTagsConfig: FormConfig = {
   ],
   groups: [
     {
+      id: 'tags',
       direction: 'column',
       fields: ['genres', 'creator', 'directedBy', 'writtenBy', 'musicComposer'],
     },

@@ -8,12 +8,12 @@ import type { ContinueWatchingVideoDTO } from '../../../application/dtos/WatchLi
 @Route('continue-watching')
 @Tags('Continue Watching')
 export class ContinueWatchingController extends Controller {
-    @Get()
-    @Security('cookieAuth')
-    public async getVideos(
-        @Request() req: ExpressRequest,
-    ): Promise<ApiResponse<ContinueWatchingVideoDTO[]>> {
-        const userId = getUserId(req);
-        return ApiResponse.success(await useCases.getContinueWatchingVideos().execute(userId));
-    }
+  @Get()
+  @Security('cookieAuth')
+  public async getVideos(
+    @Request() req: ExpressRequest,
+  ): Promise<ApiResponse<ContinueWatchingVideoDTO[]>> {
+    const userId = getUserId(req);
+    return ApiResponse.success(await useCases.getContinueWatchingVideos().execute(userId));
+  }
 }

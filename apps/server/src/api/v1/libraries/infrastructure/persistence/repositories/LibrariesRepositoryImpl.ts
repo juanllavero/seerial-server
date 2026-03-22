@@ -115,7 +115,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
         remainingItems: 0,
         analyzingFiles: false,
         type: 'collection',
-        details: await this.generateItemDetails(collection, 'collection')
+        details: await this.generateItemDetails(collection, 'collection'),
       });
     }
 
@@ -167,22 +167,27 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     }
   }
 
-  private async buildMovieItems(library: LibraryModel, collectionMovieIds: Set<string>): Promise<LibraryItem[]> {
-    return Promise.all((library.movies || [])
-      .filter((movie) => !collectionMovieIds.has(movie.id))
-      .map(async (movie) => ({
-        id: movie.id,
-        title: movie.name,
-        years: movie.year || '-',
-        coverSrc: movie.coverSrc,
-        numberOfItems: movie.videos?.length || 0,
-        order: movie.order,
-        watched: false,
-        remainingItems: 0,
-        analyzingFiles: movie.analyzingFiles,
-        type: 'movie',
-        details: await this.generateItemDetails(movie, 'movie'),
-      })));
+  private async buildMovieItems(
+    library: LibraryModel,
+    collectionMovieIds: Set<string>,
+  ): Promise<LibraryItem[]> {
+    return Promise.all(
+      (library.movies || [])
+        .filter((movie) => !collectionMovieIds.has(movie.id))
+        .map(async (movie) => ({
+          id: movie.id,
+          title: movie.name,
+          years: movie.year || '-',
+          coverSrc: movie.coverSrc,
+          numberOfItems: movie.videos?.length || 0,
+          order: movie.order,
+          watched: false,
+          remainingItems: 0,
+          analyzingFiles: movie.analyzingFiles,
+          type: 'movie',
+          details: await this.generateItemDetails(movie, 'movie'),
+        })),
+    );
   }
 
   private async buildSeriesItems(
@@ -190,39 +195,46 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     collectionSeriesIds: Set<string>,
     userId: string,
   ): Promise<LibraryItem[]> {
-    return Promise.all((library.series || [])
-      .filter((series) => !collectionSeriesIds.has(series.id))
-      .map(async (series) => ({
-        id: series.id,
-        title: series.name,
-        years: this.calculateYearsForSeries(series),
-        coverSrc: series.coverSrc,
-        numberOfItems: 0,
-        order: series.order,
-        watched: this.calculateWatchedState(series, userId),
-        remainingItems: this.calculateRemainingEpisodes(series, userId),
-        analyzingFiles: series.analyzingFiles,
-        type: 'series',
-        details: await this.generateItemDetails(series, 'series', userId),
-      })));
+    return Promise.all(
+      (library.series || [])
+        .filter((series) => !collectionSeriesIds.has(series.id))
+        .map(async (series) => ({
+          id: series.id,
+          title: series.name,
+          years: this.calculateYearsForSeries(series),
+          coverSrc: series.coverSrc,
+          numberOfItems: 0,
+          order: series.order,
+          watched: this.calculateWatchedState(series, userId),
+          remainingItems: this.calculateRemainingEpisodes(series, userId),
+          analyzingFiles: series.analyzingFiles,
+          type: 'series',
+          details: await this.generateItemDetails(series, 'series', userId),
+        })),
+    );
   }
 
-  private async buildAlbumItems(library: LibraryModel, collectionAlbumIds: Set<string>): Promise<LibraryItem[]> {
-    return Promise.all((library.albums || [])
-      .filter((album) => !collectionAlbumIds.has(album.id))
-      .map(async (album) => ({
-        id: album.id,
-        title: album.title,
-        years: album.year || '-',
-        coverSrc: album.coverSrc,
-        numberOfItems: 0,
-        order: album.order,
-        watched: false,
-        remainingItems: 0,
-        analyzingFiles: false,
-        type: 'album',
-        details: await this.generateItemDetails(album, 'album'),
-      })));
+  private async buildAlbumItems(
+    library: LibraryModel,
+    collectionAlbumIds: Set<string>,
+  ): Promise<LibraryItem[]> {
+    return Promise.all(
+      (library.albums || [])
+        .filter((album) => !collectionAlbumIds.has(album.id))
+        .map(async (album) => ({
+          id: album.id,
+          title: album.title,
+          years: album.year || '-',
+          coverSrc: album.coverSrc,
+          numberOfItems: 0,
+          order: album.order,
+          watched: false,
+          remainingItems: 0,
+          analyzingFiles: false,
+          type: 'album',
+          details: await this.generateItemDetails(album, 'album'),
+        })),
+    );
   }
 
   private async generateItemDetails(
@@ -232,21 +244,13 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
   ): Promise<DetailsData | null> {
     switch (type) {
       case 'movie':
-        return element instanceof MovieModel
-          ? this.buildMovieDetails(element, userId)
-          : null;
+        return element instanceof MovieModel ? this.buildMovieDetails(element, userId) : null;
       case 'series':
-        return element instanceof SeriesModel
-          ? this.buildSeriesDetails(element, userId)
-          : null;
+        return element instanceof SeriesModel ? this.buildSeriesDetails(element, userId) : null;
       case 'album':
-        return element instanceof AlbumModel
-          ? this.buildAlbumDetails(element)
-          : null;
+        return element instanceof AlbumModel ? this.buildAlbumDetails(element) : null;
       case 'collection':
-        return element instanceof CollectionModel
-          ? this.buildCollectionDetails(element)
-          : null;
+        return element instanceof CollectionModel ? this.buildCollectionDetails(element) : null;
       default:
         return null;
     }

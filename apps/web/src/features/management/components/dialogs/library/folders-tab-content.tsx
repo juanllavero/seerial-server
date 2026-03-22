@@ -35,13 +35,11 @@ function FoldersTabContent({
       <FlexBox direction="column" gap={1} align={isMobile ? 'stretch' : 'center'} width={'100%'}>
         <span className="self-start">{t('addFolderText')}</span>
         <FlexBox direction="column" gap={0.5} width={'100%'}>
-          {folders.length > 0 ? (
-            folders.map((folder, index) => (
-              <FolderButton index={index} folder={folder} removeFolder={handleRemoveFolder} />
-            ))
-          ) : (
-            <></>
-          )}
+          {folders.length > 0
+            ? folders.map((folder) => (
+                <FolderButton key={folder} folder={folder} removeFolder={handleRemoveFolder} />
+              ))
+            : null}
         </FlexBox>
 
         <Button onClick={() => setIsOpen(true)}>{t('addFolder')}</Button>

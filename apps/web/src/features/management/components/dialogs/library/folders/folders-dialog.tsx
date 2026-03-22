@@ -1,4 +1,3 @@
-import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { ModalWrapper } from '@/shared/ui/modal-wrapper';
 import FoldersDialogContent from './folders-dialog-content';

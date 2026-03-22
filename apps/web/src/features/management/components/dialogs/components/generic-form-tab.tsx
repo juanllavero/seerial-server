@@ -41,9 +41,9 @@ function GenericFormTab({ config, control }: GenericFormTabProps) {
       hideScrollbar={isTablet}
       scroll="vertical"
     >
-      {config.groups.map((group, groupIndex) => (
+      {config.groups.map((group) => (
         <FlexBox
-          key={groupIndex}
+          key={`group-${group.id}`}
           gap={1}
           width="100%"
           direction={isTablet && group.direction === 'row' ? 'column' : group.direction}

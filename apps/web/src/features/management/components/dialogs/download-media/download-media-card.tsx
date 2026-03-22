@@ -55,7 +55,11 @@ function DownloadMediaCard({ result, playMedia, downloadMedia }: DownloadMediaCa
     <Card className="w-full transition-shadow hover:shadow-md">
       <CardContent className="p-4">
         <div className="flex gap-4">
-          <div className="relative flex-shrink-0 cursor-pointer" onClick={() => playMedia(result)}>
+          <button
+            type="button"
+            className="relative shrink-0 cursor-pointer"
+            onClick={() => playMedia(result)}
+          >
             <img
               src={result.thumbnail}
               alt={result.title}
@@ -72,15 +76,14 @@ function DownloadMediaCard({ result, playMedia, downloadMedia }: DownloadMediaCa
             <Badge className="bg-opacity-70 absolute right-1 bottom-1 bg-black text-xs text-white hover:bg-transparent">
               <span>{formatTime(result.duration)}</span>
             </Badge>
-          </div>
+          </button>
 
           <div className="min-w-0 flex-1">
-            <h3
-              className="mb-2 line-clamp-2 cursor-pointer text-sm leading-5 font-medium transition-colors hover:text-blue-600"
-              onClick={() => playMedia(result)}
-            >
-              {result.title}
-            </h3>
+            <button type="button" onClick={() => playMedia(result)}>
+              <h3 className="mb-2 line-clamp-2 cursor-pointer text-sm leading-5 font-medium transition-colors hover:text-blue-600">
+                {result.title}
+              </h3>
+            </button>
 
             <div className="mt-3 flex items-center">
               <div className="flex gap-2">

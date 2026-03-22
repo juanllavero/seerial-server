@@ -97,8 +97,14 @@ function CorrectIdentificationSearch() {
 
   const identificationPayload = open === 'identification' ? payload : null;
 
-  const seriesId = identificationPayload && 'seriesId' in identificationPayload ? identificationPayload.seriesId : undefined;
-  const movieId = identificationPayload && 'movieId' in identificationPayload ? identificationPayload.movieId : undefined;
+  const seriesId =
+    identificationPayload && 'seriesId' in identificationPayload
+      ? identificationPayload.seriesId
+      : undefined;
+  const movieId =
+    identificationPayload && 'movieId' in identificationPayload
+      ? identificationPayload.movieId
+      : undefined;
   const isShow = Boolean(seriesId);
 
   const { data: series } = useGetSeries<Series>(seriesId ?? '', {
