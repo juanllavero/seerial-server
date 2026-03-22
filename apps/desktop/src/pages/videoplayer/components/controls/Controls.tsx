@@ -124,7 +124,7 @@ function Controls({ video, runtime, mutateVideo }: ControlsProps) {
           <NavigationButton transparent className="p-2">
             <SettingsIcon />
           </NavigationButton>
-          <TracksSelectors video={video} videoInfo={videoInfo} mutateVideo={mutateVideo} />
+          {/* <TracksSelectors video={video} videoInfo={videoInfo} mutateVideo={mutateVideo} /> */}
 
           <FlexBox>
             <VolumeSlider />

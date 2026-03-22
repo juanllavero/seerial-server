@@ -17,15 +17,17 @@
     "@noriginmedia/norigin-spatial-navigation": "^2.3.0",
     "@radix-ui/react-alert-dialog": "^1.1.14",
     "@radix-ui/react-aspect-ratio": "^1.1.7",
+    "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-slot": "^1.2.4",
     "@seerial/api": "workspace:*",
     "@seerial/domain": "workspace:*",
     "@seerial/hooks": "workspace:*",
     "@seerial/stores": "workspace:*",
     "@tailwindcss/vite": "^4.1.10",
+    "@tanstack/react-query": "^5.90.2",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
-    "@tauri-apps/plugin-store": "^2.2.0",
+    "@tauri-apps/plugin-store": "2.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.24",
@@ -40,7 +42,6 @@
     "react-router-dom": "^7.6.2",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
-    "@tanstack/react-query": "^5.90.2",
     "zustand": "^5.0.5"
   },
   "devDependencies": {
@@ -60,5 +61,5 @@
     "typescript": "~5.6.2",
     "vite": "^7.1.10"
   },
-  "packageManager": "pnpm@9.12.3+sha512.cce0f9de9c5a7c95bef944169cc5dfe8741abfb145078c0d508b868056848a87c81e626246cb60967cbd7fd29a6c062ef73ff840d96b3c86c40ac92cf4a813ee"
+  "packageManager": "pnpm@10.32.1"
 }

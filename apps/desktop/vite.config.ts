@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
 const host = process.env.TAURI_DEV_HOST;
+const srcPath = path.resolve(__dirname, './src');
 
 // https://vitejs.dev/config/
 export default defineConfig(async () => ({
@@ -17,7 +18,26 @@ export default defineConfig(async () => ({
   ],
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': srcPath,
+      '@assets': path.resolve(srcPath, './assets'),
+      '@components': path.resolve(srcPath, './components'),
+      '@interfaces': path.resolve(srcPath, './data/interfaces'),
+      '@objects': path.resolve(srcPath, './data/objects'),
+      '@utils': path.resolve(srcPath, './utils'),
+      '@pages': path.resolve(srcPath, './pages'),
+      '@redux': path.resolve(srcPath, './redux'),
+      '@data': path.resolve(srcPath, './data'),
+      components: path.resolve(srcPath, './components'),
+      data: path.resolve(srcPath, './data'),
+      features: path.resolve(srcPath, './features'),
+      helpers: path.resolve(srcPath, './helpers'),
+      layouts: path.resolve(srcPath, './layouts'),
+      lib: path.resolve(srcPath, './lib'),
+      localization: path.resolve(srcPath, './localization'),
+      pages: path.resolve(srcPath, './pages'),
+      routes: path.resolve(srcPath, './routes'),
+      styles: path.resolve(srcPath, './styles'),
+      utils: path.resolve(srcPath, './utils'),
     },
   },
 
@@ -32,10 +52,10 @@ export default defineConfig(async () => ({
     host: host || false,
     hmr: host
       ? {
-          protocol: 'ws',
-          host,
-          port: 1421,
-        }
+        protocol: 'ws',
+        host,
+        port: 1421,
+      }
       : undefined,
     watch: {
       // 3. tell vite to ignore watching `src-tauri`

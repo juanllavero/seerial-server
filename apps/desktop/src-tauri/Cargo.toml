@@ -29,4 +29,4 @@ gl = "0.14.0"
 libmpv2="4.1.0"
 raw-window-handle = "0.6.2"
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
-tauri-plugin-store = "2.2.0"
+tauri-plugin-store = "=2.2.0"
