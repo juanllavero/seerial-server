@@ -294,4 +294,4 @@ export const cn = {
     serverIPText: '端口必须为3000',
     noResults: '未找到结果',
   },
-}
+};

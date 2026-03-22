@@ -16,8 +16,7 @@ export const ja = {
     watchListShows: 'マイリスト：ドラマ',
     watchListMovies: 'マイリスト：映画',
     serverError: 'サーバーは利用できません',
-    serverErrorMessage:
-      'インターネット接続とサーバーが接続されていることを確認してください',
+    serverErrorMessage: 'インターネット接続とサーバーが接続されていることを確認してください',
     apiKey: 'APIキー',
     apiKeyTitle: 'TheMovieDB の API キーが見つかりません',
     apiKeyMessage: 'APIキーを追加してください。 で取得できます',
@@ -58,8 +57,7 @@ export const ja = {
     serverIPMessage:
       'サーバーのIPとポートを入力してください。サーバーはSeerial Media Serverを実行している必要があり、ポートは32400-32450の範囲内である必要があります',
     autoUpdate: '自動更新',
-    autoUpdateMessage:
-      'スケジュールされたタスクの実行中にサーバーバージョンを自動的に更新します',
+    autoUpdateMessage: 'スケジュールされたタスクの実行中にサーバーバージョンを自動的に更新します',
     autoSelectTracks: 'オーディオとビデオトラックを自動選択',
     never: 'しない',
     min15: '15分ごと',
@@ -70,16 +68,13 @@ export const ja = {
     h12: '12時間ごと',
     daily: '毎日',
     asTask: 'スケジュールタスクとして',
-    asTaskAndFileUpdate:
-      'スケジュールタスクとしておよび新しいファイルが追加されたとき',
+    asTaskAndFileUpdate: 'スケジュールタスクとしておよび新しいファイルが追加されたとき',
     autoScan: 'フォルダの変更が検出されたときにライブラリをスキャン',
     scanOptions: '定期的なライブラリスキャン',
     tempFolder: 'トランスコーダー用の一時フォルダ',
-    tempFolderMessage:
-      'トランスコーダーが一時ファイルを保存するために使用するフォルダ',
+    tempFolderMessage: 'トランスコーダーが一時ファイルを保存するために使用するフォルダ',
     defaultBuffer: 'トランスコーダーのデフォルトバッファ',
-    defaultBufferMessage:
-      'より良い視聴体験を提供するために保存するビデオの秒数',
+    defaultBufferMessage: 'より良い視聴体験を提供するために保存するビデオの秒数',
     transcoderPreset: 'トランスコーダーx264品質プリセット',
     transcoderPresetMessage:
       'バックグラウンドビデオ変換で使用されるx264プリセット。遅い値ほど高品質のビデオと小さなファイルサイズを生成しますが、処理時間も長くなります',
@@ -167,8 +162,7 @@ export const ja = {
     libraryExists: 'そのライブラリはすでに存在します',
     emptyField: 'このフィールドは空にできません',
     videoErrorFormat: "ビデオは'.mkv'または'.mp4'である必要があります",
-    audioErrorFormat:
-      "オーディオは'.mp3'、'.wav'、'.flac'または'.aac'である必要があります",
+    audioErrorFormat: "オーディオは'.mp3'、'.wav'、'.flac'または'.aac'である必要があります",
     sortingError: '並べ替え順序は数字でなければなりません',
     audioNotFound: 'オーディオが見つかりません',
     allImages: 'すべての画像',
@@ -225,8 +219,7 @@ export const ja = {
       'ビデオファイルが見つかりません。関連ドライブを確認してファイルが存在するか確認してください。',
     selectURL: 'URLを選択',
     pasteURL: 'ここに有効なURLを貼り付け',
-    playSameMusic:
-      'すべてのシーズンで同じ音楽を再生（シーズンリストで見つかった最初の音楽を再生）',
+    playSameMusic: 'すべてのシーズンで同じ音楽を再生（シーズンリストで見つかった最初の音楽を再生）',
     videos: 'ビデオ',
     groups: 'グループ',
     defaultGroup: 'デフォルトグループ',
@@ -242,18 +235,15 @@ export const ja = {
     manualSubs: '手動',
     autoSubs: '外国語オーディオ時',
     alwaysSubs: '常に表示',
-    interpolationMeaning:
-      '補間により中間フレームを生成し、より滑らかな画像を得ることができます。',
+    interpolationMeaning: '補間により中間フレームを生成し、より滑らかな画像を得ることができます。',
     interpolationCheck: 'フレーム補間を有効化',
     chapters: 'チャプター',
     generatingThumbnails: 'サムネイルを生成中',
-    generateThumbnailsText:
-      '「映画」タイプのライブラリのビデオにのみ適用されます',
+    generateThumbnailsText: '「映画」タイプのライブラリのビデオにのみ適用されます',
     generateThumbnailsCheck: 'チャプターサムネイルを生成',
     analyzingLocalFiles: 'ローカルファイルを分析中',
     playBackgroundMusic: '背景音楽を再生',
-    playBackgroundMusicMessage:
-      'コンテンツに関連する曲がある場合に背景音楽を再生',
+    playBackgroundMusicMessage: 'コンテンツに関連する曲がある場合に背景音楽を再生',
     gammaAdjustment: 'ガンマ値：',
     bitrate: 'ビットレート',
     fileDetails: 'ファイル詳細',
@@ -307,4 +297,4 @@ export const ja = {
     serverIPText: 'ポートは3000である必要があります',
     noResults: '結果が見つかりませんでした',
   },
-}
+};

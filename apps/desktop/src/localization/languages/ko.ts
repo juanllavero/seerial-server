@@ -57,8 +57,7 @@ export const ko = {
     serverIPMessage:
       '서버의 IP와 포트를 입력하세요. 서버는 Seerial Media Server를 실행 중이어야 하며, 포트는 32400-32450 범위 내에 있어야 합니다',
     autoUpdate: '자동 업데이트',
-    autoUpdateMessage:
-      '예약된 작업을 실행하는 동안 서버 버전을 자동으로 업데이트합니다',
+    autoUpdateMessage: '예약된 작업을 실행하는 동안 서버 버전을 자동으로 업데이트합니다',
     autoSelectTracks: '오디오 및 비디오 트랙을 자동으로 선택',
     never: '절대 안 함',
     min15: '15분마다',
@@ -75,8 +74,7 @@ export const ko = {
     tempFolder: '트랜스코더용 임시 폴더',
     tempFolderMessage: '트랜스코더가 임시 파일을 저장하는 데 사용할 폴더',
     defaultBuffer: '트랜스코더의 기본 버퍼',
-    defaultBufferMessage:
-      '더 나은 시청 경험을 제공하기 위해 저장할 비디오의 초 수',
+    defaultBufferMessage: '더 나은 시청 경험을 제공하기 위해 저장할 비디오의 초 수',
     transcoderPreset: '트랜스코더 x264 품질 사전 설정',
     transcoderPresetMessage:
       '백그라운드 비디오 변환에 사용되는 x264 사전 설정. 느린 값일수록 더 높은 품질의 비디오와 작은 파일 크기를 생성하지만 처리 시간도 더 오래 걸립니다',
@@ -164,8 +162,7 @@ export const ko = {
     libraryExists: '라이브러리가 이미 존재합니다',
     emptyField: '이 필드는 비워둘 수 없습니다',
     videoErrorFormat: "비디오는 '.mkv' 또는 '.mp4'이어야 합니다",
-    audioErrorFormat:
-      "오디오는 '.mp3', '.wav', '.flac' 또는 '.aac'이어야 합니다",
+    audioErrorFormat: "오디오는 '.mp3', '.wav', '.flac' 또는 '.aac'이어야 합니다",
     sortingError: '정렬 순서는 숫자여야 합니다',
     audioNotFound: '오디오를 찾을 수 없습니다',
     allImages: '모든 이미지',
@@ -194,11 +191,9 @@ export const ko = {
     shows: '쇼',
     foldersEmpty: '폴더를 선택해야 합니다',
     removeElement: '요소 제거',
-    removeElementMessage:
-      '이 요소를 제거하시겠습니까? (로컬 파일은 삭제되지 않습니다)',
+    removeElementMessage: '이 요소를 제거하시겠습니까? (로컬 파일은 삭제되지 않습니다)',
     removeLibrary: '라이브러리 제거',
-    removeLibraryMessage:
-      '이 라이브러리를 제거하시겠습니까? (로컬 파일은 삭제되지 않습니다)',
+    removeLibraryMessage: '이 라이브러리를 제거하시겠습니까? (로컬 파일은 삭제되지 않습니다)',
     downloadingMessage: '메타데이터 다운로드 중',
     downloadingMusicMessage: '음악 테마 다운로드 중',
     downloading: '다운로드 중',
@@ -222,8 +217,7 @@ export const ko = {
       '비디오 파일을 찾을 수 없습니다. 관련 드라이브를 확인하여 파일이 존재하는지 확인하세요.',
     selectURL: 'URL 선택',
     pasteURL: '여기에 유효한 URL을 붙여넣기',
-    playSameMusic:
-      '모든 시즌에서 동일한 음악 재생 (시즌 목록에서 처음 발견된 음악 재생)',
+    playSameMusic: '모든 시즌에서 동일한 음악 재생 (시즌 목록에서 처음 발견된 음악 재생)',
     videos: '비디오',
     groups: '그룹',
     defaultGroup: '기본 그룹',
@@ -239,8 +233,7 @@ export const ko = {
     manualSubs: '수동',
     autoSubs: '외국어 오디오와 함께',
     alwaysSubs: '항상 표시',
-    interpolationMeaning:
-      '보간을 통해 중간 프레임을 생성하여 더 부드러운 영상을 얻을 수 있습니다.',
+    interpolationMeaning: '보간을 통해 중간 프레임을 생성하여 더 부드러운 영상을 얻을 수 있습니다.',
     interpolationCheck: '프레임 보간 활성화',
     chapters: '챕터',
     generatingThumbnails: '썸네일 생성 중',
@@ -248,8 +241,7 @@ export const ko = {
     generateThumbnailsCheck: '챕터 썸네일 생성',
     analyzingLocalFiles: '로컬 파일 분석 중',
     playBackgroundMusic: '배경 음악 재생',
-    playBackgroundMusicMessage:
-      '콘텐츠에 연관된 노래가 있을 때 배경 음악을 재생',
+    playBackgroundMusicMessage: '콘텐츠에 연관된 노래가 있을 때 배경 음악을 재생',
     gammaAdjustment: '감마 값:',
     bitrate: '비트레이트',
     fileDetails: '파일 세부 정보',
@@ -303,4 +295,4 @@ export const ko = {
     serverIPText: '포트는 3000이어야 합니다',
     noResults: '결과를 찾을 수 없습니다',
   },
-}
+};

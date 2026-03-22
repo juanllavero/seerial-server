@@ -1,14 +1,11 @@
-import { Episode, Season, Series } from '@seerial/domain';
+import { useGetSeries } from '@seerial/api';
+import type { Episode, Season, Series } from '@seerial/domain';
 import { t } from 'i18next';
 import { memo, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
-import useSWR from 'swr';
-import { shallow } from 'zustand/shallow';
 import GradientBackground from '@/components/backgrounds/GradientBackground';
 import Loading from '@/components/Loading';
 import Page from '@/components/Page';
-import { useServerStore } from '@/context/server.context';
-import { authenticatedFetcher } from '@/lib/auth';
 import { formatDate, formatTimeForView } from '@/utils/utils';
 import DetailsInfo from '../components/DetailsInfo';
 import EpisodesList from './components/EpisodesList';
@@ -16,19 +13,12 @@ import SeasonSelector from './components/SeasonSelector';
 
 function SeriesDetails() {
   const { seriesId } = useParams();
-  const { serverUrl } = useServerStore(
-    (state) => ({
-      serverUrl: state.serverUrl,
-    }),
-    shallow,
-  );
   const [selectedSeason, setSelectedSeason] = useState<Season | null>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(null);
 
-  const { data: show, isLoading } = useSWR<Series>(
-    serverUrl !== '' ? `${serverUrl}/api/details/series?id=${seriesId}` : null,
-    authenticatedFetcher,
-  );
+  const { data: show, isLoading } = useGetSeries<Series>(seriesId ?? '', {
+    enabled: !!seriesId,
+  });
 
   useEffect(() => {
     if (show && show.seasons.length > 0) {

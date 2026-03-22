@@ -1,41 +1,37 @@
-import { Video } from '@seerial/domain';
+import { getSignedVideoStreamUrl, useGetVideo } from '@seerial/api';
+import type { Video } from '@seerial/domain';
+import { useServerStore } from '@seerial/stores';
 import { invoke } from '@tauri-apps/api/core';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
-import useSWR from 'swr';
 import Loading from '@/components/Loading';
 import FlexBox from '@/components/ui/FlexBox';
-import { useServerStore } from '@/context/server.context';
-import { authenticatedFetch, authenticatedFetcher } from '@/lib/auth';
 import Controls from './components/controls/Controls';
 import TopBar from './components/TopBar';
 
 export default function VideoPlayer() {
   const { videoId } = useParams();
   const [showControls, setShowControls] = useState(true);
-  const serverUrl = useServerStore((state) => state.serverUrl);
+  const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
 
   // Get video data
   const {
     data: video,
     isLoading: loadingVideo,
     mutate,
-  } = useSWR<Video>(
-    videoId && serverUrl !== '' ? `${serverUrl}/api/details/video?id=${videoId}` : null,
-    authenticatedFetcher,
-  );
+  } = useGetVideo<Video>(videoId ?? '', {
+    enabled: !!videoId && serverUrl !== '',
+  });
 
   const [videoSrc, setVideoSrc] = useState<string>('');
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoError, setVideoError] = useState(false);
 
-  async function getSignedStreamUrl(video: any, serverUrl: string) {
-    const res = await authenticatedFetch(`${serverUrl}/api/get-video-url`, 'POST', {
+  async function getSignedStreamUrl(video: Video, serverUrl: string) {
+    const url = await getSignedVideoStreamUrl({
       filePath: video.fileSrc,
       expiresIn: '2m',
     });
-
-    const url = await res.json();
     return `${serverUrl}${url}`;
   }
 
@@ -99,7 +95,12 @@ export default function VideoPlayer() {
             'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.8) 3%, rgba(0, 0, 0, 0.5) 50%, rgba(0, 0, 0, 0.3) 70%, rgba(0, 0, 0, 0) 100%)',
         }}
       >
-        <Controls video={video} mutateVideo={mutate} />
+        <Controls
+          video={video}
+          mutateVideo={() => {
+            void mutate();
+          }}
+        />
       </FlexBox>
     </FlexBox>
   );

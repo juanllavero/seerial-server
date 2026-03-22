@@ -1,4 +1,5 @@
-import { AudioTrack, SubtitleTrack, Video, VideoInfo } from '@seerial/domain';
+import type { AudioTrack, SubtitleTrack, Video, VideoInfo } from '@seerial/domain';
+import { useServerStore } from '@seerial/stores';
 import { invoke } from '@tauri-apps/api/core';
 import { Captions, Music2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -7,7 +8,6 @@ import NavigationButton from '@/components/navigation/NavigationButton';
 import { Button } from '@/components/ui/button';
 import DropdownWrapper from '@/components/ui/DropdownWrapper';
 import FlexBox from '@/components/ui/FlexBox';
-import { useServerStore } from '@/context/server.context';
 import { authenticatedFetch } from '@/lib/auth';
 import { useLanguageName } from '@/localization/TrackLanguages';
 import { getAudioTrack, getSubtitleTrack } from '@/utils/utils';
@@ -22,7 +22,7 @@ interface TracksSelectorsProps {
 
 function TracksSelectors({ video, videoInfo, mutateVideo }: TracksSelectorsProps) {
   const { i18n } = useTranslation();
-  const serverUrl = useServerStore((state) => state.serverUrl);
+  const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const [selectedAudioTrack, setSelectedAudioTrack] = useState<AudioTrack | null>(

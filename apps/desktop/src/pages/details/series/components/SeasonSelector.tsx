@@ -1,4 +1,4 @@
-import { Season } from '@seerial/domain';
+import type { Season } from '@seerial/domain';
 import { memo, useEffect } from 'react';
 import NavigationButton from '@/components/navigation/NavigationButton';
 import FlexBox from '@/components/ui/FlexBox';

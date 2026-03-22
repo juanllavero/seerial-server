@@ -1,43 +1,43 @@
-import { memo } from 'react'
 import {
-  Play,
-  Pause,
-  SkipForward,
-  SkipBack,
-  Volume2,
-  VolumeX,
-  Film,
-  Music,
-  Tv,
-  Radio,
-  Headphones,
-  Speaker,
-  Mic,
+  Award,
   Camera,
-  Video,
-  Star,
-  Heart,
+  Disc,
   Download,
+  Eye,
+  FastForward,
+  Film,
+  Headphones,
+  Heart,
+  Mic,
+  Monitor,
+  Music,
+  Pause,
+  Play,
+  Radio,
+  Repeat,
+  Rewind,
   Share,
   Shuffle,
-  Repeat,
-  FastForward,
-  Rewind,
-  Monitor,
+  SkipBack,
+  SkipForward,
   Smartphone,
+  Speaker,
+  Star,
   Tablet,
-  Disc,
-  Award,
-  Trophy,
-  Zap,
-  Eye,
   ThumbsUp,
-} from 'lucide-react'
-import '@/styles/animations.css'
-import { useIsMobile } from '@/components/hooks/use-mobile'
+  Trophy,
+  Tv,
+  Video,
+  Volume2,
+  VolumeX,
+  Zap,
+} from 'lucide-react';
+import { memo } from 'react';
+import '@/styles/animations.css';
+import { useIsMobile } from '@/components/hooks/use-mobile';
 
 const BackgroundEffect = () => {
-  const isMobile = useIsMobile()
+  const isMobile = useIsMobile();
   const mediaTexts = [
     'Play',
     'Pause',
@@ -66,7 +66,7 @@ const BackgroundEffect = () => {
     'Score',
     'Watchlist',
     'Continue',
-  ]
+  ];
 
   const MediaIcons = [
     Play,
@@ -101,7 +101,7 @@ const BackgroundEffect = () => {
     Zap,
     Eye,
     ThumbsUp,
-  ]
+  ];
 
   // Responsive particle counts
   const getParticleCounts = () => {
@@ -110,12 +110,12 @@ const BackgroundEffect = () => {
         main: isMobile ? 20 : 35,
         large: isMobile ? 8 : 15,
         special: isMobile ? 4 : 8,
-      }
+      };
     }
-    return { main: 35, large: 15, special: 8 }
-  }
+    return { main: 35, large: 15, special: 8 };
+  };
 
-  const counts = getParticleCounts()
+  const counts = getParticleCounts();
 
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
@@ -140,8 +140,7 @@ const BackgroundEffect = () => {
 
       {/* Partículas grandes con iconos */}
       {[...Array(counts.large)].map((_, i) => {
-        const IconComponent =
-          MediaIcons[Math.floor(Math.random() * MediaIcons.length)]
+        const IconComponent = MediaIcons[Math.floor(Math.random() * MediaIcons.length)];
         return (
           <div
             key={`large-${i}`}
@@ -156,7 +155,7 @@ const BackgroundEffect = () => {
           >
             <IconComponent size={14 + Math.random() * 8} />
           </div>
-        )
+        );
       })}
 
       {/* Partículas especiales con texto destacado */}
@@ -185,9 +184,7 @@ const BackgroundEffect = () => {
 
       {/* Partículas especiales con iconos destacados */}
       {[...Array(Math.floor(counts.special / 2))].map((_, i) => {
-        const IconComponent = [Star, Heart, Award, Trophy, Zap][
-          Math.floor(Math.random() * 5)
-        ]
+        const IconComponent = [Star, Heart, Award, Trophy, Zap][Math.floor(Math.random() * 5)];
         return (
           <div
             key={`icon-special-${i}`}
@@ -203,10 +200,10 @@ const BackgroundEffect = () => {
           >
             <IconComponent size={18 + Math.random() * 6} />
           </div>
-        )
+        );
       })}
     </div>
-  )
-}
+  );
+};
 
-export default memo(BackgroundEffect)
+export default memo(BackgroundEffect);

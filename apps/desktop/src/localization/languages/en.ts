@@ -16,8 +16,7 @@ export const en = {
     watchListShows: 'My List: Shows',
     watchListMovies: 'My List: Movies',
     serverError: 'The server is unavailable',
-    serverErrorMessage:
-      'Please check your internet connection and make sure the server is online',
+    serverErrorMessage: 'Please check your internet connection and make sure the server is online',
     apiKey: 'API key',
     apiKeyTitle: 'No API key found for TheMovieDB',
     apiKeyMessage: 'Please add an API key. You can get one at ',
@@ -58,8 +57,7 @@ export const en = {
     serverIPMessage:
       'Introduce the server IP and port of your server. The server has to be running Seerial Media Server and the port has to be within 32400-32450',
     autoUpdate: 'Update automatically',
-    autoUpdateMessage:
-      'Updates the server version automatically while running scheduled tasks',
+    autoUpdateMessage: 'Updates the server version automatically while running scheduled tasks',
     autoSelectTracks: 'Select audio and video tracks automatically',
     never: 'Never',
     min15: 'each 15 min',
@@ -74,16 +72,13 @@ export const en = {
     autoScan: 'Scan libraries when a change in its folders is detected',
     scanOptions: 'Periodic library scan',
     tempFolder: 'Temporal folder for transcoder',
-    tempFolderMessage:
-      'Folder that the transcoder will use to store temporal files',
+    tempFolderMessage: 'Folder that the transcoder will use to store temporal files',
     defaultBuffer: 'Default buffer for the transcoder',
-    defaultBufferMessage:
-      'Seconds of the video to store to provide a better viewing experience',
+    defaultBufferMessage: 'Seconds of the video to store to provide a better viewing experience',
     transcoderPreset: 'Transcoder x264 quality preset',
     transcoderPresetMessage:
       'Preset used for x64 in background video conversion. Slower values will generate a better quality video and smaller file size, but will also take more time to process',
-    maxTranscoding:
-      'Maximum number of simultaneous video transcoding processes',
+    maxTranscoding: 'Maximum number of simultaneous video transcoding processes',
     timeFormat: 'Time format',
     playButton: 'Play',
     editButton: 'Edit',
@@ -220,8 +215,7 @@ export const en = {
     hours: 'h',
     noLibraries: 'No libraries found',
     playbackError: 'Playback error',
-    videoErrorMessage:
-      'Video file not found. Check associated drive to see if the file exists.',
+    videoErrorMessage: 'Video file not found. Check associated drive to see if the file exists.',
     selectURL: 'Select URL',
     pasteURL: 'Paste a valid URL here',
     playSameMusic:
@@ -246,13 +240,11 @@ export const en = {
     interpolationCheck: 'Enable frame interpolation',
     chapters: 'Chapters',
     generatingThumbnails: 'Generating thumbnails',
-    generateThumbnailsText:
-      "Applicable only to videos from libraries of type 'Movies'",
+    generateThumbnailsText: "Applicable only to videos from libraries of type 'Movies'",
     generateThumbnailsCheck: 'Generate chapter thumbnails',
     analyzingLocalFiles: 'Analyzing local files',
     playBackgroundMusic: 'Play background music',
-    playBackgroundMusicMessage:
-      'Play background music when the content has an associated song',
+    playBackgroundMusicMessage: 'Play background music when the content has an associated song',
     gammaAdjustment: 'Gamma value:',
     bitrate: 'Bitrate',
     fileDetails: 'File details',
@@ -306,4 +298,4 @@ export const en = {
     serverIPText: 'The port has to be 3000',
     noResults: 'No results found',
   },
-}
+};

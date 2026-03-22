@@ -1,9 +1,10 @@
-import React, { CSSProperties } from 'react'
+import type React from 'react';
+import type { CSSProperties } from 'react';
 
 interface FlexBoxProps {
-  children: React.ReactNode
-  direction?: 'row' | 'column' | 'row-reverse' | 'column-reverse'
-  wrap?: 'nowrap' | 'wrap'
+  children: React.ReactNode;
+  direction?: 'row' | 'column' | 'row-reverse' | 'column-reverse';
+  wrap?: 'nowrap' | 'wrap';
   justify?:
     | 'start'
     | 'center'
@@ -11,24 +12,24 @@ interface FlexBoxProps {
     | 'space-between'
     | 'space-around'
     | 'space-evenly'
-    | 'stretch'
-  align?: 'start' | 'center' | 'end' | 'stretch' | 'baseline'
-  width?: string | number
-  height?: string | number
-  onClick?: (e?: React.MouseEvent) => void
-  gap?: number
-  padding?: string
-  margin?: string
-  scroll?: 'horizontal' | 'vertical'
-  hideScrollbar?: boolean
-  className?: string
-  ref?: React.Ref<HTMLDivElement>
-  css?: CSSProperties
-  onMouseEnter?: (e?: React.MouseEvent) => void
-  onMouseLeave?: (e?: React.MouseEvent) => void
-  onMouseDown?: (e?: React.MouseEvent) => void
-  onMouseUp?: (e?: React.MouseEvent) => void
-  onScroll?: React.UIEventHandler<HTMLDivElement>
+    | 'stretch';
+  align?: 'start' | 'center' | 'end' | 'stretch' | 'baseline';
+  width?: string | number;
+  height?: string | number;
+  onClick?: (e?: React.MouseEvent) => void;
+  gap?: number;
+  padding?: string;
+  margin?: string;
+  scroll?: 'horizontal' | 'vertical';
+  hideScrollbar?: boolean;
+  className?: string;
+  ref?: React.Ref<HTMLDivElement>;
+  css?: CSSProperties;
+  onMouseEnter?: (e?: React.MouseEvent) => void;
+  onMouseLeave?: (e?: React.MouseEvent) => void;
+  onMouseDown?: (e?: React.MouseEvent) => void;
+  onMouseUp?: (e?: React.MouseEvent) => void;
+  onScroll?: React.UIEventHandler<HTMLDivElement>;
 }
 
 function FlexBox({
@@ -80,7 +81,7 @@ function FlexBox({
     >
       {children}
     </div>
-  )
+  );
 }
 
-export default FlexBox
+export default FlexBox;

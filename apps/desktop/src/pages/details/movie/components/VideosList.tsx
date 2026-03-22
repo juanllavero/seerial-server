@@ -1,4 +1,4 @@
-import { Video } from '@seerial/domain';
+import type { Video } from '@seerial/domain';
 import { memo } from 'react';
 
 interface VideosListProps {

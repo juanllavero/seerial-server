@@ -1,23 +1,23 @@
-import { BasicUser } from '@seerial/domain';
+import type { BasicUser, DiscoveredServer } from '@seerial/domain';
+import { useServerDiscovery } from '@seerial/hooks';
+import { useServerStore } from '@seerial/stores';
 import { ArrowLeft, Plus, Server, UserIcon } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { shallow } from 'zustand/shallow';
 import Image from '@/components/ui/Image';
-import { useServerStore } from '@/context/server.context';
 import { authenticatedFetch } from '@/lib/auth';
 
 export default function UsersPage() {
-  const { server, servers, addServer, resetServerSelection, setCurrentUser } = useServerStore(
+  const { selectedServer, setSelectedServer, setCurrentUser } = useServerStore(
     (state) => ({
-      server: state.server,
-      servers: state.servers,
-      addServer: state.addServer,
-      resetServerSelection: state.resetServerSelection,
+      selectedServer: state.selectedServer,
+      setSelectedServer: state.setSelectedServer,
       setCurrentUser: state.setCurrentUser,
     }),
     shallow,
   );
+  const { servers } = useServerDiscovery();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [profilePassword, setProfilePassword] = useState('');
@@ -25,13 +25,14 @@ export default function UsersPage() {
   const [selectedUser, setSelectedUser] = useState<BasicUser | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const currentServer = servers.find((server) => server.url === selectedServer?.url);
 
-  const hasUsers = server && server.users && server.users?.length > 0;
+  const hasUsers = (currentServer?.users?.length ?? 0) > 0;
   const defaultSection = hasUsers ? 'profiles' : 'manual';
   const [view, setView] = useState(defaultSection); // 'profiles', 'manual', 'addUser', 'servers'
   const navigate = useNavigate();
 
-  if (!server) {
+  if (!selectedServer) {
     navigate('/login');
     return null;
   }
@@ -45,7 +46,7 @@ export default function UsersPage() {
   const handleProfileLogin = async () => {
     setIsLoading(true);
     setErrorMessage('');
-    const response = await authenticatedFetch(`${server.url}/api/users/login`, 'POST', {
+    const response = await authenticatedFetch(`${selectedServer.url}/api/users/login`, 'POST', {
       username: selectedUser?.username,
       password: profilePassword,
     });
@@ -65,7 +66,7 @@ export default function UsersPage() {
   const handleManualLogin = async () => {
     setIsLoading(true);
     setErrorMessage('');
-    const response = await authenticatedFetch(`${server.url}/api/users/login`, 'POST', {
+    const response = await authenticatedFetch(`${selectedServer.url}/api/users/login`, 'POST', {
       username: username,
       password: password,
     });
@@ -86,7 +87,7 @@ export default function UsersPage() {
   const handleAddUser = async () => {
     setIsLoading(true);
     setErrorMessage('');
-    const response = await authenticatedFetch(`${server.url}/api/users`, 'POST', {
+    const response = await authenticatedFetch(`${selectedServer.url}/api/users`, 'POST', {
       username: username,
       password: password,
       type: newUserType,
@@ -105,14 +106,14 @@ export default function UsersPage() {
     }, 5000);
   };
 
-  const handleServerClick = (newServer: any) => {
-    if (newServer.id !== server?.id) {
-      addServer(newServer);
+  const handleServerClick = (newServer: DiscoveredServer) => {
+    if (newServer.url !== selectedServer?.url) {
+      setSelectedServer({ name: newServer.name, url: newServer.url });
     }
   };
 
   const handleAddServer = () => {
-    resetServerSelection();
+    setSelectedServer(null);
     navigate('/login');
   };
 
@@ -136,7 +137,7 @@ export default function UsersPage() {
               </h1>
               {/* Users Grid */}
               <div className="mb-8 flex flex-wrap justify-center gap-6">
-                {server?.users.map((user) => (
+                {(currentServer?.users ?? []).map((user) => (
                   <button
                     key={user.id}
                     onClick={() => handleUserClick(user)}
@@ -194,7 +195,7 @@ export default function UsersPage() {
                     className="focus:ring-opacity-50 bg-app-color hover:bg-app-color/90 focus:ring-app-color flex w-full transform items-center justify-center rounded-lg bg-gradient-to-r py-4 text-lg font-semibold text-black shadow-lg transition-all duration-300 hover:shadow-2xl focus:ring-4 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
                   >
                     {isLoading ? (
-                      <div className="h-6 w-6 animate-spin rounded-full border-4 border-white border-t-transparent"></div>
+                      <div className="h-6 w-6 animate-spin rounded-full border-4 border-white border-t-transparent" />
                     ) : (
                       'Iniciar Sesión'
                     )}
@@ -290,7 +291,7 @@ export default function UsersPage() {
               className="focus:ring-opacity-50 bg-app-color hover:bg-app-color/90 focus:ring-app-color flex w-full transform items-center justify-center rounded-lg bg-gradient-to-r py-5 text-xl font-semibold text-black shadow-lg transition-all duration-300 hover:shadow-2xl focus:ring-4 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
             >
               {isLoading ? (
-                <div className="h-7 w-7 animate-spin rounded-full border-4 border-white border-t-transparent"></div>
+                <div className="h-7 w-7 animate-spin rounded-full border-4 border-white border-t-transparent" />
               ) : (
                 'Acceder'
               )}
@@ -377,7 +378,7 @@ export default function UsersPage() {
               className="focus:ring-opacity-50 bg-app-color hover:bg-app-color/90 focus:ring-app-color flex w-full transform items-center justify-center rounded-lg bg-gradient-to-r py-5 text-xl font-semibold text-black shadow-lg transition-all duration-300 hover:shadow-2xl focus:ring-4 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100"
             >
               {isLoading ? (
-                <div className="h-7 w-7 animate-spin rounded-full border-4 border-white border-t-transparent"></div>
+                <div className="h-7 w-7 animate-spin rounded-full border-4 border-white border-t-transparent" />
               ) : (
                 'Añadir'
               )}
@@ -405,7 +406,7 @@ export default function UsersPage() {
           <div className="mb-12 flex flex-wrap justify-center gap-6">
             {servers.map((server) => (
               <button
-                key={server.id}
+                key={server.key}
                 onClick={() => handleServerClick(server)}
                 className="group flex flex-col items-center transition-all duration-300 hover:scale-110 focus:outline-none"
               >

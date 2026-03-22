@@ -16,8 +16,7 @@ export const fr = {
     watchListShows: 'Ma liste : Séries',
     watchListMovies: 'Ma liste : Films',
     serverError: "Le serveur n'est pas disponible",
-    serverErrorMessage:
-      'Vérifiez votre connexion internet et que le serveur est en ligne',
+    serverErrorMessage: 'Vérifiez votre connexion internet et que le serveur est en ligne',
     apiKey: 'Clé API',
     apiKeyTitle: 'Clé API introuvable pour TheMovieDB',
     apiKeyMessage: 'Ajoutez une clé API. Vous pouvez en obtenir une sur ',
@@ -70,22 +69,18 @@ export const fr = {
     h12: 'toutes les 12 heures',
     daily: 'Quotidien',
     asTask: 'en tant que tâche planifiée',
-    asTaskAndFileUpdate:
-      "en tant que tâche planifiée et lors de l'ajout de nouveaux fichiers",
-    autoScan:
-      "Analyser les bibliothèques lorsqu'un changement dans leurs dossiers est détecté",
+    asTaskAndFileUpdate: "en tant que tâche planifiée et lors de l'ajout de nouveaux fichiers",
+    autoScan: "Analyser les bibliothèques lorsqu'un changement dans leurs dossiers est détecté",
     scanOptions: 'Analyse périodique de la bibliothèque',
     tempFolder: 'Dossier temporaire pour le transcodeur',
-    tempFolderMessage:
-      'Dossier que le transcodeur utilisera pour stocker les fichiers temporaires',
+    tempFolderMessage: 'Dossier que le transcodeur utilisera pour stocker les fichiers temporaires',
     defaultBuffer: 'Tampon par défaut pour le transcodeur',
     defaultBufferMessage:
       'Secondes de la vidéo à stocker pour offrir une meilleure expérience de visionnage',
     transcoderPreset: 'Préréglage de qualité x264 du transcodeur',
     transcoderPresetMessage:
       'Préréglage utilisé pour x264 dans la conversion vidéo en arrière-plan. Des valeurs plus lentes généreront une vidéo de meilleure qualité et une taille de fichier réduite, mais prendront également plus de temps à traiter',
-    maxTranscoding:
-      'Nombre maximum de processus de transcodage vidéo simultanés',
+    maxTranscoding: 'Nombre maximum de processus de transcodage vidéo simultanés',
     timeFormat: 'Format de l’heure',
     playButton: 'Lire',
     editButton: 'Modifier',
@@ -169,8 +164,7 @@ export const fr = {
     libraryExists: 'La bibliothèque existe déjà',
     emptyField: 'Ce champ ne peut pas être vide',
     videoErrorFormat: "La vidéo doit être au format '.mkv' ou '.mp4'",
-    audioErrorFormat:
-      "L’audio doit être au format '.mp3', '.wav', '.flac' ou '.aac'",
+    audioErrorFormat: "L’audio doit être au format '.mp3', '.wav', '.flac' ou '.aac'",
     sortingError: 'L’ordre de tri doit être un nombre',
     audioNotFound: 'Audio non trouvé',
     allImages: 'Toutes les images',
@@ -249,8 +243,7 @@ export const fr = {
     interpolationCheck: 'Activer l’interpolation des images',
     chapters: 'Chapitres',
     generatingThumbnails: 'Génération des miniatures',
-    generateThumbnailsText:
-      "Applicable uniquement aux vidéos des bibliothèques de type 'Films'",
+    generateThumbnailsText: "Applicable uniquement aux vidéos des bibliothèques de type 'Films'",
     generateThumbnailsCheck: 'Générer des miniatures de chapitres',
     analyzingLocalFiles: 'Analyse des fichiers locaux',
     playBackgroundMusic: 'Jouer de la musique de fond',
@@ -278,8 +271,7 @@ export const fr = {
     downloadingImages: 'Téléchargement des images',
     highSettingsPlayer: 'Qualité vidéo maximale',
     noLibraryFound: 'Aucune bibliothèque disponible',
-    addLibraryMessage:
-      'Ajoutez-en une avec le bouton "Ajouter une bibliothèque"',
+    addLibraryMessage: 'Ajoutez-en une avec le bouton "Ajouter une bibliothèque"',
     addFolderText: 'Ajouter des dossiers à votre bibliothèque',
     updateMetadata: 'Mettre à jour les métadonnées',
     inProgress: 'En cours',
@@ -310,4 +302,4 @@ export const fr = {
     serverIPText: 'Le port doit être 3000',
     noResults: 'Aucun résultat trouvé',
   },
-}
+};

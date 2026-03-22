@@ -1,13 +1,12 @@
-import { Video, VideoInfo } from '@seerial/domain';
+import { useGetVideoMediaInfo } from '@seerial/api';
+import type { Video, VideoInfo } from '@seerial/domain';
+import { useServerStore } from '@seerial/stores';
 import { invoke } from '@tauri-apps/api/core';
 import { SettingsIcon } from 'lucide-react';
 import { memo, useEffect, useRef, useState } from 'react';
-import useSWR from 'swr';
 import { shallow } from 'zustand/shallow';
 import NavigationButton from '@/components/navigation/NavigationButton';
 import FlexBox from '@/components/ui/FlexBox';
-import { useServerStore } from '@/context/server.context';
-import { authenticatedFetcher } from '@/lib/auth';
 import Settings from '../Settings';
 import VideoInfoComponent from '../VideoInfo';
 import TimelineSlider from './TimelineSlider';
@@ -17,14 +16,14 @@ import VolumeSlider from './VolumeSlider';
 interface ControlsProps {
   video: Video;
   runtime?: number;
-  mutateVideo: () => void;
+  mutateVideo: () => Promise<unknown> | void;
 }
 
 function Controls({ video, runtime, mutateVideo }: ControlsProps) {
   const { user, serverUrl } = useServerStore(
     (state) => ({
       user: state.currentUser,
-      serverUrl: state.serverUrl,
+      serverUrl: state.selectedServer?.url ?? '',
     }),
     shallow,
   );
@@ -32,10 +31,9 @@ function Controls({ video, runtime, mutateVideo }: ControlsProps) {
   const [position, setPosition] = useState(0);
 
   // Get video info
-  const { data: videoInfo } = useSWR<VideoInfo>(
-    video.id && serverUrl !== '' ? `${serverUrl}/api/videoInfo?id=${video.id}` : null,
-    authenticatedFetcher,
-  );
+  const { data: videoInfo } = useGetVideoMediaInfo<VideoInfo>(video.id, {
+    enabled: !!video.id && serverUrl !== '',
+  });
 
   const watchedList = video?.watchLists?.find((list: any) => list.userId === user?.id);
 

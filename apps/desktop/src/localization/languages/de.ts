@@ -16,12 +16,10 @@ export const de = {
     watchListShows: 'Meine Liste: Serien',
     watchListMovies: 'Meine Liste: Filme',
     serverError: 'Der Server ist nicht verfügbar',
-    serverErrorMessage:
-      'Bitte überprüfen Sie Ihre Internetverbindung und ob der Server online ist',
+    serverErrorMessage: 'Bitte überprüfen Sie Ihre Internetverbindung und ob der Server online ist',
     apiKey: 'API-Schlüssel',
     apiKeyTitle: 'Kein API-Schlüssel für TheMovieDB gefunden',
-    apiKeyMessage:
-      'Fügen Sie einen API-Schlüssel hinzu. Sie können ihn unter  erhalten',
+    apiKeyMessage: 'Fügen Sie einen API-Schlüssel hinzu. Sie können ihn unter  erhalten',
     addToMyList: 'Zur meiner Liste hinzufügen',
     removeFromMyList: 'Von meiner Liste entfernen',
     imageLoaded: 'Das Bild wurde erfolgreich hochgeladen',
@@ -71,22 +69,18 @@ export const de = {
     h12: 'alle 12 Stunden',
     daily: 'Täglich',
     asTask: 'als geplante Aufgabe',
-    asTaskAndFileUpdate:
-      'als geplante Aufgabe und bei Hinzufügung neuer Dateien',
-    autoScan:
-      'Bibliotheken scannen, wenn eine Änderung in ihren Ordnern erkannt wird',
+    asTaskAndFileUpdate: 'als geplante Aufgabe und bei Hinzufügung neuer Dateien',
+    autoScan: 'Bibliotheken scannen, wenn eine Änderung in ihren Ordnern erkannt wird',
     scanOptions: 'Periodisches Scannen der Bibliothek',
     tempFolder: 'Temporärer Ordner für den Transcoder',
-    tempFolderMessage:
-      'Ordner, den der Transcoder zum Speichern temporärer Dateien verwendet',
+    tempFolderMessage: 'Ordner, den der Transcoder zum Speichern temporärer Dateien verwendet',
     defaultBuffer: 'Standardpuffer für den Transcoder',
     defaultBufferMessage:
       'Sekunden des Videos, die gespeichert werden, um ein besseres Seherlebnis zu bieten',
     transcoderPreset: 'Transcoder x264-Qualitätsvoreinstellung',
     transcoderPresetMessage:
       'Voreinstellung für x264 bei der Hintergrund-Videokonvertierung. Langsamere Werte erzeugen eine bessere Videoqualität und kleinere Dateigröße, benötigen aber auch mehr Zeit zur Verarbeitung',
-    maxTranscoding:
-      'Maximale Anzahl gleichzeitiger Videotranskodierungsprozesse',
+    maxTranscoding: 'Maximale Anzahl gleichzeitiger Videotranskodierungsprozesse',
     timeFormat: 'Zeitformat',
     playButton: 'Abspielen',
     editButton: 'Bearbeiten',
@@ -249,8 +243,7 @@ export const de = {
     interpolationCheck: 'Bildinterpolation aktivieren',
     chapters: 'Kapitel',
     generatingThumbnails: 'Vorschaubilder werden generiert',
-    generateThumbnailsText:
-      "Nur anwendbar auf Videos aus Bibliotheken vom Typ 'Filme'",
+    generateThumbnailsText: "Nur anwendbar auf Videos aus Bibliotheken vom Typ 'Filme'",
     generateThumbnailsCheck: 'Kapitelvorschaubilder generieren',
     analyzingLocalFiles: 'Lokale Dateien werden analysiert',
     playBackgroundMusic: 'Hintergrundmusik abspielen',
@@ -278,8 +271,7 @@ export const de = {
     downloadingImages: 'Bilder werden heruntergeladen',
     highSettingsPlayer: 'Höchste Videoqualität',
     noLibraryFound: 'Keine Bibliothek verfügbar',
-    addLibraryMessage:
-      'Fügen Sie eine mit dem Button "Bibliothek hinzufügen" hinzu',
+    addLibraryMessage: 'Fügen Sie eine mit dem Button "Bibliothek hinzufügen" hinzu',
     addFolderText: 'Ordner zu Ihrer Bibliothek hinzufügen',
     updateMetadata: 'Metadaten aktualisieren',
     inProgress: 'In Bearbeitung',
@@ -310,4 +302,4 @@ export const de = {
     serverIPText: 'Der Port muss 3000 sein',
     noResults: 'Keine Ergebnisse gefunden',
   },
-}
+};

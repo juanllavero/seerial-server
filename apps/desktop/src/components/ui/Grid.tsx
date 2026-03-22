@@ -1,21 +1,21 @@
-import React from 'react'
+import type React from 'react';
 
 interface GridProps {
-  columns?: string
-  rows?: string
-  gap?: string
-  columnGap?: string
-  padding?: string
-  margin?: string
-  width?: string
-  height?: string
-  justifyContent?: string
-  scroll?: 'horizontal' | 'vertical'
-  hideScrollbar?: boolean
-  alignItems?: string
-  className?: string
-  onClick?: () => void
-  children: React.ReactNode
+  columns?: string;
+  rows?: string;
+  gap?: string;
+  columnGap?: string;
+  padding?: string;
+  margin?: string;
+  width?: string;
+  height?: string;
+  justifyContent?: string;
+  scroll?: 'horizontal' | 'vertical';
+  hideScrollbar?: boolean;
+  alignItems?: string;
+  className?: string;
+  onClick?: () => void;
+  children: React.ReactNode;
 }
 
 function Grid({
@@ -55,7 +55,7 @@ function Grid({
     >
       {children}
     </div>
-  )
+  );
 }
 
-export default Grid
+export default Grid;

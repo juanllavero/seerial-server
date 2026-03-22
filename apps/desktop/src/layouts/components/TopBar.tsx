@@ -1,13 +1,12 @@
-import { Library } from '@seerial/domain';
+import { useGetLibraries } from '@seerial/api';
+import type { Library } from '@seerial/domain';
+import { useServerStore } from '@seerial/stores';
 import { Settings } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import useSWR from 'swr';
 import FocusableButton from '@/components/navigation/NavigationButton';
 import NavigationContainer from '@/components/navigation/NavigationContainer';
-import { useServerStore } from '@/context/server.context';
 import { LibraryTypes } from '@/data/enums/enums';
-import { authenticatedFetcher } from '@/lib/auth';
 import LibrariesList from './LibrariesList';
 
 function TopBar() {
@@ -15,16 +14,13 @@ function TopBar() {
   const [showLibraries, setShowLibraries] = useState(false);
   const [libraryType, setLibraryType] = useState<LibraryTypes>(LibraryTypes.MOVIES);
 
-  const serverUrl = useServerStore((state) => state.serverUrl);
+  const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
 
-  const { data: libraries } = useSWR<Library[]>(
-    serverUrl !== '' ? `${serverUrl}/api/libraries/` : null,
-    authenticatedFetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateIfStale: false,
-    },
-  );
+  const { data: libraries } = useGetLibraries<Library[]>({
+    enabled: serverUrl !== '',
+    refetchOnWindowFocus: false,
+    staleTime: Number.POSITIVE_INFINITY,
+  });
 
   const showMovies =
     libraries && libraries.filter((library) => library.type === LibraryTypes.MOVIES).length > 0;

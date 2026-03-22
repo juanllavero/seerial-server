@@ -234,30 +234,26 @@ const languageMap = {
       ar: 'العربية',
     },
   },
-}
+};
 
 // Function to get the language name
-export const useLanguageName = (
-  langCode3: string,
-  userFullLanguage: string,
-) => {
+export const useLanguageName = (langCode3: string, userFullLanguage: string) => {
   // Get the user's current language from i18next
-  const userLanguage = userFullLanguage.split('-')[0] // Example: 'es-MX' -> 'es'
+  const userLanguage = userFullLanguage.split('-')[0]; // Example: 'es-MX' -> 'es'
 
   // Convert 3-letter code to lowercase for consistency
-  const code3 = langCode3.toLowerCase()
+  const code3 = langCode3.toLowerCase();
 
   // Get the language entry from the map
-  const languageEntry = languageMap[code3 as keyof typeof languageMap]
+  const languageEntry = languageMap[code3 as keyof typeof languageMap];
 
   if (!languageEntry) {
-    return 'Unknown language'
+    return 'Unknown language';
   }
 
   // Return the 2-letter code and name in the user's language
   return (
-    languageEntry.translations[
-      userLanguage as keyof typeof languageEntry.translations
-    ] || languageEntry.translations['en']
-  ) // Fallback to English
-}
+    languageEntry.translations[userLanguage as keyof typeof languageEntry.translations] ||
+    languageEntry.translations['en']
+  ); // Fallback to English
+};

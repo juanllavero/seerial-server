@@ -16,8 +16,7 @@ export const br = {
     watchListShows: 'Minha Lista: Séries',
     watchListMovies: 'Minha Lista: Filmes',
     serverError: 'O servidor não está disponível',
-    serverErrorMessage:
-      'Verifique sua conexão com a internet e se o servidor está conectado',
+    serverErrorMessage: 'Verifique sua conexão com a internet e se o servidor está conectado',
     apiKey: 'Chave de API',
     apiKeyTitle: 'Nenhuma chave de API encontrada para TheMovieDB',
     apiKeyMessage: 'Adicione uma chave de API. Você pode obter uma em ',
@@ -70,22 +69,18 @@ export const br = {
     h12: 'a cada 12 horas',
     daily: 'Diário',
     asTask: 'como tarefa agendada',
-    asTaskAndFileUpdate:
-      'como tarefa agendada e quando novos arquivos forem adicionados',
-    autoScan:
-      'Escanear bibliotecas quando uma mudança em suas pastas for detectada',
+    asTaskAndFileUpdate: 'como tarefa agendada e quando novos arquivos forem adicionados',
+    autoScan: 'Escanear bibliotecas quando uma mudança em suas pastas for detectada',
     scanOptions: 'Escaneamento periódico da biblioteca',
     tempFolder: 'Pasta temporária para o transcodificador',
-    tempFolderMessage:
-      'Pasta que o transcodificador usará para armazenar arquivos temporários',
+    tempFolderMessage: 'Pasta que o transcodificador usará para armazenar arquivos temporários',
     defaultBuffer: 'Buffer padrão para o transcodificador',
     defaultBufferMessage:
       'Segundos do vídeo a armazenar para proporcionar uma melhor experiência de visualização',
     transcoderPreset: 'Predefinição de qualidade x264 do transcodificador',
     transcoderPresetMessage:
       'Predefinição usada para x264 na conversão de vídeo em segundo plano. Valores mais lentos gerarão um vídeo de melhor qualidade e tamanho de arquivo menor, mas também levarão mais tempo para processar',
-    maxTranscoding:
-      'Número máximo de processos de transcodificação de vídeo simultâneos',
+    maxTranscoding: 'Número máximo de processos de transcodificação de vídeo simultâneos',
     timeFormat: 'Formato de hora',
     playButton: 'Reproduzir',
     editButton: 'Editar',
@@ -248,8 +243,7 @@ export const br = {
     interpolationCheck: 'Habilitar interpolação de quadros',
     chapters: 'Capítulos',
     generatingThumbnails: 'Gerando miniaturas',
-    generateThumbnailsText:
-      "Aplicável apenas a vídeos de bibliotecas do tipo 'Filmes'",
+    generateThumbnailsText: "Aplicável apenas a vídeos de bibliotecas do tipo 'Filmes'",
     generateThumbnailsCheck: 'Gerar miniaturas de capítulos',
     analyzingLocalFiles: 'Analisando arquivos locais',
     playBackgroundMusic: 'Tocar música de fundo',
@@ -308,4 +302,4 @@ export const br = {
     serverIPText: 'A porta deve ser 3000',
     noResults: 'Nenhum resultado encontrado',
   },
-}
+};

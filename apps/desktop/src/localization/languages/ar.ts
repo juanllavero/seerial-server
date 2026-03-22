@@ -57,8 +57,7 @@ export const ar = {
     serverIPMessage:
       'أدخل عنوان IP الخاص بالخادم والمنفذ الخاص بخادمك. يجب أن يكون الخادم يعمل على تشغيل Seerial Media Server ويجب أن يكون المنفذ بين 32400-32450',
     autoUpdate: 'تحديث تلقائي',
-    autoUpdateMessage:
-      'يقوم بتحديث إصدار الخادم تلقائيًا أثناء تشغيل المهام المجدولة',
+    autoUpdateMessage: 'يقوم بتحديث إصدار الخادم تلقائيًا أثناء تشغيل المهام المجدولة',
     autoSelectTracks: 'تحديد مسارات الصوت والفيديو تلقائيًا',
     never: 'أبدًا',
     min15: 'كل 15 دقيقة',
@@ -75,8 +74,7 @@ export const ar = {
     tempFolder: 'مجلد مؤقت للمحول',
     tempFolderMessage: 'المجلد الذي سيستخدمه المحول لتخزين الملفات المؤقتة',
     defaultBuffer: 'المخزن المؤقت الافتراضي للمحول',
-    defaultBufferMessage:
-      'ثواني الفيديو التي يتم تخزينها لتوفير تجربة مشاهدة أفضل',
+    defaultBufferMessage: 'ثواني الفيديو التي يتم تخزينها لتوفير تجربة مشاهدة أفضل',
     transcoderPreset: 'إعداد مسبق لجودة x264 للمحول',
     transcoderPresetMessage:
       'الإعداد المسبق المستخدم لـ x264 في تحويل الفيديو في الخلفية. القيم الأبطأ ستولد فيديو بجودة أفضل وحجم ملف أصغر، لكنها ستستغرق وقتًا أطول للمعالجة',
@@ -193,11 +191,9 @@ export const ar = {
     shows: 'عروض',
     foldersEmpty: 'يجب عليك اختيار مجلد',
     removeElement: 'إزالة العنصر',
-    removeElementMessage:
-      'هل أنت متأكد أنك تريد إزالة هذا العنصر؟ (لن يتم حذف الملفات المحلية)',
+    removeElementMessage: 'هل أنت متأكد أنك تريد إزالة هذا العنصر؟ (لن يتم حذف الملفات المحلية)',
     removeLibrary: 'إزالة المكتبة',
-    removeLibraryMessage:
-      'هل أنت متأكد أنك تريد إزالة هذه المكتبة؟ (لن يتم حذف الملفات المحلية)',
+    removeLibraryMessage: 'هل أنت متأكد أنك تريد إزالة هذه المكتبة؟ (لن يتم حذف الملفات المحلية)',
     downloadingMessage: 'جارٍ تنزيل البيانات الوصفية',
     downloadingMusicMessage: 'جارٍ تنزيل المقاطع الموسيقية',
     downloading: 'جارٍ التنزيل',
@@ -238,8 +234,7 @@ export const ar = {
     manualSubs: 'يدوي',
     autoSubs: 'مع صوت أجنبي',
     alwaysSubs: 'إظهار دائمًا',
-    interpolationMeaning:
-      'التداخل يسمح بتوليد إطارات وسيطة للحصول على صورة أكثر سلاسة.',
+    interpolationMeaning: 'التداخل يسمح بتوليد إطارات وسيطة للحصول على صورة أكثر سلاسة.',
     interpolationCheck: 'تمكين تداخل الإطارات',
     chapters: 'فصول',
     generatingThumbnails: 'جارٍ توليد الصور المصغرة',
@@ -247,8 +242,7 @@ export const ar = {
     generateThumbnailsCheck: 'توليد صور مصغرة للفصول',
     analyzingLocalFiles: 'تحليل الملفات المحلية',
     playBackgroundMusic: 'تشغيل موسيقى الخلفية',
-    playBackgroundMusicMessage:
-      'تشغيل موسيقى الخلفية عندما يكون للمحتوى أغنية مرتبطة',
+    playBackgroundMusicMessage: 'تشغيل موسيقى الخلفية عندما يكون للمحتوى أغنية مرتبطة',
     gammaAdjustment: 'قيمة الغاما:',
     bitrate: 'معدل البت',
     fileDetails: 'تفاصيل الملف',
@@ -302,4 +296,4 @@ export const ar = {
     serverIPText: 'يجب أن يكون المنفذ 3000',
     noResults: 'لم يتم العثور على نتائج',
   },
-}
+};

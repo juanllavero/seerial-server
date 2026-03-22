@@ -16,8 +16,7 @@ export const pt = {
     watchListShows: 'A Minha Lista: Séries',
     watchListMovies: 'A Minha Lista: Filmes',
     serverError: 'O servidor não está disponível',
-    serverErrorMessage:
-      'Verifique a sua ligação à internet e se o servidor está ligado',
+    serverErrorMessage: 'Verifique a sua ligação à internet e se o servidor está ligado',
     apiKey: 'Chave de API',
     apiKeyTitle: 'Nenhuma chave de API encontrada para TheMovieDB',
     apiKeyMessage: 'Adicione uma chave de API. Pode obter uma em ',
@@ -70,22 +69,18 @@ export const pt = {
     h12: 'a cada 12 horas',
     daily: 'Diário',
     asTask: 'como tarefa agendada',
-    asTaskAndFileUpdate:
-      'como tarefa agendada e quando novos ficheiros forem adicionados',
-    autoScan:
-      'Analisar bibliotecas quando uma alteração nas suas pastas for detetada',
+    asTaskAndFileUpdate: 'como tarefa agendada e quando novos ficheiros forem adicionados',
+    autoScan: 'Analisar bibliotecas quando uma alteração nas suas pastas for detetada',
     scanOptions: 'Análise periódica da biblioteca',
     tempFolder: 'Pasta temporária para o transcodificador',
-    tempFolderMessage:
-      'Pasta que o transcodificador usará para armazenar ficheiros temporários',
+    tempFolderMessage: 'Pasta que o transcodificador usará para armazenar ficheiros temporários',
     defaultBuffer: 'Buffer predefinido para o transcodificador',
     defaultBufferMessage:
       'Segundos do vídeo a armazenar para proporcionar uma melhor experiência de visualização',
     transcoderPreset: 'Predefinição de qualidade x264 do transcodificador',
     transcoderPresetMessage:
       'Predefinição usada para x264 na conversão de vídeo em segundo plano. Valores mais lentos gerarão um vídeo de melhor qualidade e tamanho de ficheiro menor, mas também levarão mais tempo a processar',
-    maxTranscoding:
-      'Número máximo de processos de transcodificação de vídeo simultâneos',
+    maxTranscoding: 'Número máximo de processos de transcodificação de vídeo simultâneos',
     timeFormat: 'Formato de hora',
     playButton: 'Reproduzir',
     editButton: 'Editar',
@@ -248,8 +243,7 @@ export const pt = {
     interpolationCheck: 'Activar interpolação de fotogramas',
     chapters: 'Capítulos',
     generatingThumbnails: 'A gerar miniaturas',
-    generateThumbnailsText:
-      "Aplicável apenas a vídeos de bibliotecas do tipo 'Filmes'",
+    generateThumbnailsText: "Aplicável apenas a vídeos de bibliotecas do tipo 'Filmes'",
     generateThumbnailsCheck: 'Gerar miniaturas de capítulos',
     analyzingLocalFiles: 'A analisar ficheiros locais',
     playBackgroundMusic: 'Reproduzir música de fundo',
@@ -308,4 +302,4 @@ export const pt = {
     serverIPText: 'A porta deve ser 3000',
     noResults: 'Nenhum resultado encontrado',
   },
-}
+};

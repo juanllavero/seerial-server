@@ -1,21 +1,22 @@
-import React, { memo } from 'react'
+import type React from 'react';
+import { memo } from 'react';
 
 interface AppTextProps {
-	className?: string
-	style?: any
-	children: React.ReactNode
+  className?: string;
+  style?: any;
+  children: React.ReactNode;
 }
 
 const Subtitle = ({ className, style, children, ...props }: AppTextProps) => {
-	return (
-		<span
-			className={`${className} font-bold text-[4vh] pb-5 text-neutral-200`}
-			style={style}
-			{...props}
-		>
-			{children}
-		</span>
-	)
-}
+  return (
+    <span
+      className={`${className} font-bold text-[4vh] pb-5 text-neutral-200`}
+      style={style}
+      {...props}
+    >
+      {children}
+    </span>
+  );
+};
 
-export default memo(Subtitle)
+export default memo(Subtitle);

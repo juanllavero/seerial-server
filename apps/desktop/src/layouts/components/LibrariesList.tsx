@@ -1,9 +1,9 @@
-import { Library } from '@seerial/domain';
+import type { Library } from '@seerial/domain';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router';
 import FocusableButton from '@/components/navigation/NavigationButton';
 import NavigationContainer from '@/components/navigation/NavigationContainer';
-import { LibraryTypes } from '@/data/enums/enums';
+import type { LibraryTypes } from '@/data/enums/enums';
 
 interface LibrariesListProps {
   type: LibraryTypes;

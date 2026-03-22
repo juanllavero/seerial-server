@@ -1,4 +1,4 @@
-import { VideoInfo as VideoInfoData } from '@seerial/domain';
+import type { VideoInfo as VideoInfoData } from '@seerial/domain';
 import FlexBox from '@/components/ui/FlexBox';
 import { formatTimeForView } from '@/utils/utils';
 

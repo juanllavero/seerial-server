@@ -1,15 +1,10 @@
-import { Episode, Season } from '@seerial/domain';
+import { useGetSeason } from '@seerial/api';
+import type { Episode, Season } from '@seerial/domain';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import useSWR from 'swr';
 import { AnimatedImage } from '@/components/images/AnimatedImage';
 import Loading from '@/components/Loading';
-import NavigationButton from '@/components/navigation/NavigationButton';
-import NavigationGridView from '@/components/navigation/NavigationGridView';
 import NavigationScrollView from '@/components/navigation/NavigationScrollView';
-import FlexBox from '@/components/ui/FlexBox';
-import { useServerStore } from '@/context/server.context';
-import { authenticatedFetcher } from '@/lib/auth';
 
 interface EpisodesListProps {
   selectedSeasonId: string;
@@ -18,12 +13,10 @@ interface EpisodesListProps {
 }
 
 function EpisodesList({ selectedSeasonId, selectedEpisode, selectEpisode }: EpisodesListProps) {
-  const serverUrl = useServerStore((state) => state.serverUrl);
   const navigate = useNavigate();
-  const { data: season, isLoading } = useSWR<Season>(
-    serverUrl !== '' ? `${serverUrl}/api/details/season?id=${selectedSeasonId}` : null,
-    authenticatedFetcher,
-  );
+  const { data: season, isLoading } = useGetSeason<Season>(selectedSeasonId, undefined, {
+    enabled: !!selectedSeasonId,
+  });
 
   useEffect(() => {
     if (season && season.episodes.length > 0) {
@@ -31,7 +24,7 @@ function EpisodesList({ selectedSeasonId, selectedEpisode, selectEpisode }: Epis
     } else {
       selectEpisode(null);
     }
-  }, [selectedSeasonId, season]);
+  }, [selectedSeasonId, season, selectEpisode]);
 
   if (isLoading) return <Loading />;
   return (

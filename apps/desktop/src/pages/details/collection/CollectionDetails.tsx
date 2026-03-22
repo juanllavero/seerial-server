@@ -1,29 +1,27 @@
-import { Collection } from '@seerial/domain';
+import { useGetCollection } from '@seerial/api';
+import type { Collection } from '@seerial/domain';
+import { useServerStore } from '@seerial/stores';
 import { memo, useMemo } from 'react';
 import { useParams } from 'react-router';
-import useSWR from 'swr';
 import { shallow } from 'zustand/shallow';
 import GradientBackground from '@/components/backgrounds/GradientBackground';
 import Loading from '@/components/Loading';
 import Page from '@/components/Page';
-import { useServerStore } from '@/context/server.context';
 import { LibraryTypes } from '@/data/enums/enums';
-import { authenticatedFetcher } from '@/lib/auth';
 import DetailsInfo from '../components/DetailsInfo';
 
 function CollectionDetails() {
   const { collectionId, type } = useParams();
   const { serverUrl } = useServerStore(
     (state) => ({
-      serverUrl: state.serverUrl,
+      serverUrl: state.selectedServer?.url ?? '',
     }),
     shallow,
   );
 
-  const { data: collection, isLoading } = useSWR<Collection>(
-    serverUrl !== '' ? `${serverUrl}/api/details/collection?id=${collectionId}` : null,
-    authenticatedFetcher,
-  );
+  const { data: collection, isLoading } = useGetCollection<Collection>(collectionId ?? '', {
+    enabled: !!collectionId && serverUrl !== '',
+  });
 
   const yearRange = useMemo(() => {
     if (!collection) return 'N/A';

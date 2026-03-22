@@ -1,16 +1,15 @@
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
-import { ContinueWatchingElement } from '@seerial/domain';
+import { useGetContinueWatching } from '@seerial/api';
+import type { ContinueWatchingElement } from '@seerial/domain';
+import { useServerStore } from '@seerial/stores';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import useSWR from 'swr';
 import GradientBackground from '@/components/backgrounds/GradientBackground';
 import NavigationScrollView from '@/components/navigation/NavigationScrollView';
 import Page from '@/components/Page';
-import { authenticatedFetcher } from '@/lib/auth';
 import ContentCard from '../../components/Card';
 import { Skeleton } from '../../components/ui/skeleton';
-import { useServerStore } from '../../context/server.context';
 import HomeInfo from './components/HomeInfo';
 import TransparentImage from './components/TransparentImage';
 
@@ -18,14 +17,15 @@ function Home() {
   const { currentUser } = useServerStore();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { server, serverUrl } = useServerStore();
+  const { selectedServer } = useServerStore();
+  const serverUrl = selectedServer?.url ?? '';
   const [selectedElement, setSelectedElement] = useState<ContinueWatchingElement | null>(null);
 
   // Get Continue Watching items
-  const { data: continueWatching, isLoading } = useSWR<ContinueWatchingElement[]>(
-    server ? `${serverUrl}/api/continueWatching?userId=${currentUser?.id ?? null}` : null,
-    authenticatedFetcher,
-  );
+  const { data: continueWatching, isLoading } = useGetContinueWatching<ContinueWatchingElement[]>({
+    enabled: !!selectedServer && !!serverUrl && !!currentUser?.id,
+    params: currentUser?.id ? { userId: currentUser.id } : undefined,
+  });
 
   useEffect(() => {
     if (continueWatching && continueWatching.length > 0)
@@ -79,9 +79,9 @@ function Home() {
                 }}
               />
             ))
-          : !isLoading
-            ? skeletons
-            : t('noContent')}
+          : isLoading
+            ? t('noContent')
+            : skeletons}
       </NavigationScrollView>
     </Page>
   );

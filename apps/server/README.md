@@ -61,6 +61,14 @@ The server implements the **Hexagonal Architecture** (also known as Ports and Ad
    pnpm install
    ```
 
+During installation, the server automatically rebuilds `better-sqlite3` for the installed Electron version. This prevents the common startup failure where Electron cannot find the native SQLite binding after a fresh install or dependency reset.
+
+If the rebuild is interrupted because Electron or another process is still using the native binary, stop the running server and execute:
+
+```bash
+pnpm --dir apps/server run rebuild:electron-native
+```
+
 ### Development
 
 Run the development server:

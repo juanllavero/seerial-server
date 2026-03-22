@@ -1,4 +1,4 @@
-import { ContinueWatchingElement } from '@seerial/domain';
+import type { ContinueWatchingElement } from '@seerial/domain';
 import FlexBox from '@/components/ui/FlexBox';
 import Image from '@/components/ui/Image';
 

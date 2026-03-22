@@ -1,16 +1,14 @@
-import { LibraryItem } from '@seerial/domain';
+import { useGetLibraryContent } from '@seerial/api';
+import type { LibraryItem } from '@seerial/domain';
+import { useServerStore } from '@seerial/stores';
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import useSWR from 'swr';
-import { shallow } from 'zustand/shallow';
 import GradientBackground from '@/components/backgrounds/GradientBackground';
 import ContentCard from '@/components/Card';
 import Loading from '@/components/Loading';
 import NavigationGridView from '@/components/navigation/NavigationGridView';
 import Page from '@/components/Page';
-import { useServerStore } from '@/context/server.context';
 import { LibraryTypes } from '@/data/enums/enums';
-import { authenticatedFetcher } from '@/lib/auth';
 
 const ITEMS_PER_ROW = 5;
 const ITEMS_PER_ROW_ULTRAWIDE = 8;
@@ -21,12 +19,7 @@ const REM_TO_PX = 16;
 function LibraryPage() {
   const { libraryId, type } = useParams();
   const navigate = useNavigate();
-  const { serverUrl } = useServerStore(
-    (state) => ({
-      serverUrl: state.serverUrl,
-    }),
-    shallow,
-  );
+  const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
   const [selectedElement, setSelectedElement] = useState<LibraryItem | null>(null);
 
   const screenWidth = screen.width;
@@ -41,12 +34,10 @@ function LibraryPage() {
   const availableWidth = 100 - totalGapWidthDvw - paddingDvw; // Subtract gaps and padding
   const itemWidth = `${availableWidth / itemsPerRow}dvw`; // Width per item
 
-  const { data: libraryContent, isLoading } = useSWR<LibraryItem[]>(
-    serverUrl !== ''
-      ? `${serverUrl}/api/library-content-flat?libraryId=${libraryId}&type=${type}`
-      : null,
-    authenticatedFetcher,
-  );
+  const { data: libraryContent, isLoading } = useGetLibraryContent<LibraryItem[]>(libraryId ?? '', {
+    enabled: !!libraryId && !!type && serverUrl !== '',
+    params: type ? { type } : undefined,
+  });
 
   if (isLoading && libraryContent && libraryContent.length === 0) {
     return <Loading />;

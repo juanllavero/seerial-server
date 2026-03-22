@@ -57,6 +57,8 @@
   },
   "type": "commonjs",
   "scripts": {
+    "postinstall": "pnpm run rebuild:electron-native",
+    "rebuild:electron-native": "node scripts/rebuild-electron-native.cjs",
     "dev": "node esbuild.config.js && copyfiles -u 1 assets/**/* dist/assets/ && electron dist/index.js",
     "build": "node esbuild.config.js",
     "postbuild": "copyfiles -u 3 ../web/dist/**/* dist/web && copyfiles -u 1 assets/**/* dist/assets/",

@@ -1,30 +1,20 @@
-import { Movie, Video } from '@seerial/domain';
+import { useGetMovie } from '@seerial/api';
+import type { Movie, Video } from '@seerial/domain';
 import { memo, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
-import useSWR from 'swr';
-import { shallow } from 'zustand/shallow';
 import GradientBackground from '@/components/backgrounds/GradientBackground';
 import Loading from '@/components/Loading';
 import Page from '@/components/Page';
-import { useServerStore } from '@/context/server.context';
-import { authenticatedFetcher } from '@/lib/auth';
 import { formatDate, formatTimeForView } from '@/utils/utils';
 import DetailsInfo from '../components/DetailsInfo';
 
 function MovieDetails() {
   const { movieId } = useParams();
-  const { serverUrl } = useServerStore(
-    (state) => ({
-      serverUrl: state.serverUrl,
-    }),
-    shallow,
-  );
   const [selectedVideo, selectVideo] = useState<Video | null>(null);
 
-  const { data: movie, isLoading } = useSWR<Movie>(
-    serverUrl !== '' ? `${serverUrl}/api/details/movie?id=${movieId}` : null,
-    authenticatedFetcher,
-  );
+  const { data: movie, isLoading } = useGetMovie<Movie>(movieId ?? '', {
+    enabled: !!movieId,
+  });
 
   useEffect(() => {
     if (movie && movie.videos.length > 0) {

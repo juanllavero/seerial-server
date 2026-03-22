@@ -16,8 +16,7 @@ export const it = {
     watchListShows: 'La mia lista: Serie',
     watchListMovies: 'La mia lista: Film',
     serverError: 'Il server non è disponibile',
-    serverErrorMessage:
-      'Verifica la connessione a internet e che il server sia online',
+    serverErrorMessage: 'Verifica la connessione a internet e che il server sia online',
     apiKey: 'Chiave API',
     apiKeyTitle: 'Nessuna chiave API trovata per TheMovieDB',
     apiKeyMessage: 'Aggiungi una chiave API. Puoi ottenerla su ',
@@ -70,10 +69,8 @@ export const it = {
     h12: 'ogni 12 ore',
     daily: 'Giornaliero',
     asTask: 'come attività pianificata',
-    asTaskAndFileUpdate:
-      'come attività pianificata e quando vengono aggiunti nuovi file',
-    autoScan:
-      'Scansiona le librerie quando viene rilevata una modifica nelle loro cartelle',
+    asTaskAndFileUpdate: 'come attività pianificata e quando vengono aggiunti nuovi file',
+    autoScan: 'Scansiona le librerie quando viene rilevata una modifica nelle loro cartelle',
     scanOptions: 'Scansione periodica della libreria',
     tempFolder: 'Cartella temporanea per il transcodificatore',
     tempFolderMessage:
@@ -84,8 +81,7 @@ export const it = {
     transcoderPreset: 'Preset di qualità x264 del transcodificatore',
     transcoderPresetMessage:
       "Preset utilizzato per x264 nella conversione video in background. Valori più lenti genereranno un video di qualità migliore e una dimensione del file più piccola, ma richiederanno anche più tempo per l'elaborazione",
-    maxTranscoding:
-      'Numero massimo di processi di transcodifica video simultanei',
+    maxTranscoding: 'Numero massimo di processi di transcodifica video simultanei',
     timeFormat: 'Formato dell’ora',
     playButton: 'Riproduci',
     editButton: 'Modifica',
@@ -248,8 +244,7 @@ export const it = {
     interpolationCheck: 'Abilita interpolazione dei fotogrammi',
     chapters: 'Capitoli',
     generatingThumbnails: 'Generazione miniature',
-    generateThumbnailsText:
-      "Applicabile solo ai video delle librerie di tipo 'Film'",
+    generateThumbnailsText: "Applicabile solo ai video delle librerie di tipo 'Film'",
     generateThumbnailsCheck: 'Genera miniature dei capitoli',
     analyzingLocalFiles: 'Analisi dei file locali',
     playBackgroundMusic: 'Riproduci musica di sottofondo',
@@ -308,4 +303,4 @@ export const it = {
     serverIPText: 'La porta deve essere 3000',
     noResults: 'Nessun risultato trovato',
   },
-}
+};

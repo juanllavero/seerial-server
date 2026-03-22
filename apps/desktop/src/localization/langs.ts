@@ -1,4 +1,4 @@
-import { Language } from './language'
+import type { Language } from './language';
 
 export default [
   {
@@ -71,4 +71,4 @@ export default [
     nativeName: 'العربية',
     prefix: '🇦🇪',
   },
-] satisfies Language[]
+] satisfies Language[];

@@ -1,12 +1,12 @@
-import BaseLayout from '@/layouts/BaseLayout'
-import { Outlet } from 'react-router'
+import { Outlet } from 'react-router';
+import BaseLayout from '@/layouts/BaseLayout';
 
 function TopBarLayout() {
-	return (
-		<BaseLayout>
-			<Outlet />
-		</BaseLayout>
-	)
+  return (
+    <BaseLayout>
+      <Outlet />
+    </BaseLayout>
+  );
 }
 
-export default TopBarLayout
+export default TopBarLayout;

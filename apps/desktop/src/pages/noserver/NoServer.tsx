@@ -1,5 +1,5 @@
 function NoServer() {
-	return <div className='bg-black'>NoServer</div>
+  return <div className="bg-black">NoServer</div>;
 }
 
-export default NoServer
+export default NoServer;

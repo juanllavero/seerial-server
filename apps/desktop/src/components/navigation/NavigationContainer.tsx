@@ -1,30 +1,27 @@
-import {
-	useFocusable,
-	FocusContext,
-} from '@noriginmedia/norigin-spatial-navigation'
+import { FocusContext, useFocusable } from '@noriginmedia/norigin-spatial-navigation';
 
 function NavigationContainer({
-	children,
-	className,
-	customFocusKey,
+  children,
+  className,
+  customFocusKey,
 }: {
-	children: React.ReactNode
-	className?: string
-	customFocusKey?: string
+  children: React.ReactNode;
+  className?: string;
+  customFocusKey?: string;
 }) {
-	const { ref, focusKey } = useFocusable({
-		trackChildren: true,
-		focusKey: customFocusKey,
-		saveLastFocusedChild: true,
-	})
+  const { ref, focusKey } = useFocusable({
+    trackChildren: true,
+    focusKey: customFocusKey,
+    saveLastFocusedChild: true,
+  });
 
-	return (
-		<FocusContext.Provider value={focusKey}>
-			<div ref={ref} className={className}>
-				{children}
-			</div>
-		</FocusContext.Provider>
-	)
+  return (
+    <FocusContext.Provider value={focusKey}>
+      <div ref={ref} className={className}>
+        {children}
+      </div>
+    </FocusContext.Provider>
+  );
 }
 
-export default NavigationContainer
+export default NavigationContainer;

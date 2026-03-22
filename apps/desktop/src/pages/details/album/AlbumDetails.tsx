@@ -1,7 +1,7 @@
-import React from 'react'
+import React from 'react';
 
 function AlbumDetails() {
-	return <div>AlbumDetails</div>
+  return <div>AlbumDetails</div>;
 }
 
-export default AlbumDetails
+export default AlbumDetails;
