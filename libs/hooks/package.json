@@ -9,7 +9,9 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "zustand": "^5.0.12",
-    "react": "^19.2.3"
+    "@seerial/api": "workspace:*",
+    "@seerial/domain": "workspace:*",
+    "react": "^19.2.3",
+    "zustand": "^5.0.12"
   }
 }
