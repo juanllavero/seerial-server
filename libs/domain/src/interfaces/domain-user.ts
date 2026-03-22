@@ -30,3 +30,16 @@ export interface SearchableUser {
     image?: string;
     name?: string;
 }
+
+export interface UserDTO {
+    id: string;
+    username: string;
+    avatar?: string;
+    allowRemote: boolean;
+    type: string;
+    allowVideoTranscoding: boolean;
+    internetBitrateLimit?: number;
+    allowDownloads: boolean;
+    hideInLogin: boolean;
+    maxSessions: number;
+}
