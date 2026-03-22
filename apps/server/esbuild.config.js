@@ -9,8 +9,6 @@ build({
   sourcemap: true,
   target: 'node18',
   external: [
-    '@seerial/domain',
-    '@seerial/cli',
     'electron',
     'sharp',
     'node-vibrant',

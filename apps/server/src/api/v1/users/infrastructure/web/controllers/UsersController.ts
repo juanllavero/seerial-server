@@ -1,3 +1,4 @@
+import type { User } from '@seerial/domain';
 import jwt from 'jsonwebtoken';
 import { Body, Controller, Delete, Path, Post, Put, Route, Security, Tags } from 'tsoa';
 import { useCases } from '@/api/v1/shared/infrastructure/adapters/di/container';
@@ -11,7 +12,19 @@ import type {
   UpdateUserDTO,
   UserDTO,
 } from '../../../application/dtos/UserDTOs';
-import { toUserDTO } from '../../../domain/User';
+
+const mapUserToDTO = (user: User): UserDTO => ({
+  id: user.id,
+  username: user.username,
+  avatar: user.avatar,
+  allowRemote: user.allowRemote,
+  type: user.type,
+  allowVideoTranscoding: user.allowVideoTranscoding,
+  internetBitrateLimit: user.internetBitrateLimit,
+  allowDownloads: user.allowDownloads,
+  hideInLogin: user.hideInLogin,
+  maxSessions: user.maxSessions,
+});
 
 @Route('users')
 @Tags('Users')
@@ -31,7 +44,7 @@ export class UsersController extends Controller {
       process.env.JWT_SECRET || '',
       { expiresIn: '30d' },
     );
-    return ApiResponse.success({ token, user: toUserDTO(user) }, messages.success.create);
+    return ApiResponse.success({ token, user: mapUserToDTO(user) }, messages.success.create);
   }
 
   /**
@@ -44,7 +57,7 @@ export class UsersController extends Controller {
     @Body() body: UpdateUserDTO,
   ): Promise<ApiResponse<UserDTO>> {
     const result = await useCases.updateUser().execute(id, body);
-    return ApiResponse.success(toUserDTO(result), messages.success.update);
+    return ApiResponse.success(mapUserToDTO(result), messages.success.update);
   }
 
   /**
@@ -65,7 +78,7 @@ export class UsersController extends Controller {
   public async findAll(): Promise<ApiResponse<UserDTO[]>> {
     const result = await useCases.getAllUsers().execute();
     return ApiResponse.success(
-      result.map((u) => toUserDTO(u)),
+      result.map((u) => mapUserToDTO(u)),
       messages.success.fetch,
     );
   }
@@ -99,7 +112,7 @@ export class UsersController extends Controller {
 
     return ApiResponse.success(
       {
-        user: toUserDTO(result.user),
+        user: mapUserToDTO(result.user),
         token: result.token,
       },
       messages.success.login,
