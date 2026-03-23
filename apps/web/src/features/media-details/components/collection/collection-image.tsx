@@ -1,9 +1,9 @@
 import { useGet } from '@seerial/api';
 import type { Collection, CollectionImages } from '@seerial/domain';
+import { getCoverSize, getFirstImage, getPosterImage } from '@seerial/domain';
 import { useEffect, useState } from 'react';
 import useScreenHeight from '@/shared/hooks/use-height';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
-import { getCoverSize, getFirstImage, getPosterImage } from '@/shared/lib/react-utils';
 import Image from '@/shared/ui/image';
 
 interface CollectionImageProps {

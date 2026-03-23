@@ -1,6 +1,6 @@
 import type { VideoInfo as VideoInfoData } from '@seerial/domain';
+import { formatTimeForView } from '@seerial/domain';
 import FlexBox from '@/components/ui/FlexBox';
-import { formatTimeForView } from '@/utils/utils';
 
 interface VideoInfoProps {
   videoInfo?: VideoInfoData;

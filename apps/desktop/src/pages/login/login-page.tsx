@@ -1,10 +1,10 @@
-import Loading from '@components/Loading';
 import type { BasicUser, DiscoveredServer } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
-import { LoginLayout, ServerSelector, UserSelector } from 'features/auth';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { shallow } from 'zustand/shallow';
+import Loading from '@/components/Loading';
+import { LoginLayout, ServerSelector, UserSelector } from '@/features/auth';
 
 export default function LoginPage() {
   const navigate = useNavigate();

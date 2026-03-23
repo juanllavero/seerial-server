@@ -1,5 +1,6 @@
 import { API, useGet } from '@seerial/api';
 import type { Episode, Season, Series } from '@seerial/domain';
+import { formatDate } from '@seerial/domain';
 import { useIsAdmin } from '@seerial/hooks';
 import { Pencil, PlayIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -7,7 +8,6 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { shallow } from 'zustand/shallow';
 import { useDialogStore } from '@/features/management';
 import { VideoTracks } from '@/features/media-details';
-import { formatDate } from '@/shared/lib/react-utils';
 import { Button } from '@/shared/ui/button';
 import FlexBox from '@/shared/ui/flex-box';
 import LazyImage from '@/shared/ui/lazy-image';

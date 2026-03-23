@@ -1,5 +1,5 @@
+import { isAbsolutePath } from '@seerial/domain';
 import { useEffect, useRef, useState } from 'react';
-import { isAbsolutePath } from '@/shared/lib/react-utils';
 import { useIsMobile } from '../hooks/use-mobile';
 import { useIsTablet } from '../hooks/use-tablet';
 import { Skeleton } from './skeleton';

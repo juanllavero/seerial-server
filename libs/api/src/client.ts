@@ -2,12 +2,43 @@
  * Shared Axios clients and request helpers.
  */
 
-import axios, { type AxiosInstance } from 'axios'
+import axios, { AxiosHeaders, type AxiosInstance } from 'axios'
 import { API, type HttpMethod } from './endpoints'
 
 export const DEFAULT_API_BASE_URL = '/api'
 
 let apiBaseUrlResolver: (() => string) | null = null
+
+function safeGetCookieValue(name: string): string | null {
+    if (typeof document === 'undefined') {
+        return null
+    }
+
+    try {
+        const target = `${name}=`
+        const cookies = document.cookie.split(';')
+
+        for (const entry of cookies) {
+            const cookie = entry.trim()
+            if (cookie.startsWith(target)) {
+                return decodeURIComponent(cookie.slice(target.length))
+            }
+        }
+
+        return null
+    } catch {
+        return null
+    }
+}
+
+function getAuthToken(): string | null {
+    const fromStorage = safeGetLocalStorageValue('auth:token')
+    if (fromStorage) {
+        return fromStorage
+    }
+
+    return safeGetCookieValue('token')
+}
 
 function safeGetLocalStorageValue(key: string): string | null {
     if (typeof window === 'undefined' || !window.localStorage) {
@@ -52,6 +83,19 @@ export const apiClient: AxiosInstance = axios.create({
         'Content-Type': 'application/json',
     },
     withCredentials: true,
+})
+
+apiClient.interceptors.request.use((config) => {
+    const token = getAuthToken()
+    const headers = AxiosHeaders.from(config.headers)
+
+    if (token && !headers.has('Authorization')) {
+        headers.set('Authorization', `Bearer ${token}`)
+    }
+
+    config.headers = headers
+    config.withCredentials = true
+    return config
 })
 
 export const publicApiClient: AxiosInstance = axios.create({

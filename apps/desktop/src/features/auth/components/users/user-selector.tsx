@@ -1,5 +1,6 @@
 import { API, api } from '@seerial/api';
 import type { BasicUser, PersistedServer } from '@seerial/domain';
+import { setCookie } from '@seerial/domain';
 import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -46,8 +47,7 @@ function UserSelector({ server, users, onServerChange, onLogin }: UserSelectorPr
           password: loginPassword ?? '',
         },
       );
-      // TODO: check if this is necessary or if we can just rely on the cookie set by the server
-      // document.cookie = `jwt=${response.data?.token}; path=/; max-age=2592000; samesite=strict`;
+      setCookie('token', response.data?.token ?? '', 90);
       if (response.data?.user) {
         onLogin(response.data.user);
       }
@@ -78,8 +78,7 @@ function UserSelector({ server, users, onServerChange, onLogin }: UserSelectorPr
           type: newUserType,
         },
       );
-      // TODO: check if this is necessary or if we can just rely on the cookie set by the server
-      // document.cookie = `jwt=${response.data?.token}; path=/; max-age=2592000; samesite=strict`;
+      setCookie('token', response.data?.token ?? '', 90);
       if (response.data?.user) {
         onLogin(response.data.user);
       }

@@ -1,9 +1,8 @@
-import type { Library } from '@seerial/domain';
+import type { Library, LibraryTypes } from '@seerial/domain';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNavigate } from 'react-router';
-import FocusableButton from '@/components/navigation/NavigationButton';
+import NavigationButton from '@/components/navigation/NavigationButton';
 import NavigationContainer from '@/components/navigation/NavigationContainer';
-import type { LibraryTypes } from '@/data/enums/enums';
 
 interface LibrariesListProps {
   type: LibraryTypes;
@@ -30,7 +29,7 @@ function LibrariesList({ type, libraries, show, hide }: LibrariesListProps) {
             {libraries
               .filter((library) => library.type === type)
               .map((library) => (
-                <FocusableButton
+                <NavigationButton
                   key={library.id}
                   customKey={library.id}
                   onClick={() => {
@@ -39,7 +38,7 @@ function LibrariesList({ type, libraries, show, hide }: LibrariesListProps) {
                   }}
                 >
                   {library.name}
-                </FocusableButton>
+                </NavigationButton>
               ))}
           </motion.div>
         )}

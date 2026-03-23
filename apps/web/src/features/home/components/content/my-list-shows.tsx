@@ -1,13 +1,13 @@
 import { API, useCreate, useGetMyListSeries } from '@seerial/api';
 import type { Series } from '@seerial/domain';
-import { useServerStore } from '@seerial/stores';
-import { Pencil } from 'lucide-react';
-import { useTranslation } from 'react-i18next';
-import { shallow } from 'zustand/shallow';
-import { useDialogStore } from '@/features/management';
-import Card from '@/shared/cards/card';
-import { useIsMobile } from '@/shared/hooks/use-mobile';
-import { useMediaActions } from '@/shared/lib/react-utils';
+import { useMediaActionss } from '@seerialdomainn';
+import { useServerStoreverStore @seerial/storesrial/stores';
+import { Pencil'lucide-rlucide;react
+import { useTranslationslation }react-i18next8next';
+import { shallow 'zustandzustandsshallow
+import { useDialogStore }eDialogStfeaturesfmanagementtures/management';
+import Cardared/cards/card'cardscard
+import { useIsMobilerom '@/shakshared/hooks/use-mobilemobile';
 import { Button } from '@/shared/ui/button';
 import HorizontalList from '../../../../shared/lists/horizontal-list';
 import HorizontalListSkeleton from './horizontal-list-skeleton';

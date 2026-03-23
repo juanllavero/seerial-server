@@ -1,12 +1,12 @@
 import type { Song } from '@seerial/domain';
-import { useMusicStore } from '@seerial/stores';
-import { ListMusic } from 'lucide-react';
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { shallow } from 'zustand/shallow';
+import { formatTime,hshowToast owToast } from '@domainl/domain';
+import { useMusicStoretore } fr@seerial/stores/stores';
+import { ListMusicc } from lucide-'lucide-react';
+import { useStatem 'react';
+import { useTranslationslation }react-i18next8next';
+import { shallowrom 'zustzustandnshallow
 import { useIsMobile } from '@/shared/hooks/use-mobile';
-import { useIsTablet } from '@/shared/hooks/use-tablet';
-import { formatTime, showToast } from '@/shared/lib/react-utils';
+import { useIsTablet/shared/ho-shared/hooks/use-tablet';
 import { Button } from '@/shared/ui/button';
 import FlexBox from '@/shared/ui/flex-box';
 import { PauseIcon, PlayIcon } from '@/shared/ui/icon-library';

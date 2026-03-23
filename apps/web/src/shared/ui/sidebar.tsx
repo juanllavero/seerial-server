@@ -1,8 +1,8 @@
 import { Slot } from '@radix-ui/react-slot';
+import { setCookie } from '@seerial/domain';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { PanelLeft } from 'lucide-react';
 import * as React from 'react';
-
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { cn } from '@/shared/lib/tailwind';
 import { Button } from '@/shared/ui/button';
@@ -13,9 +13,8 @@ import { Skeleton } from '@/shared/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/shared/ui/tooltip';
 import { useIsTablet } from '../hooks/use-tablet';
 
-// TODO: check if this is necessary
-// const SIDEBAR_COOKIE_NAME = 'sidebar_state';
-// const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
+const SIDEBAR_COOKIE_NAME = 'sidebar_state';
+const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const SIDEBAR_WIDTH = '16rem';
 const SIDEBAR_WIDTH_MOBILE = '18rem';
 const SIDEBAR_WIDTH_ICON = '3rem';
@@ -81,16 +80,15 @@ const SidebarProvider = React.forwardRef<
         }
 
         // This sets the cookie to keep the sidebar state.
-        //   document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
+        setCookie(SIDEBAR_COOKIE_NAME, String(openState), SIDEBAR_COOKIE_MAX_AGE);
       },
       [setOpenProp, open],
     );
 
-    // TODO: check if this is necessary
-    // React.useEffect(() => {
-    //   // Establece la cookie para mantener el estado de la barra lateral.
-    //   document.cookie = `${SIDEBAR_COOKIE_NAME}=${open}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
-    // }, [open]);
+    React.useEffect(() => {
+      // Set cookie to keep the sidebar state. This is used to remember the state of the sidebar across page reloads.
+      setCookie(SIDEBAR_COOKIE_NAME, String(open), SIDEBAR_COOKIE_MAX_AGE);
+    }, [open]);
 
     // Helper to toggle the sidebar.
     const toggleSidebar = React.useCallback(() => {

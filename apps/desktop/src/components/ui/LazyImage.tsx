@@ -1,6 +1,6 @@
+import { isAbsolutePath } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { useEffect, useRef, useState } from 'react';
-import { isAbsolutePath } from '@/utils/utils';
 import { Skeleton } from './skeleton';
 
 interface ImageProps {

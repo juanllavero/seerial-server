@@ -1,6 +1,6 @@
-import TopBarLayout from '@pages/topBarLayout/TopBarLayout';
-import UsersPage from '@pages/users/UsersPage';
 import { Navigate, Route, Routes } from 'react-router-dom';
+import LoginPage from '@/pages/login/login-page';
+import TopBarLayout from '@/pages/top-bar-layout/top-bar-layout';
 import AlbumDetails from '../pages/details/album/AlbumDetails';
 import CollectionDetails from '../pages/details/collection/CollectionDetails';
 import MovieDetails from '../pages/details/movie/MovieDetails';
@@ -14,7 +14,7 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Root />}>
-        <Route path="/login" element={<UsersPage />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route index element={<Navigate to="/home" replace />} />
         <Route element={<TopBarLayout />}>
           <Route path="/home" element={<Home />} />

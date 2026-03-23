@@ -1,5 +1,7 @@
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
+import { authenticatedFetch } from '@seerial/api';
 import type { AudioTrack, SubtitleTrack, Video, VideoInfo } from '@seerial/domain';
+import { getAudioTrack, getSubtitleTrack } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { invoke } from '@tauri-apps/api/core';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -9,9 +11,6 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import NavigationButton from '@/components/navigation/NavigationButton';
 import NavigationContainer from '@/components/navigation/NavigationContainer';
-import { authenticatedFetch } from '@/lib/auth';
-import { useLanguageName as getLanguageName } from '@/localization/TrackLanguages';
-import { getAudioTrack, getSubtitleTrack } from '@/utils/utils';
 
 type SelectorPanel = 'audio' | 'subtitle';
 

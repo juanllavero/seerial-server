@@ -1,12 +1,11 @@
 import { useGetLibraries } from '@seerial/api';
-import type { Library } from '@seerial/domain';
+import { type Library, LibraryTypes } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { Settings } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
-import FocusableButton from '@/components/navigation/NavigationButton';
+import NavigationButton from '@/components/navigation/NavigationButton';
 import NavigationContainer from '@/components/navigation/NavigationContainer';
-import { LibraryTypes } from '@/data/enums/enums';
 import LibrariesList from './LibrariesList';
 
 function TopBar() {
@@ -22,12 +21,13 @@ function TopBar() {
     staleTime: Number.POSITIVE_INFINITY,
   });
 
-  const showMovies =
-    libraries && libraries.filter((library) => library.type === LibraryTypes.MOVIES).length > 0;
-  const showSeries =
-    libraries && libraries.filter((library) => library.type === LibraryTypes.SHOWS).length > 0;
-  const showMusic =
-    libraries && libraries.filter((library) => library.type === LibraryTypes.MUSIC).length > 0;
+  const moviesLibraries = libraries?.filter((library) => library.type === LibraryTypes.MOVIES);
+  const seriesLibraries = libraries?.filter((library) => library.type === LibraryTypes.SHOWS);
+  const albumsLibraries = libraries?.filter((library) => library.type === LibraryTypes.MUSIC);
+
+  const showMovies = moviesLibraries && moviesLibraries.length > 0;
+  const showSeries = seriesLibraries && seriesLibraries.length > 0;
+  const showMusic = albumsLibraries && albumsLibraries.length > 0;
 
   return (
     <NavigationContainer
@@ -36,10 +36,10 @@ function TopBar() {
     >
       <img src="/Seerial_logo.svg" alt="Logo" className="w-[5dvh]" />
       <div className="flex gap-2">
-        <FocusableButton customKey="home" onClick={() => navigate('/home')}>
+        <NavigationButton customKey="home" onClick={() => navigate('/home')}>
           Home
-        </FocusableButton>
-        <FocusableButton
+        </NavigationButton>
+        <NavigationButton
           customKey="movies"
           disabled={!showMovies}
           onClick={() => {
@@ -50,8 +50,8 @@ function TopBar() {
           }}
         >
           Movies
-        </FocusableButton>
-        <FocusableButton
+        </NavigationButton>
+        <NavigationButton
           customKey="shows"
           disabled={!showSeries}
           onClick={() => {
@@ -62,8 +62,8 @@ function TopBar() {
           }}
         >
           Shows
-        </FocusableButton>
-        <FocusableButton
+        </NavigationButton>
+        <NavigationButton
           customKey="music"
           disabled={!showMusic}
           onClick={() => {
@@ -74,15 +74,15 @@ function TopBar() {
           }}
         >
           Music
-        </FocusableButton>
-        <FocusableButton customKey="myList" onClick={() => navigate('/myList')}>
+        </NavigationButton>
+        <NavigationButton customKey="myList" onClick={() => navigate('/myList')}>
           My List
-        </FocusableButton>
+        </NavigationButton>
       </div>
       <div>
-        <FocusableButton customKey="settings">
+        <NavigationButton customKey="settings">
           <Settings />
-        </FocusableButton>
+        </NavigationButton>
       </div>
 
       <LibrariesList

@@ -1,12 +1,12 @@
 import type { DropdownContent, Episode, WatchList } from '@seerial/domain';
-import { useServerStore } from '@seerial/stores';
-import { t } from 'i18next';
-import { Pencil } from 'lucide-react';
-import Card from '@/shared/cards/card';
-import { useCardWidth } from '@/shared/hooks/use-card-width';
+import { getVideoProgressss } from '@seeriadomainin';
+import { useServerStoreseServerS@seerial/storesfrom '@seerial/stores';
+import { tom 'i18nei18next
+import { Pencil }ncil } lucide-react;
+import Cardred/cards/card';cards
+import { useCardWidthh } from '@/shared/hooks/usecard-widthwidth';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
-import { useIsTablet } from '@/shared/hooks/use-tablet';
-import { getVideoProgress } from '@/shared/lib/react-utils';
+import { useIsTabletom '@/sharsshared/hooks/use-tabletablet';
 import { Button } from '@/shared/ui/button';
 
 interface EpisodeCardProps {

@@ -1,9 +1,9 @@
 import type { DropdownContent, Video } from '@seerial/domain';
+import { getVideoProgress } from '@seerial/domain';
 import { Pencil } from 'lucide-react';
 import React from 'react';
 import Card from '@/shared/cards/card';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
-import { getVideoProgress } from '@/shared/lib/react-utils';
 import { Button } from '@/shared/ui/button';
 
 interface VideoCardProps {

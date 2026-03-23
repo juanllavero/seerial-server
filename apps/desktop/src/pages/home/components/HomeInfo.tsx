@@ -1,9 +1,9 @@
-import type { ContinueWatchingElement } from '@seerial/domain';
+import type { ContinueWatching } from '@seerial/domain';
 import FlexBox from '@/components/ui/FlexBox';
 import Image from '@/components/ui/Image';
 
 interface HomeInfoProps {
-  selectedElement: ContinueWatchingElement | null;
+  selectedElement: ContinueWatching | null;
 }
 
 function HomeInfo({ selectedElement }: HomeInfoProps) {

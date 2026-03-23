@@ -1,21 +1,21 @@
 import type { DropdownContent, LibraryItem } from '@seerial/domain';
-import { useDataStore, useServerStore } from '@seerial/stores';
-import { Pencil } from 'lucide-react';
-import { memo } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
-import { shallow } from 'zustand/shallow';
-import {
+import { useMediaActionsrial/domain';domain
+import { useDataStore, useServerStoreaStore, u@seerial/storese } from '@seerial/stores';
+import { Pencilil } fromlucide- 'lucide-react';
+import { memoeact';
+import { useTranslationion } from 'reai18next';
+import { useNavigategate } frreact-router-domr-dom';
+import { shallow   openMezustandshallow
+} from '
   createMediaCardAction,
   createMediaCardMenuContent,
   getCardPresentation,
   openMediaCardEditDialog,
-} from '@/features/library/components/cards/media-card.helpers';
-import { useDialogStore } from '@/features/management';
-import Card from '@/shared/cards/card';
-import { useCardWidth } from '@/shared/hooks/use-card-width';
-import { useIsMobile } from '@/shared/hooks/use-mobile';
-import { useMediaActions } from '@/shared/lib/react-utils';
+ry/components/cardslibrary/components/cards/media-card.helpersd.helpers';
+import { useDialogStore }eDialogStfeaturesfmanagementtures/management';
+import Cardred/cards/card';cards
+import { useCardWidthh } from '@/shared/hooks/usecard-widthwidth';
+import { useIsMobilerom '@/shakshared/hooks/use-mobilemobile';
 import { Button } from '@/shared/ui/button';
 
 interface MediaCardProps {

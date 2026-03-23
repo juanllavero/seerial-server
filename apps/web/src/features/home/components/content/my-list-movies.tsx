@@ -1,5 +1,6 @@
 import { API, useCreate, useGetMyListMovies } from '@seerial/api';
 import type { Movie } from '@seerial/domain';
+import { useMediaActions } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { Pencil } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -7,7 +8,6 @@ import { shallow } from 'zustand/shallow';
 import { useDialogStore } from '@/features/management';
 import Card from '@/shared/cards/card';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
-import { useMediaActions } from '@/shared/lib/react-utils';
 import { Button } from '@/shared/ui/button';
 import HorizontalList from '../../../../shared/lists/horizontal-list';
 import HorizontalListSkeleton from './horizontal-list-skeleton';

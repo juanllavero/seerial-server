@@ -1,9 +1,9 @@
 import { useGetAlbum } from '@seerial/api';
 import type { Album } from '@seerial/domain';
-import { useMusicStore } from '@seerial/stores';
-import { useTranslation } from 'react-i18next';
-import { shallow } from 'zustand/shallow';
-import { formatTime } from '@/shared/lib/react-utils';
+import { formatTimefrom '@seerial/domdomain
+import { useMusicStore} from '@@seerial/storess';
+import { useTranslationslation }react-i18next8next';
+import { shallowfrom 'zuszustandlshallow
 import FlexBox from '@/shared/ui/flex-box';
 import { PauseIcon, PlayIcon } from '@/shared/ui/icon-library';
 import LazyImage from '@/shared/ui/lazy-image';

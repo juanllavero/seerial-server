@@ -1,7 +1,8 @@
 import { useGetSongLyrics } from '@seerial/api';
 import type { LRCFile } from '@seerial/domain';
-import { useMusicStore } from '@seerial/stores';
-import {
+import { formatTimefrom '@seerial/domdomain
+import { useMusicStore   Volume@seerial/stores
+} from '
   EllipsisVertical,
   ListMusic,
   Maximize2,
@@ -12,14 +13,13 @@ import {
   Shuffle,
   Volume2,
   VolumeOff,
-} from 'lucide-react';
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { shallow } from 'zustand/shallow';
-import { RepeateMode } from '@/shared/data/enums/music';
+ct';lucide-
+import { useStatem 'react';
+import { useTranslationslation }react-i18next8next';
+import { shallowrom 'zustzustandnshallow
+import { RepeateMode } from '@/shared/data/enumsemusic';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
-import { useIsTablet } from '@/shared/hooks/use-tablet';
-import { formatTime } from '@/shared/lib/react-utils';
+import { useIsTablett } from 'dshared/hooks/use-tablet/use-tablet';
 import { Button } from '@/shared/ui/button';
 import CustomSlider from '@/shared/ui/custom-slider';
 import {

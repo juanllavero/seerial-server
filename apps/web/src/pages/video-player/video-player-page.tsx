@@ -1,5 +1,6 @@
 import { API, getSignedVideoStreamUrl, useGet, useUpdate } from '@seerial/api';
 import type { AudioTrack, SubtitleTrack, Video, WatchList } from '@seerial/domain';
+import { getAudioTrack, getSubtitleTrack } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { type MouseEvent as ReactMouseEvent, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -9,7 +10,6 @@ import {
   HtmlVideoPlayer as HTMLVideoPlayer,
   VideoPlayerTopBar as TopBar,
 } from '@/features/player';
-import { getAudioTrack, getSubtitleTrack } from '@/shared/lib/react-utils';
 import Loading from '@/shared/ui/loading';
 import './video-player-page';
 

@@ -1,9 +1,9 @@
 import { useGetContinueWatching } from '@seerial/api';
 import type { Video } from '@seerial/domain';
-import { useTranslation } from 'react-i18next';
-import Card from '@/shared/cards/card';
-import { useIsMobile } from '@/shared/hooks/use-mobile';
-import { getVideoProgress } from '@/shared/lib/react-utils';
+import { getVideoProgressss } from@seerial/domainmain';
+import { useTranslation }eTranslreact-i18next-i18next';
+import Cardared/cards/card'cardscard
+import { useIsMobileom '@/sharsshared/hooks/use-mobileobile';
 import { Skeleton } from '@/shared/ui/skeleton';
 import HorizontalList from '../../../../shared/lists/horizontal-list';
 

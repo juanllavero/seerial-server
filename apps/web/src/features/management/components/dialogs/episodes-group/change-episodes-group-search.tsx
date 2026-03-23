@@ -1,9 +1,9 @@
 import { API, useGet, useGetSeries, useUpdateSeriesEpisodeGroup } from '@seerial/api';
 import type { Series } from '@seerial/domain';
+import { getEpisodeGroupType } from '@seerial/domain';
 import { useWebSocketStore } from '@seerial/stores';
 import { useTranslation } from 'react-i18next';
 import { shallow } from 'zustand/shallow';
-import { getEpisodeGroupType } from '@/shared/lib/react-utils';
 import FlexBox from '@/shared/ui/flex-box';
 import Loading from '@/shared/ui/loading';
 import { useDialogStore } from '../../../stores/dialog-store';

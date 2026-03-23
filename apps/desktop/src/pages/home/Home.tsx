@@ -1,17 +1,12 @@
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import { useGetContinueWatching } from '@seerial/api';
-import type { ContinueWatchingElement } from '@seerial/domain';
+import type { ContinueWatching } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
-import GradientBackground from '@/components/backgrounds/GradientBackground';
-import NavigationScrollView from '@/components/navigation/NavigationScrollView';
 import Page from '@/components/Page';
-import ContentCard from '../../components/Card';
 import { Skeleton } from '../../components/ui/skeleton';
-import HomeInfo from './components/HomeInfo';
-import TransparentImage from './components/TransparentImage';
 
 function Home() {
   const { currentUser } = useServerStore();
@@ -19,10 +14,10 @@ function Home() {
   const { t } = useTranslation();
   const { selectedServer } = useServerStore();
   const serverUrl = selectedServer?.url ?? '';
-  const [selectedElement, setSelectedElement] = useState<ContinueWatchingElement | null>(null);
+  const [selectedElement, setSelectedElement] = useState<ContinueWatching | null>(null);
 
   // Get Continue Watching items
-  const { data: continueWatching, isLoading } = useGetContinueWatching<ContinueWatchingElement[]>({
+  const { data: continueWatching, isLoading } = useGetContinueWatching<ContinueWatching[]>({
     enabled: !!selectedServer && !!serverUrl && !!currentUser?.id,
     params: currentUser?.id ? { userId: currentUser.id } : undefined,
   });
@@ -37,32 +32,34 @@ function Home() {
   };
 
   const skeletons = Array.from({ length: 10 }, (_, index) => (
-    <Skeleton key={'ContinueWatching ' + index} className={'w-[280px] h-[400px]'} />
+    <Skeleton key={`ContinueWatching ${index}`} className={'w-[280px] h-[400px]'} />
   ));
 
   return (
     <Page justify="end">
-      <GradientBackground
+      <p>Test</p>
+      {/* <GradientBackground
         imageSrc={selectedElement?.backgroundImage ?? selectedElement?.posterImage}
         index={0}
-      />
+      /> */}
 
-      <TransparentImage imageSrc={selectedElement?.backgroundImage ?? ''} />
+      {/* <TransparentImage imageSrc={selectedElement?.backgroundImage ?? ''} />
 
       <HomeInfo selectedElement={selectedElement} />
 
-      <span className="text-xl z-10">{t('continueWatching')}</span>
+      <span className="text-xl z-10">{t('continueWatching')}</span> */}
 
       {/* <LogoIntro /> */}
 
-      <NavigationScrollView
+      {/* <NavigationScrollView
         direction="horizontal"
         className="gap-10 w-full z-10"
         customFocusKey="continueWatching"
       >
         {continueWatching && continueWatching.length > 0
-          ? continueWatching.map((element: ContinueWatchingElement) => (
+          ? continueWatching.map((element: ContinueWatching) => (
               <ContentCard
+                key={element.id}
                 imgSrc={element.posterImage ?? ''}
                 customKey={`continueWatchingCard-${element.id}`}
                 height={'35dvh'}
@@ -82,7 +79,7 @@ function Home() {
           : isLoading
             ? t('noContent')
             : skeletons}
-      </NavigationScrollView>
+      </NavigationScrollView> */}
     </Page>
   );
 }

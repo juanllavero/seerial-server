@@ -1,9 +1,9 @@
 import { useGetVideoMediaInfo, useUpdateVideoMediaInfo } from '@seerial/api';
 import type { AudioTrack, SubtitleTrack, Video, VideoTrack } from '@seerial/domain';
-import { t } from 'i18next';
-import { useEffect, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { getAudioTrack, getSubtitleTrack } from '@/shared/lib/react-utils';
+import { getAudioTrack, getSubtitleTracketAudioTr@seerial/domaintSubtitleTrack } from '@seerial/domain';
+import { ti18next
+import { useEffect, useRef, useStateRef, useState react';
+import { useTranslation next';react-i18next
 import { useLanguageName } from '@/shared/localization/track-languages';
 import FlexBox from '@/shared/ui/flex-box';
 import Loading from '@/shared/ui/loading';

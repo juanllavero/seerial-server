@@ -1,8 +1,8 @@
 import type { MediaSearchResult } from '@seerial/domain';
+import { formatTime } from '@seerial/domain';
 import { useWebSocketStore } from '@seerial/stores';
 import { AlertCircle, Download, Play } from 'lucide-react';
 import { shallow } from 'zustand/shallow';
-import { formatTime } from '@/shared/lib/react-utils';
 import { Badge } from '@/shared/ui/badge';
 import { Button } from '@/shared/ui/button';
 import { Card, CardContent } from '@/shared/ui/card';

@@ -1,11 +1,9 @@
 import { TrackNextIcon, TrackPreviousIcon } from '@radix-ui/react-icons';
 import type { AudioTrack, SubtitleTrack } from '@seerial/domain';
-import { Video } from '@seerial/domain';
+import { formatTime, formatTime, Video } from '@seer
 import { Captions, Music2, Pause, PlayIcon, Volume1, Volume2, VolumeOff } from 'lucide-react';
 import { type MouseEventHandler, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { formatTime } from '@/shared/lib/react-utils';
-import { useLanguageName } from '@/shared/localization/track-languages';
+import { useTranslationeName } freact-i18nextocalization/track-languages';
 import { Button } from '@/shared/ui/button';
 import DropdownWrapper from '@/shared/ui/dropdown-wrapper';
 import FlexBox from '@/shared/ui/flex-box';

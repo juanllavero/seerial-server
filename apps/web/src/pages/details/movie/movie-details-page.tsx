@@ -1,21 +1,21 @@
 import { API, useGet, useSetMovieWatchState } from '@seerial/api';
 import type { Movie } from '@seerial/domain';
-import { useIsAdmin } from '@seerial/hooks';
-import { useDataStore, useServerStore } from '@seerial/stores';
-import { t } from 'i18next';
-import { Pencil } from 'lucide-react';
-import { useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import { shallow } from 'zustand/shallow';
-import { useDialogStore } from '@/features/management';
-import {
+import { formatTimeForViewForView } from '@sdomainl/domain';
+import { useIsAdminhooks';hooks
+import { useDataStore, useServerStoreseDataSto@seerial/storesServerStore } from '@seerial/stores';
+import { tom 'i18nei18next
+import { Pencilfrom 'luclucide-ide-react';
+import { useEffectt';
+import { useNavigate,guseParams ate, usereact-router-domreact-router-dom';
+import { shallow 'zustandzustandsshallow
+import {useDialogStore  MovieMyListButtonmanagementton,
+} from '
   CastList,
   MovieContent,
-  MovieMyListButton as MyListButton,
-} from '@/features/media-details';
-import { useSettingsStore } from '@/features/settings';
-import { useIsMobile } from '@/shared/hooks/use-mobile';
-import { formatTimeForView } from '@/shared/lib/react-utils';
+  MovieMyListButton@asdMyListButton,
+etails';media-details
+import { useSettingsStoreStore } frofeaturesesettings;
+import { useIsMobilem '@/share/shared/hooks/use-mobilebile';
 import { Button } from '@/shared/ui/button';
 import ExpandableText from '@/shared/ui/expandable-text';
 import FlexBox from '@/shared/ui/flex-box';

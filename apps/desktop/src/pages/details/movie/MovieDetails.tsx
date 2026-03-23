@@ -1,11 +1,11 @@
 import { useGetMovie } from '@seerial/api';
 import type { Movie, Video } from '@seerial/domain';
+import { formatDate, formatTimeForView } from '@seerial/domain';
 import { memo, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import GradientBackground from '@/components/backgrounds/GradientBackground';
 import Loading from '@/components/Loading';
 import Page from '@/components/Page';
-import { formatDate, formatTimeForView } from '@/utils/utils';
 import DetailsInfo from '../components/DetailsInfo';
 
 function MovieDetails() {

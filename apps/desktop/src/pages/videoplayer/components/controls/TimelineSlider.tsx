@@ -1,7 +1,7 @@
+import { formatTime } from '@seerial/domain';
 import { invoke } from '@tauri-apps/api/core';
 import { useEffect, useRef, useState } from 'react';
 import FlexBox from '@/components/ui/FlexBox';
-import { formatTime } from '@/utils/utils';
 import SeekIndicator from './SeekIndicator';
 
 interface TimelineSliderProps {

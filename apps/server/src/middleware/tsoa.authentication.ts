@@ -37,8 +37,27 @@ export async function expressAuthentication(
   }
 }
 
+function getTokenFromRequest(request: Request): string | null {
+  const cookieToken = request.cookies?.token as string | undefined;
+  if (cookieToken) {
+    return cookieToken;
+  }
+
+  const authorization = request.headers.authorization;
+  if (!authorization) {
+    return null;
+  }
+
+  const [scheme, token] = authorization.split(' ');
+  if (scheme?.toLowerCase() !== 'bearer' || !token) {
+    return null;
+  }
+
+  return token;
+}
+
 async function authenticateFull(request: Request): Promise<UserDTO> {
-  const token = request.cookies.token;
+  const token = getTokenFromRequest(request);
 
   if (!token) {
     throw new UnauthorizedException(messages.errors.token.missing);
@@ -85,7 +104,7 @@ async function authenticateFull(request: Request): Promise<UserDTO> {
 }
 
 async function authenticateFast(request: Request): Promise<UserDTO> {
-  const token = request.cookies.token;
+  const token = getTokenFromRequest(request);
   if (!token) {
     throw new UnauthorizedException(messages.errors.token.missing);
   }
@@ -107,7 +126,7 @@ async function authenticateFast(request: Request): Promise<UserDTO> {
 }
 
 async function authenticateAdmin(request: Request): Promise<UserDTO> {
-  const token = request.cookies.token;
+  const token = getTokenFromRequest(request);
   if (!token) {
     throw new UnauthorizedException(messages.errors.token.missing);
   }
@@ -132,7 +151,7 @@ async function authenticateManagement(request: Request): Promise<UserDTO | null>
   const ip = getClientIp(request);
   const isLocal = isLoopback(ip);
 
-  const token = request.cookies?.token as string | undefined;
+  const token = getTokenFromRequest(request) ?? undefined;
 
   // Local request: allow access
   if (isLocal) {
@@ -145,7 +164,7 @@ async function authenticateManagement(request: Request): Promise<UserDTO | null>
           where: { id: decoded.userId },
         });
         if (user) return user;
-      } catch (_e) {}
+      } catch (_e) { }
     }
     return null; // Allow local access without user
   }

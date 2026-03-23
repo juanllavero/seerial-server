@@ -1,5 +1,5 @@
-import { memo, useEffect, useState } from 'react';
-import { isAbsolutePath } from '@/shared/lib/react-utils';
+import { isAbsolutePatheerial/do@seerial/domain;
+import { memo, useEffect, useStatet, useStareactt';
 import { Skeleton } from '@/shared/ui/skeleton';
 
 interface LazyImageProps {
