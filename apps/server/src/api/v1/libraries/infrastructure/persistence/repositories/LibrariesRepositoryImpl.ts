@@ -1,5 +1,5 @@
 import type { DetailsData } from '@seerial/domain';
-import { type ItemType, type LibraryItem, LibraryTypes } from '@seerial/domain';
+import { formatDate, type ItemType, type LibraryItem, LibraryTypes } from '@seerial/domain';
 import { v4 as uuidv4 } from 'uuid';
 import { AlbumModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumModel';
 import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
@@ -259,7 +259,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
   private buildMovieDetails(element: MovieModel, userId: string): DetailsData {
     return {
       title: element.name,
-      info: [],
+      year: element.year,
       genres: element.genres ? element.genres.join(', ') : '',
       score: element.score,
       imdbScore: element.imdbScore,
@@ -279,7 +279,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
 
     return {
       title: element.name,
-      info: [],
+      year: element.year,
       genres: element.genres ? element.genres.join(', ') : '',
       score: element.score,
       imdbScore: undefined,
@@ -297,7 +297,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
   private buildAlbumDetails(element: AlbumModel): DetailsData {
     return {
       title: element.title,
-      info: [],
+      year: element.year,
       genres: element.genres ? element.genres.join(', ') : '',
       score: 0,
       imdbScore: undefined,
@@ -310,7 +310,6 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
   private buildCollectionDetails(element: CollectionModel): DetailsData {
     return {
       title: element.title,
-      info: [],
       genres: '',
       description: element.description || '',
       subtitle: undefined,

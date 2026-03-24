@@ -4,8 +4,8 @@ import { formatDate, formatTimeForView } from '@seerial/domain';
 import { memo, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import GradientBackground from '@/components/backgrounds/GradientBackground';
-import Loading from '@/components/Loading';
-import Page from '@/components/Page';
+import Loading from '@/shared/components/loading';
+import Page from '@/shared/components/page';
 import DetailsInfo from '../components/DetailsInfo';
 
 function MovieDetails() {

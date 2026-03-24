@@ -3,8 +3,8 @@ import { useServerStore } from '@seerial/stores';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { shallow } from 'zustand/shallow';
-import Loading from '@/components/Loading';
 import { LoginLayout, ServerSelector, UserSelector } from '@/features/auth';
+import Loading from '@/shared/components/loading';
 
 export default function LoginPage() {
   const navigate = useNavigate();

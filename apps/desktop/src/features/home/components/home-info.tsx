@@ -44,7 +44,7 @@ function HomeInfo({ selectedElement }: HomeInfoProps) {
             {selectedElement.genres ? selectedElement.genres.join(', ') : ''}
           </span>
 
-          <FlexBox height={'8dvh'} width={'50dvw'} className="max-w-[100dvh]">
+          <FlexBox height={'8dvh'} width={'50dvw'} className="max-w-dvh">
             <span className="line-clamp-3 font-semibold text-md">{selectedElement.overview}</span>
           </FlexBox>
         </>

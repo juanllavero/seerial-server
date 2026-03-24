@@ -23,6 +23,8 @@ export type QueryHookOptions<TResponse> = Omit<UseQueryOptions<TResponse, Error>
     enabled?: boolean
     params?: QueryParams
     queryKey?: QueryKey
+    cachedData?: TResponse | null
+    shouldUseCachedData?: (cachedData: TResponse) => boolean
 }
 
 export type MutationHookOptions<TResponse, TVariables> = Omit<
@@ -47,13 +49,28 @@ export function useApiQuery<TResponse>(
     path: string,
     options?: QueryHookOptions<TResponse>,
 ): ApiQueryResult<TResponse> {
+    const {
+        enabled,
+        params,
+        queryKey: customQueryKey,
+        cachedData,
+        shouldUseCachedData,
+        ...queryOptions
+    } = options ?? {}
+
+    const hasCachedData = cachedData !== null && cachedData !== undefined
+    const shouldServeCachedData =
+        hasCachedData && (shouldUseCachedData ? shouldUseCachedData(cachedData as TResponse) : true)
+
     const query = useQuery<TResponse, Error>({
-        queryKey: options?.queryKey ?? [...queryKey, options?.params],
+        queryKey: customQueryKey ?? [...queryKey, params],
         queryFn: async () => {
-            const response = await apiClient.get<TResponse>(path, { params: options?.params })
+            const response = await apiClient.get<TResponse>(path, { params })
             return unwrapApiPayload<TResponse>(response.data)
         },
-        ...options,
+        enabled: (enabled ?? true) && !shouldServeCachedData,
+        initialData: shouldServeCachedData ? (cachedData as TResponse) : queryOptions.initialData,
+        ...queryOptions,
     })
 
     return {

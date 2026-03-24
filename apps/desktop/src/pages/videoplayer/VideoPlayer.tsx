@@ -4,8 +4,8 @@ import { useServerStore } from '@seerial/stores';
 import { invoke } from '@tauri-apps/api/core';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
-import Loading from '@/components/Loading';
 import FlexBox from '@/components/ui/FlexBox';
+import Loading from '@/shared/components/loading';
 import Controls from './components/controls/Controls';
 import TopBar from './components/TopBar';
 

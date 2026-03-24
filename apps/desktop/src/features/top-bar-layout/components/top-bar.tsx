@@ -4,12 +4,12 @@ import { type Library, LibraryTypes } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronUp, Settings } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { memo, useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router';
 import NavigationButton from '@/components/navigation/NavigationButton';
 import NavigationContainer from '@/components/navigation/NavigationContainer';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
-import LibrariesList from './LibrariesList';
+import LibrariesList from './libraries-list';
 
 const AUTO_OPEN_DELAY_MS = 1000;
 
@@ -21,6 +21,7 @@ const LIBRARY_TYPE_BUTTONS = {
 
 function TopBar() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [showLibraries, setShowLibraries] = useState(false);
   const [libraryType, setLibraryType] = useState<LibraryTypes>(LibraryTypes.MOVIES);
   const [activeLibraryButtonKey, setActiveLibraryButtonKey] = useState<
@@ -171,6 +172,7 @@ function TopBar() {
             >
               <NavigationButton
                 customKey={NavigationFocusKeys.topBar.home}
+                selected={pathname === '/home'}
                 onFocus={handleNonLibraryFocus}
                 onClick={() => navigate('/home')}
               >
@@ -179,6 +181,7 @@ function TopBar() {
               <NavigationButton
                 customKey={LIBRARY_TYPE_BUTTONS[LibraryTypes.MOVIES]}
                 disabled={!showMovies}
+                selected={pathname.split('/').pop() === LibraryTypes.MOVIES}
                 onFocus={() => handleLibraryTypeFocus(LibraryTypes.MOVIES)}
                 onClick={() => handleLibraryTypePress(LibraryTypes.MOVIES)}
               >
@@ -187,6 +190,7 @@ function TopBar() {
               <NavigationButton
                 customKey={LIBRARY_TYPE_BUTTONS[LibraryTypes.SHOWS]}
                 disabled={!showSeries}
+                selected={pathname.split('/').pop() === LibraryTypes.SHOWS}
                 onFocus={() => handleLibraryTypeFocus(LibraryTypes.SHOWS)}
                 onClick={() => handleLibraryTypePress(LibraryTypes.SHOWS)}
               >
@@ -195,6 +199,7 @@ function TopBar() {
               <NavigationButton
                 customKey={LIBRARY_TYPE_BUTTONS[LibraryTypes.MUSIC]}
                 disabled={!showMusic}
+                selected={pathname.split('/').pop() === LibraryTypes.MUSIC}
                 onFocus={() => handleLibraryTypeFocus(LibraryTypes.MUSIC)}
                 onClick={() => handleLibraryTypePress(LibraryTypes.MUSIC)}
               >
@@ -202,6 +207,7 @@ function TopBar() {
               </NavigationButton>
               <NavigationButton
                 customKey={NavigationFocusKeys.topBar.myList}
+                selected={pathname === '/myList'}
                 onFocus={handleNonLibraryFocus}
                 onClick={() => navigate('/myList')}
               >
@@ -245,4 +251,4 @@ function TopBar() {
   );
 }
 
-export default TopBar;
+export default memo(TopBar);

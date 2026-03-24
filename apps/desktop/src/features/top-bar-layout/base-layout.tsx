@@ -1,4 +1,4 @@
-import TopBar from './components/TopBar';
+import TopBar from './components/top-bar';
 
 const BaseLayout = ({ children }: { children: React.ReactNode }) => {
   const background = 'black';

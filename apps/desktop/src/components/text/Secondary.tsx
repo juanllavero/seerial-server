@@ -3,7 +3,7 @@ import { memo } from 'react';
 
 interface AppTextProps {
   className?: string;
-  style?: any;
+  style?: React.CSSProperties;
   noShadow?: boolean;
   children: React.ReactNode;
 }

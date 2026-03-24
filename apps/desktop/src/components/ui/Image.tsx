@@ -14,7 +14,6 @@ interface ImageProps {
   objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
   style?: React.CSSProperties;
   className?: string;
-  onClick?: () => void;
 }
 
 const Image: React.FC<ImageProps> = ({
@@ -28,7 +27,6 @@ const Image: React.FC<ImageProps> = ({
   style,
   objectFit = 'cover',
   className = '',
-  onClick,
 }) => {
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
   const [isLoading, setIsLoading] = useState(true);
@@ -110,7 +108,6 @@ const Image: React.FC<ImageProps> = ({
         height,
         aspectRatio,
       }}
-      onClick={onClick}
     >
       {isLoading && <Skeleton className="absolute inset-0 h-full w-full" />}
 
@@ -129,7 +126,8 @@ const Image: React.FC<ImageProps> = ({
 
       {/* Fallback when every image fails */}
       {!isLoading && hasError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-gray-400">
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-300 text-gray-600">
+          {/** biome-ignore lint/a11y/noSvgWithoutTitle: <This is just a fallback> */}
           <svg className="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"

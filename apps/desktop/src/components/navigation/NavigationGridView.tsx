@@ -6,9 +6,15 @@ interface NavigationScrollViewProps {
   children: React.ReactNode;
   className?: string;
   customFocusKey?: string;
+  style?: React.CSSProperties;
 }
 
-const NavigationGridView = ({ children, className, customFocusKey }: NavigationScrollViewProps) => {
+const NavigationGridView = ({
+  children,
+  className,
+  customFocusKey,
+  style,
+}: NavigationScrollViewProps) => {
   const { ref, focusKey } = useFocusable({
     trackChildren: true,
     focusKey: customFocusKey,
@@ -23,6 +29,7 @@ const NavigationGridView = ({ children, className, customFocusKey }: NavigationS
           flex flex-row flex-wrap overflow-y-auto pb-50 pt-10 px-3 scroll-smooth hide-scrollbar
           ${className || ''}
         `}
+        style={style}
       >
         {children}
       </div>

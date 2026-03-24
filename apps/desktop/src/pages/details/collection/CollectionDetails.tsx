@@ -5,9 +5,9 @@ import { memo, useMemo } from 'react';
 import { useParams } from 'react-router';
 import { shallow } from 'zustand/shallow';
 import GradientBackground from '@/components/backgrounds/GradientBackground';
-import Loading from '@/components/Loading';
-import Page from '@/components/Page';
 import { LibraryTypes } from '@/data/enums/enums';
+import Loading from '@/shared/components/loading';
+import Page from '@/shared/components/page';
 import DetailsInfo from '../components/DetailsInfo';
 
 function CollectionDetails() {

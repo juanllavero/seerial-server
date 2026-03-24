@@ -5,8 +5,8 @@ import AlbumDetails from '../pages/details/album/AlbumDetails';
 import CollectionDetails from '../pages/details/collection/CollectionDetails';
 import MovieDetails from '../pages/details/movie/MovieDetails';
 import SeriesDetails from '../pages/details/series/SeriesDetails';
-import Home from '../pages/home/Home';
-import Library from '../pages/library/Library';
+import Home from '../pages/home/home-page';
+import Library from '../pages/library/library-page';
 import VideoPlayer from '../pages/videoplayer/VideoPlayer';
 import Root from './root';
 

@@ -14,6 +14,7 @@ interface FocusableButtonProps {
   onArrowPress?: (direction: string) => boolean | undefined;
   customKey?: string;
   transparent?: boolean;
+  selected?: boolean;
 }
 
 function FocusableButton({
@@ -28,6 +29,7 @@ function FocusableButton({
   onArrowPress,
   customKey,
   transparent = true,
+  selected = false,
 }: FocusableButtonProps) {
   const { ref, focused } = useFocusable({
     onEnterPress: onClick,
@@ -46,7 +48,7 @@ function FocusableButton({
     <Button
       ref={ref}
       title={title}
-      className={`${className} transition-all duration-200 ease-linear rounded-full bg-muted-foreground text-black hover:text-black ${focused ? 'bg-primary text-black' : transparent ? 'text-white bg-transparent' : ''}`}
+      className={`${className} transition-all duration-200 ease-linear rounded-full bg-muted-foreground text-black hover:text-black ${focused ? 'bg-primary text-black' : selected ? 'text-app-color bg-transparent' : transparent ? 'text-white bg-transparent' : ''}`}
       disabled={disabled}
       onClick={onClick}
       style={{ fontWeight: '500' }}

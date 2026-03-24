@@ -35,7 +35,7 @@ export interface DetailsData {
     title: string;
     subtitle?: string;
     tagline?: string;
-    info: string[];
+    year?: string;
     genres: string;
     score?: number;
     imdbScore?: number;

@@ -1,5 +1,5 @@
 import type React from 'react';
-import FlexBox from './ui/FlexBox';
+import FlexBox from '../../components/ui/FlexBox';
 
 interface PageProps {
   children: React.ReactNode;

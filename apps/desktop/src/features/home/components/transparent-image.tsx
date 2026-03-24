@@ -47,7 +47,7 @@ function TransparentImage({ imageSrc }: TransparentImageProps) {
         URL.revokeObjectURL(imageDataUrl);
       }
     };
-  }, [imageSrc, serverUrl]);
+  }, [imageSrc, serverUrl, imageDataUrl, imageHeight, imageWidth]);
 
   return (
     <div className="absolute top-0 right-0 flex justify-end w-full h-full z-1 opacity-20 pointer-events-none">
@@ -56,7 +56,7 @@ function TransparentImage({ imageSrc }: TransparentImageProps) {
       ) : imageDataUrl ? (
         <img
           src={imageDataUrl}
-          alt="Background image"
+          alt="Selected Item Background"
           style={{
             height: imageHeight,
           }}

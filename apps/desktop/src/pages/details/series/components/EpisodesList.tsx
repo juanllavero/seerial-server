@@ -3,8 +3,8 @@ import type { Episode, Season } from '@seerial/domain';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { AnimatedImage } from '@/components/images/AnimatedImage';
-import Loading from '@/components/Loading';
 import NavigationScrollView from '@/components/navigation/NavigationScrollView';
+import Loading from '@/shared/components/loading';
 
 interface EpisodesListProps {
   selectedSeasonId: string;

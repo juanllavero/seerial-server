@@ -1,6 +1,7 @@
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import { useEffect } from 'react';
-import Page from '@/components/Page';
+import Page from '@/shared/components/page';
+import LogoIntro from '../../features/home/logo-intro';
 
 function Home() {
   // const { currentUser } = useServerStore();
@@ -47,7 +48,7 @@ function Home() {
 
       <span className="text-xl z-10">{t('continueWatching')}</span> */}
 
-      {/* <LogoIntro /> */}
+      <LogoIntro />
 
       {/* <NavigationScrollView
         direction="horizontal"

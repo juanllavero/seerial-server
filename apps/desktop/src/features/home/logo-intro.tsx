@@ -67,16 +67,16 @@ const LogoIntro = () => {
 
           {/* Text Container */}
           <div
-            className={`text-container ${
+            className={`${
               animationStage === 'text-appear' || animationStage === 'fade-out'
                 ? 'opacity-100 translate-x-0'
-                : 'opacity-0 translate-x-8'
+                : 'opacity-0 translate-x-50'
             }`}
             style={{
               transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
             }}
           >
-            <span className="text-7xl font-black text-white">eerial</span>
+            <span className="text-8xl font-black text-white">eerial</span>
           </div>
         </div>
       </div>
