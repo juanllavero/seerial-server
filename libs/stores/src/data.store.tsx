@@ -13,6 +13,7 @@ interface DataState {
   currentBackground: string | undefined;
   isContent: boolean;
   loadingContent: boolean;
+  lastFocusedElementId?: string;
 
   selectLibrary: (libraryId: string | null) => void;
   selectCollection: (collectionId: string | null) => void;
@@ -27,6 +28,7 @@ interface DataState {
   setCurrentBackground: (background: string | undefined) => void;
   setIsContent: (isContent: boolean) => void;
   setLoadingContent: (loadingContent: boolean) => void;
+  setLastFocusedElementId: (elementId: string | undefined) => void;
 }
 
 const useDataStore = createWithEqualityFn<DataState>((set) => ({
@@ -42,6 +44,7 @@ const useDataStore = createWithEqualityFn<DataState>((set) => ({
   currentBackground: undefined,
   isContent: false,
   loadingContent: true,
+  lastFocusedElementId: undefined,
 
   selectLibrary(libraryId: string | null) {
     set(() => ({
@@ -112,6 +115,12 @@ const useDataStore = createWithEqualityFn<DataState>((set) => ({
   setLoadingContent(loadingContent: boolean) {
     set(() => ({
       loadingContent: loadingContent,
+    }));
+  },
+
+  setLastFocusedElementId(elementId: string | undefined) {
+    set(() => ({
+      lastFocusedElementId: elementId,
     }));
   },
 }));

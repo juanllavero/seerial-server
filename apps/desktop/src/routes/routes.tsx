@@ -1,13 +1,13 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import LoginPage from '@/pages/login/login-page';
 import TopBarLayout from '@/pages/top-bar-layout/top-bar-layout';
-import AlbumDetails from '../pages/details/album/AlbumDetails';
-import CollectionDetails from '../pages/details/collection/CollectionDetails';
-import MovieDetails from '../pages/details/movie/MovieDetails';
-import SeriesDetails from '../pages/details/series/SeriesDetails';
+import AlbumDetails from '../pages/details/album/album-details-page';
+import CollectionDetails from '../pages/details/collection/collection-details-page';
+import MovieDetails from '../pages/details/movie/movie-details-page';
+import SeriesDetails from '../pages/details/series/series-details-page';
 import Home from '../pages/home/home-page';
 import Library from '../pages/library/library-page';
-import VideoPlayer from '../pages/videoplayer/VideoPlayer';
+import VideoPlayer from '../pages/videoplayer/video-player-page';
 import Root from './root';
 
 export function AppRoutes() {
@@ -18,7 +18,6 @@ export function AppRoutes() {
         <Route index element={<Navigate to="/home" replace />} />
         <Route element={<TopBarLayout />}>
           <Route path="/home" element={<Home />} />
-          <Route path="/home2" element={<VideoPlayer />} />
           <Route index element={<Navigate to="library" replace />} />
           <Route path="library/:libraryId/:type" element={<Library />} />
           <Route path="details/movie/:movieId" element={<MovieDetails />} />

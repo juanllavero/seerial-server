@@ -2,16 +2,13 @@ import { getSignedVideoStreamUrl, useGetVideo } from '@seerial/api';
 import type { Video } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { invoke } from '@tauri-apps/api/core';
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
-import FlexBox from '@/components/ui/FlexBox';
+import VideoPlayer from '@/features/video-player/video-player';
 import Loading from '@/shared/components/loading';
-import Controls from './components/controls/Controls';
-import TopBar from './components/TopBar';
 
-export default function VideoPlayer() {
+function VideoPlayerPage() {
   const { videoId } = useParams();
-  const [showControls, setShowControls] = useState(true);
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
 
   // Get video data
@@ -38,7 +35,7 @@ export default function VideoPlayer() {
   useEffect(() => {
     if (!video || !serverUrl) return;
     getSignedStreamUrl(video, serverUrl).then(setVideoSrc);
-  }, [video?.id, serverUrl]);
+  }, [video, serverUrl, getSignedStreamUrl]);
 
   useEffect(() => {
     invoke('embed_mpv').catch(console.error);
@@ -48,7 +45,7 @@ export default function VideoPlayer() {
     if (videoSrc && (videoSrc.startsWith('http') || videoSrc.startsWith('https'))) {
       loadVideo(videoSrc);
     }
-  }, [videoSrc]);
+  }, [videoSrc, loadVideo]);
 
   const loadVideo = async (url: string) => {
     try {
@@ -72,36 +69,7 @@ export default function VideoPlayer() {
     return <div>Error loading video.</div>;
   }
 
-  return (
-    <FlexBox
-      className="absolute w-full h-full"
-      css={{
-        backgroundColor: showControls ? 'rgba(0, 0, 0, 0.3)' : 'transparent',
-      }}
-      width={'100%'}
-      height={'100%'}
-      justify="space-between"
-      direction="column"
-    >
-      <TopBar />
-
-      <FlexBox
-        width={'100%'}
-        padding="1rem"
-        justify="center"
-        align="center"
-        css={{
-          background:
-            'linear-gradient(to top, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0.8) 3%, rgba(0, 0, 0, 0.5) 50%, rgba(0, 0, 0, 0.3) 70%, rgba(0, 0, 0, 0) 100%)',
-        }}
-      >
-        <Controls
-          video={video}
-          mutateVideo={() => {
-            void mutate();
-          }}
-        />
-      </FlexBox>
-    </FlexBox>
-  );
+  return <VideoPlayer mutateVideo={mutate} video={video} />;
 }
+
+export default memo(VideoPlayerPage);

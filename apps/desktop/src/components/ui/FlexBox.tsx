@@ -30,6 +30,7 @@ interface FlexBoxProps {
   onMouseDown?: (e?: React.MouseEvent) => void;
   onMouseUp?: (e?: React.MouseEvent) => void;
   onScroll?: React.UIEventHandler<HTMLDivElement>;
+  [key: string]: unknown;
 }
 
 function FlexBox({
@@ -54,8 +55,11 @@ function FlexBox({
   onMouseDown,
   onMouseUp,
   onScroll,
+  ...restProps
 }: FlexBoxProps) {
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: <This is a special component>
+    // biome-ignore lint/a11y/useKeyWithClickEvents: <This is a special component>
     <div
       ref={ref}
       className={`${className} ${hideScrollbar ? 'hide-scrollbar' : ''} scroll-smooth ${scroll === 'horizontal' ? 'overflow-x-auto' : ''} ${scroll === 'vertical' ? 'overflow-y-auto' : ''}`}
@@ -67,7 +71,7 @@ function FlexBox({
         alignItems: align,
         width: width,
         height: height,
-        gap: gap + 'rem',
+        gap: `${gap}rem`,
         padding: padding,
         margin: margin,
         ...css,
@@ -78,6 +82,7 @@ function FlexBox({
       onMouseDown={onMouseDown}
       onMouseUp={onMouseUp}
       onScroll={onScroll}
+      {...restProps}
     >
       {children}
     </div>

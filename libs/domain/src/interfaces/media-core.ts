@@ -41,9 +41,11 @@ export interface DetailsData {
     imdbScore?: number;
     description: string;
     directedBy?: string;
+    createdBy?: string;
     watched?: boolean;
     inMyList?: boolean;
     coverSrc?: string;
+    logoSrc?: string;
     backgroundSrc?: string;
 }
 

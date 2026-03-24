@@ -1,56 +1,47 @@
-import { useGetSeries } from '@seerial/api';
-import type { Episode, Season, Series } from '@seerial/domain';
+import type { DetailsData, Episode, Season, Series } from '@seerial/domain';
 import { formatDate, formatTimeForView } from '@seerial/domain';
 import { t } from 'i18next';
 import { memo, useEffect, useState } from 'react';
-import { useParams } from 'react-router';
 import GradientBackground from '@/components/backgrounds/GradientBackground';
-import Loading from '@/shared/components/loading';
+import EpisodesList from '@/features/details/series/components/episodes-list';
+import SeasonSelector from '@/features/details/series/components/season-selector';
+import DetailsInfo from '@/shared/components/details/details-info';
 import Page from '@/shared/components/page';
-import DetailsInfo from '../components/DetailsInfo';
-import EpisodesList from './components/EpisodesList';
-import SeasonSelector from './components/SeasonSelector';
 
-function SeriesDetails() {
-  const { seriesId } = useParams();
+interface SeriesDetailsProps {
+  series: Series | undefined;
+  isLoading: boolean;
+  details: DetailsData | undefined;
+}
+
+function SeriesDetails({ series, isLoading, details }: SeriesDetailsProps) {
   const [selectedSeason, setSelectedSeason] = useState<Season | null>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(null);
 
-  const { data: show, isLoading } = useGetSeries<Series>(seriesId ?? '', {
-    enabled: !!seriesId,
-  });
-
   useEffect(() => {
-    if (show && show.seasons.length > 0) {
-      setSelectedSeason(show.seasons[0]);
+    if (series && series.seasons?.length > 0) {
+      setSelectedSeason(series.seasons[0]);
     }
-  }, [show]);
+  }, [series]);
 
-  if (isLoading) {
-    return <Loading />;
-  }
-
-  if (!show) return <span>Series not found</span>;
+  if (!isLoading && !series) return <span>Series not found</span>;
 
   return (
     <Page padding="0 2rem" justify="end">
-      <GradientBackground imageSrc={selectedSeason?.backgroundSrc ?? show?.coverSrc} index={0} />
+      <GradientBackground
+        imageSrc={details?.backgroundSrc ?? selectedSeason?.backgroundSrc ?? series?.coverSrc}
+        index={0}
+      />
       <DetailsInfo
-        title={show.name}
-        logoUrl={show.logoSrc}
+        details={details}
         subtitle={selectedEpisode?.name}
-        tagline={show.tagline}
-        score={show.score}
-        genres={show.genres}
-        createdBy={show.creator}
         infoItems={[
           selectedEpisode
             ? `${t('seasonLetter')}${selectedEpisode.seasonNumber}${t('episodeLetter')}${selectedEpisode.episodeNumber}`
             : '',
-          formatDate(selectedEpisode ? selectedEpisode.year : show.year),
+          formatDate(selectedEpisode ? selectedEpisode.year : (series?.year ?? '')),
           selectedEpisode ? formatTimeForView(selectedEpisode.video.runtime ?? 0) : '',
         ]}
-        overview={show.overview}
       />
       {selectedSeason && (
         <EpisodesList
@@ -60,7 +51,7 @@ function SeriesDetails() {
         />
       )}
       <SeasonSelector
-        seasons={show.seasons}
+        seasons={series?.seasons ?? []}
         onSelectSeason={setSelectedSeason}
         selectedSeasonId={selectedSeason?.id}
       />

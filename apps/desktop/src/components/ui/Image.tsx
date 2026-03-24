@@ -126,7 +126,7 @@ const Image: React.FC<ImageProps> = ({
 
       {/* Fallback when every image fails */}
       {!isLoading && hasError && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-300 text-gray-600">
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-700 text-gray-200">
           {/** biome-ignore lint/a11y/noSvgWithoutTitle: <This is just a fallback> */}
           <svg className="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path

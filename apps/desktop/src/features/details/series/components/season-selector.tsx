@@ -14,7 +14,10 @@ function SeasonSelector({ seasons, selectedSeasonId, onSelectSeason }: SeasonSel
     if (seasons.length > 0 && !selectedSeasonId) {
       onSelectSeason(seasons[0]);
     }
-  }, [seasons]);
+  }, [seasons, selectedSeasonId, onSelectSeason]);
+
+  if (seasons.length <= 1) return null;
+
   return (
     <FlexBox
       gap={1}
@@ -31,6 +34,7 @@ function SeasonSelector({ seasons, selectedSeasonId, onSelectSeason }: SeasonSel
           <NavigationButton
             transparent
             key={season.id}
+            selected={selectedSeasonId === season.id}
             className={`${selectedSeasonId === season.id ? 'color-app-color' : ''}`}
             onClick={() => onSelectSeason(season)}
           >

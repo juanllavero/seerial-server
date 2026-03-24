@@ -39,6 +39,11 @@ const GradientBackground = ({
           }`,
         );
         const data = await response.json();
+        if (!data || (!data.css && !data.data?.css)) {
+          console.error('Invalid response for gradient generation:', data);
+          return;
+        }
+
         const cleanCss = data.css.replace('background: ', '').replace(';', '');
 
         if (!isMounted) return;
@@ -84,7 +89,7 @@ const GradientBackground = ({
         handleTransitionEndRef.current = null;
       }
     };
-  }, [imageSrc, serverUrl, showGradient]);
+  }, [imageSrc, serverUrl, showGradient, currentGradient]);
 
   return (
     <div className="absolute inset-0 overflow-hidden" style={{ zIndex: index, width, height }}>

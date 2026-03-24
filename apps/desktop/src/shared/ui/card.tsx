@@ -59,6 +59,7 @@ function ContentCard({
   return (
     <FlexBox
       ref={ref}
+      data-focus-key={customKey}
       onClick={() => {
         if (customKey) setFocus(customKey);
         if (focused) action();
@@ -77,11 +78,11 @@ function ContentCard({
           url={imgSrc}
           height="100%"
           width="100%"
-          className={`h-full w-full rounded-md scale-90 border-2 border-transparent ${focused ? 'transform scale-100 transition-all duration-100 border-white' : ''}`}
+          className={`h-full w-full rounded-md scale-95 border-2 border-transparent transition-all duration-50 ${focused ? 'transform scale-100 border-white' : ''}`}
           aspectRatio="auto"
         />
       </div>
-      <div className="flex h-[10%] min-h-0 w-full flex-col justify-center overflow-hidden pt-1">
+      <div className="flex  min-h-0 w-full flex-col justify-center overflow-hidden pt-1">
         {title && <span className="truncate text-sm leading-tight">{title}</span>}
         {subtitle && (
           <span className="truncate text-xs leading-tight text-white/70">{subtitle}</span>

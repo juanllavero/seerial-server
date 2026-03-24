@@ -8,6 +8,7 @@ import Loading from '@/shared/components/loading';
 
 function LibraryPage() {
   const { libraryId, type } = useParams();
+
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
   const [selectedElement, setSelectedElement] = useState<LibraryItem | null>(null);
 
@@ -28,6 +29,7 @@ function LibraryPage() {
       libraryType={type}
       selectedElement={selectedElement}
       setSelectedElement={setSelectedElement}
+      scrollMode="top"
     />
   );
 }

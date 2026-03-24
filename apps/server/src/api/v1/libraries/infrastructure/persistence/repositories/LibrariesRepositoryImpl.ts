@@ -1,5 +1,5 @@
 import type { DetailsData } from '@seerial/domain';
-import { formatDate, type ItemType, type LibraryItem, LibraryTypes } from '@seerial/domain';
+import { type ItemType, type LibraryItem, LibraryTypes } from '@seerial/domain';
 import { v4 as uuidv4 } from 'uuid';
 import { AlbumModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumModel';
 import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
@@ -270,6 +270,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       subtitle: undefined,
       tagline: element.tagline || '',
       coverSrc: element.coverSrc || '',
+      logoSrc: element.logoSrc || '',
       backgroundSrc: element.backgroundSrc || '',
     };
   }
@@ -284,12 +285,13 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       score: element.score,
       imdbScore: undefined,
       description: element.overview || '',
-      directedBy: element.creator ? element.creator.join(', ') : '',
+      createdBy: element.creator ? element.creator.join(', ') : '',
       watched: element.watchLists ? element.watchLists.some((wl) => wl.userId === userId) : false,
       inMyList: element.myLists ? element.myLists.some((ml) => ml.userId === userId) : false,
       subtitle: undefined,
       tagline: element.tagline || '',
       coverSrc: element.coverSrc || '',
+      logoSrc: element.logoSrc || '',
       backgroundSrc: currentSeason?.backgroundSrc || '',
     };
   }

@@ -1,6 +1,9 @@
+import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import { type LibraryItem, LibraryTypes } from '@seerial/domain';
-import { memo, useState } from 'react';
+import { useDataStore } from '@seerial/stores';
+import { memo, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { shallow } from 'zustand/shallow';
 import GradientBackground from '@/components/backgrounds/GradientBackground';
 import NavigationGridView from '@/components/navigation/NavigationGridView';
 import { LibraryContentItemType } from '@/data/enums/enums';
@@ -18,6 +21,7 @@ interface LibraryContentProps {
   libraryType?: string;
   selectedElement: LibraryItem | null;
   setSelectedElement: (item: LibraryItem) => void;
+  scrollMode?: 'top' | 'center';
 }
 
 function LibraryContent({
@@ -25,11 +29,28 @@ function LibraryContent({
   libraryType,
   selectedElement,
   setSelectedElement,
+  scrollMode = 'top',
 }: LibraryContentProps) {
   const navigate = useNavigate();
   const [itemsPerRow, setItemsPerRow] = useState(DEFAULT_ITEMS_PER_ROW);
   const isMusicLibrary = libraryType === LibraryTypes.MUSIC;
   const cardWidth = `calc((100% - ${(itemsPerRow - 1) * GRID_GAP_REM}rem) / ${itemsPerRow})`;
+
+  const { lastFocusedElementId, setLastFocusedElementId } = useDataStore(
+    (state) => ({
+      lastFocusedElementId: state.lastFocusedElementId,
+      setLastFocusedElementId: state.setLastFocusedElementId,
+    }),
+    shallow,
+  );
+
+  useEffect(() => {
+    if (lastFocusedElementId && content?.find((item) => item.id === lastFocusedElementId)) {
+      setFocus(lastFocusedElementId);
+    } else if (content && content.length > 0) {
+      setFocus(content[0].id);
+    }
+  }, [lastFocusedElementId, content]);
 
   return (
     <Page padding="0 2rem">
@@ -44,6 +65,8 @@ function LibraryContent({
         <NavigationGridView
           className="z-10 flex-1 gap-5 content-start"
           style={{ gap: `${GRID_GAP_REM}rem` }}
+          scrollMode={scrollMode}
+          focusedElementId={lastFocusedElementId}
         >
           {content?.map((item) => (
             // Music libraries should always render square covers.
@@ -52,8 +75,12 @@ function LibraryContent({
               key={item.id}
               customKey={item.id}
               title={item.title}
+              subtitle={item.years}
               width={cardWidth}
-              onFocus={() => setSelectedElement(item)}
+              onFocus={() => {
+                setSelectedElement(item);
+                setLastFocusedElementId(item.id);
+              }}
               aspectRatio={
                 isMusicLibrary || item.type === LibraryContentItemType.ALBUM ? '1' : '2/3'
               }
@@ -61,6 +88,9 @@ function LibraryContent({
               action={() => {
                 navigate(
                   `/details/${item.type}/${item.id}${item.type === 'collection' ? `/${item.type}` : ''}`,
+                  {
+                    state: { cachedDetails: item.details },
+                  },
                 );
               }}
             />
