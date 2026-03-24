@@ -9,6 +9,78 @@ export const DEFAULT_API_BASE_URL = '/api'
 
 let apiBaseUrlResolver: (() => string) | null = null
 
+type UnknownObject = Record<string, unknown>
+
+interface ApiEnvelope<TData = unknown> {
+    success?: boolean
+    message?: string
+    data?: TData
+    timestamp?: string
+}
+
+function isObject(value: unknown): value is UnknownObject {
+    return typeof value === 'object' && value !== null
+}
+
+function isApiEnvelope(value: unknown): value is ApiEnvelope {
+    if (!isObject(value)) {
+        return false
+    }
+
+    return 'success' in value || 'message' in value || 'timestamp' in value
+}
+
+export function getApiErrorMessage(error: unknown, fallback = 'Request failed'): string {
+    if (axios.isAxiosError(error)) {
+        const payload = error.response?.data
+
+        if (isApiEnvelope(payload) && typeof payload.message === 'string' && payload.message.length > 0) {
+            return payload.message
+        }
+
+        if (isObject(payload)) {
+            const message = payload.message
+            const altError = payload.error
+
+            if (typeof message === 'string' && message.length > 0) {
+                return message
+            }
+
+            if (typeof altError === 'string' && altError.length > 0) {
+                return altError
+            }
+        }
+
+        if (typeof error.message === 'string' && error.message.length > 0) {
+            return error.message
+        }
+
+        return fallback
+    }
+
+    if (error instanceof Error) {
+        return error.message
+    }
+
+    if (typeof error === 'string' && error.length > 0) {
+        return error
+    }
+
+    return fallback
+}
+
+export function unwrapApiPayload<TResponse>(payload: unknown): TResponse {
+    if (!isApiEnvelope(payload)) {
+        return payload as TResponse
+    }
+
+    if (payload.success === false) {
+        throw new Error(payload.message ?? 'Request failed')
+    }
+
+    return payload.data as TResponse
+}
+
 function safeGetCookieValue(name: string): string | null {
     if (typeof document === 'undefined') {
         return null
@@ -137,16 +209,16 @@ export async function authenticatedFetch<TResponse>(
 
     if (body && method !== 'GET') {
         const response = await apiClient.request<TResponse>({ ...config, data: body })
-        return response.data
+        return unwrapApiPayload<TResponse>(response.data)
     }
 
     const response = await apiClient.request<TResponse>(config)
-    return response.data
+    return unwrapApiPayload<TResponse>(response.data)
 }
 
 export const authenticatedFetcher = async <TResponse>(url: string): Promise<TResponse> => {
     const response = await apiClient.get<TResponse>(url)
-    return response.data
+    return unwrapApiPayload<TResponse>(response.data)
 }
 
 export const fetcherWithParams = async <TResponse, TParams>([
@@ -154,7 +226,7 @@ export const fetcherWithParams = async <TResponse, TParams>([
     params,
 ]: [string, TParams]): Promise<TResponse> => {
     const response = await apiClient.get<TResponse>(url, { params })
-    return response.data
+    return unwrapApiPayload<TResponse>(response.data)
 }
 
 export const api = {
@@ -163,49 +235,40 @@ export const api = {
         params?: TParams,
     ): Promise<TResponse> => {
         const response = await apiClient.get<TResponse>(url, { params })
-        return response.data
+        return unwrapApiPayload<TResponse>(response.data)
     },
 
     post: async <TResponse, TBody = unknown>(url: string, data?: TBody): Promise<TResponse> => {
         const response = await apiClient.post<TResponse>(url, data)
-        return response.data
+        return unwrapApiPayload<TResponse>(response.data)
     },
 
     put: async <TResponse, TBody = unknown>(url: string, data?: TBody): Promise<TResponse> => {
         const response = await apiClient.put<TResponse>(url, data)
-        return response.data
+        return unwrapApiPayload<TResponse>(response.data)
     },
 
     patch: async <TResponse, TBody = unknown>(url: string, data?: TBody): Promise<TResponse> => {
         const response = await apiClient.patch<TResponse>(url, data)
-        return response.data
+        return unwrapApiPayload<TResponse>(response.data)
     },
 
     delete: async <TResponse>(url: string): Promise<TResponse> => {
         const response = await apiClient.delete<TResponse>(url)
-        return response.data
+        return unwrapApiPayload<TResponse>(response.data)
     },
 }
 
-type ServerConfigResponse<TConfig> = { data?: TConfig } | TConfig
-
-type ServerConfigValueResponse<TValue> = { data?: { value?: TValue } } | { value?: TValue }
-
 export async function getServerConfig<TConfig>(): Promise<TConfig> {
-    const response = await api.get<ServerConfigResponse<TConfig>>(API.servers.config)
-    return ((response as { data?: TConfig })?.data ?? response) as TConfig
+    return api.get<TConfig>(API.servers.config)
 }
 
 export async function getServerConfigValue<TValue>(
     key: string,
     defaultValue: TValue,
 ): Promise<TValue> {
-    const response = await api.get<ServerConfigValueResponse<TValue>>(API.servers.configKey(key))
-    const payload =
-        (response as { data?: { value?: TValue } })?.data ??
-        (response as { value?: TValue })
-
-    return payload?.value ?? defaultValue
+    const response = await api.get<{ value?: TValue }>(API.servers.configKey(key))
+    return response?.value ?? defaultValue
 }
 
 export async function patchServerConfig(
@@ -213,10 +276,6 @@ export async function patchServerConfig(
     value: unknown,
 ): Promise<void> {
     await api.patch(API.servers.config, { [key]: value })
-}
-
-interface SignedStreamUrlResponse {
-    data?: string
 }
 
 interface SignedStreamUrlRequest {
@@ -229,11 +288,11 @@ interface SignedStreamUrlRequest {
 export async function getSignedVideoStreamUrl(
     request: SignedStreamUrlRequest,
 ): Promise<string> {
-    const response = await authenticatedFetch<SignedStreamUrlResponse>(
+    const response = await authenticatedFetch<string>(
         API.videoStreaming.signedUrl,
         'POST',
         request,
     )
 
-    return response.data ? `/api${response.data}` : ''
+    return response ? `/api${response}` : ''
 }

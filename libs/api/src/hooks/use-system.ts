@@ -1,6 +1,5 @@
-import type { UseMutationResult } from '@tanstack/react-query'
 import { API } from '../endpoints'
-import { type ApiQueryResult, asBody, type MutationHookOptions, type QueryHookOptions, useApiMutation, useApiQuery } from './common'
+import { type ApiMutationResult, type ApiQueryResult, asBody, type MutationHookOptions, type QueryHookOptions, useApiMutation, useApiQuery } from './common'
 
 export const useSearchMedia = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
@@ -65,18 +64,18 @@ export const useGetServerConfigByKey = <TResponse = unknown>(
 export const useUpdateServer = <TResponse = unknown, TBody = unknown>(
     serverId: string,
     options?: MutationHookOptions<TResponse, TBody>,
-): UseMutationResult<TResponse, Error, TBody> =>
+): ApiMutationResult<TResponse, TBody> =>
     useApiMutation<TResponse, TBody>(['servers', 'update', serverId], API.servers.update(serverId), 'PUT', asBody, options)
 
 export const useUpdateServerConfig = <TResponse = unknown, TBody = unknown>(
     options?: MutationHookOptions<TResponse, TBody>,
-): UseMutationResult<TResponse, Error, TBody> =>
+): ApiMutationResult<TResponse, TBody> =>
     useApiMutation<TResponse, TBody>(['servers', 'config'], API.servers.config, 'PUT', asBody, options)
 
 export const useUpdateServerConfigByKey = <TResponse = unknown, TBody = unknown>(
     key: string,
     options?: MutationHookOptions<TResponse, TBody>,
-): UseMutationResult<TResponse, Error, TBody> =>
+): ApiMutationResult<TResponse, TBody> =>
     useApiMutation<TResponse, TBody>(['servers', 'configKey', key], API.servers.configKey(key), 'PUT', asBody, options)
 
 export const useGetImageDirectoryListing = <TResponse = unknown>(
@@ -98,10 +97,10 @@ export const useGetImageColors = <TResponse = unknown>(
 
 export const useUploadImage = <TResponse = unknown, TBody = unknown>(
     options?: MutationHookOptions<TResponse, TBody>,
-): UseMutationResult<TResponse, Error, TBody> =>
+): ApiMutationResult<TResponse, TBody> =>
     useApiMutation<TResponse, TBody>(['images', 'upload'], API.images.upload, 'POST', asBody, options)
 
 export const useApplyImageTransparency = <TResponse = unknown, TBody = unknown>(
     options?: MutationHookOptions<TResponse, TBody>,
-): UseMutationResult<TResponse, Error, TBody> =>
+): ApiMutationResult<TResponse, TBody> =>
     useApiMutation<TResponse, TBody>(['images', 'transparent'], API.images.transparent, 'POST', asBody, options)

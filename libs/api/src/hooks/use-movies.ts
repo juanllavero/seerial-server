@@ -1,6 +1,5 @@
-import type { UseMutationResult } from '@tanstack/react-query'
 import { API } from '../endpoints'
-import { type ApiQueryResult, asBody, asVoid, type MutationHookOptions, type QueryHookOptions, useApiMutation, useApiQuery } from './common'
+import { type ApiMutationResult, type ApiQueryResult, asBody, asVoid, type MutationHookOptions, type QueryHookOptions, useApiMutation, useApiQuery } from './common'
 
 export const useGetMovie = <TResponse = unknown>(
     movieId: string,
@@ -24,7 +23,7 @@ export const useGetMovieRemainingVideos = <TResponse = unknown>(
 export const useRefreshMovieMetadata = <TResponse = unknown>(
     movieId: string,
     options?: MutationHookOptions<TResponse, void>,
-): UseMutationResult<TResponse, Error, void> =>
+): ApiMutationResult<TResponse, void> =>
     useApiMutation<TResponse, void>(
         ['movies', 'refreshMetadata', movieId],
         API.movies.refreshMetadata(movieId),
@@ -36,7 +35,7 @@ export const useRefreshMovieMetadata = <TResponse = unknown>(
 export const useChangeMovieIdentification = <TResponse = unknown, TBody = unknown>(
     movieId: string,
     options?: MutationHookOptions<TResponse, TBody>,
-): UseMutationResult<TResponse, Error, TBody> =>
+): ApiMutationResult<TResponse, TBody> =>
     useApiMutation<TResponse, TBody>(
         ['movies', 'changeIdentification', movieId],
         API.movies.changeIdentification(movieId),
@@ -48,19 +47,19 @@ export const useChangeMovieIdentification = <TResponse = unknown, TBody = unknow
 export const useUpdateMovie = <TResponse = unknown, TBody = unknown>(
     movieId: string,
     options?: MutationHookOptions<TResponse, TBody>,
-): UseMutationResult<TResponse, Error, TBody> =>
+): ApiMutationResult<TResponse, TBody> =>
     useApiMutation<TResponse, TBody>(['movies', 'update', movieId], API.movies.update(movieId), 'PUT', asBody, options)
 
 export const useDeleteMovie = <TResponse = unknown>(
     movieId: string,
     options?: MutationHookOptions<TResponse, void>,
-): UseMutationResult<TResponse, Error, void> =>
+): ApiMutationResult<TResponse, void> =>
     useApiMutation<TResponse, void>(['movies', 'delete', movieId], API.movies.delete(movieId), 'DELETE', asVoid, options)
 
 export const useSetMovieWatchState = <TResponse = unknown, TBody = unknown>(
     movieId: string,
     options?: MutationHookOptions<TResponse, TBody>,
-): UseMutationResult<TResponse, Error, TBody> =>
+): ApiMutationResult<TResponse, TBody> =>
     useApiMutation<TResponse, TBody>(
         ['movies', 'setWatchState', movieId],
         API.movies.setWatchState(movieId),
@@ -72,5 +71,5 @@ export const useSetMovieWatchState = <TResponse = unknown, TBody = unknown>(
 export const useSetMovieMyListState = <TResponse = unknown, TBody = unknown>(
     movieId: string,
     options?: MutationHookOptions<TResponse, TBody>,
-): UseMutationResult<TResponse, Error, TBody> =>
+): ApiMutationResult<TResponse, TBody> =>
     useApiMutation<TResponse, TBody>(['movies', 'myList', movieId], API.movies.myList(movieId), 'POST', asBody, options)

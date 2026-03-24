@@ -1,6 +1,5 @@
-import type { UseMutationResult } from '@tanstack/react-query'
 import { API } from '../endpoints'
-import { type ApiQueryResult, asBody, asVoid, type MutationHookOptions, type QueryHookOptions, useApiMutation, useApiQuery } from './common'
+import { type ApiMutationResult, type ApiQueryResult, asBody, asVoid, type MutationHookOptions, type QueryHookOptions, useApiMutation, useApiQuery } from './common'
 
 export const useGetVideo = <TResponse = unknown>(
     videoId: string,
@@ -30,19 +29,19 @@ export const useGetVideoSubtitles = <TResponse = unknown>(
 export const useUpdateVideo = <TResponse = unknown, TBody = unknown>(
     videoId: string,
     options?: MutationHookOptions<TResponse, TBody>,
-): UseMutationResult<TResponse, Error, TBody> =>
+): ApiMutationResult<TResponse, TBody> =>
     useApiMutation<TResponse, TBody>(['videos', 'update', videoId], API.videos.update(videoId), 'PUT', asBody, options)
 
 export const useDeleteVideo = <TResponse = unknown>(
     videoId: string,
     options?: MutationHookOptions<TResponse, void>,
-): UseMutationResult<TResponse, Error, void> =>
+): ApiMutationResult<TResponse, void> =>
     useApiMutation<TResponse, void>(['videos', 'delete', videoId], API.videos.delete(videoId), 'DELETE', asVoid, options)
 
 export const useUpdateVideoMediaInfo = <TResponse = unknown, TBody = unknown>(
     videoId: string,
     options?: MutationHookOptions<TResponse, TBody>,
-): UseMutationResult<TResponse, Error, TBody> =>
+): ApiMutationResult<TResponse, TBody> =>
     useApiMutation<TResponse, TBody>(
         ['videos', 'updateMediaInfo', videoId],
         API.videos.updateMediaInfo(videoId),
@@ -54,7 +53,7 @@ export const useUpdateVideoMediaInfo = <TResponse = unknown, TBody = unknown>(
 export const useSetVideoWatchState = <TResponse = unknown, TBody = unknown>(
     videoId: string,
     options?: MutationHookOptions<TResponse, TBody>,
-): UseMutationResult<TResponse, Error, TBody> =>
+): ApiMutationResult<TResponse, TBody> =>
     useApiMutation<TResponse, TBody>(
         ['videos', 'setWatchState', videoId],
         API.videos.setWatchState(videoId),

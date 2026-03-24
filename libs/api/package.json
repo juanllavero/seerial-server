@@ -10,7 +10,11 @@
   },
   "dependencies": {
     "@seerial/domain": "workspace:*",
+    "@tanstack/react-query": "^5.90.2",
     "axios": "^1.13.2",
-    "@tanstack/react-query": "^5.90.2"
+    "react": "^19.2.3"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.8"
   }
 }

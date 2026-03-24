@@ -16,7 +16,7 @@ function LibrariesList({ type, libraries, show, hide }: LibrariesListProps) {
   if (!libraries) return null;
 
   return (
-    <NavigationContainer className="fixed z-50 flex justify-center items-center top-20 w-screen">
+    <NavigationContainer className="fixed z-50 flex justify-center items-center top-10 w-screen px-25">
       <AnimatePresence>
         {show && (
           <motion.div
@@ -24,22 +24,28 @@ function LibrariesList({ type, libraries, show, hide }: LibrariesListProps) {
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
             transition={{ duration: 0.15, ease: 'easeInOut' }}
-            className="flex justify-start overflow-x-auto bg-black/70 p-3 rounded-xl gap-2"
+            className="flex justify-center overflow-x-auto bg-white/70 p-3 rounded-xl gap-2"
           >
-            {libraries
-              .filter((library) => library.type === type)
-              .map((library) => (
-                <NavigationButton
-                  key={library.id}
-                  customKey={library.id}
-                  onClick={() => {
+            {libraries.map((library) => (
+              <NavigationButton
+                key={library.id}
+                customKey={library.id}
+                onArrowPress={(direction) => {
+                  if (direction === 'up') {
                     hide();
-                    navigate(`/library/${library.id}/${type}`);
-                  }}
-                >
-                  {library.name}
-                </NavigationButton>
-              ))}
+                    return false;
+                  }
+
+                  return true;
+                }}
+                onClick={() => {
+                  hide();
+                  navigate(`/library/${library.id}/${type}`);
+                }}
+              >
+                {library.name}
+              </NavigationButton>
+            ))}
           </motion.div>
         )}
       </AnimatePresence>

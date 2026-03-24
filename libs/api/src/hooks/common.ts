@@ -8,7 +8,7 @@ import {
     useMutation,
     useQuery,
 } from '@tanstack/react-query'
-import { apiClient } from '../client'
+import { apiClient, getApiErrorMessage, unwrapApiPayload } from '../client'
 import type { HttpMethod } from '../endpoints'
 
 type QueryParams = Record<string, unknown>
@@ -30,8 +30,16 @@ export type MutationHookOptions<TResponse, TVariables> = Omit<
     'mutationFn'
 >
 
-export type ApiQueryResult<TResponse> = UseQueryResult<TResponse, Error> & {
+export type ApiQueryResult<TResponse> = Omit<UseQueryResult<TResponse, Error>, 'error'> & {
+    error: string | null
     mutate: () => Promise<QueryObserverResult<TResponse, Error>>
+}
+
+export type ApiMutationResult<TResponse, TVariables> = Omit<
+    UseMutationResult<TResponse, Error, TVariables>,
+    'error'
+> & {
+    error: string | null
 }
 
 export function useApiQuery<TResponse>(
@@ -43,13 +51,14 @@ export function useApiQuery<TResponse>(
         queryKey: options?.queryKey ?? [...queryKey, options?.params],
         queryFn: async () => {
             const response = await apiClient.get<TResponse>(path, { params: options?.params })
-            return response.data
+            return unwrapApiPayload<TResponse>(response.data)
         },
         ...options,
     })
 
     return {
         ...query,
+        error: query.error ? getApiErrorMessage(query.error) : null,
         mutate: () => query.refetch(),
     }
 }
@@ -60,8 +69,8 @@ export function useApiMutation<TResponse, TVariables>(
     method: HttpMethod,
     mapVariablesToRequest: (variables: TVariables) => MutationRequestOptions,
     options?: MutationHookOptions<TResponse, TVariables>,
-): UseMutationResult<TResponse, Error, TVariables> {
-    return useMutation<TResponse, Error, TVariables>({
+): ApiMutationResult<TResponse, TVariables> {
+    const mutation = useMutation<TResponse, Error, TVariables>({
         mutationKey,
         mutationFn: async (variables: TVariables) => {
             const request = mapVariablesToRequest(variables)
@@ -72,10 +81,15 @@ export function useApiMutation<TResponse, TVariables>(
                 params: request.params,
             })
 
-            return response.data
+            return unwrapApiPayload<TResponse>(response.data)
         },
         ...options,
     })
+
+    return {
+        ...mutation,
+        error: mutation.error ? getApiErrorMessage(mutation.error) : null,
+    }
 }
 
 export function asBody<TBody>(data: TBody): MutationRequestOptions {

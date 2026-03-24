@@ -1,6 +1,5 @@
-import type { UseMutationResult } from '@tanstack/react-query'
 import { API } from '../endpoints'
-import { type ApiQueryResult, asBody, asVoid, type MutationHookOptions, type QueryHookOptions, useApiMutation, useApiQuery } from './common'
+import { type ApiMutationResult, type ApiQueryResult, asBody, asVoid, type MutationHookOptions, type QueryHookOptions, useApiMutation, useApiQuery } from './common'
 
 export const useGetSeries = <TResponse = unknown>(
     seriesId: string,
@@ -24,18 +23,18 @@ export const useGetSeriesRemainingEpisodes = <TResponse = unknown>(
 
 export const useRefreshSeriesMetadata = <TResponse = unknown, TBody = unknown>(
     options?: MutationHookOptions<TResponse, TBody>,
-): UseMutationResult<TResponse, Error, TBody> =>
+): ApiMutationResult<TResponse, TBody> =>
     useApiMutation<TResponse, TBody>(['series', 'refreshMetadata'], API.series.refreshMetadata, 'POST', asBody, options)
 
 export const useUpdateSeriesShowId = <TResponse = unknown, TBody = unknown>(
     options?: MutationHookOptions<TResponse, TBody>,
-): UseMutationResult<TResponse, Error, TBody> =>
+): ApiMutationResult<TResponse, TBody> =>
     useApiMutation<TResponse, TBody>(['series', 'updateShowId'], API.series.updateShowId, 'PATCH', asBody, options)
 
 export const useUpdateSeriesEpisodeGroup = <TResponse = unknown, TBody = unknown>(
     seriesId: string,
     options?: MutationHookOptions<TResponse, TBody>,
-): UseMutationResult<TResponse, Error, TBody> =>
+): ApiMutationResult<TResponse, TBody> =>
     useApiMutation<TResponse, TBody>(
         ['series', 'updateEpisodeGroup', seriesId],
         API.series.updateEpisodeGroup(seriesId),
@@ -47,19 +46,19 @@ export const useUpdateSeriesEpisodeGroup = <TResponse = unknown, TBody = unknown
 export const useUpdateSeries = <TResponse = unknown, TBody = unknown>(
     seriesId: string,
     options?: MutationHookOptions<TResponse, TBody>,
-): UseMutationResult<TResponse, Error, TBody> =>
+): ApiMutationResult<TResponse, TBody> =>
     useApiMutation<TResponse, TBody>(['series', 'update', seriesId], API.series.update(seriesId), 'PUT', asBody, options)
 
 export const useDeleteSeries = <TResponse = unknown>(
     seriesId: string,
     options?: MutationHookOptions<TResponse, void>,
-): UseMutationResult<TResponse, Error, void> =>
+): ApiMutationResult<TResponse, void> =>
     useApiMutation<TResponse, void>(['series', 'delete', seriesId], API.series.delete(seriesId), 'DELETE', asVoid, options)
 
 export const useSetSeriesWatchState = <TResponse = unknown, TBody = unknown>(
     seriesId: string,
     options?: MutationHookOptions<TResponse, TBody>,
-): UseMutationResult<TResponse, Error, TBody> =>
+): ApiMutationResult<TResponse, TBody> =>
     useApiMutation<TResponse, TBody>(
         ['series', 'setWatchState', seriesId],
         API.series.setWatchState(seriesId),
@@ -71,7 +70,7 @@ export const useSetSeriesWatchState = <TResponse = unknown, TBody = unknown>(
 export const useSetSeriesMyListState = <TResponse = unknown, TBody = unknown>(
     seriesId: string,
     options?: MutationHookOptions<TResponse, TBody>,
-): UseMutationResult<TResponse, Error, TBody> =>
+): ApiMutationResult<TResponse, TBody> =>
     useApiMutation<TResponse, TBody>(['series', 'myList', seriesId], API.series.myList(seriesId), 'POST', asBody, options)
 
 export const useGetSeason = <TResponse = unknown>(
@@ -84,19 +83,19 @@ export const useGetSeason = <TResponse = unknown>(
 export const useUpdateSeason = <TResponse = unknown, TBody = unknown>(
     seasonId: string,
     options?: MutationHookOptions<TResponse, TBody>,
-): UseMutationResult<TResponse, Error, TBody> =>
+): ApiMutationResult<TResponse, TBody> =>
     useApiMutation<TResponse, TBody>(['seasons', 'update', seasonId], API.seasons.update(seasonId), 'PUT', asBody, options)
 
 export const useDeleteSeason = <TResponse = unknown>(
     seasonId: string,
     options?: MutationHookOptions<TResponse, void>,
-): UseMutationResult<TResponse, Error, void> =>
+): ApiMutationResult<TResponse, void> =>
     useApiMutation<TResponse, void>(['seasons', 'delete', seasonId], API.seasons.delete(seasonId), 'DELETE', asVoid, options)
 
 export const useSetSeasonWatchState = <TResponse = unknown, TBody = unknown>(
     seasonId: string,
     options?: MutationHookOptions<TResponse, TBody>,
-): UseMutationResult<TResponse, Error, TBody> =>
+): ApiMutationResult<TResponse, TBody> =>
     useApiMutation<TResponse, TBody>(
         ['seasons', 'setWatchState', seasonId],
         API.seasons.setWatchState(seasonId),
@@ -113,19 +112,19 @@ export const useGetEpisode = <TResponse = unknown>(
 export const useUpdateEpisode = <TResponse = unknown, TBody = unknown>(
     episodeId: string,
     options?: MutationHookOptions<TResponse, TBody>,
-): UseMutationResult<TResponse, Error, TBody> =>
+): ApiMutationResult<TResponse, TBody> =>
     useApiMutation<TResponse, TBody>(['episodes', 'update', episodeId], API.episodes.update(episodeId), 'PUT', asBody, options)
 
 export const useDeleteEpisode = <TResponse = unknown>(
     episodeId: string,
     options?: MutationHookOptions<TResponse, void>,
-): UseMutationResult<TResponse, Error, void> =>
+): ApiMutationResult<TResponse, void> =>
     useApiMutation<TResponse, void>(['episodes', 'delete', episodeId], API.episodes.delete(episodeId), 'DELETE', asVoid, options)
 
 export const useSetEpisodeWatchState = <TResponse = unknown, TBody = unknown>(
     episodeId: string,
     options?: MutationHookOptions<TResponse, TBody>,
-): UseMutationResult<TResponse, Error, TBody> =>
+): ApiMutationResult<TResponse, TBody> =>
     useApiMutation<TResponse, TBody>(
         ['episodes', 'setWatchState', episodeId],
         API.episodes.setWatchState(episodeId),

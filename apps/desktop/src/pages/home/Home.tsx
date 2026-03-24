@@ -1,39 +1,37 @@
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
-import { useGetContinueWatching } from '@seerial/api';
-import type { ContinueWatching } from '@seerial/domain';
-import { useServerStore } from '@seerial/stores';
-import { useEffect, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router';
+import { useEffect } from 'react';
 import Page from '@/components/Page';
-import { Skeleton } from '../../components/ui/skeleton';
 
 function Home() {
-  const { currentUser } = useServerStore();
-  const navigate = useNavigate();
-  const { t } = useTranslation();
-  const { selectedServer } = useServerStore();
-  const serverUrl = selectedServer?.url ?? '';
-  const [selectedElement, setSelectedElement] = useState<ContinueWatching | null>(null);
+  // const { currentUser } = useServerStore();
+  // const navigate = useNavigate();
+  // const { t } = useTranslation();
+  // const { selectedServer } = useServerStore();
+  // const serverUrl = selectedServer?.url ?? '';
+  // const [selectedElement, setSelectedElement] = useState<ContinueWatching | null>(null);
 
   // Get Continue Watching items
-  const { data: continueWatching, isLoading } = useGetContinueWatching<ContinueWatching[]>({
-    enabled: !!selectedServer && !!serverUrl && !!currentUser?.id,
-    params: currentUser?.id ? { userId: currentUser.id } : undefined,
-  });
+  // const { data: continueWatching, isLoading } = useGetContinueWatching<ContinueWatching[]>({
+  //   enabled: !!selectedServer && !!serverUrl && !!currentUser?.id,
+  //   params: currentUser?.id ? { userId: currentUser.id } : undefined,
+  // });
+
+  // useEffect(() => {
+  //   if (continueWatching && continueWatching.length > 0)
+  //     setFocus(`continueWatchingCard-${continueWatching[0].id}`);
+  // }, [continueWatching]);
 
   useEffect(() => {
-    if (continueWatching && continueWatching.length > 0)
-      setFocus(`continueWatchingCard-${continueWatching[0].id}`);
-  }, [continueWatching]);
+    setFocus('home');
+  }, []);
 
-  const goToContent = (url: string) => {
-    navigate(url);
-  };
+  // const goToContent = (url: string) => {
+  //   navigate(url);
+  // };
 
-  const skeletons = Array.from({ length: 10 }, (_, index) => (
-    <Skeleton key={`ContinueWatching ${index}`} className={'w-[280px] h-[400px]'} />
-  ));
+  // const skeletons = Array.from({ length: 10 }, (_, index) => (
+  //   <Skeleton key={`ContinueWatching ${index}`} className={'w-[280px] h-[400px]'} />
+  // ));
 
   return (
     <Page justify="end">

@@ -1,12 +1,5 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useApiMutation, useApiQuery } from './common'
-
-interface ApiResponse<T> {
-    success: boolean
-    message: string
-    data: T | null
-    timestamp: string
-}
 
 interface CrudGetOptions {
     enabled?: boolean
@@ -18,32 +11,20 @@ export const useGet = <T>(url: string | null, options?: CrudGetOptions) => {
     const isEnabled = Boolean(url) && (options?.enabled ?? true)
 
     const {
-        data: response,
+        data,
         isLoading,
         error,
         refetch,
-    } = useApiQuery<ApiResponse<T>>(['crud', 'get', url ?? ''], url ?? '', {
+    } = useApiQuery<T>(['crud', 'get', url ?? ''], url ?? '', {
         enabled: isEnabled,
         refetchOnWindowFocus: options?.revalidateOnFocus,
         staleTime: options?.revalidateIfStale === false ? Number.POSITIVE_INFINITY : undefined,
     })
 
-    const { data, responseError } = useMemo(() => {
-        if (!response) {
-            return { data: null, responseError: null }
-        }
-
-        if (response.success) {
-            return { data: response.data, responseError: null }
-        }
-
-        return { data: null, responseError: response.message }
-    }, [response])
-
     return {
-        data,
+        data: data ?? null,
         isLoading,
-        error: error || responseError,
+        error,
         mutate: () => {
             void refetch()
         },
@@ -59,30 +40,19 @@ interface UseCreateReturn<T> {
 
 export const useCreate = <T>(): UseCreateReturn<T> => {
     const [data, setData] = useState<T | null>(null)
-    const [responseError, setResponseError] = useState<string | null>(null)
 
-    const mutation = useApiMutation<ApiResponse<T>, { url: string; body: Partial<T> }>(
+    const mutation = useApiMutation<T, { url: string; body: Partial<T> }>(
         ['crud', 'create'],
         '',
         'POST',
         ({ url, body }) => ({ url, data: body }),
     )
 
-    const error = useMemo(() => responseError ?? mutation.error?.message ?? null, [responseError, mutation.error?.message])
-
     const create = async (url: string, body: Partial<T>): Promise<T | null> => {
-        setResponseError(null)
-
         try {
             const apiResponse = await mutation.mutateAsync({ url, body })
-
-            if (apiResponse.success) {
-                setData(apiResponse.data)
-                return apiResponse.data
-            }
-
-            setResponseError(apiResponse.message)
-            return null
+            setData(apiResponse ?? null)
+            return apiResponse ?? null
         } catch {
             return null
         }
@@ -91,7 +61,7 @@ export const useCreate = <T>(): UseCreateReturn<T> => {
     return {
         data,
         isLoading: mutation.isPending,
-        error,
+        error: mutation.error,
         create,
     }
 }
@@ -103,29 +73,16 @@ interface UseUpdateReturn<T> {
 }
 
 export const useUpdate = <T>(): UseUpdateReturn<T> => {
-    const [responseError, setResponseError] = useState<string | null>(null)
-
-    const mutation = useApiMutation<ApiResponse<T>, { url: string; body: Partial<T> }>(
+    const mutation = useApiMutation<T, { url: string; body: Partial<T> }>(
         ['crud', 'update'],
         '',
         'PUT',
         ({ url, body }) => ({ url, data: body }),
     )
 
-    const error = useMemo(() => responseError ?? mutation.error?.message ?? null, [responseError, mutation.error?.message])
-
     const update = async (url: string, body: Partial<T>): Promise<T | null> => {
-        setResponseError(null)
-
         try {
-            const apiResponse = await mutation.mutateAsync({ url, body })
-
-            if (apiResponse.success) {
-                return apiResponse.data
-            }
-
-            setResponseError(apiResponse.message)
-            return null
+            return await mutation.mutateAsync({ url, body })
         } catch {
             return null
         }
@@ -133,7 +90,7 @@ export const useUpdate = <T>(): UseUpdateReturn<T> => {
 
     return {
         isLoading: mutation.isPending,
-        error,
+        error: mutation.error,
         update,
     }
 }
@@ -145,24 +102,12 @@ interface UseDeleteReturn {
 }
 
 export const useDelete = (): UseDeleteReturn => {
-    const [responseError, setResponseError] = useState<string | null>(null)
-
-    const mutation = useApiMutation<ApiResponse<T>, string>(['crud', 'delete'], '', 'DELETE', (url) => ({ url }))
-
-    const error = useMemo(() => responseError ?? mutation.error?.message ?? null, [responseError, mutation.error?.message])
+    const mutation = useApiMutation<unknown, string>(['crud', 'delete'], '', 'DELETE', (url) => ({ url }))
 
     const deleteRequest = async (url: string): Promise<boolean> => {
-        setResponseError(null)
-
         try {
-            const apiResponse = await mutation.mutateAsync(url)
-
-            if (apiResponse.success) {
-                return true
-            }
-
-            setResponseError(apiResponse.message)
-            return false
+            await mutation.mutateAsync(url)
+            return true
         } catch {
             return false
         }
@@ -170,7 +115,7 @@ export const useDelete = (): UseDeleteReturn => {
 
     return {
         isLoading: mutation.isPending,
-        error,
+        error: mutation.error,
         deleteRequest,
     }
 }

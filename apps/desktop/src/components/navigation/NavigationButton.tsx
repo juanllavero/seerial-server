@@ -10,6 +10,8 @@ interface FocusableButtonProps {
   children?: React.ReactNode;
   disabled?: boolean;
   onClick?: (e: React.MouseEvent) => void;
+  onFocus?: () => void;
+  onArrowPress?: (direction: string) => boolean | undefined;
   customKey?: string;
   transparent?: boolean;
 }
@@ -22,11 +24,21 @@ function FocusableButton({
   children,
   disabled,
   onClick,
+  onFocus,
+  onArrowPress,
   customKey,
-  transparent = false,
+  transparent = true,
 }: FocusableButtonProps) {
   const { ref, focused } = useFocusable({
     onEnterPress: onClick,
+    onFocus,
+    onArrowPress: onArrowPress
+      ? (direction) => {
+          const shouldContinueNavigation = onArrowPress(direction);
+
+          return shouldContinueNavigation ?? true;
+        }
+      : undefined,
     focusKey: customKey,
   });
 
@@ -34,9 +46,10 @@ function FocusableButton({
     <Button
       ref={ref}
       title={title}
-      className={`${className} hover:text-black ${focused ? 'bg-muted-foreground' : transparent ? 'text-white bg-transparent' : ''}`}
+      className={`${className} transition-all duration-200 ease-linear rounded-full bg-muted-foreground text-black hover:text-black ${focused ? 'bg-primary text-black' : transparent ? 'text-white bg-transparent' : ''}`}
       disabled={disabled}
       onClick={onClick}
+      style={{ fontWeight: '500' }}
     >
       {icon}
       {text}

@@ -1,17 +1,35 @@
+import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import { useGetLibraries } from '@seerial/api';
 import { type Library, LibraryTypes } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
-import { Settings } from 'lucide-react';
-import { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronUp, Settings } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import NavigationButton from '@/components/navigation/NavigationButton';
 import NavigationContainer from '@/components/navigation/NavigationContainer';
+import { NavigationFocusKeys } from '@/shared/navigation/constants';
 import LibrariesList from './LibrariesList';
+
+const AUTO_OPEN_DELAY_MS = 1000;
+
+const LIBRARY_TYPE_BUTTONS = {
+  [LibraryTypes.MOVIES]: NavigationFocusKeys.topBar.movies,
+  [LibraryTypes.SHOWS]: NavigationFocusKeys.topBar.shows,
+  [LibraryTypes.MUSIC]: NavigationFocusKeys.topBar.music,
+} as const;
 
 function TopBar() {
   const navigate = useNavigate();
   const [showLibraries, setShowLibraries] = useState(false);
   const [libraryType, setLibraryType] = useState<LibraryTypes>(LibraryTypes.MOVIES);
+  const [activeLibraryButtonKey, setActiveLibraryButtonKey] = useState<
+    (typeof LIBRARY_TYPE_BUTTONS)[LibraryTypes]
+  >(LIBRARY_TYPE_BUTTONS[LibraryTypes.MOVIES]);
+
+  const autoOpenTimeoutRef = useRef<number | null>(null);
+  const focusToRestoreRef = useRef<string | null>(null);
+  const preventNextAutoOpenFocusKeyRef = useRef<string | null>(null);
 
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
 
@@ -24,72 +42,204 @@ function TopBar() {
   const moviesLibraries = libraries?.filter((library) => library.type === LibraryTypes.MOVIES);
   const seriesLibraries = libraries?.filter((library) => library.type === LibraryTypes.SHOWS);
   const albumsLibraries = libraries?.filter((library) => library.type === LibraryTypes.MUSIC);
+  const selectedLibraries = libraries?.filter((library) => library.type === libraryType) ?? [];
 
   const showMovies = moviesLibraries && moviesLibraries.length > 0;
   const showSeries = seriesLibraries && seriesLibraries.length > 0;
   const showMusic = albumsLibraries && albumsLibraries.length > 0;
 
+  function clearAutoOpenTimeout() {
+    if (autoOpenTimeoutRef.current) {
+      window.clearTimeout(autoOpenTimeoutRef.current);
+      autoOpenTimeoutRef.current = null;
+    }
+  }
+
+  function openLibraries(nextType: LibraryTypes) {
+    const nextLibraries = libraries?.filter((library) => library.type === nextType) ?? [];
+
+    if (nextLibraries.length === 0) {
+      return;
+    }
+
+    clearAutoOpenTimeout();
+    setLibraryType(nextType);
+    setShowLibraries(true);
+  }
+
+  function scheduleLibraryAutoOpen(nextType: LibraryTypes) {
+    clearAutoOpenTimeout();
+
+    const focusKey = LIBRARY_TYPE_BUTTONS[nextType];
+
+    if (preventNextAutoOpenFocusKeyRef.current === focusKey) {
+      preventNextAutoOpenFocusKeyRef.current = null;
+      return;
+    }
+
+    autoOpenTimeoutRef.current = window.setTimeout(() => {
+      openLibraries(nextType);
+    }, AUTO_OPEN_DELAY_MS);
+  }
+
+  function handleLibraryTypeFocus(nextType: LibraryTypes) {
+    const focusKey = LIBRARY_TYPE_BUTTONS[nextType];
+
+    setLibraryType(nextType);
+    setActiveLibraryButtonKey(focusKey);
+
+    if (showLibraries) {
+      return;
+    }
+
+    scheduleLibraryAutoOpen(nextType);
+  }
+
+  function handleLibraryTypePress(nextType: LibraryTypes) {
+    setActiveLibraryButtonKey(LIBRARY_TYPE_BUTTONS[nextType]);
+    openLibraries(nextType);
+  }
+
+  function handleNonLibraryFocus() {
+    clearAutoOpenTimeout();
+  }
+
+  function hideLibraries() {
+    clearAutoOpenTimeout();
+    preventNextAutoOpenFocusKeyRef.current = activeLibraryButtonKey;
+    focusToRestoreRef.current = activeLibraryButtonKey;
+    setShowLibraries(false);
+  }
+
+  useEffect(() => {
+    setFocus(NavigationFocusKeys.topBar.home);
+  }, []);
+
+  useEffect(() => {
+    if (!showLibraries) {
+      if (focusToRestoreRef.current) {
+        const focusKey = focusToRestoreRef.current;
+
+        focusToRestoreRef.current = null;
+
+        const focusFrame = window.requestAnimationFrame(() => {
+          setFocus(focusKey);
+        });
+
+        return () => window.cancelAnimationFrame(focusFrame);
+      }
+
+      return;
+    }
+
+    if (selectedLibraries.length === 0) {
+      return;
+    }
+
+    const focusFrame = window.requestAnimationFrame(() => {
+      setFocus(selectedLibraries[0].id);
+    });
+
+    return () => window.cancelAnimationFrame(focusFrame);
+  }, [selectedLibraries, showLibraries]);
+
+  useEffect(() => {
+    return () => {
+      if (autoOpenTimeoutRef.current) {
+        window.clearTimeout(autoOpenTimeoutRef.current);
+        autoOpenTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
   return (
     <NavigationContainer
-      customFocusKey="topBar"
-      className="relative flex justify-between items-center w-screen px-5 py-8 z-10"
+      customFocusKey={NavigationFocusKeys.topBar.container}
+      className="relative flex justify-between items-center w-screen py-8 z-10"
     >
-      <img src="/Seerial_logo.svg" alt="Logo" className="w-[5dvh]" />
-      <div className="flex gap-2">
-        <NavigationButton customKey="home" onClick={() => navigate('/home')}>
-          Home
-        </NavigationButton>
-        <NavigationButton
-          customKey="movies"
-          disabled={!showMovies}
-          onClick={() => {
-            if (libraryType === LibraryTypes.MOVIES || !showLibraries) {
-              setShowLibraries(!showLibraries);
-            }
-            setLibraryType(LibraryTypes.MOVIES);
-          }}
-        >
-          Movies
-        </NavigationButton>
-        <NavigationButton
-          customKey="shows"
-          disabled={!showSeries}
-          onClick={() => {
-            if (libraryType === LibraryTypes.SHOWS || !showLibraries) {
-              setShowLibraries(!showLibraries);
-            }
-            setLibraryType(LibraryTypes.SHOWS);
-          }}
-        >
-          Shows
-        </NavigationButton>
-        <NavigationButton
-          customKey="music"
-          disabled={!showMusic}
-          onClick={() => {
-            if (libraryType === LibraryTypes.MUSIC || !showLibraries) {
-              setShowLibraries(!showLibraries);
-            }
-            setLibraryType(LibraryTypes.MUSIC);
-          }}
-        >
-          Music
-        </NavigationButton>
-        <NavigationButton customKey="myList" onClick={() => navigate('/myList')}>
-          My List
-        </NavigationButton>
+      <img src="/Seerial_logo.svg" alt="Logo" className="w-[5dvh] ml-5" />
+      <div className="flex flex-1 justify-center">
+        <AnimatePresence initial={false} mode="wait">
+          {!showLibraries && (
+            <motion.div
+              key="top-bar-actions"
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -40 }}
+              transition={{ duration: 0.2, ease: 'easeInOut' }}
+              className="flex gap-2"
+            >
+              <NavigationButton
+                customKey={NavigationFocusKeys.topBar.home}
+                onFocus={handleNonLibraryFocus}
+                onClick={() => navigate('/home')}
+              >
+                Home
+              </NavigationButton>
+              <NavigationButton
+                customKey={LIBRARY_TYPE_BUTTONS[LibraryTypes.MOVIES]}
+                disabled={!showMovies}
+                onFocus={() => handleLibraryTypeFocus(LibraryTypes.MOVIES)}
+                onClick={() => handleLibraryTypePress(LibraryTypes.MOVIES)}
+              >
+                Movies
+              </NavigationButton>
+              <NavigationButton
+                customKey={LIBRARY_TYPE_BUTTONS[LibraryTypes.SHOWS]}
+                disabled={!showSeries}
+                onFocus={() => handleLibraryTypeFocus(LibraryTypes.SHOWS)}
+                onClick={() => handleLibraryTypePress(LibraryTypes.SHOWS)}
+              >
+                Shows
+              </NavigationButton>
+              <NavigationButton
+                customKey={LIBRARY_TYPE_BUTTONS[LibraryTypes.MUSIC]}
+                disabled={!showMusic}
+                onFocus={() => handleLibraryTypeFocus(LibraryTypes.MUSIC)}
+                onClick={() => handleLibraryTypePress(LibraryTypes.MUSIC)}
+              >
+                Music
+              </NavigationButton>
+              <NavigationButton
+                customKey={NavigationFocusKeys.topBar.myList}
+                onFocus={handleNonLibraryFocus}
+                onClick={() => navigate('/myList')}
+              >
+                My List
+              </NavigationButton>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
       <div>
-        <NavigationButton customKey="settings">
+        <NavigationButton
+          customKey={NavigationFocusKeys.topBar.settings}
+          onFocus={handleNonLibraryFocus}
+          className="mr-5"
+        >
           <Settings />
         </NavigationButton>
       </div>
 
+      <AnimatePresence>
+        {showLibraries && (
+          <motion.div
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.2, ease: 'easeInOut' }}
+            className="pointer-events-none absolute left-1/2 top-3 -translate-x-1/2"
+          >
+            <ChevronUp className="text-white/80" />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <LibrariesList
         type={libraryType}
-        libraries={libraries || []}
+        libraries={selectedLibraries}
         show={showLibraries}
-        hide={() => setShowLibraries(false)}
+        hide={hideLibraries}
       />
     </NavigationContainer>
   );
