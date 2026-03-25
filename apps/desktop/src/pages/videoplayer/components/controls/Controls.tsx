@@ -1,5 +1,5 @@
-import { useGetVideoMediaInfo } from '@seerial/api';
-import type { MediaInfoData, Video } from '@seerial/domain';
+import { useGetVideoMediaInfo, useGetVideoPlaybackInfo } from '@seerial/api';
+import type { MediaInfoData, PlayBackConfig, Video } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { invoke } from '@tauri-apps/api/core';
 import { SettingsIcon } from 'lucide-react';
@@ -7,6 +7,7 @@ import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { shallow } from 'zustand/shallow';
 import NavigationButton from '@/components/navigation/NavigationButton';
 import FlexBox from '@/components/ui/FlexBox';
+import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
 import VideoInfoComponent from '../VideoInfo';
 import TimelineSlider from './TimelineSlider';
 import TracksSelectors from './TracksSelectors';
@@ -19,6 +20,7 @@ interface ControlsProps {
 }
 
 function Controls({ video, runtime, mutateVideo }: ControlsProps) {
+  useKeyboardBack();
   const { user, serverUrl } = useServerStore(
     (state) => ({
       user: state.currentUser,
@@ -31,6 +33,11 @@ function Controls({ video, runtime, mutateVideo }: ControlsProps) {
 
   // Get video info
   const { data: videoInfo } = useGetVideoMediaInfo<MediaInfoData>(video.id, {
+    enabled: !!video.id && serverUrl !== '',
+  });
+
+  // Get playback config
+  const { data: playbackConfig } = useGetVideoPlaybackInfo<PlayBackConfig>(video.id, {
     enabled: !!video.id && serverUrl !== '',
   });
 
@@ -123,7 +130,12 @@ function Controls({ video, runtime, mutateVideo }: ControlsProps) {
           <NavigationButton transparent className="p-2">
             <SettingsIcon />
           </NavigationButton>
-          <TracksSelectors video={video} videoInfo={videoInfo} mutateVideo={mutateVideo} />
+          <TracksSelectors
+            video={video}
+            videoInfo={videoInfo}
+            playbackConfig={playbackConfig}
+            mutateVideo={mutateVideo}
+          />
 
           <FlexBox>
             <VolumeSlider />

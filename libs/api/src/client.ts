@@ -285,11 +285,23 @@ interface SignedStreamUrlRequest {
     expiresIn?: string
 }
 
-export async function getSignedVideoStreamUrl(
+export async function getSignedVideoStreamUrlPassthrough(
     request: SignedStreamUrlRequest,
 ): Promise<string> {
     const response = await authenticatedFetch<string>(
-        API.videoStreaming.signedUrl,
+        API.videoStreaming.passthroughUrl,
+        'POST',
+        request,
+    )
+
+    return response ? `/api${response}` : ''
+}
+
+export async function getSignedVideoStreamUrlTranscoded(
+    request: SignedStreamUrlRequest,
+): Promise<string> {
+    const response = await authenticatedFetch<string>(
+        API.videoStreaming.transcodedUrl,
         'POST',
         request,
     )

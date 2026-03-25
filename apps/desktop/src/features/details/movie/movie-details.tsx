@@ -5,7 +5,8 @@ import {
   type Movie,
   type Video,
 } from '@seerial/domain';
-import { memo, useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
 import GradientBackground from '@/components/backgrounds/GradientBackground';
 import DetailsInfo from '@/shared/components/details/details-info';
 import Page from '@/shared/components/page';
@@ -18,12 +19,19 @@ interface MovieDetailsProps {
 
 function MovieDetails({ movie, isLoading, details }: MovieDetailsProps) {
   const [selectedVideo, selectVideo] = useState<Video | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (movie && movie.videos.length > 0) {
       selectVideo(movie.videos[0]);
     }
   }, [movie]);
+
+  const handlePlay = useCallback(() => {
+    if (selectedVideo) {
+      navigate(`/video-player/${selectedVideo.id}`);
+    }
+  }, [navigate, selectedVideo]);
 
   if (!isLoading && !movie) return <span>Movie not found</span>;
 
@@ -40,6 +48,7 @@ function MovieDetails({ movie, isLoading, details }: MovieDetailsProps) {
           formatDate(details?.year ?? movie?.year ?? ''),
           selectedVideo ? formatTimeForView(selectedVideo.runtime ?? 0) : '',
         ]}
+        handlePlay={handlePlay}
       />
       {/* {movie.videos && movie.videos.length > 1 && (
 				<VideosList

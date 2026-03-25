@@ -1,4 +1,4 @@
-import { getSignedVideoStreamUrl, useGetVideo } from '@seerial/api';
+import { getSignedVideoStreamUrlPassthrough, useGetVideo } from '@seerial/api';
 import type { Video } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { invoke } from '@tauri-apps/api/core';
@@ -24,7 +24,7 @@ function VideoPlayerPage() {
   const [videoError, setVideoError] = useState(false);
 
   const getSignedStreamUrl = useCallback(async (video: Video, serverUrl: string) => {
-    const url = await getSignedVideoStreamUrl({
+    const url = await getSignedVideoStreamUrlPassthrough({
       filePath: video.fileSrc,
       expiresIn: '2m',
     });

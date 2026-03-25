@@ -16,7 +16,6 @@ export const API = {
         myList: (id: string) => `/movies/${id}/my-list`,
     },
     videoStreaming: {
-        signedUrl: '/get-stream-url',
         transcodedUrl: '/video-streaming/transcoded-url',
         passthroughUrl: '/video-streaming/passthrough-url',
         transcoded: '/video-streaming/transcoded',

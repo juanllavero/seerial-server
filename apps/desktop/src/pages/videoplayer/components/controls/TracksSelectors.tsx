@@ -1,5 +1,11 @@
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
-import type { AudioTrack, MediaInfoData, SubtitleTrack, Video } from '@seerial/domain';
+import type {
+  AudioTrack,
+  MediaInfoData,
+  PlayBackConfig,
+  SubtitleTrack,
+  Video,
+} from '@seerial/domain';
 import { getAudioTrack, getSubtitleTrack } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { invoke } from '@tauri-apps/api/core';
@@ -19,6 +25,7 @@ const IMAGE_SUBTITLE_CODECS = ['HDMV_PGS_SUBTITLE', 'DVD_SUBTITLE'];
 interface TracksSelectorsProps {
   video: Video;
   videoInfo?: MediaInfoData;
+  playbackConfig?: PlayBackConfig;
   mutateVideo: () => void;
 }
 
@@ -36,7 +43,7 @@ function getTrackFocusKey(panel: SelectorPanel, trackId: number) {
   return `${panel}-track-${trackId}`;
 }
 
-function TracksSelectors({ video, videoInfo, mutateVideo }: TracksSelectorsProps) {
+function TracksSelectors({ video, videoInfo, playbackConfig, mutateVideo }: TracksSelectorsProps) {
   const { i18n, t } = useTranslation();
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
   const [openPanel, setOpenPanel] = useState<SelectorPanel | null>(null);
@@ -157,7 +164,7 @@ function TracksSelectors({ video, videoInfo, mutateVideo }: TracksSelectorsProps
   }, [openPanel]);
 
   useEffect(() => {
-    if (!videoInfo || !serverUrl) {
+    if (!videoInfo || !serverUrl || !playbackConfig) {
       return;
     }
 
@@ -174,13 +181,10 @@ function TracksSelectors({ video, videoInfo, mutateVideo }: TracksSelectorsProps
 
       const data = await result.json();
       const { videoTracks, audioTracks, subtitleTracks } = data;
-      const preferredAudioTrack = getAudioTrack(
-        videoInfo.playbackPreferences.preferAudioLan,
-        video,
-      );
+      const preferredAudioTrack = getAudioTrack(playbackConfig.preferAudioLan, video);
       const preferredSubtitleTrack = getSubtitleTrack(
-        videoInfo.playbackPreferences.preferSubtitleLan,
-        videoInfo.playbackPreferences.subsMode,
+        playbackConfig.preferSubLan,
+        playbackConfig.subsMode,
         video,
       );
       const selectedVideoTrackId = videoTracks[0]?.id ?? null;
@@ -208,7 +212,7 @@ function TracksSelectors({ video, videoInfo, mutateVideo }: TracksSelectorsProps
     return () => {
       isCancelled = true;
     };
-  }, [mutateVideo, serverUrl, video, videoInfo]);
+  }, [mutateVideo, serverUrl, video, videoInfo, playbackConfig]);
 
   if (!hasAudioOptions && !hasSubtitleOptions) {
     return null;

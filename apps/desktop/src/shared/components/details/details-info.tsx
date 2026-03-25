@@ -15,15 +15,17 @@ interface DetailsInfoProps {
   details: DetailsData | undefined;
   subtitle?: string;
   infoItems?: string[];
+  handlePlay?: () => void;
 }
 
-function DetailsInfo({ details, subtitle, infoItems }: DetailsInfoProps) {
+function DetailsInfo({ details, subtitle, infoItems, handlePlay }: DetailsInfoProps) {
   useKeyboardBack();
-  const handleMoreOptions = useCallback(() => {}, []);
 
   useEffect(() => {
     setFocus(NavigationFocusKeys.details.playButton);
   }, []);
+
+  const handleMoreOptions = useCallback(() => {}, []);
 
   return (
     <FlexBox direction="column" justify="end" margin="0 0 1rem 0" className="z-10">
@@ -98,7 +100,7 @@ function DetailsInfo({ details, subtitle, infoItems }: DetailsInfoProps) {
           customKey={NavigationFocusKeys.details.playButton}
           text={'Play'}
           icon={<PlayIcon />}
-          onClick={() => console.log('Play')}
+          onClick={handlePlay}
         />
         <NavigationButton
           customKey={NavigationFocusKeys.details.markWatchedButton}

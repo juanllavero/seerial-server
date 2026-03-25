@@ -15,7 +15,7 @@ function App() {
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
 
   init({
-    debug: true,
+    //debug: true, // Enable debug mode for spatial navigation
   });
 
   setFocus('continueWatching');
