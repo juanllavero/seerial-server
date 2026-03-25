@@ -116,6 +116,7 @@ import { FindVideoByEpisodeIdUseCase } from '@/api/v1/videos/application/usecase
 import { FindVideoByIdUseCase } from '@/api/v1/videos/application/usecases/FindVideoByIdUseCase';
 import { FindVideoByMovieIdUseCase } from '@/api/v1/videos/application/usecases/FindVideoByMovieIdUseCase';
 import { FindVideoByPathUseCase } from '@/api/v1/videos/application/usecases/FindVideoByPathUseCase';
+import { GetVideoPlaybackInfoUseCase } from '@/api/v1/videos/application/usecases/GetVideoPlaybackInfoUseCase';
 import { UpdateMediaInfoUseCase } from '@/api/v1/videos/application/usecases/UpdateMediaInfoUseCase';
 import { UpdateVideoUseCase } from '@/api/v1/videos/application/usecases/UpdateVideosUseCase';
 import { VideosRepositoryImpl } from '@/api/v1/videos/infrastructure/persistence/repositories/VideosRepositoryImpl';
@@ -339,6 +340,7 @@ export const useCases = {
   getVideoById: () => new FindVideoByIdUseCase(videosRepo),
   getVideoByEpisodeId: () => new FindVideoByEpisodeIdUseCase(videosRepo),
   getVideoByMovieId: () => new FindVideoByMovieIdUseCase(videosRepo),
+  getVideoPlaybackInfo: () => new GetVideoPlaybackInfoUseCase(videosRepo),
   updateVideo: () => new UpdateVideoUseCase(videosRepo),
   updateMediaInfo: () => new UpdateMediaInfoUseCase(videosRepo),
   addVideoAsEpisode: () => new CreateVideoAsEpisodeUseCase(videosRepo),

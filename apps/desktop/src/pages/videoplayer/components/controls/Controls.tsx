@@ -1,13 +1,12 @@
 import { useGetVideoMediaInfo } from '@seerial/api';
-import type { Video, VideoInfo } from '@seerial/domain';
+import type { MediaInfoData, Video } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { invoke } from '@tauri-apps/api/core';
 import { SettingsIcon } from 'lucide-react';
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { shallow } from 'zustand/shallow';
 import NavigationButton from '@/components/navigation/NavigationButton';
 import FlexBox from '@/components/ui/FlexBox';
-import Settings from '../Settings';
 import VideoInfoComponent from '../VideoInfo';
 import TimelineSlider from './TimelineSlider';
 import TracksSelectors from './TracksSelectors';
@@ -31,11 +30,11 @@ function Controls({ video, runtime, mutateVideo }: ControlsProps) {
   const [position, setPosition] = useState(0);
 
   // Get video info
-  const { data: videoInfo } = useGetVideoMediaInfo<VideoInfo>(video.id, {
+  const { data: videoInfo } = useGetVideoMediaInfo<MediaInfoData>(video.id, {
     enabled: !!video.id && serverUrl !== '',
   });
 
-  const watchedList = video?.watchLists?.find((list: any) => list.userId === user?.id);
+  const watchedList = video?.watchLists?.find((list) => list.userId === user?.id);
 
   const timeWatched = watchedList?.timeWatched ?? 0;
 
@@ -45,7 +44,7 @@ function Controls({ video, runtime, mutateVideo }: ControlsProps) {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [showControls, setShowControls] = useState(false);
 
-  const handleMouseMove = () => {
+  const handleKeyPressed = () => {
     setShowControls(true);
 
     // Clear previous timeout if exists
@@ -59,27 +58,7 @@ function Controls({ video, runtime, mutateVideo }: ControlsProps) {
     }, 2000);
   };
 
-  useEffect(() => {
-    if (!video) return;
-
-    initializePosition();
-    setStreamStartTime(timeWatched && timeWatched > 0 ? timeWatched : 0);
-  }, [video.id]);
-
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === ' ') {
-        e.preventDefault();
-        handlePlayPause();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  const initializePosition = async () => {
+  const initializePosition = useCallback(async () => {
     let attempts = 0;
     const maxAttempts = 10;
     const retryInterval = 500; // 500ms
@@ -104,11 +83,31 @@ function Controls({ video, runtime, mutateVideo }: ControlsProps) {
     console.log('Video duration from MPV:', dur);
     setDuration(dur > 0 ? dur : video?.runtime ? video.runtime * 60 || 0 : 0);
     setPosition(streamStartTime ?? 0);
-  };
+  }, [video, streamStartTime]);
 
-  const handlePlayPause = async () => {
+  const handlePlayPause = useCallback(async () => {
     invoke('toggle_play_pause').catch(console.error);
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!video) return;
+
+    initializePosition();
+    setStreamStartTime(timeWatched && timeWatched > 0 ? timeWatched : 0);
+  }, [video, timeWatched, initializePosition]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === ' ') {
+        e.preventDefault();
+        handlePlayPause();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handlePlayPause]);
 
   return (
     <FlexBox
@@ -124,7 +123,7 @@ function Controls({ video, runtime, mutateVideo }: ControlsProps) {
           <NavigationButton transparent className="p-2">
             <SettingsIcon />
           </NavigationButton>
-          {/* <TracksSelectors video={video} videoInfo={videoInfo} mutateVideo={mutateVideo} /> */}
+          <TracksSelectors video={video} videoInfo={videoInfo} mutateVideo={mutateVideo} />
 
           <FlexBox>
             <VolumeSlider />

@@ -35,6 +35,7 @@ function App() {
   );
 }
 
+// biome-ignore lint/style/noNonNullAssertion: <Document should not be null since we control the HTML>
 const root = createRoot(document.getElementById('root')!);
 root.render(
   <QueryClientProvider client={seerialQueryClient}>

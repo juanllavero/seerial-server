@@ -2,7 +2,7 @@ import { getSignedVideoStreamUrl, useGetVideo } from '@seerial/api';
 import type { Video } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { invoke } from '@tauri-apps/api/core';
-import { memo, useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import VideoPlayer from '@/features/video-player/video-player';
 import Loading from '@/shared/components/loading';
@@ -11,7 +11,6 @@ function VideoPlayerPage() {
   const { videoId } = useParams();
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
 
-  // Get video data
   const {
     data: video,
     isLoading: loadingVideo,
@@ -24,13 +23,24 @@ function VideoPlayerPage() {
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [videoError, setVideoError] = useState(false);
 
-  async function getSignedStreamUrl(video: Video, serverUrl: string) {
+  const getSignedStreamUrl = useCallback(async (video: Video, serverUrl: string) => {
     const url = await getSignedVideoStreamUrl({
       filePath: video.fileSrc,
       expiresIn: '2m',
     });
     return `${serverUrl}${url}`;
-  }
+  }, []);
+
+  const loadVideo = useCallback(async (url: string) => {
+    try {
+      await invoke('load_url', { url });
+      setVideoLoaded(true);
+    } catch (e) {
+      console.error(e);
+      setVideoLoaded(false);
+      setVideoError(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (!video || !serverUrl) return;
@@ -46,20 +56,6 @@ function VideoPlayerPage() {
       loadVideo(videoSrc);
     }
   }, [videoSrc, loadVideo]);
-
-  const loadVideo = async (url: string) => {
-    try {
-      await invoke('load_url', {
-        url: url,
-      });
-
-      setVideoLoaded(true);
-    } catch (e) {
-      console.error(e);
-      setVideoLoaded(false);
-      setVideoError(true);
-    }
-  };
 
   if (!video || loadingVideo || !videoLoaded) {
     return <Loading />;

@@ -1,3 +1,4 @@
+import { PlayBackInfo } from '@seerial/domain';
 import type { Response as ExpressResponse } from 'express';
 import { Body, Controller, Delete, Get, Path, Post, Put, Query, Route, Security, Tags } from 'tsoa';
 import {
@@ -37,6 +38,21 @@ export class VideosController extends Controller {
   @Security('cookieAuth')
   public async getByEpisodeId(@Path() episodeId: string): Promise<ApiResponse<Video>> {
     const result = await useCases.getVideoByEpisodeId().execute(episodeId);
+
+    if (!result) {
+      throw new NotFoundException(messages.errors.notFound.video);
+    }
+
+    return ApiResponse.success(result, messages.success.fetch);
+  }
+
+  /**
+   * Get video info for playback (including media info and playback preferences)
+   */
+  @Get('playback-info/{id}')
+  @Security('cookieAuth')
+  public async getPlaybackInfo(@Path() id: string): Promise<ApiResponse<PlayBackInfo>> {
+    const result = await useCases.getVideoPlaybackInfo().execute(id);
 
     if (!result) {
       throw new NotFoundException(messages.errors.notFound.video);

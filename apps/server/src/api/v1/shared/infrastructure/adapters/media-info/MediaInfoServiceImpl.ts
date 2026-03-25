@@ -1,3 +1,4 @@
+import { MediaInfoData } from '@seerial/domain';
 import { getAudioInfo } from '@/api/v1/shared/infrastructure/adapters/ffmpeg/audioInfo';
 import {
   getChapters,
@@ -42,7 +43,7 @@ export class MediaInfoServiceImpl implements MediaInfoServicePort {
    * @param filePath - The absolute path to the media file.
    * @returns A promise that resolves to the media info.
    */
-  async getMediaInformation(filePath: string): Promise<unknown> {
+  async getMediaInformation(filePath: string): Promise<MediaInfoData | undefined> {
     try {
       return await getMediaInfo(decodeURIComponent(filePath));
     } catch (error: unknown) {

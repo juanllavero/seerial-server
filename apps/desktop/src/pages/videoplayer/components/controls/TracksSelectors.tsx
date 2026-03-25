@@ -1,5 +1,5 @@
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
-import type { AudioTrack, SubtitleTrack, Video, VideoInfo } from '@seerial/domain';
+import type { AudioTrack, MediaInfoData, SubtitleTrack, Video } from '@seerial/domain';
 import { getAudioTrack, getSubtitleTrack } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { invoke } from '@tauri-apps/api/core';
@@ -18,7 +18,7 @@ const IMAGE_SUBTITLE_CODECS = ['HDMV_PGS_SUBTITLE', 'DVD_SUBTITLE'];
 
 interface TracksSelectorsProps {
   video: Video;
-  videoInfo?: VideoInfo;
+  videoInfo?: MediaInfoData;
   mutateVideo: () => void;
 }
 
@@ -69,7 +69,7 @@ function TracksSelectors({ video, videoInfo, mutateVideo }: TracksSelectorsProps
   };
 
   const formatAudioTrackLabel = (track: AudioTrack) => {
-    return [getLanguageName(track.languageTag ?? '', i18n.language), track.displayTitle]
+    return [track.languageTag ?? '', i18n.language, track.displayTitle]
       .filter(Boolean)
       .join(' ')
       .trim();
@@ -174,10 +174,13 @@ function TracksSelectors({ video, videoInfo, mutateVideo }: TracksSelectorsProps
 
       const data = await result.json();
       const { videoTracks, audioTracks, subtitleTracks } = data;
-      const preferredAudioTrack = getAudioTrack(videoInfo.preferAudioLan, video);
+      const preferredAudioTrack = getAudioTrack(
+        videoInfo.playbackPreferences.preferAudioLan,
+        video,
+      );
       const preferredSubtitleTrack = getSubtitleTrack(
-        videoInfo.preferSubtitleLan,
-        videoInfo.subsMode,
+        videoInfo.playbackPreferences.preferSubtitleLan,
+        videoInfo.playbackPreferences.subsMode,
         video,
       );
       const selectedVideoTrackId = videoTracks[0]?.id ?? null;

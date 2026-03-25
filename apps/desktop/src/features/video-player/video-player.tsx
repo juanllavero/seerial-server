@@ -5,7 +5,7 @@ import Controls from '@/pages/videoplayer/components/controls/Controls';
 import TopBar from '../top-bar-layout/components/top-bar';
 
 interface VideoPlayerProps {
-  video: Video | undefined;
+  video: Video;
   mutateVideo: () => void;
 }
 

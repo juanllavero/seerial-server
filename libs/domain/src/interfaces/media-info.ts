@@ -1,3 +1,14 @@
+export interface PlayBackInfo {
+    mediaInfoData?: MediaInfoData;
+    playBackConfig?: PlayBackConfig;
+}
+
+export interface PlayBackConfig {
+    preferAudioLan: string;
+    preferSubLan: string;
+    subsMode: string;
+}
+
 export interface MediaInfoData {
     mediaInfo: MediaInfo | undefined;
     videoTracks: VideoTrack[];
