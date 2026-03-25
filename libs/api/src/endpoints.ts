@@ -24,6 +24,7 @@ export const API = {
     },
     videos: {
         get: (id: string) => `/videos/${id}`,
+        getPlaybackInfo: (id: string) => `/videos/playback-info/${id}`,
         getByEpisodeId: (episodeId: string) => `/videos/by-episode/${episodeId}`,
         update: (id: string) => `/videos/${id}`,
         delete: (id: string) => `/videos/${id}`,

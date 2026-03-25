@@ -6,6 +6,12 @@ export const useGetVideo = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
 ): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['videos', 'get', videoId], API.videos.get(videoId), options)
 
+export const useGetVideoPlaybackInfo = <TResponse = unknown>(
+    videoId: string,
+    options?: QueryHookOptions<TResponse>,
+): ApiQueryResult<TResponse> =>
+    useApiQuery<TResponse>(['videos', 'getPlaybackInfo', videoId], API.videos.getPlaybackInfo(videoId), options)
+
 export const useGetVideoByEpisodeId = <TResponse = unknown>(
     episodeId: string,
     options?: QueryHookOptions<TResponse>,
