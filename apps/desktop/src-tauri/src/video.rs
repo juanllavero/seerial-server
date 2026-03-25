@@ -1,7 +1,19 @@
 use std::sync::{Arc, Mutex};
 use libmpv2::Mpv;
+use serde::Serialize;
 use tauri::{State, Window};
 use raw_window_handle::{HasWindowHandle};
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PlaybackStatus {
+    pub position: Option<f64>,
+    pub duration: Option<f64>,
+    pub paused_for_cache: bool,
+    pub seeking: bool,
+    pub idle_active: bool,
+    pub eof_reached: bool,
+}
 
 pub struct MpvState {
     pub mpv: Arc<Mutex<Option<Mpv>>>,
@@ -179,6 +191,20 @@ pub fn set_position(state: State<MpvState>, position: f64) -> Result<(), String>
 #[tauri::command]
 pub fn get_duration(state: State<MpvState>) -> Result<f64, String> {
     state.with_mpv(|mpv| mpv.get_property("duration"))
+}
+
+#[tauri::command]
+pub fn get_playback_status(state: State<MpvState>) -> Result<PlaybackStatus, String> {
+    state.with_mpv(|mpv| {
+        Ok(PlaybackStatus {
+            position: mpv.get_property("time-pos").ok(),
+            duration: mpv.get_property("duration").ok(),
+            paused_for_cache: mpv.get_property("paused-for-cache").unwrap_or(false),
+            seeking: mpv.get_property("seeking").unwrap_or(false),
+            idle_active: mpv.get_property("idle-active").unwrap_or(false),
+            eof_reached: mpv.get_property("eof-reached").unwrap_or(false),
+        })
+    })
 }
 
 #[tauri::command]

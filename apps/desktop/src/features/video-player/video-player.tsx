@@ -1,5 +1,4 @@
 import type { Video } from '@seerial/domain';
-import { useState } from 'react';
 import FlexBox from '@/components/ui/FlexBox';
 import Controls from '@/pages/videoplayer/components/controls/Controls';
 import TopBar from '../top-bar-layout/components/top-bar';
@@ -10,7 +9,8 @@ interface VideoPlayerProps {
 }
 
 export default function VideoPlayer({ video, mutateVideo }: VideoPlayerProps) {
-  const [showControls, setShowControls] = useState(true);
+  //const [showControls, setShowControls] = useState(true);
+  const showControls = true; // For now, always show controls until we implement auto-hide
 
   return (
     <FlexBox

@@ -43,7 +43,7 @@ export class VideoStreamingController extends Controller {
     );
 
     const params = new URLSearchParams({ token });
-    const url = `/stream-video?${params.toString()}`;
+    const url = `/video-streaming/transcoded?${params.toString()}`;
 
     return ApiResponse.success(url, messages.success.fetch);
   }
@@ -70,7 +70,7 @@ export class VideoStreamingController extends Controller {
     );
 
     const params = new URLSearchParams({ token });
-    const url = `/video-file?${params.toString()}`;
+    const url = `/video-streaming/passthrough?${params.toString()}`;
 
     return ApiResponse.success(url, messages.success.fetch);
   }

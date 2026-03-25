@@ -3,7 +3,7 @@ mod video;
 use tauri::Manager;
 use video::{
     MpvState, embed_mpv, play, pause, stop, toggle_play_pause, loadfile, load_url, get_position, set_position,
-    get_duration, set_volume, get_volume, set_audio_track, set_subtitle_track, set_zoom
+    get_duration, get_playback_status, set_volume, get_volume, set_audio_track, set_subtitle_track, set_zoom
 };
 use raw_window_handle::HasWindowHandle;
 
@@ -95,6 +95,7 @@ async fn main() {
             get_position,
             set_position,
             get_duration,
+            get_playback_status,
             set_volume,
             get_volume,
             set_audio_track,

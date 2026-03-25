@@ -51,6 +51,7 @@ function Controls({ video, runtime, mutateVideo }: ControlsProps) {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [showControls, setShowControls] = useState(false);
 
+  // Use a hook to detect keys pressed with Norigin Spatial Navigation
   const handleKeyPressed = () => {
     setShowControls(true);
 
