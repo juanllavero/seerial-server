@@ -464,6 +464,49 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "MediaInfoData": {
+        "dataType": "refObject",
+        "properties": {
+            "mediaInfo": {"dataType":"union","subSchemas":[{"ref":"MediaInfo"},{"dataType":"undefined"}],"required":true},
+            "videoTracks": {"dataType":"array","array":{"dataType":"refObject","ref":"VideoTrack"},"required":true},
+            "subtitleTracks": {"dataType":"array","array":{"dataType":"refObject","ref":"SubtitleTrack"},"required":true},
+            "audioTracks": {"dataType":"array","array":{"dataType":"refObject","ref":"AudioTrack"},"required":true},
+            "chapters": {"dataType":"array","array":{"dataType":"refObject","ref":"Chapter"},"required":true},
+            "duration": {"dataType":"double","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "PlayBackConfig": {
+        "dataType": "refObject",
+        "properties": {
+            "preferAudioLan": {"dataType":"string","required":true},
+            "preferSubLan": {"dataType":"string","required":true},
+            "subsMode": {"dataType":"string","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "PlayBackInfo": {
+        "dataType": "refObject",
+        "properties": {
+            "mediaInfoData": {"ref":"MediaInfoData"},
+            "playBackConfig": {"ref":"PlayBackConfig"},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "ApiResponse_PlayBackInfo_": {
+        "dataType": "refObject",
+        "properties": {
+            "success": {"dataType":"boolean","required":true},
+            "message": {"dataType":"string","required":true},
+            "data": {"dataType":"union","subSchemas":[{"ref":"PlayBackInfo"},{"dataType":"enum","enums":[null]}],"required":true},
+            "timestamp": {"dataType":"string","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "UpdateVideoDTO": {
         "dataType": "refObject",
         "properties": {
@@ -1284,15 +1327,17 @@ const models: TsoaRoute.Models = {
             "title": {"dataType":"string","required":true},
             "subtitle": {"dataType":"string"},
             "tagline": {"dataType":"string"},
-            "info": {"dataType":"array","array":{"dataType":"string"},"required":true},
+            "year": {"dataType":"string"},
             "genres": {"dataType":"string","required":true},
             "score": {"dataType":"double"},
             "imdbScore": {"dataType":"double"},
             "description": {"dataType":"string","required":true},
             "directedBy": {"dataType":"string"},
+            "createdBy": {"dataType":"string"},
             "watched": {"dataType":"boolean"},
             "inMyList": {"dataType":"boolean"},
             "coverSrc": {"dataType":"string"},
+            "logoSrc": {"dataType":"string"},
             "backgroundSrc": {"dataType":"string"},
         },
         "additionalProperties": false,
@@ -1855,7 +1900,6 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 req: {"in":"request","name":"req","required":true,"dataType":"object"},
         };
         app.get('/api/video-streaming/transcoded',
-            authenticateMiddleware([{"cookieAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(VideoStreamingController)),
             ...(fetchMiddlewares<RequestHandler>(VideoStreamingController.prototype.streamVideo)),
 
@@ -1886,7 +1930,6 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 req: {"in":"request","name":"req","required":true,"dataType":"object"},
         };
         app.get('/api/video-streaming/passthrough',
-            authenticateMiddleware([{"cookieAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(VideoStreamingController)),
             ...(fetchMiddlewares<RequestHandler>(VideoStreamingController.prototype.streamVideoFile)),
 
@@ -1964,6 +2007,37 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
 
               await templateService.apiHandler({
                 methodName: 'getByEpisodeId',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: undefined,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        const argsVideosController_getPlaybackInfo: Record<string, TsoaRoute.ParameterSchema> = {
+                id: {"in":"path","name":"id","required":true,"dataType":"string"},
+        };
+        app.get('/api/videos/playback-info/:id',
+            authenticateMiddleware([{"cookieAuth":[]}]),
+            ...(fetchMiddlewares<RequestHandler>(VideosController)),
+            ...(fetchMiddlewares<RequestHandler>(VideosController.prototype.getPlaybackInfo)),
+
+            async function VideosController_getPlaybackInfo(request: ExRequest, response: ExResponse, next: any) {
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args: argsVideosController_getPlaybackInfo, request, response });
+
+                const controller = new VideosController();
+
+              await templateService.apiHandler({
+                methodName: 'getPlaybackInfo',
                 controller,
                 response,
                 next,

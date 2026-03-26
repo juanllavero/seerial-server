@@ -79,7 +79,6 @@ export class VideoStreamingController extends Controller {
    * Stream video with transcoding on the fly
    */
   @Get('transcoded')
-  @Security('cookieAuth')
   public async streamVideo(@Request() req: ExpressRequest): Promise<void> {
     // Apply video stream token verification middleware manually
     await new Promise<void>((resolve, reject) => {
@@ -100,7 +99,6 @@ export class VideoStreamingController extends Controller {
    * Stream video file directly (passthrough) with range support
    */
   @Get('passthrough')
-  @Security('cookieAuth')
   public async streamVideoFile(@Request() req: ExpressRequest): Promise<void> {
     // Apply video stream token verification middleware manually
     await new Promise<void>((resolve, reject) => {
