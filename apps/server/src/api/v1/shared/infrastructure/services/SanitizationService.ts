@@ -16,6 +16,79 @@ const dangerousPatterns = [
   /%252e%252e/gi, // Double URL encoded ..
 ];
 
+function decodePathSafely(rawPath: string): string {
+  try {
+    return decodeURIComponent(rawPath);
+  } catch {
+    return rawPath;
+  }
+}
+
+function isWindowsDrivePath(inputPath: string): boolean {
+  return /^[A-Za-z]:[\\/]/.test(inputPath);
+}
+
+function normalizeForCurrentOs(inputPath: string): string {
+  if (process.platform === 'win32') {
+    return path.win32.normalize(inputPath.replace(/\//g, '\\'));
+  }
+
+  return path.posix.normalize(inputPath.replace(/\\/g, '/'));
+}
+
+function toAbsolutePath(inputPath: string): string {
+  if (process.platform === 'win32') {
+    return path.win32.resolve(inputPath);
+  }
+
+  return path.posix.resolve(inputPath);
+}
+
+function normalizePathForComparison(inputPath: string): string {
+  const normalized = normalizeForCurrentOs(inputPath);
+  return process.platform === 'win32' ? normalized.toLowerCase() : normalized;
+}
+
+/**
+ * Builds platform-aware path candidates from a raw file path.
+ * This allows accepting Windows-formatted paths on Unix-like systems
+ * and mixed-separator inputs coming from URLs or JWT payloads.
+ */
+export function buildCompatiblePathCandidates(filePath: string): string[] {
+  const decodedPath = decodePathSafely(filePath).trim().replace(/^['"]|['"]$/g, '');
+  const candidates = new Set<string>();
+
+  if (!decodedPath) {
+    return [];
+  }
+
+  // Candidate for the current OS using separator normalization only.
+  candidates.add(toAbsolutePath(normalizeForCurrentOs(decodedPath)));
+
+  // Windows drive path support across OSes (e.g. F:\media\movie.mkv).
+  if (isWindowsDrivePath(decodedPath)) {
+    const driveLetter = decodedPath.charAt(0).toLowerCase();
+    const withoutDrive = decodedPath.slice(2).replace(/\\/g, '/').replace(/^\/+/, '');
+
+    candidates.add(path.win32.resolve(path.win32.normalize(decodedPath.replace(/\//g, '\\'))));
+    candidates.add(path.posix.resolve(path.posix.normalize(decodedPath.replace(/\\/g, '/'))));
+    candidates.add(path.posix.resolve(path.posix.normalize(`/mnt/${driveLetter}/${withoutDrive}`)));
+    candidates.add(path.posix.resolve(path.posix.normalize(`/Volumes/${driveLetter}/${withoutDrive}`)));
+  }
+
+  // WSL-style paths on Windows (e.g. /mnt/f/media/movie.mkv).
+  if (process.platform === 'win32') {
+    const mntMatch = decodedPath.match(/^\/mnt\/([a-zA-Z])\/(.*)$/);
+    if (mntMatch) {
+      const drive = `${mntMatch[1].toUpperCase()}:\\`;
+      const rest = mntMatch[2].replace(/\//g, '\\');
+      candidates.add(path.win32.resolve(path.win32.join(drive, rest)));
+    }
+  }
+
+  return Array.from(candidates);
+}
+
 /**
  * Sanitizes a file path and checks if it is secure
  * @param filePath File path to sanitize
@@ -28,8 +101,7 @@ export function sanitizeFilePath(filePath: string, allowedBasePaths?: string[]):
     throw new Error('Invalid file path: path must be a non-empty string');
   }
 
-  // Decode URL encoding
-  const decodedPath = decodeURIComponent(filePath);
+  const decodedPath = decodePathSafely(filePath);
 
   // Detect dangerous patterns
   for (const pattern of dangerousPatterns) {
@@ -38,28 +110,56 @@ export function sanitizeFilePath(filePath: string, allowedBasePaths?: string[]):
     }
   }
 
-  // Normalize and resolve the path
-  const normalizedPath = path.normalize(decodedPath);
-  const resolvedPath = path.resolve(normalizedPath);
-
-  // Verify that the path does not contain parent directory references after normalization
-  if (resolvedPath.includes('..')) {
-    throw new Error('Invalid file path: contains parent directory references');
+  const candidates = buildCompatiblePathCandidates(decodedPath);
+  if (!candidates.length) {
+    throw new Error('Invalid file path: path could not be normalized');
   }
 
-  // If allowed base paths are provided, verify that the path is within them
-  if (allowedBasePaths && allowedBasePaths.length > 0) {
-    const isWithinAllowedPath = allowedBasePaths.some((basePath) => {
-      const resolvedBasePath = path.resolve(basePath);
-      return resolvedPath.startsWith(resolvedBasePath);
-    });
+  const normalizedAllowedBasePaths =
+    allowedBasePaths?.map((basePath) => normalizePathForComparison(toAbsolutePath(basePath))) ?? [];
 
-    if (!isWithinAllowedPath) {
-      throw new Error('Invalid file path: path is outside allowed directories');
+  for (const candidate of candidates) {
+    // Verify that the path does not contain parent directory references after normalization.
+    if (candidate.includes('..')) {
+      continue;
+    }
+
+    if (normalizedAllowedBasePaths.length === 0) {
+      return candidate;
+    }
+
+    const normalizedCandidate = normalizePathForComparison(candidate);
+    const isWithinAllowedPath = normalizedAllowedBasePaths.some((basePath) =>
+      normalizedCandidate.startsWith(basePath),
+    );
+
+    if (isWithinAllowedPath) {
+      return candidate;
     }
   }
 
-  return resolvedPath;
+  if (normalizedAllowedBasePaths.length > 0) {
+    throw new Error('Invalid file path: path is outside allowed directories');
+  }
+
+  // If no candidate matched the policy but there are no allowed paths constraints,
+  // return the first candidate so downstream checks (existence/type) can report precisely.
+  if (candidates.length > 0) {
+    return candidates[0];
+  }
+
+  throw new Error('Invalid file path: path could not be normalized');
+}
+
+function resolveExistingPathCandidate(filePath: string): string | null {
+  const candidates = buildCompatiblePathCandidates(filePath);
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -112,14 +212,17 @@ export function sanitizeFilePathWithExtension(
   }
 
   if (shouldExist) {
-    if (!fs.existsSync(sanitizedPath)) {
+    const existingPath = resolveExistingPathCandidate(sanitizedPath) ?? resolveExistingPathCandidate(filePath);
+    if (!existingPath) {
       throw new Error('File does not exist');
     }
 
-    const stats = fs.statSync(sanitizedPath);
+    const stats = fs.statSync(existingPath);
     if (!stats.isFile()) {
       throw new Error('Path is not a file');
     }
+
+    return existingPath;
   }
 
   return sanitizedPath;

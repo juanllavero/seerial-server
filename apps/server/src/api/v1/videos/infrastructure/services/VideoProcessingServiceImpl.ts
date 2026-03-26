@@ -116,8 +116,9 @@ export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
       setTimeout(() => {
         logger.debug({ message: 'FFmpeg output', stderr: streaming.stderr });
       }, 1000);
-    } catch (_error) {
-      throw new BadRequestException(`Invalid video path: ${videoPath}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : `Invalid video path: ${videoPath}`;
+      throw new BadRequestException(message);
     }
   }
 
@@ -170,8 +171,9 @@ export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
         });
         fs.createReadStream(sanitizedVideoPath).pipe(res);
       }
-    } catch (_error) {
-      throw new BadRequestException(`Invalid video path: ${videoPath}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : `Invalid video path: ${videoPath}`;
+      throw new BadRequestException(message);
     }
   }
 
