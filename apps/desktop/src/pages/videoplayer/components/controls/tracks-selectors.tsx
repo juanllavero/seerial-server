@@ -43,6 +43,69 @@ function getTrackFocusKey(panel: SelectorPanel, trackId: number) {
   return `${panel}-track-${trackId}`;
 }
 
+const SUBTITLE_NONE_FOCUS_KEY = 'subtitle-track-none';
+
+function getInitialFocusKey(
+  panel: SelectorPanel,
+  selectedAudioId: number | undefined,
+  selectedSubtitleId: number | undefined,
+  firstAudioId: number | undefined,
+): string | undefined {
+  if (panel === 'audio') {
+    const id = selectedAudioId ?? firstAudioId;
+    return id === undefined ? undefined : getTrackFocusKey(panel, id);
+  }
+  return selectedSubtitleId === undefined
+    ? SUBTITLE_NONE_FOCUS_KEY
+    : getTrackFocusKey(panel, selectedSubtitleId);
+}
+
+function TrackItem({
+  focusKey,
+  label,
+  codec,
+  isSelected,
+  onClick,
+}: {
+  focusKey: string;
+  label: string;
+  codec?: string;
+  isSelected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <NavigationButton
+      customKey={focusKey}
+      className={`mb-2 h-auto w-full justify-between rounded-2xl border px-5 py-4 text-left text-base transition-colors ${
+        isSelected
+          ? 'border-white/20 bg-white text-black hover:text-black'
+          : 'border-white/10 bg-white/5 text-white hover:text-black'
+      }`}
+      onClick={onClick}
+    >
+      <div className="flex w-full items-center justify-between gap-4">
+        <div className="min-w-0">
+          <div className="truncate text-lg font-medium">{label}</div>
+          {!!codec && (
+            <div
+              className={`mt-1 truncate text-sm ${isSelected ? 'text-black/70' : 'text-white/55'}`}
+            >
+              {codec}
+            </div>
+          )}
+        </div>
+        <div
+          className={`text-sm font-semibold uppercase tracking-[0.2em] ${
+            isSelected ? 'text-black/70' : 'text-white/40'
+          }`}
+        >
+          {isSelected ? 'ON' : ''}
+        </div>
+      </div>
+    </NavigationButton>
+  );
+}
+
 function TracksSelectors({
   video,
   videoInfo,
@@ -110,6 +173,16 @@ function TracksSelectors({
     await invoke('set_audio_track', { trackId: track.id }).catch(console.error);
   };
 
+  const handleDisableSubtitles = useCallback(async () => {
+    setSelectedSubtitleTrack(null);
+    setTracks((currentTracks) => ({
+      ...currentTracks,
+      subtitleTracks: updateSelectedTrack(currentTracks.subtitleTracks, null),
+    }));
+    closePanel();
+    await invoke('set_subtitle_track', { trackId: 0 }).catch(console.error);
+  }, [closePanel]);
+
   const handleSubtitleTrackChange = async (track: SubtitleTrack) => {
     setSelectedSubtitleTrack(track);
     setTracks((currentTracks) => ({
@@ -134,29 +207,25 @@ function TracksSelectors({
       return;
     }
 
-    const activeTrackId =
-      openPanel === 'audio'
-        ? (selectedAudioTrack?.id ?? tracks.audioTracks[0]?.id)
-        : (selectedSubtitleTrack?.id ?? subtitleOptions[0]?.id);
+    const focusKey = getInitialFocusKey(
+      openPanel,
+      selectedAudioTrack?.id,
+      selectedSubtitleTrack?.id,
+      tracks.audioTracks[0]?.id,
+    );
 
-    if (activeTrackId === undefined) {
+    if (!focusKey) {
       return;
     }
 
     const focusTimeout = window.setTimeout(() => {
-      setFocus(getTrackFocusKey(openPanel, activeTrackId));
+      setFocus(focusKey);
     }, 30);
 
     return () => {
       window.clearTimeout(focusTimeout);
     };
-  }, [
-    openPanel,
-    selectedAudioTrack?.id,
-    selectedSubtitleTrack?.id,
-    subtitleOptions,
-    tracks.audioTracks,
-  ]);
+  }, [openPanel, selectedAudioTrack?.id, selectedSubtitleTrack?.id, tracks.audioTracks]);
 
   // Notify parent when panel opens/closes
   useEffect(() => {
@@ -275,6 +344,14 @@ function TracksSelectors({
                   </div>
                 </div>
                 <div className="max-h-88 overflow-y-auto p-3">
+                  {openPanel === 'subtitle' && (
+                    <TrackItem
+                      focusKey={SUBTITLE_NONE_FOCUS_KEY}
+                      label={t('none')}
+                      isSelected={selectedSubtitleTrack === null}
+                      onClick={() => void handleDisableSubtitles()}
+                    />
+                  )}
                   {panelTracks.map((track) => {
                     const isAudioPanel = openPanel === 'audio';
                     const isSelected = isAudioPanel
@@ -285,45 +362,20 @@ function TracksSelectors({
                       : formatSubtitleTrackLabel(track as SubtitleTrack);
 
                     return (
-                      <NavigationButton
+                      <TrackItem
                         key={`${openPanel}-${track.id}`}
-                        customKey={getTrackFocusKey(openPanel, track.id)}
-                        className={`mb-2 h-auto w-full justify-between rounded-2xl border px-5 py-4 text-left text-base transition-colors ${
-                          isSelected
-                            ? 'border-white/20 bg-white text-black hover:text-black'
-                            : 'border-white/10 bg-white/5 text-white hover:text-black'
-                        }`}
+                        focusKey={getTrackFocusKey(openPanel, track.id)}
+                        label={label}
+                        codec={track.codec}
+                        isSelected={isSelected}
                         onClick={() => {
                           if (isAudioPanel) {
                             void handleAudioTrackChange(track as AudioTrack);
                             return;
                           }
-
                           void handleSubtitleTrackChange(track as SubtitleTrack);
                         }}
-                      >
-                        <div className="flex w-full items-center justify-between gap-4">
-                          <div className="min-w-0">
-                            <div className="truncate text-lg font-medium">{label}</div>
-                            {!!track.codec && (
-                              <div
-                                className={`mt-1 truncate text-sm ${
-                                  isSelected ? 'text-black/70' : 'text-white/55'
-                                }`}
-                              >
-                                {track.codec}
-                              </div>
-                            )}
-                          </div>
-                          <div
-                            className={`text-sm font-semibold uppercase tracking-[0.2em] ${
-                              isSelected ? 'text-black/70' : 'text-white/40'
-                            }`}
-                          >
-                            {isSelected ? 'ON' : ''}
-                          </div>
-                        </div>
-                      </NavigationButton>
+                      />
                     );
                   })}
                 </div>

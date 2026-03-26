@@ -2,12 +2,11 @@ import { useGetVideoPlaybackInfo } from '@seerial/api';
 import type { PlayBackInfo, Video } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { invoke } from '@tauri-apps/api/core';
-import { SettingsIcon } from 'lucide-react';
-import { memo, useCallback, useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { shallow } from 'zustand/shallow';
-import NavigationButton from '@/components/navigation/NavigationButton';
 import FlexBox from '@/components/ui/FlexBox';
 import { useKeyboardShortcut } from '@/shared/hooks/use-keyboard-shortcut';
+import Settings from '../Settings';
 import VideoInfoComponent from '../video-info';
 import TimelineSlider from './timeline-slider';
 import TracksSelectors from './tracks-selectors';
@@ -41,6 +40,28 @@ function Controls({
   const [duration, setDuration] = useState(runtime ? runtime * 60 : 0);
   const [position, setPosition] = useState(0);
   const [isTimelineFocused, setIsTimelineFocused] = useState(false);
+  const openPanelsRef = useRef({ tracks: false, settings: false });
+
+  const notifyPanelChange = useCallback(() => {
+    const anyOpen = openPanelsRef.current.tracks || openPanelsRef.current.settings;
+    onTracksPanelChange?.(anyOpen);
+  }, [onTracksPanelChange]);
+
+  const handleTracksPanelInternalChange = useCallback(
+    (open: boolean) => {
+      openPanelsRef.current.tracks = open;
+      notifyPanelChange();
+    },
+    [notifyPanelChange],
+  );
+
+  const handleSettingsPanelChange = useCallback(
+    (open: boolean) => {
+      openPanelsRef.current.settings = open;
+      notifyPanelChange();
+    },
+    [notifyPanelChange],
+  );
 
   // Get playback config
   const { data: playBackInfo } = useGetVideoPlaybackInfo<PlayBackInfo>(video.id, {
@@ -129,14 +150,12 @@ function Controls({
             duration={duration}
           />
           <FlexBox align="center" justify="end" gap={0.5}>
-            <NavigationButton transparent className="p-2">
-              <SettingsIcon />
-            </NavigationButton>
+            <Settings onPanelChange={handleSettingsPanelChange} />
             <TracksSelectors
               video={video}
               videoInfo={playBackInfo?.mediaInfoData}
               playbackConfig={playBackInfo?.playBackConfig}
-              onPanelChange={onTracksPanelChange}
+              onPanelChange={handleTracksPanelInternalChange}
             />
           </FlexBox>
         </FlexBox>

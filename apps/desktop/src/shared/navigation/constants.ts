@@ -31,6 +31,8 @@ export const NavigationFocusKeys = {
         videoTracksButton: 'player-video-tracks-button',
         audioTracksButton: 'player-audio-tracks-button',
         subtitleTracksButton: 'player-subtitle-tracks-button',
+        settingsButton: 'player-settings-button',
+        settingsZoomSlider: 'player-settings-zoom-slider',
         optionsButton: 'player-options-button',
         goBackButton: 'player-go-back-button',
     }
