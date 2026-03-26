@@ -9,12 +9,19 @@ import type { StreamUrlDTO, VideoUrlDTO } from '../../../application/dtos/VideoS
 import type { TranscodeVideoParams } from '../../../application/ports/VideoProcessingServicePort';
 
 type AuthenticatedRequest = ExpressRequest & { user?: { id?: string } };
-type TsoaContext = { response: ExpressResponse };
 type VideoParamsRequest = ExpressRequest & { videoParams: TranscodeVideoParams };
 
 @Route('video-streaming')
 @Tags('Video Streaming')
 export class VideoStreamingController extends Controller {
+  private getStreamingResponse(req: ExpressRequest): ExpressResponse {
+    if (!req.res) {
+      throw new Error('Streaming response object is not available');
+    }
+
+    return req.res;
+  }
+
   /**
    * Generate a JWT-signed URL for video streaming with transcoding
    */
@@ -80,19 +87,18 @@ export class VideoStreamingController extends Controller {
    */
   @Get('transcoded')
   public async streamVideo(@Request() req: ExpressRequest): Promise<void> {
+    const res = this.getStreamingResponse(req);
+
     // Apply video stream token verification middleware manually
     await new Promise<void>((resolve, reject) => {
       const middleware = verifyVideoStreamToken;
-      middleware(req, (this as unknown as TsoaContext).response, (err?: unknown) => {
+      middleware(req, res, (err?: unknown) => {
         if (err) reject(err);
         else resolve();
       });
     });
 
-    videoProcessingService.transcodeAndStreamVideo(
-      (req as VideoParamsRequest).videoParams,
-      (this as unknown as TsoaContext).response,
-    );
+    videoProcessingService.transcodeAndStreamVideo((req as VideoParamsRequest).videoParams, res);
   }
 
   /**
@@ -100,15 +106,17 @@ export class VideoStreamingController extends Controller {
    */
   @Get('passthrough')
   public async streamVideoFile(@Request() req: ExpressRequest): Promise<void> {
+    const res = this.getStreamingResponse(req);
+
     // Apply video stream token verification middleware manually
     await new Promise<void>((resolve, reject) => {
       const middleware = verifyVideoStreamToken;
-      middleware(req, (this as unknown as TsoaContext).response, (err?: unknown) => {
+      middleware(req, res, (err?: unknown) => {
         if (err) reject(err);
         else resolve();
       });
     });
 
-    videoProcessingService.streamDirectVideoFile(req, (this as unknown as TsoaContext).response);
+    videoProcessingService.streamDirectVideoFile(req, res);
   }
 }
