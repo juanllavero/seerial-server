@@ -1,4 +1,4 @@
-import { PlayBackInfo } from '@seerial/domain';
+import { formatDate, PlayBackInfo } from '@seerial/domain';
 import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
 import { useCases } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { getMediaInfo } from '@/api/v1/shared/infrastructure/adapters/ffmpeg/mediaInfo';
@@ -99,6 +99,12 @@ export class VideosRepositoryImpl extends BaseRepository implements VideoReposit
       subsMode: 'autoSubs'
     }
 
+    const videoInfo = {
+      title: '',
+      subtitle: '',
+      info: '',
+    }
+
     if (video.movieId) {
       const movie = await useCases.getMoviebyId().execute(video.movieId);
 
@@ -111,6 +117,9 @@ export class VideosRepositoryImpl extends BaseRepository implements VideoReposit
       if (!library) {
         throw new NotFoundException(messages.errors.notFound.library);
       }
+
+      videoInfo.title = movie.name;
+      videoInfo.info = `(${formatDate(movie.year)})`;
 
       playBackConfig.preferAudioLan = library.preferAudioLan || '';
       playBackConfig.preferSubLan = library.preferSubLan || '';
@@ -134,6 +143,10 @@ export class VideosRepositoryImpl extends BaseRepository implements VideoReposit
         throw new NotFoundException(messages.errors.notFound.series);
       }
 
+      videoInfo.title = episode.name;
+      videoInfo.subtitle = `${series.name} • ${season.name}`;
+      videoInfo.info = `S${season.seasonNumber}E${episode.episodeNumber} • (${formatDate(episode.year)})`;
+
       playBackConfig.preferAudioLan = series.preferAudioLan || '';
       playBackConfig.preferSubLan = series.preferSubLan || '';
       playBackConfig.subsMode = series.subsMode || 'autoSubs';
@@ -146,6 +159,7 @@ export class VideosRepositoryImpl extends BaseRepository implements VideoReposit
     }
 
     return {
+      ...videoInfo,
       mediaInfoData: mediaInfo,
       playBackConfig
     };

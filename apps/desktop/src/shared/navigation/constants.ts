@@ -24,8 +24,7 @@ export const NavigationFocusKeys = {
         repeat: 'music-repeat',
     },
     player: {
-        container: 'player',
-        playPauseButton: 'player-play-pause-button',
+        container: 'player', timeline: 'player-timeline', playPauseButton: 'player-play-pause-button',
         rewindButton: 'player-rewind-button',
         forwardButton: 'player-forward-button',
         volumeButton: 'player-volume-button',

@@ -1,20 +1,45 @@
+import { useFocusable } from '@noriginmedia/norigin-spatial-navigation';
 import { formatTime } from '@seerial/domain';
 import { invoke } from '@tauri-apps/api/core';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import FlexBox from '@/components/ui/FlexBox';
-import SeekIndicator from './SeekIndicator';
+import { useKeyboardShortcut } from '@/shared/hooks/use-keyboard-shortcut';
+import { NavigationFocusKeys } from '@/shared/navigation/constants';
+import SeekIndicator from './seek-indicator';
 
 interface TimelineSliderProps {
   position: number;
   setPosition: (pos: number) => void;
   duration: number;
   setDuration: (dur: number) => void;
+  isFocused: boolean;
+  onFocusChange?: (focused: boolean) => void;
 }
 
-function TimelineSlider({ position, setPosition, duration, setDuration }: TimelineSliderProps) {
+function TimelineSlider({
+  position,
+  setPosition,
+  duration,
+  setDuration,
+  isFocused,
+  onFocusChange,
+}: TimelineSliderProps) {
   const seeking = useRef<boolean>(false);
   const sliderRef = useRef<HTMLInputElement>(null);
   const [seekDirection, setSeekDirection] = useState<'left' | 'right' | null>(null);
+
+  const { ref: focusableRef, focused } = useFocusable({
+    focusKey: NavigationFocusKeys.player.timeline,
+    onFocus: () => onFocusChange?.(true),
+    onBlur: () => onFocusChange?.(false),
+    onArrowPress: (direction) => {
+      if (direction === 'left' || direction === 'right') {
+        // Consume arrow left/right to seek, don't navigate away
+        return false;
+      }
+      return true;
+    },
+  });
 
   const handleSeekStart = () => {
     seeking.current = true;
@@ -37,22 +62,25 @@ function TimelineSlider({ position, setPosition, duration, setDuration }: Timeli
     }
   };
 
-  const seekRelative = async (delta: number) => {
-    // Show visual indicator
-    setSeekDirection(delta < 0 ? 'left' : 'right');
+  const seekRelative = useCallback(
+    async (delta: number) => {
+      // Show visual indicator
+      setSeekDirection(delta < 0 ? 'left' : 'right');
 
-    try {
-      const currentPos = await invoke<number>('get_position');
-      const currentDur = await invoke<number>('get_duration');
+      try {
+        const currentPos = await invoke<number>('get_position');
+        const currentDur = await invoke<number>('get_duration');
 
-      const newPos = Math.max(0, Math.min(currentDur, currentPos + delta));
-      await invoke('set_position', { position: newPos });
-      setPosition(newPos);
-      setDuration(currentDur);
-    } catch (error) {
-      console.error('Seek failed:', error);
-    }
-  };
+        const newPos = Math.max(0, Math.min(currentDur, currentPos + delta));
+        await invoke('set_position', { position: newPos });
+        setPosition(newPos);
+        setDuration(currentDur);
+      } catch (error) {
+        console.error('Seek failed:', error);
+      }
+    },
+    [setPosition, setDuration],
+  );
 
   // Calculate knob position as a percentage
   const getKnobPosition = () => {
@@ -61,21 +89,18 @@ function TimelineSlider({ position, setPosition, duration, setDuration }: Timeli
     return percentage;
   };
 
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') {
+  // Seek only when the timeline is focused
+  useKeyboardShortcut({
+    key: ['ArrowLeft', 'ArrowRight'],
+    enabled: isFocused,
+    onKeyDown: useCallback(
+      (e: KeyboardEvent) => {
         e.preventDefault();
-        seekRelative(-10);
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        seekRelative(10);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+        seekRelative(e.key === 'ArrowLeft' ? -10 : 10);
+      },
+      [seekRelative],
+    ),
+  });
 
   // Update position every 500ms if not seeking
   useEffect(() => {
@@ -85,11 +110,11 @@ function TimelineSlider({ position, setPosition, duration, setDuration }: Timeli
       }
     }, 500);
     return () => clearInterval(interval);
-  }, []);
+  }, [setPosition]);
 
   // Update slider color on position change
   useEffect(() => {
-    if (sliderRef.current) {
+    if (position && sliderRef.current) {
       const min = Number(sliderRef.current.min);
       const max = Number(sliderRef.current.max);
       const value = Number(sliderRef.current.value);
@@ -103,7 +128,7 @@ function TimelineSlider({ position, setPosition, duration, setDuration }: Timeli
   return (
     <FlexBox direction="column" width={'100%'} gap={0.5}>
       <SeekIndicator direction={seekDirection} onAnimationEnd={() => setSeekDirection(null)} />
-      <div style={{ position: 'relative', width: '100%' }}>
+      <div ref={focusableRef} style={{ position: 'relative', width: '100%' }}>
         <input
           ref={sliderRef}
           type="range"
@@ -115,10 +140,12 @@ function TimelineSlider({ position, setPosition, duration, setDuration }: Timeli
           onChange={(e) => handleSeekChange(parseFloat(e.target.value))}
           onMouseUp={(e) => handleSeekEnd(parseFloat((e.target as HTMLInputElement).value))}
           onTouchEnd={() => handleSeekEnd(position)}
+          tabIndex={-1}
           className={`
         w-full h-3 rounded-lg appearance-none cursor-pointer outline-none ring-0
         bg-gray-500/60
-        bg-[linear-gradient(to_right,var(--app-color)_0%,var(--app-color)_var(--value-percent),theme(colors.gray.600)_var(--value-percent),theme(colors.gray.600)_100%)]
+        bg-[linear-gradient(to_right,var(--app-color)_0%,var(--app-color)_var(--value-percent),var(--color-gray-600)_var(--value-percent),var(--color-gray-600)_100%)]
+        transition-all duration-200
 
         [&::-webkit-slider-thumb]:appearance-none
         [&::-webkit-slider-thumb]:w-1.5 
@@ -129,14 +156,19 @@ function TimelineSlider({ position, setPosition, duration, setDuration }: Timeli
         [&::-webkit-slider-thumb]:transition-all 
         [&::-webkit-slider-thumb]:duration-200 
 
-        hover:[&::-webkit-slider-thumb]:-translate-x-1/3
-        hover:[&::-webkit-slider-thumb]:w-5       
-        hover:[&::-webkit-slider-thumb]:h-5       
-        hover:[&::-webkit-slider-thumb]:rounded-full 
-      hover:[&::-webkit-slider-thumb]:bg-white 
-
         [&::-moz-range-progress]:bg-white 
         [&::-moz-range-track]:bg-gray-600
+
+        ${
+          focused
+            ? `h-4 
+          [&::-webkit-slider-thumb]:-translate-x-1/3 
+          [&::-webkit-slider-thumb]:w-5 
+          [&::-webkit-slider-thumb]:h-5 
+          [&::-webkit-slider-thumb]:rounded-full 
+          [&::-webkit-slider-thumb]:bg-white`
+            : ''
+        }
       `}
         />
 

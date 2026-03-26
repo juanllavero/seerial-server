@@ -1,4 +1,7 @@
 export interface PlayBackInfo {
+    title: string;
+    subtitle?: string;
+    info?: string;
     mediaInfoData?: MediaInfoData;
     playBackConfig?: PlayBackConfig;
 }

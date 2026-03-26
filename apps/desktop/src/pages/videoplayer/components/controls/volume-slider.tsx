@@ -1,6 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
 import { Volume1, Volume2, VolumeX } from 'lucide-react';
-import { ref } from 'process';
 import { useEffect, useRef, useState } from 'react';
 import NavigationButton from '@/components/navigation/NavigationButton';
 import FlexBox from '@/components/ui/FlexBox';
@@ -47,7 +46,7 @@ function VolumeSlider() {
 
       sliderRef.current.style.setProperty('--value-percent', `${percentage}%`);
     }
-  }, [volume]);
+  }, []);
 
   return (
     <FlexBox align="center" gap={0.5}>
@@ -64,7 +63,7 @@ function VolumeSlider() {
         className={`
         w-18 h-1.5 rounded-lg appearance-none cursor-pointer
         bg-gray-600
-        bg-[linear-gradient(to_right,theme(colors.white)_0%,theme(colors.white)_var(--value-percent),theme(colors.gray.600)_var(--value-percent),theme(colors.gray.600)_100%)]
+        bg-[linear-gradient(to_right,var(--color-white)_0%,var(--color-white)_var(--value-percent),var(--color-gray-600)_var(--value-percent),var(--color-gray-600)_100%)]
 
         [&::-webkit-slider-thumb]:appearance-none
         [&::-webkit-slider-thumb]:w-4

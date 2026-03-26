@@ -10,8 +10,9 @@ function Settings() {
   return (
     <div>
       <div style={{ marginBottom: '10px' }}>
-        <label>Zoom: </label>
+        <label htmlFor="zoom">Zoom: </label>
         <input
+          id="zoom"
           type="range"
           min={-3}
           max={5}

@@ -11,7 +11,6 @@ import { useServerStore } from '@seerial/stores';
 import { invoke } from '@tauri-apps/api/core';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Captions, Music2 } from 'lucide-react';
-import type { MouseEvent } from 'react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import NavigationButton from '@/components/navigation/NavigationButton';
@@ -26,7 +25,6 @@ interface TracksSelectorsProps {
   video: Video;
   videoInfo?: MediaInfoData;
   playbackConfig?: PlayBackConfig;
-  mutateVideo: () => void;
 }
 
 function updateSelectedTrack<T extends { id: number; selected: boolean }>(
@@ -43,7 +41,7 @@ function getTrackFocusKey(panel: SelectorPanel, trackId: number) {
   return `${panel}-track-${trackId}`;
 }
 
-function TracksSelectors({ video, videoInfo, playbackConfig, mutateVideo }: TracksSelectorsProps) {
+function TracksSelectors({ video, videoInfo, playbackConfig }: TracksSelectorsProps) {
   const { i18n, t } = useTranslation();
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
   const [openPanel, setOpenPanel] = useState<SelectorPanel | null>(null);
@@ -203,8 +201,6 @@ function TracksSelectors({ video, videoInfo, playbackConfig, mutateVideo }: Trac
           track.selected = track.id === selectedVideoTrackId;
         }
       }
-
-      mutateVideo();
     };
 
     void fetchData();
@@ -212,7 +208,7 @@ function TracksSelectors({ video, videoInfo, playbackConfig, mutateVideo }: Trac
     return () => {
       isCancelled = true;
     };
-  }, [mutateVideo, serverUrl, video, videoInfo, playbackConfig]);
+  }, [serverUrl, video, videoInfo, playbackConfig]);
 
   if (!hasAudioOptions && !hasSubtitleOptions) {
     return null;
@@ -228,8 +224,7 @@ function TracksSelectors({ video, videoInfo, playbackConfig, mutateVideo }: Trac
             transparent
             title={t('audio')}
             className={`p-2 ${openPanel === 'audio' ? 'bg-white text-black' : ''}`}
-            onClick={(event: MouseEvent) => {
-              event.stopPropagation();
+            onClick={() => {
               togglePanel('audio');
             }}
           >
@@ -241,9 +236,7 @@ function TracksSelectors({ video, videoInfo, playbackConfig, mutateVideo }: Trac
             transparent
             title={t('subs')}
             className={`p-2 ${openPanel === 'subtitle' ? 'bg-white text-black' : ''}`}
-            onClick={(event: MouseEvent) => {
-              event.preventDefault();
-              event.stopPropagation();
+            onClick={() => {
               togglePanel('subtitle');
             }}
           >
@@ -270,7 +263,7 @@ function TracksSelectors({ video, videoInfo, playbackConfig, mutateVideo }: Trac
                 exit={{ opacity: 0, y: 12, scale: 0.98 }}
                 transition={{ duration: 0.18, ease: 'easeOut' }}
                 className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-black/85 shadow-2xl backdrop-blur-md"
-                onClick={(event: MouseEvent) => event.stopPropagation()}
+                onClick={(event) => event.stopPropagation()}
               >
                 <div className="border-b border-white/10 px-5 py-4">
                   <div className="text-xs uppercase tracking-[0.3em] text-white/45">

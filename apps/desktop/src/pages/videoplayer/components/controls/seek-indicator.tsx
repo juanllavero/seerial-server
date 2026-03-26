@@ -31,7 +31,7 @@ function SeekIndicator({ direction, onAnimationEnd }: SeekIndicatorProps) {
         clearTimeout(cleanupTimer);
       };
     }
-  }, [direction]);
+  }, [direction, onAnimationEnd]);
 
   if (!activeDirection) {
     return null;

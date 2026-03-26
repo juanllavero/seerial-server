@@ -1,8 +1,20 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export function useKeyboardBack(fallbackPath = '/home') {
+export function useKeyboardBack({
+  fallbackPath = '/home',
+  preAction,
+}: {
+  fallbackPath?: string;
+  preAction?: () => void;
+} = {}) {
   const navigate = useNavigate();
+
+  const runPreAction = useCallback(() => {
+    if (preAction) {
+      preAction();
+    }
+  }, [preAction]);
 
   useEffect(() => {
     const isTypingElement = (el: EventTarget | null) => {
@@ -19,6 +31,9 @@ export function useKeyboardBack(fallbackPath = '/home') {
 
       event.preventDefault();
 
+      // Run any pre-navigation action (like closing a modal) before navigating back
+      runPreAction();
+
       // Fallback if there's no history to go back to
       if (window.history.length > 1) {
         navigate(-1);
@@ -29,5 +44,5 @@ export function useKeyboardBack(fallbackPath = '/home') {
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [navigate, fallbackPath]);
+  }, [navigate, fallbackPath, runPreAction]);
 }

@@ -31,11 +31,7 @@ function VideoPlayerPage() {
     currentUserId: state.currentUser?.id,
   }));
 
-  const {
-    data: video,
-    isLoading: loadingVideo,
-    mutate,
-  } = useGetVideo<Video>(videoId ?? '', {
+  const { data: video, isLoading: loadingVideo } = useGetVideo<Video>(videoId ?? '', {
     enabled: !!videoId && serverUrl !== '',
   });
 
@@ -299,9 +295,7 @@ function VideoPlayerPage() {
         }}
       />
 
-      {!!videoLoaded && !isRecoveringPlaybackError && (
-        <VideoPlayer mutateVideo={mutate} video={video} />
-      )}
+      {!!videoLoaded && !isRecoveringPlaybackError && <VideoPlayer video={video} />}
     </>
   );
 }
