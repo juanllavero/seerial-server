@@ -1,5 +1,5 @@
-import { useGetVideoMediaInfo, useGetVideoPlaybackInfo } from '@seerial/api';
-import type { MediaInfoData, PlayBackConfig, Video } from '@seerial/domain';
+import { useGetVideoPlaybackInfo } from '@seerial/api';
+import type { PlayBackInfo, Video } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { invoke } from '@tauri-apps/api/core';
 import { SettingsIcon } from 'lucide-react';
@@ -11,7 +11,6 @@ import { useKeyboardShortcut } from '@/shared/hooks/use-keyboard-shortcut';
 import VideoInfoComponent from '../video-info';
 import TimelineSlider from './timeline-slider';
 import TracksSelectors from './tracks-selectors';
-import VolumeSlider from './volume-slider';
 
 type ControlsMode = 'hidden' | 'full' | 'compact';
 
@@ -20,9 +19,18 @@ interface ControlsProps {
   runtime?: number;
   controlsMode: ControlsMode;
   onTimelineFocusChange?: (focused: boolean) => void;
+  onTracksPanelChange?: (open: boolean) => void;
+  playerInputEnabled?: boolean;
 }
 
-function Controls({ video, runtime, controlsMode, onTimelineFocusChange }: ControlsProps) {
+function Controls({
+  video,
+  runtime,
+  controlsMode,
+  onTimelineFocusChange,
+  onTracksPanelChange,
+  playerInputEnabled = true,
+}: ControlsProps) {
   const { user, serverUrl } = useServerStore(
     (state) => ({
       user: state.currentUser,
@@ -34,13 +42,8 @@ function Controls({ video, runtime, controlsMode, onTimelineFocusChange }: Contr
   const [position, setPosition] = useState(0);
   const [isTimelineFocused, setIsTimelineFocused] = useState(false);
 
-  // Get video info
-  const { data: videoInfo } = useGetVideoMediaInfo<MediaInfoData>(video.id, {
-    enabled: !!video.id && serverUrl !== '',
-  });
-
   // Get playback config
-  const { data: playbackConfig } = useGetVideoPlaybackInfo<PlayBackConfig>(video.id, {
+  const { data: playBackInfo } = useGetVideoPlaybackInfo<PlayBackInfo>(video.id, {
     enabled: !!video.id && serverUrl !== '',
   });
 
@@ -87,6 +90,7 @@ function Controls({ video, runtime, controlsMode, onTimelineFocusChange }: Contr
   // Space bar to toggle play/pause
   useKeyboardShortcut({
     key: ' ',
+    enabled: playerInputEnabled,
     onKeyDown: useCallback(
       (e: KeyboardEvent) => {
         e.preventDefault();
@@ -118,15 +122,22 @@ function Controls({ video, runtime, controlsMode, onTimelineFocusChange }: Contr
     >
       {showFullControls && (
         <FlexBox justify="space-between" gap={2} align="end" width={'100%'}>
-          <VideoInfoComponent videoInfo={videoInfo} duration={duration} />
+          <VideoInfoComponent
+            title={playBackInfo?.title ?? ''}
+            subtitle={playBackInfo?.subtitle ?? ''}
+            info={playBackInfo?.info ?? ''}
+            duration={duration}
+          />
           <FlexBox align="center" justify="end" gap={0.5}>
             <NavigationButton transparent className="p-2">
               <SettingsIcon />
             </NavigationButton>
-            <TracksSelectors video={video} videoInfo={videoInfo} playbackConfig={playbackConfig} />
-            <FlexBox>
-              <VolumeSlider />
-            </FlexBox>
+            <TracksSelectors
+              video={video}
+              videoInfo={playBackInfo?.mediaInfoData}
+              playbackConfig={playBackInfo?.playBackConfig}
+              onPanelChange={onTracksPanelChange}
+            />
           </FlexBox>
         </FlexBox>
       )}

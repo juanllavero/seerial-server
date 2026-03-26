@@ -1,22 +1,20 @@
-import type { VideoInfoData } from '@seerial/domain';
 import { formatTimeForView } from '@seerial/domain';
 import FlexBox from '@/components/ui/FlexBox';
 
 interface VideoInfoProps {
-  videoInfo?: VideoInfoData;
+  title: string;
+  subtitle?: string;
+  info?: string;
   duration?: number;
 }
 
-function VideoInfo({ videoInfo, duration }: VideoInfoProps) {
-  if (!videoInfo) return null;
+function VideoInfo({ title, subtitle, info, duration }: VideoInfoProps) {
   return (
     <FlexBox direction="column" gap={0.5}>
-      <span className="font-black text-5xl">{videoInfo.title}</span>
-      {videoInfo.subtitle !== '' && (
-        <span className="font-bold text-3xl">{videoInfo.subtitle}</span>
-      )}
+      <span className="font-black text-5xl">{title}</span>
+      {subtitle && <span className="font-bold text-3xl">{subtitle}</span>}
       <FlexBox gap={0.5} align="center">
-        <span className="font-semibold text-xl">{videoInfo.info}</span>
+        <span className="font-semibold text-xl">{info}</span>
         {duration && duration > 0 ? (
           <span className="font-semibold text-xl">{formatTimeForView(duration / 60)}</span>
         ) : null}

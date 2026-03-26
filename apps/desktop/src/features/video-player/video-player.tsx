@@ -1,10 +1,12 @@
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import type { Video } from '@seerial/domain';
 import { invoke } from '@tauri-apps/api/core';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import NavigationContainer from '@/components/navigation/NavigationContainer';
 import FlexBox from '@/components/ui/FlexBox';
-import Controls from '@/pages/videoplayer/components/controls/Controls';
+import Controls from '@/pages/videoplayer/components/controls/controls';
+import VolumeIndicator from '@/pages/videoplayer/components/controls/volume-slider';
+import { useVolumeIndicator } from '@/pages/videoplayer/hooks/use-volume-indicator';
 import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
 import { usePlayerControlsVisibility } from '@/shared/hooks/use-player-controls-visibility';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
@@ -15,6 +17,11 @@ interface VideoPlayerProps {
 
 export default function VideoPlayer({ video }: VideoPlayerProps) {
   const [isTimelineFocused, setIsTimelineFocused] = useState(false);
+  const [tracksPanelOpen, setTracksPanelOpen] = useState(false);
+
+  const playerInputEnabled = !tracksPanelOpen;
+
+  const { volume, visible: volumeVisible } = useVolumeIndicator({ enabled: playerInputEnabled });
 
   // Handle back navigation with a pre-action to stop the video before navigating back
   useKeyboardBack({
@@ -22,10 +29,12 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
       invoke('stop');
       invoke('embed_mpv').catch(console.error);
     },
+    enabled: playerInputEnabled,
   });
 
   const { mode, isVisible } = usePlayerControlsVisibility({
     isTimelineFocused,
+    enabled: playerInputEnabled,
   });
 
   // Set initial focus on the timeline when controls become fully visible
@@ -36,12 +45,17 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
     }
   }, [isFull]);
 
-  const handleTimelineFocusChange = (focused: boolean) => {
+  const handleTimelineFocusChange = useCallback((focused: boolean) => {
     setIsTimelineFocused(focused);
-  };
+  }, []);
+
+  const handleTracksPanelChange = useCallback((open: boolean) => {
+    setTracksPanelOpen(open);
+  }, []);
 
   return (
     <NavigationContainer customFocusKey={NavigationFocusKeys.player.container}>
+      <VolumeIndicator volume={volume} visible={volumeVisible} />
       <FlexBox
         className="absolute w-full h-full"
         css={{
@@ -68,6 +82,8 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
               video={video}
               controlsMode={mode}
               onTimelineFocusChange={handleTimelineFocusChange}
+              onTracksPanelChange={handleTracksPanelChange}
+              playerInputEnabled={playerInputEnabled}
             />
           </FlexBox>
         )}

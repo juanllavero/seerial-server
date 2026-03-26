@@ -29,7 +29,7 @@ function LibraryPage() {
       libraryType={type}
       selectedElement={selectedElement}
       setSelectedElement={setSelectedElement}
-      scrollMode="top"
+      scrollMode="center"
     />
   );
 }

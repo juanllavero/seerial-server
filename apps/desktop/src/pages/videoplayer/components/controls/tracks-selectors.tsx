@@ -11,11 +11,12 @@ import { useServerStore } from '@seerial/stores';
 import { invoke } from '@tauri-apps/api/core';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Captions, Music2 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import NavigationButton from '@/components/navigation/NavigationButton';
 import NavigationContainer from '@/components/navigation/NavigationContainer';
-import { authenticatedFetch } from '@/lib/auth';
+import { useKeyboardShortcut } from '@/shared/hooks/use-keyboard-shortcut';
+import { NavigationFocusKeys } from '@/shared/navigation/constants';
 
 type SelectorPanel = 'audio' | 'subtitle';
 
@@ -25,6 +26,7 @@ interface TracksSelectorsProps {
   video: Video;
   videoInfo?: MediaInfoData;
   playbackConfig?: PlayBackConfig;
+  onPanelChange?: (open: boolean) => void;
 }
 
 function updateSelectedTrack<T extends { id: number; selected: boolean }>(
@@ -41,8 +43,13 @@ function getTrackFocusKey(panel: SelectorPanel, trackId: number) {
   return `${panel}-track-${trackId}`;
 }
 
-function TracksSelectors({ video, videoInfo, playbackConfig }: TracksSelectorsProps) {
-  const { i18n, t } = useTranslation();
+function TracksSelectors({
+  video,
+  videoInfo,
+  playbackConfig,
+  onPanelChange,
+}: TracksSelectorsProps) {
+  const { t } = useTranslation();
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
   const [openPanel, setOpenPanel] = useState<SelectorPanel | null>(null);
   const [selectedAudioTrack, setSelectedAudioTrack] = useState<AudioTrack | null>(
@@ -65,16 +72,25 @@ function TracksSelectors({ video, videoInfo, playbackConfig }: TracksSelectorsPr
   const hasAudioOptions = tracks.audioTracks.length > 1;
   const hasSubtitleOptions = subtitleOptions.length > 1;
 
-  const closePanel = () => {
-    setOpenPanel(null);
-  };
+  const closePanel = useCallback(() => {
+    setOpenPanel((prev) => {
+      if (prev) {
+        const focusKey =
+          prev === 'audio'
+            ? NavigationFocusKeys.player.audioTracksButton
+            : NavigationFocusKeys.player.subtitleTracksButton;
+        setTimeout(() => setFocus(focusKey), 30);
+      }
+      return null;
+    });
+  }, []);
 
   const togglePanel = (panel: SelectorPanel) => {
     setOpenPanel((currentPanel) => (currentPanel === panel ? null : panel));
   };
 
   const formatAudioTrackLabel = (track: AudioTrack) => {
-    return [track.languageTag ?? '', i18n.language, track.displayTitle]
+    return [track.language === '' ? track.languageTag : track.language, track.displayTitle]
       .filter(Boolean)
       .join(' ')
       .trim();
@@ -142,72 +158,52 @@ function TracksSelectors({ video, videoInfo, playbackConfig }: TracksSelectorsPr
     tracks.audioTracks,
   ]);
 
+  // Notify parent when panel opens/closes
   useEffect(() => {
-    if (!openPanel) {
-      return;
-    }
+    onPanelChange?.(openPanel !== null);
+  }, [openPanel, onPanelChange]);
 
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape' || event.key === 'Backspace') {
-        event.preventDefault();
-        setOpenPanel(null);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [openPanel]);
+  // Close panel on Escape/Backspace
+  useKeyboardShortcut({
+    key: ['Escape', 'Backspace'],
+    enabled: openPanel !== null,
+    onKeyDown: useCallback(
+      (e: KeyboardEvent) => {
+        e.preventDefault();
+        closePanel();
+      },
+      [closePanel],
+    ),
+  });
 
   useEffect(() => {
     if (!videoInfo || !serverUrl || !playbackConfig) {
       return;
     }
 
-    let isCancelled = false;
+    const { videoTracks, audioTracks, subtitleTracks } = videoInfo;
+    const preferredAudioTrack = getAudioTrack(playbackConfig.preferAudioLan, video);
+    const preferredSubtitleTrack = getSubtitleTrack(
+      playbackConfig.preferSubLan,
+      playbackConfig.subsMode,
+      video,
+    );
+    const selectedVideoTrackId = videoTracks[0]?.id ?? null;
+    const selectedAudioTrackId = preferredAudioTrack?.id ?? null;
+    const selectedSubtitleTrackId = preferredSubtitleTrack?.id ?? null;
 
-    const fetchData = async () => {
-      const result = await authenticatedFetch(`${serverUrl}/api/updateMediaInfo`, 'PUT', {
-        videoId: video.id,
-      });
+    setTracks({
+      audioTracks: updateSelectedTrack(audioTracks, selectedAudioTrackId),
+      subtitleTracks: updateSelectedTrack(subtitleTracks, selectedSubtitleTrackId),
+    });
+    setSelectedAudioTrack(preferredAudioTrack);
+    setSelectedSubtitleTrack(preferredSubtitleTrack);
 
-      if (!result || !result.ok || isCancelled) {
-        return;
+    if (selectedVideoTrackId !== null) {
+      for (const track of videoTracks) {
+        track.selected = track.id === selectedVideoTrackId;
       }
-
-      const data = await result.json();
-      const { videoTracks, audioTracks, subtitleTracks } = data;
-      const preferredAudioTrack = getAudioTrack(playbackConfig.preferAudioLan, video);
-      const preferredSubtitleTrack = getSubtitleTrack(
-        playbackConfig.preferSubLan,
-        playbackConfig.subsMode,
-        video,
-      );
-      const selectedVideoTrackId = videoTracks[0]?.id ?? null;
-      const selectedAudioTrackId = preferredAudioTrack?.id ?? null;
-      const selectedSubtitleTrackId = preferredSubtitleTrack?.id ?? null;
-
-      setTracks({
-        audioTracks: updateSelectedTrack(audioTracks, selectedAudioTrackId),
-        subtitleTracks: updateSelectedTrack(subtitleTracks, selectedSubtitleTrackId),
-      });
-      setSelectedAudioTrack(preferredAudioTrack);
-      setSelectedSubtitleTrack(preferredSubtitleTrack);
-
-      if (selectedVideoTrackId !== null) {
-        for (const track of videoTracks) {
-          track.selected = track.id === selectedVideoTrackId;
-        }
-      }
-    };
-
-    void fetchData();
-
-    return () => {
-      isCancelled = true;
-    };
+    }
   }, [serverUrl, video, videoInfo, playbackConfig]);
 
   if (!hasAudioOptions && !hasSubtitleOptions) {
@@ -222,6 +218,7 @@ function TracksSelectors({ video, videoInfo, playbackConfig }: TracksSelectorsPr
         {hasAudioOptions && (
           <NavigationButton
             transparent
+            customKey={NavigationFocusKeys.player.audioTracksButton}
             title={t('audio')}
             className={`p-2 ${openPanel === 'audio' ? 'bg-white text-black' : ''}`}
             onClick={() => {
@@ -234,6 +231,7 @@ function TracksSelectors({ video, videoInfo, playbackConfig }: TracksSelectorsPr
         {hasSubtitleOptions && (
           <NavigationButton
             transparent
+            customKey={NavigationFocusKeys.player.subtitleTracksButton}
             title={t('subs')}
             className={`p-2 ${openPanel === 'subtitle' ? 'bg-white text-black' : ''}`}
             onClick={() => {
@@ -256,7 +254,10 @@ function TracksSelectors({ video, videoInfo, playbackConfig }: TracksSelectorsPr
               className="fixed inset-0 z-40 bg-black/35"
               onClick={closePanel}
             />
-            <NavigationContainer className="absolute bottom-full right-0 z-50 mb-4 w-[24rem]">
+            <NavigationContainer
+              isFocusBoundary
+              className="absolute bottom-full right-0 z-50 mb-4 w-[24rem]"
+            >
               <motion.div
                 initial={{ opacity: 0, y: 12, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}

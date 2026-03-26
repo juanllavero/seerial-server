@@ -4,9 +4,11 @@ import { useNavigate } from 'react-router-dom';
 export function useKeyboardBack({
   fallbackPath = '/home',
   preAction,
+  enabled = true,
 }: {
   fallbackPath?: string;
   preAction?: () => void;
+  enabled?: boolean;
 } = {}) {
   const navigate = useNavigate();
 
@@ -22,6 +24,8 @@ export function useKeyboardBack({
       const tag = el.tagName;
       return tag === 'INPUT' || tag === 'TEXTAREA' || el.isContentEditable;
     };
+
+    if (!enabled) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
       const isBackKey = event.key === 'Escape' || event.key === 'Backspace';
@@ -44,5 +48,5 @@ export function useKeyboardBack({
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [navigate, fallbackPath, runPreAction]);
+  }, [navigate, fallbackPath, runPreAction, enabled]);
 }

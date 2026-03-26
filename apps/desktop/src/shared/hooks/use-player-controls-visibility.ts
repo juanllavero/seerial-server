@@ -7,6 +7,7 @@ const COMPACT_CONTROLS_TIMEOUT_MS = 1500;
 
 const BACK_KEYS = new Set(['Escape', 'Backspace', 'Delete']);
 const SEEK_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
+const VOLUME_KEYS = new Set(['+', '-']);
 
 function hasModifiers(event: KeyboardEvent) {
     return event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
@@ -14,10 +15,12 @@ function hasModifiers(event: KeyboardEvent) {
 
 interface UsePlayerControlsVisibilityOptions {
     isTimelineFocused: boolean;
+    enabled?: boolean;
 }
 
 export function usePlayerControlsVisibility({
     isTimelineFocused,
+    enabled = true,
 }: UsePlayerControlsVisibilityOptions) {
     const [mode, setMode] = useState<ControlsMode>('hidden');
     const hideTimeoutRef = useRef<number | null>(null);
@@ -104,9 +107,12 @@ export function usePlayerControlsVisibility({
     );
 
     useEffect(() => {
+        if (!enabled) return;
+
         const handleKeyDown = (event: KeyboardEvent) => {
             if (hasModifiers(event)) return;
             if (BACK_KEYS.has(event.key)) return;
+            if (VOLUME_KEYS.has(event.key)) return;
 
             if (mode === 'hidden') handleHiddenKey(event.key);
             else if (mode === 'compact') handleCompactKey(event.key);
@@ -115,7 +121,7 @@ export function usePlayerControlsVisibility({
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [mode, handleHiddenKey, handleCompactKey, handleFullKey]);
+    }, [mode, enabled, handleHiddenKey, handleCompactKey, handleFullKey]);
 
     useEffect(() => {
         return () => {
