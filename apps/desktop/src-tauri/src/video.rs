@@ -234,3 +234,38 @@ pub fn set_subtitle_track(state: State<MpvState>, track_id: i64) -> Result<(), S
 pub fn set_zoom(state: State<MpvState>, zoom_level: f64) -> Result<(), String> {
     state.with_mpv(|mpv| mpv.set_property("video-zoom", zoom_level))
 }
+
+#[tauri::command]
+pub fn set_audio_delay(state: State<MpvState>, delay: f64) -> Result<(), String> {
+    state.with_mpv(|mpv| mpv.set_property("audio-delay", delay))
+}
+
+#[tauri::command]
+pub fn set_subtitle_delay(state: State<MpvState>, delay: f64) -> Result<(), String> {
+    state.with_mpv(|mpv| mpv.set_property("sub-delay", delay))
+}
+
+#[tauri::command]
+pub fn set_subtitle_font_size(state: State<MpvState>, size: f64) -> Result<(), String> {
+    state.with_mpv(|mpv| mpv.set_property("sub-font-size", size))
+}
+
+#[tauri::command]
+pub fn set_subtitle_color(state: State<MpvState>, color: String) -> Result<(), String> {
+    state.with_mpv(|mpv| mpv.set_property("sub-color", color.as_str()))
+}
+
+#[tauri::command]
+pub fn set_subtitle_border_size(state: State<MpvState>, size: f64) -> Result<(), String> {
+    state.with_mpv(|mpv| mpv.set_property("sub-border-size", size))
+}
+
+#[tauri::command]
+pub fn set_subtitle_shadow_offset(state: State<MpvState>, offset: f64) -> Result<(), String> {
+    state.with_mpv(|mpv| mpv.set_property("sub-shadow-offset", offset))
+}
+
+#[tauri::command]
+pub fn set_subtitle_position(state: State<MpvState>, position: i64) -> Result<(), String> {
+    state.with_mpv(|mpv| mpv.set_property("sub-pos", position))
+}

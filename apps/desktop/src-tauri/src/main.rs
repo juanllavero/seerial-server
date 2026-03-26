@@ -3,7 +3,9 @@ mod video;
 use tauri::Manager;
 use video::{
     MpvState, embed_mpv, play, pause, stop, toggle_play_pause, loadfile, load_url, get_position, set_position,
-    get_duration, get_playback_status, set_volume, get_volume, set_audio_track, set_subtitle_track, set_zoom
+    get_duration, get_playback_status, set_volume, get_volume, set_audio_track, set_subtitle_track, set_zoom,
+    set_audio_delay, set_subtitle_delay, set_subtitle_font_size, set_subtitle_color,
+    set_subtitle_border_size, set_subtitle_shadow_offset, set_subtitle_position
 };
 use raw_window_handle::HasWindowHandle;
 
@@ -100,7 +102,14 @@ async fn main() {
             get_volume,
             set_audio_track,
             set_subtitle_track,
-            set_zoom
+            set_zoom,
+            set_audio_delay,
+            set_subtitle_delay,
+            set_subtitle_font_size,
+            set_subtitle_color,
+            set_subtitle_border_size,
+            set_subtitle_shadow_offset,
+            set_subtitle_position
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri app");

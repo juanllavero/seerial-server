@@ -6,6 +6,7 @@ import NavigationContainer from '@/components/navigation/NavigationContainer';
 import FlexBox from '@/components/ui/FlexBox';
 import Controls from '@/pages/videoplayer/components/controls/controls';
 import VolumeIndicator from '@/pages/videoplayer/components/controls/volume-slider';
+import { usePlayerSettings } from '@/pages/videoplayer/hooks/use-player-settings';
 import { useVolumeIndicator } from '@/pages/videoplayer/hooks/use-volume-indicator';
 import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
 import { usePlayerControlsVisibility } from '@/shared/hooks/use-player-controls-visibility';
@@ -21,6 +22,7 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
 
   const playerInputEnabled = !tracksPanelOpen;
 
+  const { settings, updateSetting } = usePlayerSettings();
   const { volume, visible: volumeVisible } = useVolumeIndicator({ enabled: playerInputEnabled });
 
   // Handle back navigation with a pre-action to stop the video before navigating back
@@ -84,6 +86,8 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
               onTimelineFocusChange={handleTimelineFocusChange}
               onTracksPanelChange={handleTracksPanelChange}
               playerInputEnabled={playerInputEnabled}
+              settings={settings}
+              updateSetting={updateSetting}
             />
           </FlexBox>
         )}

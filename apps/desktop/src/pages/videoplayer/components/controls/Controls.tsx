@@ -6,6 +6,7 @@ import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { shallow } from 'zustand/shallow';
 import FlexBox from '@/components/ui/FlexBox';
 import { useKeyboardShortcut } from '@/shared/hooks/use-keyboard-shortcut';
+import type { PlayerSettings } from '../../hooks/use-player-settings';
 import Settings from '../Settings';
 import VideoInfoComponent from '../video-info';
 import TimelineSlider from './timeline-slider';
@@ -20,6 +21,8 @@ interface ControlsProps {
   onTimelineFocusChange?: (focused: boolean) => void;
   onTracksPanelChange?: (open: boolean) => void;
   playerInputEnabled?: boolean;
+  settings: PlayerSettings;
+  updateSetting: <K extends keyof PlayerSettings>(key: K, value: PlayerSettings[K]) => void;
 }
 
 function Controls({
@@ -29,6 +32,8 @@ function Controls({
   onTimelineFocusChange,
   onTracksPanelChange,
   playerInputEnabled = true,
+  settings,
+  updateSetting,
 }: ControlsProps) {
   const { user, serverUrl } = useServerStore(
     (state) => ({
@@ -150,7 +155,11 @@ function Controls({
             duration={duration}
           />
           <FlexBox align="center" justify="end" gap={0.5}>
-            <Settings onPanelChange={handleSettingsPanelChange} />
+            <Settings
+              onPanelChange={handleSettingsPanelChange}
+              settings={settings}
+              updateSetting={updateSetting}
+            />
             <TracksSelectors
               video={video}
               videoInfo={playBackInfo?.mediaInfoData}
