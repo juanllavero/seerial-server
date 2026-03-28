@@ -9,7 +9,7 @@ interface AppTextProps {
 
 const Title = ({ className, style, children, ...props }: AppTextProps) => {
   return (
-    <span className={`${className} font-black text-[7vh] text-white`} style={style} {...props}>
+    <span className={`${className} font-black text-[6vh] text-white`} style={style} {...props}>
       {children}
     </span>
   );

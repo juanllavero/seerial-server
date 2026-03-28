@@ -7,6 +7,7 @@ import {
 } from '@seerial/domain';
 import { memo, useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import BackgroundImage from '@/components/backgrounds/BackgroundImage';
 import GradientBackground from '@/components/backgrounds/GradientBackground';
 import DetailsInfo from '@/shared/components/details/details-info';
 import Page from '@/shared/components/page';
@@ -36,10 +37,13 @@ function MovieDetails({ movie, isLoading, details }: MovieDetailsProps) {
   if (!isLoading && !movie) return <span>Movie not found</span>;
 
   return (
-    <Page padding="0 2rem" justify="end">
+    <Page justify="end">
       <GradientBackground
         imageSrc={details?.backgroundSrc ?? movie?.backgroundSrc ?? movie?.coverSrc}
         index={0}
+      />
+      <BackgroundImage
+        imageSrc={details?.backgroundSrc ?? movie?.backgroundSrc ?? movie?.coverSrc}
       />
       <DetailsInfo
         details={details}

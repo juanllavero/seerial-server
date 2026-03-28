@@ -2,6 +2,7 @@ import type { DetailsData, Episode, Season, Series } from '@seerial/domain';
 import { formatDate, formatTimeForView } from '@seerial/domain';
 import { t } from 'i18next';
 import { memo, useEffect, useState } from 'react';
+import BackgroundImage from '@/components/backgrounds/BackgroundImage';
 import GradientBackground from '@/components/backgrounds/GradientBackground';
 import EpisodesList from '@/features/details/series/components/episodes-list';
 import SeasonSelector from '@/features/details/series/components/season-selector';
@@ -31,6 +32,9 @@ function SeriesDetails({ series, isLoading, details }: SeriesDetailsProps) {
       <GradientBackground
         imageSrc={details?.backgroundSrc ?? selectedSeason?.backgroundSrc ?? series?.coverSrc}
         index={0}
+      />
+      <BackgroundImage
+        imageSrc={details?.backgroundSrc ?? selectedSeason?.backgroundSrc ?? series?.coverSrc}
       />
       <DetailsInfo
         details={details}

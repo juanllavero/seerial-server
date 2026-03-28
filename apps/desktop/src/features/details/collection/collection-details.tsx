@@ -1,5 +1,6 @@
 import type { Collection, DetailsData } from '@seerial/domain';
 import { memo } from 'react';
+import BackgroundImage from '@/components/backgrounds/BackgroundImage';
 import GradientBackground from '@/components/backgrounds/GradientBackground';
 import DetailsInfo from '@/shared/components/details/details-info';
 import Page from '@/shared/components/page';
@@ -18,6 +19,9 @@ function CollectionDetails({ collection, isLoading, details }: CollectionDetails
       <GradientBackground
         imageSrc={details?.backgroundSrc ?? collection?.backgroundSrc ?? collection?.coverSrc}
         index={0}
+      />
+      <BackgroundImage
+        imageSrc={details?.backgroundSrc ?? collection?.backgroundSrc ?? collection?.coverSrc}
       />
       <DetailsInfo details={details} infoItems={[details?.year ?? 'N/A']} />
     </Page>

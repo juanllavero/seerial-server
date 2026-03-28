@@ -22,7 +22,7 @@ interface PageProps {
 function Page({
   children,
   direction = 'column',
-  padding = '2rem 3rem',
+  padding = '3rem 4rem',
   justify = 'start',
   align = 'start',
   margin,

@@ -1,5 +1,6 @@
 import { type Album, type DetailsData, formatDate } from '@seerial/domain';
 import { memo } from 'react';
+import BackgroundImage from '@/components/backgrounds/BackgroundImage';
 import GradientBackground from '@/components/backgrounds/GradientBackground';
 import DetailsInfo from '@/shared/components/details/details-info';
 import Page from '@/shared/components/page';
@@ -16,6 +17,7 @@ function AlbumDetails({ album, isLoading, details }: AlbumDetailsProps) {
   return (
     <Page padding="0 2rem" justify="end">
       <GradientBackground imageSrc={details?.coverSrc ?? album?.coverSrc ?? ''} index={0} />
+      <BackgroundImage imageSrc={details?.coverSrc ?? album?.coverSrc} />
       <DetailsInfo details={details} infoItems={[formatDate(details?.year ?? album?.year ?? '')]} />
 
       {/* Selected Album Songs */}

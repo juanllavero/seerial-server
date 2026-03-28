@@ -28,8 +28,8 @@ function DetailsInfo({ details, subtitle, infoItems, handlePlay }: DetailsInfoPr
   const handleMoreOptions = useCallback(() => {}, []);
 
   return (
-    <FlexBox direction="column" justify="end" margin="0 0 1rem 0" className="z-10">
-      <span className="text-sm italic">
+    <FlexBox direction="column" justify="end" margin="0 0 2rem 0" className="z-10">
+      <span className="text-[1.5vh] italic">
         {details?.tagline && details?.tagline !== '' ? details?.tagline : ''}
       </span>
 
@@ -49,12 +49,12 @@ function DetailsInfo({ details, subtitle, infoItems, handlePlay }: DetailsInfoPr
       {details?.subtitle && <Subtitle>{subtitle ?? details?.subtitle}</Subtitle>}
 
       {details?.createdBy ? (
-        <span className="text-sm italic mb-5">{`Created by ${details?.createdBy}`}</span>
+        <span className="text-[1.5vh] italic mb-5">{`Created by ${details?.createdBy}`}</span>
       ) : details?.directedBy ? (
-        <span className="text-sm italic mb-5">{`Directed by ${details?.directedBy}`}</span>
+        <span className="text-[1.5vh] italic mb-5">{`Directed by ${details?.directedBy}`}</span>
       ) : null}
 
-      <FlexBox gap={0.5} direction="column">
+      <FlexBox gap={0.8} direction="column">
         {infoItems && infoItems.length > 0 ? (
           <FlexBox className="flex-row" gap={0.8}>
             {infoItems.map((item, index) => (
@@ -69,55 +69,73 @@ function DetailsInfo({ details, subtitle, infoItems, handlePlay }: DetailsInfoPr
             ))}
           </FlexBox>
         ) : null}
-        {details?.score && (
-          <FlexBox className="flex-row gap-3">
-            <Tertiary>{details?.score.toFixed(2)}</Tertiary>
+        {details?.imdbScore && details.imdbScore !== -1 ? (
+          <FlexBox className="flex-row space-x-3">
+            <Tertiary>{details?.imdbScore.toFixed(2)}</Tertiary>
+            <img src="/img/logos/imdb.png" alt="IMDb Logo" className="self-center max-h-[2vh]" />
           </FlexBox>
-        )}
+        ) : details?.score ? (
+          <FlexBox className="flex-row space-x-3">
+            <Tertiary>{details?.score.toFixed(2)}</Tertiary>
+            <img
+              src="/svg/themoviedb.svg"
+              alt="The Movie Database Logo"
+              className="self-center max-h-[2vh]"
+            />
+          </FlexBox>
+        ) : null}
         {details?.genres && <Tertiary>{details?.genres}</Tertiary>}
         {details?.description && (
           <FlexBox
             css={{
-              maxWidth: 500,
-              height: '9dvh',
+              maxWidth: 1000,
+              height: '12dvh',
               paddingTop: 3,
             }}
           >
-            <Tertiary className="line-clamp-3 ellipsis">{details?.description}</Tertiary>
+            <Tertiary className="line-clamp-4 ellipsis">{details?.description}</Tertiary>
           </FlexBox>
         )}
       </FlexBox>
 
       <FlexBox
         gap={1}
-        // css={{
-        // 	justifyContent: 'flex-start',
-        // 	paddingTop: 15,
-        // 	gap: 10,
-        // }}
+        css={{
+          justifyContent: 'flex-start',
+          paddingTop: 50,
+          gap: 10,
+        }}
       >
         <NavigationButton
           customKey={NavigationFocusKeys.details.playButton}
-          text={'Play'}
-          icon={<PlayIcon />}
+          text={'Reproducir'}
+          icon={<PlayIcon size={'3dvh'} />}
           onClick={handlePlay}
+          hideText
+          animateText
         />
         <NavigationButton
           customKey={NavigationFocusKeys.details.markWatchedButton}
-          text={''}
-          icon={<LucideBookmark />}
+          text={'Marcar como visto'}
+          icon={<LucideBookmark size={'3vh'} />}
           onClick={() => console.log('Mark as watched')}
+          hideText
+          animateText
         />
         <NavigationButton
           customKey={NavigationFocusKeys.details.addToMyListButton}
-          text={''}
-          icon={<LucideBookmark />}
+          text={'Agregar a mi lista'}
+          icon={<LucideBookmark size={'3dvh'} />}
           onClick={() => console.log('Add to my list')}
+          hideText
+          animateText
         />
         <NavigationButton
           customKey={NavigationFocusKeys.details.optionsButton}
-          icon={<Ellipsis />}
+          icon={<Ellipsis size={'3dvh'} />}
           onClick={handleMoreOptions}
+          hideText
+          animateText
         />
       </FlexBox>
     </FlexBox>

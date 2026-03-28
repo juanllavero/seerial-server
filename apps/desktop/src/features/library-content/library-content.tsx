@@ -12,7 +12,7 @@ import ContentCard from '@/shared/ui/card';
 import ItemsPerRowSlider from './items-per-row-slider';
 
 const MIN_ITEMS_PER_ROW = 4;
-const MAX_ITEMS_PER_ROW = 10;
+const MAX_ITEMS_PER_ROW = 20;
 const DEFAULT_ITEMS_PER_ROW = 8;
 const GRID_GAP_REM = 1.25;
 

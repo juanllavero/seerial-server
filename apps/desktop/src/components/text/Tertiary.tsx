@@ -11,7 +11,7 @@ interface AppTextProps {
 const Tertiary = ({ className, style, noShadow, children, ...props }: AppTextProps) => {
   return (
     <span
-      className={`${className} font-medium text-[1.7vh] text-neutral-200`}
+      className={`${className} font-medium text-[2vh] text-neutral-200`}
       style={style}
       {...props}
     >

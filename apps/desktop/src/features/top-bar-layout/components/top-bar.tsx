@@ -168,51 +168,51 @@ function TopBar() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -40 }}
               transition={{ duration: 0.2, ease: 'easeInOut' }}
-              className="flex gap-2"
+              className="flex gap-6"
             >
               <NavigationButton
                 customKey={NavigationFocusKeys.topBar.home}
+                text="Home"
                 selected={pathname === '/home'}
                 onFocus={handleNonLibraryFocus}
                 onClick={() => navigate('/home')}
-              >
-                Home
-              </NavigationButton>
+                variant="ghost"
+              />
               <NavigationButton
                 customKey={LIBRARY_TYPE_BUTTONS[LibraryTypes.MOVIES]}
                 disabled={!showMovies}
                 selected={pathname.split('/').pop() === LibraryTypes.MOVIES}
                 onFocus={() => handleLibraryTypeFocus(LibraryTypes.MOVIES)}
                 onClick={() => handleLibraryTypePress(LibraryTypes.MOVIES)}
-              >
-                Movies
-              </NavigationButton>
+                text="Movies"
+                variant="ghost"
+              />
               <NavigationButton
                 customKey={LIBRARY_TYPE_BUTTONS[LibraryTypes.SHOWS]}
                 disabled={!showSeries}
                 selected={pathname.split('/').pop() === LibraryTypes.SHOWS}
                 onFocus={() => handleLibraryTypeFocus(LibraryTypes.SHOWS)}
                 onClick={() => handleLibraryTypePress(LibraryTypes.SHOWS)}
-              >
-                Shows
-              </NavigationButton>
+                text="Shows"
+                variant="ghost"
+              />
               <NavigationButton
                 customKey={LIBRARY_TYPE_BUTTONS[LibraryTypes.MUSIC]}
                 disabled={!showMusic}
                 selected={pathname.split('/').pop() === LibraryTypes.MUSIC}
                 onFocus={() => handleLibraryTypeFocus(LibraryTypes.MUSIC)}
                 onClick={() => handleLibraryTypePress(LibraryTypes.MUSIC)}
-              >
-                Music
-              </NavigationButton>
+                text="Music"
+                variant="ghost"
+              />
               <NavigationButton
                 customKey={NavigationFocusKeys.topBar.myList}
                 selected={pathname === '/myList'}
                 onFocus={handleNonLibraryFocus}
                 onClick={() => navigate('/myList')}
-              >
-                My List
-              </NavigationButton>
+                text="My List"
+                variant="ghost"
+              />
             </motion.div>
           )}
         </AnimatePresence>
@@ -222,8 +222,9 @@ function TopBar() {
           customKey={NavigationFocusKeys.topBar.settings}
           onFocus={handleNonLibraryFocus}
           className="mr-5"
+          variant="ghost"
         >
-          <Settings />
+          <Settings size={'3dvh'} />
         </NavigationButton>
       </div>
 
@@ -236,7 +237,7 @@ function TopBar() {
             transition={{ duration: 0.2, ease: 'easeInOut' }}
             className="pointer-events-none absolute left-1/2 top-3 -translate-x-1/2"
           >
-            <ChevronUp className="text-white/80" />
+            <ChevronUp className="text-white/80" size={'2.5dvh'} />
           </motion.div>
         )}
       </AnimatePresence>
