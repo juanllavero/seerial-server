@@ -15,8 +15,7 @@
 				"title": "seerial-desktop",
 				"transparent": true,
 				"decorations": false,
-				"width": 1080,
-				"height": 1080
+				"fullscreen": true
 			}
 		],
 		"security": {

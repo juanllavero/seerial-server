@@ -34,5 +34,8 @@ export const NavigationFocusKeys = {
         settingsButton: 'player-settings-button',
         optionsButton: 'player-options-button',
         goBackButton: 'player-go-back-button',
-    }
+    },
+    settings: {
+        container: 'settings-panel',
+    },
 };

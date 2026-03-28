@@ -5,17 +5,20 @@ function NavigationContainer({
   className,
   customFocusKey,
   isFocusBoundary = false,
+  focusBoundaryDirections,
 }: {
   children: React.ReactNode;
   className?: string;
   customFocusKey?: string;
   isFocusBoundary?: boolean;
+  focusBoundaryDirections?: ('left' | 'right' | 'up' | 'down')[];
 }) {
   const { ref, focusKey } = useFocusable({
     trackChildren: true,
     focusKey: customFocusKey,
     saveLastFocusedChild: true,
     isFocusBoundary,
+    focusBoundaryDirections,
   });
 
   return (

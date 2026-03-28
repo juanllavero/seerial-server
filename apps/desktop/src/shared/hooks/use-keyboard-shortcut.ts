@@ -7,6 +7,7 @@ interface KeyboardShortcutOptions {
     enabled?: boolean;
     ignoreModifiers?: boolean;
     ignoreTypingElements?: boolean;
+    capture?: boolean;
 }
 
 function isTypingElement(el: EventTarget | null) {
@@ -22,6 +23,7 @@ export function useKeyboardShortcut({
     enabled = true,
     ignoreModifiers = true,
     ignoreTypingElements = true,
+    capture = false,
 }: KeyboardShortcutOptions) {
     useEffect(() => {
         if (!enabled) return;
@@ -44,16 +46,16 @@ export function useKeyboardShortcut({
             onKeyUp(event);
         };
 
-        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keydown', handleKeyDown, capture);
         if (onKeyUp) {
-            window.addEventListener('keyup', handleKeyUp);
+            window.addEventListener('keyup', handleKeyUp, capture);
         }
 
         return () => {
-            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keydown', handleKeyDown, capture);
             if (onKeyUp) {
-                window.removeEventListener('keyup', handleKeyUp);
+                window.removeEventListener('keyup', handleKeyUp, capture);
             }
         };
-    }, [key, onKeyDown, onKeyUp, enabled, ignoreModifiers, ignoreTypingElements]);
+    }, [key, onKeyDown, onKeyUp, enabled, ignoreModifiers, ignoreTypingElements, capture]);
 }

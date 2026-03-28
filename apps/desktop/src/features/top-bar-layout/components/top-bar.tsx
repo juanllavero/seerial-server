@@ -4,10 +4,11 @@ import { type Library, LibraryTypes } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronUp, Settings } from 'lucide-react';
-import { memo, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import NavigationButton from '@/components/navigation/NavigationButton';
 import NavigationContainer from '@/components/navigation/NavigationContainer';
+import { SettingsPanel } from '@/features/settings';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
 import LibrariesList from './libraries-list';
 
@@ -27,6 +28,13 @@ function TopBar() {
   const [activeLibraryButtonKey, setActiveLibraryButtonKey] = useState<
     (typeof LIBRARY_TYPE_BUTTONS)[LibraryTypes]
   >(LIBRARY_TYPE_BUTTONS[LibraryTypes.MOVIES]);
+
+  const [showSettings, setShowSettings] = useState(false);
+
+  const closeSettings = useCallback(() => {
+    setShowSettings(false);
+    setTimeout(() => setFocus(NavigationFocusKeys.topBar.settings), 30);
+  }, []);
 
   const autoOpenTimeoutRef = useRef<number | null>(null);
   const focusToRestoreRef = useRef<string | null>(null);
@@ -221,12 +229,15 @@ function TopBar() {
         <NavigationButton
           customKey={NavigationFocusKeys.topBar.settings}
           onFocus={handleNonLibraryFocus}
+          onClick={() => setShowSettings(true)}
           className="mr-5"
           variant="ghost"
         >
           <Settings size={'3dvh'} />
         </NavigationButton>
       </div>
+
+      <SettingsPanel open={showSettings} onClose={closeSettings} />
 
       <AnimatePresence>
         {showLibraries && (

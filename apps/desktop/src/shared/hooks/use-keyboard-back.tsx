@@ -30,6 +30,7 @@ export function useKeyboardBack({
     const onKeyDown = (event: KeyboardEvent) => {
       const isBackKey = event.key === 'Escape' || event.key === 'Backspace';
       if (!isBackKey) return;
+      if (event.defaultPrevented) return;
       if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
       if (isTypingElement(event.target)) return;
 
