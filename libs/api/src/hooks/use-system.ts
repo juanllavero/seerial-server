@@ -98,6 +98,12 @@ export const useGetLocalImage = (
                 responseType: 'blob',
             })
 
+            const contentType = response.headers['content-type']
+            if (typeof contentType !== 'string' || !contentType.startsWith('image/')) {
+                const errorBody = await response.data.text().catch(() => '')
+                throw new Error(errorBody || 'Local image endpoint did not return an image')
+            }
+
             return response.data
         },
         enabled: enabled ?? true,

@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router';
 import GradientBackground from '@/components/backgrounds/GradientBackground';
 import NavigationScrollView from '@/components/navigation/NavigationScrollView';
 import ListTitle from '@/components/text/ListTitle';
-import TransparentImage from '@/features/home/components/transparent-image';
+import HomeHeroImage from '@/pages/home/components/home-hero-image';
 import DetailsInfo from '@/shared/components/details/details-info';
 import Loading from '@/shared/components/loading';
 import Page from '@/shared/components/page';
@@ -47,16 +47,13 @@ function Home() {
     navigate(url);
   };
 
+  const imageSrc = selectedElement?.backgroundImage ?? selectedElement?.posterImage;
+
   return (
     <Page justify="end">
-      <GradientBackground
-        imageSrc={selectedElement?.backgroundImage ?? selectedElement?.posterImage}
-        index={0}
-      />
+      <GradientBackground imageSrc={imageSrc} index={0} />
+      <HomeHeroImage imageSrc={imageSrc} />
 
-      <TransparentImage imageSrc={selectedElement?.backgroundImage ?? ''} />
-
-      {/* <HomeInfo selectedElement={selectedElement} /> */}
       <DetailsInfo
         details={{
           title: selectedElement?.title ?? '',

@@ -39,7 +39,7 @@ const Image: React.FC<ImageProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { data: localImageBlob, error: localImageError } = useGetLocalImage({
-    enabled: isInView && !!localImagePath,
+    enabled: isInView && !!localImagePath && !!serverUrl,
     params: localImagePath ? { path: localImagePath } : undefined,
     queryKey: ['images', 'local', serverUrl, localImagePath],
   });
