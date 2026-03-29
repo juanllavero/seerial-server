@@ -40,6 +40,10 @@ const buildTransparentImageParams = (
   const width = Math.round(imageWidth * 2);
   const height = Math.round(imageHeight * 2);
 
+  if (width <= 0 || height <= 0 || Number.isNaN(width) || Number.isNaN(height)) {
+    return undefined;
+  }
+
   if (imageSrc.startsWith('http')) {
     return { url: imageSrc, width, height };
   }
@@ -75,15 +79,21 @@ function TransparentImage({ imageSrc }: TransparentImageProps) {
     imageWidth,
     imageHeight,
   );
+  const hasValidDimensions = imageWidth > 0 && imageHeight > 0;
+  const hasTransparentImageSource = !!(
+    transparentImageParams?.url || transparentImageParams?.localPath
+  );
 
   const { data: transparentImageBlob, error } = useGetTransparentImage({
-    enabled: !!transparentImageParams,
+    enabled: hasTransparentImageSource && hasValidDimensions,
     params: transparentImageParams,
     queryKey: [
       'images',
       'transparent',
       serverUrl,
       imageSrc,
+      transparentImageParams?.url,
+      transparentImageParams?.localPath,
       transparentImageParams?.width,
       transparentImageParams?.height,
     ],
