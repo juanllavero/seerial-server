@@ -27,7 +27,7 @@ export class GenericRepositoryHelper<TModel extends BaseEntity, TDomain = TModel
   constructor(
     private model: typeof BaseEntity & (new () => TModel),
     private config: RepositoryConfig,
-  ) {}
+  ) { }
 
   /**
    * Generate an ID based on configuration
@@ -301,13 +301,7 @@ export class GenericRepositoryHelper<TModel extends BaseEntity, TDomain = TModel
     whereCondition: Partial<TRelationModel>,
   ): Promise<void> {
     try {
-      const result = await relationModel.delete(
-        whereCondition as unknown as FindOptionsWhere<TRelationModel>,
-      );
-
-      if (!result.affected || result.affected === 0) {
-        throw new Error(`Relationship not found`);
-      }
+      await relationModel.delete(whereCondition as unknown as FindOptionsWhere<TRelationModel>);
     } catch (error) {
       repositoryLogger.error(error, `Failed to delete ${this.config.entityName} relationship`);
       throw new Error(`Failed to delete ${this.config.entityName} relationship`);
