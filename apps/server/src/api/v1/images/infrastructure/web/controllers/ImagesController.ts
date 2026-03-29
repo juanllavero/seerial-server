@@ -33,12 +33,25 @@ import { messages } from '@/config/messages';
 @Route('images')
 @Tags('Images')
 export class ImagesController extends Controller {
-  private getResponseFromRequest(req: ExpressRequest): Response {
-    if (!req.res) {
-      throw new Error('Image response object is not available');
+  private getResponseFromRequest(req?: ExpressRequest): Response {
+    if (req?.res) {
+      return req.res;
     }
 
-    return req.res;
+    const context = this as unknown as {
+      request?: ExpressRequest;
+      response?: Response;
+    };
+
+    if (context.response) {
+      return context.response;
+    }
+
+    if (context.request?.res) {
+      return context.request.res;
+    }
+
+    throw new Error('Image response object is not available');
   }
 
   private normalizeDimension(value?: number): number | undefined {
@@ -102,9 +115,9 @@ export class ImagesController extends Controller {
   @Security('cookieAuthFast')
   public async getLocalImage(
     @Query() path: string,
-    @Request() req: ExpressRequest,
     @Query() width?: number,
     @Query() height?: number,
+    @Request() req?: ExpressRequest,
   ): Promise<void> {
     const res = this.getResponseFromRequest(req);
 
@@ -129,9 +142,9 @@ export class ImagesController extends Controller {
   @Security('cookieAuthFast')
   public async getRemoteImage(
     @Query() url: string,
-    @Request() req: ExpressRequest,
     @Query() width?: number,
     @Query() height?: number,
+    @Request() req?: ExpressRequest,
   ): Promise<void> {
     const res = this.getResponseFromRequest(req);
 
@@ -182,15 +195,12 @@ export class ImagesController extends Controller {
   public async createTransparentImage(
     @Query() width: number,
     @Query() height: number,
-    @Request() req: ExpressRequest,
     @Query() url?: string,
     @Query() localPath?: string,
-  ): Promise<void> {
+  ): Promise<Buffer> {
     if ((!url && !localPath) || !width || !height) {
       throw new NotEnoughParamsException();
     }
-
-    const res = this.getResponseFromRequest(req);
 
     const finalWidth = width;
     const finalHeight = height;
@@ -207,7 +217,7 @@ export class ImagesController extends Controller {
       finalHeight,
     );
 
-    res.setHeader('Content-Type', 'image/png');
-    res.send(finalImageBuffer);
+    this.setHeader('Content-Type', 'image/png');
+    return finalImageBuffer;
   }
 }
