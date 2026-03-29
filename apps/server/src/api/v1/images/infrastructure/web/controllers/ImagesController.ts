@@ -6,6 +6,7 @@ import {
   Get,
   Post,
   Query,
+  Request,
   Route,
   Security,
   Tags,
@@ -32,21 +33,12 @@ import { messages } from '@/config/messages';
 @Route('images')
 @Tags('Images')
 export class ImagesController extends Controller {
-  private getControllerResponse(): Response {
-    const context = this as unknown as {
-      request?: ExpressRequest;
-      response?: Response;
-    };
-
-    if (context.response) {
-      return context.response;
+  private getResponseFromRequest(req: ExpressRequest): Response {
+    if (!req.res) {
+      throw new Error('Image response object is not available');
     }
 
-    if (context.request?.res) {
-      return context.request.res;
-    }
-
-    throw new Error('Image response object is not available');
+    return req.res;
   }
 
   private normalizeDimension(value?: number): number | undefined {
@@ -110,10 +102,11 @@ export class ImagesController extends Controller {
   @Security('cookieAuthFast')
   public async getLocalImage(
     @Query() path: string,
+    @Request() req: ExpressRequest,
     @Query() width?: number,
     @Query() height?: number,
   ): Promise<void> {
-    const res = this.getControllerResponse();
+    const res = this.getResponseFromRequest(req);
 
     const sanitizedPath = sanitizeImagePath(
       path,
@@ -136,10 +129,11 @@ export class ImagesController extends Controller {
   @Security('cookieAuthFast')
   public async getRemoteImage(
     @Query() url: string,
+    @Request() req: ExpressRequest,
     @Query() width?: number,
     @Query() height?: number,
   ): Promise<void> {
-    const res = this.getControllerResponse();
+    const res = this.getResponseFromRequest(req);
 
     await imageProcessingService.streamRemoteImage({
       url,
@@ -188,6 +182,7 @@ export class ImagesController extends Controller {
   public async createTransparentImage(
     @Query() width: number,
     @Query() height: number,
+    @Request() req: ExpressRequest,
     @Query() url?: string,
     @Query() localPath?: string,
   ): Promise<void> {
@@ -195,7 +190,7 @@ export class ImagesController extends Controller {
       throw new NotEnoughParamsException();
     }
 
-    const res = this.getControllerResponse();
+    const res = this.getResponseFromRequest(req);
 
     const finalWidth = width;
     const finalHeight = height;
