@@ -1,9 +1,9 @@
-import type { Episode, Season, Video } from '@seerial/domain';
+import type { ContinueWatchingVideoDTO, Episode, Season, Video } from '@seerial/domain';
 import type { WatchList } from '../../domain/WatchList';
-import type { ContinueWatchingVideoDTO } from '../dtos/WatchListDTOs';
 
 export interface WatchListRepositoryPort {
   findByVideoId(videoId: string): Promise<WatchList | null>;
+  findByVideoIdAndUserId(videoId: string, userId: string): Promise<WatchList | null>;
   findById(id: string): Promise<WatchList | null>;
   findCurrentSeason(seriesId: string, userId?: string): Promise<Season | null>;
   findCurrentEpisode(seasonId: string, userId?: string): Promise<Episode | null>;

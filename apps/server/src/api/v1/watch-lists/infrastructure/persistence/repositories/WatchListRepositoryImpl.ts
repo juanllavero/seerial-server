@@ -28,6 +28,16 @@ export class WatchListRepositoryImpl extends BaseRepository implements WatchList
     return this.helper.findByField('videoId', validatedId);
   }
 
+  async findByVideoIdAndUserId(videoId: string, userId: string): Promise<WatchList | null> {
+    const { videoId: vId, userId: uId } = this.validateIds({ videoId, userId });
+
+    const watchList = await WatchListModel.findOne({
+      where: { videoId: vId, userId: uId },
+    });
+
+    return watchList as unknown as WatchList | null;
+  }
+
   async findById(id: string): Promise<WatchList | null> {
     const validatedId = this.validateId(id, 'WatchList ID');
     return this.helper.findById(validatedId);

@@ -15,6 +15,7 @@ import {
 } from 'tsoa';
 import { HTTPCodes } from '@/api/v1/shared/domain/types/HTTPCodes';
 import { episodesRepo, useCases } from '@/api/v1/shared/infrastructure/adapters/di/container';
+import { BadRequestException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
 import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
 import { messages } from '@/config/messages';
 import type {
@@ -68,7 +69,7 @@ export class EpisodesController extends Controller {
    * Set episode watch state for a user
    */
   @Post('{id}/watch-state')
-  @Security('adminAuth')
+  @Security('cookieAuth')
   public async setWatchState(
     @Path() id: string,
     @Body() body: SetEpisodeWatchStateDTO,
@@ -76,6 +77,10 @@ export class EpisodesController extends Controller {
   ): Promise<ApiResponse<null>> {
     const { state } = body;
     const userId = (req as AuthenticatedRequest).user?.id as string;
+
+    if (!userId) {
+      throw new BadRequestException(messages.errors.validation.notEnoughParams);
+    }
 
     await useCases.setEpisodeWatchState().execute(id, userId, state);
 

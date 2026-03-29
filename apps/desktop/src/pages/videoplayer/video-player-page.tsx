@@ -1,4 +1,8 @@
-import { getSignedVideoStreamUrlPassthrough, useGetVideo } from '@seerial/api';
+import {
+  getSignedVideoStreamUrlPassthrough,
+  useGetVideo,
+  useUpdateVideoWatchState,
+} from '@seerial/api';
 import type { Video } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { invoke } from '@tauri-apps/api/core';
@@ -47,6 +51,12 @@ function VideoPlayerPage() {
   const completedFirstLoadAttemptRef = useRef(false);
   const healthCheckInFlightRef = useRef(false);
   const playbackRecoveryInFlightRef = useRef(false);
+  const watchStateTrackedRef = useRef(false);
+  const videoEndedTrackedRef = useRef(false);
+  const currentVideoRef = useRef<Video | null>(null);
+  const currentUserIdRef = useRef<string | undefined>(undefined);
+
+  const { mutate: updateWatchState } = useUpdateVideoWatchState();
 
   const getInitialPlaybackPosition = useCallback(
     (videoToPlay: Video) => {
@@ -131,6 +141,28 @@ function VideoPlayerPage() {
   }, []);
 
   useEffect(() => {
+    currentVideoRef.current = video ?? null;
+    currentUserIdRef.current = currentUserId;
+  }, [video, currentUserId]);
+
+  // Track when video playback starts
+  useEffect(() => {
+    if (!videoLoaded || !video || !currentUserId || watchStateTrackedRef.current) {
+      return;
+    }
+
+    watchStateTrackedRef.current = true;
+
+    // Mark the video as being watched (watched: false means still watching, not finished)
+    updateWatchState({
+      videoId: video.id,
+      timeWatched: lastKnownPositionRef.current,
+      watched: false,
+      userId: currentUserId,
+    });
+  }, [videoLoaded, video, currentUserId, updateWatchState]);
+
+  useEffect(() => {
     if (!video || !serverUrl) {
       return;
     }
@@ -138,6 +170,8 @@ function VideoPlayerPage() {
     let cancelled = false;
 
     const loadInitialVideo = async () => {
+      watchStateTrackedRef.current = false;
+      videoEndedTrackedRef.current = false;
       setVideoLoaded(false);
 
       const initialPosition = getInitialPlaybackPosition(video);
@@ -224,11 +258,63 @@ function VideoPlayerPage() {
     };
   }, [videoLoaded, isErrorDialogOpen, pollPlaybackHealth]);
 
+  // Track when video ends
+  useEffect(() => {
+    if (!videoLoaded || !video || !currentUserId) {
+      return;
+    }
+
+    const checkIfEnded = async () => {
+      try {
+        const playbackStatus = await invoke<PlaybackStatus>('get_playback_status');
+
+        if (playbackStatus.eofReached && !videoEndedTrackedRef.current) {
+          videoEndedTrackedRef.current = true;
+          // Mark the video as watched (watched: true means finished watching)
+          updateWatchState({
+            videoId: video.id,
+            timeWatched: lastKnownPositionRef.current,
+            watched: true,
+            userId: currentUserId,
+          });
+        }
+      } catch (error) {
+        console.error('Error checking if video ended:', error);
+      }
+    };
+
+    const interval = window.setInterval(() => {
+      void checkIfEnded();
+    }, PLAYER_HEALTH_POLL_INTERVAL_MS);
+
+    return () => {
+      window.clearInterval(interval);
+    };
+  }, [videoLoaded, video, currentUserId, updateWatchState]);
+
   useEffect(() => {
     return () => {
+      const currentVideo = currentVideoRef.current;
+      const activeUserId = currentUserIdRef.current;
+
+      // Update watch state with current position when leaving the player
+      if (
+        currentVideo &&
+        activeUserId &&
+        watchStateTrackedRef.current &&
+        !videoEndedTrackedRef.current
+      ) {
+        updateWatchState({
+          videoId: currentVideo.id,
+          timeWatched: lastKnownPositionRef.current,
+          watched: false,
+          userId: activeUserId,
+        });
+      }
+
       invoke('stop').catch(console.error);
     };
-  }, []);
+  }, [updateWatchState]);
 
   const handleGoBack = useCallback(async () => {
     await invoke('stop').catch(console.error);

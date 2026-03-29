@@ -1,11 +1,30 @@
-import { Body, Controller, Delete, Get, Path, Post, Put, Query, Route, Security, Tags } from 'tsoa';
+import type { Request as ExpressRequest } from 'express';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Path,
+  Post,
+  Put,
+  Query,
+  Request,
+  Route,
+  Security,
+  Tags,
+} from 'tsoa';
 import { useCases } from '@/api/v1/shared/infrastructure/adapters/di/container';
-import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
+import {
+  BadRequestException,
+  NotFoundException,
+} from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
 import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
 import { messages } from '@/config/messages';
 import type { IncludeType } from '@/types/common';
 import type { SetSeasonWatchStateDTO, UpdateSeasonDTO } from '../../../application/dtos/SeasonDTOs';
 import type { Season } from '../../../domain/Season';
+
+type AuthenticatedRequest = ExpressRequest & { user?: { id?: string } };
 
 @Route('seasons')
 @Tags('Seasons')
@@ -55,12 +74,18 @@ export class SeasonsController extends Controller {
    * Set season watch state for a user
    */
   @Post('{id}/watch-state')
-  @Security('adminAuth')
+  @Security('cookieAuth')
   public async setWatchState(
     @Path() id: string,
     @Body() body: SetSeasonWatchStateDTO,
+    @Request() req: ExpressRequest,
   ): Promise<ApiResponse<null>> {
-    const { watched, userId } = body;
+    const { watched, userId: bodyUserId } = body;
+    const userId = (req as AuthenticatedRequest).user?.id ?? bodyUserId;
+
+    if (!userId) {
+      throw new BadRequestException(messages.errors.validation.notEnoughParams);
+    }
 
     const season = await useCases.getSeasonById().execute(id);
 

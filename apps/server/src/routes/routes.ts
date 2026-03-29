@@ -490,6 +490,9 @@ const models: TsoaRoute.Models = {
     "PlayBackInfo": {
         "dataType": "refObject",
         "properties": {
+            "title": {"dataType":"string","required":true},
+            "subtitle": {"dataType":"string"},
+            "info": {"dataType":"string"},
             "mediaInfoData": {"ref":"MediaInfoData"},
             "playBackConfig": {"ref":"PlayBackConfig"},
         },
@@ -1772,6 +1775,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
     
         const argsWatchListController_updateWatchState: Record<string, TsoaRoute.ParameterSchema> = {
                 body: {"in":"body","name":"body","required":true,"ref":"UpdateWatchStateDTO"},
+                req: {"in":"request","name":"req","required":true,"dataType":"object"},
         };
         app.put('/api/watch-lists/watch-state',
             authenticateMiddleware([{"cookieAuth":[]}]),
@@ -2177,9 +2181,10 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsVideosController_setWatchState: Record<string, TsoaRoute.ParameterSchema> = {
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
                 body: {"in":"body","name":"body","required":true,"ref":"SetVideoWatchStateDTO"},
+                req: {"in":"request","name":"req","required":true,"dataType":"object"},
         };
         app.post('/api/videos/:id/watch-state',
-            authenticateMiddleware([{"adminAuth":[]}]),
+            authenticateMiddleware([{"cookieAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(VideosController)),
             ...(fetchMiddlewares<RequestHandler>(VideosController.prototype.setWatchState)),
 
@@ -3400,9 +3405,10 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsSeriesController_setWatchState: Record<string, TsoaRoute.ParameterSchema> = {
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
                 body: {"in":"body","name":"body","required":true,"ref":"SetSeriesWatchStateDTO"},
+                req: {"in":"request","name":"req","required":true,"dataType":"object"},
         };
         app.post('/api/series/:id/watch-state',
-            authenticateMiddleware([{"adminAuth":[]}]),
+            authenticateMiddleware([{"cookieAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(SeriesController)),
             ...(fetchMiddlewares<RequestHandler>(SeriesController.prototype.setWatchState)),
 
@@ -3686,9 +3692,10 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsSeasonsController_setWatchState: Record<string, TsoaRoute.ParameterSchema> = {
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
                 body: {"in":"body","name":"body","required":true,"ref":"SetSeasonWatchStateDTO"},
+                req: {"in":"request","name":"req","required":true,"dataType":"object"},
         };
         app.post('/api/seasons/:id/watch-state',
-            authenticateMiddleware([{"adminAuth":[]}]),
+            authenticateMiddleware([{"cookieAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(SeasonsController)),
             ...(fetchMiddlewares<RequestHandler>(SeasonsController.prototype.setWatchState)),
 
@@ -4645,7 +4652,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 req: {"in":"request","name":"req","required":true,"dataType":"object"},
         };
         app.post('/api/episodes/:id/watch-state',
-            authenticateMiddleware([{"adminAuth":[]}]),
+            authenticateMiddleware([{"cookieAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(EpisodesController)),
             ...(fetchMiddlewares<RequestHandler>(EpisodesController.prototype.setWatchState)),
 

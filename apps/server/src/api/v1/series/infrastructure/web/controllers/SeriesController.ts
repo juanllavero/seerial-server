@@ -19,7 +19,10 @@ import {
   useCases,
 } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { MediaService } from '@/api/v1/shared/infrastructure/services/MediaService';
-import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
+import {
+  BadRequestException,
+  NotFoundException,
+} from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
 import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
 import { messages } from '@/config/messages';
 import type { IncludeType } from '@/types/common';
@@ -103,12 +106,18 @@ export class SeriesController extends Controller {
    * Set series watch state for a user
    */
   @Post('{id}/watch-state')
-  @Security('adminAuth')
+  @Security('cookieAuth')
   public async setWatchState(
     @Path() id: string,
     @Body() body: SetSeriesWatchStateDTO,
+    @Request() req: ExpressRequest,
   ): Promise<ApiResponse<null>> {
-    const { watched, userId } = body;
+    const { watched, userId: bodyUserId } = body;
+    const userId = (req as AuthenticatedRequest).user?.id ?? bodyUserId;
+
+    if (!userId) {
+      throw new BadRequestException(messages.errors.validation.notEnoughParams);
+    }
 
     const series = await useCases.getSeriesById().execute(id);
 

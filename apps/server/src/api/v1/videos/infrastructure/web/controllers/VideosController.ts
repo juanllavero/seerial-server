@@ -1,17 +1,34 @@
-import { PlayBackInfo } from '@seerial/domain';
-import type { Response as ExpressResponse } from 'express';
-import { Body, Controller, Delete, Get, Path, Post, Put, Query, Route, Security, Tags } from 'tsoa';
+import type { PlayBackInfo } from '@seerial/domain';
+import type { Request as ExpressRequest, Response as ExpressResponse } from 'express';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Path,
+  Post,
+  Put,
+  Query,
+  Request,
+  Route,
+  Security,
+  Tags,
+} from 'tsoa';
 import {
   useCases,
   videoExtractionService,
 } from '@/api/v1/shared/infrastructure/adapters/di/container';
-import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
+import {
+  BadRequestException,
+  NotFoundException,
+} from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
 import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
 import { messages } from '@/config/messages';
 import type { SetVideoWatchStateDTO, UpdateVideoDTO } from '../../../application/dtos/VideoDTOs';
 import type { Video } from '../../../domain/Video';
 
 type TsoaContext = { response: ExpressResponse };
+type AuthenticatedRequest = ExpressRequest & { user?: { id?: string } };
 
 @Route('videos')
 @Tags('Videos')
@@ -108,12 +125,18 @@ export class VideosController extends Controller {
    * Set video watch state for a user
    */
   @Post('{id}/watch-state')
-  @Security('adminAuth')
+  @Security('cookieAuth')
   public async setWatchState(
     @Path() id: string,
     @Body() body: SetVideoWatchStateDTO,
+    @Request() req: ExpressRequest,
   ): Promise<ApiResponse<null>> {
-    const { watched, userId } = body;
+    const { watched, userId: bodyUserId } = body;
+    const userId = (req as AuthenticatedRequest).user?.id ?? bodyUserId;
+
+    if (!userId) {
+      throw new BadRequestException(messages.errors.validation.notEnoughParams);
+    }
 
     const video = await useCases.getVideoById().execute(id);
 

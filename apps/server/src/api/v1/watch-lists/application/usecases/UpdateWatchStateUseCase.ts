@@ -9,7 +9,7 @@ import type { WatchList } from '../../domain/WatchList';
 import type { WatchListRepositoryPort } from '../ports/WatchListRepositoryPort';
 
 export class UpdateWatchStateUseCase {
-  constructor(private watchListRepo: WatchListRepositoryPort) {}
+  constructor(private watchListRepo: WatchListRepositoryPort) { }
 
   async execute(params: {
     videoId: string;
@@ -38,12 +38,6 @@ export class UpdateWatchStateUseCase {
       const movie = await useCases.getMoviebyId().execute(video.movieId);
       if (!movie) throw new NotFoundException(messages.errors.notFound.movie);
 
-      if (watched) {
-        await this.watchListRepo.addVideo(userId, video.id);
-      } else {
-        await this.watchListRepo.removeVideo(userId, video.id);
-      }
-
       const allWatched =
         movie.videos.filter((v: Video) =>
           v.id === video.id
@@ -54,7 +48,10 @@ export class UpdateWatchStateUseCase {
       if (allWatched) {
         await this.watchListRepo.addMovie(userId, movie.id);
       } else {
-        await this.watchListRepo.removeMovie(userId, movie.id);
+        const movieWatchListExists = await this.watchListRepo.isMovieWatched(movie.id, userId);
+        if (movieWatchListExists) {
+          await this.watchListRepo.removeMovie(userId, movie.id);
+        }
       }
 
       if (watched) {
@@ -68,7 +65,7 @@ export class UpdateWatchStateUseCase {
     await this.watchListRepo.addVideo(userId, videoId);
 
     // Update watch list entry with progress
-    const watchList = await this.watchListRepo.findByVideoId(videoId);
+    const watchList = await this.watchListRepo.findByVideoIdAndUserId(videoId, userId);
     if (watchList)
       await this.watchListRepo.update(watchList.id, {
         timeWatched,
