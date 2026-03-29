@@ -102,14 +102,10 @@ export class ImagesController extends Controller {
   @Security('cookieAuthFast')
   public async getLocalImage(
     @Query() path: string,
+    @Request() req: ExpressRequest,
     @Query() width?: number,
     @Query() height?: number,
-    @Request() req?: ExpressRequest,
   ): Promise<void> {
-    if (!req) {
-      throw new BadRequestException();
-    }
-
     const res = this.getResponseFromRequest(req);
 
     const sanitizedPath = sanitizeImagePath(
@@ -133,14 +129,10 @@ export class ImagesController extends Controller {
   @Security('cookieAuthFast')
   public async getRemoteImage(
     @Query() url: string,
+    @Request() req: ExpressRequest,
     @Query() width?: number,
     @Query() height?: number,
-    @Request() req?: ExpressRequest,
   ): Promise<void> {
-    if (!req) {
-      throw new BadRequestException();
-    }
-
     const res = this.getResponseFromRequest(req);
 
     await imageProcessingService.streamRemoteImage({
@@ -190,16 +182,12 @@ export class ImagesController extends Controller {
   public async createTransparentImage(
     @Query() width: number,
     @Query() height: number,
+    @Request() req: ExpressRequest,
     @Query() url?: string,
     @Query() localPath?: string,
-    @Request() req?: ExpressRequest,
   ): Promise<void> {
     if ((!url && !localPath) || !width || !height) {
       throw new NotEnoughParamsException();
-    }
-
-    if (!req) {
-      throw new BadRequestException();
     }
 
     const res = this.getResponseFromRequest(req);
