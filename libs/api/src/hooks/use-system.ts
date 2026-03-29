@@ -85,9 +85,31 @@ export const useGetImageDirectoryListing = <TResponse = unknown>(
 ): ApiQueryResult<TResponse> =>
     useApiQuery<TResponse>(['images', 'directoryListing'], API.images.directoryListing, options)
 
-export const useGetLocalImage = <TResponse = unknown>(
-    options?: QueryHookOptions<TResponse>,
-): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['images', 'local'], API.images.local, options)
+export const useGetLocalImage = (
+    options?: QueryHookOptions<Blob>,
+): ApiQueryResult<Blob> => {
+    const { enabled, params, queryKey: customQueryKey, ...queryOptions } = options ?? {}
+
+    const query = useQuery<Blob, Error>({
+        queryKey: customQueryKey ?? ['images', 'local', params],
+        queryFn: async () => {
+            const response = await apiClient.get<Blob>(API.images.local, {
+                params,
+                responseType: 'blob',
+            })
+
+            return response.data
+        },
+        enabled: enabled ?? true,
+        ...queryOptions,
+    })
+
+    return {
+        ...query,
+        error: query.error ? getApiErrorMessage(query.error) : null,
+        mutate: () => query.refetch(),
+    }
+}
 
 export const useGetCompressedImage = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,

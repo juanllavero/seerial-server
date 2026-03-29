@@ -1,4 +1,4 @@
-import { isAbsolutePath } from '@seerial/domain';
+import { useGetLocalImage } from '@seerial/api';
 import { useServerStore } from '@seerial/stores';
 import { useEffect, useRef, useState } from 'react';
 import { Skeleton } from './skeleton';
@@ -29,39 +29,56 @@ const Image: React.FC<ImageProps> = ({
   className = '',
 }) => {
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
+  const isRemoteUrl = !!url?.startsWith('http');
+  const localImagePath = url && !isRemoteUrl ? url : undefined;
+  const directImageSrc = url ? (isRemoteUrl ? url : undefined) : (src ?? fallbackSrc);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [isInView, setIsInView] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const [imageSrc, setImageSrc] = useState(
-    url
-      ? url.startsWith('http')
-        ? url
-        : url.startsWith('local')
-          ? url.replace('local', '')
-          : isAbsolutePath(url)
-            ? `${serverUrl}/api/image?path=${encodeURIComponent(url)}`
-            : `${serverUrl}/api/${url.replace('resources/img', 'img')}`
-      : (src ?? fallbackSrc),
-  );
+  const { data: localImageBlob, error: localImageError } = useGetLocalImage({
+    enabled: isInView && !!localImagePath,
+    params: localImagePath ? { path: localImagePath } : undefined,
+    queryKey: ['images', 'local', serverUrl, localImagePath],
+  });
 
-  // Update imageSrc when url, src, or serverUrl changes
+  const [imageSrc, setImageSrc] = useState(directImageSrc);
+
+  // Reset image state when the source changes.
   useEffect(() => {
     setIsLoading(true);
     setHasError(false);
-    const newSrc = url
-      ? url.startsWith('http')
-        ? url
-        : url.startsWith('local')
-          ? url.replace('local', '')
-          : isAbsolutePath(url)
-            ? `${serverUrl}/api/image?path=${encodeURIComponent(url)}`
-            : `${serverUrl}/api/${url.replace('resources/img', 'img')}`
-      : (src ?? fallbackSrc);
-    setImageSrc(newSrc);
-  }, [url, src, serverUrl, fallbackSrc]);
+    setImageSrc(localImagePath ? undefined : directImageSrc);
+  }, [directImageSrc, localImagePath]);
+
+  useEffect(() => {
+    if (!localImageBlob) {
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(localImageBlob);
+    setImageSrc(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [localImageBlob]);
+
+  useEffect(() => {
+    if (!localImageError) {
+      return;
+    }
+
+    if (fallbackSrc) {
+      setImageSrc(fallbackSrc);
+      return;
+    }
+
+    setHasError(true);
+    setIsLoading(false);
+  }, [fallbackSrc, localImageError]);
 
   // Intersection Observer for lazy loading
   useEffect(() => {
@@ -111,7 +128,7 @@ const Image: React.FC<ImageProps> = ({
     >
       {isLoading && <Skeleton className="absolute inset-0 h-full w-full" />}
 
-      {isInView && (
+      {isInView && imageSrc && (
         <img
           ref={imgRef}
           src={imageSrc}

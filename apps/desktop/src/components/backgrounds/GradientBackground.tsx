@@ -1,6 +1,6 @@
 import { useGetImageColors } from '@seerial/api';
 import { useServerStore } from '@seerial/stores';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface GradientBackgroundProps {
   showGradient?: boolean;
@@ -17,6 +17,8 @@ interface ImageColorsResponse {
   };
 }
 
+const GRADIENT_TRANSITION_MS = 700;
+
 const windowsPathRegex = /^[a-zA-Z]:[\\/]/;
 const unixPathRegex = /^\//;
 
@@ -29,6 +31,29 @@ const normalizeRelativeImageUrl = (serverUrl: string, imageSrc: string): string 
   const normalizedImagePath = imageSrc.startsWith('/') ? imageSrc.slice(1) : imageSrc;
 
   return `${normalizedServerUrl}/${normalizedImagePath.replace('resources/img', 'img')}`;
+};
+
+const normalizeGradientCss = (value?: string): string => {
+  if (!value) {
+    return '';
+  }
+
+  return value
+    .replace(/^background\s*:\s*/i, '')
+    .replace(/;$/, '')
+    .trim();
+};
+
+const getImageColorsSourceKey = (params?: { url?: string; localPath?: string }): string => {
+  if (params?.url) {
+    return `url:${params.url}`;
+  }
+
+  if (params?.localPath) {
+    return `local:${params.localPath}`;
+  }
+
+  return '';
 };
 
 const buildImageColorsParams = (
@@ -67,81 +92,129 @@ const GradientBackground = ({
 }: GradientBackgroundProps) => {
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
   const [currentGradient, setCurrentGradient] = useState('');
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const gradientRef = useRef<HTMLDivElement>(null);
-  const handleTransitionEndRef = useRef<((event: TransitionEvent) => void) | null>(null);
+  const [nextGradient, setNextGradient] = useState('');
+  const [isNextGradientVisible, setIsNextGradientVisible] = useState(false);
+  const gradientCacheRef = useRef<Record<string, string>>({});
+  const transitionFrameRef = useRef<number | null>(null);
 
-  const imageColorsParams = buildImageColorsParams(serverUrl, imageSrc);
+  const imageColorsParams = useMemo(
+    () => buildImageColorsParams(serverUrl, imageSrc),
+    [serverUrl, imageSrc],
+  );
+  const imageSourceKey = useMemo(
+    () => getImageColorsSourceKey(imageColorsParams),
+    [imageColorsParams],
+  );
 
   const { data: imageColorsData } = useGetImageColors<ImageColorsResponse>({
     enabled: showGradient && !!imageColorsParams,
     params: imageColorsParams,
     queryKey: ['images', 'colors', serverUrl, imageSrc],
+    staleTime: 1000 * 60 * 30,
   });
 
-  const imageColorsCss = imageColorsData?.css ?? imageColorsData?.data?.css;
+  const imageColorsCss = normalizeGradientCss(imageColorsData?.css ?? imageColorsData?.data?.css);
+
+  const cancelScheduledTransition = useCallback(() => {
+    if (transitionFrameRef.current !== null) {
+      cancelAnimationFrame(transitionFrameRef.current);
+      transitionFrameRef.current = null;
+    }
+  }, []);
+
+  const resetTransitionState = useCallback(() => {
+    setNextGradient('');
+    setIsNextGradientVisible(false);
+  }, []);
+
+  const scheduleTransition = useCallback(
+    (gradient: string) => {
+      setNextGradient(gradient);
+      setIsNextGradientVisible(false);
+      cancelScheduledTransition();
+
+      transitionFrameRef.current = requestAnimationFrame(() => {
+        setIsNextGradientVisible(true);
+        transitionFrameRef.current = null;
+      });
+    },
+    [cancelScheduledTransition],
+  );
 
   useEffect(() => {
-    if (!showGradient || !imageSrc || imageSrc === '') {
+    if (!showGradient || !imageSourceKey) {
+      cancelScheduledTransition();
       setCurrentGradient('');
+      resetTransitionState();
       return;
     }
 
-    const nextCss = imageColorsCss;
-    if (!nextCss) {
+    const resolvedGradient = imageColorsCss || gradientCacheRef.current[imageSourceKey];
+    if (!resolvedGradient) {
       return;
     }
 
-    const cleanCss = nextCss.replace('background: ', '').replace(';', '');
+    if (imageColorsCss) {
+      gradientCacheRef.current[imageSourceKey] = imageColorsCss;
+    }
 
-    if (cleanCss === currentGradient) {
+    if (resolvedGradient === currentGradient) {
+      cancelScheduledTransition();
+      resetTransitionState();
       return;
     }
 
     if (!currentGradient) {
-      setCurrentGradient(cleanCss);
+      cancelScheduledTransition();
+      setCurrentGradient(resolvedGradient);
+      resetTransitionState();
       return;
     }
 
-    setIsTransitioning(true);
-
-    handleTransitionEndRef.current = (event: TransitionEvent) => {
-      if (event.propertyName !== 'opacity') return;
-
-      setCurrentGradient(cleanCss);
-      setTimeout(() => {
-        setIsTransitioning(false);
-      }, 0);
-
-      if (gradientRef.current && handleTransitionEndRef.current) {
-        gradientRef.current.removeEventListener('transitionend', handleTransitionEndRef.current);
-      }
-      handleTransitionEndRef.current = null;
-    };
-
-    if (gradientRef.current && handleTransitionEndRef.current) {
-      gradientRef.current.addEventListener('transitionend', handleTransitionEndRef.current);
-    }
+    scheduleTransition(resolvedGradient);
 
     return () => {
-      if (gradientRef.current && handleTransitionEndRef.current) {
-        gradientRef.current.removeEventListener('transitionend', handleTransitionEndRef.current);
-        handleTransitionEndRef.current = null;
-      }
+      cancelScheduledTransition();
     };
-  }, [imageSrc, showGradient, currentGradient, imageColorsCss]);
+  }, [
+    showGradient,
+    imageSourceKey,
+    imageColorsCss,
+    currentGradient,
+    cancelScheduledTransition,
+    resetTransitionState,
+    scheduleTransition,
+  ]);
+
+  const handleNextGradientTransitionEnd = (event: React.TransitionEvent<HTMLDivElement>) => {
+    if (event.propertyName !== 'opacity' || !isNextGradientVisible || !nextGradient) {
+      return;
+    }
+
+    setCurrentGradient(nextGradient);
+    setNextGradient('');
+    setIsNextGradientVisible(false);
+  };
 
   return (
     <div className="absolute inset-0 overflow-hidden" style={{ zIndex: index, width, height }}>
       <div
-        ref={gradientRef}
-        className={`absolute inset-0 h-full w-full transition-opacity duration-700 ${
-          isTransitioning ? 'opacity-0' : 'opacity-100'
-        }`}
+        className="absolute inset-0 h-full w-full"
         style={{
           width,
           height,
           background: currentGradient,
+        }}
+      />
+      <div
+        className="absolute inset-0 h-full w-full transition-opacity duration-700"
+        onTransitionEnd={handleNextGradientTransitionEnd}
+        style={{
+          width,
+          height,
+          background: nextGradient,
+          opacity: isNextGradientVisible ? 1 : 0,
+          transitionDuration: `${GRADIENT_TRANSITION_MS}ms`,
         }}
       />
     </div>
