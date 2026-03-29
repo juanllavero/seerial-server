@@ -1,6 +1,17 @@
 import path from 'node:path';
-import type { Response } from 'express';
-import { Controller, FormField, Get, Post, Query, Route, Security, Tags, UploadedFile } from 'tsoa';
+import type { Request as ExpressRequest, Response } from 'express';
+import {
+  Controller,
+  FormField,
+  Get,
+  Post,
+  Query,
+  Request,
+  Route,
+  Security,
+  Tags,
+  UploadedFile,
+} from 'tsoa';
 import {
   fileSystemService,
   imageProcessingService,
@@ -22,8 +33,12 @@ import { messages } from '@/config/messages';
 @Route('images')
 @Tags('Images')
 export class ImagesController extends Controller {
-  private get expressResponse(): Response {
-    return (this as unknown as { response: Response }).response;
+  private getResponseFromRequest(req: ExpressRequest): Response {
+    if (!req.res) {
+      throw new Error('Image response object is not available');
+    }
+
+    return req.res;
   }
 
   private normalizeDimension(value?: number): number | undefined {
@@ -89,7 +104,14 @@ export class ImagesController extends Controller {
     @Query() path: string,
     @Query() width?: number,
     @Query() height?: number,
+    @Request() req?: ExpressRequest,
   ): Promise<void> {
+    if (!req) {
+      throw new BadRequestException();
+    }
+
+    const res = this.getResponseFromRequest(req);
+
     const sanitizedPath = sanitizeImagePath(
       path,
       getSystemAllowedPaths(),
@@ -98,7 +120,7 @@ export class ImagesController extends Controller {
 
     await imageProcessingService.streamLocalImage({
       filePath: sanitizedPath,
-      res: this.expressResponse,
+      res,
       width: this.normalizeDimension(width),
       height: this.normalizeDimension(height),
     });
@@ -113,10 +135,17 @@ export class ImagesController extends Controller {
     @Query() url: string,
     @Query() width?: number,
     @Query() height?: number,
+    @Request() req?: ExpressRequest,
   ): Promise<void> {
+    if (!req) {
+      throw new BadRequestException();
+    }
+
+    const res = this.getResponseFromRequest(req);
+
     await imageProcessingService.streamRemoteImage({
       url,
-      res: this.expressResponse,
+      res,
       width: this.normalizeDimension(width),
       height: this.normalizeDimension(height),
     });
@@ -163,10 +192,17 @@ export class ImagesController extends Controller {
     @Query() height: number,
     @Query() url?: string,
     @Query() localPath?: string,
+    @Request() req?: ExpressRequest,
   ): Promise<void> {
     if ((!url && !localPath) || !width || !height) {
       throw new NotEnoughParamsException();
     }
+
+    if (!req) {
+      throw new BadRequestException();
+    }
+
+    const res = this.getResponseFromRequest(req);
 
     const finalWidth = width;
     const finalHeight = height;
@@ -183,7 +219,7 @@ export class ImagesController extends Controller {
       finalHeight,
     );
 
-    this.expressResponse.setHeader('Content-Type', 'image/png');
-    this.expressResponse.send(finalImageBuffer);
+    res.setHeader('Content-Type', 'image/png');
+    res.send(finalImageBuffer);
   }
 }

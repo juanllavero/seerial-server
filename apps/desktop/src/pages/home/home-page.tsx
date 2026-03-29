@@ -1,17 +1,18 @@
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import { useGetContinueWatching } from '@seerial/api';
-import type { ContinueWatchingVideoDTO } from '@seerial/domain';
+import { type ContinueWatchingVideoDTO, formatDate } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import GradientBackground from '@/components/backgrounds/GradientBackground';
 import NavigationScrollView from '@/components/navigation/NavigationScrollView';
-import HomeInfo from '@/features/home/components/home-info';
+import ListTitle from '@/components/text/ListTitle';
 import TransparentImage from '@/features/home/components/transparent-image';
+import DetailsInfo from '@/shared/components/details/details-info';
+import Loading from '@/shared/components/loading';
 import Page from '@/shared/components/page';
 import ContentCard from '@/shared/ui/card';
-import { Skeleton } from '@/shared/ui/skeleton';
 
 function Home() {
   const { currentUser } = useServerStore();
@@ -33,20 +34,21 @@ function Home() {
   }, [continueWatching]);
 
   useEffect(() => {
-    setFocus('home');
-  }, []);
+    if (continueWatching && continueWatching.length > 0) {
+      setSelectedElement(continueWatching[0]);
+      setFocus(`${continueWatching[0].id}`);
+    } else {
+      setSelectedElement(null);
+      setFocus('home');
+    }
+  }, [continueWatching]);
 
   const goToContent = (url: string) => {
     navigate(url);
   };
 
-  const skeletons = Array.from({ length: 10 }, (_, index) => (
-    <Skeleton key={`ContinueWatching ${index}`} className={'w-[280px] h-[400px]'} />
-  ));
-
   return (
     <Page justify="end">
-      <p>Test</p>
       <GradientBackground
         imageSrc={selectedElement?.backgroundImage ?? selectedElement?.posterImage}
         index={0}
@@ -54,40 +56,66 @@ function Home() {
 
       <TransparentImage imageSrc={selectedElement?.backgroundImage ?? ''} />
 
-      <HomeInfo selectedElement={selectedElement} />
+      {/* <HomeInfo selectedElement={selectedElement} /> */}
+      <DetailsInfo
+        details={{
+          title: selectedElement?.title ?? '',
+          subtitle: selectedElement?.subtitle ?? '',
+          genres: selectedElement?.genres.join(', ') ?? '',
+          description: selectedElement?.overview ?? '',
+        }}
+        infoItems={
+          [
+            selectedElement?.episodeNumber
+              ? `S${selectedElement.seasonNumber}E${selectedElement.episodeNumber}`
+              : undefined,
+            selectedElement?.episodeId
+              ? formatDate(selectedElement?.date ?? '')
+              : selectedElement?.date.split('-')[0],
+            selectedElement
+              ? `${(selectedElement.duration - selectedElement.timeWatched / 60).toFixed(0)} minutes remaining`
+              : undefined,
+          ].filter(Boolean) as string[]
+        }
+        hideButtons
+      />
 
-      <span className="text-xl z-10">{t('continueWatching')}</span>
+      <ListTitle className="z-10 mt-5">{t('continueWatching')}</ListTitle>
 
       {/* <LogoIntro /> */}
 
       <NavigationScrollView
+        className="gap-5 pb-5 z-10 w-full"
         direction="horizontal"
-        className="gap-10 w-full z-10"
-        customFocusKey="continueWatching"
+        scrollMode="start"
+        focusedElementId={selectedElement?.id}
       >
-        {continueWatching && continueWatching.length > 0
-          ? continueWatching.map((element: ContinueWatchingVideoDTO) => (
-              <ContentCard
-                key={element.id}
-                imgSrc={element.posterImage ?? ''}
-                customKey={`continueWatchingCard-${element.id}`}
-                height={'35dvh'}
-                title={element.title}
-                onFocus={() => setSelectedElement(element)}
-                action={() => {
-                  if (element.id === selectedElement?.id) {
-                    goToContent(
-                      `/details/${element.episodeId ? 'episode' : 'movie'}/${element.episodeId ? element.episodeId : element.movieId}`,
-                    );
-                  } else {
-                    setSelectedElement(element);
-                  }
-                }}
-              />
-            ))
-          : isLoading
-            ? t('noContent')
-            : skeletons}
+        {continueWatching && continueWatching.length > 0 ? (
+          continueWatching.map((element: ContinueWatchingVideoDTO) => (
+            <ContentCard
+              key={element.id}
+              imgSrc={element.posterImage ?? ''}
+              customKey={element.id}
+              width={'26dvh'}
+              noInfo
+              onFocus={() => setSelectedElement(element)}
+              aspectRatio="2/3"
+              action={() => {
+                if (element.id === selectedElement?.id) {
+                  goToContent(
+                    `/details/${element.episodeId ? 'episode' : 'movie'}/${element.episodeId ? element.episodeId : element.movieId}`,
+                  );
+                } else {
+                  setSelectedElement(element);
+                }
+              }}
+            />
+          ))
+        ) : isLoading ? (
+          t('noContent')
+        ) : (
+          <Loading />
+        )}
       </NavigationScrollView>
     </Page>
   );

@@ -33,6 +33,7 @@ interface CardProps {
   action: () => void;
   onFocus?: () => void;
   customKey?: string;
+  noInfo?: boolean;
 }
 
 function ContentCard({
@@ -44,6 +45,7 @@ function ContentCard({
   action,
   onFocus,
   customKey,
+  noInfo = false,
 }: CardProps) {
   const mediaAspectRatio = parseAspectRatio(aspectRatio);
   const cardAspectRatio = mediaAspectRatio * IMAGE_HEIGHT_PERCENTAGE;
@@ -73,7 +75,7 @@ function ContentCard({
         aspectRatio: `${cardAspectRatio}`,
       }}
     >
-      <div className="h-[90%] w-full overflow-hidden rounded-md">
+      <div className={`${noInfo ? 'h-full' : 'h-[90%]'} w-full overflow-hidden rounded-md`}>
         <Image
           url={imgSrc}
           height="100%"
@@ -82,12 +84,14 @@ function ContentCard({
           aspectRatio="auto"
         />
       </div>
-      <div className="flex  min-h-0 w-full flex-col justify-center overflow-hidden pt-1">
-        {title && <span className="truncate text-sm leading-tight">{title}</span>}
-        {subtitle && (
-          <span className="truncate text-xs leading-tight text-white/70">{subtitle}</span>
-        )}
-      </div>
+      {!noInfo && (
+        <div className="flex  min-h-0 w-full flex-col justify-center overflow-hidden pt-1">
+          {title && <span className="truncate text-sm leading-tight">{title}</span>}
+          {subtitle && (
+            <span className="truncate text-xs leading-tight text-white/70">{subtitle}</span>
+          )}
+        </div>
+      )}
     </FlexBox>
   );
 }

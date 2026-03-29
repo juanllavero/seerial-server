@@ -1,3 +1,5 @@
+import { useQuery } from '@tanstack/react-query'
+import { apiClient, getApiErrorMessage } from '../client'
 import { API } from '../endpoints'
 import { type ApiMutationResult, type ApiQueryResult, asBody, type MutationHookOptions, type QueryHookOptions, useApiMutation, useApiQuery } from './common'
 
@@ -94,6 +96,32 @@ export const useGetCompressedImage = <TResponse = unknown>(
 export const useGetImageColors = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
 ): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['images', 'colors'], API.images.colors, options)
+
+export const useGetTransparentImage = (
+    options?: QueryHookOptions<Blob>,
+): ApiQueryResult<Blob> => {
+    const { enabled, params, queryKey: customQueryKey, ...queryOptions } = options ?? {}
+
+    const query = useQuery<Blob, Error>({
+        queryKey: customQueryKey ?? ['images', 'transparent', params],
+        queryFn: async () => {
+            const response = await apiClient.get<Blob>(API.images.transparent, {
+                params,
+                responseType: 'blob',
+            })
+
+            return response.data
+        },
+        enabled: enabled ?? true,
+        ...queryOptions,
+    })
+
+    return {
+        ...query,
+        error: query.error ? getApiErrorMessage(query.error) : null,
+        mutate: () => query.refetch(),
+    }
+}
 
 export const useUploadImage = <TResponse = unknown, TBody = unknown>(
     options?: MutationHookOptions<TResponse, TBody>,

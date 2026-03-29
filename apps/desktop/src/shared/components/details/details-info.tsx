@@ -21,6 +21,7 @@ interface DetailsInfoProps {
   videoInfo?: string;
   audioInfo?: string;
   subtitleInfo?: string;
+  hideButtons?: boolean;
 }
 
 function DetailsInfo({
@@ -32,6 +33,7 @@ function DetailsInfo({
   videoInfo,
   audioInfo,
   subtitleInfo,
+  hideButtons,
 }: DetailsInfoProps) {
   useKeyboardBack();
 
@@ -42,7 +44,7 @@ function DetailsInfo({
   const handleMoreOptions = useCallback(() => {}, []);
 
   return (
-    <FlexBox direction="column" justify="end" width={'100%'} margin="0 0 2rem 0" className="z-10">
+    <FlexBox direction="column" justify="end" width={'100%'} className="z-10">
       <span className="text-[1.5vh] italic">
         {details?.tagline && details?.tagline !== '' ? details?.tagline : ''}
       </span>
@@ -103,81 +105,85 @@ function DetailsInfo({
           <FlexBox
             css={{
               maxWidth: 1000,
-              height: '12dvh',
+              height: hideButtons ? '8dvh' : '12dvh',
               paddingTop: 3,
             }}
           >
-            <Tertiary className="line-clamp-4 ellipsis">{details?.description}</Tertiary>
+            <Tertiary className={`${hideButtons ? 'line-clamp-3' : 'line-clamp-4'} ellipsis`}>
+              {details?.description}
+            </Tertiary>
           </FlexBox>
         )}
       </FlexBox>
 
-      <FlexBox
-        className="flex-row"
-        width={'100%'}
-        justify="space-between"
-        align="center"
-        css={{
-          paddingTop: 50,
-          gap: 10,
-        }}
-      >
-        <FlexBox gap={1}>
-          <NavigationButton
-            customKey={NavigationFocusKeys.details.playButton}
-            text={'Reproducir'}
-            icon={<PlayIcon size={'3dvh'} />}
-            onClick={handlePlay}
-            hideText
-            animateText
-          />
-          <NavigationButton
-            customKey={NavigationFocusKeys.details.markWatchedButton}
-            text={'Marcar como visto'}
-            icon={<LucideBookmark size={'3vh'} />}
-            onClick={() => console.log('Mark as watched')}
-            hideText
-            animateText
-          />
-          <NavigationButton
-            customKey={NavigationFocusKeys.details.addToMyListButton}
-            text={'Agregar a mi lista'}
-            icon={<LucideBookmark size={'3dvh'} />}
-            onClick={() => console.log('Add to my list')}
-            hideText
-            animateText
-          />
-          <NavigationButton
-            customKey={NavigationFocusKeys.details.optionsButton}
-            icon={<Ellipsis size={'3dvh'} />}
-            onClick={handleMoreOptions}
-            hideText
-            animateText
-          />
+      {!hideButtons && (
+        <FlexBox
+          className="flex-row"
+          width={'100%'}
+          justify="space-between"
+          align="center"
+          css={{
+            paddingTop: 50,
+            gap: 10,
+          }}
+        >
+          <FlexBox gap={1}>
+            <NavigationButton
+              customKey={NavigationFocusKeys.details.playButton}
+              text={'Reproducir'}
+              icon={<PlayIcon size={'3dvh'} />}
+              onClick={handlePlay}
+              hideText
+              animateText
+            />
+            <NavigationButton
+              customKey={NavigationFocusKeys.details.markWatchedButton}
+              text={'Marcar como visto'}
+              icon={<LucideBookmark size={'3vh'} />}
+              onClick={() => console.log('Mark as watched')}
+              hideText
+              animateText
+            />
+            <NavigationButton
+              customKey={NavigationFocusKeys.details.addToMyListButton}
+              text={'Agregar a mi lista'}
+              icon={<LucideBookmark size={'3dvh'} />}
+              onClick={() => console.log('Add to my list')}
+              hideText
+              animateText
+            />
+            <NavigationButton
+              customKey={NavigationFocusKeys.details.optionsButton}
+              icon={<Ellipsis size={'3dvh'} />}
+              onClick={handleMoreOptions}
+              hideText
+              animateText
+            />
+          </FlexBox>
+
+          {(videoInfo || audioInfo || subtitleInfo) && (
+            <FlexBox direction="row" gap={2}>
+              {videoInfo && (
+                <Card className="px-3 border-none">
+                  <Tertiary>{videoInfo}</Tertiary>
+                </Card>
+              )}
+              {audioInfo && (
+                <Card className="px-3 border-none flex items-center gap-3">
+                  <Volume2 />
+                  <Tertiary>{audioInfo}</Tertiary>
+                </Card>
+              )}
+              {subtitleInfo && (
+                <Card className="px-3 border-none flex items-center gap-3">
+                  <Subtitles />
+                  <Tertiary>{subtitleInfo}</Tertiary>
+                </Card>
+              )}
+            </FlexBox>
+          )}
         </FlexBox>
-
-        {(videoInfo || audioInfo || subtitleInfo) && (
-          <FlexBox direction="row" gap={2}>
-            {videoInfo && (
-              <Card className="px-3 border-none">
-                <Tertiary>{videoInfo}</Tertiary>
-              </Card>
-            )}
-            {audioInfo && (
-              <Card className="px-3 border-none flex items-center gap-3">
-                <Volume2 />
-                <Tertiary>{audioInfo}</Tertiary>
-              </Card>
-            )}
-            {subtitleInfo && (
-              <Card className="px-3 border-none flex items-center gap-3">
-                <Subtitles />
-                <Tertiary>{subtitleInfo}</Tertiary>
-              </Card>
-            )}
-          </FlexBox>
-        )}
-      </FlexBox>
+      )}
     </FlexBox>
   );
 }
