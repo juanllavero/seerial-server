@@ -8,6 +8,7 @@ import GradientBackground from '@/components/backgrounds/GradientBackground';
 import NavigationGridView from '@/components/navigation/NavigationGridView';
 import { LibraryContentItemType } from '@/data/enums/enums';
 import { useSettingsStore } from '@/features/settings/stores/settings.store';
+import type { ScrollMode } from '@/hooks/useAutoScroll';
 import Page from '@/shared/components/page';
 import ContentCard from '@/shared/ui/card';
 
@@ -18,7 +19,8 @@ interface LibraryContentProps {
   libraryType?: string;
   selectedElement: LibraryItem | null;
   setSelectedElement: (item: LibraryItem) => void;
-  scrollMode?: 'top' | 'center';
+  scrollMode?: ScrollMode;
+  isRestoringFocus?: boolean;
 }
 
 function LibraryContent({
@@ -26,7 +28,8 @@ function LibraryContent({
   libraryType,
   selectedElement,
   setSelectedElement,
-  scrollMode = 'top',
+  scrollMode = 'start',
+  isRestoringFocus = true,
 }: LibraryContentProps) {
   const navigate = useNavigate();
   const itemsPerRow = useSettingsStore((s) => s.settings.cardsPerRow);
@@ -58,6 +61,7 @@ function LibraryContent({
           style={{ gap: `${GRID_GAP_REM}rem` }}
           scrollMode={scrollMode}
           focusedElementId={lastFocusedElementId}
+          isRestoringFocus={isRestoringFocus}
         >
           {content?.map((item) => (
             // Music libraries should always render square covers.

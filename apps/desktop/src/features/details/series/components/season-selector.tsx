@@ -32,14 +32,13 @@ function SeasonSelector({ seasons, selectedSeasonId, onSelectSeason }: SeasonSel
         .sort((a, b) => a.seasonNumber - b.seasonNumber)
         .map((season) => (
           <NavigationButton
-            transparent
+            variant="ghost"
             key={season.id}
+            text={String(season.seasonNumber)}
             selected={selectedSeasonId === season.id}
             className={`${selectedSeasonId === season.id ? 'color-app-color' : ''}`}
             onClick={() => onSelectSeason(season)}
-          >
-            {season.seasonNumber}
-          </NavigationButton>
+          />
         ))}
     </FlexBox>
   );

@@ -10,6 +10,7 @@ interface NavigationScrollViewProps {
   style?: React.CSSProperties;
   scrollMode?: ScrollMode;
   focusedElementId?: string;
+  isRestoringFocus?: boolean;
 }
 
 const NavigationGridView = ({
@@ -17,8 +18,9 @@ const NavigationGridView = ({
   className,
   customFocusKey,
   style,
-  scrollMode = 'top',
+  scrollMode = 'start',
   focusedElementId,
+  isRestoringFocus = true,
 }: NavigationScrollViewProps) => {
   const { ref, focusKey } = useFocusable({
     trackChildren: true,
@@ -33,6 +35,7 @@ const NavigationGridView = ({
     scrollMode,
     focusedElementId,
     containerRef,
+    isRestoringFocus,
   });
 
   return (
@@ -48,7 +51,8 @@ const NavigationGridView = ({
           }
         }}
         className={`
-          flex flex-row flex-wrap overflow-y-auto pb-50 pt-10 px-3 scroll-smooth hide-scrollbar
+          flex flex-row flex-wrap overflow-y-auto pb-50 pt-10 px-3 hide-scrollbar
+          ${isRestoringFocus ? 'scroll-auto' : 'scroll-smooth'}
           ${className || ''}
         `}
         style={style}

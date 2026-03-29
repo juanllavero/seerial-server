@@ -11,6 +11,9 @@ function SeriesDetailsPage() {
 
   const { data: show, isLoading } = useGetSeries<Series>(seriesId ?? '', {
     enabled: !!seriesId,
+    params: {
+      include: 'all',
+    },
   });
 
   return <SeriesDetails series={show} isLoading={isLoading} details={cachedDetails} />;

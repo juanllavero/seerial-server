@@ -1,11 +1,10 @@
-import type { Episode, Season, Video } from '@seerial/domain';
+import type { ContinueWatchingVideoDTO, Episode, Season, Video } from '@seerial/domain';
 import type { FindOptionsWhere } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
 import { MovieModel } from '@/api/v1/movies/infrastructure/persistence/models/MovieModel';
 import { SeasonModel } from '@/api/v1/seasons/infrastructure/persistence/models/SeasonModel';
 import { GenericRepositoryHelper } from '@/helpers/GenericRepositoryHelper';
-import type { ContinueWatchingVideoDTO } from '../../../application/dtos/WatchListDTOs';
 import type { WatchListRepositoryPort } from '../../../application/ports/WatchListRepositoryPort';
 import type { WatchList } from '../../../domain/WatchList';
 import { WatchListModel } from '../models/WatchListModel';

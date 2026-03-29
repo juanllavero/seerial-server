@@ -1,9 +1,9 @@
-import type { ContinueWatching } from '@seerial/domain';
+import type { ContinueWatchingVideoDTO } from '@seerial/domain';
 import FlexBox from '@/components/ui/FlexBox';
 import Image from '@/components/ui/Image';
 
 interface HomeInfoProps {
-  selectedElement: ContinueWatching | null;
+  selectedElement: ContinueWatchingVideoDTO | null;
 }
 
 function HomeInfo({ selectedElement }: HomeInfoProps) {

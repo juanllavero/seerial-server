@@ -1,6 +1,6 @@
+import { useGetImageColors } from '@seerial/api';
 import { useServerStore } from '@seerial/stores';
 import { useEffect, useRef, useState } from 'react';
-import { authenticatedFetch } from '@/lib/auth';
 
 interface GradientBackgroundProps {
   showGradient?: boolean;
@@ -9,6 +9,54 @@ interface GradientBackgroundProps {
   height?: string;
   index?: number;
 }
+
+interface ImageColorsResponse {
+  css?: string;
+  data?: {
+    css?: string;
+  };
+}
+
+const windowsPathRegex = /^[a-zA-Z]:[\\/]/;
+const unixPathRegex = /^\//;
+
+const isAbsolutePath = (value: string): boolean => {
+  return windowsPathRegex.test(value) || unixPathRegex.test(value);
+};
+
+const normalizeRelativeImageUrl = (serverUrl: string, imageSrc: string): string => {
+  const normalizedServerUrl = serverUrl.endsWith('/') ? serverUrl.slice(0, -1) : serverUrl;
+  const normalizedImagePath = imageSrc.startsWith('/') ? imageSrc.slice(1) : imageSrc;
+
+  return `${normalizedServerUrl}/${normalizedImagePath.replace('resources/img', 'img')}`;
+};
+
+const buildImageColorsParams = (
+  serverUrl: string,
+  imageSrc?: string,
+): { url?: string; localPath?: string } | undefined => {
+  if (!imageSrc || imageSrc === '') {
+    return undefined;
+  }
+
+  if (imageSrc.startsWith('http')) {
+    return { url: imageSrc };
+  }
+
+  if (imageSrc.startsWith('local')) {
+    return { localPath: imageSrc.replace('local', '') };
+  }
+
+  if (isAbsolutePath(imageSrc)) {
+    return { localPath: imageSrc };
+  }
+
+  if (!serverUrl) {
+    return undefined;
+  }
+
+  return { url: normalizeRelativeImageUrl(serverUrl, imageSrc) };
+};
 
 const GradientBackground = ({
   showGradient = true,
@@ -23,73 +71,65 @@ const GradientBackground = ({
   const gradientRef = useRef<HTMLDivElement>(null);
   const handleTransitionEndRef = useRef<((event: TransitionEvent) => void) | null>(null);
 
+  const imageColorsParams = buildImageColorsParams(serverUrl, imageSrc);
+
+  const { data: imageColorsData } = useGetImageColors<ImageColorsResponse>({
+    enabled: showGradient && !!imageColorsParams,
+    params: imageColorsParams,
+    queryKey: ['images', 'colors', serverUrl, imageSrc],
+  });
+
+  const imageColorsCss = imageColorsData?.css ?? imageColorsData?.data?.css;
+
   useEffect(() => {
     if (!showGradient || !imageSrc || imageSrc === '') {
       setCurrentGradient('');
       return;
     }
 
-    let isMounted = true;
+    const nextCss = imageColorsCss;
+    if (!nextCss) {
+      return;
+    }
 
-    const generateGradient = async () => {
-      try {
-        const response = await authenticatedFetch(
-          `${serverUrl}/api/image-colors?${
-            imageSrc?.startsWith('http') ? `url=${imageSrc}` : `localPath=${imageSrc}`
-          }`,
-        );
-        const data = await response.json();
-        if (!data || (!data.css && !data.data?.css)) {
-          console.error('Invalid response for gradient generation:', data);
-          return;
-        }
+    const cleanCss = nextCss.replace('background: ', '').replace(';', '');
 
-        const cleanCss = data.css.replace('background: ', '').replace(';', '');
+    if (cleanCss === currentGradient) {
+      return;
+    }
 
-        if (!isMounted) return;
+    if (!currentGradient) {
+      setCurrentGradient(cleanCss);
+      return;
+    }
 
-        if (!currentGradient) {
-          setCurrentGradient(cleanCss);
-          return;
-        }
+    setIsTransitioning(true);
 
-        setIsTransitioning(true);
+    handleTransitionEndRef.current = (event: TransitionEvent) => {
+      if (event.propertyName !== 'opacity') return;
 
-        handleTransitionEndRef.current = (event: TransitionEvent) => {
-          if (event.propertyName !== 'opacity' || !isMounted) return;
+      setCurrentGradient(cleanCss);
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 0);
 
-          setCurrentGradient(cleanCss);
-          setTimeout(() => {
-            setIsTransitioning(false);
-          }, 0);
-
-          if (gradientRef.current && handleTransitionEndRef.current) {
-            gradientRef.current.removeEventListener(
-              'transitionend',
-              handleTransitionEndRef.current,
-            );
-          }
-          handleTransitionEndRef.current = null;
-        };
-
-        if (gradientRef.current && handleTransitionEndRef.current) {
-          gradientRef.current.addEventListener('transitionend', handleTransitionEndRef.current);
-        }
-      } catch (error) {
-        console.error('Error generating gradient:', error);
+      if (gradientRef.current && handleTransitionEndRef.current) {
+        gradientRef.current.removeEventListener('transitionend', handleTransitionEndRef.current);
       }
+      handleTransitionEndRef.current = null;
     };
 
-    generateGradient();
+    if (gradientRef.current && handleTransitionEndRef.current) {
+      gradientRef.current.addEventListener('transitionend', handleTransitionEndRef.current);
+    }
 
     return () => {
-      isMounted = false;
       if (gradientRef.current && handleTransitionEndRef.current) {
         gradientRef.current.removeEventListener('transitionend', handleTransitionEndRef.current);
         handleTransitionEndRef.current = null;
       }
     };
-  }, [imageSrc, serverUrl, showGradient, currentGradient]);
+  }, [imageSrc, showGradient, currentGradient, imageColorsCss]);
 
   return (
     <div className="absolute inset-0 overflow-hidden" style={{ zIndex: index, width, height }}>

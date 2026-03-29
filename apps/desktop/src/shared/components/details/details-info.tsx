@@ -1,12 +1,13 @@
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import type { DetailsData } from '@seerial/domain';
-import { Ellipsis, LucideBookmark, PlayIcon } from 'lucide-react';
+import { Ellipsis, LucideBookmark, PlayIcon, Subtitles, Volume2 } from 'lucide-react';
 import { useCallback, useEffect } from 'react';
 import AlignedImage from '@/components/images/AlignedImage';
 import NavigationButton from '@/components/navigation/NavigationButton';
 import Subtitle from '@/components/text/Subtitle';
 import Tertiary from '@/components/text/Tertiary';
 import Title from '@/components/text/Title';
+import { Card } from '@/components/ui/card';
 import FlexBox from '@/components/ui/FlexBox';
 import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
@@ -16,9 +17,22 @@ interface DetailsInfoProps {
   subtitle?: string;
   infoItems?: string[];
   handlePlay?: () => void;
+  bigLogo?: boolean;
+  videoInfo?: string;
+  audioInfo?: string;
+  subtitleInfo?: string;
 }
 
-function DetailsInfo({ details, subtitle, infoItems, handlePlay }: DetailsInfoProps) {
+function DetailsInfo({
+  details,
+  subtitle,
+  infoItems,
+  handlePlay,
+  bigLogo,
+  videoInfo,
+  audioInfo,
+  subtitleInfo,
+}: DetailsInfoProps) {
   useKeyboardBack();
 
   useEffect(() => {
@@ -28,7 +42,7 @@ function DetailsInfo({ details, subtitle, infoItems, handlePlay }: DetailsInfoPr
   const handleMoreOptions = useCallback(() => {}, []);
 
   return (
-    <FlexBox direction="column" justify="end" margin="0 0 2rem 0" className="z-10">
+    <FlexBox direction="column" justify="end" width={'100%'} margin="0 0 2rem 0" className="z-10">
       <span className="text-[1.5vh] italic">
         {details?.tagline && details?.tagline !== '' ? details?.tagline : ''}
       </span>
@@ -36,8 +50,8 @@ function DetailsInfo({ details, subtitle, infoItems, handlePlay }: DetailsInfoPr
       {details?.logoSrc && details?.logoSrc !== '' ? (
         <AlignedImage
           className="mt-5 pb-5"
-          height={120}
-          maxWidth={1000}
+          height={bigLogo ? 300 : 120}
+          maxWidth={1100}
           imageUrl={details?.logoSrc}
         />
       ) : (
@@ -99,44 +113,70 @@ function DetailsInfo({ details, subtitle, infoItems, handlePlay }: DetailsInfoPr
       </FlexBox>
 
       <FlexBox
-        gap={1}
+        className="flex-row"
+        width={'100%'}
+        justify="space-between"
+        align="center"
         css={{
-          justifyContent: 'flex-start',
           paddingTop: 50,
           gap: 10,
         }}
       >
-        <NavigationButton
-          customKey={NavigationFocusKeys.details.playButton}
-          text={'Reproducir'}
-          icon={<PlayIcon size={'3dvh'} />}
-          onClick={handlePlay}
-          hideText
-          animateText
-        />
-        <NavigationButton
-          customKey={NavigationFocusKeys.details.markWatchedButton}
-          text={'Marcar como visto'}
-          icon={<LucideBookmark size={'3vh'} />}
-          onClick={() => console.log('Mark as watched')}
-          hideText
-          animateText
-        />
-        <NavigationButton
-          customKey={NavigationFocusKeys.details.addToMyListButton}
-          text={'Agregar a mi lista'}
-          icon={<LucideBookmark size={'3dvh'} />}
-          onClick={() => console.log('Add to my list')}
-          hideText
-          animateText
-        />
-        <NavigationButton
-          customKey={NavigationFocusKeys.details.optionsButton}
-          icon={<Ellipsis size={'3dvh'} />}
-          onClick={handleMoreOptions}
-          hideText
-          animateText
-        />
+        <FlexBox gap={1}>
+          <NavigationButton
+            customKey={NavigationFocusKeys.details.playButton}
+            text={'Reproducir'}
+            icon={<PlayIcon size={'3dvh'} />}
+            onClick={handlePlay}
+            hideText
+            animateText
+          />
+          <NavigationButton
+            customKey={NavigationFocusKeys.details.markWatchedButton}
+            text={'Marcar como visto'}
+            icon={<LucideBookmark size={'3vh'} />}
+            onClick={() => console.log('Mark as watched')}
+            hideText
+            animateText
+          />
+          <NavigationButton
+            customKey={NavigationFocusKeys.details.addToMyListButton}
+            text={'Agregar a mi lista'}
+            icon={<LucideBookmark size={'3dvh'} />}
+            onClick={() => console.log('Add to my list')}
+            hideText
+            animateText
+          />
+          <NavigationButton
+            customKey={NavigationFocusKeys.details.optionsButton}
+            icon={<Ellipsis size={'3dvh'} />}
+            onClick={handleMoreOptions}
+            hideText
+            animateText
+          />
+        </FlexBox>
+
+        {(videoInfo || audioInfo || subtitleInfo) && (
+          <FlexBox direction="row" gap={2}>
+            {videoInfo && (
+              <Card className="px-3 border-none">
+                <Tertiary>{videoInfo}</Tertiary>
+              </Card>
+            )}
+            {audioInfo && (
+              <Card className="px-3 border-none flex items-center gap-3">
+                <Volume2 />
+                <Tertiary>{audioInfo}</Tertiary>
+              </Card>
+            )}
+            {subtitleInfo && (
+              <Card className="px-3 border-none flex items-center gap-3">
+                <Subtitles />
+                <Tertiary>{subtitleInfo}</Tertiary>
+              </Card>
+            )}
+          </FlexBox>
+        )}
       </FlexBox>
     </FlexBox>
   );

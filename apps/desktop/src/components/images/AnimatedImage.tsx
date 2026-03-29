@@ -11,6 +11,7 @@ interface AnimatedImageProps extends ImgHTMLAttributes<HTMLImageElement> {
 export function AnimatedImage({ uri, style, duration = 500, ...rest }: AnimatedImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <Dependency is intentionally left out to only reset on URI change>
   useEffect(() => {
     // Cuando la URI cambia, reseteamos el estado de carga para
     // que la nueva imagen también tenga su animación.

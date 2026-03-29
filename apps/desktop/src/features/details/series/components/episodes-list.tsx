@@ -1,56 +1,56 @@
-import { useGetSeason } from '@seerial/api';
+import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import type { Episode, Season } from '@seerial/domain';
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router';
-import { AnimatedImage } from '@/components/images/AnimatedImage';
-import NavigationButton from '@/components/navigation/NavigationButton';
+import { useEffect, useMemo } from 'react';
 import NavigationScrollView from '@/components/navigation/NavigationScrollView';
 import Loading from '@/shared/components/loading';
+import EpisodeCard from './episode-card';
 
 interface EpisodesListProps {
-  selectedSeasonId: string;
+  selectedSeason: Season | null;
   selectedEpisode: Episode | null;
-  selectEpisode: (episode: Episode | null) => void;
+  selectEpisode: (episode: Episode) => void;
+  isRestoringFocus?: boolean;
 }
 
-function EpisodesList({ selectedSeasonId, selectedEpisode, selectEpisode }: EpisodesListProps) {
-  const navigate = useNavigate();
-  const { data: season, isLoading } = useGetSeason<Season>(selectedSeasonId, undefined, {
-    enabled: !!selectedSeasonId,
-  });
+function EpisodesList({
+  selectedSeason,
+  selectedEpisode,
+  selectEpisode,
+  isRestoringFocus = true,
+}: EpisodesListProps) {
+  const sortedEpisodes = useMemo(() => {
+    if (!selectedSeason) {
+      return [];
+    }
+
+    return [...selectedSeason.episodes].sort((a, b) => a.episodeNumber - b.episodeNumber);
+  }, [selectedSeason]);
 
   useEffect(() => {
-    if (season && season.episodes.length > 0) {
-      selectEpisode(season.episodes[0]);
-    } else {
-      selectEpisode(null);
+    if (!isRestoringFocus || !selectedEpisode?.id) {
+      return;
     }
-  }, [season, selectEpisode]);
 
-  if (isLoading) return <Loading />;
+    setFocus(selectedEpisode.id);
+  }, [selectedEpisode?.id, isRestoringFocus]);
+
+  if (!selectedSeason) return <Loading />;
+
   return (
-    <NavigationScrollView className="gap-5 pb-5 z-10">
-      {season?.episodes.map((episode) => (
-        <NavigationButton
+    <NavigationScrollView
+      className="gap-5 pb-5 z-10 w-full"
+      direction="horizontal"
+      scrollMode="center"
+      focusedElementId={selectedEpisode?.id}
+      isRestoringFocus={isRestoringFocus}
+    >
+      {sortedEpisodes.map((episode) => (
+        <EpisodeCard
           key={episode.id}
-          className={`cursor-pointer border-4 border-transparent ${selectedEpisode?.id === episode.id ? ' border-white' : ''}`}
-          onClick={() => {
-            if (selectedEpisode?.id === episode.id) {
-              navigate(`/video-player/${episode.video.id}`);
-            } else {
-              selectEpisode(episode);
-            }
-          }}
-        >
-          <AnimatedImage
-            uri={episode.video.imgSrc}
-            width={300}
-            style={{
-              aspectRatio: '16/9',
-              objectFit: 'cover',
-            }}
-          />
-        </NavigationButton>
+          episode={episode}
+          selectedEpisodeId={selectedEpisode?.id}
+          onFocus={selectEpisode}
+        />
       ))}
     </NavigationScrollView>
   );

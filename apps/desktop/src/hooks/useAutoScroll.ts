@@ -1,11 +1,14 @@
 import { useEffect, useRef } from 'react';
 
-export type ScrollMode = 'top' | 'center';
+export type ScrollMode = 'start' | 'center';
+export type ScrollAxis = 'vertical' | 'horizontal';
 
 interface UseAutoScrollProps {
     scrollMode: ScrollMode;
+    scrollAxis?: ScrollAxis;
     focusedElementId?: string;
     containerRef: React.RefObject<HTMLDivElement | null>;
+    isRestoringFocus?: boolean;
     debug?: boolean;
 }
 
@@ -78,6 +81,45 @@ function calculateCenterModeScroll(
     return Math.min(targetScrollTop, maxScroll);
 }
 
+function calculateHorizontalStartModeScroll(
+    focusedElement: HTMLElement,
+    container: HTMLDivElement,
+): number {
+    const containerRect = container.getBoundingClientRect();
+    const elementRect = focusedElement.getBoundingClientRect();
+    const elementScrollLeft = elementRect.left - containerRect.left + container.scrollLeft;
+
+    const containerWidth = container.clientWidth;
+    const scrollWidth = container.scrollWidth;
+
+    if (scrollWidth <= containerWidth) {
+        return 0;
+    }
+
+    const maxScroll = scrollWidth - containerWidth;
+    return Math.min(elementScrollLeft, maxScroll);
+}
+
+function calculateHorizontalCenterModeScroll(
+    focusedElement: HTMLElement,
+    container: HTMLDivElement,
+): number {
+    const containerRect = container.getBoundingClientRect();
+    const elementRect = focusedElement.getBoundingClientRect();
+    const elementScrollLeft = elementRect.left - containerRect.left + container.scrollLeft;
+
+    const elementWidth = focusedElement.offsetWidth;
+    const containerWidth = container.clientWidth;
+    const scrollWidth = container.scrollWidth;
+
+    const centerPosition = containerWidth / 2 - elementWidth / 2;
+    let targetScrollLeft = elementScrollLeft - centerPosition;
+
+    targetScrollLeft = Math.max(0, targetScrollLeft);
+    const maxScroll = scrollWidth - containerWidth;
+    return Math.min(targetScrollLeft, maxScroll);
+}
+
 function findFocusedElement(
     container: HTMLDivElement,
     focusedElementId: string,
@@ -104,15 +146,90 @@ function findFocusedElement(
     return null;
 }
 
-function calculateScrollTopMode(
+function calculateScrollStartMode(
     focusedElement: HTMLElement,
     container: HTMLDivElement,
     scrollMode: ScrollMode,
 ): number {
-    if (scrollMode === 'top') {
+    if (scrollMode === 'start') {
         return calculateTopModeScroll(focusedElement, container);
     }
     return calculateCenterModeScroll(focusedElement, container);
+}
+
+function calculateScrollLeftMode(
+    focusedElement: HTMLElement,
+    container: HTMLDivElement,
+    scrollMode: ScrollMode,
+): number {
+    if (scrollMode === 'start') {
+        return calculateHorizontalStartModeScroll(focusedElement, container);
+    }
+    return calculateHorizontalCenterModeScroll(focusedElement, container);
+}
+
+function shouldSkipAutoScroll(
+    focusedElementId: string | undefined,
+    container: HTMLDivElement | null,
+    lastFocusedId: string | undefined,
+    debug: boolean,
+): boolean {
+    if (!focusedElementId) {
+        if (debug) console.log('[useAutoScroll] Early return: focusedElementId is empty');
+        return true;
+    }
+
+    if (!container) {
+        if (debug) console.log('[useAutoScroll] Early return: containerRef.current is null');
+        return true;
+    }
+
+    if (lastFocusedId === focusedElementId) {
+        if (debug) console.log('[useAutoScroll] Early return: same focusedElementId as before');
+        return true;
+    }
+
+    return false;
+}
+
+function logScrollTarget(
+    scrollAxis: ScrollAxis,
+    targetScrollTop: number,
+    targetScrollLeft: number,
+    scrollMode: ScrollMode,
+    isRestoringFocus: boolean,
+    debug: boolean,
+): void {
+    if (!debug) {
+        return;
+    }
+
+    const targetPosition = scrollAxis === 'horizontal' ? targetScrollLeft : targetScrollTop;
+    console.log(`[useAutoScroll] Scrolling to ${targetPosition} (axis: ${scrollAxis}, mode: ${scrollMode}, animate: ${!isRestoringFocus}, isRestoringFocus: ${isRestoringFocus})`);
+}
+
+function applyContainerScroll(
+    container: HTMLDivElement,
+    scrollAxis: ScrollAxis,
+    targetScrollTop: number,
+    targetScrollLeft: number,
+    isRestoringFocus: boolean,
+): void {
+    if (isRestoringFocus) {
+        if (scrollAxis === 'horizontal') {
+            container.scrollLeft = targetScrollLeft;
+            return;
+        }
+
+        container.scrollTop = targetScrollTop;
+        return;
+    }
+
+    container.scrollTo({
+        top: scrollAxis === 'horizontal' ? container.scrollTop : targetScrollTop,
+        left: scrollAxis === 'horizontal' ? targetScrollLeft : container.scrollLeft,
+        behavior: 'smooth',
+    });
 }
 
 /**
@@ -120,35 +237,34 @@ function calculateScrollTopMode(
  * Supports two modes:
  * - 'top': Focused row always at the top of the container (when possible)
  * - 'center': Focused row always at the center of the container (when possible)
+ * 
+ * Behavior:
+ * - When isRestoringFocus is true (coming from another screen): direct scroll, no animation
+ * - When isRestoringFocus is false (user navigation): smooth animated scroll
  */
 export function useAutoScroll({
     scrollMode,
+    scrollAxis = 'vertical',
     focusedElementId,
     containerRef,
+    isRestoringFocus = true,
     debug = false,
 }: UseAutoScrollProps) {
     const lastFocusedIdRef = useRef<string | undefined>(undefined);
 
     useEffect(() => {
-        const shouldReturn = !focusedElementId || !containerRef.current || lastFocusedIdRef.current === focusedElementId;
-
-        if (!focusedElementId && debug) {
-            console.log('[useAutoScroll] Early return: focusedElementId is empty');
-        }
-        if (!containerRef.current && debug) {
-            console.log('[useAutoScroll] Early return: containerRef.current is null');
-        }
-        if (lastFocusedIdRef.current === focusedElementId && debug) {
-            console.log('[useAutoScroll] Early return: same focusedElementId as before');
-        }
-
-        if (shouldReturn) {
+        if (shouldSkipAutoScroll(focusedElementId, containerRef.current, lastFocusedIdRef.current, debug)) {
             return;
         }
 
-        if (debug) console.log(`[useAutoScroll] Focus changed: ${lastFocusedIdRef.current} -> ${focusedElementId}`);
+        const currentFocusedElementId = focusedElementId;
+        if (!currentFocusedElementId) {
+            return;
+        }
 
-        lastFocusedIdRef.current = focusedElementId;
+        if (debug) console.log(`[useAutoScroll] Focus changed: ${lastFocusedIdRef.current} -> ${currentFocusedElementId}`);
+
+        lastFocusedIdRef.current = currentFocusedElementId;
 
         const timeoutId = setTimeout(() => {
             const container = containerRef.current;
@@ -157,21 +273,32 @@ export function useAutoScroll({
                 return;
             }
 
-            const focusedElement = findFocusedElement(container, focusedElementId, debug);
+            const focusedElement = findFocusedElement(container, currentFocusedElementId, debug);
             if (!focusedElement) {
                 return;
             }
 
-            const targetScrollTop = calculateScrollTopMode(focusedElement, container, scrollMode);
+            const targetScrollTop = calculateScrollStartMode(focusedElement, container, scrollMode);
+            const targetScrollLeft = calculateScrollLeftMode(focusedElement, container, scrollMode);
 
-            if (debug) console.log(`[useAutoScroll] Scrolling to ${targetScrollTop} (mode: ${scrollMode})`);
+            logScrollTarget(
+                scrollAxis,
+                targetScrollTop,
+                targetScrollLeft,
+                scrollMode,
+                isRestoringFocus,
+                debug,
+            );
 
-            container.scrollTo({
-                top: targetScrollTop,
-                behavior: 'smooth',
-            });
+            applyContainerScroll(
+                container,
+                scrollAxis,
+                targetScrollTop,
+                targetScrollLeft,
+                isRestoringFocus,
+            );
         }, 0);
 
         return () => clearTimeout(timeoutId);
-    }, [focusedElementId, scrollMode, containerRef, debug]);
+    }, [focusedElementId, scrollMode, scrollAxis, containerRef, isRestoringFocus, debug]);
 }

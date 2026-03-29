@@ -53,6 +53,7 @@ function MovieDetails({ movie, isLoading, details }: MovieDetailsProps) {
           selectedVideo ? formatTimeForView(selectedVideo.runtime ?? 0) : '',
         ]}
         handlePlay={handlePlay}
+        bigLogo
       />
       {/* {movie.videos && movie.videos.length > 1 && (
 				<VideosList
