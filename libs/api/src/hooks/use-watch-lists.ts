@@ -1,7 +1,7 @@
 import { API } from '../endpoints'
 import { type ApiMutationResult, asBody, type MutationHookOptions, useApiMutation } from './common'
 
-interface UpdateWatchStateParams {
+export interface UpdateWatchStateParams {
     videoId: string
     timeWatched: number
     watched: boolean
@@ -18,3 +18,5 @@ export const useUpdateVideoWatchState = <TResponse = unknown>(
         asBody,
         options,
     )
+
+export const useUpdateWatchListState = useUpdateVideoWatchState

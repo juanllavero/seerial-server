@@ -185,8 +185,3 @@ export const useDeleteCollection = <TResponse = unknown>(
         asVoid,
         options,
     )
-
-export const useUpdateWatchListState = <TResponse = unknown, TBody = unknown>(
-    options?: MutationHookOptions<TResponse, TBody>,
-): ApiMutationResult<TResponse, TBody> =>
-    useApiMutation<TResponse, TBody>(['watchLists', 'updateWatchState'], API.watchLists.updateWatchState, 'PUT', asBody, options)

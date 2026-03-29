@@ -230,8 +230,8 @@ export class WatchListRepositoryImpl extends BaseRepository implements WatchList
       seriesId: sId,
     };
 
-    await this.helper.deleteRelationship(WatchListModel, whereCondition);
-    return true;
+    const result = await WatchListModel.delete(whereCondition);
+    return (result.affected ?? 0) > 0;
   }
 
   async addSeason(userId: string, seasonId: string): Promise<void> {
@@ -271,8 +271,8 @@ export class WatchListRepositoryImpl extends BaseRepository implements WatchList
       seasonId: seId,
     };
 
-    await this.helper.deleteRelationship(WatchListModel, whereCondition);
-    return true;
+    const result = await WatchListModel.delete(whereCondition);
+    return (result.affected ?? 0) > 0;
   }
 
   async addEpisode(userId: string, episodeId: string): Promise<void> {
@@ -312,8 +312,8 @@ export class WatchListRepositoryImpl extends BaseRepository implements WatchList
       episodeId: eId,
     };
 
-    await this.helper.deleteRelationship(WatchListModel, whereCondition);
-    return true;
+    const result = await WatchListModel.delete(whereCondition);
+    return (result.affected ?? 0) > 0;
   }
 
   async addMovie(userId: string, movieId: string): Promise<void> {
@@ -350,8 +350,8 @@ export class WatchListRepositoryImpl extends BaseRepository implements WatchList
       movieId: mId,
     };
 
-    await this.helper.deleteRelationship(WatchListModel, whereCondition);
-    return true;
+    const result = await WatchListModel.delete(whereCondition);
+    return (result.affected ?? 0) > 0;
   }
 
   async addVideo(userId: string, videoId: string): Promise<void> {
@@ -388,8 +388,8 @@ export class WatchListRepositoryImpl extends BaseRepository implements WatchList
       videoId: vId,
     };
 
-    await this.helper.deleteRelationship(WatchListModel, whereCondition);
-    return true;
+    const result = await WatchListModel.delete(whereCondition);
+    return (result.affected ?? 0) > 0;
   }
 
   async isVideoWatched(videoId: string, userId: string): Promise<boolean> {
