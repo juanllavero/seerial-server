@@ -26,10 +26,19 @@ export class UpdateWatchStateUseCase {
     const video = await useCases.getVideoById().execute(videoId);
     if (!video) throw new NotFoundException(messages.errors.notFound.video);
 
-    if (video.episodeId) {
-      await this.handleEpisodeWatchState(video, userId, watched);
-    } else if (video.movieId) {
-      await this.handleMovieWatchState(video, userId, watched);
+    try {
+      if (video.episodeId) {
+        await this.handleEpisodeWatchState(video, userId, watched);
+      } else if (video.movieId) {
+        await this.handleMovieWatchState(video, userId, watched);
+      }
+    } catch (error) {
+      // Compatibility guard for older relationship-delete behavior on playback start.
+      if (!watched && this.isDeleteRelationshipError(error)) {
+        await this.ensureContinueWatching(video, userId);
+      } else {
+        throw error;
+      }
     }
 
     await this.persistVideoProgress(videoId, userId, watched, timeWatched);
@@ -107,5 +116,30 @@ export class UpdateWatchStateUseCase {
       lastWatched: new Date().toLocaleString(),
     } as Partial<WatchList>);
 
+  }
+
+  private async ensureContinueWatching(video: Video, userId: string): Promise<void> {
+    if (video.episodeId) {
+      const episode = await useCases.getEpisodeById().execute(video.episodeId);
+      if (!episode) {
+        return;
+      }
+
+      const season = await useCases.getSeasonById().execute(episode.seasonId);
+      if (!season) {
+        return;
+      }
+
+      await useCases.addVideoToContinueWatching().execute(video.id, userId, season.seriesId);
+      return;
+    }
+
+    if (video.movieId) {
+      await useCases.addVideoToContinueWatching().execute(video.id, userId, undefined, video.movieId);
+    }
+  }
+
+  private isDeleteRelationshipError(error: unknown): boolean {
+    return error instanceof Error && error.message.includes('Failed to delete WatchList relationship');
   }
 }
