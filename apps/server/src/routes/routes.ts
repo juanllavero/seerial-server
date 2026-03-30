@@ -721,6 +721,15 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "SongUrlDTO": {
+        "dataType": "refObject",
+        "properties": {
+            "filePath": {"dataType":"string","required":true},
+            "expiresIn": {"dataType":"union","subSchemas":[{"dataType":"double"},{"dataType":"string"}]},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "MediaSearchResult": {
         "dataType": "refObject",
         "properties": {
@@ -1250,6 +1259,27 @@ const models: TsoaRoute.Models = {
             "folder": {"dataType":"string","required":true},
             "description": {"dataType":"string"},
             "coverSrc": {"dataType":"string","required":true},
+            "songs": {"dataType":"array","array":{"dataType":"refObject","ref":"Song"},"required":true},
+            "albumArtists": {"dataType":"array","array":{"dataType":"refObject","ref":"AlbumArtist"},"required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "Artist": {
+        "dataType": "refObject",
+        "properties": {
+            "id": {"dataType":"string","required":true},
+            "name": {"dataType":"string","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "AlbumArtist": {
+        "dataType": "refObject",
+        "properties": {
+            "id": {"dataType":"string","required":true},
+            "album": {"ref":"Album","required":true},
+            "artist": {"ref":"Artist","required":true},
         },
         "additionalProperties": false,
     },
@@ -1535,15 +1565,6 @@ const models: TsoaRoute.Models = {
             "coverSrc": {"dataType":"string"},
             "coversUrls": {"dataType":"array","array":{"dataType":"string"}},
             "musicPosterSrc": {"dataType":"string"},
-        },
-        "additionalProperties": false,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "Artist": {
-        "dataType": "refObject",
-        "properties": {
-            "id": {"dataType":"string","required":true},
-            "name": {"dataType":"string","required":true},
         },
         "additionalProperties": false,
     },
@@ -2586,12 +2607,46 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
             }
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        const argsSongsController_getSongUrl: Record<string, TsoaRoute.ParameterSchema> = {
+                body: {"in":"body","name":"body","required":true,"ref":"SongUrlDTO"},
+                isWeb: {"in":"query","name":"isWeb","dataType":"string"},
+                isDesktop: {"in":"query","name":"isDesktop","dataType":"string"},
+                isMobile: {"in":"query","name":"isMobile","dataType":"string"},
+                req: {"in":"request","name":"req","dataType":"object"},
+        };
+        app.post('/api/songs/stream-url',
+            authenticateMiddleware([{"cookieAuth":[]}]),
+            ...(fetchMiddlewares<RequestHandler>(SongsController)),
+            ...(fetchMiddlewares<RequestHandler>(SongsController.prototype.getSongUrl)),
+
+            async function SongsController_getSongUrl(request: ExRequest, response: ExResponse, next: any) {
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args: argsSongsController_getSongUrl, request, response });
+
+                const controller = new SongsController();
+
+              await templateService.apiHandler({
+                methodName: 'getSongUrl',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: undefined,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         const argsSongsController_streamAudio: Record<string, TsoaRoute.ParameterSchema> = {
-                path: {"in":"query","name":"path","required":true,"dataType":"string"},
+                req: {"in":"request","name":"req","required":true,"dataType":"object"},
                 isWeb: {"in":"query","name":"isWeb","dataType":"string"},
         };
         app.get('/api/songs/stream',
-            authenticateMiddleware([{"adminAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(SongsController)),
             ...(fetchMiddlewares<RequestHandler>(SongsController.prototype.streamAudio)),
 
@@ -4421,6 +4476,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 path: {"in":"query","name":"path","required":true,"dataType":"string"},
                 width: {"in":"query","name":"width","dataType":"double"},
                 height: {"in":"query","name":"height","dataType":"double"},
+                req: {"in":"request","name":"req","dataType":"object"},
         };
         app.get('/api/images/local',
             authenticateMiddleware([{"cookieAuthFast":[]}]),
@@ -4454,6 +4510,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 url: {"in":"query","name":"url","required":true,"dataType":"string"},
                 width: {"in":"query","name":"width","dataType":"double"},
                 height: {"in":"query","name":"height","dataType":"double"},
+                req: {"in":"request","name":"req","dataType":"object"},
         };
         app.get('/api/images/compressed',
             authenticateMiddleware([{"cookieAuthFast":[]}]),

@@ -164,7 +164,7 @@ async function authenticateManagement(request: Request): Promise<UserDTO | null>
           where: { id: decoded.userId },
         });
         if (user) return user;
-      } catch (_e) { }
+      } catch (_e) {}
     }
     return null; // Allow local access without user
   }

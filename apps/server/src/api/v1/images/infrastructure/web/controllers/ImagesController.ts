@@ -121,7 +121,9 @@ export class ImagesController extends Controller {
   ): Promise<void> {
     const res = this.getResponseFromRequest(req);
 
-    const imagePath = fileSystemService.getExternalPath(path.includes('resources/') ? path : fileSystemService.join("resources", path));
+    const imagePath = fileSystemService.getExternalPath(
+      path.includes('resources/') ? path : fileSystemService.join('resources', path),
+    );
 
     const sanitizedPath = sanitizeImagePath(
       imagePath,

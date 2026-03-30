@@ -1,4 +1,4 @@
-import { MediaInfoData } from '@seerial/domain';
+import type { MediaInfoData } from '@seerial/domain';
 import { getAudioInfo } from '@/api/v1/shared/infrastructure/adapters/ffmpeg/audioInfo';
 import {
   getChapters,

@@ -9,7 +9,7 @@ import type { WatchList } from '../../domain/WatchList';
 import type { WatchListRepositoryPort } from '../ports/WatchListRepositoryPort';
 
 export class UpdateWatchStateUseCase {
-  constructor(private watchListRepo: WatchListRepositoryPort) { }
+  constructor(private watchListRepo: WatchListRepositoryPort) {}
 
   async execute(params: {
     videoId: string;
@@ -115,7 +115,6 @@ export class UpdateWatchStateUseCase {
       watched,
       lastWatched: new Date().toLocaleString(),
     } as Partial<WatchList>);
-
   }
 
   private async ensureContinueWatching(video: Video, userId: string): Promise<void> {
@@ -135,11 +134,15 @@ export class UpdateWatchStateUseCase {
     }
 
     if (video.movieId) {
-      await useCases.addVideoToContinueWatching().execute(video.id, userId, undefined, video.movieId);
+      await useCases
+        .addVideoToContinueWatching()
+        .execute(video.id, userId, undefined, video.movieId);
     }
   }
 
   private isDeleteRelationshipError(error: unknown): boolean {
-    return error instanceof Error && error.message.includes('Failed to delete WatchList relationship');
+    return (
+      error instanceof Error && error.message.includes('Failed to delete WatchList relationship')
+    );
   }
 }

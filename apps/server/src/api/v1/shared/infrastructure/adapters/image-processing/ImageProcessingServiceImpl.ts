@@ -50,7 +50,7 @@ interface Palette {
 }
 
 export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
-  constructor(private readonly fileSystemService: FileSystemServicePort) { }
+  constructor(private readonly fileSystemService: FileSystemServicePort) {}
 
   async getImageColorPalette(imageSource: string, options: PaletteOptions) {
     try {
@@ -338,11 +338,12 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
         'resources',
         'img',
         'default',
-        `${libraryType === LibraryTypes.MUSIC
-          ? 'music'
-          : libraryType === LibraryTypes.MOVIES
-            ? 'movie'
-            : 'series'
+        `${
+          libraryType === LibraryTypes.MUSIC
+            ? 'music'
+            : libraryType === LibraryTypes.MOVIES
+              ? 'movie'
+              : 'series'
         }.jpg`,
       ),
     );

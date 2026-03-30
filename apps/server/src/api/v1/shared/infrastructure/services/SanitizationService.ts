@@ -55,7 +55,9 @@ function normalizePathForComparison(inputPath: string): string {
  * and mixed-separator inputs coming from URLs or JWT payloads.
  */
 export function buildCompatiblePathCandidates(filePath: string): string[] {
-  const decodedPath = decodePathSafely(filePath).trim().replace(/^['"]|['"]$/g, '');
+  const decodedPath = decodePathSafely(filePath)
+    .trim()
+    .replace(/^['"]|['"]$/g, '');
   const candidates = new Set<string>();
 
   if (!decodedPath) {
@@ -73,7 +75,9 @@ export function buildCompatiblePathCandidates(filePath: string): string[] {
     candidates.add(path.win32.resolve(path.win32.normalize(decodedPath.replace(/\//g, '\\'))));
     candidates.add(path.posix.resolve(path.posix.normalize(decodedPath.replace(/\\/g, '/'))));
     candidates.add(path.posix.resolve(path.posix.normalize(`/mnt/${driveLetter}/${withoutDrive}`)));
-    candidates.add(path.posix.resolve(path.posix.normalize(`/Volumes/${driveLetter}/${withoutDrive}`)));
+    candidates.add(
+      path.posix.resolve(path.posix.normalize(`/Volumes/${driveLetter}/${withoutDrive}`)),
+    );
   }
 
   // WSL-style paths on Windows (e.g. /mnt/f/media/movie.mkv).
@@ -212,7 +216,8 @@ export function sanitizeFilePathWithExtension(
   }
 
   if (shouldExist) {
-    const existingPath = resolveExistingPathCandidate(sanitizedPath) ?? resolveExistingPathCandidate(filePath);
+    const existingPath =
+      resolveExistingPathCandidate(sanitizedPath) ?? resolveExistingPathCandidate(filePath);
     if (!existingPath) {
       throw new Error('File does not exist');
     }

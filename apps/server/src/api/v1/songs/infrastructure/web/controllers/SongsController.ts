@@ -9,10 +9,10 @@ import {
   Post,
   Put,
   Query,
+  Request,
   Route,
   Security,
   Tags,
-  Request as TsoaRequest,
 } from 'tsoa';
 import {
   audioProcessingService,
@@ -105,7 +105,7 @@ export class SongsController extends Controller {
     @Query() isWeb?: string,
     @Query() isDesktop?: string,
     @Query() isMobile?: string,
-    @TsoaRequest() req?: ExpressRequest,
+    @Request() req?: ExpressRequest,
   ): Promise<ApiResponse<string>> {
     const userId = (req as AuthenticatedRequest | undefined)?.user?.id as string;
     const { filePath, expiresIn } = body;
@@ -140,7 +140,7 @@ export class SongsController extends Controller {
    */
   @Get('stream')
   public async streamAudio(
-    @TsoaRequest() req: ExpressRequest,
+    @Request() req: ExpressRequest,
     @Query() isWeb?: string,
   ): Promise<void> {
     const res = req.res as ExpressResponse;
@@ -162,10 +162,6 @@ export class SongsController extends Controller {
     );
 
     // Stream the file
-    audioProcessingService.streamFile(
-      streamablePath,
-      req,
-      res,
-    );
+    audioProcessingService.streamFile(streamablePath, req, res);
   }
 }

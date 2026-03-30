@@ -4,4 +4,3 @@ export interface UpdateWatchStateDTO {
   watched: boolean;
   userId: string;
 }
-

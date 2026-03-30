@@ -27,7 +27,7 @@ export class GenericRepositoryHelper<TModel extends BaseEntity, TDomain = TModel
   constructor(
     private model: typeof BaseEntity & (new () => TModel),
     private config: RepositoryConfig,
-  ) { }
+  ) {}
 
   /**
    * Generate an ID based on configuration

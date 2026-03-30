@@ -1,4 +1,4 @@
-import { formatDate, PlayBackInfo } from '@seerial/domain';
+import { formatDate, type PlayBackInfo } from '@seerial/domain';
 import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
 import { useCases } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { getMediaInfo } from '@/api/v1/shared/infrastructure/adapters/ffmpeg/mediaInfo';
@@ -96,14 +96,14 @@ export class VideosRepositoryImpl extends BaseRepository implements VideoReposit
     const playBackConfig = {
       preferAudioLan: '',
       preferSubLan: '',
-      subsMode: 'autoSubs'
-    }
+      subsMode: 'autoSubs',
+    };
 
     const videoInfo = {
       title: '',
       subtitle: '',
       info: '',
-    }
+    };
 
     if (video.movieId) {
       const movie = await useCases.getMoviebyId().execute(video.movieId);
@@ -161,7 +161,7 @@ export class VideosRepositoryImpl extends BaseRepository implements VideoReposit
     return {
       ...videoInfo,
       mediaInfoData: mediaInfo,
-      playBackConfig
+      playBackConfig,
     };
   }
 
