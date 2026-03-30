@@ -53,7 +53,11 @@ function AppAlertDialog({
   return (
     <AlertDialog open={open}>
       <AlertDialogContent>
-        <NavigationContainer className="grid gap-6">
+        <NavigationContainer
+          className="grid gap-6"
+          isFocusBoundary={open}
+          focusBoundaryDirections={['up', 'down', 'left', 'right']}
+        >
           <AlertDialogHeader>
             {!!subtitle && (
               <div className="text-xs font-medium uppercase tracking-[0.24em] text-white/50">
@@ -78,7 +82,6 @@ function AppAlertDialog({
               onClick={() => void primaryAction.onPress?.()}
               disabled={primaryAction.disabled}
               customKey={PRIMARY_ACTION_FOCUS_KEY}
-              transparent={false}
               className="min-w-36 justify-center rounded-xl px-5 py-3 text-base"
             />
           </AlertDialogFooter>

@@ -15,6 +15,15 @@ export interface Album {
     folder: string;
     description?: string;
     coverSrc: string;
+
+    songs: Song[];
+    albumArtists: AlbumArtist[];
+}
+
+export interface AlbumArtist {
+    id: string;
+    album: Album;
+    artist: Artist;
 }
 
 export interface Collection {

@@ -1,7 +1,9 @@
 import { type Album, type DetailsData, formatDate } from '@seerial/domain';
-import { memo } from 'react';
+import { memo, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router';
 import BackgroundImage from '@/components/backgrounds/BackgroundImage';
 import GradientBackground from '@/components/backgrounds/GradientBackground';
+import AppAlertDialog from '@/shared/components/app-alert-dialog';
 import DetailsInfo from '@/shared/components/details/details-info';
 import Page from '@/shared/components/page';
 
@@ -12,7 +14,14 @@ interface AlbumDetailsProps {
 }
 
 function AlbumDetails({ album, isLoading, details }: AlbumDetailsProps) {
-  if (!isLoading && !album) return <span>Album not found</span>;
+  const navigate = useNavigate();
+  const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading && !album) {
+      setIsErrorDialogOpen(true);
+    }
+  }, [album, isLoading]);
 
   return (
     <Page padding="0 2rem" justify="end">
@@ -21,6 +30,16 @@ function AlbumDetails({ album, isLoading, details }: AlbumDetailsProps) {
       <DetailsInfo details={details} infoItems={[formatDate(details?.year ?? album?.year ?? '')]} />
 
       {/* Selected Album Songs */}
+
+      <AppAlertDialog
+        open={isErrorDialogOpen}
+        subtitle={'The album details could not be loaded. Please try again later.'}
+        title="Album not found"
+        primaryAction={{
+          label: 'Go back',
+          onPress: () => navigate(-1),
+        }}
+      />
     </Page>
   );
 }

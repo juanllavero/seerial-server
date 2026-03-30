@@ -27,7 +27,7 @@ export class AlbumsRepositoryImpl extends BaseRepository implements AlbumsReposi
   async findById(id: string, includeSongs = true): Promise<Album | null> {
     const validatedId = this.validateId(id, 'Album ID');
 
-    const relations = ['artists'];
+    const relations = ['albumArtists', 'albumArtists.artist'];
     if (includeSongs) {
       relations.push('songs');
     }
