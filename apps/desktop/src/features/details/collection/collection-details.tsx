@@ -15,7 +15,7 @@ function CollectionDetails({ collection, isLoading, details }: CollectionDetails
   if (!isLoading && !collection) return <span>Collection not found</span>;
 
   return (
-    <Page padding="0 2rem" justify="end">
+    <Page justify="end">
       <GradientBackground
         imageSrc={details?.backgroundSrc ?? collection?.backgroundSrc ?? collection?.coverSrc}
         index={0}

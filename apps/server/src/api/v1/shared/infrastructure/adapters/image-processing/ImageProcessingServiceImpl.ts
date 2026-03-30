@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { pipeline } from 'node:stream/promises';
 import { type LibraryType, LibraryTypes } from '@seerial/domain';
 import axios from 'axios';
 import type { Response } from 'express';
@@ -49,7 +50,7 @@ interface Palette {
 }
 
 export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
-  constructor(private readonly fileSystemService: FileSystemServicePort) {}
+  constructor(private readonly fileSystemService: FileSystemServicePort) { }
 
   async getImageColorPalette(imageSource: string, options: PaletteOptions) {
     try {
@@ -134,7 +135,7 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
     try {
       await fs.access(resolvedPath, fs.constants.F_OK);
       const inputStream = fs.createReadStream(resolvedPath);
-      this._compressAndStream(inputStream, res, { width, height });
+      await this._compressAndStream(inputStream, res, { width, height });
     } catch (_error) {
       throw new NotFoundException(messages.errors.notFound.file);
     }
@@ -154,7 +155,7 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
         url,
         responseType: 'stream',
       });
-      this._compressAndStream(response.data, res, { width, height });
+      await this._compressAndStream(response.data, res, { width, height });
     } catch (error) {
       imageProcessingLogger.error(error, 'Error downloading or processing image from URL');
       if (!res.headersSent) {
@@ -295,11 +296,11 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
    * @param res - The Express response object.
    * @param options - Resizing options (width, height).
    */
-  private _compressAndStream(
+  private async _compressAndStream(
     inputStream: NodeJS.ReadableStream,
     res: Response,
     options: { width?: number; height?: number },
-  ): void {
+  ): Promise<void> {
     const { width, height } = options;
     let transformer = sharp();
 
@@ -315,18 +316,17 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
     transformer = transformer.jpeg({ quality: 85, progressive: true });
     res.setHeader('Content-Type', 'image/jpeg');
 
-    // --- Stream error handling ---
-    inputStream.on('error', (err) => {
-      imageProcessingLogger.error(err, 'Input stream error');
-      if (!res.headersSent) res.status(500).send('Error reading the source image.');
-    });
+    try {
+      await pipeline(inputStream, transformer, res);
+    } catch (error) {
+      imageProcessingLogger.error(error, 'Error streaming processed image');
 
-    transformer.on('error', (err) => {
-      imageProcessingLogger.error(err, 'Sharp processing error');
-      if (!res.headersSent) res.status(500).send('Error processing the image.');
-    });
+      if (!res.headersSent) {
+        res.status(500).send('Error processing the image.');
+      }
 
-    inputStream.pipe(transformer).pipe(res);
+      throw error;
+    }
   }
   //#endregion
 
@@ -338,12 +338,11 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
         'resources',
         'img',
         'default',
-        `${
-          libraryType === LibraryTypes.MUSIC
-            ? 'music'
-            : libraryType === LibraryTypes.MOVIES
-              ? 'movie'
-              : 'series'
+        `${libraryType === LibraryTypes.MUSIC
+          ? 'music'
+          : libraryType === LibraryTypes.MOVIES
+            ? 'movie'
+            : 'series'
         }.jpg`,
       ),
     );

@@ -84,7 +84,8 @@ function Home() {
       <NavigationScrollView
         className="gap-5 pb-5 z-10 w-full"
         direction="horizontal"
-        scrollMode="start"
+        scrollMode="center"
+        isRestoringFocus={false}
         focusedElementId={selectedElement?.id}
       >
         {continueWatching && continueWatching.length > 0 ? (
