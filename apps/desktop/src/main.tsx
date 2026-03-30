@@ -5,6 +5,7 @@ import { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { useTranslation } from 'react-i18next';
 import { BrowserRouter } from 'react-router-dom';
+import GlobalMusicPlayer from '@/features/music-player/global-music-player';
 import { AppRoutes } from './routes/routes';
 import './localization/i18n';
 import { init, setFocus } from '@noriginmedia/norigin-spatial-navigation';
@@ -31,6 +32,7 @@ function App() {
   return (
     <BrowserRouter>
       <AppRoutes />
+      <GlobalMusicPlayer />
     </BrowserRouter>
   );
 }

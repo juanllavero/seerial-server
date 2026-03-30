@@ -6,6 +6,7 @@ export const NavigationFocusKeys = {
         shows: 'shows',
         music: 'music',
         myList: 'myList',
+        musicPlayer: 'music-player',
         settings: 'settings',
     },
     libraryContent: {

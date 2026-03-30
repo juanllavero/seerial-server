@@ -8,6 +8,7 @@ import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import NavigationButton from '@/components/navigation/NavigationButton';
 import NavigationContainer from '@/components/navigation/NavigationContainer';
+import MiniMusicPlayerButton from '@/features/music-player/mini-music-player-button';
 import { SettingsPanel } from '@/features/settings';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
 import LibrariesList from './libraries-list';
@@ -226,6 +227,7 @@ function TopBar() {
         </AnimatePresence>
       </div>
       <div>
+        <MiniMusicPlayerButton />
         <NavigationButton
           customKey={NavigationFocusKeys.topBar.settings}
           onFocus={handleNonLibraryFocus}

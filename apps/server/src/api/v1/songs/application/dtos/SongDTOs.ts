@@ -20,3 +20,8 @@ export interface LyricsResponse {
   message: string;
   path: string;
 }
+
+export interface SongUrlDTO {
+  filePath: string;
+  expiresIn?: number | string;
+}

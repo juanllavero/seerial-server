@@ -308,3 +308,32 @@ export async function getSignedVideoStreamUrlTranscoded(
 
     return response ? `/api${response}` : ''
 }
+
+interface SignedAudioStreamUrlRequest {
+    filePath: string
+    expiresIn?: string
+    isWeb?: boolean
+    isDesktop?: boolean
+    isMobile?: boolean
+}
+
+export async function getSignedSongStreamUrl(
+    request: SignedAudioStreamUrlRequest,
+): Promise<string> {
+    const { filePath, expiresIn, isWeb, isDesktop, isMobile } = request
+
+    const query = new URLSearchParams()
+    if (typeof isWeb === 'boolean') query.set('isWeb', String(isWeb))
+    if (typeof isDesktop === 'boolean') query.set('isDesktop', String(isDesktop))
+    if (typeof isMobile === 'boolean') query.set('isMobile', String(isMobile))
+
+    const endpoint = query.size > 0 ? `${API.songs.streamUrl}?${query.toString()}` : API.songs.streamUrl
+
+    const response = await authenticatedFetch<string>(
+        endpoint,
+        'POST',
+        { filePath, expiresIn },
+    )
+
+    return response ? `/api${response}` : ''
+}

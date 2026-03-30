@@ -5,10 +5,12 @@ export function useKeyboardBack({
   fallbackPath = '/home',
   preAction,
   enabled = true,
+  navigateOnBack = true,
 }: {
   fallbackPath?: string;
   preAction?: () => void;
   enabled?: boolean;
+  navigateOnBack?: boolean;
 } = {}) {
   const navigate = useNavigate();
 
@@ -29,15 +31,20 @@ export function useKeyboardBack({
 
     const onKeyDown = (event: KeyboardEvent) => {
       const isBackKey = event.key === 'Escape' || event.key === 'Backspace';
-      if (!isBackKey) return;
-      if (event.defaultPrevented) return;
-      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
-      if (isTypingElement(event.target)) return;
+      const hasModifier = event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
+      const shouldIgnore =
+        !isBackKey || event.defaultPrevented || hasModifier || isTypingElement(event.target);
+
+      if (shouldIgnore) return;
 
       event.preventDefault();
 
       // Run any pre-navigation action (like closing a modal) before navigating back
       runPreAction();
+
+      if (!navigateOnBack) {
+        return;
+      }
 
       // Fallback if there's no history to go back to
       if (window.history.length > 1) {
@@ -49,5 +56,5 @@ export function useKeyboardBack({
 
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [navigate, fallbackPath, runPreAction, enabled]);
+  }, [navigate, fallbackPath, runPreAction, enabled, navigateOnBack]);
 }

@@ -25,6 +25,7 @@ interface MusicState {
 
   // Set Current Song
   selectSong: (song: Song | null) => void;
+  setPlaybackContext: (song: Song, album: Album, queue: Song[]) => void;
   setAlbum: (album: Album | null, songs?: Song[]) => void;
   resetPlayerState: () => void;
 
@@ -94,6 +95,18 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
       currentTime: 0,
       isShown: true,
       isLoading: !!song,
+    }),
+  setPlaybackContext: (song, album, queue) =>
+    set({
+      currentSong: song,
+      album,
+      songQueue: queue,
+      progress: 0,
+      duration: song.duration ?? 0,
+      currentTime: 0,
+      isShown: true,
+      isExpanded: true,
+      isLoading: true,
     }),
   setAlbum: (album, songs) => set({ album, songQueue: songs ?? [] }),
   resetPlayerState: () => {

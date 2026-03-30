@@ -1,5 +1,19 @@
 import type { Request as ExpressRequest, Response as ExpressResponse } from 'express';
-import { Body, Controller, Delete, Get, Path, Post, Put, Query, Route, Security, Tags } from 'tsoa';
+import jwt from 'jsonwebtoken';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Path,
+  Post,
+  Put,
+  Query,
+  Route,
+  Security,
+  Tags,
+  Request as TsoaRequest,
+} from 'tsoa';
 import {
   audioProcessingService,
   fileSystemService,
@@ -9,10 +23,11 @@ import { findLyricsForSong } from '@/api/v1/shared/infrastructure/services/Media
 import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
 import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
 import { messages } from '@/config/messages';
-import type { AddLyricsDTO, UpdateSongDTO } from '../../../application/dtos/SongDTOs';
+import { verifyAudioStreamToken } from '@/middleware/audio.middleware';
+import type { AddLyricsDTO, SongUrlDTO, UpdateSongDTO } from '../../../application/dtos/SongDTOs';
 import type { Song } from '../../../domain/Song';
 
-type TsoaContext = { request: ExpressRequest; response: ExpressResponse };
+type AuthenticatedRequest = ExpressRequest & { user?: { id?: string } };
 
 @Route('songs')
 @Tags('Songs')
@@ -81,12 +96,63 @@ export class SongsController extends Controller {
   }
 
   /**
+   * Generate a JWT-signed URL for direct song streaming
+   */
+  @Post('stream-url')
+  @Security('cookieAuth')
+  public async getSongUrl(
+    @Body() body: SongUrlDTO,
+    @Query() isWeb?: string,
+    @Query() isDesktop?: string,
+    @Query() isMobile?: string,
+    @TsoaRequest() req?: ExpressRequest,
+  ): Promise<ApiResponse<string>> {
+    const userId = (req as AuthenticatedRequest | undefined)?.user?.id as string;
+    const { filePath, expiresIn } = body;
+
+    const token = jwt.sign(
+      {
+        userId,
+        path: filePath,
+      },
+      process.env.JWT_SECRET || 'default-secret',
+      { expiresIn: (expiresIn ?? '2m') as jwt.SignOptions['expiresIn'] },
+    );
+
+    const params = new URLSearchParams({ token });
+    if (isWeb) {
+      params.set('isWeb', isWeb);
+    }
+    if (isDesktop) {
+      params.set('isDesktop', isDesktop);
+    }
+    if (isMobile) {
+      params.set('isMobile', isMobile);
+    }
+
+    const url = `/songs/stream?${params.toString()}`;
+
+    return ApiResponse.success(url, messages.success.fetch);
+  }
+
+  /**
    * Stream audio file
    */
   @Get('stream')
-  @Security('adminAuth')
-  public async streamAudio(@Query() path: string, @Query() isWeb?: string): Promise<void> {
-    const audioPath = path;
+  public async streamAudio(
+    @TsoaRequest() req: ExpressRequest,
+    @Query() isWeb?: string,
+  ): Promise<void> {
+    const res = req.res as ExpressResponse;
+
+    await new Promise<void>((resolve, reject) => {
+      verifyAudioStreamToken(req, res, (err?: unknown) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+
+    const audioPath = req.audioParams?.path ?? '';
     const isWebBool = isWeb === 'true';
 
     // Get file path
@@ -98,8 +164,8 @@ export class SongsController extends Controller {
     // Stream the file
     audioProcessingService.streamFile(
       streamablePath,
-      (this as unknown as TsoaContext).request,
-      (this as unknown as TsoaContext).response,
+      req,
+      res,
     );
   }
 }

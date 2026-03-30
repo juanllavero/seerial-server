@@ -46,6 +46,7 @@ export const API = {
         delete: (id: string) => `/songs/${id}`,
         lyrics: (id: string) => `/songs/${id}/lyrics`,
         addLyrics: '/songs/lyrics',
+        streamUrl: '/songs/stream-url',
         stream: '/songs/stream',
     },
     search: {
