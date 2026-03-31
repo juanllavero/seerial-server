@@ -3,7 +3,7 @@ import { type ItemType, type LibraryItem, LibraryTypes } from '@seerial/domain';
 import { v4 as uuidv4 } from 'uuid';
 import { AlbumModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumModel';
 import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
-import { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
+import type { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
 import { EpisodeModel } from '@/api/v1/episodes/infrastructure/persistence/models/EpisodeModel';
 import { MovieModel } from '@/api/v1/movies/infrastructure/persistence/models/MovieModel';
 import { SeasonModel } from '@/api/v1/seasons/infrastructure/persistence/models/SeasonModel';
@@ -115,7 +115,15 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
         remainingItems: 0,
         analyzingFiles: false,
         type: 'collection',
-        details: await this.generateItemDetails(collection, 'collection'),
+        details: {
+          title: collection.title,
+          genres: '',
+          year: years,
+          description: collection.description || '',
+          subtitle: undefined,
+          coverSrc: collectionImages.poster ?? '',
+          backgroundSrc: collectionImages.background ?? '',
+        },
       });
     }
 
@@ -177,7 +185,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
         .map(async (movie) => ({
           id: movie.id,
           title: movie.name,
-          years: movie.year || '-',
+          years: movie.year ? movie.year.split('-')[0] : '-',
           coverSrc: movie.coverSrc,
           numberOfItems: movie.videos?.length || 0,
           order: movie.order,
@@ -249,8 +257,6 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
         return element instanceof SeriesModel ? this.buildSeriesDetails(element, userId) : null;
       case 'album':
         return element instanceof AlbumModel ? this.buildAlbumDetails(element) : null;
-      case 'collection':
-        return element instanceof CollectionModel ? this.buildCollectionDetails(element) : null;
       default:
         return null;
     }
@@ -306,17 +312,6 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       description: element.description || '',
       subtitle: undefined,
       coverSrc: element.coverSrc || '',
-    };
-  }
-
-  private buildCollectionDetails(element: CollectionModel): DetailsData {
-    return {
-      title: element.title,
-      genres: '',
-      description: element.description || '',
-      subtitle: undefined,
-      coverSrc: element.posterSrc || '',
-      backgroundSrc: element.backgroundSrc || '',
     };
   }
 

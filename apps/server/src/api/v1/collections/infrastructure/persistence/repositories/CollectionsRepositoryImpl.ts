@@ -1,3 +1,4 @@
+import { Album, Movie, Series } from '@seerial/domain';
 import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
 import { LibraryCollectionModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryCollectionModel';
 import { LibraryModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryModel';
@@ -39,7 +40,41 @@ export class CollectionsRepositoryImpl extends BaseRepository implements Collect
 
   async getById(id: string): Promise<Collection | null> {
     const validatedId = this.validateId(id, 'Collection ID');
-    return this.helper.findById(validatedId);
+
+    const relations = [
+      'collectionAlbums',
+      'collectionAlbums.album',
+      'collectionMovies',
+      'collectionMovies.movie',
+      'collectionSeries',
+      'collectionSeries.series',
+    ]
+
+    const collection = await CollectionModel.findOne({
+      where: { id: validatedId },
+      relations,
+    });
+
+    if (!collection) return null;
+
+    const series = (collection.collectionSeries || []).map((cs) => cs.series as unknown as Series);
+    const movies = (collection.collectionMovies || []).map((cm) => cm.movie as unknown as Movie);
+    const albums = (collection.collectionAlbums || []).map((ca) => ca.album as unknown as Album);
+
+    return {
+      id: collection.id,
+      title: collection.title,
+      description: collection.description,
+      backgroundSrc: collection.backgroundSrc,
+      backgroundsUrls: collection.backgroundsUrls,
+      coverSrc: collection.posterSrc,
+      coversUrls: collection.postersUrls,
+      numberOfItems: series.length + movies.length + albums.length,
+      musicPosterSrc: collection.musicPosterSrc,
+      shows: series,
+      movies: movies,
+      albums: albums,
+    };
   }
 
   async getByName(name: string): Promise<Collection | null> {
