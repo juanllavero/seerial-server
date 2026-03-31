@@ -2,12 +2,14 @@ import { type Album, type DetailsData, formatDate } from '@seerial/domain';
 import { Ellipsis, LucideBookmark, PlayIcon } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { shallow } from 'zustand/shallow';
 import BackgroundImage from '@/components/backgrounds/BackgroundImage';
 import GradientBackground from '@/components/backgrounds/GradientBackground';
 import NavigationButton from '@/components/navigation/NavigationButton';
 import NavigationScrollView from '@/components/navigation/NavigationScrollView';
 import FlexBox from '@/components/ui/FlexBox';
 import Image from '@/components/ui/Image';
+import { useSettingsStore } from '@/features/settings/stores/settings.store';
 import AppAlertDialog from '@/shared/components/app-alert-dialog';
 import DetailsInfo from '@/shared/components/details/details-info';
 import Page from '@/shared/components/page';
@@ -23,6 +25,12 @@ interface AlbumDetailsProps {
 function AlbumDetails({ album, isLoading, details }: AlbumDetailsProps) {
   const navigate = useNavigate();
   const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false);
+  const { cardRoundness } = useSettingsStore(
+    (s) => ({
+      cardRoundness: s.settings.cardRoundness,
+    }),
+    shallow,
+  );
 
   useEffect(() => {
     if (!isLoading && !album) {
@@ -39,7 +47,7 @@ function AlbumDetails({ album, isLoading, details }: AlbumDetailsProps) {
         <FlexBox height={'100%'} width={'40vw'} justify="center">
           <Image
             url={details?.coverSrc ?? album?.coverSrc ?? ''}
-            className="rounded-xl"
+            className={cardRoundness}
             width="55vh"
             height="55vh"
           />

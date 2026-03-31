@@ -1,5 +1,7 @@
 import { setFocus, useFocusable } from '@noriginmedia/norigin-spatial-navigation';
 import { useEffect } from 'react';
+import { shallow } from 'zustand/shallow';
+import { useSettingsStore } from '@/features/settings/stores/settings.store';
 import FlexBox from '../../components/ui/FlexBox';
 import Image from '../../components/ui/Image';
 
@@ -53,6 +55,12 @@ function ContentCard({
     onEnterPress: action,
     focusKey: customKey,
   });
+  const { cardRoundness } = useSettingsStore(
+    (state) => ({
+      cardRoundness: state.settings.cardRoundness,
+    }),
+    shallow,
+  );
 
   useEffect(() => {
     if (focused && onFocus) onFocus();
@@ -80,15 +88,20 @@ function ContentCard({
           url={imgSrc}
           height="100%"
           width="100%"
-          className={`h-full w-full rounded-md scale-95 border-2 border-transparent transition-all duration-50 ${focused ? 'transform scale-100 border-white' : ''}`}
+          className={`h-full w-full ${cardRoundness} scale-95 border-2 border-transparent transition-all duration-50 ${focused ? 'transform scale-100 border-white' : ''}`}
           aspectRatio="auto"
         />
       </div>
       {!noInfo && (
-        <div className="flex  min-h-0 w-full flex-col justify-center overflow-hidden pt-1">
-          {title && <span className="truncate text-sm leading-tight">{title}</span>}
+        <div className="flex scale-95 min-h-0 w-full flex-col justify-center overflow-hidden pt-1">
+          {title && <span className="truncate text-[1.5vh] leading-tight">{title}</span>}
           {subtitle && (
-            <span className="truncate text-xs leading-tight text-white/70">{subtitle}</span>
+            <span
+              className="truncate text-[1.25vh] leading-tight"
+              style={{ color: 'var(--color-muted-foreground)' }}
+            >
+              {subtitle}
+            </span>
           )}
         </div>
       )}

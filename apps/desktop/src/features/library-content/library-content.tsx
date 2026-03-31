@@ -82,9 +82,9 @@ function LibraryContent({
               imgSrc={item.coverSrc ?? ''}
               action={() => {
                 navigate(
-                  `/details/${item.type}/${item.id}${item.type === 'collection' ? `/${item.type}` : ''}`,
+                  `/details/${item.type}/${item.id}${item.type === 'collection' ? `/${libraryType}` : ''}`,
                   {
-                    state: { cachedDetails: item.details },
+                    state: { cachedDetails: item.details, libraryType: libraryType },
                   },
                 );
               }}

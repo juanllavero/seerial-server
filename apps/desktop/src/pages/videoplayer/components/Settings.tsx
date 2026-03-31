@@ -158,7 +158,7 @@ function Settings({ onPanelChange, settings, updateSetting }: SettingsProps) {
   return (
     <div className="relative">
       <NavigationButton
-        transparent
+        variant="ghost"
         customKey={NavigationFocusKeys.player.settingsButton}
         className={`p-2 ${open ? 'bg-white text-black' : ''}`}
         onClick={() => setOpen((prev) => !prev)}

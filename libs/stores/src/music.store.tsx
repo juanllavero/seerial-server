@@ -119,6 +119,7 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
       currentSong: null,
       isPlaying: false,
       isExpanded: false,
+      showLyrics: false,
       progress: 0,
       currentTime: 0,
       duration: 0,

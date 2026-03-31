@@ -3,6 +3,7 @@ import { createWithEqualityFn } from 'zustand/traditional';
 export type ThemeMusicVolume = 'off' | 'low' | 'medium' | 'high' | 'veryHigh';
 export type ScreensaverTimeout = 'off' | '1m' | '5m' | '10m' | '30m' | '1h';
 export type VideoQuality = 'low' | 'normal' | 'high' | 'maximum' | 'interpolation';
+export type CardRoundness = 'rounded-none' | 'rounded-sm' | 'rounded-md' | 'rounded-lg' | 'rounded-xl' | 'rounded-2xl' | 'rounded-3xl';
 
 export interface AppSettings {
     // General
@@ -16,6 +17,7 @@ export interface AppSettings {
     autoplayNext: boolean;
     autoplayCountdown: number;
     cardsPerRow: number;
+    cardRoundness: CardRoundness;
 
     // Audio
     normalizeMultichannel: boolean;
@@ -37,6 +39,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
     autoplayNext: true,
     autoplayCountdown: 5,
     cardsPerRow: 8,
+    cardRoundness: 'rounded-lg',
 
     normalizeMultichannel: false,
     exclusiveAudio: false,

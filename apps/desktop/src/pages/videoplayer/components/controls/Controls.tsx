@@ -116,7 +116,7 @@ function Controls({
   // Space bar to toggle play/pause
   useKeyboardShortcut({
     key: ' ',
-    enabled: playerInputEnabled,
+    enabled: playerInputEnabled && !(controlsMode === 'compact' || isTimelineFocused),
     onKeyDown: useCallback(
       (e: KeyboardEvent) => {
         e.preventDefault();
@@ -175,8 +175,9 @@ function Controls({
           setDuration={setDuration}
           position={position}
           setPosition={setPosition}
-          isFocused={controlsMode === 'compact' || isTimelineFocused}
+          keyboardShortcutEnabled={controlsMode === 'compact' || isTimelineFocused}
           onFocusChange={handleTimelineFocusChange}
+          togglePlayPause={handlePlayPause}
         />
       </FlexBox>
     </FlexBox>

@@ -2,6 +2,7 @@ import { memo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import langs from '@/localization/langs';
 import {
+  CardRoundness,
   type ScreensaverTimeout,
   type ThemeMusicVolume,
   useSettingsStore,
@@ -126,6 +127,21 @@ function GeneralSettings() {
         min={4}
         max={20}
         onChange={(v) => updateSetting('cardsPerRow', v)}
+      />
+      <SettingSelect
+        focusKey="settings-general-cardRoundness"
+        label={t('cardRoundness')}
+        value={settings.cardRoundness}
+        options={[
+          { label: t('cardRoundnessNone'), value: 'rounded-none' },
+          { label: t('cardRoundnessSmall'), value: 'rounded-sm' },
+          { label: t('cardRoundnessMedium'), value: 'rounded-md' },
+          { label: t('cardRoundnessBig'), value: 'rounded-lg' },
+          { label: t('cardRoundnessLarge'), value: 'rounded-xl' },
+          { label: t('cardRoundnessVeryLarge'), value: 'rounded-2xl' },
+          { label: t('cardRoundnessExtraLarge'), value: 'rounded-3xl' },
+        ]}
+        onChange={(v) => updateSetting('cardRoundness', v as CardRoundness)}
       />
     </div>
   );

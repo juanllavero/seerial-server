@@ -76,7 +76,7 @@ function AlbumInfo({ isLoading, album }: AlbumInfoProps) {
             >
               <Image
                 url={album.coverSrc}
-                className="h-full w-full rounded-2xl object-cover shadow-2xl shadow-black/20"
+                className={`h-full w-full rounded-2xl object-cover shadow-2xl shadow-black/20`}
                 alt="Album Cover Image"
                 aspectRatio={1}
                 fallbackSrc={'locale/img/songDefault.png'}

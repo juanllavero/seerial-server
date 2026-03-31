@@ -2,6 +2,7 @@ import { useFocusable } from '@noriginmedia/norigin-spatial-navigation';
 import { formatTime } from '@seerial/domain';
 import { invoke } from '@tauri-apps/api/core';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Tertiary from '@/components/text/Tertiary';
 import FlexBox from '@/components/ui/FlexBox';
 import { useKeyboardShortcut } from '@/shared/hooks/use-keyboard-shortcut';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
@@ -12,8 +13,9 @@ interface TimelineSliderProps {
   setPosition: (pos: number) => void;
   duration: number;
   setDuration: (dur: number) => void;
-  isFocused: boolean;
+  keyboardShortcutEnabled?: boolean;
   onFocusChange?: (focused: boolean) => void;
+  togglePlayPause?: () => void;
 }
 
 function TimelineSlider({
@@ -21,8 +23,9 @@ function TimelineSlider({
   setPosition,
   duration,
   setDuration,
-  isFocused,
+  keyboardShortcutEnabled,
   onFocusChange,
+  togglePlayPause,
 }: TimelineSliderProps) {
   const seeking = useRef<boolean>(false);
   const sliderRef = useRef<HTMLInputElement>(null);
@@ -40,6 +43,8 @@ function TimelineSlider({
       return true;
     },
   });
+
+  const shortcutsEnabled = keyboardShortcutEnabled ?? focused;
 
   const handleSeekStart = () => {
     seeking.current = true;
@@ -92,13 +97,25 @@ function TimelineSlider({
   // Seek only when the timeline is focused
   useKeyboardShortcut({
     key: ['ArrowLeft', 'ArrowRight'],
-    enabled: isFocused,
+    enabled: shortcutsEnabled,
     onKeyDown: useCallback(
       (e: KeyboardEvent) => {
         e.preventDefault();
         seekRelative(e.key === 'ArrowLeft' ? -10 : 10);
       },
       [seekRelative],
+    ),
+  });
+
+  useKeyboardShortcut({
+    key: [' ', 'Enter', 'Spacebar'],
+    enabled: shortcutsEnabled,
+    onKeyDown: useCallback(
+      (e: KeyboardEvent) => {
+        e.preventDefault();
+        togglePlayPause?.();
+      },
+      [togglePlayPause],
     ),
   });
 
@@ -148,10 +165,9 @@ function TimelineSlider({
         transition-all duration-200
 
         [&::-webkit-slider-thumb]:appearance-none
-        [&::-webkit-slider-thumb]:w-1.5 
-        [&::-webkit-slider-thumb]:h-5  
+        [&::-webkit-slider-thumb]:w-1 
+        [&::-webkit-slider-thumb]:h-3  
         [&::-webkit-slider-thumb]:bg-white
-        [&::-webkit-slider-thumb]:rounded-sm 
         [&::-webkit-slider-thumb]:shadow-md
         [&::-webkit-slider-thumb]:transition-all 
         [&::-webkit-slider-thumb]:duration-200 
@@ -161,12 +177,8 @@ function TimelineSlider({
 
         ${
           focused
-            ? `h-4 
-          [&::-webkit-slider-thumb]:-translate-x-1/3 
-          [&::-webkit-slider-thumb]:w-5 
-          [&::-webkit-slider-thumb]:h-5 
-          [&::-webkit-slider-thumb]:rounded-full 
-          [&::-webkit-slider-thumb]:bg-white`
+            ? `h-4
+          [&::-webkit-slider-thumb]:h-5`
             : ''
         }
       `}
@@ -180,7 +192,7 @@ function TimelineSlider({
             transform: 'translateX(-35%)',
             top: '100%',
             whiteSpace: 'nowrap',
-            fontSize: '0.875rem',
+            fontSize: '1.8vh',
             fontWeight: '500',
             pointerEvents: 'none',
           }}
@@ -189,7 +201,7 @@ function TimelineSlider({
         </div>
       </div>
       <FlexBox width={'100%'} justify="end">
-        <span>{formatTime(duration - position)}</span>
+        <Tertiary>{formatTime(duration - position)}</Tertiary>
       </FlexBox>
     </FlexBox>
   );

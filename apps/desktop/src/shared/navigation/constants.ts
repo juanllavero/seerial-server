@@ -28,6 +28,7 @@ export const NavigationFocusKeys = {
         container: 'player', timeline: 'player-timeline', playPauseButton: 'player-play-pause-button',
         rewindButton: 'player-rewind-button',
         forwardButton: 'player-forward-button',
+        lyricsButton: 'player-lyrics-button',
         volumeButton: 'player-volume-button',
         videoTracksButton: 'player-video-tracks-button',
         audioTracksButton: 'player-audio-tracks-button',

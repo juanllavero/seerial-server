@@ -60,8 +60,6 @@ function DetailsInfo({
         <Title className="leading-none">{details?.title}</Title>
       )}
 
-      {/* {title ? <Title className='leading-none'>{title}</Title> : null} */}
-
       {details?.subtitle && <Subtitle>{subtitle ?? details?.subtitle}</Subtitle>}
 
       {details?.createdBy ? (
