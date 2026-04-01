@@ -54,20 +54,16 @@ export const getCollectionImages = async (
 }> => {
   const coverSrc = resolveCoverSource(collection, type);
   const backgroundSrc = collection.backgroundSrc !== '' ? collection.backgroundSrc : '';
-  const hasCachedPoster =
-    type === LibraryTypes.MUSIC ? collection.musicPosterSrc !== '' : collection.posterSrc !== '';
-
-  if (hasCachedPoster && coverSrc !== '') {
-    return { poster: coverSrc, background: backgroundSrc || null, images: [] };
-  }
 
   const items = getCollectionItemsByType(collection, type);
-  const { posterPath, backgroundPath } = await findCollectionImagesInBaseFolder(items);
-  const imagePaths = !posterPath ? getFallbackImagePaths(items) : [];
+  const { posterPath, backgroundPath } = await findCollectionImagesInCollectionRoot(items);
+  const resolvedPoster = posterPath ?? (coverSrc !== '' ? coverSrc : null);
+  const resolvedBackground = backgroundPath ?? (backgroundSrc !== '' ? backgroundSrc : null);
+  const imagePaths = !resolvedPoster ? getFallbackImagePaths(items) : [];
 
   return {
-    poster: posterPath,
-    background: backgroundPath,
+    poster: resolvedPoster,
+    background: resolvedBackground,
     images: imagePaths,
   };
 };
@@ -96,17 +92,18 @@ const getCollectionItemsByType = (
   }
 };
 
-const findCollectionImagesInBaseFolder = async (
+const findCollectionImagesInCollectionRoot = async (
   items: CollectionImageSourceItem[],
 ): Promise<{ posterPath: string | null; backgroundPath: string | null }> => {
-  const baseFolder = items[0]?.folder;
+  const itemFolder = items.find((item) => Boolean(item.folder))?.folder;
+  const collectionRootFolder = itemFolder ? path.dirname(itemFolder) : null;
 
-  if (!baseFolder || !fs.existsSync(baseFolder)) {
+  if (!collectionRootFolder || !fs.existsSync(collectionRootFolder)) {
     return { posterPath: null, backgroundPath: null };
   }
 
   try {
-    const filesInFolder = await fsPromises.readdir(baseFolder);
+    const filesInFolder = await fsPromises.readdir(collectionRootFolder);
     let posterPath: string | null = null;
     let backgroundPath: string | null = null;
 
@@ -116,15 +113,15 @@ const findCollectionImagesInBaseFolder = async (
 
       const fileNameWithoutExt = path.parse(file).name.toLowerCase();
       if (fileNameWithoutExt === 'poster') {
-        posterPath = path.join(baseFolder, file);
+        posterPath = path.join(collectionRootFolder, file);
       } else if (fileNameWithoutExt === 'background') {
-        backgroundPath = path.join(baseFolder, file);
+        backgroundPath = path.join(collectionRootFolder, file);
       }
     }
 
     return { posterPath, backgroundPath };
   } catch (error) {
-    libraryManagerLogger.error(error, `Error reading folder ${baseFolder}`);
+    libraryManagerLogger.error(error, `Error reading folder ${collectionRootFolder}`);
     return { posterPath: null, backgroundPath: null };
   }
 };

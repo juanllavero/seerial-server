@@ -1,4 +1,4 @@
-import path from 'node:path';
+import nodePath from 'node:path';
 import type { Request as ExpressRequest, Response } from 'express';
 import {
   Controller,
@@ -82,7 +82,7 @@ export class ImagesController extends Controller {
     const finalPath = safeJoinPath(sanitizedDestPath, image.originalname);
 
     // Ensure destination directory exists
-    fileSystemService.createFolder(path.dirname(finalPath));
+    fileSystemService.createFolder(nodePath.dirname(finalPath));
 
     // Write image buffer to the destination path
     await fileSystemService.writeImage(finalPath, image.buffer);
@@ -121,9 +121,11 @@ export class ImagesController extends Controller {
   ): Promise<void> {
     const res = this.getResponseFromRequest(req);
 
-    const imagePath = fileSystemService.getExternalPath(
-      path.includes('resources/') ? path : fileSystemService.join('resources', path),
-    );
+    const imagePath = nodePath.isAbsolute(path)
+      ? path
+      : fileSystemService.getExternalPath(
+        path.includes('resources/') ? path : fileSystemService.join('resources', path),
+      );
 
     const sanitizedPath = sanitizeImagePath(
       imagePath,

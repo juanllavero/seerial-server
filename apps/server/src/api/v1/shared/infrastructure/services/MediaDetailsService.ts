@@ -8,6 +8,64 @@ import { BadRequestException, NotFoundException } from '../web/exceptions/HTTPEx
 
 const mediaDetailsLogger = logger.child({ category: 'Media Details' });
 
+function normalizeWhitespace(value: string) {
+  return value.trim().replace(/\s+/g, ' ');
+}
+
+function stripTrackPrefix(value: string) {
+  return value.replace(/^\d+[\s._-]+/, '').trim();
+}
+
+function buildLyricLookupCandidates(songBaseName: string, songTitle: string, trackNumber: number) {
+  const candidates = new Set<string>();
+
+  const addCandidate = (value: string) => {
+    const normalized = normalizeWhitespace(value);
+    if (normalized) {
+      candidates.add(normalized);
+    }
+  };
+
+  addCandidate(songBaseName);
+  addCandidate(stripTrackPrefix(songBaseName));
+  addCandidate(songTitle);
+
+  if (trackNumber > 0 && songTitle) {
+    const compactTrack = String(trackNumber);
+    const paddedTrack = compactTrack.padStart(2, '0');
+
+    for (const trackValue of [compactTrack, paddedTrack]) {
+      addCandidate(`${trackValue} ${songTitle}`);
+      addCandidate(`${trackValue}. ${songTitle}`);
+      addCandidate(`${trackValue} - ${songTitle}`);
+    }
+  }
+
+  return Array.from(candidates);
+}
+
+function resolveLyricCandidateMatch(fileName: string, lyricCandidates: string[]) {
+  const lyricBaseName = normalizeWhitespace(path.basename(fileName, path.extname(fileName)));
+  const lowerLyricBaseName = lyricBaseName.toLowerCase();
+
+  for (const candidate of lyricCandidates) {
+    const lowerCandidate = candidate.toLowerCase();
+
+    if (lowerLyricBaseName === lowerCandidate) {
+      return { language: 'original', matchedCandidate: candidate };
+    }
+
+    if (lowerLyricBaseName.startsWith(`${lowerCandidate}.`)) {
+      return {
+        language: lyricBaseName.slice(candidate.length + 1),
+        matchedCandidate: candidate,
+      };
+    }
+  }
+
+  return null;
+}
+
 /**
  * Fetches details for a single media item by type and ID.
  */
@@ -98,33 +156,84 @@ export async function findLyricsForSong(songId: string) {
   }
 
   try {
+    const lyricExtension = '.lrc';
     const songDirectory = path.dirname(song.fileSrc);
     const songBaseName = path.basename(song.fileSrc, path.extname(song.fileSrc));
     const filesInDir = await fs.readdir(songDirectory);
+    const lrcFiles = filesInDir.filter((file) => path.extname(file).toLowerCase() === lyricExtension);
+    const lyricCandidates = buildLyricLookupCandidates(songBaseName, song.title, song.trackNumber);
 
-    const lyricFileNames = filesInDir.filter(
-      (file) => file.startsWith(songBaseName) && file.endsWith('.lrc'),
+    mediaDetailsLogger.debug(
+      {
+        songId,
+        songFileSrc: song.fileSrc,
+        songDirectory,
+        songBaseName,
+        songTitle: song.title,
+        trackNumber: song.trackNumber,
+        totalDirectoryFiles: filesInDir.length,
+        lrcFiles,
+        lyricCandidates,
+      },
+      'Searching lyric files for song',
     );
 
-    const promises = lyricFileNames.map(async (fileName) => {
-      const potentialLangPart = fileName.substring(
-        songBaseName.length,
-        fileName.length - '.lrc'.length,
-      );
-      let language = 'original';
-      if (potentialLangPart.startsWith('.')) {
-        language = potentialLangPart.substring(1);
-      } else if (potentialLangPart !== '') {
-        return null; // Ignore files that don't match the pattern (e.g., song-copy.lrc)
-      }
+    const lyricMatches = lrcFiles
+      .map((fileName) => {
+        const candidateMatch = resolveLyricCandidateMatch(fileName, lyricCandidates);
 
+        if (!candidateMatch) {
+          return null;
+        }
+
+        return {
+          fileName,
+          language: candidateMatch.language,
+          matchedCandidate: candidateMatch.matchedCandidate,
+        };
+      })
+      .filter((result) => result !== null);
+
+    if (lyricMatches.length === 0) {
+      mediaDetailsLogger.warn(
+        {
+          songId,
+          songFileSrc: song.fileSrc,
+          songDirectory,
+          songBaseName,
+          songTitle: song.title,
+          trackNumber: song.trackNumber,
+          lrcFiles,
+          lyricCandidates,
+        },
+        'No lyric files matched the song basename',
+      );
+
+      return [];
+    }
+
+    const promises = lyricMatches.map(async ({ fileName, language, matchedCandidate }) => {
       const fullPath = path.join(songDirectory, fileName);
       const content = await fs.readFile(fullPath, 'utf-8');
-      return { content, language };
+      return { content, language, matchedCandidate, fileName };
     });
 
     const results = await Promise.all(promises);
-    return results.filter((result) => result !== null);
+
+    mediaDetailsLogger.debug(
+      {
+        songId,
+        matchedLyricFiles: results.map((result) => ({
+          fileName: result.fileName,
+          language: result.language,
+          matchedCandidate: result.matchedCandidate,
+        })),
+        resolvedLanguages: results.map((result) => result.language),
+      },
+      'Resolved lyric files for song',
+    );
+
+    return results.map(({ content, language }) => ({ content, language }));
   } catch (error) {
     mediaDetailsLogger.error(error, 'Error searching for lyrics');
     throw new Error('An internal error occurred while searching for lyrics.');
