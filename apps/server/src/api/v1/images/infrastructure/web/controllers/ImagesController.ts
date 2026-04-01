@@ -176,7 +176,7 @@ export class ImagesController extends Controller {
       throw new NotEnoughParamsException();
     }
 
-    const imageSource = localPath ?? url;
+    const imageSource = localPath ? fileSystemService.getExternalPath(localPath?.includes('resources/') ? localPath : fileSystemService.join('resources', localPath ?? '')) : url;
 
     const options = {
       targetLightness: {

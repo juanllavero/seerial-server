@@ -54,9 +54,12 @@ export const getCollectionImages = async (
 }> => {
   const coverSrc = resolveCoverSource(collection, type);
   const backgroundSrc = collection.backgroundSrc !== '' ? collection.backgroundSrc : '';
+  const hasCachedPoster =
+    type === LibraryTypes.MUSIC ? collection.musicPosterSrc !== '' : collection.posterSrc !== '';
 
-  if (coverSrc !== '' && backgroundSrc !== '')
-    return { poster: coverSrc, background: backgroundSrc, images: [] };
+  if (hasCachedPoster && coverSrc !== '') {
+    return { poster: coverSrc, background: backgroundSrc || null, images: [] };
+  }
 
   const items = getCollectionItemsByType(collection, type);
   const { posterPath, backgroundPath } = await findCollectionImagesInBaseFolder(items);
@@ -168,12 +171,19 @@ export const resolveCollectionImages = async (
   fileSystemService.createFolder(outputDir);
   const fileName = `collage-${collection.id}-${libraryId}.jpg`;
   const filePath = fileSystemService.join(outputDir, fileName);
-  fileSystemService.writeImage(filePath, collageBuffer);
+  await fileSystemService.writeImage(filePath, collageBuffer);
 
   const collectionPoster = fileSystemService.join('img', 'collages', collection.id, fileName);
 
-  collection.posterSrc = collectionImages.poster || collection.posterSrc;
-  collection.backgroundSrc = collectionImages.background || collection.backgroundSrc;
+  if (libraryType === LibraryTypes.MUSIC) {
+    collection.musicPosterSrc = collectionPoster;
+  } else {
+    collection.posterSrc = collectionPoster;
+  }
+
+  if (collectionImages.background) {
+    collection.backgroundSrc = collectionImages.background;
+  }
 
   await collection.save();
 

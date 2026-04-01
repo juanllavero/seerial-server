@@ -48,96 +48,123 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
   }
 
   async getContent(libraryId: string, userId: string): Promise<LibraryItem[]> {
+    const libraryHeader = await LibraryModel.findOne({
+      where: { id: libraryId },
+      select: ['id', 'type'],
+    });
+
+    if (!libraryHeader) return [];
+
     const library = await LibraryModel.findOne({
       where: { id: libraryId },
-      relations: [
-        'series',
-        'series.watchLists',
-        'series.myLists',
-        'series.seasons',
-        'series.seasons.episodes',
-        'series.seasons.episodes.watchLists',
-        'movies',
-        'movies.watchLists',
-        'movies.myLists',
-        'movies.videos',
-        'albums',
-        'libraryCollections',
-        'libraryCollections.collection',
-        'libraryCollections.collection.collectionMovies.movie',
-        'libraryCollections.collection.collectionSeries.series',
-        'libraryCollections.collection.collectionAlbums.album',
-        'libraryCollections.collection.libraryCollections.library',
-      ],
+      relations: this.getRelationsForLibraryType(libraryHeader.type),
     });
 
     if (!library) return [];
 
     const collections =
       library.libraryCollections?.map((libraryCollection) => libraryCollection.collection) || [];
-    const collectionItems = await this.buildCollectionItems(collections, libraryId, library.type);
+    const customOrderByCollectionId = new Map(
+      (library.libraryCollections || []).map((libraryCollection) => [
+        libraryCollection.collectionId,
+        libraryCollection.customOrder,
+      ]),
+    );
+    const collectionItems = await this.buildCollectionItems(
+      collections,
+      libraryId,
+      library.type,
+      customOrderByCollectionId,
+    );
     const standaloneItems = await this.buildStandaloneItems(library, collections, userId);
 
     return [...collectionItems, ...standaloneItems].sort((a, b) => a.order - b.order);
+  }
+
+  private getRelationsForLibraryType(type: Library['type']): string[] {
+    const collectionRelations = [
+      'libraryCollections',
+      'libraryCollections.collection',
+      'libraryCollections.collection.collectionMovies.movie',
+      'libraryCollections.collection.collectionSeries.series',
+      'libraryCollections.collection.collectionAlbums.album',
+    ];
+
+    switch (type) {
+      case LibraryTypes.MOVIES:
+        return [
+          'movies',
+          'movies.watchLists',
+          'movies.myLists',
+          'movies.videos',
+          ...collectionRelations,
+        ];
+      case LibraryTypes.SHOWS:
+        return [
+          'series',
+          'series.watchLists',
+          'series.myLists',
+          'series.seasons',
+          'series.seasons.episodes',
+          'series.seasons.episodes.watchLists',
+          ...collectionRelations,
+        ];
+      case LibraryTypes.MUSIC:
+        return ['albums', ...collectionRelations];
+      default:
+        return collectionRelations;
+    }
   }
 
   private async buildCollectionItems(
     collections: CollectionModel[],
     libraryId: string,
     type: Library['type'],
+    customOrderByCollectionId: Map<string, number>,
   ): Promise<LibraryItem[]> {
-    const libraryCollectionRepo = DatabaseManager.getRepository(LibraryCollectionModel);
-    const collectionItems: LibraryItem[] = [];
+    return Promise.all(
+      collections.map(async (collection) => {
+        const numberOfItems = this.countCollectionItems(collection, libraryId);
+        const years = this.calculateYearsForCollection(collection);
 
-    for (const collection of collections) {
-      const numberOfItems = this.countCollectionItems(collection, libraryId);
-      const years = this.calculateYearsForCollection(collection);
+        const collectionImages = await resolveCollectionImages(collection, libraryId, type);
 
-      const [libraryCollection, collectionImages] = await Promise.all([
-        libraryCollectionRepo.findOne({
-          where: {
-            libraryId,
-            collectionId: collection.id,
-          },
-        }),
-        resolveCollectionImages(collection, libraryId, type),
-      ]);
-
-      collectionItems.push({
-        id: collection.id,
-        title: collection.title,
-        years,
-        coverSrc: collectionImages.poster ?? '',
-        backgroundSrc: collectionImages.background ?? '',
-        numberOfItems,
-        order: libraryCollection?.customOrder || 0,
-        watched: false,
-        remainingItems: 0,
-        analyzingFiles: false,
-        type: 'collection',
-        details: {
+        return {
+          id: collection.id,
           title: collection.title,
-          genres: '',
-          year: years,
-          description: collection.description || '',
-          subtitle: undefined,
+          years,
           coverSrc: collectionImages.poster ?? '',
           backgroundSrc: collectionImages.background ?? '',
-        },
-      });
-    }
-
-    return collectionItems;
+          numberOfItems,
+          order: customOrderByCollectionId.get(collection.id) ?? 0,
+          watched: false,
+          remainingItems: 0,
+          analyzingFiles: false,
+          type: 'collection',
+          details: {
+            title: collection.title,
+            genres: '',
+            year: years,
+            description: collection.description || '',
+            subtitle: undefined,
+            coverSrc: collectionImages.poster ?? '',
+            backgroundSrc: collectionImages.background ?? '',
+          },
+        };
+      }),
+    );
   }
 
   private countCollectionItems(collection: CollectionModel, libraryId: string): number {
     const moviesCount =
-      collection.collectionMovies?.map((movie) => movie.movie.libraryId === libraryId).length || 0;
-    const seriesCount =
-      collection.collectionSeries?.map((series) => series.series.libraryId === libraryId).length ||
+      collection.collectionMovies?.filter((movie) => movie.movie.libraryId === libraryId).length ||
       0;
+    const seriesCount =
+      collection.collectionSeries?.filter((series) => series.series.libraryId === libraryId)
+        .length || 0;
     const albumsCount =
-      collection.collectionAlbums?.map((album) => album.album.libraryId === libraryId).length || 0;
+      collection.collectionAlbums?.filter((album) => album.album.libraryId === libraryId).length ||
+      0;
 
     return moviesCount + seriesCount + albumsCount;
   }
