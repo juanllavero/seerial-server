@@ -1,3 +1,4 @@
+
 export const en = {
   translation: {
     // Error messages
@@ -13,6 +14,7 @@ export const en = {
     errorImageUpload: 'Error uploading image',
     invalidImageError: 'Select a valid image file',
 
+    endsAt: 'Ends at',
     watchListShows: 'My List: Shows',
     watchListMovies: 'My List: Movies',
     serverError: 'The server is unavailable',
@@ -307,6 +309,12 @@ export const en = {
     position: 'Position',
     bottom: 'Bottom',
     top: 'Top',
+    topRight: 'Top right',
+    topCenter: 'Top center',
+    topLeft: 'Top left',
+    bottomRight: 'Bottom right',
+    bottomCenter: 'Bottom center',
+    bottomLeft: 'Bottom left',
     yellow: 'Yellow',
     red: 'Red',
     cyan: 'Cyan',
@@ -315,7 +323,7 @@ export const en = {
     magenta: 'Magenta',
     orange: 'Orange',
     pink: 'Pink',
-    teal: 'Teal',
+    golden: 'Golden',
 
     // Settings
     general: 'General',

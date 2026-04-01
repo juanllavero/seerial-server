@@ -2,12 +2,14 @@ import { useGetVideoPlaybackInfo } from '@seerial/api';
 import type { PlayBackInfo, Video } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { invoke } from '@tauri-apps/api/core';
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { shallow } from 'zustand/shallow';
+import Tertiary from '@/components/text/Tertiary';
 import FlexBox from '@/components/ui/FlexBox';
 import { useKeyboardShortcut } from '@/shared/hooks/use-keyboard-shortcut';
 import type { PlayerSettings } from '../../hooks/use-player-settings';
-import Settings from '../Settings';
+import Settings from '../settings';
 import VideoInfoComponent from '../video-info';
 import TimelineSlider from './timeline-slider';
 import TracksSelectors from './tracks-selectors';
@@ -42,6 +44,7 @@ function Controls({
     }),
     shallow,
   );
+  const { t } = useTranslation();
   const [duration, setDuration] = useState(runtime ? runtime * 60 : 0);
   const [position, setPosition] = useState(0);
   const [isTimelineFocused, setIsTimelineFocused] = useState(false);
@@ -134,6 +137,16 @@ function Controls({
     [onTimelineFocusChange],
   );
 
+  const endTime = useMemo(() => {
+    const remainingSeconds = Math.max(duration - position, 0);
+    const endsAt = new Date(Date.now() + remainingSeconds * 1000);
+    return new Intl.DateTimeFormat([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(endsAt);
+  }, [duration, position]);
+
   if (controlsMode === 'hidden') return null;
 
   const showFullControls = controlsMode === 'full';
@@ -154,6 +167,11 @@ function Controls({
             info={playBackInfo?.info ?? ''}
             duration={duration}
           />
+
+          <div className="absolute top-15 right-20">
+            <Tertiary>{`${t('endsAt')} ${endTime}`}</Tertiary>
+          </div>
+
           <FlexBox align="center" justify="end" gap={0.5}>
             <Settings
               onPanelChange={handleSettingsPanelChange}

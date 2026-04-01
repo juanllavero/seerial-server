@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { useCallback, useEffect, useRef } from 'react';
 
 export type SubtitleSize = 'tiny' | 'small' | 'normal' | 'big' | 'large';
-export type SubtitlePosition = 'top' | 'bottom';
+export type SubtitlePosition = 'topRight' | 'topCenter' | 'topLeft' | 'bottomRight' | 'bottomCenter' | 'bottomLeft';
 
 export interface PlayerSettings {
     zoom: number;
@@ -24,7 +24,7 @@ const DEFAULT_SETTINGS: PlayerSettings = {
     subtitleColor: '#FFFFFF',
     subtitleBorderSize: 3,
     subtitleShadowOffset: 0,
-    subtitlePosition: 'bottom',
+    subtitlePosition: 'bottomCenter',
 };
 
 const SUBTITLE_SIZE_MAP: Record<SubtitleSize, number> = {
@@ -36,8 +36,12 @@ const SUBTITLE_SIZE_MAP: Record<SubtitleSize, number> = {
 };
 
 const SUBTITLE_POSITION_MAP: Record<SubtitlePosition, number> = {
-    top: 10,
-    bottom: 100,
+    topRight: 10,
+    topCenter: 10,
+    topLeft: 10,
+    bottomRight: 100,
+    bottomCenter: 100,
+    bottomLeft: 100,
 };
 
 function hexToMpvColor(hex: string): string {

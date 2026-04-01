@@ -11,28 +11,36 @@ import type { PlayerSettings, SubtitlePosition, SubtitleSize } from '../hooks/us
 
 const ZOOM_MIN = -3;
 const ZOOM_MAX = 5;
-const ZOOM_STEP = 0.5;
+const ZOOM_STEP = 0.1;
 
 const DELAY_STEP = 50; // ms
 
 const SUBTITLE_SIZES: SubtitleSize[] = ['tiny', 'small', 'normal', 'big', 'large'];
-const SUBTITLE_POSITIONS: SubtitlePosition[] = ['bottom', 'top'];
+const SUBTITLE_POSITIONS: SubtitlePosition[] = [
+  'topRight',
+  'topCenter',
+  'topLeft',
+  'bottomRight',
+  'bottomCenter',
+  'bottomLeft',
+];
 
 const BORDER_SIZES = [0, 1, 2, 3, 4, 5];
 const SHADOW_OFFSETS = [0, 1, 2, 3, 4, 5];
 
 const SUBTITLE_COLORS = [
   { key: 'white', hex: '#FFFFFF' },
-  { key: 'yellow', hex: '#FFFF00' },
-  { key: 'green', hex: '#00FF00' },
-  { key: 'cyan', hex: '#00FFFF' },
-  { key: 'blue', hex: '#0000FF' },
-  { key: 'magenta', hex: '#FF00FF' },
-  { key: 'red', hex: '#FF0000' },
-  { key: 'orange', hex: '#FFA500' },
-  { key: 'pink', hex: '#FF69B4' },
-  { key: 'teal', hex: '#008080' },
-  { key: 'black', hex: '#000000' },
+  { key: 'yellow', hex: '#FFFF00FF' },
+  { key: 'black', hex: '#000000FF' },
+  { key: 'cyan', hex: '#00FFFFFF' },
+  { key: 'blue', hex: '#0000FFFF' },
+  { key: 'green', hex: '#00FF00FF' },
+  { key: 'magenta', hex: '#FF00FFFF' },
+  { key: 'red', hex: '#FF0000FF' },
+  { key: 'gray', hex: '#808080FF' },
+  { key: 'orange', hex: '#FF8000FF' },
+  { key: 'gold', hex: '#FFD700FF' },
+  { key: 'pink', hex: '#FF69B4FF' },
 ] as const;
 
 function settingFocusKey(id: string) {

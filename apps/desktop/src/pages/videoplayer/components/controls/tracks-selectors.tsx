@@ -286,7 +286,7 @@ function TracksSelectors({
       <div className="flex items-center justify-end gap-2">
         {hasAudioOptions && (
           <NavigationButton
-            transparent
+            variant="ghost"
             customKey={NavigationFocusKeys.player.audioTracksButton}
             title={t('audio')}
             className={`p-2 ${openPanel === 'audio' ? 'bg-white text-black' : ''}`}
@@ -299,7 +299,7 @@ function TracksSelectors({
         )}
         {hasSubtitleOptions && (
           <NavigationButton
-            transparent
+            variant="ghost"
             customKey={NavigationFocusKeys.player.subtitleTracksButton}
             title={t('subs')}
             className={`p-2 ${openPanel === 'subtitle' ? 'bg-white text-black' : ''}`}

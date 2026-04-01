@@ -13,6 +13,7 @@ export const es = {
     errorImageUpload: 'Error al subir la imagen',
     invalidImageError: 'Selecciona un archivo de imagen válido',
 
+    endsAt: 'Termina a las',
     watchListShows: 'Mi Lista: Series',
     watchListMovies: 'Mi Lista: Películas',
     serverError: 'El servidor no está disponible',
@@ -311,6 +312,12 @@ export const es = {
     position: 'Posición',
     bottom: 'Abajo',
     top: 'Arriba',
+    topRight: 'Arriba a la derecha',
+    topCenter: 'Arriba al centro',
+    topLeft: 'Arriba a la izquierda',
+    bottomRight: 'Abajo a la derecha',
+    bottomCenter: 'Abajo al centro',
+    bottomLeft: 'Abajo a la izquierda',
     yellow: 'Amarillo',
     red: 'Rojo',
     cyan: 'Cian',
@@ -319,7 +326,7 @@ export const es = {
     magenta: 'Magenta',
     orange: 'Naranja',
     pink: 'Rosa',
-    teal: 'Turquesa',
+    golden: 'Dorado',
 
     // Settings
     general: 'General',
