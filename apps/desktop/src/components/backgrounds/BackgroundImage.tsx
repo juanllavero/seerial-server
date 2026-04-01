@@ -1,3 +1,5 @@
+import { useGetLocalImage } from '@seerial/api';
+import { useServerStore } from '@seerial/stores';
 import { memo, useEffect, useRef, useState } from 'react';
 
 interface BackgroundImageProps {
@@ -6,13 +8,48 @@ interface BackgroundImageProps {
 }
 
 function BackgroundImage({ imageSrc, index = 1 }: BackgroundImageProps) {
+  const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
+  const isRemoteUrl = !!imageSrc?.startsWith('http');
+  const localImagePath = imageSrc && !isRemoteUrl ? imageSrc : undefined;
+
+  const { data: localImageBlob } = useGetLocalImage({
+    enabled: !!localImagePath && !!serverUrl,
+    params: localImagePath ? { path: localImagePath } : undefined,
+    queryKey: ['images', 'local', serverUrl, localImagePath],
+  });
+
+  const [resolvedSrc, setResolvedSrc] = useState<string | undefined>(
+    isRemoteUrl ? imageSrc : undefined,
+  );
+
+  useEffect(() => {
+    if (isRemoteUrl) {
+      setResolvedSrc(imageSrc);
+      return;
+    }
+    if (!imageSrc) {
+      setResolvedSrc(undefined);
+      return;
+    }
+    if (!localImageBlob) {
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(localImageBlob);
+    setResolvedSrc(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [imageSrc, isRemoteUrl, localImageBlob]);
+
   const [currentSrc, setCurrentSrc] = useState<string | null>(null);
   const [nextSrc, setNextSrc] = useState<string | null>(null);
   const [showNext, setShowNext] = useState(false);
   const nextImgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
-    if (!imageSrc) {
+    if (!resolvedSrc) {
       setShowNext(false);
       setCurrentSrc(null);
       setNextSrc(null);
@@ -20,15 +57,15 @@ function BackgroundImage({ imageSrc, index = 1 }: BackgroundImageProps) {
     }
 
     if (!currentSrc) {
-      setNextSrc(imageSrc);
+      setNextSrc(resolvedSrc);
       return;
     }
 
-    if (imageSrc !== (nextSrc ?? currentSrc)) {
+    if (resolvedSrc !== (nextSrc ?? currentSrc)) {
       setShowNext(false);
-      setNextSrc(imageSrc);
+      setNextSrc(resolvedSrc);
     }
-  }, [imageSrc, currentSrc, nextSrc]);
+  }, [resolvedSrc, currentSrc, nextSrc]);
 
   const handleNextLoaded = () => {
     setShowNext(true);

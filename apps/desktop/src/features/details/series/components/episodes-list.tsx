@@ -38,7 +38,7 @@ function EpisodesList({
 
   return (
     <NavigationScrollView
-      className="gap-5 pb-5 z-10 w-full"
+      className="gap-5 py-5 z-10 w-full"
       direction="horizontal"
       scrollMode="center"
       focusedElementId={selectedEpisode?.id}

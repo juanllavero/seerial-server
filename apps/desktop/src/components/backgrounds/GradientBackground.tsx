@@ -19,20 +19,6 @@ interface ImageColorsResponse {
 
 const GRADIENT_TRANSITION_MS = 700;
 
-const windowsPathRegex = /^[a-zA-Z]:[\\/]/;
-const unixPathRegex = /^\//;
-
-const isAbsolutePath = (value: string): boolean => {
-  return windowsPathRegex.test(value) || unixPathRegex.test(value);
-};
-
-const normalizeRelativeImageUrl = (serverUrl: string, imageSrc: string): string => {
-  const normalizedServerUrl = serverUrl.endsWith('/') ? serverUrl.slice(0, -1) : serverUrl;
-  const normalizedImagePath = imageSrc.startsWith('/') ? imageSrc.slice(1) : imageSrc;
-
-  return `${normalizedServerUrl}/${normalizedImagePath.replace('resources/img', 'img')}`;
-};
-
 const normalizeGradientCss = (value?: string): string => {
   if (!value) {
     return '';
@@ -57,7 +43,6 @@ const getImageColorsSourceKey = (params?: { url?: string; localPath?: string }):
 };
 
 const buildImageColorsParams = (
-  serverUrl: string,
   imageSrc?: string,
 ): { url?: string; localPath?: string } | undefined => {
   if (!imageSrc || imageSrc === '') {
@@ -72,15 +57,7 @@ const buildImageColorsParams = (
     return { localPath: imageSrc.replace('local', '') };
   }
 
-  if (isAbsolutePath(imageSrc)) {
-    return { localPath: imageSrc };
-  }
-
-  if (!serverUrl) {
-    return undefined;
-  }
-
-  return { url: normalizeRelativeImageUrl(serverUrl, imageSrc) };
+  return { localPath: imageSrc };
 };
 
 const GradientBackground = ({
@@ -97,10 +74,7 @@ const GradientBackground = ({
   const gradientCacheRef = useRef<Record<string, string>>({});
   const transitionFrameRef = useRef<number | null>(null);
 
-  const imageColorsParams = useMemo(
-    () => buildImageColorsParams(serverUrl, imageSrc),
-    [serverUrl, imageSrc],
-  );
+  const imageColorsParams = useMemo(() => buildImageColorsParams(imageSrc), [imageSrc]);
   const imageSourceKey = useMemo(
     () => getImageColorsSourceKey(imageColorsParams),
     [imageColorsParams],

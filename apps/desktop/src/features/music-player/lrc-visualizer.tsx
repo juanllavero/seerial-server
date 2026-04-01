@@ -1,5 +1,4 @@
 import { useMusicStore } from '@seerial/stores';
-import { invoke } from '@tauri-apps/api/core';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { shallow } from 'zustand/shallow';
@@ -24,9 +23,12 @@ interface LRCVisualizerProps {
 }
 
 interface LyricsLineState {
+  containerClass: string;
   opacityClass: string;
   textClass: string;
   scaleClass: string;
+  sizeClass: string;
+  weightClass: string;
   blurClass: string;
 }
 
@@ -86,37 +88,95 @@ function formatLanguageLabel(language: string, userLanguage: string, originalLab
   return language.toUpperCase();
 }
 
+function getLineOpacityClass(
+  isCurrentLine: boolean,
+  isNearCurrentLine: boolean,
+  isPastLine: boolean,
+  isUserScrolling: boolean,
+) {
+  if (isCurrentLine) {
+    return 'opacity-100';
+  }
+
+  if (isNearCurrentLine) {
+    return 'opacity-50';
+  }
+
+  if (!isUserScrolling && isPastLine) {
+    return 'opacity-20';
+  }
+
+  return 'opacity-20';
+}
+
+function getLineTextClass(isCurrentLine: boolean, isNearCurrentLine: boolean) {
+  if (isCurrentLine) {
+    return 'text-white drop-shadow-[0_0_24px_rgba(255,255,255,0.3)]';
+  }
+
+  if (isNearCurrentLine) {
+    return 'text-neutral-100';
+  }
+
+  return 'text-neutral-400';
+}
+
+function getLineSizeClass(isCurrentLine: boolean, isNearCurrentLine: boolean) {
+  if (isCurrentLine) {
+    return 'text-[4.5vh]';
+  }
+
+  if (isNearCurrentLine) {
+    return 'text-[3vh]';
+  }
+
+  return 'text-[2.5vh]';
+}
+
+function getLineWeightClass(isCurrentLine: boolean, isNearCurrentLine: boolean) {
+  if (isCurrentLine) {
+    return 'font-bold';
+  }
+
+  if (isNearCurrentLine) {
+    return 'font-semibold';
+  }
+
+  return 'font-medium';
+}
+
 function getLyricsLineState(
   index: number,
   currentLineIndex: number,
   isUserScrolling: boolean,
 ): LyricsLineState {
+  const distanceFromCurrent =
+    currentLineIndex < 0 ? Number.POSITIVE_INFINITY : Math.abs(index - currentLineIndex);
   const isCurrentLine = index === currentLineIndex;
   const isPastLine = index < currentLineIndex;
-
-  let opacityClass = 'opacity-55';
-  if (isCurrentLine) {
-    opacityClass = 'opacity-100';
-  } else if (!isUserScrolling && isPastLine) {
-    opacityClass = 'opacity-25';
-  }
+  const isNearCurrentLine = distanceFromCurrent === 1;
 
   return {
-    opacityClass,
-    textClass: isCurrentLine ? 'text-white' : 'text-neutral-300',
+    containerClass: isCurrentLine ? 'scale-[1.02]' : 'scale-100',
+    opacityClass: getLineOpacityClass(
+      isCurrentLine,
+      isNearCurrentLine,
+      isPastLine,
+      isUserScrolling,
+    ),
+    textClass: getLineTextClass(isCurrentLine, isNearCurrentLine),
     scaleClass: isCurrentLine ? 'scale-105' : 'scale-100',
-    blurClass: isUserScrolling || isCurrentLine ? '' : 'blur-[1px]',
+    sizeClass: getLineSizeClass(isCurrentLine, isNearCurrentLine),
+    weightClass: getLineWeightClass(isCurrentLine, isNearCurrentLine),
+    blurClass: isUserScrolling || isCurrentLine || isNearCurrentLine ? '' : 'blur-[0.6px]',
   };
 }
 
 function LRCVisualizer({ lyrics, isLoading }: LRCVisualizerProps) {
   const { t, i18n } = useTranslation();
-  const { currentTime, duration, setCurrentTime, setProgress } = useMusicStore(
+  const { currentTime } = useMusicStore(
     (state) => ({
       currentTime: state.currentTime,
-      duration: state.duration,
-      setCurrentTime: state.setCurrentTime,
-      setProgress: state.setProgress,
     }),
     shallow,
   );
@@ -155,7 +215,7 @@ function LRCVisualizer({ lyrics, isLoading }: LRCVisualizerProps) {
       }
     }
 
-    return 0;
+    return -1;
   }, [currentTime, lines]);
 
   useEffect(() => {
@@ -194,22 +254,6 @@ function LRCVisualizer({ lyrics, isLoading }: LRCVisualizerProps) {
     }, 1800);
   }, []);
 
-  const handleLineClick = useCallback(
-    async (time: number) => {
-      try {
-        await invoke('set_position', { position: time });
-        setCurrentTime(time);
-
-        if (duration > 0) {
-          setProgress((time / duration) * 100);
-        }
-      } catch (error) {
-        console.error('Failed to seek from lyrics:', error);
-      }
-    },
-    [duration, setCurrentTime, setProgress],
-  );
-
   if (isLoading) {
     return (
       <FlexBox width="100%" height="100%" justify="center" align="center">
@@ -234,7 +278,7 @@ function LRCVisualizer({ lyrics, isLoading }: LRCVisualizerProps) {
       gap={1.5}
       width="100%"
       height="100%"
-      className="min-w-0 rounded-[3vh] bg-black/20 p-[2.4vh] backdrop-blur-md"
+      className="relativez-0 min-h-0 min-w-0 overflow-hidden"
     >
       {lyrics.length > 1 && (
         <FlexBox wrap="wrap" gap={0.75} width="100%" className="shrink-0">
@@ -259,25 +303,27 @@ function LRCVisualizer({ lyrics, isLoading }: LRCVisualizerProps) {
       >
         <div className="space-y-[2.2vh] px-[1.2vh] py-[10vh]">
           {lines.map((line, index) => {
-            const { opacityClass, textClass, scaleClass, blurClass } = getLyricsLineState(
-              index,
-              currentLineIndex,
-              isUserScrolling,
-            );
+            const {
+              containerClass,
+              opacityClass,
+              textClass,
+              scaleClass,
+              sizeClass,
+              weightClass,
+              blurClass,
+            } = getLyricsLineState(index, currentLineIndex, isUserScrolling);
 
             return (
               <div
                 key={`${line.time}-${line.text}`}
                 data-line-index={index}
-                className="text-center"
+                className={`text-center transition-transform duration-300 ease-out ${containerClass}`}
               >
-                <button
-                  type="button"
-                  onClick={() => void handleLineClick(line.time)}
-                  className={`cursor-pointer bg-transparent px-[1vh] text-[2.5vh] font-semibold transition-all duration-300 ease-out ${opacityClass} ${textClass} ${scaleClass} ${blurClass}`}
+                <span
+                  className={`cursor-pointer bg-transparent px-[1vh] transition-all duration-300 ease-out ${opacityClass} ${textClass} ${scaleClass} ${sizeClass} ${weightClass} ${blurClass}`}
                 >
                   {line.text}
-                </button>
+                </span>
               </div>
             );
           })}

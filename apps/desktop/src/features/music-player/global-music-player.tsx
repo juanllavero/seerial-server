@@ -310,13 +310,17 @@ function GlobalMusicPlayer() {
           className="fixed inset-0 z-120 bg-black"
         >
           <GradientBackground imageSrc={album?.coverSrc ?? ''} />
-          <NavigationContainer customFocusKey="music-player-overlay" className="h-full w-full">
-            <FlexBox direction="column" justify="center" align="center" width="100%" height="100%">
+          <NavigationContainer
+            customFocusKey="music-player-overlay"
+            className="relative h-full w-full overflow-hidden"
+          >
+            <div className="flex h-full w-full justify-center px-[4vh] pb-[24vh] pt-[7vh]">
               <FlexBox
                 direction="column"
                 gap={6}
-                width="95%"
+                width="100%"
                 className="max-w-[160dvh]"
+                justify="end"
                 align="center"
               >
                 <FlexBox
@@ -324,18 +328,18 @@ function GlobalMusicPlayer() {
                   width="100%"
                   align="stretch"
                   justify="center"
-                  className="min-h-[45vh]"
+                  className="relative h-[45vh] overflow-hidden"
                 >
                   <div
-                    className="flex shrink-0 justify-center transition-[width] duration-300 ease-in-out"
-                    style={{ width: shouldShowLyricsPanel ? '45vh' : '100%' }}
+                    className="relative z-1 flex shrink-0 items-end justify-center transition-[width] duration-300 ease-in-out"
+                    style={{ width: shouldShowLyricsPanel ? '70vh' : '100%' }}
                   >
-                    <FlexBox direction="column" width={'45vh'} gap={2} align="center">
+                    <FlexBox direction="column" width={'60vh'} gap={2} align="center">
                       <Image
                         url={album?.coverSrc ?? ''}
                         className="rounded-3xl"
-                        width="45vh"
-                        height="45vh"
+                        width="50vh"
+                        height="50vh"
                       />
                       <FlexBox direction="column" gap={0.4} align="center">
                         <h2 className="text-[2.6vh] font-semibold line-clamp-1">
@@ -359,72 +363,82 @@ function GlobalMusicPlayer() {
                         animate={{ x: 0, opacity: 1 }}
                         exit={{ x: 64, opacity: 0 }}
                         transition={{ duration: 0.25, ease: 'easeInOut' }}
-                        className="min-w-0 flex-1"
+                        className="relative z-0 min-h-0 min-w-0 flex-1 self-stretch overflow-hidden"
                       >
                         <LRCVisualizer lyrics={lyrics} isLoading={isLyricsLoading} />
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </FlexBox>
-
-                {!!isLoading && (
-                  <div className="h-[7dvh]">
-                    <Loading />
-                  </div>
-                )}
-
-                <FlexBox direction="column" gap={1} align="center" width="100%">
-                  <TimelineSlider
-                    position={currentTime}
-                    setPosition={setCurrentTime}
-                    duration={playerDuration}
-                    setDuration={setDuration}
-                    togglePlayPause={togglePlayPause}
-                  />
-
-                  <FlexBox gap={1} justify="center" align="center" className="pt-4">
-                    <NavigationButton
-                      customKey={NavigationFocusKeys.player.rewindButton}
-                      icon={<SkipBack size={'2dvh'} />}
-                      hideText
-                      variant="ghost"
-                      onClick={handlePrevious}
-                    />
-                    <NavigationButton
-                      customKey={NavigationFocusKeys.player.optionsButton}
-                      icon={<SquareIcon size={'2vh'} />}
-                      hideText
-                      variant="ghost"
-                      onClick={handleStop}
-                    />
-                    <NavigationButton
-                      customKey={NavigationFocusKeys.player.lyricsButton}
-                      title={t('lyrics')}
-                      icon={<MicVocal size={'2dvh'} />}
-                      hideText
-                      variant="ghost"
-                      selected={showLyrics}
-                      disabled={isLyricsButtonDisabled}
-                      onClick={() => setShowLyrics(!showLyrics)}
-                    />
-                    <NavigationButton
-                      customKey={NavigationFocusKeys.player.playPauseButton}
-                      icon={isPlaying ? <Pause size={'2dvh'} /> : <Play size={'2dvh'} />}
-                      hideText
-                      variant="ghost"
-                      onClick={() => void togglePlayPause()}
-                    />
-                    <NavigationButton
-                      customKey={NavigationFocusKeys.player.forwardButton}
-                      icon={<SkipForward size={'2dvh'} />}
-                      hideText
-                      variant="ghost"
-                      onClick={handleNext}
-                    />
-                  </FlexBox>
-                </FlexBox>
               </FlexBox>
-            </FlexBox>
+
+              <div className="pointer-events-none absolute inset-x-0 bottom-[5vh] z-30 flex justify-center px-[4vh]">
+                <div className="pointer-events-auto w-full max-w-[160dvh]">
+                  {!!isLoading && (
+                    <div className="mb-[2vh] flex h-[7dvh] justify-center">
+                      <Loading />
+                    </div>
+                  )}
+
+                  <FlexBox
+                    direction="column"
+                    gap={1}
+                    align="center"
+                    width="100%"
+                    className="rounded-[3vh] px-[3vh] py-[2vh]"
+                  >
+                    <TimelineSlider
+                      position={currentTime}
+                      setPosition={setCurrentTime}
+                      duration={playerDuration}
+                      setDuration={setDuration}
+                      togglePlayPause={togglePlayPause}
+                    />
+
+                    <FlexBox gap={1} justify="center" align="center" className="pt-4">
+                      <NavigationButton
+                        customKey={NavigationFocusKeys.player.rewindButton}
+                        icon={<SkipBack size={'2dvh'} />}
+                        hideText
+                        variant="ghost"
+                        onClick={handlePrevious}
+                      />
+                      <NavigationButton
+                        customKey={NavigationFocusKeys.player.optionsButton}
+                        icon={<SquareIcon size={'2vh'} />}
+                        hideText
+                        variant="ghost"
+                        onClick={handleStop}
+                      />
+                      <NavigationButton
+                        customKey={NavigationFocusKeys.player.lyricsButton}
+                        title={t('lyrics')}
+                        icon={<MicVocal size={'2dvh'} />}
+                        hideText
+                        variant="ghost"
+                        selected={showLyrics}
+                        disabled={isLyricsButtonDisabled}
+                        onClick={() => setShowLyrics(!showLyrics)}
+                      />
+                      <NavigationButton
+                        customKey={NavigationFocusKeys.player.playPauseButton}
+                        icon={isPlaying ? <Pause size={'2dvh'} /> : <Play size={'2dvh'} />}
+                        hideText
+                        variant="ghost"
+                        onClick={() => void togglePlayPause()}
+                      />
+                      <NavigationButton
+                        customKey={NavigationFocusKeys.player.forwardButton}
+                        icon={<SkipForward size={'2dvh'} />}
+                        hideText
+                        variant="ghost"
+                        onClick={handleNext}
+                      />
+                    </FlexBox>
+                  </FlexBox>
+                </div>
+              </div>
+            </div>
           </NavigationContainer>
         </motion.div>
       )}

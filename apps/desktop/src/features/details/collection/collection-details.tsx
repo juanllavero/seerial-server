@@ -22,6 +22,7 @@ import FlexBox from '@/components/ui/FlexBox';
 import Image from '@/components/ui/Image';
 import { useSettingsStore } from '@/features/settings/stores/settings.store';
 import Page from '@/shared/components/page';
+import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
 import ContentCard from '@/shared/ui/card';
 
 type CollectionSectionKey = 'albums' | 'movies' | 'shows';
@@ -43,7 +44,6 @@ function getOrderedSectionKeys(libraryType: LibraryType | undefined): Collection
       return ['movies', 'shows', 'albums'];
     case 'Music':
       return ['albums', 'shows', 'movies'];
-    case 'Shows':
     default:
       return ['shows', 'movies', 'albums'];
   }
@@ -71,6 +71,7 @@ function CollectionDetails({
     }),
     shallow,
   );
+  useKeyboardBack();
 
   const sectionsByKey: Record<CollectionSectionKey, CollectionSection<Album | Movie | Series>> = {
     shows: {
@@ -80,7 +81,7 @@ function CollectionDetails({
       itemType: 'series',
       aspectRatio: '2/3',
       getTitle: (item) => ('name' in item ? item.name : ''),
-      getSubtitle: (item) => ('year' in item ? item.year : undefined),
+      getSubtitle: (item) => ('year' in item && item.year !== '' ? item.year : 'N/A'),
       getImageSrc: (item) => item.coverSrc ?? '',
     },
     movies: {
@@ -90,7 +91,8 @@ function CollectionDetails({
       itemType: 'movie',
       aspectRatio: '2/3',
       getTitle: (item) => ('name' in item ? item.name : ''),
-      getSubtitle: (item) => ('year' in item ? item.year : undefined),
+      getSubtitle: (item) =>
+        'year' in item && item.year !== '' ? item.year?.split('-')[0] : 'N/A',
       getImageSrc: (item) => item.coverSrc ?? '',
     },
     albums: {
@@ -100,7 +102,7 @@ function CollectionDetails({
       itemType: 'album',
       aspectRatio: '1',
       getTitle: (item) => ('title' in item ? item.title : ''),
-      getSubtitle: (item) => ('year' in item ? item.year : undefined),
+      getSubtitle: (item) => ('year' in item && item.year !== '' ? item.year : 'N/A'),
       getImageSrc: (item) => item.coverSrc ?? '',
     },
   };
@@ -141,11 +143,12 @@ function CollectionDetails({
   return (
     <Page justify="end">
       <GradientBackground
-        imageSrc={details?.backgroundSrc ?? collection?.backgroundSrc ?? collection?.coverSrc}
+        imageSrc={details?.coverSrc ?? collection?.coverSrc ?? collection?.backgroundSrc}
         index={0}
       />
       <BackgroundImage
         imageSrc={details?.backgroundSrc ?? collection?.backgroundSrc ?? collection?.coverSrc}
+        index={0}
       />
 
       <FlexBox
@@ -203,7 +206,7 @@ function CollectionDetails({
                     title={section.getTitle(item)}
                     subtitle={section.getSubtitle(item)}
                     imgSrc={section.getImageSrc(item)}
-                    width={'22vh'}
+                    width={'25vh'}
                     aspectRatio={section.aspectRatio}
                     onFocus={() => {
                       setFocusedElementId(`${section.key}-${item.id}`);

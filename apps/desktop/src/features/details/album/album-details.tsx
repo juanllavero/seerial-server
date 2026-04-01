@@ -41,9 +41,9 @@ function AlbumDetails({ album, isLoading, details }: AlbumDetailsProps) {
   return (
     <Page padding="0" justify="end">
       <GradientBackground imageSrc={details?.coverSrc ?? album?.coverSrc ?? ''} index={0} />
-      <BackgroundImage imageSrc={details?.coverSrc ?? album?.coverSrc} />
+      <BackgroundImage imageSrc={details?.backgroundSrc ?? ''} index={0} />
 
-      <FlexBox padding="4rem 0 0 0" height={'100%'} width={'100%'}>
+      <FlexBox padding="4rem 0 0 0" height={'100%'} width={'100%'} className="z-10">
         <FlexBox height={'100%'} width={'40vw'} justify="center">
           <Image
             url={details?.coverSrc ?? album?.coverSrc ?? ''}
