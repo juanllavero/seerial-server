@@ -66,7 +66,9 @@ export interface ContinueWatchingVideoDTO {
     videoImage: string;
     movieId?: string;
     episodeId?: string;
+    seriesId?: string;
     videoId: string;
+    details: DetailsData | null;
 }
 
 

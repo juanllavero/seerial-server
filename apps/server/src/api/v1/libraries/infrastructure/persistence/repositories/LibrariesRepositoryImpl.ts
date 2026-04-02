@@ -272,7 +272,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     );
   }
 
-  private async generateItemDetails(
+  public async generateItemDetails(
     element: MovieModel | SeriesModel | AlbumModel | CollectionModel,
     type: ItemType,
     userId: string = '',
