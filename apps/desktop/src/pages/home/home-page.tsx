@@ -43,10 +43,6 @@ function Home() {
     }
   }, [continueWatching]);
 
-  const goToContent = (url: string) => {
-    navigate(url);
-  };
-
   const imageSrc = selectedElement?.backgroundImage ?? selectedElement?.posterImage;
 
   return (
@@ -61,6 +57,8 @@ function Home() {
           genres: selectedElement?.genres.join(', ') ?? '',
           description: selectedElement?.overview ?? '',
         }}
+        durationInfo={selectedElement?.duration}
+        timeWatchedInfo={selectedElement?.timeWatched}
         infoItems={
           [
             selectedElement?.episodeNumber
@@ -100,13 +98,18 @@ function Home() {
               aspectRatio="2/3"
               action={() => {
                 if (element.id === selectedElement?.id) {
-                  goToContent(
-                    `/details/${element.episodeId ? 'episode' : 'movie'}/${element.episodeId ? element.episodeId : element.movieId}`,
+                  navigate(
+                    `/details/${element.seriesId ? 'series' : 'movie'}/${element.seriesId ? element.seriesId : element.movieId}`,
+                    {
+                      state: { cachedDetails: element.details },
+                    },
                   );
                 } else {
                   setSelectedElement(element);
                 }
               }}
+              duration={element.duration}
+              timeWatched={element.timeWatched}
             />
           ))
         ) : isLoading ? (

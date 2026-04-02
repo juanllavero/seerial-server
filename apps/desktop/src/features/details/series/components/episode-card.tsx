@@ -2,6 +2,7 @@ import { useFocusable } from '@noriginmedia/norigin-spatial-navigation';
 import type { Episode } from '@seerial/domain';
 import { useNavigate } from 'react-router';
 import Image from '@/components/ui/Image';
+import { useSettingsStore } from '@/features/settings/stores/settings.store';
 
 interface EpisodeCardProps {
   episode: Episode;
@@ -12,6 +13,9 @@ interface EpisodeCardProps {
 
 function EpisodeCard({ episode, selectedEpisodeId, outOfFocus, onFocus }: EpisodeCardProps) {
   const navigate = useNavigate();
+  const { cardRoundness } = useSettingsStore((state) => ({
+    cardRoundness: state.settings.cardRoundness,
+  }));
   const { ref, focused } = useFocusable({
     focusKey: episode.id,
     onFocus: () => onFocus?.(episode),
@@ -26,7 +30,8 @@ function EpisodeCard({ episode, selectedEpisodeId, outOfFocus, onFocus }: Episod
     <div
       ref={ref}
       data-focus-key={episode.id}
-      className={`shrink-0 p-0 ${outOfFocus && selectedEpisodeId !== episode.id ? 'opacity-50' : ''}`}
+      className={`shrink-0 p-0 ${outOfFocus && selectedEpisodeId !== episode.id ? 'opacity-50' : ''}
+      ${cardRoundness} scale-95 border-2 border-transparent transition-all duration-350 ${focused ? 'transform scale-100 border-white' : ''}`}
       style={{
         height: '22vh',
       }}
@@ -35,7 +40,7 @@ function EpisodeCard({ episode, selectedEpisodeId, outOfFocus, onFocus }: Episod
         url={episode.video.imgSrc}
         height="100%"
         width="100%"
-        className={`h-full w-full rounded-md scale-95 border-2 border-transparent transition-all duration-50 ${focused ? 'transform scale-100 border-white' : ''}`}
+        className={`h-full w-full ${cardRoundness}`}
         aspectRatio="16/9"
       />
     </div>
