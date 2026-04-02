@@ -287,9 +287,6 @@ export const es = {
     manualSubs: 'Manual',
     autoSubs: 'Con audio extranjero',
     alwaysSubs: 'Mostrar siempre',
-    interpolationMeaning:
-      'La interpolación permite generar fotogramas para obtener una imagen más fluida.',
-    interpolationCheck: 'Habilitar interpolación de fotogramas',
     chapters: 'Capítulos',
     generatingThumbnails: 'Generando miniaturas',
     generateThumbnailsText: "Sólo aplica a los vídeos de las bibliotecas de tipo 'Películas'",

@@ -1,6 +1,6 @@
 mod video;
 
-use tauri::Manager;
+use tauri::{Manager, window::Color};
 use video::{
     bind_mpv_to_window,
     MpvState,
@@ -9,10 +9,10 @@ use video::{
     get_position, set_position, get_duration, get_playback_status,
     // Video
     set_volume, get_volume, set_zoom, set_video_quality,
-    set_hwdec, set_display_sync, set_hdr_passthrough,
+    set_hwdec,
     // Audio
     set_audio_track, set_audio_delay,
-    set_audio_normalize, set_audio_exclusive, set_audio_passthrough,
+    set_audio_normalize, set_audio_exclusive,
     // Subtitles
     set_subtitle_track, set_subtitle_delay,
     set_subtitle_font_size, set_subtitle_color,
@@ -32,6 +32,16 @@ async fn main() {
                 if let Err(error) = bind_mpv_to_window(&window, &state) {
                     eprintln!("Failed to bind MPV to window: {error}");
                 }
+            }
+
+            let main_window = app.get_webview_window("main")
+                .ok_or_else(|| "No se pudo encontrar la ventana principal")?;
+
+            // Windows-specific
+            #[cfg(target_os = "windows")]
+            {
+                // Webview transparency to allow MPV's own rendering to show through
+                let _ = main_window.set_background_color(Some(Color(0, 0, 0, 0)));
             }
 
             Ok(())
@@ -55,14 +65,11 @@ async fn main() {
             set_zoom,
             set_video_quality,
             set_hwdec,
-            set_display_sync,
-            set_hdr_passthrough,
             // Audio
             set_audio_track,
             set_audio_delay,
             set_audio_normalize,
             set_audio_exclusive,
-            set_audio_passthrough,
             // Subtitles
             set_subtitle_track,
             set_subtitle_delay,

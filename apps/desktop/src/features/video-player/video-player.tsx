@@ -9,6 +9,7 @@ import VolumeIndicator from '@/pages/videoplayer/components/controls/volume-slid
 import { usePlayerSettings } from '@/pages/videoplayer/hooks/use-player-settings';
 import { useVolumeIndicator } from '@/pages/videoplayer/hooks/use-volume-indicator';
 import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
+import { useKeyboardShortcut } from '@/shared/hooks/use-keyboard-shortcut';
 import { usePlayerControlsVisibility } from '@/shared/hooks/use-player-controls-visibility';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
 
@@ -32,6 +33,16 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
       invoke('embed_mpv').catch(console.error);
     },
     enabled: playerInputEnabled,
+  });
+
+  useKeyboardShortcut({
+    key: 'i',
+    enabled: playerInputEnabled,
+    capture: true,
+    onKeyDown: useCallback((event: KeyboardEvent) => {
+      event.preventDefault();
+      invoke('toggle_stats').catch(console.error);
+    }, []),
   });
 
   const { mode, isVisible } = usePlayerControlsVisibility({
@@ -85,7 +96,6 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
               controlsMode={mode}
               onTimelineFocusChange={handleTimelineFocusChange}
               onTracksPanelChange={handleTracksPanelChange}
-              playerInputEnabled={playerInputEnabled}
               settings={settings}
               updateSetting={updateSetting}
             />

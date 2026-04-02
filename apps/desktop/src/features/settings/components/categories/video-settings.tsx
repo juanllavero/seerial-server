@@ -4,13 +4,13 @@ import { useSettingsStore, type VideoQuality } from '../../stores/settings.store
 import SettingCheckbox from '../controls/setting-checkbox';
 import SettingSelect from '../controls/setting-select';
 
-const VIDEO_QUALITY_VALUES: VideoQuality[] = ['low', 'normal', 'high', 'maximum', 'interpolation'];
+const VIDEO_QUALITY_VALUES: VideoQuality[] = ['low', 'normal', 'high', 'ultra', 'maximum'];
 const VIDEO_QUALITY_KEYS: Record<VideoQuality, string> = {
   low: 'qualityLow',
   normal: 'qualityNormal',
   high: 'qualityHigh',
+  ultra: 'qualityUltra',
   maximum: 'qualityMaximum',
-  interpolation: 'qualityInterpolation',
 };
 
 function VideoSettings() {

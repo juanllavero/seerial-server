@@ -13,9 +13,10 @@
 		"windows": [
 			{
 				"title": "seerial-desktop",
-				"transparent": true,
+				"transparent": false,
 				"decorations": false,
-				"fullscreen": true
+				"fullscreen": true,
+				"shadow": false
 			}
 		],
 		"security": {

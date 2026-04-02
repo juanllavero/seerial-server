@@ -284,9 +284,6 @@ export const en = {
     manualSubs: 'Manual',
     autoSubs: 'With foreign audio',
     alwaysSubs: 'Always show',
-    interpolationMeaning:
-      'Interpolation allows generating intermediate frames to obtain a smoother image.',
-    interpolationCheck: 'Enable frame interpolation',
     chapters: 'Chapters',
     generatingThumbnails: 'Generating thumbnails',
     generateThumbnailsText: "Applicable only to videos from libraries of type 'Movies'",

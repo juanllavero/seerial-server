@@ -126,7 +126,7 @@ pub enum VideoQuality {
     Normal,
     High,
     Ultra,
-    GpuSuffer,
+    Maximum,
 }
 
 #[tauri::command]
@@ -135,61 +135,31 @@ pub fn set_video_quality(state: State<MpvState>, quality: VideoQuality) -> Resul
         match quality {
             VideoQuality::Low => {
                 mpv.command("apply-profile", &["fast"])?;
-                mpv.set_property("hwdec", "auto")?;
             }
             VideoQuality::Normal => {
                 mpv.set_property("scale", "spline36")?;
                 mpv.set_property("cscale", "spline36")?;
                 mpv.set_property("dscale", "mitchell")?;
-                mpv.set_property("dither-depth", "auto")?;
-                mpv.set_property("correct-downscaling", true)?;
-                mpv.set_property("linear-downscaling", true)?;
-                mpv.set_property("sigmoid-upscaling", false)?;
                 mpv.set_property("deband", false)?;
-                mpv.set_property("hwdec", "auto")?;
             }
             VideoQuality::High => {
                 mpv.command("apply-profile", &["high-quality"])?;
-                // high-quality: ewa_lanczossharp + antiring 0.6 + HDR peak/contrast
-                mpv.set_property("dscale", "mitchell")?;
-                mpv.set_property("dither-depth", "auto")?;
-                mpv.set_property("correct-downscaling", true)?;
-                mpv.set_property("linear-downscaling", true)?;
-                mpv.set_property("sigmoid-upscaling", true)?;
-                mpv.set_property("deband", true)?;
                 mpv.set_property("deband-iterations", 2i64)?;
             }
             VideoQuality::Ultra => {
                 mpv.command("apply-profile", &["high-quality"])?;
                 mpv.set_property("scale", "ewa_lanczos4sharpest")?;
-                mpv.set_property("cscale", "ewa_lanczos4sharpest")?;
-                mpv.set_property("dscale", "mitchell")?;
-                mpv.set_property("scale-antiring", 0.7f64)?;
-                mpv.set_property("cscale-antiring", 0.7f64)?;
-                mpv.set_property("dither-depth", "auto")?;
-                mpv.set_property("correct-downscaling", true)?;
-                mpv.set_property("linear-downscaling", true)?;
-                mpv.set_property("sigmoid-upscaling", true)?;
-                mpv.set_property("deband", true)?;
                 mpv.set_property("deband-iterations", 4i64)?;
                 mpv.set_property("deband-threshold", 48i64)?;
             }
-            VideoQuality::GpuSuffer => {
+            VideoQuality::Maximum => {
                 mpv.command("apply-profile", &["high-quality"])?;
                 mpv.set_property("scale", "ewa_lanczos4sharpest")?;
                 mpv.set_property("cscale", "ewa_lanczos4sharpest")?;
                 mpv.set_property("dscale", "ewa_lanczos4sharpest")?;
                 mpv.set_property("scale-antiring", 1.0f64)?;
-                mpv.set_property("cscale-antiring", 1.0f64)?;
-                mpv.set_property("dither-depth", "auto")?;
-                mpv.set_property("correct-downscaling", true)?;
-                mpv.set_property("linear-downscaling", true)?;
-                mpv.set_property("sigmoid-upscaling", true)?;
-                mpv.set_property("deband", true)?;
                 mpv.set_property("deband-iterations", 4i64)?;
                 mpv.set_property("deband-threshold", 64i64)?;
-                mpv.set_property("deband-range", 24i64)?;
-                mpv.set_property("icc-profile-auto", true)?;
             }
         }
         Ok(())
@@ -213,9 +183,21 @@ impl MpvState {
     fn create_mpv_instance() -> Mpv {
         Mpv::with_initializer(|init| {
             init.set_property("vo", "gpu-next")?;
+            init.set_property("gpu-api", "d3d11")?;
             init.set_property("hwdec", "auto")?;
-            init.set_property("keep-open", "always")?;
+
+            init.set_property("d3d11-exclusive-fs", "yes")?;
+
+            init.set_property("target-colorspace-hint", "yes")?;
+            init.set_property("icc-profile-auto", false)?;
+
+            init.set_property("video-output-levels", "auto")?;
+
+            // init.set_property("profile", "high-quality")?;
+            
+            init.set_property("fullscreen", "yes")?;
             init.set_property("idle", "once")?;
+            init.set_property("keep-open", "always")?;
             init.set_property("cursor-autohide", "100")?;
             init.set_property("msg-level", "all=debug")?;
             init.set_property("log-file", "./logs/mpv_log.txt")?;
@@ -439,30 +421,6 @@ pub fn set_hwdec(state: State<MpvState>, enabled: bool) -> Result<(), String> {
     })
 }
 
-/// Switches video sync mode to `display-resample` so MPV resamples audio
-/// to match the display refresh rate, reducing judder on mismatched content.
-/// Note: actual OS-level refresh rate switching is not possible via libmpv
-/// and would require native system calls per platform.
-#[tauri::command]
-pub fn set_display_sync(state: State<MpvState>, enabled: bool) -> Result<(), String> {
-    state.with_mpv(|mpv| {
-        mpv.set_property(
-            "video-sync",
-            if enabled { "display-resample" } else { "audio" },
-        )
-    })
-}
-
-/// Enables HDR passthrough by hinting the target colorspace to the display,
-/// letting the monitor/driver handle HDR tone-mapping natively.
-/// Note: switching the OS HDR mode itself is outside libmpv's scope.
-#[tauri::command]
-pub fn set_hdr_passthrough(state: State<MpvState>, enabled: bool) -> Result<(), String> {
-    state.with_mpv(|mpv| {
-        mpv.set_property("target-colorspace-hint", enabled)
-    })
-}
-
 // ─── Audio ───────────────────────────────────────────────────────────────────
 
 /// Normalizes multichannel audio when downmixing to stereo,
@@ -474,20 +432,12 @@ pub fn set_audio_normalize(state: State<MpvState>, enabled: bool) -> Result<(), 
     })
 }
 
-/// Requests exclusive access to the audio device, bypassing the OS mixer.
-/// Useful for bit-perfect playback; may block other system audio.
-#[tauri::command]
-pub fn set_audio_exclusive(state: State<MpvState>, enabled: bool) -> Result<(), String> {
-    state.with_mpv(|mpv| {
-        mpv.set_property("audio-exclusive", enabled)
-    })
-}
-
 /// Enables S/PDIF passthrough for lossless and lossy surround formats
 /// (AC3, DTS, E-AC3, DTS-HD MA, TrueHD). When disabled, MPV decodes internally.
 #[tauri::command]
-pub fn set_audio_passthrough(state: State<MpvState>, enabled: bool) -> Result<(), String> {
+pub fn set_audio_exclusive(state: State<MpvState>, enabled: bool) -> Result<(), String> {
     state.with_mpv(|mpv| {
+        mpv.set_property("audio-exclusive", enabled)?;
         mpv.set_property(
             "audio-spdif",
             if enabled { "ac3,dts,eac3,dts-hd,truehd" } else { "" },

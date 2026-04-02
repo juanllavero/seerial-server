@@ -7,10 +7,20 @@ const COMPACT_CONTROLS_TIMEOUT_MS = 1500;
 
 const BACK_KEYS = new Set(['Escape', 'Backspace', 'Delete']);
 const SEEK_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
+const RESERVED_PLAYER_KEYS = new Set(['i']);
 const VOLUME_KEYS = new Set(['+', '-']);
 
 function hasModifiers(event: KeyboardEvent) {
     return event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
+}
+
+function shouldIgnoreKeyDown(event: KeyboardEvent) {
+    return (
+        hasModifiers(event) ||
+        BACK_KEYS.has(event.key) ||
+        RESERVED_PLAYER_KEYS.has(event.key) ||
+        VOLUME_KEYS.has(event.key)
+    );
 }
 
 interface UsePlayerControlsVisibilityOptions {
@@ -110,9 +120,7 @@ export function usePlayerControlsVisibility({
         if (!enabled) return;
 
         const handleKeyDown = (event: KeyboardEvent) => {
-            if (hasModifiers(event)) return;
-            if (BACK_KEYS.has(event.key)) return;
-            if (VOLUME_KEYS.has(event.key)) return;
+            if (shouldIgnoreKeyDown(event)) return;
 
             if (mode === 'hidden') handleHiddenKey(event.key);
             else if (mode === 'compact') handleCompactKey(event.key);

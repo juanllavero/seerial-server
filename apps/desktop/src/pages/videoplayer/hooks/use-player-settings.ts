@@ -4,8 +4,15 @@ import { useCallback, useEffect, useRef } from 'react';
 
 export type SubtitleSize = 'tiny' | 'small' | 'normal' | 'big' | 'large';
 export type SubtitlePosition = 'topRight' | 'topCenter' | 'topLeft' | 'bottomRight' | 'bottomCenter' | 'bottomLeft';
+export type PlayerVideoQuality =
+    | 'low'
+    | 'normal'
+    | 'high'
+    | 'ultra'
+    | 'maximum';
 
 export interface PlayerSettings {
+    videoQuality: PlayerVideoQuality;
     zoom: number;
     audioDelay: number;
     subtitleDelay: number;
@@ -17,6 +24,7 @@ export interface PlayerSettings {
 }
 
 const DEFAULT_SETTINGS: PlayerSettings = {
+    videoQuality: 'normal',
     zoom: 0,
     audioDelay: 0,
     subtitleDelay: 0,
@@ -35,15 +43,6 @@ const SUBTITLE_SIZE_MAP: Record<SubtitleSize, number> = {
     large: 85,
 };
 
-const SUBTITLE_POSITION_MAP: Record<SubtitlePosition, number> = {
-    topRight: 10,
-    topCenter: 10,
-    topLeft: 10,
-    bottomRight: 100,
-    bottomCenter: 100,
-    bottomLeft: 100,
-};
-
 function hexToMpvColor(hex: string): string {
     // MPV expects #AARRGGBB, we store #RRGGBB
     const r = hex.slice(1, 3);
@@ -54,6 +53,9 @@ function hexToMpvColor(hex: string): string {
 
 function applySettingToMpv(key: keyof PlayerSettings, value: PlayerSettings[keyof PlayerSettings]) {
     switch (key) {
+        case 'videoQuality':
+            invoke('set_video_quality', { quality: value as PlayerVideoQuality }).catch(console.error);
+            break;
         case 'zoom':
             invoke('set_zoom', { zoomLevel: value as number }).catch(console.error);
             break;
@@ -76,7 +78,7 @@ function applySettingToMpv(key: keyof PlayerSettings, value: PlayerSettings[keyo
             invoke('set_subtitle_shadow_offset', { offset: value as number }).catch(console.error);
             break;
         case 'subtitlePosition':
-            invoke('set_subtitle_position', { position: SUBTITLE_POSITION_MAP[value as SubtitlePosition] }).catch(console.error);
+            invoke('set_subtitle_position_preset', { position: value as SubtitlePosition }).catch(console.error);
             break;
     }
 }

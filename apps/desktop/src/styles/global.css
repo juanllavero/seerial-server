@@ -225,7 +225,7 @@ html,
 body {
 	height: 100%;
 	user-select: none;
-	background-color: transparent;
+	background-color: transparent !important;
 }
 body {
 	line-height: 1.5;

@@ -2,7 +2,7 @@ import { createWithEqualityFn } from 'zustand/traditional';
 
 export type ThemeMusicVolume = 'off' | 'low' | 'medium' | 'high' | 'veryHigh';
 export type ScreensaverTimeout = 'off' | '1m' | '5m' | '10m' | '30m' | '1h';
-export type VideoQuality = 'low' | 'normal' | 'high' | 'maximum' | 'interpolation';
+export type VideoQuality = 'low' | 'normal' | 'high' | 'ultra' | 'maximum';
 export type CardRoundness = 'rounded-none' | 'rounded-sm' | 'rounded-md' | 'rounded-lg' | 'rounded-xl' | 'rounded-2xl' | 'rounded-3xl';
 
 export interface AppSettings {

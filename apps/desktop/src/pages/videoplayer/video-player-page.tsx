@@ -11,6 +11,7 @@ import { useNavigate, useParams } from 'react-router';
 import VideoPlayer from '@/features/video-player/video-player';
 import AppAlertDialog from '@/shared/components/app-alert-dialog';
 import Loading from '@/shared/components/loading';
+import { useAppSettingsMpv } from './hooks/use-app-settings-mpv';
 
 const READY_POLL_INTERVAL_MS = 250;
 const LOAD_TIMEOUT_MS = 5000;
@@ -34,6 +35,8 @@ function VideoPlayerPage() {
     serverUrl: state.selectedServer?.url ?? '',
     currentUserId: state.currentUser?.id,
   }));
+
+  useAppSettingsMpv();
 
   const { data: video, isLoading: loadingVideo } = useGetVideo<Video>(videoId ?? '', {
     enabled: !!videoId && serverUrl !== '',

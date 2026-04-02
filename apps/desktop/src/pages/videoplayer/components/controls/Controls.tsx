@@ -7,7 +7,6 @@ import { useTranslation } from 'react-i18next';
 import { shallow } from 'zustand/shallow';
 import Tertiary from '@/components/text/Tertiary';
 import FlexBox from '@/components/ui/FlexBox';
-import { useKeyboardShortcut } from '@/shared/hooks/use-keyboard-shortcut';
 import type { PlayerSettings } from '../../hooks/use-player-settings';
 import Settings from '../settings';
 import VideoInfoComponent from '../video-info';
@@ -22,7 +21,6 @@ interface ControlsProps {
   controlsMode: ControlsMode;
   onTimelineFocusChange?: (focused: boolean) => void;
   onTracksPanelChange?: (open: boolean) => void;
-  playerInputEnabled?: boolean;
   settings: PlayerSettings;
   updateSetting: <K extends keyof PlayerSettings>(key: K, value: PlayerSettings[K]) => void;
 }
@@ -33,7 +31,6 @@ function Controls({
   controlsMode,
   onTimelineFocusChange,
   onTracksPanelChange,
-  playerInputEnabled = true,
   settings,
   updateSetting,
 }: ControlsProps) {
@@ -117,17 +114,17 @@ function Controls({
   }, [video, timeWatched, initializePosition]);
 
   // Space bar to toggle play/pause
-  useKeyboardShortcut({
-    key: ' ',
-    enabled: playerInputEnabled && !(controlsMode === 'compact' || isTimelineFocused),
-    onKeyDown: useCallback(
-      (e: KeyboardEvent) => {
-        e.preventDefault();
-        handlePlayPause();
-      },
-      [handlePlayPause],
-    ),
-  });
+  // useKeyboardShortcut({
+  //   key: ' ',
+  //   enabled: playerInputEnabled && !(controlsMode === 'compact' || isTimelineFocused),
+  //   onKeyDown: useCallback(
+  //     (e: KeyboardEvent) => {
+  //       e.preventDefault();
+  //       handlePlayPause();
+  //     },
+  //     [handlePlayPause],
+  //   ),
+  // });
 
   const handleTimelineFocusChange = useCallback(
     (focused: boolean) => {

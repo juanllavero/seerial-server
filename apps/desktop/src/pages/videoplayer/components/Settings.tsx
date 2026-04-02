@@ -7,13 +7,27 @@ import NavigationButton from '@/components/navigation/NavigationButton';
 import NavigationContainer from '@/components/navigation/NavigationContainer';
 import { useKeyboardShortcut } from '@/shared/hooks/use-keyboard-shortcut';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
-import type { PlayerSettings, SubtitlePosition, SubtitleSize } from '../hooks/use-player-settings';
+import type {
+  PlayerSettings,
+  PlayerVideoQuality,
+  SubtitlePosition,
+  SubtitleSize,
+} from '../hooks/use-player-settings';
 
 const ZOOM_MIN = -3;
 const ZOOM_MAX = 5;
 const ZOOM_STEP = 0.1;
 
 const DELAY_STEP = 50; // ms
+
+const VIDEO_QUALITIES: PlayerVideoQuality[] = ['low', 'normal', 'high', 'ultra', 'maximum'];
+const VIDEO_QUALITY_LABEL_KEYS: Record<PlayerVideoQuality, string> = {
+  low: 'qualityLow',
+  normal: 'qualityNormal',
+  high: 'qualityHigh',
+  ultra: 'qualityUltra',
+  maximum: 'qualityMaximum',
+};
 
 const SUBTITLE_SIZES: SubtitleSize[] = ['tiny', 'small', 'normal', 'big', 'large'];
 const SUBTITLE_POSITIONS: SubtitlePosition[] = [
@@ -93,7 +107,7 @@ function SettingRow({
       onArrowPress={onArrowPress}
     >
       <div className="flex w-full items-center justify-between gap-3">
-        <span className="font-medium">{label}</span>
+        <span className="font-medium text-black!">{label}</span>
         <div className="flex items-center gap-2">
           {colorSwatch && (
             <div
@@ -101,7 +115,7 @@ function SettingRow({
               style={{ backgroundColor: colorSwatch }}
             />
           )}
-          <span className="text-white/60">{value}</span>
+          <span className="text-black! font-semibold">{value}</span>
         </div>
       </div>
     </NavigationButton>
@@ -212,10 +226,14 @@ function Settings({ onPanelChange, settings, updateSetting }: SettingsProps) {
                   </div>
                   <SettingRow
                     focusKey={settingFocusKey('quality')}
-                    label={t('quality')}
-                    value={t('original')}
-                    disabled
-                    onArrowPress={() => true}
+                    label="Calidad de streaming"
+                    value={t(VIDEO_QUALITY_LABEL_KEYS[settings.videoQuality])}
+                    onArrowPress={handleArrow('videoQuality', (dir) =>
+                      updateSetting(
+                        'videoQuality',
+                        cycleValue(VIDEO_QUALITIES, settings.videoQuality, dir),
+                      ),
+                    )}
                   />
                   <SettingRow
                     focusKey={settingFocusKey('zoom')}
