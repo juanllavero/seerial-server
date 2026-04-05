@@ -84,7 +84,7 @@ function BackgroundImage({ imageSrc, index = 1 }: BackgroundImageProps) {
     width: '100%',
     height: '100%',
     objectFit: 'cover',
-    filter: 'brightness(0.2-)',
+    filter: 'brightness(0.2)',
   };
 
   return (

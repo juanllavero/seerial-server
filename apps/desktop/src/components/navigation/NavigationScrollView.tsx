@@ -1,6 +1,7 @@
 import { FocusContext, useFocusable } from '@noriginmedia/norigin-spatial-navigation';
 import { type ScrollMode, useAutoScroll } from '@/hooks/useAutoScroll';
 import '@/styles/utils.css';
+import { DESKTOP_PADDING_LEFT } from '@seerial/domain';
 import { memo, useRef } from 'react';
 
 interface NavigationScrollViewProps {
@@ -56,7 +57,11 @@ const NavigationScrollView = ({
           ${isRestoringFocus ? 'scroll-auto' : 'scroll-smooth'}
           ${className || ''}
         `}
-        style={style}
+        style={{
+          ...style,
+          paddingLeft: direction === 'horizontal' ? DESKTOP_PADDING_LEFT : 0,
+          paddingRight: direction === 'horizontal' ? DESKTOP_PADDING_LEFT : 0,
+        }}
       >
         {children}
       </div>

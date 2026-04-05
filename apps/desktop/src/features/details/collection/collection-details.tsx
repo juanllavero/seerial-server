@@ -141,7 +141,7 @@ function CollectionDetails({
   if (!isLoading && !collection) return <span>Collection not found</span>;
 
   return (
-    <Page justify="end">
+    <Page justify="end" padding="3rem 0 3rem 4rem">
       <GradientBackground
         imageSrc={details?.coverSrc ?? collection?.coverSrc ?? collection?.backgroundSrc}
         index={0}

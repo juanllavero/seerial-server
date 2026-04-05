@@ -216,10 +216,10 @@ function TopBar() {
               />
               <NavigationButton
                 customKey={NavigationFocusKeys.topBar.myList}
-                selected={pathname === '/myList'}
+                selected={pathname === '/see'}
                 onFocus={handleNonLibraryFocus}
-                onClick={() => navigate('/myList')}
-                text="My List"
+                onClick={() => navigate('/see')}
+                text="To See"
                 variant="ghost"
               />
             </motion.div>
