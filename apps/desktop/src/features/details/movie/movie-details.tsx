@@ -1,3 +1,4 @@
+import { API, useCreate, useSetMovieWatchState } from '@seerial/api';
 import {
   type DetailsData,
   formatDate,
@@ -5,8 +6,11 @@ import {
   type Movie,
   type Video,
 } from '@seerial/domain';
-import { memo, useCallback, useEffect, useState } from 'react';
+import { useServerStore } from '@seerial/stores';
+import { useQueryClient } from '@tanstack/react-query';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { shallow } from 'zustand/shallow';
 import BackgroundImage from '@/components/backgrounds/BackgroundImage';
 import GradientBackground from '@/components/backgrounds/GradientBackground';
 import DetailsInfo from '@/shared/components/details/details-info';
@@ -20,7 +24,17 @@ interface MovieDetailsProps {
 
 function MovieDetails({ movie, isLoading, details }: MovieDetailsProps) {
   const [selectedVideo, selectVideo] = useState<Video | null>(null);
+  const queryClient = useQueryClient();
+  const { currentUser } = useServerStore(
+    (state) => ({
+      currentUser: state.currentUser,
+    }),
+    shallow,
+  );
   const navigate = useNavigate();
+  const { create: mutateMyList, isLoading: isMutatingMyList } = useCreate<unknown>();
+  const { mutateAsync: setMovieWatchState, isPending: isUpdatingWatchState } =
+    useSetMovieWatchState<unknown, { watched: boolean }>(movie?.id ?? '');
 
   useEffect(() => {
     if (movie && movie.videos.length > 0) {
@@ -33,6 +47,39 @@ function MovieDetails({ movie, isLoading, details }: MovieDetailsProps) {
       navigate(`/video-player/${selectedVideo.id}`);
     }
   }, [navigate, selectedVideo]);
+
+  const isWatched = useMemo(() => {
+    return (
+      movie?.watchLists?.some(
+        (watchList) => watchList.userId === currentUser?.id && watchList.watched,
+      ) ?? false
+    );
+  }, [movie, currentUser]);
+  const isInMyList = useMemo(() => {
+    return movie?.myLists?.some((myList) => myList.userId === currentUser?.id) ?? false;
+  }, [movie, currentUser]);
+
+  const handleMarkWatched = useCallback(async () => {
+    if (!movie || isUpdatingWatchState) {
+      return;
+    }
+
+    await setMovieWatchState({ watched: !isWatched });
+    await queryClient.invalidateQueries({ queryKey: ['movies', 'get', movie.id] });
+  }, [movie, isUpdatingWatchState, isWatched, queryClient, setMovieWatchState]);
+
+  const handleAddToMyList = useCallback(async () => {
+    if (!movie || !currentUser?.id || isMutatingMyList) {
+      return;
+    }
+
+    await mutateMyList(API.myList.movies, {
+      movieId: movie.id,
+      userId: currentUser.id,
+    });
+    await queryClient.invalidateQueries({ queryKey: ['movies', 'get', movie.id] });
+    await queryClient.invalidateQueries({ queryKey: ['myList', 'movies'] });
+  }, [movie, currentUser?.id, isMutatingMyList, mutateMyList, queryClient]);
 
   if (!isLoading && !movie) return <span>Movie not found</span>;
 
@@ -53,7 +100,10 @@ function MovieDetails({ movie, isLoading, details }: MovieDetailsProps) {
           selectedVideo ? formatTimeForView(selectedVideo.runtime ?? 0) : '',
         ]}
         handlePlay={handlePlay}
-        bigLogo
+        handleMarkWatched={handleMarkWatched}
+        handleAddToMyList={handleAddToMyList}
+        isWatched={isWatched}
+        isInMyList={isInMyList}
       />
       {/* {movie.videos && movie.videos.length > 1 && (
 				<VideosList

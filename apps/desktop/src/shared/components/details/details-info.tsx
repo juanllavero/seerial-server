@@ -1,5 +1,5 @@
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
-import { useCallback, useEffect } from 'react';
+import { useEffect } from 'react';
 import FlexBox from '@/components/ui/FlexBox';
 import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
@@ -16,7 +16,11 @@ function DetailsInfo({
   durationInfo,
   timeWatchedInfo,
   handlePlay,
-  bigLogo,
+  handleMoreOptions,
+  handleMarkWatched,
+  handleAddToMyList,
+  isWatched,
+  isInMyList,
   videoInfo,
   audioInfo,
   subtitleInfo,
@@ -28,11 +32,9 @@ function DetailsInfo({
     setFocus(NavigationFocusKeys.details.playButton);
   }, []);
 
-  const handleMoreOptions = useCallback(() => {}, []);
-
   return (
     <FlexBox direction="column" justify="end" width={'100%'} className="z-10">
-      <DetailsHeader details={details} subtitle={subtitle} bigLogo={bigLogo} />
+      <DetailsHeader details={details} subtitle={subtitle} />
       <DetailsSummary
         details={details}
         infoItems={infoItems}
@@ -52,7 +54,14 @@ function DetailsInfo({
             gap: 10,
           }}
         >
-          <DetailsActionButtons handlePlay={handlePlay} handleMoreOptions={handleMoreOptions} />
+          <DetailsActionButtons
+            handlePlay={handlePlay}
+            handleMoreOptions={handleMoreOptions}
+            handleMarkWatched={handleMarkWatched}
+            handleAddToMyList={handleAddToMyList}
+            isWatched={isWatched}
+            isInMyList={isInMyList}
+          />
           <DetailsTechnicalInfo
             videoInfo={videoInfo}
             audioInfo={audioInfo}

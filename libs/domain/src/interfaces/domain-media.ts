@@ -141,6 +141,9 @@ export interface MyListItem {
     addedAt: Date;
     series?: Series;
     movie?: Movie;
+    userId: string;
+    seriesId?: string;
+    movieId?: string;
 }
 
 export interface PlayList {

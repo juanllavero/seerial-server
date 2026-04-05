@@ -1,3 +1,4 @@
+import { init, setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import { seerialQueryClient, setApiBaseUrl } from '@seerial/api';
 import { useServerStore } from '@seerial/stores';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -6,20 +7,28 @@ import { createRoot } from 'react-dom/client';
 import { useTranslation } from 'react-i18next';
 import { BrowserRouter } from 'react-router-dom';
 import GlobalMusicPlayer from '@/features/music-player/global-music-player';
+import { useFeedbackSounds } from '@/shared/hooks/use-feedback-sounds';
 import { AppRoutes } from './routes/routes';
 import './localization/i18n';
-import { init, setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import { updateAppLanguage } from './helpers/language_helpers';
 
 function App() {
   const { i18n } = useTranslation();
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
 
-  init({
-    //debug: true, // Enable debug mode for spatial navigation
-  });
+  useFeedbackSounds();
 
-  setFocus('continueWatching');
+  useEffect(() => {
+    init({
+      //debug: true, // Enable debug mode for spatial navigation
+    });
+
+    const focusFrame = window.requestAnimationFrame(() => {
+      setFocus('continueWatching');
+    });
+
+    return () => window.cancelAnimationFrame(focusFrame);
+  }, []);
 
   useEffect(() => {
     updateAppLanguage(i18n);

@@ -1,7 +1,12 @@
+import { API, useCreate, useSetEpisodeWatchState } from '@seerial/api';
 import type { DetailsData, Episode, Season, Series } from '@seerial/domain';
 import { formatDate, formatTimeForView } from '@seerial/domain';
+import { useServerStore } from '@seerial/stores';
+import { useQueryClient } from '@tanstack/react-query';
 import { t } from 'i18next';
-import { memo, useCallback, useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router';
+import { shallow } from 'zustand/shallow';
 import BackgroundImage from '@/components/backgrounds/BackgroundImage';
 import GradientBackground from '@/components/backgrounds/GradientBackground';
 import EpisodesList from '@/features/details/series/components/episodes-list';
@@ -17,6 +22,14 @@ interface SeriesDetailsProps {
 }
 
 function SeriesDetails({ series, isLoading, details }: SeriesDetailsProps) {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { currentUser } = useServerStore(
+    (state) => ({
+      currentUser: state.currentUser,
+    }),
+    shallow,
+  );
   const [selectedSeason, setSelectedSeason] = useState<Season | null>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(null);
   const [isRestoringEpisodeFocus, setIsRestoringEpisodeFocus] = useState(true);
@@ -27,6 +40,9 @@ function SeriesDetails({ series, isLoading, details }: SeriesDetailsProps) {
   const setLastFocusedEpisodeForSeason = useSeriesDetailsFocusStore(
     (state) => state.setLastFocusedEpisodeForSeason,
   );
+  const { create: mutateMyList, isLoading: isMutatingMyList } = useCreate<unknown>();
+  const { mutateAsync: setEpisodeWatchState, isPending: isUpdatingWatchState } =
+    useSetEpisodeWatchState<unknown, { state: boolean }>(selectedEpisode?.id ?? '');
 
   useEffect(() => {
     if (series && series.seasons?.length > 0) {
@@ -78,6 +94,46 @@ function SeriesDetails({ series, isLoading, details }: SeriesDetailsProps) {
     [selectedSeason, setLastFocusedEpisodeForSeason],
   );
 
+  const handlePlay = useCallback(() => {
+    if (selectedEpisode) {
+      navigate(`/video-player/${selectedEpisode.video.id}`);
+    }
+  }, [selectedEpisode, navigate]);
+
+  const isWatched =
+    useMemo(() => {
+      return (
+        selectedEpisode?.video?.watchLists?.some(
+          (watchList) => watchList.userId === currentUser?.id && watchList.watched,
+        ) ?? false
+      );
+    }, [selectedEpisode, currentUser]) ?? false;
+  const isInMyList = useMemo(() => {
+    return series?.myLists?.some((myList) => myList.userId === currentUser?.id) ?? false;
+  }, [series, currentUser]);
+
+  const handleMarkWatched = useCallback(async () => {
+    if (!series || !selectedEpisode || isUpdatingWatchState) {
+      return;
+    }
+
+    await setEpisodeWatchState({ state: !isWatched });
+    await queryClient.invalidateQueries({ queryKey: ['series', 'get', series.id] });
+  }, [isUpdatingWatchState, isWatched, queryClient, selectedEpisode, series, setEpisodeWatchState]);
+
+  const handleAddToMyList = useCallback(async () => {
+    if (!series || !currentUser?.id || isMutatingMyList) {
+      return;
+    }
+
+    await mutateMyList(API.myList.series, {
+      seriesId: series.id,
+      userId: currentUser.id,
+    });
+    await queryClient.invalidateQueries({ queryKey: ['series', 'get', series.id] });
+    await queryClient.invalidateQueries({ queryKey: ['myList', 'series'] });
+  }, [series, currentUser?.id, isMutatingMyList, mutateMyList, queryClient]);
+
   if (!isLoading && !series) return <span>Series not found</span>;
 
   return (
@@ -108,6 +164,11 @@ function SeriesDetails({ series, isLoading, details }: SeriesDetailsProps) {
           selectedEpisode?.video.subtitleTracks?.[selectedEpisode.video.selectedSubtitleTrack ?? 0]
             ?.displayTitle
         }
+        handlePlay={handlePlay}
+        handleMarkWatched={handleMarkWatched}
+        handleAddToMyList={handleAddToMyList}
+        isWatched={isWatched}
+        isInMyList={isInMyList}
       />
       {selectedSeason && (
         <EpisodesList

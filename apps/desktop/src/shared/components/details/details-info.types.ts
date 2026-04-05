@@ -7,7 +7,11 @@ export interface DetailsInfoProps {
     durationInfo?: number;
     timeWatchedInfo?: number;
     handlePlay?: () => void;
-    bigLogo?: boolean;
+    handleMoreOptions?: () => void;
+    handleMarkWatched?: () => void;
+    handleAddToMyList?: () => void;
+    isWatched?: boolean;
+    isInMyList?: boolean;
     videoInfo?: string;
     audioInfo?: string;
     subtitleInfo?: string;

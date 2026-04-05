@@ -6,10 +6,9 @@ import Title from '@/components/text/Title';
 interface DetailsHeaderProps {
   details: DetailsData | undefined;
   subtitle?: string;
-  bigLogo?: boolean;
 }
 
-function DetailsHeader({ details, subtitle, bigLogo }: DetailsHeaderProps) {
+function DetailsHeader({ details, subtitle }: DetailsHeaderProps) {
   return (
     <>
       <span className="text-[1.5vh] italic">
@@ -19,7 +18,7 @@ function DetailsHeader({ details, subtitle, bigLogo }: DetailsHeaderProps) {
       {details?.logoSrc && details.logoSrc !== '' ? (
         <AlignedImage
           className="mt-5 pb-5"
-          height={bigLogo ? 300 : 120}
+          //height={bigLogo ? 300 : 120}
           maxWidth={1100}
           imageUrl={details.logoSrc}
         />
