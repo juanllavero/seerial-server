@@ -11,6 +11,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { MovieModel } from '@/api/v1/movies/infrastructure/persistence/models/MovieModel';
 import { SeriesModel } from '@/api/v1/series/infrastructure/persistence/models/SeriesModel';
 
+// TODO: remove this model and all its usages
+
 @Entity({ name: 'MyList' })
 export class MyListModel extends BaseEntity {
   @PrimaryColumn({ type: 'varchar', nullable: false })
