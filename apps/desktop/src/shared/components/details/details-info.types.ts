@@ -16,4 +16,5 @@ export interface DetailsInfoProps {
     audioInfo?: string;
     subtitleInfo?: string;
     hideButtons?: boolean;
+    enableKeyboardBack?: boolean;
 }

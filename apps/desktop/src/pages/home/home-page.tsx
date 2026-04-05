@@ -2,6 +2,7 @@ import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import { useGetContinueWatching } from '@seerial/api';
 import { type ContinueWatchingVideoDTO, formatDate } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
+import { invoke } from '@tauri-apps/api/core';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
@@ -9,10 +10,78 @@ import GradientBackground from '@/components/backgrounds/GradientBackground';
 import NavigationScrollView from '@/components/navigation/NavigationScrollView';
 import ListTitle from '@/components/text/ListTitle';
 import HomeHeroImage from '@/pages/home/components/home-hero-image';
+import AppAlertDialog from '@/shared/components/app-alert-dialog';
 import DetailsInfo from '@/shared/components/details/details-info';
 import Loading from '@/shared/components/loading';
 import Page from '@/shared/components/page';
+import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
 import ContentCard from '@/shared/ui/card';
+
+function getSelectedInfoItems(selectedElement: ContinueWatchingVideoDTO | null) {
+  if (!selectedElement) {
+    return [];
+  }
+
+  const episodeCode = selectedElement.episodeNumber
+    ? `S${selectedElement.seasonNumber}E${selectedElement.episodeNumber}`
+    : undefined;
+  const releaseDate = selectedElement.episodeId
+    ? formatDate(selectedElement.date ?? '')
+    : selectedElement.date.split('-')[0];
+  const remainingMinutes = `${(selectedElement.duration - selectedElement.timeWatched / 60).toFixed(0)} minutes remaining`;
+
+  return [episodeCode, releaseDate, remainingMinutes].filter(Boolean) as string[];
+}
+
+function renderContinueWatchingContent({
+  continueWatching,
+  isLoading,
+  selectedElement,
+  navigate,
+  setSelectedElement,
+  t,
+}: {
+  continueWatching: ContinueWatchingVideoDTO[] | undefined;
+  isLoading: boolean;
+  selectedElement: ContinueWatchingVideoDTO | null;
+  navigate: ReturnType<typeof useNavigate>;
+  setSelectedElement: React.Dispatch<React.SetStateAction<ContinueWatchingVideoDTO | null>>;
+  t: (key: string) => string;
+}) {
+  if (continueWatching && continueWatching.length > 0) {
+    return continueWatching.map((element: ContinueWatchingVideoDTO) => (
+      <ContentCard
+        key={element.id}
+        imgSrc={element.posterImage ?? ''}
+        customKey={element.id}
+        width={'26dvh'}
+        noInfo
+        onFocus={() => setSelectedElement(element)}
+        aspectRatio="2/3"
+        action={() => {
+          if (element.id === selectedElement?.id) {
+            navigate(
+              `/details/${element.seriesId ? 'series' : 'movie'}/${element.seriesId ? element.seriesId : element.movieId}`,
+              {
+                state: { cachedDetails: element.details },
+              },
+            );
+          } else {
+            setSelectedElement(element);
+          }
+        }}
+        duration={element.duration}
+        timeWatched={element.timeWatched}
+      />
+    ));
+  }
+
+  if (isLoading) {
+    return t('noContent');
+  }
+
+  return <Loading />;
+}
 
 function Home() {
   const { currentUser } = useServerStore();
@@ -21,6 +90,12 @@ function Home() {
   const { selectedServer } = useServerStore();
   const serverUrl = selectedServer?.url ?? '';
   const [selectedElement, setSelectedElement] = useState<ContinueWatchingVideoDTO | null>(null);
+  const [isExitDialogOpen, setIsExitDialogOpen] = useState(false);
+
+  useKeyboardBack({
+    preAction: () => setIsExitDialogOpen(true),
+    navigateOnBack: false,
+  });
 
   //Get Continue Watching items
   const { data: continueWatching, isLoading } = useGetContinueWatching<ContinueWatchingVideoDTO[]>({
@@ -45,8 +120,46 @@ function Home() {
 
   const imageSrc = selectedElement?.backgroundImage ?? selectedElement?.posterImage;
 
+  const handleCancelExit = () => {
+    setIsExitDialogOpen(false);
+
+    if (selectedElement) {
+      setFocus(selectedElement.id);
+      return;
+    }
+
+    setFocus('home');
+  };
+
+  const handleConfirmExit = async () => {
+    await invoke('exit_app');
+  };
+
+  const infoItems = getSelectedInfoItems(selectedElement);
+  const continueWatchingContent = renderContinueWatchingContent({
+    continueWatching,
+    isLoading,
+    selectedElement,
+    navigate,
+    setSelectedElement,
+    t,
+  });
+
   return (
     <Page justify="end">
+      <AppAlertDialog
+        open={isExitDialogOpen}
+        title="¿Quieres salir de Seerial?"
+        primaryAction={{
+          label: 'Salir',
+          onPress: handleConfirmExit,
+        }}
+        secondaryAction={{
+          label: 'Cancelar',
+          onPress: handleCancelExit,
+        }}
+      />
+
       <GradientBackground imageSrc={imageSrc} index={0} />
       <HomeHeroImage imageSrc={imageSrc} />
 
@@ -59,19 +172,8 @@ function Home() {
         }}
         durationInfo={selectedElement?.duration}
         timeWatchedInfo={selectedElement?.timeWatched}
-        infoItems={
-          [
-            selectedElement?.episodeNumber
-              ? `S${selectedElement.seasonNumber}E${selectedElement.episodeNumber}`
-              : undefined,
-            selectedElement?.episodeId
-              ? formatDate(selectedElement?.date ?? '')
-              : selectedElement?.date.split('-')[0],
-            selectedElement
-              ? `${(selectedElement.duration - selectedElement.timeWatched / 60).toFixed(0)} minutes remaining`
-              : undefined,
-          ].filter(Boolean) as string[]
-        }
+        infoItems={infoItems}
+        enableKeyboardBack={false}
         hideButtons
       />
 
@@ -86,37 +188,7 @@ function Home() {
         isRestoringFocus={false}
         focusedElementId={selectedElement?.id}
       >
-        {continueWatching && continueWatching.length > 0 ? (
-          continueWatching.map((element: ContinueWatchingVideoDTO) => (
-            <ContentCard
-              key={element.id}
-              imgSrc={element.posterImage ?? ''}
-              customKey={element.id}
-              width={'26dvh'}
-              noInfo
-              onFocus={() => setSelectedElement(element)}
-              aspectRatio="2/3"
-              action={() => {
-                if (element.id === selectedElement?.id) {
-                  navigate(
-                    `/details/${element.seriesId ? 'series' : 'movie'}/${element.seriesId ? element.seriesId : element.movieId}`,
-                    {
-                      state: { cachedDetails: element.details },
-                    },
-                  );
-                } else {
-                  setSelectedElement(element);
-                }
-              }}
-              duration={element.duration}
-              timeWatched={element.timeWatched}
-            />
-          ))
-        ) : isLoading ? (
-          t('noContent')
-        ) : (
-          <Loading />
-        )}
+        {continueWatchingContent}
       </NavigationScrollView>
     </Page>
   );

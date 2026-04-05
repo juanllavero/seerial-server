@@ -25,8 +25,9 @@ function DetailsInfo({
   audioInfo,
   subtitleInfo,
   hideButtons,
+  enableKeyboardBack = true,
 }: DetailsInfoProps) {
-  useKeyboardBack();
+  useKeyboardBack({ enabled: enableKeyboardBack });
 
   useEffect(() => {
     setFocus(NavigationFocusKeys.details.playButton);

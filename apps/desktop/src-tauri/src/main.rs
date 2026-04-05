@@ -3,6 +3,7 @@ mod video;
 use tauri::{Manager, window::Color};
 use video::{
     bind_mpv_to_window,
+    exit_app,
     MpvState,
     // Playback
     embed_mpv, play, pause, stop, toggle_play_pause, loadfile, load_url,
@@ -52,6 +53,7 @@ async fn main() {
             play,
             pause,
             stop,
+            exit_app,
             toggle_play_pause,
             loadfile,
             load_url,

@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 use libmpv2::{Mpv, mpv_node::MpvNode};
 use serde::Serialize;
-use tauri::{State, Window};
+use tauri::{AppHandle, State, Window};
 use raw_window_handle::{HasWindowHandle};
 
 // ─── Enums ───────────────────────────────────────────────────────────────────
@@ -268,6 +268,15 @@ pub fn stop(state: State<MpvState>) -> Result<(), String> {
     // Recreate the MPV instance to release resources.
     state.recreate_mpv_instance()?;
     
+    Ok(())
+}
+
+#[tauri::command]
+pub fn exit_app(app: AppHandle, state: State<MpvState>) -> Result<(), String> {
+    let _ = state.with_mpv(|mpv| mpv.command("quit", &[]));
+
+    app.exit(0);
+
     Ok(())
 }
 
