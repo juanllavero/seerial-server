@@ -47,7 +47,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     return libraries.map((library) => library as unknown as Library);
   }
 
-  async getContent(libraryId: string, userId: string): Promise<LibraryItem[]> {
+  async getContent(libraryId: string, userId: string, watched?: boolean): Promise<LibraryItem[]> {
     const libraryHeader = await LibraryModel.findOne({
       where: { id: libraryId },
       select: ['id', 'type'],
@@ -75,8 +75,10 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       libraryId,
       library.type,
       customOrderByCollectionId,
+      userId,
+      watched,
     );
-    const standaloneItems = await this.buildStandaloneItems(library, collections, userId);
+    const standaloneItems = await this.buildStandaloneItems(library, collections, userId, watched);
 
     return [...collectionItems, ...standaloneItems].sort((a, b) => a.order - b.order);
   }
@@ -85,8 +87,8 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     const collectionRelations = [
       'libraryCollections',
       'libraryCollections.collection',
-      'libraryCollections.collection.collectionMovies.movie',
-      'libraryCollections.collection.collectionSeries.series',
+      'libraryCollections.collection.collectionMovies.movie.watchLists',
+      'libraryCollections.collection.collectionSeries.series.watchLists',
       'libraryCollections.collection.collectionAlbums.album',
     ];
 
@@ -121,13 +123,23 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     libraryId: string,
     type: Library['type'],
     customOrderByCollectionId: Map<string, number>,
+    userId: string,
+    watched?: boolean,
   ): Promise<LibraryItem[]> {
-    return Promise.all(
+    const items: Array<LibraryItem | null> = await Promise.all(
       collections.map(async (collection) => {
+        const collectionWatchStates = this.getCollectionWatchStates(collection, libraryId, userId);
+
+        if (!this.shouldIncludeCollection(collectionWatchStates, watched)) {
+          return null;
+        }
+
         const numberOfItems = this.countCollectionItems(collection, libraryId);
         const years = this.calculateYearsForCollection(collection);
 
         const collectionImages = await resolveCollectionImages(collection, libraryId, type);
+        const collectionWatched =
+          collectionWatchStates.length > 0 ? collectionWatchStates.every((item) => item) : false;
 
         return {
           id: collection.id,
@@ -137,7 +149,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
           backgroundSrc: collectionImages.background ?? '',
           numberOfItems,
           order: customOrderByCollectionId.get(collection.id) ?? 0,
-          watched: false,
+          watched: collectionWatched,
           remainingItems: 0,
           analyzingFiles: false,
           type: 'collection',
@@ -153,6 +165,8 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
         };
       }),
     );
+
+    return items.filter((item): item is LibraryItem => item !== null);
   }
 
   private countCollectionItems(collection: CollectionModel, libraryId: string): number {
@@ -173,6 +187,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     library: LibraryModel,
     collections: CollectionModel[],
     userId: string,
+    watched?: boolean,
   ): Promise<LibraryItem[]> {
     const collectionMovieIds = new Set(
       collections.flatMap(
@@ -192,9 +207,9 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
 
     switch (library.type) {
       case LibraryTypes.MOVIES:
-        return await this.buildMovieItems(library, collectionMovieIds);
+        return await this.buildMovieItems(library, collectionMovieIds, userId, watched);
       case LibraryTypes.SHOWS:
-        return await this.buildSeriesItems(library, collectionSeriesIds, userId);
+        return await this.buildSeriesItems(library, collectionSeriesIds, userId, watched);
       case LibraryTypes.MUSIC:
         return await this.buildAlbumItems(library, collectionAlbumIds);
       default:
@@ -205,23 +220,30 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
   private async buildMovieItems(
     library: LibraryModel,
     collectionMovieIds: Set<string>,
+    userId: string,
+    watched?: boolean,
   ): Promise<LibraryItem[]> {
     return Promise.all(
       (library.movies || [])
         .filter((movie) => !collectionMovieIds.has(movie.id))
-        .map(async (movie) => ({
-          id: movie.id,
-          title: movie.name,
-          years: movie.year ? movie.year.split('-')[0] : '-',
-          coverSrc: movie.coverSrc,
-          numberOfItems: movie.videos?.length || 0,
-          order: movie.order,
-          watched: false,
-          remainingItems: 0,
-          analyzingFiles: movie.analyzingFiles,
-          type: 'movie',
-          details: await this.generateItemDetails(movie, 'movie'),
-        })),
+        .filter((movie) => this.shouldIncludeItem(this.isMovieWatched(movie, userId), watched))
+        .map(async (movie) => {
+          const movieWatched = this.isMovieWatched(movie, userId);
+
+          return {
+            id: movie.id,
+            title: movie.name,
+            years: movie.year ? movie.year.split('-')[0] : '-',
+            coverSrc: movie.coverSrc,
+            numberOfItems: movie.videos?.length || 0,
+            order: movie.order,
+            watched: movieWatched,
+            remainingItems: 0,
+            analyzingFiles: movie.analyzingFiles,
+            type: 'movie',
+            details: await this.generateItemDetails(movie, 'movie', userId),
+          };
+        }),
     );
   }
 
@@ -229,23 +251,29 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     library: LibraryModel,
     collectionSeriesIds: Set<string>,
     userId: string,
+    watched?: boolean,
   ): Promise<LibraryItem[]> {
     return Promise.all(
       (library.series || [])
         .filter((series) => !collectionSeriesIds.has(series.id))
-        .map(async (series) => ({
-          id: series.id,
-          title: series.name,
-          years: this.calculateYearsForSeries(series),
-          coverSrc: series.coverSrc,
-          numberOfItems: 0,
-          order: series.order,
-          watched: this.calculateWatchedState(series, userId),
-          remainingItems: this.calculateRemainingEpisodes(series, userId),
-          analyzingFiles: series.analyzingFiles,
-          type: 'series',
-          details: await this.generateItemDetails(series, 'series', userId),
-        })),
+        .filter((series) => this.shouldIncludeItem(this.isSeriesWatched(series, userId), watched))
+        .map(async (series) => {
+          const seriesWatched = this.isSeriesWatched(series, userId);
+
+          return {
+            id: series.id,
+            title: series.name,
+            years: this.calculateYearsForSeries(series),
+            coverSrc: series.coverSrc,
+            numberOfItems: 0,
+            order: series.order,
+            watched: seriesWatched,
+            remainingItems: this.calculateRemainingEpisodes(series, userId),
+            analyzingFiles: series.analyzingFiles,
+            type: 'series',
+            details: await this.generateItemDetails(series, 'series', userId),
+          };
+        }),
     );
   }
 
@@ -298,7 +326,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       imdbScore: element.imdbScore,
       description: element.overview || '',
       directedBy: element.directedBy ? element.directedBy.join(', ') : '',
-      watched: element.watchLists ? element.watchLists.some((wl) => wl.userId === userId) : false,
+      watched: this.isMovieWatched(element, userId),
       inMyList: element.myLists ? element.myLists.some((ml) => ml.userId === userId) : false,
       subtitle: undefined,
       tagline: element.tagline || '',
@@ -319,7 +347,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       imdbScore: undefined,
       description: element.overview || '',
       createdBy: element.creator ? element.creator.join(', ') : '',
-      watched: element.watchLists ? element.watchLists.some((wl) => wl.userId === userId) : false,
+      watched: this.isSeriesWatched(element, userId),
       inMyList: element.myLists ? element.myLists.some((ml) => ml.userId === userId) : false,
       subtitle: undefined,
       tagline: element.tagline || '',
@@ -382,19 +410,54 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     return this.formatYearRange(years.map((year) => Number.parseInt(year, 10)));
   }
 
-  private calculateWatchedState(series: SeriesModel, userId: string): boolean {
-    if (!series.seasons) return false;
+  private isMovieWatched(movie: MovieModel, userId: string): boolean {
+    return (
+      movie.watchLists?.some((watchList) => watchList.userId === userId && watchList.watched) ??
+      false
+    );
+  }
 
-    for (const season of series.seasons) {
-      if (!season.episodes) continue;
+  private isSeriesWatched(series: SeriesModel, userId: string): boolean {
+    return (
+      series.watchLists?.some((watchList) => watchList.userId === userId && watchList.watched) ??
+      false
+    );
+  }
 
-      for (const episode of season.episodes) {
-        const watchedEpisode = episode.watchLists?.find((wl) => wl.userId === userId);
-        if (watchedEpisode) return true;
-      }
+  private shouldIncludeItem(itemWatched: boolean, watched?: boolean): boolean {
+    if (watched === undefined) {
+      return true;
     }
 
-    return false;
+    return itemWatched === watched;
+  }
+
+  private getCollectionWatchStates(
+    collection: CollectionModel,
+    libraryId: string,
+    userId: string,
+  ): boolean[] {
+    const movieWatchStates = (collection.collectionMovies || [])
+      .filter((movie) => movie.movie.libraryId === libraryId)
+      .map((movie) => this.isMovieWatched(movie.movie, userId));
+
+    const seriesWatchStates = (collection.collectionSeries || [])
+      .filter((series) => series.series.libraryId === libraryId)
+      .map((series) => this.isSeriesWatched(series.series, userId));
+
+    return [...movieWatchStates, ...seriesWatchStates];
+  }
+
+  private shouldIncludeCollection(collectionWatchStates: boolean[], watched?: boolean): boolean {
+    if (watched === undefined || collectionWatchStates.length === 0) {
+      return true;
+    }
+
+    if (watched) {
+      return collectionWatchStates.every((itemWatched) => itemWatched);
+    }
+
+    return collectionWatchStates.some((itemWatched) => !itemWatched);
   }
 
   private calculateRemainingEpisodes(series: SeriesModel, userId: string): number {
@@ -409,7 +472,9 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       totalEpisodes += season.episodes.length;
 
       for (const episode of season.episodes) {
-        const watchedEpisode = episode.watchLists?.find((wl) => wl.userId === userId);
+        const watchedEpisode = episode.watchLists?.find(
+          (wl) => wl.userId === userId && wl.watched,
+        );
         if (watchedEpisode) watchedEpisodes++;
       }
     }

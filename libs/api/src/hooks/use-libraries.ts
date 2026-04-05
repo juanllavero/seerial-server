@@ -2,6 +2,16 @@ import type { Collection, ContinueWatching, Library, MyListItem, PlayList } from
 import { API } from '../endpoints'
 import { type ApiMutationResult, type ApiQueryResult, asBody, asVoid, type MutationHookOptions, type QueryHookOptions, useApiMutation, useApiQuery } from './common'
 
+export interface GetLibraryContentParams {
+    type?: string
+    flat?: string
+    watched?: boolean
+}
+
+export type GetLibraryContentOptions<TResponse> = Omit<QueryHookOptions<TResponse>, 'params'> & {
+    params?: GetLibraryContentParams
+}
+
 export const useGetLibraries = <TResponse = Library[]>(
     options?: QueryHookOptions<TResponse>,
 ): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['libraries', 'getAll'], API.libraries.getAll, options)
@@ -13,7 +23,7 @@ export const useGetLibrary = <TResponse = Library>(
 
 export const useGetLibraryContent = <TResponse = unknown>(
     libraryId: string,
-    options?: QueryHookOptions<TResponse>,
+    options?: GetLibraryContentOptions<TResponse>,
 ): ApiQueryResult<TResponse> =>
     useApiQuery<TResponse>(['libraries', 'content', libraryId], API.libraries.content(libraryId), options)
 

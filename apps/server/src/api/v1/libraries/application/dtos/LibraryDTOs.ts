@@ -34,4 +34,5 @@ export interface ReorderItemsDTO {
 export interface GetLibraryContentDTO {
   type: string;
   flat?: string;
+  watched?: boolean;
 }

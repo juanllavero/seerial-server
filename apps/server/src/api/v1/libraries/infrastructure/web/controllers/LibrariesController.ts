@@ -8,6 +8,7 @@ import {
   Path,
   Post,
   Put,
+  Query,
   Request,
   Route,
   Security,
@@ -61,9 +62,10 @@ export class LibrariesController extends Controller {
   public async getContent(
     @Path() id: string,
     @Request() req: ExpressRequest,
+    @Query() watched?: boolean,
   ): Promise<ApiResponse<LibraryItem[]>> {
     const userId = getUserId(req);
-    const content = await useCases.getLibraryContent().execute(id, userId);
+    const content = await useCases.getLibraryContent().execute(id, userId, watched);
     if (!content) {
       throw new NotFoundException(messages.errors.notFound.library);
     }
