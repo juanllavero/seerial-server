@@ -1,4 +1,4 @@
-import { API, useCreate, useSetEpisodeWatchState } from '@seerial/api';
+import { useSetEpisodeWatchState } from '@seerial/api';
 import type { DetailsData, Episode, Season, Series } from '@seerial/domain';
 import { formatDate, formatTimeForView } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
@@ -40,7 +40,6 @@ function SeriesDetails({ series, isLoading, details }: SeriesDetailsProps) {
   const setLastFocusedEpisodeForSeason = useSeriesDetailsFocusStore(
     (state) => state.setLastFocusedEpisodeForSeason,
   );
-  const { create: mutateMyList, isLoading: isMutatingMyList } = useCreate<unknown>();
   const { mutateAsync: setEpisodeWatchState, isPending: isUpdatingWatchState } =
     useSetEpisodeWatchState<unknown, { state: boolean }>(selectedEpisode?.id ?? '');
 
@@ -108,9 +107,6 @@ function SeriesDetails({ series, isLoading, details }: SeriesDetailsProps) {
         ) ?? false
       );
     }, [selectedEpisode, currentUser]) ?? false;
-  const isInMyList = useMemo(() => {
-    return series?.myLists?.some((myList) => myList.userId === currentUser?.id) ?? false;
-  }, [series, currentUser]);
 
   const handleMarkWatched = useCallback(async () => {
     if (!series || !selectedEpisode || isUpdatingWatchState) {
@@ -120,19 +116,6 @@ function SeriesDetails({ series, isLoading, details }: SeriesDetailsProps) {
     await setEpisodeWatchState({ state: !isWatched });
     await queryClient.invalidateQueries({ queryKey: ['series', 'get', series.id] });
   }, [isUpdatingWatchState, isWatched, queryClient, selectedEpisode, series, setEpisodeWatchState]);
-
-  const handleAddToMyList = useCallback(async () => {
-    if (!series || !currentUser?.id || isMutatingMyList) {
-      return;
-    }
-
-    await mutateMyList(API.myList.series, {
-      seriesId: series.id,
-      userId: currentUser.id,
-    });
-    await queryClient.invalidateQueries({ queryKey: ['series', 'get', series.id] });
-    await queryClient.invalidateQueries({ queryKey: ['myList', 'series'] });
-  }, [series, currentUser?.id, isMutatingMyList, mutateMyList, queryClient]);
 
   if (!isLoading && !series) return <span>Series not found</span>;
 
@@ -166,9 +149,7 @@ function SeriesDetails({ series, isLoading, details }: SeriesDetailsProps) {
         }
         handlePlay={handlePlay}
         handleMarkWatched={handleMarkWatched}
-        handleAddToMyList={handleAddToMyList}
         isWatched={isWatched}
-        isInMyList={isInMyList}
       />
       {selectedSeason && (
         <EpisodesList

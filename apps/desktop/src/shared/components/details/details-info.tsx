@@ -18,9 +18,7 @@ function DetailsInfo({
   handlePlay,
   handleMoreOptions,
   handleMarkWatched,
-  handleAddToMyList,
   isWatched,
-  isInMyList,
   videoInfo,
   audioInfo,
   subtitleInfo,
@@ -59,9 +57,7 @@ function DetailsInfo({
             handlePlay={handlePlay}
             handleMoreOptions={handleMoreOptions}
             handleMarkWatched={handleMarkWatched}
-            handleAddToMyList={handleAddToMyList}
             isWatched={isWatched}
-            isInMyList={isInMyList}
           />
           <DetailsTechnicalInfo
             videoInfo={videoInfo}

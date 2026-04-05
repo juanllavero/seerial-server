@@ -1,4 +1,4 @@
-import { API, useCreate, useSetMovieWatchState } from '@seerial/api';
+import { useSetMovieWatchState } from '@seerial/api';
 import {
   type DetailsData,
   formatDate,
@@ -32,7 +32,6 @@ function MovieDetails({ movie, isLoading, details }: MovieDetailsProps) {
     shallow,
   );
   const navigate = useNavigate();
-  const { create: mutateMyList, isLoading: isMutatingMyList } = useCreate<unknown>();
   const { mutateAsync: setMovieWatchState, isPending: isUpdatingWatchState } =
     useSetMovieWatchState<unknown, { watched: boolean }>(movie?.id ?? '');
 
@@ -55,9 +54,6 @@ function MovieDetails({ movie, isLoading, details }: MovieDetailsProps) {
       ) ?? false
     );
   }, [movie, currentUser]);
-  const isInMyList = useMemo(() => {
-    return movie?.myLists?.some((myList) => myList.userId === currentUser?.id) ?? false;
-  }, [movie, currentUser]);
 
   const handleMarkWatched = useCallback(async () => {
     if (!movie || isUpdatingWatchState) {
@@ -67,19 +63,6 @@ function MovieDetails({ movie, isLoading, details }: MovieDetailsProps) {
     await setMovieWatchState({ watched: !isWatched });
     await queryClient.invalidateQueries({ queryKey: ['movies', 'get', movie.id] });
   }, [movie, isUpdatingWatchState, isWatched, queryClient, setMovieWatchState]);
-
-  const handleAddToMyList = useCallback(async () => {
-    if (!movie || !currentUser?.id || isMutatingMyList) {
-      return;
-    }
-
-    await mutateMyList(API.myList.movies, {
-      movieId: movie.id,
-      userId: currentUser.id,
-    });
-    await queryClient.invalidateQueries({ queryKey: ['movies', 'get', movie.id] });
-    await queryClient.invalidateQueries({ queryKey: ['myList', 'movies'] });
-  }, [movie, currentUser?.id, isMutatingMyList, mutateMyList, queryClient]);
 
   if (!isLoading && !movie) return <span>Movie not found</span>;
 
@@ -101,9 +84,7 @@ function MovieDetails({ movie, isLoading, details }: MovieDetailsProps) {
         ]}
         handlePlay={handlePlay}
         handleMarkWatched={handleMarkWatched}
-        handleAddToMyList={handleAddToMyList}
         isWatched={isWatched}
-        isInMyList={isInMyList}
       />
       {/* {movie.videos && movie.videos.length > 1 && (
 				<VideosList

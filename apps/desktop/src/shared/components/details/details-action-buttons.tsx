@@ -1,4 +1,4 @@
-import { Ellipsis, LucideBookmark, PlayIcon } from 'lucide-react';
+import { Ellipsis, PlayIcon, RotateCcw } from 'lucide-react';
 import NavigationButton from '@/components/navigation/NavigationButton';
 import FlexBox from '@/components/ui/FlexBox';
 import { MarkWatchedIcon, UnmarkWatchedIcon } from '@/components/ui/IconLibrary';
@@ -8,18 +8,14 @@ interface DetailsActionButtonsProps {
   handlePlay?: () => void;
   handleMoreOptions?: () => void;
   handleMarkWatched?: () => void;
-  handleAddToMyList?: () => void;
   isWatched?: boolean;
-  isInMyList?: boolean;
 }
 
 function DetailsActionButtons({
   handlePlay,
   handleMoreOptions,
   handleMarkWatched,
-  handleAddToMyList,
   isWatched,
-  isInMyList,
 }: DetailsActionButtonsProps) {
   return (
     <FlexBox gap={1}>
@@ -32,6 +28,14 @@ function DetailsActionButtons({
         animateText
       />
       <NavigationButton
+        customKey={NavigationFocusKeys.details.playFromStartButton}
+        text={'Reproducir desde el principio'}
+        icon={<RotateCcw size={'3dvh'} stroke="currentColor" />}
+        onClick={handleMarkWatched}
+        hideText
+        animateText
+      />
+      <NavigationButton
         customKey={NavigationFocusKeys.details.markWatchedButton}
         text={isWatched ? 'Desmarcar como visto' : 'Marcar como visto'}
         icon={isWatched ? <UnmarkWatchedIcon /> : <MarkWatchedIcon />}
@@ -40,21 +44,8 @@ function DetailsActionButtons({
         animateText
       />
       <NavigationButton
-        customKey={NavigationFocusKeys.details.addToMyListButton}
-        text={isInMyList ? 'Eliminar de mi lista' : 'Agregar a mi lista'}
-        icon={
-          <LucideBookmark
-            size={'3dvh'}
-            fill={isInMyList ? 'currentColor' : 'transparent'}
-            stroke="currentColor"
-          />
-        }
-        onClick={handleAddToMyList}
-        hideText
-        animateText
-      />
-      <NavigationButton
         customKey={NavigationFocusKeys.details.optionsButton}
+        text={'Más'}
         icon={<Ellipsis size={'3dvh'} />}
         onClick={handleMoreOptions}
         hideText
