@@ -131,19 +131,8 @@ export interface Movie {
     coverSrc: string;
     coversUrls: string[];
     watchLists: WatchList[];
-    myLists: MyListItem[];
     videos: Video[];
     extras: Video[];
-}
-
-export interface MyListItem {
-    id: string;
-    addedAt: Date;
-    series?: Series;
-    movie?: Movie;
-    userId: string;
-    seriesId?: string;
-    movieId?: string;
 }
 
 export interface PlayList {
@@ -205,7 +194,6 @@ export interface Series {
     episodeGroupId: string | null;
     analyzingFiles: boolean;
     watchLists: WatchList[];
-    myLists: MyListItem[];
     seasons: Season[];
 }
 

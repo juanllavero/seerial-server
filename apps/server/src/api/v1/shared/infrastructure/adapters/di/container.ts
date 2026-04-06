@@ -54,15 +54,6 @@ import { UpdateMovieIdUseCase } from '@/api/v1/movies/application/usecases/Updat
 import { UpdateMovieMetadataUseCase } from '@/api/v1/movies/application/usecases/UpdateMovieMetadataUseCase';
 import { UpdateMovieUseCase } from '@/api/v1/movies/application/usecases/UpdateMoviesUseCase';
 import { MoviesRepositoryImpl } from '@/api/v1/movies/infrastructure/persistence/repositories/MoviesRepositoryImpl';
-import { AddMovieToMyListUseCase } from '@/api/v1/my-lists/application/usecases/AddMovieToMyListUseCase';
-import { AddSeriesToMyListUseCase } from '@/api/v1/my-lists/application/usecases/AddSeriesToMyListUseCase';
-import { GetMoviesFromMyListUseCase } from '@/api/v1/my-lists/application/usecases/GetMoviesFromMyListUseCase';
-import { GetSeriesFromMyListUseCase } from '@/api/v1/my-lists/application/usecases/GetSeriesFromMyListUseCase';
-import { IsMovieInMyListUseCase } from '@/api/v1/my-lists/application/usecases/IsMovieInMyListUseCase';
-import { IsSeriesInMyListUseCase } from '@/api/v1/my-lists/application/usecases/IsSeriesInMyListUseCase';
-import { RemoveMovieFromMyListUseCase } from '@/api/v1/my-lists/application/usecases/RemoveMovieFromMyListUseCase';
-import { RemoveSeriesFromMyListUseCase } from '@/api/v1/my-lists/application/usecases/RemoveSeriesFromMyListUseCase';
-import { MyListRepositoryImpl } from '@/api/v1/my-lists/infrastructure/persistence/repositories/MyListRepositoryImpl';
 import { AddSongToPlayListUseCase } from '@/api/v1/playlists/application/usecases/AddSongToPlayListUseCase';
 import { CreatePlayListUseCase } from '@/api/v1/playlists/application/usecases/CreatePlayListUseCase';
 import { DeletePlayListUseCase } from '@/api/v1/playlists/application/usecases/DeletePlayListUseCase';
@@ -180,7 +171,6 @@ export const songsRepo = new SongsRepositoryImpl();
 export const artistsRepo = new ArtistsRepositoryImpl();
 export const collectionsRepo = new CollectionsRepositoryImpl();
 export const watchListRepo = new WatchListRepositoryImpl();
-export const myListRepo = new MyListRepositoryImpl();
 export const playlistRepo = new PlayListRepositoryImpl();
 export const serversRepo = new ServersRepositoryImpl();
 export const usersRepo = new UsersRepositoryImpl();
@@ -361,18 +351,6 @@ export const useCases = {
   removeVideoFromContinueWatching: () => new RemoveContinueWatchingVideoUseCase(watchListRepo),
   removeAllFromContinueWatching: () => new ClearContinueWatchingUseCase(watchListRepo),
   getContinueWatchingVideos: () => new GetContinueWatchingVideosUseCase(watchListRepo),
-
-  // MyLists
-  addMovieToMyList: () => new AddMovieToMyListUseCase(myListRepo),
-  removeMovieFromMyList: () => new RemoveMovieFromMyListUseCase(myListRepo),
-  getMoviesFromMyList: () => new GetMoviesFromMyListUseCase(myListRepo),
-
-  addSeriesToMyList: () => new AddSeriesToMyListUseCase(myListRepo),
-  removeSeriesFromMyList: () => new RemoveSeriesFromMyListUseCase(myListRepo),
-  getSeriesFromMyList: () => new GetSeriesFromMyListUseCase(myListRepo),
-
-  isMovieInMyList: () => new IsMovieInMyListUseCase(myListRepo),
-  isSeriesInMyList: () => new IsSeriesInMyListUseCase(myListRepo),
 
   // WatchLists
   addVideoToWatchList: () => new AddVideoToWatchListUseCase(watchListRepo),

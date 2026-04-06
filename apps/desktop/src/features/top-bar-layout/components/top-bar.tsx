@@ -215,7 +215,7 @@ function TopBar() {
                 variant="ghost"
               />
               <NavigationButton
-                customKey={NavigationFocusKeys.topBar.myList}
+                customKey={NavigationFocusKeys.topBar.toSee}
                 selected={pathname === '/see'}
                 onFocus={handleNonLibraryFocus}
                 onClick={() => navigate('/see')}

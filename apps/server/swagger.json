@@ -58,6 +58,64 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"DetailsData": {
+				"properties": {
+					"title": {
+						"type": "string"
+					},
+					"subtitle": {
+						"type": "string"
+					},
+					"tagline": {
+						"type": "string"
+					},
+					"year": {
+						"type": "string"
+					},
+					"genres": {
+						"type": "string"
+					},
+					"score": {
+						"type": "number",
+						"format": "double"
+					},
+					"imdbScore": {
+						"type": "number",
+						"format": "double"
+					},
+					"description": {
+						"type": "string"
+					},
+					"directedBy": {
+						"type": "string"
+					},
+					"createdBy": {
+						"type": "string"
+					},
+					"watched": {
+						"type": "boolean"
+					},
+					"inMyList": {
+						"type": "boolean"
+					},
+					"coverSrc": {
+						"type": "string"
+					},
+					"logoSrc": {
+						"type": "string"
+					},
+					"backgroundSrc": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"title",
+					"genres",
+					"description"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"ContinueWatchingVideoDTO": {
 				"properties": {
 					"id": {
@@ -115,8 +173,19 @@
 					"episodeId": {
 						"type": "string"
 					},
+					"seriesId": {
+						"type": "string"
+					},
 					"videoId": {
 						"type": "string"
+					},
+					"details": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/DetailsData"
+							}
+						],
+						"nullable": true
 					}
 				},
 				"required": [
@@ -131,7 +200,8 @@
 					"posterImage",
 					"logoImage",
 					"videoImage",
-					"videoId"
+					"videoId",
+					"details"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -920,11 +990,21 @@
 					},
 					"movie": {
 						"$ref": "#/components/schemas/Movie"
+					},
+					"userId": {
+						"type": "string"
+					},
+					"seriesId": {
+						"type": "string"
+					},
+					"movieId": {
+						"type": "string"
 					}
 				},
 				"required": [
 					"id",
-					"addedAt"
+					"addedAt",
+					"userId"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -3569,64 +3649,6 @@
 					"album",
 					"collection"
 				]
-			},
-			"DetailsData": {
-				"properties": {
-					"title": {
-						"type": "string"
-					},
-					"subtitle": {
-						"type": "string"
-					},
-					"tagline": {
-						"type": "string"
-					},
-					"year": {
-						"type": "string"
-					},
-					"genres": {
-						"type": "string"
-					},
-					"score": {
-						"type": "number",
-						"format": "double"
-					},
-					"imdbScore": {
-						"type": "number",
-						"format": "double"
-					},
-					"description": {
-						"type": "string"
-					},
-					"directedBy": {
-						"type": "string"
-					},
-					"createdBy": {
-						"type": "string"
-					},
-					"watched": {
-						"type": "boolean"
-					},
-					"inMyList": {
-						"type": "boolean"
-					},
-					"coverSrc": {
-						"type": "string"
-					},
-					"logoSrc": {
-						"type": "string"
-					},
-					"backgroundSrc": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"title",
-					"genres",
-					"description"
-				],
-				"type": "object",
-				"additionalProperties": false
 			},
 			"LibraryItem": {
 				"properties": {
@@ -7661,6 +7683,14 @@
 						"required": true,
 						"schema": {
 							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "watched",
+						"required": false,
+						"schema": {
+							"type": "boolean"
 						}
 					}
 				]

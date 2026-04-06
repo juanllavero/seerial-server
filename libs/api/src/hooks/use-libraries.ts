@@ -1,4 +1,4 @@
-import type { Collection, ContinueWatching, Library, MyListItem, PlayList } from '@seerial/domain'
+import type { Collection, ContinueWatching, Library, PlayList } from '@seerial/domain'
 import { API } from '../endpoints'
 import { type ApiMutationResult, type ApiQueryResult, asBody, asVoid, type MutationHookOptions, type QueryHookOptions, useApiMutation, useApiQuery } from './common'
 
@@ -118,26 +118,6 @@ export const useRemoveSongFromPlaylist = <TResponse = unknown>(
         asVoid,
         options,
     )
-
-export const useGetMyListMovies = <TResponse = MyListItem[]>(
-    options?: QueryHookOptions<TResponse>,
-): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['myList', 'movies'], API.myList.movies, options)
-
-export const useGetMyListSeries = <TResponse = MyListItem[]>(
-    options?: QueryHookOptions<TResponse>,
-): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['myList', 'series'], API.myList.series, options)
-
-export const useIsMovieInMyList = <TResponse = unknown>(
-    movieId: string,
-    options?: QueryHookOptions<TResponse>,
-): ApiQueryResult<TResponse> =>
-    useApiQuery<TResponse>(['myList', 'isMovieInList', movieId], API.myList.isMovieInList(movieId), options)
-
-export const useIsSeriesInMyList = <TResponse = unknown>(
-    seriesId: string,
-    options?: QueryHookOptions<TResponse>,
-): ApiQueryResult<TResponse> =>
-    useApiQuery<TResponse>(['myList', 'isSeriesInList', seriesId], API.myList.isSeriesInList(seriesId), options)
 
 export const useGetContinueWatching = <TResponse = ContinueWatching[]>(
     options?: QueryHookOptions<TResponse>,

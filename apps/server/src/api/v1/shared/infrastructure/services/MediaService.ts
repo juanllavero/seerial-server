@@ -15,7 +15,7 @@ interface FormattedVideoInfo {
 }
 
 export class MediaService {
-  private constructor() {}
+  private constructor() { }
 
   /**
    * Fetches a video and its related parent entities (Series/Movie, Library)
@@ -80,24 +80,6 @@ export class MediaService {
     ).length;
 
     return movie.videos.length - watchedCount;
-  }
-
-  /**
-   * Checks if a series is in a user's "My List".
-   * @returns A promise that resolves to a boolean.
-   */
-  public static async isSeriesInMyList(seriesId: string, userId: string): Promise<boolean> {
-    const seriesInList = await useCases.isSeriesInMyList().execute(seriesId, userId);
-    return seriesInList !== null;
-  }
-
-  /**
-   * Checks if a movie is in a user's "My List".
-   * @returns A promise that resolves to a boolean.
-   */
-  public static async isMovieInMyList(movieId: string, userId: string): Promise<boolean> {
-    const movieInList = await useCases.isMovieInMyList().execute(movieId, userId);
-    return movieInList !== null;
   }
 
   private static async getEpisodeFormattedInfo(episodeId: string): Promise<FormattedVideoInfo> {

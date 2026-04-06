@@ -67,9 +67,3 @@ export const useSetMovieWatchState = <TResponse = unknown, TBody = unknown>(
         asBody,
         options,
     )
-
-export const useSetMovieMyListState = <TResponse = unknown, TBody = unknown>(
-    movieId: string,
-    options?: MutationHookOptions<TResponse, TBody>,
-): ApiMutationResult<TResponse, TBody> =>
-    useApiMutation<TResponse, TBody>(['movies', 'myList', movieId], API.movies.myList(movieId), 'POST', asBody, options)

@@ -13,7 +13,6 @@ export const API = {
         search: '/movies/search',
         imdbScore: '/movies/imdb-score',
         remainingVideos: (id: string) => `/movies/${id}/remaining-videos`,
-        myList: (id: string) => `/movies/${id}/my-list`,
     },
     videoStreaming: {
         transcodedUrl: '/video-streaming/transcoded-url',
@@ -85,7 +84,6 @@ export const API = {
         search: '/series/search',
         searchEpisodeGroups: '/series/episode-groups/search',
         remainingEpisodes: (id: string) => `/series/${id}/remaining-episodes`,
-        myList: (id: string) => `/series/${id}/my-list`,
     },
     seasons: {
         get: (id: string, include?: string) => `/seasons/${id}?include=${include ?? 'none'}`,
@@ -101,12 +99,6 @@ export const API = {
         delete: (id: string) => `/playlists/${id}`,
         addSong: (id: string) => `/playlists/${id}/songs`,
         removeSong: (id: string, songId: string) => `/playlists/${id}/songs/${songId}`,
-    },
-    myList: {
-        movies: '/my-list/movies',
-        series: '/my-list/series',
-        isMovieInList: (id: string) => `/my-list/movies/${id}/check`,
-        isSeriesInList: (id: string) => `/my-list/series/${id}/check`,
     },
     libraries: {
         getAll: '/libraries',

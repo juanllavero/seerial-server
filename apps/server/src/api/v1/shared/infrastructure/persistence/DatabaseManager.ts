@@ -12,7 +12,6 @@ import { EpisodeModel } from '@/api/v1/episodes/infrastructure/persistence/model
 import { LibraryCollectionModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryCollectionModel';
 import { LibraryModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryModel';
 import { MovieModel } from '@/api/v1/movies/infrastructure/persistence/models/MovieModel';
-import { MyListModel } from '@/api/v1/my-lists/infrastructure/persistence/models/MyListModel';
 import { PlayListItemModel } from '@/api/v1/playlists/infrastructure/persistence/models/PlayListItemModel';
 import { PlayListModel } from '@/api/v1/playlists/infrastructure/persistence/models/PlayListModel';
 import { SeasonModel } from '@/api/v1/seasons/infrastructure/persistence/models/SeasonModel';
@@ -29,7 +28,7 @@ import logger from '@/utils/logger';
 const dbLogger = logger.child({ category: 'Database' });
 
 export class DatabaseManager {
-  private constructor() {}
+  private constructor() { }
 
   public static get DB_PATH(): string {
     return fileSystemService.getExternalPath('resources/db/data.db');
@@ -60,7 +59,6 @@ export class DatabaseManager {
           EpisodeModel,
           LibraryModel,
           MovieModel,
-          MyListModel,
           PlayListModel,
           PlayListItemModel,
           SeasonModel,

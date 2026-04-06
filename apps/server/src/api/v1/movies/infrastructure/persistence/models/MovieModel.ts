@@ -12,7 +12,6 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { CollectionMovieModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionMovie';
 import { LibraryModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryModel';
-import { MyListModel } from '@/api/v1/my-lists/infrastructure/persistence/models/MyListModel';
 import { VideoModel } from '@/api/v1/videos/infrastructure/persistence/models/VideoModel';
 import { WatchListModel } from '@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel';
 
@@ -242,12 +241,6 @@ export class MovieModel extends BaseEntity {
     (watchList) => watchList.movie,
   )
   watchLists!: WatchListModel[];
-
-  @OneToMany(
-    () => MyListModel,
-    (myList) => myList.movie,
-  )
-  myLists!: MyListModel[];
 
   // Lifecycle hooks
   @BeforeInsert()

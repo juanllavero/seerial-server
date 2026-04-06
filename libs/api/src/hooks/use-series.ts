@@ -67,12 +67,6 @@ export const useSetSeriesWatchState = <TResponse = unknown, TBody = unknown>(
         options,
     )
 
-export const useSetSeriesMyListState = <TResponse = unknown, TBody = unknown>(
-    seriesId: string,
-    options?: MutationHookOptions<TResponse, TBody>,
-): ApiMutationResult<TResponse, TBody> =>
-    useApiMutation<TResponse, TBody>(['series', 'myList', seriesId], API.series.myList(seriesId), 'POST', asBody, options)
-
 export const useGetSeason = <TResponse = unknown>(
     seasonId: string,
     include?: string,

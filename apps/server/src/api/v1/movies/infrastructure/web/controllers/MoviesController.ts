@@ -15,9 +15,7 @@ import {
   Tags,
 } from 'tsoa';
 import {
-  externalSearchService,
-  myListRepo,
-  useCases,
+  externalSearchService, useCases
 } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { MediaService } from '@/api/v1/shared/infrastructure/services/MediaService';
 import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
@@ -174,20 +172,5 @@ export class MoviesController extends Controller {
     const count = await MediaService.countRemainingVideos(id, userId);
 
     return ApiResponse.success(count, messages.success.fetch);
-  }
-
-  /**
-   * Check if movie is in user's my list
-   */
-  @Get('{id}/my-list')
-  @Security('adminAuth')
-  public async isMovieInMyList(
-    @Path() id: string,
-    @Request() req: ExpressRequest,
-  ): Promise<ApiResponse<boolean>> {
-    const userId = (req as AuthenticatedRequest).user?.id as string;
-    const isMovieInMyList = await myListRepo.isMovieInMyList(id, userId);
-
-    return ApiResponse.success(isMovieInMyList, messages.success.fetch);
   }
 }

@@ -237,18 +237,4 @@ export class SeriesController extends Controller {
     const result = await MediaService.countRemainingEpisodes(id, userId);
     return ApiResponse.success(result, messages.success.fetch);
   }
-
-  /**
-   * Check if series is in user's my list
-   */
-  @Get('{id}/my-list')
-  @Security('adminAuth')
-  public async isSeriesInMyList(
-    @Path() id: string,
-    @Request() req: ExpressRequest,
-  ): Promise<ApiResponse<boolean>> {
-    const userId = (req as AuthenticatedRequest).user?.id as string;
-    const result = await useCases.isSeriesInMyList().execute(id, userId);
-    return ApiResponse.success(result, messages.success.fetch);
-  }
 }

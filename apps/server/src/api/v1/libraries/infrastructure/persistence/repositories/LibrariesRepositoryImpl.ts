@@ -97,7 +97,6 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
         return [
           'movies',
           'movies.watchLists',
-          'movies.myLists',
           'movies.videos',
           ...collectionRelations,
         ];
@@ -105,7 +104,6 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
         return [
           'series',
           'series.watchLists',
-          'series.myLists',
           'series.seasons',
           'series.seasons.episodes',
           'series.seasons.episodes.watchLists',
@@ -327,7 +325,6 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       description: element.overview || '',
       directedBy: element.directedBy ? element.directedBy.join(', ') : '',
       watched: this.isMovieWatched(element, userId),
-      inMyList: element.myLists ? element.myLists.some((ml) => ml.userId === userId) : false,
       subtitle: undefined,
       tagline: element.tagline || '',
       coverSrc: element.coverSrc || '',
@@ -348,7 +345,6 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       description: element.overview || '',
       createdBy: element.creator ? element.creator.join(', ') : '',
       watched: this.isSeriesWatched(element, userId),
-      inMyList: element.myLists ? element.myLists.some((ml) => ml.userId === userId) : false,
       subtitle: undefined,
       tagline: element.tagline || '',
       coverSrc: element.coverSrc || '',

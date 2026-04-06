@@ -94,8 +94,6 @@ function handleMutateSeries(body: unknown): void {
   if (libraryId) {
     void seerialQueryClient.invalidateQueries({ queryKey: ['libraries', 'content', libraryId] });
   }
-
-  void seerialQueryClient.invalidateQueries({ queryKey: ['myList', 'series'] });
 }
 
 function handleMutateSeason(body: unknown): void {
@@ -147,8 +145,6 @@ function handleMutateMovie(body: unknown): void {
   if (libraryId) {
     void seerialQueryClient.invalidateQueries({ queryKey: ['libraries', 'content', libraryId] });
   }
-
-  void seerialQueryClient.invalidateQueries({ queryKey: ['myList', 'movies'] });
 }
 
 function handleMutateAlbum(body: unknown): void {

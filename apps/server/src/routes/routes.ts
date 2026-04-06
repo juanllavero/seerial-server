@@ -85,6 +85,28 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "DetailsData": {
+        "dataType": "refObject",
+        "properties": {
+            "title": {"dataType":"string","required":true},
+            "subtitle": {"dataType":"string"},
+            "tagline": {"dataType":"string"},
+            "year": {"dataType":"string"},
+            "genres": {"dataType":"string","required":true},
+            "score": {"dataType":"double"},
+            "imdbScore": {"dataType":"double"},
+            "description": {"dataType":"string","required":true},
+            "directedBy": {"dataType":"string"},
+            "createdBy": {"dataType":"string"},
+            "watched": {"dataType":"boolean"},
+            "inMyList": {"dataType":"boolean"},
+            "coverSrc": {"dataType":"string"},
+            "logoSrc": {"dataType":"string"},
+            "backgroundSrc": {"dataType":"string"},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "ContinueWatchingVideoDTO": {
         "dataType": "refObject",
         "properties": {
@@ -104,7 +126,9 @@ const models: TsoaRoute.Models = {
             "videoImage": {"dataType":"string","required":true},
             "movieId": {"dataType":"string"},
             "episodeId": {"dataType":"string"},
+            "seriesId": {"dataType":"string"},
             "videoId": {"dataType":"string","required":true},
+            "details": {"dataType":"union","subSchemas":[{"ref":"DetailsData"},{"dataType":"enum","enums":[null]}],"required":true},
         },
         "additionalProperties": false,
     },
@@ -330,6 +354,9 @@ const models: TsoaRoute.Models = {
             "addedAt": {"dataType":"datetime","required":true},
             "series": {"ref":"Series"},
             "movie": {"ref":"Movie"},
+            "userId": {"dataType":"string","required":true},
+            "seriesId": {"dataType":"string"},
+            "movieId": {"dataType":"string"},
         },
         "additionalProperties": false,
     },
@@ -1352,28 +1379,6 @@ const models: TsoaRoute.Models = {
     "ItemType": {
         "dataType": "refAlias",
         "type": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["series"]},{"dataType":"enum","enums":["movie"]},{"dataType":"enum","enums":["album"]},{"dataType":"enum","enums":["collection"]}],"validators":{}},
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "DetailsData": {
-        "dataType": "refObject",
-        "properties": {
-            "title": {"dataType":"string","required":true},
-            "subtitle": {"dataType":"string"},
-            "tagline": {"dataType":"string"},
-            "year": {"dataType":"string"},
-            "genres": {"dataType":"string","required":true},
-            "score": {"dataType":"double"},
-            "imdbScore": {"dataType":"double"},
-            "description": {"dataType":"string","required":true},
-            "directedBy": {"dataType":"string"},
-            "createdBy": {"dataType":"string"},
-            "watched": {"dataType":"boolean"},
-            "inMyList": {"dataType":"boolean"},
-            "coverSrc": {"dataType":"string"},
-            "logoSrc": {"dataType":"string"},
-            "backgroundSrc": {"dataType":"string"},
-        },
-        "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "LibraryItem": {
@@ -4186,6 +4191,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsLibrariesController_getContent: Record<string, TsoaRoute.ParameterSchema> = {
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
                 req: {"in":"request","name":"req","required":true,"dataType":"object"},
+                watched: {"in":"query","name":"watched","dataType":"boolean"},
         };
         app.get('/api/libraries/:id/content',
             authenticateMiddleware([{"adminAuth":[]}]),

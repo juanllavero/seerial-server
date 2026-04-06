@@ -76,14 +76,6 @@ function AlbumDetails({ album, isLoading, details }: AlbumDetailsProps) {
               animateText
             />
             <NavigationButton
-              customKey={NavigationFocusKeys.details.addToMyListButton}
-              text={'Agregar a mi lista'}
-              icon={<LucideBookmark size={'3dvh'} />}
-              onClick={() => console.log('Add to my list')}
-              hideText
-              animateText
-            />
-            <NavigationButton
               customKey={NavigationFocusKeys.details.optionsButton}
               icon={<Ellipsis size={'3dvh'} />}
               hideText

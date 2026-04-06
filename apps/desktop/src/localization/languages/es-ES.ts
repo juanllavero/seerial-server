@@ -21,8 +21,6 @@ export const es = {
     apiKey: 'Clave API',
     apiKeyTitle: 'No se ha encontrado una clave API para TheMovieDB',
     apiKeyMessage: 'Añada una clave API. Puede conseguirla en ',
-    addToMyList: 'Añadir a mi lista',
-    removeFromMyList: 'Quitar de mi lista',
     imageLoaded: 'La imagen se ha subido correctamente',
     disc: 'Disco',
     musicVolume: 'Volumen de la música de fondo',

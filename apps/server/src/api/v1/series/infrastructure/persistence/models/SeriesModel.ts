@@ -13,7 +13,6 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import { CollectionSeriesModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionSeries';
 import { LibraryModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryModel';
-import { MyListModel } from '@/api/v1/my-lists/infrastructure/persistence/models/MyListModel';
 import { SeasonModel } from '@/api/v1/seasons/infrastructure/persistence/models/SeasonModel';
 import { useCases } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { WatchListModel } from '@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel';
@@ -199,12 +198,6 @@ export class SeriesModel extends BaseEntity {
     (watchList) => watchList.series,
   )
   watchLists!: WatchListModel[];
-
-  @OneToMany(
-    () => MyListModel,
-    (myList) => myList.series,
-  )
-  myLists!: MyListModel[];
 
   // Lifecycle hooks
   @BeforeInsert()

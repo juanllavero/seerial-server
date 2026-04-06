@@ -43,7 +43,6 @@ export interface DetailsData {
     directedBy?: string;
     createdBy?: string;
     watched?: boolean;
-    inMyList?: boolean;
     coverSrc?: string;
     logoSrc?: string;
     backgroundSrc?: string;

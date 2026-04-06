@@ -22,8 +22,6 @@ export const en = {
     apiKey: 'API key',
     apiKeyTitle: 'No API key found for TheMovieDB',
     apiKeyMessage: 'Please add an API key. You can get one at ',
-    addToMyList: 'Add to My List',
-    removeFromMyList: 'Remove from My List',
     imageLoaded: 'Image uploaded successfully',
     disc: 'Disc',
     musicVolume: 'Background music volume',
