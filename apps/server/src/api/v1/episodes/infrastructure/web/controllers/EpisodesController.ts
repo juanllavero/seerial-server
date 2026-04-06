@@ -4,9 +4,9 @@ import {
   Controller,
   Delete,
   Get,
+  Patch,
   Path,
   Post,
-  Put,
   Request,
   Response,
   Route,
@@ -42,7 +42,7 @@ export class EpisodesController extends Controller {
   /**
    * Update episode details
    */
-  @Put('{id}')
+  @Patch('{id}')
   @Security('adminAuth')
   public async update(
     @Path() id: string,

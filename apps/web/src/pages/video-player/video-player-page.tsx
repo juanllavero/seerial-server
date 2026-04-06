@@ -1,4 +1,4 @@
-import { API, getSignedVideoStreamUrl, useGet, useUpdate } from '@seerial/api';
+import { API, getSignedVideoStreamUrl, useGet } from '@seerial/api';
 import type { AudioTrack, SubtitleTrack, Video, WatchList } from '@seerial/domain';
 import { getAudioTrack, getSubtitleTrack } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
@@ -40,14 +40,11 @@ function VideoPlayerPage() {
   } = useGet<Video>(videoId ? API.videos.get(videoId) : null);
 
   // Get video info
-  const { data: videoInfo, isLoading: loadingVideoInfo } = useGet<VideoInfo>(
-    videoId ? API.videos.getMediaInfo(videoId) : null,
-  );
-  const { update: updateVideoMediaInfo } = useUpdate<{
-    videoTracks: Array<{ selected?: boolean }>;
-    audioTracks: AudioTrack[];
-    subtitleTracks: SubtitleTrack[];
-  }>();
+  const {
+    data: videoInfo,
+    isLoading: loadingVideoInfo,
+    mutate: refreshVideoMediaInfo,
+  } = useGet<VideoInfo>(videoId ? API.videos.getMediaInfo(videoId) : null);
 
   const watchedList = video?.watchLists?.find((list: WatchList) => list.userId === user?.id);
 
@@ -346,7 +343,8 @@ function VideoPlayerPage() {
     if (!video || !videoInfo) return;
 
     const fetchData = async () => {
-      const data = await updateVideoMediaInfo(API.videos.updateMediaInfo(video.id), {});
+      const refreshResult = await refreshVideoMediaInfo();
+      const data = refreshResult.data;
 
       if (!data) {
         return;
@@ -391,7 +389,7 @@ function VideoPlayerPage() {
     };
 
     void fetchData();
-  }, [video, videoInfo, updateVideoMediaInfo, refetchVideo]);
+  }, [video, videoInfo, refreshVideoMediaInfo, refetchVideo]);
 
   useEffect(() => {
     const handleMouseUp = (e: MouseEvent) => {

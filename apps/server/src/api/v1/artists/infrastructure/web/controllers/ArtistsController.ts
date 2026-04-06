@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Path, Put, Route, Security, Tags } from 'tsoa';
+import { Body, Controller, Get, Patch, Path, Route, Security, Tags } from 'tsoa';
 import { useCases } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
 import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
@@ -27,7 +27,7 @@ export class ArtistsController extends Controller {
   /**
    * Update artist details
    */
-  @Put('{id}')
+  @Patch('{id}')
   @Security('adminAuth')
   public async update(
     @Path() id: string,

@@ -14,7 +14,7 @@ export const useUpdateUser = <TResponse = unknown, TBody = unknown>(
     userId: string,
     options?: MutationHookOptions<TResponse, TBody>,
 ): ApiMutationResult<TResponse, TBody> =>
-    useApiMutation<TResponse, TBody>(['users', 'update', userId], API.users.update(userId), 'PUT', asBody, options)
+    useApiMutation<TResponse, TBody>(['users', 'update', userId], API.users.update(userId), 'PATCH', asBody, options)
 
 export const useDeleteUser = <TResponse = unknown>(
     userId: string,

@@ -76,7 +76,7 @@ export const useUpdate = <T>(): UseUpdateReturn<T> => {
     const mutation = useApiMutation<T, { url: string; body: Partial<T> }>(
         ['crud', 'update'],
         '',
-        'PUT',
+        'PATCH',
         ({ url, body }) => ({ url, data: body }),
     )
 

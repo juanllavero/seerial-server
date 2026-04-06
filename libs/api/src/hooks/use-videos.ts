@@ -36,7 +36,7 @@ export const useUpdateVideo = <TResponse = unknown, TBody = unknown>(
     videoId: string,
     options?: MutationHookOptions<TResponse, TBody>,
 ): ApiMutationResult<TResponse, TBody> =>
-    useApiMutation<TResponse, TBody>(['videos', 'update', videoId], API.videos.update(videoId), 'PUT', asBody, options)
+    useApiMutation<TResponse, TBody>(['videos', 'update', videoId], API.videos.update(videoId), 'PATCH', asBody, options)
 
 export const useDeleteVideo = <TResponse = unknown>(
     videoId: string,
@@ -44,15 +44,15 @@ export const useDeleteVideo = <TResponse = unknown>(
 ): ApiMutationResult<TResponse, void> =>
     useApiMutation<TResponse, void>(['videos', 'delete', videoId], API.videos.delete(videoId), 'DELETE', asVoid, options)
 
-export const useUpdateVideoMediaInfo = <TResponse = unknown, TBody = unknown>(
+export const useUpdateVideoMediaInfo = <TResponse = unknown>(
     videoId: string,
-    options?: MutationHookOptions<TResponse, TBody>,
-): ApiMutationResult<TResponse, TBody> =>
-    useApiMutation<TResponse, TBody>(
+    options?: MutationHookOptions<TResponse, void>,
+): ApiMutationResult<TResponse, void> =>
+    useApiMutation<TResponse, void>(
         ['videos', 'updateMediaInfo', videoId],
         API.videos.updateMediaInfo(videoId),
-        'PUT',
-        asBody,
+        'GET',
+        asVoid,
         options,
     )
 

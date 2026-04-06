@@ -1,6 +1,6 @@
 import type { User } from '@seerial/domain';
 import jwt from 'jsonwebtoken';
-import { Body, Controller, Delete, Path, Post, Put, Route, Security, Tags } from 'tsoa';
+import { Body, Controller, Delete, Get, Patch, Path, Post, Route, Security, Tags } from 'tsoa';
 import { useCases } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { BadRequestException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
 import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
@@ -50,7 +50,7 @@ export class UsersController extends Controller {
   /**
    * Update user details
    */
-  @Put('{id}')
+  @Patch('{id}')
   @Security('managementAuth')
   public async update(
     @Path() id: string,
@@ -73,7 +73,7 @@ export class UsersController extends Controller {
   /**
    * Get all users (public access)
    */
-  @Put('public')
+  @Get('public')
   @Security('public')
   public async findAll(): Promise<ApiResponse<UserDTO[]>> {
     const result = await useCases.getAllUsers().execute();

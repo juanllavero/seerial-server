@@ -14,7 +14,7 @@ export const useUpdateVideoWatchState = <TResponse = unknown>(
     useApiMutation<TResponse, UpdateWatchStateParams>(
         ['watchLists', 'updateWatchState'],
         API.watchLists.updateWatchState,
-        'PUT',
+        'PATCH',
         asBody,
         options,
     )

@@ -28,9 +28,7 @@ function VideoTracks({ video, mutate }: VideoTracksProps) {
   const { data: videoInfo, isLoading } = useGetVideoMediaInfo<VideoInfo>(video?.id ?? '', {
     enabled: Boolean(video?.id),
   });
-  const { mutateAsync: updateVideoMediaInfo } = useUpdateVideoMediaInfo<Video, { videoId: string }>(
-    video?.id ?? '',
-  );
+  const { mutateAsync: updateVideoMediaInfo } = useUpdateVideoMediaInfo<Video>(video?.id ?? '');
 
   const [selectedVideoTrack, setSelectedVideoTrack] = useState<VideoTrack | null>(
     video?.videoTracks?.find((track: VideoTrack) => track.selected) || null,
@@ -58,7 +56,7 @@ function VideoTracks({ video, mutate }: VideoTracksProps) {
     hasFetched.current = true;
 
     const fetchData = async () => {
-      const data = await updateVideoMediaInfo({ videoId: video.id }).catch(() => null);
+      const data = await updateVideoMediaInfo().catch(() => null);
 
       if (!data) {
         return;

@@ -18,10 +18,6 @@ interface VideoInfo {
   subsMode: string;
 }
 
-interface UpdateVideoMediaInfoBody {
-  videoId: string;
-}
-
 interface SelectableTrack {
   id: number;
   selected: boolean;
@@ -88,10 +84,7 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
   const { data: videoInfo } = useGetVideoMediaInfo<VideoInfo>(video.id, {
     enabled: Boolean(video.id),
   });
-  const { mutateAsync: updateVideoMediaInfo } = useUpdateVideoMediaInfo<
-    MediaInfoData,
-    UpdateVideoMediaInfoBody
-  >(video.id);
+  const { mutateAsync: updateVideoMediaInfo } = useUpdateVideoMediaInfo<MediaInfoData>(video.id);
 
   useEffect(() => {
     let isActive = true;
@@ -101,7 +94,7 @@ function EpisodeMediaInfoTab({ video }: EpisodeMediaInfoTabProps) {
 
       setLoaded(false);
 
-      const data = await fetchMediaInfoWithRetry(() => updateVideoMediaInfo({ videoId: video.id }));
+      const data = await fetchMediaInfoWithRetry(() => updateVideoMediaInfo());
 
       if (!isActive) {
         return;

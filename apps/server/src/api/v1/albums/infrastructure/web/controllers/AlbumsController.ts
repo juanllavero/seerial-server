@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Path, Put, Route, Security, Tags } from 'tsoa';
+import { Body, Controller, Delete, Get, Patch, Path, Route, Security, Tags } from 'tsoa';
 import { useCases } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
 import { messages } from '@/config/messages';
@@ -22,7 +22,7 @@ export class AlbumsController extends Controller {
   /**
    * Update album details
    */
-  @Put('{id}')
+  @Patch('{id}')
   @Security('adminAuth')
   public async update(
     @Path() id: string,

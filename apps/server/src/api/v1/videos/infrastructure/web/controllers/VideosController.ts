@@ -5,9 +5,9 @@ import {
   Controller,
   Delete,
   Get,
+  Patch,
   Path,
   Post,
-  Put,
   Query,
   Request,
   Route,
@@ -81,7 +81,7 @@ export class VideosController extends Controller {
   /**
    * Update video details
    */
-  @Put('{id}')
+  @Patch('{id}')
   @Security('adminAuth')
   public async update(
     @Path() id: string,
@@ -107,16 +107,6 @@ export class VideosController extends Controller {
   @Get('{id}/media-info')
   @Security('adminAuth')
   public async updateMediaInfo(@Path() id: string): Promise<ApiResponse<null>> {
-    const _result = await useCases.updateMediaInfo().execute(id);
-    return ApiResponse.success(null, messages.success.update);
-  }
-
-  /**
-   * Update video media info (PUT)
-   */
-  @Put('{id}/media-info')
-  @Security('adminAuth')
-  public async updateMediaInfoPut(@Path() id: string): Promise<ApiResponse<null>> {
     const _result = await useCases.updateMediaInfo().execute(id);
     return ApiResponse.success(null, messages.success.update);
   }

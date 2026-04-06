@@ -5,9 +5,9 @@ import {
   Controller,
   Delete,
   Get,
+  Patch,
   Path,
   Post,
-  Put,
   Query,
   Request,
   Route,
@@ -60,7 +60,7 @@ export class MoviesController extends Controller {
   /**
    * Update movie details
    */
-  @Put('{id}')
+  @Patch('{id}')
   @Security('adminAuth')
   public async update(
     @Path() id: string,

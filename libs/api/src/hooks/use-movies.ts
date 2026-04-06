@@ -48,7 +48,7 @@ export const useUpdateMovie = <TResponse = unknown, TBody = unknown>(
     movieId: string,
     options?: MutationHookOptions<TResponse, TBody>,
 ): ApiMutationResult<TResponse, TBody> =>
-    useApiMutation<TResponse, TBody>(['movies', 'update', movieId], API.movies.update(movieId), 'PUT', asBody, options)
+    useApiMutation<TResponse, TBody>(['movies', 'update', movieId], API.movies.update(movieId), 'PATCH', asBody, options)
 
 export const useDeleteMovie = <TResponse = unknown>(
     movieId: string,

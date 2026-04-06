@@ -5,9 +5,9 @@ import {
   Controller,
   Delete,
   Get,
+  Patch,
   Path,
   Post,
-  Put,
   Query,
   Request,
   Route,
@@ -35,7 +35,7 @@ export class SongsController extends Controller {
   /**
    * Update song details
    */
-  @Put('{id}')
+  @Patch('{id}')
   @Security('adminAuth')
   public async update(@Path() id: string, @Body() body: UpdateSongDTO): Promise<ApiResponse<Song>> {
     const result = await useCases.updateSong().execute(id, body);

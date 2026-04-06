@@ -4184,7 +4184,7 @@
   },
   "paths": {
     "/watch-lists/watch-state": {
-      "put": {
+      "patch": {
         "operationId": "UpdateWatchState",
         "responses": {
           "200": {
@@ -4373,7 +4373,7 @@
           }
         ]
       },
-      "put": {
+      "patch": {
         "operationId": "Update",
         "responses": {
           "200": {
@@ -4532,38 +4532,6 @@
           }
         },
         "description": "Update video media info",
-        "tags": ["Videos"],
-        "security": [
-          {
-            "adminAuth": []
-          }
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "id",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ]
-      },
-      "put": {
-        "operationId": "UpdateMediaInfoPut",
-        "responses": {
-          "200": {
-            "description": "Ok",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ApiResponse_null_"
-                }
-              }
-            }
-          }
-        },
-        "description": "Update video media info (PUT)",
         "tags": ["Videos"],
         "security": [
           {
@@ -4742,7 +4710,7 @@
       }
     },
     "/users/{id}": {
-      "put": {
+      "patch": {
         "operationId": "Update",
         "responses": {
           "200": {
@@ -4818,7 +4786,7 @@
       }
     },
     "/users/public": {
-      "put": {
+      "get": {
         "operationId": "FindAll",
         "responses": {
           "200": {
@@ -4903,7 +4871,7 @@
       }
     },
     "/songs/{id}": {
-      "put": {
+      "patch": {
         "operationId": "Update",
         "responses": {
           "200": {
@@ -5555,7 +5523,7 @@
       }
     },
     "/movies/{id}": {
-      "put": {
+      "patch": {
         "operationId": "Update",
         "responses": {
           "200": {
@@ -5931,7 +5899,7 @@
       }
     },
     "/series/show/{id}": {
-      "put": {
+      "patch": {
         "operationId": "Update",
         "responses": {
           "200": {
@@ -6243,7 +6211,7 @@
           }
         ]
       },
-      "put": {
+      "patch": {
         "operationId": "Update",
         "responses": {
           "200": {
@@ -6453,7 +6421,7 @@
           }
         ]
       },
-      "put": {
+      "patch": {
         "operationId": "Update",
         "responses": {
           "200": {
@@ -6705,7 +6673,7 @@
           }
         ]
       },
-      "put": {
+      "patch": {
         "operationId": "Update",
         "responses": {
           "200": {
@@ -7265,7 +7233,7 @@
           }
         ]
       },
-      "put": {
+      "patch": {
         "operationId": "Update",
         "responses": {
           "200": {
@@ -7505,7 +7473,7 @@
           }
         ]
       },
-      "put": {
+      "patch": {
         "operationId": "Update",
         "responses": {
           "200": {
@@ -7613,7 +7581,7 @@
           }
         ]
       },
-      "put": {
+      "patch": {
         "operationId": "Update",
         "responses": {
           "200": {
@@ -7689,7 +7657,7 @@
           }
         ]
       },
-      "put": {
+      "patch": {
         "operationId": "Update",
         "responses": {
           "200": {
@@ -7786,7 +7754,7 @@
       }
     },
     "/servers/{id}": {
-      "put": {
+      "patch": {
         "operationId": "Update",
         "responses": {
           "200": {

@@ -67,18 +67,18 @@ export const useUpdateServer = <TResponse = unknown, TBody = unknown>(
     serverId: string,
     options?: MutationHookOptions<TResponse, TBody>,
 ): ApiMutationResult<TResponse, TBody> =>
-    useApiMutation<TResponse, TBody>(['servers', 'update', serverId], API.servers.update(serverId), 'PUT', asBody, options)
+    useApiMutation<TResponse, TBody>(['servers', 'update', serverId], API.servers.update(serverId), 'PATCH', asBody, options)
 
 export const useUpdateServerConfig = <TResponse = unknown, TBody = unknown>(
     options?: MutationHookOptions<TResponse, TBody>,
 ): ApiMutationResult<TResponse, TBody> =>
-    useApiMutation<TResponse, TBody>(['servers', 'config'], API.servers.config, 'PUT', asBody, options)
+    useApiMutation<TResponse, TBody>(['servers', 'config'], API.servers.config, 'PATCH', asBody, options)
 
 export const useUpdateServerConfigByKey = <TResponse = unknown, TBody = unknown>(
     key: string,
     options?: MutationHookOptions<TResponse, TBody>,
 ): ApiMutationResult<TResponse, TBody> =>
-    useApiMutation<TResponse, TBody>(['servers', 'configKey', key], API.servers.configKey(key), 'PUT', asBody, options)
+    useApiMutation<TResponse, TBody>(['servers', 'configKey', key], API.servers.configKey(key), 'PATCH', asBody, options)
 
 export const useGetImageDirectoryListing = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch, Path, Put, Route, Security, Tags } from 'tsoa';
+import { Body, Controller, Get, Patch, Path, Route, Security, Tags } from 'tsoa';
 import {
   fileSystemService,
   tmdbApiClient,
@@ -53,7 +53,7 @@ export class ServersController extends Controller {
   /**
    * Update server configuration
    */
-  @Put('{id}')
+  @Patch('{id}')
   @Security('adminAuth')
   public async update(
     @Path() id: string,

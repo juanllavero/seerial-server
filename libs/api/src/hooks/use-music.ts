@@ -14,7 +14,7 @@ export const useUpdateSong = <TResponse = unknown, TBody = unknown>(
     songId: string,
     options?: MutationHookOptions<TResponse, TBody>,
 ): ApiMutationResult<TResponse, TBody> =>
-    useApiMutation<TResponse, TBody>(['songs', 'update', songId], API.songs.update(songId), 'PUT', asBody, options)
+    useApiMutation<TResponse, TBody>(['songs', 'update', songId], API.songs.update(songId), 'PATCH', asBody, options)
 
 export const useDeleteSong = <TResponse = unknown>(
     songId: string,
@@ -42,7 +42,7 @@ export const useUpdateArtist = <TResponse = unknown, TBody = unknown>(
     artistId: string,
     options?: MutationHookOptions<TResponse, TBody>,
 ): ApiMutationResult<TResponse, TBody> =>
-    useApiMutation<TResponse, TBody>(['artists', 'update', artistId], API.artists.update(artistId), 'PUT', asBody, options)
+    useApiMutation<TResponse, TBody>(['artists', 'update', artistId], API.artists.update(artistId), 'PATCH', asBody, options)
 
 export const useDeleteArtist = <TResponse = unknown>(
     artistId: string,
@@ -59,7 +59,7 @@ export const useUpdateAlbum = <TResponse = unknown, TBody = unknown>(
     albumId: string,
     options?: MutationHookOptions<TResponse, TBody>,
 ): ApiMutationResult<TResponse, TBody> =>
-    useApiMutation<TResponse, TBody>(['albums', 'update', albumId], API.albums.update(albumId), 'PUT', asBody, options)
+    useApiMutation<TResponse, TBody>(['albums', 'update', albumId], API.albums.update(albumId), 'PATCH', asBody, options)
 
 export const useDeleteAlbum = <TResponse = unknown>(
     albumId: string,

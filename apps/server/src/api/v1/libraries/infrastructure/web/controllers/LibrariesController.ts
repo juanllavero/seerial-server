@@ -5,9 +5,9 @@ import {
   Controller,
   Delete,
   Get,
+  Patch,
   Path,
   Post,
-  Put,
   Query,
   Request,
   Route,
@@ -124,7 +124,7 @@ export class LibrariesController extends Controller {
   /**
    * Update library details
    */
-  @Put('{id}')
+  @Patch('{id}')
   @Security('adminAuth')
   public async update(
     @Path() id: string,

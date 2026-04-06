@@ -36,7 +36,7 @@ export const useUpdateLibrary = <TResponse = unknown, TBody = unknown>(
     libraryId: string,
     options?: MutationHookOptions<TResponse, TBody>,
 ): ApiMutationResult<TResponse, TBody> =>
-    useApiMutation<TResponse, TBody>(['libraries', 'update', libraryId], API.libraries.update(libraryId), 'PUT', asBody, options)
+    useApiMutation<TResponse, TBody>(['libraries', 'update', libraryId], API.libraries.update(libraryId), 'PATCH', asBody, options)
 
 export const useDeleteLibrary = <TResponse = unknown>(
     libraryId: string,
@@ -86,7 +86,7 @@ export const useUpdatePlaylist = <TResponse = unknown, TBody = unknown>(
     playlistId: string,
     options?: MutationHookOptions<TResponse, TBody>,
 ): ApiMutationResult<TResponse, TBody> =>
-    useApiMutation<TResponse, TBody>(['playlists', 'update', playlistId], API.playlists.update(playlistId), 'PUT', asBody, options)
+    useApiMutation<TResponse, TBody>(['playlists', 'update', playlistId], API.playlists.update(playlistId), 'PATCH', asBody, options)
 
 export const useDeletePlaylist = <TResponse = unknown>(
     playlistId: string,
@@ -159,7 +159,7 @@ export const useUpdateCollection = <TResponse = unknown, TBody = unknown>(
     useApiMutation<TResponse, TBody>(
         ['collections', 'update', collectionId],
         API.collections.update(collectionId),
-        'PUT',
+        'PATCH',
         asBody,
         options,
     )

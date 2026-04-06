@@ -1762,7 +1762,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 body: {"in":"body","name":"body","required":true,"ref":"UpdateWatchStateDTO"},
                 req: {"in":"request","name":"req","required":true,"dataType":"object"},
         };
-        app.put('/api/watch-lists/watch-state',
+        app.patch('/api/watch-lists/watch-state',
             authenticateMiddleware([{"cookieAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(WatchListController)),
             ...(fetchMiddlewares<RequestHandler>(WatchListController.prototype.updateWatchState)),
@@ -2042,7 +2042,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
                 body: {"in":"body","name":"body","required":true,"ref":"UpdateVideoDTO"},
         };
-        app.put('/api/videos/:id',
+        app.patch('/api/videos/:id',
             authenticateMiddleware([{"adminAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(VideosController)),
             ...(fetchMiddlewares<RequestHandler>(VideosController.prototype.update)),
@@ -2121,37 +2121,6 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
 
               await templateService.apiHandler({
                 methodName: 'updateMediaInfo',
-                controller,
-                response,
-                next,
-                validatedArgs,
-                successStatus: undefined,
-              });
-            } catch (err) {
-                return next(err);
-            }
-        });
-        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        const argsVideosController_updateMediaInfoPut: Record<string, TsoaRoute.ParameterSchema> = {
-                id: {"in":"path","name":"id","required":true,"dataType":"string"},
-        };
-        app.put('/api/videos/:id/media-info',
-            authenticateMiddleware([{"adminAuth":[]}]),
-            ...(fetchMiddlewares<RequestHandler>(VideosController)),
-            ...(fetchMiddlewares<RequestHandler>(VideosController.prototype.updateMediaInfoPut)),
-
-            async function VideosController_updateMediaInfoPut(request: ExRequest, response: ExResponse, next: any) {
-
-            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-            let validatedArgs: any[] = [];
-            try {
-                validatedArgs = templateService.getValidatedArgs({ args: argsVideosController_updateMediaInfoPut, request, response });
-
-                const controller = new VideosController();
-
-              await templateService.apiHandler({
-                methodName: 'updateMediaInfoPut',
                 controller,
                 response,
                 next,
@@ -2296,7 +2265,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
                 body: {"in":"body","name":"body","required":true,"ref":"UpdateUserDTO"},
         };
-        app.put('/api/users/:id',
+        app.patch('/api/users/:id',
             authenticateMiddleware([{"managementAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(UsersController)),
             ...(fetchMiddlewares<RequestHandler>(UsersController.prototype.update)),
@@ -2357,7 +2326,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         const argsUsersController_findAll: Record<string, TsoaRoute.ParameterSchema> = {
         };
-        app.put('/api/users/public',
+        app.get('/api/users/public',
             authenticateMiddleware([{"public":[]}]),
             ...(fetchMiddlewares<RequestHandler>(UsersController)),
             ...(fetchMiddlewares<RequestHandler>(UsersController.prototype.findAll)),
@@ -2450,7 +2419,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
                 body: {"in":"body","name":"body","required":true,"ref":"UpdateSongDTO"},
         };
-        app.put('/api/songs/:id',
+        app.patch('/api/songs/:id',
             authenticateMiddleware([{"adminAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(SongsController)),
             ...(fetchMiddlewares<RequestHandler>(SongsController.prototype.update)),
@@ -3014,7 +2983,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
                 body: {"in":"body","name":"body","required":true,"ref":"UpdateMovieDTO"},
         };
-        app.put('/api/movies/:id',
+        app.patch('/api/movies/:id',
             authenticateMiddleware([{"adminAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(MoviesController)),
             ...(fetchMiddlewares<RequestHandler>(MoviesController.prototype.update)),
@@ -3330,7 +3299,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
                 body: {"in":"body","name":"body","required":true,"ref":"UpdateSeriesDTO"},
         };
-        app.put('/api/series/show/:id',
+        app.patch('/api/series/show/:id',
             authenticateMiddleware([{"adminAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(SeriesController)),
             ...(fetchMiddlewares<RequestHandler>(SeriesController.prototype.update)),
@@ -3585,7 +3554,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
                 body: {"in":"body","name":"body","required":true,"ref":"UpdateSeasonDTO"},
         };
-        app.put('/api/seasons/:id',
+        app.patch('/api/seasons/:id',
             authenticateMiddleware([{"adminAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(SeasonsController)),
             ...(fetchMiddlewares<RequestHandler>(SeasonsController.prototype.update)),
@@ -3773,7 +3742,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
                 body: {"in":"body","name":"body","required":true,"ref":"UpdatePlayListDTO"},
         };
-        app.put('/api/playlists/:id',
+        app.patch('/api/playlists/:id',
             authenticateMiddleware([{"adminAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(PlayListController)),
             ...(fetchMiddlewares<RequestHandler>(PlayListController.prototype.update)),
@@ -4056,7 +4025,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
                 body: {"in":"body","name":"body","required":true,"ref":"UpdateLibraryDTO"},
         };
-        app.put('/api/libraries/:id',
+        app.patch('/api/libraries/:id',
             authenticateMiddleware([{"adminAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(LibrariesController)),
             ...(fetchMiddlewares<RequestHandler>(LibrariesController.prototype.update)),
@@ -4419,7 +4388,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
                 body: {"in":"body","name":"body","required":true,"ref":"UpdateEpisodeDTO"},
         };
-        app.put('/api/episodes/:id',
+        app.patch('/api/episodes/:id',
             authenticateMiddleware([{"adminAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(EpisodesController)),
             ...(fetchMiddlewares<RequestHandler>(EpisodesController.prototype.update)),
@@ -4609,7 +4578,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
                 body: {"in":"body","name":"body","required":true,"ref":"UpdateCollectionDTO"},
         };
-        app.put('/api/collections/:id',
+        app.patch('/api/collections/:id',
             authenticateMiddleware([{"adminAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(CollectionsController)),
             ...(fetchMiddlewares<RequestHandler>(CollectionsController.prototype.update)),
@@ -4703,7 +4672,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
                 body: {"in":"body","name":"body","required":true,"ref":"UpdateArtistDTO"},
         };
-        app.put('/api/artists/:id',
+        app.patch('/api/artists/:id',
             authenticateMiddleware([{"adminAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(ArtistsController)),
             ...(fetchMiddlewares<RequestHandler>(ArtistsController.prototype.update)),
@@ -4766,7 +4735,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
                 body: {"in":"body","name":"body","required":true,"ref":"UpdateAlbumDTO"},
         };
-        app.put('/api/albums/:id',
+        app.patch('/api/albums/:id',
             authenticateMiddleware([{"adminAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(AlbumsController)),
             ...(fetchMiddlewares<RequestHandler>(AlbumsController.prototype.update)),
@@ -4858,7 +4827,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
                 body: {"in":"body","name":"body","required":true,"ref":"UpdateServerDTO"},
         };
-        app.put('/api/servers/:id',
+        app.patch('/api/servers/:id',
             authenticateMiddleware([{"adminAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(ServersController)),
             ...(fetchMiddlewares<RequestHandler>(ServersController.prototype.update)),
