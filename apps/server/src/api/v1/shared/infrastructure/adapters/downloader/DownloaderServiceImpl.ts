@@ -91,16 +91,15 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
           // Clean partially downloaded file
           try {
             if (existsSync(ytDlpPath)) unlinkSync(ytDlpPath);
-          } catch {}
+          } catch { }
           reject(err);
         });
     });
   }
 
   public async searchVideos(query: string, numberOfResults: number): Promise<MediaSearchResult[]> {
-    const searchQuery = `"${downloaderService.getYtDlpPath()}" "ytsearch${
-      numberOfResults > 0 ? numberOfResults : 1
-    }:${query}" --dump-json --default-search ytsearch --no-playlist --no-check-certificate --geo-bypass --flat-playlist --skip-download --quiet --ignore-errors --ffmpeg-location ${ffmpegPathFinal}`;
+    const searchQuery = `"${downloaderService.getYtDlpPath()}" "ytsearch${numberOfResults > 0 ? numberOfResults : 1
+      }:${query}" --dump-json --default-search ytsearch --no-playlist --no-check-certificate --geo-bypass --flat-playlist --skip-download --quiet --ignore-errors --ffmpeg-location ${ffmpegPathFinal}`;
 
     try {
       const { stdout } = await execAsync(searchQuery);
@@ -150,6 +149,9 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
 
   public async downloadAudio(url: string, downloadFolder: string, fileName: string): Promise<void> {
     const folder = fileSystemService.getExternalPath(downloadFolder);
+
+    // Create folder if it doesn't exist
+    fileSystemService.createFolder(folder);
 
     // Make sure the download path has a trailing slash
     const outputPath = path.join(folder, `${fileName}.opus`);
@@ -222,5 +224,19 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
     } catch (error) {
       downloaderLogger.error(error, 'Error executing yt-dlp');
     }
+  }
+
+  public async autoDownloadFirstAudioResult(query: string, elementId: string): Promise<void> {
+    const result = await this.searchVideos(query, 1);
+
+    if (result.length === 0) {
+      downloaderLogger.warn({ query }, 'No results found for auto-download');
+      return;
+    }
+
+    const video = result[0];
+    const downloadFolder = fileSystemService.join('resources', 'music', elementId);
+
+    await this.downloadAudio(video.url, downloadFolder, elementId);
   }
 }

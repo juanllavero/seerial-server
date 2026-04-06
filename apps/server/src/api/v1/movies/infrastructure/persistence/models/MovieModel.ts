@@ -192,12 +192,6 @@ export class MovieModel extends BaseEntity {
   backgroundsUrls!: string[];
 
   @Column({ type: 'varchar', nullable: false, default: '' })
-  videoSrc!: string;
-
-  @Column({ type: 'varchar', nullable: false, default: '' })
-  musicSrc!: string;
-
-  @Column({ type: 'varchar', nullable: false, default: '' })
   folder!: string;
 
   @Column({

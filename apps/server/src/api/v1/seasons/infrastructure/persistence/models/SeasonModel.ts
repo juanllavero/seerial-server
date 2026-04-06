@@ -75,12 +75,6 @@ export class SeasonModel extends BaseEntity {
   })
   backgroundsUrls!: string[];
 
-  @Column({ type: 'varchar', nullable: false, default: '' })
-  videoSrc!: string;
-
-  @Column({ type: 'varchar', nullable: false, default: '' })
-  musicSrc!: string;
-
   @ManyToOne(() => SeriesModel, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'series_id' })
   series!: SeriesModel;

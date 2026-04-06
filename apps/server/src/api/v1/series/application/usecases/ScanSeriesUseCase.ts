@@ -13,6 +13,7 @@ import type { Season } from '@/api/v1/seasons/domain/Season';
 import type { FileSystemServicePort } from '@/api/v1/shared/application/ports/FileSystemServicePort';
 import type { MetadataProviderPort } from '@/api/v1/shared/application/ports/MetadataProviderPort';
 import type { NotificationServicePort } from '@/api/v1/shared/application/ports/NotificationServicePort';
+import { downloaderService } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { WriteQueue } from '@/api/v1/shared/infrastructure/services/WriteQueue';
 import type { VideoRepositoryPort } from '@/api/v1/videos/application/ports/VideosRepositoryPort';
 import logger from '@/utils/logger';
@@ -47,7 +48,7 @@ export class ScanSeriesUseCase {
     private readonly episodesRepo: EpisodeRepositoryPort,
     private readonly metadataProvider: MetadataProviderPort,
     private readonly notificationService: NotificationServicePort,
-  ) {}
+  ) { }
 
   async execute(library: Library, root: string): Promise<void> {
     logger.info(
@@ -113,6 +114,9 @@ export class ScanSeriesUseCase {
 
     // Search and update metadata
     await this.ensureSeriesMetadata(library, show, root);
+
+    // Download main theme in parallel
+    downloaderService.autoDownloadFirstAudioResult(`${show.name} main theme`, show.id);
 
     // Update series analyzing status
     await this.writeQueue.enqueue(async () => {
@@ -259,7 +263,6 @@ export class ScanSeriesUseCase {
     }
 
     // Create new series
-
     const show = await this.seriesRepo.create({
       folder: root,
       libraryId: library.id,

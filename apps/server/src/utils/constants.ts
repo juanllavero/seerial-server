@@ -26,6 +26,8 @@ export const initFolders: string[] = [
   'resources/img/thumbnails/video/',
   'resources/img/thumbnails/chapters/',
   'resources/img/DownloadCache/',
+  'resources/music/',
+  'resources/videos/',
 ];
 
 export enum UserType {

@@ -5,8 +5,9 @@ import { TMDbApiClient } from '../TMDbApiClient';
 // Mock the fileSystemService import
 jest.mock('../../di/container', () => ({
   fileSystemService: {
+    join: jest.fn((...parts: string[]) => path.join(...parts)),
     getExternalPath: jest.fn((p: string) => p),
-    isFile: jest.fn((p: string) => {
+    isFile: jest.fn(async (p: string) => {
       // Return true for the expected path
       const appDataPath =
         process.env.APPDATA || path.join(process.env.USERPROFILE || '', 'AppData', 'Local');

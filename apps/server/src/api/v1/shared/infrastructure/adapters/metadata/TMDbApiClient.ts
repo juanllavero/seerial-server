@@ -63,7 +63,7 @@ export class TMDbApiClient {
       fileSystemService.join('resources', 'config', 'keys.properties'),
     );
 
-    if (!fileSystemService.isFile(propertiesFilePath)) {
+    if (!(await fileSystemService.isFile(propertiesFilePath))) {
       movieDbLogger.warn('keys.properties file not found, omitting connection with TMDB.');
       return false;
     }

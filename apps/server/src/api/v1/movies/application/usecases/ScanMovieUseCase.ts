@@ -6,6 +6,7 @@ import type { Library } from '@/api/v1/libraries/domain/Library';
 import type { FileSystemServicePort } from '@/api/v1/shared/application/ports/FileSystemServicePort';
 import type { MetadataProviderPort } from '@/api/v1/shared/application/ports/MetadataProviderPort';
 import type { NotificationServicePort } from '@/api/v1/shared/application/ports/NotificationServicePort';
+import { downloaderService } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { getOnlyRuntime } from '@/api/v1/shared/infrastructure/adapters/ffmpeg/mediaInfo';
 import { extractNameAndYear } from '@/api/v1/shared/infrastructure/services/FileSearchService';
 import { WriteQueue } from '@/api/v1/shared/infrastructure/services/WriteQueue';
@@ -27,7 +28,7 @@ export class ScanMovieUseCase {
     private readonly collectionRepo: CollectionsRepositoryPort,
     private readonly metadataProvider: MetadataProviderPort,
     private readonly notificationService: NotificationServicePort,
-  ) {}
+  ) { }
 
   async execute(library: Library, root: string): Promise<void> {
     logger.info({ libraryId: library.id, root }, 'Starting movies scan execution');
@@ -215,6 +216,9 @@ export class ScanMovieUseCase {
     // Partial notification for UI
     this.notificationService.mutateMovie(movie);
 
+    // Download main theme in parallel
+    downloaderService.autoDownloadFirstAudioResult(`${movie.name} main theme`, movie.id);
+
     // Process videos sequentially (already in queue)
     const allFiles = [...mainFiles, ...extraFiles];
     const types = [
@@ -225,6 +229,9 @@ export class ScanMovieUseCase {
     for (let i = 0; i < allFiles.length; i++) {
       await this.ensureVideoAndProcess(library, movie, allFiles[i], types[i], !!movieMetadata);
     }
+
+    // Update movie in DB
+    await this.movieRepository.update(movie.id, movie);
 
     // Mutate content on clients
     this.notificationService.mutateMovie(movie);
@@ -285,6 +292,9 @@ export class ScanMovieUseCase {
 
       // E. External Metadata (Usually only for Main features, or if extras are supported)
       await this.updateVideoMetadata(video, movie, hasMetadata, type);
+
+      // Update video in DB
+      await this.videoRepo.update(video.id, video);
     } catch (error) {
       logger.error({ error, filePath, movieId: movie.id }, 'Error processing video file');
     }

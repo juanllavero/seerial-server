@@ -3,7 +3,7 @@ import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions
 import type { SeasonsRepositoryPort } from '../ports/SeasonsRepositoryPort';
 
 export class DeleteSeasonDataUseCase {
-  constructor(private seasonsRepo: SeasonsRepositoryPort) {}
+  constructor(private seasonsRepo: SeasonsRepositoryPort) { }
 
   async execute(id: string): Promise<void> {
     const season = await this.seasonsRepo.findById(id, 'none');
@@ -12,12 +12,7 @@ export class DeleteSeasonDataUseCase {
     fileSystemService.deleteFolder(`resources/img/backgrounds/${season.id}`);
     fileSystemService.deleteFolder(`resources/img/posters/${season.id}`);
     fileSystemService.deleteFolder(`resources/img/logos/${season.id}`);
-
-    if (season.musicSrc) {
-      fileSystemService.deleteFile(season.musicSrc);
-    }
-    if (season.videoSrc) {
-      fileSystemService.deleteFile(season.videoSrc);
-    }
+    fileSystemService.deleteFolder(`resources/music/${season.id}`);
+    fileSystemService.deleteFolder(`resources/videos/${season.id}`);
   }
 }
