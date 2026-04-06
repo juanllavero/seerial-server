@@ -29,7 +29,7 @@ const metadataLogger = logger.child({ category: 'Metadata' });
 const metadataManagerLogger = logger.child({ category: 'Metadata Manager' });
 
 export class MetadataProviderImpl implements MetadataProviderPort {
-  constructor(private readonly apiClient: TMDbApiClient) {}
+  constructor(private readonly apiClient: TMDbApiClient) { }
 
   private readonly BASE_URL: string = 'https://image.tmdb.org/t/p/original';
 
@@ -580,8 +580,8 @@ export class MetadataProviderImpl implements MetadataProviderPort {
     // Update images
     const images = await metadataProvider.getEpisodeImages(
       series.themdbId,
-      episode.seasonNumber,
-      episode.episodeNumber,
+      episodeMetadata.season_number ?? episode.seasonNumber,
+      episodeMetadata.episode_number ?? episode.episodeNumber,
     );
     if (images?.stills) {
       video.imgUrls = images.stills.map((img) => `${this.BASE_URL}${img.file_path}`);

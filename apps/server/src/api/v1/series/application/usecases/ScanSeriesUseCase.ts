@@ -420,6 +420,10 @@ export class ScanSeriesUseCase {
           {
             seriesId: show.id,
             videoSrc: resolution.videoSrc,
+            extractedSeason: resolution.realSeason,
+            extractedEpisode: resolution.realEpisode,
+            hasSeasonMetadata: !!resolution.seasonMetadata,
+            hasEpisodeMetadata: !!resolution.episodeMetadata,
           },
           'Could not resolve season/episode metadata for file, skipping',
         );
@@ -750,19 +754,42 @@ export class ScanSeriesUseCase {
     const seasonEpisode: [number, number?] = this.extractEpisodeSeason(fullName);
 
     if (Number.isNaN(seasonEpisode[0])) {
+      logger.debug(
+        {
+          seriesId: show.id,
+          videoSrc,
+          filename: fullName,
+        },
+        'Could not extract season/episode from filename',
+      );
       return { seasonMetadata, episodeMetadata };
     }
 
     // Absolute number
     if (!seasonEpisode[1]) {
       const absoluteNumber = seasonEpisode[0];
+      realEpisode = absoluteNumber;
+
       const result = this.getSeasonEpisodeByAbsoluteNumber(
         absoluteNumber,
         seasonsMetadata,
         cumulativeEpisodes,
       );
 
-      if (!result) return { seasonMetadata, episodeMetadata };
+      if (!result) {
+        logger.debug(
+          {
+            seriesId: show.id,
+            videoSrc,
+            filename: fullName,
+            detectedAbsoluteEpisode: absoluteNumber,
+            totalSeasonsMetadata: seasonsMetadata.length,
+            cumulativeEpisodes,
+          },
+          'Could not find absolute episode number in metadata',
+        );
+        return { seasonMetadata, episodeMetadata };
+      }
 
       seasonMetadata = result.season;
       episodeMetadata = result.episode;
@@ -780,6 +807,22 @@ export class ScanSeriesUseCase {
         seasonsIndex,
         episodesGroup,
       );
+
+      if (!resolved?.episodeMetadata || !resolved?.seasonMetadata) {
+        logger.debug(
+          {
+            seriesId: show.id,
+            videoSrc,
+            filename: fullName,
+            detectedSeason: seasonNumber,
+            detectedEpisode: episodeNumber,
+            foundInSeasonIndex: !!seasonsIndex.get(seasonNumber),
+            seasonInMetadata: seasonsMetadata.some((s) => s.season_number === seasonNumber),
+            hasEpisodeGroupId: !!show.episodeGroupId,
+          },
+          'Could not resolve season/episode in metadata',
+        );
+      }
 
       seasonMetadata = resolved?.seasonMetadata ?? null;
       episodeMetadata = resolved?.episodeMetadata ?? null;
@@ -862,9 +905,15 @@ export class ScanSeriesUseCase {
     seasonsMetadata: TvSeasonResponse[],
     cumulative: number[],
   ): { season: TvSeasonResponse; episode: MovieDBEpisode } | null {
+    const standardSeasons = this.getStandardSeasonsForAbsoluteMapping(seasonsMetadata);
+
     for (let i = 0; i < cumulative.length; i++) {
       if (absoluteNumber <= cumulative[i]) {
-        const season = seasonsMetadata[i];
+        const season = standardSeasons[i];
+        if (!season?.episodes) {
+          continue;
+        }
+
         const previousCount = i > 0 ? cumulative[i - 1] : 0;
         const episodeIndex = absoluteNumber - previousCount - 1; // Index from 0
         if (season.episodes?.[episodeIndex]) {
@@ -948,16 +997,33 @@ export class ScanSeriesUseCase {
    * @returns Cumulative number of episodes in each season
    */
   buildCumulativeEpisodes(seasonsMetadata: TvSeasonResponse[]): number[] {
+    const standardSeasons = this.getStandardSeasonsForAbsoluteMapping(seasonsMetadata);
     const cumulative: number[] = [];
     let total = 0;
 
-    for (const season of seasonsMetadata) {
-      if (season.season_number != null && season.season_number >= 1 && season.episodes) {
-        total += season.episodes.length;
-        cumulative.push(total);
-      }
+    for (const season of standardSeasons) {
+      total += season.episodes?.length ?? 0;
+      cumulative.push(total);
     }
     return cumulative;
+  }
+
+  /**
+   * Returns regular seasons ordered by season number.
+   * Season 0 (specials) is excluded from absolute episode mapping.
+   */
+  private getStandardSeasonsForAbsoluteMapping(
+    seasonsMetadata: TvSeasonResponse[],
+  ): TvSeasonResponse[] {
+    return seasonsMetadata
+      .filter(
+        (season) =>
+          season.season_number != null &&
+          season.season_number >= 1 &&
+          Array.isArray(season.episodes) &&
+          season.episodes.length > 0,
+      )
+      .sort((a, b) => (a.season_number ?? 0) - (b.season_number ?? 0));
   }
 
   //#endregion

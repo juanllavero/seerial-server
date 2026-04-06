@@ -22,6 +22,24 @@ if (ffmpegPathFinal.includes('app.asar')) {
   ffmpegPathFinal = ffmpegPathFinal.replace('app.asar', 'app.asar.unpacked');
 }
 
+const ffmpegArg =
+  ffmpegPathFinal && existsSync(ffmpegPathFinal)
+    ? ` --ffmpeg-location "${ffmpegPathFinal}"`
+    : '';
+
+const nodeExecutableName = path.basename(process.execPath).toLowerCase();
+const jsRuntimeValue = nodeExecutableName.startsWith('node')
+  ? `node:${process.execPath}`
+  : 'node';
+const jsRuntimesArg = ` --js-runtimes "${jsRuntimeValue}"`;
+
+if (ffmpegPathFinal && !ffmpegArg) {
+  downloaderLogger.warn(
+    { ffmpegPathFinal },
+    'ffmpeg-static path does not exist. Continuing without explicit ffmpeg location',
+  );
+}
+
 const execAsync = promisify(exec);
 
 export class DownloaderServiceImpl implements DownloaderServicePort {
@@ -99,7 +117,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
 
   public async searchVideos(query: string, numberOfResults: number): Promise<MediaSearchResult[]> {
     const searchQuery = `"${downloaderService.getYtDlpPath()}" "ytsearch${numberOfResults > 0 ? numberOfResults : 1
-      }:${query}" --dump-json --default-search ytsearch --no-playlist --no-check-certificate --geo-bypass --flat-playlist --skip-download --quiet --ignore-errors --ffmpeg-location ${ffmpegPathFinal}`;
+      }:${query}" --dump-json --default-search ytsearch --no-playlist --no-check-certificate --geo-bypass --flat-playlist --skip-download --quiet --ignore-errors${ffmpegArg}${jsRuntimesArg}`;
 
     try {
       const { stdout } = await execAsync(searchQuery);
@@ -142,7 +160,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
     }
 
     // Prepare yt-dlp command
-    const command = `"${downloaderService.getYtDlpPath()}" -f "bestvideo[ext=webm]+bestaudio[ext=webm]" -o "${outputPath}" ${url} -q --progress --force-overwrite --ffmpeg-location ${ffmpegPathFinal}`;
+    const command = `"${downloaderService.getYtDlpPath()}" -f "bestvideo*+bestaudio/best" -o "${outputPath}" ${url} -q --progress --force-overwrite${ffmpegArg}${jsRuntimesArg}`;
 
     this.downloadContent(command, fileName);
   }
@@ -166,7 +184,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
     }
 
     // Prepare the yt-dlp command to download only the audio (the best audio available)
-    const command = `"${downloaderService.getYtDlpPath()}" -f "bestaudio[ext=webm]" -o "${outputPath}" ${url} -q --progress --force-overwrite --ffmpeg-location ${ffmpegPathFinal}`;
+    const command = `"${downloaderService.getYtDlpPath()}" -f "bestaudio/best" -o "${outputPath}" ${url} -q --progress --force-overwrite${ffmpegArg}${jsRuntimesArg}`;
 
     this.downloadContent(command, fileName);
   }
@@ -197,7 +215,25 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
       });
 
       process.stderr.on('data', (data: Buffer) => {
-        downloaderLogger.error({ stderr: data.toString() }, 'Download stderr');
+        const stderrOutput = data.toString();
+        const stderrLines = stderrOutput
+          .split('\n')
+          .map((line) => line.trim())
+          .filter(Boolean);
+
+        for (const line of stderrLines) {
+          if (line.startsWith('WARNING:')) {
+            downloaderLogger.warn({ stderr: line }, 'Download stderr');
+            continue;
+          }
+
+          if (line.startsWith('ERROR:')) {
+            downloaderLogger.error({ stderr: line }, 'Download stderr');
+            continue;
+          }
+
+          downloaderLogger.info({ stderr: line }, 'Download stderr');
+        }
       });
 
       process.on('close', (code: number) => {

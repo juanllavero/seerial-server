@@ -13,5 +13,11 @@
   "editor.fontLigatures": true,
   "editor.fontFamily": "Fira Code, Consolas, 'Courier New', monospace",
   "postman.settings.dotenv-detection-notification-visibility": false,
-  "editor.defaultFormatter": "biomejs.biome"
+  "editor.defaultFormatter": "biomejs.biome",
+  "logViewer.watch": [
+    {
+      "title": "Seerial Server",
+      "pattern": "C:/Users/Admin/Documents/Projects/seerial-server/apps/server/logs/app.log"
+    }
+  ]
 }
