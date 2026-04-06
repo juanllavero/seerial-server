@@ -15,7 +15,7 @@ interface FormattedVideoInfo {
 }
 
 export class MediaService {
-  private constructor() { }
+  private constructor() {}
 
   /**
    * Fetches a video and its related parent entities (Series/Movie, Library)

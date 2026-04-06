@@ -124,8 +124,8 @@ export class ImagesController extends Controller {
     const imagePath = nodePath.isAbsolute(path)
       ? path
       : fileSystemService.getExternalPath(
-        path.includes('resources/') ? path : fileSystemService.join('resources', path),
-      );
+          path.includes('resources/') ? path : fileSystemService.join('resources', path),
+        );
 
     const sanitizedPath = sanitizeImagePath(
       imagePath,
@@ -178,7 +178,13 @@ export class ImagesController extends Controller {
       throw new NotEnoughParamsException();
     }
 
-    const imageSource = localPath ? fileSystemService.getExternalPath(localPath?.includes('resources/') ? localPath : fileSystemService.join('resources', localPath ?? '')) : url;
+    const imageSource = localPath
+      ? fileSystemService.getExternalPath(
+          localPath?.includes('resources/')
+            ? localPath
+            : fileSystemService.join('resources', localPath ?? ''),
+        )
+      : url;
 
     const options = {
       targetLightness: {

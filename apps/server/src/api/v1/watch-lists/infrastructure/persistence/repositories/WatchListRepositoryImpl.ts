@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
 import { MovieModel } from '@/api/v1/movies/infrastructure/persistence/models/MovieModel';
 import { SeasonModel } from '@/api/v1/seasons/infrastructure/persistence/models/SeasonModel';
-import { SeriesModel } from '@/api/v1/series/infrastructure/persistence/models/SeriesModel';
+import type { SeriesModel } from '@/api/v1/series/infrastructure/persistence/models/SeriesModel';
 import { librariesRepo } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { GenericRepositoryHelper } from '@/helpers/GenericRepositoryHelper';
 import type { WatchListRepositoryPort } from '../../../application/ports/WatchListRepositoryPort';
@@ -471,14 +471,18 @@ export class WatchListRepositoryImpl extends BaseRepository implements WatchList
 
     const videos = await Promise.all(
       elements
-        .filter((item) => !!item.video && (item.timeWatched > 0 || !!item.seriesId || !!item.movieId))
-        .map(async (item) => await this.mapContinueWatchingVideo(item))
+        .filter(
+          (item) => !!item.video && (item.timeWatched > 0 || !!item.seriesId || !!item.movieId),
+        )
+        .map(async (item) => await this.mapContinueWatchingVideo(item)),
     );
 
     return videos.filter((video): video is ContinueWatchingVideoDTO => video !== null);
   }
 
-  private async mapContinueWatchingVideo(item: WatchListModel): Promise<ContinueWatchingVideoDTO | null> {
+  private async mapContinueWatchingVideo(
+    item: WatchListModel,
+  ): Promise<ContinueWatchingVideoDTO | null> {
     const itemVideo = item.video;
     if (!itemVideo) return null;
 
@@ -505,7 +509,11 @@ export class WatchListRepositoryImpl extends BaseRepository implements WatchList
         episodeId: episode.id,
         seriesId: series.id,
         videoId: itemVideo.id,
-        details: await librariesRepo.generateItemDetails(series as unknown as SeriesModel, 'series', item.userId)
+        details: await librariesRepo.generateItemDetails(
+          series as unknown as SeriesModel,
+          'series',
+          item.userId,
+        ),
       };
     }
 
@@ -526,7 +534,11 @@ export class WatchListRepositoryImpl extends BaseRepository implements WatchList
         videoImage: itemVideo.imgSrc,
         movieId: movie.id,
         videoId: itemVideo.id,
-        details: await librariesRepo.generateItemDetails(movie as unknown as MovieModel, 'movie', item.userId)
+        details: await librariesRepo.generateItemDetails(
+          movie as unknown as MovieModel,
+          'movie',
+          item.userId,
+        ),
       };
     }
 

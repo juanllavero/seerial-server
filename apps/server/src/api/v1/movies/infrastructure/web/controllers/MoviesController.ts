@@ -15,7 +15,8 @@ import {
   Tags,
 } from 'tsoa';
 import {
-  externalSearchService, useCases
+  externalSearchService,
+  useCases,
 } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { MediaService } from '@/api/v1/shared/infrastructure/services/MediaService';
 import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';

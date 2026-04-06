@@ -160,7 +160,9 @@ export async function findLyricsForSong(songId: string) {
     const songDirectory = path.dirname(song.fileSrc);
     const songBaseName = path.basename(song.fileSrc, path.extname(song.fileSrc));
     const filesInDir = await fs.readdir(songDirectory);
-    const lrcFiles = filesInDir.filter((file) => path.extname(file).toLowerCase() === lyricExtension);
+    const lrcFiles = filesInDir.filter(
+      (file) => path.extname(file).toLowerCase() === lyricExtension,
+    );
     const lyricCandidates = buildLyricLookupCandidates(songBaseName, song.title, song.trackNumber);
 
     mediaDetailsLogger.debug(

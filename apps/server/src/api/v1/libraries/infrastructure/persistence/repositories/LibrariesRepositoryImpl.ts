@@ -94,12 +94,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
 
     switch (type) {
       case LibraryTypes.MOVIES:
-        return [
-          'movies',
-          'movies.watchLists',
-          'movies.videos',
-          ...collectionRelations,
-        ];
+        return ['movies', 'movies.watchLists', 'movies.videos', ...collectionRelations];
       case LibraryTypes.SHOWS:
         return [
           'series',
@@ -468,9 +463,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       totalEpisodes += season.episodes.length;
 
       for (const episode of season.episodes) {
-        const watchedEpisode = episode.watchLists?.find(
-          (wl) => wl.userId === userId && wl.watched,
-        );
+        const watchedEpisode = episode.watchLists?.find((wl) => wl.userId === userId && wl.watched);
         if (watchedEpisode) watchedEpisodes++;
       }
     }

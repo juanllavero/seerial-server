@@ -139,10 +139,7 @@ export class SongsController extends Controller {
    * Stream audio file
    */
   @Get('stream')
-  public async streamAudio(
-    @Request() req: ExpressRequest,
-    @Query() isWeb?: string,
-  ): Promise<void> {
+  public async streamAudio(@Request() req: ExpressRequest, @Query() isWeb?: string): Promise<void> {
     const res = req.res as ExpressResponse;
 
     await new Promise<void>((resolve, reject) => {

@@ -1,4 +1,4 @@
-import { Album, Movie, Series } from '@seerial/domain';
+import type { Album, Movie, Series } from '@seerial/domain';
 import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
 import { LibraryCollectionModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryCollectionModel';
 import { LibraryModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryModel';
@@ -48,7 +48,7 @@ export class CollectionsRepositoryImpl extends BaseRepository implements Collect
       'collectionMovies.movie',
       'collectionSeries',
       'collectionSeries.series',
-    ]
+    ];
 
     const collection = await CollectionModel.findOne({
       where: { id: validatedId },

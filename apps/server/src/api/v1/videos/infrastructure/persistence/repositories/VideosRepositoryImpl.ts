@@ -93,64 +93,9 @@ export class VideosRepositoryImpl extends BaseRepository implements VideoReposit
       throw new NotFoundException(messages.errors.notFound.video);
     }
 
-    const playBackConfig = {
-      preferAudioLan: '',
-      preferSubLan: '',
-      subsMode: 'autoSubs',
-    };
-
-    const videoInfo = {
-      title: '',
-      subtitle: '',
-      info: '',
-    };
-
-    if (video.movieId) {
-      const movie = await useCases.getMoviebyId().execute(video.movieId);
-
-      if (!movie) {
-        throw new NotFoundException(messages.errors.notFound.movie);
-      }
-
-      const library = await useCases.getLibrary().execute(movie.libraryId);
-
-      if (!library) {
-        throw new NotFoundException(messages.errors.notFound.library);
-      }
-
-      videoInfo.title = movie.name;
-      videoInfo.info = `(${formatDate(movie.year)})`;
-
-      playBackConfig.preferAudioLan = library.preferAudioLan || '';
-      playBackConfig.preferSubLan = library.preferSubLan || '';
-      playBackConfig.subsMode = library.subsMode || 'autoSubs';
-    } else {
-      const episode = await useCases.getEpisodeById().execute(video.episodeId ?? '');
-
-      if (!episode) {
-        throw new NotFoundException(messages.errors.notFound.episode);
-      }
-
-      const season = await useCases.getSeasonById().execute(episode.seasonId);
-
-      if (!season) {
-        throw new NotFoundException(messages.errors.notFound.season);
-      }
-
-      const series = await useCases.getSeriesById().execute(season.seriesId);
-
-      if (!series) {
-        throw new NotFoundException(messages.errors.notFound.series);
-      }
-
-      videoInfo.title = episode.name;
-      videoInfo.subtitle = `${series.name} • ${season.name}`;
-      videoInfo.info = `S${season.seasonNumber}E${episode.episodeNumber} • (${formatDate(episode.year)})`;
-
-      playBackConfig.preferAudioLan = series.preferAudioLan || '';
-      playBackConfig.preferSubLan = series.preferSubLan || '';
-      playBackConfig.subsMode = series.subsMode || 'autoSubs';
-    }
+    const playbackContext = video.movieId
+      ? await this.buildMoviePlaybackContext(video.movieId)
+      : await this.buildEpisodePlaybackContext(video.episodeId ?? '');
 
     const mediaInfo = await getMediaInfo(video.fileSrc);
 
@@ -159,9 +104,75 @@ export class VideosRepositoryImpl extends BaseRepository implements VideoReposit
     }
 
     return {
-      ...videoInfo,
+      ...playbackContext.videoInfo,
       mediaInfoData: mediaInfo,
-      playBackConfig,
+      playBackConfig: playbackContext.playBackConfig,
+    };
+  }
+
+  private async buildMoviePlaybackContext(movieId: string): Promise<{
+    videoInfo: { title: string; subtitle: string; info: string };
+    playBackConfig: { preferAudioLan: string; preferSubLan: string; subsMode: string };
+  }> {
+    const movie = await useCases.getMoviebyId().execute(movieId);
+
+    if (!movie) {
+      throw new NotFoundException(messages.errors.notFound.movie);
+    }
+
+    const library = await useCases.getLibrary().execute(movie.libraryId);
+
+    if (!library) {
+      throw new NotFoundException(messages.errors.notFound.library);
+    }
+
+    return {
+      videoInfo: {
+        title: movie.name,
+        subtitle: '',
+        info: `(${formatDate(movie.year)})`,
+      },
+      playBackConfig: {
+        preferAudioLan: library.preferAudioLan || '',
+        preferSubLan: library.preferSubLan || '',
+        subsMode: library.subsMode || 'autoSubs',
+      },
+    };
+  }
+
+  private async buildEpisodePlaybackContext(episodeId: string): Promise<{
+    videoInfo: { title: string; subtitle: string; info: string };
+    playBackConfig: { preferAudioLan: string; preferSubLan: string; subsMode: string };
+  }> {
+    const episode = await useCases.getEpisodeById().execute(episodeId);
+
+    if (!episode) {
+      throw new NotFoundException(messages.errors.notFound.episode);
+    }
+
+    const season = await useCases.getSeasonById().execute(episode.seasonId);
+
+    if (!season) {
+      throw new NotFoundException(messages.errors.notFound.season);
+    }
+
+    const series = await useCases.getSeriesById().execute(season.seriesId);
+
+    if (!series) {
+      throw new NotFoundException(messages.errors.notFound.series);
+    }
+
+    return {
+      videoInfo: {
+        title: episode.name,
+        subtitle: `${series.name} • ${season.name}`,
+        info: `S${season.seasonNumber}E${episode.episodeNumber} • (${formatDate(episode.year)})`,
+      },
+      playBackConfig: {
+        preferAudioLan: series.preferAudioLan || '',
+        preferSubLan: series.preferSubLan || '',
+        subsMode: series.subsMode || 'autoSubs',
+      },
     };
   }
 
