@@ -66,11 +66,12 @@ export function executeFfmpeg(args: string[]): Promise<void> {
           ffmpegProcess.kill('SIGTERM');
 
           // Kill after timeout if not exited
-          setTimeout(() => {
+          const killTimer = setTimeout(() => {
             if (ffmpegProcess && !ffmpegProcess.killed) {
               ffmpegProcess.kill('SIGKILL');
             }
           }, 5000);
+          killTimer.unref?.();
         }
       }
     };
@@ -146,11 +147,12 @@ export function executeFfprobe(
         if (!ffprobeProcess.killed) {
           ffprobeProcess.kill('SIGTERM');
 
-          setTimeout(() => {
+          const killTimer = setTimeout(() => {
             if (ffprobeProcess && !ffprobeProcess.killed) {
               ffprobeProcess.kill('SIGKILL');
             }
           }, 5000);
+          killTimer.unref?.();
         }
       }
     };
@@ -162,6 +164,7 @@ export function executeFfprobe(
         reject(new Error('ffprobe timed out'));
       }
     }, timeoutMs);
+    timeout.unref?.();
 
     try {
       const args = [
@@ -258,11 +261,12 @@ export function executeFfmpegPipe(
         if (!ffmpegProcess.killed) {
           ffmpegProcess.kill('SIGTERM');
 
-          setTimeout(() => {
+          const killTimer = setTimeout(() => {
             if (ffmpegProcess && !ffmpegProcess.killed) {
               ffmpegProcess.kill('SIGKILL');
             }
           }, 5000);
+          killTimer.unref?.();
         }
       }
     };
@@ -340,11 +344,12 @@ export function executeFfprobeRaw(args: string[], timeoutMs: number = 10000): Pr
         if (!ffprobeProcess.killed) {
           ffprobeProcess.kill('SIGTERM');
 
-          setTimeout(() => {
+          const killTimer = setTimeout(() => {
             if (ffprobeProcess && !ffprobeProcess.killed) {
               ffprobeProcess.kill('SIGKILL');
             }
           }, 5000);
+          killTimer.unref?.();
         }
       }
     };
@@ -356,6 +361,7 @@ export function executeFfprobeRaw(args: string[], timeoutMs: number = 10000): Pr
         reject(new Error('ffprobe timed out'));
       }
     }, timeoutMs);
+    timeout.unref?.();
 
     try {
       ffprobeProcess = spawn(getFfprobePath(), args, {
@@ -438,11 +444,12 @@ export function executeFfmpegPipeToStream(
 
       // Kill after timeout if not exited
       if (signal === 'SIGTERM') {
-        setTimeout(() => {
+        const killTimer = setTimeout(() => {
           if (ffmpegProcess && !ffmpegProcess.killed) {
             ffmpegProcess.kill('SIGKILL');
           }
         }, 5000);
+        killTimer.unref?.();
       }
     }
   };

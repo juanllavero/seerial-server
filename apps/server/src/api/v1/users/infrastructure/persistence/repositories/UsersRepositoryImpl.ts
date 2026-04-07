@@ -129,6 +129,6 @@ export class UsersRepositoryImpl extends BaseRepository implements UsersReposito
 
   async delete(id: string): Promise<void> {
     const validatedId = this.validateId(id, 'User ID');
-    this.helper.delete(validatedId);
+    await this.helper.delete(validatedId);
   }
 }

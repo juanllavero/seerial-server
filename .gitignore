@@ -46,3 +46,7 @@ resources/
 data.json
 certificate.key
 certificate.pem
+
+temp/
+coverage/
+postman/
