@@ -1,10 +1,22 @@
 import type { CollectionsRepositoryPort } from '@/api/v1/collections/application/ports/CollectionsRepositoryPort';
+import { AddAlbumToCollectionUseCase } from '@/api/v1/collections/application/usecases/AddAlbumToCollectionUseCase';
+import { AddLibraryToCollectionUseCase } from '@/api/v1/collections/application/usecases/AddLibraryUseCase';
 import { CreateCollectionUseCase } from '@/api/v1/collections/application/usecases/CreateCollectionUseCase';
 import { DeleteCollectionUseCase } from '@/api/v1/collections/application/usecases/DeleteCollectionUseCase';
 import { FindCollectionByIdUseCase } from '@/api/v1/collections/application/usecases/FindCollectionByIdUseCase';
+import { FindCollectionsInLibraryUseCase } from '@/api/v1/collections/application/usecases/FindCollectionsInLibraryUseCase';
+import { GetMusicExtrasUseCase } from '@/api/v1/collections/application/usecases/GetMusicExtrasUseCase';
 import { ReorderCollectionItemsUseCase } from '@/api/v1/collections/application/usecases/ReorderCollectionItemsUseCase';
 import { UpdateCollectionUseCase } from '@/api/v1/collections/application/usecases/UpdateCollectionUseCase';
 import type { Collection } from '@/api/v1/collections/domain/Collection';
+
+jest.mock('@/api/v1/shared/infrastructure/services/MediaDetailsService', () => ({
+    findMusicExtras: jest.fn(),
+}));
+
+const mockFindMusicExtras = jest.requireMock(
+    '@/api/v1/shared/infrastructure/services/MediaDetailsService',
+).findMusicExtras as jest.Mock;
 
 function buildCollection(overrides: Partial<Collection> = {}): Collection {
     return {
@@ -104,6 +116,38 @@ describe('Collection use cases', () => {
             await new ReorderCollectionItemsUseCase(repo).execute('collection-1', orderedItems);
 
             expect(repo.reorderContent).toHaveBeenCalledWith('collection-1', orderedItems);
+        });
+    });
+
+    describe('Additional collection use cases', () => {
+        it('adds an album to a collection through the repository', async () => {
+            const repo = buildCollectionsRepo({ addAlbum: jest.fn().mockResolvedValue(undefined) });
+
+            await expect(new AddAlbumToCollectionUseCase(repo).execute('collection-1', 'album-1')).resolves.toBeUndefined();
+            expect(repo.addAlbum).toHaveBeenCalledWith('collection-1', 'album-1');
+        });
+
+        it('adds a collection to a library through the repository', async () => {
+            const repo = buildCollectionsRepo({ addLibrary: jest.fn().mockResolvedValue(undefined) });
+
+            await expect(new AddLibraryToCollectionUseCase(repo).execute('library-1', 'collection-1')).resolves.toBeUndefined();
+            expect(repo.addLibrary).toHaveBeenCalledWith('library-1', 'collection-1');
+        });
+
+        it('finds collections in a specific library', async () => {
+            const collections = [buildCollection({ id: 'collection-2' })];
+            const repo = buildCollectionsRepo({ getAll: jest.fn().mockResolvedValue(collections) });
+
+            await expect(new FindCollectionsInLibraryUseCase(repo).execute('library-1')).resolves.toEqual(collections);
+            expect(repo.getAll).toHaveBeenCalledWith('library-1');
+        });
+
+        it('returns music extras for a collection', async () => {
+            const extras = [{ id: 'extra-1', title: 'Live Track' }];
+            mockFindMusicExtras.mockResolvedValue(extras);
+
+            await expect(new GetMusicExtrasUseCase().execute('collection-1')).resolves.toEqual(extras);
+            expect(mockFindMusicExtras).toHaveBeenCalledWith('collection-1');
         });
     });
 });

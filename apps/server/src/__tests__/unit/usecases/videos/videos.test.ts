@@ -4,7 +4,10 @@ import type { FileSystemServicePort } from '@/api/v1/shared/application/ports/Fi
 import type { VideoRepositoryPort } from '@/api/v1/videos/application/ports/VideosRepositoryPort';
 import { DeleteVideoDataUseCase } from '@/api/v1/videos/application/usecases/DeleteVideoDataUseCase';
 import { DeleteVideoUseCase } from '@/api/v1/videos/application/usecases/DeleteVideoUseCase';
+import { CreateVideoAsEpisodeUseCase } from '@/api/v1/videos/application/usecases/CreateVideoAsEpisodeUseCase';
 import { FindVideoByIdUseCase } from '@/api/v1/videos/application/usecases/FindVideoByIdUseCase';
+import { FindVideoByEpisodeIdUseCase } from '@/api/v1/videos/application/usecases/FindVideoByEpisodeIdUseCase';
+import { FindVideoByMovieIdUseCase } from '@/api/v1/videos/application/usecases/FindVideoByMovieIdUseCase';
 import { FindVideoByPathUseCase } from '@/api/v1/videos/application/usecases/FindVideoByPathUseCase';
 import { GetVideoPlaybackInfoUseCase } from '@/api/v1/videos/application/usecases/GetVideoPlaybackInfoUseCase';
 import { UpdateMediaInfoUseCase } from '@/api/v1/videos/application/usecases/UpdateMediaInfoUseCase';
@@ -142,6 +145,30 @@ describe('Video use cases', () => {
         });
     });
 
+    describe('FindVideoByEpisodeIdUseCase', () => {
+        it('returns the video linked to an episode', async () => {
+            const video = buildVideo({ id: 'video-episode-1' });
+            const repo = buildVideoRepo({ findByEpisodeId: jest.fn().mockResolvedValue(video) });
+
+            const result = await new FindVideoByEpisodeIdUseCase(repo).execute('episode-1');
+
+            expect(result).toEqual(video);
+            expect(repo.findByEpisodeId).toHaveBeenCalledWith('episode-1');
+        });
+    });
+
+    describe('FindVideoByMovieIdUseCase', () => {
+        it('returns videos linked to a movie', async () => {
+            const videos = [buildVideo({ id: 'video-1' }), buildVideo({ id: 'video-2' })];
+            const repo = buildVideoRepo({ findByMovieId: jest.fn().mockResolvedValue(videos) });
+
+            const result = await new FindVideoByMovieIdUseCase(repo).execute('movie-1');
+
+            expect(result).toEqual(videos);
+            expect(repo.findByMovieId).toHaveBeenCalledWith('movie-1');
+        });
+    });
+
     describe('GetVideoPlaybackInfoUseCase', () => {
         it('returns playback info from the repository', async () => {
             const playbackInfo = { videoId: 'video-1', path: '/media/video-1.mkv' } as unknown as PlayBackInfo;
@@ -163,6 +190,22 @@ describe('Video use cases', () => {
 
             expect(result).toEqual(video);
             expect(repo.update).toHaveBeenCalledWith(video.id, { runtime: 125 });
+        });
+    });
+
+    describe('CreateVideoAsEpisodeUseCase', () => {
+        it('creates a video attached to an episode', async () => {
+            const created = buildVideo({ id: 'video-episode-2' });
+            const repo = buildVideoRepo({ addAsEpisode: jest.fn().mockResolvedValue(created) });
+
+            const result = await new CreateVideoAsEpisodeUseCase(repo).execute('episode-2', {
+                fileSrc: '/media/episode-2.mkv',
+            } as Partial<Video>);
+
+            expect(result).toEqual(created);
+            expect(repo.addAsEpisode).toHaveBeenCalledWith('episode-2', {
+                fileSrc: '/media/episode-2.mkv',
+            });
         });
     });
 

@@ -123,4 +123,26 @@ describe('MoviesRepositoryImpl', () => {
             await expect(repo.delete('')).rejects.toMatchObject({ statusCode: 400 });
         });
     });
+    describe('findByPath', () => {
+        it('returns null when no video matches the path', async () => {
+            const found = await repo.findByPath('/movies/missing.mp4');
+            expect(found).toBeNull();
+        });
+
+        it('returns the movie when a video with that path exists', async () => {
+            const library = await createLibrary();
+            const movie = await repo.create({ libraryId: library.id, name: 'Matrix' });
+
+            const { VideoModel } = await import('@/api/v1/videos/infrastructure/persistence/models/VideoModel');
+            await VideoModel.save({
+                id: `vid-${Math.random().toString(36).slice(2, 10)}`,
+                movieId: movie.id,
+                fileSrc: '/movies/matrix.mp4',
+            });
+
+            const found = await repo.findByPath('/movies/matrix.mp4');
+            expect(found).not.toBeNull();
+            expect(found!.id).toBe(movie.id);
+        });
+    });
 });

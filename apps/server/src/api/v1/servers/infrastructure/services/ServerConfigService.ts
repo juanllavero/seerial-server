@@ -4,7 +4,6 @@ import http from 'node:http';
 import https from 'node:https';
 import os from 'node:os';
 import type { Express, NextFunction, Request, Response } from 'express';
-import upnp from 'nat-upnp';
 import ngrok from 'ngrok';
 import { ServerModel } from '@/api/v1/servers/infrastructure/persistence/models/ServerModel';
 import { fileSystemService } from '@/api/v1/shared/infrastructure/adapters/di/container';
@@ -15,7 +14,6 @@ const configLogger = logger.child({ category: 'Config' });
 const sslLogger = logger.child({ category: 'SSL' });
 const streamingLogger = logger.child({ category: 'Streaming Server' });
 const tunnelLogger = logger.child({ category: 'Tunnel' });
-const upnpLogger = logger.child({ category: 'UPnP' });
 
 export const ServerConfigService = {
   serverConfig: undefined as unknown as ServerModel,
@@ -184,45 +182,8 @@ export const ServerConfigService = {
     }
   },
 
-  async setupPortMapping() {
-    if (!this.serverConfig.enableAutoPortMapping) return;
-
-    const client = upnp.createClient();
-    const portsToMap = [
-      {
-        private: this.serverConfig.httpPort,
-        public: this.serverConfig.publicHttpPort,
-        protocol: 'tcp',
-      },
-      {
-        private: this.serverConfig.httpsPort,
-        public: this.serverConfig.publicHttpsPort,
-        protocol: 'tcp',
-      },
-    ];
-
-    for (const mapping of portsToMap) {
-      client.portMapping(
-        {
-          public: mapping.public,
-          private: mapping.private,
-          protocol: mapping.protocol,
-          ttl: 0,
-        },
-        (err: unknown) => {
-          if (err) {
-            upnpLogger.error(err, `Error mapping port ${mapping.private} to ${mapping.public}`);
-          } else {
-            upnpLogger.info(`Mapped port ${mapping.private} to public ${mapping.public}`);
-          }
-        },
-      );
-    }
-  },
-
   async restartServer() {
     streamingLogger.info('Restarting server...');
     await this.startServer(appServer);
-    await this.setupPortMapping();
   },
 };

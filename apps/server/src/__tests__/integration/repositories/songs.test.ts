@@ -82,4 +82,41 @@ describe('SongsRepositoryImpl', () => {
         await repo.delete(created!.id);
         await expect(repo.findById(created!.id)).resolves.toBeNull();
     });
+
+    it('returns existing song when creating with an existing id', async () => {
+        const album = await createAlbum();
+        const created = await repo.create({
+            id: 'song-fixed',
+            albumId: album.id,
+            fileSrc: '/music/album/fixed.mp3',
+            title: 'Fixed Song',
+        });
+
+        const second = await repo.create({
+            id: 'song-fixed',
+            albumId: album.id,
+            fileSrc: '/music/album/fixed-new.mp3',
+            title: 'Should Not Replace',
+        });
+
+        expect(second!.id).toBe(created!.id);
+        expect(second!.title).toBe('Fixed Song');
+    });
+
+    it('findByAlbum returns songs belonging to album', async () => {
+        const album = await createAlbum();
+        await repo.create({
+            albumId: album.id,
+            fileSrc: '/music/album/one.mp3',
+            title: 'One',
+        });
+        await repo.create({
+            albumId: album.id,
+            fileSrc: '/music/album/two.mp3',
+            title: 'Two',
+        });
+
+        const songs = await repo.findByAlbum(album.id);
+        expect(songs).toHaveLength(2);
+    });
 });

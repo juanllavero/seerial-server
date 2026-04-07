@@ -144,9 +144,6 @@ app.whenReady().then(async () => {
   // Initialize NotificationService through DI container
   notificationService.init(ServerConfigService.mainServer);
 
-  // Setup UPnP port mapping
-  await ServerConfigService.setupPortMapping();
-
   // Create tray
   createTray();
 

@@ -115,6 +115,17 @@ describe('expressAuthentication', () => {
             const result = await expressAuthentication(req, 'cookieAuth');
             expect(result).toEqual(user);
         });
+
+        it('rejects malformed bearer authorization header', async () => {
+            const req = buildRequest({
+                headers: { authorization: 'Basic abc' },
+            } as unknown as Partial<Request>);
+
+            await expect(expressAuthentication(req, 'bearerAuth')).rejects.toMatchObject({
+                statusCode: 401,
+                message: messages.errors.token.missing,
+            });
+        });
     });
 
     describe('cookieAuthFast', () => {
@@ -133,6 +144,29 @@ describe('expressAuthentication', () => {
 
             const result = await expressAuthentication(req, 'cookieAuthFast');
             expect(result).toEqual(user);
+        });
+
+        it('throws invalid token when user is not found', async () => {
+            const req = buildRequest({ cookies: { token: 'valid-token' } } as Partial<Request>);
+            jwtVerify.mockReturnValue({ userId: 'user-1' });
+            mockFindOne.mockResolvedValue(null);
+
+            await expect(expressAuthentication(req, 'cookieAuthFast')).rejects.toMatchObject({
+                statusCode: 401,
+                message: messages.errors.token.invalid,
+            });
+        });
+
+        it('throws invalid token when jwt verification throws', async () => {
+            const req = buildRequest({ cookies: { token: 'bad-token' } } as Partial<Request>);
+            jwtVerify.mockImplementation(() => {
+                throw new Error('bad token');
+            });
+
+            await expect(expressAuthentication(req, 'cookieAuthFast')).rejects.toMatchObject({
+                statusCode: 401,
+                message: messages.errors.token.invalid,
+            });
         });
     });
 
@@ -183,6 +217,74 @@ describe('expressAuthentication', () => {
                 statusCode: 401,
                 message: messages.errors.token.missing,
             });
+        });
+
+        it('returns local user when local request has a valid token', async () => {
+            const req = buildRequest({
+                ip: '127.0.0.1',
+                headers: { authorization: 'Bearer local-token' },
+            } as unknown as Partial<Request>);
+            jwtVerify.mockReturnValue({ userId: 'user-1' });
+            const user = buildMockUser();
+            mockFindOne.mockResolvedValue(user);
+
+            const result = await expressAuthentication(req, 'managementAuth');
+            expect(result).toEqual(user);
+        });
+
+        it('returns null for local request when JWT secret is missing', async () => {
+            process.env = { ...process.env, JWT_SECRET: '' };
+            const req = buildRequest({
+                ip: '127.0.0.1',
+                headers: { authorization: 'Bearer local-token' },
+            } as unknown as Partial<Request>);
+
+            const result = await expressAuthentication(req, 'managementAuth');
+            expect(result).toBeNull();
+        });
+
+        it('rejects remote token when JWT secret is missing', async () => {
+            process.env = { ...process.env, JWT_SECRET: '' };
+            const req = buildRequest({
+                ip: '203.0.113.10',
+                headers: { authorization: 'Bearer remote-token' },
+            } as unknown as Partial<Request>);
+
+            await expect(expressAuthentication(req, 'managementAuth')).rejects.toMatchObject({
+                statusCode: 401,
+                message: messages.errors.token.invalid,
+            });
+        });
+
+        it('rejects remote non-admin user even with valid token', async () => {
+            const req = buildRequest({
+                headers: {
+                    authorization: 'Bearer remote-token',
+                    'x-forwarded-for': '203.0.113.11',
+                },
+            } as unknown as Partial<Request>);
+            jwtVerify.mockReturnValue({ userId: 'user-1' });
+            mockFindOne.mockResolvedValue(buildMockUser({ type: UserType.NORMAL }));
+
+            await expect(expressAuthentication(req, 'managementAuth')).rejects.toMatchObject({
+                statusCode: 401,
+                message: messages.errors.token.invalid,
+            });
+        });
+
+        it('returns admin user for remote request with forwarded ip', async () => {
+            const req = buildRequest({
+                headers: {
+                    authorization: 'Bearer remote-admin-token',
+                    'x-forwarded-for': '203.0.113.12, 10.0.0.1',
+                },
+            } as unknown as Partial<Request>);
+            const user = buildMockUser({ id: 'admin-1', type: UserType.ADMIN });
+            jwtVerify.mockReturnValue({ userId: 'admin-1' });
+            mockFindOne.mockResolvedValue(user);
+
+            const result = await expressAuthentication(req, 'managementAuth');
+            expect(result).toEqual(user);
         });
     });
 

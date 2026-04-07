@@ -14,7 +14,6 @@ build({
     'node-vibrant',
     'ffmpeg-static',
     'ffprobe-static',
-    'nat-upnp',
     'ngrok',
     'p-limit',
     'pino',
