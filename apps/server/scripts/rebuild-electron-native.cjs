@@ -2,6 +2,8 @@ const { spawnSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 
+const nativeModules = ['better-sqlite3', 'bcrypt'];
+
 function getElectronVersion() {
   try {
     const electronEntry = require.resolve('electron');
@@ -20,7 +22,7 @@ function getElectronVersion() {
 }
 
 function runRebuild(electronVersion) {
-  const result = spawnSync('pnpm rebuild better-sqlite3', {
+  const result = spawnSync('pnpm', ['rebuild', ...nativeModules], {
     stdio: 'inherit',
     shell: true,
     env: {
