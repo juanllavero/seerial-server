@@ -224,7 +224,9 @@ describe('CollectionsRepositoryImpl', () => {
   });
 
   it('throws when reordering content without a database connection', async () => {
-    const dataSourceSpy = jest.spyOn(DatabaseManager, 'getDataSource').mockReturnValue(null as never);
+    const dataSourceSpy = jest
+      .spyOn(DatabaseManager, 'getDataSource')
+      .mockReturnValue(null as never);
 
     await expect(repo.reorderContent('collection-1', [])).rejects.toThrow(
       'Database not initialized',
