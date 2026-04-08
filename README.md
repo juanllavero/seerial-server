@@ -64,6 +64,10 @@ Thanks to the global scripts configured in the root, you can easily spin up any 
 
 - **`pnpm run lint`**: Runs the linters across all packages in the monorepo in parallel to ensure code quality.
 - **`pnpm run build`**: Builds all applications for production.
+- **`pnpm run build:server`**: Builds the web client first, then builds the server bundle with the embedded web dist.
+- **`pnpm run build:server:win`**: Creates the Windows server installer after rebuilding the embedded web client.
+- **`pnpm run build:server:mac`**: Creates the macOS server package after rebuilding the embedded web client.
+- **`pnpm run build:server:linux`**: Creates the Linux server package after rebuilding the embedded web client.
 
 ---
 

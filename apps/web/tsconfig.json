@@ -2,7 +2,10 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "lib": ["DOM", "ESNext"],
+    "lib": [
+      "DOM",
+      "ESNext"
+    ],
     "jsx": "react-jsx",
     "experimentalDecorators": true,
     "composite": true,
@@ -13,13 +16,17 @@
     "noImplicitAny": true,
     "sourceMap": true,
     "strict": true,
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": [
+        "./src/*"
+      ]
     },
     "outDir": "dist",
     "moduleResolution": "bundler",
     "resolveJsonModule": true
   },
-  "include": ["src/**/*", "src/jsx-env.d.ts"]
+  "include": [
+    "src/**/*",
+    "src/jsx-env.d.ts"
+  ]
 }

@@ -17,6 +17,10 @@
     "lint:fix": "turbo lint:fix",
     "// === BUILD ===": "",
     "build": "turbo build",
+    "build:server": "pnpm --dir apps/server run build:distributable",
+    "build:server:win": "pnpm --dir apps/server run build-win",
+    "build:server:mac": "pnpm --dir apps/server run build-mac",
+    "build:server:linux": "pnpm --dir apps/server run build-linux",
     "// === SETUP ===": "",
     "prepare": "lefthook install"
   },

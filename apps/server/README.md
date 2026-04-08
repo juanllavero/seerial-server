@@ -79,13 +79,15 @@ pnpm run dev
 
 This will start both the web client and the Electron server concurrently.
 
-### Building
+## Building
 
 Build for production:
 
 ```bash
-pnpm run build
+pnpm run build:distributable
 ```
+
+This command always rebuilds the web client first and then runs the server build, so `dist/web` is guaranteed to be fresh before packaging.
 
 Build platform-specific executables:
 
