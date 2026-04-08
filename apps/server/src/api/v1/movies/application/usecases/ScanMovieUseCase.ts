@@ -1,3 +1,4 @@
+import { type Video, VideoType } from '@seerial/domain';
 import type { MovieResponse } from 'moviedb-promise';
 import type { CollectionsRepositoryPort } from '@/api/v1/collections/application/ports/CollectionsRepositoryPort';
 import type { Collection } from '@/api/v1/collections/domain/Collection';
@@ -11,7 +12,6 @@ import { getOnlyRuntime } from '@/api/v1/shared/infrastructure/adapters/ffmpeg/m
 import { extractNameAndYear } from '@/api/v1/shared/infrastructure/services/FileSearchService';
 import { WriteQueue } from '@/api/v1/shared/infrastructure/services/WriteQueue';
 import type { VideoRepositoryPort } from '@/api/v1/videos/application/ports/VideosRepositoryPort';
-import { type Video, VideoType } from '@/api/v1/videos/domain/Video';
 import logger from '@/utils/logger';
 import { getFileName } from '@/utils/utils';
 import type { Movie } from '../../domain/Movie';

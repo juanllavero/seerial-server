@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/style/noNonNullAssertion: <Test file> */
+
 import 'reflect-metadata';
 import { UsersRepositoryImpl } from '@/api/v1/users/infrastructure/persistence/repositories/UsersRepositoryImpl';
 import { UserType } from '@/utils/constants';

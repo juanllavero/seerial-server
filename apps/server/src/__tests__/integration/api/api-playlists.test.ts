@@ -53,7 +53,7 @@ beforeEach(async () => {
     password: 'Admin123!',
     type: UserType.ADMIN,
   });
-  adminToken = jwt.sign({ userId: admin.id, type: admin.type }, process.env.JWT_SECRET!, {
+  adminToken = jwt.sign({ userId: admin.id, type: admin.type }, process.env.JWT_SECRET || '', {
     expiresIn: '1h',
   });
 

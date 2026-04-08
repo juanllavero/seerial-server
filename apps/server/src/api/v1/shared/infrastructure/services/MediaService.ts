@@ -1,5 +1,5 @@
+import type { Video } from '@seerial/domain';
 import { useCases } from '@/api/v1/shared/infrastructure/adapters/di/container';
-import type { Video } from '@/api/v1/videos/domain/Video';
 import type { WatchList } from '@/api/v1/watch-lists/domain/WatchList';
 import { messages } from '@/config/messages';
 import { NotFoundException } from '../web/exceptions/HTTPExceptions';

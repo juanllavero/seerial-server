@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/style/noNonNullAssertion: <Test file> */
+
 import 'reflect-metadata';
 import { ArtistsRepositoryImpl } from '@/api/v1/artists/infrastructure/persistence/repositories/ArtistsRepositoryImpl';
 import { clearAllTables, closeTestDataSource, getTestDataSource } from '../../helpers/test-db';

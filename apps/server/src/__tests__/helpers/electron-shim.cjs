@@ -1,6 +1,6 @@
 // CJS stub for electron — prevents real Electron bootstrap in Jest tests
 const app = {
-  getPath: () => require('os').tmpdir(),
+  getPath: () => require('node:os').tmpdir(),
   on: () => {},
   whenReady: () => Promise.resolve(),
 };

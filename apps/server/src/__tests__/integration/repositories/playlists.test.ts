@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/style/noNonNullAssertion: <Test file> */
+
 import 'reflect-metadata';
 import { AlbumModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumModel';
 import { LibraryModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryModel';

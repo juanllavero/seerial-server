@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/** biome-ignore-all lint/suspicious/noConsole: <Need to use console.log for reporting test results> */
 
 const fs = require('node:fs');
 const path = require('node:path');
@@ -60,6 +61,7 @@ function formatSummaryPart(count, label, tone) {
 }
 
 function stripAnsi(value) {
+  // biome-ignore lint/suspicious/noControlCharactersInRegex: <Need to capture the full ANSI code for stripping>
   return String(value).replace(/\x1B\[[0-9;]*m/g, '');
 }
 

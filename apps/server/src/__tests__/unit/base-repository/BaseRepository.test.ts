@@ -35,7 +35,7 @@ class TestRepository extends BaseRepository {
   }
 
   public testEnsureAffected(count: number, message: string): void {
-    return this.ensureAffected(count, message);
+    this.ensureAffected(count, message);
   }
 
   public async testHandleRepositoryError<T>(

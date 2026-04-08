@@ -36,7 +36,7 @@ beforeEach(async () => {
   await clearAllTables(ds);
 
   const user = await usersRepo.create({ username: 'user1', type: UserType.NORMAL });
-  userToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!, { expiresIn: '1h' });
+  userToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || '', { expiresIn: '1h' });
 
   mockContainer.useCases.updateWatchStateUseCase.mockReturnValue({
     execute: jest.fn().mockResolvedValue(undefined),

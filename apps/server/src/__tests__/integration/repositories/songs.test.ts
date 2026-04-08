@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/style/noNonNullAssertion: <Test file> */
+
 import 'reflect-metadata';
 import { AlbumModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumModel';
 import { LibraryModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryModel';
@@ -56,7 +58,7 @@ describe('SongsRepositoryImpl', () => {
       duration: 180,
     });
 
-    const byId = await repo.findById(created!.id);
+    const byId = await repo.findById(created!.id as string);
     const byPath = await repo.findByPath('/music/album/song.mp3');
 
     expect(byId).not.toBeNull();
@@ -72,11 +74,11 @@ describe('SongsRepositoryImpl', () => {
       title: 'Temp',
     });
 
-    const updated = await repo.update(created!.id, { title: 'Updated Song' });
+    const updated = await repo.update(created!.id as string, { title: 'Updated Song' });
     expect(updated.title).toBe('Updated Song');
 
-    await repo.delete(created!.id);
-    await expect(repo.findById(created!.id)).resolves.toBeNull();
+    await repo.delete(created!.id as string);
+    await expect(repo.findById(created!.id as string)).resolves.toBeNull();
   });
 
   it('returns existing song when creating with an existing id', async () => {

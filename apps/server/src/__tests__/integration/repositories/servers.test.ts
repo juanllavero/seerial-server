@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/style/noNonNullAssertion: <Test file> */
+
 import 'reflect-metadata';
 import { ServersRepositoryImpl } from '@/api/v1/servers/infrastructure/persistence/repositories/ServersRepositoryImpl';
 import { clearAllTables, closeTestDataSource, getTestDataSource } from '../../helpers/test-db';

@@ -8,6 +8,8 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import type { MetadataProviderPort } from '@/api/v1/shared/application/ports/MetadataProviderPort';
+import { MetadataProviderImpl } from '@/api/v1/shared/infrastructure/adapters/metadata/MetadataProviderImpl';
 import { TMDbApiClient } from '@/api/v1/shared/infrastructure/adapters/metadata/TMDbApiClient';
 
 // Guard: skip all tests unless LIVE_INTEGRATION is set
@@ -23,12 +25,14 @@ jest.mock('@/api/v1/shared/infrastructure/adapters/di/container', () => ({
 
 const describeIfLive = LIVE ? describe : describe.skip;
 
-describeIfLive('TMDbApiClient – Live (Phase 3)', () => {
+describeIfLive('MetadataProviderImpl (TMDB) – Live (Phase 3)', () => {
   let client: TMDbApiClient;
+  let metadataProvider: MetadataProviderPort;
 
   beforeEach(async () => {
     client = new TMDbApiClient();
     await client.initialize();
+    metadataProvider = new MetadataProviderImpl(client);
   });
 
   it('initializes and connects to TMDb with a valid API key', () => {
@@ -42,7 +46,7 @@ describeIfLive('TMDbApiClient – Live (Phase 3)', () => {
       return;
     }
 
-    const results = await client.searchMovies('The Dark Knight');
+    const results = await metadataProvider.searchMovies('The Dark Knight', '2008');
     expect(Array.isArray(results)).toBe(true);
     if (results.length > 0) {
       expect(results[0]).toHaveProperty('id');
@@ -55,7 +59,7 @@ describeIfLive('TMDbApiClient – Live (Phase 3)', () => {
       return;
     }
 
-    const results = await client.searchTvShows('Breaking Bad');
+    const results = await metadataProvider.searchTVShows('Breaking Bad', '2008');
     expect(Array.isArray(results)).toBe(true);
     if (results.length > 0) {
       expect(results[0]).toHaveProperty('id');
@@ -69,7 +73,7 @@ describeIfLive('TMDbApiClient – Live (Phase 3)', () => {
     }
 
     // The Dark Knight = TMDB id 155
-    const details = await client.getMovieDetails(155);
+    const details = await metadataProvider.getMovie(155, 'en-US');
     if (details) {
       expect(details).toHaveProperty('id', 155);
     }

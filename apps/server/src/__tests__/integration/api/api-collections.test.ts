@@ -48,14 +48,14 @@ beforeEach(async () => {
   await clearAllTables(ds);
 
   const user = await usersRepo.create({ username: 'user1', type: UserType.NORMAL });
-  userToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!, { expiresIn: '1h' });
+  userToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || '', { expiresIn: '1h' });
 
   const admin = await usersRepo.create({
     username: 'admin',
     password: 'Admin123!',
     type: UserType.ADMIN,
   });
-  adminToken = jwt.sign({ userId: admin.id, type: admin.type }, process.env.JWT_SECRET!, {
+  adminToken = jwt.sign({ userId: admin.id, type: admin.type }, process.env.JWT_SECRET || '', {
     expiresIn: '1h',
   });
 

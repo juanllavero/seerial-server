@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/style/noNonNullAssertion: <Test file> */
+
 import 'reflect-metadata';
 import { LibraryModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryModel';
 import { SeasonsRepositoryImpl } from '@/api/v1/seasons/infrastructure/persistence/repositories/SeasonsRepositoryImpl';

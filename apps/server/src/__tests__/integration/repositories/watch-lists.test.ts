@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/style/noNonNullAssertion: <Test file> */
+
 import 'reflect-metadata';
 import { WatchListRepositoryImpl } from '@/api/v1/watch-lists/infrastructure/persistence/repositories/WatchListRepositoryImpl';
 import { clearAllTables, closeTestDataSource, getTestDataSource } from '../../helpers/test-db';

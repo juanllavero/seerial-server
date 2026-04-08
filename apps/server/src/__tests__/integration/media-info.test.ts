@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/style/noNonNullAssertion: <Test file> */
+
 import fs from 'node:fs';
 import { MediaInfoServiceImpl } from '@/api/v1/shared/infrastructure/adapters/media-info/MediaInfoServiceImpl';
 import { ensureVideoFixture, TEST_VIDEO_PATH } from '../helpers/video-fixture';
@@ -24,7 +26,7 @@ describe('MediaInfoServiceImpl integration', () => {
     const result = await service.getMediaInformation(videoPath);
 
     expect(result).toBeDefined();
-    expect(result?.mediaInfo.file).toBeTruthy();
+    expect(result?.mediaInfo?.file).toBeTruthy();
     expect(Array.isArray(result?.videoTracks)).toBe(true);
     expect(Array.isArray(result?.audioTracks)).toBe(true);
     expect(typeof result?.duration).toBe('number');

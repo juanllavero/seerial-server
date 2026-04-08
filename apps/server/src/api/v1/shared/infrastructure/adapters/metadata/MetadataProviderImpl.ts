@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import type { Video } from '@seerial/domain';
 import type {
   CreditsResponse,
   Episode,
@@ -19,7 +20,6 @@ import type { Episode as EpisodeData } from '@/api/v1/episodes/domain/Episode';
 import type { Movie } from '@/api/v1/movies/domain/Movie';
 import type { Season } from '@/api/v1/seasons/domain/Season';
 import type { Series } from '@/api/v1/series/domain/Series';
-import type { Video } from '@/api/v1/videos/domain/Video';
 import logger from '@/utils/logger';
 import type { MetadataProviderPort } from '../../../application/ports/MetadataProviderPort';
 import { fileSystemService, imdbScoreService, metadataProvider, useCases } from '../di/container';

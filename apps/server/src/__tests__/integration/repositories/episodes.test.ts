@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/style/noNonNullAssertion: <Test file> */
 import 'reflect-metadata';
 import { EpisodeRepositoryImpl } from '@/api/v1/episodes/infrastructure/persistence/repositories/EpisodeRepositoryImpl';
 import { LibraryModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryModel';

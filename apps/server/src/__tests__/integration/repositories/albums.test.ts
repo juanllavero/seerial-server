@@ -1,5 +1,9 @@
+/** biome-ignore-all lint/style/noNonNullAssertion: <Test file> */
+
 import 'reflect-metadata';
+import { AlbumArtistModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumArtistModel';
 import { AlbumsRepositoryImpl } from '@/api/v1/albums/infrastructure/persistence/repositories/AlbumsRepositoryImpl';
+import { ArtistModel } from '@/api/v1/artists/infrastructure/persistence/models/ArtistModel';
 import { LibraryModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryModel';
 import { LibraryTypes } from '@/data/interfaces/Media';
 import { clearAllTables, closeTestDataSource, getTestDataSource } from '../../helpers/test-db';
@@ -74,5 +78,36 @@ describe('AlbumsRepositoryImpl', () => {
 
     await repo.delete(created.id);
     await expect(repo.findById(created.id)).resolves.toBeNull();
+  });
+
+  it('adds and removes artist relationships for an album', async () => {
+    const library = await createLibrary();
+    const album = await repo.create({
+      libraryId: library.id,
+      title: 'Album With Artist',
+      folder: '/music/album-with-artist',
+    });
+    const artist = await ArtistModel.save({
+      id: `art-${Math.random().toString(36).slice(2, 10)}`,
+      name: 'Artist 1',
+    });
+
+    const relation = await repo.addArtistToAlbum(artist.id, album.id);
+
+    expect(relation.artistId).toBe(artist.id);
+    expect(relation.albumId).toBe(album.id);
+    expect(
+      await AlbumArtistModel.findOne({
+        where: { artistId: artist.id, albumId: album.id },
+      }),
+    ).not.toBeNull();
+
+    await repo.removeArtistFromAlbum(artist.id, album.id);
+
+    expect(
+      await AlbumArtistModel.findOne({
+        where: { artistId: artist.id, albumId: album.id },
+      }),
+    ).toBeNull();
   });
 });

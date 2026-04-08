@@ -44,14 +44,14 @@ const mockContainer = jest.requireMock('@/api/v1/shared/infrastructure/adapters/
 
 let app: Express;
 let usersRepo: UsersRepositoryImpl;
-let serversRepo: ServersRepositoryImpl;
+let _serversRepo: ServersRepositoryImpl;
 let adminToken: string;
 
 beforeAll(async () => {
   process.env.JWT_SECRET = 'test-api-secret-servers';
   await getTestDataSource();
   usersRepo = new UsersRepositoryImpl();
-  serversRepo = new ServersRepositoryImpl();
+  _serversRepo = new ServersRepositoryImpl();
   app = createTestApp();
 });
 
@@ -68,7 +68,7 @@ beforeEach(async () => {
     password: 'Admin123!',
     type: UserType.ADMIN,
   });
-  adminToken = jwt.sign({ userId: admin.id, type: admin.type }, process.env.JWT_SECRET!, {
+  adminToken = jwt.sign({ userId: admin.id, type: admin.type }, process.env.JWT_SECRET || '', {
     expiresIn: '1h',
   });
 

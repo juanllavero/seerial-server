@@ -30,12 +30,12 @@ export class CollectionsRepositoryImpl extends BaseRepository implements Collect
   async getAll(libraryId: string): Promise<Collection[]> {
     const validatedId = this.validateId(libraryId, 'Library ID');
 
-    const collections = await LibraryModel.findOne({
+    const library = await LibraryModel.findOne({
       where: { id: validatedId },
-      relations: ['collections'],
+      relations: ['libraryCollections', 'libraryCollections.collection'],
     });
 
-    return collections?.libraryCollections.map((c) => c.collection as unknown as Collection) || [];
+    return library?.libraryCollections.map((c) => c.collection as unknown as Collection) || [];
   }
 
   async getById(id: string): Promise<Collection | null> {
@@ -85,10 +85,19 @@ export class CollectionsRepositoryImpl extends BaseRepository implements Collect
     const validatedId = this.validateId(libraryId, 'Library ID');
 
     const collectionItemsKey = getCollectionItemsKey(type);
+    const relationByCollectionKey: Record<string, string> = {
+      movies: 'collectionMovies',
+      shows: 'collectionSeries',
+      albums: 'collectionAlbums',
+    };
 
     const data = await LibraryModel.findOne({
       where: { id: validatedId },
-      relations: ['collections', `collections.${collectionItemsKey}` as string],
+      relations: [
+        'libraryCollections',
+        'libraryCollections.collection',
+        `libraryCollections.collection.${relationByCollectionKey[collectionItemsKey]}`,
+      ],
     });
 
     return (data?.libraryCollections || []).map((c) => c.collection as unknown as Collection);

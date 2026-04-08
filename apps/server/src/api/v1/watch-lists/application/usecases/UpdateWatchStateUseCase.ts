@@ -1,9 +1,9 @@
+import type { Video } from '@seerial/domain';
 import { useCases } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import {
   BadRequestException,
   NotFoundException,
 } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
-import type { Video } from '@/api/v1/videos/domain/Video';
 import { messages } from '@/config/messages';
 import type { WatchList } from '../../domain/WatchList';
 import type { WatchListRepositoryPort } from '../ports/WatchListRepositoryPort';

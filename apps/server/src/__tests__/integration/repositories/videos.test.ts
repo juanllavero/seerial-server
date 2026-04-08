@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/style/noNonNullAssertion: <Test file> */
+
 import 'reflect-metadata';
 import { EpisodeModel } from '@/api/v1/episodes/infrastructure/persistence/models/EpisodeModel';
 import { LibraryModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryModel';
@@ -366,7 +368,7 @@ describe('VideosRepositoryImpl', () => {
       const info = await repo.getVideoPlaybackInfo(video.id);
 
       expect(info.title).toBe('Playback Movie');
-      expect(info.playBackConfig.preferAudioLan).toBe('en');
+      expect(info.playBackConfig?.preferAudioLan).toBe('en');
       expect(info.mediaInfoData).toEqual({ format: { duration: 100 } });
     });
 
@@ -423,7 +425,7 @@ describe('VideosRepositoryImpl', () => {
 
       expect(info.title).toBe('Episode 1');
       expect(info.subtitle).toContain('Series Test');
-      expect(info.playBackConfig.preferAudioLan).toBe('en');
+      expect(info.playBackConfig?.preferAudioLan).toBe('en');
     });
 
     it('throws when episode cannot be resolved in episode context', async () => {
@@ -515,7 +517,7 @@ describe('VideosRepositoryImpl', () => {
       });
 
       expect(created).not.toBeNull();
-      expect(created!.extraId).toBe(movie.id);
+      expect(created!.id).toBe(movie.id);
     });
 
     it('creates a video with episode relation through addAsEpisode', async () => {

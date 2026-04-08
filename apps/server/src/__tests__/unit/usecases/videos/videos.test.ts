@@ -1,4 +1,4 @@
-import type { PlayBackInfo } from '@seerial/domain';
+import type { PlayBackInfo, Video } from '@seerial/domain';
 import type { LibrariesRepositoryPort } from '@/api/v1/libraries/application/ports/LibrariesRepositoryPort';
 import type { FileSystemServicePort } from '@/api/v1/shared/application/ports/FileSystemServicePort';
 import type { VideoRepositoryPort } from '@/api/v1/videos/application/ports/VideosRepositoryPort';
@@ -12,7 +12,6 @@ import { FindVideoByPathUseCase } from '@/api/v1/videos/application/usecases/Fin
 import { GetVideoPlaybackInfoUseCase } from '@/api/v1/videos/application/usecases/GetVideoPlaybackInfoUseCase';
 import { UpdateMediaInfoUseCase } from '@/api/v1/videos/application/usecases/UpdateMediaInfoUseCase';
 import { UpdateVideoUseCase } from '@/api/v1/videos/application/usecases/UpdateVideosUseCase';
-import type { Video } from '@/api/v1/videos/domain/Video';
 
 jest.mock('@/api/v1/shared/infrastructure/adapters/di/container', () => ({
   useCases: {

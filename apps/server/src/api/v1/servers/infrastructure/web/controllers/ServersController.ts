@@ -1,3 +1,4 @@
+import type { User } from '@seerial/domain';
 import { Body, Controller, Get, Patch, Path, Route, Security, Tags } from 'tsoa';
 import {
   fileSystemService,
@@ -5,7 +6,6 @@ import {
   useCases,
 } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
-import type { User } from '@/api/v1/users/domain/User';
 import { messages } from '@/config/messages';
 import type {
   ServerConfigDTO,

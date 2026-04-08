@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/style/noNonNullAssertion: <Test file> */
+
 import 'reflect-metadata';
 import { LibrariesRepositoryImpl } from '@/api/v1/libraries/infrastructure/persistence/repositories/LibrariesRepositoryImpl';
 import { DatabaseManager } from '@/api/v1/shared/infrastructure/persistence/DatabaseManager';
@@ -154,12 +156,12 @@ describe('LibrariesRepositoryImpl', () => {
       const lib = await repo.create(buildLibraryData());
       await repo.addAnalyzedFile(lib!.id, '/media/movie.mkv', 'video-1');
 
-      const after = (await repo.getById(lib!.id)) as Record<string, unknown>;
+      const after = (await repo.getById(lib!.id)) as unknown as Record<string, unknown>;
       const analyzedFilesAfterAdd = after.analyzedFiles as Record<string, string>;
       expect(analyzedFilesAfterAdd['/media/movie.mkv']).toBe('video-1');
 
       await repo.removeAnalyzedFile(lib!.id, '/media/movie.mkv');
-      const afterRemove = (await repo.getById(lib!.id)) as Record<string, unknown>;
+      const afterRemove = (await repo.getById(lib!.id)) as unknown as Record<string, unknown>;
       const analyzedFilesAfterRemove = afterRemove.analyzedFiles as Record<string, string>;
       expect(analyzedFilesAfterRemove['/media/movie.mkv']).toBeUndefined();
     });

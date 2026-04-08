@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/style/noNonNullAssertion: <Test file> */
+
 import 'reflect-metadata';
 import type { Express } from 'express';
 import jwt from 'jsonwebtoken';
@@ -19,7 +21,7 @@ jest.mock('@/api/v1/shared/infrastructure/adapters/di/container', () => ({
 let app: Express;
 let usersRepo: UsersRepositoryImpl;
 let userToken: string;
-let adminToken: string;
+let _adminToken: string;
 
 beforeAll(async () => {
   process.env.JWT_SECRET = 'test-api-secret-streaming';
@@ -37,14 +39,14 @@ beforeEach(async () => {
   await clearAllTables(ds);
 
   const user = await usersRepo.create({ username: 'user1', type: UserType.NORMAL });
-  userToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!, { expiresIn: '1h' });
+  userToken = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || '', { expiresIn: '1h' });
 
   const admin = await usersRepo.create({
     username: 'admin',
     password: 'Admin123!',
     type: UserType.ADMIN,
   });
-  adminToken = jwt.sign({ userId: admin.id, type: admin.type }, process.env.JWT_SECRET!, {
+  _adminToken = jwt.sign({ userId: admin.id, type: admin.type }, process.env.JWT_SECRET || '', {
     expiresIn: '1h',
   });
 });
@@ -77,7 +79,7 @@ describe('Video Streaming API (Phase 2D)', () => {
       expect(token).toBeTruthy();
 
       // Verify the token is a valid JWT
-      const decoded = jwt.verify(token!, process.env.JWT_SECRET!) as Record<string, unknown>;
+      const decoded = jwt.verify(token!, process.env.JWT_SECRET || '') as Record<string, unknown>;
       expect(decoded).toHaveProperty('path', '/media/test.mkv');
     });
 
@@ -120,7 +122,7 @@ describe('Video Streaming API (Phase 2D)', () => {
       const url = res.body.data as string;
       const params = new URLSearchParams(url.split('?')[1]);
       const token = params.get('token');
-      const decoded = jwt.verify(token!, process.env.JWT_SECRET!) as Record<string, unknown>;
+      const decoded = jwt.verify(token!, process.env.JWT_SECRET || '') as Record<string, unknown>;
       expect(decoded).toHaveProperty('path', '/media/test.mkv');
       expect(decoded).toHaveProperty('start', 120);
       expect(decoded).toHaveProperty('audio', 1);

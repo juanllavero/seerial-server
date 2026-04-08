@@ -129,7 +129,9 @@ describe('GenericRepositoryHelper', () => {
     const createSpy = jest.spyOn(TestEntity, 'create');
     const save = jest.fn().mockResolvedValue(undefined);
 
-    createSpy.mockImplementation((payload) => ({ ...(payload as object), save }) as TestEntity);
+    createSpy.mockImplementation(
+      (payload) => ({ ...(payload as object), save }) as unknown as TestEntity,
+    );
 
     await helper.create({ name: 'Created' });
 

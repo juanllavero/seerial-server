@@ -1,9 +1,12 @@
+/** biome-ignore-all lint/style/noNonNullAssertion: <Test file> */
+
 import 'reflect-metadata';
 import { AlbumModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumModel';
 import { CollectionAlbumModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionAlbum';
 import { CollectionMovieModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionMovie';
 import { CollectionSeriesModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionSeries';
 import { CollectionsRepositoryImpl } from '@/api/v1/collections/infrastructure/persistence/repositories/CollectionsRepositoryImpl';
+import { LibraryCollectionModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryCollectionModel';
 import { LibraryModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryModel';
 import { MovieModel } from '@/api/v1/movies/infrastructure/persistence/models/MovieModel';
 import { SeriesModel } from '@/api/v1/series/infrastructure/persistence/models/SeriesModel';
@@ -81,6 +84,39 @@ describe('CollectionsRepositoryImpl', () => {
 
     expect(second).not.toBeNull();
     expect(second!.id).toBe(first!.id);
+  });
+
+  it('adds a collection to a library and returns it from getAll', async () => {
+    const library = await createLibrary(LibraryTypes.MOVIES);
+    const collection = await repo.add({ title: 'Library Collection' });
+
+    await repo.addLibrary(library.id, collection!.id);
+
+    const relation = await LibraryCollectionModel.findOne({
+      where: { libraryId: library.id, collectionId: collection!.id },
+    });
+    const collections = await repo.getAll(library.id);
+
+    expect(relation).not.toBeNull();
+    expect(collections.map((item) => item.id)).toContain(collection!.id);
+  });
+
+  it('returns collections by library id for the requested media type', async () => {
+    const library = await createLibrary(LibraryTypes.MOVIES);
+    const collection = await repo.add({ title: 'Typed Collection' });
+    const movie = await MovieModel.save({
+      id: `mov-${Math.random().toString(36).slice(2, 10)}`,
+      libraryId: library.id,
+      name: 'Movie For Collection',
+    });
+
+    await repo.addLibrary(library.id, collection!.id);
+    await repo.addMovie(collection!.id, movie.id);
+
+    const collections = await repo.getByLibraryId(library.id, 'Movies');
+
+    expect(collections).toHaveLength(1);
+    expect(collections[0].id).toBe(collection!.id);
   });
 
   it('adds and removes movie/series/album relationships', async () => {
@@ -183,6 +219,41 @@ describe('CollectionsRepositoryImpl', () => {
 
     expect(orderedSeries!.customOrder).toBe(0);
     expect(orderedMovie!.customOrder).toBe(1);
+
+    dataSourceSpy.mockRestore();
+  });
+
+  it('throws when reordering content without a database connection', async () => {
+    const dataSourceSpy = jest.spyOn(DatabaseManager, 'getDataSource').mockReturnValue(null);
+
+    await expect(repo.reorderContent('collection-1', [])).rejects.toThrow(
+      'Database not initialized',
+    );
+
+    dataSourceSpy.mockRestore();
+  });
+
+  it('rolls back the reorder transaction when an update fails', async () => {
+    const queryRunner = {
+      connect: jest.fn().mockResolvedValue(undefined),
+      startTransaction: jest.fn().mockResolvedValue(undefined),
+      commitTransaction: jest.fn().mockResolvedValue(undefined),
+      rollbackTransaction: jest.fn().mockResolvedValue(undefined),
+      release: jest.fn().mockResolvedValue(undefined),
+      manager: {
+        update: jest.fn().mockRejectedValue(new Error('boom')),
+      },
+    };
+    const dataSourceSpy = jest.spyOn(DatabaseManager, 'getDataSource').mockReturnValue({
+      createQueryRunner: () => queryRunner,
+    } as never);
+
+    await expect(
+      repo.reorderContent('collection-1', [{ id: 'movie-1', type: 'movie' }]),
+    ).rejects.toThrow('boom');
+
+    expect(queryRunner.rollbackTransaction).toHaveBeenCalled();
+    expect(queryRunner.release).toHaveBeenCalled();
 
     dataSourceSpy.mockRestore();
   });

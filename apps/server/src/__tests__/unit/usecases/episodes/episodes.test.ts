@@ -369,5 +369,117 @@ describe('Episode use cases', () => {
       expect(watchListRepo.removeSeries).toHaveBeenCalledWith('user-1', 'series-1');
       expect(watchListRepo.addContinueWatchingVideo).toHaveBeenCalled();
     });
+
+    it('updates previous and future seasons and skips continue-watching insertion when the next video is missing', async () => {
+      const targetEpisode = buildEpisode({
+        id: 'episode-2-1',
+        seasonId: 'season-2',
+        episodeNumber: 1,
+      });
+      const episodesById = {
+        'episode-1-1': { id: 'episode-1-1', episodeNumber: 1 },
+        'episode-2-1': { id: 'episode-2-1', episodeNumber: 1 },
+        'episode-2-2': { id: 'episode-2-2', episodeNumber: 2 },
+        'episode-3-1': { id: 'episode-3-1', episodeNumber: 1 },
+      };
+      const seasonsById = {
+        'season-1': {
+          id: 'season-1',
+          seriesId: 'series-1',
+          seasonNumber: 1,
+          episodes: [{ id: 'episode-1-1' }],
+        },
+        'season-2': {
+          id: 'season-2',
+          seriesId: 'series-1',
+          seasonNumber: 2,
+          episodes: [{ id: 'episode-2-1' }, { id: 'episode-2-2' }],
+        },
+        'season-3': {
+          id: 'season-3',
+          seriesId: 'series-1',
+          seasonNumber: 3,
+          episodes: [{ id: 'episode-3-1' }],
+        },
+      };
+
+      const episodeRepo = buildEpisodeRepo({
+        findById: jest.fn().mockImplementation(async (id: string) => {
+          if (id === targetEpisode.id) {
+            return targetEpisode;
+          }
+
+          return (
+            (episodesById as Record<string, { id: string; episodeNumber: number }>)[id] ?? null
+          );
+        }),
+      });
+      const seasonRepo = buildSeasonRepo({
+        findById: jest.fn().mockImplementation(async (id: string) => {
+          return (
+            (
+              seasonsById as Record<
+                string,
+                {
+                  id: string;
+                  seriesId: string;
+                  seasonNumber: number;
+                  episodes: Array<{ id: string }>;
+                }
+              >
+            )[id] ?? null
+          );
+        }),
+      });
+      const seriesRepo = buildSeriesRepo({
+        findById: jest.fn().mockResolvedValue({
+          id: 'series-1',
+          seasons: [
+            { id: 'season-1' },
+            { id: 'season-2' },
+            { id: 'season-ghost' },
+            { id: 'season-3' },
+          ],
+        }),
+      });
+      const videoRepo = buildVideoRepo({
+        findByEpisodeId: jest.fn().mockImplementation(async (id: string) => {
+          if (id === 'episode-2-2') {
+            return null;
+          }
+
+          return { id: `video-${id}` };
+        }),
+      });
+      const watchListRepo = buildWatchListRepo({
+        addVideo: jest.fn().mockResolvedValue(undefined),
+        removeVideo: jest.fn().mockResolvedValue(undefined),
+        isVideoWatched: jest.fn().mockResolvedValue(true),
+        addSeason: jest.fn().mockResolvedValue(undefined),
+        removeSeason: jest.fn().mockResolvedValue(undefined),
+        clearContinueWatching: jest.fn().mockResolvedValue(undefined),
+        addSeries: jest.fn().mockResolvedValue(undefined),
+        removeSeries: jest.fn().mockResolvedValue(undefined),
+        addContinueWatchingVideo: jest.fn().mockResolvedValue(undefined),
+      });
+
+      await new SetEpisodeWatchStateUseCase(
+        episodeRepo,
+        seasonRepo,
+        seriesRepo,
+        videoRepo,
+        watchListRepo,
+      ).execute(targetEpisode.id, 'user-1', true);
+
+      expect(watchListRepo.addVideo).toHaveBeenCalledWith('user-1', 'video-episode-1-1');
+      expect(watchListRepo.addVideo).toHaveBeenCalledWith('user-1', 'video-episode-2-1');
+      expect(watchListRepo.removeVideo).toHaveBeenCalledWith('user-1', 'video-episode-3-1');
+      expect(watchListRepo.addSeason).toHaveBeenCalledWith('user-1', 'season-1');
+      expect(watchListRepo.addSeason).toHaveBeenCalledWith('user-1', 'season-2');
+      expect(watchListRepo.removeSeason).toHaveBeenCalledWith('user-1', 'season-3');
+      expect(watchListRepo.clearContinueWatching).toHaveBeenCalledWith('user-1', 'series-1');
+      expect(watchListRepo.removeSeries).toHaveBeenCalledWith('user-1', 'series-1');
+      expect(watchListRepo.addContinueWatchingVideo).not.toHaveBeenCalled();
+    });
   });
 });
