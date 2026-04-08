@@ -10,4 +10,4 @@ type CollectionItems = {
   shows: Series[];
 };
 
-export type { DisplayCollections, CollectionKey, CollectionItems, ContentType };
+export type { CollectionItems, CollectionKey, ContentType, DisplayCollections };

@@ -1,5 +1,5 @@
-import { isAbsolutePatheerial/do@seerial/domain;
-import { memo, useEffect, useStatet, useStareactt';
+import { isAbsolutePath } from '@seerial/domain';
+import { memo, useEffect, useState } from 'react';
 import { Skeleton } from '@/shared/ui/skeleton';
 
 interface LazyImageProps {
@@ -62,7 +62,7 @@ function LazyImage({
     width: width,
     height: height === 'auto' && aspectRatio !== 'auto' ? undefined : height,
     maxHeight: maxHeight,
-    aspectRatio: aspectRatio !== 'auto' ? aspectRatio : undefined,
+    aspectRatio: aspectRatio === 'auto' ? undefined : aspectRatio,
     position: 'relative' as const,
     borderRadius: rounded ? '5px' : undefined,
   };

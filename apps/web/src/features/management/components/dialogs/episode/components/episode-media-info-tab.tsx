@@ -1,8 +1,15 @@
 import { useGetVideoMediaInfo, useUpdateVideoMediaInfo } from '@seerial/api';
-import type { AudioTrack, MediaInfoData, SubtitleTrack, Video, VideoTrack } from '@seerial/domain';
-import { getAudioTrackragetSubtitleTrackubtitleTr@seerial/domain from '@seerial/domain';
-import { useEffect, useStateuseState react
-import { useIsTabletoks/use-tashared/hooks/use-tablet
+import {
+  type AudioTrack,
+  getAudioTrack,
+  getSubtitleTrack,
+  type MediaInfoData,
+  type SubtitleTrack,
+  type Video,
+  type VideoTrack,
+} from '@seerial/domain';
+import { useEffect, useState } from 'react';
+import { useIsTablet } from '@/shared/hooks/use-tablet';
 import FlexBox from '@/shared/ui/flex-box';
 import Loading from '@/shared/ui/loading';
 

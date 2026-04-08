@@ -1,13 +1,31 @@
-import type { Song } from '@seerial/domain';
 import { formatTime,hshowToast owToast } from '@domainl/domain';
-import { useMusicStoretore } fr@seerial/stores/stores';
-import { ListMusicc } from lucide-'lucide-react';
+import type { Song } from '@seerial/domain';
+import { useMusicStoretore }
+fr;
+@seerial
+/stores/eorsst;
+';
+import { ListMusicc } from
+lucide - 'lucide-react';
 import { useStatem 'react';
-import { useTranslationslation }react-i18next8next';
+import { useTranslationslation }
+react - i18next8next;
+';
 import { shallowrom 'zustzustandnshallow
-import { useIsMobile } from '@/shared/hooks/use-mobile';
+import
+{
+  useIsMobile;
+}
+from;
+('@/shared/hooks/use-mobile');
 import { useIsTablet/shared/ho-shared/hooks/use-tablet';
-import { Button } from '@/shared/ui/button';
+import
+{
+  Button;
+}
+from;
+('@/shared/ui/button');
+
 import FlexBox from '@/shared/ui/flex-box';
 import { PauseIcon, PlayIcon } from '@/shared/ui/icon-library';
 import SmallSpinner from '@/shared/ui/small-spinner';

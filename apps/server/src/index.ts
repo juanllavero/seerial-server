@@ -1,7 +1,7 @@
 import type http from 'node:http';
 import type https from 'node:https';
 import path from 'node:path';
-import { appReadyMessage, showAppName, showMessage } from '@seerial/cli';
+import { appReadyMessage, showAppName, showMessage, spinner } from '@seerial/cli';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -98,8 +98,16 @@ export let server: http.Server | https.Server;
 app.whenReady().then(async () => {
   showAppName('SEERIAL SERVER');
 
+  // Dynamic CLI message
+  const s = spinner();
+
   // Initialize dependencies
+  s.start('Initializing Youtube Downloader...');
+
   await downloaderService.downloadYoutubeDownloader();
+
+  s.stop('Youtube Downloader Initialized');
+
   await DatabaseManager.initializeDB();
   fileSystemService.initFolders();
   fileSystemService.loadProperties();
@@ -109,6 +117,8 @@ app.whenReady().then(async () => {
 
   // Initialize MovieDB
   await tmdbApiClient.initialize();
+
+  showMessage('TheMovieDB API Client Initialized');
 
   // Load or create server and user configs
   await ServerConfigService.loadOrCreateServerConfig();

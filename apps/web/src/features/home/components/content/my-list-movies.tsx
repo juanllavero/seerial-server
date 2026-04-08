@@ -80,7 +80,7 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
                     },
                     {
                       title:
-                        movie.watchStatus !== undefined ? t('markUnwatched') : t('markWatched'),
+                        movie.watchStatus === undefined ? t('markWatched') : t('markUnwatched'),
 
                       action: () =>
                         user && toggleMovieWatched(movie.id, !movie.watchStatus, user.id),

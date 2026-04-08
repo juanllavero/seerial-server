@@ -1,11 +1,22 @@
-import type { DropdownContent, Episode, WatchList } from '@seerial/domain';
 import { getVideoProgressss } from '@seeriadomainin';
-import { useServerStoreseServerS@seerial/storesfrom '@seerial/stores';
+import type { DropdownContent, Episode, WatchList } from '@seerial/domain';
+import { useServerStoreseServerS
+@seerial
+/storesfrom '@seerial/eorsst;
+';
 import { tom 'i18nei18next
-import { Pencil }ncil } lucide-react;
-import Cardred/cards/card';cards
-import { useCardWidthh } from '@/shared/hooks/usecard-widthwidth';
+import
+{
+  Pencil;
+}
+ncil;
+} lucide-react
+import Cardred
+/cards/acdr;
+';cards
+
 import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { useCardWidthh } from '@/shared/hooks/usecard-widthwidth';
 import { useIsTabletom '@/sharsshared/hooks/use-tabletablet';
 import { Button } from '@/shared/ui/button';
 

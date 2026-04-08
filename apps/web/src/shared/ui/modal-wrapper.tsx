@@ -54,7 +54,7 @@ export function ModalWrapper({
   const isMobile = useIsMobile();
 
   const [internalActiveTab, setInternalActiveTab] = React.useState(tabs[0]?.title || 'tab1');
-  const currentTab = activeTab !== undefined ? activeTab : internalActiveTab;
+  const currentTab = activeTab === undefined ? internalActiveTab : activeTab;
 
   const handleTabChange = (newTab: string) => {
     if (onTabChange) {

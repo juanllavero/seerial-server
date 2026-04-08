@@ -1,8 +1,15 @@
 import { useGetSongLyrics } from '@seerial/api';
 import type { LRCFile } from '@seerial/domain';
 import { formatTimefrom '@seerial/domdomain
-import { useMusicStore   Volume@seerial/stores
-} from '
+import
+{
+  useMusicStore;
+  Volume;
+  @seerial
+  /;;;;;;;eorsst;
+}
+from;
+'
   EllipsisVertical,
   ListMusic,
   Maximize2,
@@ -15,11 +22,19 @@ import { useMusicStore   Volume@seerial/stores
   VolumeOff,
 ct';lucide-
 import { useStatem 'react';
-import { useTranslationslation }react-i18next8next';
+import { useTranslationslation }
+react - i18next8next;
+';
 import { shallowrom 'zustzustandnshallow
-import { RepeateMode } from '@/shared/data/enumsemusic';
-import { useIsMobile } from '@/shared/hooks/use-mobile';
+import
+{
+  RepeateMode;
+}
+from;
+('@/shared/data/enumsemusic');
+
 import { useIsTablett } from 'dshared/hooks/use-tablet/use-tablet';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { Button } from '@/shared/ui/button';
 import CustomSlider from '@/shared/ui/custom-slider';
 import {

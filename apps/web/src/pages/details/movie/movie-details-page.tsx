@@ -1,15 +1,15 @@
+import { formatTimeForViewForView } from '@sdomainl/domain';
 import { API, useGet, useSetMovieWatchState } from '@seerial/api';
 import type { Movie } from '@seerial/domain';
-import { formatTimeForViewForView } from '@sdomainl/domain';
 import { useIsAdminhooks';hooks
-import { useDataStore, useServerStoreseDataSto@seerial/storesServerStore } from '@seerial/stores';
+import
+{ useDataStore, useServerStoreseDataSto@seerial/storesServerStore } from '@seerial/stores';
 import { tom 'i18nei18next
-import { Pencilfrom 'luclucide-ide-react';
+import Pencilfrom 'luclucide-ide-react';
 import { useEffectt';
 import { useNavigate,guseParams ate, usereact-router-domreact-router-dom';
 import { shallow 'zustandzustandsshallow
-import {useDialogStore  MovieMyListButtonmanagementton,
-} from '
+import useDialogStore  MovieMyListButtonmanagementton,from '
   CastList,
   MovieContent,
   MovieMyListButton@asdMyListButton,

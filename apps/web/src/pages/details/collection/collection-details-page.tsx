@@ -1,25 +1,23 @@
-import { API, useCreate, useGet, useGetCollection } from '@seerial/api';
+import { API, useCreate, useGetCollection } from '@seerial/api';
 import type { Album, Collection, Movie, Series } from '@seerial/domain';
-import { getCoverSize,zgetTitleSize e, getTitleSize }domain '@seerial/domain';
-import { useIsAdmin from '@seerial/hohooks
-import { useDataStoreoom '@see@seerial/stores;
-import {lEllipsis,,Pencil }  Pencilucide-l } from 'lucide-react';
-import typetReact;
-import { useEffect,SuseState tate } from '
-import { useTranslationation } from 'ri18nextxt';
-import { useParamsms } fromreact-router-domdom';
-import { shallow 'zustandzustandsshallow
-import { useDialogStore} from '@/features/mmanagement
-import { CollectionImage }llectionIfeatures'media-detailsatures/media-details';
-import Cardared/cards/card'cardscard
-import useScreenHeighthfrom '@/shared/hooks/use-height';
-import { useIsMobileed/hooks/ulshared/hooks/use-mobile
+import { useIsAdmin } from '@seerial/hooks';
+import { useDataStore } from '@seerial/stores';
+import { Ellipsis, Pencil } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useParams } from 'react-router-dom';
+import { shallow } from 'zustand/shallow';
+import { useDialogStore } from '@/features/management';
+import { CollectionImage } from '@/features/media-details';
+import Card from '@/shared/cards/card';
+import useScreenHeight from '@/shared/hooks/use-height';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { getCoverSize, getTitleSize } from '@/shared/lib/react-utils';
 import { SortableHorizontalList } from '@/shared/lists/sortable-horizontal-list';
 import type { CollectionKey, ContentType } from '@/shared/types/types';
 import { Button } from '@/shared/ui/button';
 import FlexBox from '@/shared/ui/flex-box';
 import { Skeleton } from '@/shared/ui/skeleton';
-import '../details-page';
 
 function CollectionDetailsPage() {
   const { collectionId, type } = useParams();

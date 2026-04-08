@@ -1,14 +1,13 @@
 import { useGetAlbum } from '@seerial/api';
-import type { Album } from '@seerial/domain';
-import { formatTimefrom '@seerial/domdomain
-import { useMusicStore} from '@@seerial/storess';
-import { useTranslationslation }react-i18next8next';
-import { shallowfrom 'zuszustandlshallow
-import FlexBox from '@/shared/ui/flex-box';
-import { PauseIcon, PlayIcon } from '@/shared/ui/icon-library';
+import { type Album, formatTime } from '@seerial/domain';
 import LazyImage from '@/shared/ui/lazy-image';
 import SmallSpinner from '@/shared/ui/small-spinner';
 import './next-songs.css';
+import { useMusicStore } from '@seerial/stores';
+import { PauseIcon, PlayIcon } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { shallow } from 'zustand/shallow';
+import FlexBox from '@/shared/ui/flex-box';
 
 function NextSongs() {
   const { t } = useTranslation();

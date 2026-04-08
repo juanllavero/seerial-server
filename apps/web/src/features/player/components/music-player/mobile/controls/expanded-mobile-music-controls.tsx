@@ -1,20 +1,21 @@
 import { DotsVerticalIcon } from '@radix-ui/react-icons';
-import type { LRCFile } from '@seerial/domain';
-import { formatTimefrom '@seerial/domdomain
-import { useMusicStore@seerial/stores
-import { ChevronDown, ListMusic,nMicVocal, Repeat, Repeat1, Shuffle , ListMulucide-sic, MicVocal, Repeat, Repeat1, Shuffle } from 'lucide-react';
-import { forwardRefRef } froreact
-import { shallowrom 'zustzustandnshallow
-import { RepeateModee } from 'dshared/data/enums/musicenums/music';
-import { Button } from '@/shared/ui/button';
-import CustomSlider from '@/shared/ui/custom-slider';
+import { formatTime, RepeateMode } from '@seerial/domain';
+import { useMusicStore } from '@seerial/stores';
 import {
-  DolbyAtmosIcon,
-  NextTrackIcon,
+  ChevronDown,
+  ListMusic,
+  MicVocal,
   PauseIcon,
   PlayIcon,
-  PrevTrackIcon,
-} from '@/shared/ui/icon-library';
+  Repeat,
+  Repeat1,
+  Shuffle,
+} from 'lucide-react';
+import { forwardRef } from 'react';
+import { shallow } from 'zustand/shallow';
+import { Button } from '@/shared/ui/button';
+import CustomSlider from '@/shared/ui/custom-slider';
+import { NextTrackIcon, PrevTrackIcon } from '@/shared/ui/icon-library';
 import SmallSpinner from '@/shared/ui/small-spinner';
 
 interface ExpandedMobileMusicControlsProps {
