@@ -23,14 +23,10 @@ if (ffmpegPathFinal.includes('app.asar')) {
 }
 
 const ffmpegArg =
-  ffmpegPathFinal && existsSync(ffmpegPathFinal)
-    ? ` --ffmpeg-location "${ffmpegPathFinal}"`
-    : '';
+  ffmpegPathFinal && existsSync(ffmpegPathFinal) ? ` --ffmpeg-location "${ffmpegPathFinal}"` : '';
 
 const nodeExecutableName = path.basename(process.execPath).toLowerCase();
-const jsRuntimeValue = nodeExecutableName.startsWith('node')
-  ? `node:${process.execPath}`
-  : 'node';
+const jsRuntimeValue = nodeExecutableName.startsWith('node') ? `node:${process.execPath}` : 'node';
 const jsRuntimesArg = ` --js-runtimes "${jsRuntimeValue}"`;
 
 if (ffmpegPathFinal && !ffmpegArg) {
@@ -109,15 +105,16 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
           // Clean partially downloaded file
           try {
             if (existsSync(ytDlpPath)) unlinkSync(ytDlpPath);
-          } catch { }
+          } catch {}
           reject(err);
         });
     });
   }
 
   public async searchVideos(query: string, numberOfResults: number): Promise<MediaSearchResult[]> {
-    const searchQuery = `"${downloaderService.getYtDlpPath()}" "ytsearch${numberOfResults > 0 ? numberOfResults : 1
-      }:${query}" --dump-json --default-search ytsearch --no-playlist --no-check-certificate --geo-bypass --flat-playlist --skip-download --quiet --ignore-errors${ffmpegArg}${jsRuntimesArg}`;
+    const searchQuery = `"${downloaderService.getYtDlpPath()}" "ytsearch${
+      numberOfResults > 0 ? numberOfResults : 1
+    }:${query}" --dump-json --default-search ytsearch --no-playlist --no-check-certificate --geo-bypass --flat-playlist --skip-download --quiet --ignore-errors${ffmpegArg}${jsRuntimesArg}`;
 
     try {
       const { stdout } = await execAsync(searchQuery);

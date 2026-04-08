@@ -3,7 +3,7 @@ import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions
 import type { SeasonsRepositoryPort } from '../ports/SeasonsRepositoryPort';
 
 export class DeleteSeasonDataUseCase {
-  constructor(private seasonsRepo: SeasonsRepositoryPort) { }
+  constructor(private seasonsRepo: SeasonsRepositoryPort) {}
 
   async execute(id: string): Promise<void> {
     const season = await this.seasonsRepo.findById(id, 'none');

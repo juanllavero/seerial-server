@@ -48,7 +48,7 @@ export class ScanSeriesUseCase {
     private readonly episodesRepo: EpisodeRepositoryPort,
     private readonly metadataProvider: MetadataProviderPort,
     private readonly notificationService: NotificationServicePort,
-  ) { }
+  ) {}
 
   async execute(library: Library, root: string): Promise<void> {
     logger.info(

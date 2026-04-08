@@ -28,7 +28,7 @@ export class ScanMovieUseCase {
     private readonly collectionRepo: CollectionsRepositoryPort,
     private readonly metadataProvider: MetadataProviderPort,
     private readonly notificationService: NotificationServicePort,
-  ) { }
+  ) {}
 
   async execute(library: Library, root: string): Promise<void> {
     logger.info({ libraryId: library.id, root }, 'Starting movies scan execution');

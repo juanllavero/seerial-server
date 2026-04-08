@@ -253,7 +253,8 @@ async function main() {
   const totalSkipped = report.numPendingTests + report.numTodoTests;
   const runtimeSec = (
     report.testResults.reduce(
-      (acc, suite) => acc + (suite.endTime && suite.startTime ? suite.endTime - suite.startTime : 0),
+      (acc, suite) =>
+        acc + (suite.endTime && suite.startTime ? suite.endTime - suite.startTime : 0),
       0,
     ) / 1000
   ).toFixed(2);
@@ -267,7 +268,9 @@ async function main() {
   console.log(
     `${colorize('Tests:', colors.white)} ${formatSummaryPart(report.numPassedTests, 'passed', 'passed')}, ${formatSummaryPart(report.numFailedTests, 'failed', 'failed')}, ${formatSummaryPart(totalSkipped, 'skipped', 'skipped')}, ${formatSummaryPart(report.numTotalTests, 'total', 'total')}`,
   );
-  console.log(`${colorize('Time:', colors.white)} ${formatSummaryPart(`${runtimeSec}s`, '', 'time').trim()}`);
+  console.log(
+    `${colorize('Time:', colors.white)} ${formatSummaryPart(`${runtimeSec}s`, '', 'time').trim()}`,
+  );
 
   process.exit(result.code ?? 1);
 }

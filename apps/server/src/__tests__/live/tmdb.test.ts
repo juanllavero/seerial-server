@@ -14,64 +14,64 @@ import { TMDbApiClient } from '@/api/v1/shared/infrastructure/adapters/metadata/
 const LIVE = process.env.LIVE_INTEGRATION === 'true';
 
 jest.mock('@/api/v1/shared/infrastructure/adapters/di/container', () => ({
-    fileSystemService: {
-        join: jest.fn((...parts: string[]) => path.join(...parts)),
-        getExternalPath: jest.fn((p: string) => p),
-        isFile: jest.fn(async (p: string) => fs.existsSync(p)),
-    },
+  fileSystemService: {
+    join: jest.fn((...parts: string[]) => path.join(...parts)),
+    getExternalPath: jest.fn((p: string) => p),
+    isFile: jest.fn(async (p: string) => fs.existsSync(p)),
+  },
 }));
 
 const describeIfLive = LIVE ? describe : describe.skip;
 
 describeIfLive('TMDbApiClient – Live (Phase 3)', () => {
-    let client: TMDbApiClient;
+  let client: TMDbApiClient;
 
-    beforeEach(async () => {
-        client = new TMDbApiClient();
-        await client.initialize();
-    });
+  beforeEach(async () => {
+    client = new TMDbApiClient();
+    await client.initialize();
+  });
 
-    it('initializes and connects to TMDb with a valid API key', () => {
-        // If no keys.properties exists, connectionStatus will be false — that is acceptable
-        expect(typeof client.connectionStatus).toBe('boolean');
-    });
+  it('initializes and connects to TMDb with a valid API key', () => {
+    // If no keys.properties exists, connectionStatus will be false — that is acceptable
+    expect(typeof client.connectionStatus).toBe('boolean');
+  });
 
-    it('searches movies for a known title', async () => {
-        if (!client.connectionStatus) {
-            console.warn('Skipping: no valid TMDB API key configured');
-            return;
-        }
+  it('searches movies for a known title', async () => {
+    if (!client.connectionStatus) {
+      console.warn('Skipping: no valid TMDB API key configured');
+      return;
+    }
 
-        const results = await client.searchMovies('The Dark Knight');
-        expect(Array.isArray(results)).toBe(true);
-        if (results.length > 0) {
-            expect(results[0]).toHaveProperty('id');
-        }
-    }, 30000);
+    const results = await client.searchMovies('The Dark Knight');
+    expect(Array.isArray(results)).toBe(true);
+    if (results.length > 0) {
+      expect(results[0]).toHaveProperty('id');
+    }
+  }, 30000);
 
-    it('searches TV shows for a known title', async () => {
-        if (!client.connectionStatus) {
-            console.warn('Skipping: no valid TMDB API key configured');
-            return;
-        }
+  it('searches TV shows for a known title', async () => {
+    if (!client.connectionStatus) {
+      console.warn('Skipping: no valid TMDB API key configured');
+      return;
+    }
 
-        const results = await client.searchTvShows('Breaking Bad');
-        expect(Array.isArray(results)).toBe(true);
-        if (results.length > 0) {
-            expect(results[0]).toHaveProperty('id');
-        }
-    }, 30000);
+    const results = await client.searchTvShows('Breaking Bad');
+    expect(Array.isArray(results)).toBe(true);
+    if (results.length > 0) {
+      expect(results[0]).toHaveProperty('id');
+    }
+  }, 30000);
 
-    it('fetches movie details by TMDB id', async () => {
-        if (!client.connectionStatus) {
-            console.warn('Skipping: no valid TMDB API key configured');
-            return;
-        }
+  it('fetches movie details by TMDB id', async () => {
+    if (!client.connectionStatus) {
+      console.warn('Skipping: no valid TMDB API key configured');
+      return;
+    }
 
-        // The Dark Knight = TMDB id 155
-        const details = await client.getMovieDetails(155);
-        if (details) {
-            expect(details).toHaveProperty('id', 155);
-        }
-    }, 30000);
+    // The Dark Knight = TMDB id 155
+    const details = await client.getMovieDetails(155);
+    if (details) {
+      expect(details).toHaveProperty('id', 155);
+    }
+  }, 30000);
 });

@@ -29,7 +29,7 @@ const metadataLogger = logger.child({ category: 'Metadata' });
 const metadataManagerLogger = logger.child({ category: 'Metadata Manager' });
 
 export class MetadataProviderImpl implements MetadataProviderPort {
-  constructor(private readonly apiClient: TMDbApiClient) { }
+  constructor(private readonly apiClient: TMDbApiClient) {}
 
   private readonly BASE_URL: string = 'https://image.tmdb.org/t/p/original';
 
