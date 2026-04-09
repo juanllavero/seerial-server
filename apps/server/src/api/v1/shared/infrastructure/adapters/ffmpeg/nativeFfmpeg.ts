@@ -1,4 +1,5 @@
-import { type ChildProcess, spawn } from 'node:child_process';
+import { type ChildProcess, spawn, spawnSync } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import ffmpegPath from 'ffmpeg-static';
 import ffprobePath from 'ffprobe-static';
 
@@ -27,6 +28,52 @@ export const getFfprobePath = () => {
     path = path.replace('app.asar', 'app.asar.unpacked');
   }
   return path;
+};
+
+const findSystemFfmpegPath = (): string => {
+  const locatorCommand = process.platform === 'win32' ? 'where' : 'which';
+  const result = spawnSync(locatorCommand, ['ffmpeg'], {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'ignore'],
+  });
+
+  if (result.status !== 0 || !result.stdout) {
+    return '';
+  }
+
+  const candidatePath = result.stdout
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .find(Boolean);
+
+  return candidatePath && existsSync(candidatePath) ? candidatePath : '';
+};
+
+export interface ResolvedFfmpegPath {
+  packagedPath: string;
+  packagedExists: boolean;
+  systemPath: string;
+  resolvedPath: string;
+}
+
+export const resolveFfmpegPath = (): ResolvedFfmpegPath => {
+  const packagedPath = getFfmpegPath();
+  const packagedExists = !!packagedPath && existsSync(packagedPath);
+  const systemPath = packagedExists ? '' : findSystemFfmpegPath();
+  const resolvedPath = packagedExists ? packagedPath : systemPath;
+
+  return {
+    packagedPath,
+    packagedExists,
+    systemPath,
+    resolvedPath,
+  };
+};
+
+const getFfmpegExecutableForSpawn = (): string => {
+  const { resolvedPath } = resolveFfmpegPath();
+  // Let the OS PATH resolve ffmpeg when no absolute binary is available.
+  return resolvedPath || 'ffmpeg';
 };
 
 export interface FfmpegOptions {
@@ -77,7 +124,7 @@ export function executeFfmpeg(args: string[]): Promise<void> {
     };
 
     try {
-      ffmpegProcess = spawn(getFfmpegPath(), args, {
+      ffmpegProcess = spawn(getFfmpegExecutableForSpawn(), args, {
         stdio: ['pipe', 'pipe', 'pipe'],
       });
 
@@ -272,7 +319,7 @@ export function executeFfmpegPipe(
     };
 
     try {
-      ffmpegProcess = spawn(getFfmpegPath(), args, {
+      ffmpegProcess = spawn(getFfmpegExecutableForSpawn(), args, {
         stdio: ['pipe', 'pipe', 'pipe'],
       });
 
@@ -459,7 +506,7 @@ export function executeFfmpegPipeToStream(
   };
 
   try {
-    ffmpegProcess = spawn(getFfmpegPath(), args, {
+    ffmpegProcess = spawn(getFfmpegExecutableForSpawn(), args, {
       stdio: ['pipe', 'pipe', 'pipe'],
     });
 

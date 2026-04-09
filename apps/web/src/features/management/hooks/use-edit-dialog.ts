@@ -51,7 +51,7 @@ function useEditDialog<TEntity extends object, TImages extends object>({
     reset(generateResetValues(entity, ...configs));
     images.setFormState(getImagesFromEntity(entity));
     setSelectedTab(t('generalButton'));
-  }, [entity, reset]);
+  }, [entity, reset, configs, getImagesFromEntity, images, t]);
 
   const handleUpdate = handleSubmit(async (data) => {
     if (updating) return;

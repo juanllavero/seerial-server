@@ -211,6 +211,16 @@ export interface Song {
     fileSrc: string;
 }
 
+export interface LRCFile {
+    language: string;
+    content: string;
+}
+
+export interface LRCLine {
+    time: number;
+    text: string;
+}
+
 export interface Video {
     id: string;
     title: string;

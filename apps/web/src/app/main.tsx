@@ -7,20 +7,31 @@ import { createRoot } from 'react-dom/client';
 import { useTranslation } from 'react-i18next';
 import { BrowserRouter } from 'react-router-dom';
 import { shallow } from 'zustand/shallow';
+import { LOCAL_SERVER } from '@/shared/lib/constants';
 import { updateAppLanguage } from '../shared/localization/helpers/language-helpers';
 import '../shared/localization/i18n';
 import { AppRoutes } from './routes/routes';
 
 function App() {
   const { i18n } = useTranslation();
-  const { initializeStatusChecks } = useServerStore(
-    (state) => ({ initializeStatusChecks: state.initializeStatusChecks }),
+  const { selectedServer, setSelectedServer, initializeStatusChecks } = useServerStore(
+    (state) => ({
+      selectedServer: state.selectedServer,
+      setSelectedServer: state.setSelectedServer,
+      initializeStatusChecks: state.initializeStatusChecks,
+    }),
     shallow,
   );
 
   useEffect(() => {
     updateAppLanguage(i18n);
   }, [i18n]);
+
+  useEffect(() => {
+    if (selectedServer?.url !== LOCAL_SERVER.url) {
+      setSelectedServer(LOCAL_SERVER);
+    }
+  }, [selectedServer?.url, setSelectedServer]);
 
   useEffect(() => {
     // Check server and API key status on app load

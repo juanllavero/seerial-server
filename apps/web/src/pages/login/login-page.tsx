@@ -1,10 +1,12 @@
-import type { BasicUser, DiscoveredServer } from '@seerial/domain';
+import type { BasicUser } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { shallow } from 'zustand/shallow';
-import { LoginLayout, ServerSelector, UserSelector } from '@/features/auth';
+import { LoginLayout, UserSelector } from '@/features/auth';
 import Loading from '@/shared/ui/loading';
+import { LOCAL_SERVER } from '@/shared/lib/constants';
+import { createServerClient } from '@seerial/api';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -27,25 +29,38 @@ export default function LoginPage() {
     }
   }, [selectedServer, currentUser, navigate]);
 
-  if (selectedServer && currentUser) {
+  const [isCheckingServer, setIsCheckingServer] = useState(true);
+  const [serverAvailable, setServerAvailable] = useState(false);
+
+  const probeLocalServer = useCallback(async () => {
+    setIsCheckingServer(true);
+    try {
+      const client = createServerClient(LOCAL_SERVER.url);
+      const response = await client.get('/servers');
+      setDiscoveredUsers((response?.data?.data?.users as BasicUser[]) ?? []);
+      setServerAvailable(true);
+      setSelectedServer(LOCAL_SERVER);
+    } catch {
+      setDiscoveredUsers([]);
+      setServerAvailable(false);
+    } finally {
+      setIsCheckingServer(false);
+    }
+  }, [setSelectedServer]);
+
+  useEffect(() => {
+    probeLocalServer();
+  }, [probeLocalServer]);
+
+  if ((selectedServer && currentUser) || isCheckingServer) {
     return <Loading />;
   }
 
-  // ── Step 1: select server ──────────────────────────────────────────────────
-  if (!selectedServer) {
-    const handleServerSelected = (server: DiscoveredServer) => {
-      setSelectedServer({ name: server.name, url: server.url });
-      setDiscoveredUsers(server.users);
-    };
-
-    return (
-      <LoginLayout>
-        <ServerSelector onServerSelected={handleServerSelected} />
-      </LoginLayout>
-    );
+  if (!selectedServer || !serverAvailable) {
+    return <h2>No server available</h2>;
   }
 
-  // ── Step 2: select/login user ──────────────────────────────────────────────
+  // ── select/login user ──────────────────────────────────────────────
   return (
     <LoginLayout>
       <UserSelector

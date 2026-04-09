@@ -6,19 +6,10 @@ import NavigationButton from '@/components/navigation/NavigationButton';
 import FlexBox from '@/components/ui/FlexBox';
 import { useLanguageName as getTrackLanguageName } from '@/localization/TrackLanguages';
 import Loading from '@/shared/components/loading';
-
-export interface SongLyricsFile {
-  language: string;
-  content: string;
-}
-
-interface LrcLine {
-  time: number;
-  text: string;
-}
+import type { LRCFile, LRCLine } from '@seerial/domain';
 
 interface LRCVisualizerProps {
-  lyrics: SongLyricsFile[];
+  lyrics: LRCFile[];
   isLoading: boolean;
 }
 
@@ -32,8 +23,8 @@ interface LyricsLineState {
   blurClass: string;
 }
 
-function parseLrcContent(content: string): LrcLine[] {
-  const parsedLines: LrcLine[] = [];
+function parseLrcContent(content: string): LRCLine[] {
+  const parsedLines: LRCLine[] = [];
 
   for (const rawLine of content.split(/\r\n?|\n/)) {
     const trimmedLine = rawLine.trim();

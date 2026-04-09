@@ -1,40 +1,5 @@
-import { useGetSongLyrics } from '@seerial/api';
-import type { LRCFile } from '@seerial/domain';
-import { formatTimefrom '@seerial/domdomain
-import
-{
-  useMusicStore;
-  Volume;
-  @seerial
-  /;;;;;;;;eorsst;
-}
-from;
-'
-  EllipsisVertical,
-  ListMusic,
-  Maximize2,
-  MicVocal,
-  Minimize2,
-  Repeat,
-  Repeat1,
-  Shuffle,
-  Volume2,
-  VolumeOff,
-ct';lucide-
-import { useStatem 'react';
-import { useTranslationslation }
-react - i18next8next;
-';
-import { shallowrom 'zustzustandnshallow
-import
-{
-  RepeateMode;
-}
-from;
-('@/shared/data/enumsemusic');
-
-import { useIsTablett } from 'dshared/hooks/use-tablet/use-tablet';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { useIsTablet } from '@/shared/hooks/use-tablet';
 import { Button } from '@/shared/ui/button';
 import CustomSlider from '@/shared/ui/custom-slider';
 import {
@@ -47,6 +12,24 @@ import {
 import Image from '@/shared/ui/image';
 import { Slider } from '@/shared/ui/slider';
 import SmallSpinner from '@/shared/ui/small-spinner';
+import { useGetSongLyrics } from '@seerial/api';
+import { LRCFile, RepeateMode, formatTime } from '@seerial/domain';
+import { useMusicStore } from '@seerial/stores';
+import {
+  Minimize2,
+  Maximize2,
+  Shuffle,
+  EllipsisVertical,
+  Repeat,
+  Repeat1,
+  MicVocal,
+  ListMusic,
+  VolumeOff,
+  Volume2,
+} from 'lucide-react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { shallow } from 'zustand/shallow';
 
 interface MusicControlsExpandedProps {
   title: string;

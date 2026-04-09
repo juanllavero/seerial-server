@@ -65,7 +65,9 @@ export const es = {
     watchListShows: 'Mi Lista: Series',
     watchListMovies: 'Mi Lista: Películas',
     serverError: 'El servidor no está disponible',
-    serverErrorMessage: 'Verifique que tenga conexión a internet y que el servidor esté conectado',
+    serverErrorMessage:
+      'Seerial Server no está ejecutándose en localhost (http://localhost:34200).',
+    retryConnection: 'Reintentar conexión',
     apiKey: 'Clave API',
     apiKeyTitle: 'No se ha encontrado una clave API para TheMovieDB',
     apiKeyMessage: 'Añada una clave API. Puede conseguirla en ',

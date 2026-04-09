@@ -1,8 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import FlexBox from '@/shared/ui/flex-box';
 import ContinueWatching from './continue-watching';
-import MyListMovies from './my-list-movies';
-import MyListShows from './my-list-shows';
 
 function HomePageContent() {
   const navigate = useNavigate();
@@ -23,10 +21,10 @@ function HomePageContent() {
       <ContinueWatching goToContent={goToContent} />
 
       {/* User's Shows in WatchList */}
-      <MyListShows goToContent={goToContent} />
+      {/* <MyListShows goToContent={goToContent} /> */}
 
       {/* User's Movies in WatchList */}
-      <MyListMovies goToContent={goToContent} />
+      {/* <MyListMovies goToContent={goToContent} /> */}
     </FlexBox>
   );
 }

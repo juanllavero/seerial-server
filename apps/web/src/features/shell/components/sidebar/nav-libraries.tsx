@@ -37,13 +37,6 @@ import {
 } from '@/shared/ui/sidebar';
 import SmallSpinner from './loading/small-spinner';
 
-interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data: T;
-  timestamp: string;
-}
-
 interface Item {
   id: string;
   name: string;
@@ -86,12 +79,12 @@ const NavLibraries = () => {
   );
   const { create: createRequest } = useCreate<void>();
 
-  const { data, isLoading } = useGetLibraries<ApiResponse<Library[]>>({
+  const { data, isLoading } = useGetLibraries<Library[]>({
     refetchOnWindowFocus: false,
     staleTime: Number.POSITIVE_INFINITY,
   });
 
-  const libraries = data ? data.data : [];
+  const libraries = data ? data : [];
 
   const librariesItems =
     libraries && libraries.length > 0

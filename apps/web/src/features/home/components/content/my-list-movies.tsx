@@ -1,6 +1,5 @@
-import { API, useCreate, useGetMyListMovies } from '@seerial/api';
+import { API, useCreate } from '@seerial/api';
 import type { Movie } from '@seerial/domain';
-import { useMediaActions } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { Pencil } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -11,6 +10,7 @@ import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { Button } from '@/shared/ui/button';
 import HorizontalList from '../../../../shared/lists/horizontal-list';
 import HorizontalListSkeleton from './horizontal-list-skeleton';
+import { useMediaActions } from '@/shared/lib/react-utils';
 
 type MovieListItem = Movie & { watchStatus?: boolean };
 

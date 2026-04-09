@@ -8,10 +8,15 @@ import UserCard from './user-card';
 
 type View = 'profiles' | 'manual' | 'addUser';
 
+interface AuthResponse {
+  token?: string;
+  user?: BasicUser;
+}
+
 interface UserSelectorProps {
   server: PersistedServer;
   users: BasicUser[];
-  onServerChange: () => void;
+  onServerChange?: () => void;
   onLogin: (user: BasicUser) => void;
 }
 
@@ -39,16 +44,13 @@ function UserSelector({ server, users, onServerChange, onLogin }: UserSelectorPr
     setIsLoading(true);
     setError('');
     try {
-      const response = await api.post<{ data?: { token?: string; user?: BasicUser } }>(
-        API.users.login,
-        {
-          username: loginUsername,
-          password: loginPassword ?? '',
-        },
-      );
-      setCookie('token', response.data?.token ?? '', 90);
-      if (response.data?.user) {
-        onLogin(response.data.user);
+      const response = await api.post<AuthResponse>(API.users.login, {
+        username: loginUsername,
+        password: loginPassword ?? '',
+      });
+      setCookie('token', response.token ?? '', 90);
+      if (response.user) {
+        onLogin(response.user);
       }
       navigate('/home');
     } catch {
@@ -69,17 +71,14 @@ function UserSelector({ server, users, onServerChange, onLogin }: UserSelectorPr
     setIsLoading(true);
     setError('');
     try {
-      const response = await api.post<{ data?: { token?: string; user?: BasicUser } }>(
-        API.users.create,
-        {
-          username: newUsername,
-          password: newPassword,
-          type: newUserType,
-        },
-      );
-      setCookie('token', response.data?.token ?? '', 90);
-      if (response.data?.user) {
-        onLogin(response.data.user);
+      const response = await api.post<AuthResponse>(API.users.create, {
+        username: newUsername,
+        password: newPassword,
+        type: newUserType,
+      });
+      setCookie('token', response.token ?? '', 90);
+      if (response.user) {
+        onLogin(response.user);
       }
       navigate('/home');
     } catch {
@@ -100,16 +99,18 @@ function UserSelector({ server, users, onServerChange, onLogin }: UserSelectorPr
     return (
       <>
         {/* Server info + back */}
-        <div className="mb-8 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={onServerChange}
-            className="flex items-center gap-2 text-white/50 transition-colors hover:text-white"
-          >
-            <ArrowLeft size={18} />
-            <span className="text-sm">{server.name}</span>
-          </button>
-        </div>
+        {onServerChange && (
+          <div className="mb-8 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={onServerChange}
+              className="flex items-center gap-2 text-white/50 transition-colors hover:text-white"
+            >
+              <ArrowLeft size={18} />
+              <span className="text-sm">{server.name}</span>
+            </button>
+          </div>
+        )}
 
         <h1 className="mb-10 text-center text-4xl font-bold tracking-tight text-white">
           ¿Quién eres?

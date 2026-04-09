@@ -68,7 +68,7 @@ export class TMDbApiClient {
       return false;
     }
 
-    const properties = propertiesReader(propertiesFilePath);
+    const properties = propertiesReader({ sourceFile: propertiesFilePath });
 
     // Get API Key
     this.THEMOVIEDB_API_TOKEN = properties.get('TMDB_API_KEY') as string;

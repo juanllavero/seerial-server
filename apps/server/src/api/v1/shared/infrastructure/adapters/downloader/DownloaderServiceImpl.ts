@@ -2,37 +2,44 @@ import { exec, spawn } from 'node:child_process';
 import fs, { chmodSync, createWriteStream, existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import path from 'node:path';
 import { promisify } from 'node:util';
-import type { MediaSearchResult } from '@seerial/domain';
-import ffmpegPath from 'ffmpeg-static';
 import { https } from 'follow-redirects';
 import {
   downloaderService,
   fileSystemService,
   notificationService,
 } from '@/api/v1/shared/infrastructure/adapters/di/container';
+import { resolveFfmpegPath } from '@/api/v1/shared/infrastructure/adapters/ffmpeg/nativeFfmpeg';
 import logger from '@/utils/logger';
 import type { DownloaderServicePort } from '../../../application/ports/DownloaderServicePort';
+import type { MediaSearchResult } from '@/data/interfaces/SearchResults';
 
 const downloaderLogger = logger.child({ category: 'Downloader' });
 
-let ffmpegPathFinal = ffmpegPath ?? '';
-
-// If app.asar is used, use app.asar.unpacked
-if (ffmpegPathFinal.includes('app.asar')) {
-  ffmpegPathFinal = ffmpegPathFinal.replace('app.asar', 'app.asar.unpacked');
-}
+const {
+  packagedPath: ffmpegPathFinal,
+  packagedExists: ffmpegStaticExists,
+  systemPath: systemFfmpegPath,
+  resolvedPath: ffmpegLocation,
+} = resolveFfmpegPath();
 
 const ffmpegArg =
-  ffmpegPathFinal && existsSync(ffmpegPathFinal) ? ` --ffmpeg-location "${ffmpegPathFinal}"` : '';
+  ffmpegLocation ? ` --ffmpeg-location "${ffmpegLocation}"` : '';
 
 const nodeExecutableName = path.basename(process.execPath).toLowerCase();
 const jsRuntimeValue = nodeExecutableName.startsWith('node') ? `node:${process.execPath}` : 'node';
 const jsRuntimesArg = ` --js-runtimes "${jsRuntimeValue}"`;
 
-if (ffmpegPathFinal && !ffmpegArg) {
+if (!ffmpegStaticExists && ffmpegPathFinal && systemFfmpegPath) {
+  downloaderLogger.info(
+    { ffmpegPathFinal, systemFfmpegPath },
+    'ffmpeg-static path does not exist. Using system ffmpeg for yt-dlp',
+  );
+}
+
+if (!ffmpegStaticExists && ffmpegPathFinal && !systemFfmpegPath) {
   downloaderLogger.warn(
     { ffmpegPathFinal },
-    'ffmpeg-static path does not exist. Continuing without explicit ffmpeg location',
+    'ffmpeg-static path does not exist and system ffmpeg was not found. Continuing without explicit ffmpeg location',
   );
 }
 
@@ -105,16 +112,15 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
           // Clean partially downloaded file
           try {
             if (existsSync(ytDlpPath)) unlinkSync(ytDlpPath);
-          } catch {}
+          } catch { }
           reject(err);
         });
     });
   }
 
   public async searchVideos(query: string, numberOfResults: number): Promise<MediaSearchResult[]> {
-    const searchQuery = `"${downloaderService.getYtDlpPath()}" "ytsearch${
-      numberOfResults > 0 ? numberOfResults : 1
-    }:${query}" --dump-json --default-search ytsearch --no-playlist --no-check-certificate --geo-bypass --flat-playlist --skip-download --quiet --ignore-errors${ffmpegArg}${jsRuntimesArg}`;
+    const searchQuery = `"${downloaderService.getYtDlpPath()}" "ytsearch${numberOfResults > 0 ? numberOfResults : 1
+      }:${query}" --dump-json --default-search ytsearch --no-playlist --no-check-certificate --geo-bypass --flat-playlist --skip-download --quiet --ignore-errors${ffmpegArg}${jsRuntimesArg}`;
 
     try {
       const { stdout } = await execAsync(searchQuery);

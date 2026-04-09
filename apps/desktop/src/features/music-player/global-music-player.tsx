@@ -12,11 +12,12 @@ import NavigationButton from '@/components/navigation/NavigationButton';
 import NavigationContainer from '@/components/navigation/NavigationContainer';
 import FlexBox from '@/components/ui/FlexBox';
 import Image from '@/components/ui/Image';
-import LRCVisualizer, { type SongLyricsFile } from '@/features/music-player/lrc-visualizer';
+import LRCVisualizer from '@/features/music-player/lrc-visualizer';
 import TimelineSlider from '@/pages/videoplayer/components/controls/timeline-slider';
 import Loading from '@/shared/components/loading';
 import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
+import type { LRCFile } from '@seerial/domain';
 
 const READY_POLL_INTERVAL_MS = 250;
 const LOAD_TIMEOUT_MS = 5000;
@@ -60,7 +61,7 @@ function useSongLyricsPanel(
   showLyrics: boolean,
   setShowLyrics: (showLyrics: boolean) => void,
 ) {
-  const { data: lyrics = [], isLoading: isLyricsLoading } = useGetSongLyrics<SongLyricsFile[]>(
+  const { data: lyrics = [], isLoading: isLyricsLoading } = useGetSongLyrics<LRCFile[]>(
     songId ?? '',
     {
       enabled: Boolean(songId && isShown),
