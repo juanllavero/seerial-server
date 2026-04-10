@@ -8,6 +8,8 @@ import {
   enqueueMpvCommand,
   fadeOutAndStopMpv,
   getBackgroundPlaybackVolume,
+  resetAppShellBackground,
+  setAppShellBackground,
   waitForMediaReady,
 } from './details-background-mpv';
 
@@ -33,7 +35,10 @@ function DetailsBackgroundVideoPlayer({
   onVisibilityChange,
 }: DetailsBackgroundVideoPlayerProps) {
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
-  const themeMusicVolume = useSettingsStore((state) => state.settings.themeMusicVolume);
+  const { hardwareDecoding, themeMusicVolume } = useSettingsStore((state) => ({
+    hardwareDecoding: state.settings.hardwareDecoding,
+    themeMusicVolume: state.settings.themeMusicVolume,
+  }));
 
   useAppSettingsMpv();
 
@@ -58,11 +63,13 @@ function DetailsBackgroundVideoPlayer({
   const stopPlayback = useCallback(async () => {
     clearRevealTimer();
     onVisibilityChange?.(false);
+    setAppShellBackground('black');
 
     await enqueueMpvCommand(async () => {
       await fadeOutAndStopMpv(originalVolumeRef.current, () => false);
+      await invoke('set_hwdec', { enabled: hardwareDecoding }).catch(() => undefined);
     });
-  }, [clearRevealTimer, onVisibilityChange]);
+  }, [clearRevealTimer, hardwareDecoding, onVisibilityChange]);
 
   const loadAndPlay = useCallback(async () => {
     if (!localId || !serverUrl) {
@@ -90,6 +97,7 @@ function DetailsBackgroundVideoPlayer({
         }
 
         await invoke('embed_mpv');
+        await invoke('set_hwdec', { enabled: false });
         await invoke('set_volume', { volume: targetVolume });
         await invoke('load_url', { url: `${serverUrl}${signedUrl}` });
       });
@@ -116,6 +124,7 @@ function DetailsBackgroundVideoPlayer({
           return;
         }
 
+        setAppShellBackground('transparent');
         onVisibilityChange?.(true);
       }, VIDEO_REVEAL_DELAY_MS);
 
@@ -136,10 +145,12 @@ function DetailsBackgroundVideoPlayer({
     isDisposedRef.current = false;
     hasEndedRef.current = false;
     onVisibilityChange?.(false);
+    setAppShellBackground('black');
 
     if (!localId || !serverUrl) {
       return () => {
         isDisposedRef.current = true;
+        resetAppShellBackground();
       };
     }
 
@@ -147,6 +158,7 @@ function DetailsBackgroundVideoPlayer({
 
     return () => {
       isDisposedRef.current = true;
+      resetAppShellBackground();
       void stopPlayback();
     };
   }, [loadAndPlay, localId, onVisibilityChange, serverUrl, stopPlayback]);

@@ -1,8 +1,12 @@
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import DetailsBackgroundAudioPlayer from '@/shared/components/details/details-background-audio-player';
 import DetailsBackgroundVideoPlayer from '@/shared/components/details/details-background-video-player';
 
 type PlaybackMode = 'none' | 'audio' | 'video';
+
+function normalizeLocalIds(localIds: Array<string | null | undefined>): string[] {
+  return Array.from(new Set(localIds.filter((value): value is string => Boolean(value))));
+}
 
 interface DetailsBackgroundPlaybackProps {
   audioLocalIds: Array<string | null | undefined>;
@@ -15,35 +19,54 @@ function DetailsBackgroundPlayback({
   videoLocalIds,
   onVideoVisibilityChange,
 }: DetailsBackgroundPlaybackProps) {
-  const audioCandidates = useMemo(() => {
-    return Array.from(new Set(audioLocalIds.filter((value): value is string => Boolean(value))));
-  }, [audioLocalIds]);
+  const audioCandidates = useMemo(() => normalizeLocalIds(audioLocalIds), [audioLocalIds]);
+  const videoCandidates = useMemo(() => normalizeLocalIds(videoLocalIds), [videoLocalIds]);
 
-  const videoCandidates = useMemo(() => {
-    return Array.from(new Set(videoLocalIds.filter((value): value is string => Boolean(value))));
-  }, [videoLocalIds]);
+  const audioCandidatesKey = audioCandidates.join('|');
+  const videoCandidatesKey = videoCandidates.join('|');
+  const hasAudioCandidates = audioCandidates.length > 0;
+  const hasVideoCandidates = videoCandidates.length > 0;
 
   const [mode, setMode] = useState<PlaybackMode>('none');
   const [audioIndex, setAudioIndex] = useState(0);
   const [videoIndex, setVideoIndex] = useState(0);
+  const previousCandidatesRef = useRef({ audio: '', video: '' });
 
   useEffect(() => {
+    if (
+      previousCandidatesRef.current.audio === audioCandidatesKey &&
+      previousCandidatesRef.current.video === videoCandidatesKey
+    ) {
+      return;
+    }
+
+    previousCandidatesRef.current = {
+      audio: audioCandidatesKey,
+      video: videoCandidatesKey,
+    };
+
     setAudioIndex(0);
     setVideoIndex(0);
     onVideoVisibilityChange?.(false);
 
-    if (videoCandidates.length > 0) {
+    if (hasVideoCandidates) {
       setMode('video');
       return;
     }
 
-    if (audioCandidates.length > 0) {
+    if (hasAudioCandidates) {
       setMode('audio');
       return;
     }
 
     setMode('none');
-  }, [audioCandidates, onVideoVisibilityChange, videoCandidates]);
+  }, [
+    audioCandidatesKey,
+    hasAudioCandidates,
+    hasVideoCandidates,
+    onVideoVisibilityChange,
+    videoCandidatesKey,
+  ]);
 
   const handleVideoUnavailable = useCallback(() => {
     onVideoVisibilityChange?.(false);

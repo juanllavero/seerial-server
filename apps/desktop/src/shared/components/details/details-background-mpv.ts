@@ -7,6 +7,8 @@ const FADE_OUT_STEPS = 7;
 
 let mpvCommandQueue: Promise<void> = Promise.resolve();
 
+const APP_SHELL_BACKGROUND_PROPERTY = '--seerial-app-shell-background';
+
 export function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => {
         window.setTimeout(resolve, ms);
@@ -28,15 +30,15 @@ export function getBackgroundPlaybackVolume(volume: ThemeMusicVolume): number {
         case 'off':
             return 0;
         case 'low':
-            return 18;
+            return 100;
         case 'medium':
-            return 30;
+            return 120;
         case 'high':
-            return 45;
+            return 140;
         case 'veryHigh':
-            return 60;
+            return 150;
         default:
-            return 30;
+            return 100;
     }
 }
 
@@ -94,4 +96,12 @@ export async function fadeOutAndStopMpv(
     await invoke('stop').catch(() => undefined);
     await invoke('embed_mpv').catch(() => undefined);
     await invoke('set_volume', { volume: restoreVolume }).catch(() => undefined);
+}
+
+export function setAppShellBackground(background: 'black' | 'transparent'): void {
+    document.documentElement.style.setProperty(APP_SHELL_BACKGROUND_PROPERTY, background);
+}
+
+export function resetAppShellBackground(): void {
+    document.documentElement.style.removeProperty(APP_SHELL_BACKGROUND_PROPERTY);
 }

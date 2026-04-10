@@ -1,9 +1,11 @@
 import TopBar from './components/top-bar';
 
 const BaseLayout = ({ children }: { children: React.ReactNode }) => {
-  const background = 'black';
   return (
-    <div className={`w-full h-full m-0 bg-${background} flex flex-col items-cente`}>
+    <div
+      className="seerial-app-shell w-full h-full m-0 flex flex-col items-cente"
+      style={{ backgroundColor: 'var(--seerial-app-shell-background, black)' }}
+    >
       <TopBar />
       {children}
     </div>

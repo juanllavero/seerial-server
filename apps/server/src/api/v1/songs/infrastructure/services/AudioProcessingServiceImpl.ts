@@ -12,6 +12,25 @@ import type { AudioProcessingServicePort } from '../../application/ports/AudioPr
 export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
   private cacheDir: string;
 
+  private getAudioContentType(filePath: string): string {
+    const extension = path.extname(filePath).toLowerCase();
+
+    const typeMap: Record<string, string> = {
+      '.mp3': 'audio/mpeg',
+      '.flac': 'audio/flac',
+      '.wav': 'audio/wav',
+      '.m4a': 'audio/mp4',
+      '.opus': 'audio/ogg',
+      '.ogg': 'audio/ogg',
+      '.aac': 'audio/aac',
+      '.wma': 'audio/x-ms-wma',
+      '.webm': 'audio/webm',
+      '.caf': 'audio/x-caf',
+    };
+
+    return typeMap[extension] ?? 'application/octet-stream';
+  }
+
   constructor() {
     this.cacheDir = path.join(fileSystemService.resourcesPath, 'cache', 'audio');
     if (!fs.existsSync(this.cacheDir)) {
@@ -76,6 +95,7 @@ export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
     const stat = fs.statSync(filePath);
     const fileSize = stat.size;
     const range = req.headers.range;
+    const contentType = this.getAudioContentType(filePath);
 
     if (range) {
       const parts = range.replace(/bytes=/, '').split('-');
@@ -87,12 +107,12 @@ export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
         'Content-Range': `bytes ${start}-${end}/${fileSize}`,
         'Accept-Ranges': 'bytes',
         'Content-Length': chunkSize,
-        'Content-Type': 'audio/mpeg',
+        'Content-Type': contentType,
       };
       res.writeHead(206, head);
       file.pipe(res);
     } else {
-      const head = { 'Content-Length': fileSize, 'Content-Type': 'audio/mpeg' };
+      const head = { 'Content-Length': fileSize, 'Content-Type': contentType };
       res.writeHead(200, head);
       fs.createReadStream(filePath).pipe(res);
     }

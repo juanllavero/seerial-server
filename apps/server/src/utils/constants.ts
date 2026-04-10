@@ -52,6 +52,7 @@ export const audioExtensions = [
   '.flac',
   '.wav',
   '.m4a',
+  '.opus',
   '.ogg',
   '.aac',
   '.wma',
