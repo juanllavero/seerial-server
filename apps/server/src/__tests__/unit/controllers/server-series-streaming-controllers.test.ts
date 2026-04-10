@@ -37,6 +37,9 @@ jest.mock('@/api/v1/shared/infrastructure/adapters/di/container', () => ({
   },
   fileSystemService: {
     getExternalPath: jest.fn(),
+    isFolder: jest.fn(),
+    getValidVideoFiles: jest.fn(),
+    join: jest.fn(),
     createJSONFile: jest.fn(),
     readFileSync: jest.fn(),
     writeFile: jest.fn(),
@@ -284,6 +287,62 @@ describe('Servers, Series and Video Streaming controllers', () => {
         { expiresIn: '5m' },
       );
       expect(response.data).toBe('/video-streaming/passthrough?token=signed-passthrough');
+    });
+
+    it('resolves localId to the downloaded video file before signing passthrough URL', async () => {
+      (jwt.sign as jest.Mock).mockReturnValue('signed-passthrough');
+      container.fileSystemService.join.mockReturnValue('resources/videos/video-1');
+      container.fileSystemService.getExternalPath.mockReturnValue('/data/resources/videos/video-1');
+      container.fileSystemService.isFolder.mockResolvedValue(true);
+      container.fileSystemService.getValidVideoFiles.mockResolvedValue([
+        '/data/resources/videos/video-1/video-1.mkv',
+      ]);
+
+      const response = await new VideoStreamingController().getVideoUrl(
+        { filePath: '', localId: 'video-1' } as never,
+        asRequest({ user: { id: 'user-2' } } as never),
+      );
+
+      expect(container.fileSystemService.getValidVideoFiles).toHaveBeenCalledWith(
+        '/data/resources/videos/video-1',
+      );
+      expect(jwt.sign).toHaveBeenCalledWith(
+        { userId: 'user-2', path: '/data/resources/videos/video-1/video-1.mkv' },
+        'jwt-secret',
+        { expiresIn: '2m' },
+      );
+      expect(response.data).toBe('/video-streaming/passthrough?token=signed-passthrough');
+    });
+
+    it('returns null when the local video folder does not exist', async () => {
+      container.fileSystemService.join.mockReturnValue('resources/videos/video-missing');
+      container.fileSystemService.getExternalPath.mockReturnValue(
+        '/data/resources/videos/video-missing',
+      );
+      container.fileSystemService.isFolder.mockResolvedValue(false);
+
+      const response = await new VideoStreamingController().getVideoUrl(
+        { filePath: '', localId: 'video-missing' } as never,
+        asRequest({ user: { id: 'user-2' } } as never),
+      );
+
+      expect(response.data).toBeNull();
+      expect(jwt.sign).not.toHaveBeenCalled();
+    });
+
+    it('returns null when the local video folder has no valid video file', async () => {
+      container.fileSystemService.join.mockReturnValue('resources/videos/video-empty');
+      container.fileSystemService.getExternalPath.mockReturnValue('/data/resources/videos/video-empty');
+      container.fileSystemService.isFolder.mockResolvedValue(true);
+      container.fileSystemService.getValidVideoFiles.mockResolvedValue([]);
+
+      const response = await new VideoStreamingController().getVideoUrl(
+        { filePath: '', localId: 'video-empty' } as never,
+        asRequest({ user: { id: 'user-2' } } as never),
+      );
+
+      expect(response.data).toBeNull();
+      expect(jwt.sign).not.toHaveBeenCalled();
     });
 
     it('throws when streaming response is unavailable', async () => {

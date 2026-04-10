@@ -9,6 +9,8 @@ import { useNavigate } from 'react-router';
 import GradientBackground from '@/components/backgrounds/GradientBackground';
 import NavigationScrollView from '@/components/navigation/NavigationScrollView';
 import ListTitle from '@/components/text/ListTitle';
+import Subtitle from '@/components/text/Subtitle';
+import Title from '@/components/text/Title';
 import HomeHeroImage from '@/pages/home/components/home-hero-image';
 import AppAlertDialog from '@/shared/components/app-alert-dialog';
 import DetailsInfo from '@/shared/components/details/details-info';
@@ -144,6 +146,15 @@ function Home() {
     setSelectedElement,
     t,
   });
+
+  if (!continueWatching || continueWatching.length === 0) {
+    return (
+      <Page justify="center" align="center">
+        <Title>No tienes contenido en progreso</Title>
+        <Subtitle>Empieza a ver algo para que aparezca aquí</Subtitle>
+      </Page>
+    );
+  }
 
   return (
     <Page justify="end">

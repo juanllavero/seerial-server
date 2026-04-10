@@ -22,6 +22,9 @@ jest.mock('@/api/v1/shared/infrastructure/adapters/di/container', () => ({
     basename: jest.fn(),
     extname: jest.fn(),
     join: jest.fn(),
+    getExternalPath: jest.fn(),
+    isFolder: jest.fn(),
+    getValidMusicFiles: jest.fn(),
     writeFile: jest.fn(),
   },
   audioProcessingService: {
@@ -154,6 +157,57 @@ describe('SongsController', () => {
       expect.any(String),
       { expiresIn: '5m' },
     );
+  });
+
+  it('resolves localId to the downloaded song file before signing the URL', async () => {
+    container.fileSystemService.join.mockReturnValue('resources/music/song-1');
+    container.fileSystemService.getExternalPath.mockReturnValue('/data/resources/music/song-1');
+    container.fileSystemService.isFolder.mockResolvedValue(true);
+    container.fileSystemService.getValidMusicFiles.mockResolvedValue([
+      '/data/resources/music/song-1/song-1.opus',
+    ]);
+
+    await new SongsController().getSongUrl({ filePath: '', localId: 'song-1' });
+
+    expect(container.fileSystemService.getValidMusicFiles).toHaveBeenCalledWith(
+      '/data/resources/music/song-1',
+    );
+    expect(jwt.sign).toHaveBeenCalledWith(
+      expect.objectContaining({ path: '/data/resources/music/song-1/song-1.opus' }),
+      expect.any(String),
+      { expiresIn: '2m' },
+    );
+  });
+
+  it('returns null when the local song folder does not exist', async () => {
+    container.fileSystemService.join.mockReturnValue('resources/music/song-missing');
+    container.fileSystemService.getExternalPath.mockReturnValue(
+      '/data/resources/music/song-missing',
+    );
+    container.fileSystemService.isFolder.mockResolvedValue(false);
+
+    const response = await new SongsController().getSongUrl({
+      filePath: '',
+      localId: 'song-missing',
+    });
+
+    expect(response.data).toBeNull();
+    expect(jwt.sign).not.toHaveBeenCalled();
+  });
+
+  it('returns null when the local song folder has no valid audio file', async () => {
+    container.fileSystemService.join.mockReturnValue('resources/music/song-empty');
+    container.fileSystemService.getExternalPath.mockReturnValue('/data/resources/music/song-empty');
+    container.fileSystemService.isFolder.mockResolvedValue(true);
+    container.fileSystemService.getValidMusicFiles.mockResolvedValue([]);
+
+    const response = await new SongsController().getSongUrl({
+      filePath: '',
+      localId: 'song-empty',
+    });
+
+    expect(response.data).toBeNull();
+    expect(jwt.sign).not.toHaveBeenCalled();
   });
 
   it('includes optional query params in the signed song URL', async () => {

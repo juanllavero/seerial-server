@@ -7,11 +7,11 @@ import { t } from 'i18next';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { shallow } from 'zustand/shallow';
-import BackgroundImage from '@/components/backgrounds/BackgroundImage';
-import GradientBackground from '@/components/backgrounds/GradientBackground';
 import EpisodesList from '@/features/details/series/components/episodes-list';
 import SeasonSelector from '@/features/details/series/components/season-selector';
 import { useSeriesDetailsFocusStore } from '@/features/details/series/stores/series-details-focus.store';
+import DetailsBackgroundLayers from '@/shared/components/details/details-background-layers';
+import DetailsBackgroundPlayback from '@/shared/components/details/details-background-playback';
 import DetailsInfo from '@/shared/components/details/details-info';
 import Page from '@/shared/components/page';
 
@@ -33,6 +33,9 @@ function SeriesDetails({ series, isLoading, details }: SeriesDetailsProps) {
   const [selectedSeason, setSelectedSeason] = useState<Season | null>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(null);
   const [isRestoringEpisodeFocus, setIsRestoringEpisodeFocus] = useState(true);
+  const [isBackgroundVideoVisible, setIsBackgroundVideoVisible] = useState(false);
+  const backgroundImageSrc =
+    details?.backgroundSrc ?? selectedSeason?.backgroundSrc ?? series?.coverSrc;
 
   const getLastFocusedEpisodeForSeason = useSeriesDetailsFocusStore(
     (state) => state.getLastFocusedEpisodeForSeason,
@@ -121,13 +124,14 @@ function SeriesDetails({ series, isLoading, details }: SeriesDetailsProps) {
 
   return (
     <Page justify="end">
-      <GradientBackground
-        imageSrc={details?.backgroundSrc ?? selectedSeason?.backgroundSrc ?? series?.coverSrc}
-        index={0}
-      />
-      <BackgroundImage
-        imageSrc={details?.backgroundSrc ?? selectedSeason?.backgroundSrc ?? series?.coverSrc}
-      />
+      {!!series?.id && (
+        <DetailsBackgroundPlayback
+          audioLocalIds={[selectedSeason?.id, series.id]}
+          videoLocalIds={[selectedSeason?.id, series.id]}
+          onVideoVisibilityChange={setIsBackgroundVideoVisible}
+        />
+      )}
+      <DetailsBackgroundLayers imageSrc={backgroundImageSrc} isHidden={isBackgroundVideoVisible} />
       <DetailsInfo
         details={details}
         subtitle={selectedEpisode?.name}

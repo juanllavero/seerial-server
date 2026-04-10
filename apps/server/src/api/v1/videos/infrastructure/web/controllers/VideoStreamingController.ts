@@ -14,6 +14,24 @@ type VideoParamsRequest = ExpressRequest & { videoParams: TranscodeVideoParams }
 @Route('video-streaming')
 @Tags('Video Streaming')
 export class VideoStreamingController extends Controller {
+  private async resolveVideoPath(filePath: string, localId?: string): Promise<string | null> {
+    if (!localId) {
+      return filePath || null;
+    }
+
+    const localFolder = fileSystemService.getExternalPath(
+      fileSystemService.join('resources', 'videos', localId),
+    );
+
+    if (!(await fileSystemService.isFolder(localFolder))) {
+      return null;
+    }
+
+    const [resolvedPath] = await fileSystemService.getValidVideoFiles(localFolder);
+
+    return resolvedPath ?? null;
+  }
+
   private getStreamingResponse(req: ExpressRequest): ExpressResponse {
     if (!req.res) {
       throw new Error('Streaming response object is not available');
@@ -63,11 +81,15 @@ export class VideoStreamingController extends Controller {
   public async getVideoUrl(
     @Body() body: VideoUrlDTO,
     @Request() req: ExpressRequest,
-  ): Promise<ApiResponse<string>> {
+  ): Promise<ApiResponse<string | null>> {
     const userId = (req as AuthenticatedRequest).user?.id as string;
     const { filePath, localId, expiresIn } = body;
 
-    const path = localId ? fileSystemService.getExternalPath(fileSystemService.join('resources', 'videos', localId)) : filePath;
+    const path = await this.resolveVideoPath(filePath, localId);
+
+    if (!path) {
+      return ApiResponse.success(null, messages.success.fetch);
+    }
 
     const token = jwt.sign(
       {

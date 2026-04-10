@@ -32,6 +32,24 @@ type AuthenticatedRequest = ExpressRequest & { user?: { id?: string } };
 @Route('songs')
 @Tags('Songs')
 export class SongsController extends Controller {
+  private async resolveSongPath(filePath: string, localId?: string): Promise<string | null> {
+    if (!localId) {
+      return filePath || null;
+    }
+
+    const localFolder = fileSystemService.getExternalPath(
+      fileSystemService.join('resources', 'music', localId),
+    );
+
+    if (!(await fileSystemService.isFolder(localFolder))) {
+      return null;
+    }
+
+    const [resolvedPath] = await fileSystemService.getValidMusicFiles(localFolder);
+
+    return resolvedPath ?? null;
+  }
+
   /**
    * Update song details
    */
@@ -106,11 +124,15 @@ export class SongsController extends Controller {
     @Query() isDesktop?: string,
     @Query() isMobile?: string,
     @Request() req?: ExpressRequest,
-  ): Promise<ApiResponse<string>> {
+  ): Promise<ApiResponse<string | null>> {
     const userId = (req as AuthenticatedRequest | undefined)?.user?.id as string;
     const { filePath, localId, expiresIn } = body;
 
-    const path = localId ? fileSystemService.getExternalPath(fileSystemService.join('resources', 'music', localId)) : filePath;
+    const path = await this.resolveSongPath(filePath, localId);
+
+    if (!path) {
+      return ApiResponse.success(null, messages.success.fetch);
+    }
 
     const token = jwt.sign(
       {

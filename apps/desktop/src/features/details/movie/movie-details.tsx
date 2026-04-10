@@ -11,8 +11,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { shallow } from 'zustand/shallow';
-import BackgroundImage from '@/components/backgrounds/BackgroundImage';
-import GradientBackground from '@/components/backgrounds/GradientBackground';
+import DetailsBackgroundLayers from '@/shared/components/details/details-background-layers';
+import DetailsBackgroundPlayback from '@/shared/components/details/details-background-playback';
 import DetailsInfo from '@/shared/components/details/details-info';
 import Page from '@/shared/components/page';
 
@@ -24,6 +24,8 @@ interface MovieDetailsProps {
 
 function MovieDetails({ movie, isLoading, details }: MovieDetailsProps) {
   const [selectedVideo, selectVideo] = useState<Video | null>(null);
+  const [isBackgroundVideoVisible, setIsBackgroundVideoVisible] = useState(false);
+  const backgroundImageSrc = details?.backgroundSrc ?? movie?.backgroundSrc ?? movie?.coverSrc;
   const queryClient = useQueryClient();
   const { currentUser } = useServerStore(
     (state) => ({
@@ -68,13 +70,14 @@ function MovieDetails({ movie, isLoading, details }: MovieDetailsProps) {
 
   return (
     <Page justify="end">
-      <GradientBackground
-        imageSrc={details?.backgroundSrc ?? movie?.backgroundSrc ?? movie?.coverSrc}
-        index={0}
-      />
-      <BackgroundImage
-        imageSrc={details?.backgroundSrc ?? movie?.backgroundSrc ?? movie?.coverSrc}
-      />
+      {!!movie?.id && (
+        <DetailsBackgroundPlayback
+          audioLocalIds={[movie.id]}
+          videoLocalIds={[movie.id]}
+          onVideoVisibilityChange={setIsBackgroundVideoVisible}
+        />
+      )}
+      <DetailsBackgroundLayers imageSrc={backgroundImageSrc} isHidden={isBackgroundVideoVisible} />
       <DetailsInfo
         details={details}
         subtitle={movie?.videos && movie.videos.length > 1 ? selectedVideo?.title : undefined}
