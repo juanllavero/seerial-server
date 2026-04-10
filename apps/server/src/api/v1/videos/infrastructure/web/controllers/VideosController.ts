@@ -1,4 +1,4 @@
-import type { PlayBackInfo } from '@seerial/domain';
+import type { PlayBackInfo, Video } from '@seerial/domain';
 import type { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import {
   Body,
@@ -25,7 +25,6 @@ import {
 import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
 import { messages } from '@/config/messages';
 import type { SetVideoWatchStateDTO, UpdateVideoDTO } from '../../../application/dtos/VideoDTOs';
-import type { Video } from '../../../domain/Video';
 
 type TsoaContext = { response: ExpressResponse };
 type AuthenticatedRequest = ExpressRequest & { user?: { id?: string } };

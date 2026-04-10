@@ -1,7 +1,7 @@
 import type { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import jwt from 'jsonwebtoken';
 import { Body, Controller, Get, Post, Request, Route, Security, Tags } from 'tsoa';
-import { videoProcessingService } from '@/api/v1/shared/infrastructure/adapters/di/container';
+import { fileSystemService, videoProcessingService } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
 import { messages } from '@/config/messages';
 import { verifyVideoStreamToken } from '@/middleware/video.middleware';
@@ -65,12 +65,14 @@ export class VideoStreamingController extends Controller {
     @Request() req: ExpressRequest,
   ): Promise<ApiResponse<string>> {
     const userId = (req as AuthenticatedRequest).user?.id as string;
-    const { filePath, expiresIn } = body;
+    const { filePath, localId, expiresIn } = body;
+
+    const path = localId ? fileSystemService.getExternalPath(fileSystemService.join('resources', 'videos', localId)) : filePath;
 
     const token = jwt.sign(
       {
         userId,
-        path: filePath,
+        path,
       },
       process.env.JWT_SECRET || 'default-secret',
       { expiresIn: (expiresIn ?? '2m') as jwt.SignOptions['expiresIn'] },

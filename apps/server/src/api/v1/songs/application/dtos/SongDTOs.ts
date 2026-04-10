@@ -23,5 +23,6 @@ export interface LyricsResponse {
 
 export interface SongUrlDTO {
   filePath: string;
+  localId?: string;
   expiresIn?: number | string;
 }

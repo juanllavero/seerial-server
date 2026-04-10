@@ -280,6 +280,7 @@ export async function patchServerConfig(
 
 interface SignedStreamUrlRequest {
     filePath: string
+    localId?: string
     start?: number
     audio?: number
     expiresIn?: string
@@ -311,6 +312,7 @@ export async function getSignedVideoStreamUrlTranscoded(
 
 interface SignedAudioStreamUrlRequest {
     filePath: string
+    localId?: string
     expiresIn?: string
     isWeb?: boolean
     isDesktop?: boolean
@@ -320,7 +322,7 @@ interface SignedAudioStreamUrlRequest {
 export async function getSignedSongStreamUrl(
     request: SignedAudioStreamUrlRequest,
 ): Promise<string> {
-    const { filePath, expiresIn, isWeb, isDesktop, isMobile } = request
+    const { filePath, localId, expiresIn, isWeb, isDesktop, isMobile } = request
 
     const query = new URLSearchParams()
     if (typeof isWeb === 'boolean') query.set('isWeb', String(isWeb))
@@ -332,7 +334,7 @@ export async function getSignedSongStreamUrl(
     const response = await authenticatedFetch<string>(
         endpoint,
         'POST',
-        { filePath, expiresIn },
+        { filePath, localId, expiresIn },
     )
 
     return response ? `/api${response}` : ''

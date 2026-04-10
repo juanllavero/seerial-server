@@ -108,12 +108,14 @@ export class SongsController extends Controller {
     @Request() req?: ExpressRequest,
   ): Promise<ApiResponse<string>> {
     const userId = (req as AuthenticatedRequest | undefined)?.user?.id as string;
-    const { filePath, expiresIn } = body;
+    const { filePath, localId, expiresIn } = body;
+
+    const path = localId ? fileSystemService.getExternalPath(fileSystemService.join('resources', 'music', localId)) : filePath;
 
     const token = jwt.sign(
       {
         userId,
-        path: filePath,
+        path,
       },
       process.env.JWT_SECRET || 'default-secret',
       { expiresIn: (expiresIn ?? '2m') as jwt.SignOptions['expiresIn'] },
