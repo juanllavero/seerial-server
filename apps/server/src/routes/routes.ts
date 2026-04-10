@@ -169,6 +169,7 @@ const models: TsoaRoute.Models = {
         "dataType": "refObject",
         "properties": {
             "filePath": {"dataType":"string","required":true},
+            "localId": {"dataType":"string"},
             "expiresIn": {"dataType":"union","subSchemas":[{"dataType":"double"},{"dataType":"string"}]},
         },
         "additionalProperties": false,
@@ -733,6 +734,7 @@ const models: TsoaRoute.Models = {
         "dataType": "refObject",
         "properties": {
             "filePath": {"dataType":"string","required":true},
+            "localId": {"dataType":"string"},
             "expiresIn": {"dataType":"union","subSchemas":[{"dataType":"double"},{"dataType":"string"}]},
         },
         "additionalProperties": false,
