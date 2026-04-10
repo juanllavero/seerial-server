@@ -15,7 +15,7 @@ import {
 
 const LOAD_TIMEOUT_MS = 5000;
 const PLAYER_HEALTH_POLL_INTERVAL_MS = 500;
-const VIDEO_REVEAL_DELAY_MS = 2000;
+const VIDEO_REVEAL_DELAY_MS = 1250;
 
 interface PlaybackStatus {
   eofReached: boolean;
@@ -63,7 +63,7 @@ function DetailsBackgroundVideoPlayer({
   const stopPlayback = useCallback(async () => {
     clearRevealTimer();
     onVisibilityChange?.(false);
-    setAppShellBackground('black');
+    setAppShellBackground('opaque');
 
     await enqueueMpvCommand(async () => {
       await fadeOutAndStopMpv(originalVolumeRef.current, () => false);
@@ -124,7 +124,7 @@ function DetailsBackgroundVideoPlayer({
           return;
         }
 
-        setAppShellBackground('transparent');
+        setAppShellBackground('video-overlay');
         onVisibilityChange?.(true);
       }, VIDEO_REVEAL_DELAY_MS);
 
@@ -145,7 +145,7 @@ function DetailsBackgroundVideoPlayer({
     isDisposedRef.current = false;
     hasEndedRef.current = false;
     onVisibilityChange?.(false);
-    setAppShellBackground('black');
+    setAppShellBackground('opaque');
 
     if (!localId || !serverUrl) {
       return () => {
