@@ -1,41 +1,25 @@
-import { API, useGet } from '@seerial/api';
-import type { Library, LibraryItem } from '@seerial/domain';
+import type { LibraryItem, LibraryType } from '@seerial/domain';
 import { useReorderableList } from '@seerial/hooks';
 import { memo } from 'react';
-import { LibraryTypes } from '@/shared/data/enums/library-types';
 import { useCardWidth } from '@/shared/hooks/use-card-width';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { SortableGrid } from '@/shared/lists/sortable-grid';
 import Grid from '@/shared/ui/grid';
 import MediaCard from './cards/media-card';
+import type { QueryObserverResult } from '@tanstack/react-query';
 
 interface LibraryContentProps {
-  library: Library;
-  mutateLibrary: () => void;
+  libraryContent: LibraryItem[];
+  libraryType: LibraryType;
+  libraryId: string;
+  mutate: () => Promise<QueryObserverResult<LibraryItem[], Error>>;
 }
 
-function LibraryContent({ library, mutateLibrary }: LibraryContentProps) {
+function LibraryContent({ libraryContent, libraryType, libraryId, mutate }: LibraryContentProps) {
   const isMobile = useIsMobile();
   const { cardWidth } = useCardWidth();
 
-  const queryType =
-    library.type === LibraryTypes.MUSIC
-      ? 'Music'
-      : library.type === LibraryTypes.SHOWS
-        ? 'Shows'
-        : 'Movies';
-
-  const { data: libraryItems, isLoading } = useGet<LibraryItem[]>(
-    `${API.libraries.content(library.id)}?type=${queryType}`,
-  );
-
-  const { items, handleDragEnd } = useReorderableList(
-    libraryItems || [],
-    library.id,
-    mutateLibrary,
-  );
-
-  if (isLoading) return null;
+  const { items, handleDragEnd } = useReorderableList(libraryContent, libraryId, mutate);
 
   return (
     <Grid
@@ -57,7 +41,7 @@ function LibraryContent({ library, mutateLibrary }: LibraryContentProps) {
         items={items}
         onDragEnd={handleDragEnd}
         renderItem={(item: LibraryItem) => (
-          <MediaCard key={item.id} item={item} libraryType={library.type} />
+          <MediaCard key={item.id} item={item} libraryType={libraryType} />
         )}
       />
     </Grid>

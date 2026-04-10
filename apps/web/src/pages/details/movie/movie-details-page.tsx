@@ -1,29 +1,24 @@
-import { formatTimeForViewForView } from '@sdomainl/domain';
-import { API, useGet, useSetMovieWatchState } from '@seerial/api';
-import type { Movie } from '@seerial/domain';
-import { useIsAdminhooks';hooks
-import
-{ useDataStore, useServerStoreseDataSto@seerial/storesServerStore } from '@seerial/stores';
-import { tom 'i18nei18next
-import Pencilfrom 'luclucide-ide-react';
-import { useEffectt';
-import { useNavigate,guseParams ate, usereact-router-domreact-router-dom';
-import { shallow 'zustandzustandsshallow
-import useDialogStore  MovieMyListButtonmanagementton,from '
-  CastList,
-  MovieContent,
-  MovieMyListButton@asdMyListButton,
-etails';media-details
-import { useSettingsStoreStore } frofeaturesesettings;
-import { useIsMobilem '@/share/shared/hooks/use-mobilebile';
+import { useDialogStore } from '@/features/management';
+import { MovieContent, CastList } from '@/features/media-details';
+import MyListButton from '@/features/media-details/components/movie/my-list-button';
+import { useSettingsStore } from '@/features/settings';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { Button } from '@/shared/ui/button';
 import ExpandableText from '@/shared/ui/expandable-text';
 import FlexBox from '@/shared/ui/flex-box';
-import { MarkWatchedIcon, PlayIcon, UnmarkWatchedIcon } from '@/shared/ui/icon-library';
+import { UnmarkWatchedIcon, MarkWatchedIcon } from '@/shared/ui/icon-library';
 import LazyImage from '@/shared/ui/lazy-image';
 import NotFound from '@/shared/ui/not-found';
 import { Skeleton } from '@/shared/ui/skeleton';
-import '../details-page';
+import { useGet, API, useSetMovieWatchState } from '@seerial/api';
+import { type Movie, formatTimeForView } from '@seerial/domain';
+import { useIsAdmin } from '@seerial/hooks';
+import { useServerStore, useDataStore } from '@seerial/stores';
+import { t } from 'i18next';
+import { PlayIcon, Pencil } from 'lucide-react';
+import { useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { shallow } from 'zustand/shallow';
 
 function MovieDetailsPage() {
   const { movieId } = useParams();

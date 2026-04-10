@@ -25,6 +25,8 @@ const libraryRepositoryLogger = logger.child({
   category: 'Library Repository',
 });
 
+type TimingContext = Record<string, string | number | boolean | undefined>;
+
 export class LibrariesRepositoryImpl extends BaseRepository implements LibrariesRepositoryPort {
   // Generic helper for common CRUD operations
   private helper: GenericRepositoryHelper<LibraryModel, Library>;
@@ -48,39 +50,115 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
   }
 
   async getContent(libraryId: string, userId: string, watched?: boolean): Promise<LibraryItem[]> {
-    const libraryHeader = await LibraryModel.findOne({
-      where: { id: libraryId },
-      select: ['id', 'type'],
-    });
+    const totalStartedAt = this.startTiming();
 
-    if (!libraryHeader) return [];
-
-    const library = await LibraryModel.findOne({
-      where: { id: libraryId },
-      relations: this.getRelationsForLibraryType(libraryHeader.type),
-    });
-
-    if (!library) return [];
-
-    const collections =
-      library.libraryCollections?.map((libraryCollection) => libraryCollection.collection) || [];
-    const customOrderByCollectionId = new Map(
-      (library.libraryCollections || []).map((libraryCollection) => [
-        libraryCollection.collectionId,
-        libraryCollection.customOrder,
-      ]),
+    const libraryHeader = await this.measureAsync(
+      'getContent.fetchLibraryHeader',
+      { libraryId, userId, watched },
+      () =>
+        LibraryModel.findOne({
+          where: { id: libraryId },
+          select: ['id', 'type'],
+        }),
     );
-    const collectionItems = await this.buildCollectionItems(
-      collections,
-      libraryId,
-      library.type,
-      customOrderByCollectionId,
+
+    if (!libraryHeader) {
+      this.logTiming('getContent.total', totalStartedAt, {
+        libraryId,
+        userId,
+        watched,
+        resultCount: 0,
+        reason: 'libraryHeaderNotFound',
+      });
+      return [];
+    }
+
+    const relations = this.measureSync(
+      'getContent.resolveRelations',
+      { libraryId, libraryType: libraryHeader.type },
+      () => this.getRelationsForLibraryType(libraryHeader.type),
+    );
+
+    const library = await this.measureAsync(
+      'getContent.fetchLibraryWithRelations',
+      { libraryId, libraryType: libraryHeader.type, relationCount: relations.length },
+      () =>
+        LibraryModel.findOne({
+          where: { id: libraryId },
+          relations,
+        }),
+    );
+
+    if (!library) {
+      this.logTiming('getContent.total', totalStartedAt, {
+        libraryId,
+        userId,
+        watched,
+        resultCount: 0,
+        reason: 'libraryNotFound',
+      });
+      return [];
+    }
+
+    const collections = this.measureSync(
+      'getContent.extractCollections',
+      { libraryId, libraryType: library.type },
+      () => library.libraryCollections?.map((libraryCollection) => libraryCollection.collection) || [],
+    );
+
+    const customOrderByCollectionId = this.measureSync(
+      'getContent.mapCollectionOrder',
+      { libraryId, collectionCount: collections.length },
+      () =>
+        new Map(
+          (library.libraryCollections || []).map((libraryCollection) => [
+            libraryCollection.collectionId,
+            libraryCollection.customOrder,
+          ]),
+        ),
+    );
+
+    const collectionItems = await this.measureAsync(
+      'getContent.buildCollectionItems',
+      { libraryId, collectionCount: collections.length, libraryType: library.type, watched },
+      () =>
+        this.buildCollectionItems(
+          collections,
+          libraryId,
+          library.type,
+          customOrderByCollectionId,
+          userId,
+          watched,
+        ),
+    );
+    const standaloneItems = await this.measureAsync(
+      'getContent.buildStandaloneItems',
+      { libraryId, collectionCount: collections.length, libraryType: library.type, watched },
+      () => this.buildStandaloneItems(library, collections, userId, watched),
+    );
+
+    const sortedItems = this.measureSync(
+      'getContent.sortItems',
+      {
+        libraryId,
+        collectionItemCount: collectionItems.length,
+        standaloneItemCount: standaloneItems.length,
+      },
+      () => [...collectionItems, ...standaloneItems].sort((a, b) => a.order - b.order),
+    );
+
+    this.logTiming('getContent.total', totalStartedAt, {
       userId,
       watched,
-    );
-    const standaloneItems = await this.buildStandaloneItems(library, collections, userId, watched);
+      libraryId,
+      libraryType: library.type,
+      collectionCount: collections.length,
+      collectionItemCount: collectionItems.length,
+      standaloneItemCount: standaloneItems.length,
+      resultCount: sortedItems.length,
+    });
 
-    return [...collectionItems, ...standaloneItems].sort((a, b) => a.order - b.order);
+    return sortedItems;
   }
 
   private getRelationsForLibraryType(type: Library['type']): string[] {
@@ -119,47 +197,113 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     userId: string,
     watched?: boolean,
   ): Promise<LibraryItem[]> {
+    const startedAt = this.startTiming();
+
     const items: Array<LibraryItem | null> = await Promise.all(
       collections.map(async (collection) => {
-        const collectionWatchStates = this.getCollectionWatchStates(collection, libraryId, userId);
+        const collectionStartedAt = this.startTiming();
+        const collectionContext = {
+          libraryId,
+          collectionId: collection.id,
+          collectionTitle: collection.title,
+          libraryType: type,
+          watched,
+        };
 
-        if (!this.shouldIncludeCollection(collectionWatchStates, watched)) {
+        const collectionWatchStates = this.measureSync(
+          'buildCollectionItems.getCollectionWatchStates',
+          collectionContext,
+          () => this.getCollectionWatchStates(collection, libraryId, userId),
+        );
+
+        const shouldInclude = this.measureSync(
+          'buildCollectionItems.shouldIncludeCollection',
+          { ...collectionContext, watchStateCount: collectionWatchStates.length },
+          () => this.shouldIncludeCollection(collectionWatchStates, watched),
+        );
+
+        if (!shouldInclude) {
+          this.logTiming('buildCollectionItems.collection.total', collectionStartedAt, {
+            ...collectionContext,
+            included: false,
+          });
           return null;
         }
 
-        const numberOfItems = this.countCollectionItems(collection, libraryId);
-        const years = this.calculateYearsForCollection(collection);
+        const numberOfItems = this.measureSync(
+          'buildCollectionItems.countCollectionItems',
+          collectionContext,
+          () => this.countCollectionItems(collection, libraryId),
+        );
+        const years = this.measureSync(
+          'buildCollectionItems.calculateYearsForCollection',
+          collectionContext,
+          () => this.calculateYearsForCollection(collection),
+        );
 
-        const collectionImages = await resolveCollectionImages(collection, libraryId, type);
-        const collectionWatched =
-          collectionWatchStates.length > 0 ? collectionWatchStates.every((item) => item) : false;
+        const collectionImages = await this.measureAsync(
+          'buildCollectionItems.resolveCollectionImages',
+          collectionContext,
+          () => resolveCollectionImages(collection, libraryId, type),
+        );
+        const collectionWatched = this.measureSync(
+          'buildCollectionItems.calculateCollectionWatched',
+          { ...collectionContext, watchStateCount: collectionWatchStates.length },
+          () =>
+            collectionWatchStates.length > 0 ? collectionWatchStates.every((item) => item) : false,
+        );
 
-        return {
-          id: collection.id,
-          title: collection.title,
-          years,
-          coverSrc: collectionImages.poster ?? '',
-          backgroundSrc: collectionImages.background ?? '',
-          numberOfItems,
-          order: customOrderByCollectionId.get(collection.id) ?? 0,
-          watched: collectionWatched,
-          remainingItems: 0,
-          analyzingFiles: false,
-          type: 'collection',
-          details: {
+        const result = this.measureSync(
+          'buildCollectionItems.buildCollectionItem',
+          { ...collectionContext, numberOfItems, collectionWatched },
+          () => ({
+            id: collection.id,
             title: collection.title,
-            genres: '',
-            year: years,
-            description: collection.description || '',
-            subtitle: undefined,
+            years,
             coverSrc: collectionImages.poster ?? '',
             backgroundSrc: collectionImages.background ?? '',
-          },
-        };
+            numberOfItems,
+            order: customOrderByCollectionId.get(collection.id) ?? 0,
+            watched: collectionWatched,
+            remainingItems: 0,
+            analyzingFiles: false,
+            type: 'collection' as const,
+            details: {
+              title: collection.title,
+              genres: '',
+              year: years,
+              description: collection.description || '',
+              subtitle: undefined,
+              coverSrc: collectionImages.poster ?? '',
+              backgroundSrc: collectionImages.background ?? '',
+            },
+          }),
+        );
+
+        this.logTiming('buildCollectionItems.collection.total', collectionStartedAt, {
+          ...collectionContext,
+          included: true,
+          numberOfItems,
+        });
+
+        return result;
       }),
     );
 
-    return items.filter((item): item is LibraryItem => item !== null);
+    const filteredItems = this.measureSync(
+      'buildCollectionItems.filterNullItems',
+      { libraryId, collectionCount: collections.length },
+      () => items.filter((item): item is LibraryItem => item !== null),
+    );
+
+    this.logTiming('buildCollectionItems.total', startedAt, {
+      libraryId,
+      collectionCount: collections.length,
+      resultCount: filteredItems.length,
+      watched,
+    });
+
+    return filteredItems;
   }
 
   private countCollectionItems(collection: CollectionModel, libraryId: string): number {
@@ -182,30 +326,112 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     userId: string,
     watched?: boolean,
   ): Promise<LibraryItem[]> {
-    const collectionMovieIds = new Set(
-      collections.flatMap(
-        (collection) => collection.collectionMovies?.map((movie) => movie.movie.id) || [],
-      ),
+    const startedAt = this.startTiming();
+
+    const collectionMovieIds = this.measureSync(
+      'buildStandaloneItems.buildCollectionMovieIds',
+      { libraryId: library.id, collectionCount: collections.length, libraryType: library.type },
+      () =>
+        new Set(
+          collections.flatMap(
+            (collection) => collection.collectionMovies?.map((movie) => movie.movie.id) || [],
+          ),
+        ),
     );
-    const collectionSeriesIds = new Set(
-      collections.flatMap(
-        (collection) => collection.collectionSeries?.map((series) => series.series.id) || [],
-      ),
+    const collectionSeriesIds = this.measureSync(
+      'buildStandaloneItems.buildCollectionSeriesIds',
+      { libraryId: library.id, collectionCount: collections.length, libraryType: library.type },
+      () =>
+        new Set(
+          collections.flatMap(
+            (collection) => collection.collectionSeries?.map((series) => series.series.id) || [],
+          ),
+        ),
     );
-    const collectionAlbumIds = new Set(
-      collections.flatMap(
-        (collection) => collection.collectionAlbums?.map((album) => album.album.id) || [],
-      ),
+    const collectionAlbumIds = this.measureSync(
+      'buildStandaloneItems.buildCollectionAlbumIds',
+      { libraryId: library.id, collectionCount: collections.length, libraryType: library.type },
+      () =>
+        new Set(
+          collections.flatMap(
+            (collection) => collection.collectionAlbums?.map((album) => album.album.id) || [],
+          ),
+        ),
     );
 
     switch (library.type) {
       case LibraryTypes.MOVIES:
-        return await this.buildMovieItems(library, collectionMovieIds, userId, watched);
+        return await this.measureAsync(
+          'buildStandaloneItems.buildMovieItems',
+          {
+            libraryId: library.id,
+            collectionMovieIdCount: collectionMovieIds.size,
+            watched,
+          },
+          async () => {
+            const items = await this.buildMovieItems(library, collectionMovieIds, userId, watched);
+
+            this.logTiming('buildStandaloneItems.total', startedAt, {
+              libraryId: library.id,
+              libraryType: library.type,
+              collectionCount: collections.length,
+              resultCount: items.length,
+              watched,
+            });
+
+            return items;
+          },
+        );
       case LibraryTypes.SHOWS:
-        return await this.buildSeriesItems(library, collectionSeriesIds, userId, watched);
+        return await this.measureAsync(
+          'buildStandaloneItems.buildSeriesItems',
+          {
+            libraryId: library.id,
+            collectionSeriesIdCount: collectionSeriesIds.size,
+            watched,
+          },
+          async () => {
+            const items = await this.buildSeriesItems(library, collectionSeriesIds, userId, watched);
+
+            this.logTiming('buildStandaloneItems.total', startedAt, {
+              libraryId: library.id,
+              libraryType: library.type,
+              collectionCount: collections.length,
+              resultCount: items.length,
+              watched,
+            });
+
+            return items;
+          },
+        );
       case LibraryTypes.MUSIC:
-        return await this.buildAlbumItems(library, collectionAlbumIds);
+        return await this.measureAsync(
+          'buildStandaloneItems.buildAlbumItems',
+          {
+            libraryId: library.id,
+            collectionAlbumIdCount: collectionAlbumIds.size,
+          },
+          async () => {
+            const items = await this.buildAlbumItems(library, collectionAlbumIds);
+
+            this.logTiming('buildStandaloneItems.total', startedAt, {
+              libraryId: library.id,
+              libraryType: library.type,
+              collectionCount: collections.length,
+              resultCount: items.length,
+            });
+
+            return items;
+          },
+        );
       default:
+        this.logTiming('buildStandaloneItems.total', startedAt, {
+          libraryId: library.id,
+          libraryType: library.type,
+          collectionCount: collections.length,
+          resultCount: 0,
+          watched,
+        });
         return [];
     }
   }
@@ -216,28 +442,69 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     userId: string,
     watched?: boolean,
   ): Promise<LibraryItem[]> {
-    return Promise.all(
-      (library.movies || [])
-        .filter((movie) => !collectionMovieIds.has(movie.id))
-        .filter((movie) => this.shouldIncludeItem(this.isMovieWatched(movie, userId), watched))
-        .map(async (movie) => {
-          const movieWatched = this.isMovieWatched(movie, userId);
-
-          return {
-            id: movie.id,
-            title: movie.name,
-            years: movie.year ? movie.year.split('-')[0] : '-',
-            coverSrc: movie.coverSrc,
-            numberOfItems: movie.videos?.length || 0,
-            order: movie.order,
-            watched: movieWatched,
-            remainingItems: 0,
-            analyzingFiles: movie.analyzingFiles,
-            type: 'movie',
-            details: await this.generateItemDetails(movie, 'movie', userId),
-          };
-        }),
+    const startedAt = this.startTiming();
+    const moviesWithoutCollections = this.measureSync(
+      'buildMovieItems.filterCollectionMovies',
+      { libraryId: library.id, movieCount: library.movies?.length || 0, watched },
+      () => (library.movies || []).filter((movie) => !collectionMovieIds.has(movie.id)),
     );
+    const filteredMovies = this.measureSync(
+      'buildMovieItems.filterWatchedMovies',
+      { libraryId: library.id, candidateCount: moviesWithoutCollections.length, watched },
+      () =>
+        moviesWithoutCollections.filter((movie) =>
+          this.shouldIncludeItem(this.isMovieWatched(movie, userId), watched),
+        ),
+    );
+
+    const items = await Promise.all(
+      filteredMovies.map(async (movie) => {
+        const movieStartedAt = this.startTiming();
+        const movieWatched = this.measureSync(
+          'buildMovieItems.isMovieWatched',
+          { libraryId: library.id, movieId: movie.id, userId },
+          () => this.isMovieWatched(movie, userId),
+        );
+        const details = await this.measureAsync(
+          'buildMovieItems.generateItemDetails',
+          { libraryId: library.id, movieId: movie.id, userId },
+          () => this.generateItemDetails(movie, 'movie', userId),
+        );
+
+        const item = {
+          id: movie.id,
+          title: movie.name,
+          years: movie.year ? movie.year.split('-')[0] : '-',
+          coverSrc: movie.coverSrc,
+          numberOfItems: movie.videos?.length || 0,
+          order: movie.order,
+          watched: movieWatched,
+          remainingItems: 0,
+          analyzingFiles: movie.analyzingFiles,
+          type: 'movie' as const,
+          details,
+        };
+
+        this.logTiming('buildMovieItems.movie.total', movieStartedAt, {
+          libraryId: library.id,
+          movieId: movie.id,
+          userId,
+          watched: movieWatched,
+        });
+
+        return item;
+      }),
+    );
+
+    this.logTiming('buildMovieItems.total', startedAt, {
+      libraryId: library.id,
+      inputCount: library.movies?.length || 0,
+      filteredCount: filteredMovies.length,
+      resultCount: items.length,
+      watched,
+    });
+
+    return items;
   }
 
   private async buildSeriesItems(
@@ -246,38 +513,103 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     userId: string,
     watched?: boolean,
   ): Promise<LibraryItem[]> {
-    return Promise.all(
-      (library.series || [])
-        .filter((series) => !collectionSeriesIds.has(series.id))
-        .filter((series) => this.shouldIncludeItem(this.isSeriesWatched(series, userId), watched))
-        .map(async (series) => {
-          const seriesWatched = this.isSeriesWatched(series, userId);
-
-          return {
-            id: series.id,
-            title: series.name,
-            years: this.calculateYearsForSeries(series),
-            coverSrc: series.coverSrc,
-            numberOfItems: 0,
-            order: series.order,
-            watched: seriesWatched,
-            remainingItems: this.calculateRemainingEpisodes(series, userId),
-            analyzingFiles: series.analyzingFiles,
-            type: 'series',
-            details: await this.generateItemDetails(series, 'series', userId),
-          };
-        }),
+    const startedAt = this.startTiming();
+    const seriesWithoutCollections = this.measureSync(
+      'buildSeriesItems.filterCollectionSeries',
+      { libraryId: library.id, seriesCount: library.series?.length || 0, watched },
+      () => (library.series || []).filter((series) => !collectionSeriesIds.has(series.id)),
     );
+    const filteredSeries = this.measureSync(
+      'buildSeriesItems.filterWatchedSeries',
+      { libraryId: library.id, candidateCount: seriesWithoutCollections.length, watched },
+      () =>
+        seriesWithoutCollections.filter((series) =>
+          this.shouldIncludeItem(this.isSeriesWatched(series, userId), watched),
+        ),
+    );
+
+    const items = await Promise.all(
+      filteredSeries.map(async (series) => {
+        const seriesStartedAt = this.startTiming();
+        const years = this.measureSync(
+          'buildSeriesItems.calculateYearsForSeries',
+          { libraryId: library.id, seriesId: series.id },
+          () => this.calculateYearsForSeries(series),
+        );
+        const seriesWatched = this.measureSync(
+          'buildSeriesItems.isSeriesWatched',
+          { libraryId: library.id, seriesId: series.id, userId },
+          () => this.isSeriesWatched(series, userId),
+        );
+        const remainingItems = this.measureSync(
+          'buildSeriesItems.calculateRemainingEpisodes',
+          { libraryId: library.id, seriesId: series.id, userId },
+          () => this.calculateRemainingEpisodes(series, userId),
+        );
+        const details = await this.measureAsync(
+          'buildSeriesItems.generateItemDetails',
+          { libraryId: library.id, seriesId: series.id, userId },
+          () => this.generateItemDetails(series, 'series', userId),
+        );
+
+        const item = {
+          id: series.id,
+          title: series.name,
+          years,
+          coverSrc: series.coverSrc,
+          numberOfItems: 0,
+          order: series.order,
+          watched: seriesWatched,
+          remainingItems,
+          analyzingFiles: series.analyzingFiles,
+          type: 'series' as const,
+          details,
+        };
+
+        this.logTiming('buildSeriesItems.series.total', seriesStartedAt, {
+          libraryId: library.id,
+          seriesId: series.id,
+          userId,
+          watched: seriesWatched,
+          remainingItems,
+        });
+
+        return item;
+      }),
+    );
+
+    this.logTiming('buildSeriesItems.total', startedAt, {
+      libraryId: library.id,
+      inputCount: library.series?.length || 0,
+      filteredCount: filteredSeries.length,
+      resultCount: items.length,
+      watched,
+    });
+
+    return items;
   }
 
   private async buildAlbumItems(
     library: LibraryModel,
     collectionAlbumIds: Set<string>,
   ): Promise<LibraryItem[]> {
-    return Promise.all(
-      (library.albums || [])
-        .filter((album) => !collectionAlbumIds.has(album.id))
-        .map(async (album) => ({
+    const startedAt = this.startTiming();
+    const filteredAlbums = this.measureSync(
+      'buildAlbumItems.filterCollectionAlbums',
+      { libraryId: library.id, albumCount: library.albums?.length || 0 },
+      () => (library.albums || []).filter((album) => !collectionAlbumIds.has(album.id)),
+    );
+
+    const items = await Promise.all(
+      filteredAlbums.map(async (album) => {
+        const albumStartedAt = this.startTiming();
+        const details = await this.measureAsync(
+          'buildAlbumItems.generateItemDetails',
+          { libraryId: library.id, albumId: album.id },
+          () => this.generateItemDetails(album, 'album'),
+        );
+
+        const item = {
           id: album.id,
           title: album.title,
           years: album.year || '-',
@@ -287,10 +619,27 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
           watched: false,
           remainingItems: 0,
           analyzingFiles: false,
-          type: 'album',
-          details: await this.generateItemDetails(album, 'album'),
-        })),
+          type: 'album' as const,
+          details,
+        };
+
+        this.logTiming('buildAlbumItems.album.total', albumStartedAt, {
+          libraryId: library.id,
+          albumId: album.id,
+        });
+
+        return item;
+      }),
     );
+
+    this.logTiming('buildAlbumItems.total', startedAt, {
+      libraryId: library.id,
+      inputCount: library.albums?.length || 0,
+      filteredCount: filteredAlbums.length,
+      resultCount: items.length,
+    });
+
+    return items;
   }
 
   public async generateItemDetails(
@@ -298,15 +647,26 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     type: ItemType,
     userId: string = '',
   ): Promise<DetailsData | null> {
-    switch (type) {
-      case 'movie':
-        return element instanceof MovieModel ? this.buildMovieDetails(element, userId) : null;
-      case 'series':
-        return element instanceof SeriesModel ? this.buildSeriesDetails(element, userId) : null;
-      case 'album':
-        return element instanceof AlbumModel ? this.buildAlbumDetails(element) : null;
-      default:
-        return null;
+    const startedAt = this.startTiming();
+    const itemId = 'id' in element ? element.id : undefined;
+
+    try {
+      switch (type) {
+        case 'movie':
+          return element instanceof MovieModel ? this.buildMovieDetails(element, userId) : null;
+        case 'series':
+          return element instanceof SeriesModel ? this.buildSeriesDetails(element, userId) : null;
+        case 'album':
+          return element instanceof AlbumModel ? this.buildAlbumDetails(element) : null;
+        default:
+          return null;
+      }
+    } finally {
+      this.logTiming('generateItemDetails.total', startedAt, {
+        itemType: type,
+        itemId,
+        userId,
+      });
     }
   }
 
@@ -329,9 +689,14 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
   }
 
   private async buildSeriesDetails(element: SeriesModel, userId: string): Promise<DetailsData> {
-    const currentSeason = await useCases.getCurrentlyWatchingSeason().execute(element.id, userId);
+    const startedAt = this.startTiming();
+    const currentSeason = await this.measureAsync(
+      'buildSeriesDetails.getCurrentlyWatchingSeason',
+      { seriesId: element.id, userId },
+      () => useCases.getCurrentlyWatchingSeason().execute(element.id, userId),
+    );
 
-    return {
+    const details = {
       title: element.name,
       year: element.year,
       genres: element.genres ? element.genres.join(', ') : '',
@@ -346,6 +711,14 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       logoSrc: element.logoSrc || '',
       backgroundSrc: currentSeason?.backgroundSrc || '',
     };
+
+    this.logTiming('buildSeriesDetails.total', startedAt, {
+      seriesId: element.id,
+      userId,
+      hasCurrentSeason: Boolean(currentSeason),
+    });
+
+    return details;
   }
 
   private buildAlbumDetails(element: AlbumModel): DetailsData {
@@ -452,6 +825,8 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
   }
 
   private calculateRemainingEpisodes(series: SeriesModel, userId: string): number {
+    const startedAt = this.startTiming();
+
     if (!series.seasons) return 0;
 
     let totalEpisodes = 0;
@@ -468,7 +843,17 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       }
     }
 
-    return totalEpisodes - watchedEpisodes;
+    const remainingEpisodes = totalEpisodes - watchedEpisodes;
+
+    this.logTiming('calculateRemainingEpisodes.total', startedAt, {
+      seriesId: series.id,
+      userId,
+      totalEpisodes,
+      watchedEpisodes,
+      remainingEpisodes,
+    });
+
+    return remainingEpisodes;
   }
 
   async getById(id: string) {
@@ -497,7 +882,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
         select: ['libraryId'],
       });
 
-      if (!album || !album.libraryId) {
+      if (!album?.libraryId) {
         return null;
       }
 
@@ -522,7 +907,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
         select: ['libraryId'],
       });
 
-      if (!movie || !movie.libraryId) {
+      if (!movie?.libraryId) {
         return null;
       }
 
@@ -547,7 +932,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
         select: ['libraryId'],
       });
 
-      if (!series || !series.libraryId) {
+      if (!series?.libraryId) {
         return null;
       }
 
@@ -572,7 +957,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
         relations: ['series'],
       });
 
-      if (!season || !season.series) {
+      if (!season?.series) {
         return null;
       }
 
@@ -883,6 +1268,50 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     } catch (error: unknown) {
       logger.error(error, 'Error fetching library');
       return null;
+    }
+  }
+
+  private startTiming(): bigint {
+    return process.hrtime.bigint();
+  }
+
+  private logTiming(step: string, startedAt: bigint, context: TimingContext = {}): number {
+    const durationMs = Number(process.hrtime.bigint() - startedAt) / 1_000_000;
+    const roundedDurationMs = Number(durationMs.toFixed(2));
+
+    libraryRepositoryLogger.info(
+      {
+        step,
+        durationMs: roundedDurationMs,
+        ...context,
+      },
+      'Library content timing',
+    );
+
+    return roundedDurationMs;
+  }
+
+  private measureSync<T>(step: string, context: TimingContext, operation: () => T): T {
+    const startedAt = this.startTiming();
+
+    try {
+      return operation();
+    } finally {
+      this.logTiming(step, startedAt, context);
+    }
+  }
+
+  private async measureAsync<T>(
+    step: string,
+    context: TimingContext,
+    operation: () => Promise<T>,
+  ): Promise<T> {
+    const startedAt = this.startTiming();
+
+    try {
+      return await operation();
+    } finally {
+      this.logTiming(step, startedAt, context);
     }
   }
 }

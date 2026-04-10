@@ -1,35 +1,17 @@
-import { formatTime,hshowToast owToast } from '@domainl/domain';
-import type { Song } from '@seerial/domain';
-import { useMusicStoretore }
-fr;
-@seerial
-/stores/eorsst;
-';
-import { ListMusicc } from
-lucide - 'lucide-react';
-import { useStatem 'react';
-import { useTranslationslation }
-react - i18next8next;
-';
-import { shallowrom 'zustzustandnshallow
-import
-{
-  useIsMobile;
-}
-from;
-('@/shared/hooks/use-mobile');
-import { useIsTablet/shared/ho-shared/hooks/use-tablet';
-import
-{
-  Button;
-}
-from;
-('@/shared/ui/button');
-
 import FlexBox from '@/shared/ui/flex-box';
 import { PauseIcon, PlayIcon } from '@/shared/ui/icon-library';
 import SmallSpinner from '@/shared/ui/small-spinner';
 import MusicWave from './music-wave';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { useIsTablet } from '@/shared/hooks/use-tablet';
+import { showToast } from '@/shared/lib/react-utils';
+import { Button } from '@/shared/ui/button';
+import { type Song, formatTime } from '@seerial/domain';
+import { useMusicStore } from '@seerial/stores';
+import { ListMusic } from 'lucide-react';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { shallow } from 'zustand/shallow';
 
 interface MusicCardProps {
   index: number;

@@ -1,32 +1,66 @@
 import { API, useCreate } from '@seerial/api'
 import type { LibraryItem } from '@seerial/domain'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+function hasSameOrder(a: LibraryItem[], b: LibraryItem[]) {
+  if (a.length !== b.length) return false
+
+  for (let index = 0; index < a.length; index += 1) {
+    const itemA = a[index]
+    const itemB = b[index]
+
+    if (!itemA || !itemB) return false
+    if (itemA.id !== itemB.id) return false
+    if (itemA.type !== itemB.type) return false
+  }
+
+  return true
+}
 
 export function useReorderableList(
   data: LibraryItem[] | undefined,
   libraryId: string,
-  mutate: () => void | Promise<void>,
+  mutate: () => void,
 ) {
   const [items, setItems] = useState<LibraryItem[]>([])
   const { create } = useCreate<unknown>()
+  const [itemsBox] = useState<{ current: LibraryItem[] }>(() => ({ current: [] }))
+  const [dataBox] = useState<{ current: LibraryItem[] | undefined }>(() => ({ current: undefined }))
+  const [mutateBox] = useState<{ current: () => void | Promise<void> }>(() => ({ current: mutate }))
 
   useEffect(() => {
-    if (data) {
-      setItems(data)
+    itemsBox.current = items
+  }, [items, itemsBox])
+
+  useEffect(() => {
+    dataBox.current = data
+  }, [data, dataBox])
+
+  useEffect(() => {
+    mutateBox.current = mutate
+  }, [mutate, mutateBox])
+
+  useEffect(() => {
+    if (!data) {
+      setItems((previousItems) => (previousItems.length === 0 ? previousItems : []))
+      return
     }
+
+    setItems((previousItems) => (hasSameOrder(previousItems, data) ? previousItems : data))
   }, [data])
 
-  async function handleDragEnd(sourceIndex: number, destinationIndex: number) {
+  const handleDragEnd = useCallback(async (sourceIndex: number, destinationIndex: number) => {
+    const currentItems = itemsBox.current
+
     const hasInvalidIndex =
       sourceIndex === destinationIndex ||
       sourceIndex < 0 ||
       destinationIndex < 0 ||
-      sourceIndex >= items.length ||
-      destinationIndex >= items.length
+      sourceIndex >= currentItems.length ||
+      destinationIndex >= currentItems.length
 
     if (hasInvalidIndex) return
 
-    const newItems = [...items]
+    const newItems = [...currentItems]
     const [movedItem] = newItems.splice(sourceIndex, 1)
     if (!movedItem) return
     newItems.splice(destinationIndex, 0, movedItem)
@@ -44,13 +78,13 @@ export function useReorderableList(
         orderedItems: orderedItemsForApi,
       })
     } catch (_error) {
-      if (data) {
-        setItems(data)
+      if (dataBox.current) {
+        setItems(dataBox.current)
       }
     } finally {
-      await mutate()
+      await mutateBox.current()
     }
-  }
+  }, [create, dataBox, itemsBox, libraryId, mutateBox])
 
   return { items, handleDragEnd }
 }

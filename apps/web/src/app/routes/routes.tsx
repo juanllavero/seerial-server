@@ -32,7 +32,7 @@ export function AppRoutes() {
         <Route element={<SideBarLayout />}>
           <Route path="/home" element={<HomePage />} />
           <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/library/:libraryId" element={<LibraryPage />} />
+          <Route path="/library/:libraryId/:type" element={<LibraryPage />} />
           <Route path="/library/:libraryId/movie/:movieId" element={<MovieDetailsPage />} />
           <Route path="/library/:libraryId/series/:seriesId" element={<SeriesDetailsPage />} />
           <Route path="/library/:libraryId/album/:albumId" element={<AlbumDetailsPage />} />

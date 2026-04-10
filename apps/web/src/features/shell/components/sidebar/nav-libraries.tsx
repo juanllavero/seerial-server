@@ -13,7 +13,7 @@ import {
   Trash2,
   TvMinimal,
 } from 'lucide-react';
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { shallow } from 'zustand/shallow';
 import { useDialogStore } from '@/features/management';
@@ -86,8 +86,8 @@ const NavLibraries = () => {
 
   const libraries = data ? data : [];
 
-  const librariesItems =
-    libraries && libraries.length > 0
+  const librariesItems = useMemo(() => {
+    return libraries && libraries.length > 0
       ? [
           ...libraries.map((library) => ({
             id: library.id,
@@ -106,6 +106,7 @@ const NavLibraries = () => {
           })),
         ]
       : [];
+  }, [libraries, navigate, selectLibrary]);
 
   const searchFiles = async (libraryId: string) => {
     await connectWS();

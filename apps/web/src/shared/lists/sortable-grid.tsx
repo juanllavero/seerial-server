@@ -1,5 +1,5 @@
 import { monitorForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { SortableItem } from './sortable-item';
 
 interface SortableEntity {
@@ -17,6 +17,12 @@ export function SortableGrid<T extends SortableEntity>({
   onDragEnd,
   renderItem,
 }: SortableGridProps<T>) {
+  const onDragEndRef = useRef(onDragEnd);
+
+  useEffect(() => {
+    onDragEndRef.current = onDragEnd;
+  }, [onDragEnd]);
+
   useEffect(() => {
     return monitorForElements({
       onDrop: ({ source, location }) => {
@@ -31,17 +37,14 @@ export function SortableGrid<T extends SortableEntity>({
         const sourceIndex = sourceData.index;
         const destinationIndex = targetData.index;
 
-        onDragEnd(sourceIndex, destinationIndex);
+        onDragEndRef.current(sourceIndex, destinationIndex);
       },
     });
-  }, [onDragEnd]);
+  }, []);
 
-  return (
-    items &&
-    items.map((item, index) => (
-      <SortableItem key={item.id} id={item.id} index={index}>
-        {renderItem(item)}
-      </SortableItem>
-    ))
-  );
+  return items?.map((item, index) => (
+    <SortableItem key={item.id} id={item.id} index={index}>
+      {renderItem(item)}
+    </SortableItem>
+  ));
 }

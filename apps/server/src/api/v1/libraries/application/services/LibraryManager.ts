@@ -2,11 +2,13 @@ import fs from 'node:fs';
 import * as fsPromises from 'node:fs/promises';
 import path from 'node:path';
 import { type LibraryType, LibraryTypes } from '@seerial/domain';
+import type { Collection } from '@/api/v1/collections/domain/Collection';
 import type { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
 import {
   fileSystemService,
   imageProcessingService,
   librariesRepo,
+  notificationService,
   useCases,
 } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { clearLibrary } from '@/api/v1/shared/infrastructure/services/FileSearchService';
@@ -136,6 +138,8 @@ const getFallbackImagePaths = (items: CollectionImageSourceItem[]): string[] => 
 /**
  * Resolves collection posterSrc and backgroundSrc.
  * The poster could be a collage of the covers of the items in the collection.
+ * If the collage has not been generated yet, it is created in the background
+ * and clients are notified via WebSocket (MUTATE_COLLECTION) when it is ready.
  */
 export const resolveCollectionImages = async (
   collection: CollectionModel,
@@ -147,47 +151,68 @@ export const resolveCollectionImages = async (
 }> => {
   const collectionImages = await getCollectionImages(collection, libraryType);
 
-  if (collectionImages.images.length === 0)
+  if (collectionImages.images.length === 0) {
     return {
       poster: collectionImages.poster,
       background: collectionImages.background,
     };
-
-  // Generate collage
-  const ratio = libraryType === LibraryTypes.MUSIC ? 'square' : 'poster';
-  const collageBuffer = await imageProcessingService.generateCollage(
-    collectionImages.images,
-    ratio,
-    libraryType,
-  );
-
-  // Save collage image
-  const outputDir = fileSystemService.getExternalPath(
-    fileSystemService.join('resources', 'img', 'collages', collection.id),
-  );
-  fileSystemService.createFolder(outputDir);
-  const fileName = `collage-${collection.id}-${libraryId}.jpg`;
-  const filePath = fileSystemService.join(outputDir, fileName);
-  await fileSystemService.writeImage(filePath, collageBuffer);
-
-  const collectionPoster = fileSystemService.join('img', 'collages', collection.id, fileName);
-
-  if (libraryType === LibraryTypes.MUSIC) {
-    collection.musicPosterSrc = collectionPoster;
-  } else {
-    collection.posterSrc = collectionPoster;
   }
 
-  if (collectionImages.background) {
-    collection.backgroundSrc = collectionImages.background;
-  }
-
-  await collection.save();
+  // Collage needed but not yet generated — return current state immediately
+  // and generate the collage in the background.
+  generateCollageInBackground(collection, libraryId, libraryType, collectionImages);
 
   return {
-    poster: collectionPoster,
+    poster: collectionImages.poster,
     background: collectionImages.background,
   };
+};
+
+const generateCollageInBackground = (
+  collection: CollectionModel,
+  libraryId: string,
+  libraryType: LibraryType,
+  collectionImages: { poster: string | null; background: string | null; images: string[] },
+): void => {
+  (async () => {
+    try {
+      const ratio = libraryType === LibraryTypes.MUSIC ? 'square' : 'poster';
+      const collageBuffer = await imageProcessingService.generateCollage(
+        collectionImages.images,
+        ratio,
+        libraryType,
+      );
+
+      const outputDir = fileSystemService.getExternalPath(
+        fileSystemService.join('resources', 'img', 'collages', collection.id),
+      );
+      fileSystemService.createFolder(outputDir);
+      const fileName = `collage-${collection.id}-${libraryId}.jpg`;
+      const filePath = fileSystemService.join(outputDir, fileName);
+      await fileSystemService.writeImage(filePath, collageBuffer);
+
+      const collectionPoster = fileSystemService.join('img', 'collages', collection.id, fileName);
+
+      if (libraryType === LibraryTypes.MUSIC) {
+        collection.musicPosterSrc = collectionPoster;
+      } else {
+        collection.posterSrc = collectionPoster;
+      }
+
+      if (collectionImages.background) {
+        collection.backgroundSrc = collectionImages.background;
+      }
+
+      await collection.save();
+
+      notificationService.mutateCollection(collection as unknown as Collection);
+    } catch (error) {
+      libraryManagerLogger.error(
+        error,
+        `Failed to generate collage in background for collection ${collection.id} (library ${libraryId})`,
+      );
+    }
+  })();
 };
 
 /**

@@ -10,13 +10,13 @@ import { useCardWidth } from '@/shared/hooks/use-card-width';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { useMediaActions } from '@/shared/lib/react-utils';
 import { Button } from '@/shared/ui/button';
-import { Card } from '@/shared/ui/card';
 import {
   createMediaCardAction,
   createMediaCardMenuContent,
   getCardPresentation,
   openMediaCardEditDialog,
 } from './media-card.helpers';
+import Card from '@/shared/cards/card';
 
 interface MediaCardProps {
   item: LibraryItem;

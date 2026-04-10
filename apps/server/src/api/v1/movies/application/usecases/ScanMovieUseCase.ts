@@ -28,7 +28,7 @@ export class ScanMovieUseCase {
     private readonly collectionRepo: CollectionsRepositoryPort,
     private readonly metadataProvider: MetadataProviderPort,
     private readonly notificationService: NotificationServicePort,
-  ) {}
+  ) { }
 
   async execute(library: Library, root: string): Promise<void> {
     logger.info({ libraryId: library.id, root }, 'Starting movies scan execution');
@@ -314,6 +314,7 @@ export class ScanMovieUseCase {
   }
 
   private async ensureRuntime(video: Video, filePath: string): Promise<void> {
+    logger.info({ videoId: video.id, filePath, runtime: video.runtime }, 'Ensuring runtime for video');
     if (video.runtime && video.runtime > 0) return;
 
     try {
