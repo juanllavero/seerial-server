@@ -152,7 +152,9 @@
 		--chart-4: #a971e0;
 		--chart-5: #e94b7d;
 
+		--text-secondary: #cbcbcb;
 		--app-color: #8edce6;
+		--color-gray-600: rgba(89, 93, 100, 0.6);
 
 		--radius: 0.5rem;
 	}

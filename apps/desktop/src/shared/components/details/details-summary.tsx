@@ -48,7 +48,9 @@ function DetailsSummary({
 
       <DetailsRating details={details} />
 
-      {details?.genres && <Tertiary>{details.genres}</Tertiary>}
+      {details?.genres && (
+        <Tertiary style={{ color: 'var(--text-secondary)' }}>{details.genres}</Tertiary>
+      )}
 
       {details?.description && (
         <FlexBox
@@ -58,7 +60,10 @@ function DetailsSummary({
             paddingTop: 3,
           }}
         >
-          <Tertiary className={`${hideButtons ? 'line-clamp-3' : 'line-clamp-4'} ellipsis`}>
+          <Tertiary
+            className={`${hideButtons ? 'line-clamp-3' : 'line-clamp-4'} ellipsis`}
+            style={{ color: 'var(--text-secondary)' }}
+          >
             {details.description}
           </Tertiary>
         </FlexBox>

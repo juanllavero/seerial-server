@@ -194,7 +194,7 @@ function TimelineSlider({
           className={`
         w-full h-3 rounded-lg appearance-none cursor-pointer outline-none ring-0
         bg-gray-500/60
-        bg-[linear-gradient(to_right,var(--app-color)_0%,var(--app-color)_var(--value-percent),var(--color-gray-600)_var(--value-percent),var(--color-gray-600)_100%)]
+        ${focused ? 'bg-[linear-gradient(to_right,var(--app-color)_0%,var(--app-color)_var(--value-percent),var(--color-gray-600)_var(--value-percent),var(--color-gray-600)_100%)]' : ''}
         transition-all duration-200
 
         [&::-webkit-slider-thumb]:appearance-none
@@ -211,7 +211,8 @@ function TimelineSlider({
         ${
           focused
             ? `h-4
-          [&::-webkit-slider-thumb]:h-5`
+          [&::-webkit-slider-thumb]:h-4
+          [&::-webkit-slider-thumb]:bg-white`
             : ''
         }
       `}

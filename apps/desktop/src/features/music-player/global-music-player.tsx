@@ -7,8 +7,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import {
   Languages,
   MicVocal,
-  Pause,
-  Play,
   SkipBack,
   SkipForward,
   SlidersHorizontal,
@@ -35,6 +33,8 @@ const READY_POLL_INTERVAL_MS = 250;
 const LOAD_TIMEOUT_MS = 5000;
 const KARAOKE_MIX_MIN = -10;
 const KARAOKE_MIX_MAX = 10;
+const PLAYER_CONTROLS_AUTO_HIDE_MS = 5000;
+const NOW_PLAYING_BAR_ANIMATION = [0.35, 1, 0.55, 0.85, 0.35];
 
 type PlaybackBackend = 'mpv' | 'karaoke';
 
@@ -183,6 +183,29 @@ function KaraokeMixSlider({ label, value, onChange }: KaraokeMixSliderProps) {
 function KaraokeLoadingIcon() {
   return (
     <span className="inline-block h-[2.2dvh] w-[2.2dvh] animate-spin rounded-full border-r-2 border-t-2 border-r-transparent border-t-current" />
+  );
+}
+
+function NowPlayingBars() {
+  return (
+    <div className="pointer-events-none flex h-[2.2vh] items-end gap-[0.25vh]">
+      {[0, 0.18, 0.36, 0.54].map((delay) => (
+        <motion.span
+          key={`now-playing-bar-${delay}`}
+          className="w-[0.36vh] rounded-none bg-white"
+          style={{ height: '100%', transformOrigin: 'bottom' }}
+          animate={{
+            scaleY: NOW_PLAYING_BAR_ANIMATION,
+          }}
+          transition={{
+            duration: 1.1,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: 'easeInOut',
+            delay,
+          }}
+        />
+      ))}
+    </div>
   );
 }
 
@@ -386,9 +409,13 @@ function useKaraokeAvailability(
 function useSongLyricsPanel(
   songId: string | undefined,
   isShown: boolean,
+  isExpanded: boolean,
   showLyrics: boolean,
   setShowLyrics: (showLyrics: boolean) => void,
 ) {
+  const hasAutoEnabledLyricsRef = useRef(false);
+  const previousSongIdRef = useRef<string | undefined>(undefined);
+  const previousExpandedRef = useRef(false);
   const { data: lyrics = [], isLoading: isLyricsLoading } = useGetSongLyrics<LRCFile[]>(
     songId ?? '',
     {
@@ -399,12 +426,40 @@ function useSongLyricsPanel(
   const hasLyrics = lyrics.length > 0;
 
   useEffect(() => {
+    const songChanged = previousSongIdRef.current !== songId;
+    const playerJustOpened = isExpanded && !previousExpandedRef.current;
+
+    previousSongIdRef.current = songId;
+    previousExpandedRef.current = isExpanded;
+
+    if (songChanged || playerJustOpened) {
+      hasAutoEnabledLyricsRef.current = false;
+    }
+  }, [isExpanded, songId]);
+
+  useEffect(() => {
     if (!showLyrics || isLyricsLoading || hasLyrics) {
       return;
     }
 
     setShowLyrics(false);
   }, [hasLyrics, isLyricsLoading, setShowLyrics, showLyrics]);
+
+  useEffect(() => {
+    if (
+      hasAutoEnabledLyricsRef.current ||
+      !isShown ||
+      !isExpanded ||
+      isLyricsLoading ||
+      !hasLyrics ||
+      showLyrics
+    ) {
+      return;
+    }
+
+    hasAutoEnabledLyricsRef.current = true;
+    setShowLyrics(true);
+  }, [hasLyrics, isExpanded, isLyricsLoading, isShown, setShowLyrics, showLyrics]);
 
   return {
     lyrics,
@@ -589,12 +644,15 @@ function GlobalMusicPlayer() {
 
   const loadAttemptRef = useRef(0);
   const eofGuardRef = useRef(false);
+  const controlsHideTimeoutRef = useRef<number | null>(null);
   const currentSongId = currentSong?.id;
   const [playbackBackend, setPlaybackBackend] = useState<PlaybackBackend>('mpv');
   const [karaokeMix, setKaraokeMix] = useState(0);
   const [showKaraokeMixer, setShowKaraokeMixer] = useState(false);
+  const [isTimelineFocused, setIsTimelineFocused] = useState(false);
+  const [arePlayerControlsVisible, setArePlayerControlsVisible] = useState(true);
   const { lyrics, isLyricsLoading, hasLyrics, shouldShowLyricsPanel, isLyricsButtonDisabled } =
-    useSongLyricsPanel(currentSongId, isShown, showLyrics, setShowLyrics);
+    useSongLyricsPanel(currentSongId, isShown, isExpanded, showLyrics, setShowLyrics);
   const {
     showPronunciation,
     selectedTranslationLanguage,
@@ -802,6 +860,32 @@ function GlobalMusicPlayer() {
     return getArtistsText(currentSong?.artists);
   }, [currentSong?.artists]);
 
+  const clearControlsHideTimeout = useCallback(() => {
+    if (controlsHideTimeoutRef.current !== null) {
+      window.clearTimeout(controlsHideTimeoutRef.current);
+      controlsHideTimeoutRef.current = null;
+    }
+  }, []);
+
+  const showPlayerControls = useCallback(() => {
+    setArePlayerControlsVisible(true);
+  }, []);
+
+  const scheduleControlsAutoHide = useCallback(() => {
+    clearControlsHideTimeout();
+
+    if (!isExpanded || !isShown || !isTimelineFocused || !isPlaying) {
+      setArePlayerControlsVisible(true);
+      return;
+    }
+
+    setArePlayerControlsVisible(true);
+    controlsHideTimeoutRef.current = window.setTimeout(() => {
+      setArePlayerControlsVisible(false);
+      controlsHideTimeoutRef.current = null;
+    }, PLAYER_CONTROLS_AUTO_HIDE_MS);
+  }, [clearControlsHideTimeout, isExpanded, isShown, isTimelineFocused, isPlaying]);
+
   const hideExpandedPlayer = useCallback(() => {
     setIsExpanded(false);
 
@@ -878,6 +962,46 @@ function GlobalMusicPlayer() {
       setTimeout(() => setFocus(NavigationFocusKeys.player.timeline), 30);
     }
   }, [isShown, isExpanded]);
+
+  useEffect(() => {
+    scheduleControlsAutoHide();
+
+    return () => {
+      clearControlsHideTimeout();
+    };
+  }, [clearControlsHideTimeout, scheduleControlsAutoHide]);
+
+  useEffect(() => {
+    if (!isShown || !isExpanded) {
+      setArePlayerControlsVisible(true);
+      clearControlsHideTimeout();
+      return;
+    }
+
+    const handleControlsActivity = () => {
+      showPlayerControls();
+
+      if (isTimelineFocused) {
+        scheduleControlsAutoHide();
+        return;
+      }
+
+      clearControlsHideTimeout();
+    };
+
+    window.addEventListener('keydown', handleControlsActivity);
+
+    return () => {
+      window.removeEventListener('keydown', handleControlsActivity);
+    };
+  }, [
+    clearControlsHideTimeout,
+    isExpanded,
+    isShown,
+    isTimelineFocused,
+    scheduleControlsAutoHide,
+    showPlayerControls,
+  ]);
 
   const togglePlayPause = useCallback(async () => {
     try {
@@ -959,27 +1083,43 @@ function GlobalMusicPlayer() {
                 <FlexBox
                   gap={3}
                   width="100%"
+                  height="100vh"
                   align="center"
                   justify="center"
                   className="relative overflow-hidden"
                 >
                   <div
-                    className={`relative h-screen z-1 flex items-center justify-center 
-                      transition-all duration-300 ease-in-out
-                      ${shouldShowLyricsPanel ? 'translate-x-20' : ''}`}
-                    style={{ width: shouldShowLyricsPanel ? '40dvw' : '100%' }}
+                    className="absolute top-0 left-0 z-1 flex h-screen items-center justify-center transition-[width] duration-300 ease-in-out"
+                    style={{ width: shouldShowLyricsPanel ? '45dvw' : '100%' }}
                   >
-                    <FlexBox direction="column" gap={2} align="center">
+                    <FlexBox direction="column" gap={1} align="center">
                       <Image
                         url={album?.coverSrc ?? ''}
                         className="rounded-3xl"
                         width="50vh"
                         height="50vh"
                       />
-                      <FlexBox direction="column" gap={0.4} align="center">
-                        <h2 className="text-[2.6vh] font-semibold line-clamp-1">
-                          {currentSong.title}
-                        </h2>
+                      <FlexBox direction="column" align="center">
+                        <div className="relative inline-flex items-center justify-center">
+                          <AnimatePresence initial={false}>
+                            {!!isPlaying && (
+                              <motion.div
+                                key="now-playing-bars"
+                                initial={{ opacity: 0, x: 6 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 6 }}
+                                transition={{ duration: 0.18, ease: 'easeOut' }}
+                                className="pointer-events-none absolute top-1/2 right-full mr-[1.4vh] -translate-y-1/2"
+                              >
+                                <NowPlayingBars />
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+
+                          <h2 className="text-[2.6vh] font-semibold line-clamp-1">
+                            {currentSong.title}
+                          </h2>
+                        </div>
                         <span
                           className="text-[1.8dvh] line-clamp-1 font-semibold"
                           style={{ color: 'var(--color-muted-foreground)' }}
@@ -998,21 +1138,27 @@ function GlobalMusicPlayer() {
                         animate={{ x: 0, opacity: 1 }}
                         exit={{ x: 64, opacity: 0 }}
                         transition={{ duration: 0.25, ease: 'easeInOut' }}
-                        className="relative z-0 min-h-0 min-w-0 flex-1 self-stretch overflow-hidden"
+                        className="absolute top-0 right-0 z-0 h-screen w-[63dvw] overflow-hidden"
                       >
-                        <LRCVisualizer
-                          lyrics={lyrics}
-                          isLoading={isLyricsLoading}
-                          showPronunciation={Boolean(showPronunciation)}
-                          selectedTranslationLanguage={selectedTranslationLanguage ?? null}
-                        />
+                        <div className="h-full w-full overflow-hidden">
+                          <LRCVisualizer
+                            lyrics={lyrics}
+                            isLoading={isLyricsLoading}
+                            showPronunciation={Boolean(showPronunciation)}
+                            selectedTranslationLanguage={selectedTranslationLanguage ?? null}
+                          />
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </FlexBox>
               </FlexBox>
 
-              <div className="pointer-events-none absolute inset-x-0 bottom-[5vh] z-30 flex justify-center px-[4vh]">
+              <div
+                className={`pointer-events-none absolute inset-x-0 bottom-[5vh] z-30 flex justify-center px-[4vh] transition-opacity duration-300 linear ${
+                  arePlayerControlsVisible ? 'opacity-100' : 'opacity-0'
+                }`}
+              >
                 <div className="pointer-events-auto w-full max-w-[160dvh]">
                   {!!isLoading && (
                     <div className="mb-[2vh] flex h-[7dvh] justify-center">
@@ -1032,6 +1178,7 @@ function GlobalMusicPlayer() {
                       setPosition={setCurrentTime}
                       duration={playerDuration}
                       setDuration={setDuration}
+                      onFocusChange={setIsTimelineFocused}
                       togglePlayPause={togglePlayPause}
                       playbackControls={{
                         getPosition: getActivePlaybackPosition,
@@ -1127,7 +1274,7 @@ function GlobalMusicPlayer() {
                                 translationOptions={translationOptions}
                                 selectedTranslationLanguage={selectedTranslationLanguage ?? null}
                                 onTogglePronunciation={() => {
-                                  setShowPronunciation((currentValue) => !Boolean(currentValue));
+                                  setShowPronunciation((currentValue) => !currentValue);
                                 }}
                                 onSelectTranslation={setSelectedTranslationLanguage}
                                 onClose={() => closeLyricsOptions()}
@@ -1136,13 +1283,6 @@ function GlobalMusicPlayer() {
                           )}
                         </AnimatePresence>
                       </div>
-                      <NavigationButton
-                        customKey={NavigationFocusKeys.player.playPauseButton}
-                        icon={isPlaying ? <Pause size={'2dvh'} /> : <Play size={'2dvh'} />}
-                        hideText
-                        variant="ghost"
-                        onClick={() => void togglePlayPause()}
-                      />
                       <NavigationButton
                         customKey={NavigationFocusKeys.player.forwardButton}
                         icon={<SkipForward size={'2dvh'} />}

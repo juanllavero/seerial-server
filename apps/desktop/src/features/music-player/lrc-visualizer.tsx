@@ -1,6 +1,7 @@
 import type { LRCFile } from '@seerial/domain';
 import { useMusicStore } from '@seerial/stores';
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { CSSProperties, WheelEvent } from 'react';
+import { memo, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { shallow } from 'zustand/shallow';
 import FlexBox from '@/components/ui/FlexBox';
@@ -18,51 +19,81 @@ interface LyricsLineState {
   containerClass: string;
   textClass: string;
   groupClass: string;
+  style: CSSProperties;
 }
 
-function getLyricsLineState(
-  index: number,
-  currentLineIndex: number,
-  isUserScrolling: boolean,
-): LyricsLineState {
-  const distanceFromCurrent =
-    currentLineIndex < 0 ? Number.POSITIVE_INFINITY : Math.abs(index - currentLineIndex);
-  const isCurrentLine = index === currentLineIndex;
-  const isPastLine = index < currentLineIndex;
-  const isPreviousLine = currentLineIndex > 0 && index === currentLineIndex - 1;
-  const isNearCurrentLine = distanceFromCurrent === 1;
+const UPCOMING_LINE_OFFSET_VH = 24;
+const PREVIOUS_LINE_EXIT_OFFSET_VH = 16;
+const PAST_LINE_EXIT_OFFSET_VH = 24;
 
-  if (!isUserScrolling && isPastLine && !isPreviousLine) {
-    return {
-      containerClass:
-        'max-h-0 translate-y-[-1vh] overflow-hidden opacity-0 blur-sm mb-0 scale-[0.98] py-0',
-      textClass: 'text-neutral-500',
-      groupClass: 'gap-[0.6vh]',
-    };
-  }
+function getLyricsLineState(index: number, currentLineIndex: number): LyricsLineState {
+  const anchorIndex = currentLineIndex >= 0 ? currentLineIndex : -1;
+  const relativeIndex = index - anchorIndex;
+  const isCurrentLine = currentLineIndex >= 0 && index === currentLineIndex;
+  const isPreviousLine = currentLineIndex > 0 && index === currentLineIndex - 1;
+  const isPastLine = currentLineIndex >= 0 && index < currentLineIndex;
+
+  let offsetY = relativeIndex * UPCOMING_LINE_OFFSET_VH;
+  let opacity = 0;
+  let scale = 0.96;
+  let blurPx = 0;
+  let zIndex = Math.max(1, 20 - Math.abs(relativeIndex));
+  let textClass = 'text-neutral-400';
+  let groupClass = 'gap-[0.95vh]';
 
   if (isCurrentLine) {
-    return {
-      containerClass: 'max-h-[24vh] opacity-100 blur-0 mb-[4.8vh] scale-100',
-      textClass: 'text-white drop-shadow-[0_0_24px_rgba(255,255,255,0.28)]',
-      groupClass: 'gap-[1.05vh]',
-    };
-  }
-
-  if (isNearCurrentLine) {
-    return {
-      containerClass: `max-h-[24vh] mb-[4.8vh] scale-100 ${isPastLine ? 'opacity-18 blur-[1px]' : 'opacity-45 blur-0'}`,
-      textClass: isPastLine ? 'text-neutral-300' : 'text-neutral-100',
-      groupClass: 'gap-[1vh]',
-    };
+    offsetY = 0;
+    opacity = 1;
+    scale = 1;
+    blurPx = 0;
+    zIndex = 40;
+    textClass = 'text-white drop-shadow-[0_0_24px_rgba(255,255,255,0.28)]';
+    groupClass = 'gap-[1.05vh]';
+  } else if (isPreviousLine) {
+    offsetY = -PREVIOUS_LINE_EXIT_OFFSET_VH;
+    opacity = 0;
+    scale = 0.985;
+    blurPx = 2;
+    zIndex = 30;
+    textClass = 'text-neutral-300';
+    groupClass = 'gap-[1vh]';
+  } else if (isPastLine) {
+    offsetY = -PAST_LINE_EXIT_OFFSET_VH;
+    opacity = 0;
+    scale = 0.97;
+    blurPx = 4;
+    zIndex = 10;
+  } else if (relativeIndex === 1) {
+    opacity = currentLineIndex < 0 ? 0.42 : 0.5;
+    scale = 0.995;
+    blurPx = 0;
+    zIndex = 25;
+    textClass = 'text-neutral-100';
+    groupClass = 'gap-[1vh]';
+  } else if (relativeIndex === 2) {
+    opacity = 0.2;
+    scale = 0.985;
+    blurPx = 1;
+    zIndex = 20;
+  } else if (relativeIndex > 2) {
+    opacity = 0.06;
+    scale = 0.97;
+    blurPx = 2;
+    zIndex = 5;
   }
 
   return {
-    containerClass: `max-h-[24vh] mb-[4.8vh] scale-[0.985] ${
-      isUserScrolling ? 'opacity-28 blur-[1px]' : 'opacity-15 blur-[2px]'
-    }`,
-    textClass: 'text-neutral-400',
-    groupClass: 'gap-[0.95vh]',
+    containerClass:
+      'absolute inset-x-0 transition-[transform,opacity,filter] duration-500 ease-out will-change-transform',
+    textClass,
+    groupClass,
+    style: {
+      top: '50%',
+      opacity,
+      zIndex,
+      filter: blurPx > 0 ? `blur(${blurPx}px)` : 'none',
+      transform: `translate3d(0, calc(${offsetY}vh - 50%), 0) scale(${scale})`,
+    },
   };
 }
 
@@ -92,18 +123,6 @@ function LRCVisualizer({
     shallow,
   );
 
-  const [isUserScrolling, setIsUserScrolling] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const scrollTimeoutRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (scrollTimeoutRef.current !== null) {
-        window.clearTimeout(scrollTimeoutRef.current);
-      }
-    };
-  }, []);
-
   const lyricGroups = useMemo(
     () =>
       buildLyricGroups(lyrics, {
@@ -123,40 +142,8 @@ function LRCVisualizer({
     return -1;
   }, [currentTime, lyricGroups]);
 
-  useEffect(() => {
-    if (isUserScrolling || !containerRef.current || lyricGroups.length === 0) {
-      return;
-    }
-
-    const currentLineElement = containerRef.current.querySelector<HTMLElement>(
-      `[data-line-index="${currentLineIndex}"]`,
-    );
-
-    if (!currentLineElement) {
-      return;
-    }
-
-    const containerHeight = containerRef.current.clientHeight;
-    const targetScrollTop =
-      currentLineElement.offsetTop - containerHeight / 2 + currentLineElement.offsetHeight / 2;
-
-    containerRef.current.scrollTo({
-      top: Math.max(0, targetScrollTop),
-      behavior: 'smooth',
-    });
-  }, [currentLineIndex, isUserScrolling, lyricGroups.length]);
-
-  const handleScroll = useCallback(() => {
-    setIsUserScrolling(true);
-
-    if (scrollTimeoutRef.current !== null) {
-      window.clearTimeout(scrollTimeoutRef.current);
-    }
-
-    scrollTimeoutRef.current = window.setTimeout(() => {
-      setIsUserScrolling(false);
-      scrollTimeoutRef.current = null;
-    }, 1800);
+  const handleWheel = useCallback((event: WheelEvent<HTMLDivElement>) => {
+    event.preventDefault();
   }, []);
 
   if (isLoading) {
@@ -182,24 +169,20 @@ function LRCVisualizer({
       height="100%"
       className="relative z-0 min-h-0 min-w-0 overflow-hidden"
     >
-      <div
-        ref={containerRef}
-        className="min-h-0 w-full flex-1 overflow-y-auto overflow-x-hidden scroll-smooth"
-        onScroll={handleScroll}
-      >
-        <div className="px-[2.2vh] py-[10vh]">
+      <div className="relative min-h-0 w-full flex-1 overflow-hidden" onWheel={handleWheel}>
+        <div className="absolute inset-0 overflow-hidden px-[2.2vh]">
           {lyricGroups.map((group, index) => {
-            const { containerClass, textClass, groupClass } = getLyricsLineState(
+            const { containerClass, textClass, groupClass, style } = getLyricsLineState(
               index,
               currentLineIndex,
-              isUserScrolling,
             );
 
             return (
               <div
                 key={`${group.time}-${group.lines.join('-')}`}
                 data-line-index={index}
-                className={`text-left transition-[max-height,opacity,transform,filter,margin] duration-500 ease-out ${containerClass}`}
+                className={`pl-[2dvw] text-left transition-[max-height,opacity,transform,filter,margin] duration-500 ease-out ${containerClass}`}
+                style={style}
               >
                 <div className={`flex flex-col items-start ${groupClass}`}>
                   {group.lines.map((line, lineIndex) => (
