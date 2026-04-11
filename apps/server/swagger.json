@@ -296,6 +296,32 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"ApiResponse_string-or-null_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"type": "string",
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"VideoUrlDTO": {
 				"properties": {
 					"filePath": {
@@ -4718,7 +4744,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_string_"
+									"$ref": "#/components/schemas/ApiResponse_string-or-null_"
 								}
 							}
 						}
@@ -5500,7 +5526,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_string_"
+									"$ref": "#/components/schemas/ApiResponse_string-or-null_"
 								}
 							}
 						}

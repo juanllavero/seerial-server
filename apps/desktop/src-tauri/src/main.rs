@@ -1,6 +1,8 @@
 mod video;
+mod audio;
 
 use tauri::{Manager, window::Color};
+
 use video::{
     bind_mpv_to_window,
     exit_app,
@@ -11,7 +13,7 @@ use video::{
     // Video
     set_volume, get_volume, set_zoom, set_video_quality,
     set_hwdec,
-    // Audio
+    // Audio (MPV)
     set_audio_track, set_audio_delay,
     set_audio_normalize, set_audio_exclusive,
     // Subtitles
@@ -21,12 +23,24 @@ use video::{
     set_subtitle_color_preset, set_subtitle_size_preset, set_subtitle_position_preset,
 };
 
+use audio::{
+    KaraokeState,
+    start_karaoke, 
+    set_karaoke_mix, 
+    stop_karaoke
+};
+
 #[tokio::main]
 async fn main() {
+    // Initialize MPV state
     let mpv_state = MpvState::new();
+    
+    // Initialize Karaoke engine state (Rodio)
+    let karaoke_state = KaraokeState::new();
 
     tauri::Builder::default()
         .manage(mpv_state)
+        .manage(karaoke_state)
         .setup(|app| {
             if let Some(window) = app.get_webview_window("main") {
                 let state = app.state::<MpvState>();
@@ -36,7 +50,7 @@ async fn main() {
             }
 
             let main_window = app.get_webview_window("main")
-                .ok_or_else(|| "No se pudo encontrar la ventana principal")?;
+                .ok_or_else(|| "Failed to find the main window")?;
 
             // Windows-specific
             #[cfg(target_os = "windows")]
@@ -48,7 +62,7 @@ async fn main() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            // Playback control
+            // --- MPV Commands (Video and Normal Playback) ---
             embed_mpv,
             play,
             pause,
@@ -61,18 +75,15 @@ async fn main() {
             set_position,
             get_duration,
             get_playback_status,
-            // Video
             set_volume,
             get_volume,
             set_zoom,
             set_video_quality,
             set_hwdec,
-            // Audio
             set_audio_track,
             set_audio_delay,
             set_audio_normalize,
             set_audio_exclusive,
-            // Subtitles
             set_subtitle_track,
             set_subtitle_delay,
             set_subtitle_font_size,
@@ -83,6 +94,11 @@ async fn main() {
             set_subtitle_color_preset,
             set_subtitle_size_preset,
             set_subtitle_position_preset,
+            
+            // --- Rodio Commands (Karaoke Mode) ---
+            start_karaoke,
+            set_karaoke_mix,
+            stop_karaoke
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri app");
