@@ -25,9 +25,17 @@ use video::{
 
 use audio::{
     KaraokeState,
+    get_karaoke_preload_status,
+    get_karaoke_preload_status_for_urls,
+    preload_karaoke,
+    reset_karaoke_preload,
     start_karaoke, 
     set_karaoke_mix, 
-    stop_karaoke
+    pause_karaoke,
+    resume_karaoke,
+    seek_karaoke,
+    stop_karaoke,
+    get_karaoke_status,
 };
 
 #[tokio::main]
@@ -96,9 +104,17 @@ async fn main() {
             set_subtitle_position_preset,
             
             // --- Rodio Commands (Karaoke Mode) ---
+            get_karaoke_preload_status,
+            get_karaoke_preload_status_for_urls,
+            preload_karaoke,
+            reset_karaoke_preload,
             start_karaoke,
             set_karaoke_mix,
-            stop_karaoke
+            pause_karaoke,
+            resume_karaoke,
+            seek_karaoke,
+            stop_karaoke,
+            get_karaoke_status
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri app");

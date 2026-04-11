@@ -16,6 +16,11 @@ interface TimelineSliderProps {
   keyboardShortcutEnabled?: boolean;
   onFocusChange?: (focused: boolean) => void;
   togglePlayPause?: () => void;
+  playbackControls?: {
+    getPosition?: () => Promise<number>;
+    getDuration?: () => Promise<number>;
+    setPosition?: (position: number) => Promise<void>;
+  };
 }
 
 function TimelineSlider({
@@ -26,6 +31,7 @@ function TimelineSlider({
   keyboardShortcutEnabled,
   onFocusChange,
   togglePlayPause,
+  playbackControls,
 }: TimelineSliderProps) {
   const seeking = useRef<boolean>(false);
   const sliderRef = useRef<HTMLInputElement>(null);
@@ -46,6 +52,33 @@ function TimelineSlider({
 
   const shortcutsEnabled = keyboardShortcutEnabled ?? focused;
 
+  const getPlaybackPosition = useCallback(() => {
+    if (playbackControls?.getPosition) {
+      return playbackControls.getPosition();
+    }
+
+    return invoke<number>('get_position');
+  }, [playbackControls]);
+
+  const getPlaybackDuration = useCallback(() => {
+    if (playbackControls?.getDuration) {
+      return playbackControls.getDuration();
+    }
+
+    return invoke<number>('get_duration');
+  }, [playbackControls]);
+
+  const setPlaybackPosition = useCallback(
+    (nextPosition: number) => {
+      if (playbackControls?.setPosition) {
+        return playbackControls.setPosition(nextPosition);
+      }
+
+      return invoke('set_position', { position: nextPosition });
+    },
+    [playbackControls],
+  );
+
   const handleSeekStart = () => {
     seeking.current = true;
   };
@@ -57,9 +90,9 @@ function TimelineSlider({
   const handleSeekEnd = async (value: number) => {
     seeking.current = false;
     try {
-      const currentDur = await invoke<number>('get_duration');
+      const currentDur = await getPlaybackDuration();
       const clamped = Math.max(0, Math.min(currentDur, value));
-      await invoke('set_position', { position: clamped });
+      await setPlaybackPosition(clamped);
       setPosition(clamped);
       setDuration(currentDur);
     } catch (error) {
@@ -73,18 +106,18 @@ function TimelineSlider({
       setSeekDirection(delta < 0 ? 'left' : 'right');
 
       try {
-        const currentPos = await invoke<number>('get_position');
-        const currentDur = await invoke<number>('get_duration');
+        const currentPos = await getPlaybackPosition();
+        const currentDur = await getPlaybackDuration();
 
         const newPos = Math.max(0, Math.min(currentDur, currentPos + delta));
-        await invoke('set_position', { position: newPos });
+        await setPlaybackPosition(newPos);
         setPosition(newPos);
         setDuration(currentDur);
       } catch (error) {
         console.error('Seek failed:', error);
       }
     },
-    [setPosition, setDuration],
+    [getPlaybackDuration, getPlaybackPosition, setPlaybackPosition, setPosition, setDuration],
   );
 
   // Calculate knob position as a percentage
@@ -123,11 +156,11 @@ function TimelineSlider({
   useEffect(() => {
     const interval = setInterval(() => {
       if (!seeking.current) {
-        invoke<number>('get_position').then(setPosition).catch(console.error);
+        getPlaybackPosition().then(setPosition).catch(console.error);
       }
     }, 500);
     return () => clearInterval(interval);
-  }, [setPosition]);
+  }, [getPlaybackPosition, setPosition]);
 
   // Update slider color on position change
   useEffect(() => {

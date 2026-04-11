@@ -34,7 +34,8 @@ function LibraryContent({
   const navigate = useNavigate();
   const itemsPerRow = useSettingsStore((s) => s.settings.cardsPerRow);
   const isMusicLibrary = libraryType === LibraryTypes.MUSIC;
-  const cardWidth = `calc((100% - ${(itemsPerRow - 1) * GRID_GAP_REM}rem) / ${itemsPerRow})`;
+  const finalItemsPerRow = isMusicLibrary ? itemsPerRow - 1 : itemsPerRow; // Music libraries have smaller cards, so we can fit more in the same space.
+  const cardWidth = `calc((100% - ${(finalItemsPerRow - 1) * GRID_GAP_REM}rem) / ${finalItemsPerRow})`;
 
   const { lastFocusedElementId, setLastFocusedElementId } = useDataStore(
     (state) => ({

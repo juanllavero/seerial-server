@@ -49,10 +49,20 @@ function TopBar() {
     staleTime: Number.POSITIVE_INFINITY,
   });
 
-  const moviesLibraries = libraries?.filter((library) => library.type === LibraryTypes.MOVIES);
-  const seriesLibraries = libraries?.filter((library) => library.type === LibraryTypes.SHOWS);
-  const albumsLibraries = libraries?.filter((library) => library.type === LibraryTypes.MUSIC);
-  const selectedLibraries = libraries?.filter((library) => library.type === libraryType) ?? [];
+  function getLibrariesByType(type: LibraryTypes) {
+    return libraries?.filter((library) => library.type === type) ?? [];
+  }
+
+  function getSingleLibraryByType(type: LibraryTypes) {
+    const librariesForType = getLibrariesByType(type);
+
+    return librariesForType.length === 1 ? librariesForType[0] : null;
+  }
+
+  const moviesLibraries = getLibrariesByType(LibraryTypes.MOVIES);
+  const seriesLibraries = getLibrariesByType(LibraryTypes.SHOWS);
+  const albumsLibraries = getLibrariesByType(LibraryTypes.MUSIC);
+  const selectedLibraries = getLibrariesByType(libraryType);
 
   const showMovies = moviesLibraries && moviesLibraries.length > 0;
   const showSeries = seriesLibraries && seriesLibraries.length > 0;
@@ -66,7 +76,7 @@ function TopBar() {
   }
 
   function openLibraries(nextType: LibraryTypes) {
-    const nextLibraries = libraries?.filter((library) => library.type === nextType) ?? [];
+    const nextLibraries = getLibrariesByType(nextType);
 
     if (nextLibraries.length === 0) {
       return;
@@ -79,6 +89,12 @@ function TopBar() {
 
   function scheduleLibraryAutoOpen(nextType: LibraryTypes) {
     clearAutoOpenTimeout();
+
+    const nextLibraries = getLibrariesByType(nextType);
+
+    if (nextLibraries.length <= 1) {
+      return;
+    }
 
     const focusKey = LIBRARY_TYPE_BUTTONS[nextType];
 
@@ -107,6 +123,15 @@ function TopBar() {
 
   function handleLibraryTypePress(nextType: LibraryTypes) {
     setActiveLibraryButtonKey(LIBRARY_TYPE_BUTTONS[nextType]);
+
+    const singleLibrary = getSingleLibraryByType(nextType);
+
+    if (singleLibrary) {
+      clearAutoOpenTimeout();
+      navigate(`/library/${singleLibrary.id}/${nextType}`);
+      return;
+    }
+
     openLibraries(nextType);
   }
 
