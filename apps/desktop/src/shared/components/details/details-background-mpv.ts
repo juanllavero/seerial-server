@@ -8,6 +8,12 @@ const FADE_OUT_STEPS = 7;
 let mpvCommandQueue: Promise<void> = Promise.resolve();
 
 const APP_SHELL_BACKGROUND_PROPERTY = '--seerial-app-shell-background';
+const APP_SHELL_BACKGROUND_VALUES = {
+    opaque: 'rgb(0 0 0)',
+    videoOverlay: 'rgb(0 0 0 / 75%)',
+} as const;
+
+export type AppShellBackgroundMode = 'opaque' | 'video-overlay';
 
 export function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => {
@@ -98,8 +104,13 @@ export async function fadeOutAndStopMpv(
     await invoke('set_volume', { volume: restoreVolume }).catch(() => undefined);
 }
 
-export function setAppShellBackground(background: 'black' | 'transparent'): void {
-    document.documentElement.style.setProperty(APP_SHELL_BACKGROUND_PROPERTY, background);
+export function setAppShellBackground(mode: AppShellBackgroundMode): void {
+    document.documentElement.style.setProperty(
+        APP_SHELL_BACKGROUND_PROPERTY,
+        mode === 'opaque'
+            ? APP_SHELL_BACKGROUND_VALUES.opaque
+            : APP_SHELL_BACKGROUND_VALUES.videoOverlay,
+    );
 }
 
 export function resetAppShellBackground(): void {
