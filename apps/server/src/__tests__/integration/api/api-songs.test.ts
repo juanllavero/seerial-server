@@ -20,6 +20,7 @@ jest.mock('@/api/v1/shared/infrastructure/adapters/di/container', () => ({
     updateSong: jest.fn(),
     deleteSong: jest.fn(),
     getSongById: jest.fn(),
+    startSongStemSeparation: jest.fn(),
   },
   fileSystemService: {
     getExternalPath: jest.fn().mockReturnValue('/test'),
@@ -78,6 +79,16 @@ beforeEach(async () => {
   mockContainer.useCases.getSongById.mockReturnValue({
     execute: jest.fn().mockResolvedValue(mockSong),
   });
+  mockContainer.useCases.startSongStemSeparation.mockReturnValue({
+    execute: jest.fn().mockResolvedValue({
+      jobId: 'job-1',
+      songId: mockSong.id,
+      inputPath: mockSong.fileSrc,
+      instrumentalPath: '/music/test-song.inst.flac',
+      vocalsPath: '/music/test-song.vocals.flac',
+      status: 'queued',
+    }),
+  });
 });
 
 describe('Songs API', () => {
@@ -120,5 +131,15 @@ describe('Songs API', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
+  });
+
+  it('POST /api/songs/:id/separate-stems returns 202 for admin', async () => {
+    const res = await request(app)
+      .post('/api/songs/song-1/separate-stems')
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    expect(res.status).toBe(202);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.jobId).toBe('job-1');
   });
 });

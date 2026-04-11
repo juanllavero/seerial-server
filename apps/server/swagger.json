@@ -1973,6 +1973,82 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"SeparateSongStemsResponseDTO": {
+				"properties": {
+					"jobId": {
+						"type": "string"
+					},
+					"songId": {
+						"type": "string"
+					},
+					"inputPath": {
+						"type": "string"
+					},
+					"instrumentalPath": {
+						"type": "string"
+					},
+					"vocalsPath": {
+						"type": "string"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"queued",
+							"started",
+							"processing",
+							"completed",
+							"error"
+						]
+					},
+					"message": {
+						"type": "string"
+					},
+					"progress": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"jobId",
+					"songId",
+					"inputPath",
+					"instrumentalPath",
+					"vocalsPath",
+					"status"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_SeparateSongStemsResponseDTO_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/SeparateSongStemsResponseDTO"
+							}
+						],
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"ApiResponse__content-string--language-string_-Array_": {
 				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
@@ -5424,6 +5500,42 @@
 					}
 				},
 				"description": "Delete a song",
+				"tags": [
+					"Songs"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/songs/{id}/separate-stems": {
+			"post": {
+				"operationId": "SeparateStems",
+				"responses": {
+					"202": {
+						"description": "Accepted",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_SeparateSongStemsResponseDTO_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Start asynchronous stem separation for a song.",
 				"tags": [
 					"Songs"
 				],
