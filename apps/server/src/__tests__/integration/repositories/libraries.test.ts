@@ -1,6 +1,10 @@
 /** biome-ignore-all lint/style/noNonNullAssertion: <Test file> */
 
 import 'reflect-metadata';
+import { AlbumModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumModel';
+import { CollectionAlbumModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionAlbum';
+import { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
+import { LibraryCollectionModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryCollectionModel';
 import { LibrariesRepositoryImpl } from '@/api/v1/libraries/infrastructure/persistence/repositories/LibrariesRepositoryImpl';
 import { DatabaseManager } from '@/api/v1/shared/infrastructure/persistence/DatabaseManager';
 import { LibraryTypes } from '@/data/interfaces/Media';
@@ -102,6 +106,68 @@ describe('LibrariesRepositoryImpl', () => {
       const found = await repo.getById(created!.id);
       expect(found).not.toBeNull();
       expect(found!.name).toBe('Find Me');
+    });
+  });
+
+  describe('getContent', () => {
+    it('returns music collections and standalone albums without relying on a full library graph query', async () => {
+      const library = await repo.create(
+        buildLibraryData({ name: 'Music Library', type: LibraryTypes.MUSIC }),
+      );
+
+      const standaloneAlbum = await AlbumModel.save({
+        id: 'album-standalone',
+        libraryId: library!.id,
+        order: 1,
+        title: 'Standalone Album',
+        year: '2001',
+        coverSrc: '/covers/standalone.jpg',
+        folder: '/music/standalone-album',
+      });
+
+      const collectionAlbum = await AlbumModel.save({
+        id: 'album-collected',
+        libraryId: library!.id,
+        order: 2,
+        title: 'Collected Album',
+        year: '2002',
+        coverSrc: '/covers/collected.jpg',
+        folder: '/music/collection-root/collected-album',
+      });
+
+      const collection = await CollectionModel.save({
+        id: 'collection-music',
+        title: 'Music Collection',
+        description: 'A grouped set of albums',
+        musicPosterSrc: '/covers/collection.jpg',
+      });
+
+      await LibraryCollectionModel.save({
+        libraryId: library!.id,
+        collectionId: collection.id,
+        customOrder: 0,
+      });
+      await CollectionAlbumModel.save({
+        collectionId: collection.id,
+        albumId: collectionAlbum.id,
+        customOrder: 0,
+      });
+
+      const content = await repo.getContent(library!.id, 'user-1');
+
+      expect(content).toHaveLength(2);
+      expect(content.map((item) => item.id)).toEqual([collection.id, standaloneAlbum.id]);
+      expect(content[0]).toMatchObject({
+        id: collection.id,
+        type: 'collection',
+        coverSrc: '/covers/collection.jpg',
+        numberOfItems: 1,
+      });
+      expect(content[1]).toMatchObject({
+        id: standaloneAlbum.id,
+        type: 'album',
+        title: 'Standalone Album',
+      });
     });
   });
 
