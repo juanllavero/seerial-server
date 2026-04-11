@@ -27,6 +27,14 @@ const libraryRepositoryLogger = logger.child({
 
 type TimingContext = Record<string, string | number | boolean | undefined>;
 
+type LibraryContentSource = {
+  id: string;
+  type: Library['type'];
+  movies?: MovieModel[];
+  series?: SeriesModel[];
+  albums?: AlbumModel[];
+};
+
 export class LibrariesRepositoryImpl extends BaseRepository implements LibrariesRepositoryPort {
   // Generic helper for common CRUD operations
   private helper: GenericRepositoryHelper<LibraryModel, Library>;
@@ -73,37 +81,49 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       return [];
     }
 
-    const relations = this.measureSync(
-      'getContent.resolveRelations',
+    const collectionRelations = this.measureSync(
+      'getContent.resolveCollectionRelations',
       { libraryId, libraryType: libraryHeader.type },
-      () => this.getRelationsForLibraryType(libraryHeader.type),
+      () => this.getCollectionRelations(),
     );
 
-    const library = await this.measureAsync(
-      'getContent.fetchLibraryWithRelations',
-      { libraryId, libraryType: libraryHeader.type, relationCount: relations.length },
-      () =>
-        LibraryModel.findOne({
-          where: { id: libraryId },
-          relations,
-        }),
+    const standaloneRelations = this.measureSync(
+      'getContent.resolveStandaloneRelations',
+      { libraryId, libraryType: libraryHeader.type },
+      () => this.getStandaloneRelationsForLibraryType(libraryHeader.type),
     );
 
-    if (!library) {
-      this.logTiming('getContent.total', totalStartedAt, {
-        libraryId,
-        userId,
-        watched,
-        resultCount: 0,
-        reason: 'libraryNotFound',
-      });
-      return [];
-    }
+    const [libraryCollections, standaloneContent] = await Promise.all([
+      this.measureAsync(
+        'getContent.fetchLibraryCollections',
+        {
+          libraryId,
+          libraryType: libraryHeader.type,
+          relationCount: collectionRelations.length,
+        },
+        () =>
+          LibraryCollectionModel.find({
+            where: { libraryId },
+            relations: collectionRelations,
+            relationLoadStrategy: 'query',
+            order: { customOrder: 'ASC' },
+          }),
+      ),
+      this.measureAsync(
+        'getContent.fetchStandaloneContent',
+        {
+          libraryId,
+          libraryType: libraryHeader.type,
+          relationCount: standaloneRelations.length,
+        },
+        () => this.getStandaloneContent(libraryId, libraryHeader.type, standaloneRelations),
+      ),
+    ]);
 
     const collections = this.measureSync(
       'getContent.extractCollections',
-      { libraryId, libraryType: library.type },
-      () => library.libraryCollections?.map((libraryCollection) => libraryCollection.collection) || [],
+      { libraryId, libraryType: libraryHeader.type },
+      () => libraryCollections.map((libraryCollection) => libraryCollection.collection),
     );
 
     const customOrderByCollectionId = this.measureSync(
@@ -111,7 +131,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       { libraryId, collectionCount: collections.length },
       () =>
         new Map(
-          (library.libraryCollections || []).map((libraryCollection) => [
+          libraryCollections.map((libraryCollection) => [
             libraryCollection.collectionId,
             libraryCollection.customOrder,
           ]),
@@ -120,12 +140,12 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
 
     const collectionItems = await this.measureAsync(
       'getContent.buildCollectionItems',
-      { libraryId, collectionCount: collections.length, libraryType: library.type, watched },
+      { libraryId, collectionCount: collections.length, libraryType: libraryHeader.type, watched },
       () =>
         this.buildCollectionItems(
           collections,
           libraryId,
-          library.type,
+          libraryHeader.type,
           customOrderByCollectionId,
           userId,
           watched,
@@ -133,8 +153,8 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     );
     const standaloneItems = await this.measureAsync(
       'getContent.buildStandaloneItems',
-      { libraryId, collectionCount: collections.length, libraryType: library.type, watched },
-      () => this.buildStandaloneItems(library, collections, userId, watched),
+      { libraryId, collectionCount: collections.length, libraryType: libraryHeader.type, watched },
+      () => this.buildStandaloneItems(standaloneContent, collections, userId, watched),
     );
 
     const sortedItems = this.measureSync(
@@ -151,7 +171,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       userId,
       watched,
       libraryId,
-      libraryType: library.type,
+      libraryType: libraryHeader.type,
       collectionCount: collections.length,
       collectionItemCount: collectionItems.length,
       standaloneItemCount: standaloneItems.length,
@@ -161,31 +181,67 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     return sortedItems;
   }
 
-  private getRelationsForLibraryType(type: Library['type']): string[] {
-    const collectionRelations = [
-      'libraryCollections',
-      'libraryCollections.collection',
-      'libraryCollections.collection.collectionMovies.movie.watchLists',
-      'libraryCollections.collection.collectionSeries.series.watchLists',
-      'libraryCollections.collection.collectionAlbums.album',
+  private getCollectionRelations(): string[] {
+    return [
+      'collection',
+      'collection.collectionMovies.movie.watchLists',
+      'collection.collectionSeries.series.watchLists',
+      'collection.collectionAlbums.album',
     ];
+  }
 
+  private getStandaloneRelationsForLibraryType(type: Library['type']): string[] {
     switch (type) {
       case LibraryTypes.MOVIES:
-        return ['movies', 'movies.watchLists', 'movies.videos', ...collectionRelations];
+        return ['watchLists', 'videos'];
       case LibraryTypes.SHOWS:
-        return [
-          'series',
-          'series.watchLists',
-          'series.seasons',
-          'series.seasons.episodes',
-          'series.seasons.episodes.watchLists',
-          ...collectionRelations,
-        ];
+        return ['watchLists', 'seasons', 'seasons.episodes', 'seasons.episodes.watchLists'];
       case LibraryTypes.MUSIC:
-        return ['albums', ...collectionRelations];
+        return [];
       default:
-        return collectionRelations;
+        return [];
+    }
+  }
+
+  private async getStandaloneContent(
+    libraryId: string,
+    type: Library['type'],
+    relations: string[],
+  ): Promise<LibraryContentSource> {
+    switch (type) {
+      case LibraryTypes.MOVIES:
+        return {
+          id: libraryId,
+          type,
+          movies: await MovieModel.find({
+            where: { libraryId },
+            relations,
+            relationLoadStrategy: 'query',
+            order: { order: 'ASC' },
+          }),
+        };
+      case LibraryTypes.SHOWS:
+        return {
+          id: libraryId,
+          type,
+          series: await SeriesModel.find({
+            where: { libraryId },
+            relations,
+            relationLoadStrategy: 'query',
+            order: { order: 'ASC' },
+          }),
+        };
+      case LibraryTypes.MUSIC:
+        return {
+          id: libraryId,
+          type,
+          albums: await AlbumModel.find({
+            where: { libraryId },
+            order: { order: 'ASC' },
+          }),
+        };
+      default:
+        return { id: libraryId, type };
     }
   }
 
@@ -321,7 +377,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
   }
 
   private async buildStandaloneItems(
-    library: LibraryModel,
+    library: LibraryContentSource,
     collections: CollectionModel[],
     userId: string,
     watched?: boolean,
@@ -437,7 +493,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
   }
 
   private async buildMovieItems(
-    library: LibraryModel,
+    library: LibraryContentSource,
     collectionMovieIds: Set<string>,
     userId: string,
     watched?: boolean,
@@ -508,7 +564,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
   }
 
   private async buildSeriesItems(
-    library: LibraryModel,
+    library: LibraryContentSource,
     collectionSeriesIds: Set<string>,
     userId: string,
     watched?: boolean,
@@ -590,7 +646,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
   }
 
   private async buildAlbumItems(
-    library: LibraryModel,
+    library: LibraryContentSource,
     collectionAlbumIds: Set<string>,
   ): Promise<LibraryItem[]> {
     const startedAt = this.startTiming();

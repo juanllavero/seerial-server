@@ -10,6 +10,7 @@ export const messages = {
     login: 'Login successful.',
     fetch: 'Data retrieved successfully.',
     scan: 'Scan completed successfully.',
+    processStarted: 'Background processing started successfully.',
   },
   errors: {
     create: 'Failed to create element.',
@@ -40,6 +41,8 @@ export const messages = {
       credentials: 'Invalid credentials.',
       dbInit: 'Database not initialized.',
       userNotAuthenticated: 'User not authenticated.',
+      audioSeparatorUnavailable: 'audio-separator is not installed or not available in PATH.',
+      stemSeparationFailed: 'Failed to separate song stems.',
     },
     validation: {
       missingId: 'Required ID is missing.',

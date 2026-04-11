@@ -8,6 +8,7 @@ jest.mock('@/api/v1/shared/infrastructure/adapters/di/container', () => ({
     updateSong: jest.fn(),
     deleteSong: jest.fn(),
     getSongById: jest.fn(),
+    startSongStemSeparation: jest.fn(),
     getVideoById: jest.fn(),
     getVideoByEpisodeId: jest.fn(),
     getVideoPlaybackInfo: jest.fn(),
@@ -79,6 +80,28 @@ describe('SongsController', () => {
 
     expect(response.message).toBe(messages.success.delete);
     expect(response.data).toBeNull();
+  });
+
+  it('starts asynchronous song stem separation', async () => {
+    const job = {
+      jobId: 'job-1',
+      songId: 'song-1',
+      inputPath: '/music/song.flac',
+      instrumentalPath: '/music/song.inst.flac',
+      vocalsPath: '/music/song.vocals.flac',
+      status: 'queued',
+      message: 'Stem separation queued.',
+    };
+    container.useCases.startSongStemSeparation.mockReturnValue(uc(job));
+
+    const controller = new SongsController();
+    const setStatusSpy = jest.spyOn(controller, 'setStatus');
+
+    const response = await controller.separateStems('song-1');
+
+    expect(setStatusSpy).toHaveBeenCalledWith(202);
+    expect(response.data).toEqual(job);
+    expect(response.message).toBe(messages.success.processStarted);
   });
 
   it('returns song lyrics', async () => {
