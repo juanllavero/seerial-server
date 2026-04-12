@@ -39,6 +39,10 @@ export const NavigationFocusKeys = {
         settingsButton: 'player-settings-button',
         optionsButton: 'player-options-button',
         goBackButton: 'player-go-back-button',
+        openQueueButton: 'player-open-queue-button',
+        closeButton: 'player-close-button',
+        repeatButton: 'player-repeat-button',
+        shuffleButton: 'player-shuffle-button',
     },
     settings: {
         container: 'settings-panel',

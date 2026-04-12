@@ -4,6 +4,7 @@ import { shallow } from 'zustand/shallow';
 import NavigationButton from '@/components/navigation/NavigationButton';
 import Image from '@/components/ui/Image';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
+import AnimatedSoundBars from './animated-sound-bars';
 
 function MiniMusicPlayerButton() {
   const { album, currentSong, isShown, isExpanded, setIsExpanded } = useMusicStore(
@@ -22,22 +23,26 @@ function MiniMusicPlayerButton() {
   }
 
   return (
-    <NavigationButton
-      customKey={NavigationFocusKeys.topBar.musicPlayer}
-      onClick={() => setIsExpanded(true)}
-      className="mr-2"
-      title={currentSong.title}
-      variant="ghost"
-      icon={
-        <Image
-          url={album?.coverSrc ?? ''}
-          className="rounded-md overflow-hidden"
-          width="4.2dvh"
-          height="4.2dvh"
-        />
-      }
-      hideText
-    />
+    <div className="absolute z-50 top-[2.5vh] right-[10vh]">
+      <NavigationButton
+        customKey={NavigationFocusKeys.topBar.musicPlayer}
+        onClick={() => setIsExpanded(true)}
+        className="rounded-md! p-1!"
+        title={currentSong.title}
+        variant="ghost"
+        hideText
+      >
+        <div className="relative flex items-center justify-center">
+          <AnimatedSoundBars isPlaying={true} />
+          <Image
+            url={album?.coverSrc ?? ''}
+            className="rounded-md overflow-hidden"
+            width="4.2dvh"
+            height="4.2dvh"
+          />
+        </div>
+      </NavigationButton>
+    </div>
   );
 }
 

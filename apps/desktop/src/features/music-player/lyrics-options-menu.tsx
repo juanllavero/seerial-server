@@ -2,6 +2,7 @@ import { setFocus, useFocusable } from '@noriginmedia/norigin-spatial-navigation
 import { AnimatePresence, motion } from 'framer-motion';
 import { Check, ChevronRight } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
+import NavigationContainer from '@/components/navigation/NavigationContainer';
 import { Button } from '@/components/ui/button';
 import FlexBox from '@/components/ui/FlexBox';
 
@@ -177,7 +178,11 @@ function LyricsOptionsMenu({
   }, [translationOptions.length]);
 
   return (
-    <div className="w-[34vh] rounded-[2.6vh] border border-white/15 bg-black/80 p-[1vh] shadow-[0_2vh_6vh_rgba(0,0,0,0.45)] backdrop-blur-xl">
+    <NavigationContainer
+      isFocusBoundary
+      focusBoundaryDirections={['up', 'down', 'left', 'right']}
+      className="w-[34vh] rounded-[2.6vh] border border-white/15 bg-black/80 p-[1vh] shadow-[0_2vh_6vh_rgba(0,0,0,0.45)] backdrop-blur-xl"
+    >
       <FlexBox direction="column" gap={0.4} width="100%">
         <LyricsOptionsItem
           focusKey={pronunciationFocusKey}
@@ -286,7 +291,7 @@ function LyricsOptionsMenu({
           )}
         </AnimatePresence>
       </FlexBox>
-    </div>
+    </NavigationContainer>
   );
 }
 

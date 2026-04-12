@@ -1,16 +1,28 @@
 import { useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+function isBackKey(event: KeyboardEvent): boolean {
+  return event.key === 'Escape' || event.key === 'Backspace';
+}
+
+function hasModifier(event: KeyboardEvent): boolean {
+  return event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
+}
+
 export function useKeyboardBack({
   fallbackPath = '/home',
   preAction,
   enabled = true,
   navigateOnBack = true,
+  capture = false,
+  stopPropagation = false,
 }: {
   fallbackPath?: string;
   preAction?: () => void;
   enabled?: boolean;
   navigateOnBack?: boolean;
+  capture?: boolean;
+  stopPropagation?: boolean;
 } = {}) {
   const navigate = useNavigate();
 
@@ -30,14 +42,20 @@ export function useKeyboardBack({
     if (!enabled) return;
 
     const onKeyDown = (event: KeyboardEvent) => {
-      const isBackKey = event.key === 'Escape' || event.key === 'Backspace';
-      const hasModifier = event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
       const shouldIgnore =
-        !isBackKey || event.defaultPrevented || hasModifier || isTypingElement(event.target);
+        !isBackKey(event) ||
+        event.defaultPrevented ||
+        hasModifier(event) ||
+        isTypingElement(event.target);
 
       if (shouldIgnore) return;
 
       event.preventDefault();
+
+      if (stopPropagation) {
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+      }
 
       // Run any pre-navigation action (like closing a modal) before navigating back
       runPreAction();
@@ -54,7 +72,7 @@ export function useKeyboardBack({
       }
     };
 
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [navigate, fallbackPath, runPreAction, enabled, navigateOnBack]);
+    window.addEventListener('keydown', onKeyDown, capture);
+    return () => window.removeEventListener('keydown', onKeyDown, capture);
+  }, [navigate, fallbackPath, runPreAction, enabled, navigateOnBack, capture, stopPropagation]);
 }

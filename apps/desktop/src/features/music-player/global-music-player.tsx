@@ -1,40 +1,32 @@
-import { setFocus, useFocusable } from '@noriginmedia/norigin-spatial-navigation';
+import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import { getSignedSongStreamUrl, useGetSongLyrics } from '@seerial/api';
 import type { LRCFile } from '@seerial/domain';
 import { useMusicStore, useServerStore } from '@seerial/stores';
 import { invoke } from '@tauri-apps/api/core';
 import { AnimatePresence, motion } from 'framer-motion';
-import {
-  Languages,
-  MicVocal,
-  SkipBack,
-  SkipForward,
-  SlidersHorizontal,
-  SquareIcon,
-} from 'lucide-react';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { shallow } from 'zustand/shallow';
+import BlurredBackground from '@/components/backgrounds/blurred-background';
+import FadedCover from '@/components/backgrounds/faded-cover';
 import GradientBackground from '@/components/backgrounds/GradientBackground';
-import NavigationButton from '@/components/navigation/NavigationButton';
 import NavigationContainer from '@/components/navigation/NavigationContainer';
 import FlexBox from '@/components/ui/FlexBox';
 import Image from '@/components/ui/Image';
-import { Slider } from '@/components/ui/slider';
 import LRCVisualizer from '@/features/music-player/lrc-visualizer';
-import LyricsOptionsMenu from '@/features/music-player/lyrics-options-menu';
 import { classifyLyricsFiles, formatLanguageLabel } from '@/features/music-player/lyrics-utils';
-import TimelineSlider from '@/pages/videoplayer/components/controls/timeline-slider';
-import Loading from '@/shared/components/loading';
 import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
+import AnimatedSoundBars from './animated-sound-bars';
+import MusicPlayerControls from './music-player-controls';
+
+const TEST_BACKGROUND_STYLE: 'classic' | 'background' = 'classic';
+const TEST_GRADIENT_STYLE: 'simple' | 'dynamic' = 'simple';
 
 const READY_POLL_INTERVAL_MS = 250;
 const LOAD_TIMEOUT_MS = 5000;
 const KARAOKE_MIX_MIN = -10;
 const KARAOKE_MIX_MAX = 10;
-const PLAYER_CONTROLS_AUTO_HIDE_MS = 5000;
-const NOW_PLAYING_BAR_ANIMATION = [0.35, 1, 0.55, 0.85, 0.35];
 
 type PlaybackBackend = 'mpv' | 'karaoke';
 
@@ -58,12 +50,6 @@ interface KaraokePreloadStatus {
 interface KaraokeStemUrls {
   instrumental: string;
   vocals: string;
-}
-
-interface KaraokeMixSliderProps {
-  label: string;
-  value: number;
-  onChange: (value: number) => void;
 }
 
 function getArtistsText(artists?: string[]): string {
@@ -128,85 +114,6 @@ function getKaraokeMixVolumes(mixValue: number): { instrumental: number; vocals:
     instrumental: 1,
     vocals: 1,
   };
-}
-
-function KaraokeMixSlider({ label, value, onChange }: KaraokeMixSliderProps) {
-  const { ref, focused } = useFocusable({
-    focusKey: NavigationFocusKeys.player.karaokeSlider,
-    onArrowPress: (direction) => {
-      if (direction === 'left') {
-        onChange(value - 1);
-        return false;
-      }
-
-      if (direction === 'right') {
-        onChange(value + 1);
-        return false;
-      }
-
-      return true;
-    },
-  });
-
-  return (
-    <div
-      ref={ref}
-      className={`w-full max-w-[46vh] rounded-[2.5vh] border px-[2.4vh] py-[1.8vh] backdrop-blur-md transition-all duration-200 ${focused ? 'border-white/90 bg-black/55 shadow-lg shadow-black/30' : 'border-white/20 bg-black/30'}`}
-    >
-      <FlexBox direction="column" width="100%" gap={0.8}>
-        <FlexBox width="100%" justify="space-between" align="center">
-          <span className="text-[1.8vh] font-medium text-white/80">{label}</span>
-          <span className="text-[2.1vh] font-semibold text-white">{value}</span>
-        </FlexBox>
-        <Slider
-          min={KARAOKE_MIX_MIN}
-          max={KARAOKE_MIX_MAX}
-          step={1}
-          value={[value]}
-          onValueChange={([nextValue]: number[]) => {
-            if (typeof nextValue === 'number') {
-              onChange(nextValue);
-            }
-          }}
-          aria-label={label}
-          className="py-1"
-        />
-        <FlexBox width="100%" justify="space-between" align="center">
-          <span className="text-[1.5vh] text-white/55">Vocals mute</span>
-          <span className="text-[1.5vh] text-white/55">Instrumental mute</span>
-        </FlexBox>
-      </FlexBox>
-    </div>
-  );
-}
-
-function KaraokeLoadingIcon() {
-  return (
-    <span className="inline-block h-[2.2dvh] w-[2.2dvh] animate-spin rounded-full border-r-2 border-t-2 border-r-transparent border-t-current" />
-  );
-}
-
-function NowPlayingBars() {
-  return (
-    <div className="pointer-events-none flex h-[2.2vh] items-end gap-[0.25vh]">
-      {[0, 0.18, 0.36, 0.54].map((delay) => (
-        <motion.span
-          key={`now-playing-bar-${delay}`}
-          className="w-[0.36vh] rounded-none bg-white"
-          style={{ height: '100%', transformOrigin: 'bottom' }}
-          animate={{
-            scaleY: NOW_PLAYING_BAR_ANIMATION,
-          }}
-          transition={{
-            duration: 1.1,
-            repeat: Number.POSITIVE_INFINITY,
-            ease: 'easeInOut',
-            delay,
-          }}
-        />
-      ))}
-    </div>
-  );
 }
 
 function useKaraokeAvailability(
@@ -615,7 +522,6 @@ function GlobalMusicPlayer() {
     setDuration,
     setProgress,
     resetPlayerState,
-    handlePrevious,
     handleNext,
   } = useMusicStore(
     (state) => ({
@@ -636,7 +542,6 @@ function GlobalMusicPlayer() {
       setDuration: state.setDuration,
       setProgress: state.setProgress,
       resetPlayerState: state.resetPlayerState,
-      handlePrevious: state.handlePrevious,
       handleNext: state.handleNext,
     }),
     shallow,
@@ -644,13 +549,11 @@ function GlobalMusicPlayer() {
 
   const loadAttemptRef = useRef(0);
   const eofGuardRef = useRef(false);
-  const controlsHideTimeoutRef = useRef<number | null>(null);
   const currentSongId = currentSong?.id;
   const [playbackBackend, setPlaybackBackend] = useState<PlaybackBackend>('mpv');
   const [karaokeMix, setKaraokeMix] = useState(0);
   const [showKaraokeMixer, setShowKaraokeMixer] = useState(false);
-  const [isTimelineFocused, setIsTimelineFocused] = useState(false);
-  const [arePlayerControlsVisible, setArePlayerControlsVisible] = useState(true);
+  const [isQueueMenuOpen, setIsQueueMenuOpen] = useState(false);
   const { lyrics, isLyricsLoading, hasLyrics, shouldShowLyricsPanel, isLyricsButtonDisabled } =
     useSongLyricsPanel(currentSongId, isShown, isExpanded, showLyrics, setShowLyrics);
   const {
@@ -860,34 +763,11 @@ function GlobalMusicPlayer() {
     return getArtistsText(currentSong?.artists);
   }, [currentSong?.artists]);
 
-  const clearControlsHideTimeout = useCallback(() => {
-    if (controlsHideTimeoutRef.current !== null) {
-      window.clearTimeout(controlsHideTimeoutRef.current);
-      controlsHideTimeoutRef.current = null;
-    }
-  }, []);
-
-  const showPlayerControls = useCallback(() => {
-    setArePlayerControlsVisible(true);
-  }, []);
-
-  const scheduleControlsAutoHide = useCallback(() => {
-    clearControlsHideTimeout();
-
-    if (!isExpanded || !isShown || !isTimelineFocused || !isPlaying) {
-      setArePlayerControlsVisible(true);
-      return;
-    }
-
-    setArePlayerControlsVisible(true);
-    controlsHideTimeoutRef.current = window.setTimeout(() => {
-      setArePlayerControlsVisible(false);
-      controlsHideTimeoutRef.current = null;
-    }, PLAYER_CONTROLS_AUTO_HIDE_MS);
-  }, [clearControlsHideTimeout, isExpanded, isShown, isTimelineFocused, isPlaying]);
-
   const hideExpandedPlayer = useCallback(() => {
     setIsExpanded(false);
+    setIsQueueMenuOpen(false);
+    setShowKaraokeMixer(false);
+    closeLyricsOptions(false);
 
     window.setTimeout(() => {
       const { isShown: stillShown, currentSong: stillCurrentSong } = useMusicStore.getState();
@@ -899,18 +779,66 @@ function GlobalMusicPlayer() {
 
       setFocus(NavigationFocusKeys.topBar.settings);
     }, 280);
-  }, [setIsExpanded]);
+  }, [closeLyricsOptions, setIsExpanded]);
+
+  const closeQueueMenu = useCallback((restoreFocus = true) => {
+    setIsQueueMenuOpen(false);
+
+    if (restoreFocus) {
+      window.setTimeout(() => {
+        setFocus(NavigationFocusKeys.player.openQueueButton);
+      }, 30);
+    }
+  }, []);
+
+  const renderSongInfo = useCallback(() => {
+    if (!currentSong) {
+      return null;
+    }
+
+    return (
+      <FlexBox direction="column" align="center">
+        <div className="relative inline-flex items-center justify-center">
+          <AnimatedSoundBars isPlaying={isPlaying} />
+
+          <h2
+            className="text-[2.6vh] font-semibold line-clamp-1"
+            style={{ textShadow: '0 2px 6px black' }}
+          >
+            {currentSong.title}
+          </h2>
+        </div>
+        <span
+          className="text-[1.8dvh] line-clamp-1 font-semibold"
+          style={{
+            color: 'var(--color-muted-foreground)',
+            textShadow: '0 2px 6px black',
+          }}
+        >
+          {artistsText} - {album?.title}
+        </span>
+      </FlexBox>
+    );
+  }, [currentSong, artistsText, album, isPlaying]);
 
   useKeyboardBack({
-    enabled: isShown && isExpanded && !isLyricsOptionsOpen,
-    preAction: hideExpandedPlayer,
-    navigateOnBack: false,
-  });
+    enabled: isShown && isExpanded,
+    preAction: () => {
+      if (isQueueMenuOpen) {
+        closeQueueMenu();
+        return;
+      }
 
-  useKeyboardBack({
-    enabled: isShown && isExpanded && isLyricsOptionsOpen,
-    preAction: () => closeLyricsOptions(),
+      if (isLyricsOptionsOpen) {
+        closeLyricsOptions();
+        return;
+      }
+
+      hideExpandedPlayer();
+    },
     navigateOnBack: false,
+    capture: true,
+    stopPropagation: true,
   });
 
   useEffect(() => {
@@ -931,6 +859,7 @@ function GlobalMusicPlayer() {
     setPlaybackBackend('mpv');
     setKaraokeMix(0);
     setShowKaraokeMixer(false);
+    setIsQueueMenuOpen(false);
     resetKaraokeAvailability();
     void invoke('stop_karaoke').catch(() => undefined);
   }, [currentSong?.id, resetKaraokeAvailability]);
@@ -964,44 +893,12 @@ function GlobalMusicPlayer() {
   }, [isShown, isExpanded]);
 
   useEffect(() => {
-    scheduleControlsAutoHide();
-
-    return () => {
-      clearControlsHideTimeout();
-    };
-  }, [clearControlsHideTimeout, scheduleControlsAutoHide]);
-
-  useEffect(() => {
-    if (!isShown || !isExpanded) {
-      setArePlayerControlsVisible(true);
-      clearControlsHideTimeout();
+    if (isShown && isExpanded) {
       return;
     }
 
-    const handleControlsActivity = () => {
-      showPlayerControls();
-
-      if (isTimelineFocused) {
-        scheduleControlsAutoHide();
-        return;
-      }
-
-      clearControlsHideTimeout();
-    };
-
-    window.addEventListener('keydown', handleControlsActivity);
-
-    return () => {
-      window.removeEventListener('keydown', handleControlsActivity);
-    };
-  }, [
-    clearControlsHideTimeout,
-    isExpanded,
-    isShown,
-    isTimelineFocused,
-    scheduleControlsAutoHide,
-    showPlayerControls,
-  ]);
+    setIsQueueMenuOpen(false);
+  }, [isExpanded, isShown]);
 
   const togglePlayPause = useCallback(async () => {
     try {
@@ -1024,23 +921,6 @@ function GlobalMusicPlayer() {
       console.error(error);
     }
   }, [isPlaying, playbackBackend, setIsPlaying]);
-
-  const toggleKaraokeMixer = useCallback(() => {
-    if (!isKaraokeReady || !isKaraokeAvailable) {
-      return;
-    }
-
-    const nextValue = !showKaraokeMixer;
-    setShowKaraokeMixer(nextValue);
-
-    window.setTimeout(() => {
-      setFocus(
-        nextValue
-          ? NavigationFocusKeys.player.karaokeSlider
-          : NavigationFocusKeys.player.karaokeButton,
-      );
-    }, 30);
-  }, [isKaraokeAvailable, isKaraokeReady, showKaraokeMixer]);
 
   const handleStop = useCallback(() => {
     invoke('stop').catch(console.error);
@@ -1073,7 +953,20 @@ function GlobalMusicPlayer() {
           transition={{ duration: 0.25, ease: 'easeInOut' }}
           className="fixed inset-0 z-120 bg-black"
         >
-          <GradientBackground imageSrc={album?.coverSrc ?? ''} />
+          {TEST_GRADIENT_STYLE === 'simple' ? (
+            <GradientBackground imageSrc={album?.coverSrc ?? ''} />
+          ) : (
+            <BlurredBackground url={album?.coverSrc ?? ''} />
+          )}
+
+          {/* CAPA 3: La carátula fundiéndose */}
+          {/* Ocupa el 60% de la pantalla, dejando la derecha para la letra/texto */}
+          {TEST_BACKGROUND_STYLE === 'background' && (
+            <div className="absolute z-0 left-0 top-0 h-full w-[50%]">
+              <FadedCover imageSrc={album?.coverSrc ?? ''} />
+            </div>
+          )}
+
           <NavigationContainer
             customFocusKey="music-player-overlay"
             className="relative h-full w-full overflow-hidden"
@@ -1088,47 +981,22 @@ function GlobalMusicPlayer() {
                   justify="center"
                   className="relative overflow-hidden"
                 >
-                  <div
-                    className="absolute top-0 left-0 z-1 flex h-screen items-center justify-center transition-[width] duration-300 ease-in-out"
-                    style={{ width: shouldShowLyricsPanel ? '45dvw' : '100%' }}
-                  >
-                    <FlexBox direction="column" gap={1} align="center">
-                      <Image
-                        url={album?.coverSrc ?? ''}
-                        className="rounded-3xl"
-                        width="50vh"
-                        height="50vh"
-                      />
-                      <FlexBox direction="column" align="center">
-                        <div className="relative inline-flex items-center justify-center">
-                          <AnimatePresence initial={false}>
-                            {!!isPlaying && (
-                              <motion.div
-                                key="now-playing-bars"
-                                initial={{ opacity: 0, x: 6 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 6 }}
-                                transition={{ duration: 0.18, ease: 'easeOut' }}
-                                className="pointer-events-none absolute top-1/2 right-full mr-[1.4vh] -translate-y-1/2"
-                              >
-                                <NowPlayingBars />
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-
-                          <h2 className="text-[2.6vh] font-semibold line-clamp-1">
-                            {currentSong.title}
-                          </h2>
-                        </div>
-                        <span
-                          className="text-[1.8dvh] line-clamp-1 font-semibold"
-                          style={{ color: 'var(--color-muted-foreground)' }}
-                        >
-                          {artistsText} - {album?.title}
-                        </span>
+                  {TEST_BACKGROUND_STYLE === 'classic' && (
+                    <div
+                      className="absolute top-0 left-0 z-1 flex h-screen items-center justify-center transition-[width] duration-300 ease-in-out"
+                      style={{ width: shouldShowLyricsPanel ? '45dvw' : '100%' }}
+                    >
+                      <FlexBox direction="column" gap={1} align="center">
+                        <Image
+                          url={album?.coverSrc ?? ''}
+                          className="rounded-3xl drop-shadow-2xl"
+                          width="50vh"
+                          height="50vh"
+                        />
+                        {renderSongInfo()}
                       </FlexBox>
-                    </FlexBox>
-                  </div>
+                    </div>
+                  )}
 
                   <AnimatePresence initial={false}>
                     {shouldShowLyricsPanel && (
@@ -1154,164 +1022,49 @@ function GlobalMusicPlayer() {
                 </FlexBox>
               </FlexBox>
 
-              <div
-                className={`pointer-events-none absolute inset-x-0 bottom-[5vh] z-30 flex justify-center px-[4vh] transition-opacity duration-300 linear ${
-                  arePlayerControlsVisible ? 'opacity-100' : 'opacity-0'
-                }`}
-              >
-                <div className="pointer-events-auto w-full max-w-[160dvh]">
-                  {!!isLoading && (
-                    <div className="mb-[2vh] flex h-[7dvh] justify-center">
-                      <Loading />
-                    </div>
-                  )}
-
-                  <FlexBox
-                    direction="column"
-                    gap={1}
-                    align="center"
-                    width="100%"
-                    className="rounded-[3vh] px-[3vh] py-[2vh]"
-                  >
-                    <TimelineSlider
-                      position={currentTime}
-                      setPosition={setCurrentTime}
-                      duration={playerDuration}
-                      setDuration={setDuration}
-                      onFocusChange={setIsTimelineFocused}
-                      togglePlayPause={togglePlayPause}
-                      playbackControls={{
-                        getPosition: getActivePlaybackPosition,
-                        getDuration: getActivePlaybackDuration,
-                        setPosition: setActivePlaybackPosition,
-                      }}
-                    />
-
-                    <AnimatePresence initial={false}>
-                      {showKaraokeMixer && isKaraokeAvailable && (
-                        <motion.div
-                          key="karaoke-mix-slider"
-                          initial={{ y: 16, opacity: 0 }}
-                          animate={{ y: 0, opacity: 1 }}
-                          exit={{ y: 16, opacity: 0 }}
-                          transition={{ duration: 0.2, ease: 'easeOut' }}
-                          className="pt-[1.5vh]"
-                        >
-                          <KaraokeMixSlider
-                            label={t('karaokeMix')}
-                            value={karaokeMix}
-                            onChange={(nextValue) => {
-                              void handleKaraokeMixChange(nextValue);
-                            }}
-                          />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-
-                    <FlexBox gap={1} justify="center" align="center" className="pt-4">
-                      <NavigationButton
-                        customKey={NavigationFocusKeys.player.rewindButton}
-                        icon={<SkipBack size={'2dvh'} />}
-                        hideText
-                        variant="ghost"
-                        onClick={handlePrevious}
-                      />
-                      <NavigationButton
-                        customKey={NavigationFocusKeys.player.optionsButton}
-                        icon={<SquareIcon size={'2vh'} />}
-                        hideText
-                        variant="ghost"
-                        onClick={handleStop}
-                      />
-                      <NavigationButton
-                        customKey={NavigationFocusKeys.player.lyricsButton}
-                        title={t('lyrics')}
-                        icon={<MicVocal size={'2dvh'} />}
-                        hideText
-                        variant="ghost"
-                        selected={showLyrics}
-                        disabled={isLyricsButtonDisabled}
-                        onClick={() => {
-                          if (showLyrics) {
-                            setIsLyricsOptionsOpen(false);
-                          }
-
-                          setShowLyrics(!showLyrics);
-                        }}
-                      />
-                      <div className="relative">
-                        <NavigationButton
-                          customKey={NavigationFocusKeys.player.lyricsOptionsButton}
-                          title={t('lyricsOptions')}
-                          icon={<Languages size={'2dvh'} />}
-                          hideText
-                          variant="ghost"
-                          selected={isLyricsOptionsOpen}
-                          disabled={isLyricsOptionsButtonDisabled || !hasLyrics}
-                          onClick={() => {
-                            setIsLyricsOptionsOpen((currentValue) => !currentValue);
-                          }}
-                        />
-
-                        <AnimatePresence initial={false}>
-                          {isLyricsOptionsOpen && !isLyricsOptionsButtonDisabled && !!hasLyrics && (
-                            <motion.div
-                              key="lyrics-options-menu"
-                              initial={{ opacity: 0, y: 16 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: 16 }}
-                              transition={{ duration: 0.18, ease: 'easeOut' }}
-                              className="absolute bottom-[calc(100%+1.4vh)] left-1/2 z-40 -translate-x-1/2"
-                            >
-                              <LyricsOptionsMenu
-                                open={isLyricsOptionsOpen}
-                                triggerFocusKey={NavigationFocusKeys.player.lyricsOptionsButton}
-                                pronunciationLabel={t('lyricsPronunciation')}
-                                translationLabel={t('lyricsTranslation')}
-                                offLabel={t('lyricsOff')}
-                                hasPronunciation={hasPronunciation}
-                                showPronunciation={Boolean(showPronunciation)}
-                                translationOptions={translationOptions}
-                                selectedTranslationLanguage={selectedTranslationLanguage ?? null}
-                                onTogglePronunciation={() => {
-                                  setShowPronunciation((currentValue) => !currentValue);
-                                }}
-                                onSelectTranslation={setSelectedTranslationLanguage}
-                                onClose={() => closeLyricsOptions()}
-                              />
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
-                      <NavigationButton
-                        customKey={NavigationFocusKeys.player.forwardButton}
-                        icon={<SkipForward size={'2dvh'} />}
-                        hideText
-                        variant="ghost"
-                        onClick={handleNext}
-                      />
-                      {!!shouldShowKaraokeButton && (
-                        <NavigationButton
-                          customKey={NavigationFocusKeys.player.karaokeButton}
-                          title={t('karaokeMix')}
-                          icon={
-                            isKaraokePreparing ? (
-                              <KaraokeLoadingIcon />
-                            ) : (
-                              <SlidersHorizontal size={'2dvh'} />
-                            )
-                          }
-                          hideText
-                          variant="ghost"
-                          selected={showKaraokeMixer || isKaraokeActive}
-                          disabled={!isKaraokeReady}
-                          onClick={toggleKaraokeMixer}
-                        />
-                      )}
-                    </FlexBox>
-                  </FlexBox>
-                </div>
-              </div>
+              <MusicPlayerControls
+                t={t}
+                renderSongInfo={renderSongInfo}
+                showBackgroundSongInfo={TEST_BACKGROUND_STYLE === 'background'}
+                isExpanded={isExpanded}
+                isShown={isShown}
+                isPlaying={isPlaying}
+                isLoading={isLoading}
+                currentTime={currentTime}
+                playerDuration={playerDuration}
+                setCurrentTime={setCurrentTime}
+                setDuration={setDuration}
+                togglePlayPause={togglePlayPause}
+                getActivePlaybackPosition={getActivePlaybackPosition}
+                getActivePlaybackDuration={getActivePlaybackDuration}
+                setActivePlaybackPosition={setActivePlaybackPosition}
+                handleStop={handleStop}
+                showLyrics={showLyrics}
+                isLyricsButtonDisabled={isLyricsButtonDisabled}
+                setShowLyrics={setShowLyrics}
+                isLyricsOptionsOpen={isLyricsOptionsOpen}
+                setIsLyricsOptionsOpen={setIsLyricsOptionsOpen}
+                isLyricsOptionsButtonDisabled={isLyricsOptionsButtonDisabled}
+                hasLyrics={hasLyrics}
+                hasPronunciation={hasPronunciation}
+                showPronunciation={Boolean(showPronunciation)}
+                translationOptions={translationOptions}
+                selectedTranslationLanguage={selectedTranslationLanguage ?? null}
+                setShowPronunciation={setShowPronunciation}
+                setSelectedTranslationLanguage={setSelectedTranslationLanguage}
+                closeLyricsOptions={closeLyricsOptions}
+                shouldShowKaraokeButton={shouldShowKaraokeButton}
+                isKaraokePreparing={isKaraokePreparing}
+                isKaraokeActive={isKaraokeActive}
+                isKaraokeReady={isKaraokeReady}
+                isKaraokeAvailable={isKaraokeAvailable}
+                karaokeMix={karaokeMix}
+                showKaraokeMixer={showKaraokeMixer}
+                setShowKaraokeMixer={setShowKaraokeMixer}
+                handleKaraokeMixChange={handleKaraokeMixChange}
+                isQueueMenuOpen={isQueueMenuOpen}
+                setIsQueueMenuOpen={setIsQueueMenuOpen}
+              />
             </div>
           </NavigationContainer>
         </motion.div>
