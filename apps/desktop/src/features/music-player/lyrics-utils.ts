@@ -2,6 +2,10 @@ import type { LRCFile, LRCLine } from '@seerial/domain';
 import { useLanguageName as getTrackLanguageName } from '@/localization/TrackLanguages';
 
 const PRONUNCIATION_LANGUAGE = 'pronunciation';
+const INLINE_TIME_TAG_PATTERN = /<(\d{1,2}:\d{2}(?:\.\d{1,3})?)>/g;
+const LINE_TIME_TAG_PATTERN = /\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]/g;
+
+type LyricLineKind = 'original' | 'pronunciation' | 'translation' | 'primary';
 
 export interface ClassifiedLyrics {
     original: LRCFile | null;
@@ -9,9 +13,35 @@ export interface ClassifiedLyrics {
     translations: LRCFile[];
 }
 
+export interface LyricSegment {
+    text: string;
+    startTime: number;
+    endTime: number | null;
+    alignmentTrackIndex?: number;
+}
+
+export interface LyricDisplayLine {
+    text: string;
+    isEnhanced: boolean;
+    segments: LyricSegment[];
+    alignmentTrackWidths?: number[];
+}
+
 export interface LyricGroup {
     time: number;
-    lines: string[];
+    lines: LyricDisplayLine[];
+}
+
+interface ParsedLyricLine {
+    time: number;
+    text: string;
+    isEnhanced: boolean;
+    segments: LyricSegment[];
+}
+
+interface LyricGroupEntry {
+    kind: LyricLineKind;
+    line: ParsedLyricLine;
 }
 
 function normalizeLanguage(language: string) {
@@ -22,19 +52,27 @@ function toTimeKey(time: number) {
     return Math.round(time * 1000);
 }
 
+function parseTimestamp(value: string) {
+    const [minutesPart, secondsPart = '0'] = value.split(':');
+    const [secondsValue, millisecondsValue = '0'] = secondsPart.split('.');
+
+    return (
+        Number.parseInt(minutesPart, 10) * 60 +
+        Number.parseInt(secondsValue, 10) +
+        Number.parseInt(millisecondsValue.padEnd(3, '0'), 10) / 1000
+    );
+}
+
 function normalizeLyricText(text: string) {
     return text.trim().replace(/\s+/g, ' ');
 }
 
-function dedupeOrderedLyricLines(lines: Array<string | undefined>) {
+function dedupeOrderedLyricEntries(entries: LyricGroupEntry[]) {
     const seen = new Set<string>();
 
-    return lines.filter((line): line is string => {
-        if (!line) {
-            return false;
-        }
+    return entries.filter((entry) => {
+        const normalizedLine = normalizeLyricText(entry.line.text);
 
-        const normalizedLine = normalizeLyricText(line);
         if (!normalizedLine || seen.has(normalizedLine)) {
             return false;
         }
@@ -44,15 +82,132 @@ function dedupeOrderedLyricLines(lines: Array<string | undefined>) {
     });
 }
 
-function buildLyricLineMap(track: LRCFile | null) {
-    const lineMap = new Map<number, string>();
+function buildAlignmentTrackWidths(trackTimeKeys: number[]) {
+    return trackTimeKeys.map((timeKey, index) => {
+        const nextTimeKey = trackTimeKeys[index + 1];
+        const previousTimeKey = trackTimeKeys[index - 1];
+        const durationMs = nextTimeKey
+            ? nextTimeKey - timeKey
+            : previousTimeKey
+                ? timeKey - previousTimeKey
+                : 420;
+
+        return Math.max(1, Number((durationMs / 260).toFixed(2)));
+    });
+}
+
+function applyAlignedSegments(
+    line: ParsedLyricLine,
+    trackIndexByTimeKey: Map<number, number>,
+    alignmentTrackWidths: number[],
+): LyricDisplayLine {
+    return {
+        text: line.text,
+        isEnhanced: line.isEnhanced,
+        alignmentTrackWidths,
+        segments: line.segments.map((segment) => ({
+            ...segment,
+            alignmentTrackIndex: trackIndexByTimeKey.get(toTimeKey(segment.startTime)),
+        })),
+    };
+}
+
+function buildLyricDisplayLine(line: ParsedLyricLine): LyricDisplayLine {
+    return {
+        text: line.text,
+        isEnhanced: line.isEnhanced,
+        segments: line.segments,
+    };
+}
+
+function parseEnhancedLyricBody(body: string) {
+    const matches = [...body.matchAll(INLINE_TIME_TAG_PATTERN)];
+
+    if (matches.length === 0) {
+        return null;
+    }
+
+    const segments: LyricSegment[] = [];
+
+    for (let index = 0; index < matches.length; index += 1) {
+        const currentMatch = matches[index];
+        const nextMatch = matches[index + 1];
+        const currentIndex = currentMatch.index ?? 0;
+        const rawText = body.slice(currentIndex + currentMatch[0].length, nextMatch?.index ?? body.length);
+        const text = normalizeLyricText(rawText);
+
+        if (!text) {
+            continue;
+        }
+
+        segments.push({
+            text,
+            startTime: parseTimestamp(currentMatch[1]),
+            endTime: null,
+        });
+    }
+
+    if (segments.length === 0) {
+        return null;
+    }
+
+    const finalizedSegments = segments.map((segment, index) => ({
+        ...segment,
+        endTime: segments[index + 1]?.startTime ?? null,
+    }));
+
+    return {
+        isEnhanced: true,
+        segments: finalizedSegments,
+        text: finalizedSegments.map((segment) => segment.text).join(' ').trim() || '♪',
+    };
+}
+
+function parseLyricTrack(content: string): ParsedLyricLine[] {
+    const parsedLines: ParsedLyricLine[] = [];
+
+    for (const rawLine of content.split(/\r\n?|\n/)) {
+        const trimmedLine = rawLine.trim();
+        if (!trimmedLine || /^\[[a-zA-Z]+:.*\]$/.test(trimmedLine)) {
+            continue;
+        }
+
+        const matches = [...trimmedLine.matchAll(LINE_TIME_TAG_PATTERN)];
+        if (matches.length === 0) {
+            continue;
+        }
+
+        const body = trimmedLine.replace(LINE_TIME_TAG_PATTERN, '').trim();
+        const enhancedLyric = parseEnhancedLyricBody(body);
+        const text = enhancedLyric?.text ?? (normalizeLyricText(body.replace(INLINE_TIME_TAG_PATTERN, ' ')) || '♪');
+        const segments = enhancedLyric?.segments ?? [];
+
+        for (const match of matches) {
+            const minutes = Number.parseInt(match[1], 10);
+            const seconds = Number.parseInt(match[2], 10);
+            const milliseconds = Number.parseInt((match[3] ?? '0').padEnd(3, '0'), 10);
+
+            parsedLines.push({
+                time: minutes * 60 + seconds + milliseconds / 1000,
+                text,
+                isEnhanced: Boolean(enhancedLyric),
+                segments,
+            });
+        }
+    }
+
+    return parsedLines.sort((left, right) => left.time - right.time);
+}
+
+function buildParsedLyricLineMap(track: LRCFile | null) {
+    const lineMap = new Map<number, ParsedLyricLine>();
 
     if (!track) {
         return lineMap;
     }
 
-    for (const line of parseLrcContent(track.content)) {
-        lineMap.set(toTimeKey(line.time), line.text);
+    for (const line of parseLyricTrack(track.content)) {
+        lineMap.set(toTimeKey(line.time), line);
     }
 
     return lineMap;
@@ -67,12 +222,14 @@ export function parseLrcContent(content: string): LRCLine[] {
             continue;
         }
 
-        const matches = [...trimmedLine.matchAll(/\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]/g)];
+        const matches = [...trimmedLine.matchAll(LINE_TIME_TAG_PATTERN)];
         if (matches.length === 0) {
             continue;
         }
 
-        const text = trimmedLine.replace(/\[(\d{1,2}):(\d{2})(?:\.(\d{1,3}))?\]/g, '').trim() || '♪';
+        const text = normalizeLyricText(
+            trimmedLine.replace(LINE_TIME_TAG_PATTERN, '').replace(INLINE_TIME_TAG_PATTERN, ' '),
+        ) || '♪';
 
         for (const match of matches) {
             const minutes = Number.parseInt(match[1], 10);
@@ -146,29 +303,69 @@ export function buildLyricGroups(
         return [];
     }
 
-    const primaryLines = parseLrcContent(primaryTrack.content);
-    const originalLines = buildLyricLineMap(classifiedLyrics.original);
-    const pronunciationLines = buildLyricLineMap(
+    const primaryLines = parseLyricTrack(primaryTrack.content);
+    const originalLines = buildParsedLyricLineMap(classifiedLyrics.original);
+    const pronunciationLines = buildParsedLyricLineMap(
         showPronunciation ? classifiedLyrics.pronunciation : null,
     );
-    const translationLines = buildLyricLineMap(selectedTranslation);
+    const translationLines = buildParsedLyricLineMap(selectedTranslation);
 
     return primaryLines
         .map((line) => {
             const timeKey = toTimeKey(line.time);
-            const orderedLines = dedupeOrderedLyricLines([
-                originalLines.get(timeKey),
-                pronunciationLines.get(timeKey),
-                translationLines.get(timeKey),
-            ]);
+            const orderedEntries = dedupeOrderedLyricEntries([
+                { kind: 'original' as const, line: originalLines.get(timeKey) },
+                { kind: 'pronunciation' as const, line: pronunciationLines.get(timeKey) },
+                { kind: 'translation' as const, line: translationLines.get(timeKey) },
+            ].reduce<LyricGroupEntry[]>((entries, entry) => {
+                if (entry.line) {
+                    entries.push({ kind: entry.kind, line: entry.line });
+                }
 
-            if (orderedLines.length === 0) {
-                orderedLines.push(line.text);
+                return entries;
+            }, []));
+
+            if (orderedEntries.length === 0) {
+                orderedEntries.push({ kind: 'primary', line });
+            }
+
+            const shouldAlignOriginalAndPronunciation =
+                orderedEntries[0]?.kind === 'original' &&
+                orderedEntries[1]?.kind === 'pronunciation' &&
+                orderedEntries[0].line.isEnhanced &&
+                orderedEntries[1].line.isEnhanced;
+
+            if (shouldAlignOriginalAndPronunciation) {
+                const alignedTrackTimeKeys = Array.from(
+                    new Set([
+                        ...orderedEntries[0].line.segments.map((segment) => toTimeKey(segment.startTime)),
+                        ...orderedEntries[1].line.segments.map((segment) => toTimeKey(segment.startTime)),
+                    ]),
+                ).sort((left, right) => left - right);
+                const trackIndexByTimeKey = new Map(
+                    alignedTrackTimeKeys.map((trackTimeKey, index) => [trackTimeKey, index]),
+                );
+                const alignmentTrackWidths = buildAlignmentTrackWidths(alignedTrackTimeKeys);
+
+                return {
+                    time: line.time,
+                    lines: orderedEntries.map((entry, index) => {
+                        if (index < 2) {
+                            return applyAlignedSegments(
+                                entry.line,
+                                trackIndexByTimeKey,
+                                alignmentTrackWidths,
+                            );
+                        }
+
+                        return buildLyricDisplayLine(entry.line);
+                    }),
+                };
             }
 
             return {
                 time: line.time,
-                lines: orderedLines.slice(0, 3),
+                lines: orderedEntries.slice(0, 3).map((entry) => buildLyricDisplayLine(entry.line)),
             };
         })
         .filter((group) => group.lines.length > 0);
