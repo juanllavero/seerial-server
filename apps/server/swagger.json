@@ -2049,7 +2049,40 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"ApiResponse__content-string--language-string_-Array_": {
+			"LyricsDTO": {
+				"properties": {
+					"language": {
+						"type": "string"
+					},
+					"type": {
+						"type": "string",
+						"enum": [
+							"original",
+							"transcription",
+							"translation"
+						]
+					},
+					"format": {
+						"type": "string",
+						"enum": [
+							"lrc",
+							"ttml"
+						]
+					},
+					"content": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"language",
+					"type",
+					"format",
+					"content"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_LyricsDTO-Array_": {
 				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
@@ -2060,19 +2093,7 @@
 					},
 					"data": {
 						"items": {
-							"properties": {
-								"language": {
-									"type": "string"
-								},
-								"content": {
-									"type": "string"
-								}
-							},
-							"required": [
-								"language",
-								"content"
-							],
-							"type": "object"
+							"$ref": "#/components/schemas/LyricsDTO"
 						},
 						"type": "array",
 						"nullable": true
@@ -2086,26 +2107,6 @@
 					"message",
 					"data",
 					"timestamp"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"AddLyricsDTO": {
-				"properties": {
-					"songId": {
-						"type": "string"
-					},
-					"language": {
-						"type": "string"
-					},
-					"content": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"songId",
-					"language",
-					"content"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -5565,7 +5566,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ApiResponse__content-string--language-string_-Array_"
+									"$ref": "#/components/schemas/ApiResponse_LyricsDTO-Array_"
 								}
 							}
 						}
@@ -5590,43 +5591,6 @@
 						}
 					}
 				]
-			}
-		},
-		"/songs/lyrics": {
-			"post": {
-				"operationId": "AddSongsLyrics",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_string_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Add song lyrics",
-				"tags": [
-					"Songs"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/AddLyricsDTO"
-							}
-						}
-					}
-				}
 			}
 		},
 		"/songs/stream-url": {

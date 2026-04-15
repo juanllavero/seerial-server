@@ -22,11 +22,6 @@ export const useDeleteSong = <TResponse = unknown>(
 ): ApiMutationResult<TResponse, void> =>
     useApiMutation<TResponse, void>(['songs', 'delete', songId], API.songs.delete(songId), 'DELETE', asVoid, options)
 
-export const useAddSongLyrics = <TResponse = unknown, TBody = unknown>(
-    options?: MutationHookOptions<TResponse, TBody>,
-): ApiMutationResult<TResponse, TBody> =>
-    useApiMutation<TResponse, TBody>(['songs', 'addLyrics'], API.songs.addLyrics, 'POST', asBody, options)
-
 export const useGetArtist = <TResponse = unknown>(
     artistId: string,
     options?: QueryHookOptions<TResponse>,

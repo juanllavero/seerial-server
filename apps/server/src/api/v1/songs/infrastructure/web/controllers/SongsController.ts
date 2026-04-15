@@ -21,15 +21,14 @@ import {
   useCases,
 } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { findLyricsForSong } from '@/api/v1/shared/infrastructure/services/MediaDetailsService';
-import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
 import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
 import { messages } from '@/config/messages';
 import { verifyAudioStreamToken } from '@/middleware/audio.middleware';
 import type {
-  AddLyricsDTO,
+  LyricsDTO,
   SeparateSongStemsResponseDTO,
   SongUrlDTO,
-  UpdateSongDTO,
+  UpdateSongDTO
 } from '../../../application/dtos/SongDTOs';
 import type { Song } from '../../../domain/Song';
 
@@ -97,40 +96,9 @@ export class SongsController extends Controller {
   @Security('adminAuth')
   public async getSongsLyrics(
     @Path() id: string,
-  ): Promise<ApiResponse<{ content: string; language: string }[]>> {
+  ): Promise<ApiResponse<LyricsDTO[]>> {
     const result = await findLyricsForSong(id);
     return ApiResponse.success(result, messages.success.fetch);
-  }
-
-  /**
-   * Add song lyrics
-   */
-  @Post('lyrics')
-  @Security('adminAuth')
-  public async addSongsLyrics(@Body() body: AddLyricsDTO): Promise<ApiResponse<string>> {
-    const { songId, language, content } = body;
-
-    const song = await useCases.getSongById().execute(songId);
-
-    if (!song) {
-      throw new NotFoundException(messages.errors.notFound.song);
-    }
-
-    const songDirectory = fileSystemService.dirname(song.fileSrc);
-    const baseFilename = fileSystemService.basename(
-      song.fileSrc,
-      fileSystemService.extname(song.fileSrc),
-    );
-
-    // If original language, avoid adding the language code to the file name
-    const languageSuffix =
-      language.toLowerCase() === 'original' || language === '' ? '' : `.${language}`;
-
-    const finalFilename = `${baseFilename}${languageSuffix}.lrc`;
-    const fullSavePath = fileSystemService.join(songDirectory, finalFilename);
-
-    await fileSystemService.writeFile(fullSavePath, content, 'utf-8');
-    return ApiResponse.success(finalFilename, messages.success.create);
   }
 
   /**

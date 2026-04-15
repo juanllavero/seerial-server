@@ -37,3 +37,10 @@ export interface SeparateSongStemsResponseDTO {
   message?: string;
   progress?: number;
 }
+
+export interface LyricsDTO {
+  language: string;
+  type: 'original' | 'transcription' | 'translation';
+  format: 'lrc' | 'ttml';
+  content: string;
+}

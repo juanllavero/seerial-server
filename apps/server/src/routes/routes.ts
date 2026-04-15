@@ -746,23 +746,24 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "ApiResponse__content-string--language-string_-Array_": {
+    "LyricsDTO": {
         "dataType": "refObject",
         "properties": {
-            "success": {"dataType":"boolean","required":true},
-            "message": {"dataType":"string","required":true},
-            "data": {"dataType":"union","subSchemas":[{"dataType":"array","array":{"dataType":"nestedObjectLiteral","nestedProperties":{"language":{"dataType":"string","required":true},"content":{"dataType":"string","required":true}}}},{"dataType":"enum","enums":[null]}],"required":true},
-            "timestamp": {"dataType":"string","required":true},
+            "language": {"dataType":"string","required":true},
+            "type": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["original"]},{"dataType":"enum","enums":["transcription"]},{"dataType":"enum","enums":["translation"]}],"required":true},
+            "format": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["lrc"]},{"dataType":"enum","enums":["ttml"]}],"required":true},
+            "content": {"dataType":"string","required":true},
         },
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "AddLyricsDTO": {
+    "ApiResponse_LyricsDTO-Array_": {
         "dataType": "refObject",
         "properties": {
-            "songId": {"dataType":"string","required":true},
-            "language": {"dataType":"string","required":true},
-            "content": {"dataType":"string","required":true},
+            "success": {"dataType":"boolean","required":true},
+            "message": {"dataType":"string","required":true},
+            "data": {"dataType":"union","subSchemas":[{"dataType":"array","array":{"dataType":"refObject","ref":"LyricsDTO"}},{"dataType":"enum","enums":[null]}],"required":true},
+            "timestamp": {"dataType":"string","required":true},
         },
         "additionalProperties": false,
     },
@@ -2568,37 +2569,6 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
 
               await templateService.apiHandler({
                 methodName: 'getSongsLyrics',
-                controller,
-                response,
-                next,
-                validatedArgs,
-                successStatus: undefined,
-              });
-            } catch (err) {
-                return next(err);
-            }
-        });
-        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        const argsSongsController_addSongsLyrics: Record<string, TsoaRoute.ParameterSchema> = {
-                body: {"in":"body","name":"body","required":true,"ref":"AddLyricsDTO"},
-        };
-        app.post('/api/songs/lyrics',
-            authenticateMiddleware([{"adminAuth":[]}]),
-            ...(fetchMiddlewares<RequestHandler>(SongsController)),
-            ...(fetchMiddlewares<RequestHandler>(SongsController.prototype.addSongsLyrics)),
-
-            async function SongsController_addSongsLyrics(request: ExRequest, response: ExResponse, next: any) {
-
-            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-            let validatedArgs: any[] = [];
-            try {
-                validatedArgs = templateService.getValidatedArgs({ args: argsSongsController_addSongsLyrics, request, response });
-
-                const controller = new SongsController();
-
-              await templateService.apiHandler({
-                methodName: 'addSongsLyrics',
                 controller,
                 response,
                 next,
