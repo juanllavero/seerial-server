@@ -163,6 +163,25 @@ function parseEnhancedLyricBody(body: string) {
     };
 }
 
+// Detects compact format
+// Example normal:   [01:00.00][02:00.00]Same text ← two timestamps, same text
+// Example compact: [01:00.00]<...>text1 -[02:00.00]<...>text2
+function splitCompactLyricLine(line: string): string[] {
+    // Extract the initial block of [mm:ss] tags (format "duplicate timestamps")
+    const leadingMatch = line.match(/^(\[\d{1,2}:\d{2}(?:\.\d{1,3})?\])+/);
+    const leadingPart = leadingMatch?.[0] ?? '';
+    const bodyPart = line.slice(leadingPart.length);
+
+    // If there are no more [mm:ss] in the body, it's a normal line
+    if (!/\[\d{1,2}:\d{2}(?:\.\d{1,3})?\]/.test(bodyPart)) {
+        return [line];
+    }
+
+    // Compact format: split the body at each [mm:ss] that appears mid-line
+    const bodyParts = bodyPart.split(/(?=\[\d{1,2}:\d{2}(?:\.\d{1,3})?\])/);
+    return [leadingPart + bodyParts[0], ...bodyParts.slice(1)].filter((s) => s.trim());
+}
+
 function parseLyricTrack(content: string): ParsedLyricLine[] {
     const parsedLines: ParsedLyricLine[] = [];
 
@@ -172,27 +191,32 @@ function parseLyricTrack(content: string): ParsedLyricLine[] {
             continue;
         }
 
-        const matches = [...trimmedLine.matchAll(LINE_TIME_TAG_PATTERN)];
-        if (matches.length === 0) {
-            continue;
-        }
+        for (const entry of splitCompactLyricLine(trimmedLine)) {
+            const trimmedEntry = entry.trim();
+            if (!trimmedEntry) continue;
 
-        const body = trimmedLine.replace(LINE_TIME_TAG_PATTERN, '').trim();
-        const enhancedLyric = parseEnhancedLyricBody(body);
-        const text = enhancedLyric?.text ?? (normalizeLyricText(body.replace(INLINE_TIME_TAG_PATTERN, ' ')) || '♪');
-        const segments = enhancedLyric?.segments ?? [];
+            const matches = [...trimmedEntry.matchAll(LINE_TIME_TAG_PATTERN)];
+            if (matches.length === 0) continue;
 
-        for (const match of matches) {
-            const minutes = Number.parseInt(match[1], 10);
-            const seconds = Number.parseInt(match[2], 10);
-            const milliseconds = Number.parseInt((match[3] ?? '0').padEnd(3, '0'), 10);
+            const body = trimmedEntry.replace(LINE_TIME_TAG_PATTERN, '').trim();
+            const enhancedLyric = parseEnhancedLyricBody(body);
+            const text =
+                enhancedLyric?.text ??
+                (normalizeLyricText(body.replace(INLINE_TIME_TAG_PATTERN, ' ')) || '♪');
+            const segments = enhancedLyric?.segments ?? [];
 
-            parsedLines.push({
-                time: minutes * 60 + seconds + milliseconds / 1000,
-                text,
-                isEnhanced: Boolean(enhancedLyric),
-                segments,
-            });
+            for (const match of matches) {
+                const minutes = Number.parseInt(match[1], 10);
+                const seconds = Number.parseInt(match[2], 10);
+                const milliseconds = Number.parseInt((match[3] ?? '0').padEnd(3, '0'), 10);
+
+                parsedLines.push({
+                    time: minutes * 60 + seconds + milliseconds / 1000,
+                    text,
+                    isEnhanced: Boolean(enhancedLyric),
+                    segments,
+                });
+            }
         }
     }
 
