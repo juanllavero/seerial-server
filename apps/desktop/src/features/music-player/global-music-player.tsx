@@ -1,6 +1,6 @@
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import { getSignedSongStreamUrl, useGetSongLyrics } from '@seerial/api';
-import type { LRCFile } from '@seerial/domain';
+import type { LyricsLine } from '@seerial/domain';
 import { useMusicStore, useServerStore } from '@seerial/stores';
 import { invoke } from '@tauri-apps/api/core';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -14,7 +14,6 @@ import NavigationContainer from '@/components/navigation/NavigationContainer';
 import FlexBox from '@/components/ui/FlexBox';
 import Image from '@/components/ui/Image';
 import LRCVisualizer from '@/features/music-player/lrc-visualizer';
-import { classifyLyricsFiles, formatLanguageLabel } from '@/features/music-player/lyrics-utils';
 import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
 import AnimatedSoundBars from './animated-sound-bars';
@@ -323,7 +322,7 @@ function useSongLyricsPanel(
   const hasAutoEnabledLyricsRef = useRef(false);
   const previousSongIdRef = useRef<string | undefined>(undefined);
   const previousExpandedRef = useRef(false);
-  const { data: lyrics = [], isLoading: isLyricsLoading } = useGetSongLyrics<LRCFile[]>(
+  const { data: lyrics = [], isLoading: isLyricsLoading } = useGetSongLyrics<LyricsLine[]>(
     songId ?? '',
     {
       enabled: Boolean(songId && isShown),
@@ -378,38 +377,25 @@ function useSongLyricsPanel(
 }
 
 function useLyricsDisplayOptions(
-  lyrics: LRCFile[],
+  lyrics: LyricsLine[],
   isLyricsLoading: boolean,
   showLyrics: boolean,
   currentSongId: string | undefined,
-  userLanguage: string,
-  t: (key: string) => string,
 ) {
   const [showPronunciation, setShowPronunciation] = useState<boolean | null>(null);
-  const [selectedTranslationLanguage, setSelectedTranslationLanguage] = useState<
-    string | null | undefined
-  >(undefined);
+  const [showTranslation, setShowTranslation] = useState<boolean | null>(null);
   const [isLyricsOptionsOpen, setIsLyricsOptionsOpen] = useState(false);
   const previousSongIdRef = useRef<string | undefined>(undefined);
 
-  const classifiedLyrics = useMemo(() => classifyLyricsFiles(lyrics), [lyrics]);
-  const translationOptions = useMemo(
+  const hasPronunciation = useMemo(
     () =>
-      classifiedLyrics.translations.map((lyric) => ({
-        language: lyric.language,
-        label: formatLanguageLabel(
-          lyric.language,
-          userLanguage,
-          t('originalLanguage'),
-          t('lyricsPronunciation'),
-        ),
-      })),
-    [classifiedLyrics.translations, t, userLanguage],
+      lyrics.some(
+        (l) => !l.isBlank && (!!l.words?.pronunciation?.length || !!l.plainText?.pronunciation),
+      ),
+    [lyrics],
   );
-
-  const hasPronunciation = classifiedLyrics.pronunciation !== null;
-  const hasTranslationOptions = translationOptions.length > 0;
-  const isLyricsOptionsButtonDisabled = !hasPronunciation && !hasTranslationOptions;
+  const hasTranslation = useMemo(() => lyrics.some((l) => !!l.translation), [lyrics]);
+  const isLyricsOptionsButtonDisabled = !hasPronunciation && !hasTranslation;
 
   useEffect(() => {
     if (previousSongIdRef.current === currentSongId) {
@@ -418,7 +404,7 @@ function useLyricsDisplayOptions(
 
     previousSongIdRef.current = currentSongId;
     setShowPronunciation(null);
-    setSelectedTranslationLanguage(undefined);
+    setShowTranslation(null);
     setIsLyricsOptionsOpen(false);
   }, [currentSongId]);
 
@@ -438,27 +424,12 @@ function useLyricsDisplayOptions(
   }, [hasPronunciation, isLyricsLoading, showPronunciation]);
 
   useEffect(() => {
-    if (isLyricsLoading) {
+    if (isLyricsLoading || showTranslation !== null) {
       return;
     }
 
-    if (translationOptions.length === 0) {
-      setSelectedTranslationLanguage(null);
-      return;
-    }
-
-    if (selectedTranslationLanguage === undefined) {
-      setSelectedTranslationLanguage(translationOptions[0].language);
-      return;
-    }
-
-    if (
-      selectedTranslationLanguage !== null &&
-      !translationOptions.some((option) => option.language === selectedTranslationLanguage)
-    ) {
-      setSelectedTranslationLanguage(translationOptions[0].language);
-    }
-  }, [isLyricsLoading, selectedTranslationLanguage, translationOptions]);
+    setShowTranslation(hasTranslation);
+  }, [hasTranslation, isLyricsLoading, showTranslation]);
 
   useEffect(() => {
     if (showLyrics || isLyricsLoading) {
@@ -488,21 +459,20 @@ function useLyricsDisplayOptions(
 
   return {
     showPronunciation,
-    selectedTranslationLanguage,
+    showTranslation: showTranslation ?? false,
     isLyricsOptionsOpen,
-    translationOptions,
     hasPronunciation,
+    hasTranslation,
     isLyricsOptionsButtonDisabled,
     setShowPronunciation,
-    setSelectedTranslationLanguage,
+    setShowTranslation: (value: boolean) => setShowTranslation(value),
     setIsLyricsOptionsOpen,
     closeLyricsOptions,
   };
 }
 
-// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: coordinates playback lifecycle, focus management, and overlay controls in one container.
 function GlobalMusicPlayer() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
   const {
     album,
@@ -558,16 +528,16 @@ function GlobalMusicPlayer() {
     useSongLyricsPanel(currentSongId, isShown, isExpanded, showLyrics, setShowLyrics);
   const {
     showPronunciation,
-    selectedTranslationLanguage,
+    showTranslation,
     isLyricsOptionsOpen,
-    translationOptions,
     hasPronunciation,
+    hasTranslation,
     isLyricsOptionsButtonDisabled,
     setShowPronunciation,
-    setSelectedTranslationLanguage,
+    setShowTranslation,
     setIsLyricsOptionsOpen,
     closeLyricsOptions,
-  } = useLyricsDisplayOptions(lyrics, isLyricsLoading, showLyrics, currentSongId, i18n.language, t);
+  } = useLyricsDisplayOptions(lyrics, isLyricsLoading, showLyrics, currentSongId);
   const handleKaraokeUnavailable = useCallback(() => {
     setShowKaraokeMixer(false);
   }, []);
@@ -1013,7 +983,7 @@ function GlobalMusicPlayer() {
                             lyrics={lyrics}
                             isLoading={isLyricsLoading}
                             showPronunciation={Boolean(showPronunciation)}
-                            selectedTranslationLanguage={selectedTranslationLanguage ?? null}
+                            showTranslation={Boolean(showTranslation)}
                           />
                         </div>
                       </motion.div>
@@ -1048,10 +1018,10 @@ function GlobalMusicPlayer() {
                 hasLyrics={hasLyrics}
                 hasPronunciation={hasPronunciation}
                 showPronunciation={Boolean(showPronunciation)}
-                translationOptions={translationOptions}
-                selectedTranslationLanguage={selectedTranslationLanguage ?? null}
+                hasTranslation={hasTranslation}
+                showTranslation={showTranslation}
                 setShowPronunciation={setShowPronunciation}
-                setSelectedTranslationLanguage={setSelectedTranslationLanguage}
+                setShowTranslation={setShowTranslation}
                 closeLyricsOptions={closeLyricsOptions}
                 shouldShowKaraokeButton={shouldShowKaraokeButton}
                 isKaraokePreparing={isKaraokePreparing}

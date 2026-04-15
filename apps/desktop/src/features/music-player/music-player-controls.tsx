@@ -65,10 +65,10 @@ interface MusicPlayerControlsProps {
   hasLyrics: boolean;
   hasPronunciation: boolean;
   showPronunciation: boolean;
-  translationOptions: Array<{ language: string; label: string }>;
-  selectedTranslationLanguage: string | null;
+  hasTranslation: boolean;
+  showTranslation: boolean;
   setShowPronunciation: Dispatch<SetStateAction<boolean | null>>;
-  setSelectedTranslationLanguage: (language: string | null | undefined) => void;
+  setShowTranslation: (value: boolean) => void;
   closeLyricsOptions: (restoreFocus?: boolean) => void;
   shouldShowKaraokeButton: boolean;
   isKaraokePreparing: boolean;
@@ -171,10 +171,10 @@ function MusicPlayerControls({
   hasLyrics,
   hasPronunciation,
   showPronunciation,
-  translationOptions,
-  selectedTranslationLanguage,
+  hasTranslation,
+  showTranslation,
   setShowPronunciation,
-  setSelectedTranslationLanguage,
+  setShowTranslation,
   closeLyricsOptions,
   shouldShowKaraokeButton,
   isKaraokePreparing,
@@ -424,15 +424,16 @@ function MusicPlayerControls({
                         triggerFocusKey={NavigationFocusKeys.player.lyricsOptionsButton}
                         pronunciationLabel={t('lyricsPronunciation')}
                         translationLabel={t('lyricsTranslation')}
-                        offLabel={t('lyricsOff')}
                         hasPronunciation={hasPronunciation}
                         showPronunciation={showPronunciation}
-                        translationOptions={translationOptions}
-                        selectedTranslationLanguage={selectedTranslationLanguage}
+                        hasTranslation={hasTranslation}
+                        showTranslation={showTranslation}
                         onTogglePronunciation={() => {
                           setShowPronunciation((currentValue) => !currentValue);
                         }}
-                        onSelectTranslation={setSelectedTranslationLanguage}
+                        onToggleTranslation={() => {
+                          setShowTranslation(!showTranslation);
+                        }}
                         onClose={() => closeLyricsOptions()}
                       />
                     </motion.div>

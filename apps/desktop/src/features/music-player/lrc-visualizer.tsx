@@ -1,4 +1,4 @@
-import type { LRCFile } from '@seerial/domain';
+import type { LyricsLine } from '@seerial/domain';
 import { useMusicStore } from '@seerial/stores';
 import type { CSSProperties, WheelEvent } from 'react';
 import { memo, useCallback, useMemo } from 'react';
@@ -14,10 +14,10 @@ import {
 import Loading from '@/shared/components/loading';
 
 interface LRCVisualizerProps {
-  lyrics: LRCFile[];
+  lyrics: LyricsLine[];
   isLoading: boolean;
   showPronunciation: boolean;
-  selectedTranslationLanguage: string | null;
+  showTranslation: boolean;
 }
 
 interface LyricsLineState {
@@ -253,7 +253,10 @@ function renderAlignedPronunciationPair(
 
         return (
           // Columna vertical: Fuerza a que el original y el romaji NUNCA se separen
-          <div key={index} className="flex flex-col items-center justify-end">
+          <div
+            key={pair.orig?.startTime ?? pair.pron?.startTime ?? index}
+            className="flex flex-col items-center justify-end"
+          >
             {/* Arriba: Texto Original */}
             <div className="flex h-full items-end pb-[0.2vh]">
               {pair.orig ? (
@@ -315,7 +318,7 @@ function LRCVisualizer({
   lyrics,
   isLoading,
   showPronunciation,
-  selectedTranslationLanguage,
+  showTranslation,
 }: LRCVisualizerProps) {
   const { t } = useTranslation();
   const { realAudioTime } = useMusicStore(
@@ -332,9 +335,9 @@ function LRCVisualizer({
     () =>
       buildLyricGroups(lyrics, {
         showPronunciation,
-        selectedTranslationLanguage,
+        showTranslation,
       }),
-    [lyrics, selectedTranslationLanguage, showPronunciation],
+    [lyrics, showTranslation, showPronunciation],
   );
 
   const currentLineIndex = useMemo(() => {
