@@ -222,7 +222,6 @@ function renderAlignedPronunciationPair(
   originalLine: LyricDisplayLine,
   pronunciationLine: LyricDisplayLine,
   currentTime: number,
-  textClass: string,
   isCurrentLine: boolean,
 ) {
   // 1. Buscamos cuántos bloques sincronizados hay
@@ -293,7 +292,7 @@ function renderLyricLine(
     return (
       <span
         key={`${line.text}-${lineIndex}`}
-        className={`bg-transparent px-[1vh] leading-[1.2] whitespace-normal break-words transition-all duration-300 ease-out ${textClass} ${lineSizeClass}`}
+        className={`bg-transparent px-[1vh] leading-[1.2] whitespace-normal wrap-break-word transition-all duration-300 ease-out ${textClass} ${lineSizeClass}`}
       >
         {line.text}
       </span>
@@ -400,7 +399,6 @@ function LRCVisualizer({
                           group.lines[0],
                           group.lines[1],
                           currentTime,
-                          textClass,
                           isCurrentLine,
                         ),
                         ...group.lines

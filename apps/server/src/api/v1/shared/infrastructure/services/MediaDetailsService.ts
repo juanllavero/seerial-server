@@ -5,7 +5,8 @@ import { messages } from '@/config/messages';
 import { extraTypes, videoExtensions } from '@/utils/constants';
 import logger from '@/utils/logger';
 import { BadRequestException, NotFoundException } from '../web/exceptions/HTTPExceptions';
-import type { LyricsDTO } from '@/api/v1/songs/application/dtos/SongDTOs';
+import type { LyricsLine } from '@seerial/domain';
+import { buildLyricsFromLrc, buildLyricsFromTtml } from '@/utils/lyricsParser';
 
 const mediaDetailsLogger = logger.child({ category: 'Media Details' });
 
@@ -145,47 +146,19 @@ export async function findMediaBackground(
   };
 }
 
-async function resolveLrcFiles(
-  songDirectory: string,
-  lrcFiles: string[],
-  lyricCandidates: string[],
-  translationsOnly = false,
-): Promise<LyricsDTO[]> {
-  const results: LyricsDTO[] = [];
 
-  for (const fileName of lrcFiles) {
-    const match = resolveLyricCandidateMatch(fileName, lyricCandidates);
-    if (!match) continue;
-
-    if (translationsOnly && (match.language === 'original' || match.language === 'pronunciation')) {
-      continue;
-    }
-
-    const content = await fs.readFile(path.join(songDirectory, fileName), 'utf-8');
-
-    if (match.language === 'original') {
-      results.push({ language: 'original', type: 'original', format: 'lrc', content });
-    } else if (match.language === 'pronunciation') {
-      results.push({ language: 'pronunciation', type: 'transcription', format: 'lrc', content });
-    } else {
-      results.push({ language: match.language, type: 'translation', format: 'lrc', content });
-    }
-  }
-
-  return results;
-}
 
 /**
- * Searches for and reads lyric files (.lrc and .ttml) matching a given song.
+ * Finds, parses, and merges lyric files (.lrc, .ttml) for a given song.
  *
- * Priority rules:
- * - If a .ttml original is found: include it plus any .lrc translations (no transcription).
- * - Otherwise: include a .lrc original (if found) plus any .lrc transcription and translations.
+ * Priority:
+ * 1. TTML original → parse words + pronunciation from TTML, attach .lrc translations.
+ * 2. LRC original  → parse (E)LRC, attach .pronunciation.lrc and first .lrc translation.
  *
  * @param songId - The ID of the song.
- * @returns A promise that resolves to an array of LyricsDTO objects.
+ * @returns A promise resolving to a flat array of `LyricsLine` objects.
  */
-export async function findLyricsForSong(songId: string): Promise<LyricsDTO[]> {
+export async function findLyricsForSong(songId: string): Promise<LyricsLine[]> {
   const song = await useCases.getSongById().execute(songId);
   if (!song) {
     throw new NotFoundException(messages.errors.notFound.song);
@@ -197,61 +170,66 @@ export async function findLyricsForSong(songId: string): Promise<LyricsDTO[]> {
     const filesInDir = await fs.readdir(songDirectory);
     const lyricCandidates = buildLyricLookupCandidates(songBaseName, song.title, song.trackNumber);
 
-    const ttmlFiles = filesInDir.filter((f) => path.extname(f).toLowerCase() === '.ttml');
-    const lrcFiles = filesInDir.filter((f) => path.extname(f).toLowerCase() === '.lrc');
+    const isLrc = (f: string) => path.extname(f).toLowerCase() === '.lrc';
+    const isTtml = (f: string) => path.extname(f).toLowerCase() === '.ttml';
+    const matchLang = (f: string) => resolveLyricCandidateMatch(f, lyricCandidates)?.language;
+    const isTranslation = (lang: string | undefined) =>
+      lang !== undefined && lang !== 'original' && lang !== 'pronunciation';
 
-    // Find .ttml original (only original lyrics can be .ttml)
-    const ttmlOriginalFile = ttmlFiles.find((fileName) => {
-      const match = resolveLyricCandidateMatch(fileName, lyricCandidates);
-      return match?.language === 'original';
-    });
+    const ttmlOriginal = filesInDir.filter(isTtml).find((f) => matchLang(f) === 'original');
+    const lrcFiles = filesInDir.filter(isLrc);
+    const firstTranslation = lrcFiles.find((f) => isTranslation(matchLang(f)));
 
-    const results: LyricsDTO[] = [];
+    let lines: LyricsLine[];
 
-    if (ttmlOriginalFile) {
-      const rawContent = await fs.readFile(path.join(songDirectory, ttmlOriginalFile), 'utf-8');
-      const minifiedContent = rawContent.replace(/>\s+</g, '><').replace(/\s{2,}/g, ' ').trim();
-
-      results.push({ language: 'original', type: 'original', format: 'ttml', content: minifiedContent });
-
-      // With a .ttml original, only look for .lrc translations (no transcription)
-      results.push(...(await resolveLrcFiles(songDirectory, lrcFiles, lyricCandidates, true)));
+    if (ttmlOriginal) {
+      const [ttmlContent, translationContent] = await Promise.all([
+        fs.readFile(path.join(songDirectory, ttmlOriginal), 'utf-8'),
+        firstTranslation
+          ? fs.readFile(path.join(songDirectory, firstTranslation), 'utf-8')
+          : Promise.resolve(undefined),
+      ]);
+      lines = buildLyricsFromTtml(ttmlContent, translationContent);
     } else {
-      // Look for .lrc original, transcription, and translations
-      results.push(...(await resolveLrcFiles(songDirectory, lrcFiles, lyricCandidates)));
+      const lrcOriginal = lrcFiles.find((f) => matchLang(f) === 'original');
+      if (!lrcOriginal) {
+        mediaDetailsLogger.warn(
+          { songId, songFileSrc: song.fileSrc, lyricCandidates },
+          'No lyric files matched the song basename',
+        );
+        return [];
+      }
+
+      const pronunciationFile = lrcFiles.find((f) => matchLang(f) === 'pronunciation');
+      const [originalContent, pronunciationContent, translationContent] = await Promise.all([
+        fs.readFile(path.join(songDirectory, lrcOriginal), 'utf-8'),
+        pronunciationFile
+          ? fs.readFile(path.join(songDirectory, pronunciationFile), 'utf-8')
+          : Promise.resolve(undefined),
+        firstTranslation
+          ? fs.readFile(path.join(songDirectory, firstTranslation), 'utf-8')
+          : Promise.resolve(undefined),
+      ]);
+      lines = buildLyricsFromLrc(originalContent, pronunciationContent, translationContent);
     }
 
-    if (results.length === 0) {
+    if (lines.length === 0) {
       mediaDetailsLogger.warn(
-        {
-          songId,
-          songFileSrc: song.fileSrc,
-          songDirectory,
-          songBaseName,
-          songTitle: song.title,
-          trackNumber: song.trackNumber,
-          ttmlFiles,
-          lrcFiles,
-          lyricCandidates,
-        },
-        'No lyric files matched the song basename',
+        { songId, songFileSrc: song.fileSrc, lyricCandidates },
+        'No lyric lines could be parsed from the matched files',
       );
-
       return [];
     }
 
     mediaDetailsLogger.debug(
-      {
-        songId,
-        matchedLyrics: results.map(({ language, type, format }) => ({ language, type, format })),
-      },
-      'Resolved lyric files for song',
+      { songId, lineCount: lines.length },
+      'Resolved and parsed lyrics for song',
     );
 
-    return results;
+    return lines;
   } catch (error) {
-    mediaDetailsLogger.error(error, 'Error searching for lyrics');
-    throw new Error('An internal error occurred while searching for lyrics.');
+    mediaDetailsLogger.error(error, 'Error processing lyrics');
+    throw new Error('An internal error occurred while processing lyrics.');
   }
 }
 

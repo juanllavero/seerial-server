@@ -211,6 +211,31 @@ export interface Song {
     fileSrc: string;
 }
 
+export interface LyricsLine {
+    agent: 'v1' | 'v2';
+    startTime: number;
+    plainText?: PlainLyricsLine;
+    words?: EnhancedLyricsLine;
+    translation?: string;
+    isBlank?: boolean;
+}
+
+export interface PlainLyricsLine {
+    original?: string;
+    pronunciation?: string;
+}
+
+export interface EnhancedLyricsLine {
+    original: LyricWord[];
+    pronunciation?: LyricWord[];
+}
+
+export interface LyricWord {
+    text: string;
+    startTime: number;
+    endTime: number;
+}
+
 export interface LRCFile {
     language: string;
     content: string;

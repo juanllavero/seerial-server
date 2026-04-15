@@ -2049,40 +2049,95 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"LyricsDTO": {
+			"PlainLyricsLine": {
 				"properties": {
-					"language": {
+					"original": {
 						"type": "string"
 					},
-					"type": {
-						"type": "string",
-						"enum": [
-							"original",
-							"transcription",
-							"translation"
-						]
-					},
-					"format": {
-						"type": "string",
-						"enum": [
-							"lrc",
-							"ttml"
-						]
-					},
-					"content": {
+					"pronunciation": {
 						"type": "string"
 					}
 				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"LyricWord": {
+				"properties": {
+					"text": {
+						"type": "string"
+					},
+					"startTime": {
+						"type": "number",
+						"format": "double"
+					},
+					"endTime": {
+						"type": "number",
+						"format": "double"
+					}
+				},
 				"required": [
-					"language",
-					"type",
-					"format",
-					"content"
+					"text",
+					"startTime",
+					"endTime"
 				],
 				"type": "object",
 				"additionalProperties": false
 			},
-			"ApiResponse_LyricsDTO-Array_": {
+			"EnhancedLyricsLine": {
+				"properties": {
+					"original": {
+						"items": {
+							"$ref": "#/components/schemas/LyricWord"
+						},
+						"type": "array"
+					},
+					"pronunciation": {
+						"items": {
+							"$ref": "#/components/schemas/LyricWord"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"original"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"LyricsLine": {
+				"properties": {
+					"agent": {
+						"type": "string",
+						"enum": [
+							"v1",
+							"v2"
+						]
+					},
+					"startTime": {
+						"type": "number",
+						"format": "double"
+					},
+					"plainText": {
+						"$ref": "#/components/schemas/PlainLyricsLine"
+					},
+					"words": {
+						"$ref": "#/components/schemas/EnhancedLyricsLine"
+					},
+					"translation": {
+						"type": "string"
+					},
+					"isBlank": {
+						"type": "boolean"
+					}
+				},
+				"required": [
+					"agent",
+					"startTime"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_LyricsLine-Array_": {
 				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
@@ -2093,7 +2148,7 @@
 					},
 					"data": {
 						"items": {
-							"$ref": "#/components/schemas/LyricsDTO"
+							"$ref": "#/components/schemas/LyricsLine"
 						},
 						"type": "array",
 						"nullable": true
@@ -5566,7 +5621,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_LyricsDTO-Array_"
+									"$ref": "#/components/schemas/ApiResponse_LyricsLine-Array_"
 								}
 							}
 						}

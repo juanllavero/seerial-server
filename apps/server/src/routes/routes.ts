@@ -746,23 +746,53 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "LyricsDTO": {
+    "PlainLyricsLine": {
         "dataType": "refObject",
         "properties": {
-            "language": {"dataType":"string","required":true},
-            "type": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["original"]},{"dataType":"enum","enums":["transcription"]},{"dataType":"enum","enums":["translation"]}],"required":true},
-            "format": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["lrc"]},{"dataType":"enum","enums":["ttml"]}],"required":true},
-            "content": {"dataType":"string","required":true},
+            "original": {"dataType":"string"},
+            "pronunciation": {"dataType":"string"},
         },
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "ApiResponse_LyricsDTO-Array_": {
+    "LyricWord": {
+        "dataType": "refObject",
+        "properties": {
+            "text": {"dataType":"string","required":true},
+            "startTime": {"dataType":"double","required":true},
+            "endTime": {"dataType":"double","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "EnhancedLyricsLine": {
+        "dataType": "refObject",
+        "properties": {
+            "original": {"dataType":"array","array":{"dataType":"refObject","ref":"LyricWord"},"required":true},
+            "pronunciation": {"dataType":"array","array":{"dataType":"refObject","ref":"LyricWord"}},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "LyricsLine": {
+        "dataType": "refObject",
+        "properties": {
+            "agent": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["v1"]},{"dataType":"enum","enums":["v2"]}],"required":true},
+            "startTime": {"dataType":"double","required":true},
+            "plainText": {"ref":"PlainLyricsLine"},
+            "words": {"ref":"EnhancedLyricsLine"},
+            "translation": {"dataType":"string"},
+            "isBlank": {"dataType":"boolean"},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "ApiResponse_LyricsLine-Array_": {
         "dataType": "refObject",
         "properties": {
             "success": {"dataType":"boolean","required":true},
             "message": {"dataType":"string","required":true},
-            "data": {"dataType":"union","subSchemas":[{"dataType":"array","array":{"dataType":"refObject","ref":"LyricsDTO"}},{"dataType":"enum","enums":[null]}],"required":true},
+            "data": {"dataType":"union","subSchemas":[{"dataType":"array","array":{"dataType":"refObject","ref":"LyricsLine"}},{"dataType":"enum","enums":[null]}],"required":true},
             "timestamp": {"dataType":"string","required":true},
         },
         "additionalProperties": false,

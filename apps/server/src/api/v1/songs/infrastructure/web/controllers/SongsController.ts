@@ -25,12 +25,12 @@ import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse
 import { messages } from '@/config/messages';
 import { verifyAudioStreamToken } from '@/middleware/audio.middleware';
 import type {
-  LyricsDTO,
   SeparateSongStemsResponseDTO,
   SongUrlDTO,
   UpdateSongDTO
 } from '../../../application/dtos/SongDTOs';
 import type { Song } from '../../../domain/Song';
+import { LyricsLine } from '@seerial/domain';
 
 type AuthenticatedRequest = ExpressRequest & { user?: { id?: string } };
 
@@ -96,7 +96,7 @@ export class SongsController extends Controller {
   @Security('adminAuth')
   public async getSongsLyrics(
     @Path() id: string,
-  ): Promise<ApiResponse<LyricsDTO[]>> {
+  ): Promise<ApiResponse<LyricsLine[]>> {
     const result = await findLyricsForSong(id);
     return ApiResponse.success(result, messages.success.fetch);
   }
