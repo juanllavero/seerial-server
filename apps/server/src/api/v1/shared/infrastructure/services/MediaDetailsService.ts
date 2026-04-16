@@ -10,8 +10,15 @@ import { buildLyricsFromLrc, buildLyricsFromTtml } from '@/utils/lyricsParser';
 
 const mediaDetailsLogger = logger.child({ category: 'Media Details' });
 
-function normalizeWhitespace(value: string) {
-  return value.trim().replace(/\s+/g, ' ');
+
+/** Normalizes typographic quotes/apostrophes to ASCII equivalents for cross-source filename matching. */
+function normalizeForComparison(value: string) {
+  return value
+    .replace(/[\u2018\u2019\u201A\u201B\u02BC\uFF07]/g, "'")
+    .replace(/[\u201C\u201D\u201E\u201F\u02BA\uFF02]/g, '"')
+    .replace(/[\u2013\u2014]/g, '-')
+    .trim()
+    .replace(/\s+/g, ' ');
 }
 
 function stripTrackPrefix(value: string) {
@@ -22,14 +29,16 @@ function buildLyricLookupCandidates(songBaseName: string, songTitle: string, tra
   const candidates = new Set<string>();
 
   const addCandidate = (value: string) => {
-    const normalized = normalizeWhitespace(value);
+    const normalized = normalizeForComparison(value);
     if (normalized) {
       candidates.add(normalized);
     }
   };
 
   addCandidate(songBaseName);
-  addCandidate(stripTrackPrefix(songBaseName));
+  const strippedOnce = stripTrackPrefix(songBaseName);
+  addCandidate(strippedOnce);
+  addCandidate(stripTrackPrefix(strippedOnce));
   addCandidate(songTitle);
 
   if (trackNumber > 0 && songTitle) {
@@ -47,7 +56,7 @@ function buildLyricLookupCandidates(songBaseName: string, songTitle: string, tra
 }
 
 function resolveLyricCandidateMatch(fileName: string, lyricCandidates: string[]) {
-  const lyricBaseName = normalizeWhitespace(path.basename(fileName, path.extname(fileName)));
+  const lyricBaseName = normalizeForComparison(path.basename(fileName, path.extname(fileName)));
   const lowerLyricBaseName = lyricBaseName.toLowerCase();
 
   for (const candidate of lyricCandidates) {
