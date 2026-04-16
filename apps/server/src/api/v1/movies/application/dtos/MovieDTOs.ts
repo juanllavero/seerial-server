@@ -1,18 +1,18 @@
 export interface RefreshMetadataDTO {
-  id: string;
+	id: string;
 }
 
 export interface ChangeIdentificationDTO {
-  themdbId: number;
+	themdbId: number;
 }
 
 export interface UpdateMovieDTO {
-  title?: string;
-  releaseDate?: string;
-  overview?: string;
-  // ... otros campos que permites actualizar
+	title?: string;
+	releaseDate?: string;
+	overview?: string;
+	// ... otros campos que permites actualizar
 }
 
 export interface SetMovieWatchStateDTO {
-  watched: boolean;
+	watched: boolean;
 }

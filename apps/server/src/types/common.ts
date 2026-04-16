@@ -1,1 +1,1 @@
-export type IncludeType = 'none' | 'few' | 'all';
+export type IncludeType = "none" | "few" | "all";

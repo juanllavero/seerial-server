@@ -1,5 +1,5 @@
 export class SearchMovieMetadataUseCase {
-  async execute(): Promise<void> {
-    // Placeholder for search logic
-  }
+	async execute(): Promise<void> {
+		// Placeholder for search logic
+	}
 }

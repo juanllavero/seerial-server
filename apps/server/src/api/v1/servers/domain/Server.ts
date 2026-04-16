@@ -1,1 +1,1 @@
-export type { Server } from '@seerial/domain';
+export type { Server } from "@seerial/domain";

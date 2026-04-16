@@ -1,32 +1,32 @@
-import { getMediaInfo } from '@/api/v1/shared/infrastructure/adapters/ffmpeg/mediaInfo';
-import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
-import { messages } from '@/config/messages';
-import type { Video } from '../../domain/Video';
-import type { VideoRepositoryPort } from '../ports/VideosRepositoryPort';
+import { getMediaInfo } from "@/api/v1/shared/infrastructure/adapters/ffmpeg/mediaInfo";
+import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
+import { messages } from "@/config/messages";
+import type { Video } from "../../domain/Video";
+import type { VideoRepositoryPort } from "../ports/VideosRepositoryPort";
 
 export class UpdateMediaInfoUseCase {
-  constructor(private videoRepo: VideoRepositoryPort) {}
+	constructor(private videoRepo: VideoRepositoryPort) {}
 
-  async execute(id: string): Promise<Video> {
-    const video = await this.videoRepo.findById(id);
+	async execute(id: string): Promise<Video> {
+		const video = await this.videoRepo.findById(id);
 
-    if (!video) {
-      throw new NotFoundException(messages.errors.notFound.file);
-    }
+		if (!video) {
+			throw new NotFoundException(messages.errors.notFound.file);
+		}
 
-    const mediaInfo = await getMediaInfo(video.fileSrc);
+		const mediaInfo = await getMediaInfo(video.fileSrc);
 
-    if (!mediaInfo) {
-      throw new NotFoundException(messages.errors.notFound.mediaInfo);
-    }
+		if (!mediaInfo) {
+			throw new NotFoundException(messages.errors.notFound.mediaInfo);
+		}
 
-    video.mediaInfo = mediaInfo.mediaInfo;
-    video.videoTracks = mediaInfo.videoTracks;
-    video.subtitleTracks = mediaInfo.subtitleTracks;
-    video.audioTracks = mediaInfo.audioTracks;
-    video.chapters = mediaInfo.chapters;
-    video.runtime = mediaInfo.duration;
+		video.mediaInfo = mediaInfo.mediaInfo;
+		video.videoTracks = mediaInfo.videoTracks;
+		video.subtitleTracks = mediaInfo.subtitleTracks;
+		video.audioTracks = mediaInfo.audioTracks;
+		video.chapters = mediaInfo.chapters;
+		video.runtime = mediaInfo.duration;
 
-    return await this.videoRepo.update(video.id, video);
-  }
+		return await this.videoRepo.update(video.id, video);
+	}
 }

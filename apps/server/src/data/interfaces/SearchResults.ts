@@ -1,1 +1,1 @@
-export type { MediaSearchResult } from '@seerial/domain';
+export type { MediaSearchResult } from "@seerial/domain";

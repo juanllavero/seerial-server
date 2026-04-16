@@ -1,10 +1,10 @@
-import type { Video } from '../../domain/Video';
-import type { VideoRepositoryPort } from '../ports/VideosRepositoryPort';
+import type { Video } from "../../domain/Video";
+import type { VideoRepositoryPort } from "../ports/VideosRepositoryPort";
 
 export class FindVideoByIdUseCase {
-  constructor(private videoRepo: VideoRepositoryPort) {}
+	constructor(private videoRepo: VideoRepositoryPort) {}
 
-  async execute(id: string): Promise<Video | null> {
-    return this.videoRepo.findById(id);
-  }
+	async execute(id: string): Promise<Video | null> {
+		return this.videoRepo.findById(id);
+	}
 }

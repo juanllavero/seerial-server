@@ -1,59 +1,59 @@
 {
-  "entryFile": "src/index.ts",
-  "noImplicitAdditionalProperties": "throw-on-extras",
-  "controllerPathGlobs": ["src/api/v1/**/controllers/*Controller.ts"],
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["src/*"]
-    }
-  },
-  "spec": {
-    "outputDirectory": "./",
-    "specVersion": 3,
-    "basePath": "/api",
-    "description": "Media management server API for the Seerial suite",
-    "name": "Seerial Media Server API",
-    "version": "0.2.0",
-    "host": "localhost:34200",
-    "schemes": ["http"],
-    "securityDefinitions": {
-      "cookieAuth": {
-        "type": "apiKey",
-        "in": "cookie",
-        "name": "jwt",
-        "description": "Full user authentication with library and remote access checks"
-      },
-      "cookieAuthFast": {
-        "type": "apiKey",
-        "in": "cookie",
-        "name": "jwt",
-        "description": "Fast user authentication without additional checks"
-      },
-      "adminAuth": {
-        "type": "apiKey",
-        "in": "cookie",
-        "name": "jwt",
-        "description": "Admin user authentication"
-      },
-      "managementAuth": {
-        "type": "apiKey",
-        "in": "cookie",
-        "name": "jwt",
-        "description": "Management access for local or admin users"
-      },
-      "public": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "x-public-access",
-        "description": "Public access without authentication"
-      }
-    }
-  },
-  "routes": {
-    "routesDir": "./src/routes",
-    "middleware": "express",
-    "authenticationModule": "./src/middleware/tsoa.authentication.ts",
-    "basePath": "/api"
-  }
+	"entryFile": "src/index.ts",
+	"noImplicitAdditionalProperties": "throw-on-extras",
+	"controllerPathGlobs": ["src/api/v1/**/controllers/*Controller.ts"],
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@/*": ["src/*"]
+		}
+	},
+	"spec": {
+		"outputDirectory": "./",
+		"specVersion": 3,
+		"basePath": "/api",
+		"description": "Media management server API for the Seerial suite",
+		"name": "Seerial Media Server API",
+		"version": "0.2.0",
+		"host": "localhost:34200",
+		"schemes": ["http"],
+		"securityDefinitions": {
+			"cookieAuth": {
+				"type": "apiKey",
+				"in": "cookie",
+				"name": "jwt",
+				"description": "Full user authentication with library and remote access checks"
+			},
+			"cookieAuthFast": {
+				"type": "apiKey",
+				"in": "cookie",
+				"name": "jwt",
+				"description": "Fast user authentication without additional checks"
+			},
+			"adminAuth": {
+				"type": "apiKey",
+				"in": "cookie",
+				"name": "jwt",
+				"description": "Admin user authentication"
+			},
+			"managementAuth": {
+				"type": "apiKey",
+				"in": "cookie",
+				"name": "jwt",
+				"description": "Management access for local or admin users"
+			},
+			"public": {
+				"type": "apiKey",
+				"in": "header",
+				"name": "x-public-access",
+				"description": "Public access without authentication"
+			}
+		}
+	},
+	"routes": {
+		"routesDir": "./src/routes",
+		"middleware": "express",
+		"authenticationModule": "./src/middleware/tsoa.authentication.ts",
+		"basePath": "/api"
+	}
 }

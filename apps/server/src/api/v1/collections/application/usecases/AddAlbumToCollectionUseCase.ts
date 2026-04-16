@@ -1,9 +1,9 @@
-import type { CollectionsRepositoryPort } from '../ports/CollectionsRepositoryPort';
+import type { CollectionsRepositoryPort } from "../ports/CollectionsRepositoryPort";
 
 export class AddAlbumToCollectionUseCase {
-  constructor(private collectionRepo: CollectionsRepositoryPort) {}
+	constructor(private collectionRepo: CollectionsRepositoryPort) {}
 
-  async execute(collectionId: string, albumId: string): Promise<void> {
-    await this.collectionRepo.addAlbum(collectionId, albumId);
-  }
+	async execute(collectionId: string, albumId: string): Promise<void> {
+		await this.collectionRepo.addAlbum(collectionId, albumId);
+	}
 }

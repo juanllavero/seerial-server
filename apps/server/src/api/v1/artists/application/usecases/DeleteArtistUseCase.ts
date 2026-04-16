@@ -1,9 +1,9 @@
-import type { ArtistsRepositoryPort } from '../ports/ArtistsRepositoryPort';
+import type { ArtistsRepositoryPort } from "../ports/ArtistsRepositoryPort";
 
 export class DeleteArtistUseCase {
-  constructor(private artistRepo: ArtistsRepositoryPort) {}
+	constructor(private artistRepo: ArtistsRepositoryPort) {}
 
-  async execute(id: string): Promise<void> {
-    await this.artistRepo.delete(id);
-  }
+	async execute(id: string): Promise<void> {
+		await this.artistRepo.delete(id);
+	}
 }

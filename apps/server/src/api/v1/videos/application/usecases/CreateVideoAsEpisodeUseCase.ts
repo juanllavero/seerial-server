@@ -1,10 +1,10 @@
-import type { Video } from '../../domain/Video';
-import type { VideoRepositoryPort } from '../ports/VideosRepositoryPort';
+import type { Video } from "../../domain/Video";
+import type { VideoRepositoryPort } from "../ports/VideosRepositoryPort";
 
 export class CreateVideoAsEpisodeUseCase {
-  constructor(private videoRepo: VideoRepositoryPort) {}
+	constructor(private videoRepo: VideoRepositoryPort) {}
 
-  async execute(id: string, data: Partial<Video>): Promise<Video | null> {
-    return this.videoRepo.addAsEpisode(id, data);
-  }
+	async execute(id: string, data: Partial<Video>): Promise<Video | null> {
+		return this.videoRepo.addAsEpisode(id, data);
+	}
 }

@@ -1,10 +1,14 @@
-import type { Library } from '../../../domain/Library';
-import type { LibrariesRepositoryPort } from '../../ports/LibrariesRepositoryPort';
+import type { Library } from "../../../domain/Library";
+import type { LibrariesRepositoryPort } from "../../ports/LibrariesRepositoryPort";
 
 export class AddAnalyzedFileUseCase {
-  constructor(private librariesRepo: LibrariesRepositoryPort) {}
+	constructor(private librariesRepo: LibrariesRepositoryPort) {}
 
-  async execute(libraryId: string, file: string, videoId: string): Promise<Library> {
-    return await this.librariesRepo.addAnalyzedFile(libraryId, file, videoId);
-  }
+	async execute(
+		libraryId: string,
+		file: string,
+		videoId: string,
+	): Promise<Library> {
+		return await this.librariesRepo.addAnalyzedFile(libraryId, file, videoId);
+	}
 }

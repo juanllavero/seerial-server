@@ -1,1 +1,1 @@
-export type { Season } from '@seerial/domain';
+export type { Season } from "@seerial/domain";

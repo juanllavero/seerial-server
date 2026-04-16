@@ -1,93 +1,98 @@
-import propertiesReader from 'properties-reader';
-import logger from '@/utils/logger';
-import { fileSystemService } from '../di/container';
+import propertiesReader from "properties-reader";
+import logger from "@/utils/logger";
+import { fileSystemService } from "../di/container";
 
-const movieDbLogger = logger.child({ category: 'MovieDB' });
+const movieDbLogger = logger.child({ category: "MovieDB" });
 
 type TMDbApiResponse = {
-  results: unknown[];
-  cast: unknown[];
-  crew: unknown[];
-  backdrops: unknown[];
-  posters: unknown[];
-  stills: unknown[];
-  [key: string]: unknown;
+	results: unknown[];
+	cast: unknown[];
+	crew: unknown[];
+	backdrops: unknown[];
+	posters: unknown[];
+	stills: unknown[];
+	[key: string]: unknown;
 };
 
 export class TMDbApiClient {
-  private BASE_URL = 'https://api.themoviedb.org/3';
-  public THEMOVIEDB_API_TOKEN: string = '';
-  public connectionStatus: boolean = false;
+	private BASE_URL = "https://api.themoviedb.org/3";
+	public THEMOVIEDB_API_TOKEN: string = "";
+	public connectionStatus: boolean = false;
 
-  async makeRequest<T = TMDbApiResponse>(
-    endpoint: string,
-    queryParams: Record<string, string | number | boolean | null | undefined> = {},
-  ): Promise<T> {
-    const url = new URL(`${this.BASE_URL}/${endpoint}`);
+	async makeRequest<T = TMDbApiResponse>(
+		endpoint: string,
+		queryParams: Record<
+			string,
+			string | number | boolean | null | undefined
+		> = {},
+	): Promise<T> {
+		const url = new URL(`${this.BASE_URL}/${endpoint}`);
 
-    Object.entries(queryParams).forEach(([key, value]) => {
-      if (value !== null && value !== undefined && value !== '') {
-        url.searchParams.append(key, String(value));
-      }
-    });
+		Object.entries(queryParams).forEach(([key, value]) => {
+			if (value !== null && value !== undefined && value !== "") {
+				url.searchParams.append(key, String(value));
+			}
+		});
 
-    const response = await fetch(url.toString(), {
-      headers: {
-        accept: 'application/json',
-        Authorization: `Bearer ${this.THEMOVIEDB_API_TOKEN}`,
-      },
-    });
+		const response = await fetch(url.toString(), {
+			headers: {
+				accept: "application/json",
+				Authorization: `Bearer ${this.THEMOVIEDB_API_TOKEN}`,
+			},
+		});
 
-    return (await response.json()) as T;
-  }
+		return (await response.json()) as T;
+	}
 
-  getAPIKeyStatus = async (): Promise<boolean> => {
-    const url = `${this.BASE_URL}/authentication`;
-    const options = {
-      method: 'GET',
-      headers: {
-        accept: 'application/json',
-        Authorization: `Bearer ${this.THEMOVIEDB_API_TOKEN}`,
-      },
-    };
+	getAPIKeyStatus = async (): Promise<boolean> => {
+		const url = `${this.BASE_URL}/authentication`;
+		const options = {
+			method: "GET",
+			headers: {
+				accept: "application/json",
+				Authorization: `Bearer ${this.THEMOVIEDB_API_TOKEN}`,
+			},
+		};
 
-    const response = await fetch(url, options);
-    const data = (await response.json()) as { success: boolean };
-    return data.success;
-  };
+		const response = await fetch(url, options);
+		const data = (await response.json()) as { success: boolean };
+		return data.success;
+	};
 
-  async initialize(): Promise<boolean> {
-    if (this.connectionStatus) return true;
+	async initialize(): Promise<boolean> {
+		if (this.connectionStatus) return true;
 
-    const propertiesFilePath = fileSystemService.getExternalPath(
-      fileSystemService.join('resources', 'config', 'keys.properties'),
-    );
+		const propertiesFilePath = fileSystemService.getExternalPath(
+			fileSystemService.join("resources", "config", "keys.properties"),
+		);
 
-    if (!(await fileSystemService.isFile(propertiesFilePath))) {
-      movieDbLogger.warn('keys.properties file not found, omitting connection with TMDB.');
-      return false;
-    }
+		if (!(await fileSystemService.isFile(propertiesFilePath))) {
+			movieDbLogger.warn(
+				"keys.properties file not found, omitting connection with TMDB.",
+			);
+			return false;
+		}
 
-    const properties = propertiesReader({ sourceFile: propertiesFilePath });
+		const properties = propertiesReader({ sourceFile: propertiesFilePath });
 
-    // Get API Key
-    this.THEMOVIEDB_API_TOKEN = properties.get('TMDB_API_KEY') as string;
+		// Get API Key
+		this.THEMOVIEDB_API_TOKEN = properties.get("TMDB_API_KEY") as string;
 
-    if (this.THEMOVIEDB_API_TOKEN) {
-      const apiKeyStatus = await this.getAPIKeyStatus();
+		if (this.THEMOVIEDB_API_TOKEN) {
+			const apiKeyStatus = await this.getAPIKeyStatus();
 
-      if (!apiKeyStatus) {
-        movieDbLogger.error('Invalid API Key');
-        return false;
-      }
+			if (!apiKeyStatus) {
+				movieDbLogger.error("Invalid API Key");
+				return false;
+			}
 
-      movieDbLogger.info('Connected to TheMovieDB');
-      this.connectionStatus = true;
+			movieDbLogger.info("Connected to TheMovieDB");
+			this.connectionStatus = true;
 
-      return true;
-    } else {
-      movieDbLogger.error('This App needs an API Key from TheMovieDB');
-      return false;
-    }
-  }
+			return true;
+		} else {
+			movieDbLogger.error("This App needs an API Key from TheMovieDB");
+			return false;
+		}
+	}
 }

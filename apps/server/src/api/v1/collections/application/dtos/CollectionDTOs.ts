@@ -1,24 +1,24 @@
 export interface ReorderItemDTO {
-  id: string;
-  type: 'movie' | 'movies' | 'series' | 'show' | 'shows' | 'album' | 'albums';
+	id: string;
+	type: "movie" | "movies" | "series" | "show" | "shows" | "album" | "albums";
 }
 
 export interface MusicExtrasDTO {
-  title: string;
-  src: string;
-  type: string;
+	title: string;
+	src: string;
+	type: string;
 }
 
 export interface ReorderContentDTO {
-  orderedItems: ReorderItemDTO[];
+	orderedItems: ReorderItemDTO[];
 }
 
 export interface UpdateCollectionDTO {
-  title?: string;
-  description?: string;
-  backgroundSrc?: string;
-  backgroundsUrls?: string[];
-  coverSrc?: string;
-  coversUrls?: string[];
-  musicPosterSrc?: string;
+	title?: string;
+	description?: string;
+	backgroundSrc?: string;
+	backgroundsUrls?: string[];
+	coverSrc?: string;
+	coversUrls?: string[];
+	musicPosterSrc?: string;
 }

@@ -1,9 +1,9 @@
-import type { PlayListRepositoryPort } from '../ports/PlayListRepositoryPort';
+import type { PlayListRepositoryPort } from "../ports/PlayListRepositoryPort";
 
 export class DeletePlayListUseCase {
-  constructor(private playlistRepo: PlayListRepositoryPort) {}
+	constructor(private playlistRepo: PlayListRepositoryPort) {}
 
-  async execute(id: string): Promise<void> {
-    await this.playlistRepo.delete(id);
-  }
+	async execute(id: string): Promise<void> {
+		await this.playlistRepo.delete(id);
+	}
 }

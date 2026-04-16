@@ -1,10 +1,10 @@
-import type { Collection } from '../../domain/Collection';
-import type { CollectionsRepositoryPort } from '../ports/CollectionsRepositoryPort';
+import type { Collection } from "../../domain/Collection";
+import type { CollectionsRepositoryPort } from "../ports/CollectionsRepositoryPort";
 
 export class UpdateCollectionUseCase {
-  constructor(private collectionRepo: CollectionsRepositoryPort) {}
+	constructor(private collectionRepo: CollectionsRepositoryPort) {}
 
-  async execute(id: string, data: Partial<Collection>): Promise<Collection> {
-    return this.collectionRepo.update(id, data);
-  }
+	async execute(id: string, data: Partial<Collection>): Promise<Collection> {
+		return this.collectionRepo.update(id, data);
+	}
 }

@@ -1,10 +1,10 @@
-import type { Song } from '../../domain/Song';
-import type { SongsRepositoryPort } from '../ports/SongsRepositoryPort';
+import type { Song } from "../../domain/Song";
+import type { SongsRepositoryPort } from "../ports/SongsRepositoryPort";
 
 export class CreateSongUseCase {
-  constructor(private songsRepo: SongsRepositoryPort) {}
+	constructor(private songsRepo: SongsRepositoryPort) {}
 
-  async execute(data: Partial<Song>): Promise<Song | null> {
-    return this.songsRepo.create(data);
-  }
+	async execute(data: Partial<Song>): Promise<Song | null> {
+		return this.songsRepo.create(data);
+	}
 }
