@@ -7,9 +7,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { shallow } from 'zustand/shallow';
-import BlurredBackground from '@/components/backgrounds/blurred-background';
-import FadedCover from '@/components/backgrounds/faded-cover';
-import GradientBackground from '@/components/backgrounds/GradientBackground';
 import NavigationContainer from '@/components/navigation/NavigationContainer';
 import FlexBox from '@/components/ui/FlexBox';
 import Image from '@/components/ui/Image';
@@ -18,9 +15,10 @@ import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
 import AnimatedSoundBars from './animated-sound-bars';
 import MusicPlayerControls from './music-player-controls';
+import GradientBackground from '@/components/backgrounds/gradient-background';
+import FadedCover from '@/components/backgrounds/faded-cover';
 
-const TEST_BACKGROUND_STYLE: 'classic' | 'background' = 'classic';
-const TEST_GRADIENT_STYLE: 'simple' | 'dynamic' = 'simple';
+const TEST_BACKGROUND_STYLE: 'classic' | 'background' = 'background';
 
 const READY_POLL_INTERVAL_MS = 250;
 const LOAD_TIMEOUT_MS = 5000;
@@ -773,16 +771,16 @@ function GlobalMusicPlayer() {
 
           <h2
             className="text-[2.6vh] font-semibold line-clamp-1"
-            style={{ textShadow: '0 2px 6px black' }}
+            style={{ textShadow: '0 1px 2px black' }}
           >
             {currentSong.title}
           </h2>
         </div>
         <span
-          className="text-[1.8dvh] line-clamp-1 font-semibold"
+          className="text-[1.8dvh] line-clamp-1 font-semibold max-w-[30dvw] text-center"
           style={{
             color: 'var(--color-muted-foreground)',
-            textShadow: '0 2px 6px black',
+            textShadow: '0 1px 2px black',
           }}
         >
           {artistsText} - {album?.title}
@@ -923,18 +921,10 @@ function GlobalMusicPlayer() {
           transition={{ duration: 0.25, ease: 'easeInOut' }}
           className="fixed inset-0 z-120 bg-black"
         >
-          {TEST_GRADIENT_STYLE === 'simple' ? (
-            <GradientBackground imageSrc={album?.coverSrc ?? ''} />
-          ) : (
-            <BlurredBackground url={album?.coverSrc ?? ''} />
-          )}
+          <GradientBackground imageUrl={album?.coverSrc ?? ''} />
 
-          {/* CAPA 3: La carátula fundiéndose */}
-          {/* Ocupa el 60% de la pantalla, dejando la derecha para la letra/texto */}
           {TEST_BACKGROUND_STYLE === 'background' && (
-            <div className="absolute z-0 left-0 top-0 h-full w-[50%]">
-              <FadedCover imageSrc={album?.coverSrc ?? ''} />
-            </div>
+            <FadedCover imageSrc={album?.coverSrc ?? ''} />
           )}
 
           <NavigationContainer
