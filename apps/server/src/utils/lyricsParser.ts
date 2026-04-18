@@ -46,7 +46,10 @@ function parseElrcWords(rest: string): LyricWord[] {
 	const tokens: { time: number; text: string }[] = [];
 
 	for (const m of rest.matchAll(new RegExp(ELRC_TOKEN_RE.source, "g"))) {
-		tokens.push({ time: parseLrcTime(m[1]), text: m[2].trim() });
+		// trimStart only: preserve trailing space so the word boundary from
+		// the original file is kept (e.g. "a" stays "a", not " a",
+		// while "Revolved " keeps its trailing space).
+		tokens.push({ time: parseLrcTime(m[1]), text: m[2].trimStart() });
 	}
 
 	const words: LyricWord[] = [];
@@ -99,8 +102,11 @@ function parseSpans(content: string): LyricWord[] {
 	const words: LyricWord[] = [];
 
 	for (const m of content.matchAll(/<span\b([^>]*)>([\s\S]*?)<\/span>/g)) {
-		const text = m[2].replace(/\s+/g, " ").trim();
-		if (!text) continue;
+		// trimStart only: preserve a trailing space so adjacent spans
+		// that share a word boundary (e.g. "a" + "round") have no gap
+		// while spans separated by a space (e.g. "Revolved ") keep it.
+		const text = m[2].replace(/\s+/g, " ").trimStart();
+		if (!text.trim()) continue;
 		const begin = xmlAttr(m[1], "begin");
 		const end = xmlAttr(m[1], "end");
 		if (!begin || !end) continue;

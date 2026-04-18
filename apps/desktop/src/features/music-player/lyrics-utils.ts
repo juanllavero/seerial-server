@@ -16,6 +16,7 @@ export interface LyricDisplayLine {
 
 export interface LyricGroup {
     time: number;
+    agent: 'v1' | 'v2';
     lines: LyricDisplayLine[];
 }
 
@@ -136,14 +137,14 @@ export function buildLyricGroups(
 
     for (const line of lyrics) {
         if (line.isBlank) {
-            groups.push({ time: line.startTime, lines: [{ text: '♪', isEnhanced: false, segments: [] }] });
+            groups.push({ time: line.startTime, agent: line.agent, lines: [{ text: '♪', isEnhanced: false, segments: [] }] });
             continue;
         }
 
         const displayLines = buildDisplayLines(line, showPronunciation, showTranslation);
 
         if (displayLines.length > 0) {
-            groups.push({ time: line.startTime, lines: displayLines });
+            groups.push({ time: line.startTime, agent: line.agent, lines: displayLines });
         }
     }
 

@@ -1,7 +1,7 @@
 import type { LyricsLine } from '@seerial/domain';
 import { useMusicStore } from '@seerial/stores';
 import type { CSSProperties, WheelEvent } from 'react';
-import { memo, useCallback, useMemo } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { shallow } from 'zustand/shallow';
 import FlexBox from '@/components/ui/FlexBox';
@@ -33,19 +33,19 @@ const PREVIOUS_LINE_EXIT_OFFSET_VH = 16;
 const PAST_LINE_EXIT_OFFSET_VH = 24;
 
 function getGroupHeightWeight(group: LyricGroup) {
-  // Contamos cuántas líneas de texto tiene este bloque (mínimo 1, máximo 3)
+  // Count how many text lines this block has (minimum 1, maximum 3)
   const lineCount = group.lines.length;
 
-  // Calculamos si la frase es muy larga y probablemente ha saltado de línea por el flex-wrap
+  // Check if the phrase is very long and likely wraps due to flex-wrap
   const mainLineLength = group.lines[0]?.text.length || 0;
-  const isWrapping = mainLineLength > 28; // Si tiene más de 28 caracteres, asumimos que ocupa 2 líneas
+  const isWrapping = mainLineLength > 28; // If more than 28 characters, assume it takes 2 lines
 
-  // Asignamos un peso base según la cantidad de información
-  let weight = 1; // Solo original
-  if (lineCount === 2) weight = 1.5; // Original + Traducción (o Romaji)
-  if (lineCount >= 3) weight = 2.2; // Original + Romaji + Traducción
+  // Assign a base weight based on the amount of information
+  let weight = 1; // Original only
+  if (lineCount === 2) weight = 1.5; // Original + Translation (or Romaji)
+  if (lineCount >= 3) weight = 2.2; // Original + Romaji + Translation
 
-  // Si la línea es muy larga, le damos un extra de espacio para que no choque con la de abajo
+  // If the line is very long, give it extra space so it doesn’t clash with the one below
   if (isWrapping) weight += 0.6;
 
   return weight;
@@ -162,75 +162,154 @@ function getLineSizeClass(lineIndex: number) {
   return 'text-[3vh] font-medium pt-4';
 }
 
-function renderEnhancedSegment(
-  segment: LyricSegment,
-  currentTime: number,
-  lineSizeClass: string,
-  isCurrentLine: boolean,
-) {
-  // Calculamos cuánto dura la sílaba en milisegundos exactos
-  const durationMs = segment.endTime ? (segment.endTime - segment.startTime) * 1000 : 300; // Fallback por si es la última palabra y no tiene final
+interface EnhancedSegmentProps {
+  segment: LyricSegment;
+  lineSizeClass: string;
+  isCurrentLine: boolean;
+  isPastLine: boolean;
+  // Audio time (seconds) at the moment this line became active
+  lineActivationAudioTime: number | null;
+  // Wall-clock time (ms) at the moment this line became active
+  lineActivationWallTime: number | null;
+}
 
-  // Determinamos en qué estado temporal se encuentra esta sílaba
-  const isPast = segment.endTime && currentTime >= segment.endTime;
-  const isUpcoming = currentTime < segment.startTime;
-  const isActive = !isPast && !isUpcoming;
+// Wall-clock-based scheduler: fires CSS animations via setTimeout so they continue
+// running even when audio is paused — matching Apple Music behaviour.
+// Does NOT receive currentTime, so it never re-renders on audio ticks.
+const EnhancedSegment = memo(function EnhancedSegment({
+  segment,
+  lineSizeClass,
+  isCurrentLine,
+  isPastLine,
+  lineActivationAudioTime,
+  lineActivationWallTime,
+}: EnhancedSegmentProps) {
+  const fillRef = useRef<HTMLSpanElement>(null);
 
-  // Lógica del truco de Apple Music:
-  let width = '0%';
-  let transition = 'none';
+  useEffect(() => {
+    const el = fillRef.current;
+    if (!el) return;
 
-  if (isPast) {
-    // Si ya pasó, la dejamos 100% llena al instante (útil si el usuario avanza el reproductor)
-    width = '100%';
-    transition = 'none';
-  } else if (isActive) {
-    // Si está sonando AHORA, le ordenamos que se llene al 100%
-    // y le decimos al CSS que tarde exactamente lo que dura la sílaba.
-    width = '100%';
-    transition = `width ${durationMs}ms linear`;
-  } else {
-    // Si aún no ha llegado, se queda vacía
-    width = '0%';
-    transition = 'none';
-  }
+    if (isPastLine) {
+      el.style.transition = 'none';
+      el.style.width = '100%';
+      return;
+    }
+
+    if (!isCurrentLine || lineActivationAudioTime === null || lineActivationWallTime === null) {
+      el.style.transition = 'none';
+      el.style.width = '0%';
+      return;
+    }
+
+    // Compute audio position right now using wall-clock elapsed since activation.
+    // This works even during pause: the wall clock keeps ticking, which is exactly
+    // what we want — animations complete regardless of playback state.
+    const wallElapsedSec = (Date.now() - lineActivationWallTime) / 1000;
+    const audioNow = lineActivationAudioTime + wallElapsedSec;
+
+    const totalDurationSec = segment.endTime
+      ? segment.endTime - segment.startTime
+      : 0.3;
+    const totalDurationMs = totalDurationSec * 1000;
+    // Enforce a minimum visible duration so fast syllables never look like a snap
+    const animationDurationMs = Math.max(totalDurationMs, 150);
+
+    if (audioNow >= (segment.endTime ?? segment.startTime + totalDurationSec)) {
+      // Already past — snap to full instantly
+      el.style.transition = 'none';
+      el.style.width = '100%';
+      return;
+    }
+
+    if (audioNow >= segment.startTime) {
+      // Already mid-syllable: snap to current progress, animate the rest
+      const elapsed = audioNow - segment.startTime;
+      const progress = Math.min(elapsed / totalDurationSec, 1);
+      const remainingMs = Math.max((1 - progress) * animationDurationMs, 150);
+      const startPct = `${Math.round(progress * 1000) / 10}%`;
+
+      el.style.transition = 'none';
+      el.style.width = startPct;
+      requestAnimationFrame(() => {
+        el.style.transition = `width ${remainingMs}ms linear`;
+        el.style.width = '100%';
+      });
+      return;
+    }
+
+    // Syllable hasn't started yet: reset and schedule
+    el.style.transition = 'none';
+    el.style.width = '0%';
+
+    const delayMs = Math.max((segment.startTime - audioNow) * 1000, 0);
+    const timerId = setTimeout(() => {
+      requestAnimationFrame(() => {
+        el.style.transition = `width ${animationDurationMs}ms linear`;
+        el.style.width = '100%';
+      });
+    }, delayMs);
+
+    return () => clearTimeout(timerId);
+  }, [isCurrentLine, isPastLine, lineActivationAudioTime, lineActivationWallTime, segment]);
 
   return (
     <span
-      key={`${segment.startTime}-${segment.text}`}
-      // whitespace-pre es clave para mantener alineados los caracteres asiáticos
+      // whitespace-pre is key for keeping Asian characters properly aligned
       className={`relative inline-block align-bottom ${lineSizeClass} whitespace-pre`}
     >
-      {/* 1. Capa de Fondo (Atenuada) - SIN sombras */}
+      {/* 1. Background layer (dimmed) */}
       <span className={isCurrentLine ? 'text-white/30!' : 'text-white/20'}>{segment.text}</span>
 
-      {/* 2. Capa de Relleno (Blanco puro) - SIN sombras y con transición CSS */}
+      {/* 2. Fill layer — width driven imperatively via ref */}
       <span
+        ref={fillRef}
         className="absolute inset-y-0 left-0 overflow-hidden whitespace-pre text-white will-change-[width]"
-        style={{
-          width,
-          transition,
-        }}
+        style={{ width: '0%' }}
       >
         {segment.text}
       </span>
     </span>
+  );
+});
+
+function renderEnhancedSegment(
+  segment: LyricSegment,
+  lineSizeClass: string,
+  isCurrentLine: boolean,
+  isPastLine: boolean,
+  lineActivationAudioTime: number | null,
+  lineActivationWallTime: number | null,
+) {
+  return (
+    <EnhancedSegment
+      key={`${segment.startTime}-${segment.text}`}
+      segment={segment}
+      lineSizeClass={lineSizeClass}
+      isCurrentLine={isCurrentLine}
+      isPastLine={isPastLine}
+      lineActivationAudioTime={lineActivationAudioTime}
+      lineActivationWallTime={lineActivationWallTime}
+    />
   );
 }
 
 function renderAlignedPronunciationPair(
   originalLine: LyricDisplayLine,
   pronunciationLine: LyricDisplayLine,
-  currentTime: number,
   isCurrentLine: boolean,
+  isPastLine: boolean,
+  lineActivationAudioTime: number | null,
+  lineActivationWallTime: number | null,
+  isV2 = false,
 ) {
-  // 1. Buscamos cuántos bloques sincronizados hay
+  // 1. Count how many synchronized blocks there are
   const maxIndex = Math.max(
     ...originalLine.segments.map((s) => s.alignmentTrackIndex ?? -1),
     ...pronunciationLine.segments.map((s) => s.alignmentTrackIndex ?? -1),
   );
 
-  // 2. Emparejamos el original y su romaji correspondiente
+  // 2. Pair each original segment with its corresponding romaji
   const pairedSegments = [];
   for (let i = 0; i <= maxIndex; i++) {
     pairedSegments.push({
@@ -242,34 +321,34 @@ function renderAlignedPronunciationPair(
   const origSizeClass = getLineSizeClass(0);
   const pronSizeClass = getLineSizeClass(1);
 
-  // 3. Flex-wrap se encarga de saltar de línea automáticamente si la pantalla es estrecha
+  // 3. flex-wrap handles line breaks automatically when the screen is narrow
   return (
     <div
       key={`paired-${originalLine.text}`}
-      className="flex max-w-[56dvw] flex-wrap items-end gap-x-[1.2vh] gap-y-[1.5vh]"
+      className={`flex max-w-[56dvw] flex-wrap items-end gap-x-[1.2vh] gap-y-[1.5vh] ${isV2 ? 'justify-end' : 'justify-start'}`}
     >
       {pairedSegments.map((pair, index) => {
         if (!pair.orig && !pair.pron) return null;
 
         return (
-          // Columna vertical: Fuerza a que el original y el romaji NUNCA se separen
+          // Vertical column: forces original and romaji to NEVER be separated
           <div
             key={pair.orig?.startTime ?? pair.pron?.startTime ?? index}
             className="flex flex-col items-center justify-end"
           >
-            {/* Arriba: Texto Original */}
+            {/* Top: Original text */}
             <div className="flex h-full items-end pb-[0.2vh]">
               {pair.orig ? (
-                renderEnhancedSegment(pair.orig, currentTime, origSizeClass, isCurrentLine)
+                renderEnhancedSegment(pair.orig, origSizeClass, isCurrentLine, isPastLine, lineActivationAudioTime, lineActivationWallTime)
               ) : (
                 <span className={origSizeClass}>&nbsp;</span>
               )}
             </div>
 
-            {/* Abajo: Pronunciación (Romaji) */}
+            {/* Bottom: Pronunciation (Romaji) */}
             <div className="flex items-start">
               {pair.pron ? (
-                renderEnhancedSegment(pair.pron, currentTime, pronSizeClass, isCurrentLine)
+                renderEnhancedSegment(pair.pron, pronSizeClass, isCurrentLine, isPastLine, lineActivationAudioTime, lineActivationWallTime)
               ) : (
                 <span className={pronSizeClass}>&nbsp;</span>
               )}
@@ -281,13 +360,16 @@ function renderAlignedPronunciationPair(
   );
 }
 
-// Para líneas sin pronunciación o traducciones simples
+// For lines without pronunciation or simple translations
 function renderLyricLine(
   line: LyricDisplayLine,
   lineIndex: number,
-  currentTime: number,
   textClass: string,
   isCurrentLine: boolean,
+  isPastLine: boolean,
+  lineActivationAudioTime: number | null,
+  lineActivationWallTime: number | null,
+  isV2 = false,
 ) {
   const lineSizeClass = getLineSizeClass(lineIndex);
 
@@ -305,10 +387,10 @@ function renderLyricLine(
   return (
     <div
       key={`${line.text}-${lineIndex}`}
-      className="flex max-w-[56dvw] flex-wrap items-end gap-x-[0.9vh] gap-y-[0.5vh]"
+      className={`flex max-w-[56dvw] flex-wrap items-end gap-y-[0.5vh] ${isV2 ? 'justify-end' : 'justify-start'}`}
     >
       {line.segments.map((segment) =>
-        renderEnhancedSegment(segment, currentTime, lineSizeClass, isCurrentLine),
+        renderEnhancedSegment(segment, lineSizeClass, isCurrentLine, isPastLine, lineActivationAudioTime, lineActivationWallTime),
       )}
     </div>
   );
@@ -350,6 +432,26 @@ function LRCVisualizer({
     return -1;
   }, [currentTime, lyricGroups]);
 
+  // Capture the audio time and wall-clock time the moment a new line becomes active.
+  // This snapshot is passed to segments so they can schedule animations via setTimeout,
+  // making them independent of React renders and playback state (pausing included).
+  const prevLineIndexRef = useRef(-2);
+  const prevAudioTimeRef = useRef(currentTime);
+  const lineActivationRef = useRef<{ audioTime: number; wallTime: number } | null>(null);
+
+  // Detect seek: if audio time jumped by more than 0.5s in a single render tick
+  const isSeeked = Math.abs(currentTime - prevAudioTimeRef.current) > 0.5;
+  prevAudioTimeRef.current = currentTime;
+
+  if (prevLineIndexRef.current !== currentLineIndex || isSeeked) {
+    prevLineIndexRef.current = currentLineIndex;
+    lineActivationRef.current =
+      currentLineIndex >= 0 ? { audioTime: currentTime, wallTime: Date.now() } : null;
+  }
+
+  const lineActivationAudioTime = lineActivationRef.current?.audioTime ?? null;
+  const lineActivationWallTime = lineActivationRef.current?.wallTime ?? null;
+
   const upcomingLineOffsets = useMemo(
     () => buildUpcomingLineOffsets(lyricGroups, currentLineIndex),
     [currentLineIndex, lyricGroups],
@@ -387,22 +489,33 @@ function LRCVisualizer({
           {lyricGroups.map((group, index) => {
             const { containerClass, textClass, groupClass, isCurrentLine, style } =
               getLyricsLineState(index, currentLineIndex, upcomingLineOffsets[index] ?? 0);
+            const isPastLine = currentLineIndex >= 0 && index < currentLineIndex;
+            const isV2 = group.agent === 'v2';
+            const alignClass = isV2 ? 'pr-[2dvw] text-right' : 'pl-[2dvw] text-left';
+            const itemsClass = isV2 ? 'items-end' : 'items-start';
+            // Only the active line gets the activation snapshot; all others get null
+            // so their segments stay at 0% (upcoming) or 100% (past).
+            const segActivationAudioTime = isCurrentLine ? lineActivationAudioTime : null;
+            const segActivationWallTime = isCurrentLine ? lineActivationWallTime : null;
 
             return (
               <div
                 key={`${group.time}-${group.lines.map((line) => line.text).join('-')}`}
                 data-line-index={index}
-                className={`pl-[2dvw] text-left transition-[max-height,opacity,transform,filter,margin] duration-500 ease-out ${containerClass}`}
+                className={`${alignClass} transition-[max-height,opacity,transform,filter,margin] duration-500 ease-out ${containerClass}`}
                 style={style}
               >
-                <div className={`flex max-w-[56dvw] flex-col items-start ${groupClass}`}>
+                <div className={`flex max-w-[56dvw] flex-col ${itemsClass} ${groupClass} ${isV2 ? 'ml-auto' : ''}`}>
                   {group.lines[0]?.alignmentTrackWidths && group.lines[1]?.alignmentTrackWidths
                     ? [
                         renderAlignedPronunciationPair(
                           group.lines[0],
                           group.lines[1],
-                          currentTime,
                           isCurrentLine,
+                          isPastLine,
+                          segActivationAudioTime,
+                          segActivationWallTime,
+                          isV2,
                         ),
                         ...group.lines
                           .slice(2)
@@ -410,14 +523,26 @@ function LRCVisualizer({
                             renderLyricLine(
                               line,
                               lineIndex + 2,
-                              currentTime,
                               textClass,
                               isCurrentLine,
+                              isPastLine,
+                              segActivationAudioTime,
+                              segActivationWallTime,
+                              isV2,
                             ),
                           ),
                       ]
                     : group.lines.map((line, lineIndex) =>
-                        renderLyricLine(line, lineIndex, currentTime, textClass, isCurrentLine),
+                        renderLyricLine(
+                          line,
+                          lineIndex,
+                          textClass,
+                          isCurrentLine,
+                          isPastLine,
+                          segActivationAudioTime,
+                          segActivationWallTime,
+                          isV2,
+                        ),
                       )}
                 </div>
               </div>
