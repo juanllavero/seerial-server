@@ -244,11 +244,25 @@ export class LibrariesRepositoryImpl
 				}),
 				CollectionAlbumModel.find({
 					where: { collectionId },
-					relations: ["album"],
+					relations: ["album", "album.songs"],
 					relationLoadStrategy: "query",
 					order: { customOrder: "ASC" },
 				}),
 			]);
+
+		const hasMovieCustomOrder = collectionMovies.some((cm) => cm.customOrder !== 0);
+		const hasSeriesCustomOrder = collectionSeries.some((cs) => cs.customOrder !== 0);
+		const hasAlbumCustomOrder = collectionAlbums.some((ca) => ca.customOrder !== 0);
+
+		const movieOrderMap = new Map(
+			collectionMovies.map((cm) => [cm.movieId, cm.customOrder]),
+		);
+		const seriesOrderMap = new Map(
+			collectionSeries.map((cs) => [cs.seriesId, cs.customOrder]),
+		);
+		const albumOrderMap = new Map(
+			collectionAlbums.map((ca) => [ca.albumId, ca.customOrder]),
+		);
 
 		const movies = collectionMovies.map((cm) => cm.movie);
 		const series = collectionSeries.map((cs) => cs.series);
@@ -275,7 +289,28 @@ export class LibrariesRepositoryImpl
 			),
 		]);
 
-		return { movies: movieItems, series: seriesItems, albums: albumItems };
+		const sortByYear = (a: LibraryItem, b: LibraryItem, desc = false): number => {
+			const yearA = a.years === "-" ? null : (a.years ?? null);
+			const yearB = b.years === "-" ? null : (b.years ?? null);
+			if (yearA === null && yearB === null) return 0;
+			if (yearA === null) return 1;
+			if (yearB === null) return -1;
+			return desc ? yearB.localeCompare(yearA) : yearA.localeCompare(yearB);
+		};
+
+		const sortedMovies = hasMovieCustomOrder
+			? movieItems.sort((a, b) => (movieOrderMap.get(a.id) ?? 0) - (movieOrderMap.get(b.id) ?? 0))
+			: movieItems.sort((a, b) => sortByYear(a, b));
+
+		const sortedSeries = hasSeriesCustomOrder
+			? seriesItems.sort((a, b) => (seriesOrderMap.get(a.id) ?? 0) - (seriesOrderMap.get(b.id) ?? 0))
+			: seriesItems.sort((a, b) => sortByYear(a, b));
+
+		const sortedAlbums = hasAlbumCustomOrder
+			? albumItems.sort((a, b) => (albumOrderMap.get(a.id) ?? 0) - (albumOrderMap.get(b.id) ?? 0))
+			: albumItems.sort((a, b) => sortByYear(a, b, true));
+
+		return { movies: sortedMovies, series: sortedSeries, albums: sortedAlbums };
 	}
 
 	private getCollectionRelations(): string[] {
@@ -341,6 +376,8 @@ export class LibrariesRepositoryImpl
 					type,
 					albums: await AlbumModel.find({
 						where: { libraryId },
+						relations: ["songs"],
+						relationLoadStrategy: "query",
 						order: { order: "ASC" },
 					}),
 				};
@@ -850,7 +887,7 @@ export class LibrariesRepositoryImpl
 					title: album.title,
 					years: album.year || "-",
 					coverSrc: album.coverSrc,
-					numberOfItems: 0,
+					numberOfItems: album.songs?.length || 0,
 					order: album.order,
 					watched: false,
 					remainingItems: 0,
