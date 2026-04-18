@@ -12,43 +12,13 @@ interface UseAutoScrollProps {
     debug?: boolean;
 }
 
-function calculateItemsPerRow(
-    container: HTMLDivElement,
-    firstElement: HTMLElement,
-): number {
-    const allItems = Array.from(container.querySelectorAll('[data-focus-key]')) as HTMLElement[];
-
-    if (allItems.length <= 1) {
-        return 1;
-    }
-
-    const elementHeight = firstElement.offsetHeight;
-    const firstItemTop = allItems[0].offsetTop;
-
-    for (let i = 1; i < allItems.length; i++) {
-        if (Math.abs(allItems[i].offsetTop - firstItemTop) > elementHeight * 0.5) {
-            return i;
-        }
-    }
-
-    return allItems.length;
-}
-
 function calculateTopModeScroll(
     focusedElement: HTMLElement,
     container: HTMLDivElement,
 ): number {
-    const allItems = Array.from(container.querySelectorAll('[data-focus-key]')) as HTMLElement[];
-    const focusedIndex = allItems.indexOf(focusedElement);
-
-    if (focusedIndex < 0) {
-        return container.scrollTop;
-    }
-
-    const itemsPerRow = calculateItemsPerRow(container, focusedElement);
-    const focusedRowIndex = Math.floor(focusedIndex / itemsPerRow);
-    const rowHeight = focusedElement.offsetHeight;
-    const targetScrollTop = focusedRowIndex * rowHeight;
+    const containerRect = container.getBoundingClientRect();
+    const elementRect = focusedElement.getBoundingClientRect();
+    const elementOffsetTop = elementRect.top - containerRect.top + container.scrollTop;
 
     const containerHeight = container.clientHeight;
     const scrollHeight = container.scrollHeight;
@@ -60,14 +30,16 @@ function calculateTopModeScroll(
 
     // Ensure we don't scroll past the end
     const maxScroll = scrollHeight - containerHeight;
-    return Math.min(targetScrollTop, maxScroll);
+    return Math.min(elementOffsetTop, maxScroll);
 }
 
 function calculateCenterModeScroll(
     focusedElement: HTMLElement,
     container: HTMLDivElement,
 ): number {
-    const elementOffsetTop = focusedElement.offsetTop;
+    const containerRect = container.getBoundingClientRect();
+    const elementRect = focusedElement.getBoundingClientRect();
+    const elementOffsetTop = elementRect.top - containerRect.top + container.scrollTop;
     const elementHeight = focusedElement.offsetHeight;
     const containerHeight = container.clientHeight;
     const scrollHeight = container.scrollHeight;

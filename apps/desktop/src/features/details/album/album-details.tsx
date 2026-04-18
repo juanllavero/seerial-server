@@ -1,5 +1,5 @@
 import { type Album, type DetailsData, formatDate } from '@seerial/domain';
-import { Ellipsis, LucideBookmark, PlayIcon } from 'lucide-react';
+import { Ellipsis, PlayIcon, Shuffle } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { shallow } from 'zustand/shallow';
@@ -25,6 +25,7 @@ interface AlbumDetailsProps {
 function AlbumDetails({ album, isLoading, details }: AlbumDetailsProps) {
   const navigate = useNavigate();
   const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false);
+  const [focusedSongId, setFocusedSongId] = useState<string | undefined>();
   const { cardRoundness } = useSettingsStore(
     (s) => ({
       cardRoundness: s.settings.cardRoundness,
@@ -44,22 +45,22 @@ function AlbumDetails({ album, isLoading, details }: AlbumDetailsProps) {
       <BackgroundImage imageSrc={details?.backgroundSrc ?? ''} index={0} />
 
       <FlexBox padding="4rem 0 0 0" height={'100%'} width={'100%'} className="z-10">
-        <FlexBox height={'100%'} width={'40vw'} justify="center">
+        <FlexBox height={'100%'} width={'40vw'} justify="end">
           <Image
             url={details?.coverSrc ?? album?.coverSrc ?? ''}
             className={cardRoundness}
-            width="55vh"
-            height="55vh"
+            width="60vh"
+            height="60vh"
           />
         </FlexBox>
-        <NavigationScrollView direction="vertical" className="gap-8">
+        <NavigationScrollView direction="vertical" scrollMode='center' className="gap-8 w-[50vw] max-h-screen pb-100" focusedElementId={focusedSongId} isFocusBoundary focusBoundaryDirections={['up']} isRestoringFocus={false}>
           <DetailsInfo
             details={details}
             infoItems={[formatDate(details?.year ?? album?.year ?? '')]}
             hideButtons
           />
 
-          <FlexBox gap={1}>
+          <FlexBox gap={1} padding="0 4rem">
             <NavigationButton
               customKey={NavigationFocusKeys.details.playButton}
               text={'Reproducir'}
@@ -70,7 +71,7 @@ function AlbumDetails({ album, isLoading, details }: AlbumDetailsProps) {
             <NavigationButton
               customKey={NavigationFocusKeys.details.markWatchedButton}
               text={'Marcar como visto'}
-              icon={<LucideBookmark size={'3vh'} />}
+              icon={<Shuffle size={'3vh'} />}
               onClick={() => console.log('Mark as watched')}
               hideText
               animateText
@@ -83,7 +84,7 @@ function AlbumDetails({ album, isLoading, details }: AlbumDetailsProps) {
             />
           </FlexBox>
 
-          {!!album && <SongsList album={album} songs={album.songs ?? []} />}
+          {!!album && <SongsList album={album} songs={album.songs ?? []} onSongFocus={setFocusedSongId} />}
         </NavigationScrollView>
       </FlexBox>
 

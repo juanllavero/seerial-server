@@ -1,12 +1,11 @@
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
+import { useGetCollectionContent } from '@seerial/api';
 import {
-  type Album,
   type Collection,
   type DetailsData,
+  type LibraryItem,
   type LibraryType,
   LibraryTypes,
-  type Movie,
-  type Series,
 } from '@seerial/domain';
 import { memo, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -27,15 +26,18 @@ import ContentCard from '@/shared/ui/card';
 
 type CollectionSectionKey = 'albums' | 'movies' | 'shows';
 
-interface CollectionSection<TItem> {
+interface CollectionSection {
   key: CollectionSectionKey;
   title: string;
-  items: TItem[];
+  items: LibraryItem[];
   itemType: 'album' | 'movie' | 'series';
   aspectRatio: string;
-  getTitle: (item: TItem) => string;
-  getSubtitle: (item: TItem) => string | undefined;
-  getImageSrc: (item: TItem) => string;
+}
+
+interface CollectionContentData {
+  movies: LibraryItem[];
+  series: LibraryItem[];
+  albums: LibraryItem[];
 }
 
 function getOrderedSectionKeys(libraryType: LibraryType | undefined): CollectionSectionKey[] {
@@ -50,6 +52,7 @@ function getOrderedSectionKeys(libraryType: LibraryType | undefined): Collection
 }
 
 interface CollectionDetailsProps {
+  collectionId: string;
   collection: Collection | undefined;
   isLoading: boolean;
   details: DetailsData | undefined;
@@ -57,6 +60,7 @@ interface CollectionDetailsProps {
 }
 
 function CollectionDetails({
+  collectionId,
   collection,
   isLoading,
   details,
@@ -73,43 +77,81 @@ function CollectionDetails({
   );
   useKeyboardBack();
 
-  const sectionsByKey: Record<CollectionSectionKey, CollectionSection<Album | Movie | Series>> = {
+  const { data: collectionContent } = useGetCollectionContent<CollectionContentData>(collectionId, {
+    enabled: !!collectionId,
+  });
+
+  // Split albums into singles and normal albums if libraryType is MUSIC
+  let singles: LibraryItem[] = [];
+  let normalAlbums: LibraryItem[] = [];
+  if (libraryType === LibraryTypes.MUSIC && collectionContent?.albums) {
+    singles = collectionContent.albums.filter((album) => {
+      const title = typeof album.title === 'string' ? album.title.toLowerCase() : '';
+      const isSingleTitle = title.includes('single') || title.includes('sigle');
+      const isShort = album.numberOfItems < 4;
+      return isSingleTitle || isShort;
+    });
+    normalAlbums = collectionContent.albums.filter((album) => {
+      const title = typeof album.title === 'string' ? album.title.toLowerCase() : '';
+      const isSingleTitle = title.includes('single') || title.includes('sigle');
+      const isShort = album.numberOfItems < 4;
+      return !(isSingleTitle || isShort);
+    });
+  }
+
+  const sectionsByKey: Record<CollectionSectionKey, CollectionSection> = {
     shows: {
       key: 'shows',
       title: t('shows'),
-      items: collection?.shows ?? [],
+      items: collectionContent?.series ?? [],
       itemType: 'series',
       aspectRatio: '2/3',
-      getTitle: (item) => ('name' in item ? item.name : ''),
-      getSubtitle: (item) => ('year' in item && item.year !== '' ? item.year : 'N/A'),
-      getImageSrc: (item) => item.coverSrc ?? '',
     },
     movies: {
       key: 'movies',
       title: t('movies'),
-      items: collection?.movies ?? [],
+      items: collectionContent?.movies ?? [],
       itemType: 'movie',
       aspectRatio: '2/3',
-      getTitle: (item) => ('name' in item ? item.name : ''),
-      getSubtitle: (item) =>
-        'year' in item && item.year !== '' ? item.year?.split('-')[0] : 'N/A',
-      getImageSrc: (item) => item.coverSrc ?? '',
     },
     albums: {
       key: 'albums',
       title: t('albums'),
-      items: collection?.albums ?? [],
+      items:
+        libraryType === LibraryTypes.MUSIC
+          ? normalAlbums
+          : collectionContent?.albums ?? [],
       itemType: 'album',
       aspectRatio: '1',
-      getTitle: (item) => ('title' in item ? item.title : ''),
-      getSubtitle: (item) => ('year' in item && item.year !== '' ? item.year : 'N/A'),
-      getImageSrc: (item) => item.coverSrc ?? '',
     },
   };
 
-  const orderedSections = getOrderedSectionKeys(libraryType)
-    .map((key) => sectionsByKey[key])
-    .filter((section) => section.items.length > 0);
+  // Add a section for singles if music library
+  const orderedSections: CollectionSection[] = (() => {
+    if (libraryType === LibraryTypes.MUSIC) {
+      // Always show singles first, then albums, then the rest
+      const singlesSection: CollectionSection = {
+        key: 'albums',
+        title: t('singles'),
+        items: singles,
+        itemType: 'album',
+        aspectRatio: '1',
+      };
+      // Only include section if there are singles
+      return [
+        ...(singles.length > 0 ? [singlesSection] : []),
+        ...getOrderedSectionKeys(libraryType)
+          .map((key) => sectionsByKey[key])
+          .filter((section) => section.items.length > 0),
+      ];
+    } else {
+      return getOrderedSectionKeys(libraryType)
+        .map((key) => sectionsByKey[key])
+        .filter((section) => section.items.length > 0);
+    }
+  })();
+
+  // (moved above, see new logic for orderedSections)
 
   const firstFocusedElementId = (() => {
     const firstSection = orderedSections[0];
@@ -203,16 +245,18 @@ function CollectionDetails({
                   <ContentCard
                     key={item.id}
                     customKey={`${section.key}-${item.id}`}
-                    title={section.getTitle(item)}
-                    subtitle={section.getSubtitle(item)}
-                    imgSrc={section.getImageSrc(item)}
+                    title={item.title}
+                    subtitle={item.years}
+                    imgSrc={item.coverSrc ?? ''}
                     width={'25vh'}
                     aspectRatio={section.aspectRatio}
                     onFocus={() => {
                       setFocusedElementId(`${section.key}-${item.id}`);
                     }}
                     action={() => {
-                      navigate(`/details/${section.itemType}/${item.id}`);
+                      navigate(`/details/${section.itemType}/${item.id}`, {
+                        state: { cachedDetails: item.details },
+                      });
                     }}
                   />
                 ))}

@@ -1,14 +1,17 @@
-import type { Album, Song } from '@seerial/domain';
+import { formatTime, type Album, type Song } from '@seerial/domain';
 import { useMusicStore } from '@seerial/stores';
 import { memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import NavigationButton from '@/components/navigation/NavigationButton';
 import Tertiary from '@/components/text/Tertiary';
 import FlexBox from '@/components/ui/FlexBox';
+import { shallow } from 'zustand/shallow';
+import AnimatedSoundBars from '@/features/music-player/animated-sound-bars';
 
 interface SongsListProps {
   album: Album;
   songs: Song[];
+  onSongFocus?: (songId: string) => void;
 }
 
 function getSafeDiscNumber(song: Song): number {
@@ -19,9 +22,13 @@ function getSafeTrackNumber(song: Song): number {
   return song.trackNumber > 0 ? song.trackNumber : Number.MAX_SAFE_INTEGER;
 }
 
-function SongsList({ album, songs }: SongsListProps) {
+function SongsList({ album, songs, onSongFocus }: SongsListProps) {
   const { t } = useTranslation();
-  const setPlaybackContext = useMusicStore((state) => state.setPlaybackContext);
+  const { currentSong, isPlaying, setPlaybackContext} = useMusicStore((state) => ({
+    currentSong: state.currentSong,
+    isPlaying: state.isPlaying,
+    setPlaybackContext: state.setPlaybackContext,
+  }), shallow);
 
   const sortedSongs = useMemo(
     () =>
@@ -57,7 +64,7 @@ function SongsList({ album, songs }: SongsListProps) {
   }
 
   return (
-    <FlexBox direction="column" gap={1} width="100%" className="pb-8">
+    <FlexBox direction="column" gap={1} width="100%" padding="0 4rem">
       {showTracksHeader ? (
         <>
           <Tertiary>{t('tracks')}</Tertiary>
@@ -68,10 +75,12 @@ function SongsList({ album, songs }: SongsListProps) {
               return (
                 <NavigationButton
                   key={song.id ?? `${song.title}-${song.fileSrc}`}
+                  customKey={song.id}
                   text={`${trackNumber}${song.title}`}
                   variant="ghost"
                   className="w-full justify-start"
                   onClick={() => setPlaybackContext(song, album, queue)}
+                  onFocus={() => song.id && onSongFocus?.(song.id)}
                 />
               );
             })}
@@ -90,16 +99,29 @@ function SongsList({ album, songs }: SongsListProps) {
                   {t('disc')} {discNumber}
                 </Tertiary>
                 {songsByDisc.map((song) => {
-                  const trackNumber = song.trackNumber > 0 ? `${song.trackNumber}. ` : '';
-
                   return (
                     <NavigationButton
                       key={song.id ?? `${song.title}-${song.fileSrc}`}
-                      text={`${trackNumber}${song.title}`}
-                      variant="ghost"
-                      className="w-full justify-start"
+                      customKey={song.id}
+                      className="w-full justify-start rounded-xl! py-10!"
                       onClick={() => setPlaybackContext(song, album, queue)}
-                    />
+                      onFocus={() => song.id && onSongFocus?.(song.id)}
+                    >
+                      <FlexBox justify='space-between' padding='0 1.5rem' width={'100%'}>
+                        <FlexBox gap={1.5}>
+                            <Tertiary className='text-current!'>{song.trackNumber}</Tertiary>
+                            {
+                              currentSong?.id === song.id ? (
+                                <AnimatedSoundBars isPlaying={isPlaying} />
+                              ) : null
+                            }
+                          <div>
+                          </div>
+                          <Tertiary className='text-current!'>{song.title}</Tertiary>
+                        </FlexBox>
+                        <Tertiary className='text-current!'>{song.duration ? formatTime(song.duration) : ''}</Tertiary>
+                      </FlexBox>
+                    </NavigationButton>
                   );
                 })}
               </FlexBox>

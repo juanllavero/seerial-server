@@ -13,6 +13,8 @@ interface NavigationScrollViewProps {
   scrollMode?: ScrollMode;
   focusedElementId?: string;
   isRestoringFocus?: boolean;
+  isFocusBoundary?: boolean;
+  focusBoundaryDirections?: ('left' | 'right' | 'up' | 'down')[];
 }
 
 const NavigationScrollView = ({
@@ -24,11 +26,15 @@ const NavigationScrollView = ({
   scrollMode = 'start',
   focusedElementId,
   isRestoringFocus = true,
+  isFocusBoundary = false,
+  focusBoundaryDirections,
 }: NavigationScrollViewProps) => {
   const { ref, focusKey } = useFocusable({
     trackChildren: true,
     focusKey: customFocusKey,
     saveLastFocusedChild: true,
+    isFocusBoundary,
+    focusBoundaryDirections,
   });
 
   const containerRef = useRef<HTMLDivElement | null>(null);

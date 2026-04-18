@@ -292,6 +292,7 @@ export const en = {
     collections: 'Collections',
     albums: 'Albums',
     tracks: 'Tracks',
+    singles: 'Singles',
     home: 'Home',
     noVideoFound: 'There is no video loaded',
     noMusicFound: 'There is no song loaded',

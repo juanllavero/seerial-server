@@ -299,7 +299,6 @@ function MusicPlayerControls({
                 customKey={NavigationFocusKeys.player.karaokeButton}
                 title={t('karaokeMix')}
                 hideText
-                variant="ghost"
                 selected={showKaraokeMixer || isKaraokeActive}
                 disabled={!isKaraokeReady}
                 onClick={toggleKaraokeMixer}
@@ -311,7 +310,6 @@ function MusicPlayerControls({
             <NavigationButton
               customKey={NavigationFocusKeys.player.optionsButton}
               hideText
-              variant="ghost"
             >
               <Ellipsis size={'2vh'} />
             </NavigationButton>
@@ -357,11 +355,10 @@ function MusicPlayerControls({
           </AnimatePresence>
 
           <FlexBox gap={1} width={'100%'} justify="space-between" align="center" className="pt-4">
-            <div className="flex">
+            <div className="flex gap-2">
               <NavigationButton
                 customKey={NavigationFocusKeys.player.playPauseButton}
                 hideText
-                variant="ghost"
                 onClick={togglePlayPause}
               >
                 {isPlaying ? <PauseIcon size={'2vh'} /> : <PlayIcon size={'2vh'} />}
@@ -369,7 +366,6 @@ function MusicPlayerControls({
               <NavigationButton
                 customKey={NavigationFocusKeys.player.closeButton}
                 hideText
-                variant="ghost"
                 onClick={handleStop}
               >
                 <SquareIcon size={'2vh'} />
@@ -381,8 +377,6 @@ function MusicPlayerControls({
                 customKey={NavigationFocusKeys.player.lyricsButton}
                 title={t('lyrics')}
                 hideText
-                variant="ghost"
-                selected={showLyrics}
                 disabled={isLyricsButtonDisabled}
                 onClick={() => {
                   if (showLyrics) {
@@ -392,14 +386,13 @@ function MusicPlayerControls({
                   setShowLyrics(!showLyrics);
                 }}
               >
-                <MicVocal size={'2dvh'} />
+                <MicVocal stroke={showLyrics ? 'var(--app-color)' : 'currentColor'} size={'2dvh'} />
               </NavigationButton>
               <div className="relative">
                 <NavigationButton
                   customKey={NavigationFocusKeys.player.lyricsOptionsButton}
                   title={t('lyricsOptions')}
                   hideText
-                  variant="ghost"
                   selected={isLyricsOptionsOpen}
                   disabled={isLyricsOptionsButtonDisabled || !hasLyrics}
                   onClick={() => {
@@ -444,7 +437,6 @@ function MusicPlayerControls({
               <NavigationButton
                 customKey={NavigationFocusKeys.player.openQueueButton}
                 hideText
-                variant="ghost"
                 selected={isQueueMenuOpen}
                 onClick={() => setIsQueueMenuOpen(true)}
               >

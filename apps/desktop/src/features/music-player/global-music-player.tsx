@@ -914,10 +914,10 @@ function GlobalMusicPlayer() {
       {isExpanded && (
         <motion.div
           key="global-music-player"
-          initial={{ x: '100%' }}
-          animate={{ x: 0 }}
-          exit={{ x: '100%' }}
-          transition={{ duration: 0.25, ease: 'easeInOut' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18, ease: 'easeInOut' }}
           className="fixed inset-0 z-120 bg-black"
         >
           <GradientBackground imageUrl={album?.coverSrc ?? ''} />
@@ -942,10 +942,10 @@ function GlobalMusicPlayer() {
                     {shouldShowLyricsPanel && (
                       <motion.div
                         key="lyrics-panel"
-                        initial={{ x: 64, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        exit={{ x: 64, opacity: 0 }}
-                        transition={{ duration: 0.25, ease: 'easeInOut' }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.18, ease: 'easeInOut' }}
                         className="absolute top-0 right-0 z-0 h-screen w-[63dvw] overflow-hidden"
                       >
                         <div className="h-full w-full overflow-hidden">

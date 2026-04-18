@@ -16,6 +16,7 @@ function CollectionDetailsPage() {
 
   return (
     <CollectionDetails
+      collectionId={collectionId ?? ''}
       collection={collection}
       libraryType={libraryType as LibraryType}
       isLoading={isLoading}
