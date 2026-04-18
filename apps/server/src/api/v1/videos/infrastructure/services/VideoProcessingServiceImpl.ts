@@ -192,12 +192,14 @@ export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
 					"Accept-Ranges": "bytes",
 					"Content-Length": chunkSize,
 					"Content-Type": contentType,
+					"Cross-Origin-Resource-Policy": "cross-origin",
 				});
 				file.pipe(res);
 			} else {
 				res.writeHead(200, {
 					"Content-Length": fileSize,
 					"Content-Type": "video/mp4",
+					"Cross-Origin-Resource-Policy": "cross-origin",
 				});
 				fs.createReadStream(sanitizedVideoPath).pipe(res);
 			}
