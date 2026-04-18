@@ -18,6 +18,7 @@ export interface LyricGroup {
     time: number;
     agent: 'v1' | 'v2';
     lines: LyricDisplayLine[];
+    backgroundVocals?: LyricSegment[];
 }
 
 function toTimeKey(time: number) {
@@ -142,9 +143,13 @@ export function buildLyricGroups(
         }
 
         const displayLines = buildDisplayLines(line, showPronunciation, showTranslation);
+        const backgroundVocals =
+            line.words?.backgroundVocals?.length
+                ? wordsToSegments(line.words.backgroundVocals)
+                : undefined;
 
         if (displayLines.length > 0) {
-            groups.push({ time: line.startTime, agent: line.agent, lines: displayLines });
+            groups.push({ time: line.startTime, agent: line.agent, lines: displayLines, backgroundVocals });
         }
     }
 

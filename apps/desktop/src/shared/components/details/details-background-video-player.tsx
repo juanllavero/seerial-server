@@ -21,6 +21,7 @@ function DetailsBackgroundVideoPlayer({
   const [videoSrc, setVideoSrc] = useState<string | null>(null);
   const isDisposedRef = useRef(false);
   const revealTimerRef = useRef<number | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const clearRevealTimer = useCallback(() => {
     if (revealTimerRef.current !== null) {
@@ -64,6 +65,9 @@ function DetailsBackgroundVideoPlayer({
   }, [clearRevealTimer, localId, onUnavailable, onVisibilityChange, serverUrl]);
 
   const handleCanPlay = useCallback(() => {
+    if (videoRef.current) {
+      videoRef.current.volume = 1;
+    }
     clearRevealTimer();
     revealTimerRef.current = window.setTimeout(() => {
       if (!isDisposedRef.current) {
@@ -82,22 +86,22 @@ function DetailsBackgroundVideoPlayer({
     if (!isDisposedRef.current) onUnavailable?.();
   }, [onUnavailable, onVisibilityChange]);
 
-  const mask = 'radial-gradient(closest-side at 60% 50%, black 30%, transparent 90%)';
+  const mask = 'radial-gradient(circle at 80% 50%, black 10%, transparent 90%)';
 
   if (!videoSrc) return null;
 
   return (
     <div
-      className="fixed top-0 right-0 h-screen w-[45%] z-0 pointer-events-none"
+      className="fixed top-0 right-0 h-screen w-auto z-0 pointer-events-none"
       style={{
         WebkitMaskImage: mask,
         maskImage: mask,
       }}
     >
       <video
+        ref={videoRef}
         src={videoSrc}
         autoPlay
-        muted
         playsInline
         className="h-full w-full object-cover"
         onCanPlay={handleCanPlay}

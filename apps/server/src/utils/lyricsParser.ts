@@ -91,6 +91,7 @@ interface TtmlBodyLine {
 	lineId: string;
 	agent: "v1" | "v2";
 	words: LyricWord[];
+	backgroundVocals: LyricWord[];
 }
 
 function xmlAttr(tag: string, attr: string): string | undefined {
@@ -98,16 +99,15 @@ function xmlAttr(tag: string, attr: string): string | undefined {
 	return m?.[1];
 }
 
-function parseSpans(content: string): LyricWord[] {
+/**
+ * Extracts `LyricWord[]` from a flat sequence of simple `<span begin end>text</span>` elements.
+ * Does NOT handle nested spans — call `parseSpans` for general TTML content.
+ */
+function extractSimpleSpanWords(content: string): LyricWord[] {
 	const words: LyricWord[] = [];
-
-	// Capture: (attrs)(inner text)(trailing text node between </span> and next tag)
 	for (const m of content.matchAll(/<span\b([^>]*)>([\s\S]*?)<\/span>([^<]*)/g)) {
 		const inner = m[2].replace(/\s+/g, " ").trim();
 		if (!inner) continue;
-		// Trailing text node holds the inter-span whitespace (e.g. " " between words).
-		// Collapse to at most one space and append it so "Revolved " stays "Revolved "
-		// while "a" followed by "round" (no whitespace node) stays "a".
 		const trailingSpace = /\s/.test(m[3]) ? " " : "";
 		const text = inner + trailingSpace;
 		const begin = xmlAttr(m[1], "begin");
@@ -122,6 +122,33 @@ function parseSpans(content: string): LyricWord[] {
 	return words;
 }
 
+/**
+ * Parses the span content of a `<p>` element.
+ *
+ * - Regular `<span begin end>text</span>` → `words`.
+ * - `<span ttm:role="x-bg">` containers (background/chorus phrases) → `backgroundVocals`.
+ *   Their inner timed spans are extracted with original timings so animations work.
+ */
+function parseSpans(content: string): {
+	words: LyricWord[];
+	backgroundVocals: LyricWord[];
+} {
+	const backgroundVocals: LyricWord[] = [];
+
+	// Match containers whose body consists exclusively of child <span> elements
+	// (i.e. no direct text), which is the shape of ttm:role="x-bg" blocks.
+	// [^<]* on child content prevents matching further-nested containers.
+	const BG_RE =
+		/<span\b([^>]*ttm:role="x-bg"[^>]*)>((?:\s*<span\b[^>]*>[^<]*<\/span>)*\s*)<\/span>/g;
+
+	const cleanedContent = content.replace(BG_RE, (_full, _attrs, inner: string) => {
+		backgroundVocals.push(...extractSimpleSpanWords(inner));
+		return "";
+	});
+
+	return { words: extractSimpleSpanWords(cleanedContent), backgroundVocals };
+}
+
 function parseTtmlBody(content: string): TtmlBodyLine[] {
 	const bodyM = /<body\b[^>]*>([\s\S]*?)<\/body>/.exec(content);
 	if (!bodyM) return [];
@@ -133,12 +160,14 @@ function parseTtmlBody(content: string): TtmlBodyLine[] {
 		const end = xmlAttr(m[1], "end");
 		const lineId = xmlAttr(m[1], "itunes:key");
 		if (!begin || !end || !lineId) continue;
+		const { words, backgroundVocals } = parseSpans(m[2]);
 		lines.push({
 			startTime: parseTtmlTime(begin),
 			endTime: parseTtmlTime(end),
 			lineId,
 			agent: xmlAttr(m[1], "ttm:agent") === "v2" ? "v2" : "v1",
-			words: parseSpans(m[2]),
+			words,
+			backgroundVocals,
 		});
 	}
 	return lines;
@@ -163,7 +192,7 @@ function parseTtmlPronunciation(content: string): Map<string, LyricWord[]> {
 	for (const m of firstM[1].matchAll(/<text\b([^>]*)>([\s\S]*?)<\/text>/g)) {
 		const lineRef = xmlAttr(m[1], "for");
 		if (!lineRef) continue;
-		const words = parseSpans(m[2]);
+		const { words } = parseSpans(m[2]);
 		if (words.length > 0) map.set(lineRef, words);
 	}
 	return map;
@@ -266,6 +295,7 @@ export function buildLyricsFromTtml(
 		const words: EnhancedLyricsLine = {
 			original: bl.words,
 			...(pronunciation?.length ? { pronunciation } : {}),
+			...(bl.backgroundVocals.length ? { backgroundVocals: bl.backgroundVocals } : {}),
 		};
 
 		result.push({

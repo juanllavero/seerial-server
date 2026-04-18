@@ -228,6 +228,7 @@ export interface PlainLyricsLine {
 export interface EnhancedLyricsLine {
     original: LyricWord[];
     pronunciation?: LyricWord[];
+    backgroundVocals?: LyricWord[];
 }
 
 export interface LyricWord {

@@ -396,6 +396,27 @@ function renderLyricLine(
   );
 }
 
+function renderBackgroundVocals(
+  segments: LyricSegment[],
+  isCurrentLine: boolean,
+  isPastLine: boolean,
+  lineActivationAudioTime: number | null,
+  lineActivationWallTime: number | null,
+  isV2 = false,
+) {
+  const sizeClass = 'text-[3.2vh] font-medium';
+  return (
+    <div
+      key="bg-vocals"
+      className={`flex max-w-[56dvw] flex-wrap items-end gap-y-[0.5vh] opacity-75 ${isV2 ? 'justify-end' : 'justify-start'}`}
+    >
+      {segments.map((segment) =>
+        renderEnhancedSegment(segment, sizeClass, isCurrentLine, isPastLine, lineActivationAudioTime, lineActivationWallTime),
+      )}
+    </div>
+  );
+}
+
 function LRCVisualizer({
   lyrics,
   isLoading,
@@ -544,6 +565,16 @@ function LRCVisualizer({
                           isV2,
                         ),
                       )}
+                  {group.backgroundVocals?.length
+                    ? renderBackgroundVocals(
+                        group.backgroundVocals,
+                        isCurrentLine,
+                        isPastLine,
+                        segActivationAudioTime,
+                        segActivationWallTime,
+                        isV2,
+                      )
+                    : null}
                 </div>
               </div>
             );
