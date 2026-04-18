@@ -1,3 +1,5 @@
+import { LibraryItem } from "@seerial/domain";
+
 export interface ReorderItemDTO {
 	id: string;
 	type: "movie" | "movies" | "series" | "show" | "shows" | "album" | "albums";
@@ -14,9 +16,9 @@ export interface ReorderContentDTO {
 }
 
 export interface CollectionContentDTO {
-	movies: import("@seerial/domain").LibraryItem[];
-	series: import("@seerial/domain").LibraryItem[];
-	albums: import("@seerial/domain").LibraryItem[];
+	movies: LibraryItem[];
+	series: LibraryItem[];
+	albums: LibraryItem[];
 }
 
 export interface UpdateCollectionDTO {

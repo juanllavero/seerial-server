@@ -2096,6 +2096,12 @@
 							"$ref": "#/components/schemas/LyricWord"
 						},
 						"type": "array"
+					},
+					"backgroundVocals": {
+						"items": {
+							"$ref": "#/components/schemas/LyricWord"
+						},
+						"type": "array"
 					}
 				},
 				"required": [
@@ -2821,6 +2827,135 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"ItemType": {
+				"type": "string",
+				"enum": [
+					"series",
+					"movie",
+					"album",
+					"collection"
+				]
+			},
+			"LibraryItem": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"years": {
+						"type": "string"
+					},
+					"coverSrc": {
+						"type": "string"
+					},
+					"backgroundSrc": {
+						"type": "string"
+					},
+					"numberOfItems": {
+						"type": "number",
+						"format": "double"
+					},
+					"order": {
+						"type": "number",
+						"format": "double"
+					},
+					"watched": {
+						"type": "boolean"
+					},
+					"remainingItems": {
+						"type": "number",
+						"format": "double"
+					},
+					"analyzingFiles": {
+						"type": "boolean"
+					},
+					"type": {
+						"$ref": "#/components/schemas/ItemType"
+					},
+					"details": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/DetailsData"
+							}
+						],
+						"nullable": true
+					}
+				},
+				"required": [
+					"id",
+					"title",
+					"numberOfItems",
+					"order",
+					"watched",
+					"remainingItems",
+					"analyzingFiles",
+					"type",
+					"details"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CollectionContentDTO": {
+				"properties": {
+					"movies": {
+						"items": {
+							"$ref": "#/components/schemas/LibraryItem"
+						},
+						"type": "array"
+					},
+					"series": {
+						"items": {
+							"$ref": "#/components/schemas/LibraryItem"
+						},
+						"type": "array"
+					},
+					"albums": {
+						"items": {
+							"$ref": "#/components/schemas/LibraryItem"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"movies",
+					"series",
+					"albums"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_CollectionContentDTO_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/CollectionContentDTO"
+							}
+						],
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"ReorderItemDTO": {
 				"properties": {
 					"id": {
@@ -3278,76 +3413,6 @@
 					"message",
 					"data",
 					"timestamp"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ItemType": {
-				"type": "string",
-				"enum": [
-					"series",
-					"movie",
-					"album",
-					"collection"
-				]
-			},
-			"LibraryItem": {
-				"properties": {
-					"id": {
-						"type": "string"
-					},
-					"title": {
-						"type": "string"
-					},
-					"years": {
-						"type": "string"
-					},
-					"coverSrc": {
-						"type": "string"
-					},
-					"backgroundSrc": {
-						"type": "string"
-					},
-					"numberOfItems": {
-						"type": "number",
-						"format": "double"
-					},
-					"order": {
-						"type": "number",
-						"format": "double"
-					},
-					"watched": {
-						"type": "boolean"
-					},
-					"remainingItems": {
-						"type": "number",
-						"format": "double"
-					},
-					"analyzingFiles": {
-						"type": "boolean"
-					},
-					"type": {
-						"$ref": "#/components/schemas/ItemType"
-					},
-					"details": {
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/DetailsData"
-							}
-						],
-						"nullable": true
-					}
-				},
-				"required": [
-					"id",
-					"title",
-					"numberOfItems",
-					"order",
-					"watched",
-					"remainingItems",
-					"analyzingFiles",
-					"type",
-					"details"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -6335,6 +6400,42 @@
 					}
 				},
 				"description": "Get music extras for a collection",
+				"tags": [
+					"Collections"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "collectionId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/collections/{collectionId}/content": {
+			"get": {
+				"operationId": "GetCollectionContent",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_CollectionContentDTO_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get collection content items (movies, series, albums)",
 				"tags": [
 					"Collections"
 				],

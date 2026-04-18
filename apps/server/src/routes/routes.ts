@@ -770,6 +770,7 @@ const models: TsoaRoute.Models = {
         "properties": {
             "original": {"dataType":"array","array":{"dataType":"refObject","ref":"LyricWord"},"required":true},
             "pronunciation": {"dataType":"array","array":{"dataType":"refObject","ref":"LyricWord"}},
+            "backgroundVocals": {"dataType":"array","array":{"dataType":"refObject","ref":"LyricWord"}},
         },
         "additionalProperties": false,
     },
@@ -1069,6 +1070,51 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "ItemType": {
+        "dataType": "refAlias",
+        "type": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["series"]},{"dataType":"enum","enums":["movie"]},{"dataType":"enum","enums":["album"]},{"dataType":"enum","enums":["collection"]}],"validators":{}},
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "LibraryItem": {
+        "dataType": "refObject",
+        "properties": {
+            "id": {"dataType":"string","required":true},
+            "title": {"dataType":"string","required":true},
+            "years": {"dataType":"string"},
+            "coverSrc": {"dataType":"string"},
+            "backgroundSrc": {"dataType":"string"},
+            "numberOfItems": {"dataType":"double","required":true},
+            "order": {"dataType":"double","required":true},
+            "watched": {"dataType":"boolean","required":true},
+            "remainingItems": {"dataType":"double","required":true},
+            "analyzingFiles": {"dataType":"boolean","required":true},
+            "type": {"ref":"ItemType","required":true},
+            "details": {"dataType":"union","subSchemas":[{"ref":"DetailsData"},{"dataType":"enum","enums":[null]}],"required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "CollectionContentDTO": {
+        "dataType": "refObject",
+        "properties": {
+            "movies": {"dataType":"array","array":{"dataType":"refObject","ref":"LibraryItem"},"required":true},
+            "series": {"dataType":"array","array":{"dataType":"refObject","ref":"LibraryItem"},"required":true},
+            "albums": {"dataType":"array","array":{"dataType":"refObject","ref":"LibraryItem"},"required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "ApiResponse_CollectionContentDTO_": {
+        "dataType": "refObject",
+        "properties": {
+            "success": {"dataType":"boolean","required":true},
+            "message": {"dataType":"string","required":true},
+            "data": {"dataType":"union","subSchemas":[{"ref":"CollectionContentDTO"},{"dataType":"enum","enums":[null]}],"required":true},
+            "timestamp": {"dataType":"string","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "ReorderItemDTO": {
         "dataType": "refObject",
         "properties": {
@@ -1235,30 +1281,6 @@ const models: TsoaRoute.Models = {
             "message": {"dataType":"string","required":true},
             "data": {"dataType":"union","subSchemas":[{"ref":"Library"},{"dataType":"enum","enums":[null]}],"required":true},
             "timestamp": {"dataType":"string","required":true},
-        },
-        "additionalProperties": false,
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "ItemType": {
-        "dataType": "refAlias",
-        "type": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["series"]},{"dataType":"enum","enums":["movie"]},{"dataType":"enum","enums":["album"]},{"dataType":"enum","enums":["collection"]}],"validators":{}},
-    },
-    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-    "LibraryItem": {
-        "dataType": "refObject",
-        "properties": {
-            "id": {"dataType":"string","required":true},
-            "title": {"dataType":"string","required":true},
-            "years": {"dataType":"string"},
-            "coverSrc": {"dataType":"string"},
-            "backgroundSrc": {"dataType":"string"},
-            "numberOfItems": {"dataType":"double","required":true},
-            "order": {"dataType":"double","required":true},
-            "watched": {"dataType":"boolean","required":true},
-            "remainingItems": {"dataType":"double","required":true},
-            "analyzingFiles": {"dataType":"boolean","required":true},
-            "type": {"ref":"ItemType","required":true},
-            "details": {"dataType":"union","subSchemas":[{"ref":"DetailsData"},{"dataType":"enum","enums":[null]}],"required":true},
         },
         "additionalProperties": false,
     },
@@ -3174,6 +3196,38 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
 
               await templateService.apiHandler({
                 methodName: 'getMusicExtras',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: undefined,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        const argsCollectionsController_getCollectionContent: Record<string, TsoaRoute.ParameterSchema> = {
+                collectionId: {"in":"path","name":"collectionId","required":true,"dataType":"string"},
+                req: {"in":"request","name":"req","required":true,"dataType":"object"},
+        };
+        app.get('/api/collections/:collectionId/content',
+            authenticateMiddleware([{"adminAuth":[]}]),
+            ...(fetchMiddlewares<RequestHandler>(CollectionsController)),
+            ...(fetchMiddlewares<RequestHandler>(CollectionsController.prototype.getCollectionContent)),
+
+            async function CollectionsController_getCollectionContent(request: ExRequest, response: ExResponse, next: any) {
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args: argsCollectionsController_getCollectionContent, request, response });
+
+                const controller = new CollectionsController();
+
+              await templateService.apiHandler({
+                methodName: 'getCollectionContent',
                 controller,
                 response,
                 next,
