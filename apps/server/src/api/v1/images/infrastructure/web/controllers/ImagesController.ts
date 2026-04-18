@@ -274,11 +274,15 @@ export class ImagesController extends Controller {
 				? "tall_animated_artwork.mp4"
 				: "square_animated_artwork.mp4";
 
-		const folderPath = fileSystemService.getExternalPath(
-			localPath.includes("resources/")
-				? localPath
-				: fileSystemService.join("resources", localPath),
-		);
+		const decodedLocalPath = decodeURIComponent(localPath);
+
+		const folderPath = nodePath.isAbsolute(decodedLocalPath)
+			? decodedLocalPath
+			: fileSystemService.getExternalPath(
+				decodedLocalPath.includes("resources/")
+					? decodedLocalPath
+					: fileSystemService.join("resources", decodedLocalPath),
+			);
 
 		const sanitizedFolder = sanitizeDirectoryPath(
 			folderPath,
