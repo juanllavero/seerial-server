@@ -17,6 +17,7 @@ import { CreateCollectionUseCase } from "@/api/v1/collections/application/usecas
 import { DeleteCollectionUseCase } from "@/api/v1/collections/application/usecases/DeleteCollectionUseCase";
 import { FindCollectionByIdUseCase } from "@/api/v1/collections/application/usecases/FindCollectionByIdUseCase";
 import { FindCollectionsInLibraryUseCase } from "@/api/v1/collections/application/usecases/FindCollectionsInLibraryUseCase";
+import { GetCollectionContentUseCase } from "@/api/v1/collections/application/usecases/GetCollectionContentUseCase";
 import { GetMusicExtrasUseCase } from "@/api/v1/collections/application/usecases/GetMusicExtrasUseCase";
 import { ReorderCollectionItemsUseCase } from "@/api/v1/collections/application/usecases/ReorderCollectionItemsUseCase";
 import { UpdateCollectionUseCase } from "@/api/v1/collections/application/usecases/UpdateCollectionUseCase";
@@ -217,6 +218,7 @@ export const useCases = {
 	getAllCollectionsInLibrary: () =>
 		new FindCollectionsInLibraryUseCase(collectionsRepo),
 	getCollectionById: () => new FindCollectionByIdUseCase(collectionsRepo),
+	getCollectionContent: () => new GetCollectionContentUseCase(librariesRepo),
 	addCollection: () => new CreateCollectionUseCase(collectionsRepo),
 	deleteCollection: () => new DeleteCollectionUseCase(collectionsRepo),
 	updateCollection: () => new UpdateCollectionUseCase(collectionsRepo),

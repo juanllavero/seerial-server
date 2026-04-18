@@ -1,3 +1,4 @@
+import type { Request as ExpressRequest } from "express";
 import {
 	Body,
 	Controller,
@@ -6,6 +7,7 @@ import {
 	Patch,
 	Path,
 	Post,
+	Request,
 	Route,
 	Security,
 	Tags,
@@ -13,7 +15,9 @@ import {
 import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
 import { messages } from "@/config/messages";
+import { getUserId } from "@/utils/auth";
 import type {
+	CollectionContentDTO,
 	MusicExtrasDTO,
 	ReorderContentDTO,
 	UpdateCollectionDTO,
@@ -27,14 +31,31 @@ export class CollectionsController extends Controller {
 	 * Get music extras for a collection
 	 */
 	@Get('{collectionId}/music-extras')
-  @Security('adminAuth')
-  public async getMusicExtras(
-    @Path() collectionId: string,
-  ): Promise<ApiResponse<MusicExtrasDTO[]>> {
-    const musicExtras = await useCases.getMusicExtras().execute(collectionId);
+	@Security('adminAuth')
+	public async getMusicExtras(
+		@Path() collectionId: string,
+	): Promise<ApiResponse<MusicExtrasDTO[]>> {
+		const musicExtras = await useCases.getMusicExtras().execute(collectionId);
 
-    return ApiResponse.success(musicExtras, messages.success.fetch);
-  }
+		return ApiResponse.success(musicExtras, messages.success.fetch);
+	}
+
+	/**
+	 * Get collection content items (movies, series, albums)
+	 */
+	@Get("{collectionId}/content")
+	@Security("adminAuth")
+	public async getCollectionContent(
+		@Path() collectionId: string,
+		@Request() req: ExpressRequest,
+	): Promise<ApiResponse<CollectionContentDTO>> {
+		const userId = getUserId(req);
+		const content = await useCases
+			.getCollectionContent()
+			.execute(collectionId, userId);
+
+		return ApiResponse.success(content, messages.success.fetch);
+	}
 
 	/**
 	 * Reorder items in a collection
@@ -56,11 +77,11 @@ export class CollectionsController extends Controller {
 	 * Get collection by ID
 	 */
 	@Get('{id}')
-  @Security('cookieAuth')
-  public async get(@Path() id: string): Promise<ApiResponse<Collection | null>> {
-    const collection = await useCases.getCollectionById().execute(id);
-    return ApiResponse.success(collection, messages.success.fetch);
-  }
+	@Security('cookieAuth')
+	public async get(@Path() id: string): Promise<ApiResponse<Collection | null>> {
+		const collection = await useCases.getCollectionById().execute(id);
+		return ApiResponse.success(collection, messages.success.fetch);
+	}
 
 	/**
 	 * Update collection details
@@ -80,10 +101,10 @@ export class CollectionsController extends Controller {
 	 * Delete a collection
 	 */
 	@Delete('{id}')
-  @Security('adminAuth')
-  public async delete(@Path() id: string): Promise<ApiResponse<null>> {
-    await useCases.deleteCollection().execute(id);
+	@Security('adminAuth')
+	public async delete(@Path() id: string): Promise<ApiResponse<null>> {
+		await useCases.deleteCollection().execute(id);
 
-    return ApiResponse.success(null, messages.success.delete);
-  }
+		return ApiResponse.success(null, messages.success.delete);
+	}
 }

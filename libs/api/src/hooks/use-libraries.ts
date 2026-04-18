@@ -124,6 +124,16 @@ export const useGetContinueWatching = <TResponse = ContinueWatching[]>(
 ): ApiQueryResult<TResponse> =>
     useApiQuery<TResponse>(['continueWatching', 'getVideos'], API.continueWatching.getVideos, options)
 
+export const useGetCollectionContent = <TResponse = unknown>(
+    collectionId: string,
+    options?: QueryHookOptions<TResponse>,
+): ApiQueryResult<TResponse> =>
+    useApiQuery<TResponse>(
+        ['collections', 'content', collectionId],
+        API.collections.content(collectionId),
+        options,
+    )
+
 export const useGetCollection = <TResponse = Collection>(
     collectionId: string,
     options?: QueryHookOptions<TResponse>,

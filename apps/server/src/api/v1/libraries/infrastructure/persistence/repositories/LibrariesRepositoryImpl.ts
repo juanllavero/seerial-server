@@ -3,7 +3,11 @@ import { type ItemType, type LibraryItem, LibraryTypes } from "@seerial/domain";
 import { v4 as uuidv4 } from "uuid";
 import { AlbumModel } from "@/api/v1/albums/infrastructure/persistence/models/AlbumModel";
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
+import type { CollectionContentDTO } from "@/api/v1/collections/application/dtos/CollectionDTOs";
 import type { CollectionModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionModel";
+import { CollectionAlbumModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionAlbum";
+import { CollectionMovieModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionMovie";
+import { CollectionSeriesModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionSeries";
 import { EpisodeModel } from "@/api/v1/episodes/infrastructure/persistence/models/EpisodeModel";
 import { MovieModel } from "@/api/v1/movies/infrastructure/persistence/models/MovieModel";
 import { SeasonModel } from "@/api/v1/seasons/infrastructure/persistence/models/SeasonModel";
@@ -37,8 +41,7 @@ type LibraryContentSource = {
 
 export class LibrariesRepositoryImpl
 	extends BaseRepository
-	implements LibrariesRepositoryPort
-{
+	implements LibrariesRepositoryPort {
 	// Generic helper for common CRUD operations
 	private helper: GenericRepositoryHelper<LibraryModel, Library>;
 
@@ -213,6 +216,66 @@ export class LibrariesRepositoryImpl
 		});
 
 		return sortedItems;
+	}
+
+	async getCollectionContent(
+		collectionId: string,
+		userId: string,
+	): Promise<CollectionContentDTO> {
+		const [collectionMovies, collectionSeries, collectionAlbums] =
+			await Promise.all([
+				CollectionMovieModel.find({
+					where: { collectionId },
+					relations: ["movie", "movie.watchLists", "movie.videos"],
+					relationLoadStrategy: "query",
+					order: { customOrder: "ASC" },
+				}),
+				CollectionSeriesModel.find({
+					where: { collectionId },
+					relations: [
+						"series",
+						"series.watchLists",
+						"series.seasons",
+						"series.seasons.episodes",
+						"series.seasons.episodes.watchLists",
+					],
+					relationLoadStrategy: "query",
+					order: { customOrder: "ASC" },
+				}),
+				CollectionAlbumModel.find({
+					where: { collectionId },
+					relations: ["album"],
+					relationLoadStrategy: "query",
+					order: { customOrder: "ASC" },
+				}),
+			]);
+
+		const movies = collectionMovies.map((cm) => cm.movie);
+		const series = collectionSeries.map((cs) => cs.series);
+		const albums = collectionAlbums.map((ca) => ca.album);
+
+		const emptySet = new Set<string>();
+
+		const [movieItems, seriesItems, albumItems] = await Promise.all([
+			this.buildMovieItems(
+				{ id: collectionId, type: LibraryTypes.MOVIES, movies },
+				emptySet,
+				userId,
+				undefined,
+			),
+			this.buildSeriesItems(
+				{ id: collectionId, type: LibraryTypes.SHOWS, series },
+				emptySet,
+				userId,
+				undefined,
+			),
+			this.buildAlbumItems(
+				{ id: collectionId, type: LibraryTypes.MUSIC, albums },
+				emptySet,
+			),
+		]);
+
+		return { movies: movieItems, series: seriesItems, albums: albumItems };
 	}
 
 	private getCollectionRelations(): string[] {

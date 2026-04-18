@@ -130,6 +130,7 @@ export const API = {
     },
     collections: {
         get: (id: string) => `/collections/${id}`,
+        content: (id: string) => `/collections/${id}/content`,
         musicExtras: (collectionId: string) => `/collections/${collectionId}/music-extras`,
         reorderContent: (id: string) => `/collections/${id}/items/order`,
         update: (id: string) => `/collections/${id}`,

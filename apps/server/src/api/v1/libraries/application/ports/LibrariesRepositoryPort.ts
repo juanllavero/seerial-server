@@ -1,4 +1,5 @@
 import type { LibraryItem } from "@seerial/domain";
+import type { CollectionContentDTO } from "@/api/v1/collections/application/dtos/CollectionDTOs";
 import type { Library } from "../../domain/Library";
 
 export interface LibrariesRepositoryPort {
@@ -8,6 +9,10 @@ export interface LibrariesRepositoryPort {
 		userId: string,
 		watched?: boolean,
 	): Promise<LibraryItem[]>;
+	getCollectionContent(
+		collectionId: string,
+		userId: string,
+	): Promise<CollectionContentDTO>;
 	getById(id: string): Promise<Library | null>;
 	getByAlbumId(albumId: string): Promise<Library | null>;
 	getByMovieId(movieId: string): Promise<Library | null>;

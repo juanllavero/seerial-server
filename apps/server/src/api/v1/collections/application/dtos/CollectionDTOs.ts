@@ -13,6 +13,12 @@ export interface ReorderContentDTO {
 	orderedItems: ReorderItemDTO[];
 }
 
+export interface CollectionContentDTO {
+	movies: import("@seerial/domain").LibraryItem[];
+	series: import("@seerial/domain").LibraryItem[];
+	albums: import("@seerial/domain").LibraryItem[];
+}
+
 export interface UpdateCollectionDTO {
 	title?: string;
 	description?: string;
