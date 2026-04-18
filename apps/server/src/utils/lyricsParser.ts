@@ -101,12 +101,15 @@ function xmlAttr(tag: string, attr: string): string | undefined {
 function parseSpans(content: string): LyricWord[] {
 	const words: LyricWord[] = [];
 
-	for (const m of content.matchAll(/<span\b([^>]*)>([\s\S]*?)<\/span>/g)) {
-		// trimStart only: preserve a trailing space so adjacent spans
-		// that share a word boundary (e.g. "a" + "round") have no gap
-		// while spans separated by a space (e.g. "Revolved ") keep it.
-		const text = m[2].replace(/\s+/g, " ").trimStart();
-		if (!text.trim()) continue;
+	// Capture: (attrs)(inner text)(trailing text node between </span> and next tag)
+	for (const m of content.matchAll(/<span\b([^>]*)>([\s\S]*?)<\/span>([^<]*)/g)) {
+		const inner = m[2].replace(/\s+/g, " ").trim();
+		if (!inner) continue;
+		// Trailing text node holds the inter-span whitespace (e.g. " " between words).
+		// Collapse to at most one space and append it so "Revolved " stays "Revolved "
+		// while "a" followed by "round" (no whitespace node) stays "a".
+		const trailingSpace = /\s/.test(m[3]) ? " " : "";
+		const text = inner + trailingSpace;
 		const begin = xmlAttr(m[1], "begin");
 		const end = xmlAttr(m[1], "end");
 		if (!begin || !end) continue;
