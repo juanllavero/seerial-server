@@ -17,8 +17,14 @@ export interface LyricDisplayLine {
 export interface LyricGroup {
     time: number;
     agent: 'v1' | 'v2';
+    /** Main content lines: original text and optional pronunciation. No translation. */
     lines: LyricDisplayLine[];
+    /** Synced background/chorus vocal segments (from TTML x-bg spans). */
     backgroundVocals?: LyricSegment[];
+    /** Translation text with parenthesized background-vocal content removed. */
+    translationText?: string;
+    /** Parenthesized content extracted from the translation line (no sync). */
+    translationBackgroundVocals?: string;
 }
 
 function toTimeKey(time: number) {
@@ -104,10 +110,22 @@ function buildPlainTextLines(
     }
 }
 
+/**
+ * Splits a translation string into the main text and the parenthesized background-vocal
+ * excerpt, if present. E.g. "Pero sin mí (Solo eres tú)" →
+ * { text: "Pero sin mí", backgroundVocals: "(Solo eres tú)" }
+ */
+function splitTranslation(raw: string): { text: string; backgroundVocals?: string } {
+    const match = /\(([^)]+)\)/.exec(raw);
+    if (!match) return { text: raw.trim() };
+    const backgroundVocals = raw.slice(match.index, match.index + match[0].length).trim();
+    const text = (raw.slice(0, match.index) + raw.slice(match.index + match[0].length)).trim();
+    return { text: text || '', backgroundVocals };
+}
+
 function buildDisplayLines(
     line: LyricsLine,
     showPronunciation: boolean,
-    showTranslation: boolean,
 ): LyricDisplayLine[] {
     const out: LyricDisplayLine[] = [];
 
@@ -115,10 +133,6 @@ function buildDisplayLines(
         buildEnhancedWordLines(line.words, showPronunciation, out);
     } else if (line.plainText) {
         buildPlainTextLines(line.plainText, showPronunciation, out);
-    }
-
-    if (showTranslation && line.translation) {
-        out.push({ text: line.translation, isEnhanced: false, segments: [] });
     }
 
     return out;
@@ -142,14 +156,29 @@ export function buildLyricGroups(
             continue;
         }
 
-        const displayLines = buildDisplayLines(line, showPronunciation, showTranslation);
+        const displayLines = buildDisplayLines(line, showPronunciation);
         const backgroundVocals =
             line.words?.backgroundVocals?.length
                 ? wordsToSegments(line.words.backgroundVocals)
                 : undefined;
 
+        let translationText: string | undefined;
+        let translationBackgroundVocals: string | undefined;
+        if (showTranslation && line.translation) {
+            const split = splitTranslation(line.translation);
+            translationText = split.text || undefined;
+            translationBackgroundVocals = split.backgroundVocals;
+        }
+
         if (displayLines.length > 0) {
-            groups.push({ time: line.startTime, agent: line.agent, lines: displayLines, backgroundVocals });
+            groups.push({
+                time: line.startTime,
+                agent: line.agent,
+                lines: displayLines,
+                backgroundVocals,
+                translationText,
+                translationBackgroundVocals,
+            });
         }
     }
 

@@ -29,6 +29,8 @@ import Loading from '@/shared/components/loading';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
 import QueueMenu from './queue-menu';
 
+const TEST_BACKGROUND_STYLE: 'classic' | 'background' = 'classic';
+
 const KARAOKE_MIX_MIN = -10;
 const KARAOKE_MIX_MAX = 10;
 const PLAYER_CONTROLS_AUTO_HIDE_MS = 5000;
@@ -42,7 +44,6 @@ interface KaraokeMixSliderProps {
 interface MusicPlayerControlsProps {
   t: (key: string) => string;
   renderSongInfo: () => ReactNode;
-  showBackgroundSongInfo: boolean;
   isExpanded: boolean;
   isShown: boolean;
   isPlaying: boolean;
@@ -148,7 +149,6 @@ function KaraokeLoadingIcon() {
 function MusicPlayerControls({
   t,
   renderSongInfo,
-  showBackgroundSongInfo,
   isExpanded,
   isShown,
   isPlaying,
@@ -290,7 +290,7 @@ function MusicPlayerControls({
           )}
 
           <div className="flex justify-center pb-4">
-            {!!showBackgroundSongInfo && renderSongInfo()}
+            {TEST_BACKGROUND_STYLE === 'background' && renderSongInfo()}
           </div>
 
           <div className="flex self-end justify-end">

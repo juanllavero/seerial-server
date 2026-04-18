@@ -41,10 +41,17 @@ function getGroupHeightWeight(group: LyricGroup) {
   const isWrapping = mainLineLength > 28; // If more than 28 characters, assume it takes 2 lines
 
   // Assign a base weight based on the amount of information
-  let weight = 1; // Original only
-  if (lineCount === 2) weight = 1.5; // Original + Translation (or Romaji)
-  if (lineCount >= 3) weight = 2.2; // Original + Romaji + Translation
+  let weight = 1.5; // Original only
+  if (lineCount === 2) weight = 1.5; // Original + Romaji
+  if (lineCount >= 3) weight = 2.2; // Original + Romaji + extra
 
+  // Aligned pronunciation pair (stacked original + romaji) needs extra room
+  if (group.lines[0]?.alignmentTrackWidths) weight += 0.8;
+
+  // Each extra row added outside of `lines` (bg vocals, translation, translated bg vocals)
+  if (group.backgroundVocals?.length) weight += 0.2;
+  if (group.translationText) weight += 0.3;
+  if (group.translationBackgroundVocals) weight += 0.6;
   // If the line is very long, give it extra space so it doesn’t clash with the one below
   if (isWrapping) weight += 0.6;
 
@@ -100,7 +107,7 @@ function getLyricsLineState(
     blurPx = 0;
     zIndex = 40;
     textClass = 'text-white';
-    groupClass = 'gap-[1.05vh]';
+    groupClass = 'gap-0';
   } else if (isPreviousLine) {
     offsetY = -PREVIOUS_LINE_EXIT_OFFSET_VH;
     opacity = 0;
@@ -387,7 +394,7 @@ function renderLyricLine(
   return (
     <div
       key={`${line.text}-${lineIndex}`}
-      className={`flex max-w-[56dvw] flex-wrap items-end gap-y-[0.5vh] ${isV2 ? 'justify-end' : 'justify-start'}`}
+      className={`flex max-w-[56dvw] flex-wrap items-end ${isV2 ? 'justify-end' : 'justify-start'}`}
     >
       {line.segments.map((segment) =>
         renderEnhancedSegment(segment, lineSizeClass, isCurrentLine, isPastLine, lineActivationAudioTime, lineActivationWallTime),
@@ -404,11 +411,11 @@ function renderBackgroundVocals(
   lineActivationWallTime: number | null,
   isV2 = false,
 ) {
-  const sizeClass = 'text-[3.2vh] font-medium';
+  const sizeClass = 'text-[3vh] font-medium';
   return (
     <div
       key="bg-vocals"
-      className={`flex max-w-[56dvw] flex-wrap items-end gap-y-[0.5vh] opacity-75 ${isV2 ? 'justify-end' : 'justify-start'}`}
+      className={`flex max-w-[56dvw] flex-wrap items-end opacity-75 ${isV2 ? 'justify-end' : 'justify-start'}`}
     >
       {segments.map((segment) =>
         renderEnhancedSegment(segment, sizeClass, isCurrentLine, isPastLine, lineActivationAudioTime, lineActivationWallTime),
@@ -575,6 +582,22 @@ function LRCVisualizer({
                         isV2,
                       )
                     : null}
+                  {group.translationText ? (
+                    <span
+                      key="translation"
+                      className={`bg-transparent px-[1vh] leading-[1.3] whitespace-normal wrap-break-word transition-all duration-300 ease-out ${textClass} ${getLineSizeClass(2)}`}
+                    >
+                      {group.translationText}
+                    </span>
+                  ) : null}
+                  {group.translationBackgroundVocals ? (
+                    <span
+                      key="translation-bg-vocals"
+                      className={`bg-transparent px-[1vh] leading-[1.5] whitespace-normal wrap-break-word opacity-75 transition-all duration-300 ease-out ${textClass} ${getLineSizeClass(2)}`}
+                    >
+                      {group.translationBackgroundVocals}
+                    </span>
+                  ) : null}
                 </div>
               </div>
             );

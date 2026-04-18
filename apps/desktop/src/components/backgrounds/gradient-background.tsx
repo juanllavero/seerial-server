@@ -81,13 +81,15 @@ const GradientBackground: React.FC<GradientBackgroundProps> = ({ imageUrl }) => 
       });
       filtersRef.current.twist.enabled = effectsRef.current.twist;
 
-      filtersRef.current.blur = new KawaseBlurFilter(60, 12, true); 
+      filtersRef.current.blur = new KawaseBlurFilter({
+        strength: 60, quality: 12, clamp: true
+      }); 
       filtersRef.current.blur.enabled = effectsRef.current.blur;
 
       app.stage.filters = [
         filtersRef.current.color, 
         filtersRef.current.twist, 
-        filtersRef.current.blur
+        filtersRef.current.blur,
       ];
 
       try {
@@ -110,7 +112,21 @@ const GradientBackground: React.FC<GradientBackgroundProps> = ({ imageUrl }) => 
             img.onload = resolve;
             img.onerror = reject;
           });
-          texture = PIXI.Texture.from(img);
+
+          // --- Downscale image using canvas before creating Pixi texture ---
+          const targetSize = 300; // px, you can adjust this value
+          const scale = Math.min(targetSize / img.width, targetSize / img.height, 1);
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            texture = PIXI.Texture.from(canvas);
+          } else {
+            // fallback if canvas context fails
+            texture = PIXI.Texture.from(img);
+          }
         }
         
         // --- Safety Lock: If React destroyed the component, 

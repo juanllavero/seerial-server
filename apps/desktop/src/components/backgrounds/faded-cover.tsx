@@ -1,38 +1,15 @@
-import { useGetAnimatedArtwork } from '@seerial/api';
-import { useServerStore } from '@seerial/stores';
-import { useEffect, useRef, useState } from 'react';
+
 import Image from '../ui/Image';
 
 interface FadedCoverProps {
   imageSrc?: string;
-  albumFolderPath?: string;
+  videoBlobUrl?: string | null;
+  videoRef?: React.RefObject<HTMLVideoElement | null>;
   className?: string;
 }
 
-const FadedCover = ({ imageSrc, albumFolderPath, className = '' }: FadedCoverProps) => {
-  if (!imageSrc && !albumFolderPath) return null;
-
-  const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [videoBlobUrl, setVideoBlobUrl] = useState<string | null>(null);
-
-  const { data: animatedBlob } = useGetAnimatedArtwork({
-    enabled: !!albumFolderPath && !!serverUrl,
-    params: albumFolderPath ? { localPath: albumFolderPath } : undefined,
-    queryKey: ['images', 'animatedArtwork', serverUrl, albumFolderPath],
-  });
-
-  useEffect(() => {
-    if (!animatedBlob) return;
-
-    const url = URL.createObjectURL(animatedBlob);
-    setVideoBlobUrl(url);
-
-    return () => {
-      URL.revokeObjectURL(url);
-      setVideoBlobUrl(null);
-    };
-  }, [animatedBlob]);
+const FadedCover = ({ imageSrc, videoBlobUrl, videoRef, className = '' }: FadedCoverProps) => {
+  if (!imageSrc && !videoBlobUrl) return null;
 
   const mask = 'radial-gradient(farthest-side at 40% 40%, black 30%, transparent 90%)';
 

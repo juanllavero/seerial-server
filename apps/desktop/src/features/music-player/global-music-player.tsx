@@ -9,16 +9,15 @@ import { useTranslation } from 'react-i18next';
 import { shallow } from 'zustand/shallow';
 import NavigationContainer from '@/components/navigation/NavigationContainer';
 import FlexBox from '@/components/ui/FlexBox';
-import Image from '@/components/ui/Image';
 import LRCVisualizer from '@/features/music-player/lrc-visualizer';
 import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
 import AnimatedSoundBars from './animated-sound-bars';
 import MusicPlayerControls from './music-player-controls';
 import GradientBackground from '@/components/backgrounds/gradient-background';
-import FadedCover from '@/components/backgrounds/faded-cover';
+import Artwork from './artwork';
 
-const TEST_BACKGROUND_STYLE: 'classic' | 'background' = 'background';
+const TEST_BACKGROUND_STYLE: 'classic' | 'background' = 'classic';
 
 const READY_POLL_INTERVAL_MS = 250;
 const LOAD_TIMEOUT_MS = 5000;
@@ -923,10 +922,6 @@ function GlobalMusicPlayer() {
         >
           <GradientBackground imageUrl={album?.coverSrc ?? ''} />
 
-          {TEST_BACKGROUND_STYLE === 'background' && (
-            <FadedCover imageSrc={album?.coverSrc ?? ''} albumFolderPath={album?.folder ?? ''} />
-          )}
-
           <NavigationContainer
             customFocusKey="music-player-overlay"
             className="relative h-full w-full overflow-hidden"
@@ -941,22 +936,7 @@ function GlobalMusicPlayer() {
                   justify="center"
                   className="relative overflow-hidden"
                 >
-                  {TEST_BACKGROUND_STYLE === 'classic' && (
-                    <div
-                      className="absolute top-0 left-0 z-1 flex h-screen items-center justify-center transition-[width] duration-300 ease-in-out"
-                      style={{ width: shouldShowLyricsPanel ? '45dvw' : '100%' }}
-                    >
-                      <FlexBox direction="column" gap={1} align="center">
-                        <Image
-                          url={album?.coverSrc ?? ''}
-                          className="rounded-3xl drop-shadow-2xl"
-                          width="50vh"
-                          height="50vh"
-                        />
-                        {renderSongInfo()}
-                      </FlexBox>
-                    </div>
-                  )}
+                  <Artwork imageSrc={album?.coverSrc} albumFolderPath={album?.folder} shouldShowLyricsPanel={shouldShowLyricsPanel} renderSongInfo={renderSongInfo} />
 
                   <AnimatePresence initial={false}>
                     {shouldShowLyricsPanel && (
@@ -985,7 +965,6 @@ function GlobalMusicPlayer() {
               <MusicPlayerControls
                 t={t}
                 renderSongInfo={renderSongInfo}
-                showBackgroundSongInfo={TEST_BACKGROUND_STYLE === 'background'}
                 isExpanded={isExpanded}
                 isShown={isShown}
                 isPlaying={isPlaying}
