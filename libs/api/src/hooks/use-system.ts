@@ -125,6 +125,38 @@ export const useGetImageColors = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
 ): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['images', 'colors'], API.images.colors, options)
 
+export const useGetAnimatedArtwork = (
+    options?: QueryHookOptions<Blob>,
+): ApiQueryResult<Blob> => {
+    const { enabled, params, queryKey: customQueryKey, ...queryOptions } = options ?? {}
+
+    const query = useQuery<Blob, Error>({
+        queryKey: customQueryKey ?? ['images', 'animatedArtwork', params],
+        queryFn: async () => {
+            const response = await apiClient.get<Blob>(API.images.animatedArtwork, {
+                params,
+                responseType: 'blob',
+            })
+
+            const contentType = response.headers['content-type']
+            if (typeof contentType !== 'string' || !contentType.startsWith('video/')) {
+                throw new Error('Animated artwork endpoint did not return a video')
+            }
+
+            return response.data
+        },
+        enabled: enabled ?? true,
+        retry: false,
+        ...queryOptions,
+    })
+
+    return {
+        ...query,
+        error: query.error ? getApiErrorMessage(query.error) : null,
+        mutate: () => query.refetch(),
+    }
+}
+
 export const useGetTransparentImage = (
     options?: QueryHookOptions<Blob>,
 ): ApiQueryResult<Blob> => {

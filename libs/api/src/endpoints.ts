@@ -117,6 +117,7 @@ export const API = {
         compressed: '/images/compressed',
         colors: '/images/colors',
         transparent: '/images/effects/transparent',
+        animatedArtwork: '/images/animated-artwork',
     },
     episodes: {
         get: (id: string) => `/episodes/${id}`,

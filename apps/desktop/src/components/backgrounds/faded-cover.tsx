@@ -1,12 +1,38 @@
+import { useGetAnimatedArtwork } from '@seerial/api';
+import { useServerStore } from '@seerial/stores';
+import { useEffect, useRef, useState } from 'react';
 import Image from '../ui/Image';
 
 interface FadedCoverProps {
   imageSrc?: string;
+  albumFolderPath?: string;
   className?: string;
 }
 
-const FadedCover = ({ imageSrc, className = '' }: FadedCoverProps) => {
-  if (!imageSrc) return null;
+const FadedCover = ({ imageSrc, albumFolderPath, className = '' }: FadedCoverProps) => {
+  if (!imageSrc && !albumFolderPath) return null;
+
+  const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoBlobUrl, setVideoBlobUrl] = useState<string | null>(null);
+
+  const { data: animatedBlob } = useGetAnimatedArtwork({
+    enabled: !!albumFolderPath && !!serverUrl,
+    params: albumFolderPath ? { localPath: albumFolderPath } : undefined,
+    queryKey: ['images', 'animatedArtwork', serverUrl, albumFolderPath],
+  });
+
+  useEffect(() => {
+    if (!animatedBlob) return;
+
+    const url = URL.createObjectURL(animatedBlob);
+    setVideoBlobUrl(url);
+
+    return () => {
+      URL.revokeObjectURL(url);
+      setVideoBlobUrl(null);
+    };
+  }, [animatedBlob]);
 
   const mask = 'radial-gradient(farthest-side at 40% 40%, black 30%, transparent 90%)';
 
@@ -19,10 +45,23 @@ const FadedCover = ({ imageSrc, className = '' }: FadedCoverProps) => {
           maskImage: mask,
         }}
       >
-        <Image url={imageSrc} alt="Cover Art" className="h-full w-full object-cover" />
+        {videoBlobUrl ? (
+          <video
+            ref={videoRef}
+            src={videoBlobUrl}
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="h-full w-full object-cover"
+          />
+        ) : imageSrc ? (
+          <Image url={imageSrc} alt="Cover Art" className="h-full w-full object-cover" />
+        ) : null}
       </div>
     </div>
   );
 };
 
 export default FadedCover;
+

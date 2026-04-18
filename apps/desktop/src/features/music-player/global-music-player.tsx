@@ -924,7 +924,7 @@ function GlobalMusicPlayer() {
           <GradientBackground imageUrl={album?.coverSrc ?? ''} />
 
           {TEST_BACKGROUND_STYLE === 'background' && (
-            <FadedCover imageSrc={album?.coverSrc ?? ''} />
+            <FadedCover imageSrc={album?.coverSrc ?? ''} albumFolderPath={album?.folder ?? ''} />
           )}
 
           <NavigationContainer

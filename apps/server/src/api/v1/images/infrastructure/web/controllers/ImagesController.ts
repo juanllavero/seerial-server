@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import nodePath from "node:path";
 import type { Request as ExpressRequest, Response } from "express";
 import {
@@ -25,6 +26,7 @@ import {
 } from "@/api/v1/shared/infrastructure/services/SanitizationService";
 import {
 	BadRequestException,
+	NotFoundException,
 	NotEnoughParamsException,
 } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
 import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
@@ -110,19 +112,19 @@ export class ImagesController extends Controller {
 	 * Get directory listing
 	 */
 	@Get()
-  @Security('cookieAuthFast')
-  public async getDirectoryListing(@Query() path: string): Promise<ApiResponse<unknown>> {
-    const imagesPath = path;
+	@Security('cookieAuthFast')
+	public async getDirectoryListing(@Query() path: string): Promise<ApiResponse<unknown>> {
+		const imagesPath = path;
 
-    const sanitizedPath = sanitizeDirectoryPath(
-      decodeURIComponent(imagesPath),
-      getSystemAllowedPaths(),
-      true,
-    );
+		const sanitizedPath = sanitizeDirectoryPath(
+			decodeURIComponent(imagesPath),
+			getSystemAllowedPaths(),
+			true,
+		);
 
-    const images = await imageProcessingService.getDirectoryListing(sanitizedPath);
-    return ApiResponse.success(images, messages.success.fetch);
-  }
+		const images = await imageProcessingService.getDirectoryListing(sanitizedPath);
+		return ApiResponse.success(images, messages.success.fetch);
+	}
 
 	/**
 	 * Get local image with optional resizing
@@ -140,10 +142,10 @@ export class ImagesController extends Controller {
 		const imagePath = nodePath.isAbsolute(path)
 			? path
 			: fileSystemService.getExternalPath(
-					path.includes("resources/")
-						? path
-						: fileSystemService.join("resources", path),
-				);
+				path.includes("resources/")
+					? path
+					: fileSystemService.join("resources", path),
+			);
 
 		const sanitizedPath = sanitizeImagePath(
 			imagePath,
@@ -198,10 +200,10 @@ export class ImagesController extends Controller {
 
 		const imageSource = localPath
 			? fileSystemService.getExternalPath(
-					localPath?.includes("resources/")
-						? localPath
-						: fileSystemService.join("resources", localPath ?? ""),
-				)
+				localPath?.includes("resources/")
+					? localPath
+					: fileSystemService.join("resources", localPath ?? ""),
+			)
 			: url;
 
 		const options = {
@@ -253,5 +255,70 @@ export class ImagesController extends Controller {
 
 		this.setHeader("Content-Type", "image/png");
 		return finalImageBuffer;
+	}
+
+	/**
+	 * Stream animated artwork (.mp4) for an album folder
+	 */
+	@Get("animated-artwork")
+	@Security("cookieAuthFast")
+	public async getAnimatedArtwork(
+		@Query() localPath: string,
+		@Query() variant?: "square" | "tall",
+		@Request() req?: ExpressRequest,
+	): Promise<void> {
+		const res = this.getResponseFromRequest(req);
+
+		const fileName =
+			variant === "tall"
+				? "tall_animated_artwork.mp4"
+				: "square_animated_artwork.mp4";
+
+		const folderPath = fileSystemService.getExternalPath(
+			localPath.includes("resources/")
+				? localPath
+				: fileSystemService.join("resources", localPath),
+		);
+
+		const sanitizedFolder = sanitizeDirectoryPath(
+			folderPath,
+			getSystemAllowedPaths(),
+			true,
+		);
+
+		const filePath = nodePath.join(sanitizedFolder, fileName);
+
+		try {
+			await fs.promises.access(filePath, fs.constants.F_OK);
+		} catch {
+			throw new NotFoundException();
+		}
+
+		const stat = await fs.promises.stat(filePath);
+		const fileSize = stat.size;
+		const range = (req as ExpressRequest | undefined)?.headers?.range;
+
+		if (range) {
+			const parts = range.replace(/bytes=/, "").split("-");
+			const start = Number.parseInt(parts[0], 10);
+			const end = parts[1] ? Number.parseInt(parts[1], 10) : fileSize - 1;
+			const chunkSize = end - start + 1;
+
+			res.writeHead(206, {
+				"Content-Range": `bytes ${start}-${end}/${fileSize}`,
+				"Accept-Ranges": "bytes",
+				"Content-Length": chunkSize,
+				"Content-Type": "video/mp4",
+			});
+
+			fs.createReadStream(filePath, { start, end }).pipe(res);
+		} else {
+			res.writeHead(200, {
+				"Content-Length": fileSize,
+				"Content-Type": "video/mp4",
+			});
+
+			fs.createReadStream(filePath).pipe(res);
+		}
 	}
 }
