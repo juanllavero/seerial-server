@@ -3644,6 +3644,39 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
             }
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        const argsImagesController_getAnimatedArtwork: Record<string, TsoaRoute.ParameterSchema> = {
+                localPath: {"in":"query","name":"localPath","required":true,"dataType":"string"},
+                variant: {"in":"query","name":"variant","dataType":"union","subSchemas":[{"dataType":"enum","enums":["square"]},{"dataType":"enum","enums":["tall"]}]},
+                req: {"in":"request","name":"req","dataType":"object"},
+        };
+        app.get('/api/images/animated-artwork',
+            authenticateMiddleware([{"cookieAuthFast":[]}]),
+            ...(fetchMiddlewares<RequestHandler>(ImagesController)),
+            ...(fetchMiddlewares<RequestHandler>(ImagesController.prototype.getAnimatedArtwork)),
+
+            async function ImagesController_getAnimatedArtwork(request: ExRequest, response: ExResponse, next: any) {
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args: argsImagesController_getAnimatedArtwork, request, response });
+
+                const controller = new ImagesController();
+
+              await templateService.apiHandler({
+                methodName: 'getAnimatedArtwork',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: undefined,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         const argsLibrariesController_getAll: Record<string, TsoaRoute.ParameterSchema> = {
         };
         app.get('/api/libraries',

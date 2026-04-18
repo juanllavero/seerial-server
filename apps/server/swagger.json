@@ -6997,6 +6997,47 @@
 				]
 			}
 		},
+		"/images/animated-artwork": {
+			"get": {
+				"operationId": "GetAnimatedArtwork",
+				"responses": {
+					"204": {
+						"description": "No content"
+					}
+				},
+				"description": "Stream animated artwork (.mp4) for an album folder",
+				"tags": [
+					"Images"
+				],
+				"security": [
+					{
+						"cookieAuthFast": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "localPath",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "variant",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"square",
+								"tall"
+							]
+						}
+					}
+				]
+			}
+		},
 		"/libraries": {
 			"get": {
 				"operationId": "GetAll",
