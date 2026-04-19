@@ -75,20 +75,27 @@ const extractColorsFromImage = async (background?: string) => {
 
 interface GradientState {
   selectedBackground: string;
+  gradientImageSrc: string;
   contentColors: string[];
   songColors: string[];
   selectBackground: (selectedBackground: string) => void;
+  setGradientImageSrc: (imageSrc: string) => void;
   restoreGradient: (isSong: boolean) => void;
   generateGradient: (background: string | undefined, isSong: boolean) => Promise<void>;
 }
 
 export const useGradientStore = createWithEqualityFn<GradientState>((set) => ({
   selectedBackground: '',
+  gradientImageSrc: '',
   contentColors: BLACK_GRADIENT,
   songColors: BLACK_GRADIENT,
 
   selectBackground: (selectedBackground) => {
     set({ selectedBackground });
+  },
+
+  setGradientImageSrc: (imageSrc) => {
+    set({ gradientImageSrc: imageSrc });
   },
 
   /**

@@ -10,13 +10,12 @@ import {
 	type LibraryType,
 	LibraryTypes,
 } from "@seerial/domain";
-import { useDataStore } from "@seerial/stores";
+import { useDataStore, useGradientStore } from "@seerial/stores";
 import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { shallow } from "zustand/shallow";
 import BackgroundImage from "@/components/backgrounds/BackgroundImage";
-import GradientBackground from "@/components/backgrounds/GradientBackground";
 import NavigationScrollView from "@/components/navigation/NavigationScrollView";
 import ListTitle from "@/components/text/ListTitle";
 import Subtitle from "@/components/text/Subtitle";
@@ -26,6 +25,7 @@ import Image from "@/components/ui/Image";
 import { useSettingsStore } from "@/features/settings/stores/settings.store";
 import Page from "@/shared/components/page";
 import { useKeyboardBack } from "@/shared/hooks/use-keyboard-back";
+import { NavigationFocusKeys } from "@/shared/navigation/constants";
 import ContentCard from "@/shared/ui/card";
 import MusicExtraCard from "./music-extra-card";
 
@@ -81,6 +81,9 @@ function CollectionDetails({
 }: CollectionDetailsProps) {
 	const { t } = useTranslation();
 	const navigate = useNavigate();
+	const setGradientImageSrc = useGradientStore(
+		(state) => state.setGradientImageSrc,
+	);
 	const { lastFocusedElementId, setLastFocusedElementId } = useDataStore(
 		(s) => ({
 			lastFocusedElementId: s.lastFocusedElementId,
@@ -244,16 +247,25 @@ function CollectionDetails({
 	const imageWidth = libraryType === LibraryTypes.MUSIC ? "45vh" : "45vh";
 	const imageHeight = libraryType === LibraryTypes.MUSIC ? "45vh" : "68vh";
 
+	useEffect(() => {
+		const src =
+			details?.coverSrc ??
+			collection?.coverSrc ??
+			collection?.backgroundSrc ??
+			"";
+		setGradientImageSrc(src);
+		return () => setGradientImageSrc("");
+	}, [
+		details?.coverSrc,
+		collection?.coverSrc,
+		collection?.backgroundSrc,
+		setGradientImageSrc,
+	]);
+
 	if (!isLoading && !collection) return <span>Collection not found</span>;
 
 	return (
 		<Page direction="row" align="end" justify="end" padding="0" gap={0}>
-			<GradientBackground
-				imageSrc={
-					details?.coverSrc ?? collection?.coverSrc ?? collection?.backgroundSrc
-				}
-				index={0}
-			/>
 			<BackgroundImage
 				imageSrc={
 					details?.backgroundSrc ??
@@ -295,7 +307,7 @@ function CollectionDetails({
 				focusedElementId={lastFocusedElementId}
 				isRestoringFocus={isScrollRestoring}
 			>
-				{orderedSections.map((section) => (
+				{orderedSections.map((section, sectionIndex) => (
 					<FlexBox
 						key={section.key}
 						direction="column"
@@ -324,6 +336,16 @@ function CollectionDetails({
 									onFocus={() => {
 										setLastFocusedElementId(`${section.key}-${item.id}`);
 									}}
+									onArrowPress={
+										sectionIndex === 0
+											? (direction) => {
+													if (direction === "up") {
+														setFocus(NavigationFocusKeys.topBar.container);
+														return true;
+													}
+												}
+											: undefined
+									}
 									action={() => {
 										navigate(`/details/${section.itemType}/${item.id}`, {
 											state: { cachedDetails: item.details },
@@ -362,7 +384,7 @@ function CollectionDetails({
 									onFocus={() => setLastFocusedElementId(`extra-${index}`)}
 									action={() =>
 										navigate(
-											`/video-player/file?path=${encodeURIComponent(extra.src)}&title=${encodeURIComponent(extra.title)}`,
+											`/video-player/file?path=${encodeURIComponent(extra.src)}&title=${encodeURIComponent(`${collection?.title ? `${collection.title} - ` : ""}${extra.title}`)}`,
 										)
 									}
 								/>

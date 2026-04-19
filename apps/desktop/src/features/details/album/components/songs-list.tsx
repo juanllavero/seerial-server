@@ -11,6 +11,7 @@ import AnimatedSoundBars from "@/features/music-player/animated-sound-bars";
 interface SongsListProps {
 	album: Album;
 	songs: Song[];
+	focusedSongId?: string;
 	onSongFocus?: (songId: string) => void;
 }
 
@@ -22,7 +23,12 @@ function getSafeTrackNumber(song: Song): number {
 	return song.trackNumber > 0 ? song.trackNumber : Number.MAX_SAFE_INTEGER;
 }
 
-function SongsList({ album, songs, onSongFocus }: SongsListProps) {
+function SongsList({
+	album,
+	songs,
+	focusedSongId,
+	onSongFocus,
+}: SongsListProps) {
 	const { t } = useTranslation();
 	const { currentSong, isPlaying, setPlaybackContext } = useMusicStore(
 		(state) => ({
@@ -90,13 +96,25 @@ function SongsList({ album, songs, onSongFocus }: SongsListProps) {
 										padding="0 1.5rem"
 										width={"100%"}
 									>
-										<FlexBox gap={1.5}>
-											<Tertiary className="text-current!">
-												{song.trackNumber}
-											</Tertiary>
-											{currentSong?.id === song.id ? (
-												<AnimatedSoundBars isPlaying={isPlaying} />
-											) : null}
+										<FlexBox
+											gap={1.5}
+											items="center"
+											justify="center"
+											className="relative"
+										>
+											<FlexBox justify="center" items="center" width={"1dvh"}>
+												{currentSong?.id === song.id ? (
+													<AnimatedSoundBars
+														isPlaying={true}
+														isSelected={focusedSongId === song.id}
+														translate={false}
+													/>
+												) : (
+													<Tertiary className="text-current!">
+														{song.trackNumber}
+													</Tertiary>
+												)}
+											</FlexBox>
 											<div></div>
 											<Tertiary className="text-current!">
 												{song.title}

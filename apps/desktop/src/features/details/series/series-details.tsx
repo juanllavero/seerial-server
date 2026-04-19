@@ -136,7 +136,12 @@ function SeriesDetails({ series, isLoading, details }: SeriesDetailsProps) {
 	if (!isLoading && !series) return <span>Series not found</span>;
 
 	return (
-		<Page justify="end" padding="0">
+		<Page
+			justify="end"
+			padding={
+				series?.seasons && series?.seasons.length > 1 ? "0" : "0 0 5dvh 0"
+			}
+		>
 			{!!series?.id && (
 				<DetailsBackgroundPlayback
 					audioLocalIds={[selectedSeason?.id, series.id]}

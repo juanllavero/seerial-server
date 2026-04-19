@@ -1,10 +1,9 @@
 import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import { type LibraryItem, LibraryTypes } from "@seerial/domain";
-import { useDataStore } from "@seerial/stores";
+import { useDataStore, useGradientStore } from "@seerial/stores";
 import { memo, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { shallow } from "zustand/shallow";
-import GradientBackground from "@/components/backgrounds/GradientBackground";
 import NavigationGridView from "@/components/navigation/NavigationGridView";
 import { LibraryContentItemType } from "@/data/enums/enums";
 import { useSettingsStore } from "@/features/settings/stores/settings.store";
@@ -32,6 +31,13 @@ function LibraryContent({
 	isRestoringFocus = true,
 }: LibraryContentProps) {
 	const navigate = useNavigate();
+	const setGradientImageSrc = useGradientStore(
+		(state) => state.setGradientImageSrc,
+	);
+
+	useEffect(() => {
+		setGradientImageSrc(selectedElement?.coverSrc ?? "");
+	}, [selectedElement?.coverSrc, setGradientImageSrc]);
 	const itemsPerRow = useSettingsStore((s) => s.settings.cardsPerRow);
 	const isMusicLibrary = libraryType === LibraryTypes.MUSIC;
 	const finalItemsPerRow = isMusicLibrary ? itemsPerRow - 1 : itemsPerRow; // Music libraries have smaller cards, so we can fit more in the same space.
@@ -58,7 +64,6 @@ function LibraryContent({
 
 	return (
 		<Page padding="0 4dvh">
-			<GradientBackground imageSrc={selectedElement?.coverSrc} index={0} />
 			<NavigationGridView
 				className="z-10 flex-1 gap-5 content-start pt-[2dvh] pb-[4dvh]"
 				style={{ gap: `${GRID_GAP_REM}rem` }}

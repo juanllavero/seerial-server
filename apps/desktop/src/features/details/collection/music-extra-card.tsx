@@ -28,6 +28,7 @@ function MusicExtraCard({
 }: MusicExtraCardProps) {
 	const serverUrl = useServerStore((state) => state.selectedServer?.url ?? "");
 	const [thumbnail, setThumbnail] = useState<string | null>(null);
+	const [isVisible, setIsVisible] = useState(false);
 	const videoRef = useRef<HTMLVideoElement | null>(null);
 
 	const { ref, focused } = useFocusable({
@@ -40,6 +41,27 @@ function MusicExtraCard({
 	}, [focused, onFocus]);
 
 	useEffect(() => {
+		const el = ref.current as Element | null;
+		if (!el) return;
+
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (entry.isIntersecting) {
+					setIsVisible(true);
+					observer.disconnect();
+				}
+			},
+			{ threshold: 0.1 },
+		);
+
+		observer.observe(el);
+
+		return () => observer.disconnect();
+	}, [ref]);
+
+	useEffect(() => {
+		if (!isVisible) return;
+
 		let cancelled = false;
 
 		async function generateThumbnail() {
@@ -98,7 +120,7 @@ function MusicExtraCard({
 				videoRef.current.src = "";
 			}
 		};
-	}, [src, serverUrl]);
+	}, [src, serverUrl, isVisible]);
 
 	return (
 		<FlexBox

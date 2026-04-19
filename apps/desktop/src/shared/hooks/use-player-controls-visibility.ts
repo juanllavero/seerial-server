@@ -7,6 +7,7 @@ const COMPACT_CONTROLS_TIMEOUT_MS = 1500;
 
 const BACK_KEYS = new Set(['Escape', 'Backspace', 'Delete']);
 const SEEK_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
+const PLAY_PAUSE_KEYS = new Set([' ']);
 const RESERVED_PLAYER_KEYS = new Set(['i']);
 const VOLUME_KEYS = new Set(['+', '-']);
 
@@ -26,11 +27,15 @@ function shouldIgnoreKeyDown(event: KeyboardEvent) {
 interface UsePlayerControlsVisibilityOptions {
     isTimelineFocused: boolean;
     enabled?: boolean;
+    onTogglePlayPause?: () => void;
+    onResumeIfPaused?: () => void;
 }
 
 export function usePlayerControlsVisibility({
     isTimelineFocused,
     enabled = true,
+    onTogglePlayPause,
+    onResumeIfPaused,
 }: UsePlayerControlsVisibilityOptions) {
     const [mode, setMode] = useState<ControlsMode>('hidden');
     const hideTimeoutRef = useRef<number | null>(null);
@@ -81,30 +86,47 @@ export function usePlayerControlsVisibility({
 
     const handleHiddenKey = useCallback(
         (key: string) => {
+            if (PLAY_PAUSE_KEYS.has(key)) {
+                onTogglePlayPause?.();
+                return;
+            }
             if (SEEK_KEYS.has(key)) {
+                onResumeIfPaused?.();
                 setMode('compact');
                 scheduleHide(COMPACT_CONTROLS_TIMEOUT_MS);
             } else {
                 showFull();
             }
         },
-        [showFull, scheduleHide],
+        [showFull, scheduleHide, onTogglePlayPause, onResumeIfPaused],
     );
 
     const handleCompactKey = useCallback(
         (key: string) => {
+            if (PLAY_PAUSE_KEYS.has(key)) {
+                onTogglePlayPause?.();
+                return;
+            }
             if (SEEK_KEYS.has(key)) {
                 scheduleHide(COMPACT_CONTROLS_TIMEOUT_MS);
             } else {
                 showFull();
             }
         },
-        [showFull, scheduleHide],
+        [showFull, scheduleHide, onTogglePlayPause],
     );
 
     const handleFullKey = useCallback(
         (key: string) => {
-            if (key === 'ArrowUp' && !isTimelineFocused) {
+            if (PLAY_PAUSE_KEYS.has(key)) {
+                // Only handle space in full mode when timeline is NOT focused;
+                // when focused, the timeline's own shortcut handler takes care of it.
+                if (!isTimelineFocused) {
+                    onTogglePlayPause?.();
+                }
+                return;
+            }
+            if (key === 'ArrowUp') {
                 hide();
                 return;
             }
@@ -113,7 +135,7 @@ export function usePlayerControlsVisibility({
                 scheduleHide(FULL_CONTROLS_TIMEOUT_MS);
             }
         },
-        [isTimelineFocused, hide, scheduleHide],
+        [isTimelineFocused, hide, scheduleHide, onTogglePlayPause],
     );
 
     useEffect(() => {

@@ -1,8 +1,7 @@
 import type { Library } from "@seerial/domain";
-import { useDataStore } from "@seerial/stores";
+import { useDataStore, useGradientStore } from "@seerial/stores";
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router";
-import GradientBackground from "@/components/backgrounds/GradientBackground";
 import NavigationScrollView from "@/components/navigation/NavigationScrollView";
 import Page from "@/shared/components/page";
 import LibraryContentList from "./components/library-content-list";
@@ -21,9 +20,11 @@ function ToSee({ moviesLibraries, seriesLibraries }: ToSeeProps) {
 	const lastFocusIdRef = useRef<string | undefined>(undefined);
 	const isFirstLoadRef = useRef(true);
 	const [isRestoringFocus, setIsRestoringFocus] = useState(true);
-	const [selectedElementBackground, setSelectedElementBackground] = useState<
-		string | undefined
-	>(undefined);
+	const setGradientImageSrc = useGradientStore(
+		(state) => state.setGradientImageSrc,
+	);
+	const handleSelectBackground = (src: string | undefined) =>
+		setGradientImageSrc(src ?? "");
 
 	useEffect(() => {
 		if (
@@ -50,7 +51,6 @@ function ToSee({ moviesLibraries, seriesLibraries }: ToSeeProps) {
 
 	return (
 		<Page padding="0">
-			<GradientBackground imageSrc={selectedElementBackground} index={0} />
 			{moviesLibraries.length === 0 && seriesLibraries.length === 0 ? (
 				"Congratulations! You have nothing left to watch."
 			) : (
@@ -70,7 +70,7 @@ function ToSee({ moviesLibraries, seriesLibraries }: ToSeeProps) {
 								watched={false}
 								focusedElementId={lastFocusedElementId}
 								isRestoringFocus={isRestoringFocus}
-								selectBackground={setSelectedElementBackground}
+								selectBackground={handleSelectBackground}
 							/>
 						))}
 					{seriesLibraries.length > 0 &&
@@ -82,7 +82,7 @@ function ToSee({ moviesLibraries, seriesLibraries }: ToSeeProps) {
 								watched={false}
 								focusedElementId={lastFocusedElementId}
 								isRestoringFocus={isRestoringFocus}
-								selectBackground={setSelectedElementBackground}
+								selectBackground={handleSelectBackground}
 							/>
 						))}
 				</NavigationScrollView>

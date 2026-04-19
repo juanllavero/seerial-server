@@ -19,5 +19,7 @@
       "title": "Seerial Server",
       "pattern": "C:/Users/Admin/Documents/Projects/seerial-server/apps/server/logs/app.log"
     }
-  ]
+  ],
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true
 }
