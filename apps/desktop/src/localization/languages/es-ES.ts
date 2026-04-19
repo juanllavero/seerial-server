@@ -296,6 +296,7 @@ export const es = {
     albums: 'Álbumes',
     tracks: 'Pistas',
     singles: 'Sencillos',
+    extras: 'Extras',
     home: 'Inicio',
     noVideoFound: 'No hay ningún vídeo cargado',
     noMusicFound: 'No hay ninguna canción cargada',

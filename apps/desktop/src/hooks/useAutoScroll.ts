@@ -33,6 +33,8 @@ function calculateTopModeScroll(
     return Math.min(elementOffsetTop, maxScroll);
 }
 
+const CENTER_SCROLL_TOLERANCE = 80;
+
 function calculateCenterModeScroll(
     focusedElement: HTMLElement,
     container: HTMLDivElement,
@@ -50,7 +52,15 @@ function calculateCenterModeScroll(
     // Clamp to valid range
     targetScrollTop = Math.max(0, targetScrollTop);
     const maxScroll = scrollHeight - containerHeight;
-    return Math.min(targetScrollTop, maxScroll);
+    targetScrollTop = Math.min(targetScrollTop, maxScroll);
+
+    // Skip scroll if already within tolerance, but not when at a boundary (first/last item)
+    const isAtBoundary = targetScrollTop === 0 || targetScrollTop === maxScroll;
+    if (!isAtBoundary && Math.abs(container.scrollTop - targetScrollTop) <= CENTER_SCROLL_TOLERANCE) {
+        return container.scrollTop;
+    }
+
+    return targetScrollTop;
 }
 
 function calculateHorizontalStartModeScroll(
@@ -89,7 +99,15 @@ function calculateHorizontalCenterModeScroll(
 
     targetScrollLeft = Math.max(0, targetScrollLeft);
     const maxScroll = scrollWidth - containerWidth;
-    return Math.min(targetScrollLeft, maxScroll);
+    targetScrollLeft = Math.min(targetScrollLeft, maxScroll);
+
+    // Skip scroll if already within tolerance, but not when at a boundary (first/last item)
+    const isAtBoundary = targetScrollLeft === 0 || targetScrollLeft === maxScroll;
+    if (!isAtBoundary && Math.abs(container.scrollLeft - targetScrollLeft) <= CENTER_SCROLL_TOLERANCE) {
+        return container.scrollLeft;
+    }
+
+    return targetScrollLeft;
 }
 
 function findFocusedElement(
