@@ -360,6 +360,11 @@ function CollectionDetails({
 									subtitle={extra.type}
 									width="30vh"
 									onFocus={() => setLastFocusedElementId(`extra-${index}`)}
+									action={() =>
+										navigate(
+											`/video-player/file?path=${encodeURIComponent(extra.src)}&title=${encodeURIComponent(extra.title)}`,
+										)
+									}
 								/>
 							))}
 						</NavigationScrollView>

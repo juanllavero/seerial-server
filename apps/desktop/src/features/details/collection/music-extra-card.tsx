@@ -3,6 +3,7 @@ import {
 	useFocusable,
 } from "@noriginmedia/norigin-spatial-navigation";
 import { getSignedVideoStreamUrlPassthrough } from "@seerial/api";
+import { useServerStore } from "@seerial/stores";
 import { memo, useEffect, useRef, useState } from "react";
 import FlexBox from "@/components/ui/FlexBox";
 
@@ -25,6 +26,7 @@ function MusicExtraCard({
 	onFocus,
 	action,
 }: MusicExtraCardProps) {
+	const serverUrl = useServerStore((state) => state.selectedServer?.url ?? "");
 	const [thumbnail, setThumbnail] = useState<string | null>(null);
 	const videoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -50,7 +52,7 @@ function MusicExtraCard({
 			video.crossOrigin = "anonymous";
 			video.preload = "metadata";
 			video.muted = true;
-			video.src = signedUrl;
+			video.src = `${serverUrl}${signedUrl}`;
 
 			video.addEventListener(
 				"loadeddata",
@@ -96,7 +98,7 @@ function MusicExtraCard({
 				videoRef.current.src = "";
 			}
 		};
-	}, [src]);
+	}, [src, serverUrl]);
 
 	return (
 		<FlexBox
