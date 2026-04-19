@@ -200,7 +200,7 @@ export class LibrariesRepositoryImpl
 			},
 			() =>
 				[...collectionItems, ...standaloneItems].sort(
-					(a, b) => a.order - b.order,
+					(a, b) => a.order - b.order || a.title.localeCompare(b.title),
 				),
 		);
 

@@ -7,8 +7,7 @@ import { AlbumModel } from "../models/AlbumModel";
 
 export class AlbumsRepositoryImpl
 	extends BaseRepository
-	implements AlbumsRepositoryPort
-{
+	implements AlbumsRepositoryPort {
 	// Generic helper for common CRUD operations
 	private helper: GenericRepositoryHelper<AlbumModel, Album>;
 
@@ -54,6 +53,10 @@ export class AlbumsRepositoryImpl
 	async delete(id: string): Promise<void> {
 		const validatedId = this.validateId(id, "Album ID");
 		return this.helper.delete(validatedId);
+	}
+
+	async findByFolder(folder: string): Promise<Album | null> {
+		return this.helper.findByField("folder", folder);
 	}
 
 	async addArtistToAlbum(

@@ -6,6 +6,7 @@ export interface AlbumsRepositoryPort {
 	create(album: Partial<Album>): Promise<Album>;
 	update(id: string, album: Partial<Album>): Promise<Album>;
 	delete(id: string): Promise<void>;
+	findByFolder(folder: string): Promise<Album | null>;
 	addArtistToAlbum(
 		artistId: string,
 		albumId: string,

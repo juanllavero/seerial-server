@@ -22,7 +22,7 @@ import type {
 	ReorderContentDTO,
 	UpdateCollectionDTO,
 } from "../../../application/dtos/CollectionDTOs";
-import { Collection } from "@seerial/domain";
+import type { Collection } from "@seerial/domain";
 
 @Route("collections")
 @Tags("Collections")

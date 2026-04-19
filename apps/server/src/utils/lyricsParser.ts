@@ -92,6 +92,8 @@ interface TtmlBodyLine {
 	agent: "v1" | "v2";
 	words: LyricWord[];
 	backgroundVocals: LyricWord[];
+	/** Populated when the line has no word-level spans (line-timed TTML). */
+	text?: string;
 }
 
 function xmlAttr(tag: string, attr: string): string | undefined {
@@ -161,13 +163,18 @@ function parseTtmlBody(content: string): TtmlBodyLine[] {
 		const lineId = xmlAttr(m[1], "itunes:key");
 		if (!begin || !end || !lineId) continue;
 		const { words, backgroundVocals } = parseSpans(m[2]);
+		const plainText =
+			words.length === 0
+				? m[2].replace(/<[^>]+>/g, "").trim() || undefined
+				: undefined;
 		lines.push({
 			startTime: parseTtmlTime(begin),
 			endTime: parseTtmlTime(end),
 			lineId,
-			agent: xmlAttr(m[1], "ttm:agent") === "v2" ? "v2" : "v1",
+			agent: (xmlAttr(m[1], "ttm:agent") ?? "v1") !== "v1" ? "v2" : "v1",
 			words,
 			backgroundVocals,
+			...(plainText ? { text: plainText } : {}),
 		});
 	}
 	return lines;
@@ -292,20 +299,33 @@ export function buildLyricsFromTtml(
 			? mapByOrigTiming(bl.words, pronWords)
 			: undefined;
 
-		const words: EnhancedLyricsLine = {
-			original: bl.words,
-			...(pronunciation?.length ? { pronunciation } : {}),
-			...(bl.backgroundVocals.length ? { backgroundVocals: bl.backgroundVocals } : {}),
-		};
-
-		result.push({
-			agent: bl.agent,
-			startTime: bl.startTime,
-			words,
-			...(transTextLines[transIdx]
-				? { translation: transTextLines[transIdx] }
-				: {}),
-		});
+		let line: LyricsLine;
+		if (bl.text && bl.words.length === 0) {
+			const plainText: PlainLyricsLine = { original: bl.text };
+			line = {
+				agent: bl.agent,
+				startTime: bl.startTime,
+				plainText,
+				...(transTextLines[transIdx]
+					? { translation: transTextLines[transIdx] }
+					: {}),
+			};
+		} else {
+			const words: EnhancedLyricsLine = {
+				original: bl.words,
+				...(pronunciation?.length ? { pronunciation } : {}),
+				...(bl.backgroundVocals.length ? { backgroundVocals: bl.backgroundVocals } : {}),
+			};
+			line = {
+				agent: bl.agent,
+				startTime: bl.startTime,
+				words,
+				...(transTextLines[transIdx]
+					? { translation: transTextLines[transIdx] }
+					: {}),
+			};
+		}
+		result.push(line);
 		transIdx++;
 
 		const nextStart = bodyLines[i + 1]?.startTime;

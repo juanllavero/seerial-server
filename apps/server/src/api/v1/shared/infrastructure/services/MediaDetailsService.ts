@@ -357,7 +357,7 @@ export async function findMusicExtras(collectionId: string) {
 	const rootFolders = new Set<string>();
 	for (const album of collection.albums) {
 		if (album.folder) {
-			rootFolders.add(album.folder);
+			rootFolders.add(path.dirname(album.folder));
 		}
 	}
 

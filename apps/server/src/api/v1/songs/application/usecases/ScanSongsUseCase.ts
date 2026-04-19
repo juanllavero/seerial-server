@@ -10,7 +10,6 @@ import type { Library } from "@/api/v1/libraries/domain/Library";
 import type { FileSystemServicePort } from "@/api/v1/shared/application/ports/FileSystemServicePort";
 import type { NotificationServicePort } from "@/api/v1/shared/application/ports/NotificationServicePort";
 import { getAudioInfo } from "@/api/v1/shared/infrastructure/adapters/ffmpeg/audioInfo";
-import { MusicBrainzService } from "@/api/v1/shared/infrastructure/services/MusicBrainzService";
 import { WriteQueue } from "@/api/v1/shared/infrastructure/services/WriteQueue";
 import type { SongsRepositoryPort } from "@/api/v1/songs/application/ports/SongsRepositoryPort";
 import logger from "@/utils/logger";
@@ -25,7 +24,6 @@ interface AlbumFolder {
 
 export class ScanMusicUseCase {
 	private readonly writeQueue = new WriteQueue();
-	private readonly musicBrainz = new MusicBrainzService();
 
 	constructor(
 		private readonly fileSystemService: FileSystemServicePort,
@@ -35,7 +33,7 @@ export class ScanMusicUseCase {
 		private readonly artistsRepo: ArtistsRepositoryPort,
 		private readonly collectionsRepo: CollectionsRepositoryPort,
 		private readonly notificationService: NotificationServicePort,
-	) {}
+	) { }
 
 	/**
 	 * Main entry point.
@@ -220,9 +218,6 @@ export class ScanMusicUseCase {
 		);
 	}
 
-	/**
-	 * Processes a single album folder
-	 */
 	private async processAlbum(
 		library: Library,
 		_rootFolder: string,
@@ -230,6 +225,16 @@ export class ScanMusicUseCase {
 		collection: Collection | null,
 	): Promise<void> {
 		await this.writeQueue.enqueue(async () => {
+			// Check if album for this folder was already scanned
+			const existingAlbum = await this.albumsRepo.findByFolder(albumFolder.path);
+			if (existingAlbum) {
+				musicLogger.debug({ path: albumFolder.path }, "Album already scanned, skipping");
+				if (collection) {
+					await this.addAlbumToCollection(collection, existingAlbum.id);
+				}
+				return;
+			}
+
 			const sampleMetadata = await this.getSampleMetadata(albumFolder);
 			if (!sampleMetadata) return;
 
@@ -280,82 +285,8 @@ export class ScanMusicUseCase {
 		collection: Collection | null,
 	): Promise<Album | null> {
 		const albumTitle = sampleMetadata.album || getFileName(albumFolder.path);
-		const artistName = sampleMetadata.artists?.[0] || "Unknown Artist";
-		const mbAlbum = await this.musicBrainz.searchRelease(
-			albumTitle,
-			artistName,
-		);
 
-		if (mbAlbum) {
-			return this.createMusicBrainzAlbum(
-				library,
-				albumFolder,
-				sampleMetadata,
-				collection,
-				mbAlbum,
-			);
-		}
-
-		return this.createLocalAlbum(
-			library,
-			albumFolder,
-			sampleMetadata,
-			collection,
-			albumTitle,
-		);
-	}
-
-	private async createMusicBrainzAlbum(
-		library: Library,
-		albumFolder: AlbumFolder,
-		sampleMetadata: NonNullable<Awaited<ReturnType<typeof getAudioInfo>>>,
-		collection: Collection | null,
-		mbAlbum: {
-			mbid: string;
-			title: string;
-			releaseDate?: string;
-			annotation?: string;
-			coverArtUrl?: string;
-			artist: string;
-		},
-	): Promise<Album | null> {
-		musicLogger.info(
-			{ path: albumFolder.path, mbid: mbAlbum.mbid },
-			"Found in MusicBrainz",
-		);
-
-		const album = await this.albumsRepo.create({
-			title: mbAlbum.title,
-			year: mbAlbum.releaseDate
-				? new Date(mbAlbum.releaseDate).getFullYear().toString()
-				: "",
-			libraryId: library.id,
-			description: mbAlbum.annotation,
-			folder: albumFolder.path,
-			genres: sampleMetadata.genres || [],
-			coverSrc: "",
-		});
-
-		if (!album) return null;
-
-		if (mbAlbum.coverArtUrl) {
-			await this.applyAlbumCover(album, collection, async () =>
-				this.downloadCover(mbAlbum.coverArtUrl as string, album.id),
-			);
-		}
-
-		await this.processArtist(mbAlbum.artist, album.id);
-		return album;
-	}
-
-	private async createLocalAlbum(
-		library: Library,
-		albumFolder: AlbumFolder,
-		sampleMetadata: NonNullable<Awaited<ReturnType<typeof getAudioInfo>>>,
-		collection: Collection | null,
-		albumTitle: string,
-	): Promise<Album | null> {
-		musicLogger.info({ path: albumFolder.path }, "Not found in MusicBrainz");
+		musicLogger.info({ path: albumFolder.path }, "Creating album from local metadata");
 
 		const album = await this.albumsRepo.create({
 			title: albumTitle,
@@ -508,36 +439,6 @@ export class ScanMusicUseCase {
 			}
 		} catch (error) {
 			musicLogger.error({ error, artistName }, "Failed to process artist");
-		}
-	}
-
-	/**
-	 * Downloads cover from MusicBrainz
-	 */
-	private async downloadCover(
-		url: string,
-		entityId: string,
-	): Promise<string | null> {
-		try {
-			const imageBuffer = await this.musicBrainz.downloadCoverArt(url);
-			if (!imageBuffer) return null;
-
-			const extension = url.endsWith(".png") ? "png" : "jpg";
-			const imageName = `cover.${extension}`;
-			const destinationFolder = this.fileSystemService.getExternalPath(
-				path.join("resources", "img", "posters", entityId),
-			);
-			const destinationPath = path.join(destinationFolder, imageName);
-
-			this.fileSystemService.createFolder(destinationFolder);
-			await fsPromises.writeFile(destinationPath, imageBuffer);
-
-			return path
-				.join("resources", "img", "posters", entityId, imageName)
-				.replace(/\\/g, "/");
-		} catch (error) {
-			musicLogger.error({ error, url }, "Error downloading cover");
-			return null;
 		}
 	}
 
