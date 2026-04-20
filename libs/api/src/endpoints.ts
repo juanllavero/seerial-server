@@ -29,6 +29,7 @@ export const API = {
         getMediaInfo: (id: string) => `/videos/${id}/media-info`,
         updateMediaInfo: (id: string) => `/videos/${id}/media-info`,
         setWatchState: (id: string) => `/videos/${id}/watch-state`,
+        chapterThumbnails: (id: string) => `/videos/${id}/chapter-thumbnails`,
         thumbnail: '/videos/thumbnail',
         subtitles: '/videos/subtitles',
     },

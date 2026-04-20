@@ -1,4 +1,4 @@
-import type { PlayBackInfo, Video } from "@seerial/domain";
+import type { Chapter, PlayBackInfo, Video } from "@seerial/domain";
 import type {
 	Request as ExpressRequest,
 	Response as ExpressResponse,
@@ -21,6 +21,7 @@ import {
 	useCases,
 	videoExtractionService,
 } from "@/api/v1/shared/infrastructure/adapters/di/container";
+import { getChapters } from "@/api/v1/shared/infrastructure/adapters/ffmpeg/mediaInfo";
 import {
 	BadRequestException,
 	NotFoundException,
@@ -42,46 +43,46 @@ export class VideosController extends Controller {
 	 * Get video details by ID
 	 */
 	@Get('{id}')
-  @Security('cookieAuth')
-  public async get(@Path() id: string): Promise<ApiResponse<Video>> {
-    const result = await useCases.getVideoById().execute(id);
+	@Security('cookieAuth')
+	public async get(@Path() id: string): Promise<ApiResponse<Video>> {
+		const result = await useCases.getVideoById().execute(id);
 
-    if (!result) {
-      throw new NotFoundException(messages.errors.notFound.video);
-    }
+		if (!result) {
+			throw new NotFoundException(messages.errors.notFound.video);
+		}
 
-    return ApiResponse.success(result, messages.success.fetch);
-  }
+		return ApiResponse.success(result, messages.success.fetch);
+	}
 
 	/**
 	 * Get video by episode ID
 	 */
 	@Get('by-episode/{episodeId}')
-  @Security('cookieAuth')
-  public async getByEpisodeId(@Path() episodeId: string): Promise<ApiResponse<Video>> {
-    const result = await useCases.getVideoByEpisodeId().execute(episodeId);
+	@Security('cookieAuth')
+	public async getByEpisodeId(@Path() episodeId: string): Promise<ApiResponse<Video>> {
+		const result = await useCases.getVideoByEpisodeId().execute(episodeId);
 
-    if (!result) {
-      throw new NotFoundException(messages.errors.notFound.video);
-    }
+		if (!result) {
+			throw new NotFoundException(messages.errors.notFound.video);
+		}
 
-    return ApiResponse.success(result, messages.success.fetch);
-  }
+		return ApiResponse.success(result, messages.success.fetch);
+	}
 
 	/**
 	 * Get video info for playback (including media info and playback preferences)
 	 */
 	@Get('playback-info/{id}')
-  @Security('cookieAuth')
-  public async getPlaybackInfo(@Path() id: string): Promise<ApiResponse<PlayBackInfo>> {
-    const result = await useCases.getVideoPlaybackInfo().execute(id);
+	@Security('cookieAuth')
+	public async getPlaybackInfo(@Path() id: string): Promise<ApiResponse<PlayBackInfo>> {
+		const result = await useCases.getVideoPlaybackInfo().execute(id);
 
-    if (!result) {
-      throw new NotFoundException(messages.errors.notFound.video);
-    }
+		if (!result) {
+			throw new NotFoundException(messages.errors.notFound.video);
+		}
 
-    return ApiResponse.success(result, messages.success.fetch);
-  }
+		return ApiResponse.success(result, messages.success.fetch);
+	}
 
 	/**
 	 * Update video details
@@ -100,21 +101,21 @@ export class VideosController extends Controller {
 	 * Delete a video
 	 */
 	@Delete('{id}')
-  @Security('adminAuth')
-  public async delete(@Path() id: string): Promise<ApiResponse<null>> {
-    await useCases.deleteVideo().execute(id);
-    return ApiResponse.success(null, messages.success.delete);
-  }
+	@Security('adminAuth')
+	public async delete(@Path() id: string): Promise<ApiResponse<null>> {
+		await useCases.deleteVideo().execute(id);
+		return ApiResponse.success(null, messages.success.delete);
+	}
 
 	/**
 	 * Update video media info
 	 */
 	@Get('{id}/media-info')
-  @Security('adminAuth')
-  public async updateMediaInfo(@Path() id: string): Promise<ApiResponse<null>> {
-    const _result = await useCases.updateMediaInfo().execute(id);
-    return ApiResponse.success(null, messages.success.update);
-  }
+	@Security('adminAuth')
+	public async updateMediaInfo(@Path() id: string): Promise<ApiResponse<null>> {
+		const _result = await useCases.updateMediaInfo().execute(id);
+		return ApiResponse.success(null, messages.success.update);
+	}
 
 	/**
 	 * Set video watch state for a user
@@ -181,5 +182,36 @@ export class VideosController extends Controller {
 			startTime || 0,
 			(this as unknown as TsoaContext).response,
 		);
+	}
+
+	/**
+	 * Get or generate chapter thumbnails for a video.
+	 * Thumbnails are stored on disk and reused on subsequent requests.
+	 */
+	@Get("{id}/chapter-thumbnails")
+	@Security("cookieAuth")
+	public async getChapterThumbnails(
+		@Path() id: string,
+	): Promise<ApiResponse<Chapter[]>> {
+		const video = await useCases.getVideoById().execute(id);
+
+		if (!video) {
+			throw new NotFoundException(messages.errors.notFound.video);
+		}
+
+		const chapters = await getChapters(video.fileSrc);
+
+		if (!chapters.length) {
+			return ApiResponse.success([], messages.success.fetch);
+		}
+
+		const chaptersWithThumbnails =
+			await videoExtractionService.generateChapterThumbnails(
+				id,
+				video.fileSrc,
+				chapters,
+			);
+
+		return ApiResponse.success(chaptersWithThumbnails, messages.success.fetch);
 	}
 }

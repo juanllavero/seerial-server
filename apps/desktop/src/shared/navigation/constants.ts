@@ -43,6 +43,7 @@ export const NavigationFocusKeys = {
         closeButton: 'player-close-button',
         repeatButton: 'player-repeat-button',
         shuffleButton: 'player-shuffle-button',
+        chapters: 'player-chapters',
     },
     settings: {
         container: 'settings-panel',

@@ -1,5 +1,7 @@
 import crypto from "node:crypto";
 import os from "node:os";
+import nodePath from "node:path";
+import type { Chapter } from "@seerial/domain";
 import type { Response as ExpressResponse } from "express";
 import fs from "fs-extra";
 import { fileSystemService } from "@/api/v1/shared/infrastructure/adapters/di/container";
@@ -130,5 +132,71 @@ export class VideoExtractionServiceImpl implements VideoExtractionServicePort {
 				res.status(500).send(messages.errors.server.internal);
 			}
 		}
+	}
+
+	/**
+	 * Generate chapter thumbnails for a video and store them on disk.
+	 * Returns chapters with thumbnailSrc populated (relative resource path).
+	 * Skips generation if thumbnails already exist for all chapters.
+	 */
+	public async generateChapterThumbnails(
+		videoId: string,
+		videoPath: string,
+		chapters: Chapter[],
+	): Promise<Chapter[]> {
+		if (!chapters.length) return chapters;
+
+		const relativeBase = fileSystemService.join(
+			"resources",
+			"img",
+			"thumbnails",
+			"chapters",
+			videoId,
+		);
+		const thumbnailsDir = fileSystemService.getExternalPath(relativeBase);
+
+		const alreadyGenerated =
+			fs.existsSync(thumbnailsDir) &&
+			(await fs.readdir(thumbnailsDir)).filter((f: string) =>
+				f.endsWith(".jpg"),
+			).length >= chapters.length;
+
+		if (!alreadyGenerated) {
+			await fs.ensureDir(thumbnailsDir);
+
+			for (let i = 0; i < chapters.length; i++) {
+				const chapter = chapters[i];
+				const outputPath = nodePath.join(thumbnailsDir, `chapter_${i}.jpg`);
+				const args = [
+					"-ss",
+					String(chapter.time),
+					"-i",
+					videoPath,
+					"-frames:v",
+					"1",
+					"-vf",
+					"scale=480:-1",
+					"-y",
+					outputPath,
+				];
+
+				try {
+					await executeFfmpeg(args);
+				} catch (err) {
+					videoExtractionLogger.error(
+						{ err, chapterIndex: i },
+						"Failed to generate chapter thumbnail",
+					);
+				}
+			}
+		}
+
+		return chapters.map((chapter, i) => ({
+			...chapter,
+			thumbnailSrc: fileSystemService.join(
+				relativeBase,
+				`chapter_${i}.jpg`,
+			),
+		}));
 	}
 }

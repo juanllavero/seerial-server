@@ -37,7 +37,9 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
 		if (!fs.existsSync(this.propertiesFilePath)) {
 			fs.writeFileSync(this.propertiesFilePath, "");
 		}
-		this.properties = PropertiesReader(this.propertiesFilePath);
+		this.properties = PropertiesReader({
+			sourceFile: this.propertiesFilePath,
+		});
 	}
 	//#endregion
 
@@ -190,7 +192,7 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
 					}
 				}
 			}
-		} catch {}
+		} catch { }
 		return videoFiles;
 	}
 	public async getValidMusicFiles(folderPath: string): Promise<string[]> {

@@ -1,3 +1,4 @@
+import type { Chapter } from "@seerial/domain";
 import type { Response as ExpressResponse } from "express";
 
 export interface VideoExtractionServicePort {
@@ -12,4 +13,9 @@ export interface VideoExtractionServicePort {
 		startTime: number,
 		res: ExpressResponse,
 	): Promise<void>;
+	generateChapterThumbnails(
+		videoId: string,
+		videoPath: string,
+		chapters: Chapter[],
+	): Promise<Chapter[]>;
 }

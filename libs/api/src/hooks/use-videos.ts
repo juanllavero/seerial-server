@@ -32,6 +32,16 @@ export const useGetVideoSubtitles = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
 ): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['videos', 'subtitles'], API.videos.subtitles, options)
 
+export const useGetVideoChapterThumbnails = <TResponse = unknown>(
+    videoId: string,
+    options?: QueryHookOptions<TResponse>,
+): ApiQueryResult<TResponse> =>
+    useApiQuery<TResponse>(
+        ['videos', 'chapterThumbnails', videoId],
+        API.videos.chapterThumbnails(videoId),
+        options,
+    )
+
 export const useUpdateVideo = <TResponse = unknown, TBody = unknown>(
     videoId: string,
     options?: MutationHookOptions<TResponse, TBody>,

@@ -4,13 +4,18 @@ import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useState } from "react";
 import NavigationContainer from "@/components/navigation/NavigationContainer";
 import FlexBox from "@/components/ui/FlexBox";
-import Controls from "@/pages/videoplayer/components/controls/controls";
+import ChapterList from "@/pages/videoplayer/components/chapter-list";
 import VolumeIndicator from "@/pages/videoplayer/components/controls/volume-slider";
+import {
+	useChapterThumbnails,
+	usePlaybackPosition,
+} from "@/pages/videoplayer/hooks/use-chapter-thumbnails";
 import { usePlayerSettings } from "@/pages/videoplayer/hooks/use-player-settings";
 import { useVolumeIndicator } from "@/pages/videoplayer/hooks/use-volume-indicator";
 import { useKeyboardBack } from "@/shared/hooks/use-keyboard-back";
 import { usePlayerControlsVisibility } from "@/shared/hooks/use-player-controls-visibility";
 import { NavigationFocusKeys } from "@/shared/navigation/constants";
+import Controls from "@/pages/videoplayer/components/controls/Controls";
 
 interface VideoPlayerProps {
 	video: Video;
@@ -19,6 +24,7 @@ interface VideoPlayerProps {
 export default function VideoPlayer({ video }: VideoPlayerProps) {
 	const [isTimelineFocused, setIsTimelineFocused] = useState(false);
 	const [tracksPanelOpen, setTracksPanelOpen] = useState(false);
+	const [chaptersExpanded, setChaptersExpanded] = useState(false);
 
 	const playerInputEnabled = !tracksPanelOpen;
 
@@ -26,6 +32,11 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
 	const { volume, visible: volumeVisible } = useVolumeIndicator({
 		enabled: playerInputEnabled,
 	});
+
+	const hasChapters = !!video.chapters?.length;
+	const chapterThumbnails = useChapterThumbnails(video.id, hasChapters);
+	const chapters = chapterThumbnails ?? video.chapters ?? [];
+	const position = usePlaybackPosition(hasChapters && chapters.length > 0);
 
 	// Handle back navigation with a pre-action to stop the video before navigating back
 	useKeyboardBack({
@@ -60,6 +71,12 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
 		}
 	}, [isFull, isCompact]);
 
+	useEffect(() => {
+		if (!isVisible) {
+			setChaptersExpanded(false);
+		}
+	}, [isVisible]);
+
 	const handleTimelineFocusChange = useCallback((focused: boolean) => {
 		setIsTimelineFocused(focused);
 	}, []);
@@ -68,11 +85,21 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
 		setTracksPanelOpen(open);
 	}, []);
 
+	const handleChaptersExpand = useCallback(() => {
+		setChaptersExpanded(true);
+	}, []);
+
+	const handleChaptersCollapse = useCallback(() => {
+		setChaptersExpanded(false);
+	}, []);
+
+	const showChapters = chapters.length > 0 && isVisible;
+
 	return (
 		<NavigationContainer customFocusKey={NavigationFocusKeys.player.container}>
 			<VolumeIndicator volume={volume} visible={volumeVisible} />
 			<FlexBox
-				className="absolute w-full h-full"
+				className="absolute w-full h-full overflow-hidden"
 				css={{
 					backgroundColor: isVisible ? "rgba(0, 0, 0, 0.3)" : "transparent",
 					transition: "background-color 0.3s ease",
@@ -104,6 +131,28 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
 						updateSetting={updateSetting}
 					/>
 				</FlexBox>
+
+				{showChapters && (
+					<div
+						className="w-full overflow-hidden transition-all duration-500 ease-in-out"
+						style={{
+							maxHeight: chaptersExpanded ? "32vh" : "4vh",
+							background:
+								"linear-gradient(to top, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.7) 100%)",
+							pointerEvents: isVisible ? "auto" : "none",
+						}}
+					>
+						<div className="pb-4">
+							<ChapterList
+								chapters={chapters}
+								position={position}
+								isExpanded={chaptersExpanded}
+								onExpand={handleChaptersExpand}
+								onCollapse={handleChaptersCollapse}
+							/>
+						</div>
+					</div>
+				)}
 			</FlexBox>
 		</NavigationContainer>
 	);
