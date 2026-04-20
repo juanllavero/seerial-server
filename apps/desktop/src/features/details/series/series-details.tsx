@@ -7,7 +7,9 @@ import { t } from "i18next";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { shallow } from "zustand/shallow";
-import EpisodesList from "@/features/details/series/components/episodes-list";
+import EpisodesList, {
+	MAX_SKELETON_COUNT,
+} from "@/features/details/series/components/episodes-list";
 import SeasonSelector from "@/features/details/series/components/season-selector";
 import { useSeriesDetailsFocusStore } from "@/features/details/series/stores/series-details-focus.store";
 import DetailsBackgroundLayers from "@/shared/components/details/details-background-layers";
@@ -19,9 +21,17 @@ interface SeriesDetailsProps {
 	series: Series | undefined;
 	isLoading: boolean;
 	details: DetailsData | undefined;
+	numberOfItems: number | undefined;
+	currentSeasonNumber: number | undefined;
 }
 
-function SeriesDetails({ series, isLoading, details }: SeriesDetailsProps) {
+function SeriesDetails({
+	series,
+	isLoading,
+	details,
+	numberOfItems,
+	currentSeasonNumber,
+}: SeriesDetailsProps) {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const { currentUser } = useServerStore(
@@ -51,9 +61,14 @@ function SeriesDetails({ series, isLoading, details }: SeriesDetailsProps) {
 
 	useEffect(() => {
 		if (series && series.seasons?.length > 0) {
-			setSelectedSeason(series.seasons[0]);
+			const seasonToSelect = currentSeasonNumber
+				? series.seasons.find(
+						(season) => season.seasonNumber === currentSeasonNumber,
+					)
+				: series.seasons[0];
+			setSelectedSeason(seasonToSelect ?? series.seasons[0]);
 		}
-	}, [series]);
+	}, [series, currentSeasonNumber]);
 
 	useEffect(() => {
 		if (!selectedSeason) {
@@ -182,14 +197,14 @@ function SeriesDetails({ series, isLoading, details }: SeriesDetailsProps) {
 				handleMarkWatched={handleMarkWatched}
 				isWatched={isWatched}
 			/>
-			{selectedSeason && (
-				<EpisodesList
-					selectedSeason={selectedSeason}
-					selectedEpisode={selectedEpisode}
-					selectEpisode={handleSelectEpisode}
-					isRestoringFocus={isRestoringEpisodeFocus}
-				/>
-			)}
+			<EpisodesList
+				selectedSeason={selectedSeason}
+				selectedEpisode={selectedEpisode}
+				selectEpisode={handleSelectEpisode}
+				isRestoringFocus={isRestoringEpisodeFocus}
+				isLoading={isLoading || !selectedSeason}
+				skeletonCount={numberOfItems ?? MAX_SKELETON_COUNT}
+			/>
 			<SeasonSelector
 				seasons={series?.seasons ?? []}
 				onSelectSeason={setSelectedSeason}

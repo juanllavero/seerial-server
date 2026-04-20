@@ -20,9 +20,15 @@ interface MovieDetailsProps {
 	movie: Movie | undefined;
 	isLoading: boolean;
 	details: DetailsData | undefined;
+	numberOfItems: number | undefined;
 }
 
-function MovieDetails({ movie, isLoading, details }: MovieDetailsProps) {
+function MovieDetails({
+	movie,
+	isLoading,
+	details,
+	numberOfItems,
+}: MovieDetailsProps) {
 	const [selectedVideo, selectVideo] = useState<Video | null>(null);
 	const [isBackgroundVideoVisible, setIsBackgroundVideoVisible] =
 		useState(false);

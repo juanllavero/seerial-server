@@ -1,12 +1,13 @@
 import { type Album, formatTime, type Song } from "@seerial/domain";
 import { useMusicStore } from "@seerial/stores";
-import { memo, useMemo } from "react";
+import { memo, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { shallow } from "zustand/shallow";
 import NavigationButton from "@/components/navigation/NavigationButton";
 import Tertiary from "@/components/text/Tertiary";
 import FlexBox from "@/components/ui/FlexBox";
 import AnimatedSoundBars from "@/features/music-player/animated-sound-bars";
+import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
 
 interface SongsListProps {
 	album: Album;
@@ -38,6 +39,11 @@ function SongsList({
 		}),
 		shallow,
 	);
+
+	// Set focus on load
+	useEffect(() => {
+		setFocus(focusedSongId ?? currentSong?.id ?? songs[0]?.id ?? "");
+	}, [focusedSongId, currentSong?.id, songs]);
 
 	const sortedSongs = useMemo(
 		() =>

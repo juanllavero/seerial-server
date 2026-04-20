@@ -59,11 +59,12 @@ function LibraryPage() {
 		prevLocationRef.current = location.pathname;
 	}, [libraryContent, location.pathname]);
 
-	if (isLoading && libraryContent && libraryContent.length === 0) {
+	if (isLoading) {
 		return <Loading />;
 	}
 
-	if (!isLoading && !libraryContent) return <span>Library not found</span>;
+	if (!libraryContent || libraryContent.length === 0)
+		return <span>Library not found</span>;
 
 	return (
 		<LibraryContent
