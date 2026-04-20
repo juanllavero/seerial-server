@@ -1,6 +1,7 @@
 import type { DetailsData } from "@seerial/domain";
 import { type ItemType, type LibraryItem, LibraryTypes } from "@seerial/domain";
 import { v4 as uuidv4 } from "uuid";
+import { In, Not } from "typeorm";
 import { AlbumModel } from "@/api/v1/albums/infrastructure/persistence/models/AlbumModel";
 import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
 import type { CollectionContentDTO } from "@/api/v1/collections/application/dtos/CollectionDTOs";
@@ -12,7 +13,6 @@ import { EpisodeModel } from "@/api/v1/episodes/infrastructure/persistence/model
 import { MovieModel } from "@/api/v1/movies/infrastructure/persistence/models/MovieModel";
 import { SeasonModel } from "@/api/v1/seasons/infrastructure/persistence/models/SeasonModel";
 import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/SeriesModel";
-import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { DatabaseManager } from "@/api/v1/shared/infrastructure/persistence/DatabaseManager";
 import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
 import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/VideoModel";
@@ -94,7 +94,7 @@ export class LibrariesRepositoryImpl
 		const collectionRelations = this.measureSync(
 			"getContent.resolveCollectionRelations",
 			{ libraryId, libraryType: libraryHeader.type },
-			() => this.getCollectionRelations(),
+			() => this.getCollectionRelations(libraryHeader.type),
 		);
 
 		const standaloneRelations = this.measureSync(
@@ -103,37 +103,59 @@ export class LibrariesRepositoryImpl
 			() => this.getStandaloneRelationsForLibraryType(libraryHeader.type),
 		);
 
-		const [libraryCollections, standaloneContent] = await Promise.all([
-			this.measureAsync(
-				"getContent.fetchLibraryCollections",
-				{
-					libraryId,
-					libraryType: libraryHeader.type,
-					relationCount: collectionRelations.length,
-				},
-				() =>
-					LibraryCollectionModel.find({
-						where: { libraryId },
-						relations: collectionRelations,
-						relationLoadStrategy: "query",
-						order: { customOrder: "ASC" },
-					}),
+		// Fetch collections first so we can extract item IDs already loaded in
+		// their relations and exclude them from the standalone query. This avoids
+		// fetching every item in the library (including collection ones) with their
+		// full relations, only to discard them in memory afterwards.
+		const libraryCollections: LibraryCollectionModel[] = await this.measureAsync(
+			"getContent.fetchLibraryCollections",
+			{
+				libraryId,
+				libraryType: libraryHeader.type,
+				relationCount: collectionRelations.length,
+			},
+			() =>
+				LibraryCollectionModel.find({
+					where: { libraryId },
+					relations: collectionRelations,
+					relationLoadStrategy: "query",
+					order: { customOrder: "ASC" },
+				}),
+		);
+
+		const excludeIds = {
+			movieIds: new Set(
+				libraryCollections.flatMap(
+					(lc) => lc.collection?.collectionMovies?.map((cm) => cm.movie.id) ?? [],
+				),
 			),
-			this.measureAsync(
-				"getContent.fetchStandaloneContent",
-				{
-					libraryId,
-					libraryType: libraryHeader.type,
-					relationCount: standaloneRelations.length,
-				},
-				() =>
-					this.getStandaloneContent(
-						libraryId,
-						libraryHeader.type,
-						standaloneRelations,
-					),
+			seriesIds: new Set(
+				libraryCollections.flatMap(
+					(lc) => lc.collection?.collectionSeries?.map((cs) => cs.series.id) ?? [],
+				),
 			),
-		]);
+			albumIds: new Set(
+				libraryCollections.flatMap(
+					(lc) => lc.collection?.collectionAlbums?.map((ca) => ca.album.id) ?? [],
+				),
+			),
+		};
+
+		const standaloneContent: LibraryContentSource = await this.measureAsync(
+			"getContent.fetchStandaloneContent",
+			{
+				libraryId,
+				libraryType: libraryHeader.type,
+				relationCount: standaloneRelations.length,
+			},
+			() =>
+				this.getStandaloneContent(
+					libraryId,
+					libraryHeader.type,
+					standaloneRelations,
+					excludeIds,
+				),
+		);
 
 		const collections = this.measureSync(
 			"getContent.extractCollections",
@@ -313,13 +335,26 @@ export class LibrariesRepositoryImpl
 		return { movies: sortedMovies, series: sortedSeries, albums: sortedAlbums };
 	}
 
-	private getCollectionRelations(): string[] {
-		return [
-			"collection",
-			"collection.collectionMovies.movie.watchLists",
-			"collection.collectionSeries.series.watchLists",
-			"collection.collectionAlbums.album",
-		];
+	private getCollectionRelations(type: Library["type"]): string[] {
+		switch (type) {
+			case LibraryTypes.MOVIES:
+				return [
+					"collection",
+					"collection.collectionMovies.movie.watchLists",
+				];
+			case LibraryTypes.SHOWS:
+				return [
+					"collection",
+					"collection.collectionSeries.series.watchLists",
+				];
+			case LibraryTypes.MUSIC:
+				return [
+					"collection",
+					"collection.collectionAlbums.album",
+				];
+			default:
+				return ["collection"];
+		}
 	}
 
 	private getStandaloneRelationsForLibraryType(
@@ -346,41 +381,57 @@ export class LibrariesRepositoryImpl
 		libraryId: string,
 		type: Library["type"],
 		relations: string[],
+		excludeIds?: { movieIds?: Set<string>; seriesIds?: Set<string>; albumIds?: Set<string> },
 	): Promise<LibraryContentSource> {
 		switch (type) {
-			case LibraryTypes.MOVIES:
+			case LibraryTypes.MOVIES: {
+				const movieWhere =
+					excludeIds?.movieIds && excludeIds.movieIds.size > 0
+						? { libraryId, id: Not(In([...excludeIds.movieIds])) }
+						: { libraryId };
 				return {
 					id: libraryId,
 					type,
 					movies: await MovieModel.find({
-						where: { libraryId },
+						where: movieWhere,
 						relations,
 						relationLoadStrategy: "query",
 						order: { order: "ASC" },
 					}),
 				};
-			case LibraryTypes.SHOWS:
+			}
+			case LibraryTypes.SHOWS: {
+				const seriesWhere =
+					excludeIds?.seriesIds && excludeIds.seriesIds.size > 0
+						? { libraryId, id: Not(In([...excludeIds.seriesIds])) }
+						: { libraryId };
 				return {
 					id: libraryId,
 					type,
 					series: await SeriesModel.find({
-						where: { libraryId },
+						where: seriesWhere,
 						relations,
 						relationLoadStrategy: "query",
 						order: { order: "ASC" },
 					}),
 				};
-			case LibraryTypes.MUSIC:
+			}
+			case LibraryTypes.MUSIC: {
+				const albumWhere =
+					excludeIds?.albumIds && excludeIds.albumIds.size > 0
+						? { libraryId, id: Not(In([...excludeIds.albumIds])) }
+						: { libraryId };
 				return {
 					id: libraryId,
 					type,
 					albums: await AlbumModel.find({
-						where: { libraryId },
+						where: albumWhere,
 						relations: ["songs"],
 						relationLoadStrategy: "query",
 						order: { order: "ASC" },
 					}),
 				};
+			}
 			default:
 				return { id: libraryId, type };
 		}
@@ -816,19 +867,24 @@ export class LibrariesRepositoryImpl
 					{ libraryId: library.id, seriesId: series.id, userId },
 					() => this.calculateRemainingEpisodes(series, userId),
 				);
+
+				// Get currently watching season of first one as fallback
+				const currentSeason = this.resolveCurrentSeasonFromLoadedData(series, userId);
+
 				const details = await this.measureAsync(
 					"buildSeriesItems.generateItemDetails",
 					{ libraryId: library.id, seriesId: series.id, userId },
-					() => this.generateItemDetails(series, "series", userId),
+					() => this.generateItemDetails(series, "series", userId, currentSeason ?? undefined),
 				);
 
 				const item = {
 					id: series.id,
 					title: series.name,
 					years,
-					coverSrc: series.coverSrc,
-					numberOfItems: 0,
 					order: series.order,
+					coverSrc: series.coverSrc,
+					currentSeasonNumber: currentSeason?.seasonNumber,
+					numberOfItems: currentSeason?.episodes?.length ?? 0,
 					watched: seriesWatched,
 					remainingItems,
 					analyzingFiles: series.analyzingFiles,
@@ -919,6 +975,7 @@ export class LibrariesRepositoryImpl
 		element: MovieModel | SeriesModel | AlbumModel | CollectionModel,
 		type: ItemType,
 		userId: string = "",
+		currentSeason?: SeasonModel,
 	): Promise<DetailsData | null> {
 		const startedAt = this.startTiming();
 		const itemId = "id" in element ? element.id : undefined;
@@ -931,7 +988,7 @@ export class LibrariesRepositoryImpl
 						: null;
 				case "series":
 					return element instanceof SeriesModel
-						? this.buildSeriesDetails(element, userId)
+						? this.buildSeriesDetails(element, userId, currentSeason)
 						: null;
 				case "album":
 					return element instanceof AlbumModel
@@ -967,18 +1024,14 @@ export class LibrariesRepositoryImpl
 		};
 	}
 
-	private async buildSeriesDetails(
+	private buildSeriesDetails(
 		element: SeriesModel,
 		userId: string,
-	): Promise<DetailsData> {
-		const startedAt = this.startTiming();
-		const currentSeason = await this.measureAsync(
-			"buildSeriesDetails.getCurrentlyWatchingSeason",
-			{ seriesId: element.id, userId },
-			() => useCases.getCurrentlyWatchingSeason().execute(element.id, userId),
-		);
+		currentSeason?: SeasonModel,
+	): DetailsData {
+		const resolvedCurrentSeason = currentSeason ?? this.resolveCurrentSeasonFromLoadedData(element, userId);
 
-		const details = {
+		return {
 			title: element.name,
 			year: element.year,
 			genres: element.genres ? element.genres.join(", ") : "",
@@ -987,20 +1040,41 @@ export class LibrariesRepositoryImpl
 			description: element.overview || "",
 			createdBy: element.creator ? element.creator.join(", ") : "",
 			watched: this.isSeriesWatched(element, userId),
-			subtitle: undefined,
+			subtitle: resolvedCurrentSeason?.name,
 			tagline: element.tagline || "",
 			coverSrc: element.coverSrc || "",
 			logoSrc: element.logoSrc || "",
-			backgroundSrc: currentSeason?.backgroundSrc || "",
+			backgroundSrc: resolvedCurrentSeason?.backgroundSrc || "",
 		};
+	}
 
-		this.logTiming("buildSeriesDetails.total", startedAt, {
-			seriesId: element.id,
-			userId,
-			hasCurrentSeason: Boolean(currentSeason),
-		});
+	/**
+	 * Determines which season the user is currently watching using data already
+	 * loaded in the series relations (seasons.episodes.watchLists). This avoids
+	 * an additional DB query per series when building the library grid.
+	 *
+	 * Logic: find the highest-numbered season that has at least one episode
+	 * marked as watched by the user. Falls back to season 1 (or the first
+	 * available season) if the user has not started any episode.
+	 */
+	private resolveCurrentSeasonFromLoadedData(
+		series: SeriesModel,
+		userId: string,
+	): SeasonModel | null {
+		if (!series.seasons || series.seasons.length === 0) return null;
 
-		return details;
+		const sortedDesc = [...series.seasons].sort(
+			(a, b) => b.seasonNumber - a.seasonNumber,
+		);
+
+		const currentSeason = sortedDesc.find((season) =>
+			season.episodes?.some((episode) =>
+				episode.watchLists?.some((wl) => wl.userId === userId && wl.watched),
+			),
+		);
+
+		// Fallback: lowest-numbered season (last element in DESC-sorted array)
+		return currentSeason ?? sortedDesc[sortedDesc.length - 1] ?? null;
 	}
 
 	private buildAlbumDetails(element: AlbumModel): DetailsData {

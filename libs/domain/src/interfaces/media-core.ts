@@ -29,6 +29,7 @@ export interface LibraryItem {
     analyzingFiles: boolean;
     type: ItemType;
     details: DetailsData | null;
+    currentSeasonNumber?: number;
 }
 
 export interface DetailsData {

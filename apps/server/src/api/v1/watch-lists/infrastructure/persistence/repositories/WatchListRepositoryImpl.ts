@@ -18,8 +18,7 @@ import { WatchListModel } from "../models/WatchListModel";
 
 export class WatchListRepositoryImpl
 	extends BaseRepository
-	implements WatchListRepositoryPort
-{
+	implements WatchListRepositoryPort {
 	// Generic helper for common CRUD operations
 	private helper: GenericRepositoryHelper<WatchListModel, WatchList>;
 
@@ -65,32 +64,41 @@ export class WatchListRepositoryImpl
 			? this.validateId(userId, "User ID")
 			: undefined;
 
-		const seasons = await SeasonModel.find({
-			where: { seriesId: validatedSeriesId },
-			relations: ["episodes", "episodes.video", "episodes.video.watchLists"],
-			order: { seasonNumber: "ASC" },
-		});
+		// const seasons = await SeasonModel.find({
+		// 	where: { seriesId: validatedSeriesId },
+		// 	relations: ["episodes", "episodes.video", "episodes.video.watchLists"],
+		// 	order: { seasonNumber: "DESC" },
+		// });
+
+		// QueryBuilder test to optimize the query and avoid loading unnecessary data
+		const qb = SeasonModel.createQueryBuilder("season")
+			.leftJoinAndSelect("season.episodes", "episode")
+			.leftJoinAndSelect("episode.video", "video")
+			.leftJoinAndSelect(
+				"video.watchLists",
+				"wl",
+				validatedUserId ? "wl.userId = :userId" : "1=1",
+				validatedUserId ? { userId: validatedUserId } : {},
+			)
+			.where("season.seriesId = :seriesId", { seriesId: validatedSeriesId })
+			.orderBy("season.seasonNumber", "DESC");
+
+		const seasons = await qb.getMany();
 
 		if (seasons.length === 0) return null;
 
-		let currentSeason: SeasonModel | null = null;
-
-		for (const season of seasons) {
-			const hasProgress = season.episodes.some((episode) => {
+		// Find the current season in reverse order
+		const currentSeason = seasons.find((season) =>
+			season.episodes.some((episode) => {
 				const watchList = episode.video?.watchLists?.find(
 					(wl) => !validatedUserId || wl.userId === validatedUserId,
 				);
+				return watchList && (watchList.watched || watchList.timeWatched > 0);
+			}),
+		);
 
-				if (!watchList) return false;
-				return watchList.watched || watchList.timeWatched > 0;
-			});
-
-			if (hasProgress) {
-				currentSeason = season;
-			}
-		}
-
-		return (currentSeason ?? seasons[0]) as unknown as Season;
+		// Return the first season as a fallback
+		return (currentSeason ?? seasons.at(-1)) as unknown as Season;
 	}
 
 	async findCurrentEpisode(

@@ -1,4 +1,3 @@
-import fs from "node:fs";
 import * as fsPromises from "node:fs/promises";
 import path from "node:path";
 import { type LibraryType, LibraryTypes } from "@seerial/domain";
@@ -106,7 +105,7 @@ const findCollectionImagesInCollectionRoot = async (
 	const itemFolder = items.find((item) => Boolean(item.folder))?.folder;
 	const collectionRootFolder = itemFolder ? path.dirname(itemFolder) : null;
 
-	if (!collectionRootFolder || !fs.existsSync(collectionRootFolder)) {
+	if (!collectionRootFolder) {
 		return { posterPath: null, backgroundPath: null };
 	}
 
@@ -129,10 +128,12 @@ const findCollectionImagesInCollectionRoot = async (
 
 		return { posterPath, backgroundPath };
 	} catch (error) {
-		libraryManagerLogger.error(
-			error,
-			`Error reading folder ${collectionRootFolder}`,
-		);
+		if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+			libraryManagerLogger.error(
+				error,
+				`Error reading folder ${collectionRootFolder}`,
+			);
+		}
 		return { posterPath: null, backgroundPath: null };
 	}
 };
