@@ -29,16 +29,18 @@ export async function getOnlyRuntime(mediaFile: string): Promise<number> {
 
 	try {
 		const data = (await executeFfprobe(mediaFile)) as {
-			format?: { duration?: number };
+			format?: { duration?: number | string };
 		};
-		const duration = data?.format?.duration;
+		const raw = data?.format?.duration;
+		const duration = Number(raw);
 
-		if (typeof duration === "number" && !Number.isNaN(duration)) {
+		if (!Number.isNaN(duration) && duration > 0) {
 			return duration / 60;
 		}
 
 		return 0;
-	} catch (_err) {
+	} catch (err) {
+		logger.error({ err, mediaFile }, "getOnlyRuntime: ffprobe failed");
 		return 0;
 	}
 }

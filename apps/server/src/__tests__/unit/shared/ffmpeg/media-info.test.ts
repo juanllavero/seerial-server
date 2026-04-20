@@ -44,6 +44,12 @@ describe("mediaInfo adapter", () => {
 		await expect(getOnlyRuntime("C:/videos/movie.mkv")).resolves.toBe(2.5);
 	});
 
+	it("returns media runtime in minutes when ffprobe exposes a string duration", async () => {
+		mockExecuteFfprobe.mockResolvedValue({ format: { duration: "150.000000" } });
+
+		await expect(getOnlyRuntime("C:/videos/movie.mkv")).resolves.toBe(2.5);
+	});
+
 	it("returns 0 when runtime data is missing or ffprobe fails", async () => {
 		mockExecuteFfprobe
 			.mockResolvedValueOnce({ format: {} })
