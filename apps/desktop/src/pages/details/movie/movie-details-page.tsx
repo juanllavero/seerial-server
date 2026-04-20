@@ -1,5 +1,5 @@
 import { useGetMovie } from "@seerial/api";
-import type { DetailsData, Movie } from "@seerial/domain";
+import type { DetailsData, LibraryType, Movie } from "@seerial/domain";
 import { memo } from "react";
 import { useLocation, useParams } from "react-router";
 import MovieDetails from "@/features/details/movie/movie-details";
@@ -8,7 +8,8 @@ function MovieDetailsPage() {
 	const { movieId } = useParams();
 	const { state } = useLocation();
 	const cachedDetails: DetailsData | undefined = state?.cachedDetails;
-	const numberOfItems: number | undefined = state?.numberOfItems;
+	const collectionId: string | undefined = state?.collectionId;
+	const libraryType = state?.libraryType as LibraryType | undefined;
 
 	const { data: movie, isLoading } = useGetMovie<Movie>(movieId ?? "", {
 		enabled: !!movieId,
@@ -19,7 +20,8 @@ function MovieDetailsPage() {
 			movie={movie}
 			isLoading={isLoading}
 			details={cachedDetails}
-			numberOfItems={numberOfItems}
+			collectionId={collectionId}
+			libraryType={libraryType}
 		/>
 	);
 }

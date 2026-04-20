@@ -3,6 +3,7 @@ import {
 	type DetailsData,
 	formatDate,
 	formatTimeForView,
+	type LibraryType,
 	type Movie,
 	type Video,
 } from "@seerial/domain";
@@ -11,6 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
 import { shallow } from "zustand/shallow";
+import DetailsWithRelatedContent from "@/features/details/shared/details-with-related-content";
 import DetailsBackgroundLayers from "@/shared/components/details/details-background-layers";
 import DetailsBackgroundPlayback from "@/shared/components/details/details-background-playback";
 import DetailsInfo from "@/shared/components/details/details-info";
@@ -20,14 +22,16 @@ interface MovieDetailsProps {
 	movie: Movie | undefined;
 	isLoading: boolean;
 	details: DetailsData | undefined;
-	numberOfItems: number | undefined;
+	collectionId?: string;
+	libraryType?: LibraryType;
 }
 
 function MovieDetails({
 	movie,
 	isLoading,
 	details,
-	numberOfItems,
+	collectionId,
+	libraryType,
 }: MovieDetailsProps) {
 	const [selectedVideo, selectVideo] = useState<Video | null>(null);
 	const [isBackgroundVideoVisible, setIsBackgroundVideoVisible] =
@@ -80,40 +84,41 @@ function MovieDetails({
 	if (!isLoading && !movie) return <span>Movie not found</span>;
 
 	return (
-		<Page justify="end" padding="4dvh 0">
-			{!!movie?.id && (
-				<DetailsBackgroundPlayback
-					audioLocalIds={[movie.id]}
-					videoLocalIds={[movie.id]}
-					onVideoVisibilityChange={setIsBackgroundVideoVisible}
+		<DetailsWithRelatedContent
+			collectionId={collectionId}
+			currentItemId={movie?.id}
+			currentItemType="movie"
+			libraryType={libraryType}
+		>
+			<Page justify="end" padding="4dvh 0">
+				{!!movie?.id && (
+					<DetailsBackgroundPlayback
+						audioLocalIds={[movie.id]}
+						videoLocalIds={[movie.id]}
+						onVideoVisibilityChange={setIsBackgroundVideoVisible}
+					/>
+				)}
+				<DetailsBackgroundLayers
+					imageSrc={backgroundImageSrc}
+					isHidden={isBackgroundVideoVisible}
 				/>
-			)}
-			<DetailsBackgroundLayers
-				imageSrc={backgroundImageSrc}
-				isHidden={isBackgroundVideoVisible}
-			/>
-			<DetailsInfo
-				details={details}
-				subtitle={
-					movie?.videos && movie.videos.length > 1
-						? selectedVideo?.title
-						: undefined
-				}
-				infoItems={[
-					formatDate(details?.year ?? movie?.year ?? ""),
-					selectedVideo ? formatTimeForView(selectedVideo.runtime ?? 0) : "",
-				]}
-				handlePlay={handlePlay}
-				handleMarkWatched={handleMarkWatched}
-				isWatched={isWatched}
-			/>
-			{/* {movie.videos && movie.videos.length > 1 && (
-				<VideosList
-					selectedVideo={selectedVideo}
-					selectVideo={selectVideo}
+				<DetailsInfo
+					details={details}
+					subtitle={
+						movie?.videos && movie.videos.length > 1
+							? selectedVideo?.title
+							: undefined
+					}
+					infoItems={[
+						formatDate(details?.year ?? movie?.year ?? ""),
+						selectedVideo ? formatTimeForView(selectedVideo.runtime ?? 0) : "",
+					]}
+					handlePlay={handlePlay}
+					handleMarkWatched={handleMarkWatched}
+					isWatched={isWatched}
 				/>
-			)} */}
-		</Page>
+			</Page>
+		</DetailsWithRelatedContent>
 	);
 }
 

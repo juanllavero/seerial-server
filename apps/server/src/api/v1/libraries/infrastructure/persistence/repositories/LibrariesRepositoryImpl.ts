@@ -34,6 +34,7 @@ type TimingContext = Record<string, string | number | boolean | undefined>;
 type LibraryContentSource = {
 	id: string;
 	type: Library["type"];
+	collectionId?: string;
 	movies?: MovieModel[];
 	series?: SeriesModel[];
 	albums?: AlbumModel[];
@@ -294,19 +295,19 @@ export class LibrariesRepositoryImpl
 
 		const [movieItems, seriesItems, albumItems] = await Promise.all([
 			this.buildMovieItems(
-				{ id: collectionId, type: LibraryTypes.MOVIES, movies },
+				{ id: collectionId, type: LibraryTypes.MOVIES, collectionId, movies },
 				emptySet,
 				userId,
 				undefined,
 			),
 			this.buildSeriesItems(
-				{ id: collectionId, type: LibraryTypes.SHOWS, series },
+				{ id: collectionId, type: LibraryTypes.SHOWS, collectionId, series },
 				emptySet,
 				userId,
 				undefined,
 			),
 			this.buildAlbumItems(
-				{ id: collectionId, type: LibraryTypes.MUSIC, albums },
+				{ id: collectionId, type: LibraryTypes.MUSIC, collectionId, albums },
 				emptySet,
 			),
 		]);
@@ -528,6 +529,7 @@ export class LibrariesRepositoryImpl
 						remainingItems: 0,
 						analyzingFiles: false,
 						type: "collection" as const,
+						collectionId: collection.id,
 						details: {
 							title: collection.title,
 							genres: "",
@@ -792,6 +794,7 @@ export class LibrariesRepositoryImpl
 					remainingItems: 0,
 					analyzingFiles: movie.analyzingFiles,
 					type: "movie" as const,
+					collectionId: library.collectionId,
 					details,
 				};
 
@@ -889,6 +892,7 @@ export class LibrariesRepositoryImpl
 					remainingItems,
 					analyzingFiles: series.analyzingFiles,
 					type: "series" as const,
+					collectionId: library.collectionId,
 					details,
 				};
 
@@ -949,6 +953,7 @@ export class LibrariesRepositoryImpl
 					remainingItems: 0,
 					analyzingFiles: false,
 					type: "album" as const,
+					collectionId: library.collectionId,
 					details,
 				};
 

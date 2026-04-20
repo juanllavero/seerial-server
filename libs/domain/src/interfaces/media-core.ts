@@ -30,6 +30,7 @@ export interface LibraryItem {
     type: ItemType;
     details: DetailsData | null;
     currentSeasonNumber?: number;
+    collectionId?: string;
 }
 
 export interface DetailsData {

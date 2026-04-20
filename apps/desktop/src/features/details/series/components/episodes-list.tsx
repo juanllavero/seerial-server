@@ -3,6 +3,7 @@ import type { Episode, Season } from "@seerial/domain";
 import { useEffect, useMemo } from "react";
 import NavigationScrollView from "@/components/navigation/NavigationScrollView";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useRelatedContent } from "@/features/details/shared/related-content-context";
 import EpisodeCard from "./episode-card";
 
 export const MAX_SKELETON_COUNT = 10;
@@ -24,6 +25,7 @@ function EpisodesList({
 	isLoading = false,
 	skeletonCount = MAX_SKELETON_COUNT,
 }: EpisodesListProps) {
+	const { navigateToRelated, hasRelatedContent } = useRelatedContent();
 	const sortedEpisodes = useMemo(() => {
 		if (!selectedSeason) {
 			return [];
@@ -69,12 +71,23 @@ function EpisodesList({
 			focusedElementId={selectedEpisode?.id}
 			isRestoringFocus={isRestoringFocus}
 		>
-			{sortedEpisodes.map((episode) => (
+			{sortedEpisodes.map((episode, index) => (
 				<EpisodeCard
 					key={episode.id}
 					episode={episode}
 					selectedEpisodeId={selectedEpisode?.id}
 					onFocus={selectEpisode}
+					onArrowPress={
+						index === sortedEpisodes.length - 1 && hasRelatedContent
+							? (direction) => {
+									if (direction === "right") {
+										navigateToRelated();
+										return false;
+									}
+									return true;
+								}
+							: undefined
+					}
 				/>
 			))}
 		</NavigationScrollView>

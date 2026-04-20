@@ -1,5 +1,11 @@
 import { useSetEpisodeWatchState } from "@seerial/api";
-import type { DetailsData, Episode, Season, Series } from "@seerial/domain";
+import type {
+	DetailsData,
+	Episode,
+	LibraryType,
+	Season,
+	Series,
+} from "@seerial/domain";
 import { formatDate, formatTimeForView } from "@seerial/domain";
 import { useServerStore } from "@seerial/stores";
 import { useQueryClient } from "@tanstack/react-query";
@@ -11,6 +17,7 @@ import EpisodesList, {
 	MAX_SKELETON_COUNT,
 } from "@/features/details/series/components/episodes-list";
 import SeasonSelector from "@/features/details/series/components/season-selector";
+import DetailsWithRelatedContent from "@/features/details/shared/details-with-related-content";
 import { useSeriesDetailsFocusStore } from "@/features/details/series/stores/series-details-focus.store";
 import DetailsBackgroundLayers from "@/shared/components/details/details-background-layers";
 import DetailsBackgroundPlayback from "@/shared/components/details/details-background-playback";
@@ -23,6 +30,8 @@ interface SeriesDetailsProps {
 	details: DetailsData | undefined;
 	numberOfItems: number | undefined;
 	currentSeasonNumber: number | undefined;
+	collectionId?: string;
+	libraryType?: LibraryType;
 }
 
 function SeriesDetails({
@@ -31,6 +40,8 @@ function SeriesDetails({
 	details,
 	numberOfItems,
 	currentSeasonNumber,
+	collectionId,
+	libraryType,
 }: SeriesDetailsProps) {
 	const navigate = useNavigate();
 	const queryClient = useQueryClient();
@@ -151,66 +162,73 @@ function SeriesDetails({
 	if (!isLoading && !series) return <span>Series not found</span>;
 
 	return (
-		<Page
-			justify="end"
-			padding={
-				series?.seasons && series?.seasons.length > 1 ? "0" : "0 0 5dvh 0"
-			}
+		<DetailsWithRelatedContent
+			collectionId={collectionId}
+			currentItemId={series?.id}
+			currentItemType="series"
+			libraryType={libraryType}
 		>
-			{!!series?.id && (
-				<DetailsBackgroundPlayback
-					audioLocalIds={[selectedSeason?.id, series.id]}
-					videoLocalIds={[selectedSeason?.id, series.id]}
-					onVideoVisibilityChange={setIsBackgroundVideoVisible}
+			<Page
+				justify="end"
+				padding={
+					series?.seasons && series?.seasons.length > 1 ? "0" : "0 0 5dvh 0"
+				}
+			>
+				{!!series?.id && (
+					<DetailsBackgroundPlayback
+						audioLocalIds={[selectedSeason?.id, series.id]}
+						videoLocalIds={[selectedSeason?.id, series.id]}
+						onVideoVisibilityChange={setIsBackgroundVideoVisible}
+					/>
+				)}
+				<DetailsBackgroundLayers
+					imageSrc={backgroundImageSrc}
+					isHidden={isBackgroundVideoVisible}
 				/>
-			)}
-			<DetailsBackgroundLayers
-				imageSrc={backgroundImageSrc}
-				isHidden={isBackgroundVideoVisible}
-			/>
-			<DetailsInfo
-				details={details}
-				subtitle={selectedEpisode?.name}
-				infoItems={[
-					selectedEpisode
-						? `${t("seasonLetter")}${selectedEpisode.seasonNumber}${t("episodeLetter")}${selectedEpisode.episodeNumber}`
-						: "",
-					formatDate(
-						selectedEpisode ? selectedEpisode.year : (series?.year ?? ""),
-					),
-					selectedEpisode
-						? formatTimeForView(selectedEpisode.video.runtime ?? 0)
-						: "",
-				]}
-				videoInfo={selectedEpisode?.video.videoTracks?.[0]?.displayTitle}
-				audioInfo={
-					selectedEpisode?.video.audioTracks?.[
-						selectedEpisode.video.selectedAudioTrack ?? 0
-					]?.displayTitle
-				}
-				subtitleInfo={
-					selectedEpisode?.video.subtitleTracks?.[
-						selectedEpisode.video.selectedSubtitleTrack ?? 0
-					]?.displayTitle
-				}
-				handlePlay={handlePlay}
-				handleMarkWatched={handleMarkWatched}
-				isWatched={isWatched}
-			/>
-			<EpisodesList
-				selectedSeason={selectedSeason}
-				selectedEpisode={selectedEpisode}
-				selectEpisode={handleSelectEpisode}
-				isRestoringFocus={isRestoringEpisodeFocus}
-				isLoading={isLoading || !selectedSeason}
-				skeletonCount={numberOfItems ?? MAX_SKELETON_COUNT}
-			/>
-			<SeasonSelector
-				seasons={series?.seasons ?? []}
-				onSelectSeason={setSelectedSeason}
-				selectedSeasonId={selectedSeason?.id}
-			/>
-		</Page>
+				<DetailsInfo
+					details={details}
+					subtitle={selectedEpisode?.name}
+					infoItems={[
+						selectedEpisode
+							? `${t("seasonLetter")}${selectedEpisode.seasonNumber}${t("episodeLetter")}${selectedEpisode.episodeNumber}`
+							: "",
+						formatDate(
+							selectedEpisode ? selectedEpisode.year : (series?.year ?? ""),
+						),
+						selectedEpisode
+							? formatTimeForView(selectedEpisode.video.runtime ?? 0)
+							: "",
+					]}
+					videoInfo={selectedEpisode?.video.videoTracks?.[0]?.displayTitle}
+					audioInfo={
+						selectedEpisode?.video.audioTracks?.[
+							selectedEpisode.video.selectedAudioTrack ?? 0
+						]?.displayTitle
+					}
+					subtitleInfo={
+						selectedEpisode?.video.subtitleTracks?.[
+							selectedEpisode.video.selectedSubtitleTrack ?? 0
+						]?.displayTitle
+					}
+					handlePlay={handlePlay}
+					handleMarkWatched={handleMarkWatched}
+					isWatched={isWatched}
+				/>
+				<EpisodesList
+					selectedSeason={selectedSeason}
+					selectedEpisode={selectedEpisode}
+					selectEpisode={handleSelectEpisode}
+					isRestoringFocus={isRestoringEpisodeFocus}
+					isLoading={isLoading || !selectedSeason}
+					skeletonCount={numberOfItems ?? MAX_SKELETON_COUNT}
+				/>
+				<SeasonSelector
+					seasons={series?.seasons ?? []}
+					onSelectSeason={setSelectedSeason}
+					selectedSeasonId={selectedSeason?.id}
+				/>
+			</Page>
+		</DetailsWithRelatedContent>
 	);
 }
 

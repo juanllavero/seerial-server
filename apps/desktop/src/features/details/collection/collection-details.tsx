@@ -56,9 +56,11 @@ function getOrderedSectionKeys(
 ): CollectionSectionKey[] {
 	switch (libraryType) {
 		case "Movies":
-			return ["movies", "shows", "albums"];
+			return ["movies"];
 		case "Music":
-			return ["albums", "shows", "movies"];
+			return ["albums"];
+		case "Shows":
+			return ["shows"];
 		default:
 			return ["shows", "movies", "albums"];
 	}
@@ -348,7 +350,11 @@ function CollectionDetails({
 									}
 									action={() => {
 										navigate(`/details/${section.itemType}/${item.id}`, {
-											state: { cachedDetails: item.details },
+											state: {
+												cachedDetails: item.details,
+												collectionId,
+												libraryType,
+											},
 										});
 									}}
 								/>

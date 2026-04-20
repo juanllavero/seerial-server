@@ -97,6 +97,7 @@ function LibraryContent({
 									state: {
 										cachedDetails: item.details,
 										numberOfItems: item.numberOfItems,
+										collectionId: item.collectionId,
 										currentSeasonNumber: item.currentSeasonNumber,
 										libraryType: libraryType,
 									},

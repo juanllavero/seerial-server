@@ -1,4 +1,9 @@
-import { type Album, type DetailsData, formatDate } from "@seerial/domain";
+import {
+	type Album,
+	type DetailsData,
+	formatDate,
+	type LibraryType,
+} from "@seerial/domain";
 import { useGradientStore } from "@seerial/stores";
 import { Ellipsis, PlayIcon, Shuffle } from "lucide-react";
 import { memo, useEffect, useState } from "react";
@@ -9,6 +14,8 @@ import NavigationButton from "@/components/navigation/NavigationButton";
 import NavigationScrollView from "@/components/navigation/NavigationScrollView";
 import FlexBox from "@/components/ui/FlexBox";
 import Image from "@/components/ui/Image";
+import DetailsWithRelatedContent from "@/features/details/shared/details-with-related-content";
+import { useRelatedContent } from "@/features/details/shared/related-content-context";
 import { useSettingsStore } from "@/features/settings/stores/settings.store";
 import AppAlertDialog from "@/shared/components/app-alert-dialog";
 import DetailsInfo from "@/shared/components/details/details-info";
@@ -20,9 +27,17 @@ interface AlbumDetailsProps {
 	album: Album | undefined;
 	isLoading: boolean;
 	details: DetailsData | undefined;
+	collectionId?: string;
+	libraryType?: LibraryType;
 }
 
-function AlbumDetails({ album, isLoading, details }: AlbumDetailsProps) {
+function AlbumDetails({
+	album,
+	isLoading,
+	details,
+	collectionId,
+	libraryType,
+}: AlbumDetailsProps) {
 	const navigate = useNavigate();
 	const setGradientImageSrc = useGradientStore(
 		(state) => state.setGradientImageSrc,
@@ -47,6 +62,47 @@ function AlbumDetails({ album, isLoading, details }: AlbumDetailsProps) {
 		setGradientImageSrc(src);
 		return () => setGradientImageSrc("");
 	}, [details?.coverSrc, album?.coverSrc, setGradientImageSrc]);
+
+	return (
+		<DetailsWithRelatedContent
+			collectionId={collectionId}
+			currentItemId={album?.id}
+			currentItemType="album"
+			libraryType={libraryType}
+		>
+			<AlbumDetailsContent
+				album={album}
+				details={details}
+				focusedSongId={focusedSongId}
+				setFocusedSongId={setFocusedSongId}
+				cardRoundness={cardRoundness}
+				isErrorDialogOpen={isErrorDialogOpen}
+				navigate={navigate}
+			/>
+		</DetailsWithRelatedContent>
+	);
+}
+
+interface AlbumDetailsContentProps {
+	album: Album | undefined;
+	details: DetailsData | undefined;
+	focusedSongId: string | undefined;
+	setFocusedSongId: (id: string | undefined) => void;
+	cardRoundness: string;
+	isErrorDialogOpen: boolean;
+	navigate: ReturnType<typeof useNavigate>;
+}
+
+function AlbumDetailsContent({
+	album,
+	details,
+	focusedSongId,
+	setFocusedSongId,
+	cardRoundness,
+	isErrorDialogOpen,
+	navigate,
+}: AlbumDetailsContentProps) {
+	const { navigateToRelated, hasRelatedContent } = useRelatedContent();
 
 	return (
 		<Page padding="0" justify="end">
@@ -102,6 +158,13 @@ function AlbumDetails({ album, isLoading, details }: AlbumDetailsProps) {
 							icon={<Ellipsis size={"3dvh"} />}
 							hideText
 							animateText
+							onArrowPress={(direction) => {
+								if (direction === "right" && hasRelatedContent) {
+									navigateToRelated();
+									return false;
+								}
+								return true;
+							}}
 						/>
 					</FlexBox>
 
