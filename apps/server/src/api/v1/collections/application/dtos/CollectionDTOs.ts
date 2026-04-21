@@ -1,4 +1,9 @@
-import { LibraryItem } from "@seerial/domain";
+import type { LibraryItem } from "@seerial/domain";
+
+export interface CollectionSummaryDTO {
+	id: string;
+	title: string;
+}
 
 export interface ReorderItemDTO {
 	id: string;

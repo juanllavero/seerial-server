@@ -13,12 +13,18 @@ import { UpdateArtistUseCase } from "@/api/v1/artists/application/usecases/Updat
 import { ArtistsRepositoryImpl } from "@/api/v1/artists/infrastructure/persistence/repositories/ArtistsRepositoryImpl";
 import { AddAlbumToCollectionUseCase } from "@/api/v1/collections/application/usecases/AddAlbumToCollectionUseCase";
 import { AddLibraryToCollectionUseCase } from "@/api/v1/collections/application/usecases/AddLibraryUseCase";
+import { AddMovieToCollectionUseCase } from "@/api/v1/collections/application/usecases/AddMovieToCollectionUseCase";
+import { AddSeriesToCollectionUseCase } from "@/api/v1/collections/application/usecases/AddSeriesToCollectionUseCase";
 import { CreateCollectionUseCase } from "@/api/v1/collections/application/usecases/CreateCollectionUseCase";
 import { DeleteCollectionUseCase } from "@/api/v1/collections/application/usecases/DeleteCollectionUseCase";
 import { FindCollectionByIdUseCase } from "@/api/v1/collections/application/usecases/FindCollectionByIdUseCase";
 import { FindCollectionsInLibraryUseCase } from "@/api/v1/collections/application/usecases/FindCollectionsInLibraryUseCase";
+import { GetAllCollectionsUseCase } from "@/api/v1/collections/application/usecases/GetAllCollectionsUseCase";
 import { GetCollectionContentUseCase } from "@/api/v1/collections/application/usecases/GetCollectionContentUseCase";
 import { GetMusicExtrasUseCase } from "@/api/v1/collections/application/usecases/GetMusicExtrasUseCase";
+import { RemoveAlbumFromCollectionUseCase } from "@/api/v1/collections/application/usecases/RemoveAlbumFromCollectionUseCase";
+import { RemoveMovieFromCollectionUseCase } from "@/api/v1/collections/application/usecases/RemoveMovieFromCollectionUseCase";
+import { RemoveSeriesFromCollectionUseCase } from "@/api/v1/collections/application/usecases/RemoveSeriesFromCollectionUseCase";
 import { ReorderCollectionItemsUseCase } from "@/api/v1/collections/application/usecases/ReorderCollectionItemsUseCase";
 import { UpdateCollectionUseCase } from "@/api/v1/collections/application/usecases/UpdateCollectionUseCase";
 import { CollectionsRepositoryImpl } from "@/api/v1/collections/infrastructure/persistence/repositories/CollectionsRepositoryImpl";
@@ -215,6 +221,7 @@ export const useCases = {
 	removeAnalyzedFolder: () => new RemoveAnalyzedFolderUseCase(librariesRepo),
 
 	// Collections
+	getAllCollections: () => new GetAllCollectionsUseCase(collectionsRepo),
 	getAllCollectionsInLibrary: () =>
 		new FindCollectionsInLibraryUseCase(collectionsRepo),
 	getCollectionById: () => new FindCollectionByIdUseCase(collectionsRepo),
@@ -228,6 +235,11 @@ export const useCases = {
 	addLibraryToCollection: () =>
 		new AddLibraryToCollectionUseCase(collectionsRepo),
 	addAlbumToCollection: () => new AddAlbumToCollectionUseCase(collectionsRepo),
+	addMovieToCollection: () => new AddMovieToCollectionUseCase(collectionsRepo),
+	addSeriesToCollection: () => new AddSeriesToCollectionUseCase(collectionsRepo),
+	removeMovieFromCollection: () => new RemoveMovieFromCollectionUseCase(collectionsRepo),
+	removeSeriesFromCollection: () => new RemoveSeriesFromCollectionUseCase(collectionsRepo),
+	removeAlbumFromCollection: () => new RemoveAlbumFromCollectionUseCase(collectionsRepo),
 
 	// Series
 	getSeriesById: () => new FindSeriesByIdUseCase(seriesRepo),

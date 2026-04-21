@@ -67,6 +67,15 @@ export class ForbiddenException extends HttpException {
 }
 
 /**
+ * Exception for 409 Conflict scenarios.
+ */
+export class ConflictException extends HttpException {
+	constructor(message: string = "Conflict") {
+		super(HTTPCodes.CONFLICT, message);
+	}
+}
+
+/**
  * Exception for 500 Repository Error scenarios.
  */
 export class RepositoryException extends HttpException {

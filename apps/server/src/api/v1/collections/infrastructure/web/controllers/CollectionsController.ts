@@ -18,6 +18,7 @@ import { messages } from "@/config/messages";
 import { getUserId } from "@/utils/auth";
 import type {
 	CollectionContentDTO,
+	CollectionSummaryDTO,
 	MusicExtrasDTO,
 	ReorderContentDTO,
 	UpdateCollectionDTO,
@@ -27,6 +28,17 @@ import type { Collection } from "@seerial/domain";
 @Route("collections")
 @Tags("Collections")
 export class CollectionsController extends Controller {
+	/**
+	 * Get all collections (id and title only)
+	 */
+	@Get()
+	@Security("adminAuth")
+	public async getAll(): Promise<ApiResponse<CollectionSummaryDTO[]>> {
+		const collections = await useCases.getAllCollections().execute();
+
+		return ApiResponse.success(collections, messages.success.fetch);
+	}
+
 	/**
 	 * Get music extras for a collection
 	 */
@@ -55,6 +67,90 @@ export class CollectionsController extends Controller {
 			.execute(collectionId, userId);
 
 		return ApiResponse.success(content, messages.success.fetch);
+	}
+
+	/**
+	 * Add a movie to a collection
+	 */
+	@Post("{id}/movies/{movieId}")
+	@Security("adminAuth")
+	public async addMovie(
+		@Path() id: string,
+		@Path() movieId: string,
+	): Promise<ApiResponse<null>> {
+		await useCases.addMovieToCollection().execute(id, movieId);
+
+		return ApiResponse.success(null, messages.success.create);
+	}
+
+	/**
+	 * Add a series to a collection
+	 */
+	@Post("{id}/series/{seriesId}")
+	@Security("adminAuth")
+	public async addSeries(
+		@Path() id: string,
+		@Path() seriesId: string,
+	): Promise<ApiResponse<null>> {
+		await useCases.addSeriesToCollection().execute(id, seriesId);
+
+		return ApiResponse.success(null, messages.success.create);
+	}
+
+	/**
+	 * Add an album to a collection
+	 */
+	@Post("{id}/albums/{albumId}")
+	@Security("adminAuth")
+	public async addAlbum(
+		@Path() id: string,
+		@Path() albumId: string,
+	): Promise<ApiResponse<null>> {
+		await useCases.addAlbumToCollection().execute(id, albumId);
+
+		return ApiResponse.success(null, messages.success.create);
+	}
+
+	/**
+	 * Remove a movie from a collection
+	 */
+	@Delete("{id}/movies/{movieId}")
+	@Security("adminAuth")
+	public async removeMovie(
+		@Path() id: string,
+		@Path() movieId: string,
+	): Promise<ApiResponse<null>> {
+		await useCases.removeMovieFromCollection().execute(id, movieId);
+
+		return ApiResponse.success(null, messages.success.delete);
+	}
+
+	/**
+	 * Remove a series from a collection
+	 */
+	@Delete("{id}/series/{seriesId}")
+	@Security("adminAuth")
+	public async removeSeries(
+		@Path() id: string,
+		@Path() seriesId: string,
+	): Promise<ApiResponse<null>> {
+		await useCases.removeSeriesFromCollection().execute(id, seriesId);
+
+		return ApiResponse.success(null, messages.success.delete);
+	}
+
+	/**
+	 * Remove an album from a collection
+	 */
+	@Delete("{id}/albums/{albumId}")
+	@Security("adminAuth")
+	public async removeAlbum(
+		@Path() id: string,
+		@Path() albumId: string,
+	): Promise<ApiResponse<null>> {
+		await useCases.removeAlbumFromCollection().execute(id, albumId);
+
+		return ApiResponse.success(null, messages.success.delete);
 	}
 
 	/**

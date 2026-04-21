@@ -1541,6 +1541,35 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"ApiResponse_Chapter-Array_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/Chapter"
+						},
+						"type": "array",
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"UserDTO": {
 				"properties": {
 					"id": {
@@ -2778,6 +2807,51 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"CollectionSummaryDTO": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"title"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_CollectionSummaryDTO-Array_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/CollectionSummaryDTO"
+						},
+						"type": "array",
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"MusicExtrasDTO": {
 				"properties": {
 					"title": {
@@ -2881,6 +2955,13 @@
 							}
 						],
 						"nullable": true
+					},
+					"currentSeasonNumber": {
+						"type": "number",
+						"format": "double"
+					},
+					"collectionId": {
+						"type": "string"
 					}
 				},
 				"required": [
@@ -5373,6 +5454,42 @@
 				]
 			}
 		},
+		"/videos/{id}/chapter-thumbnails": {
+			"get": {
+				"operationId": "GetChapterThumbnails",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_Chapter-Array_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get or generate chapter thumbnails for a video.\nThumbnails are stored on disk and reused on subsequent requests.",
+				"tags": [
+					"Videos"
+				],
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
 		"/users": {
 			"post": {
 				"operationId": "Create",
@@ -6384,6 +6501,33 @@
 				}
 			}
 		},
+		"/collections": {
+			"get": {
+				"operationId": "GetAll",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_CollectionSummaryDTO-Array_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get all collections (id and title only)",
+				"tags": [
+					"Collections"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": []
+			}
+		},
 		"/collections/{collectionId}/music-extras": {
 			"get": {
 				"operationId": "GetMusicExtras",
@@ -6448,6 +6592,264 @@
 					{
 						"in": "path",
 						"name": "collectionId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/collections/{id}/movies/{movieId}": {
+			"post": {
+				"operationId": "AddMovie",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Add a movie to a collection",
+				"tags": [
+					"Collections"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "path",
+						"name": "movieId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"delete": {
+				"operationId": "RemoveMovie",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Remove a movie from a collection",
+				"tags": [
+					"Collections"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "path",
+						"name": "movieId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/collections/{id}/series/{seriesId}": {
+			"post": {
+				"operationId": "AddSeries",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Add a series to a collection",
+				"tags": [
+					"Collections"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "path",
+						"name": "seriesId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"delete": {
+				"operationId": "RemoveSeries",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Remove a series from a collection",
+				"tags": [
+					"Collections"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "path",
+						"name": "seriesId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/collections/{id}/albums/{albumId}": {
+			"post": {
+				"operationId": "AddAlbum",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Add an album to a collection",
+				"tags": [
+					"Collections"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "path",
+						"name": "albumId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"delete": {
+				"operationId": "RemoveAlbum",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Remove an album from a collection",
+				"tags": [
+					"Collections"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "path",
+						"name": "albumId",
 						"required": true,
 						"schema": {
 							"type": "string"

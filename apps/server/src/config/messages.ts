@@ -45,6 +45,10 @@ export const messages = {
 				"audio-separator is not installed or not available in PATH.",
 			stemSeparationFailed: "Failed to separate song stems.",
 		},
+		conflict: {
+			itemAlreadyInCollection: "Item is already in the collection.",
+			itemNotInCollection: "Item is not in the collection.",
+		},
 		validation: {
 			missingId: "Required ID is missing.",
 			invalidId: "Invalid ID.",

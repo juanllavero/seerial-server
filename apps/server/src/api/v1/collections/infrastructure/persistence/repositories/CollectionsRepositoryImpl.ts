@@ -5,7 +5,7 @@ import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/mode
 import { DatabaseManager } from "@/api/v1/shared/infrastructure/persistence/DatabaseManager";
 import { getCollectionItemsKey } from "@/api/v1/shared/infrastructure/services/FileSearchService";
 import { GenericRepositoryHelper } from "@/helpers/GenericRepositoryHelper";
-import type { ReorderItemDTO } from "../../../application/dtos/CollectionDTOs";
+import type { CollectionSummaryDTO, ReorderItemDTO } from "../../../application/dtos/CollectionDTOs";
 import type { CollectionsRepositoryPort } from "../../../application/ports/CollectionsRepositoryPort";
 import type { Collection } from "../../../domain/Collection";
 import { CollectionAlbumModel } from "../models/CollectionAlbum";
@@ -15,8 +15,7 @@ import { CollectionSeriesModel } from "../models/CollectionSeries";
 
 export class CollectionsRepositoryImpl
 	extends BaseRepository
-	implements CollectionsRepositoryPort
-{
+	implements CollectionsRepositoryPort {
 	// Generic helper for common CRUD operations
 	private helper: GenericRepositoryHelper<CollectionModel, Collection>;
 
@@ -28,6 +27,15 @@ export class CollectionsRepositoryImpl
 			entityName: "Collection",
 			generateShortId: true,
 		});
+	}
+
+	async getAllSummary(): Promise<CollectionSummaryDTO[]> {
+		const collections = await CollectionModel.find({
+			select: ["id", "title"],
+			order: { title: "ASC" },
+		});
+
+		return collections.map((c) => ({ id: c.id, title: c.title }));
 	}
 
 	async getAll(libraryId: string): Promise<Collection[]> {
@@ -204,7 +212,7 @@ export class CollectionsRepositoryImpl
 		);
 	}
 
-	async removeSeries(collectionId: string, seriesId: string): Promise<boolean> {
+	async removeSeries(collectionId: string, seriesId: string): Promise<void> {
 		const validated = this.validateIds({ collectionId, seriesId });
 
 		const whereCondition = {
@@ -213,10 +221,9 @@ export class CollectionsRepositoryImpl
 		};
 
 		await this.helper.deleteRelationship(CollectionSeriesModel, whereCondition);
-		return true;
 	}
 
-	async removeMovie(collectionId: string, movieId: string): Promise<boolean> {
+	async removeMovie(collectionId: string, movieId: string): Promise<void> {
 		const validated = this.validateIds({ collectionId, movieId });
 
 		const whereCondition = {
@@ -225,10 +232,9 @@ export class CollectionsRepositoryImpl
 		};
 
 		await this.helper.deleteRelationship(CollectionMovieModel, whereCondition);
-		return true;
 	}
 
-	async removeAlbum(collectionId: string, albumId: string): Promise<boolean> {
+	async removeAlbum(collectionId: string, albumId: string): Promise<void> {
 		const validated = this.validateIds({ collectionId, albumId });
 
 		const whereCondition = {
@@ -237,7 +243,30 @@ export class CollectionsRepositoryImpl
 		};
 
 		await this.helper.deleteRelationship(CollectionAlbumModel, whereCondition);
-		return true;
+	}
+
+	async hasMovie(collectionId: string, movieId: string): Promise<boolean> {
+		const validated = this.validateIds({ collectionId, movieId });
+		const count = await CollectionMovieModel.count({
+			where: { collectionId: validated.collectionId, movieId: validated.movieId },
+		});
+		return count > 0;
+	}
+
+	async hasSeries(collectionId: string, seriesId: string): Promise<boolean> {
+		const validated = this.validateIds({ collectionId, seriesId });
+		const count = await CollectionSeriesModel.count({
+			where: { collectionId: validated.collectionId, seriesId: validated.seriesId },
+		});
+		return count > 0;
+	}
+
+	async hasAlbum(collectionId: string, albumId: string): Promise<boolean> {
+		const validated = this.validateIds({ collectionId, albumId });
+		const count = await CollectionAlbumModel.count({
+			where: { collectionId: validated.collectionId, albumId: validated.albumId },
+		});
+		return count > 0;
 	}
 
 	async reorderContent(
