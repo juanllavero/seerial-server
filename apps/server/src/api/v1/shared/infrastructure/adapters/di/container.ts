@@ -50,7 +50,6 @@ import { ReorderLibraryItemsUseCase } from "@/api/v1/libraries/application/useca
 import { ScanLibraryUseCase } from "@/api/v1/libraries/application/usecases/ScanLibraryUseCase";
 import { UpdateLibraryUseCase } from "@/api/v1/libraries/application/usecases/UpdateLibraryUseCase";
 import { LibrariesRepositoryImpl } from "@/api/v1/libraries/infrastructure/persistence/repositories/LibrariesRepositoryImpl";
-import { DeleteMovieDataUseCase } from "@/api/v1/movies/application/usecases/DeleteMovieDataUseCase";
 import { DeleteMovieUseCase } from "@/api/v1/movies/application/usecases/DeleteMovieUseCase";
 import { FindMovieByIdUseCase } from "@/api/v1/movies/application/usecases/FindMovieByIdUseCase";
 import { FindMovieByPathUseCase } from "@/api/v1/movies/application/usecases/FindMovieByPathUseCase";
@@ -70,7 +69,6 @@ import { RemoveSongFromPlayListUseCase } from "@/api/v1/playlists/application/us
 import { UpdatePlayListUseCase } from "@/api/v1/playlists/application/usecases/UpdatePlayListUseCase";
 import { PlayListRepositoryImpl } from "@/api/v1/playlists/infrastructure/persistence/repositories/PlayListRepositoryImpl";
 import { CreateSeasonUseCase } from "@/api/v1/seasons/application/usecases/CreateSeasonUseCase";
-import { DeleteSeasonDataUseCase } from "@/api/v1/seasons/application/usecases/DeleteSeasonDataUseCase";
 import { DeleteSeasonUseCase } from "@/api/v1/seasons/application/usecases/DeleteSeasonsUseCase";
 import { FindAllSeasonsUseCase } from "@/api/v1/seasons/application/usecases/FindAllSeasonsUseCase";
 import { FindSeasonByIdUseCase } from "@/api/v1/seasons/application/usecases/FindSeasonByIdUseCase";
@@ -78,7 +76,6 @@ import { FindSeasonsBySeriesIdUseCase } from "@/api/v1/seasons/application/useca
 import { UpdateSeasonUseCase } from "@/api/v1/seasons/application/usecases/UpdateSeasonsUseCase";
 import { SeasonsRepositoryImpl } from "@/api/v1/seasons/infrastructure/persistence/repositories/SeasonsRepositoryImpl";
 import { CreateSeriesUseCase } from "@/api/v1/series/application/usecases/CreateSeriesUseCase";
-import { DeleteSeriesDataUseCase } from "@/api/v1/series/application/usecases/DeleteSeriesDataUseCase";
 import { DeleteSeriesUseCase } from "@/api/v1/series/application/usecases/DeleteSeriesUseCase";
 import { FindSeriesByIdUseCase } from "@/api/v1/series/application/usecases/FindSeriesByIdUseCase";
 import { ProcessEpisodeUseCase } from "@/api/v1/series/application/usecases/ProcessEpisodeUseCase";
@@ -109,7 +106,6 @@ import { GetAllUsersUseCase } from "@/api/v1/users/application/usecases/GetAllUs
 import { UpdateUserUseCase } from "@/api/v1/users/application/usecases/UpdateUserUseCase";
 import { UsersRepositoryImpl } from "@/api/v1/users/infrastructure/persistence/repositories/UsersRepositoryImpl";
 import { CreateVideoAsEpisodeUseCase } from "@/api/v1/videos/application/usecases/CreateVideoAsEpisodeUseCase";
-import { DeleteVideoDataUseCase } from "@/api/v1/videos/application/usecases/DeleteVideoDataUseCase";
 import { DeleteVideoUseCase } from "@/api/v1/videos/application/usecases/DeleteVideoUseCase";
 import { FindVideoByEpisodeIdUseCase } from "@/api/v1/videos/application/usecases/FindVideoByEpisodeIdUseCase";
 import { FindVideoByIdUseCase } from "@/api/v1/videos/application/usecases/FindVideoByIdUseCase";
@@ -148,6 +144,7 @@ import { MediaInfoServiceImpl } from "../media-info/MediaInfoServiceImpl";
 import { MetadataProviderImpl } from "../metadata/MetadataProviderImpl";
 import { TMDbApiClient } from "../metadata/TMDbApiClient";
 import { NotificationServiceImpl } from "../notification/NotificationServiceImpl";
+import { ContentCleanupService } from "@/api/v1/shared/application/services/ContentCleanupService";
 
 //#endregion
 
@@ -164,6 +161,7 @@ export const videoProcessingService = new VideoProcessingServiceImpl();
 export const imageProcessingService = new ImageProcessingServiceImpl(
 	fileSystemService,
 );
+export const contentCleanupService = new ContentCleanupService(fileSystemService);
 
 // Providers
 export const tmdbApiClient = new TMDbApiClient();
@@ -246,7 +244,6 @@ export const useCases = {
 	createSeries: () => new CreateSeriesUseCase(seriesRepo),
 	updateSeries: () => new UpdateSeriesUseCase(seriesRepo),
 	deleteSeries: () => new DeleteSeriesUseCase(seriesRepo),
-	deleteSeriesData: () => new DeleteSeriesDataUseCase(),
 
 	processEpisode: () => new ProcessEpisodeUseCase(mediaInfoService),
 	refreshSeriesMetadata: () => new RefreshMetadataUseCase(metadataProvider),
@@ -272,14 +269,12 @@ export const useCases = {
 	getSeasons: () => new FindAllSeasonsUseCase(seasonsRepo),
 	updateSeason: () => new UpdateSeasonUseCase(seasonsRepo),
 	deleteSeason: () => new DeleteSeasonUseCase(seasonsRepo),
-	deleteSeasonData: () => new DeleteSeasonDataUseCase(seasonsRepo),
 
 	// Movies
 	getMoviebyId: () => new FindMovieByIdUseCase(moviesRepo),
 	getMovieByPath: () => new FindMovieByPathUseCase(moviesRepo),
 	updateMovie: () => new UpdateMovieUseCase(moviesRepo),
 	deleteMovie: () => new DeleteMovieUseCase(librariesRepo, moviesRepo),
-	deleteMovieData: () => new DeleteMovieDataUseCase(),
 
 	updateMovieMetadata: () =>
 		new UpdateMovieMetadataUseCase(
@@ -362,7 +357,6 @@ export const useCases = {
 	updateMediaInfo: () => new UpdateMediaInfoUseCase(videosRepo),
 	addVideoAsEpisode: () => new CreateVideoAsEpisodeUseCase(videosRepo),
 	deleteVideo: () => new DeleteVideoUseCase(videosRepo, librariesRepo),
-	deleteVideoData: () => new DeleteVideoDataUseCase(fileSystemService),
 
 	// Playlists
 	getPlayLists: () => new FindAllPlayListsUseCase(playlistRepo),

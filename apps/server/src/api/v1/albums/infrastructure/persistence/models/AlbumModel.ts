@@ -1,9 +1,6 @@
-import path from "node:path";
-import fs from "fs-extra";
 import {
 	BaseEntity,
 	BeforeInsert,
-	BeforeRemove,
 	Column,
 	Entity,
 	JoinColumn,
@@ -15,10 +12,7 @@ import { v4 as uuidv4 } from "uuid";
 import { CollectionAlbumModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionAlbum";
 import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryModel";
 import { SongModel } from "@/api/v1/songs/infrastructure/persistence/models/SongModel";
-import logger from "@/utils/logger";
 import { AlbumArtistModel } from "./AlbumArtistModel";
-
-const albumLogger = logger.child({ category: "Album" });
 
 @Entity({ name: "Album" })
 export class AlbumModel extends BaseEntity {
@@ -83,16 +77,6 @@ export class AlbumModel extends BaseEntity {
 	generateId() {
 		if (!this.id) {
 			this.id = uuidv4().split("-")[0];
-		}
-	}
-
-	@BeforeRemove()
-	async beforeRemove(): Promise<void> {
-		try {
-			await fs.remove(path.join("resources", "img", "posters", this.id ?? ""));
-			albumLogger.info(`Cleaned data from album ID=${this.id}`);
-		} catch (error) {
-			albumLogger.error(error, `Error cleaning data for album ID=${this.id}`);
 		}
 	}
 }

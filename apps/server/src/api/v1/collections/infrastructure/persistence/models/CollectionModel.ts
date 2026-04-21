@@ -1,9 +1,6 @@
-import path from "node:path";
-import fs from "fs-extra";
 import {
 	BaseEntity,
 	BeforeInsert,
-	BeforeRemove,
 	Column,
 	Entity,
 	OneToMany,
@@ -11,12 +8,9 @@ import {
 } from "typeorm";
 import { v4 as uuidv4 } from "uuid";
 import { LibraryCollectionModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryCollectionModel";
-import logger from "@/utils/logger";
 import { CollectionAlbumModel } from "./CollectionAlbum";
 import { CollectionMovieModel } from "./CollectionMovie";
 import { CollectionSeriesModel } from "./CollectionSeries";
-
-const collectionLogger = logger.child({ category: "Collection" });
 
 @Entity({ name: "Collection" })
 export class CollectionModel extends BaseEntity {
@@ -113,22 +107,6 @@ export class CollectionModel extends BaseEntity {
 	generateId() {
 		if (!this.id) {
 			this.id = uuidv4().split("-")[0];
-		}
-	}
-
-	@BeforeRemove()
-	async beforeRemove(): Promise<void> {
-		try {
-			await fs.remove(path.join("resources", "img", "posters", this.id ?? ""));
-			await fs.remove(
-				path.join("resources", "img", "backgrounds", this.id ?? ""),
-			);
-			collectionLogger.info(`Cleaned data from collection ID=${this.id}`);
-		} catch (error) {
-			collectionLogger.error(
-				error,
-				`Error cleaning data for collection ID=${this.id}`,
-			);
 		}
 	}
 }

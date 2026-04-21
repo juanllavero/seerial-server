@@ -2,7 +2,6 @@ import type { CastData } from "@seerial/domain";
 import {
 	BaseEntity,
 	BeforeInsert,
-	BeforeRemove,
 	Column,
 	Entity,
 	JoinColumn,
@@ -14,11 +13,7 @@ import { v4 as uuidv4 } from "uuid";
 import { CollectionSeriesModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionSeries";
 import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryModel";
 import { SeasonModel } from "@/api/v1/seasons/infrastructure/persistence/models/SeasonModel";
-import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
 import { WatchListModel } from "@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel";
-import logger from "@/utils/logger";
-
-const seriesLogger = logger.child({ category: "Series" });
 
 @Entity({ name: "Series" })
 export class SeriesModel extends BaseEntity {
@@ -204,27 +199,6 @@ export class SeriesModel extends BaseEntity {
 	generateId() {
 		if (!this.id) {
 			this.id = uuidv4().split("-")[0];
-		}
-	}
-
-	@BeforeRemove()
-	async beforeRemove(): Promise<void> {
-		try {
-			// Delete stored data
-			const deleteSeriesData = useCases.deleteSeriesData();
-			await deleteSeriesData.execute(this.id);
-
-			// Remove folder stored in library
-			const getLibrary = useCases.getLibrary();
-			const library = await getLibrary.execute(this.libraryId);
-
-			if (!library) return;
-
-			const removeAnalyzedFolder = useCases.removeAnalyzedFolder();
-			await removeAnalyzedFolder.execute(library.id, this.folder);
-			seriesLogger.info(`Cleaned data from series ID=${this.id}`);
-		} catch (error) {
-			seriesLogger.error(error, `Error cleaning data for series ID=${this.id}`);
 		}
 	}
 }
