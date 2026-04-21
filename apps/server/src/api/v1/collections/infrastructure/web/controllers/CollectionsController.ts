@@ -20,6 +20,7 @@ import { getUserId } from '@/utils/auth';
 import type {
   CollectionContentDTO,
   CollectionSummaryDTO,
+  CreateCollectionWithItemDTO,
   MusicExtrasDTO,
   ReorderContentDTO,
   UpdateCollectionDTO,
@@ -37,6 +38,19 @@ export class CollectionsController extends Controller {
     const collections = await useCases.getAllCollections().execute();
 
     return ApiResponse.success(collections, messages.success.fetch);
+  }
+
+  /**
+   * Create a collection with an initial item (movie, series or album)
+   */
+  @Post()
+  @Security('adminAuth')
+  public async create(
+    @Body() body: CreateCollectionWithItemDTO,
+  ): Promise<ApiResponse<Collection>> {
+    const collection = await useCases.createCollectionWithItem().execute(body);
+
+    return ApiResponse.success(collection, messages.success.create);
   }
 
   /**

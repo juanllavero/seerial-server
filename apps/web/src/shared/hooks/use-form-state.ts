@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 type FormState<T> = {
   [K in keyof T]: T[K];
@@ -67,18 +67,24 @@ function useFormState<T extends object>(
     [schema],
   );
 
-  // Dynamically create setters for each form field
-  const setters = {} as FormSetters<T>;
+  // Dynamically create setters for each form field — memoized so references are stable across renders
+  // biome-ignore lint/correctness/useExhaustiveDependencies: setters rely only on setFormStateInternal (stable useState setter) and schema keys (constant per hook instance); no deps needed
+  const setters = useMemo(() => {
+    const result = {} as FormSetters<T>;
 
-  for (const key of Object.keys(schema) as Array<Extract<keyof T, string>>) {
-    if (Object.hasOwn(schema, key)) {
-      const setterName = `set${key.charAt(0).toUpperCase()}${key.slice(1)}` as keyof FormSetters<T>;
-      const setter = (value: T[typeof key]) => {
-        setFormStateInternal((prev) => ({ ...prev, [key]: value }));
-      };
-      setters[setterName] = setter as FormSetters<T>[typeof setterName];
+    for (const key of Object.keys(schema) as Array<Extract<keyof T, string>>) {
+      if (Object.hasOwn(schema, key)) {
+        const setterName =
+          `set${key.charAt(0).toUpperCase()}${key.slice(1)}` as keyof FormSetters<T>;
+        const setter = (value: T[typeof key]) => {
+          setFormStateInternal((prev) => ({ ...prev, [key]: value }));
+        };
+        result[setterName] = setter as FormSetters<T>[typeof setterName];
+      }
     }
-  }
+
+    return result;
+  }, []);
 
   return {
     ...formState,

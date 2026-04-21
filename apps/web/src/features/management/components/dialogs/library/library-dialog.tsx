@@ -64,6 +64,7 @@ function LibraryDialog() {
   );
 
   // Initialization
+  // biome-ignore lint/correctness/useExhaustiveDependencies: `form` is intentionally excluded — it is a new object every render due to the inline schema object literal, which would cause an infinite loop. All values passed to resetFormState are covered by the other deps.
   useEffect(() => {
     if (!library && id) return;
 
@@ -92,7 +93,7 @@ function LibraryDialog() {
       });
       setSelectedTab(t('generalButton'));
     }
-  }, [library, id, currentLanguage, t, form]);
+  }, [library, id, currentLanguage, t]);
 
   const handleAddEditLibrary = async () => {
     setLoading(true);
@@ -141,8 +142,6 @@ function LibraryDialog() {
       setSelectedTab(t('folders'));
     }
   };
-
-  const isOpen = !!id;
 
   return (
     <ModalWrapper
@@ -197,7 +196,7 @@ function LibraryDialog() {
           ),
         },
       ]}
-      isOpen={isOpen}
+      isOpen={true}
       close={closeDialog}
       hideButtons
       activeTab={selectedTab}

@@ -2852,6 +2852,129 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"Collection": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"backgroundSrc": {
+						"type": "string"
+					},
+					"backgroundsUrls": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"coverSrc": {
+						"type": "string"
+					},
+					"coversUrls": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"numberOfItems": {
+						"type": "number",
+						"format": "double"
+					},
+					"musicPosterSrc": {
+						"type": "string"
+					},
+					"shows": {
+						"items": {
+							"$ref": "#/components/schemas/Series"
+						},
+						"type": "array"
+					},
+					"movies": {
+						"items": {
+							"$ref": "#/components/schemas/Movie"
+						},
+						"type": "array"
+					},
+					"albums": {
+						"items": {
+							"$ref": "#/components/schemas/Album"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"id",
+					"title",
+					"backgroundSrc",
+					"backgroundsUrls",
+					"coverSrc",
+					"coversUrls",
+					"shows",
+					"movies",
+					"albums"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_Collection_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Collection"
+							}
+						],
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CreateCollectionWithItemDTO": {
+				"properties": {
+					"title": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"movieId": {
+						"type": "string"
+					},
+					"seriesId": {
+						"type": "string"
+					},
+					"albumId": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"title"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"MusicExtrasDTO": {
 				"properties": {
 					"title": {
@@ -3077,106 +3200,7 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"Collection": {
-				"properties": {
-					"id": {
-						"type": "string"
-					},
-					"title": {
-						"type": "string"
-					},
-					"description": {
-						"type": "string"
-					},
-					"backgroundSrc": {
-						"type": "string"
-					},
-					"backgroundsUrls": {
-						"items": {
-							"type": "string"
-						},
-						"type": "array"
-					},
-					"coverSrc": {
-						"type": "string"
-					},
-					"coversUrls": {
-						"items": {
-							"type": "string"
-						},
-						"type": "array"
-					},
-					"numberOfItems": {
-						"type": "number",
-						"format": "double"
-					},
-					"musicPosterSrc": {
-						"type": "string"
-					},
-					"shows": {
-						"items": {
-							"$ref": "#/components/schemas/Series"
-						},
-						"type": "array"
-					},
-					"movies": {
-						"items": {
-							"$ref": "#/components/schemas/Movie"
-						},
-						"type": "array"
-					},
-					"albums": {
-						"items": {
-							"$ref": "#/components/schemas/Album"
-						},
-						"type": "array"
-					}
-				},
-				"required": [
-					"id",
-					"title",
-					"backgroundSrc",
-					"backgroundsUrls",
-					"coverSrc",
-					"coversUrls",
-					"shows",
-					"movies",
-					"albums"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
 			"ApiResponse_Collection-or-null_": {
-				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
-				"properties": {
-					"success": {
-						"type": "boolean"
-					},
-					"message": {
-						"type": "string"
-					},
-					"data": {
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/Collection"
-							}
-						],
-						"nullable": true
-					},
-					"timestamp": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"success",
-					"message",
-					"data",
-					"timestamp"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ApiResponse_Collection_": {
 				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
@@ -6526,6 +6550,41 @@
 					}
 				],
 				"parameters": []
+			},
+			"post": {
+				"operationId": "Create",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_Collection_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Create a collection with an initial item (movie, series or album)",
+				"tags": [
+					"Collections"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateCollectionWithItemDTO"
+							}
+						}
+					}
+				}
 			}
 		},
 		"/collections/{collectionId}/music-extras": {

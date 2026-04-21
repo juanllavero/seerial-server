@@ -2,7 +2,7 @@ import * as fsPromises from 'node:fs/promises';
 import path from 'node:path';
 import { type LibraryType, LibraryTypes } from '@seerial/domain';
 import type { Collection } from '@/api/v1/collections/domain/Collection';
-import type { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
+import { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
 import {
   fileSystemService,
   imageProcessingService,
@@ -198,17 +198,21 @@ const generateCollageInBackground = (
 
       const collectionPoster = fileSystemService.join('img', 'collages', collection.id, fileName);
 
+      const updatePayload: Partial<CollectionModel> = {};
       if (libraryType === LibraryTypes.MUSIC) {
+        updatePayload.musicPosterSrc = collectionPoster;
         collection.musicPosterSrc = collectionPoster;
       } else {
+        updatePayload.posterSrc = collectionPoster;
         collection.posterSrc = collectionPoster;
       }
 
       if (collectionImages.background) {
+        updatePayload.backgroundSrc = collectionImages.background;
         collection.backgroundSrc = collectionImages.background;
       }
 
-      await collection.save();
+      await CollectionModel.update({ id: collection.id }, updatePayload);
 
       notificationService.mutateCollection(collection as unknown as Collection);
     } catch (error) {

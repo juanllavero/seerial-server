@@ -35,3 +35,11 @@ export interface UpdateCollectionDTO {
   coversUrls?: string[];
   musicPosterSrc?: string;
 }
+
+export interface CreateCollectionWithItemDTO {
+  title: string;
+  description?: string;
+  movieId?: string;
+  seriesId?: string;
+  albumId?: string;
+}
