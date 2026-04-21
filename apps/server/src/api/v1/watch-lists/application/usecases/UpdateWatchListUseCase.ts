@@ -1,10 +1,10 @@
-import type { WatchList } from "../../domain/WatchList";
-import type { WatchListRepositoryPort } from "../ports/WatchListRepositoryPort";
+import type { WatchList } from '../../domain/WatchList';
+import type { WatchListRepositoryPort } from '../ports/WatchListRepositoryPort';
 
 export class UpdateWatchListUseCase {
-	constructor(private watchListRepo: WatchListRepositoryPort) {}
+  constructor(private watchListRepo: WatchListRepositoryPort) {}
 
-	async execute(id: string, data: Partial<WatchList>): Promise<WatchList> {
-		return this.watchListRepo.update(id, data);
-	}
+  async execute(id: string, data: Partial<WatchList>): Promise<WatchList> {
+    return this.watchListRepo.update(id, data);
+  }
 }

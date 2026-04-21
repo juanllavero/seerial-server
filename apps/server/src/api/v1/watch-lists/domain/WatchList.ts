@@ -1,1 +1,1 @@
-export type { WatchList } from "@seerial/domain";
+export type { WatchList } from '@seerial/domain';

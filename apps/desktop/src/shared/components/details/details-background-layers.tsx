@@ -22,13 +22,11 @@ function DetailsBackgroundLayers({
 	}, [imageSrc, setGradientImageSrc]);
 
 	return (
-		<>
-			<div
-				className={`absolute inset-0 transition-opacity duration-700 ${opacityClass}`}
-			>
-				<BackgroundImage imageSrc={imageSrc} />
-			</div>
-		</>
+		<div
+			className={`absolute inset-0 transition-opacity duration-700 ${opacityClass}`}
+		>
+			<BackgroundImage imageSrc={imageSrc} />
+		</div>
 	);
 }
 

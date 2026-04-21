@@ -10,9 +10,9 @@ import {
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
+import NavigationScrollView from "@/components/navigation/NavigationScrollView";
 import ListTitle from "@/components/text/ListTitle";
 import FlexBox from "@/components/ui/FlexBox";
-import NavigationScrollView from "@/components/navigation/NavigationScrollView";
 import ContentCard from "@/shared/ui/card";
 import RelatedSongsSection from "./related-songs-section";
 

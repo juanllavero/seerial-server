@@ -1,6 +1,6 @@
 export interface UpdateWatchStateDTO {
-	videoId: string;
-	timeWatched: number;
-	watched: boolean;
-	userId: string;
+  videoId: string;
+  timeWatched: number;
+  watched: boolean;
+  userId: string;
 }

@@ -1,10 +1,10 @@
-import type { Server } from "../../domain/Server";
-import type { ServersRepositoryPort } from "../ports/ServersRepositoryPort";
+import type { Server } from '../../domain/Server';
+import type { ServersRepositoryPort } from '../ports/ServersRepositoryPort';
 
 export class GetServerUseCase {
-	constructor(private serversRepo: ServersRepositoryPort) {}
+  constructor(private serversRepo: ServersRepositoryPort) {}
 
-	async execute(): Promise<Server | null> {
-		return this.serversRepo.getServerConfig();
-	}
+  async execute(): Promise<Server | null> {
+    return this.serversRepo.getServerConfig();
+  }
 }

@@ -17,7 +17,7 @@ import AnimatedSoundBars from "./animated-sound-bars";
 import Artwork from "./artwork";
 import MusicPlayerControls from "./music-player-controls";
 
-const TEST_BACKGROUND_STYLE: "classic" | "background" = "classic";
+const _TEST_BACKGROUND_STYLE: "classic" | "background" = "classic";
 
 const READY_POLL_INTERVAL_MS = 250;
 const LOAD_TIMEOUT_MS = 5000;

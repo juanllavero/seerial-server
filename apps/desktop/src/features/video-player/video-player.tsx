@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import NavigationContainer from "@/components/navigation/NavigationContainer";
 import FlexBox from "@/components/ui/FlexBox";
 import ChapterList from "@/pages/videoplayer/components/chapter-list";
+import Controls from "@/pages/videoplayer/components/controls/Controls";
 import VolumeIndicator from "@/pages/videoplayer/components/controls/volume-slider";
 import {
 	useChapterThumbnails,
@@ -15,7 +16,6 @@ import { useVolumeIndicator } from "@/pages/videoplayer/hooks/use-volume-indicat
 import { useKeyboardBack } from "@/shared/hooks/use-keyboard-back";
 import { usePlayerControlsVisibility } from "@/shared/hooks/use-player-controls-visibility";
 import { NavigationFocusKeys } from "@/shared/navigation/constants";
-import Controls from "@/pages/videoplayer/components/controls/Controls";
 
 interface VideoPlayerProps {
 	video: Video;

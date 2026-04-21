@@ -1,1 +1,1 @@
-export type { Episode } from "@seerial/domain";
+export type { Episode } from '@seerial/domain';

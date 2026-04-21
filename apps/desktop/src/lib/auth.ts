@@ -1,21 +1,21 @@
 export async function authenticatedFetch(
 	url: string,
-	type: string = 'GET',
-	body?: any
+	type: string = "GET",
+	body?: unknown,
 ) {
 	const options: RequestInit = {
 		method: type,
 		headers: {
-			'Content-Type': 'application/json',
+			"Content-Type": "application/json",
 		},
-		credentials: 'include',
+		credentials: "include",
+	};
+
+	if (body && type !== "GET") {
+		options.body = JSON.stringify(body);
 	}
 
-	if (body && type !== 'GET') {
-		options.body = JSON.stringify(body)
-	}
-
-	return await fetch(url, options)
+	return await fetch(url, options);
 }
 
 /**
@@ -27,7 +27,7 @@ export async function authenticatedFetch(
  */
 export const authenticatedFetcher = async (url: string) => {
 	const res = await fetch(url, {
-		credentials: 'include',
-	})
-	return await res.json()
-}
+		credentials: "include",
+	});
+	return await res.json();
+};

@@ -1,1 +1,1 @@
-export type { Artist } from "@seerial/domain";
+export type { Artist } from '@seerial/domain';

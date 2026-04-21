@@ -1,226 +1,195 @@
-import fs from "node:fs";
-import type { MovieResponse } from "moviedb-promise";
-import type { CollectionModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionModel";
-import type { FileSystemServicePort } from "@/api/v1/shared/application/ports/FileSystemServicePort";
-import type { MetadataProviderPort } from "@/api/v1/shared/application/ports/MetadataProviderPort";
-import { imdbScoreService } from "@/api/v1/shared/infrastructure/adapters/di/container";
-import type { MovieModel } from "../../infrastructure/persistence/models/MovieModel";
-import type { MoviesRepositoryPort } from "../ports/MoviesRepositoryPort";
+import fs from 'node:fs';
+import type { MovieResponse } from 'moviedb-promise';
+import type { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
+import type { FileSystemServicePort } from '@/api/v1/shared/application/ports/FileSystemServicePort';
+import type { MetadataProviderPort } from '@/api/v1/shared/application/ports/MetadataProviderPort';
+import { imdbScoreService } from '@/api/v1/shared/infrastructure/adapters/di/container';
+import type { MovieModel } from '../../infrastructure/persistence/models/MovieModel';
+import type { MoviesRepositoryPort } from '../ports/MoviesRepositoryPort';
 
 export class UpdateMovieMetadataUseCase {
-	constructor(
-		private readonly metadataProvider: MetadataProviderPort,
-		private readonly movieRepository: MoviesRepositoryPort,
-		private readonly fileSystemService: FileSystemServicePort,
-	) {}
+  constructor(
+    private readonly metadataProvider: MetadataProviderPort,
+    private readonly movieRepository: MoviesRepositoryPort,
+    private readonly fileSystemService: FileSystemServicePort,
+  ) {}
 
-	async execute(
-		movie: MovieModel,
-		movieMetadata: MovieResponse,
-		language: string,
-		collection?: CollectionModel,
-	): Promise<void> {
-		// Update basic metadata
-		if (!movie.nameLock) movie.name = movieMetadata.title ?? "";
-		if (!movie.yearLock) movie.year = movieMetadata.release_date ?? "";
-		if (!movie.overviewLock) movie.overview = movieMetadata.overview ?? "";
-		if (!movie.taglineLock) movie.tagline = movieMetadata.tagline ?? "";
+  async execute(
+    movie: MovieModel,
+    movieMetadata: MovieResponse,
+    language: string,
+    collection?: CollectionModel,
+  ): Promise<void> {
+    // Update basic metadata
+    if (!movie.nameLock) movie.name = movieMetadata.title ?? '';
+    if (!movie.yearLock) movie.year = movieMetadata.release_date ?? '';
+    if (!movie.overviewLock) movie.overview = movieMetadata.overview ?? '';
+    if (!movie.taglineLock) movie.tagline = movieMetadata.tagline ?? '';
 
-		movie.themdbId = movieMetadata.id ?? -1;
-		movie.imdbId = movieMetadata.imdb_id ?? "-1";
-		movie.score = movieMetadata.vote_average
-			? (movieMetadata.vote_average * 10) / 10
-			: 0;
+    movie.themdbId = movieMetadata.id ?? -1;
+    movie.imdbId = movieMetadata.imdb_id ?? '-1';
+    movie.score = movieMetadata.vote_average ? (movieMetadata.vote_average * 10) / 10 : 0;
 
-		if (!movie.genresLock) {
-			movie.genres =
-				movieMetadata.genres?.map((genre) => genre.name ?? "") ?? [];
-		}
-		if (!movie.productionStudiosLock) {
-			movie.productionStudios =
-				movieMetadata.production_companies?.map(
-					(company) => company.name ?? "",
-				) ?? [];
-		}
+    if (!movie.genresLock) {
+      movie.genres = movieMetadata.genres?.map((genre) => genre.name ?? '') ?? [];
+    }
+    if (!movie.productionStudiosLock) {
+      movie.productionStudios =
+        movieMetadata.production_companies?.map((company) => company.name ?? '') ?? [];
+    }
 
-		// Get IMDB Score
-		movie.imdbScore = await imdbScoreService.getIMDBScore(movie.imdbId);
+    // Get IMDB Score
+    movie.imdbScore = await imdbScoreService.getIMDBScore(movie.imdbId);
 
-		// Update cast and crew
-		await this.updateMovieCredits(movie, movieMetadata.id ?? 0, language);
+    // Update cast and crew
+    await this.updateMovieCredits(movie, movieMetadata.id ?? 0, language);
 
-		// Download images (logos, backgrounds and posters)
-		await this.downloadMovieImages(movie, collection);
+    // Download images (logos, backgrounds and posters)
+    await this.downloadMovieImages(movie, collection);
 
-		await this.movieRepository.update(movie.id, movie);
-	}
+    await this.movieRepository.update(movie.id, movie);
+  }
 
-	private async updateMovieCredits(
-		movie: MovieModel,
-		themdbId: number,
-		language: string,
-	): Promise<void> {
-		const credits = await this.metadataProvider.getMovieCredits(
-			themdbId,
-			language,
-		);
-		if (!credits) return;
+  private async updateMovieCredits(
+    movie: MovieModel,
+    themdbId: number,
+    language: string,
+  ): Promise<void> {
+    const credits = await this.metadataProvider.getMovieCredits(themdbId, language);
+    if (!credits) return;
 
-		this.updateCrewCredits(movie, credits.crew ?? []);
+    this.updateCrewCredits(movie, credits.crew ?? []);
 
-		if (credits.cast) {
-			movie.cast = credits.cast.map((person) => ({
-				name: person.name ?? "",
-				character: person.character ?? "",
-				profileImage: person.profile_path
-					? `https://image.tmdb.org/t/p/original${person.profile_path}`
-					: "",
-			}));
-		}
-	}
+    if (credits.cast) {
+      movie.cast = credits.cast.map((person) => ({
+        name: person.name ?? '',
+        character: person.character ?? '',
+        profileImage: person.profile_path
+          ? `https://image.tmdb.org/t/p/original${person.profile_path}`
+          : '',
+      }));
+    }
+  }
 
-	private updateCrewCredits(
-		movie: MovieModel,
-		crew: Array<{ name?: string; job?: string }>,
-	): void {
-		this.updateDirectedBy(movie, crew);
-		this.updateWrittenBy(movie, crew);
-		this.updateCreator(movie, crew);
-		this.updateMusicComposer(movie, crew);
-	}
+  private updateCrewCredits(movie: MovieModel, crew: Array<{ name?: string; job?: string }>): void {
+    this.updateDirectedBy(movie, crew);
+    this.updateWrittenBy(movie, crew);
+    this.updateCreator(movie, crew);
+    this.updateMusicComposer(movie, crew);
+  }
 
-	private updateDirectedBy(
-		movie: MovieModel,
-		crew: Array<{ name?: string; job?: string }>,
-	): void {
-		if (movie.directedByLock) return;
-		movie.directedBy.splice(0, movie.directedBy.length);
-		movie.directedBy = crew
-			.filter((person) => person.name && person.job === "Director")
-			.map((person) => person.name as string);
-	}
+  private updateDirectedBy(movie: MovieModel, crew: Array<{ name?: string; job?: string }>): void {
+    if (movie.directedByLock) return;
+    movie.directedBy.splice(0, movie.directedBy.length);
+    movie.directedBy = crew
+      .filter((person) => person.name && person.job === 'Director')
+      .map((person) => person.name as string);
+  }
 
-	private updateWrittenBy(
-		movie: MovieModel,
-		crew: Array<{ name?: string; job?: string }>,
-	): void {
-		if (movie.writtenByLock) return;
-		movie.writtenBy.splice(0, movie.writtenBy.length);
-		movie.writtenBy = crew
-			.filter(
-				(person) =>
-					person.name && (person.job === "Writer" || person.job === "Novel"),
-			)
-			.map((person) => person.name as string);
-	}
+  private updateWrittenBy(movie: MovieModel, crew: Array<{ name?: string; job?: string }>): void {
+    if (movie.writtenByLock) return;
+    movie.writtenBy.splice(0, movie.writtenBy.length);
+    movie.writtenBy = crew
+      .filter((person) => person.name && (person.job === 'Writer' || person.job === 'Novel'))
+      .map((person) => person.name as string);
+  }
 
-	private updateCreator(
-		movie: MovieModel,
-		crew: Array<{ name?: string; job?: string }>,
-	): void {
-		if (movie.creatorLock) return;
+  private updateCreator(movie: MovieModel, crew: Array<{ name?: string; job?: string }>): void {
+    if (movie.creatorLock) return;
 
-		const creatorJobs = new Set([
-			"Author",
-			"Novel",
-			"Original Series Creator",
-			"Comic Book",
-			"Idea",
-			"Original Story",
-			"Story",
-			"Story by",
-			"Book",
-			"Original Concept",
-		]);
+    const creatorJobs = new Set([
+      'Author',
+      'Novel',
+      'Original Series Creator',
+      'Comic Book',
+      'Idea',
+      'Original Story',
+      'Story',
+      'Story by',
+      'Book',
+      'Original Concept',
+    ]);
 
-		movie.creator.splice(0, movie.creator.length);
-		movie.creator = crew
-			.filter(
-				(person) => person.name && person.job && creatorJobs.has(person.job),
-			)
-			.map((person) => person.name as string);
-	}
+    movie.creator.splice(0, movie.creator.length);
+    movie.creator = crew
+      .filter((person) => person.name && person.job && creatorJobs.has(person.job))
+      .map((person) => person.name as string);
+  }
 
-	private updateMusicComposer(
-		movie: MovieModel,
-		crew: Array<{ name?: string; job?: string }>,
-	): void {
-		if (movie.musicComposerLock) return;
-		movie.musicComposer.splice(0, movie.musicComposer.length);
-		movie.musicComposer = crew
-			.filter(
-				(person) => person.name && person.job === "Original Music Composer",
-			)
-			.map((person) => person.name as string);
-	}
+  private updateMusicComposer(
+    movie: MovieModel,
+    crew: Array<{ name?: string; job?: string }>,
+  ): void {
+    if (movie.musicComposerLock) return;
+    movie.musicComposer.splice(0, movie.musicComposer.length);
+    movie.musicComposer = crew
+      .filter((person) => person.name && person.job === 'Original Music Composer')
+      .map((person) => person.name as string);
+  }
 
-	private async downloadMovieImages(
-		movie: MovieModel,
-		collection?: CollectionModel,
-	): Promise<void> {
-		const images = await this.metadataProvider.getMovieImages(movie.themdbId);
-		if (!images) return;
+  private async downloadMovieImages(
+    movie: MovieModel,
+    collection?: CollectionModel,
+  ): Promise<void> {
+    const images = await this.metadataProvider.getMovieImages(movie.themdbId);
+    if (!images) return;
 
-		// Create folders if they do not exist
-		const outputLogosDir = this.fileSystemService.getExternalPath(
-			`resources/img/logos/${movie.id}`,
-		);
-		if (!fs.existsSync(outputLogosDir)) {
-			fs.mkdirSync(outputLogosDir);
-		}
+    // Create folders if they do not exist
+    const outputLogosDir = this.fileSystemService.getExternalPath(
+      `resources/img/logos/${movie.id}`,
+    );
+    if (!fs.existsSync(outputLogosDir)) {
+      fs.mkdirSync(outputLogosDir);
+    }
 
-		const outputPostersDir = this.fileSystemService.getExternalPath(
-			`resources/img/posters/${movie.id}`,
-		);
-		if (!fs.existsSync(outputPostersDir)) {
-			fs.mkdirSync(outputPostersDir);
-		}
+    const outputPostersDir = this.fileSystemService.getExternalPath(
+      `resources/img/posters/${movie.id}`,
+    );
+    if (!fs.existsSync(outputPostersDir)) {
+      fs.mkdirSync(outputPostersDir);
+    }
 
-		const outputPostersCollectionDir = this.fileSystemService.getExternalPath(
-			`resources/img/posters/${collection?.id}`,
-		);
+    const outputPostersCollectionDir = this.fileSystemService.getExternalPath(
+      `resources/img/posters/${collection?.id}`,
+    );
 
-		if (collection && !fs.existsSync(outputPostersCollectionDir)) {
-			fs.mkdirSync(outputPostersCollectionDir);
-		}
+    if (collection && !fs.existsSync(outputPostersCollectionDir)) {
+      fs.mkdirSync(outputPostersCollectionDir);
+    }
 
-		const outputImageDir = this.fileSystemService.getExternalPath(
-			`resources/img/backgrounds/${movie.id}`,
-		);
-		if (!fs.existsSync(outputImageDir)) {
-			fs.mkdirSync(outputImageDir);
-		}
+    const outputImageDir = this.fileSystemService.getExternalPath(
+      `resources/img/backgrounds/${movie.id}`,
+    );
+    if (!fs.existsSync(outputImageDir)) {
+      fs.mkdirSync(outputImageDir);
+    }
 
-		const baseUrl = "https://image.tmdb.org/t/p/original";
+    const baseUrl = 'https://image.tmdb.org/t/p/original';
 
-		// Backdrops
-		if (images.backdrops && images.backdrops.length > 0) {
-			movie.backgroundsUrls = images.backdrops.map(
-				(img) => `${baseUrl}${img.file_path}`,
-			);
-			movie.backgroundSrc = movie.backgroundsUrls[0];
-		}
+    // Backdrops
+    if (images.backdrops && images.backdrops.length > 0) {
+      movie.backgroundsUrls = images.backdrops.map((img) => `${baseUrl}${img.file_path}`);
+      movie.backgroundSrc = movie.backgroundsUrls[0];
+    }
 
-		// Logos
-		if (images.logos && images.logos.length > 0) {
-			movie.logosUrls = images.logos.map((img) => `${baseUrl}${img.file_path}`);
-			movie.logoSrc = movie.logosUrls[0];
-		}
+    // Logos
+    if (images.logos && images.logos.length > 0) {
+      movie.logosUrls = images.logos.map((img) => `${baseUrl}${img.file_path}`);
+      movie.logoSrc = movie.logosUrls[0];
+    }
 
-		// Posters
-		if (images.posters && images.posters.length > 0) {
-			movie.coversUrls = images.posters.map(
-				(img) => `${baseUrl}${img.file_path}`,
-			);
-			movie.coverSrc = movie.coversUrls[0];
+    // Posters
+    if (images.posters && images.posters.length > 0) {
+      movie.coversUrls = images.posters.map((img) => `${baseUrl}${img.file_path}`);
+      movie.coverSrc = movie.coversUrls[0];
 
-			// If there is a collection, add poster to collection
-			if (collection) {
-				collection.postersUrls.push(movie.coversUrls[0]);
-				if (!collection.posterSrc) {
-					collection.posterSrc = movie.coversUrls[0];
-				}
-			}
-		}
-	}
+      // If there is a collection, add poster to collection
+      if (collection) {
+        collection.postersUrls.push(movie.coversUrls[0]);
+        if (!collection.posterSrc) {
+          collection.posterSrc = movie.coversUrls[0];
+        }
+      }
+    }
+  }
 }

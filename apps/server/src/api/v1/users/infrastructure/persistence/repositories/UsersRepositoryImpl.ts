@@ -1,157 +1,148 @@
-import type { User } from "@seerial/domain";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import { In } from "typeorm";
-import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
-import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryModel";
-import { UnauthorizedException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
-import { messages } from "@/config/messages";
-import { GenericRepositoryHelper } from "@/helpers/GenericRepositoryHelper";
-import { UserType } from "@/utils/constants";
-import { getJwtSecret } from "@/utils/jwt-secret";
-import type { UsersRepositoryPort } from "../../../application/ports/UsersRepositoryPort";
-import { UserLibraryModel } from "../models/UserLibraryModel";
-import { UserModel } from "../models/UserModel";
+import type { User } from '@seerial/domain';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { In } from 'typeorm';
+import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
+import { LibraryModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryModel';
+import { UnauthorizedException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
+import { messages } from '@/config/messages';
+import { GenericRepositoryHelper } from '@/helpers/GenericRepositoryHelper';
+import { UserType } from '@/utils/constants';
+import { getJwtSecret } from '@/utils/jwt-secret';
+import type { UsersRepositoryPort } from '../../../application/ports/UsersRepositoryPort';
+import { UserLibraryModel } from '../models/UserLibraryModel';
+import { UserModel } from '../models/UserModel';
 
-export class UsersRepositoryImpl
-	extends BaseRepository
-	implements UsersRepositoryPort
-{
-	// Generic helper for common CRUD operations
-	private helper: GenericRepositoryHelper<UserModel, User>;
+export class UsersRepositoryImpl extends BaseRepository implements UsersRepositoryPort {
+  // Generic helper for common CRUD operations
+  private helper: GenericRepositoryHelper<UserModel, User>;
 
-	constructor() {
-		super();
+  constructor() {
+    super();
 
-		// Initialize helper
-		this.helper = new GenericRepositoryHelper(UserModel, {
-			entityName: "User",
-			generateShortId: true,
-		});
-	}
+    // Initialize helper
+    this.helper = new GenericRepositoryHelper(UserModel, {
+      entityName: 'User',
+      generateShortId: true,
+    });
+  }
 
-	async findAll(): Promise<User[]> {
-		return this.helper.findAll({
-			where: { hideInLogin: false },
-			select: ["id", "username", "type", "avatar"], // Exclude sensitive fields like password
-		});
-	}
+  async findAll(): Promise<User[]> {
+    return this.helper.findAll({
+      where: { hideInLogin: false },
+      select: ['id', 'username', 'type', 'avatar'], // Exclude sensitive fields like password
+    });
+  }
 
-	async authenticate(
-		username: string,
-		password: string | null,
-	): Promise<{ token: string; user: User | null } | null> {
-		const user = await UserModel.findOne({ where: { username } });
-		if (!user) return null;
+  async authenticate(
+    username: string,
+    password: string | null,
+  ): Promise<{ token: string; user: User | null } | null> {
+    const user = await UserModel.findOne({ where: { username } });
+    if (!user) return null;
 
-		if (user.password) {
-			if (!password || !(await bcrypt.compare(password, user.password))) {
-				return null;
-			}
-		} else if (password) {
-			return null; // No password set, but one provided
-		}
+    if (user.password) {
+      if (!password || !(await bcrypt.compare(password, user.password))) {
+        return null;
+      }
+    } else if (password) {
+      return null; // No password set, but one provided
+    }
 
-		// Generate JWT
-		const token = jwt.sign(
-			{
-				userId: user.id,
-				username: user.username,
-				type: user.type,
-				tokenVersion: user.tokenVersion,
-			},
-			getJwtSecret(),
-			{ expiresIn: "30d" },
-		);
+    // Generate JWT
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        username: user.username,
+        type: user.type,
+        tokenVersion: user.tokenVersion,
+      },
+      getJwtSecret(),
+      { expiresIn: '30d' },
+    );
 
-		const safeUser = await UserModel.findOne({
-			where: { id: user.id },
-			select: { password: false },
-		});
-		return {
-			token,
-			user: safeUser
-				? (safeUser as unknown as User)
-				: (user as unknown as User),
-		};
-	}
+    const safeUser = await UserModel.findOne({
+      where: { id: user.id },
+      select: { password: false },
+    });
+    return {
+      token,
+      user: safeUser ? (safeUser as unknown as User) : (user as unknown as User),
+    };
+  }
 
-	async create(
-		data: Partial<{
-			username: string;
-			password?: string;
-			type?: UserType;
-			allowRemote?: boolean;
-			allowVideoTranscoding?: boolean;
-			internetBitrateLimit?: number;
-			allowDownloads?: boolean;
-			hideInLogin?: boolean;
-			maxSessions?: number;
-			libraryIds?: string[];
-		}>,
-	): Promise<User> {
-		if (data.type === "admin" && !data.password?.trim()) {
-			throw new UnauthorizedException(
-				messages.errors.validation.userAdminNoPassword,
-			);
-		}
+  async create(
+    data: Partial<{
+      username: string;
+      password?: string;
+      type?: UserType;
+      allowRemote?: boolean;
+      allowVideoTranscoding?: boolean;
+      internetBitrateLimit?: number;
+      allowDownloads?: boolean;
+      hideInLogin?: boolean;
+      maxSessions?: number;
+      libraryIds?: string[];
+    }>,
+  ): Promise<User> {
+    if (data.type === 'admin' && !data.password?.trim()) {
+      throw new UnauthorizedException(messages.errors.validation.userAdminNoPassword);
+    }
 
-		const hashedPassword = data.password
-			? await bcrypt.hash(data.password, 10)
-			: null;
+    const hashedPassword = data.password ? await bcrypt.hash(data.password, 10) : null;
 
-		const userData = {
-			...data,
-			password: hashedPassword || undefined,
-			type: data.type || UserType.NORMAL,
-			allowRemote: data.allowRemote ?? true,
-			allowVideoTranscoding: data.allowVideoTranscoding ?? true,
-			allowDownloads: data.allowDownloads ?? true,
-			hideInLogin: data.hideInLogin ?? false,
-			maxSessions: data.maxSessions ?? 0,
-		};
+    const userData = {
+      ...data,
+      password: hashedPassword || undefined,
+      type: data.type || UserType.NORMAL,
+      allowRemote: data.allowRemote ?? true,
+      allowVideoTranscoding: data.allowVideoTranscoding ?? true,
+      allowDownloads: data.allowDownloads ?? true,
+      hideInLogin: data.hideInLogin ?? false,
+      maxSessions: data.maxSessions ?? 0,
+    };
 
-		const user = await this.helper.create(userData, true);
+    const user = await this.helper.create(userData, true);
 
-		if (data.libraryIds) {
-			// Load the libraries and assign them to the user
-			const libraries = await LibraryModel.findBy({ id: In(data.libraryIds) });
-			const userModel = user as unknown as UserModel;
+    if (data.libraryIds) {
+      // Load the libraries and assign them to the user
+      const libraries = await LibraryModel.findBy({ id: In(data.libraryIds) });
+      const userModel = user as unknown as UserModel;
 
-			for (const library of libraries) {
-				const userLibrary = UserLibraryModel.create({
-					userId: user.id,
-					libraryId: library.id,
-				});
-				await userLibrary.save();
-			}
-			await userModel.save();
-		}
+      for (const library of libraries) {
+        const userLibrary = UserLibraryModel.create({
+          userId: user.id,
+          libraryId: library.id,
+        });
+        await userLibrary.save();
+      }
+      await userModel.save();
+    }
 
-		const safeUser = await UserModel.findOne({
-			where: { id: user.id },
-			select: { password: false },
-		});
-		return safeUser ? (safeUser as unknown as User) : (user as unknown as User);
-	}
+    const safeUser = await UserModel.findOne({
+      where: { id: user.id },
+      select: { password: false },
+    });
+    return safeUser ? (safeUser as unknown as User) : (user as unknown as User);
+  }
 
-	async update(id: string, data: Partial<User>): Promise<User> {
-		if (data.password) {
-			data.password = await bcrypt.hash(data.password, 10);
-			// Invalidate all existing tokens when the password changes
-			const existing = await UserModel.findOne({ where: { id } });
-			if (existing) {
-				await UserModel.update(id, {
-					tokenVersion: (existing.tokenVersion ?? 0) + 1,
-				});
-			}
-		}
+  async update(id: string, data: Partial<User>): Promise<User> {
+    if (data.password) {
+      data.password = await bcrypt.hash(data.password, 10);
+      // Invalidate all existing tokens when the password changes
+      const existing = await UserModel.findOne({ where: { id } });
+      if (existing) {
+        await UserModel.update(id, {
+          tokenVersion: (existing.tokenVersion ?? 0) + 1,
+        });
+      }
+    }
 
-		return this.helper.update(id, data);
-	}
+    return this.helper.update(id, data);
+  }
 
-	async delete(id: string): Promise<void> {
-		const validatedId = this.validateId(id, "User ID");
-		await this.helper.delete(validatedId);
-	}
+  async delete(id: string): Promise<void> {
+    const validatedId = this.validateId(id, 'User ID');
+    await this.helper.delete(validatedId);
+  }
 }

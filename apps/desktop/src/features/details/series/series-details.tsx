@@ -17,8 +17,8 @@ import EpisodesList, {
 	MAX_SKELETON_COUNT,
 } from "@/features/details/series/components/episodes-list";
 import SeasonSelector from "@/features/details/series/components/season-selector";
-import DetailsWithRelatedContent from "@/features/details/shared/details-with-related-content";
 import { useSeriesDetailsFocusStore } from "@/features/details/series/stores/series-details-focus.store";
+import DetailsWithRelatedContent from "@/features/details/shared/details-with-related-content";
 import DetailsBackgroundLayers from "@/shared/components/details/details-background-layers";
 import DetailsBackgroundPlayback from "@/shared/components/details/details-background-playback";
 import DetailsInfo from "@/shared/components/details/details-info";

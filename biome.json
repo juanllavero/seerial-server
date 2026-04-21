@@ -1,5 +1,5 @@
 {
-  "root": false,
+  "root": true,
   "$schema": "https://biomejs.dev/schemas/2.4.10/schema.json",
   "vcs": {
     "enabled": true,
@@ -16,6 +16,9 @@
     "attributePosition": "auto"
   },
   "javascript": {
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    },
     "formatter": {
       "quoteStyle": "single",
       "jsxQuoteStyle": "double",
@@ -24,6 +27,11 @@
       "arrowParentheses": "always",
       "bracketSpacing": true,
       "bracketSameLine": false
+    }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
     }
   },
   "linter": {
@@ -78,7 +86,8 @@
       "!**/build/**",
       "!**/.turbo/**",
       "!**/*.min.js",
-      "!**/coverage/**"
+      "!**/coverage/**",
+      "!!apps/server/src/routes"
     ]
   }
 }

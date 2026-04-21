@@ -1,1 +1,1 @@
-export { default as SettingsPanel } from './components/settings-panel';
+export { default as SettingsPanel } from "./components/settings-panel";

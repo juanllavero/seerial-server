@@ -1,38 +1,38 @@
-import type { LibraryType } from "@seerial/domain";
+import type { LibraryType } from '@seerial/domain';
 
 export interface CreateLibraryDTO {
-	name: string;
-	language: string;
-	type: LibraryType;
-	folders: string[];
-	preferAudioLan?: string;
-	preferSubLan?: string;
-	subsMode?: string;
+  name: string;
+  language: string;
+  type: LibraryType;
+  folders: string[];
+  preferAudioLan?: string;
+  preferSubLan?: string;
+  subsMode?: string;
 }
 
 export interface UpdateLibraryDTO {
-	name?: string;
-	language?: string;
-	type?: LibraryType;
-	order?: number;
-	hidden?: boolean;
-	folders?: string[];
-	preferAudioLan?: string;
-	preferSubLan?: string;
-	subsMode?: string;
-	backgroundSrc?: string;
+  name?: string;
+  language?: string;
+  type?: LibraryType;
+  order?: number;
+  hidden?: boolean;
+  folders?: string[];
+  preferAudioLan?: string;
+  preferSubLan?: string;
+  subsMode?: string;
+  backgroundSrc?: string;
 }
 
 export interface ReorderLibrariesDTO {
-	orderedLibraryIds: string[];
+  orderedLibraryIds: string[];
 }
 
 export interface ReorderItemsDTO {
-	orderedItems: Array<{ id: string; type: string }>;
+  orderedItems: Array<{ id: string; type: string }>;
 }
 
 export interface GetLibraryContentDTO {
-	type: string;
-	flat?: string;
-	watched?: boolean;
+  type: string;
+  flat?: string;
+  watched?: boolean;
 }

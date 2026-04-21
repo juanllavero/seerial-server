@@ -1,10 +1,10 @@
-import { Store } from '@tauri-apps/plugin-store'
+import { Store } from "@tauri-apps/plugin-store";
 
-let storePromise: Promise<Store> | null = null
+let storePromise: Promise<Store> | null = null;
 
 export function getAuthStore() {
 	if (!storePromise) {
-		storePromise = Store.load('.auth.dat')
+		storePromise = Store.load(".auth.dat");
 	}
-	return storePromise
+	return storePromise;
 }

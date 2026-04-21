@@ -4,10 +4,10 @@ import { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { shallow } from "zustand/shallow";
 import NavigationButton from "@/components/navigation/NavigationButton";
+import NavigationScrollView from "@/components/navigation/NavigationScrollView";
 import ListTitle from "@/components/text/ListTitle";
 import Tertiary from "@/components/text/Tertiary";
 import FlexBox from "@/components/ui/FlexBox";
-import NavigationScrollView from "@/components/navigation/NavigationScrollView";
 import AnimatedSoundBars from "@/features/music-player/animated-sound-bars";
 
 const MAX_RANDOM_SONGS = 6;

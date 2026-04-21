@@ -1,10 +1,10 @@
-import type { Episode } from "../../domain/Episode";
-import type { EpisodeRepositoryPort } from "../ports/EpisodeRepositoryPort";
+import type { Episode } from '../../domain/Episode';
+import type { EpisodeRepositoryPort } from '../ports/EpisodeRepositoryPort';
 
 export class UpdateEpisodeUseCase {
-	constructor(private episodeRepo: EpisodeRepositoryPort) {}
+  constructor(private episodeRepo: EpisodeRepositoryPort) {}
 
-	async execute(id: string, data: Partial<Episode>): Promise<Episode> {
-		return this.episodeRepo.update(id, data);
-	}
+  async execute(id: string, data: Partial<Episode>): Promise<Episode> {
+    return this.episodeRepo.update(id, data);
+  }
 }

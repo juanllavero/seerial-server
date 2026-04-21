@@ -1,7 +1,7 @@
-import type { SeriesRepositoryPort } from "../ports/SeriesRepositoryPort";
+import type { SeriesRepositoryPort } from '../ports/SeriesRepositoryPort';
 
 export class UpdateSeriesMetadataUseCase {
-	constructor(readonly _seriesRepo: SeriesRepositoryPort) {}
+  constructor(readonly _seriesRepo: SeriesRepositoryPort) {}
 
-	async execute(): Promise<void> {}
+  async execute(): Promise<void> {}
 }

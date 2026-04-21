@@ -1,7 +1,7 @@
 import { useFocusable } from "@noriginmedia/norigin-spatial-navigation";
 import type { Chapter } from "@seerial/domain";
-import { useSettingsStore } from "@/features/settings/stores/settings.store";
 import Image from "@/components/ui/Image";
+import { useSettingsStore } from "@/features/settings/stores/settings.store";
 
 interface ChapterCardProps {
 	chapter: Chapter;

@@ -1,10 +1,10 @@
-import type { Library } from "../../../domain/Library";
-import type { LibrariesRepositoryPort } from "../../ports/LibrariesRepositoryPort";
+import type { Library } from '../../../domain/Library';
+import type { LibrariesRepositoryPort } from '../../ports/LibrariesRepositoryPort';
 
 export class RemoveAnalyzedFolderUseCase {
-	constructor(private librariesRepo: LibrariesRepositoryPort) {}
+  constructor(private librariesRepo: LibrariesRepositoryPort) {}
 
-	async execute(libraryId: string, folder: string): Promise<Library> {
-		return await this.librariesRepo.removeAnalyzedFolder(libraryId, folder);
-	}
+  async execute(libraryId: string, folder: string): Promise<Library> {
+    return await this.librariesRepo.removeAnalyzedFolder(libraryId, folder);
+  }
 }

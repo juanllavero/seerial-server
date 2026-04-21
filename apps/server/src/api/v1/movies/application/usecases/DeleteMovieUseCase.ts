@@ -1,38 +1,38 @@
-import type { LibrariesRepositoryPort } from "@/api/v1/libraries/application/ports/LibrariesRepositoryPort";
-import { contentCleanupService, useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
-import { messages } from "@/config/messages";
-import type { MoviesRepositoryPort } from "../ports/MoviesRepositoryPort";
+import type { LibrariesRepositoryPort } from '@/api/v1/libraries/application/ports/LibrariesRepositoryPort';
+import {
+  contentCleanupService,
+  useCases,
+} from '@/api/v1/shared/infrastructure/adapters/di/container';
+import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
+import { messages } from '@/config/messages';
+import type { MoviesRepositoryPort } from '../ports/MoviesRepositoryPort';
 
 export class DeleteMovieUseCase {
-	constructor(
-		private libraryRepository: LibrariesRepositoryPort,
-		private moviesRepo: MoviesRepositoryPort,
-	) { }
+  constructor(
+    private libraryRepository: LibrariesRepositoryPort,
+    private moviesRepo: MoviesRepositoryPort,
+  ) {}
 
-	async execute(id: string): Promise<void> {
-		const movie = await this.moviesRepo.findById(id);
+  async execute(id: string): Promise<void> {
+    const movie = await this.moviesRepo.findById(id);
 
-		if (!movie) {
-			throw new NotFoundException(messages.errors.notFound.movie);
-		}
+    if (!movie) {
+      throw new NotFoundException(messages.errors.notFound.movie);
+    }
 
-		for (const video of movie.videos) {
-			await useCases.deleteVideo().execute(video.id);
-		}
+    for (const video of movie.videos) {
+      await useCases.deleteVideo().execute(video.id);
+    }
 
-		const library = await this.libraryRepository.getById(movie.libraryId);
+    const library = await this.libraryRepository.getById(movie.libraryId);
 
-		// Delete local media files and folders
-		contentCleanupService.cleanMovie(id);
+    // Delete local media files and folders
+    contentCleanupService.cleanMovie(id);
 
-		if (library) {
-			await this.libraryRepository.removeAnalyzedFolder(
-				library.id,
-				movie.folder,
-			);
-		}
+    if (library) {
+      await this.libraryRepository.removeAnalyzedFolder(library.id, movie.folder);
+    }
 
-		await this.moviesRepo.delete(id);
-	}
+    await this.moviesRepo.delete(id);
+  }
 }

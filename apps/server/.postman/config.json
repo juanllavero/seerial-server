@@ -1,13 +1,13 @@
 {
-	"workspace": {
-		"id": "979c6a52-e734-4837-86c1-9780b94c7fe4"
-	},
-	"entities": {
-		"collections": [],
-		"environments": [],
-		"specs": ["..\\swagger.json"],
-		"flows": [],
-		"globals": [],
-		"mocks": []
-	}
+  "workspace": {
+    "id": "979c6a52-e734-4837-86c1-9780b94c7fe4"
+  },
+  "entities": {
+    "collections": [],
+    "environments": [],
+    "specs": ["..\\swagger.json"],
+    "flows": [],
+    "globals": [],
+    "mocks": []
+  }
 }

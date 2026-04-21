@@ -1,1 +1,1 @@
-export type { Album } from "@seerial/domain";
+export type { Album } from '@seerial/domain';

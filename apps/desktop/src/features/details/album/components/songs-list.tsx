@@ -1,3 +1,4 @@
+import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
 import { type Album, formatTime, type Song } from "@seerial/domain";
 import { useMusicStore } from "@seerial/stores";
 import { memo, useEffect, useMemo } from "react";
@@ -7,7 +8,6 @@ import NavigationButton from "@/components/navigation/NavigationButton";
 import Tertiary from "@/components/text/Tertiary";
 import FlexBox from "@/components/ui/FlexBox";
 import AnimatedSoundBars from "@/features/music-player/animated-sound-bars";
-import { setFocus } from "@noriginmedia/norigin-spatial-navigation";
 
 interface SongsListProps {
 	album: Album;

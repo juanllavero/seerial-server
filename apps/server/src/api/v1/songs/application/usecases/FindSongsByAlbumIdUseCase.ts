@@ -1,10 +1,10 @@
-import type { Song } from "../../domain/Song";
-import type { SongsRepositoryPort } from "../ports/SongsRepositoryPort";
+import type { Song } from '../../domain/Song';
+import type { SongsRepositoryPort } from '../ports/SongsRepositoryPort';
 
 export class FindSongsByAlbumIdUseCase {
-	constructor(private songsRepo: SongsRepositoryPort) {}
+  constructor(private songsRepo: SongsRepositoryPort) {}
 
-	async execute(albumId: string): Promise<Song[]> {
-		return this.songsRepo.findByAlbum(albumId);
-	}
+  async execute(albumId: string): Promise<Song[]> {
+    return this.songsRepo.findByAlbum(albumId);
+  }
 }

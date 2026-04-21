@@ -1,1 +1,1 @@
-export type { Library } from "@seerial/domain";
+export type { Library } from '@seerial/domain';

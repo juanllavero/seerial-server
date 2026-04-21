@@ -6,11 +6,11 @@
  * @throws {Error} if the secret has not been loaded into the process environment yet
  */
 export function getJwtSecret(): string {
-	const secret = process.env.JWT_SECRET;
-	if (!secret) {
-		throw new Error(
-			"JWT_SECRET is not configured. Ensure ServerConfigService has been initialised before calling this function.",
-		);
-	}
-	return secret;
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error(
+      'JWT_SECRET is not configured. Ensure ServerConfigService has been initialised before calling this function.',
+    );
+  }
+  return secret;
 }

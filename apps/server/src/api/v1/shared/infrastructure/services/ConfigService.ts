@@ -1,13 +1,13 @@
-import fs from "node:fs/promises";
-import path from "node:path";
-import { app } from "electron";
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { app } from 'electron';
 
 interface IConfig {
-	port: number;
+  port: number;
 }
 
 const DEFAULT_PORT = 34200;
-const configPath = path.join(app.getPath("userData"), "config.json");
+const configPath = path.join(app.getPath('userData'), 'config.json');
 
 let config: IConfig;
 
@@ -16,20 +16,20 @@ let config: IConfig;
  * If the file doesn't exist, create it with the default config
  */
 export async function loadConfig(): Promise<void> {
-	try {
-		const data = await fs.readFile(configPath, "utf-8");
-		config = JSON.parse(data);
-	} catch (_error) {
-		config = { port: DEFAULT_PORT };
-		await saveConfig();
-	}
+  try {
+    const data = await fs.readFile(configPath, 'utf-8');
+    config = JSON.parse(data);
+  } catch (_error) {
+    config = { port: DEFAULT_PORT };
+    await saveConfig();
+  }
 }
 
 /**
  * Save the config to config.json
  */
 export async function saveConfig(): Promise<void> {
-	await fs.writeFile(configPath, JSON.stringify(config, null, 2));
+  await fs.writeFile(configPath, JSON.stringify(config, null, 2));
 }
 
 /**
@@ -37,7 +37,7 @@ export async function saveConfig(): Promise<void> {
  * @returns {number} port
  */
 export function getPort(): number {
-	return config.port || DEFAULT_PORT;
+  return config.port || DEFAULT_PORT;
 }
 
 /**
@@ -45,5 +45,5 @@ export function getPort(): number {
  * @param {number} newPort new port
  */
 export function setPort(newPort: number): void {
-	config.port = newPort;
+  config.port = newPort;
 }

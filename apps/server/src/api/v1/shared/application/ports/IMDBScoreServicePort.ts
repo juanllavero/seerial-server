@@ -1,3 +1,3 @@
 export interface IMDBScoreServicePort {
-	getIMDBScore(imdbId: string): Promise<number>;
+  getIMDBScore(imdbId: string): Promise<number>;
 }

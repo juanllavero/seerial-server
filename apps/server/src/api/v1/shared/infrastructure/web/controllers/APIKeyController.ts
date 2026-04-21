@@ -1,25 +1,25 @@
-import propertiesReader from "properties-reader";
-import { Body, Controller, Post, Route, Security, Tags } from "tsoa";
-import { tmdbApiClient } from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { messages } from "@/config/messages";
-import { fileSystemService } from "../../adapters/di/container";
-import { ApiResponse } from "../http/APIResponse";
+import propertiesReader from 'properties-reader';
+import { Body, Controller, Post, Route, Security, Tags } from 'tsoa';
+import { tmdbApiClient } from '@/api/v1/shared/infrastructure/adapters/di/container';
+import { messages } from '@/config/messages';
+import { fileSystemService } from '../../adapters/di/container';
+import { ApiResponse } from '../http/APIResponse';
 
 interface APIKeyDTO {
-	apiKey: string;
+  apiKey: string;
 }
 
 interface APIKeyResponse {
-	status: "VALID_API_KEY" | "INVALID_API_KEY";
+  status: 'VALID_API_KEY' | 'INVALID_API_KEY';
 }
 
-@Route("configuration")
-@Tags("Configuration")
+@Route('configuration')
+@Tags('Configuration')
 export class APIKeyController extends Controller {
-	/**
-	 * Configure TMDB API key
-	 */
-	@Post('api-key')
+  /**
+   * Configure TMDB API key
+   */
+  @Post('api-key')
   @Security('adminAuth')
   public async configureApiKey(@Body() body: APIKeyDTO): Promise<ApiResponse<APIKeyResponse>> {
     const { apiKey } = body;

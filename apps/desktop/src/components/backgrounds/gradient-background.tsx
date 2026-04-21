@@ -1,6 +1,7 @@
 import * as PIXI from "pixi.js";
 import { KawaseBlurFilter, TwistFilter } from "pixi-filters";
-import React, { useEffect, useRef, useState } from "react";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
 import { useResolveImageUrl } from "@/hooks/use-resolve-image-url";
 
 interface GradientBackgroundProps {
@@ -22,7 +23,7 @@ const GradientBackground: React.FC<GradientBackgroundProps> = ({
 	const { resolvedUrl } = useResolveImageUrl(imageUrl, true);
 	const containerRef = useRef<HTMLDivElement>(null);
 
-	const [effects, setEffects] = useState({
+	const [effects, _setEffects] = useState({
 		blur: true,
 		twist: true,
 		color: true,
@@ -153,7 +154,7 @@ const GradientBackground: React.FC<GradientBackgroundProps> = ({
 
 				scaleMultipliers.forEach((scale: number, index: number) => {
 					// Since we now ensure that texture exists, this will never throw "null (reading 'texture')"
-					const sprite = new PIXI.Sprite(texture!);
+					const sprite = new PIXI.Sprite(texture);
 					sprite.anchor.set(0.5);
 
 					// --- Transparency and Excessive Light Fix ---
