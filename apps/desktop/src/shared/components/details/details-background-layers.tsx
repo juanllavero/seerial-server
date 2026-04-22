@@ -1,33 +1,26 @@
-import { useGradientStore } from "@seerial/stores";
-import { memo, useEffect } from "react";
-import BackgroundImage from "@/components/backgrounds/BackgroundImage";
+import { useGradientStore } from '@seerial/stores';
+import { memo, useEffect } from 'react';
+import { BackgroundImage } from '../backgrounds';
 
 interface DetailsBackgroundLayersProps {
-	imageSrc?: string;
-	isHidden: boolean;
+  imageSrc?: string;
+  isHidden: boolean;
 }
 
-function DetailsBackgroundLayers({
-	imageSrc,
-	isHidden,
-}: DetailsBackgroundLayersProps) {
-	const setGradientImageSrc = useGradientStore(
-		(state) => state.setGradientImageSrc,
-	);
-	const opacityClass = isHidden ? "opacity-0" : "opacity-100";
+function DetailsBackgroundLayers({ imageSrc, isHidden }: DetailsBackgroundLayersProps) {
+  const setGradientImageSrc = useGradientStore((state) => state.setGradientImageSrc);
+  const opacityClass = isHidden ? 'opacity-0' : 'opacity-100';
 
-	useEffect(() => {
-		setGradientImageSrc(imageSrc ?? "");
-		return () => setGradientImageSrc("");
-	}, [imageSrc, setGradientImageSrc]);
+  useEffect(() => {
+    setGradientImageSrc(imageSrc ?? '');
+    return () => setGradientImageSrc('');
+  }, [imageSrc, setGradientImageSrc]);
 
-	return (
-		<div
-			className={`absolute inset-0 transition-opacity duration-700 ${opacityClass}`}
-		>
-			<BackgroundImage imageSrc={imageSrc} />
-		</div>
-	);
+  return (
+    <div className={`absolute inset-0 transition-opacity duration-700 ${opacityClass}`}>
+      <BackgroundImage imageSrc={imageSrc} />
+    </div>
+  );
 }
 
 export default memo(DetailsBackgroundLayers);

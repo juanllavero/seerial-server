@@ -76,3 +76,10 @@ export interface ContinueWatchingVideoDTO {
 export type ItemType = "series" | "movie" | "album" | "collection";
 
 export type LibraryType = "Shows" | "Movies" | "Music";
+
+export enum LibraryContentItemType {
+    COLLECTION = "collection",
+    MOVIE = "movie",
+    SERIES = "show",
+    ALBUM = "album",
+}

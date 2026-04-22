@@ -1,188 +1,173 @@
-import { getSignedSongStreamUrl } from "@seerial/api";
-import { useServerStore } from "@seerial/stores";
-import { invoke } from "@tauri-apps/api/core";
-import { useCallback, useEffect, useMemo, useRef } from "react";
-import { useSettingsStore } from "@/features/settings/stores/settings.store";
-import { useAppSettingsMpv } from "@/pages/videoplayer/hooks/use-app-settings-mpv";
+import { getSignedSongStreamUrl } from '@seerial/api';
+import { useServerStore } from '@seerial/stores';
+import { invoke } from '@tauri-apps/api/core';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useSettingsStore } from '@/features/settings/stores/settings.store';
+import { useAppSettingsMpv } from '@/pages/videoplayer/hooks/use-app-settings-mpv';
 import {
-	enqueueMpvCommand,
-	fadeOutAndStopMpv,
-	getBackgroundPlaybackVolume,
-	waitForMediaReady,
-} from "./details-background-mpv";
+  enqueueMpvCommand,
+  fadeOutAndStopMpv,
+  getBackgroundPlaybackVolume,
+  waitForMediaReady,
+} from './details-background-mpv';
 
 const LOAD_TIMEOUT_MS = 5000;
 const PLAYER_HEALTH_POLL_INTERVAL_MS = 500;
 const AUDIO_LOOP_DELAY_MS = 3000;
 
 interface PlaybackStatus {
-	eofReached: boolean;
+  eofReached: boolean;
 }
 
 interface DetailsBackgroundAudioPlayerProps {
-	localId: string;
-	onUnavailable?: () => void;
+  localId: string;
+  onUnavailable?: () => void;
 }
 
 function DetailsBackgroundAudioPlayer({
-	localId,
-	onUnavailable,
+  localId,
+  onUnavailable,
 }: DetailsBackgroundAudioPlayerProps) {
-	const serverUrl = useServerStore((state) => state.selectedServer?.url ?? "");
-	const themeMusicVolume = useSettingsStore(
-		(state) => state.settings.themeMusicVolume,
-	);
+  const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
+  const themeMusicVolume = useSettingsStore((state) => state.settings.themeMusicVolume);
 
-	useAppSettingsMpv();
+  useAppSettingsMpv();
 
-	const isDisposedRef = useRef(false);
-	const loadAttemptRef = useRef(0);
-	const eofGuardRef = useRef(false);
-	const loopTimerRef = useRef<number | null>(null);
-	const originalVolumeRef = useRef<number>(100);
+  const isDisposedRef = useRef(false);
+  const loadAttemptRef = useRef(0);
+  const eofGuardRef = useRef(false);
+  const loopTimerRef = useRef<number | null>(null);
+  const originalVolumeRef = useRef<number>(100);
 
-	const targetVolume = useMemo(
-		() => getBackgroundPlaybackVolume(themeMusicVolume),
-		[themeMusicVolume],
-	);
+  const targetVolume = useMemo(
+    () => getBackgroundPlaybackVolume(themeMusicVolume),
+    [themeMusicVolume],
+  );
 
-	const clearLoopTimer = useCallback(() => {
-		if (loopTimerRef.current !== null) {
-			window.clearTimeout(loopTimerRef.current);
-			loopTimerRef.current = null;
-		}
-	}, []);
+  const clearLoopTimer = useCallback(() => {
+    if (loopTimerRef.current !== null) {
+      window.clearTimeout(loopTimerRef.current);
+      loopTimerRef.current = null;
+    }
+  }, []);
 
-	const stopPlayback = useCallback(async () => {
-		clearLoopTimer();
+  const stopPlayback = useCallback(async () => {
+    clearLoopTimer();
 
-		await enqueueMpvCommand(async () => {
-			await fadeOutAndStopMpv(originalVolumeRef.current, () => false);
-		});
-	}, [clearLoopTimer]);
+    await enqueueMpvCommand(async () => {
+      await fadeOutAndStopMpv(originalVolumeRef.current, () => false);
+    });
+  }, [clearLoopTimer]);
 
-	const loadAndPlay = useCallback(async () => {
-		if (!localId || !serverUrl || targetVolume <= 0) {
-			return false;
-		}
+  const loadAndPlay = useCallback(async () => {
+    if (!localId || !serverUrl || targetVolume <= 0) {
+      return false;
+    }
 
-		const currentAttempt = ++loadAttemptRef.current;
+    const currentAttempt = ++loadAttemptRef.current;
 
-		try {
-			await enqueueMpvCommand(async () => {
-				try {
-					originalVolumeRef.current = await invoke<number>("get_volume");
-				} catch {
-					originalVolumeRef.current = 100;
-				}
+    try {
+      await enqueueMpvCommand(async () => {
+        try {
+          originalVolumeRef.current = await invoke<number>('get_volume');
+        } catch {
+          originalVolumeRef.current = 100;
+        }
 
-				const signedUrl = await getSignedSongStreamUrl({
-					filePath: "none",
-					localId,
-					expiresIn: "10m",
-					isDesktop: true,
-				});
+        const signedUrl = await getSignedSongStreamUrl({
+          filePath: 'none',
+          localId,
+          expiresIn: '10m',
+          isDesktop: true,
+        });
 
-				if (
-					!signedUrl ||
-					isDisposedRef.current ||
-					currentAttempt !== loadAttemptRef.current
-				) {
-					throw new Error("Background audio is not available");
-				}
+        if (!signedUrl || isDisposedRef.current || currentAttempt !== loadAttemptRef.current) {
+          throw new Error('Background audio is not available');
+        }
 
-				await invoke("embed_mpv");
-				await invoke("set_volume", { volume: targetVolume });
-				await invoke("load_url", { url: `${serverUrl}${signedUrl}` });
-			});
+        await invoke('embed_mpv');
+        await invoke('set_volume', { volume: targetVolume });
+        await invoke('load_url', { url: `${serverUrl}${signedUrl}` });
+      });
 
-			const ready = await waitForMediaReady(LOAD_TIMEOUT_MS, () => {
-				return (
-					isDisposedRef.current || currentAttempt !== loadAttemptRef.current
-				);
-			});
+      const ready = await waitForMediaReady(LOAD_TIMEOUT_MS, () => {
+        return isDisposedRef.current || currentAttempt !== loadAttemptRef.current;
+      });
 
-			if (
-				!ready ||
-				isDisposedRef.current ||
-				currentAttempt !== loadAttemptRef.current
-			) {
-				throw new Error("Background audio timed out");
-			}
+      if (!ready || isDisposedRef.current || currentAttempt !== loadAttemptRef.current) {
+        throw new Error('Background audio timed out');
+      }
 
-			await enqueueMpvCommand(async () => {
-				if (
-					isDisposedRef.current ||
-					currentAttempt !== loadAttemptRef.current
-				) {
-					return;
-				}
+      await enqueueMpvCommand(async () => {
+        if (isDisposedRef.current || currentAttempt !== loadAttemptRef.current) {
+          return;
+        }
 
-				await invoke("play");
-			});
+        await invoke('play');
+      });
 
-			return true;
-		} catch {
-			if (!isDisposedRef.current && currentAttempt === loadAttemptRef.current) {
-				onUnavailable?.();
-			}
+      return true;
+    } catch {
+      if (!isDisposedRef.current && currentAttempt === loadAttemptRef.current) {
+        onUnavailable?.();
+      }
 
-			return false;
-		}
-	}, [localId, onUnavailable, serverUrl, targetVolume]);
+      return false;
+    }
+  }, [localId, onUnavailable, serverUrl, targetVolume]);
 
-	useEffect(() => {
-		isDisposedRef.current = false;
-		eofGuardRef.current = false;
+  useEffect(() => {
+    isDisposedRef.current = false;
+    eofGuardRef.current = false;
 
-		if (!localId || !serverUrl || targetVolume <= 0) {
-			return () => {
-				isDisposedRef.current = true;
-			};
-		}
+    if (!localId || !serverUrl || targetVolume <= 0) {
+      return () => {
+        isDisposedRef.current = true;
+      };
+    }
 
-		void loadAndPlay();
+    void loadAndPlay();
 
-		return () => {
-			isDisposedRef.current = true;
-			void stopPlayback();
-		};
-	}, [localId, loadAndPlay, serverUrl, stopPlayback, targetVolume]);
+    return () => {
+      isDisposedRef.current = true;
+      void stopPlayback();
+    };
+  }, [localId, loadAndPlay, serverUrl, stopPlayback, targetVolume]);
 
-	useEffect(() => {
-		if (!localId || !serverUrl || targetVolume <= 0) {
-			return;
-		}
+  useEffect(() => {
+    if (!localId || !serverUrl || targetVolume <= 0) {
+      return;
+    }
 
-		const interval = window.setInterval(() => {
-			void invoke<PlaybackStatus>("get_playback_status")
-				.then((status) => {
-					if (!status.eofReached) {
-						eofGuardRef.current = false;
-						return;
-					}
+    const interval = window.setInterval(() => {
+      void invoke<PlaybackStatus>('get_playback_status')
+        .then((status) => {
+          if (!status.eofReached) {
+            eofGuardRef.current = false;
+            return;
+          }
 
-					if (eofGuardRef.current) {
-						return;
-					}
+          if (eofGuardRef.current) {
+            return;
+          }
 
-					eofGuardRef.current = true;
-					clearLoopTimer();
-					loopTimerRef.current = window.setTimeout(() => {
-						eofGuardRef.current = false;
-						void loadAndPlay();
-					}, AUDIO_LOOP_DELAY_MS);
-				})
-				.catch(() => undefined);
-		}, PLAYER_HEALTH_POLL_INTERVAL_MS);
+          eofGuardRef.current = true;
+          clearLoopTimer();
+          loopTimerRef.current = window.setTimeout(() => {
+            eofGuardRef.current = false;
+            void loadAndPlay();
+          }, AUDIO_LOOP_DELAY_MS);
+        })
+        .catch(() => undefined);
+    }, PLAYER_HEALTH_POLL_INTERVAL_MS);
 
-		return () => {
-			window.clearInterval(interval);
-			clearLoopTimer();
-		};
-	}, [clearLoopTimer, loadAndPlay, localId, serverUrl, targetVolume]);
+    return () => {
+      window.clearInterval(interval);
+      clearLoopTimer();
+    };
+  }, [clearLoopTimer, loadAndPlay, localId, serverUrl, targetVolume]);
 
-	return null;
+  return null;
 }
 
 export default DetailsBackgroundAudioPlayer;

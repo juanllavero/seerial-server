@@ -1,4 +1,4 @@
-import { en } from "./en";
-import { es } from "./es-ES";
+import { en } from './en';
+import { es } from './es-ES';
 
 export { en, es };

@@ -4,7 +4,7 @@ import { useGradientStore, useServerStore } from '@seerial/stores';
 import { AnimatePresence, motion } from 'framer-motion';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { Outlet, useLocation, useMatch } from 'react-router-dom';
-import GradientBackground from '@/components/backgrounds/GradientBackground';
+import { GradientBackground } from '@/shared/components/backgrounds';
 import TopBar from './components/top-bar';
 
 type TransitionDirection = 1 | -1;

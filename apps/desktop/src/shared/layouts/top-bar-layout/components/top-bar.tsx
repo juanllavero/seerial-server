@@ -6,10 +6,9 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronUp, Settings } from 'lucide-react';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
-import NavigationButton from '@/components/navigation/NavigationButton';
-import NavigationContainer from '@/components/navigation/NavigationContainer';
-import MiniMusicPlayerButton from '@/features/music-player/mini-music-player-button';
+import { MiniMusicPlayerButton } from '@/features/music-player';
 import { SettingsPanel } from '@/features/settings';
+import { NavigationButton, NavigationContainer } from '@/shared/components/navigation';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
 import LibrariesList from './libraries-list';
 

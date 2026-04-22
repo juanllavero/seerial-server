@@ -1,0 +1,9 @@
+export { default as AlbumDetails } from './details/album';
+export { default as CollectionDetails } from './details/collection';
+export { default as MovieDetails } from './details/movie';
+export { default as SeriesDetails } from './details/series';
+export { default as Home } from './home';
+export { default as Library } from './library';
+export { default as LoginPage } from './login';
+export { default as ToSeePage } from './to-see';
+export { VideoPlayer, VideoPlayerFile } from './video-player';

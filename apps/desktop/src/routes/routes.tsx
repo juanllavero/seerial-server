@@ -1,19 +1,20 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
-import AlbumDetails from '@/pages/details/album/album-details-page';
-import CollectionDetails from '@/pages/details/collection/collection-details-page';
-import MovieDetails from '@/pages/details/movie/movie-details-page';
-import SeriesDetails from '@/pages/details/series/series-details-page';
-import Home from '@/pages/home/home-page';
-import Library from '@/pages/library/library-page';
-import LoginPage from '@/pages/login/login-page';
-import ToSeePage from '@/pages/to-see/to-see-page';
-import VideoPlayerFile from '@/pages/videoplayer/video-player-file-page';
-import VideoPlayer from '@/pages/videoplayer/video-player-page';
-import BaseLayout from '@/shared/layouts/base-layout/layout';
-import TopBarLayout from '@/shared/layouts/top-bar-layout/layout';
+import {
+  AlbumDetails,
+  CollectionDetails,
+  Home,
+  Library,
+  LoginPage,
+  MovieDetails,
+  SeriesDetails,
+  ToSeePage,
+  VideoPlayer,
+  VideoPlayerFile,
+} from '@/pages';
+import { BaseLayout, TopBarLayout } from '@/shared/layouts';
 import Root from './root';
 
-export function AppRoutes() {
+export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Root />}>
