@@ -1,4 +1,3 @@
-import fsPromises from 'node:fs/promises';
 import path from 'node:path';
 import type { AlbumsRepositoryPort } from '@/api/v1/albums/application/ports/AlbumsRepositoryPort';
 import type { Album } from '@/api/v1/albums/domain/Album';
@@ -33,7 +32,7 @@ export class ScanMusicUseCase {
     private readonly artistsRepo: ArtistsRepositoryPort,
     private readonly collectionsRepo: CollectionsRepositoryPort,
     private readonly notificationService: NotificationServicePort,
-  ) {}
+  ) { }
 
   /**
    * Main entry point.
@@ -236,7 +235,6 @@ export class ScanMusicUseCase {
         library,
         albumFolder,
         sampleMetadata,
-        collection,
       );
 
       if (!album) {
@@ -273,7 +271,6 @@ export class ScanMusicUseCase {
     library: Library,
     albumFolder: AlbumFolder,
     sampleMetadata: NonNullable<Awaited<ReturnType<typeof getAudioInfo>>>,
-    collection: Collection | null,
   ): Promise<Album | null> {
     const albumTitle = sampleMetadata.album || getFileName(albumFolder.path);
 
@@ -292,9 +289,8 @@ export class ScanMusicUseCase {
 
     const localCover = await this.findLocalCover(albumFolder.path);
     if (localCover) {
-      await this.applyAlbumCover(album, collection, async () =>
-        this.copyImageToEntity(album.id, localCover),
-      );
+      album.coverSrc = localCover;
+      await this.albumsRepo.update(album.id, { coverSrc: localCover });
     }
 
     for (const artist of sampleMetadata.artists || []) {
@@ -302,24 +298,6 @@ export class ScanMusicUseCase {
     }
 
     return album;
-  }
-
-  private async applyAlbumCover(
-    album: Album,
-    collection: Collection | null,
-    resolveCoverPath: () => Promise<string | null>,
-  ): Promise<void> {
-    const coverPath = await resolveCoverPath();
-    if (!coverPath) return;
-
-    album.coverSrc = coverPath;
-    await this.albumsRepo.update(album.id, { coverSrc: coverPath });
-
-    if (collection && collection.musicPosterSrc === '') {
-      await this.collectionsRepo.update(collection.id, {
-        musicPosterSrc: coverPath,
-      });
-    }
   }
 
   private async addAlbumToCollection(
@@ -427,29 +405,5 @@ export class ScanMusicUseCase {
     }
 
     return imageSrc;
-  }
-
-  /**
-   * Copies image to entity folder
-   */
-  private async copyImageToEntity(
-    entityId: string,
-    sourceImagePath: string,
-  ): Promise<string | null> {
-    const imageName = path.basename(sourceImagePath);
-    const destinationFolder = this.fileSystemService.getExternalPath(
-      path.join('resources', 'img', 'posters', entityId),
-    );
-    const destinationPath = path.join(destinationFolder, imageName);
-
-    try {
-      this.fileSystemService.createFolder(destinationFolder);
-      await fsPromises.copyFile(sourceImagePath, destinationPath);
-
-      return path.join('resources', 'img', 'posters', entityId, imageName).replace(/\\/g, '/');
-    } catch (error) {
-      musicLogger.error({ error, sourceImagePath }, 'Error copying image');
-      return null;
-    }
   }
 }

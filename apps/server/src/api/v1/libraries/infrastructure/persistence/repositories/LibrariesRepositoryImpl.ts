@@ -121,19 +121,24 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
         }),
     );
 
+    // Collections with only 1 item in this library are treated as standalone items.
+    const multiItemLibraryCollections = libraryCollections.filter(
+      (lc) => lc.collection && this.countCollectionItems(lc.collection, libraryId) > 1,
+    );
+
     const excludeIds = {
       movieIds: new Set(
-        libraryCollections.flatMap(
+        multiItemLibraryCollections.flatMap(
           (lc) => lc.collection?.collectionMovies?.map((cm) => cm.movie.id) ?? [],
         ),
       ),
       seriesIds: new Set(
-        libraryCollections.flatMap(
+        multiItemLibraryCollections.flatMap(
           (lc) => lc.collection?.collectionSeries?.map((cs) => cs.series.id) ?? [],
         ),
       ),
       albumIds: new Set(
-        libraryCollections.flatMap(
+        multiItemLibraryCollections.flatMap(
           (lc) => lc.collection?.collectionAlbums?.map((ca) => ca.album.id) ?? [],
         ),
       ),
@@ -153,7 +158,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     const collections = this.measureSync(
       'getContent.extractCollections',
       { libraryId, libraryType: libraryHeader.type },
-      () => libraryCollections.map((libraryCollection) => libraryCollection.collection),
+      () => multiItemLibraryCollections.map((libraryCollection) => libraryCollection.collection),
     );
 
     const customOrderByCollectionId = this.measureSync(
@@ -161,7 +166,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       { libraryId, collectionCount: collections.length },
       () =>
         new Map(
-          libraryCollections.map((libraryCollection) => [
+          multiItemLibraryCollections.map((libraryCollection) => [
             libraryCollection.collectionId,
             libraryCollection.customOrder,
           ]),
@@ -300,8 +305,8 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
 
     const sortedSeries = hasSeriesCustomOrder
       ? seriesItems.sort(
-          (a, b) => (seriesOrderMap.get(a.id) ?? 0) - (seriesOrderMap.get(b.id) ?? 0),
-        )
+        (a, b) => (seriesOrderMap.get(a.id) ?? 0) - (seriesOrderMap.get(b.id) ?? 0),
+      )
       : seriesItems.sort((a, b) => sortByYear(a, b));
 
     const sortedAlbums = hasAlbumCustomOrder
