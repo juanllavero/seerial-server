@@ -58,9 +58,9 @@ function DetailsWithRelatedContent({
 
 	return (
 		<RelatedContentContext.Provider value={contextValue}>
-			<div className="relative w-[100dvw] h-[92dvh] overflow-hidden">
+			<div className="relative w-screen h-screen overflow-hidden">
 				<motion.div
-					className="absolute inset-0 w-[100dvw] h-full"
+					className="absolute inset-0 w-full h-full"
 					animate={{ x: isRelatedVisible ? "-100%" : "0%" }}
 					transition={slideTransition}
 				>
@@ -71,7 +71,7 @@ function DetailsWithRelatedContent({
 				</motion.div>
 
 				<motion.div
-					className="absolute top-0 left-full w-[100dvw] h-full"
+					className="absolute top-0 left-full w-full h-full"
 					animate={{ x: isRelatedVisible ? "-100%" : "0%" }}
 					transition={slideTransition}
 				>
