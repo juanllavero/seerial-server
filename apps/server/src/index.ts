@@ -35,6 +35,13 @@ config({
 process.env.APP_ROOT = path.join(__dirname, '../../');
 export const appServer: Express = express();
 
+const hasSingleInstanceLock = app.requestSingleInstanceLock();
+
+if (!hasSingleInstanceLock) {
+  showMessage('Another Seerial Server instance is already running. Exiting...');
+  app.exit(0);
+}
+
 // Add compression middleware to compress responses and save bandwidth
 appServer.use(compression());
 
@@ -110,77 +117,83 @@ appServer.use('/media', express.static(fileSystemService.getExternalPath('resour
 export let server: http.Server | https.Server;
 
 // Start the app
-app.whenReady().then(async () => {
-  showAppName('SEERIAL SERVER');
+if (hasSingleInstanceLock) {
+  app.on('second-instance', () => {
+    showMessage('Another Seerial Server instance launch was blocked.');
+  });
 
-  // Dynamic CLI message
-  const s = spinner();
+  app.whenReady().then(async () => {
+    showAppName('SEERIAL SERVER');
 
-  // Initialize dependencies
-  s.start('Initializing Youtube Downloader...');
+    // Dynamic CLI message
+    const s = spinner();
 
-  await downloaderService.downloadYoutubeDownloader();
+    // Initialize dependencies
+    s.start('Initializing Youtube Downloader...');
 
-  s.stop('Youtube Downloader Initialized');
+    await downloaderService.downloadYoutubeDownloader();
 
-  await DatabaseManager.initializeDB();
-  fileSystemService.initFolders();
-  fileSystemService.loadProperties();
-  await ConfigManager.loadConfig();
+    s.stop('Youtube Downloader Initialized');
 
-  showMessage('Database Initialized');
+    await DatabaseManager.initializeDB();
+    fileSystemService.initFolders();
+    fileSystemService.loadProperties();
+    await ConfigManager.loadConfig();
 
-  // Initialize MovieDB
-  await tmdbApiClient.initialize();
+    showMessage('Database Initialized');
 
-  showMessage('TheMovieDB API Client Initialized');
+    // Initialize MovieDB
+    await tmdbApiClient.initialize();
 
-  // Load or create server and user configs
-  await ServerConfigService.loadOrCreateServerConfig();
+    showMessage('TheMovieDB API Client Initialized');
 
-  // Swagger UI — only exposed outside production to prevent API enumeration
-  if (process.env.NODE_ENV !== 'production') {
-    appServer.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-  }
+    // Load or create server and user configs
+    await ServerConfigService.loadOrCreateServerConfig();
 
-  // Register generated tsoa routes
-  RegisterRoutes(appServer);
-
-  // Serve static web files
-  const webPath = path.join(__dirname, 'web');
-  appServer.use(express.static(webPath));
-
-  // Capture all requests and redirect to index.html
-  appServer.use((req: Request, res: Response, next: NextFunction) => {
-    // If the request is for a file (has an extension), skip to next middleware
-    if (path.extname(req.path)) {
-      return next();
+    // Swagger UI — only exposed outside production to prevent API enumeration
+    if (process.env.NODE_ENV !== 'production') {
+      appServer.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
     }
 
-    res.sendFile(path.join(webPath, 'index.html'));
+    // Register generated tsoa routes
+    RegisterRoutes(appServer);
+
+    // Serve static web files
+    const webPath = path.join(__dirname, 'web');
+    appServer.use(express.static(webPath));
+
+    // Capture all requests and redirect to index.html
+    appServer.use((req: Request, res: Response, next: NextFunction) => {
+      // If the request is for a file (has an extension), skip to next middleware
+      if (path.extname(req.path)) {
+        return next();
+      }
+
+      res.sendFile(path.join(webPath, 'index.html'));
+    });
+
+    // Error handling middleware
+    appServer.use(globalErrorHandler);
+
+    // Start server
+    await ServerConfigService.startServer(appServer);
+
+    showMessage('Server Initialized');
+
+    // Initialize NotificationService through DI container
+    notificationService.init(ServerConfigService.mainServer);
+
+    // Create tray
+    createTray();
+
+    const httpPort = ServerConfigService.serverConfig.httpPort;
+    appReadyMessage({
+      url: `http://localhost:${httpPort}/api/v1`,
+      swaggerUrl: `http://localhost:${httpPort}/api-docs`,
+      env: 'development',
+    });
   });
-
-  // Error handling middleware
-  appServer.use(globalErrorHandler);
-
-  // Start server
-  await ServerConfigService.startServer(appServer);
-
-  showMessage('Server Initialized');
-
-  // Initialize NotificationService through DI container
-  notificationService.init(ServerConfigService.mainServer);
-
-  // Create tray
-  createTray();
-
-  const httpPort = ServerConfigService.serverConfig.httpPort;
-  appReadyMessage({
-    url: `http://localhost:${httpPort}/api/v1`,
-    swaggerUrl: `http://localhost:${httpPort}/api-docs`,
-    env: 'development',
-  });
-});
+}
 
 // Prevent default quit behavior on macOS
 app.on('window-all-closed', () => {
