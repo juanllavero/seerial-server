@@ -3,6 +3,7 @@ import {
   BeforeInsert,
   Column,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -15,6 +16,7 @@ import { VideoModel } from '@/api/v1/videos/infrastructure/persistence/models/Vi
 import { WatchListModel } from '@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel';
 
 @Entity({ name: 'Episode' })
+@Index('idx_episode_season', ['seasonId'])
 export class EpisodeModel extends BaseEntity {
   @PrimaryColumn({ type: 'varchar', nullable: false })
   id!: string;

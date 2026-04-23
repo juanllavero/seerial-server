@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryColumn,
@@ -17,6 +18,8 @@ import { SeriesModel } from '@/api/v1/series/infrastructure/persistence/models/S
 import { VideoModel } from '@/api/v1/videos/infrastructure/persistence/models/VideoModel';
 
 @Entity({ name: 'WatchList' })
+@Index('idx_watchlist_user_series_watched', ['userId', 'seriesId', 'watched'])
+@Index('idx_watchlist_user_episode_watched', ['userId', 'episodeId', 'watched'])
 export class WatchListModel extends BaseEntity {
   @PrimaryColumn({ type: 'varchar', nullable: false })
   id!: string;

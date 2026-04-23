@@ -16,6 +16,7 @@ import { SeriesModel } from '@/api/v1/series/infrastructure/persistence/models/S
 import { DatabaseManager } from '@/api/v1/shared/infrastructure/persistence/DatabaseManager';
 import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
 import { VideoModel } from '@/api/v1/videos/infrastructure/persistence/models/VideoModel';
+import { WatchListModel } from '@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel';
 import { messages } from '@/config/messages';
 import { GenericRepositoryHelper } from '@/helpers/GenericRepositoryHelper';
 import logger from '@/utils/logger';
@@ -41,6 +42,22 @@ type LibraryContentSource = {
   movies?: MovieModel[];
   series?: SeriesModel[];
   albums?: AlbumModel[];
+};
+
+type SeriesSeasonSnapshot = {
+  seasonNumber: number;
+  seasonName: string;
+  backgroundSrc: string;
+  episodeCount: number;
+};
+
+type SeriesRuntimeStats = {
+  currentSeasonNumber?: number;
+  currentSeasonName?: string;
+  currentSeasonBackgroundSrc?: string;
+  currentSeasonEpisodeCount: number;
+  totalEpisodes: number;
+  watchedEpisodes: number;
 };
 
 export class LibrariesRepositoryImpl extends BaseRepository implements LibrariesRepositoryPort {
@@ -334,7 +351,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       case LibraryTypes.MOVIES:
         return ['watchLists', 'videos'];
       case LibraryTypes.SHOWS:
-        return ['watchLists', 'seasons', 'seasons.episodes', 'seasons.episodes.watchLists'];
+        return ['watchLists'];
       case LibraryTypes.MUSIC:
         return [];
       default:
@@ -786,13 +803,23 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
         ),
     );
 
+    const seriesRuntimeStats = await this.measureAsync(
+      'buildSeriesItems.getSeriesRuntimeStats',
+      {
+        libraryId: library.id,
+        filteredSeriesCount: filteredSeries.length,
+      },
+      () => this.getSeriesRuntimeStats(filteredSeries.map((series) => series.id), userId),
+    );
+
     const items = await Promise.all(
       filteredSeries.map(async (series) => {
         const seriesStartedAt = this.startTiming();
+        const runtimeStats = seriesRuntimeStats.get(series.id);
         const years = this.measureSync(
-          'buildSeriesItems.calculateYearsForSeries',
+          'buildSeriesItems.resolveSeriesYear',
           { libraryId: library.id, seriesId: series.id },
-          () => this.calculateYearsForSeries(series),
+          () => this.resolveSeriesYear(series),
         );
         const seriesWatched = this.measureSync(
           'buildSeriesItems.isSeriesWatched',
@@ -800,13 +827,17 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
           () => this.isSeriesWatched(series, userId),
         );
         const remainingItems = this.measureSync(
-          'buildSeriesItems.calculateRemainingEpisodes',
+          'buildSeriesItems.resolveRemainingEpisodes',
           { libraryId: library.id, seriesId: series.id, userId },
-          () => this.calculateRemainingEpisodes(series, userId),
+          () => this.resolveRemainingEpisodes(runtimeStats),
         );
 
-        // Get currently watching season of first one as fallback
-        const currentSeason = this.resolveCurrentSeasonFromLoadedData(series, userId);
+        const currentSeason = runtimeStats
+          ? {
+            name: runtimeStats.currentSeasonName ?? '',
+            backgroundSrc: runtimeStats.currentSeasonBackgroundSrc ?? '',
+          }
+          : undefined;
 
         const details = await this.measureAsync(
           'buildSeriesItems.generateItemDetails',
@@ -820,8 +851,8 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
           years,
           order: series.order,
           coverSrc: series.coverSrc,
-          currentSeasonNumber: currentSeason?.seasonNumber,
-          numberOfItems: currentSeason?.episodes?.length ?? 0,
+          currentSeasonNumber: runtimeStats?.currentSeasonNumber,
+          numberOfItems: runtimeStats?.currentSeasonEpisodeCount ?? 0,
           watched: seriesWatched,
           remainingItems,
           analyzingFiles: series.analyzingFiles,
@@ -851,6 +882,138 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     });
 
     return items;
+  }
+
+  private async getSeriesRuntimeStats(
+    seriesIds: string[],
+    userId: string,
+  ): Promise<Map<string, SeriesRuntimeStats>> {
+    if (seriesIds.length === 0) {
+      return new Map();
+    }
+
+    const [seasonRows, watchedSeasonRows, episodeStatsRows] = await Promise.all([
+      SeasonModel.createQueryBuilder('season')
+        .leftJoin('season.episodes', 'episode')
+        .select('season.seriesId', 'seriesId')
+        .addSelect('season.seasonNumber', 'seasonNumber')
+        .addSelect('season.name', 'seasonName')
+        .addSelect('season.backgroundSrc', 'backgroundSrc')
+        .addSelect('COUNT(episode.id)', 'episodeCount')
+        .where('season.seriesId IN (:...seriesIds)', { seriesIds })
+        .groupBy('season.id')
+        .addGroupBy('season.seriesId')
+        .addGroupBy('season.seasonNumber')
+        .addGroupBy('season.name')
+        .addGroupBy('season.backgroundSrc')
+        .getRawMany<{
+          seriesId: string;
+          seasonNumber: number | string;
+          seasonName: string | null;
+          backgroundSrc: string | null;
+          episodeCount: number | string;
+        }>(),
+      SeasonModel.createQueryBuilder('season')
+        .innerJoin('season.episodes', 'episode')
+        .innerJoin(
+          WatchListModel,
+          'watchList',
+          'watchList.episodeId = episode.id AND watchList.userId = :userId AND watchList.watched = :watched',
+          {
+            userId,
+            watched: true,
+          },
+        )
+        .select('season.seriesId', 'seriesId')
+        .addSelect('MAX(season.seasonNumber)', 'maxWatchedSeasonNumber')
+        .where('season.seriesId IN (:...seriesIds)', { seriesIds })
+        .groupBy('season.seriesId')
+        .getRawMany<{
+          seriesId: string;
+          maxWatchedSeasonNumber: number | string;
+        }>(),
+      SeasonModel.createQueryBuilder('season')
+        .leftJoin('season.episodes', 'episode')
+        .leftJoin(
+          WatchListModel,
+          'watchList',
+          'watchList.episodeId = episode.id AND watchList.userId = :userId AND watchList.watched = :watched',
+          {
+            userId,
+            watched: true,
+          },
+        )
+        .select('season.seriesId', 'seriesId')
+        .addSelect('COUNT(DISTINCT episode.id)', 'totalEpisodes')
+        .addSelect('COUNT(DISTINCT watchList.episodeId)', 'watchedEpisodes')
+        .where('season.seriesId IN (:...seriesIds)', { seriesIds })
+        .groupBy('season.seriesId')
+        .getRawMany<{
+          seriesId: string;
+          totalEpisodes: number | string;
+          watchedEpisodes: number | string;
+        }>(),
+    ]);
+
+    const seasonSnapshotsBySeries = new Map<string, SeriesSeasonSnapshot[]>();
+    for (const row of seasonRows) {
+      const snapshots = seasonSnapshotsBySeries.get(row.seriesId) ?? [];
+      snapshots.push({
+        seasonNumber: Number(row.seasonNumber),
+        seasonName: row.seasonName ?? '',
+        backgroundSrc: row.backgroundSrc ?? '',
+        episodeCount: Number(row.episodeCount),
+      });
+      seasonSnapshotsBySeries.set(row.seriesId, snapshots);
+    }
+
+    const maxWatchedSeasonBySeries = new Map<string, number>();
+    for (const row of watchedSeasonRows) {
+      maxWatchedSeasonBySeries.set(row.seriesId, Number(row.maxWatchedSeasonNumber));
+    }
+
+    const episodeStatsBySeries = new Map<string, { totalEpisodes: number; watchedEpisodes: number }>();
+    for (const row of episodeStatsRows) {
+      episodeStatsBySeries.set(row.seriesId, {
+        totalEpisodes: Number(row.totalEpisodes),
+        watchedEpisodes: Number(row.watchedEpisodes),
+      });
+    }
+
+    const result = new Map<string, SeriesRuntimeStats>();
+
+    for (const seriesId of seriesIds) {
+      const seasons = seasonSnapshotsBySeries.get(seriesId) ?? [];
+      const fallbackSeasonNumber = seasons.length
+        ? Math.min(...seasons.map((season) => season.seasonNumber))
+        : undefined;
+      const currentSeasonNumber =
+        maxWatchedSeasonBySeries.get(seriesId) ?? fallbackSeasonNumber;
+      const currentSeason = seasons.find((season) => season.seasonNumber === currentSeasonNumber);
+      const episodeStats = episodeStatsBySeries.get(seriesId) ?? {
+        totalEpisodes: 0,
+        watchedEpisodes: 0,
+      };
+
+      result.set(seriesId, {
+        currentSeasonNumber,
+        currentSeasonName: currentSeason?.seasonName,
+        currentSeasonBackgroundSrc: currentSeason?.backgroundSrc,
+        currentSeasonEpisodeCount: currentSeason?.episodeCount ?? 0,
+        totalEpisodes: episodeStats.totalEpisodes,
+        watchedEpisodes: episodeStats.watchedEpisodes,
+      });
+    }
+
+    return result;
+  }
+
+  private resolveRemainingEpisodes(runtimeStats?: SeriesRuntimeStats): number {
+    if (!runtimeStats) {
+      return 0;
+    }
+
+    return Math.max(runtimeStats.totalEpisodes - runtimeStats.watchedEpisodes, 0);
   }
 
   private async buildAlbumItems(
@@ -911,7 +1074,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     element: MovieModel | SeriesModel | AlbumModel | CollectionModel,
     type: ItemType,
     userId: string = '',
-    currentSeason?: SeasonModel,
+    currentSeason?: Pick<SeasonModel, 'name' | 'backgroundSrc'>,
   ): Promise<DetailsData | null> {
     const startedAt = this.startTiming();
     const itemId = 'id' in element ? element.id : undefined;
@@ -959,7 +1122,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
   private buildSeriesDetails(
     element: SeriesModel,
     userId: string,
-    currentSeason?: SeasonModel,
+    currentSeason?: Pick<SeasonModel, 'name' | 'backgroundSrc'>,
   ): DetailsData {
     const resolvedCurrentSeason =
       currentSeason ?? this.resolveCurrentSeasonFromLoadedData(element, userId);
@@ -977,7 +1140,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       tagline: element.tagline || '',
       coverSrc: element.coverSrc || '',
       logoSrc: element.logoSrc || '',
-      backgroundSrc: resolvedCurrentSeason?.backgroundSrc || '',
+      backgroundSrc: resolvedCurrentSeason?.backgroundSrc || element.coverSrc || '',
     };
   }
 
@@ -1051,14 +1214,12 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     return minYear === maxYear ? minYear.toString() : `${minYear}-${maxYear}`;
   }
 
-  private calculateYearsForSeries(series: SeriesModel): string {
-    if (!series.seasons || series.seasons.length === 0) return '-';
+  private resolveSeriesYear(series: SeriesModel): string {
+    if (!series.year || series.year.trim() === '') {
+      return '-';
+    }
 
-    const years = series.seasons
-      .map((season: SeasonModel) => season.year)
-      .filter((year: string) => year && year.trim() !== '');
-
-    return this.formatYearRange(years.map((year) => Number.parseInt(year, 10)));
+    return series.year.split('-')[0] ?? '-';
   }
 
   private isMovieWatched(movie: MovieModel, userId: string): boolean {
@@ -1109,38 +1270,6 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     }
 
     return collectionWatchStates.some((itemWatched) => !itemWatched);
-  }
-
-  private calculateRemainingEpisodes(series: SeriesModel, userId: string): number {
-    const startedAt = this.startTiming();
-
-    if (!series.seasons) return 0;
-
-    let totalEpisodes = 0;
-    let watchedEpisodes = 0;
-
-    for (const season of series.seasons) {
-      if (!season.episodes) continue;
-
-      totalEpisodes += season.episodes.length;
-
-      for (const episode of season.episodes) {
-        const watchedEpisode = episode.watchLists?.find((wl) => wl.userId === userId && wl.watched);
-        if (watchedEpisode) watchedEpisodes++;
-      }
-    }
-
-    const remainingEpisodes = totalEpisodes - watchedEpisodes;
-
-    this.logTiming('calculateRemainingEpisodes.total', startedAt, {
-      seriesId: series.id,
-      userId,
-      totalEpisodes,
-      watchedEpisodes,
-      remainingEpisodes,
-    });
-
-    return remainingEpisodes;
   }
 
   async getById(id: string) {

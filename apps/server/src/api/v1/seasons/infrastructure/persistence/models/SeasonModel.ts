@@ -3,6 +3,7 @@ import {
   BeforeInsert,
   Column,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
@@ -14,6 +15,7 @@ import { SeriesModel } from '@/api/v1/series/infrastructure/persistence/models/S
 import { WatchListModel } from '@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel';
 
 @Entity({ name: 'Season' })
+@Index('idx_season_series_number', ['seriesId', 'seasonNumber'])
 export class SeasonModel extends BaseEntity {
   @PrimaryColumn({ type: 'varchar', nullable: false })
   id!: string;
