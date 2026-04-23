@@ -5,7 +5,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { shallow } from 'zustand/shallow';
-import Tertiary from '@/components/text/tertiary';
+import { Tertiary } from '@/shared/components/text';
 import FlexBox from '@/shared/components/ui/flex-box';
 import type { PlayerSettings } from '../../hooks/use-player-settings';
 import Settings from '../settings';

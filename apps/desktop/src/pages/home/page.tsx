@@ -1,5 +1,4 @@
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
-import { Title } from '@radix-ui/react-dialog';
 import { useGetContinueWatching } from '@seerial/api';
 import { type ContinueWatchingVideoDTO, formatDate } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
@@ -14,7 +13,7 @@ import DetailsInfo from '@/shared/components/details/details-info';
 import Loading from '@/shared/components/loading';
 import { NavigationScrollView } from '@/shared/components/navigation';
 import Page from '@/shared/components/page';
-import { ListTitle, Subtitle } from '@/shared/components/text';
+import { ListTitle, Subtitle, Title } from '@/shared/components/text';
 import ContentCard from '@/shared/components/ui/content-card';
 import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
 

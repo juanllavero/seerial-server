@@ -2,7 +2,7 @@ import { useFocusable } from '@noriginmedia/norigin-spatial-navigation';
 import { formatTime } from '@seerial/domain';
 import { invoke } from '@tauri-apps/api/core';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import Tertiary from '@/components/text/tertiary';
+import { Tertiary } from '@/shared/components/text';
 import FlexBox from '@/shared/components/ui/flex-box';
 import { useKeyboardShortcut } from '@/shared/hooks/use-keyboard-shortcut';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';

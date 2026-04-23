@@ -1,6 +1,5 @@
-import { Title } from '@radix-ui/react-dialog';
 import type { DetailsData } from '@seerial/domain';
-import { Subtitle } from '../text';
+import { Subtitle, Title } from '../text';
 import AlignedImage from './aligned-image';
 
 interface DetailsHeaderProps {

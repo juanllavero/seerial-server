@@ -1,7 +1,5 @@
 import { formatTimeForView } from '@seerial/domain';
-import Subtitle from '@/components/text/subtitle';
-import Tertiary from '@/components/text/tertiary';
-import Title from '@/components/text/title';
+import { Subtitle, Tertiary, Title } from '@/shared/components/text';
 import FlexBox from '@/shared/components/ui/flex-box';
 
 interface VideoInfoProps {

@@ -13,8 +13,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Captions, Music2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import NavigationButton from '@/components/navigation/navigation-button';
-import NavigationContainer from '@/components/navigation/navigation-container';
+import { NavigationButton, NavigationContainer } from '@/shared/components/navigation';
 import { useKeyboardShortcut } from '@/shared/hooks/use-keyboard-shortcut';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
 

@@ -3,9 +3,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { SettingsIcon } from 'lucide-react';
 import { memo, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import NavigationButton from '@/components/navigation/navigation-button';
-import NavigationContainer from '@/components/navigation/navigation-container';
-import Subtitle from '@/components/text/subtitle';
+import { NavigationButton, NavigationContainer } from '@/shared/components/navigation';
+import { Subtitle } from '@/shared/components/text';
 import { useKeyboardShortcut } from '@/shared/hooks/use-keyboard-shortcut';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
 import type {

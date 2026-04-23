@@ -3,8 +3,8 @@ import type { Chapter } from '@seerial/domain';
 import { invoke } from '@tauri-apps/api/core';
 import { useCallback, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import NavigationScrollView from '@/components/navigation/navigation-scroll-view';
-import ListTitle from '@/components/text/list-title';
+import { NavigationScrollView } from '@/shared/components/navigation';
+import { ListTitle } from '@/shared/components/text';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
 import ChapterCard from './chapter-card';
 

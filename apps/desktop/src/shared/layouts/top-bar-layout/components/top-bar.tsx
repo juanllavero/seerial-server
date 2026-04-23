@@ -88,7 +88,6 @@ function TopBar() {
 
   function scheduleLibraryAutoOpen(nextType: LibraryTypes) {
     clearAutoOpenTimeout();
-    clearAutoOpenTimeout();
     // Cancel any pending auto-open if focus leaves library type buttons
     preventNextAutoOpenFocusKeyRef.current = null;
     const nextLibraries = getLibrariesByType(nextType);
