@@ -8,9 +8,9 @@ import { useTranslation } from 'react-i18next';
 import { BrowserRouter } from 'react-router-dom';
 import { GlobalMusicPlayer } from '@/features/music-player';
 import { useFeedbackSounds } from '@/shared/hooks/use-feedback-sounds';
-import { updateAppLanguage } from './helpers/language_helpers';
 import { AppRoutes } from './routes';
-import './localization/i18n';
+import { updateAppLanguage } from './shared/localization/language.helpers';
+import './shared/localization/i18n';
 
 function App() {
   const { i18n } = useTranslation();

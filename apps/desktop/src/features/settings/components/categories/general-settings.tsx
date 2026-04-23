@@ -1,6 +1,6 @@
 import { memo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import langs from '@/localization/langs';
+import langs from '@/shared/localization/langs';
 import {
   type CardRoundness,
   type ScreensaverTimeout,

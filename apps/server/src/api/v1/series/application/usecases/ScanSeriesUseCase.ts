@@ -48,7 +48,7 @@ export class ScanSeriesUseCase {
     private readonly episodesRepo: EpisodeRepositoryPort,
     private readonly metadataProvider: MetadataProviderPort,
     private readonly notificationService: NotificationServicePort,
-  ) {}
+  ) { }
 
   async execute(library: Library, root: string): Promise<void> {
     logger.info(
@@ -113,7 +113,11 @@ export class ScanSeriesUseCase {
     }
 
     // Search and update metadata
-    await this.ensureSeriesMetadata(library, show, root);
+    const hasValidMetadata = await this.ensureSeriesMetadata(library, show, root);
+    if (!hasValidMetadata) {
+      await this.cleanupInvalidSeries(library, show, root);
+      return;
+    }
 
     // Download main theme in parallel
     downloaderService.autoDownloadFirstAudioResult(`${show.name} main theme`, show.id);
@@ -284,41 +288,37 @@ export class ScanSeriesUseCase {
   /**
    * Ensures series has TMDb ID and metadata
    */
-  private async ensureSeriesMetadata(library: Library, show: Series, root: string): Promise<void> {
+  private async ensureSeriesMetadata(
+    library: Library,
+    show: Series,
+    root: string,
+  ): Promise<boolean> {
+    const parsed = this.extractSeriesNameAndYear(root);
+
     // Search for themdbId if not set
     if (show.themdbId === -1) {
-      let finalName: string = root.split(/[/\\]/).pop() ?? '';
-      const pattern = /^(.*?)(?:\s(\d{4}))?$/;
-      let year: string | undefined = '1';
-      const matcher = finalName.replace(/[()]/g, '').match(pattern);
-
-      if (matcher) {
-        finalName = matcher[1];
-        year = matcher[2] ?? '1';
-      }
-
       logger.info(
         {
           seriesId: show.id,
-          extractedName: finalName,
-          extractedYear: year,
+          extractedName: parsed.name,
+          extractedYear: parsed.year,
         },
         'Extracted series name and year from folder path',
       );
 
       try {
-        const showsSearch = await this.metadataProvider.searchTVShows(finalName, year);
+        const showsSearch = await this.metadataProvider.searchTVShows(parsed.name, parsed.year);
 
         if (!showsSearch || showsSearch.length === 0) {
           logger.warn(
             {
               seriesId: show.id,
-              searchName: finalName,
-              searchYear: year,
+              searchName: parsed.name,
+              searchYear: parsed.year,
             },
             'No TV shows found in TMDb search, cannot proceed with metadata',
           );
-          return;
+          return false;
         }
 
         show.themdbId = showsSearch[0].id ?? -1;
@@ -326,14 +326,25 @@ export class ScanSeriesUseCase {
         logger.error(
           {
             seriesId: show.id,
-            searchName: finalName,
-            searchYear: year,
+            searchName: parsed.name,
+            searchYear: parsed.year,
             error: error instanceof Error ? error.message : String(error),
           },
           'Failed to search for series in TMDb',
         );
-        return;
+        return false;
       }
+    }
+
+    if (show.themdbId <= 0) {
+      logger.warn(
+        {
+          seriesId: show.id,
+          tmdbId: show.themdbId,
+        },
+        'Series has no valid TMDb id after search, skipping scan',
+      );
+      return false;
     }
 
     // Update series metadata
@@ -350,6 +361,50 @@ export class ScanSeriesUseCase {
         'Failed to update series metadata',
       );
     }
+
+    if (!show.name?.trim()) {
+      show.name = parsed.name;
+      await this.seriesRepo.update(show.id, show);
+    }
+
+    return true;
+  }
+
+  private extractSeriesNameAndYear(root: string): { name: string; year: string } {
+    let name: string = root.split(/[/\\]/).pop() ?? '';
+    const pattern = /^(.*?)(?:\s(\d{4}))?$/;
+    let year = '1';
+    const matcher = name.replace(/[()]/g, '').match(pattern);
+
+    if (matcher) {
+      name = matcher[1];
+      year = matcher[2] ?? '1';
+    }
+
+    return { name, year };
+  }
+
+  private async cleanupInvalidSeries(library: Library, show: Series, root: string): Promise<void> {
+    logger.warn(
+      {
+        libraryId: library.id,
+        seriesId: show.id,
+        root,
+        tmdbId: show.themdbId,
+      },
+      'Removing invalid series created during scan',
+    );
+
+    await this.writeQueue.enqueue(async () => {
+      await this.seriesRepo.delete(show.id);
+      await this.librariesRepo.removeAnalyzedFolder(library.id, root);
+    });
+
+    if (root in library.analyzedFolders) {
+      delete library.analyzedFolders[root];
+    }
+
+    this.notificationService.mutateLibrary(library.id);
   }
 
   /**

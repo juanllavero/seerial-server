@@ -1,6 +1,6 @@
+import { realpath } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { realpath } from 'node:fs/promises';
 import pLimit from 'p-limit';
 import type { FileSystemServicePort } from '@/api/v1/shared/application/ports/FileSystemServicePort';
 import {
@@ -116,6 +116,10 @@ export class ScanLibraryUseCase {
 
     // Wait for all tasks to complete
     await Promise.all(tasks);
+
+    if (library.type === 'Shows') {
+      await this.cleanupNamelessSeries(library.id);
+    }
 
     // Update Library
     await this.librariesRepo.update(library.id, library);
@@ -387,6 +391,61 @@ export class ScanLibraryUseCase {
       } catch (error) {
         logger.error({ collectionId: collection.id, error }, 'Failed to delete empty collection');
       }
+    }
+  }
+
+  private async cleanupNamelessSeries(libraryId: string): Promise<void> {
+    const latestLibrary = await this.librariesRepo.getById(libraryId);
+    if (!latestLibrary) return;
+
+    for (const [folderPath, seriesId] of Object.entries(latestLibrary.analyzedFolders)) {
+      const series = await useCases.getSeriesById().execute(seriesId);
+
+      if (!series) {
+        logger.warn(
+          { libraryId, folderPath, seriesId },
+          'Series referenced in analyzedFolders does not exist, cleaning stale entry',
+        );
+        await this.safeRemoveAnalyzedFolder(libraryId, folderPath);
+        continue;
+      }
+
+      if (series.name.trim().length > 0) continue;
+
+      logger.warn(
+        { libraryId, folderPath, seriesId },
+        'Series has empty name after scan, removing invalid series',
+      );
+
+      try {
+        await useCases.deleteSeries().execute(seriesId);
+      } catch (error) {
+        logger.error(
+          {
+            libraryId,
+            folderPath,
+            seriesId,
+            error: error instanceof Error ? error.message : String(error),
+          },
+          'Failed to delete nameless series, cleaning analyzed folder as fallback',
+        );
+        await this.safeRemoveAnalyzedFolder(libraryId, folderPath);
+      }
+    }
+  }
+
+  private async safeRemoveAnalyzedFolder(libraryId: string, folderPath: string): Promise<void> {
+    try {
+      await this.librariesRepo.removeAnalyzedFolder(libraryId, folderPath);
+    } catch (error) {
+      logger.error(
+        {
+          libraryId,
+          folderPath,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'Failed to remove analyzed folder entry during cleanup',
+      );
     }
   }
 }
