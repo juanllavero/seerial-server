@@ -1,13 +1,10 @@
 import * as fsPromises from 'node:fs/promises';
 import path from 'node:path';
 import { type LibraryType, LibraryTypes } from '@seerial/domain';
-import type { Collection } from '@/api/v1/collections/domain/Collection';
-import { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
+import type { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
 import {
   fileSystemService,
-  imageProcessingService,
   librariesRepo,
-  notificationService,
   useCases,
 } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { clearLibrary } from '@/api/v1/shared/infrastructure/services/FileSearchService';
@@ -58,7 +55,11 @@ export const getCollectionImages = async (
 
   const items = getCollectionItemsByType(collection, type);
   const { posterPath, backgroundPath } = await findCollectionImagesInCollectionRoot(items);
-  const resolvedPoster = posterPath ?? (coverSrc !== '' ? coverSrc : null);
+
+  const validatedCoverSrc =
+    coverSrc !== '' && (await localFileExists(coverSrc)) ? coverSrc : '';
+
+  const resolvedPoster = posterPath ?? (validatedCoverSrc !== '' ? validatedCoverSrc : null);
   const resolvedBackground = backgroundPath ?? (backgroundSrc !== '' ? backgroundSrc : null);
   const imagePaths = !resolvedPoster ? getFallbackImagePaths(items) : [];
 
@@ -67,6 +68,16 @@ export const getCollectionImages = async (
     background: resolvedBackground,
     images: imagePaths,
   };
+};
+
+const localFileExists = async (relativePath: string): Promise<boolean> => {
+  if (relativePath.startsWith('http')) return true;
+  try {
+    await fsPromises.access(fileSystemService.getExternalPath(relativePath));
+    return true;
+  } catch {
+    return false;
+  }
 };
 
 const resolveCoverSource = (collection: CollectionModel, type: LibraryType): string => {
@@ -137,91 +148,19 @@ const getFallbackImagePaths = (items: CollectionImageSourceItem[]): string[] => 
 };
 
 /**
- * Resolves collection posterSrc and backgroundSrc.
- * The poster could be a collage of the covers of the items in the collection.
- * If the collage has not been generated yet, it is created in the background
- * and clients are notified via WebSocket (MUTATE_COLLECTION) when it is ready.
+ * Resolves collection poster, background, and up to 4 item cover images.
+ * When no stored poster exists, `images` is populated so the client can
+ * render the collage itself.
  */
 export const resolveCollectionImages = async (
   collection: CollectionModel,
-  libraryId: string,
   libraryType: LibraryType,
 ): Promise<{
   poster: string | null;
   background: string | null;
+  images: string[];
 }> => {
-  const collectionImages = await getCollectionImages(collection, libraryType);
-
-  if (collectionImages.images.length === 0) {
-    return {
-      poster: collectionImages.poster,
-      background: collectionImages.background,
-    };
-  }
-
-  // Collage needed but not yet generated — return current state immediately
-  // and generate the collage in the background.
-  generateCollageInBackground(collection, libraryId, libraryType, collectionImages);
-
-  return {
-    poster: collectionImages.poster,
-    background: collectionImages.background,
-  };
-};
-
-const generateCollageInBackground = (
-  collection: CollectionModel,
-  libraryId: string,
-  libraryType: LibraryType,
-  collectionImages: {
-    poster: string | null;
-    background: string | null;
-    images: string[];
-  },
-): void => {
-  (async () => {
-    try {
-      const ratio = libraryType === LibraryTypes.MUSIC ? 'square' : 'poster';
-      const collageBuffer = await imageProcessingService.generateCollage(
-        collectionImages.images,
-        ratio,
-        libraryType,
-      );
-
-      const outputDir = fileSystemService.getExternalPath(
-        fileSystemService.join('resources', 'img', 'collages', collection.id),
-      );
-      fileSystemService.createFolder(outputDir);
-      const fileName = `collage-${collection.id}-${libraryId}.jpg`;
-      const filePath = fileSystemService.join(outputDir, fileName);
-      await fileSystemService.writeImage(filePath, collageBuffer);
-
-      const collectionPoster = fileSystemService.join('img', 'collages', collection.id, fileName);
-
-      const updatePayload: Partial<CollectionModel> = {};
-      if (libraryType === LibraryTypes.MUSIC) {
-        updatePayload.musicPosterSrc = collectionPoster;
-        collection.musicPosterSrc = collectionPoster;
-      } else {
-        updatePayload.posterSrc = collectionPoster;
-        collection.posterSrc = collectionPoster;
-      }
-
-      if (collectionImages.background) {
-        updatePayload.backgroundSrc = collectionImages.background;
-        collection.backgroundSrc = collectionImages.background;
-      }
-
-      await CollectionModel.update({ id: collection.id }, updatePayload);
-
-      notificationService.mutateCollection(collection as unknown as Collection);
-    } catch (error) {
-      libraryManagerLogger.error(
-        error,
-        `Failed to generate collage in background for collection ${collection.id} (library ${libraryId})`,
-      );
-    }
-  })();
+  return getCollectionImages(collection, libraryType);
 };
 
 /**

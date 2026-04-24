@@ -481,7 +481,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
         const collectionImages = await this.measureAsync(
           'buildCollectionItems.resolveCollectionImages',
           collectionContext,
-          () => resolveCollectionImages(collection, libraryId, type),
+          () => resolveCollectionImages(collection, type),
         );
         const collectionWatched = this.measureSync(
           'buildCollectionItems.calculateCollectionWatched',
@@ -502,6 +502,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
             years,
             coverSrc: collectionImages.poster ?? '',
             backgroundSrc: collectionImages.background ?? '',
+            images: collectionImages.images.length > 0 ? collectionImages.images : undefined,
             numberOfItems,
             order: customOrderByCollectionId.get(collection.id) ?? 0,
             watched: collectionWatched,

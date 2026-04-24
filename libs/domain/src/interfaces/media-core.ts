@@ -22,6 +22,8 @@ export interface LibraryItem {
     years?: string;
     coverSrc?: string;
     backgroundSrc?: string;
+    /** Up to 4 item cover paths for client-side collage rendering (collections only). */
+    images?: string[];
     numberOfItems: number;
     order: number;
     watched: boolean;
