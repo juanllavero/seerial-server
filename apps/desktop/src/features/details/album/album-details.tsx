@@ -4,9 +4,7 @@ import { Ellipsis, PlayIcon, Shuffle } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { shallow } from 'zustand/shallow';
-import { useRelatedContent } from '@/features/details';
-import DetailsWithRelatedContent from '@/features/details/shared/details-with-related-content';
-import { useSettingsStore } from '@/features/settings/stores/settings.store';
+import { DetailsWithRelatedContent, useRelatedContent } from '@/features/details';
 import AppAlertDialog from '@/shared/components/app-alert-dialog';
 import BackgroundImage from '@/shared/components/backgrounds/background-image';
 import DetailsInfo from '@/shared/components/details/details-info';
@@ -15,6 +13,7 @@ import Page from '@/shared/components/page';
 import FlexBox from '@/shared/components/ui/flex-box';
 import Image from '@/shared/components/ui/image';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
+import { useSettingsStore } from '@/shared/stores';
 import SongsList from './components/songs-list';
 
 interface AlbumDetailsProps {
@@ -91,7 +90,7 @@ function AlbumDetailsContent({
   const { navigateToRelated, hasRelatedContent } = useRelatedContent();
 
   return (
-    <Page padding="0" justify="end">
+    <Page padding="0" justify="end" fullScreen>
       <BackgroundImage imageSrc={details?.backgroundSrc ?? ''} index={0} />
 
       <FlexBox padding="4rem 0 0 0" height={'100%'} width={'100%'} className="z-10">

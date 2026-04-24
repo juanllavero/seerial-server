@@ -17,6 +17,7 @@ interface PageProps {
   padding?: string;
   margin?: string;
   gap?: number;
+  fullScreen?: boolean;
 }
 
 function Page({
@@ -28,6 +29,7 @@ function Page({
   margin,
   gap = 1,
   className,
+  fullScreen = false,
 }: PageProps) {
   return (
     <FlexBox
@@ -37,7 +39,7 @@ function Page({
       justify={justify}
       align={align}
       gap={gap}
-      height={'92dvh'}
+      height={fullScreen ? '100dvh' : '92dvh'}
       width={'100dvw'}
       hideScrollbar
       className={className}

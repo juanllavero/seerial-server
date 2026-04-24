@@ -12,7 +12,6 @@ import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { shallow } from 'zustand/shallow';
-import { useSettingsStore } from '@/features/settings/stores/settings.store';
 import BackgroundImage from '@/shared/components/backgrounds/background-image';
 import { NavigationScrollView } from '@/shared/components/navigation';
 import Page from '@/shared/components/page';
@@ -22,6 +21,7 @@ import FlexBox from '@/shared/components/ui/flex-box';
 import Image from '@/shared/components/ui/image';
 import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
+import { useSettingsStore } from '@/shared/stores';
 import MusicExtraCard from './music-extra-card';
 
 interface MusicExtra {
@@ -259,7 +259,7 @@ function CollectionDetails({
   if (!isLoading && !collection) return <span>Collection not found</span>;
 
   return (
-    <Page direction="row" align="end" justify="end" padding="0" gap={0}>
+    <Page direction="row" align="end" justify="end" padding="0" gap={0} fullScreen>
       <BackgroundImage
         imageSrc={details?.backgroundSrc ?? collection?.backgroundSrc ?? collection?.coverSrc}
         index={0}

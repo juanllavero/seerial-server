@@ -1,6 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { useEffect } from 'react';
-import { useSettingsStore } from '@/features/settings/stores/settings.store';
+import { useSettingsStore } from '@/shared/stores';
 
 /**
  * Synchronises app-level settings (from localStorage via useSettingsStore) to

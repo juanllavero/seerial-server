@@ -32,7 +32,7 @@ function DetailsInfo({
   }, []);
 
   return (
-    <FlexBox direction="column" justify="end" width={'100%'} className="z-10" padding="0 4rem">
+    <FlexBox direction="column" justify="end" width={'100%'} className="z-50" padding="0 4rem">
       <DetailsHeader details={details} subtitle={subtitle} />
       <DetailsSummary
         details={details}

@@ -101,12 +101,12 @@ function getTransitionDirection(
 
 const pageVariants = {
   initial: (direction: TransitionDirection) => ({
-    x: direction === 1 ? '4%' : '-4%',
+    //x: direction === 1 ? '4%' : '-4%',
     opacity: 0,
   }),
   animate: { x: 0, opacity: 1 },
   exit: (direction: TransitionDirection) => ({
-    x: direction === 1 ? '-4%' : '4%',
+    //x: direction === 1 ? '-4%' : '4%',
     opacity: 0,
   }),
 };

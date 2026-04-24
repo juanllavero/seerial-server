@@ -1,8 +1,8 @@
 import { useFocusable } from '@noriginmedia/norigin-spatial-navigation';
 import type { Episode } from '@seerial/domain';
 import { useNavigate } from 'react-router';
-import { useSettingsStore } from '@/features/settings/stores/settings.store';
 import Image from '@/shared/components/ui/image';
+import { useSettingsStore } from '@/shared/stores';
 
 interface EpisodeCardProps {
   episode: Episode;

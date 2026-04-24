@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSettingsStore, type VideoQuality } from '../../stores/settings.store';
+import { useSettingsStore, type VideoQuality } from '@/shared/stores';
 import SettingCheckbox from '../controls/setting-checkbox';
 import SettingSelect from '../controls/setting-select';
 

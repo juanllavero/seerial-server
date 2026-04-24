@@ -8,7 +8,6 @@ import type {
 } from '@seerial/domain';
 import { getAudioTrack, getSubtitleTrack } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
-import { invoke } from '@tauri-apps/api/core';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Captions, Music2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
@@ -16,6 +15,7 @@ import { useTranslation } from 'react-i18next';
 import { NavigationButton, NavigationContainer } from '@/shared/components/navigation';
 import { useKeyboardShortcut } from '@/shared/hooks/use-keyboard-shortcut';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
+import { useMpvPlayer } from '../../hooks/use-mpv-player';
 
 type SelectorPanel = 'audio' | 'subtitle';
 
@@ -113,6 +113,7 @@ function TracksSelectors({
 }: TracksSelectorsProps) {
   const { t } = useTranslation();
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
+  const mpv = useMpvPlayer();
   const [openPanel, setOpenPanel] = useState<SelectorPanel | null>(null);
   const [selectedAudioTrack, setSelectedAudioTrack] = useState<AudioTrack | null>(
     video.audioTracks?.find((track) => track.selected) || null,
@@ -169,7 +170,7 @@ function TracksSelectors({
       audioTracks: updateSelectedTrack(currentTracks.audioTracks, track.id),
     }));
     closePanel();
-    await invoke('set_audio_track', { trackId: track.id }).catch(console.error);
+    await mpv.setAudioTrack(track.id);
   };
 
   const handleDisableSubtitles = useCallback(async () => {
@@ -179,8 +180,8 @@ function TracksSelectors({
       subtitleTracks: updateSelectedTrack(currentTracks.subtitleTracks, null),
     }));
     closePanel();
-    await invoke('set_subtitle_track', { trackId: 0 }).catch(console.error);
-  }, [closePanel]);
+    await mpv.setSubtitleTrack(0);
+  }, [closePanel, mpv.setSubtitleTrack]);
 
   const handleSubtitleTrackChange = async (track: SubtitleTrack) => {
     setSelectedSubtitleTrack(track);
@@ -189,7 +190,7 @@ function TracksSelectors({
       subtitleTracks: updateSelectedTrack(currentTracks.subtitleTracks, track.id),
     }));
     closePanel();
-    await invoke('set_subtitle_track', { trackId: track.id }).catch(console.error);
+    await mpv.setSubtitleTrack(track.id);
   };
 
   useEffect(() => {

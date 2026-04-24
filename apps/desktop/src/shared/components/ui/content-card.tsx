@@ -5,7 +5,7 @@ import {
 } from '@noriginmedia/norigin-spatial-navigation';
 import { useEffect } from 'react';
 import { shallow } from 'zustand/shallow';
-import { useSettingsStore } from '@/features/settings/stores/settings.store';
+import { useSettingsStore } from '@/shared/stores';
 import FlexBox from './flex-box';
 import Image from './image';
 import WatchProgressBar from './watch-progress-bar';

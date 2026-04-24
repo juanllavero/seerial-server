@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import type { ThemeMusicVolume } from '@/features/settings/stores/settings.store';
+import type { ThemeMusicVolume } from '@/shared/stores';
 
 const READY_POLL_INTERVAL_MS = 250;
 const FADE_OUT_DURATION_MS = 350;

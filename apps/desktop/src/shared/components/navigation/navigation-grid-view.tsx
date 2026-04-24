@@ -1,6 +1,6 @@
 import { FocusContext, useFocusable } from '@noriginmedia/norigin-spatial-navigation';
 import { type ScrollMode, useAutoScroll } from '@/shared/hooks/use-auto-scroll';
-import '@/styles/utils.css';
+import '@/shared/styles/utils.css';
 import { memo, useRef } from 'react';
 
 interface NavigationScrollViewProps {

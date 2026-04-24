@@ -6,7 +6,7 @@ import {
   type ScreensaverTimeout,
   type ThemeMusicVolume,
   useSettingsStore,
-} from '../../stores/settings.store';
+} from '@/shared/stores';
 import SettingCheckbox from '../controls/setting-checkbox';
 import SettingSelect from '../controls/setting-select';
 import SettingSlider from '../controls/setting-slider';

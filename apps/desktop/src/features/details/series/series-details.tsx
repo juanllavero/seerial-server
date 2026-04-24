@@ -12,11 +12,11 @@ import EpisodesList, {
 } from '@/features/details/series/components/episodes-list';
 import SeasonSelector from '@/features/details/series/components/season-selector';
 import { useSeriesDetailsFocusStore } from '@/features/details/series/stores/series-details-focus.store';
-import DetailsWithRelatedContent from '@/features/details/shared/details-with-related-content';
 import DetailsBackgroundLayers from '@/shared/components/details/details-background-layers';
 import DetailsBackgroundPlayback from '@/shared/components/details/details-background-playback';
 import DetailsInfo from '@/shared/components/details/details-info';
 import Page from '@/shared/components/page';
+import { DetailsWithRelatedContent } from '../shared';
 
 interface SeriesDetailsProps {
   series: Series | undefined;
@@ -209,7 +209,7 @@ function SeriesDetails({
       currentItemType="series"
       libraryType={libraryType}
     >
-      <Page justify="end" padding={pagePadding}>
+      <Page justify="end" padding={pagePadding} fullScreen>
         {!!series?.id && (
           <DetailsBackgroundPlayback
             audioLocalIds={[selectedSeason?.id, series.id]}

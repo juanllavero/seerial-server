@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSettingsStore } from '../../stores/settings.store';
+import { useSettingsStore } from '@/shared/stores';
 import SettingCheckbox from '../controls/setting-checkbox';
 
 function AudioSettings() {

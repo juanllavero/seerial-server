@@ -12,11 +12,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { shallow } from 'zustand/shallow';
-import DetailsWithRelatedContent from '@/features/details/shared/details-with-related-content';
 import DetailsBackgroundLayers from '@/shared/components/details/details-background-layers';
 import DetailsBackgroundPlayback from '@/shared/components/details/details-background-playback';
 import DetailsInfo from '@/shared/components/details/details-info';
 import Page from '@/shared/components/page';
+import { DetailsWithRelatedContent } from '../shared';
 
 interface MovieDetailsProps {
   movie: Movie | undefined;
@@ -81,7 +81,7 @@ function MovieDetails({ movie, isLoading, details, collectionId, libraryType }: 
       currentItemType="movie"
       libraryType={libraryType}
     >
-      <Page justify="end" padding="4dvh 0">
+      <Page justify="end" padding="4dvh 0" fullScreen>
         {!!movie?.id && (
           <DetailsBackgroundPlayback
             audioLocalIds={[movie.id]}

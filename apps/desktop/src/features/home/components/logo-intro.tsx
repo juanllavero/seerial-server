@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import '@/styles/animations.css';
+import '@/shared/styles/animations.css';
 
 const LogoIntro = () => {
   const [animationStage, setAnimationStage] = useState('initial');

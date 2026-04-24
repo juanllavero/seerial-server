@@ -1,12 +1,12 @@
 import { useGetVideoPlaybackInfo } from '@seerial/api';
 import type { PlayBackInfo, Video } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
-import { invoke } from '@tauri-apps/api/core';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { shallow } from 'zustand/shallow';
 import { Tertiary } from '@/shared/components/text';
 import FlexBox from '@/shared/components/ui/flex-box';
+import { useMpvPlayer } from '../../hooks/use-mpv-player';
 import type { PlayerSettings } from '../../hooks/use-player-settings';
 import Settings from '../settings';
 import VideoInfoComponent from '../video-info';
@@ -42,6 +42,7 @@ function Controls({
     shallow,
   );
   const { t } = useTranslation();
+  const mpv = useMpvPlayer();
   const [duration, setDuration] = useState(runtime ? runtime * 60 : 0);
   const [position, setPosition] = useState(0);
   const [isTimelineFocused, setIsTimelineFocused] = useState(false);
@@ -85,7 +86,7 @@ function Controls({
     const tryGetDuration = async (): Promise<number> => {
       while (attempts < maxAttempts) {
         try {
-          const dur = await invoke<number>('get_duration');
+          const dur = await mpv.getDuration();
           if (typeof dur === 'number') {
             return dur;
           }
@@ -101,11 +102,11 @@ function Controls({
     const dur = await tryGetDuration();
     setDuration(dur > 0 ? dur : video?.runtime ? video.runtime * 60 || 0 : 0);
     setPosition(streamStartTime ?? 0);
-  }, [video, streamStartTime]);
+  }, [video, streamStartTime, mpv.getDuration]);
 
   const handlePlayPause = useCallback(() => {
-    invoke('toggle_play_pause').catch(console.error);
-  }, []);
+    void mpv.togglePlayPause();
+  }, [mpv.togglePlayPause]);
 
   useEffect(() => {
     if (!video) return;
@@ -166,6 +167,11 @@ function Controls({
           keyboardShortcutEnabled={controlsMode === 'compact' || isTimelineFocused}
           onFocusChange={handleTimelineFocusChange}
           togglePlayPause={handlePlayPause}
+          playbackControls={{
+            getPosition: mpv.getPosition,
+            getDuration: mpv.getDuration,
+            setPosition: mpv.setPosition,
+          }}
         />
       </FlexBox>
 

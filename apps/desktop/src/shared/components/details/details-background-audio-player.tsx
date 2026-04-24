@@ -2,8 +2,8 @@ import { getSignedSongStreamUrl } from '@seerial/api';
 import { useServerStore } from '@seerial/stores';
 import { invoke } from '@tauri-apps/api/core';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { useSettingsStore } from '@/features/settings/stores/settings.store';
-import { useAppSettingsMpv } from '@/pages/video-player/hooks/use-app-settings-mpv';
+import { useAppSettingsMpv } from '@/features/video-player/hooks/use-app-settings-mpv';
+import { useSettingsStore } from '@/shared/stores';
 import {
   enqueueMpvCommand,
   fadeOutAndStopMpv,

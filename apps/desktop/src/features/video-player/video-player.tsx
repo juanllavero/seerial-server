@@ -1,16 +1,16 @@
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import type { Video } from '@seerial/domain';
-import { invoke } from '@tauri-apps/api/core';
 import { useCallback, useEffect, useState } from 'react';
-import ChapterList from '@/pages/video-player/components/chapter-list';
-import Controls from '@/pages/video-player/components/controls/controls';
-import VolumeIndicator from '@/pages/video-player/components/controls/volume-slider';
+import ChapterList from '@/features/video-player/components/chapter-list';
+import Controls from '@/features/video-player/components/controls/controls';
+import VolumeIndicator from '@/features/video-player/components/controls/volume-slider';
 import {
   useChapterThumbnails,
   usePlaybackPosition,
-} from '@/pages/video-player/hooks/use-chapter-thumbnails';
-import { usePlayerSettings } from '@/pages/video-player/hooks/use-player-settings';
-import { useVolumeIndicator } from '@/pages/video-player/hooks/use-volume-indicator';
+} from '@/features/video-player/hooks/use-chapter-thumbnails';
+import { useMpvPlayer } from '@/features/video-player/hooks/use-mpv-player';
+import { usePlayerSettings } from '@/features/video-player/hooks/use-player-settings';
+import { useVolumeIndicator } from '@/features/video-player/hooks/use-volume-indicator';
 import { NavigationContainer } from '@/shared/components/navigation';
 import FlexBox from '@/shared/components/ui/flex-box';
 import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
@@ -26,6 +26,7 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
   const [tracksPanelOpen, setTracksPanelOpen] = useState(false);
   const [chaptersExpanded, setChaptersExpanded] = useState(false);
 
+  const mpv = useMpvPlayer();
   const playerInputEnabled = !tracksPanelOpen;
 
   const { settings, updateSetting } = usePlayerSettings();
@@ -41,19 +42,19 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
   // Handle back navigation with a pre-action to stop the video before navigating back
   useKeyboardBack({
     preAction: () => {
-      invoke('stop');
-      invoke('embed_mpv').catch(console.error);
+      void mpv.stop();
+      void mpv.embedMpv();
     },
     enabled: playerInputEnabled,
   });
 
   const handleTogglePlayPause = useCallback(() => {
-    invoke('toggle_play_pause').catch(console.error);
-  }, []);
+    void mpv.togglePlayPause();
+  }, [mpv.togglePlayPause]);
 
   const handleResumeIfPaused = useCallback(() => {
-    invoke('play').catch(console.error);
-  }, []);
+    void mpv.play();
+  }, [mpv.play]);
 
   const { mode, isVisible } = usePlayerControlsVisibility({
     isTimelineFocused,

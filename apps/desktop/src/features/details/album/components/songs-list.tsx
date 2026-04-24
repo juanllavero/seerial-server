@@ -4,7 +4,7 @@ import { useMusicStore } from '@seerial/stores';
 import { memo, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { shallow } from 'zustand/shallow';
-import AnimatedSoundBars from '@/features/music-player/animated-sound-bars';
+import { AnimatedSoundBars } from '@/features/music-player';
 import { NavigationButton } from '@/shared/components/navigation';
 import { Tertiary } from '@/shared/components/text';
 import FlexBox from '@/shared/components/ui/flex-box';

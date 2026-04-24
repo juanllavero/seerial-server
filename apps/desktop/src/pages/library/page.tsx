@@ -1,21 +1,28 @@
 import { useGetLibraryContent } from '@seerial/api';
 import type { LibraryItem } from '@seerial/domain';
-import { useDataStore, useServerStore } from '@seerial/stores';
+import { useDataStore, useServerStore, useWebSocketStore } from '@seerial/stores';
 import { useEffect, useRef, useState } from 'react';
 import { useLocation, useParams } from 'react-router';
+import { shallow } from 'zustand/shallow';
 import { LibraryContent } from '@/features/library-content';
 import Loading from '@/shared/components/loading';
 
 function LibraryPage() {
   const { libraryId, type } = useParams();
   const location = useLocation();
-
+  const { connectWS } = useWebSocketStore((state) => ({ connectWS: state.connectWS }), shallow);
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
   const lastFocusedElementId = useDataStore((state) => state.lastFocusedElementId);
   const [selectedElement, setSelectedElement] = useState<LibraryItem | null>(null);
   const prevLocationRef = useRef<string>('');
   const lastFocusIdRef = useRef<string | undefined>(undefined);
   const isFirstLoadRef = useRef(true);
+
+  useEffect(() => {
+    if (serverUrl) {
+      connectWS();
+    }
+  }, [serverUrl, connectWS]);
 
   // Monitor user navigation: when lastFocusedElementId changes, it's user navigation
   useEffect(() => {

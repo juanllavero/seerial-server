@@ -17,7 +17,7 @@ function DetailsHeader({ details, subtitle }: DetailsHeaderProps) {
       {details?.logoSrc && details.logoSrc !== '' ? (
         <AlignedImage
           className="mt-5 pb-5"
-          //height={bigLogo ? 300 : 120}
+          height={200}
           maxWidth={1100}
           imageUrl={details.logoSrc}
         />

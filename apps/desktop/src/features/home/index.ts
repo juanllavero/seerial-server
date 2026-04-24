@@ -1,1 +1,1 @@
-export { default as LogoIntro } from './logo-intro';
+export { default as HomePageContent } from './home-content';

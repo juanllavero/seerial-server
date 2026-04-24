@@ -21,7 +21,7 @@ import {
   useState,
 } from 'react';
 import LyricsOptionsMenu from '@/features/music-player/lyrics-options-menu';
-import TimelineSlider from '@/pages/video-player/components/controls/timeline-slider';
+import TimelineSlider from '@/features/video-player/components/controls/timeline-slider';
 import Loading from '@/shared/components/loading';
 import { NavigationButton } from '@/shared/components/navigation';
 import FlexBox from '@/shared/components/ui/flex-box';

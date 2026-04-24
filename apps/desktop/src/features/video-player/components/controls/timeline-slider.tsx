@@ -1,11 +1,11 @@
 import { useFocusable } from '@noriginmedia/norigin-spatial-navigation';
 import { formatTime } from '@seerial/domain';
-import { invoke } from '@tauri-apps/api/core';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Tertiary } from '@/shared/components/text';
 import FlexBox from '@/shared/components/ui/flex-box';
 import { useKeyboardShortcut } from '@/shared/hooks/use-keyboard-shortcut';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
+import { useMpvPlayer } from '../../hooks/use-mpv-player';
 import SeekIndicator from './seek-indicator';
 
 interface TimelineSliderProps {
@@ -36,6 +36,7 @@ function TimelineSlider({
   const seeking = useRef<boolean>(false);
   const sliderRef = useRef<HTMLInputElement>(null);
   const [seekDirection, setSeekDirection] = useState<'left' | 'right' | null>(null);
+  const mpv = useMpvPlayer();
 
   const { ref: focusableRef, focused } = useFocusable({
     focusKey: NavigationFocusKeys.player.timeline,
@@ -61,16 +62,16 @@ function TimelineSlider({
       return playbackControls.getPosition();
     }
 
-    return invoke<number>('get_position');
-  }, [playbackControls]);
+    return mpv.getPosition();
+  }, [playbackControls, mpv.getPosition]);
 
   const getPlaybackDuration = useCallback(() => {
     if (playbackControls?.getDuration) {
       return playbackControls.getDuration();
     }
 
-    return invoke<number>('get_duration');
-  }, [playbackControls]);
+    return mpv.getDuration();
+  }, [playbackControls, mpv.getDuration]);
 
   const setPlaybackPosition = useCallback(
     (nextPosition: number) => {
@@ -78,9 +79,9 @@ function TimelineSlider({
         return playbackControls.setPosition(nextPosition);
       }
 
-      return invoke('set_position', { position: nextPosition });
+      return mpv.setPosition(nextPosition);
     },
-    [playbackControls],
+    [playbackControls, mpv.setPosition],
   );
 
   const handleSeekStart = () => {

@@ -4,11 +4,11 @@ import { useDataStore, useGradientStore } from '@seerial/stores';
 import { memo, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { shallow } from 'zustand/shallow';
-import { useSettingsStore } from '@/features/settings/stores/settings.store';
 import { NavigationGridView } from '@/shared/components/navigation';
 import Page from '@/shared/components/page';
 import ContentCard from '@/shared/components/ui/content-card';
 import type { ScrollMode } from '@/shared/hooks/use-auto-scroll';
+import { useSettingsStore } from '@/shared/stores';
 
 const GRID_GAP_REM = 1.25;
 

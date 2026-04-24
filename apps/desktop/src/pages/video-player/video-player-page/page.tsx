@@ -5,28 +5,18 @@ import {
 } from '@seerial/api';
 import type { Video } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
-import { invoke } from '@tauri-apps/api/core';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { VideoPlayer } from '@/features/video-player';
+import { useMpvPlayer } from '@/features/video-player/hooks/use-mpv-player';
 import AppAlertDialog from '@/shared/components/app-alert-dialog';
 import Loading from '@/shared/components/loading';
-import { useAppSettingsMpv } from '../hooks/use-app-settings-mpv';
+import { useAppSettingsMpv } from '../../../features/video-player/hooks/use-app-settings-mpv';
 
-const READY_POLL_INTERVAL_MS = 250;
 const LOAD_TIMEOUT_MS = 5000;
 const PLAYER_HEALTH_POLL_INTERVAL_MS = 1000;
 
 type PlayerErrorMode = 'load' | 'playback';
-
-interface PlaybackStatus {
-  position?: number;
-  duration?: number;
-  pausedForCache: boolean;
-  seeking: boolean;
-  idleActive: boolean;
-  eofReached: boolean;
-}
 
 function VideoPlayerPage() {
   const { videoId } = useParams();
@@ -37,6 +27,8 @@ function VideoPlayerPage() {
   }));
 
   useAppSettingsMpv();
+
+  const mpv = useMpvPlayer();
 
   const { data: video, isLoading: loadingVideo } = useGetVideo<Video>(videoId ?? '', {
     enabled: !!videoId && serverUrl !== '',
@@ -70,25 +62,6 @@ function VideoPlayerPage() {
     [currentUserId],
   );
 
-  const waitForVideoReady = useCallback(async (timeoutMs: number): Promise<boolean> => {
-    const startedAt = Date.now();
-
-    while (Date.now() - startedAt < timeoutMs) {
-      try {
-        const duration = await invoke<number>('get_duration');
-        if (Number.isFinite(duration) && duration > 0) {
-          return true;
-        }
-      } catch {
-        // Keep polling until timeout to allow MPV buffering and metadata parsing.
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, READY_POLL_INTERVAL_MS));
-    }
-
-    return false;
-  }, []);
-
   const getSignedStreamUrl = useCallback(
     async (video: Video) => {
       const url = await getSignedVideoStreamUrlPassthrough({
@@ -107,15 +80,15 @@ function VideoPlayerPage() {
 
       try {
         const url = await getSignedStreamUrl(videoToPlay);
-        await invoke('load_url', { url });
+        await mpv.loadUrl(url);
 
-        const ready = await waitForVideoReady(LOAD_TIMEOUT_MS);
+        const ready = await mpv.waitForReady(LOAD_TIMEOUT_MS);
         if (!ready) {
           throw new Error('Timed out waiting for video to become ready');
         }
 
         if (resumeAt > 0) {
-          await invoke('set_position', { position: resumeAt });
+          await mpv.setPosition(resumeAt);
         }
 
         lastKnownPositionRef.current = resumeAt;
@@ -136,12 +109,12 @@ function VideoPlayerPage() {
         }
       }
     },
-    [getSignedStreamUrl, waitForVideoReady],
+    [getSignedStreamUrl, mpv.loadUrl, mpv.waitForReady, mpv.setPosition],
   );
 
   useEffect(() => {
-    invoke('embed_mpv').catch(console.error);
-  }, []);
+    void mpv.embedMpv();
+  }, [mpv.embedMpv]);
 
   useEffect(() => {
     currentVideoRef.current = video ?? null;
@@ -225,7 +198,7 @@ function VideoPlayerPage() {
     healthCheckInFlightRef.current = true;
 
     try {
-      const playbackStatus = await invoke<PlaybackStatus>('get_playback_status');
+      const playbackStatus = await mpv.getPlaybackStatus();
       const currentPosition = playbackStatus.position;
 
       if (
@@ -245,7 +218,7 @@ function VideoPlayerPage() {
     } finally {
       healthCheckInFlightRef.current = false;
     }
-  }, [attemptPlaybackRecovery]);
+  }, [attemptPlaybackRecovery, mpv.getPlaybackStatus]);
 
   useEffect(() => {
     if (!videoLoaded || isErrorDialogOpen) {
@@ -269,7 +242,7 @@ function VideoPlayerPage() {
 
     const checkIfEnded = async () => {
       try {
-        const playbackStatus = await invoke<PlaybackStatus>('get_playback_status');
+        const playbackStatus = await mpv.getPlaybackStatus();
 
         if (playbackStatus.eofReached && !videoEndedTrackedRef.current) {
           videoEndedTrackedRef.current = true;
@@ -293,7 +266,7 @@ function VideoPlayerPage() {
     return () => {
       window.clearInterval(interval);
     };
-  }, [videoLoaded, video, currentUserId, updateWatchState]);
+  }, [videoLoaded, video, currentUserId, updateWatchState, mpv.getPlaybackStatus]);
 
   useEffect(() => {
     return () => {
@@ -315,15 +288,15 @@ function VideoPlayerPage() {
         });
       }
 
-      invoke('stop').catch(console.error);
+      void mpv.stop();
     };
-  }, [updateWatchState]);
+  }, [updateWatchState, mpv.stop]);
 
   const handleGoBack = useCallback(async () => {
-    await invoke('stop').catch(console.error);
-    await invoke('embed_mpv').catch(console.error);
+    await mpv.stop();
+    await mpv.embedMpv();
     navigate(-1);
-  }, [navigate]);
+  }, [navigate, mpv.stop, mpv.embedMpv]);
 
   const handleRetry = useCallback(async () => {
     if (!video) {
