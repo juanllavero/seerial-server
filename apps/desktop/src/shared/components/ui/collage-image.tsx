@@ -10,7 +10,7 @@ interface CollageImageProps {
 
 // ─── Shared IntersectionObserver ────────────────────────────────────────────
 // One observer for the entire app instead of one per card.
-const ioCallbacks = new Map<Element, () => void>();
+const ioCallbacks = new Map<Element, (inView: boolean) => void>();
 let sharedIO: IntersectionObserver | null = null;
 
 function getSharedIO(): IntersectionObserver {
@@ -18,14 +18,13 @@ function getSharedIO(): IntersectionObserver {
     sharedIO = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (entry.isIntersecting) {
-            ioCallbacks.get(entry.target)?.();
-            ioCallbacks.delete(entry.target);
-            sharedIO!.unobserve(entry.target);
+          const callback = ioCallbacks.get(entry.target);
+          if (callback) {
+            callback(entry.isIntersecting);
           }
         }
       },
-      { threshold: 0.1 }, // preload before visible
+      { rootMargin: '300px', threshold: 0 }, // preload before visible
     );
   }
   return sharedIO;
@@ -38,7 +37,7 @@ function useInView(ref: React.RefObject<HTMLDivElement | null>): boolean {
     const el = ref.current;
     if (!el) return;
     const io = getSharedIO();
-    ioCallbacks.set(el, () => setInView(true));
+    ioCallbacks.set(el, setInView);
     io.observe(el);
     return () => {
       ioCallbacks.delete(el);
@@ -51,6 +50,46 @@ function useInView(ref: React.RefObject<HTMLDivElement | null>): boolean {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 function toLocalPath(url: string | undefined): string | undefined {
   return url && !url.startsWith('http') ? url : undefined;
+}
+
+type UrlsRef = React.RefObject<(string | undefined)[]>;
+type BlobsRef = React.RefObject<(Blob | undefined)[]>;
+type SetUrls = React.Dispatch<React.SetStateAction<(string | undefined)[]>>;
+
+const EMPTY_URLS: (string | undefined)[] = [undefined, undefined, undefined, undefined];
+
+function freeAllSlots(urlsRef: UrlsRef, prevBlobsRef: BlobsRef, setObjectUrls: SetUrls): void {
+  let freed = false;
+  for (let i = 0; i < 4; i++) {
+    const url = urlsRef.current[i];
+    if (url) {
+      URL.revokeObjectURL(url);
+      urlsRef.current[i] = undefined;
+      prevBlobsRef.current[i] = undefined;
+      freed = true;
+    }
+  }
+  if (freed) setObjectUrls(EMPTY_URLS);
+}
+
+function syncBlobUrls(
+  incoming: (Blob | undefined)[],
+  urlsRef: UrlsRef,
+  prevBlobsRef: BlobsRef,
+  setObjectUrls: SetUrls,
+): void {
+  let changed = false;
+  for (let i = 0; i < 4; i++) {
+    const blob = incoming[i];
+    if (blob !== prevBlobsRef.current[i]) {
+      const prev = urlsRef.current[i];
+      if (prev) URL.revokeObjectURL(prev);
+      urlsRef.current[i] = blob ? URL.createObjectURL(blob) : undefined;
+      prevBlobsRef.current[i] = blob;
+      changed = true;
+    }
+  }
+  if (changed) startTransition(() => setObjectUrls([...urlsRef.current]));
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -97,20 +136,12 @@ function CollageImage({ images, defaultSrc, className = '' }: CollageImageProps)
   ]);
 
   useEffect(() => {
-    const incoming = [blob0, blob1, blob2, blob3];
-    let changed = false;
-
-    for (let i = 0; i < 4; i++) {
-      if (incoming[i] !== prevBlobsRef.current[i]) {
-        if (urlsRef.current[i]) URL.revokeObjectURL(urlsRef.current[i]!);
-        urlsRef.current[i] = incoming[i] ? URL.createObjectURL(incoming[i]!) : undefined;
-        prevBlobsRef.current[i] = incoming[i];
-        changed = true;
-      }
+    if (!isInView) {
+      freeAllSlots(urlsRef, prevBlobsRef, setObjectUrls);
+      return;
     }
-
-    if (changed) startTransition(() => setObjectUrls([...urlsRef.current]));
-  }, [blob0, blob1, blob2, blob3]);
+    syncBlobUrls([blob0, blob1, blob2, blob3], urlsRef, prevBlobsRef, setObjectUrls);
+  }, [blob0, blob1, blob2, blob3, isInView]);
 
   // Revoke all on unmount.
   useEffect(
@@ -136,7 +167,6 @@ function CollageImage({ images, defaultSrc, className = '' }: CollageImageProps)
             src={isInView ? src : undefined}
             alt=""
             className="h-full w-full object-cover"
-            loading="lazy"
           />
         );
       })}

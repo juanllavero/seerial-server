@@ -136,7 +136,6 @@ const Image: React.FC<ImageProps> = ({
           onLoad={handleImageLoad}
           onError={handleImageError}
           className={`h-full w-full object-${objectFit} transition-opacity duration-300 ${isLoading ? 'opacity-0' : 'opacity-100'} `}
-          loading="lazy"
           style={style}
         />
       )}

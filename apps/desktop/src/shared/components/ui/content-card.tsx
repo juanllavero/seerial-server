@@ -119,7 +119,7 @@ function ContentCard({
         className={`${noInfo ? 'h-full' : 'h-[90%]'} relative w-full overflow-hidden rounded-md`}
       >
         <div
-          className={`h-full w-full scale-95 ${cardRoundness} border-2 border-transparent transition-all duration-350 ${focused ? 'transform scale-100 border-white' : ''}`}
+          className={`h-full w-full scale-95 ${cardRoundness} border-2 border-transparent transition-transform duration-350 ${focused ? 'transform scale-100 border-white' : ''}`}
         >
           {isCollage ? (
             <CollageImage
@@ -162,7 +162,9 @@ export default memo(
     prev.imgSrc === next.imgSrc &&
     prev.title === next.title &&
     prev.subtitle === next.subtitle &&
-    prev.collageImages === next.collageImages &&
+    prev.collageImages?.join(',') === next.collageImages?.join(',') &&
     prev.aspectRatio === next.aspectRatio &&
-    prev.width === next.width,
+    prev.width === next.width &&
+    prev.duration === next.duration &&
+    prev.timeWatched === next.timeWatched,
 );
