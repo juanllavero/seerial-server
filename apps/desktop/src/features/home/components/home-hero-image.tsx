@@ -1,4 +1,5 @@
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
 import Image from '@/shared/components/ui/image';
 
 interface HomeHeroImageProps {
@@ -7,13 +8,31 @@ interface HomeHeroImageProps {
 
 function HomeHeroImage({ imageSrc }: HomeHeroImageProps) {
   const prefersReducedMotion = useReducedMotion();
+  const [debouncedImageSrc, setDebouncedImageSrc] = useState<string | undefined>(imageSrc);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (debouncedImageSrc === imageSrc) return;
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    timerRef.current = setTimeout(() => {
+      setDebouncedImageSrc(imageSrc);
+    }, 600);
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [imageSrc, debouncedImageSrc]);
 
   return (
     <div className="pointer-events-none absolute top-0 right-0 z-0 h-[70vh] w-[70vw] overflow-hidden">
       <AnimatePresence mode="sync" initial={false}>
-        {imageSrc ? (
+        {debouncedImageSrc ? (
           <motion.div
-            key={imageSrc}
+            key={debouncedImageSrc}
             className="absolute inset-0"
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.7 }}
@@ -25,7 +44,7 @@ function HomeHeroImage({ imageSrc }: HomeHeroImageProps) {
             style={{ willChange: 'opacity' }}
           >
             <Image
-              url={imageSrc}
+              url={debouncedImageSrc}
               height="70vh"
               width="70vw"
               aspectRatio="2/3"

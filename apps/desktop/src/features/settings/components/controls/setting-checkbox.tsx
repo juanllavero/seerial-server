@@ -1,6 +1,7 @@
 import { useFocusable } from '@noriginmedia/norigin-spatial-navigation';
 import { Check } from 'lucide-react';
 import { memo } from 'react';
+import { Tertiary } from '@/shared/components/text';
 
 interface SettingCheckboxProps {
   focusKey: string;
@@ -32,8 +33,8 @@ function SettingCheckbox({
       }`}
     >
       <div className="flex flex-1 flex-col gap-0.5">
-        <span className="text-sm font-medium text-white">{label}</span>
-        {description && <span className="text-xs text-white/40">{description}</span>}
+        <Tertiary className="font-medium text-white">{label}</Tertiary>
+        {description && <div className="text-lg text-white/40">{description}</div>}
       </div>
       <div
         className={`flex size-5 shrink-0 items-center justify-center rounded border transition-colors ${

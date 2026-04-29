@@ -1,6 +1,7 @@
 import { useFocusable } from '@noriginmedia/norigin-spatial-navigation';
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Tertiary } from '@/shared/components/text';
 
 function getOSName(): string {
   const { platform } = navigator;
@@ -23,8 +24,8 @@ function InfoCard({ focusKey, label, value }: { focusKey: string; label: string;
         focused ? 'border-white/30 bg-white/15' : 'border-white/5 bg-white/5'
       }`}
     >
-      <span className="text-xs text-white/40">{label}</span>
-      <p className="mt-1 text-sm font-medium text-white">{value}</p>
+      <Tertiary className="text-white/40">{label}</Tertiary>
+      <p className="mt-1 text-lg font-medium text-white">{value}</p>
     </div>
   );
 }

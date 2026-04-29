@@ -9,6 +9,7 @@ function CollectionDetailsPage() {
   const { state } = useLocation();
   const cachedDetails: DetailsData | undefined = state?.cachedDetails;
   const libraryType = state?.libraryType as LibraryType | undefined;
+  const collageImages: string[] | undefined = state?.collageImages;
 
   const { data: collection, isLoading } = useGetCollection<Collection>(collectionId ?? '', {
     enabled: !!collectionId,
@@ -21,6 +22,7 @@ function CollectionDetailsPage() {
       libraryType={libraryType as LibraryType}
       isLoading={isLoading}
       details={cachedDetails}
+      collageImages={collageImages}
     />
   );
 }

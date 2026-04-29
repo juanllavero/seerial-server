@@ -197,30 +197,30 @@ function TimelineSlider({
           onTouchEnd={() => handleSeekEnd(position)}
           tabIndex={-1}
           className={`
-        w-full h-3 rounded-lg appearance-none cursor-pointer outline-none ring-0
-        bg-stone-500/80
-        ${focused ? 'bg-[linear-gradient(to_right,var(--app-color)_0%,var(--app-color)_var(--value-percent),var(--color-stone-500)_var(--value-percent),var(--color-stone-500)_100%)]' : ''}
-        transition-all duration-200
+          w-full h-3 rounded-lg appearance-none cursor-pointer outline-none ring-0
+          bg-stone-600/40
+          ${focused ? 'bg-[linear-gradient(to_right,var(--app-color)_0%,var(--app-color)_var(--value-percent),var(--color-stone-600)_var(--value-percent),var(--color-stone-600)_100%)]' : ''}
+          transition-all duration-200
 
-        [&::-webkit-slider-thumb]:appearance-none
-        [&::-webkit-slider-thumb]:w-1 
-        [&::-webkit-slider-thumb]:h-3  
-        [&::-webkit-slider-thumb]:bg-white
-        [&::-webkit-slider-thumb]:shadow-md
-        [&::-webkit-slider-thumb]:transition-all 
-        [&::-webkit-slider-thumb]:duration-200 
+          [&::-webkit-slider-thumb]:appearance-none
+          [&::-webkit-slider-thumb]:w-1 
+          [&::-webkit-slider-thumb]:h-3  
+          [&::-webkit-slider-thumb]:bg-white
+          [&::-webkit-slider-thumb]:shadow-md
+          [&::-webkit-slider-thumb]:transition-all 
+          [&::-webkit-slider-thumb]:duration-200 
 
-        [&::-moz-range-progress]:bg-white 
-        [&::-moz-range-track]:bg-stone-600
+          [&::-moz-range-progress]:bg-white 
+          [&::-moz-range-track]:bg-stone-600
 
-        ${
-          focused
-            ? `h-4
-          [&::-webkit-slider-thumb]:h-4
-          [&::-webkit-slider-thumb]:bg-white`
-            : ''
-        }
-      `}
+          ${
+            focused
+              ? `h-4
+            [&::-webkit-slider-thumb]:h-4
+            [&::-webkit-slider-thumb]:bg-white`
+              : ''
+          }
+        `}
         />
 
         {/* Current time indicator */}

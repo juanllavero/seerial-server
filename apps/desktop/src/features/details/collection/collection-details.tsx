@@ -12,10 +12,12 @@ import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { shallow } from 'zustand/shallow';
+import { DetailsWithRelatedContent, useRelatedContent } from '@/features/details/shared';
 import BackgroundImage from '@/shared/components/backgrounds/background-image';
 import { NavigationScrollView } from '@/shared/components/navigation';
 import Page from '@/shared/components/page';
 import { ListTitle, Subtitle, Tertiary } from '@/shared/components/text';
+import CollageImage from '@/shared/components/ui/collage-image';
 import ContentCard from '@/shared/components/ui/content-card';
 import FlexBox from '@/shared/components/ui/flex-box';
 import Image from '@/shared/components/ui/image';
@@ -148,12 +150,77 @@ function getOrderedSectionKeys(libraryType: LibraryType | undefined): Collection
   }
 }
 
+interface CollectionCoverProps {
+  collageImages: string[] | undefined;
+  coverSrc: string;
+  imageWidth: string;
+  imageHeight: string;
+  cardRoundness: string;
+  libraryType: LibraryType | undefined;
+}
+
+function CollectionCover({
+  collageImages,
+  coverSrc,
+  imageWidth,
+  imageHeight,
+  cardRoundness,
+  libraryType,
+}: CollectionCoverProps) {
+  if (collageImages && collageImages.length > 1) {
+    return (
+      <div
+        style={{ width: imageWidth, height: imageHeight }}
+        className={`overflow-hidden ${cardRoundness}`}
+      >
+        <CollageImage
+          images={collageImages}
+          defaultSrc={
+            libraryType === LibraryTypes.MUSIC ? '/img/songDefault.png' : '/img/fileNotFound.jpg'
+          }
+          className={cardRoundness}
+        />
+      </div>
+    );
+  }
+
+  const singleSrc = collageImages && collageImages.length === 1 ? collageImages[0] : coverSrc;
+
+  return (
+    <Image url={singleSrc} width={imageWidth} height={imageHeight} className={cardRoundness} />
+  );
+}
+
+function buildContentCardArrowHandler(
+  isFirstSection: boolean,
+  isLastItem: boolean,
+  hasRelatedContent: boolean,
+  navigateToRelated: () => void,
+): ((direction: string) => boolean) | undefined {
+  if (!isFirstSection && !(isLastItem && hasRelatedContent)) {
+    return undefined;
+  }
+  return (direction: string) => {
+    if (isFirstSection && direction === 'up') {
+      setFocus(NavigationFocusKeys.topBar.container);
+      return false;
+    }
+    if (isLastItem && hasRelatedContent && direction === 'right') {
+      navigateToRelated();
+      return false;
+    }
+    return true;
+  };
+}
+
 interface CollectionDetailsProps {
   collectionId: string;
   collection: Collection | undefined;
   isLoading: boolean;
   details: DetailsData | undefined;
   libraryType: LibraryType | undefined;
+  /** Up to 4 cover paths for collage rendering, forwarded from the library grid. */
+  collageImages?: string[];
 }
 
 function CollectionDetails({
@@ -162,7 +229,31 @@ function CollectionDetails({
   isLoading,
   details,
   libraryType,
+  collageImages,
 }: CollectionDetailsProps) {
+  return (
+    <DetailsWithRelatedContent collectionId={collectionId} libraryType={libraryType}>
+      <CollectionDetailsContent
+        collectionId={collectionId}
+        collection={collection}
+        isLoading={isLoading}
+        details={details}
+        libraryType={libraryType}
+        collageImages={collageImages}
+      />
+    </DetailsWithRelatedContent>
+  );
+}
+
+function CollectionDetailsContent({
+  collectionId,
+  collection,
+  isLoading,
+  details,
+  libraryType,
+  collageImages,
+}: CollectionDetailsProps) {
+  const { navigateToRelated, hasRelatedContent } = useRelatedContent();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const setGradientImageSrc = useGradientStore((state) => state.setGradientImageSrc);
@@ -275,11 +366,13 @@ function CollectionDetails({
         height={'100%'}
         className="z-50"
       >
-        <Image
-          url={details?.coverSrc ?? collection?.coverSrc ?? ''}
-          width={imageWidth}
-          height={imageHeight}
-          className={cardRoundness}
+        <CollectionCover
+          collageImages={collageImages}
+          coverSrc={details?.coverSrc ?? collection?.coverSrc ?? ''}
+          imageWidth={imageWidth}
+          imageHeight={imageHeight}
+          cardRoundness={cardRoundness}
+          libraryType={libraryType}
         />
 
         <FlexBox direction="column" align="center">
@@ -292,7 +385,7 @@ function CollectionDetails({
 
       <NavigationScrollView
         direction="vertical"
-        className="w-[70dvw] max-h-[85dvh] gap-6 pb-[5dvh] z-50"
+        className="w-[70dvw] gap-6 max-h-screen pt-[10dvh] pb-[5dvh] z-50"
         scrollMode="center"
         focusedElementId={lastFocusedElementId}
         isRestoringFocus={isScrollRestoring}
@@ -314,40 +407,49 @@ function CollectionDetails({
               focusedElementId={lastFocusedElementId}
               isRestoringFocus={isScrollRestoring}
             >
-              {section.items.map((item) => (
-                <ContentCard
-                  key={item.id}
-                  customKey={`${section.key}-${item.id}`}
-                  title={item.title}
-                  subtitle={item.years}
-                  imgSrc={item.coverSrc ?? ''}
-                  width={'25vh'}
-                  aspectRatio={section.aspectRatio}
-                  onFocus={() => {
-                    setLastFocusedElementId(`${section.key}-${item.id}`);
-                  }}
-                  onArrowPress={
-                    sectionIndex === 0
-                      ? (direction) => {
-                          if (direction === 'up') {
-                            setFocus(NavigationFocusKeys.topBar.container);
-                            return true;
-                          }
-                          return false;
-                        }
-                      : undefined
-                  }
-                  action={() => {
-                    navigate(`/details/${section.itemType}/${item.id}`, {
-                      state: {
-                        cachedDetails: item.details,
-                        collectionId,
-                        libraryType,
-                      },
-                    });
-                  }}
-                />
-              ))}
+              {section.items.map((item, itemIndex) => {
+                const isFirstSection = sectionIndex === 0;
+                const isLastItem = itemIndex === section.items.length - 1;
+                return (
+                  <ContentCard
+                    key={item.id}
+                    customKey={`${section.key}-${item.id}`}
+                    title={item.title}
+                    subtitle={item.years}
+                    imgSrc={
+                      item.images && item.images.length === 1
+                        ? item.images[0]
+                        : (item.coverSrc ?? '')
+                    }
+                    collageImages={item.images && item.images.length > 1 ? item.images : undefined}
+                    defaultImageSrc={
+                      section.itemType === 'album'
+                        ? '/img/songDefault.png'
+                        : '/img/fileNotFound.jpg'
+                    }
+                    width={'25vh'}
+                    aspectRatio={section.aspectRatio}
+                    onFocus={() => {
+                      setLastFocusedElementId(`${section.key}-${item.id}`);
+                    }}
+                    onArrowPress={buildContentCardArrowHandler(
+                      isFirstSection,
+                      isLastItem,
+                      hasRelatedContent,
+                      navigateToRelated,
+                    )}
+                    action={() => {
+                      navigate(`/details/${section.itemType}/${item.id}`, {
+                        state: {
+                          cachedDetails: item.details,
+                          collectionId,
+                          libraryType,
+                        },
+                      });
+                    }}
+                  />
+                );
+              })}
             </NavigationScrollView>
           </FlexBox>
         ))}
@@ -363,22 +465,36 @@ function CollectionDetails({
               focusedElementId={lastFocusedElementId}
               isRestoringFocus={isScrollRestoring}
             >
-              {musicExtras.map((extra, index) => (
-                <MusicExtraCard
-                  key={`extra-${extra.src}`}
-                  customKey={`extra-${index}`}
-                  src={extra.src}
-                  title={extra.title}
-                  subtitle={extra.type}
-                  width="30vh"
-                  onFocus={() => setLastFocusedElementId(`extra-${index}`)}
-                  action={() =>
-                    navigate(
-                      `/video-player/file?path=${encodeURIComponent(extra.src)}&title=${encodeURIComponent(`${collection?.title ? `${collection.title} - ` : ''}${extra.title}`)}`,
-                    )
-                  }
-                />
-              ))}
+              {musicExtras.map((extra, index) => {
+                const isLastExtra = index === musicExtras.length - 1;
+                return (
+                  <MusicExtraCard
+                    key={`extra-${extra.src}`}
+                    customKey={`extra-${index}`}
+                    src={extra.src}
+                    title={extra.title}
+                    subtitle={extra.type}
+                    width="30vh"
+                    onFocus={() => setLastFocusedElementId(`extra-${index}`)}
+                    onArrowPress={
+                      isLastExtra && hasRelatedContent
+                        ? (direction) => {
+                            if (direction === 'right') {
+                              navigateToRelated();
+                              return false;
+                            }
+                            return true;
+                          }
+                        : undefined
+                    }
+                    action={() =>
+                      navigate(
+                        `/video-player/file?path=${encodeURIComponent(extra.src)}&title=${encodeURIComponent(`${collection?.title ? `${collection.title} - ` : ''}${extra.title}`)}`,
+                      )
+                    }
+                  />
+                );
+              })}
             </NavigationScrollView>
           </FlexBox>
         )}

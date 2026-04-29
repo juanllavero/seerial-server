@@ -1,4 +1,4 @@
-import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
+import { getCurrentFocusKey, setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import { useGetLibraries } from '@seerial/api';
 import { type Library, LibraryTypes } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
@@ -20,6 +20,17 @@ const LIBRARY_TYPE_BUTTONS = {
   [LibraryTypes.MUSIC]: NavigationFocusKeys.topBar.music,
 } as const;
 
+function getActiveButtonKeyForPath(pathname: string): string {
+  const segment = pathname.split('/').pop();
+
+  if (segment === LibraryTypes.MOVIES) return NavigationFocusKeys.topBar.movies;
+  if (segment === LibraryTypes.SHOWS) return NavigationFocusKeys.topBar.shows;
+  if (segment === LibraryTypes.MUSIC) return NavigationFocusKeys.topBar.music;
+  if (pathname === '/see') return NavigationFocusKeys.topBar.toSee;
+
+  return NavigationFocusKeys.topBar.home;
+}
+
 function TopBar() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -39,6 +50,7 @@ function TopBar() {
   const autoOpenTimeoutRef = useRef<number | null>(null);
   const focusToRestoreRef = useRef<string | null>(null);
   const preventNextAutoOpenFocusKeyRef = useRef<string | null>(null);
+  const isInsideTopBarRef = useRef(false);
 
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
 
@@ -88,8 +100,6 @@ function TopBar() {
 
   function scheduleLibraryAutoOpen(nextType: LibraryTypes) {
     clearAutoOpenTimeout();
-    // Cancel any pending auto-open if focus leaves library type buttons
-    preventNextAutoOpenFocusKeyRef.current = null;
     const nextLibraries = getLibrariesByType(nextType);
 
     if (nextLibraries.length <= 1) {
@@ -105,7 +115,7 @@ function TopBar() {
 
     autoOpenTimeoutRef.current = window.setTimeout(() => {
       // Only open if focus is still on the same library type button
-      if (activeLibraryButtonKey === focusKey) {
+      if (getCurrentFocusKey() === focusKey) {
         openLibraries(nextType);
       }
     }, AUTO_OPEN_DELAY_MS);
@@ -149,8 +159,26 @@ function TopBar() {
     setShowLibraries(false);
   }
 
+  function hideLibrariesWithoutFocusRestore() {
+    clearAutoOpenTimeout();
+    focusToRestoreRef.current = null;
+    setShowLibraries(false);
+  }
+
+  const handleContainerFocus = useCallback(() => {
+    if (isInsideTopBarRef.current) return;
+    isInsideTopBarRef.current = true;
+    setFocus(getActiveButtonKeyForPath(pathname));
+  }, [pathname]);
+
+  const handleContainerBlur = useCallback(() => {
+    isInsideTopBarRef.current = false;
+  }, []);
+
+  const initialPathnameRef = useRef(pathname);
+
   useEffect(() => {
-    setFocus(NavigationFocusKeys.topBar.home);
+    setFocus(getActiveButtonKeyForPath(initialPathnameRef.current));
   }, []);
 
   useEffect(() => {
@@ -193,9 +221,11 @@ function TopBar() {
   return (
     <NavigationContainer
       customFocusKey={NavigationFocusKeys.topBar.container}
-      className="relative flex justify-between items-center w-screen h-[8dvh] min-h-[8dvh] z-10"
+      className="relative flex justify-between items-center w-screen h-[8dvh] min-h-[8dvh] z-50"
+      onFocus={handleContainerFocus}
+      onBlur={handleContainerBlur}
     >
-      <img src="/Seerial_logo.svg" alt="Logo" className="w-[5dvh] ml-5" />
+      <img src="/Seerial_logo.svg" alt="Logo" className="w-[5dvh] ml-10" />
       <div className="flex flex-1 justify-center">
         <AnimatePresence initial={false} mode="wait">
           {!showLibraries && (
@@ -260,7 +290,7 @@ function TopBar() {
           customKey={NavigationFocusKeys.topBar.settings}
           onFocus={handleNonLibraryFocus}
           onClick={() => setShowSettings(true)}
-          className="mr-5"
+          className="mr-10"
           variant="ghost"
         >
           <Settings size={'3dvh'} />
@@ -288,6 +318,7 @@ function TopBar() {
         libraries={selectedLibraries}
         show={showLibraries}
         hide={hideLibraries}
+        hideWithoutFocusRestore={hideLibrariesWithoutFocusRestore}
       />
     </NavigationContainer>
   );

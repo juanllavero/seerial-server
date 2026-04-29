@@ -33,23 +33,23 @@ function StyleSheet() {
   return (
     <style>
       {`
-            .container {
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                width: 100%;
-                height: 100%;
-                gap: 20px;
-            }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            gap: 20px;
+        }
 
-            .dot {
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                background-color: var(--app-color);
-                will-change: transform;
-            }
-            `}
+        .dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: var(--app-color);
+            will-change: transform;
+        }
+      `}
     </style>
   );
 }

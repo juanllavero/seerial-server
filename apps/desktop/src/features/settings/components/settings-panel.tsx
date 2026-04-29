@@ -103,14 +103,14 @@ function SettingsPanel({ open, onClose }: SettingsPanelProps) {
             className="fixed inset-y-0 right-0 z-50 flex"
           >
             <motion.div
-              animate={{ width: optionsData ? '72dvw' : '55dvw' }}
+              animate={{ width: optionsData ? '100dvh' : '100dvh' }}
               transition={SLIDE_TRANSITION}
-              className="flex h-full max-w-300"
+              className="flex h-full max-w-dvh"
             >
               <NavigationContainer
                 isFocusBoundary
                 customFocusKey={NavigationFocusKeys.settings.container}
-                className="flex h-full w-full overflow-hidden border-l border-white/10 bg-black/95 rounded-4xl shadow-2xl"
+                className="flex h-full w-full overflow-hidden border-l border-white/10 bg-black/95 shadow-2xl"
               >
                 <SettingsOptionsContext.Provider value={optionsCtx}>
                   {/* Categories sidebar */}

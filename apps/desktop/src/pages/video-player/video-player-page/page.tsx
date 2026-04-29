@@ -10,6 +10,10 @@ import { useNavigate, useParams } from 'react-router';
 import { VideoPlayer } from '@/features/video-player';
 import { useMpvPlayer } from '@/features/video-player/hooks/use-mpv-player';
 import AppAlertDialog from '@/shared/components/app-alert-dialog';
+import {
+  resetAppShellBackground,
+  setAppShellBackground,
+} from '@/shared/components/details/details-background-mpv';
 import Loading from '@/shared/components/loading';
 import { useAppSettingsMpv } from '../../../features/video-player/hooks/use-app-settings-mpv';
 
@@ -117,6 +121,14 @@ function VideoPlayerPage() {
   }, [mpv.embedMpv]);
 
   useEffect(() => {
+    setAppShellBackground('transparent');
+
+    return () => {
+      resetAppShellBackground();
+    };
+  }, []);
+
+  useEffect(() => {
     currentVideoRef.current = video ?? null;
     currentUserIdRef.current = currentUserId;
   }, [video, currentUserId]);
@@ -207,6 +219,13 @@ function VideoPlayerPage() {
         currentPosition >= 0
       ) {
         lastKnownPositionRef.current = currentPosition;
+      }
+
+      // MPV entered idle state without reaching EOF — playback stopped due to an error
+      if (playbackStatus.idleActive && !playbackStatus.eofReached) {
+        setIsPlaybackBuffering(false);
+        await attemptPlaybackRecovery();
+        return;
       }
 
       const buffering = playbackStatus.pausedForCache || playbackStatus.seeking;

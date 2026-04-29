@@ -4,10 +4,14 @@ import { useMusicStore } from '@seerial/stores';
 import { motion } from 'framer-motion';
 import { t } from 'i18next';
 import { Repeat, Repeat1, Shuffle } from 'lucide-react';
-import { memo, useCallback, useEffect, useMemo } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { shallow } from 'zustand/shallow';
-import { NavigationButton, NavigationContainer } from '@/shared/components/navigation';
-import { Tertiary } from '@/shared/components/text';
+import {
+  NavigationButton,
+  NavigationContainer,
+  NavigationScrollView,
+} from '@/shared/components/navigation';
+import { Subtitle } from '@/shared/components/text';
 import FlexBox from '@/shared/components/ui/flex-box';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
 
@@ -37,6 +41,7 @@ function QueueMenu({ isOpen, onClose }: QueueMenuProps) {
     }),
     shallow,
   );
+  const [focusedSongId, setFocusedSongId] = useState<string | undefined>(undefined);
 
   const currentSongQueueIndex = useMemo(() => {
     if (!currentSong?.id) {
@@ -122,7 +127,7 @@ function QueueMenu({ isOpen, onClose }: QueueMenuProps) {
       <NavigationContainer
         isFocusBoundary
         focusBoundaryDirections={['up', 'down', 'left', 'right']}
-        className="fixed right-[8vh] top-[10vh] z-40 h-[80vh] w-[56vh]"
+        className="fixed right-[8vh] top-[10vh] z-40 max-h-[70vh] w-[60vh]"
       >
         <motion.div
           key="queue-menu-panel"
@@ -130,10 +135,10 @@ function QueueMenu({ isOpen, onClose }: QueueMenuProps) {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 16, scale: 0.98 }}
           transition={{ duration: 0.2, ease: 'easeOut' }}
-          className="overflow-hidden rounded-[2.2vh] border border-white/10 bg-black/50 shadow-2xl backdrop-blur-md"
+          className="overflow-hidden rounded-[2.2vh] border border-white/10 bg-black/50 backdrop-blur-md"
         >
-          <div className="flex items-center justify-between px-[2.4vh] py-[2vh]">
-            <Tertiary className="text-[2.1vh] font-semibold text-white">{t('upNext')}</Tertiary>
+          <div className="flex items-center justify-between px-[2.4vh] pt-[2vh]">
+            <Subtitle className="font-semibold">{t('upNext')}</Subtitle>
             <FlexBox align="center" gap={0.6}>
               <NavigationButton
                 customKey={NavigationFocusKeys.player.repeatButton}
@@ -143,9 +148,9 @@ function QueueMenu({ isOpen, onClose }: QueueMenuProps) {
                 onClick={toggleRepeatMode}
               >
                 {repeateMode === RepeateMode.REPEAT_ONE ? (
-                  <Repeat1 size={'1.9vh'} />
+                  <Repeat1 size={'3vh'} />
                 ) : (
-                  <Repeat size={'1.9vh'} />
+                  <Repeat size={'3vh'} />
                 )}
               </NavigationButton>
               <NavigationButton
@@ -156,24 +161,32 @@ function QueueMenu({ isOpen, onClose }: QueueMenuProps) {
                 selected={isShuffling}
                 onClick={() => setIsShuffling(!isShuffling)}
               >
-                <Shuffle size={'1.9vh'} />
+                <Shuffle size={'3vh'} />
               </NavigationButton>
             </FlexBox>
           </div>
 
-          <div className="overflow-y-auto px-[1.4vh] py-[1.2vh]">
+          <NavigationScrollView
+            isFocusBoundary
+            direction="vertical"
+            scrollMode="center"
+            focusedElementId={focusedSongId}
+            focusBoundaryDirections={['down', 'left', 'right']}
+            className="px-[1.4vh]! max-h-[70vh]"
+          >
             {songQueue.map((song, index) => (
               <NavigationButton
-                key={song.id ?? `${song.title}-${song.fileSrc}`}
+                key={song.id}
                 customKey={getQueueSongFocusKey(index)}
                 text={getQueueSongLabel(song, shouldIncludeDiscPrefixInQueue)}
                 variant="ghost"
+                onFocus={() => setFocusedSongId(song.id)}
                 className="w-full justify-start rounded-2xl!"
                 selected={song.id === currentSong?.id}
                 onClick={() => selectSongFromQueue(index)}
               />
             ))}
-          </div>
+          </NavigationScrollView>
         </motion.div>
       </NavigationContainer>
     </>

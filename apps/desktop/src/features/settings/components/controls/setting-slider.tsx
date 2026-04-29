@@ -1,6 +1,7 @@
 import { useFocusable } from '@noriginmedia/norigin-spatial-navigation';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { memo, useCallback, useState } from 'react';
+import { Tertiary } from '@/shared/components/text';
 
 interface SettingSliderProps {
   focusKey: string;
@@ -74,17 +75,17 @@ function SettingSlider({
     >
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-0.5">
-          <span className="text-sm font-medium text-white">{label}</span>
-          {description && <span className="text-xs text-white/40">{description}</span>}
+          <Tertiary className="font-medium text-white">{label}</Tertiary>
+          {description && <div className="text-lg text-white/40">{description}</div>}
         </div>
-        <span className="text-sm font-medium text-white/70">{displayValue ?? value}</span>
+        <Tertiary className="text-sm font-medium text-white/70">{displayValue ?? value}</Tertiary>
       </div>
       <div className="flex items-center gap-2">
         <ChevronLeft
           size={14}
           className={`shrink-0 transition-opacity ${editing ? 'text-white/60' : 'opacity-0'}`}
         />
-        <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+        <div className="relative h-2 w-full overflow-hidden rounded-full bg-white/10">
           <div
             className={`absolute top-0 left-0 h-full rounded-full transition-all ${
               editing ? 'bg-white' : focused ? 'bg-white/70' : 'bg-white/40'

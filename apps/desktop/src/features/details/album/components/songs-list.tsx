@@ -1,19 +1,20 @@
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
-import { type Album, formatTime, type Song } from '@seerial/domain';
+import type { Album, Song } from '@seerial/domain';
 import { useMusicStore } from '@seerial/stores';
 import { memo, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { shallow } from 'zustand/shallow';
-import { AnimatedSoundBars } from '@/features/music-player';
-import { NavigationButton } from '@/shared/components/navigation';
-import { Tertiary } from '@/shared/components/text';
+import ListTitle from '@/shared/components/text/list-title';
 import FlexBox from '@/shared/components/ui/flex-box';
+import { NavigationFocusKeys } from '@/shared/navigation/constants';
+import SongCard from './song-card';
 
 interface SongsListProps {
   album: Album;
   songs: Song[];
   focusedSongId?: string;
   onSongFocus?: (songId: string) => void;
+  onNavigateToRelated?: () => void;
 }
 
 function getSafeDiscNumber(song: Song): number {
@@ -24,7 +25,13 @@ function getSafeTrackNumber(song: Song): number {
   return song.trackNumber > 0 ? song.trackNumber : Number.MAX_SAFE_INTEGER;
 }
 
-function SongsList({ album, songs, focusedSongId, onSongFocus }: SongsListProps) {
+function SongsList({
+  album,
+  songs,
+  focusedSongId,
+  onSongFocus,
+  onNavigateToRelated,
+}: SongsListProps) {
   const { t } = useTranslation();
   const { currentSong, isPlaying, setPlaybackContext } = useMusicStore(
     (state) => ({
@@ -37,8 +44,11 @@ function SongsList({ album, songs, focusedSongId, onSongFocus }: SongsListProps)
 
   // Set focus on load
   useEffect(() => {
-    setFocus(focusedSongId ?? currentSong?.id ?? songs[0]?.id ?? '');
-  }, [focusedSongId, currentSong?.id, songs]);
+    if (currentSong?.albumId === album.id) {
+      setFocus(currentSong?.id ?? NavigationFocusKeys.details.playButton);
+    }
+    setFocus(NavigationFocusKeys.details.playButton);
+  }, [currentSong?.id, currentSong?.albumId, album.id]);
 
   const sortedSongs = useMemo(
     () =>
@@ -77,37 +87,20 @@ function SongsList({ album, songs, focusedSongId, onSongFocus }: SongsListProps)
     <FlexBox direction="column" gap={1} width="100%" padding="0 4rem">
       {showTracksHeader ? (
         <>
-          <Tertiary>{t('tracks')}</Tertiary>
+          <ListTitle className="pl-0! py-[3dvh]">{t('tracks')}</ListTitle>
           <FlexBox direction="column" gap={0.6} width="100%">
             {sortedSongs.map((song) => {
               return (
-                <NavigationButton
+                <SongCard
                   key={song.id ?? `${song.title}-${song.fileSrc}`}
-                  customKey={song.id}
-                  className="w-full justify-start rounded-xl! py-10!"
+                  song={song}
+                  currentSongId={currentSong?.id}
+                  focusedSongId={focusedSongId}
+                  isPlaying={isPlaying}
                   onClick={() => setPlaybackContext(song, album, queue)}
                   onFocus={() => song.id && onSongFocus?.(song.id)}
-                >
-                  <FlexBox justify="space-between" padding="0 1.5rem" width={'100%'}>
-                    <FlexBox gap={1.5} items="center" justify="center" className="relative">
-                      <FlexBox justify="center" items="center" width={'1dvh'}>
-                        {currentSong?.id === song.id ? (
-                          <AnimatedSoundBars
-                            isPlaying={true}
-                            isSelected={focusedSongId === song.id}
-                            translate={false}
-                          />
-                        ) : (
-                          <Tertiary className="text-current!">{song.trackNumber}</Tertiary>
-                        )}
-                      </FlexBox>
-                      <Tertiary className="text-current!">{song.title}</Tertiary>
-                    </FlexBox>
-                    <Tertiary className="text-current!">
-                      {song.duration ? formatTime(song.duration) : ''}
-                    </Tertiary>
-                  </FlexBox>
-                </NavigationButton>
+                  onNavigateToRelated={onNavigateToRelated}
+                />
               );
             })}
           </FlexBox>
@@ -121,31 +114,21 @@ function SongsList({ album, songs, focusedSongId, onSongFocus }: SongsListProps)
 
             return (
               <FlexBox direction="column" gap={0.6} width="100%" key={`disc-${discNumber}`}>
-                <Tertiary>
+                <ListTitle className="pl-0! py-[3dvh]">
                   {t('disc')} {discNumber}
-                </Tertiary>
+                </ListTitle>
                 {songsByDisc.map((song) => {
                   return (
-                    <NavigationButton
+                    <SongCard
                       key={song.id ?? `${song.title}-${song.fileSrc}`}
-                      customKey={song.id}
-                      className="w-full justify-start rounded-xl! py-10!"
+                      song={song}
+                      currentSongId={currentSong?.id}
+                      focusedSongId={focusedSongId}
+                      isPlaying={isPlaying}
                       onClick={() => setPlaybackContext(song, album, queue)}
                       onFocus={() => song.id && onSongFocus?.(song.id)}
-                    >
-                      <FlexBox justify="space-between" padding="0 1.5rem" width={'100%'}>
-                        <FlexBox gap={1.5}>
-                          <Tertiary className="text-current!">{song.trackNumber}</Tertiary>
-                          {currentSong?.id === song.id ? (
-                            <AnimatedSoundBars isPlaying={isPlaying} />
-                          ) : null}
-                          <Tertiary className="text-current!">{song.title}</Tertiary>
-                        </FlexBox>
-                        <Tertiary className="text-current!">
-                          {song.duration ? formatTime(song.duration) : ''}
-                        </Tertiary>
-                      </FlexBox>
-                    </NavigationButton>
+                      onNavigateToRelated={onNavigateToRelated}
+                    />
                   );
                 })}
               </FlexBox>

@@ -178,16 +178,16 @@ function Controls({
       <FlexBox align="center" justify="end" height={'5dvh'} width={'100%'} gap={0.5}>
         {showFullControls && (
           <>
-            <Settings
-              onPanelChange={handleSettingsPanelChange}
-              settings={settings}
-              updateSetting={updateSetting}
-            />
             <TracksSelectors
               video={video}
               videoInfo={playBackInfo?.mediaInfoData}
               playbackConfig={playBackInfo?.playBackConfig}
               onPanelChange={handleTracksPanelInternalChange}
+            />
+            <Settings
+              onPanelChange={handleSettingsPanelChange}
+              settings={settings}
+              updateSetting={updateSetting}
             />
           </>
         )}

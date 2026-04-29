@@ -134,7 +134,8 @@ const TopBarLayout = () => {
   const isMovieDetails = useMatch('details/movie/:movieId');
   const isSeriesDetails = useMatch('details/series/:seriesId');
   const isAlbumDetails = useMatch('details/album/:albumId');
-  const hideTopBar = !!(isMovieDetails || isSeriesDetails || isAlbumDetails);
+  const isCollectionDetails = useMatch('details/collection/:collectionId/:type');
+  const hideTopBar = !!(isMovieDetails || isSeriesDetails || isAlbumDetails || isCollectionDetails);
 
   useEffect(() => {
     const previousPathname = previousPathnameRef.current;

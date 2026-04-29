@@ -3,9 +3,10 @@ import {
   setFocus,
   useFocusable,
 } from '@noriginmedia/norigin-spatial-navigation';
-import { useEffect } from 'react';
+import { memo, useCallback, useEffect, useRef } from 'react';
 import { shallow } from 'zustand/shallow';
 import { useSettingsStore } from '@/shared/stores';
+import CollageImage from './collage-image';
 import FlexBox from './flex-box';
 import Image from './image';
 import WatchProgressBar from './watch-progress-bar';
@@ -32,6 +33,10 @@ function parseAspectRatio(aspectRatio: string) {
 
 interface CardProps {
   imgSrc: string;
+  /** Up to 4 server image paths for collection collage. When provided with more than 1 entry, renders a 2×2 grid. */
+  collageImages?: string[];
+  /** Public-asset fallback used to fill empty collage slots (e.g. '/img/fileNotFound.jpg'). */
+  defaultImageSrc?: string;
   aspectRatio?: string;
   width?: string;
   height?: string;
@@ -48,6 +53,8 @@ interface CardProps {
 
 function ContentCard({
   imgSrc,
+  collageImages,
+  defaultImageSrc = '/img/fileNotFound.jpg',
   aspectRatio = '2/3',
   width = 'auto',
   title,
@@ -60,11 +67,23 @@ function ContentCard({
   duration,
   timeWatched,
 }: CardProps) {
+  const isCollage = collageImages && collageImages.length > 1;
   const mediaAspectRatio = parseAspectRatio(aspectRatio);
   const cardAspectRatio = mediaAspectRatio * IMAGE_HEIGHT_PERCENTAGE;
   const hasWatchProgress = duration !== undefined && timeWatched !== undefined && duration > 0;
+
+  // Keep latest callbacks in refs so the stable wrappers below never need to
+  // change identity, even when the parent passes inline arrows every render.
+  const actionRef = useRef(action);
+  actionRef.current = action;
+  const onFocusRef = useRef(onFocus);
+  onFocusRef.current = onFocus;
+
+  const stableAction = useCallback(() => actionRef.current(), []);
+  const stableOnFocus = useCallback(() => onFocusRef.current?.(), []);
+
   const { ref, focused } = useFocusable({
-    onEnterPress: action,
+    onEnterPress: stableAction,
     focusKey: customKey,
     onArrowPress,
   });
@@ -76,8 +95,8 @@ function ContentCard({
   );
 
   useEffect(() => {
-    if (focused && onFocus) onFocus();
-  }, [focused, onFocus]);
+    if (focused) stableOnFocus();
+  }, [focused, stableOnFocus]);
 
   return (
     <FlexBox
@@ -85,7 +104,7 @@ function ContentCard({
       data-focus-key={customKey}
       onClick={() => {
         if (customKey) setFocus(customKey);
-        if (focused) action();
+        if (focused) stableAction();
       }}
       direction="column"
       width={width}
@@ -102,13 +121,21 @@ function ContentCard({
         <div
           className={`h-full w-full scale-95 ${cardRoundness} border-2 border-transparent transition-all duration-350 ${focused ? 'transform scale-100 border-white' : ''}`}
         >
-          <Image
-            url={imgSrc}
-            height="100%"
-            width="100%"
-            className={`h-full w-full ${cardRoundness}`}
-            aspectRatio="auto"
-          />
+          {isCollage ? (
+            <CollageImage
+              images={collageImages}
+              defaultSrc={defaultImageSrc}
+              className={cardRoundness}
+            />
+          ) : (
+            <Image
+              url={imgSrc}
+              height="100%"
+              width="100%"
+              className={`h-full w-full ${cardRoundness}`}
+              aspectRatio="auto"
+            />
+          )}
           {hasWatchProgress && <WatchProgressBar duration={duration} timeWatched={timeWatched} />}
         </div>
       </div>
@@ -129,4 +156,13 @@ function ContentCard({
   );
 }
 
-export default ContentCard;
+export default memo(
+  ContentCard,
+  (prev, next) =>
+    prev.imgSrc === next.imgSrc &&
+    prev.title === next.title &&
+    prev.subtitle === next.subtitle &&
+    prev.collageImages === next.collageImages &&
+    prev.aspectRatio === next.aspectRatio &&
+    prev.width === next.width,
+);

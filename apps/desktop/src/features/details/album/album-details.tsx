@@ -28,7 +28,7 @@ function AlbumDetails({ album, isLoading, details, collectionId, libraryType }: 
   const navigate = useNavigate();
   const setGradientImageSrc = useGradientStore((state) => state.setGradientImageSrc);
   const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false);
-  const [focusedSongId, setFocusedSongId] = useState<string | undefined>();
+  const [focusedSongId, setFocusedSongId] = useState<string | undefined>(undefined);
   const { cardRoundness } = useSettingsStore(
     (s) => ({
       cardRoundness: s.settings.cardRoundness,
@@ -93,8 +93,8 @@ function AlbumDetailsContent({
     <Page padding="0" justify="end" fullScreen>
       <BackgroundImage imageSrc={details?.backgroundSrc ?? ''} index={0} />
 
-      <FlexBox padding="4rem 0 0 0" height={'100%'} width={'100%'} className="z-10">
-        <FlexBox height={'100%'} width={'40vw'} justify="end">
+      <FlexBox padding="0" height={'100%'} width={'100%'} gap={2} className="z-10">
+        <FlexBox height={'100%'} width={'40vw'} justify="end" padding="10dvh 0">
           <Image
             url={details?.coverSrc ?? album?.coverSrc ?? ''}
             className={cardRoundness}
@@ -105,7 +105,7 @@ function AlbumDetailsContent({
         <NavigationScrollView
           direction="vertical"
           scrollMode="center"
-          className="gap-8 w-[50vw] max-h-screen pb-100"
+          className="w-[55vw] max-w-dvh max-h-screen pt-[10vh] pb-[10vh]"
           focusedElementId={focusedSongId}
           isFocusBoundary
           focusBoundaryDirections={['up']}
@@ -117,7 +117,7 @@ function AlbumDetailsContent({
             hideButtons
           />
 
-          <FlexBox gap={1} padding="0 4rem">
+          <FlexBox gap={1} padding="0 4rem" className="pt-[3dvh]!">
             <NavigationButton
               customKey={NavigationFocusKeys.details.playButton}
               text={'Reproducir'}
@@ -154,6 +154,7 @@ function AlbumDetailsContent({
               songs={album.songs ?? []}
               focusedSongId={focusedSongId}
               onSongFocus={setFocusedSongId}
+              onNavigateToRelated={hasRelatedContent ? navigateToRelated : undefined}
             />
           )}
         </NavigationScrollView>

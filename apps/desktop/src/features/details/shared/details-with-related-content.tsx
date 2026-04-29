@@ -77,6 +77,7 @@ function DetailsWithRelatedContent({
               currentItemId={currentItemId}
               currentItemType={currentItemType}
               libraryType={libraryType}
+              isVisible={isRelatedVisible}
               onNavigateBack={navigateFromRelated}
             />
           )}

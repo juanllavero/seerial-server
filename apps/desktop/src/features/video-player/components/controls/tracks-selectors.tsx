@@ -75,7 +75,7 @@ function TrackItem({
   return (
     <NavigationButton
       customKey={focusKey}
-      className={`mb-2 h-auto w-full justify-between rounded-2xl border px-5 py-4 text-left text-base transition-colors ${
+      className={`mb-2 h-auto w-full justify-between rounded-2xl! border px-5 py-4 text-left text-base transition-colors ${
         isSelected
           ? 'border-white/20 bg-white text-black hover:text-black'
           : 'border-white/10 bg-white/5 text-white hover:text-black'
@@ -85,19 +85,9 @@ function TrackItem({
       <div className="flex w-full items-center justify-between gap-4">
         <div className="min-w-0">
           <div className="truncate text-lg font-medium">{label}</div>
-          {!!codec && (
-            <div
-              className={`mt-1 truncate text-sm ${isSelected ? 'text-black/70' : 'text-white/55'}`}
-            >
-              {codec}
-            </div>
-          )}
+          {!!codec && <div className={`mt-1 truncate text-sm`}>{codec}</div>}
         </div>
-        <div
-          className={`text-sm font-semibold uppercase tracking-[0.2em] ${
-            isSelected ? 'text-black/70' : 'text-white/40'
-          }`}
-        >
+        <div className={`text-sm font-semibold uppercase tracking-[0.2em]`}>
           {isSelected ? 'ON' : ''}
         </div>
       </div>
@@ -336,9 +326,6 @@ function TracksSelectors({
                 onClick={(event) => event.stopPropagation()}
               >
                 <div className="border-b border-white/10 px-5 py-4">
-                  <div className="text-xs uppercase tracking-[0.3em] text-white/45">
-                    {t('tracks')}
-                  </div>
                   <div className="mt-1 text-2xl font-semibold text-white">
                     {openPanel === 'audio' ? t('audio') : t('subs')}
                   </div>

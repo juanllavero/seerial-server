@@ -6,6 +6,10 @@ import { useNavigate, useSearchParams } from 'react-router';
 import { VideoPlayer } from '@/features/video-player';
 import { useMpvPlayer } from '@/features/video-player/hooks/use-mpv-player';
 import AppAlertDialog from '@/shared/components/app-alert-dialog';
+import {
+  resetAppShellBackground,
+  setAppShellBackground,
+} from '@/shared/components/details/details-background-mpv';
 import Loading from '@/shared/components/loading';
 import { useAppSettingsMpv } from '../../../features/video-player/hooks/use-app-settings-mpv';
 
@@ -100,6 +104,14 @@ function VideoPlayerFilePage() {
   useEffect(() => {
     void mpv.embedMpv();
   }, [mpv.embedMpv]);
+
+  useEffect(() => {
+    setAppShellBackground('transparent');
+
+    return () => {
+      resetAppShellBackground();
+    };
+  }, []);
 
   useEffect(() => {
     if (!filePath || !serverUrl) {

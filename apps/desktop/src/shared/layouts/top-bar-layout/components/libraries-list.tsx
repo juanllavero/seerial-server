@@ -8,9 +8,16 @@ interface LibrariesListProps {
   libraries: Library[];
   show: boolean;
   hide: () => void;
+  hideWithoutFocusRestore: () => void;
 }
 
-function LibrariesList({ type, libraries, show, hide }: LibrariesListProps) {
+function LibrariesList({
+  type,
+  libraries,
+  show,
+  hide,
+  hideWithoutFocusRestore,
+}: LibrariesListProps) {
   const navigate = useNavigate();
   if (!libraries) return null;
 
@@ -33,6 +40,10 @@ function LibrariesList({ type, libraries, show, hide }: LibrariesListProps) {
                   if (direction === 'up') {
                     hide();
                     return false;
+                  }
+
+                  if (direction === 'down') {
+                    hideWithoutFocusRestore();
                   }
 
                   return true;

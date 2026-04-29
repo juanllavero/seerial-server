@@ -1,6 +1,7 @@
 import { useFocusable } from '@noriginmedia/norigin-spatial-navigation';
 import { ChevronRight } from 'lucide-react';
 import { memo, useCallback } from 'react';
+import { Tertiary } from '@/shared/components/text';
 import { useSettingsOptions } from '../settings-options-context';
 
 interface SelectOption {
@@ -54,11 +55,11 @@ function SettingSelect({
       }`}
     >
       <div className="flex flex-1 flex-col gap-0.5">
-        <span className="text-sm font-medium text-white">{label}</span>
-        {description && <span className="text-xs text-white/40">{description}</span>}
+        <Tertiary className="font-medium text-white">{label}</Tertiary>
+        {description && <div className="text-lg text-white/40">{description}</div>}
       </div>
       <div className="flex items-center gap-2">
-        <span className="text-sm text-white/70">{currentLabel}</span>
+        <Tertiary className="text-sm text-white/70">{currentLabel}</Tertiary>
         <ChevronRight
           size={14}
           className={`transition-opacity ${focused ? 'text-white/60' : 'text-white/0'}`}

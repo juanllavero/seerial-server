@@ -2,6 +2,7 @@ import { FocusContext, setFocus, useFocusable } from '@noriginmedia/norigin-spat
 import { AnimatePresence, motion } from 'framer-motion';
 import { Check } from 'lucide-react';
 import { memo, useCallback, useEffect } from 'react';
+import { Tertiary } from '@/shared/components/text';
 import type { OptionsRequest } from './settings-options-context';
 
 const SLIDE_TRANSITION = { duration: 0.3, ease: [0.32, 0.72, 0, 1] as const };
@@ -36,8 +37,8 @@ function OptionItem({ focusKey, label, selected, onSelect, onGoBack }: OptionIte
         focused ? 'bg-white/15 text-white' : 'text-white/70 hover:bg-white/5'
       }`}
     >
-      <span className="flex-1">{label}</span>
-      {selected && <Check size={16} className="shrink-0 text-white" />}
+      <span className="flex-1 text-2xl">{label}</span>
+      {selected && <Check size={24} className="shrink-0 text-white" />}
     </button>
   );
 }
@@ -93,7 +94,7 @@ function SettingsOptionsPanel({ data, onClose }: SettingsOptionsPanelProps) {
           <FocusContext.Provider value={focusKey}>
             <div ref={ref} className="flex h-full w-64 flex-col">
               <div className="px-5 pt-8 pb-4">
-                <h2 className="text-sm font-semibold text-white/50">{data.label}</h2>
+                <Tertiary className="font-semibold text-white/50">{data.label}</Tertiary>
               </div>
               <div className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2 pb-4">
                 {data.options.map((option, i) => (

@@ -1,7 +1,7 @@
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import { LibraryContentItemType, type LibraryItem, LibraryTypes } from '@seerial/domain';
 import { useDataStore, useGradientStore } from '@seerial/stores';
-import { memo, useEffect } from 'react';
+import { memo, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { shallow } from 'zustand/shallow';
 import { NavigationGridView } from '@/shared/components/navigation';
@@ -39,6 +39,7 @@ function LibraryContent({
   const isMusicLibrary = libraryType === LibraryTypes.MUSIC;
   const finalItemsPerRow = isMusicLibrary ? itemsPerRow - 1 : itemsPerRow; // Music libraries have smaller cards, so we can fit more in the same space.
   const cardWidth = `calc((100% - ${(finalItemsPerRow - 1) * GRID_GAP_REM}rem) / ${finalItemsPerRow})`;
+  const defaultImageSrc = isMusicLibrary ? '/img/songDefault.png' : '/img/fileNotFound.jpg';
 
   const { lastFocusedElementId, setLastFocusedElementId } = useDataStore(
     (state) => ({
@@ -56,6 +57,53 @@ function LibraryContent({
     }
   }, [lastFocusedElementId, content]);
 
+  const handleFocus = useCallback(
+    (item: LibraryItem) => {
+      setSelectedElement(item);
+      setLastFocusedElementId(item.id);
+    },
+    [setSelectedElement, setLastFocusedElementId],
+  );
+
+  const handleAction = useCallback(
+    (item: LibraryItem) => {
+      navigate(
+        `/details/${item.type}/${item.id}${item.type === 'collection' ? `/${libraryType}` : ''}`,
+        {
+          state: {
+            cachedDetails: item.details,
+            numberOfItems: item.numberOfItems,
+            collectionId: item.collectionId,
+            currentSeasonNumber: item.currentSeasonNumber,
+            libraryType: libraryType,
+            collageImages: item.images,
+          },
+        },
+      );
+    },
+    [navigate, libraryType],
+  );
+
+  const cards = useMemo(
+    () =>
+      content?.map((item) => (
+        <ContentCard
+          key={item.id}
+          customKey={item.id}
+          title={item.title}
+          subtitle={item.years}
+          width={cardWidth}
+          onFocus={() => handleFocus(item)}
+          aspectRatio={isMusicLibrary || item.type === LibraryContentItemType.ALBUM ? '1' : '2/3'}
+          imgSrc={item.images && item.images.length === 1 ? item.images[0] : (item.coverSrc ?? '')}
+          collageImages={item.images && item.images.length > 1 ? item.images : undefined}
+          defaultImageSrc={defaultImageSrc}
+          action={() => handleAction(item)}
+        />
+      )),
+    [content, cardWidth, isMusicLibrary, defaultImageSrc, handleFocus, handleAction],
+  );
+
   return (
     <Page padding="0 4dvh">
       <NavigationGridView
@@ -65,37 +113,7 @@ function LibraryContent({
         focusedElementId={lastFocusedElementId}
         isRestoringFocus={isRestoringFocus}
       >
-        {content?.map((item) => (
-          // Music libraries should always render square covers.
-          // Fallback to album type check for mixed/legacy payloads.
-          <ContentCard
-            key={item.id}
-            customKey={item.id}
-            title={item.title}
-            subtitle={item.years}
-            width={cardWidth}
-            onFocus={() => {
-              setSelectedElement(item);
-              setLastFocusedElementId(item.id);
-            }}
-            aspectRatio={isMusicLibrary || item.type === LibraryContentItemType.ALBUM ? '1' : '2/3'}
-            imgSrc={item.coverSrc ?? ''}
-            action={() => {
-              navigate(
-                `/details/${item.type}/${item.id}${item.type === 'collection' ? `/${libraryType}` : ''}`,
-                {
-                  state: {
-                    cachedDetails: item.details,
-                    numberOfItems: item.numberOfItems,
-                    collectionId: item.collectionId,
-                    currentSeasonNumber: item.currentSeasonNumber,
-                    libraryType: libraryType,
-                  },
-                },
-              );
-            }}
-          />
-        ))}
+        {cards}
       </NavigationGridView>
     </Page>
   );

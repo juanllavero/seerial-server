@@ -12,6 +12,7 @@ interface MusicExtraCardProps {
   width?: string;
   onFocus?: () => void;
   action?: () => void;
+  onArrowPress?: (direction: string) => boolean;
 }
 
 function MusicExtraCard({
@@ -22,6 +23,7 @@ function MusicExtraCard({
   width = '30vh',
   onFocus,
   action,
+  onArrowPress,
 }: MusicExtraCardProps) {
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
   const [thumbnail, setThumbnail] = useState<string | null>(null);
@@ -31,6 +33,7 @@ function MusicExtraCard({
   const { ref, focused } = useFocusable({
     focusKey: customKey,
     onEnterPress: action,
+    onArrowPress,
   });
 
   useEffect(() => {

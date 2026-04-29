@@ -1,15 +1,19 @@
+import { getCurrentFocusKey, setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import { useGetLibraryContent } from '@seerial/api';
 import type { LibraryItem } from '@seerial/domain';
 import { useDataStore, useServerStore, useWebSocketStore } from '@seerial/stores';
-import { useEffect, useRef, useState } from 'react';
-import { useLocation, useParams } from 'react-router';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router';
 import { shallow } from 'zustand/shallow';
 import { LibraryContent } from '@/features/library-content';
 import Loading from '@/shared/components/loading';
+import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
+import { NavigationFocusKeys } from '@/shared/navigation/constants';
 
 function LibraryPage() {
   const { libraryId, type } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const { connectWS } = useWebSocketStore((state) => ({ connectWS: state.connectWS }), shallow);
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
   const lastFocusedElementId = useDataStore((state) => state.lastFocusedElementId);
@@ -41,6 +45,29 @@ function LibraryPage() {
   const { data: libraryContent, isLoading } = useGetLibraryContent<LibraryItem[]>(libraryId ?? '', {
     enabled: !!libraryId && !!type && serverUrl !== '',
     params: type ? { type } : undefined,
+  });
+
+  const libraryContentIds = useMemo(
+    () => new Set((libraryContent ?? []).map((item) => item.id)),
+    [libraryContent],
+  );
+
+  const handleBackFromLibrary = useCallback(() => {
+    const currentFocusKey = getCurrentFocusKey();
+    const isLibraryContentFocused = !!currentFocusKey && libraryContentIds.has(currentFocusKey);
+
+    if (isLibraryContentFocused) {
+      setFocus(NavigationFocusKeys.topBar.container);
+      return;
+    }
+
+    navigate('/home');
+  }, [libraryContentIds, navigate]);
+
+  useKeyboardBack({
+    enabled: !isLoading,
+    navigateOnBack: false,
+    preAction: handleBackFromLibrary,
   });
 
   // Detect if we're coming back from another page (restore) vs navigating within library

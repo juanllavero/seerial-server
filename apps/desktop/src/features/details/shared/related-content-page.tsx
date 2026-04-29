@@ -72,6 +72,7 @@ interface RelatedContentPageProps {
   currentItemId?: string;
   currentItemType?: ItemType;
   libraryType?: LibraryType;
+  isVisible: boolean;
   onNavigateBack: () => void;
 }
 
@@ -80,6 +81,7 @@ function RelatedContentPage({
   currentItemId,
   currentItemType,
   libraryType,
+  isVisible,
   onNavigateBack,
 }: RelatedContentPageProps) {
   const { t } = useTranslation();
@@ -160,9 +162,16 @@ function RelatedContentPage({
 
   const albums = collection?.albums ?? [];
 
+  // Reset focus guard when the page is hidden so it re-focuses on next open
+  useEffect(() => {
+    if (!isVisible) {
+      hasFocusedRef.current = false;
+    }
+  }, [isVisible]);
+
   // Focus the first element when the page becomes visible
   useEffect(() => {
-    if (hasFocusedRef.current || sections.length === 0) return;
+    if (!isVisible || hasFocusedRef.current || sections.length === 0) return;
 
     const firstSection = sections[0];
     const firstItem = firstSection?.items[0];
@@ -177,7 +186,7 @@ function RelatedContentPage({
     });
 
     return () => window.cancelAnimationFrame(frame);
-  }, [sections]);
+  }, [isVisible, sections]);
 
   return (
     <FlexBox
