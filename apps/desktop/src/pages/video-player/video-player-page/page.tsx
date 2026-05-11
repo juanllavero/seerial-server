@@ -17,7 +17,7 @@ import {
 import Loading from '@/shared/components/loading';
 import { useAppSettingsMpv } from '../../../features/video-player/hooks/use-app-settings-mpv';
 
-const LOAD_TIMEOUT_MS = 5000;
+const LOAD_TIMEOUT_MS = 15000;
 const PLAYER_HEALTH_POLL_INTERVAL_MS = 1000;
 
 type PlayerErrorMode = 'load' | 'playback';
