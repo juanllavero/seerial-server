@@ -10,6 +10,8 @@ interface DetailsTechnicalInfoProps {
 }
 
 function DetailsTechnicalInfo({ videoInfo, audioInfo, subtitleInfo }: DetailsTechnicalInfoProps) {
+  console.log('Technical Info:', { videoInfo, audioInfo, subtitleInfo }); // Debug log to check the values
+
   if (!videoInfo && !audioInfo && !subtitleInfo) {
     return null;
   }

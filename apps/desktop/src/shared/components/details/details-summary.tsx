@@ -9,7 +9,7 @@ interface DetailsSummaryProps {
   infoItems?: string[];
   durationInfo?: number;
   timeWatchedInfo?: number;
-  hideButtons?: boolean;
+  customDescription?: string;
 }
 
 function DetailsSummary({
@@ -17,7 +17,7 @@ function DetailsSummary({
   infoItems,
   durationInfo,
   timeWatchedInfo,
-  hideButtons,
+  customDescription,
 }: DetailsSummaryProps) {
   const hasWatchProgress =
     durationInfo !== undefined && timeWatchedInfo !== undefined && durationInfo > 0;
@@ -52,19 +52,16 @@ function DetailsSummary({
         <Tertiary style={{ color: 'var(--text-secondary)' }}>{details.genres}</Tertiary>
       )}
 
-      {details?.description && (
+      {(customDescription || details?.description) && (
         <FlexBox
           css={{
             maxWidth: 1000,
-            height: hideButtons ? '8dvh' : '12dvh',
+            height: '8dvh',
             paddingTop: 3,
           }}
         >
-          <Tertiary
-            className={`${hideButtons ? 'line-clamp-3' : 'line-clamp-4'} ellipsis`}
-            style={{ color: 'var(--text-secondary)' }}
-          >
-            {details.description}
+          <Tertiary className={`line-clamp-3 ellipsis`} style={{ color: 'var(--text-secondary)' }}>
+            {customDescription || details?.description}
           </Tertiary>
         </FlexBox>
       )}

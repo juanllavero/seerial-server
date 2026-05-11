@@ -15,12 +15,7 @@ function DetailsHeader({ details, subtitle }: DetailsHeaderProps) {
       </span>
 
       {details?.logoSrc && details.logoSrc !== '' ? (
-        <AlignedImage
-          className="mt-5 pb-5"
-          height={200}
-          maxWidth={1100}
-          imageUrl={details.logoSrc}
-        />
+        <AlignedImage className="mt-5 pb-5" imageUrl={details.logoSrc} />
       ) : (
         <Title className={`leading-none ${subtitle || details?.subtitle ? '' : 'mb-5'}`}>
           {details?.title}

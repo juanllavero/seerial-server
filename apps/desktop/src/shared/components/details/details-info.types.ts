@@ -2,6 +2,7 @@ import type { DetailsData } from '@seerial/domain';
 
 export interface DetailsInfoProps {
   details: DetailsData | undefined;
+  customDescription?: string;
   subtitle?: string;
   infoItems?: string[];
   durationInfo?: number;

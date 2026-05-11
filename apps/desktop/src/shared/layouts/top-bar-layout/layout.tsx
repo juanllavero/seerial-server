@@ -1,112 +1,16 @@
-import { useGetLibraries } from '@seerial/api';
-import { type Library, LibraryTypes } from '@seerial/domain';
-import { useGradientStore, useServerStore } from '@seerial/stores';
+import { useGradientStore } from '@seerial/stores';
 import { AnimatePresence, motion } from 'framer-motion';
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
-import { Outlet, useLocation, useMatch } from 'react-router-dom';
+import { memo, type ReactElement, useEffect, useRef, useState } from 'react';
+import { useLocation, useMatch, useOutlet } from 'react-router-dom';
 import { GradientBackground } from '@/shared/components/backgrounds';
 import TopBar from './components/top-bar';
 
-type TransitionDirection = 1 | -1;
-
-const ROUTE_ORDER = {
-  home: 0,
-  [LibraryTypes.MOVIES]: 1,
-  [LibraryTypes.SHOWS]: 2,
-  [LibraryTypes.MUSIC]: 3,
-  toSee: 4,
-} as const;
-
-type RoutePosition = {
-  order: number;
-  type?: LibraryTypes;
-  libraryIndex?: number;
-};
-
-function normalizeLibraryType(rawType: string): LibraryTypes | null {
-  if (rawType === LibraryTypes.MOVIES) {
-    return LibraryTypes.MOVIES;
-  }
-
-  if (rawType === LibraryTypes.SHOWS) {
-    return LibraryTypes.SHOWS;
-  }
-
-  if (rawType === LibraryTypes.MUSIC) {
-    return LibraryTypes.MUSIC;
-  }
-
-  return null;
-}
-
-function getLibraryIndex(libraries: Library[], type: LibraryTypes, libraryId: string): number {
-  const librariesForType = libraries.filter((library) => library.type === type);
-  const index = librariesForType.findIndex((library) => library.id === libraryId);
-
-  return index >= 0 ? index : 0;
-}
-
-function getRoutePosition(pathname: string, libraries: Library[]): RoutePosition {
-  if (pathname === '/home') {
-    return { order: ROUTE_ORDER.home };
-  }
-
-  if (pathname === '/see') {
-    return { order: ROUTE_ORDER.toSee };
-  }
-
-  const pathSegments = pathname.split('/').filter(Boolean);
-  const [segment, libraryId, rawType] = pathSegments;
-
-  if (segment === 'library' && libraryId && rawType) {
-    const type = normalizeLibraryType(rawType);
-
-    if (type) {
-      return {
-        order: ROUTE_ORDER[type],
-        type,
-        libraryIndex: getLibraryIndex(libraries, type, libraryId),
-      };
-    }
-  }
-
-  return { order: ROUTE_ORDER.home };
-}
-
-function getTransitionDirection(
-  previousPathname: string,
-  nextPathname: string,
-  libraries: Library[],
-): TransitionDirection {
-  const previous = getRoutePosition(previousPathname, libraries);
-  const next = getRoutePosition(nextPathname, libraries);
-
-  if (
-    previous.type &&
-    next.type &&
-    previous.type === next.type &&
-    previous.libraryIndex !== undefined &&
-    next.libraryIndex !== undefined &&
-    previous.libraryIndex !== next.libraryIndex
-  ) {
-    return next.libraryIndex > previous.libraryIndex ? 1 : -1;
-  }
-
-  if (next.order === previous.order) {
-    return 1;
-  }
-
-  return next.order > previous.order ? 1 : -1;
-}
-
 const pageVariants = {
-  initial: (direction: TransitionDirection) => ({
-    //x: direction === 1 ? '4%' : '-4%',
+  initial: () => ({
     opacity: 0,
   }),
   animate: { x: 0, opacity: 1 },
-  exit: (direction: TransitionDirection) => ({
-    //x: direction === 1 ? '-4%' : '4%',
+  exit: () => ({
     opacity: 0,
   }),
 };
@@ -116,37 +20,62 @@ const pageTransition = {
   ease: [0.25, 0.1, 0.25, 1] as const,
 };
 
+type OutletSnapshot = {
+  key: string;
+  element: ReactElement | null;
+};
+
 const TopBarLayout = () => {
   const gradientImageSrc = useGradientStore((state) => state.gradientImageSrc);
-  const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
   const location = useLocation();
-  const [direction, setDirection] = useState<TransitionDirection>(1);
+  const outlet = useOutlet();
   const previousPathnameRef = useRef(location.pathname);
-
-  const { data: librariesData } = useGetLibraries<Library[]>({
-    enabled: serverUrl !== '',
-    refetchOnWindowFocus: false,
-    staleTime: Number.POSITIVE_INFINITY,
-  });
-
-  const libraries = useMemo(() => librariesData ?? [], [librariesData]);
+  const pendingOutletRef = useRef<OutletSnapshot | null>(null);
+  const pendingHideTopBarRef = useRef<boolean | null>(null);
+  const [renderedOutlet, setRenderedOutlet] = useState<OutletSnapshot>(() => ({
+    key: location.key,
+    element: outlet,
+  }));
+  const [isPageVisible, setIsPageVisible] = useState(true);
 
   const isMovieDetails = useMatch('details/movie/:movieId');
   const isSeriesDetails = useMatch('details/series/:seriesId');
   const isAlbumDetails = useMatch('details/album/:albumId');
   const isCollectionDetails = useMatch('details/collection/:collectionId/:type');
   const hideTopBar = !!(isMovieDetails || isSeriesDetails || isAlbumDetails || isCollectionDetails);
+  const [renderedHideTopBar, setRenderedHideTopBar] = useState(hideTopBar);
 
   useEffect(() => {
     const previousPathname = previousPathnameRef.current;
 
     if (previousPathname !== location.pathname) {
-      const nextDirection = getTransitionDirection(previousPathname, location.pathname, libraries);
-
-      setDirection(nextDirection);
       previousPathnameRef.current = location.pathname;
     }
-  }, [libraries, location.pathname]);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (location.key === renderedOutlet.key) {
+      setRenderedOutlet({ key: location.key, element: outlet });
+      setRenderedHideTopBar(hideTopBar);
+      return;
+    }
+
+    pendingOutletRef.current = { key: location.key, element: outlet };
+    pendingHideTopBarRef.current = hideTopBar;
+    setIsPageVisible(false);
+  }, [location.key, outlet, renderedOutlet.key, hideTopBar]);
+
+  const handleExitComplete = () => {
+    if (!pendingOutletRef.current) {
+      return;
+    }
+
+    setRenderedOutlet(pendingOutletRef.current);
+    pendingOutletRef.current = null;
+    setRenderedHideTopBar(pendingHideTopBarRef.current ?? false);
+    pendingHideTopBarRef.current = null;
+    setIsPageVisible(true);
+  };
 
   return (
     <div
@@ -154,21 +83,22 @@ const TopBarLayout = () => {
       style={{ backgroundColor: 'var(--seerial-app-shell-background, black)' }}
     >
       <GradientBackground imageSrc={gradientImageSrc} index={0} />
-      {!hideTopBar && <TopBar />}
+      {!renderedHideTopBar && <TopBar />}
 
-      <AnimatePresence mode="wait" initial={false} custom={direction}>
-        <motion.div
-          key={location.key}
-          className="w-full flex-1 min-h-0"
-          variants={pageVariants}
-          custom={direction}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          transition={pageTransition}
-        >
-          <Outlet />
-        </motion.div>
+      <AnimatePresence mode="wait" initial={false} onExitComplete={handleExitComplete}>
+        {isPageVisible && (
+          <motion.div
+            key={renderedOutlet.key}
+            className="w-full flex-1 min-h-0"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={pageTransition}
+          >
+            {renderedOutlet.element}
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );

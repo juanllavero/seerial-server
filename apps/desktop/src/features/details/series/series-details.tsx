@@ -101,10 +101,6 @@ function getEpisodeSubtitleInfo(selectedEpisode: Episode | null): string | undef
   return selectedEpisode.video.subtitleTracks?.[index]?.displayTitle;
 }
 
-function getPagePadding(seasons: Season[] | undefined): string {
-  return seasons && seasons.length > 1 ? '0' : '0 0 5dvh 0';
-}
-
 function SeriesDetails({
   series,
   isLoading,
@@ -187,8 +183,6 @@ function SeriesDetails({
     [selectedEpisode],
   );
 
-  const pagePadding = useMemo(() => getPagePadding(series?.seasons), [series?.seasons]);
-
   const handleMarkWatched = useCallback(async () => {
     if (!series || !selectedEpisode || isUpdatingWatchState) {
       return;
@@ -202,6 +196,12 @@ function SeriesDetails({
 
   if (!isLoading && !series) return <span>Series not found</span>;
 
+  console.log({
+    selectedEpisode,
+    video: selectedEpisode?.video,
+    mediaInfo: selectedEpisode?.video.mediaInfo,
+  }); // Debug log to check the values
+
   return (
     <DetailsWithRelatedContent
       collectionId={collectionId}
@@ -209,7 +209,7 @@ function SeriesDetails({
       currentItemType="series"
       libraryType={libraryType}
     >
-      <Page justify="end" padding={pagePadding} fullScreen>
+      <Page justify="end" padding={'0'} fullScreen>
         {!!series?.id && (
           <DetailsBackgroundPlayback
             audioLocalIds={[selectedSeason?.id, series.id]}
@@ -231,6 +231,7 @@ function SeriesDetails({
           handlePlay={handlePlay}
           handleMarkWatched={handleMarkWatched}
           isWatched={isWatched}
+          customDescription={selectedEpisode?.overview}
         />
         <EpisodesList
           selectedSeason={selectedSeason}

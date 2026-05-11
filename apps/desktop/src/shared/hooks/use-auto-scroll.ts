@@ -164,6 +164,8 @@ function shouldSkipAutoScroll(
   focusedElementId: string | undefined,
   container: HTMLDivElement | null,
   lastFocusedId: string | undefined,
+  isRestoringFocus: boolean,
+  lastIsRestoringFocus: boolean | undefined,
   debug: boolean,
 ): boolean {
   if (!focusedElementId) {
@@ -177,6 +179,15 @@ function shouldSkipAutoScroll(
   }
 
   if (lastFocusedId === focusedElementId) {
+    const hasRestoringModeChanged = lastIsRestoringFocus !== isRestoringFocus;
+    if (hasRestoringModeChanged) {
+      if (debug)
+        console.log(
+          '[useAutoScroll] Continue: same focusedElementId but isRestoringFocus changed',
+        );
+      return false;
+    }
+
     if (debug) console.log('[useAutoScroll] Early return: same focusedElementId as before');
     return true;
   }
@@ -245,10 +256,18 @@ export function useAutoScroll({
   debug = false,
 }: UseAutoScrollProps) {
   const lastFocusedIdRef = useRef<string | undefined>(undefined);
+  const lastIsRestoringFocusRef = useRef<boolean | undefined>(undefined);
 
   useEffect(() => {
     if (
-      shouldSkipAutoScroll(focusedElementId, containerRef.current, lastFocusedIdRef.current, debug)
+      shouldSkipAutoScroll(
+        focusedElementId,
+        containerRef.current,
+        lastFocusedIdRef.current,
+        isRestoringFocus,
+        lastIsRestoringFocusRef.current,
+        debug,
+      )
     ) {
       return;
     }
@@ -262,8 +281,6 @@ export function useAutoScroll({
       console.log(
         `[useAutoScroll] Focus changed: ${lastFocusedIdRef.current} -> ${currentFocusedElementId}`,
       );
-
-    lastFocusedIdRef.current = currentFocusedElementId;
 
     const timeoutId = setTimeout(() => {
       const container = containerRef.current;
@@ -296,6 +313,12 @@ export function useAutoScroll({
         targetScrollLeft,
         isRestoringFocus,
       );
+
+      // Mark as processed only after scroll is actually applied.
+      // This avoids skipping the first user navigation when a previous timeout
+      // was canceled by an intermediate render (e.g. isRestoringFocus flip).
+      lastFocusedIdRef.current = currentFocusedElementId;
+      lastIsRestoringFocusRef.current = isRestoringFocus;
     }, 0);
 
     return () => clearTimeout(timeoutId);

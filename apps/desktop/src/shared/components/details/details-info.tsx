@@ -15,6 +15,7 @@ function DetailsInfo({
   infoItems,
   durationInfo,
   timeWatchedInfo,
+  customDescription,
   handlePlay,
   handleMoreOptions,
   handleMarkWatched,
@@ -39,7 +40,7 @@ function DetailsInfo({
         infoItems={infoItems}
         durationInfo={durationInfo}
         timeWatchedInfo={timeWatchedInfo}
-        hideButtons={hideButtons}
+        customDescription={customDescription}
       />
 
       {!hideButtons && (
