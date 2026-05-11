@@ -105,50 +105,54 @@ export const getAudioTrack = (prefAudioLan: string, video: Video) => {
     if (!video.audioTracks || video.audioTracks.length === 0) return null;
 
     if (
-        video.selectedAudioTrack &&
-        video.selectedAudioTrack !== -1 &&
+        video.selectedAudioTrack != null &&
+        video.selectedAudioTrack >= 0 &&
         video.selectedAudioTrack < video.audioTracks.length
     ) {
         return video.audioTracks[video.selectedAudioTrack];
-    } else {
-        if (prefAudioLan !== '') {
-            const track = video.audioTracks.find((track) => track.language === prefAudioLan);
-            if (track) return track;
-        }
-
-        return video.audioTracks[0];
     }
+
+    if (prefAudioLan !== '') {
+        const track = video.audioTracks.find((track) => track.language === prefAudioLan);
+        if (track) return track;
+    }
+
+    return video.audioTracks[0];
 };
 
 export const getSubtitleTrack = (prefSubsLan: string, subsMode: string, video: Video) => {
     if (!video.subtitleTracks || video.subtitleTracks.length === 0) return null;
 
-    if (
-        video.selectedSubtitleTrack &&
-        video.selectedSubtitleTrack !== -1 &&
-        video.selectedSubtitleTrack < video.subtitleTracks.length
-    ) {
-        return video.subtitleTracks[video.selectedSubtitleTrack];
-    } else {
-        // Convert 2-letter code to 3-letter code
-        const targetLang = iso1to3[prefSubsLan] ?? prefSubsLan;
+    if (video.selectedSubtitleTrack != null) {
+        // -1 means the user explicitly disabled subtitles
+        if (video.selectedSubtitleTrack === -1) return null;
 
-        const defaultTrack =
-            subsMode === 'alwaysSubs'
-                ? video.subtitleTracks.length > 0
-                    ? video.subtitleTracks[0]
-                    : null
-                : null;
-
-        switch (subsMode) {
-            case 'autoSubs':
-            case 'alwaysSubs':
-                return (
-                    video.subtitleTracks.findLast((track) => track.languageTag === targetLang) ?? defaultTrack
-                );
-            default:
-                return null;
+        if (
+            video.selectedSubtitleTrack >= 0 &&
+            video.selectedSubtitleTrack < video.subtitleTracks.length
+        ) {
+            return video.subtitleTracks[video.selectedSubtitleTrack];
         }
+    }
+
+    // Convert 2-letter code to 3-letter code
+    const targetLang = iso1to3[prefSubsLan] ?? prefSubsLan;
+
+    const defaultTrack =
+        subsMode === 'alwaysSubs'
+            ? video.subtitleTracks.length > 0
+                ? video.subtitleTracks[0]
+                : null
+            : null;
+
+    switch (subsMode) {
+        case 'autoSubs':
+        case 'alwaysSubs':
+            return (
+                video.subtitleTracks.findLast((track) => track.languageTag === targetLang) ?? defaultTrack
+            );
+        default:
+            return null;
     }
 };
 

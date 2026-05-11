@@ -7,6 +7,7 @@ import type {
   Video,
 } from '@seerial/domain';
 import { getAudioTrack, getSubtitleTrack } from '@seerial/domain';
+import { useUpdateVideo } from '@seerial/api';
 import { useServerStore } from '@seerial/stores';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Captions, Music2 } from 'lucide-react';
@@ -104,6 +105,10 @@ function TracksSelectors({
   const { t } = useTranslation();
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
   const mpv = useMpvPlayer();
+  const { mutate: updateVideo } = useUpdateVideo<
+    void,
+    { selectedAudioTrack?: number; selectedSubtitleTrack?: number }
+  >(video.id);
   const [openPanel, setOpenPanel] = useState<SelectorPanel | null>(null);
   const [selectedAudioTrack, setSelectedAudioTrack] = useState<AudioTrack | null>(
     video.audioTracks?.find((track) => track.selected) || null,
@@ -154,6 +159,7 @@ function TracksSelectors({
   };
 
   const handleAudioTrackChange = async (track: AudioTrack) => {
+    const trackIndex = (video.audioTracks ?? []).findIndex((t) => t.id === track.id);
     setSelectedAudioTrack(track);
     setTracks((currentTracks) => ({
       ...currentTracks,
@@ -161,6 +167,9 @@ function TracksSelectors({
     }));
     closePanel();
     await mpv.setAudioTrack(track.id);
+    if (trackIndex !== -1) {
+      updateVideo({ selectedAudioTrack: trackIndex });
+    }
   };
 
   const handleDisableSubtitles = useCallback(async () => {
@@ -171,9 +180,11 @@ function TracksSelectors({
     }));
     closePanel();
     await mpv.setSubtitleTrack(0);
-  }, [closePanel, mpv.setSubtitleTrack]);
+    updateVideo({ selectedSubtitleTrack: -1 });
+  }, [closePanel, mpv.setSubtitleTrack, updateVideo]);
 
   const handleSubtitleTrackChange = async (track: SubtitleTrack) => {
+    const trackIndex = (video.subtitleTracks ?? []).findIndex((t) => t.id === track.id);
     setSelectedSubtitleTrack(track);
     setTracks((currentTracks) => ({
       ...currentTracks,
@@ -181,6 +192,9 @@ function TracksSelectors({
     }));
     closePanel();
     await mpv.setSubtitleTrack(track.id);
+    if (trackIndex !== -1) {
+      updateVideo({ selectedSubtitleTrack: trackIndex });
+    }
   };
 
   useEffect(() => {

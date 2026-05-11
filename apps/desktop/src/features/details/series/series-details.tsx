@@ -1,6 +1,6 @@
 import { useSetEpisodeWatchState } from '@seerial/api';
 import type { DetailsData, Episode, LibraryType, Season, Series } from '@seerial/domain';
-import { formatDate, formatTimeForView } from '@seerial/domain';
+import { formatDate, formatTimeForView, getAudioTrack, getSubtitleTrack } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { useQueryClient } from '@tanstack/react-query';
 import { t } from 'i18next';
@@ -83,22 +83,30 @@ function buildDetailsInfoItems(selectedEpisode: Episode | null, seriesYear: stri
   ];
 }
 
-function getEpisodeAudioInfo(selectedEpisode: Episode | null): string | undefined {
+function getEpisodeAudioInfo(
+  selectedEpisode: Episode | null,
+  series: Series | undefined,
+): string | undefined {
   if (!selectedEpisode) {
     return undefined;
   }
 
-  const index = selectedEpisode.video.selectedAudioTrack ?? 0;
-  return selectedEpisode.video.audioTracks?.[index]?.displayTitle;
+  return getAudioTrack(series?.preferAudioLan ?? '', selectedEpisode.video)?.displayTitle;
 }
 
-function getEpisodeSubtitleInfo(selectedEpisode: Episode | null): string | undefined {
+function getEpisodeSubtitleInfo(
+  selectedEpisode: Episode | null,
+  series: Series | undefined,
+): string | undefined {
   if (!selectedEpisode) {
     return undefined;
   }
 
-  const index = selectedEpisode.video.selectedSubtitleTrack ?? 0;
-  return selectedEpisode.video.subtitleTracks?.[index]?.displayTitle;
+  return getSubtitleTrack(
+    series?.preferSubLan ?? '',
+    series?.subsMode ?? 'autoSubs',
+    selectedEpisode.video,
+  )?.displayTitle;
 }
 
 function SeriesDetails({
@@ -177,10 +185,13 @@ function SeriesDetails({
     [selectedEpisode, series?.year],
   );
 
-  const episodeAudioInfo = useMemo(() => getEpisodeAudioInfo(selectedEpisode), [selectedEpisode]);
+  const episodeAudioInfo = useMemo(
+    () => getEpisodeAudioInfo(selectedEpisode, series),
+    [selectedEpisode, series],
+  );
   const episodeSubtitleInfo = useMemo(
-    () => getEpisodeSubtitleInfo(selectedEpisode),
-    [selectedEpisode],
+    () => getEpisodeSubtitleInfo(selectedEpisode, series),
+    [selectedEpisode, series],
   );
 
   const handleMarkWatched = useCallback(async () => {

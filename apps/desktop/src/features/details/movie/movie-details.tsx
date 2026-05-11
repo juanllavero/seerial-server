@@ -1,8 +1,10 @@
-import { useSetMovieWatchState } from '@seerial/api';
+import { useGetLibrary, useSetMovieWatchState } from '@seerial/api';
 import {
   type DetailsData,
   formatDate,
   formatTimeForView,
+  getAudioTrack,
+  getSubtitleTrack,
   type LibraryType,
   type Movie,
   type Video,
@@ -41,6 +43,10 @@ function MovieDetails({ movie, isLoading, details, collectionId, libraryType }: 
   const { mutateAsync: setMovieWatchState, isPending: isUpdatingWatchState } =
     useSetMovieWatchState<unknown, { watched: boolean }>(movie?.id ?? '');
 
+  const { data: library } = useGetLibrary(movie?.libraryId ?? '', {
+    enabled: !!movie?.libraryId,
+  });
+
   useEffect(() => {
     if (movie && movie.videos.length > 0) {
       selectVideo(movie.videos[0]);
@@ -72,6 +78,20 @@ function MovieDetails({ movie, isLoading, details, collectionId, libraryType }: 
     });
   }, [movie, isUpdatingWatchState, isWatched, queryClient, setMovieWatchState]);
 
+  const movieAudioInfo = useMemo(() => {
+    if (!selectedVideo || !library) return undefined;
+    return getAudioTrack(library.preferAudioLan ?? '', selectedVideo)?.displayTitle;
+  }, [selectedVideo, library]);
+
+  const movieSubtitleInfo = useMemo(() => {
+    if (!selectedVideo || !library) return undefined;
+    return getSubtitleTrack(
+      library.preferSubLan ?? '',
+      library.subsMode ?? 'autoSubs',
+      selectedVideo,
+    )?.displayTitle;
+  }, [selectedVideo, library]);
+
   if (!isLoading && !movie) return <span>Movie not found</span>;
 
   return (
@@ -100,6 +120,8 @@ function MovieDetails({ movie, isLoading, details, collectionId, libraryType }: 
             formatDate(details?.year ?? movie?.year ?? ''),
             selectedVideo ? formatTimeForView(selectedVideo.runtime ?? 0) : '',
           ]}
+          audioInfo={movieAudioInfo}
+          subtitleInfo={movieSubtitleInfo}
           handlePlay={handlePlay}
           handleMarkWatched={handleMarkWatched}
           isWatched={isWatched}
