@@ -47,6 +47,8 @@ async fn main() {
     let karaoke_state = KaraokeState::new();
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .manage(mpv_state)
         .manage(karaoke_state)
         .setup(|app| {

@@ -6,6 +6,7 @@ export interface GetLibraryContentParams {
     type?: string
     flat?: string
     watched?: boolean
+    [key: string]: unknown
 }
 
 export type GetLibraryContentOptions<TResponse> = Omit<QueryHookOptions<TResponse>, 'params'> & {

@@ -6,7 +6,7 @@ export {
   SeriesDetails,
   useRelatedContent,
 } from './details';
-export { LogoIntro } from './home';
+export { HomePageContent } from './home';
 export { ItemsPerRowSlider, LibraryContent } from './library-content';
 export {
   AnimatedSoundBars,
@@ -20,4 +20,5 @@ export {
 } from './music-player';
 export { SettingsPanel } from './settings';
 export { ToSee } from './to-see';
+export { UpdateDialog } from './updater';
 export { VideoPlayer } from './video-player';
