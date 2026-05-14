@@ -14,6 +14,7 @@ export type DialogPayloads = {
   song: { id: string };
 
   // Delete dialogs — id obligatorio
+  deleteLibrary: { id: string };
   deleteSeries: { id: string };
   deleteMovie: { id: string };
   deleteSeason: { id: string };
@@ -21,7 +22,6 @@ export type DialogPayloads = {
   deleteAlbum: { id: string };
   deleteSong: { id: string };
   deleteCollection: { id: string };
-  removeLibrary: { id: string };
 
   // Feature dialogs
   identification: { seriesId?: string; movieId?: string };

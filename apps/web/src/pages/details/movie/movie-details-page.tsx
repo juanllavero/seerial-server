@@ -1,6 +1,5 @@
 import { useDialogStore } from '@/features/management';
-import { MovieContent, CastList } from '@/features/media-details';
-import MyListButton from '@/features/media-details/components/movie/my-list-button';
+import { MovieContent, CastList, MovieMyListButton as MyListButton } from '@/features/media-details';
 import { useSettingsStore } from '@/features/settings';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { Button } from '@/shared/ui/button';

@@ -49,7 +49,7 @@ function ServerGeneral({ isLoaded }: { isLoaded: boolean }) {
   };
 
   const handleSearchUpdates = () => {
-    console.log('search updates');
+    // TODO: implement search updates
   };
 
   return (

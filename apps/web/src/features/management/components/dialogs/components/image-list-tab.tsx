@@ -129,8 +129,6 @@ function ImageListTab({
     };
   }, [imageUrl]);
 
-  console.log({ localImages });
-
   return (
     <FlexBox direction="column" gap={1} height={isTablet ? '25rem' : '35rem'}>
       <FlexBox gap={1} justify="center" align="center" width={'100%'} padding="0 0.5rem">

@@ -46,12 +46,18 @@ function useEditDialog<TEntity extends object, TImages extends object>({
   const images = useFormState<TImages>(initialImages);
   const [selectedTab, setSelectedTab] = useState<string | undefined>();
 
+  const { setFormState } = images;
+
   useEffect(() => {
     if (!entity) return;
     reset(generateResetValues(entity, ...configs));
-    images.setFormState(getImagesFromEntity(entity));
+    setFormState(getImagesFromEntity(entity));
     setSelectedTab(t('generalButton'));
-  }, [entity, reset, configs, getImagesFromEntity, images, t]);
+    // configs and getImagesFromEntity are excluded intentionally: they are defined
+    // inline at call-sites and would create a new reference on every render,
+    // causing an infinite update loop. entity and reset are the real triggers.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entity, reset, setFormState, t]);
 
   const handleUpdate = handleSubmit(async (data) => {
     if (updating) return;

@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 type FormState<T> = {
   [K in keyof T]: T[K];
@@ -51,21 +51,24 @@ function useFormState<T extends object>(
     ...initialValues,
   }));
 
+  // Capture the initial schema in a ref so resetFormState is always stable
+  // (schema is typically an inline object literal — new reference every render)
+  const schemaRef = useRef<T>(schema);
+
   // Helper to update multiple form state values at once
   const setFormState = useCallback((values: Partial<T>) => {
     setFormStateInternal((prev) => ({ ...prev, ...values }));
   }, []);
 
-  // Helper to reset form state to initial values
-  const resetFormState = useCallback(
-    (values?: Partial<T>) => {
-      setFormStateInternal({
-        ...schema,
-        ...values,
-      });
-    },
-    [schema],
-  );
+  // Helper to reset form state to initial values.
+  // Uses schemaRef so its reference is stable and won't cause infinite useEffect loops
+  // when callers include resetFormState in their dependency arrays.
+  const resetFormState = useCallback((values?: Partial<T>) => {
+    setFormStateInternal({
+      ...schemaRef.current,
+      ...values,
+    });
+  }, []);
 
   // Dynamically create setters for each form field — memoized so references are stable across renders
   // biome-ignore lint/correctness/useExhaustiveDependencies: setters rely only on setFormStateInternal (stable useState setter) and schema keys (constant per hook instance); no deps needed

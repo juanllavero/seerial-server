@@ -101,7 +101,7 @@ const NavLibraries = () => {
                   : Music,
             action: () => {
               selectLibrary(library.id);
-              navigate(`/library/${library.id}`);
+              navigate(`/library/${library.id}/${library.type}`);
             },
           })),
         ]
@@ -137,7 +137,7 @@ const NavLibraries = () => {
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton asChild tooltip={item.name}>
                     <Link
-                      to={`/library/${item.id}`}
+                      to={`/library/${item.id}/${item.type}`}
                       className={`flex items-center gap-2 ${
                         activeItem && activeItem.id === item.id ? 'bg-transparent' : ''
                       }`}
@@ -145,6 +145,7 @@ const NavLibraries = () => {
                         e.preventDefault();
 
                         setActiveItem(item);
+                        item.action();
                       }}
                       style={{
                         color: activeItem && activeItem.id === item.id ? 'var(--app-color)' : '',
@@ -196,7 +197,7 @@ const NavLibraries = () => {
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          onClick={() => openDialog('removeLibrary', { id: item.id })}
+                          onClick={() => openDialog('deleteLibrary', { id: item.id })}
                         >
                           <Trash2 className="text-muted-foreground" />
                           <span>{t('removeLibrary')}</span>
