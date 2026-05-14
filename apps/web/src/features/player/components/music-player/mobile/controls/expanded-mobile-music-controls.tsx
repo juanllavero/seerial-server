@@ -1,5 +1,6 @@
 import { DotsVerticalIcon } from '@radix-ui/react-icons';
 import { formatTime, RepeateMode } from '@seerial/domain';
+import type { LRCFile } from '@seerial/domain';
 import { useMusicStore } from '@seerial/stores';
 import {
   ChevronDown,

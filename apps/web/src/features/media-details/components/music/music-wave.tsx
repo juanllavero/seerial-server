@@ -1,5 +1,5 @@
 import { useMusicStore } from '@seerial/stores';
-import '@/styles/animations';
+import '@/styles/animations.css';
 import { memo } from 'react';
 
 const MusicWave = () => {

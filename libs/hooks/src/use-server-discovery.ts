@@ -162,7 +162,9 @@ export function useServerDiscovery() {
 
   // Patch a single server entry by key
   const patch = useCallback((key: string, updates: Partial<DiscoveredServer>) => {
-    setServers((prev) => prev.map((s) => (s.key === key ? { ...s, ...updates } : s)))
+    setServers((prev: DiscoveredServer[]) =>
+      prev.map((s: DiscoveredServer) => (s.key === key ? { ...s, ...updates } : s)),
+    )
   }, [])
 
   useEffect(() => {
@@ -225,8 +227,8 @@ export function useServerDiscovery() {
     async (host: string, port: number | string): Promise<boolean> => {
       const url = normalizeUrl(host, port)
 
-      setServers((prev) => {
-        if (prev.find((s) => s.key === url)) return prev
+      setServers((prev: DiscoveredServer[]) => {
+        if (prev.find((s: DiscoveredServer) => s.key === url)) return prev
         return [...prev, { key: url, name: url, url, status: 'checking', users: [] }]
       })
 

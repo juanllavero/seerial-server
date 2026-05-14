@@ -1,4 +1,4 @@
-import type { Cast } from '@seerial/domain';
+import type { CastData as Cast } from '@seerial/domain';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import FlexBox from '@/shared/ui/flex-box';
 

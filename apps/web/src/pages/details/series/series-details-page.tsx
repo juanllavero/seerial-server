@@ -24,8 +24,6 @@ import { MarkWatchedIcon, UnmarkWatchedIcon } from '@/shared/ui/icon-library';
 import LazyImage from '@/shared/ui/lazy-image';
 import NotFound from '@/shared/ui/not-found';
 import { Skeleton } from '@/shared/ui/skeleton';
-import '../details-page';
-
 function SeriesDetailsPage() {
   const { seriesId } = useParams();
   const { selectedSeasonId, selectSeason, setCurrentBackground, currentBackground } = useDataStore(
@@ -60,6 +58,9 @@ function SeriesDetailsPage() {
   const season = series?.seasons
     ? series.seasons.find((s: Season) => s.id === selectedSeasonId)
     : undefined;
+
+  const seasonWatchList = season?.watchLists?.find((list) => list.userId === user?.id);
+  const isWatched = seasonWatchList?.watched ?? false;
 
   const isMobile = useIsMobile();
   const showPoster: boolean = (clientSettings.showPosters as boolean) ?? true;
@@ -114,7 +115,7 @@ function SeriesDetailsPage() {
     if (season) {
       await create(API.seasons.setWatchState(season.id), {
         seasonId: season.id,
-        watched: !season.watchStatus,
+        watched: !isWatched,
         userId: user?.id,
       });
 
@@ -223,16 +224,16 @@ function SeriesDetailsPage() {
           <FlexBox gap={1} wrap="wrap">
             <PlayButton
               selectedSeasonId={selectedSeasonId}
-              currentlyWatchingEpisodeId={series ? series.currentlyWatchingEpisodeId : undefined}
+              currentlyWatchingEpisodeId={undefined}
             />
             {!isMobile && (
               <>
                 <Button
                   variant={'ghost'}
-                  title={season?.watchStatus ? t('markUnwatched') : t('markWatched')}
+                  title={isWatched ? t('markUnwatched') : t('markWatched')}
                   onClick={toggleSeasonWatched}
                 >
-                  {season?.watchStatus ? <UnmarkWatchedIcon /> : <MarkWatchedIcon />}
+                  {isWatched ? <UnmarkWatchedIcon /> : <MarkWatchedIcon />}
                 </Button>
                 <MyListButton seriesId={seriesId ?? ''} />
               </>

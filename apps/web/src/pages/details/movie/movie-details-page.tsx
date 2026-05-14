@@ -44,6 +44,8 @@ function MovieDetailsPage() {
 
   const isMobile = useIsMobile();
   const showPoster: boolean = (clientSettings.showPosters as boolean) ?? true;
+  const watchList = movie?.watchLists?.find((list) => list.userId === user?.id);
+  const isWatched = watchList?.watched ?? false;
 
   // Set background image src
   useEffect(() => {
@@ -89,7 +91,7 @@ function MovieDetailsPage() {
     if (movie) {
       await setMovieWatchState({
         movieId: movie.id,
-        watched: !movie.watchStatus,
+        watched: !isWatched,
         userId: user?.id,
       });
       mutate();
@@ -203,10 +205,10 @@ function MovieDetailsPage() {
               <>
                 <Button
                   variant={'ghost'}
-                  title={movie?.watchStatus ? t('markUnwatched') : t('markWatched')}
+                  title={isWatched ? t('markUnwatched') : t('markWatched')}
                   onClick={toggleMovieWatched}
                 >
-                  {movie?.watchStatus ? <UnmarkWatchedIcon /> : <MarkWatchedIcon />}
+                  {isWatched ? <UnmarkWatchedIcon /> : <MarkWatchedIcon />}
                 </Button>
                 <MyListButton movieId={movieId ?? ''} />
               </>

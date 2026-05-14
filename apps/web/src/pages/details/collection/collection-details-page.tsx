@@ -4,6 +4,7 @@ import { useIsAdmin } from '@seerial/hooks';
 import { useDataStore } from '@seerial/stores';
 import { Ellipsis, Pencil } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { shallow } from 'zustand/shallow';
@@ -176,7 +177,7 @@ function CollectionDetailsPage() {
   };
 
   const renderMap: {
-    [K in CollectionKey]: (items: CollectionItemsByKey[K]) => React.ReactNode;
+    [K in CollectionKey]: (items: CollectionItemsByKey[K]) => ReactNode;
   } = {
     albums: (items: Album[]) => (
       <FlexBox key={'Albums'} direction="column" justify="center" align="center" width={'100%'}>
@@ -387,9 +388,19 @@ function CollectionDetailsPage() {
       ) : (
         orderMap[type as ContentType].map((key) => {
           const items = collection[key];
-          return items && items.length > 0
-            ? renderMap[key](items as CollectionItemsByKey[typeof key])
-            : null;
+
+          if (!items || items.length === 0) {
+            return null;
+          }
+
+          switch (key) {
+            case 'albums':
+              return renderMap.albums(items as Album[]);
+            case 'movies':
+              return renderMap.movies(items as Movie[]);
+            case 'shows':
+              return renderMap.shows(items as Series[]);
+          }
         })
       )}
     </FlexBox>

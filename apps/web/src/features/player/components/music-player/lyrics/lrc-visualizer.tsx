@@ -29,7 +29,7 @@ const LRCVisualizer = () => {
   const [currentLineIndex, setCurrentLineIndex] = useState(0);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const scrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: lyrics, isLoading } = useGetSongLyrics<LRCFile[]>(currentSong?.id ?? '', {
     enabled: Boolean(currentSong?.id && isShown),
@@ -57,7 +57,7 @@ const LRCVisualizer = () => {
           const milliseconds = parseInt(timeMatch[3].padEnd(3, '0'));
           const time = minutes * 60 + seconds + milliseconds / 1000;
           const text = timeMatch[4].trim();
-          lrcLines.push({ time, text: text || '♪', originalLine: line });
+          lrcLines.push({ time, text: text || '♪' });
         }
       });
       return lrcLines.sort((a, b) => a.time - b.time);

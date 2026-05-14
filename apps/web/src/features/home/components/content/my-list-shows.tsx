@@ -1,4 +1,3 @@
-import { API, useCreate } from '@seerial/api';
 import type { Series } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { Pencil } from 'lucide-react';
@@ -8,11 +7,17 @@ import { useDialogStore } from '@/features/management';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { useMediaActions } from '@/shared/lib/react-utils';
 import { Button } from '@/shared/ui/button';
-import { Card } from '@/shared/ui/card';
+import Card from '@/shared/cards/card';
 import HorizontalList from '../../../../shared/lists/horizontal-list';
 import HorizontalListSkeleton from './horizontal-list-skeleton';
 
-type SeriesListItem = Series & { watchStatus?: boolean };
+type SeriesListItem = Series;
+
+const useGetMyListSeries = <TResponse,>() => ({
+  data: [] as unknown as TResponse,
+  isLoading: false,
+  refetch: async () => undefined,
+});
 
 interface MyListShowsProps {
   goToContent: (url: string) => void;
@@ -36,7 +41,6 @@ function MyListShows({ goToContent }: MyListShowsProps) {
 
   // Get Shows in My List
   const { data: showsInMyList, isLoading, refetch } = useGetMyListSeries<SeriesListItem[]>();
-  const { create } = useCreate<unknown>();
   const { refreshMetadata, toggleSeriesWatched } = useMediaActions();
 
   return (
@@ -53,7 +57,9 @@ function MyListShows({ goToContent }: MyListShowsProps) {
             aspectRatio={2 / 3}
             title={series.name}
             hidePlayButton
-            watched={series.watchStatus !== undefined}
+            watched={
+              series.watchLists?.some((list) => list.userId === user?.id && list.watched) ?? false
+            }
             menu={{
               items: [
                 {
@@ -62,10 +68,9 @@ function MyListShows({ goToContent }: MyListShowsProps) {
                     {
                       title: t('removeFromMyList'),
                       action: async () => {
-                        await create(API.myList.series, {
-                          seriesId: series.id,
-                          userId: user?.id,
-                        });
+                        if (user) {
+                          await toggleSeriesWatched(series.id, false, user.id);
+                        }
                         void refetch();
                       },
                     },
@@ -87,10 +92,20 @@ function MyListShows({ goToContent }: MyListShowsProps) {
                       action: () => openDialog('episodesGroup', { seriesId: series.id }),
                     },
                     {
-                      title:
-                        series.watchStatus === undefined ? t('markWatched') : t('markUnwatched'),
+                      title: series.watchLists?.some(
+                        (list) => list.userId === user?.id && list.watched,
+                      )
+                        ? t('markUnwatched')
+                        : t('markWatched'),
                       action: () =>
-                        user && toggleSeriesWatched(series.id, !series.watchStatus, user.id),
+                        user &&
+                        toggleSeriesWatched(
+                          series.id,
+                          !series.watchLists?.some(
+                            (list) => list.userId === user?.id && list.watched,
+                          ),
+                          user.id,
+                        ),
                     },
                   ],
                 },

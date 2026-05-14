@@ -1,6 +1,5 @@
-import { API, getSignedVideoStreamUrl, useGet } from '@seerial/api';
+import { API, getSignedVideoStreamUrlPassthrough, useGet } from '@seerial/api';
 import type { AudioTrack, SubtitleTrack, Video, WatchList } from '@seerial/domain';
-import { getAudioTrack, getSubtitleTrack } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { type MouseEvent as ReactMouseEvent, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
@@ -10,8 +9,9 @@ import {
   HtmlVideoPlayer as HTMLVideoPlayer,
   VideoPlayerTopBar as TopBar,
 } from '@/features/player';
+import { getAudioTrack, getSubtitleTrack } from '@/shared/lib/react-utils';
 import Loading from '@/shared/ui/loading';
-import './video-player-page';
+import './video-player-page.css';
 
 interface VideoInfo {
   title: string;
@@ -40,11 +40,9 @@ function VideoPlayerPage() {
   } = useGet<Video>(videoId ? API.videos.get(videoId) : null);
 
   // Get video info
-  const {
-    data: videoInfo,
-    isLoading: loadingVideoInfo,
-    mutate: refreshVideoMediaInfo,
-  } = useGet<VideoInfo>(videoId ? API.videos.getMediaInfo(videoId) : null);
+  const { data: videoInfo, isLoading: loadingVideoInfo } = useGet<VideoInfo>(
+    videoId ? API.videos.getMediaInfo(videoId) : null,
+  );
 
   const watchedList = video?.watchLists?.find((list: WatchList) => list.userId === user?.id);
 
@@ -65,7 +63,7 @@ function VideoPlayerPage() {
   const [streamStartTime, setStreamStartTime] = useState(timeWatched ?? 0);
 
   // Controls
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [showControls, setShowControls] = useState(false);
 
   // Timeline
@@ -91,7 +89,7 @@ function VideoPlayerPage() {
 
   useEffect(() => {
     if (!video) return;
-    getSignedVideoStreamUrl({
+    getSignedVideoStreamUrlPassthrough({
       filePath: video.fileSrc,
       start: streamStartTime ? Math.floor(streamStartTime) : 0,
       audio:
@@ -342,54 +340,17 @@ function VideoPlayerPage() {
   useEffect(() => {
     if (!video || !videoInfo) return;
 
-    const fetchData = async () => {
-      const refreshResult = await refreshVideoMediaInfo();
-      const data = refreshResult.data;
+    const audioTracks = video.audioTracks ?? [];
+    const subtitleTracks = video.subtitleTracks ?? [];
 
-      if (!data) {
-        return;
-      }
+    setTracks({ audioTracks, subtitleTracks });
 
-      const { videoTracks, audioTracks, subtitleTracks } = data;
-      setTracks({ audioTracks, subtitleTracks });
+    const audioTrack = getAudioTrack(videoInfo.preferAudioLan, video);
+    const subtitleTrack = getSubtitleTrack(videoInfo.preferSubtitleLan, videoInfo.subsMode, video);
 
-      const audioTrack = getAudioTrack(videoInfo.preferAudioLan, video);
-      const subtitleTrack = getSubtitleTrack(
-        videoInfo.preferSubtitleLan,
-        videoInfo.subsMode,
-        video,
-      );
-      const videoTrack = videoTracks[0] ?? null;
-
-      setSelectedAudioTrack(audioTrack);
-      setSelectedSubtitleTrack(subtitleTrack);
-
-      if (videoTrack && videoTracks) {
-        for (const videoTrack of videoTracks) {
-          videoTrack.selected = false;
-        }
-        videoTrack.selected = true;
-      }
-
-      if (audioTrack && audioTracks) {
-        for (const audioTrack of audioTracks) {
-          audioTrack.selected = false;
-        }
-        audioTrack.selected = true;
-      }
-
-      if (subtitleTrack && subtitleTracks) {
-        for (const subTrack of subtitleTracks) {
-          subTrack.selected = false;
-        }
-        subtitleTrack.selected = true;
-      }
-
-      refetchVideo();
-    };
-
-    void fetchData();
-  }, [video, videoInfo, refreshVideoMediaInfo, refetchVideo]);
+    setSelectedAudioTrack(audioTrack);
+    setSelectedSubtitleTrack(subtitleTrack);
+  }, [video, videoInfo]);
 
   useEffect(() => {
     const handleMouseUp = (e: MouseEvent) => {
@@ -474,7 +435,7 @@ function VideoPlayerPage() {
         <TopBar
           video={video}
           videoRef={videoRef}
-          videoInfo={videoInfo}
+          videoInfo={videoInfo ?? undefined}
           isPlaying={isPlaying}
           isFullscreen={isFullscreen}
           showControls={showControls}

@@ -41,11 +41,11 @@ export function useReorderableList(
 
   useEffect(() => {
     if (!data) {
-      setItems((previousItems) => (previousItems.length === 0 ? previousItems : []))
+      setItems((previousItems: LibraryItem[]) => (previousItems.length === 0 ? previousItems : []))
       return
     }
 
-    setItems((previousItems) => (hasSameOrder(previousItems, data) ? previousItems : data))
+    setItems((previousItems: LibraryItem[]) => (hasSameOrder(previousItems, data) ? previousItems : data))
   }, [data])
 
   const handleDragEnd = useCallback(async (sourceIndex: number, destinationIndex: number) => {

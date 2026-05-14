@@ -21,17 +21,45 @@ function getElectronVersion() {
   }
 }
 
+function findElectronRebuildCli() {
+  try {
+    const cliPath = require.resolve('@electron/rebuild/lib/cli');
+    return cliPath;
+  } catch {
+    // fallback: search in .pnpm store relative to project root
+    const projectRoot = path.resolve(__dirname, '..', '..', '..');
+    const storeGlob = path.join(projectRoot, 'node_modules', '.pnpm', '@electron+rebuild@*', 'node_modules', '@electron', 'rebuild', 'lib', 'cli.js');
+    const { globSync } = require('node:fs');
+    if (globSync) {
+      const matches = globSync(storeGlob);
+      if (matches.length > 0) return matches[0];
+    }
+    process.stderr.write('Unable to resolve @electron/rebuild CLI.\n');
+    process.exit(1);
+  }
+}
+
 function runRebuild(electronVersion) {
-  const result = spawnSync('pnpm', ['rebuild', ...nativeModules], {
-    stdio: 'inherit',
-    shell: true,
-    env: {
-      ...process.env,
-      npm_config_runtime: 'electron',
-      npm_config_target: electronVersion,
-      npm_config_disturl: 'https://electronjs.org/headers',
-    },
-  });
+  const moduleDir = path.resolve(__dirname, '..');
+  let cliPath;
+  try {
+    cliPath = require.resolve('@electron/rebuild/lib/cli');
+  } catch {
+    const projectRoot = path.resolve(moduleDir, '..', '..');
+    const pattern = path.join(projectRoot, 'node_modules', '.pnpm', '@electron+rebuild@*');
+    const dirs = fs.readdirSync(path.join(projectRoot, 'node_modules', '.pnpm')).filter(d => d.startsWith('@electron+rebuild@'));
+    if (dirs.length === 0) {
+      process.stderr.write('@electron/rebuild not found in pnpm store.\n');
+      process.exit(1);
+    }
+    cliPath = path.join(projectRoot, 'node_modules', '.pnpm', dirs[0], 'node_modules', '@electron', 'rebuild', 'lib', 'cli.js');
+  }
+
+  const result = spawnSync(
+    process.execPath,
+    [cliPath, '--version', electronVersion, '--module-dir', moduleDir, '-w', nativeModules.join(',')],
+    { stdio: 'inherit', shell: false },
+  );
 
   if (result.error) {
     process.stderr.write(`${result.error.message}\n`);

@@ -1,10 +1,16 @@
 import { useGetCollectionMusicExtras } from '@seerial/api';
-import type { Collection, MusicExtra } from '@seerial/domain';
+import type { Collection } from '@seerial/domain';
 import { useTranslation } from 'react-i18next';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import HorizontalList from '@/shared/lists/horizontal-list';
 import Loading from '@/shared/ui/loading';
 import VideoThumbnail from './video-thumbnail';
+
+interface MusicExtra {
+  title: string;
+  src: string;
+  type: string;
+}
 
 interface ExtrasListProps {
   collection: Collection;

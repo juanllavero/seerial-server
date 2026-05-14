@@ -1,4 +1,3 @@
-import { API, useCreate } from '@seerial/api';
 import type { Movie } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { Pencil } from 'lucide-react';
@@ -12,7 +11,13 @@ import HorizontalList from '../../../../shared/lists/horizontal-list';
 import HorizontalListSkeleton from './horizontal-list-skeleton';
 import { useMediaActions } from '@/shared/lib/react-utils';
 
-type MovieListItem = Movie & { watchStatus?: boolean };
+type MovieListItem = Movie;
+
+const useGetMyListMovies = <TResponse,>() => ({
+  data: [] as unknown as TResponse,
+  isLoading: false,
+  refetch: async () => undefined,
+});
 
 interface MyListMoviesProps {
   goToContent: (url: string) => void;
@@ -37,7 +42,6 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
 
   // Get Movies in My List
   const { data: moviesInMyList, isLoading, refetch } = useGetMyListMovies<MovieListItem[]>();
-  const { create } = useCreate<unknown>();
   const { refreshMetadata, toggleMovieWatched } = useMediaActions();
 
   return (
@@ -54,7 +58,9 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
             aspectRatio={2 / 3}
             title={movie.name}
             subtitle={movie.year ? new Date(movie.year).getFullYear().toString() : 'N/A'}
-            watched={movie.watchStatus !== undefined}
+            watched={
+              movie.watchLists?.some((list) => list.userId === user?.id && list.watched) ?? false
+            }
             menu={{
               items: [
                 {
@@ -63,10 +69,9 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
                     {
                       title: t('removeFromMyList'),
                       action: async () => {
-                        await create(API.myList.movies, {
-                          movieId: movie.id,
-                          userId: user?.id,
-                        });
+                        if (user) {
+                          await toggleMovieWatched(movie.id, false, user.id);
+                        }
                         void refetch();
                       },
                     },
@@ -79,11 +84,21 @@ function MyListMovies({ goToContent }: MyListMoviesProps) {
                       action: () => openDialog('identification', { movieId: movie.id }),
                     },
                     {
-                      title:
-                        movie.watchStatus === undefined ? t('markWatched') : t('markUnwatched'),
+                      title: movie.watchLists?.some(
+                        (list) => list.userId === user?.id && list.watched,
+                      )
+                        ? t('markUnwatched')
+                        : t('markWatched'),
 
                       action: () =>
-                        user && toggleMovieWatched(movie.id, !movie.watchStatus, user.id),
+                        user &&
+                        toggleMovieWatched(
+                          movie.id,
+                          !movie.watchLists?.some(
+                            (list) => list.userId === user?.id && list.watched,
+                          ),
+                          user.id,
+                        ),
                     },
                   ],
                 },

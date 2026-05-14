@@ -9,8 +9,6 @@ import { useIsTablet } from '@/shared/hooks/use-tablet';
 import FlexBox from '@/shared/ui/flex-box';
 import NotFound from '@/shared/ui/not-found';
 import { Skeleton } from '@/shared/ui/skeleton';
-import '../details-page';
-
 function AlbumDetailsPage() {
   const { albumId } = useParams();
   const selectBackground = useGradientStore((state) => state.selectBackground);

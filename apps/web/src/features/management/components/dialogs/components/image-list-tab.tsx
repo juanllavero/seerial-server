@@ -1,10 +1,10 @@
 import { API, useCreate, useGet } from '@seerial/api';
-import { generateRandoumUUID, showToast } from '@seerial/domain';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useIsTablet } from '@/shared/hooks/use-tablet';
 import { ImageType } from '@/shared/lib/constants';
+import { generateRandoumUUID, showToast } from '@/shared/lib/react-utils';
 import { Button } from '@/shared/ui/button';
 import FlexBox from '@/shared/ui/flex-box';
 import { Input } from '@/shared/ui/input';

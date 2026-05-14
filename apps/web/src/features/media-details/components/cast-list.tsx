@@ -1,5 +1,4 @@
-import type { Cast } from '@seerial/domain';
-import React from 'react';
+import type { CastData as Cast } from '@seerial/domain';
 import { useTranslation } from 'react-i18next';
 import HorizontalList from '@/shared/lists/horizontal-list';
 import CastCard from './cast-card';

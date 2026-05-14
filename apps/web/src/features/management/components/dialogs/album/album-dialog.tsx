@@ -57,7 +57,7 @@ function AlbumDialog() {
       year: album.year ?? '',
       description: album.description ?? '',
       genres: album.genres ?? [],
-      posters: album.coversUrls ?? [],
+      posters: album.coverSrc ? [album.coverSrc] : [],
       selectedPoster: album.coverSrc ?? '',
       localPosterFolder: `img/posters/${album.id}`,
     });

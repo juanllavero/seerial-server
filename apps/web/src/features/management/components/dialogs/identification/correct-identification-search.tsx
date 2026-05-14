@@ -32,7 +32,7 @@ interface IdentificationResult {
 
 function renderIdentificationResults(
   isSearching: boolean,
-  results: IdentificationResult[] | undefined,
+  results: IdentificationResult[] | null | undefined,
   noResultsText: string,
   isShow: boolean,
   saveIdentification: (id: number) => void,

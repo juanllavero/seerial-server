@@ -69,7 +69,7 @@ function NextSongs() {
             </div>
             <FlexBox direction="column">
               <span className="truncate">{item.title}</span>
-              <span>{album.name}</span>
+              <span>{album.title}</span>
             </FlexBox>
           </FlexBox>
           <span>{formatTime(item.duration)}</span>

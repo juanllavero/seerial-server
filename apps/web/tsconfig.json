@@ -23,7 +23,11 @@
     },
     "outDir": "dist",
     "moduleResolution": "bundler",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "types": [
+      "react",
+      "react-dom"
+    ]
   },
   "include": [
     "src/**/*",

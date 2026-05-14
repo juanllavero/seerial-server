@@ -39,7 +39,7 @@ function EpisodeCardDetails({
           imgSrc={episode.video?.imgSrc}
           aspectRatio={16 / 9}
           width={'100%'}
-          progress={getVideoProgress(episode.video, timeWatched)}
+          progress={getVideoProgress(episode.video.runtime, timeWatched)}
           title={''}
           watched={watchedList && timeWatched < episode.video.runtime * 0.9}
           subtitle={''}

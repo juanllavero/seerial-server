@@ -1,9 +1,9 @@
 import type { DropdownContent, Video } from '@seerial/domain';
-import { getVideoProgress } from '@seerial/domain';
 import { Pencil } from 'lucide-react';
-import React from 'react';
+import { useServerStore } from '@seerial/stores';
 import Card from '@/shared/cards/card';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { getVideoProgress } from '@/shared/lib/react-utils';
 import { Button } from '@/shared/ui/button';
 
 interface VideoCardProps {
@@ -16,6 +16,8 @@ interface VideoCardProps {
 
 function VideoCard({ video, title, subtitle, playVideo, getVideoMenu }: VideoCardProps) {
   const isMobile = useIsMobile();
+  const currentUser = useServerStore((state) => state.currentUser);
+  const watchList = video.watchLists?.find((list) => list.userId === currentUser?.id);
 
   return (
     <Card
@@ -23,7 +25,7 @@ function VideoCard({ video, title, subtitle, playVideo, getVideoMenu }: VideoCar
       imgSrc={video.imgSrc}
       aspectRatio={16 / 9}
       width={isMobile ? '100%' : 400}
-      progress={getVideoProgress(video, video.timeWatched)}
+      progress={getVideoProgress(video.runtime, watchList?.timeWatched)}
       title={title}
       subtitle={subtitle}
       action={() => playVideo(video)}
