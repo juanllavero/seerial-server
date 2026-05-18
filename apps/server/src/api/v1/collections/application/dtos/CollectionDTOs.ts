@@ -3,6 +3,7 @@ import type { LibraryItem } from '@seerial/domain';
 export interface CollectionSummaryDTO {
   id: string;
   title: string;
+  itemCount: number;
 }
 
 export interface ReorderItemDTO {
@@ -39,7 +40,7 @@ export interface UpdateCollectionDTO {
 export interface CreateCollectionWithItemDTO {
   title: string;
   description?: string;
-  movieId?: string;
-  seriesId?: string;
-  albumId?: string;
+  movieIds?: string[];
+  seriesIds?: string[];
+  albumIds?: string[];
 }

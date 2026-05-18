@@ -31,12 +31,24 @@ export class CollectionsRepositoryImpl extends BaseRepository implements Collect
   }
 
   async getAllSummary(): Promise<CollectionSummaryDTO[]> {
-    const collections = await CollectionModel.find({
-      select: ['id', 'title'],
-      order: { title: 'ASC' },
-    });
+    const qb = CollectionModel.createQueryBuilder('c').orderBy('c.title', 'ASC');
+    qb.loadRelationCountAndMap('c.movieCount', 'c.collectionMovies');
+    qb.loadRelationCountAndMap('c.seriesCount', 'c.collectionSeries');
+    qb.loadRelationCountAndMap('c.albumCount', 'c.collectionAlbums');
 
-    return collections.map((c) => ({ id: c.id, title: c.title }));
+    type CollectionWithCounts = CollectionModel & {
+      movieCount?: number;
+      seriesCount?: number;
+      albumCount?: number;
+    };
+
+    const collections = (await qb.getMany()) as CollectionWithCounts[];
+
+    return collections.map((c) => ({
+      id: c.id,
+      title: c.title,
+      itemCount: (c.movieCount ?? 0) + (c.seriesCount ?? 0) + (c.albumCount ?? 0),
+    }));
   }
 
   async getAll(libraryId: string): Promise<Collection[]> {

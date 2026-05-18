@@ -48,6 +48,9 @@ export const messages = {
       itemAlreadyInCollection: 'Item is already in the collection.',
       itemNotInCollection: 'Item is not in the collection.',
     },
+    collection: {
+      nameExists: 'A collection with that name already exists.',
+    },
     validation: {
       missingId: 'Required ID is missing.',
       invalidId: 'Invalid ID.',

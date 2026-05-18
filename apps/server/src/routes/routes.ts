@@ -1065,6 +1065,7 @@ const models: TsoaRoute.Models = {
         "properties": {
             "id": {"dataType":"string","required":true},
             "title": {"dataType":"string","required":true},
+            "itemCount": {"dataType":"double","required":true},
         },
         "additionalProperties": false,
     },
@@ -1115,9 +1116,9 @@ const models: TsoaRoute.Models = {
         "properties": {
             "title": {"dataType":"string","required":true},
             "description": {"dataType":"string"},
-            "movieId": {"dataType":"string"},
-            "seriesId": {"dataType":"string"},
-            "albumId": {"dataType":"string"},
+            "movieIds": {"dataType":"array","array":{"dataType":"string"}},
+            "seriesIds": {"dataType":"array","array":{"dataType":"string"}},
+            "albumIds": {"dataType":"array","array":{"dataType":"string"}},
         },
         "additionalProperties": false,
     },
@@ -1156,6 +1157,7 @@ const models: TsoaRoute.Models = {
             "years": {"dataType":"string"},
             "coverSrc": {"dataType":"string"},
             "backgroundSrc": {"dataType":"string"},
+            "images": {"dataType":"array","array":{"dataType":"string"}},
             "numberOfItems": {"dataType":"double","required":true},
             "order": {"dataType":"double","required":true},
             "watched": {"dataType":"boolean","required":true},

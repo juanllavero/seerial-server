@@ -1,5 +1,5 @@
 import { ImageType } from '@/shared/lib/constants';
-import Image from '../../../../../shared/ui/image';
+import Image from '@/shared/ui/image';
 
 const SELECTED_IMAGE_STYLE = {
   borderColor: 'var(--app-color)',

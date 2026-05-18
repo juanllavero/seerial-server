@@ -13,6 +13,9 @@ export type DialogPayloads = {
   album: { id: string };
   song: { id: string };
 
+  // Management dialogs — no payload
+  manageCollections: Record<string, never>;
+
   // Delete dialogs — id obligatorio
   deleteLibrary: { id: string };
   deleteSeries: { id: string };

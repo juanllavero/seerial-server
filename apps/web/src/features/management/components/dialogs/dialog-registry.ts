@@ -4,6 +4,7 @@ export const dialogRegistry = {
   library: lazy(() => import('./library/library-dialog')),
 
   collection: lazy(() => import('./collection/collection-dialog')),
+  manageCollections: lazy(() => import('./manage-collections/manage-collections-dialog')),
   movie: lazy(() => import('./movie/movie-dialog')),
   series: lazy(() => import('./series/series-dialog')),
   season: lazy(() => import('./season/season-dialog')),

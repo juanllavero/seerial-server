@@ -1,17 +1,17 @@
-import FlexBox from '@/shared/ui/flex-box';
-import { PauseIcon, PlayIcon } from '@/shared/ui/icon-library';
-import SmallSpinner from '@/shared/ui/small-spinner';
-import MusicWave from './music-wave';
-import { useIsMobile } from '@/shared/hooks/use-mobile';
-import { useIsTablet } from '@/shared/hooks/use-tablet';
-import { showToast } from '@/shared/lib/react-utils';
-import { Button } from '@/shared/ui/button';
-import { type Song, formatTime } from '@seerial/domain';
+import { formatTime, type Song } from '@seerial/domain';
 import { useMusicStore } from '@seerial/stores';
 import { ListMusic } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { shallow } from 'zustand/shallow';
+import { useIsMobile } from '@/shared/hooks/use-mobile';
+import { useIsTablet } from '@/shared/hooks/use-tablet';
+import { showToast } from '@/shared/lib/react-utils';
+import { Button } from '@/shared/ui/button';
+import FlexBox from '@/shared/ui/flex-box';
+import { PauseIcon, PlayIcon } from '@/shared/ui/icon-library';
+import SmallSpinner from '@/shared/ui/small-spinner';
+import MusicWave from './music-wave';
 
 interface MusicCardProps {
   index: number;

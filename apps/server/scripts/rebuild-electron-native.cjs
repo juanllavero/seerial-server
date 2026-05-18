@@ -28,7 +28,17 @@ function findElectronRebuildCli() {
   } catch {
     // fallback: search in .pnpm store relative to project root
     const projectRoot = path.resolve(__dirname, '..', '..', '..');
-    const storeGlob = path.join(projectRoot, 'node_modules', '.pnpm', '@electron+rebuild@*', 'node_modules', '@electron', 'rebuild', 'lib', 'cli.js');
+    const storeGlob = path.join(
+      projectRoot,
+      'node_modules',
+      '.pnpm',
+      '@electron+rebuild@*',
+      'node_modules',
+      '@electron',
+      'rebuild',
+      'lib',
+      'cli.js',
+    );
     const { globSync } = require('node:fs');
     if (globSync) {
       const matches = globSync(storeGlob);
@@ -40,6 +50,9 @@ function findElectronRebuildCli() {
 }
 
 function runRebuild(electronVersion) {
+  // apps/server is where pnpm exposes the native modules for this package.
+  // The actual binaries live in the root .pnpm virtual store which pnpm
+  // symlinks into apps/server/node_modules.
   const moduleDir = path.resolve(__dirname, '..');
   let cliPath;
   try {
@@ -47,17 +60,40 @@ function runRebuild(electronVersion) {
   } catch {
     const projectRoot = path.resolve(moduleDir, '..', '..');
     const pattern = path.join(projectRoot, 'node_modules', '.pnpm', '@electron+rebuild@*');
-    const dirs = fs.readdirSync(path.join(projectRoot, 'node_modules', '.pnpm')).filter(d => d.startsWith('@electron+rebuild@'));
+    const dirs = fs
+      .readdirSync(path.join(projectRoot, 'node_modules', '.pnpm'))
+      .filter((d) => d.startsWith('@electron+rebuild@'));
     if (dirs.length === 0) {
       process.stderr.write('@electron/rebuild not found in pnpm store.\n');
       process.exit(1);
     }
-    cliPath = path.join(projectRoot, 'node_modules', '.pnpm', dirs[0], 'node_modules', '@electron', 'rebuild', 'lib', 'cli.js');
+    cliPath = path.join(
+      projectRoot,
+      'node_modules',
+      '.pnpm',
+      dirs[0],
+      'node_modules',
+      '@electron',
+      'rebuild',
+      'lib',
+      'cli.js',
+    );
   }
 
   const result = spawnSync(
     process.execPath,
-    [cliPath, '--version', electronVersion, '--module-dir', moduleDir, '-w', nativeModules.join(',')],
+    [
+      cliPath,
+      '--version',
+      electronVersion,
+      '--module-dir',
+      moduleDir,
+      '--dist-url',
+      'https://artifacts.electronjs.org/headers/dist',
+      '--force',
+      '-w',
+      nativeModules.join(','),
+    ],
     { stdio: 'inherit', shell: false },
   );
 

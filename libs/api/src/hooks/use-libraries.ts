@@ -186,3 +186,91 @@ export const useDeleteCollection = <TResponse = unknown>(
         asVoid,
         options,
     )
+
+export const useGetAllCollections = <TResponse = unknown>(
+    options?: QueryHookOptions<TResponse>,
+): ApiQueryResult<TResponse> =>
+    useApiQuery<TResponse>(['collections', 'getAll'], API.collections.getAll, options)
+
+export const useCreateCollection = <TResponse = unknown, TBody = unknown>(
+    options?: MutationHookOptions<TResponse, TBody>,
+): ApiMutationResult<TResponse, TBody> =>
+    useApiMutation<TResponse, TBody>(['collections', 'create'], API.collections.create, 'POST', asBody, options)
+
+export const useAddMovieToCollection = <TResponse = unknown>(
+    collectionId: string,
+    movieId: string,
+    options?: MutationHookOptions<TResponse, void>,
+): ApiMutationResult<TResponse, void> =>
+    useApiMutation<TResponse, void>(
+        ['collections', 'addMovie', collectionId, movieId],
+        API.collections.addMovie(collectionId, movieId),
+        'POST',
+        asVoid,
+        options,
+    )
+
+export const useAddSeriesToCollection = <TResponse = unknown>(
+    collectionId: string,
+    seriesId: string,
+    options?: MutationHookOptions<TResponse, void>,
+): ApiMutationResult<TResponse, void> =>
+    useApiMutation<TResponse, void>(
+        ['collections', 'addSeries', collectionId, seriesId],
+        API.collections.addSeries(collectionId, seriesId),
+        'POST',
+        asVoid,
+        options,
+    )
+
+export const useAddAlbumToCollection = <TResponse = unknown>(
+    collectionId: string,
+    albumId: string,
+    options?: MutationHookOptions<TResponse, void>,
+): ApiMutationResult<TResponse, void> =>
+    useApiMutation<TResponse, void>(
+        ['collections', 'addAlbum', collectionId, albumId],
+        API.collections.addAlbum(collectionId, albumId),
+        'POST',
+        asVoid,
+        options,
+    )
+
+export const useRemoveMovieFromCollection = <TResponse = unknown>(
+    collectionId: string,
+    movieId: string,
+    options?: MutationHookOptions<TResponse, void>,
+): ApiMutationResult<TResponse, void> =>
+    useApiMutation<TResponse, void>(
+        ['collections', 'removeMovie', collectionId, movieId],
+        API.collections.removeMovie(collectionId, movieId),
+        'DELETE',
+        asVoid,
+        options,
+    )
+
+export const useRemoveSeriesFromCollection = <TResponse = unknown>(
+    collectionId: string,
+    seriesId: string,
+    options?: MutationHookOptions<TResponse, void>,
+): ApiMutationResult<TResponse, void> =>
+    useApiMutation<TResponse, void>(
+        ['collections', 'removeSeries', collectionId, seriesId],
+        API.collections.removeSeries(collectionId, seriesId),
+        'DELETE',
+        asVoid,
+        options,
+    )
+
+export const useRemoveAlbumFromCollection = <TResponse = unknown>(
+    collectionId: string,
+    albumId: string,
+    options?: MutationHookOptions<TResponse, void>,
+): ApiMutationResult<TResponse, void> =>
+    useApiMutation<TResponse, void>(
+        ['collections', 'removeAlbum', collectionId, albumId],
+        API.collections.removeAlbum(collectionId, albumId),
+        'DELETE',
+        asVoid,
+        options,
+    )

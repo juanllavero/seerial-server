@@ -8,11 +8,11 @@ export class CreateCollectionWithItemUseCase {
     constructor(private collectionRepo: CollectionsRepositoryPort) { }
 
     async execute(data: CreateCollectionWithItemDTO): Promise<Collection> {
-        const { movieId, seriesId, albumId, ...collectionData } = data;
+        const { movieIds, seriesIds, albumIds, ...collectionData } = data;
 
-        const itemIds = [movieId, seriesId, albumId].filter(Boolean);
-        if (itemIds.length !== 1) {
-            throw new BadRequestException(messages.errors.validation.notEnoughParams);
+        const existing = await this.collectionRepo.getByName(collectionData.title);
+        if (existing) {
+            throw new BadRequestException(messages.errors.collection.nameExists);
         }
 
         const created = await this.collectionRepo.add(collectionData);
@@ -20,11 +20,13 @@ export class CreateCollectionWithItemUseCase {
             throw new NotFoundException(messages.errors.create);
         }
 
-        if (movieId) {
+        for (const movieId of movieIds ?? []) {
             await this.collectionRepo.addMovie(created.id, movieId);
-        } else if (seriesId) {
+        }
+        for (const seriesId of seriesIds ?? []) {
             await this.collectionRepo.addSeries(created.id, seriesId);
-        } else if (albumId) {
+        }
+        for (const albumId of albumIds ?? []) {
             await this.collectionRepo.addAlbum(created.id, albumId);
         }
 

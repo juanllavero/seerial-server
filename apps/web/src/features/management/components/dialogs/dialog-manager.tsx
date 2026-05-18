@@ -8,6 +8,7 @@ function DialogManager() {
   const dialogs: DialogType[] = [
     'library',
     'collection',
+    'manageCollections',
     'movie',
     'series',
     'season',
