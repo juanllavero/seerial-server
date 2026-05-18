@@ -297,6 +297,7 @@ export function useMusicPlayerMpv({
     isPlaying,
     duration,
     isShown,
+    playbackVersion,
     setIsPlaying,
     setIsLoading,
     setCurrentTime,
@@ -310,6 +311,7 @@ export function useMusicPlayerMpv({
       isPlaying: state.isPlaying,
       duration: state.duration,
       isShown: state.isShown,
+      playbackVersion: state.playbackVersion,
       setIsPlaying: state.setIsPlaying,
       setIsLoading: state.setIsLoading,
       setCurrentTime: state.setCurrentTime,
@@ -564,10 +566,13 @@ export function useMusicPlayerMpv({
     void invoke('stop_karaoke').catch(() => undefined);
   }, [currentSong?.id, resetKaraokeAvailability]);
 
-  // Load the current song whenever it changes
+  // Load the current song whenever it changes, or when the same song is re-selected.
+  // playbackVersion acts as a monotonic reload trigger so the effect re-fires even when
+  // currentSong is the same object reference (e.g. single-song REPEAT_ALL queue wraps around).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: playbackVersion is an intentional reload trigger, not a value consumed inside the callback
   useEffect(() => {
     void loadCurrentSong();
-  }, [loadCurrentSong]);
+  }, [loadCurrentSong, playbackVersion]);
 
   // Poll playback status while a song is active
   useEffect(() => {

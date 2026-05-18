@@ -16,4 +16,5 @@ export interface DetailsInfoProps {
   subtitleInfo?: string;
   hideButtons?: boolean;
   enableKeyboardBack?: boolean;
+  disableInitialFocus?: boolean;
 }

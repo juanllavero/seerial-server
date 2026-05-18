@@ -33,8 +33,9 @@ function LibraryContent({
   const setGradientImageSrc = useGradientStore((state) => state.setGradientImageSrc);
 
   useEffect(() => {
-    setGradientImageSrc(selectedElement?.coverSrc ?? '');
-  }, [selectedElement?.coverSrc, setGradientImageSrc]);
+    const src = selectedElement?.coverSrc || selectedElement?.images?.[0] || '';
+    setGradientImageSrc(src);
+  }, [selectedElement, setGradientImageSrc]);
   const itemsPerRow = useSettingsStore((s) => s.settings.cardsPerRow);
   const isMusicLibrary = libraryType === LibraryTypes.MUSIC;
   const finalItemsPerRow = isMusicLibrary ? itemsPerRow - 1 : itemsPerRow; // Music libraries have smaller cards, so we can fit more in the same space.

@@ -232,7 +232,16 @@ function CollectionDetails({
   collageImages,
 }: CollectionDetailsProps) {
   return (
-    <DetailsWithRelatedContent collectionId={collectionId} libraryType={libraryType}>
+    <DetailsWithRelatedContent
+      collectionId={collectionId}
+      libraryType={libraryType}
+      background={
+        <BackgroundImage
+          imageSrc={details?.backgroundSrc ?? collection?.backgroundSrc ?? collection?.coverSrc}
+          index={0}
+        />
+      }
+    >
       <CollectionDetailsContent
         collectionId={collectionId}
         collection={collection}
@@ -342,25 +351,31 @@ function CollectionDetailsContent({
   const imageHeight = libraryType === LibraryTypes.MUSIC ? '45vh' : '68vh';
 
   useEffect(() => {
-    const src = details?.coverSrc ?? collection?.coverSrc ?? collection?.backgroundSrc ?? '';
+    const src =
+      details?.coverSrc ||
+      collection?.coverSrc ||
+      collection?.backgroundSrc ||
+      collageImages?.[0] ||
+      '';
     setGradientImageSrc(src);
     return () => setGradientImageSrc('');
-  }, [details?.coverSrc, collection?.coverSrc, collection?.backgroundSrc, setGradientImageSrc]);
+  }, [
+    details?.coverSrc,
+    collection?.coverSrc,
+    collection?.backgroundSrc,
+    collageImages,
+    setGradientImageSrc,
+  ]);
 
   if (!isLoading && !collection) return <span>Collection not found</span>;
 
   return (
     <Page direction="row" align="end" justify="end" padding="0" gap={0} fullScreen>
-      <BackgroundImage
-        imageSrc={details?.backgroundSrc ?? collection?.backgroundSrc ?? collection?.coverSrc}
-        index={0}
-      />
-
       <FlexBox
         direction="column"
         align="center"
         justify="center"
-        padding="2dvh 0"
+        padding="2dvh 1dvh"
         gap={2}
         width={'30dvw'}
         height={'100%'}
@@ -444,6 +459,10 @@ function CollectionDetailsContent({
                           cachedDetails: item.details,
                           collectionId,
                           libraryType,
+                          collectionBackgroundSrc:
+                            details?.backgroundSrc ??
+                            collection?.backgroundSrc ??
+                            collection?.coverSrc,
                         },
                       });
                     }}

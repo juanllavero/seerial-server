@@ -9,6 +9,7 @@ interface DetailsActionButtonsProps {
   handlePlay?: () => void;
   handleMoreOptions?: () => void;
   handleMarkWatched?: () => void;
+  timeWatchedInfo?: number;
   isWatched?: boolean;
 }
 
@@ -16,6 +17,7 @@ function DetailsActionButtons({
   handlePlay,
   handleMoreOptions,
   handleMarkWatched,
+  timeWatchedInfo,
   isWatched,
 }: DetailsActionButtonsProps) {
   const { navigateToRelated, hasRelatedContent } = useRelatedContent();
@@ -29,14 +31,16 @@ function DetailsActionButtons({
         hideText
         animateText
       />
-      <NavigationButton
-        customKey={NavigationFocusKeys.details.playFromStartButton}
-        text={'Reproducir desde el principio'}
-        icon={<RotateCcw size={'3dvh'} stroke="currentColor" />}
-        onClick={handleMarkWatched}
-        hideText
-        animateText
-      />
+      {timeWatchedInfo !== undefined && timeWatchedInfo > 0 && (
+        <NavigationButton
+          customKey={NavigationFocusKeys.details.playFromStartButton}
+          text={'Reproducir desde el principio'}
+          icon={<RotateCcw size={'3dvh'} stroke="currentColor" />}
+          onClick={handleMarkWatched}
+          hideText
+          animateText
+        />
+      )}
       <NavigationButton
         customKey={NavigationFocusKeys.details.markWatchedButton}
         text={isWatched ? 'Desmarcar como visto' : 'Marcar como visto'}

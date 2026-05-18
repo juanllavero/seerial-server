@@ -21,6 +21,7 @@ interface MusicState {
   isShown: boolean;
   isExpanded: boolean;
   isLoading: boolean;
+  playbackVersion: number;
   audioRef: React.RefObject<HTMLAudioElement | null> | null;
 
   // Set Current Song
@@ -84,20 +85,22 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
   isShown: false,
   isExpanded: false,
   isLoading: false,
+  playbackVersion: 0,
   audioRef: null,
 
   // Set Current Song
   selectSong: (song) =>
-    set({
+    set((state) => ({
       currentSong: song,
       progress: 0,
       duration: song?.duration ?? 0,
       currentTime: 0,
       isShown: true,
       isLoading: !!song,
-    }),
+      playbackVersion: state.playbackVersion + 1,
+    })),
   setPlaybackContext: (song, album, queue) =>
-    set({
+    set((state) => ({
       currentSong: song,
       album,
       songQueue: queue,
@@ -107,7 +110,8 @@ const useMusicStore = createWithEqualityFn<MusicState>((set, get) => ({
       isShown: true,
       isExpanded: true,
       isLoading: true,
-    }),
+      playbackVersion: state.playbackVersion + 1,
+    })),
   setAlbum: (album, songs) => set({ album, songQueue: songs ?? [] }),
   resetPlayerState: () => {
     const { audioRef } = get();

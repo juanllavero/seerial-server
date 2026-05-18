@@ -1,4 +1,4 @@
-import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
+import { getCurrentFocusKey, setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import { useGetSongLyrics } from '@seerial/api';
 import type { LyricsLine } from '@seerial/domain';
 import { useMusicStore } from '@seerial/stores';
@@ -220,6 +220,7 @@ function GlobalMusicPlayer() {
   );
 
   const currentSongId = currentSong?.id;
+  const previousFocusKeyRef = useRef<string | null>(null);
   const [showKaraokeMixer, setShowKaraokeMixer] = useState(false);
   const [isQueueMenuOpen, setIsQueueMenuOpen] = useState(false);
   const { lyrics, isLyricsLoading, hasLyrics, shouldShowLyricsPanel, isLyricsButtonDisabled } =
@@ -263,11 +264,13 @@ function GlobalMusicPlayer() {
     setShowKaraokeMixer(false);
     closeLyricsOptions(false);
 
+    const keyToRestore = previousFocusKeyRef.current;
+
     window.setTimeout(() => {
       const { isShown: stillShown, currentSong: stillCurrentSong } = useMusicStore.getState();
 
       if (stillShown && stillCurrentSong) {
-        setFocus(NavigationFocusKeys.topBar.musicPlayer);
+        setFocus(keyToRestore ?? NavigationFocusKeys.topBar.musicPlayer);
         return;
       }
 
@@ -337,6 +340,7 @@ function GlobalMusicPlayer() {
 
   useEffect(() => {
     if (isShown && isExpanded) {
+      previousFocusKeyRef.current = getCurrentFocusKey();
       setTimeout(() => setFocus(NavigationFocusKeys.player.timeline), 30);
     }
   }, [isShown, isExpanded]);
@@ -353,8 +357,10 @@ function GlobalMusicPlayer() {
     stopPlayback();
     setShowKaraokeMixer(false);
 
+    const keyToRestore = previousFocusKeyRef.current;
+
     window.setTimeout(() => {
-      setFocus(NavigationFocusKeys.topBar.settings);
+      setFocus(keyToRestore ?? NavigationFocusKeys.topBar.settings);
     }, 280);
   }, [stopPlayback]);
 

@@ -6,7 +6,6 @@ import {
 import { memo, useCallback, useEffect, useRef } from 'react';
 import { shallow } from 'zustand/shallow';
 import { useSettingsStore } from '@/shared/stores';
-import CollageImage from './collage-image';
 import FlexBox from './flex-box';
 import Image from './image';
 import WatchProgressBar from './watch-progress-bar';
@@ -49,6 +48,8 @@ interface CardProps {
   noInfo?: boolean;
   duration?: number;
   timeWatched?: number;
+  remainingItems?: number;
+  showRemainingItems?: boolean;
 }
 
 function ContentCard({
@@ -66,6 +67,8 @@ function ContentCard({
   noInfo = false,
   duration,
   timeWatched,
+  remainingItems,
+  showRemainingItems = true,
 }: CardProps) {
   const isCollage = collageImages && collageImages.length > 1;
   const mediaAspectRatio = parseAspectRatio(aspectRatio);
@@ -119,24 +122,43 @@ function ContentCard({
         className={`${noInfo ? 'h-full' : 'h-[90%]'} relative w-full overflow-hidden rounded-md`}
       >
         <div
-          className={`h-full w-full scale-95 ${cardRoundness} border-2 border-transparent transition-transform duration-350 ${focused ? 'transform scale-100 border-white' : ''}`}
+          className={`relative h-full w-full scale-95 ${cardRoundness} border-2 border-transparent transition-transform duration-350 ${focused ? 'transform scale-100 border-white' : ''}`}
         >
+          {/* Image */}
           {isCollage ? (
-            <CollageImage
-              images={collageImages}
-              defaultSrc={defaultImageSrc}
-              className={cardRoundness}
+            // <CollageImage
+            //   images={collageImages}
+            //   defaultSrc={defaultImageSrc}
+            //   className={cardRoundness}
+            // />
+            <Image
+              url={collageImages[0]} // TODO: implement actual collage layout instead of just using the first image
+              height="100%"
+              width="100%"
+              tmdbSize="w500"
+              className={`h-full w-full ${cardRoundness}`}
+              aspectRatio="auto"
             />
           ) : (
             <Image
               url={imgSrc}
               height="100%"
               width="100%"
+              tmdbSize="w500"
               className={`h-full w-full ${cardRoundness}`}
               aspectRatio="auto"
             />
           )}
+
+          {/* Progress Bar */}
           {hasWatchProgress && <WatchProgressBar duration={duration} timeWatched={timeWatched} />}
+
+          {/* Remaining Items */}
+          {showRemainingItems && remainingItems !== undefined && remainingItems > 0 && (
+            <div className="absolute right-2 top-2 rounded-full bg-black/70 px-2 py-1">
+              <span className="text-xs font-medium">{remainingItems}</span>
+            </div>
+          )}
         </div>
       </div>
       {!noInfo && (

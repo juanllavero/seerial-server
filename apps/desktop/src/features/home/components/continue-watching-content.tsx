@@ -40,18 +40,12 @@ function ContinueWatchingContent({
             noInfo
             onFocus={() => setSelectedElement(element)}
             aspectRatio="2/3"
-            action={() => {
-              if (element.id === selectedElement?.id) {
-                navigate(
-                  `/details/${element.seriesId ? 'series' : 'movie'}/${element.seriesId ? element.seriesId : element.movieId}`,
-                  {
-                    state: { cachedDetails: element.details },
-                  },
-                );
-              } else {
-                setSelectedElement(element);
-              }
-            }}
+            action={() =>
+              navigate(
+                `/details/${element.seriesId ? 'series' : 'movie'}/${element.seriesId ? element.seriesId : element.movieId}`,
+                { state: { cachedDetails: element.details } },
+              )
+            }
             duration={element.duration}
             timeWatched={element.timeWatched}
           />

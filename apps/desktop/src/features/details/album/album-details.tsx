@@ -1,5 +1,5 @@
 import { type Album, type DetailsData, formatDate, type LibraryType } from '@seerial/domain';
-import { useGradientStore } from '@seerial/stores';
+import { useGradientStore, useMusicStore } from '@seerial/stores';
 import { Ellipsis, PlayIcon, Shuffle } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
@@ -22,9 +22,17 @@ interface AlbumDetailsProps {
   details: DetailsData | undefined;
   collectionId?: string;
   libraryType?: LibraryType;
+  fallbackBackgroundSrc?: string;
 }
 
-function AlbumDetails({ album, isLoading, details, collectionId, libraryType }: AlbumDetailsProps) {
+function AlbumDetails({
+  album,
+  isLoading,
+  details,
+  collectionId,
+  libraryType,
+  fallbackBackgroundSrc,
+}: AlbumDetailsProps) {
   const navigate = useNavigate();
   const setGradientImageSrc = useGradientStore((state) => state.setGradientImageSrc);
   const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false);
@@ -43,10 +51,10 @@ function AlbumDetails({ album, isLoading, details, collectionId, libraryType }: 
   }, [album, isLoading]);
 
   useEffect(() => {
-    const src = details?.coverSrc ?? album?.coverSrc ?? '';
+    const src = details?.coverSrc || album?.coverSrc || fallbackBackgroundSrc || '';
     setGradientImageSrc(src);
     return () => setGradientImageSrc('');
-  }, [details?.coverSrc, album?.coverSrc, setGradientImageSrc]);
+  }, [details?.coverSrc, album?.coverSrc, fallbackBackgroundSrc, setGradientImageSrc]);
 
   return (
     <DetailsWithRelatedContent
@@ -54,6 +62,12 @@ function AlbumDetails({ album, isLoading, details, collectionId, libraryType }: 
       currentItemId={album?.id}
       currentItemType="album"
       libraryType={libraryType}
+      background={
+        <BackgroundImage
+          imageSrc={details?.backgroundSrc ?? fallbackBackgroundSrc ?? ''}
+          index={0}
+        />
+      }
     >
       <AlbumDetailsContent
         album={album}
@@ -88,11 +102,10 @@ function AlbumDetailsContent({
   navigate,
 }: AlbumDetailsContentProps) {
   const { navigateToRelated, hasRelatedContent } = useRelatedContent();
+  const miniPlayerActive = useMusicStore((state) => state.isShown && !state.isExpanded);
 
   return (
     <Page padding="0" justify="end" fullScreen>
-      <BackgroundImage imageSrc={details?.backgroundSrc ?? ''} index={0} />
-
       <FlexBox padding="0" height={'100%'} width={'100%'} gap={2} className="z-10">
         <FlexBox height={'100%'} width={'40vw'} justify="end" padding="10dvh 0">
           <Image
@@ -108,7 +121,7 @@ function AlbumDetailsContent({
           className="w-[55vw] max-w-dvh max-h-screen pt-[10vh] pb-[10vh]"
           focusedElementId={focusedSongId}
           isFocusBoundary
-          focusBoundaryDirections={['up']}
+          focusBoundaryDirections={miniPlayerActive ? [] : ['up']}
           isRestoringFocus={false}
         >
           <DetailsInfo

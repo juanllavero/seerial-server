@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { useTranslation } from 'react-i18next';
 import { BrowserRouter } from 'react-router-dom';
-import { GlobalMusicPlayer } from '@/features/music-player';
+import { GlobalMusicPlayer, MiniMusicPlayerButton } from '@/features/music-player';
 import { UpdateDialog } from '@/features/updater';
 import { useFeedbackSounds } from '@/shared/hooks/use-feedback-sounds';
 import { AppRoutes } from './routes';
@@ -43,6 +43,7 @@ function App() {
     <BrowserRouter>
       <AppRoutes />
       <GlobalMusicPlayer />
+      <MiniMusicPlayerButton overlay />
       <UpdateDialog />
     </BrowserRouter>
   );

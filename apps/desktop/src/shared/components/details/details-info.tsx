@@ -25,12 +25,16 @@ function DetailsInfo({
   subtitleInfo,
   hideButtons,
   enableKeyboardBack = true,
+  disableInitialFocus = false,
 }: DetailsInfoProps) {
   useKeyboardBack({ enabled: enableKeyboardBack });
 
   useEffect(() => {
+    if (disableInitialFocus) {
+      return;
+    }
     setFocus(NavigationFocusKeys.details.playButton);
-  }, []);
+  }, [disableInitialFocus]);
 
   return (
     <FlexBox direction="column" justify="end" width={'100%'} className="z-50" padding="0 4rem">
@@ -58,6 +62,7 @@ function DetailsInfo({
             handlePlay={handlePlay}
             handleMoreOptions={handleMoreOptions}
             handleMarkWatched={handleMarkWatched}
+            timeWatchedInfo={timeWatchedInfo}
             isWatched={isWatched}
           />
           <DetailsTechnicalInfo

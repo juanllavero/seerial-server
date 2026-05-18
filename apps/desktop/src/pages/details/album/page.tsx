@@ -10,6 +10,7 @@ function AlbumDetailsPage() {
   const cachedDetails: DetailsData | undefined = state?.cachedDetails;
   const collectionId: string | undefined = state?.collectionId;
   const libraryType = state?.libraryType as LibraryType | undefined;
+  const collectionBackgroundSrc: string | undefined = state?.collectionBackgroundSrc;
 
   const { data: album, isLoading } = useGetAlbum<Album>(albumId ?? '', {
     enabled: !!albumId,
@@ -22,6 +23,7 @@ function AlbumDetailsPage() {
       details={cachedDetails}
       collectionId={collectionId}
       libraryType={libraryType}
+      fallbackBackgroundSrc={collectionBackgroundSrc}
     />
   );
 }

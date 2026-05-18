@@ -100,19 +100,23 @@ function MovieDetails({ movie, isLoading, details, collectionId, libraryType }: 
       currentItemId={movie?.id}
       currentItemType="movie"
       libraryType={libraryType}
+      background={
+        <>
+          {!!movie?.id && (
+            <DetailsBackgroundPlayback
+              audioLocalIds={[movie.id]}
+              videoLocalIds={[movie.id]}
+              onVideoVisibilityChange={setIsBackgroundVideoVisible}
+            />
+          )}
+          <DetailsBackgroundLayers
+            imageSrc={backgroundImageSrc}
+            isHidden={isBackgroundVideoVisible}
+          />
+        </>
+      }
     >
       <Page justify="end" padding="4dvh 0" fullScreen>
-        {!!movie?.id && (
-          <DetailsBackgroundPlayback
-            audioLocalIds={[movie.id]}
-            videoLocalIds={[movie.id]}
-            onVideoVisibilityChange={setIsBackgroundVideoVisible}
-          />
-        )}
-        <DetailsBackgroundLayers
-          imageSrc={backgroundImageSrc}
-          isHidden={isBackgroundVideoVisible}
-        />
         <DetailsInfo
           details={details}
           subtitle={movie?.videos && movie.videos.length > 1 ? selectedVideo?.title : undefined}

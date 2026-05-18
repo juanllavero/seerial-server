@@ -14,6 +14,7 @@ import { NavigationScrollView } from '@/shared/components/navigation';
 import { ListTitle } from '@/shared/components/text';
 import ContentCard from '@/shared/components/ui/content-card';
 import FlexBox from '@/shared/components/ui/flex-box';
+import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
 import RelatedSongsSection from './related-songs-section';
 
 interface CollectionContentData {
@@ -88,6 +89,14 @@ function RelatedContentPage({
   const navigate = useNavigate();
   const [focusedElementId, setFocusedElementId] = useState<string | undefined>();
   const hasFocusedRef = useRef(false);
+
+  useKeyboardBack({
+    enabled: isVisible,
+    navigateOnBack: false,
+    preAction: onNavigateBack,
+    capture: true,
+    stopPropagation: true,
+  });
 
   const { data: collection } = useGetCollection<Collection>(collectionId, {
     enabled: !!collectionId,

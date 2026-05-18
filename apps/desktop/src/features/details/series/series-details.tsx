@@ -68,7 +68,7 @@ function getSeasonEpisodeState(
     return { selectedEpisode: restoredEpisode, isRestoringEpisodeFocus: true };
   }
 
-  return { selectedEpisode: sortedEpisodes[0], isRestoringEpisodeFocus: false };
+  return { selectedEpisode: sortedEpisodes[0], isRestoringEpisodeFocus: true };
 }
 
 function buildDetailsInfoItems(selectedEpisode: Episode | null, seriesYear: string | undefined) {
@@ -219,21 +219,26 @@ function SeriesDetails({
       currentItemId={series?.id}
       currentItemType="series"
       libraryType={libraryType}
+      background={
+        <>
+          {!!series?.id && (
+            <DetailsBackgroundPlayback
+              audioLocalIds={[selectedSeason?.id, series.id]}
+              videoLocalIds={[selectedSeason?.id, series.id]}
+              onVideoVisibilityChange={setIsBackgroundVideoVisible}
+            />
+          )}
+          <DetailsBackgroundLayers
+            imageSrc={backgroundImageSrc}
+            isHidden={isBackgroundVideoVisible}
+          />
+        </>
+      }
     >
       <Page justify="end" padding={'0'} fullScreen>
-        {!!series?.id && (
-          <DetailsBackgroundPlayback
-            audioLocalIds={[selectedSeason?.id, series.id]}
-            videoLocalIds={[selectedSeason?.id, series.id]}
-            onVideoVisibilityChange={setIsBackgroundVideoVisible}
-          />
-        )}
-        <DetailsBackgroundLayers
-          imageSrc={backgroundImageSrc}
-          isHidden={isBackgroundVideoVisible}
-        />
         <DetailsInfo
           details={details}
+          disableInitialFocus
           subtitle={selectedEpisode?.name}
           infoItems={detailsInfoItems}
           videoInfo={selectedEpisode?.video.videoTracks?.[0]?.displayTitle}

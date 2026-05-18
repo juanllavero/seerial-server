@@ -9,6 +9,7 @@ import RelatedContentPage from './related-content-page';
 
 interface DetailsWithRelatedContentProps {
   children: React.ReactNode;
+  background?: React.ReactNode;
   collectionId?: string;
   currentItemId?: string;
   currentItemType?: ItemType;
@@ -23,6 +24,7 @@ const slideTransition = {
 
 function DetailsWithRelatedContent({
   children,
+  background,
   collectionId,
   currentItemId,
   currentItemType,
@@ -55,8 +57,9 @@ function DetailsWithRelatedContent({
   return (
     <RelatedContentContext.Provider value={contextValue}>
       <div className="relative w-screen h-screen overflow-hidden">
+        {background}
         <motion.div
-          className="absolute inset-0 w-full h-full"
+          className="absolute inset-0 w-full h-full z-10"
           animate={{ x: isRelatedVisible ? '-100%' : '0%' }}
           transition={slideTransition}
         >
@@ -67,7 +70,7 @@ function DetailsWithRelatedContent({
         </motion.div>
 
         <motion.div
-          className="absolute top-0 left-full w-full h-full"
+          className="absolute top-0 left-full w-full h-full z-10"
           animate={{ x: isRelatedVisible ? '-100%' : '0%' }}
           transition={slideTransition}
         >

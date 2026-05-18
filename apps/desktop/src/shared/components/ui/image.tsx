@@ -3,6 +3,25 @@ import { useServerStore } from '@seerial/stores';
 import { useEffect, useRef, useState } from 'react';
 import { Skeleton } from './skeleton';
 
+/**
+ * Valid TMDB CDN image size tokens.
+ * Posters:   w92 | w154 | w185 | w342 | w500 | w780 | original
+ * Backdrops: w300 | w780 | w1280 | original
+ * Logos:     w45 | w92 | w154 | w185 | w300 | w500 | original
+ * Stills:    w92 | w185 | w300 | original
+ */
+type TmdbImageSize =
+  | 'w45'
+  | 'w92'
+  | 'w154'
+  | 'w185'
+  | 'w300'
+  | 'w342'
+  | 'w500'
+  | 'w780'
+  | 'w1280'
+  | 'original';
+
 interface ImageProps {
   url?: string;
   src?: string;
@@ -12,8 +31,26 @@ interface ImageProps {
   width?: string;
   height?: string;
   objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
+  /** Controls the TMDB CDN size used for remote TMDB URLs. Defaults to 'w500'. */
+  tmdbSize?: TmdbImageSize;
   style?: React.CSSProperties;
   className?: string;
+}
+
+const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/';
+
+/**
+ * Replaces the size segment of a TMDB image URL with the requested size.
+ * Defaults to w500, which is appropriate for card thumbnails. Serving "original"
+ * (up to ~2000px) in a small card forces the browser to downscale by 10x+,
+ * causing visible aliasing on fine details.
+ */
+function optimizeTmdbUrl(url: string, size: TmdbImageSize = 'w500'): string {
+  if (!url.startsWith(TMDB_IMAGE_BASE)) return url;
+  const afterBase = url.slice(TMDB_IMAGE_BASE.length);
+  const slashIdx = afterBase.indexOf('/');
+  if (slashIdx === -1) return url;
+  return `${TMDB_IMAGE_BASE}${size}${afterBase.slice(slashIdx)}`;
 }
 
 const Image: React.FC<ImageProps> = ({
@@ -26,12 +63,17 @@ const Image: React.FC<ImageProps> = ({
   height,
   style,
   objectFit = 'cover',
+  tmdbSize = 'original',
   className = '',
 }) => {
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
   const isRemoteUrl = !!url?.startsWith('http');
   const localImagePath = url && !isRemoteUrl ? url : undefined;
-  const directImageSrc = url ? (isRemoteUrl ? url : undefined) : (src ?? fallbackSrc);
+  const directImageSrc = url
+    ? isRemoteUrl
+      ? optimizeTmdbUrl(url, tmdbSize)
+      : undefined
+    : (src ?? fallbackSrc);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [isInView, setIsInView] = useState(false);

@@ -50,7 +50,7 @@ interface Palette {
 }
 
 export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
-  constructor(private readonly fileSystemService: FileSystemServicePort) {}
+  constructor(private readonly fileSystemService: FileSystemServicePort) { }
 
   async getImageColorPalette(imageSource: string, options: PaletteOptions) {
     try {
@@ -134,6 +134,24 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
 
     try {
       await fs.access(resolvedPath, fs.constants.F_OK);
+
+      if (!width && !height) {
+        // Serve the original file without re-encoding to preserve image quality.
+        const ext = path.extname(filePath).toLowerCase();
+        const mimeTypes: Record<string, string> = {
+          '.jpg': 'image/jpeg',
+          '.jpeg': 'image/jpeg',
+          '.png': 'image/png',
+          '.webp': 'image/webp',
+          '.gif': 'image/gif',
+          '.avif': 'image/avif',
+        };
+        res.setHeader('Content-Type', mimeTypes[ext] ?? 'application/octet-stream');
+        const inputStream = fs.createReadStream(resolvedPath);
+        await pipeline(inputStream, res);
+        return;
+      }
+
       const inputStream = fs.createReadStream(resolvedPath);
       await this._compressAndStream(inputStream, res, { width, height });
     } catch (_error) {
@@ -338,12 +356,11 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
         'resources',
         'img',
         'default',
-        `${
-          libraryType === LibraryTypes.MUSIC
-            ? 'music'
-            : libraryType === LibraryTypes.MOVIES
-              ? 'movie'
-              : 'series'
+        `${libraryType === LibraryTypes.MUSIC
+          ? 'music'
+          : libraryType === LibraryTypes.MOVIES
+            ? 'movie'
+            : 'series'
         }.jpg`,
       ),
     );

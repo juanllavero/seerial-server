@@ -7,6 +7,10 @@ function WatchProgressBar({ duration, timeWatched }: WatchProgressBarProps) {
   const watchedMinutes = timeWatched / 60;
   const watchProgress = Math.min((watchedMinutes / duration) * 100, 100);
 
+  if (watchProgress <= duration * 0.05) {
+    return null;
+  }
+
   return (
     <div
       aria-hidden="true"
