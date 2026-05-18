@@ -1,5 +1,5 @@
 import { init, setFocus } from '@noriginmedia/norigin-spatial-navigation';
-import { seerialQueryClient, setApiBaseUrl } from '@seerial/api';
+import { seerialQueryClient, setApiBaseUrl, setUnauthorizedHandler } from '@seerial/api';
 import { useServerStore } from '@seerial/stores';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
@@ -12,6 +12,12 @@ import { useFeedbackSounds } from '@/shared/hooks/use-feedback-sounds';
 import { AppRoutes } from './routes';
 import { updateAppLanguage } from './shared/localization/language.helpers';
 import './shared/localization/i18n';
+
+// Clear session and redirect to login whenever the server returns 401
+setUnauthorizedHandler(() => {
+  useServerStore.getState().clearAuth();
+  window.location.replace('/login');
+});
 
 function App() {
   const { i18n } = useTranslation();

@@ -2,9 +2,9 @@ import { useGetAllCollections } from '@seerial/api';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ModalWrapper } from '@/shared/ui/modal-wrapper';
-import { useDialogStore } from '../../../../stores/dialog-store';
 import CollectionCard from './components/collection-card';
 import CreateCollectionTab from './components/create-collection-tab';
+import { useDialogStore } from '@/features/management/stores/dialog-store';
 
 interface CollectionSummary {
   id: string;

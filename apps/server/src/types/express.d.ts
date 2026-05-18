@@ -6,6 +6,7 @@ declare global {
     interface Request {
       requestId?: string;
       user?: UserDTO;
+      refreshedToken?: string;
     }
   }
 }

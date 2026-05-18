@@ -25,6 +25,7 @@ import { DatabaseManager } from './api/v1/shared/infrastructure/persistence/Data
 import { globalErrorHandler } from './api/v1/shared/infrastructure/web/exceptions/GlobalErrorHandler';
 import { requestsIDsMiddleware } from './middleware/request.id.middleware';
 import { sanitizationMiddleware } from './middleware/sanitization.middleware';
+import { tokenRefreshMiddleware } from './middleware/token-refresh.middleware';
 import { RegisterRoutes } from './routes/routes';
 import { createTray } from './utils/appTray';
 
@@ -59,7 +60,7 @@ appServer.use(
       callback(null, origin); // Return same origin
     },
     credentials: true, // Allow cookies
-    exposedHeaders: ['Content-Range', 'Accept-Ranges', 'Content-Length'],
+    exposedHeaders: ['Content-Range', 'Accept-Ranges', 'Content-Length', 'X-New-Token'],
     methods: ['GET', 'PUT', 'POST', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   }),
@@ -156,6 +157,7 @@ if (hasSingleInstanceLock) {
     }
 
     // Register generated tsoa routes
+    appServer.use(tokenRefreshMiddleware);
     RegisterRoutes(appServer);
 
     // Serve static web files

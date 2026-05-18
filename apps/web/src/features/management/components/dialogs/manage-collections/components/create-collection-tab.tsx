@@ -1,5 +1,5 @@
-import { API, useCreate, useGetLibraries, useGetLibraryContent } from '@seerial/api';
-import type { Library, LibraryItem } from '@seerial/domain';
+import { API, useCreate, useGetLibraries } from '@seerial/api';
+import type { Library } from '@seerial/domain';
 import { useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -7,7 +7,7 @@ import { showToast } from '@/shared/lib/react-utils';
 import { Button } from '@/shared/ui/button';
 import { Input } from '@/shared/ui/input';
 import { Label } from '@/shared/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select';
+import { type StagedItem, MultiLibraryItemPicker } from './item-picker';
 
 interface CreateCollectionBody {
   title: string;
@@ -29,13 +29,11 @@ interface CreateCollectionTabProps {
 function buildCollectionBody(
   name: string,
   description: string,
-  selectedItems: LibraryItem[],
-  selectedLibrary: Library | undefined,
+  stagedItems: StagedItem[],
 ): CreateCollectionBody {
-  const ids = selectedItems.map((i) => i.id);
-  const movieIds = selectedLibrary?.type === 'Movies' ? ids : [];
-  const seriesIds = selectedLibrary?.type === 'Shows' ? ids : [];
-  const albumIds = selectedLibrary?.type === 'Music' ? ids : [];
+  const movieIds = stagedItems.filter((i) => i.libraryType === 'Movies').map((i) => i.id);
+  const seriesIds = stagedItems.filter((i) => i.libraryType === 'Shows').map((i) => i.id);
+  const albumIds = stagedItems.filter((i) => i.libraryType === 'Music').map((i) => i.id);
   return {
     title: name.trim(),
     ...(description.trim() ? { description: description.trim() } : {}),
@@ -50,8 +48,7 @@ export default function CreateCollectionTab({ onCreated }: CreateCollectionTabPr
   const queryClient = useQueryClient();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [selectedLibraryId, setSelectedLibraryId] = useState<string | undefined>(undefined);
-  const [selectedItems, setSelectedItems] = useState<LibraryItem[]>([]);
+  const [stagedItems, setStagedItems] = useState<StagedItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { create } = useCreate<Collection>();
@@ -60,28 +57,12 @@ export default function CreateCollectionTab({ onCreated }: CreateCollectionTabPr
     staleTime: Number.POSITIVE_INFINITY,
   });
 
-  const selectedLibrary = libraries?.find((l) => l.id === selectedLibraryId);
-
-  const { data: libraryContent, isLoading: libraryContentLoading } = useGetLibraryContent<
-    LibraryItem[]
-  >(selectedLibraryId ?? '', {
-    enabled: !!selectedLibraryId,
-    params: { type: selectedLibrary?.type ?? '' },
-    staleTime: 30000,
-  });
-
-  const toggleItem = (item: LibraryItem) => {
-    setSelectedItems((prev) =>
-      prev.some((i) => i.id === item.id) ? prev.filter((i) => i.id !== item.id) : [...prev, item],
-    );
-  };
-
   const handleSubmit = async () => {
     if (!name.trim()) return;
 
     setIsSubmitting(true);
 
-    const body = buildCollectionBody(name, description, selectedItems, selectedLibrary);
+    const body = buildCollectionBody(name, description, stagedItems);
 
     try {
       const result = await create(API.collections.create, body as Partial<Collection>);
@@ -90,8 +71,7 @@ export default function CreateCollectionTab({ onCreated }: CreateCollectionTabPr
         queryClient.invalidateQueries({ queryKey: ['collections', 'getAll'] });
         setName('');
         setDescription('');
-        setSelectedLibraryId(undefined);
-        setSelectedItems([]);
+        setStagedItems([]);
         onCreated?.();
       } else {
         showToast('error', t('collectionNameExists'));
@@ -104,80 +84,47 @@ export default function CreateCollectionTab({ onCreated }: CreateCollectionTabPr
   };
 
   return (
-    <div className="flex flex-col gap-4 p-1">
-      <div className="flex flex-col gap-1">
-        <Label htmlFor="collection-name">{t('name')} *</Label>
-        <Input
-          id="collection-name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder={t('name')}
-          autoComplete="off"
-        />
+    <div className="flex flex-col gap-5 p-1">
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="collection-name">{t('name')} *</Label>
+          <Input
+            id="collection-name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={t('name')}
+            autoComplete="off"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="collection-description">{t('description') ?? 'Description'}</Label>
+          <Input
+            id="collection-description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder={`${t('description') ?? 'Description'} (${t('optionalLabel') ?? 'optional'})`}
+            autoComplete="off"
+          />
+        </div>
       </div>
 
-      <div className="flex flex-col gap-1">
-        <Label htmlFor="collection-description">{t('description') ?? 'Description'}</Label>
-        <Input
-          id="collection-description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder={`${t('description') ?? 'Description'} (${t('optionalLabel') ?? 'optional'})`}
-          autoComplete="off"
-        />
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <Label>{t('addItemsToCollection')}</Label>
-        <Select
-          value={selectedLibraryId ?? ''}
-          onValueChange={(v) => {
-            setSelectedLibraryId(v);
-            setSelectedItems([]);
-          }}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder={t('selectLibrary')} />
-          </SelectTrigger>
-          <SelectContent>
-            {(libraries ?? []).map((lib) => (
-              <SelectItem key={lib.id} value={lib.id}>
-                {lib.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        {selectedLibraryId &&
-          (libraryContentLoading ? (
-            <span className="text-sm text-muted-foreground">Loading...</span>
-          ) : (
-            <ul className="flex flex-col gap-1 max-h-48 overflow-y-auto border rounded-md p-2">
-              {(libraryContent ?? []).map((item) => {
-                const isSelected = selectedItems.some((i) => i.id === item.id);
-                return (
-                  <li key={item.id}>
-                    <button
-                      type="button"
-                      onClick={() => toggleItem(item)}
-                      className={`w-full text-left text-sm px-2 py-1 rounded transition-colors ${
-                        isSelected ? 'bg-primary/20 text-primary' : 'hover:bg-muted/50'
-                      }`}
-                    >
-                      {item.title}
-                    </button>
-                  </li>
-                );
-              })}
-              {(libraryContent ?? []).length === 0 && (
-                <li className="text-sm text-muted-foreground px-2 py-1">No items</li>
-              )}
-            </ul>
-          ))}
-      </div>
+      {(libraries ?? []).length > 0 && (
+        <div className="flex flex-col gap-2">
+          <Label>{t('addItemsToCollection')}</Label>
+          <MultiLibraryItemPicker
+            libraries={libraries ?? []}
+            stagedItems={stagedItems}
+            onStagedItemsChange={setStagedItems}
+          />
+        </div>
+      )}
 
       <Button onClick={handleSubmit} disabled={!name.trim() || isSubmitting} className="self-start">
         {t('createCollection')}
+        {stagedItems.length > 0 && (
+          <span className="ml-1.5 text-primary-foreground/70">({stagedItems.length})</span>
+        )}
       </Button>
     </div>
   );

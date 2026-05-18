@@ -9,6 +9,17 @@ export const DEFAULT_API_BASE_URL = '/api'
 
 let apiBaseUrlResolver: (() => string) | null = null
 
+type UnauthorizedHandler = () => void
+let unauthorizedHandler: UnauthorizedHandler | null = null
+
+/**
+ * Register a callback that will be invoked whenever the API returns a 401
+ * Unauthorized response. Use this to clear session state and redirect to login.
+ */
+export function setUnauthorizedHandler(handler: UnauthorizedHandler | null): void {
+    unauthorizedHandler = handler
+}
+
 type UnknownObject = Record<string, unknown>
 
 interface ApiEnvelope<TData = unknown> {
@@ -149,6 +160,15 @@ export function setApiBaseUrlResolver(resolver: (() => string) | null): void {
     publicApiClient.defaults.baseURL = baseUrl
 }
 
+function safeSetCookie(name: string, value: string, maxAgeDays: number): void {
+    if (typeof document === 'undefined') return
+    try {
+        const maxAge = maxAgeDays * 24 * 60 * 60
+        // biome-ignore lint/suspicious/noDocumentCookie: cookie utility
+        document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAge}; samesite=strict`
+    } catch { /* ignore */ }
+}
+
 export const apiClient: AxiosInstance = axios.create({
     baseURL: getInitialBaseUrl(),
     headers: {
@@ -169,6 +189,27 @@ apiClient.interceptors.request.use((config) => {
     config.withCredentials = true
     return config
 })
+
+apiClient.interceptors.response.use(
+    (response) => {
+        const newToken = response.headers['x-new-token'] as string | undefined
+        if (newToken) {
+            // Update localStorage token (for Bearer-auth environments)
+            try {
+                localStorage.setItem('auth:token', newToken)
+            } catch { /* ignore */ }
+            // Refresh the client-side cookie mirror (non-HttpOnly)
+            safeSetCookie('token', newToken, 30)
+        }
+        return response
+    },
+    (error: unknown) => {
+        if (axios.isAxiosError(error) && error.response?.status === 401) {
+            unauthorizedHandler?.()
+        }
+        return Promise.reject(error)
+    },
+)
 
 export const publicApiClient: AxiosInstance = axios.create({
     baseURL: getInitialBaseUrl(),

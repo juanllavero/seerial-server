@@ -1,5 +1,5 @@
 import { TooltipProvider } from '@radix-ui/react-tooltip';
-import { seerialQueryClient } from '@seerial/api';
+import { seerialQueryClient, setUnauthorizedHandler } from '@seerial/api';
 import { useServerStore } from '@seerial/stores';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
@@ -11,6 +11,12 @@ import { LOCAL_SERVER } from '@/shared/lib/constants';
 import { updateAppLanguage } from '../shared/localization/helpers/language-helpers';
 import '../shared/localization/i18n';
 import { AppRoutes } from './routes/routes';
+
+// Clear session and redirect to login whenever the server returns 401
+setUnauthorizedHandler(() => {
+  useServerStore.getState().clearAuth();
+  window.location.replace('/login');
+});
 
 function App() {
   const { i18n } = useTranslation();

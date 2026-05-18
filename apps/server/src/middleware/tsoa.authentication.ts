@@ -57,6 +57,36 @@ function getTokenFromRequest(request: Request): string | null {
   return token;
 }
 
+const TOKEN_REFRESH_THRESHOLD_DAYS = 10;
+const SECONDS_PER_DAY = 86400;
+
+/**
+ * If the decoded token expires in fewer than TOKEN_REFRESH_THRESHOLD_DAYS days,
+ * signs a fresh 30-day token and attaches it to the request so the
+ * tokenRefreshMiddleware can forward it to the client.
+ */
+function maybeAttachRefreshedToken(
+  request: Request,
+  decoded: { userId: string; username?: string; type?: string; tokenVersion?: number; exp?: number },
+  user: UserModel,
+): void {
+  if (!decoded.exp) return;
+  const secondsRemaining = decoded.exp - Math.floor(Date.now() / 1000);
+  if (secondsRemaining > TOKEN_REFRESH_THRESHOLD_DAYS * SECONDS_PER_DAY) return;
+
+  const newToken = jwt.sign(
+    {
+      userId: user.id,
+      username: user.username,
+      type: user.type,
+      tokenVersion: user.tokenVersion,
+    },
+    getJwtSecret(),
+    { expiresIn: '30d' },
+  );
+  request.refreshedToken = newToken;
+}
+
 async function authenticateFull(request: Request): Promise<UserDTO> {
   const token = getTokenFromRequest(request);
 
@@ -68,6 +98,7 @@ async function authenticateFull(request: Request): Promise<UserDTO> {
     const decoded = jwt.verify(token, getJwtSecret()) as {
       userId: string;
       tokenVersion?: number;
+      exp?: number;
     };
 
     const user = await UserModel.findOne({
@@ -103,6 +134,8 @@ async function authenticateFull(request: Request): Promise<UserDTO> {
 
     // Check session limit (omitted in original tsoa auth for simplicity)
 
+    maybeAttachRefreshedToken(request, decoded, user);
+
     return user;
   } catch (err) {
     logger.error(err, '[Authentication] Error');
@@ -120,6 +153,7 @@ async function authenticateFast(request: Request): Promise<UserDTO> {
     const decoded = jwt.verify(token, getJwtSecret()) as {
       userId: string;
       tokenVersion?: number;
+      exp?: number;
     };
     const user = await UserModel.findOne({ where: { id: decoded.userId } });
     if (!user) {
@@ -130,6 +164,8 @@ async function authenticateFast(request: Request): Promise<UserDTO> {
     if (decoded.tokenVersion !== undefined && decoded.tokenVersion !== user.tokenVersion) {
       throw new UnauthorizedException(messages.errors.token.invalid);
     }
+
+    maybeAttachRefreshedToken(request, decoded, user);
 
     return user;
   } catch (err) {
@@ -175,7 +211,7 @@ async function authenticateManagement(request: Request): Promise<UserDTO | null>
           where: { id: decoded.userId },
         });
         if (user) return user;
-      } catch (_e) {}
+      } catch (_e) { }
     }
     return null; // Allow local access without user
   }

@@ -42,6 +42,8 @@ interface AuthState {
   // ── User ──────────────────────────────────────────────────────────────────
   currentUser: BasicUser | null;
   setCurrentUser: (user: BasicUser | null) => void;
+  /** Clears the user session locally without calling the logout endpoint. Use when the session is already invalid (e.g. 401 from server). */
+  clearAuth: () => void;
 
   // ── API Key (used elsewhere in the app) ───────────────────────────────────
   apiKeyStatus: boolean;
@@ -92,6 +94,23 @@ export const useServerStore = createWithEqualityFn<AuthState>((set) => ({
       void api.post<unknown>(API.users.logout).catch(() => undefined);
     }
     set({ currentUser: user });
+  },
+
+  clearAuth: () => {
+    remove(KEYS.USER);
+    // Clear token cookie and any localStorage token fallback
+    try {
+      localStorage.removeItem('auth:token');
+    } catch {
+      /* ignore */
+    }
+    // biome-ignore lint/suspicious/noDocumentCookie: cookie utility
+    try {
+      document.cookie = 'token=; path=/; max-age=0; samesite=strict';
+    } catch {
+      /* ignore */
+    }
+    set({ currentUser: null });
   },
 
   setApiKey: async (apiKey) => {

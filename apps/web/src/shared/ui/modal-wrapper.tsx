@@ -104,38 +104,44 @@ export function ModalWrapper({
         <DrawerHeader>
           <DrawerTitle className="text-2xl">{title}</DrawerTitle>
         </DrawerHeader>
-        {tabs && tabs.length > 1 ? (
-          <Tabs value={currentTab} onValueChange={handleTabChange}>
-            <TabsList className={`m-2 flex`}>
+        <div className="flex-1 min-h-0 flex flex-col">
+          {tabs && tabs.length > 1 ? (
+            <Tabs
+              value={currentTab}
+              onValueChange={handleTabChange}
+              className="flex flex-col flex-1 min-h-0"
+            >
+              <TabsList className="m-2 flex shrink-0">
+                {tabs
+                  .filter((tab) => !tab.hidden)
+                  .map((tab) => (
+                    <TabsTrigger key={`Tab${tab.title}`} value={tab.title} disabled={tab.disabled}>
+                      {tab.title}
+                    </TabsTrigger>
+                  ))}
+              </TabsList>
               {tabs
                 .filter((tab) => !tab.hidden)
                 .map((tab) => (
-                  <TabsTrigger key={`Tab${tab.title}`} value={tab.title} disabled={tab.disabled}>
-                    {tab.title}
-                  </TabsTrigger>
+                  <TabsContent
+                    key={tab.title}
+                    value={tab.title}
+                    className="p-4 flex-1 min-h-0 overflow-y-auto"
+                    style={{
+                      width: '100%',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    {Array.isArray(tab.content)
+                      ? tab.content.map((item) => <div key={tab.title}>{item}</div>)
+                      : tab.content}
+                  </TabsContent>
                 ))}
-            </TabsList>
-            {tabs
-              .filter((tab) => !tab.hidden)
-              .map((tab) => (
-                <TabsContent
-                  key={tab.title}
-                  value={tab.title}
-                  className="p-4"
-                  style={{
-                    width: '100%',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {Array.isArray(tab.content)
-                    ? tab.content.map((item) => <div key={tab.title}>{item}</div>)
-                    : tab.content}
-                </TabsContent>
-              ))}
-          </Tabs>
-        ) : tabs && tabs.length === 1 ? (
-          <div className="w-full">{tabs[0]?.content}</div>
-        ) : null}
+            </Tabs>
+          ) : tabs && tabs.length === 1 ? (
+            <div className="w-full flex-1 min-h-0 overflow-y-auto">{tabs[0]?.content}</div>
+          ) : null}
+        </div>
         {!hideButtons && (
           <DrawerFooter className="pt-0">
             <FlexBox
