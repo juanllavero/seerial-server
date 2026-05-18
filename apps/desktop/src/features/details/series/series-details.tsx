@@ -1,5 +1,11 @@
-import { useSetEpisodeWatchState } from '@seerial/api';
-import type { DetailsData, Episode, LibraryType, Season, Series } from '@seerial/domain';
+import {
+  API,
+  apiClient,
+  unwrapApiPayload,
+  useSetEpisodeWatchState,
+  useUpdateVideoMediaInfo,
+} from '@seerial/api';
+import type { DetailsData, Episode, LibraryType, Season, Series, Video } from '@seerial/domain';
 import { formatDate, formatTimeForView, getAudioTrack, getSubtitleTrack } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { useQueryClient } from '@tanstack/react-query';
@@ -128,6 +134,7 @@ function SeriesDetails({
   );
   const [selectedSeason, setSelectedSeason] = useState<Season | null>(null);
   const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(null);
+  const [resolvedVideoData, setResolvedVideoData] = useState<Map<string, Video>>(new Map());
   const [isRestoringEpisodeFocus, setIsRestoringEpisodeFocus] = useState(true);
   const [isBackgroundVideoVisible, setIsBackgroundVideoVisible] = useState(false);
   const backgroundImageSrc =
@@ -141,6 +148,22 @@ function SeriesDetails({
   );
   const { mutateAsync: setEpisodeWatchState, isPending: isUpdatingWatchState } =
     useSetEpisodeWatchState<unknown, { state: boolean }>(selectedEpisode?.id ?? '');
+  const { mutateAsync: updateMediaInfo } = useUpdateVideoMediaInfo(selectedEpisode?.video.id ?? '');
+
+  useEffect(() => {
+    const video = selectedEpisode?.video;
+    if (!video?.id || (video.audioTracks && video.audioTracks.length > 0)) return;
+    if (resolvedVideoData.has(video.id)) return;
+
+    const videoId = video.id;
+    updateMediaInfo()
+      .then(() => apiClient.get(API.videos.get(videoId)))
+      .then((response) => {
+        const updatedVideo = unwrapApiPayload<Video>(response.data);
+        setResolvedVideoData((prev) => new Map(prev).set(videoId, updatedVideo));
+      })
+      .catch(() => {});
+  }, [selectedEpisode, resolvedVideoData, updateMediaInfo]);
 
   useEffect(() => {
     const seasonToSelect = getInitialSeason(series, currentSeasonNumber);
@@ -185,13 +208,19 @@ function SeriesDetails({
     [selectedEpisode, series?.year],
   );
 
+  const episodeForTrackInfo = useMemo(() => {
+    if (!selectedEpisode) return null;
+    const resolved = resolvedVideoData.get(selectedEpisode.video.id);
+    return resolved ? { ...selectedEpisode, video: resolved } : selectedEpisode;
+  }, [selectedEpisode, resolvedVideoData]);
+
   const episodeAudioInfo = useMemo(
-    () => getEpisodeAudioInfo(selectedEpisode, series),
-    [selectedEpisode, series],
+    () => getEpisodeAudioInfo(episodeForTrackInfo, series),
+    [episodeForTrackInfo, series],
   );
   const episodeSubtitleInfo = useMemo(
-    () => getEpisodeSubtitleInfo(selectedEpisode, series),
-    [selectedEpisode, series],
+    () => getEpisodeSubtitleInfo(episodeForTrackInfo, series),
+    [episodeForTrackInfo, series],
   );
 
   const handleMarkWatched = useCallback(async () => {
@@ -206,12 +235,6 @@ function SeriesDetails({
   }, [isUpdatingWatchState, isWatched, queryClient, selectedEpisode, series, setEpisodeWatchState]);
 
   if (!isLoading && !series) return <span>Series not found</span>;
-
-  console.log({
-    selectedEpisode,
-    video: selectedEpisode?.video,
-    mediaInfo: selectedEpisode?.video.mediaInfo,
-  }); // Debug log to check the values
 
   return (
     <DetailsWithRelatedContent
@@ -241,7 +264,7 @@ function SeriesDetails({
           disableInitialFocus
           subtitle={selectedEpisode?.name}
           infoItems={detailsInfoItems}
-          videoInfo={selectedEpisode?.video.videoTracks?.[0]?.displayTitle}
+          videoInfo={episodeForTrackInfo?.video.videoTracks?.[0]?.displayTitle}
           audioInfo={episodeAudioInfo}
           subtitleInfo={episodeSubtitleInfo}
           handlePlay={handlePlay}

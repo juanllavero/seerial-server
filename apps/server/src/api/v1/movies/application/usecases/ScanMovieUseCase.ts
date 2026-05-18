@@ -8,7 +8,7 @@ import type { FileSystemServicePort } from '@/api/v1/shared/application/ports/Fi
 import type { MetadataProviderPort } from '@/api/v1/shared/application/ports/MetadataProviderPort';
 import type { NotificationServicePort } from '@/api/v1/shared/application/ports/NotificationServicePort';
 import { downloaderService } from '@/api/v1/shared/infrastructure/adapters/di/container';
-import { getOnlyRuntime } from '@/api/v1/shared/infrastructure/adapters/ffmpeg/mediaInfo';
+import { getMediaInfo, getOnlyRuntime } from '@/api/v1/shared/infrastructure/adapters/ffmpeg/mediaInfo';
 import { extractNameAndYear } from '@/api/v1/shared/infrastructure/services/FileSearchService';
 import { WriteQueue } from '@/api/v1/shared/infrastructure/services/WriteQueue';
 import type { VideoRepositoryPort } from '@/api/v1/videos/application/ports/VideosRepositoryPort';
@@ -28,7 +28,7 @@ export class ScanMovieUseCase {
     private readonly collectionRepo: CollectionsRepositoryPort,
     private readonly metadataProvider: MetadataProviderPort,
     private readonly notificationService: NotificationServicePort,
-  ) {}
+  ) { }
 
   async execute(library: Library, root: string): Promise<void> {
     logger.info({ libraryId: library.id, root }, 'Starting movies scan execution');
@@ -288,7 +288,7 @@ export class ScanMovieUseCase {
       await this.registerAnalyzedVideo(library, filePath, video.id);
 
       // Technical Analysis (FFmpeg) - Only if data is missing
-      await this.ensureRuntime(video, filePath);
+      await this.ensureMediaInfo(video, filePath);
 
       // E. External Metadata (Usually only for Main features, or if extras are supported)
       await this.updateVideoMetadata(video, movie, hasMetadata, type);
@@ -325,6 +325,30 @@ export class ScanMovieUseCase {
       await this.videoRepo.update(video.id, { runtime: video.runtime });
     } catch (_e) {
       logger.warn({ filePath }, 'Failed to extract runtime');
+    }
+  }
+
+  private async ensureMediaInfo(video: Video, filePath: string): Promise<void> {
+    if (video.audioTracks && video.audioTracks.length > 0) return;
+
+    logger.info({ videoId: video.id, filePath }, 'Extracting media info for video');
+
+    try {
+      const mediaInfo = await getMediaInfo(filePath, false);
+      if (!mediaInfo) {
+        logger.warn({ filePath }, 'getMediaInfo returned no data, falling back to runtime only');
+        await this.ensureRuntime(video, filePath);
+        return;
+      }
+      video.mediaInfo = mediaInfo.mediaInfo;
+      video.videoTracks = mediaInfo.videoTracks;
+      video.subtitleTracks = mediaInfo.subtitleTracks;
+      video.audioTracks = mediaInfo.audioTracks;
+      video.runtime = mediaInfo.duration;
+      await this.videoRepo.update(video.id, video);
+    } catch (_e) {
+      logger.warn({ filePath }, 'Failed to extract media info, falling back to runtime only');
+      await this.ensureRuntime(video, filePath);
     }
   }
 

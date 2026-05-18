@@ -1,4 +1,11 @@
-import { useGetLibrary, useSetMovieWatchState } from '@seerial/api';
+import {
+  API,
+  apiClient,
+  unwrapApiPayload,
+  useGetLibrary,
+  useSetMovieWatchState,
+  useUpdateVideoMediaInfo,
+} from '@seerial/api';
 import {
   type DetailsData,
   formatDate,
@@ -30,6 +37,7 @@ interface MovieDetailsProps {
 
 function MovieDetails({ movie, isLoading, details, collectionId, libraryType }: MovieDetailsProps) {
   const [selectedVideo, selectVideo] = useState<Video | null>(null);
+  const [resolvedVideoData, setResolvedVideoData] = useState<Map<string, Video>>(new Map());
   const [isBackgroundVideoVisible, setIsBackgroundVideoVisible] = useState(false);
   const backgroundImageSrc = details?.backgroundSrc ?? movie?.backgroundSrc ?? movie?.coverSrc;
   const queryClient = useQueryClient();
@@ -42,6 +50,7 @@ function MovieDetails({ movie, isLoading, details, collectionId, libraryType }: 
   const navigate = useNavigate();
   const { mutateAsync: setMovieWatchState, isPending: isUpdatingWatchState } =
     useSetMovieWatchState<unknown, { watched: boolean }>(movie?.id ?? '');
+  const { mutateAsync: updateMediaInfo } = useUpdateVideoMediaInfo(selectedVideo?.id ?? '');
 
   const { data: library } = useGetLibrary(movie?.libraryId ?? '', {
     enabled: !!movie?.libraryId,
@@ -78,19 +87,39 @@ function MovieDetails({ movie, isLoading, details, collectionId, libraryType }: 
     });
   }, [movie, isUpdatingWatchState, isWatched, queryClient, setMovieWatchState]);
 
+  useEffect(() => {
+    if (!selectedVideo?.id || (selectedVideo.audioTracks && selectedVideo.audioTracks.length > 0))
+      return;
+    if (resolvedVideoData.has(selectedVideo.id)) return;
+
+    const videoId = selectedVideo.id;
+    updateMediaInfo()
+      .then(() => apiClient.get(API.videos.get(videoId)))
+      .then((response) => {
+        const updatedVideo = unwrapApiPayload<Video>(response.data);
+        setResolvedVideoData((prev) => new Map(prev).set(videoId, updatedVideo));
+      })
+      .catch(() => {});
+  }, [selectedVideo, resolvedVideoData, updateMediaInfo]);
+
+  const effectiveVideo = useMemo(
+    () => (selectedVideo ? (resolvedVideoData.get(selectedVideo.id) ?? selectedVideo) : null),
+    [selectedVideo, resolvedVideoData],
+  );
+
   const movieAudioInfo = useMemo(() => {
-    if (!selectedVideo || !library) return undefined;
-    return getAudioTrack(library.preferAudioLan ?? '', selectedVideo)?.displayTitle;
-  }, [selectedVideo, library]);
+    if (!effectiveVideo || !library) return undefined;
+    return getAudioTrack(library.preferAudioLan ?? '', effectiveVideo)?.displayTitle;
+  }, [effectiveVideo, library]);
 
   const movieSubtitleInfo = useMemo(() => {
-    if (!selectedVideo || !library) return undefined;
+    if (!effectiveVideo || !library) return undefined;
     return getSubtitleTrack(
       library.preferSubLan ?? '',
       library.subsMode ?? 'autoSubs',
-      selectedVideo,
+      effectiveVideo,
     )?.displayTitle;
-  }, [selectedVideo, library]);
+  }, [effectiveVideo, library]);
 
   if (!isLoading && !movie) return <span>Movie not found</span>;
 
@@ -126,6 +155,7 @@ function MovieDetails({ movie, isLoading, details, collectionId, libraryType }: 
           ]}
           audioInfo={movieAudioInfo}
           subtitleInfo={movieSubtitleInfo}
+          videoInfo={effectiveVideo?.videoTracks?.[0]?.displayTitle}
           handlePlay={handlePlay}
           handleMarkWatched={handleMarkWatched}
           isWatched={isWatched}

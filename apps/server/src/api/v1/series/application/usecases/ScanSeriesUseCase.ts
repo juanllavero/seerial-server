@@ -13,6 +13,7 @@ import type { SeasonsRepositoryPort } from '@/api/v1/seasons/application/ports/S
 import type { Season } from '@/api/v1/seasons/domain/Season';
 import type { FileSystemServicePort } from '@/api/v1/shared/application/ports/FileSystemServicePort';
 import type { MetadataProviderPort } from '@/api/v1/shared/application/ports/MetadataProviderPort';
+import { getMediaInfo } from '@/api/v1/shared/infrastructure/adapters/ffmpeg/mediaInfo';
 import type { NotificationServicePort } from '@/api/v1/shared/application/ports/NotificationServicePort';
 import { downloaderService } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { WriteQueue } from '@/api/v1/shared/infrastructure/services/WriteQueue';
@@ -610,6 +611,9 @@ export class ScanSeriesUseCase {
 
     this.notificationService.mutateSeason();
 
+    // Extract media info for new video (tracks, codec, runtime)
+    await this.ensureMediaInfo(video, videoSrc);
+
     // Return data for batch update
     return {
       episode,
@@ -688,6 +692,28 @@ export class ScanSeriesUseCase {
           }
         }
       }
+    }
+  }
+
+  private async ensureMediaInfo(video: Video, filePath: string): Promise<void> {
+    if (video.audioTracks && video.audioTracks.length > 0) return;
+
+    logger.info({ videoId: video.id, filePath }, 'Extracting media info for video');
+
+    try {
+      const mediaInfo = await getMediaInfo(filePath, false);
+      if (!mediaInfo) {
+        logger.warn({ filePath }, 'getMediaInfo returned no data for episode video');
+        return;
+      }
+      video.mediaInfo = mediaInfo.mediaInfo;
+      video.videoTracks = mediaInfo.videoTracks;
+      video.subtitleTracks = mediaInfo.subtitleTracks;
+      video.audioTracks = mediaInfo.audioTracks;
+      video.runtime = mediaInfo.duration;
+      await this.videoRepo.update(video.id, video);
+    } catch (_e) {
+      logger.warn({ filePath }, 'Failed to extract media info for episode video');
     }
   }
 
