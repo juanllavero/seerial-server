@@ -118,20 +118,16 @@ function CorrectIdentificationSearch() {
     ? `${isShow ? API.series.search : API.movies.search}?name=${encodeURIComponent(searchQuery.name)}&year=${encodeURIComponent(searchQuery.year)}`
     : null;
 
-  const {
-    data: identificationResults,
-    isLoading: isSearching,
-    mutate: mutateSearch,
-  } = useGet<IdentificationResult[]>(searchUrl, {
-    enabled: false,
-  });
+  const { data: identificationResults, isLoading: isSearching } =
+    useGet<IdentificationResult[]>(searchUrl);
 
   const { mutateAsync: updateSeriesShowId } = useUpdateSeriesShowId();
   const { mutateAsync: changeMovieIdentification } = useChangeMovieIdentification(movieId ?? '');
 
   useEffect(() => {
     const defaultName = isShow ? (series?.name ?? '') : (movie?.name ?? '');
-    const defaultYear = isShow ? (series?.year ?? '') : (movie?.year ?? '');
+    const rawYear = isShow ? (series?.year ?? '') : (movie?.year ?? '');
+    const defaultYear = rawYear.split('-')[0];
 
     setName(defaultName);
     setYear(defaultYear);
@@ -142,12 +138,6 @@ function CorrectIdentificationSearch() {
       searchButtonRef.current?.focus();
     }, 0);
   }, [isShow, movie?.name, movie?.year, series?.name, series?.year]);
-
-  useEffect(() => {
-    if (searchQuery) {
-      mutateSearch();
-    }
-  }, [searchQuery, mutateSearch]);
 
   const search = (name: string, year: string) => {
     setSearchQuery({ name, year });

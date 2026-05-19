@@ -182,24 +182,6 @@ export class SeriesController extends Controller {
   }
 
   /**
-   * Get series by ID
-   */
-  @Get('{id}')
-  @Security('cookieAuth')
-  public async get(
-    @Path() id: string,
-    @Query() include?: IncludeType,
-  ): Promise<ApiResponse<Series>> {
-    const series = await useCases.getSeriesById().execute(id, include);
-
-    if (!series) {
-      throw new NotFoundException(messages.errors.notFound.series);
-    }
-
-    return ApiResponse.success(series, messages.success.fetch);
-  }
-
-  /**
    * Search series in TMDB
    */
   @Get('search')
@@ -222,6 +204,24 @@ export class SeriesController extends Controller {
   ): Promise<ApiResponse<TvEpisodeGroupsResponse | null>> {
     const result = await externalSearchService.searchEpisodeGroups(id);
     return ApiResponse.success(result, messages.success.fetch);
+  }
+
+  /**
+   * Get series by ID
+   */
+  @Get('{id}')
+  @Security('cookieAuth')
+  public async get(
+    @Path() id: string,
+    @Query() include?: IncludeType,
+  ): Promise<ApiResponse<Series>> {
+    const series = await useCases.getSeriesById().execute(id, include);
+
+    if (!series) {
+      throw new NotFoundException(messages.errors.notFound.series);
+    }
+
+    return ApiResponse.success(series, messages.success.fetch);
   }
 
   /**

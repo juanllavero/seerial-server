@@ -123,21 +123,6 @@ export class MoviesController extends Controller {
   }
 
   /**
-   * Get movie by ID
-   */
-  @Get('{id}')
-  @Security('cookieAuth')
-  public async get(@Path() id: string): Promise<ApiResponse<Movie>> {
-    const movie = await useCases.getMoviebyId().execute(id);
-
-    if (!movie) {
-      throw new NotFoundException(messages.errors.notFound.movie);
-    }
-
-    return ApiResponse.success(movie, messages.success.fetch);
-  }
-
-  /**
    * Search movies in TMDB
    */
   @Get('search')
@@ -158,6 +143,21 @@ export class MoviesController extends Controller {
   public async getImdbScore(@Query() id: string): Promise<ApiResponse<number>> {
     const score = await externalSearchService.getImdbScore(id);
     return ApiResponse.success(score, messages.success.fetch);
+  }
+
+  /**
+   * Get movie by ID
+   */
+  @Get('{id}')
+  @Security('cookieAuth')
+  public async get(@Path() id: string): Promise<ApiResponse<Movie>> {
+    const movie = await useCases.getMoviebyId().execute(id);
+
+    if (!movie) {
+      throw new NotFoundException(messages.errors.notFound.movie);
+    }
+
+    return ApiResponse.success(movie, messages.success.fetch);
   }
 
   /**
