@@ -386,5 +386,11 @@ export const es = {
     cardRoundnessLarge: 'Muy grande',
     cardRoundnessVeryLarge: 'Extrema',
     cardRoundnessExtraLarge: 'Extrema Plus',
+
+    // Card context menu
+    goToContent: 'Ir al contenido',
+    markAsWatched: 'Marcar como visto',
+    markAsUnwatched: 'Marcar como no visto',
+    reorderMode: 'Reordenar',
   },
 };

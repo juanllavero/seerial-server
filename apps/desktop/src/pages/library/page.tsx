@@ -95,6 +95,7 @@ function LibraryPage() {
   return (
     <LibraryContent
       content={libraryContent}
+      libraryId={libraryId}
       libraryType={type}
       selectedElement={selectedElement}
       setSelectedElement={setSelectedElement}

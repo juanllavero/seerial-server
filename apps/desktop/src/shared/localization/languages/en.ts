@@ -382,5 +382,11 @@ export const en = {
     cardRoundnessLarge: 'Large',
     cardRoundnessVeryLarge: 'Very large',
     cardRoundnessExtraLarge: 'Extra large',
+
+    // Card context menu
+    goToContent: 'Go to content',
+    markAsWatched: 'Mark as watched',
+    markAsUnwatched: 'Mark as unwatched',
+    reorderMode: 'Reorder',
   },
 };
