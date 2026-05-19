@@ -1,5 +1,5 @@
 import { setFocus, useFocusable } from '@noriginmedia/norigin-spatial-navigation';
-import { Song } from '@seerial/domain';
+import type { Song } from '@seerial/domain';
 import { AnimatePresence, motion } from 'framer-motion';
 import { AudioLines, ForwardIcon, Languages, List, MicVocal, RewindIcon } from 'lucide-react';
 import {

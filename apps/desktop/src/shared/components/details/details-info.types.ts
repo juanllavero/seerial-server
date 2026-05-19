@@ -10,7 +10,9 @@ export interface DetailsInfoProps {
   handlePlay?: () => void;
   handleMoreOptions?: () => void;
   handleMarkWatched?: () => void;
+  handleToggleHideThumbnails?: () => void;
   isWatched?: boolean;
+  hideUnwatchedThumbnails?: boolean;
   videoInfo?: string;
   audioInfo?: string;
   subtitleInfo?: string;

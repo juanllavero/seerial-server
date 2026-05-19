@@ -1,5 +1,6 @@
 import type { ContinueWatchingVideoDTO, Episode, Season, Video } from '@seerial/domain';
 import type { FindOptionsWhere } from 'typeorm';
+import { IsNull } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
 import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
 import { MovieModel } from '@/api/v1/movies/infrastructure/persistence/models/MovieModel';
@@ -236,12 +237,16 @@ export class WatchListRepositoryImpl extends BaseRepository implements WatchList
       seriesId: String(seriesId),
     });
 
-    const whereCondition = {
+    // Only delete the series-level entry (no videoId, movieId, etc.).
+    // Video entries may have seriesId set for continue-watching tracking and must not be deleted here.
+    const result = await WatchListModel.delete({
       userId: uId,
       seriesId: sId,
-    };
-
-    const result = await WatchListModel.delete(whereCondition);
+      videoId: IsNull(),
+      movieId: IsNull(),
+      seasonId: IsNull(),
+      episodeId: IsNull(),
+    });
     return (result.affected ?? 0) > 0;
   }
 

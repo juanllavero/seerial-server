@@ -55,6 +55,11 @@ function RelatedSongsSection({
 
   const randomSongs = useMemo(() => pickRandomSongs(albums, MAX_RANDOM_SONGS), [albums]);
 
+  console.log({
+    randomSongs,
+    albums,
+  });
+
   if (randomSongs.length === 0) return null;
 
   return (

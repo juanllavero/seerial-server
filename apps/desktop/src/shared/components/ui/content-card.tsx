@@ -111,6 +111,9 @@ function ContentCard({
   const stableAction = useCallback(() => actionRef.current(), []);
   const stableOnFocus = useCallback(() => onFocusRef.current?.(), []);
 
+  // Persists across effect re-runs: set to true when long press fires, reset on next keydown.
+  const longPressTriggeredRef = useRef(false);
+
   // Intercept arrow presses in reorder mode to move the card instead of focus.
   const effectiveArrowPress = useCallback<ArrowPressHandler<unknown>>(
     (direction, props, details) => {
@@ -147,13 +150,13 @@ function ContentCard({
     if (!focused || !onLongPress) return;
 
     let timerId: ReturnType<typeof setTimeout> | null = null;
-    let longPressTriggered = false;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Enter' || e.repeat) return;
-      longPressTriggered = false;
+      // Reset for each new physical key press.
+      longPressTriggeredRef.current = false;
       timerId = setTimeout(() => {
-        longPressTriggered = true;
+        longPressTriggeredRef.current = true;
         onLongPressRef.current?.();
       }, 500);
     };
@@ -164,7 +167,7 @@ function ContentCard({
         clearTimeout(timerId);
         timerId = null;
       }
-      if (!longPressTriggered) {
+      if (!longPressTriggeredRef.current) {
         actionRef.current();
       }
     };

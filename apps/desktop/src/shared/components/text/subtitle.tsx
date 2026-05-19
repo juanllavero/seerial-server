@@ -10,7 +10,7 @@ interface AppTextProps {
 const Subtitle = ({ className, style, children, ...props }: AppTextProps) => {
   return (
     <span
-      className={`${className} font-bold text-[4vh] pb-5 text-neutral-200`}
+      className={`${className} font-bold text-[4vh] pb-3 text-neutral-200`}
       style={style}
       {...props}
     >

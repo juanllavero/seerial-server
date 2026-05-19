@@ -19,7 +19,9 @@ function DetailsInfo({
   handlePlay,
   handleMoreOptions,
   handleMarkWatched,
+  handleToggleHideThumbnails,
   isWatched,
+  hideUnwatchedThumbnails,
   videoInfo,
   audioInfo,
   subtitleInfo,
@@ -62,8 +64,10 @@ function DetailsInfo({
             handlePlay={handlePlay}
             handleMoreOptions={handleMoreOptions}
             handleMarkWatched={handleMarkWatched}
+            handleToggleHideThumbnails={handleToggleHideThumbnails}
             timeWatchedInfo={timeWatchedInfo}
             isWatched={isWatched}
+            hideUnwatchedThumbnails={hideUnwatchedThumbnails}
           />
           <DetailsTechnicalInfo
             videoInfo={videoInfo}

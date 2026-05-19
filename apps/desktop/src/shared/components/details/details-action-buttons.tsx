@@ -1,4 +1,4 @@
-import { Ellipsis, PlayIcon, RotateCcw } from 'lucide-react';
+import { Ellipsis, Eye, EyeOff, PlayIcon, RotateCcw } from 'lucide-react';
 import { useRelatedContent } from '@/features/details';
 import FlexBox from '@/shared/components/ui/flex-box';
 import { MarkWatchedIcon, UnmarkWatchedIcon } from '@/shared/components/ui/icon-library';
@@ -9,16 +9,20 @@ interface DetailsActionButtonsProps {
   handlePlay?: () => void;
   handleMoreOptions?: () => void;
   handleMarkWatched?: () => void;
+  handleToggleHideThumbnails?: () => void;
   timeWatchedInfo?: number;
   isWatched?: boolean;
+  hideUnwatchedThumbnails?: boolean;
 }
 
 function DetailsActionButtons({
   handlePlay,
   handleMoreOptions,
   handleMarkWatched,
+  handleToggleHideThumbnails,
   timeWatchedInfo,
   isWatched,
+  hideUnwatchedThumbnails,
 }: DetailsActionButtonsProps) {
   const { navigateToRelated, hasRelatedContent } = useRelatedContent();
   return (
@@ -49,6 +53,22 @@ function DetailsActionButtons({
         hideText
         animateText
       />
+      {handleToggleHideThumbnails && (
+        <NavigationButton
+          customKey={NavigationFocusKeys.details.hideThumbnailsButton}
+          text={hideUnwatchedThumbnails ? 'Mostrar carátulas' : 'Ocultar carátulas'}
+          icon={
+            hideUnwatchedThumbnails ? (
+              <EyeOff size={'3dvh'} stroke="currentColor" />
+            ) : (
+              <Eye size={'3dvh'} stroke="currentColor" />
+            )
+          }
+          onClick={handleToggleHideThumbnails}
+          hideText
+          animateText
+        />
+      )}
       <NavigationButton
         customKey={NavigationFocusKeys.details.optionsButton}
         text={'Más'}

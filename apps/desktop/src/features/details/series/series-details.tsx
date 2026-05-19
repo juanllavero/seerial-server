@@ -7,10 +7,11 @@ import {
 } from '@seerial/api';
 import type { DetailsData, Episode, LibraryType, Season, Series, Video } from '@seerial/domain';
 import { formatDate, formatTimeForView, getAudioTrack, getSubtitleTrack } from '@seerial/domain';
+import { useLocalStorage } from '@seerial/hooks';
 import { useServerStore } from '@seerial/stores';
 import { useQueryClient } from '@tanstack/react-query';
 import { t } from 'i18next';
-import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { shallow } from 'zustand/shallow';
 import EpisodesList, {
@@ -137,6 +138,12 @@ function SeriesDetails({
   const [resolvedVideoData, setResolvedVideoData] = useState<Map<string, Video>>(new Map());
   const [isRestoringEpisodeFocus, setIsRestoringEpisodeFocus] = useState(true);
   const [isBackgroundVideoVisible, setIsBackgroundVideoVisible] = useState(false);
+  const prevSelectedSeasonIdRef = useRef<string | null>(null);
+  const isMarkingWatchedRef = useRef(false);
+  const [hideUnwatchedThumbnails, setHideUnwatchedThumbnails] = useLocalStorage<boolean>(
+    `hide-thumbnails-${series?.id ?? ''}`,
+    false,
+  );
   const backgroundImageSrc =
     details?.backgroundSrc ?? selectedSeason?.backgroundSrc ?? series?.coverSrc;
 
@@ -146,8 +153,10 @@ function SeriesDetails({
   const setLastFocusedEpisodeForSeason = useSeriesDetailsFocusStore(
     (state) => state.setLastFocusedEpisodeForSeason,
   );
-  const { mutateAsync: setEpisodeWatchState, isPending: isUpdatingWatchState } =
-    useSetEpisodeWatchState<unknown, { state: boolean }>(selectedEpisode?.id ?? '');
+  const { mutateAsync: setEpisodeWatchState } = useSetEpisodeWatchState<
+    unknown,
+    { state: boolean }
+  >(selectedEpisode?.id ?? '');
   const { mutateAsync: updateMediaInfo } = useUpdateVideoMediaInfo(selectedEpisode?.video.id ?? '');
 
   useEffect(() => {
@@ -172,8 +181,11 @@ function SeriesDetails({
 
   useEffect(() => {
     const nextState = getSeasonEpisodeState(selectedSeason, getLastFocusedEpisodeForSeason);
+    const seasonId = selectedSeason?.id ?? null;
+    const seasonChanged = prevSelectedSeasonIdRef.current !== seasonId;
+    prevSelectedSeasonIdRef.current = seasonId;
     setSelectedEpisode(nextState.selectedEpisode);
-    setIsRestoringEpisodeFocus(nextState.isRestoringEpisodeFocus);
+    setIsRestoringEpisodeFocus(seasonChanged ? nextState.isRestoringEpisodeFocus : false);
   }, [selectedSeason, getLastFocusedEpisodeForSeason]);
 
   const handleSelectEpisode = useCallback(
@@ -203,6 +215,9 @@ function SeriesDetails({
       );
     }, [selectedEpisode, currentUser]) ?? false;
 
+  const isWatchedRef = useRef(isWatched);
+  isWatchedRef.current = isWatched;
+
   const detailsInfoItems = useMemo(
     () => buildDetailsInfoItems(selectedEpisode, series?.year),
     [selectedEpisode, series?.year],
@@ -224,15 +239,24 @@ function SeriesDetails({
   );
 
   const handleMarkWatched = useCallback(async () => {
-    if (!series || !selectedEpisode || isUpdatingWatchState) {
+    if (!series || !selectedEpisode || isMarkingWatchedRef.current) {
       return;
     }
 
-    await setEpisodeWatchState({ state: !isWatched });
-    await queryClient.invalidateQueries({
-      queryKey: ['series', 'get', series.id],
-    });
-  }, [isUpdatingWatchState, isWatched, queryClient, selectedEpisode, series, setEpisodeWatchState]);
+    isMarkingWatchedRef.current = true;
+    try {
+      await setEpisodeWatchState({ state: !isWatchedRef.current });
+      await queryClient.invalidateQueries({
+        queryKey: ['series', 'get', series.id],
+      });
+    } finally {
+      isMarkingWatchedRef.current = false;
+    }
+  }, [queryClient, selectedEpisode, series, setEpisodeWatchState]);
+
+  const handleToggleHideThumbnails = useCallback(() => {
+    setHideUnwatchedThumbnails((prev) => !prev);
+  }, [setHideUnwatchedThumbnails]);
 
   if (!isLoading && !series) return <span>Series not found</span>;
 
@@ -269,7 +293,9 @@ function SeriesDetails({
           subtitleInfo={episodeSubtitleInfo}
           handlePlay={handlePlay}
           handleMarkWatched={handleMarkWatched}
+          handleToggleHideThumbnails={handleToggleHideThumbnails}
           isWatched={isWatched}
+          hideUnwatchedThumbnails={hideUnwatchedThumbnails}
           customDescription={selectedEpisode?.overview}
         />
         <EpisodesList
@@ -279,6 +305,8 @@ function SeriesDetails({
           isRestoringFocus={isRestoringEpisodeFocus}
           isLoading={isLoading || !selectedSeason}
           skeletonCount={numberOfItems ?? MAX_SKELETON_COUNT}
+          hideUnwatchedThumbnails={hideUnwatchedThumbnails}
+          seasonBackgroundSrc={selectedSeason?.backgroundSrc}
         />
         <SeasonSelector
           seasons={series?.seasons ?? []}

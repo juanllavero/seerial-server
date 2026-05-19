@@ -12,13 +12,24 @@ const MENU_FOCUS_KEY = 'CARD_CONTEXT_MENU';
 interface MenuItemProps {
   label: string;
   focusKey: string;
+  index: number;
+  totalItems: number;
   onSelect: () => void;
 }
 
-function MenuItem({ label, focusKey, onSelect }: MenuItemProps) {
+function MenuItem({ label, focusKey, index, totalItems, onSelect }: MenuItemProps) {
   const { ref, focused } = useFocusable({
     focusKey,
     onEnterPress: onSelect,
+    onArrowPress: (direction) => {
+      if (direction === 'up' && index > 0) {
+        setFocus(`${MENU_FOCUS_KEY}_ITEM_${index - 1}`);
+      } else if (direction === 'down' && index < totalItems - 1) {
+        setFocus(`${MENU_FOCUS_KEY}_ITEM_${index + 1}`);
+      }
+      // Always return false to prevent focus from leaving the menu
+      return false;
+    },
   });
 
   return (
@@ -56,6 +67,20 @@ function CardContextMenu({ title, items, onClose, previousFocusKey }: CardContex
     setFocus(`${MENU_FOCUS_KEY}_ITEM_0`);
   }, []);
 
+  // When the menu opens the user may still be holding Enter (long press).
+  // Block repeat keydown events for Enter at the capture phase so neither
+  // Norigin nor the item's onKeyDown handler fires until the key is released.
+  useEffect(() => {
+    const blockRepeatEnter = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && e.repeat) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('keydown', blockRepeatEnter, { capture: true });
+    return () => window.removeEventListener('keydown', blockRepeatEnter, { capture: true });
+  }, []);
+
   const handleClose = () => {
     onClose();
     if (previousFocusKey) {
@@ -90,6 +115,8 @@ function CardContextMenu({ title, items, onClose, previousFocusKey }: CardContex
               key={item.label}
               label={item.label}
               focusKey={`${MENU_FOCUS_KEY}_ITEM_${index}`}
+              index={index}
+              totalItems={items.length}
               onSelect={() => {
                 item.action();
                 handleClose();

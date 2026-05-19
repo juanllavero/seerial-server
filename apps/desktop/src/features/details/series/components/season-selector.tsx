@@ -1,5 +1,5 @@
 import type { Season } from '@seerial/domain';
-import { memo, useEffect } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { NavigationButton, NavigationScrollView } from '@/shared/components/navigation';
 import FlexBox from '@/shared/components/ui/flex-box';
 
@@ -10,6 +10,8 @@ interface SeasonSelectorProps {
 }
 
 function SeasonSelector({ seasons, selectedSeasonId, onSelectSeason }: SeasonSelectorProps) {
+  const [focusedSeasonId, setFocusedSeasonId] = useState<string | undefined>(selectedSeasonId);
+
   useEffect(() => {
     if (seasons.length > 0 && !selectedSeasonId) {
       onSelectSeason(seasons[0]);
@@ -17,22 +19,13 @@ function SeasonSelector({ seasons, selectedSeasonId, onSelectSeason }: SeasonSel
   }, [seasons, selectedSeasonId, onSelectSeason]);
 
   return (
-    <FlexBox
-      gap={1}
-      width={'100%'}
-      height={'7dvh'}
-      justify="center"
-      padding="1dvh"
-      scroll="horizontal"
-      className="z-10"
-      hideScrollbar
-    >
+    <FlexBox gap={1} width={'100%'} height={'7dvh'} padding="1dvh" className="z-10">
       {seasons.length > 1 && (
         <NavigationScrollView
-          className="gap-5 justify-center z-10 w-full"
+          className="gap-5 z-10 w-[70dvw]"
           direction="horizontal"
           scrollMode="center"
-          focusedElementId={selectedSeasonId}
+          focusedElementId={focusedSeasonId}
           isRestoringFocus={false}
         >
           {seasons
@@ -41,9 +34,11 @@ function SeasonSelector({ seasons, selectedSeasonId, onSelectSeason }: SeasonSel
               <NavigationButton
                 variant="ghost"
                 key={season.id}
-                text={String(season.seasonNumber)}
+                customKey={season.id}
+                text={season.name}
                 selected={selectedSeasonId === season.id}
                 className={`${selectedSeasonId === season.id ? 'color-app-color' : ''}`}
+                onFocus={() => setFocusedSeasonId(season.id)}
                 onClick={() => onSelectSeason(season)}
               />
             ))}

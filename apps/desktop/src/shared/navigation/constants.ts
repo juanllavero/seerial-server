@@ -17,6 +17,7 @@ export const NavigationFocusKeys = {
     playButton: 'details-play-button',
     playFromStartButton: 'details-play-from-start-button',
     markWatchedButton: 'details-mark-watched-button',
+    hideThumbnailsButton: 'details-hide-thumbnails-button',
     optionsButton: 'details-options-button',
     goBackButton: 'details-go-back-button',
   },
