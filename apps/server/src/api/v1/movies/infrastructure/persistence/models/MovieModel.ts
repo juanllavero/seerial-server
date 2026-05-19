@@ -10,7 +10,7 @@ import {
   PrimaryColumn,
 } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { CollectionMovieModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionMovie';
+import { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
 import { LibraryModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryModel';
 import { VideoModel } from '@/api/v1/videos/infrastructure/persistence/models/VideoModel';
 import { WatchListModel } from '@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel';
@@ -201,6 +201,12 @@ export class MovieModel extends BaseEntity {
   })
   analyzingFiles!: boolean;
 
+  @Column({ type: 'varchar', nullable: true, default: null, name: 'collection_id' })
+  collectionId!: string | null;
+
+  @Column({ type: 'integer', nullable: false, default: 0, name: 'collection_order' })
+  collectionOrder!: number;
+
   @ManyToOne(
     () => LibraryModel,
     (library) => library.movies,
@@ -211,12 +217,13 @@ export class MovieModel extends BaseEntity {
   @JoinColumn({ name: 'library_id' })
   library!: LibraryModel;
 
-  @OneToMany(
-    () => CollectionMovieModel,
-    (cm) => cm.movie,
-    { cascade: true },
+  @ManyToOne(
+    () => CollectionModel,
+    (collection) => collection.movies,
+    { nullable: true, onDelete: 'SET NULL' },
   )
-  collectionMovies!: CollectionMovieModel[];
+  @JoinColumn({ name: 'collection_id' })
+  collection!: CollectionModel | null;
 
   @OneToMany(
     () => VideoModel,

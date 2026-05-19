@@ -1,9 +1,9 @@
 import { BaseEntity, BeforeInsert, Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
+import { AlbumModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumModel';
 import { LibraryCollectionModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryCollectionModel';
-import { CollectionAlbumModel } from './CollectionAlbum';
-import { CollectionMovieModel } from './CollectionMovie';
-import { CollectionSeriesModel } from './CollectionSeries';
+import { MovieModel } from '@/api/v1/movies/infrastructure/persistence/models/MovieModel';
+import { SeriesModel } from '@/api/v1/series/infrastructure/persistence/models/SeriesModel';
 
 @Entity({ name: 'Collection' })
 export class CollectionModel extends BaseEntity {
@@ -69,31 +69,22 @@ export class CollectionModel extends BaseEntity {
   libraryCollections!: LibraryCollectionModel[];
 
   @OneToMany(
-    () => CollectionMovieModel,
-    (cm) => cm.collection,
-    {
-      cascade: true,
-    },
+    () => MovieModel,
+    (movie) => movie.collection,
   )
-  collectionMovies!: CollectionMovieModel[];
+  movies!: MovieModel[];
 
   @OneToMany(
-    () => CollectionSeriesModel,
-    (cs) => cs.collection,
-    {
-      cascade: true,
-    },
+    () => SeriesModel,
+    (series) => series.collection,
   )
-  collectionSeries!: CollectionSeriesModel[];
+  series!: SeriesModel[];
 
   @OneToMany(
-    () => CollectionAlbumModel,
-    (ca) => ca.collection,
-    {
-      cascade: true,
-    },
+    () => AlbumModel,
+    (album) => album.collection,
   )
-  collectionAlbums!: CollectionAlbumModel[];
+  albums!: AlbumModel[];
 
   // Lifecycle hooks
   @BeforeInsert()

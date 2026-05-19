@@ -2,7 +2,6 @@
 
 import 'reflect-metadata';
 import { AlbumModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumModel';
-import { CollectionAlbumModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionAlbum';
 import { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
 import { LibraryCollectionModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryCollectionModel';
 import { LibrariesRepositoryImpl } from '@/api/v1/libraries/infrastructure/persistence/repositories/LibrariesRepositoryImpl';
@@ -147,11 +146,7 @@ describe('LibrariesRepositoryImpl', () => {
         collectionId: collection.id,
         customOrder: 0,
       });
-      await CollectionAlbumModel.save({
-        collectionId: collection.id,
-        albumId: collectionAlbum.id,
-        customOrder: 0,
-      });
+      await AlbumModel.update({ id: collectionAlbum.id }, { collectionId: collection.id, collectionOrder: 0 });
 
       const content = await repo.getContent(library!.id, 'user-1');
 

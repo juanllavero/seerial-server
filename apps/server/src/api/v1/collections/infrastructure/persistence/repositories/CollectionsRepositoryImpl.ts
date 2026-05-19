@@ -1,7 +1,10 @@
-import type { Album, Movie, Series } from '@seerial/domain';
+﻿import type { Album, Movie, Series } from '@seerial/domain';
+import { AlbumModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumModel';
 import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
 import { LibraryCollectionModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryCollectionModel';
 import { LibraryModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryModel';
+import { MovieModel } from '@/api/v1/movies/infrastructure/persistence/models/MovieModel';
+import { SeriesModel } from '@/api/v1/series/infrastructure/persistence/models/SeriesModel';
 import { DatabaseManager } from '@/api/v1/shared/infrastructure/persistence/DatabaseManager';
 import { getCollectionItemsKey } from '@/api/v1/shared/infrastructure/services/FileSearchService';
 import { GenericRepositoryHelper } from '@/helpers/GenericRepositoryHelper';
@@ -11,19 +14,13 @@ import type {
 } from '../../../application/dtos/CollectionDTOs';
 import type { CollectionsRepositoryPort } from '../../../application/ports/CollectionsRepositoryPort';
 import type { Collection } from '../../../domain/Collection';
-import { CollectionAlbumModel } from '../models/CollectionAlbum';
 import { CollectionModel } from '../models/CollectionModel';
-import { CollectionMovieModel } from '../models/CollectionMovie';
-import { CollectionSeriesModel } from '../models/CollectionSeries';
 
 export class CollectionsRepositoryImpl extends BaseRepository implements CollectionsRepositoryPort {
-  // Generic helper for common CRUD operations
   private helper: GenericRepositoryHelper<CollectionModel, Collection>;
 
   constructor() {
     super();
-
-    // Initialize helper
     this.helper = new GenericRepositoryHelper(CollectionModel, {
       entityName: 'Collection',
       generateShortId: true,
@@ -31,24 +28,20 @@ export class CollectionsRepositoryImpl extends BaseRepository implements Collect
   }
 
   async getAllSummary(): Promise<CollectionSummaryDTO[]> {
-    const qb = CollectionModel.createQueryBuilder('c').orderBy('c.title', 'ASC');
-    qb.loadRelationCountAndMap('c.movieCount', 'c.collectionMovies');
-    qb.loadRelationCountAndMap('c.seriesCount', 'c.collectionSeries');
-    qb.loadRelationCountAndMap('c.albumCount', 'c.collectionAlbums');
+    const collections = await CollectionModel.find({ order: { title: 'ASC' } });
 
-    type CollectionWithCounts = CollectionModel & {
-      movieCount?: number;
-      seriesCount?: number;
-      albumCount?: number;
-    };
+    const counts = await Promise.all(
+      collections.map(async (c) => {
+        const [movieCount, seriesCount, albumCount] = await Promise.all([
+          MovieModel.count({ where: { collectionId: c.id } }),
+          SeriesModel.count({ where: { collectionId: c.id } }),
+          AlbumModel.count({ where: { collectionId: c.id } }),
+        ]);
+        return { id: c.id, title: c.title, itemCount: movieCount + seriesCount + albumCount };
+      }),
+    );
 
-    const collections = (await qb.getMany()) as CollectionWithCounts[];
-
-    return collections.map((c) => ({
-      id: c.id,
-      title: c.title,
-      itemCount: (c.movieCount ?? 0) + (c.seriesCount ?? 0) + (c.albumCount ?? 0),
-    }));
+    return counts;
   }
 
   async getAll(libraryId: string): Promise<Collection[]> {
@@ -65,25 +58,17 @@ export class CollectionsRepositoryImpl extends BaseRepository implements Collect
   async getById(id: string): Promise<Collection | null> {
     const validatedId = this.validateId(id, 'Collection ID');
 
-    const relations = [
-      'collectionAlbums',
-      'collectionAlbums.album',
-      'collectionMovies',
-      'collectionMovies.movie',
-      'collectionSeries',
-      'collectionSeries.series',
-    ];
-
-    const collection = await CollectionModel.findOne({
-      where: { id: validatedId },
-      relations,
-    });
-
+    const collection = await CollectionModel.findOne({ where: { id: validatedId } });
     if (!collection) return null;
 
-    const series = (collection.collectionSeries || []).map((cs) => cs.series as unknown as Series);
-    const movies = (collection.collectionMovies || []).map((cm) => cm.movie as unknown as Movie);
-    const albums = (collection.collectionAlbums || []).map((ca) => ca.album as unknown as Album);
+    const [movies, series, albums] = await Promise.all([
+      MovieModel.find({ where: { collectionId: validatedId }, order: { collectionOrder: 'ASC' } }),
+      SeriesModel.find({
+        where: { collectionId: validatedId },
+        order: { collectionOrder: 'ASC' },
+      }),
+      AlbumModel.find({ where: { collectionId: validatedId }, order: { collectionOrder: 'ASC' } }),
+    ]);
 
     return {
       id: collection.id,
@@ -93,11 +78,11 @@ export class CollectionsRepositoryImpl extends BaseRepository implements Collect
       backgroundsUrls: collection.backgroundsUrls,
       coverSrc: collection.posterSrc,
       coversUrls: collection.postersUrls,
-      numberOfItems: series.length + movies.length + albums.length,
+      numberOfItems: movies.length + series.length + albums.length,
       musicPosterSrc: collection.musicPosterSrc,
-      shows: series,
-      movies: movies,
-      albums: albums,
+      shows: series as unknown as Series[],
+      movies: movies as unknown as Movie[],
+      albums: albums as unknown as Album[],
     };
   }
 
@@ -110,9 +95,9 @@ export class CollectionsRepositoryImpl extends BaseRepository implements Collect
 
     const collectionItemsKey = getCollectionItemsKey(type);
     const relationByCollectionKey: Record<string, string> = {
-      movies: 'collectionMovies',
-      shows: 'collectionSeries',
-      albums: 'collectionAlbums',
+      movies: 'movies',
+      shows: 'series',
+      albums: 'albums',
     };
 
     const data = await LibraryModel.findOne({
@@ -130,11 +115,8 @@ export class CollectionsRepositoryImpl extends BaseRepository implements Collect
   async add(collection: Partial<Collection>): Promise<Collection | null> {
     this.validateData(collection, 'Collection data');
 
-    // Check if collection already exists by title
     if (collection.title) {
-      const existing = await CollectionModel.findOne({
-        where: { title: collection.title },
-      });
+      const existing = await CollectionModel.findOne({ where: { title: collection.title } });
       if (existing) return existing as unknown as Collection;
     }
 
@@ -149,116 +131,118 @@ export class CollectionsRepositoryImpl extends BaseRepository implements Collect
 
   async delete(id: string): Promise<boolean> {
     const validatedId = this.validateId(id, 'Collection ID');
+
+    await Promise.all([
+      MovieModel.createQueryBuilder()
+        .update()
+        .set({ collectionId: null, collectionOrder: 0 })
+        .where('collection_id = :id', { id: validatedId })
+        .execute(),
+      SeriesModel.createQueryBuilder()
+        .update()
+        .set({ collectionId: null, collectionOrder: 0 })
+        .where('collection_id = :id', { id: validatedId })
+        .execute(),
+      AlbumModel.createQueryBuilder()
+        .update()
+        .set({ collectionId: null, collectionOrder: 0 })
+        .where('collection_id = :id', { id: validatedId })
+        .execute(),
+    ]);
+
     await this.helper.delete(validatedId);
     return true;
   }
 
   async addAlbum(collectionId: string, albumId: string): Promise<void> {
     const validated = this.validateIds({ collectionId, albumId });
-
-    const relationData = {
-      collectionId: validated.collectionId,
-      albumId: validated.albumId,
-    };
-
-    await this.helper.createRelationship(CollectionAlbumModel, relationData, true);
+    await AlbumModel.createQueryBuilder()
+      .update()
+      .set({ collectionId: validated.collectionId })
+      .where('id = :id', { id: validated.albumId })
+      .execute();
   }
 
   async addMovie(collectionId: string, movieId: string): Promise<void> {
     const validated = this.validateIds({ collectionId, movieId });
-
-    const relationData = {
-      collectionId: validated.collectionId,
-      movieId: validated.movieId,
-    };
-
-    await this.helper.createRelationship(CollectionMovieModel, relationData, true);
+    await MovieModel.createQueryBuilder()
+      .update()
+      .set({ collectionId: validated.collectionId })
+      .where('id = :id', { id: validated.movieId })
+      .execute();
   }
 
   async addSeries(collectionId: string, seriesId: string): Promise<void> {
     const validated = this.validateIds({ collectionId, seriesId });
-
-    const relationData = {
-      collectionId: validated.collectionId,
-      seriesId: validated.seriesId,
-    };
-
-    await this.helper.createRelationship(CollectionSeriesModel, relationData, true);
+    await SeriesModel.createQueryBuilder()
+      .update()
+      .set({ collectionId: validated.collectionId })
+      .where('id = :id', { id: validated.seriesId })
+      .execute();
   }
 
   async addLibrary(libraryId: string, collectionId: string): Promise<void> {
     const validated = this.validateIds({ libraryId, collectionId });
-
-    const relationData = {
-      libraryId: validated.libraryId,
-      collectionId: validated.collectionId,
-    };
-
+    const relationData = { libraryId: validated.libraryId, collectionId: validated.collectionId };
     await this.helper.createRelationship(LibraryCollectionModel, relationData, true);
   }
 
   async removeSeries(collectionId: string, seriesId: string): Promise<void> {
     const validated = this.validateIds({ collectionId, seriesId });
-
-    const whereCondition = {
-      collectionId: validated.collectionId,
-      seriesId: validated.seriesId,
-    };
-
-    await this.helper.deleteRelationship(CollectionSeriesModel, whereCondition);
+    await SeriesModel.createQueryBuilder()
+      .update()
+      .set({ collectionId: null, collectionOrder: 0 })
+      .where('id = :id AND collection_id = :collectionId', {
+        id: validated.seriesId,
+        collectionId: validated.collectionId,
+      })
+      .execute();
   }
 
   async removeMovie(collectionId: string, movieId: string): Promise<void> {
     const validated = this.validateIds({ collectionId, movieId });
-
-    const whereCondition = {
-      collectionId: validated.collectionId,
-      movieId: validated.movieId,
-    };
-
-    await this.helper.deleteRelationship(CollectionMovieModel, whereCondition);
+    await MovieModel.createQueryBuilder()
+      .update()
+      .set({ collectionId: null, collectionOrder: 0 })
+      .where('id = :id AND collection_id = :collectionId', {
+        id: validated.movieId,
+        collectionId: validated.collectionId,
+      })
+      .execute();
   }
 
   async removeAlbum(collectionId: string, albumId: string): Promise<void> {
     const validated = this.validateIds({ collectionId, albumId });
-
-    const whereCondition = {
-      collectionId: validated.collectionId,
-      albumId: validated.albumId,
-    };
-
-    await this.helper.deleteRelationship(CollectionAlbumModel, whereCondition);
+    await AlbumModel.createQueryBuilder()
+      .update()
+      .set({ collectionId: null, collectionOrder: 0 })
+      .where('id = :id AND collection_id = :collectionId', {
+        id: validated.albumId,
+        collectionId: validated.collectionId,
+      })
+      .execute();
   }
 
   async hasMovie(collectionId: string, movieId: string): Promise<boolean> {
     const validated = this.validateIds({ collectionId, movieId });
-    const count = await CollectionMovieModel.count({
-      where: {
-        collectionId: validated.collectionId,
-        movieId: validated.movieId,
-      },
+    const count = await MovieModel.count({
+      where: { id: validated.movieId, collectionId: validated.collectionId },
     });
     return count > 0;
   }
 
   async hasSeries(collectionId: string, seriesId: string): Promise<boolean> {
     const validated = this.validateIds({ collectionId, seriesId });
-    const count = await CollectionSeriesModel.count({
-      where: {
-        collectionId: validated.collectionId,
-        seriesId: validated.seriesId,
-      },
+    const count = await SeriesModel.count({
+      where: { id: validated.seriesId, collectionId: validated.collectionId },
     });
     return count > 0;
   }
 
   async hasAlbum(collectionId: string, albumId: string): Promise<boolean> {
     const validated = this.validateIds({ collectionId, albumId });
-    const count = await CollectionAlbumModel.count({
-      where: {
-        collectionId: validated.collectionId,
-        albumId: validated.albumId,
-      },
+    const count = await AlbumModel.count({
+      where: { id: validated.albumId, collectionId: validated.collectionId },
     });
     return count > 0;
   }
@@ -267,55 +251,31 @@ export class CollectionsRepositoryImpl extends BaseRepository implements Collect
     const validatedId = this.validateId(collectionId, 'Collection ID');
 
     const dataSource = DatabaseManager.getDataSource();
-
-    if (!dataSource) {
-      throw new Error('Database not initialized');
-    }
-
     const queryRunner = dataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-      const tempOrder = 9999;
-
-      await queryRunner.manager.update(
-        CollectionMovieModel,
-        { collectionId: validatedId },
-        { customOrder: tempOrder },
-      );
-      await queryRunner.manager.update(
-        CollectionSeriesModel,
-        { collectionId: validatedId },
-        { customOrder: tempOrder },
-      );
-      await queryRunner.manager.update(
-        CollectionAlbumModel,
-        { collectionId: validatedId },
-        { customOrder: tempOrder },
-      );
-
       for (const [index, item] of orderedItems.entries()) {
-        const newOrder = index;
         const type = (item.type || '').toLowerCase();
 
         if (type === 'movie' || type === 'movies') {
           await queryRunner.manager.update(
-            CollectionMovieModel,
-            { collectionId: validatedId, movieId: item.id },
-            { customOrder: newOrder },
+            MovieModel,
+            { id: item.id, collectionId: validatedId },
+            { collectionOrder: index },
           );
         } else if (type === 'series' || type === 'show' || type === 'shows') {
           await queryRunner.manager.update(
-            CollectionSeriesModel,
-            { collectionId: validatedId, seriesId: item.id },
-            { customOrder: newOrder },
+            SeriesModel,
+            { id: item.id, collectionId: validatedId },
+            { collectionOrder: index },
           );
         } else if (type === 'album' || type === 'albums') {
           await queryRunner.manager.update(
-            CollectionAlbumModel,
-            { collectionId: validatedId, albumId: item.id },
-            { customOrder: newOrder },
+            AlbumModel,
+            { id: item.id, collectionId: validatedId },
+            { collectionOrder: index },
           );
         }
       }

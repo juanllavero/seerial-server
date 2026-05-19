@@ -2,9 +2,6 @@
 
 import 'reflect-metadata';
 import { AlbumModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumModel';
-import { CollectionAlbumModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionAlbum';
-import { CollectionMovieModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionMovie';
-import { CollectionSeriesModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionSeries';
 import { CollectionsRepositoryImpl } from '@/api/v1/collections/infrastructure/persistence/repositories/CollectionsRepositoryImpl';
 import { LibraryCollectionModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryCollectionModel';
 import { LibraryModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryModel';
@@ -149,19 +146,13 @@ describe('CollectionsRepositoryImpl', () => {
     await repo.addAlbum(collection!.id, album.id);
 
     expect(
-      await CollectionMovieModel.findOne({
-        where: { collectionId: collection!.id, movieId: movie.id },
-      }),
+      await MovieModel.findOne({ where: { id: movie.id, collectionId: collection!.id } }),
     ).not.toBeNull();
     expect(
-      await CollectionSeriesModel.findOne({
-        where: { collectionId: collection!.id, seriesId: series.id },
-      }),
+      await SeriesModel.findOne({ where: { id: series.id, collectionId: collection!.id } }),
     ).not.toBeNull();
     expect(
-      await CollectionAlbumModel.findOne({
-        where: { collectionId: collection!.id, albumId: album.id },
-      }),
+      await AlbumModel.findOne({ where: { id: album.id, collectionId: collection!.id } }),
     ).not.toBeNull();
 
     await repo.removeMovie(collection!.id, movie.id);
@@ -169,19 +160,13 @@ describe('CollectionsRepositoryImpl', () => {
     await repo.removeAlbum(collection!.id, album.id);
 
     expect(
-      await CollectionMovieModel.findOne({
-        where: { collectionId: collection!.id, movieId: movie.id },
-      }),
+      await MovieModel.findOne({ where: { id: movie.id, collectionId: collection!.id } }),
     ).toBeNull();
     expect(
-      await CollectionSeriesModel.findOne({
-        where: { collectionId: collection!.id, seriesId: series.id },
-      }),
+      await SeriesModel.findOne({ where: { id: series.id, collectionId: collection!.id } }),
     ).toBeNull();
     expect(
-      await CollectionAlbumModel.findOne({
-        where: { collectionId: collection!.id, albumId: album.id },
-      }),
+      await AlbumModel.findOne({ where: { id: album.id, collectionId: collection!.id } }),
     ).toBeNull();
   });
 
@@ -212,15 +197,11 @@ describe('CollectionsRepositoryImpl', () => {
       { id: movie.id, type: 'movie' },
     ]);
 
-    const orderedSeries = await CollectionSeriesModel.findOne({
-      where: { collectionId: collection!.id, seriesId: series.id },
-    });
-    const orderedMovie = await CollectionMovieModel.findOne({
-      where: { collectionId: collection!.id, movieId: movie.id },
-    });
+    const orderedSeries = await SeriesModel.findOne({ where: { id: series.id } });
+    const orderedMovie = await MovieModel.findOne({ where: { id: movie.id } });
 
-    expect(orderedSeries!.customOrder).toBe(0);
-    expect(orderedMovie!.customOrder).toBe(1);
+    expect(orderedSeries!.collectionOrder).toBe(0);
+    expect(orderedMovie!.collectionOrder).toBe(1);
 
     dataSourceSpy.mockRestore();
   });

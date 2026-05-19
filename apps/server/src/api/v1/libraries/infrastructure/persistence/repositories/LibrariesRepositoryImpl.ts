@@ -5,10 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { AlbumModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumModel';
 import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
 import type { CollectionContentDTO } from '@/api/v1/collections/application/dtos/CollectionDTOs';
-import { CollectionAlbumModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionAlbum';
 import type { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
-import { CollectionMovieModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionMovie';
-import { CollectionSeriesModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionSeries';
 import { EpisodeModel } from '@/api/v1/episodes/infrastructure/persistence/models/EpisodeModel';
 import { MovieModel } from '@/api/v1/movies/infrastructure/persistence/models/MovieModel';
 import { SeasonModel } from '@/api/v1/seasons/infrastructure/persistence/models/SeasonModel';
@@ -146,17 +143,17 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     const excludeIds = {
       movieIds: new Set(
         multiItemLibraryCollections.flatMap(
-          (lc) => lc.collection?.collectionMovies?.map((cm) => cm.movie.id) ?? [],
+          (lc) => lc.collection?.movies?.map((m) => m.id) ?? [],
         ),
       ),
       seriesIds: new Set(
         multiItemLibraryCollections.flatMap(
-          (lc) => lc.collection?.collectionSeries?.map((cs) => cs.series.id) ?? [],
+          (lc) => lc.collection?.series?.map((s) => s.id) ?? [],
         ),
       ),
       albumIds: new Set(
         multiItemLibraryCollections.flatMap(
-          (lc) => lc.collection?.collectionAlbums?.map((ca) => ca.album.id) ?? [],
+          (lc) => lc.collection?.albums?.map((a) => a.id) ?? [],
         ),
       ),
     };
@@ -247,44 +244,39 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
   }
 
   async getCollectionContent(collectionId: string, userId: string): Promise<CollectionContentDTO> {
-    const [collectionMovies, collectionSeries, collectionAlbums] = await Promise.all([
-      CollectionMovieModel.find({
+    const [movies, series, albums] = await Promise.all([
+      MovieModel.find({
         where: { collectionId },
-        relations: ['movie', 'movie.watchLists', 'movie.videos'],
+        relations: ['watchLists', 'videos'],
         relationLoadStrategy: 'query',
-        order: { customOrder: 'ASC' },
+        order: { collectionOrder: 'ASC' },
       }),
-      CollectionSeriesModel.find({
+      SeriesModel.find({
         where: { collectionId },
         relations: [
-          'series',
-          'series.watchLists',
-          'series.seasons',
-          'series.seasons.episodes',
-          'series.seasons.episodes.watchLists',
+          'watchLists',
+          'seasons',
+          'seasons.episodes',
+          'seasons.episodes.watchLists',
         ],
         relationLoadStrategy: 'query',
-        order: { customOrder: 'ASC' },
+        order: { collectionOrder: 'ASC' },
       }),
-      CollectionAlbumModel.find({
+      AlbumModel.find({
         where: { collectionId },
-        relations: ['album', 'album.songs'],
+        relations: ['songs'],
         relationLoadStrategy: 'query',
-        order: { customOrder: 'ASC' },
+        order: { collectionOrder: 'ASC' },
       }),
     ]);
 
-    const hasMovieCustomOrder = collectionMovies.some((cm) => cm.customOrder !== 0);
-    const hasSeriesCustomOrder = collectionSeries.some((cs) => cs.customOrder !== 0);
-    const hasAlbumCustomOrder = collectionAlbums.some((ca) => ca.customOrder !== 0);
+    const hasMovieCustomOrder = movies.some((m) => m.collectionOrder !== 0);
+    const hasSeriesCustomOrder = series.some((s) => s.collectionOrder !== 0);
+    const hasAlbumCustomOrder = albums.some((a) => a.collectionOrder !== 0);
 
-    const movieOrderMap = new Map(collectionMovies.map((cm) => [cm.movieId, cm.customOrder]));
-    const seriesOrderMap = new Map(collectionSeries.map((cs) => [cs.seriesId, cs.customOrder]));
-    const albumOrderMap = new Map(collectionAlbums.map((ca) => [ca.albumId, ca.customOrder]));
-
-    const movies = collectionMovies.map((cm) => cm.movie);
-    const series = collectionSeries.map((cs) => cs.series);
-    const albums = collectionAlbums.map((ca) => ca.album);
+    const movieOrderMap = new Map(movies.map((m) => [m.id, m.collectionOrder]));
+    const seriesOrderMap = new Map(series.map((s) => [s.id, s.collectionOrder]));
+    const albumOrderMap = new Map(albums.map((a) => [a.id, a.collectionOrder]));
 
     const emptySet = new Set<string>();
 
@@ -336,11 +328,11 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
   private getCollectionRelations(type: Library['type']): string[] {
     switch (type) {
       case LibraryTypes.MOVIES:
-        return ['collection', 'collection.collectionMovies.movie.watchLists'];
+        return ['collection', 'collection.movies', 'collection.movies.watchLists'];
       case LibraryTypes.SHOWS:
-        return ['collection', 'collection.collectionSeries.series.watchLists'];
+        return ['collection', 'collection.series', 'collection.series.watchLists'];
       case LibraryTypes.MUSIC:
-        return ['collection', 'collection.collectionAlbums.album'];
+        return ['collection', 'collection.albums'];
       default:
         return ['collection'];
     }
@@ -549,16 +541,9 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
   }
 
   private countCollectionItems(collection: CollectionModel, libraryId: string): number {
-    const moviesCount =
-      collection.collectionMovies?.filter((movie) => movie.movie.libraryId === libraryId).length ||
-      0;
-    const seriesCount =
-      collection.collectionSeries?.filter((series) => series.series.libraryId === libraryId)
-        .length || 0;
-    const albumsCount =
-      collection.collectionAlbums?.filter((album) => album.album.libraryId === libraryId).length ||
-      0;
-
+    const moviesCount = collection.movies?.filter((m) => m.libraryId === libraryId).length || 0;
+    const seriesCount = collection.series?.filter((s) => s.libraryId === libraryId).length || 0;
+    const albumsCount = collection.albums?.filter((a) => a.libraryId === libraryId).length || 0;
     return moviesCount + seriesCount + albumsCount;
   }
 
@@ -577,12 +562,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
         collectionCount: collections.length,
         libraryType: library.type,
       },
-      () =>
-        new Set(
-          collections.flatMap(
-            (collection) => collection.collectionMovies?.map((movie) => movie.movie.id) || [],
-          ),
-        ),
+      () => new Set(collections.flatMap((c) => c.movies?.map((m) => m.id) || [])),
     );
     const collectionSeriesIds = this.measureSync(
       'buildStandaloneItems.buildCollectionSeriesIds',
@@ -591,12 +571,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
         collectionCount: collections.length,
         libraryType: library.type,
       },
-      () =>
-        new Set(
-          collections.flatMap(
-            (collection) => collection.collectionSeries?.map((series) => series.series.id) || [],
-          ),
-        ),
+      () => new Set(collections.flatMap((c) => c.series?.map((s) => s.id) || [])),
     );
     const collectionAlbumIds = this.measureSync(
       'buildStandaloneItems.buildCollectionAlbumIds',
@@ -605,12 +580,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
         collectionCount: collections.length,
         libraryType: library.type,
       },
-      () =>
-        new Set(
-          collections.flatMap(
-            (collection) => collection.collectionAlbums?.map((album) => album.album.id) || [],
-          ),
-        ),
+      () => new Set(collections.flatMap((c) => c.albums?.map((a) => a.id) || [])),
     );
 
     switch (library.type) {
@@ -749,7 +719,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
           remainingItems: 0,
           analyzingFiles: movie.analyzingFiles,
           type: 'movie' as const,
-          collectionId: library.collectionId,
+          collectionId: movie.collectionId ?? undefined,
           details,
         };
 
@@ -858,7 +828,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
           remainingItems,
           analyzingFiles: series.analyzingFiles,
           type: 'series' as const,
-          collectionId: library.collectionId,
+          collectionId: series.collectionId ?? undefined,
           details,
         };
 
@@ -1048,7 +1018,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
           remainingItems: 0,
           analyzingFiles: false,
           type: 'album' as const,
-          collectionId: library.collectionId,
+          collectionId: album.collectionId ?? undefined,
           details,
         };
 
@@ -1186,20 +1156,20 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
   }
 
   private calculateYearsForCollection(collection: CollectionModel): string {
-    const movieYears = (collection.collectionMovies || [])
-      .map((movie) => movie.movie.year)
+    const movieYears = (collection.movies || [])
+      .map((movie) => movie.year)
       .filter((year): year is string => Boolean(year))
       .map((year) => Number.parseInt(year, 10));
 
-    const seriesYears = (collection.collectionSeries || []).flatMap((series) =>
-      (series.series.seasons || [])
+    const seriesYears = (collection.series || []).flatMap((series) =>
+      (series.seasons || [])
         .map((season) => season.year)
         .filter((year): year is string => Boolean(year))
         .map((year) => Number.parseInt(year, 10)),
     );
 
-    const albumYears = (collection.collectionAlbums || [])
-      .map((album) => album.album.year)
+    const albumYears = (collection.albums || [])
+      .map((album) => album.year)
       .filter((year): year is string => Boolean(year))
       .map((year) => Number.parseInt(year, 10));
 
@@ -1250,13 +1220,13 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     libraryId: string,
     userId: string,
   ): boolean[] {
-    const movieWatchStates = (collection.collectionMovies || [])
-      .filter((movie) => movie.movie.libraryId === libraryId)
-      .map((movie) => this.isMovieWatched(movie.movie, userId));
+    const movieWatchStates = (collection.movies || [])
+      .filter((movie) => movie.libraryId === libraryId)
+      .map((movie) => this.isMovieWatched(movie, userId));
 
-    const seriesWatchStates = (collection.collectionSeries || [])
-      .filter((series) => series.series.libraryId === libraryId)
-      .map((series) => this.isSeriesWatched(series.series, userId));
+    const seriesWatchStates = (collection.series || [])
+      .filter((series) => series.libraryId === libraryId)
+      .map((series) => this.isSeriesWatched(series, userId));
 
     return [...movieWatchStates, ...seriesWatchStates];
   }

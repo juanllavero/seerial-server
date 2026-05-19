@@ -98,6 +98,7 @@ export function ModalWrapper({
         }
       }}
       direction="right"
+      handleOnly={!isMobile}
     >
       {button && <DrawerTrigger asChild>{button}</DrawerTrigger>}
       <DrawerContent ref={dialogRef} widthClassName={getWidthClassName(size)}>

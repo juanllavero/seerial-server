@@ -11,7 +11,7 @@ import {
   PrimaryColumn,
 } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { CollectionSeriesModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionSeries';
+import { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
 import { LibraryModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryModel';
 import { SeasonModel } from '@/api/v1/seasons/infrastructure/persistence/models/SeasonModel';
 import { WatchListModel } from '@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel';
@@ -167,6 +167,12 @@ export class SeriesModel extends BaseEntity {
   @Column({ type: 'varchar', nullable: true })
   subsMode?: string;
 
+  @Column({ type: 'varchar', nullable: true, default: null, name: 'collection_id' })
+  collectionId!: string | null;
+
+  @Column({ type: 'integer', nullable: false, default: 0, name: 'collection_order' })
+  collectionOrder!: number;
+
   @ManyToOne(
     () => LibraryModel,
     (library) => library.series,
@@ -177,12 +183,13 @@ export class SeriesModel extends BaseEntity {
   @JoinColumn({ name: 'library_id' })
   library!: LibraryModel;
 
-  @OneToMany(
-    () => CollectionSeriesModel,
-    (cs) => cs.series,
-    { cascade: true },
+  @ManyToOne(
+    () => CollectionModel,
+    (collection) => collection.series,
+    { nullable: true, onDelete: 'SET NULL' },
   )
-  collectionSeries!: CollectionSeriesModel[];
+  @JoinColumn({ name: 'collection_id' })
+  collection!: CollectionModel | null;
 
   @OneToMany(
     () => SeasonModel,

@@ -9,7 +9,7 @@ import {
   PrimaryColumn,
 } from 'typeorm';
 import { v4 as uuidv4 } from 'uuid';
-import { CollectionAlbumModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionAlbum';
+import { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
 import { LibraryModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryModel';
 import { SongModel } from '@/api/v1/songs/infrastructure/persistence/models/SongModel';
 import { AlbumArtistModel } from './AlbumArtistModel';
@@ -43,6 +43,12 @@ export class AlbumModel extends BaseEntity {
   @Column({ type: 'varchar', nullable: false, default: '' })
   folder!: string;
 
+  @Column({ type: 'varchar', nullable: true, default: null, name: 'collection_id' })
+  collectionId!: string | null;
+
+  @Column({ type: 'integer', nullable: false, default: 0, name: 'collection_order' })
+  collectionOrder!: number;
+
   @ManyToOne(
     () => LibraryModel,
     (library) => library.albums,
@@ -53,12 +59,13 @@ export class AlbumModel extends BaseEntity {
   @JoinColumn({ name: 'library_id' })
   library!: LibraryModel;
 
-  @OneToMany(
-    () => CollectionAlbumModel,
-    (ca) => ca.album,
-    { cascade: true },
+  @ManyToOne(
+    () => CollectionModel,
+    (collection) => collection.albums,
+    { nullable: true, onDelete: 'SET NULL' },
   )
-  collectionAlbums!: CollectionAlbumModel[];
+  @JoinColumn({ name: 'collection_id' })
+  collection!: CollectionModel | null;
 
   @OneToMany(
     () => AlbumArtistModel,

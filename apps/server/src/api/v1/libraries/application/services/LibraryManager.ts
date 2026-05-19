@@ -3,9 +3,9 @@ import path from 'node:path';
 import { type LibraryType, LibraryTypes } from '@seerial/domain';
 import type { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
 import {
-  fileSystemService,
-  librariesRepo,
-  useCases,
+    fileSystemService,
+    librariesRepo,
+    useCases,
 } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { clearLibrary } from '@/api/v1/shared/infrastructure/services/FileSearchService';
 import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
@@ -94,11 +94,11 @@ const getCollectionItemsByType = (
 ): CollectionImageSourceItem[] => {
   switch (type) {
     case LibraryTypes.MOVIES:
-      return collection.collectionMovies.map((movie) => movie.movie);
+      return (collection.movies || []) as CollectionImageSourceItem[];
     case LibraryTypes.SHOWS:
-      return collection.collectionSeries.map((series) => series.series);
+      return (collection.series || []) as CollectionImageSourceItem[];
     case LibraryTypes.MUSIC:
-      return collection.collectionAlbums.map((album) => album.album);
+      return (collection.albums || []) as CollectionImageSourceItem[];
     default:
       return [];
   }

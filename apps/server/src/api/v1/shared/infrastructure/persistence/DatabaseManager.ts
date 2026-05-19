@@ -4,10 +4,7 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { AlbumArtistModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumArtistModel';
 import { AlbumModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumModel';
 import { ArtistModel } from '@/api/v1/artists/infrastructure/persistence/models/ArtistModel';
-import { CollectionAlbumModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionAlbum';
 import { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
-import { CollectionMovieModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionMovie';
-import { CollectionSeriesModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionSeries';
 import { EpisodeModel } from '@/api/v1/episodes/infrastructure/persistence/models/EpisodeModel';
 import { LibraryCollectionModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryCollectionModel';
 import { LibraryModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryModel';
@@ -28,7 +25,7 @@ import logger from '@/utils/logger';
 const dbLogger = logger.child({ category: 'Database' });
 
 export class DatabaseManager {
-  private constructor() {}
+  private constructor() { }
 
   public static get DB_PATH(): string {
     return fileSystemService.getExternalPath('resources/db/data.db');
@@ -51,9 +48,6 @@ export class DatabaseManager {
         namingStrategy: new SnakeNamingStrategy(),
         entities: [
           CollectionModel,
-          CollectionAlbumModel,
-          CollectionMovieModel,
-          CollectionSeriesModel,
           LibraryCollectionModel,
           WatchListModel,
           EpisodeModel,
@@ -99,6 +93,12 @@ export class DatabaseManager {
       // In production the database lives only on the user's machine, so auto-synchronisation
       // is safe and avoids the need to ship migration files with every release.
       await DatabaseManager.dataSource.synchronize();
+
+      // One-time data migration: copy collection membership from the old junction tables
+      // (CollectionMovie, CollectionSeries, CollectionAlbum) to the new direct FK columns
+      // added to Movie, Series and Album. Safe to run on every startup because the UPDATE
+      // is a no-op once the column is already populated.
+      await DatabaseManager.migrateCollectionFKs();
 
       dbLogger.info('Database initialized successfully with TypeORM and better-sqlite3');
     } catch (error: unknown) {
@@ -257,6 +257,61 @@ export class DatabaseManager {
     const dbDir = fileSystemService.getExternalPath('resources/db/');
     if (!fs.existsSync(dbDir)) {
       fs.mkdirSync(dbDir, { recursive: true });
+    }
+  }
+
+  /**
+   * One-time migration: populates the new collection_id / collection_order columns
+   * on Movie, Series and Album from the legacy CollectionMovie / CollectionSeries /
+   * CollectionAlbum junction tables. Only updates rows where collection_id IS NULL
+   * so it is safe to run on every startup — it is a no-op once already migrated.
+   * The junction tables are left in place (TypeORM never drops them) and can be
+   * dropped manually once you are confident the migration succeeded.
+   */
+  private static async migrateCollectionFKs(): Promise<void> {
+    const qr = DatabaseManager.dataSource!.createQueryRunner();
+    await qr.connect();
+    try {
+      const tableNames: string[] = (
+        await qr.query(`SELECT name FROM sqlite_master WHERE type='table'`)
+      ).map((r: { name: string }) => r.name);
+
+      if (tableNames.includes('collection_movie')) {
+        await qr.query(`
+          UPDATE movie
+          SET collection_id    = (SELECT collection_id  FROM collection_movie cm WHERE cm.movie_id = movie.id LIMIT 1),
+              collection_order = COALESCE((SELECT custom_order FROM collection_movie cm WHERE cm.movie_id = movie.id LIMIT 1), 0)
+          WHERE collection_id IS NULL
+            AND EXISTS (SELECT 1 FROM collection_movie cm WHERE cm.movie_id = movie.id)
+        `);
+        dbLogger.info('Migrated movie collection FKs from CollectionMovie junction table');
+      }
+
+      if (tableNames.includes('collection_series')) {
+        await qr.query(`
+          UPDATE series
+          SET collection_id    = (SELECT collection_id  FROM collection_series cs WHERE cs.series_id = series.id LIMIT 1),
+              collection_order = COALESCE((SELECT custom_order FROM collection_series cs WHERE cs.series_id = series.id LIMIT 1), 0)
+          WHERE collection_id IS NULL
+            AND EXISTS (SELECT 1 FROM collection_series cs WHERE cs.series_id = series.id)
+        `);
+        dbLogger.info('Migrated series collection FKs from CollectionSeries junction table');
+      }
+
+      if (tableNames.includes('collection_album')) {
+        await qr.query(`
+          UPDATE album
+          SET collection_id    = (SELECT collection_id  FROM collection_album ca WHERE ca.album_id = album.id LIMIT 1),
+              collection_order = COALESCE((SELECT custom_order FROM collection_album ca WHERE ca.album_id = album.id LIMIT 1), 0)
+          WHERE collection_id IS NULL
+            AND EXISTS (SELECT 1 FROM collection_album ca WHERE ca.album_id = album.id)
+        `);
+        dbLogger.info('Migrated album collection FKs from CollectionAlbum junction table');
+      }
+    } catch (error) {
+      dbLogger.error(error, 'Error during collection FK migration — existing data is unaffected');
+    } finally {
+      await qr.release();
     }
   }
 }
