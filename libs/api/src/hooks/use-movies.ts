@@ -39,7 +39,7 @@ export const useChangeMovieIdentification = <TResponse = unknown, TBody = unknow
     useApiMutation<TResponse, TBody>(
         ['movies', 'changeIdentification', movieId],
         API.movies.changeIdentification(movieId),
-        'PATCH',
+        'POST',
         asBody,
         options,
     )

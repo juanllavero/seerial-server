@@ -29,7 +29,7 @@ export const useRefreshSeriesMetadata = <TResponse = unknown, TBody = unknown>(
 export const useUpdateSeriesShowId = <TResponse = unknown, TBody = unknown>(
     options?: MutationHookOptions<TResponse, TBody>,
 ): ApiMutationResult<TResponse, TBody> =>
-    useApiMutation<TResponse, TBody>(['series', 'updateShowId'], API.series.updateShowId, 'PATCH', asBody, options)
+    useApiMutation<TResponse, TBody>(['series', 'updateShowId'], API.series.updateShowId, 'POST', asBody, options)
 
 export const useUpdateSeriesEpisodeGroup = <TResponse = unknown, TBody = unknown>(
     seriesId: string,
@@ -38,7 +38,7 @@ export const useUpdateSeriesEpisodeGroup = <TResponse = unknown, TBody = unknown
     useApiMutation<TResponse, TBody>(
         ['series', 'updateEpisodeGroup', seriesId],
         API.series.updateEpisodeGroup(seriesId),
-        'PATCH',
+        'POST',
         asBody,
         options,
     )

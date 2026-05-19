@@ -1,5 +1,5 @@
 import { API, api, seerialQueryClient } from '@seerial/api';
-import { type Library, MessageType } from '@seerial/domain';
+import { MessageType } from '@seerial/domain';
 import { createWithEqualityFn } from 'zustand/traditional';
 
 function getBodyString(body: unknown, key: string): string | null {
@@ -50,23 +50,13 @@ function handleMutateLibraries(body: unknown): void {
 }
 
 function handleMutateLibrary(body: unknown): void {
-  const libraryId = getBodyString(body, 'id');
+  const libraryId = getBodyString(body, 'libraryId');
   if (!libraryId) {
     return;
   }
 
-  seerialQueryClient.setQueriesData(
-    { queryKey: ['libraries', 'getAll'] },
-    (current: Library[] | undefined) => {
-      if (!current) return current;
-      const updated = current.map((item: Library) =>
-        item.id === libraryId ? (body as Library) : item,
-      );
-      return updated.length === current.length ? [...current, body] : updated;
-    },
-  );
-
-  seerialQueryClient.setQueriesData({ queryKey: ['libraries', 'getById', libraryId] }, body);
+  void seerialQueryClient.invalidateQueries({ queryKey: ['libraries', 'getAll'] });
+  void seerialQueryClient.invalidateQueries({ queryKey: ['libraries', 'getById', libraryId] });
   void seerialQueryClient.invalidateQueries({ queryKey: ['libraries', 'content', libraryId] });
 }
 

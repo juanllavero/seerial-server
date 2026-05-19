@@ -246,34 +246,18 @@ export async function changeIdentificationMovie(movieId: string, newTheMovieDBID
 
   if (!movie) return;
 
-  // Delete previous data
-  await useCases.deleteMovieData().execute(movie.id);
-
   const library = await useCases.getLibrary().execute(movie.libraryId);
 
   if (!library) return;
 
-  // Restore folder in library
-  await useCases.addAnalyzedFolder().execute(library.id, movie.folder, movie.id);
-
-  // Remove videos
-  const videos = await useCases.getVideoByMovieId().execute(movieId);
-
-  if (videos) {
-    for (const video of videos) {
-      useCases.deleteVideo().execute(video.id);
-    }
-  }
-
-  // Update TheMovieDB ID
+  // Update TheMovieDB ID and save to DB
   movie.themdbId = newTheMovieDBID;
+  await useCases.updateMovie().execute(movie.id, movie);
 
-  // Save changes in DB
-  useCases.updateMovie().execute(movie.id, movie);
-
+  // Notify client
   notificationService.mutateMovie(movie);
   notificationService.mutateLibrary(library.id);
 
-  // Get new data
-  await useCases.scanMovie().execute(library, movie.folder);
+  // Fetch and apply new metadata using the updated TMDB ID
+  await useCases.refreshMovieMetadata().execute(movie.id);
 }

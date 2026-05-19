@@ -148,7 +148,7 @@ function CorrectIdentificationSearch() {
 
     if (isShow) {
       await updateSeriesShowId({
-        showId: seriesId,
+        id: seriesId,
         themdbId: id,
       });
     } else {

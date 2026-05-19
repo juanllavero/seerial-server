@@ -1,20 +1,6 @@
 import { API, useCreate } from '@seerial/api'
 import type { LibraryItem } from '@seerial/domain'
 import { useCallback, useEffect, useState } from 'react'
-function hasSameOrder(a: LibraryItem[], b: LibraryItem[]) {
-  if (a.length !== b.length) return false
-
-  for (let index = 0; index < a.length; index += 1) {
-    const itemA = a[index]
-    const itemB = b[index]
-
-    if (!itemA || !itemB) return false
-    if (itemA.id !== itemB.id) return false
-    if (itemA.type !== itemB.type) return false
-  }
-
-  return true
-}
 
 export function useReorderableList(
   data: LibraryItem[] | undefined,
@@ -45,7 +31,7 @@ export function useReorderableList(
       return
     }
 
-    setItems((previousItems: LibraryItem[]) => (hasSameOrder(previousItems, data) ? previousItems : data))
+    setItems(data)
   }, [data])
 
   const handleDragEnd = useCallback(async (sourceIndex: number, destinationIndex: number) => {
