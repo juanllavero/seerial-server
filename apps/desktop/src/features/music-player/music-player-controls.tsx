@@ -1,15 +1,7 @@
 import { setFocus, useFocusable } from '@noriginmedia/norigin-spatial-navigation';
 import { Song } from '@seerial/domain';
 import { AnimatePresence, motion } from 'framer-motion';
-import {
-  AudioLines,
-  Ellipsis,
-  ForwardIcon,
-  Languages,
-  List,
-  MicVocal,
-  RewindIcon,
-} from 'lucide-react';
+import { AudioLines, ForwardIcon, Languages, List, MicVocal, RewindIcon } from 'lucide-react';
 import {
   type Dispatch,
   memo,
@@ -282,7 +274,13 @@ function MusicPlayerControls({
       return;
     }
 
-    const handleControlsActivity = () => {
+    const handleControlsActivity = (e: KeyboardEvent) => {
+      if (isTimelineFocused && e.key === 'ArrowUp') {
+        clearControlsHideTimeout();
+        setArePlayerControlsVisible(false);
+        return;
+      }
+
       showPlayerControls();
 
       if (isTimelineFocused) {
@@ -323,25 +321,6 @@ function MusicPlayerControls({
 
           <div className="flex justify-center pb-4">
             {TEST_BACKGROUND_STYLE === 'background' && renderSongInfo()}
-          </div>
-
-          <div className="flex self-end justify-end">
-            {!!shouldShowKaraokeButton && (
-              <NavigationButton
-                customKey={NavigationFocusKeys.player.karaokeButton}
-                title={t('karaokeMix')}
-                hideText
-                selected={showKaraokeMixer || isKaraokeActive}
-                disabled={!isKaraokeReady}
-                onClick={toggleKaraokeMixer}
-              >
-                {isKaraokePreparing ? <KaraokeLoadingIcon /> : <AudioLines size={'2dvh'} />}
-              </NavigationButton>
-            )}
-
-            <NavigationButton customKey={NavigationFocusKeys.player.optionsButton} hideText>
-              <Ellipsis size={'2vh'} />
-            </NavigationButton>
           </div>
         </div>
 
@@ -404,6 +383,19 @@ function MusicPlayerControls({
             </div>
 
             <div className="flex gap-2">
+              {!!shouldShowKaraokeButton && (
+                <NavigationButton
+                  customKey={NavigationFocusKeys.player.karaokeButton}
+                  title={t('karaokeMix')}
+                  hideText
+                  selected={showKaraokeMixer || isKaraokeActive}
+                  disabled={!isKaraokeReady}
+                  onClick={toggleKaraokeMixer}
+                >
+                  {isKaraokePreparing ? <KaraokeLoadingIcon /> : <AudioLines size={'2dvh'} />}
+                </NavigationButton>
+              )}
+
               <NavigationButton
                 customKey={NavigationFocusKeys.player.lyricsButton}
                 title={t('lyrics')}
