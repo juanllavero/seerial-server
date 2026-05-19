@@ -41,7 +41,7 @@ function LibraryContent({ libraryContent, libraryType, libraryId, mutate }: Libr
         items={items}
         onDragEnd={handleDragEnd}
         renderItem={(item: LibraryItem) => (
-          <MediaCard key={item.id} item={item} libraryType={libraryType} />
+          <MediaCard key={item.id} item={item} libraryType={libraryType} libraryId={libraryId} />
         )}
       />
     </Grid>

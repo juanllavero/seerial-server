@@ -21,9 +21,10 @@ import Card from '@/shared/cards/card';
 interface MediaCardProps {
   item: LibraryItem;
   libraryType: string;
+  libraryId: string;
 }
 
-function MediaCard({ item, libraryType }: MediaCardProps) {
+function MediaCard({ item, libraryType, libraryId }: MediaCardProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { cardWidth } = useCardWidth();
@@ -46,12 +47,18 @@ function MediaCard({ item, libraryType }: MediaCardProps) {
   const { id, title, years, watched } = item;
   const { aspectRatio, errorSrc, imgSrc, cornerNumber } = getCardPresentation(item);
 
-  const action = createMediaCardAction(item, libraryType, navigate, {
-    selectSeries,
-    selectMovie,
-    selectAlbum,
-    selectCollection,
-  });
+  const action = createMediaCardAction(
+    item,
+    libraryType,
+    navigate,
+    {
+      selectSeries,
+      selectMovie,
+      selectAlbum,
+      selectCollection,
+    },
+    libraryId,
+  );
 
   const menuContent: DropdownContent = createMediaCardMenuContent({
     item,

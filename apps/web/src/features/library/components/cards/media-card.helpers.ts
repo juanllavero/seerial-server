@@ -50,6 +50,7 @@ export function createMediaCardAction(
   libraryType: string,
   navigate: NavigateFunction,
   actions: SelectionActions,
+  libraryId: string,
 ) {
   const navigationByType: Record<
     LibraryItem['type'],
@@ -61,15 +62,15 @@ export function createMediaCardAction(
     },
     series: {
       select: actions.selectSeries,
-      path: `series/${item.id}`,
+      path: `/library/${libraryId}/series/${item.id}`,
     },
     movie: {
       select: actions.selectMovie,
-      path: `movie/${item.id}`,
+      path: `/library/${libraryId}/movie/${item.id}`,
     },
     album: {
       select: actions.selectAlbum,
-      path: `album/${item.id}`,
+      path: `/library/${libraryId}/album/${item.id}`,
     },
   };
 
