@@ -240,6 +240,7 @@ export const useCases = {
   createSeries: () => new CreateSeriesUseCase(seriesRepo),
   updateSeries: () => new UpdateSeriesUseCase(seriesRepo),
   deleteSeries: () => new DeleteSeriesUseCase(seriesRepo),
+  deleteSeriesData: () => new DeleteSeriesUseCase(seriesRepo),
 
   processEpisode: () => new ProcessEpisodeUseCase(mediaInfoService),
   refreshSeriesMetadata: () => new RefreshMetadataUseCase(metadataProvider),
@@ -271,6 +272,7 @@ export const useCases = {
   getMovieByPath: () => new FindMovieByPathUseCase(moviesRepo),
   updateMovie: () => new UpdateMovieUseCase(moviesRepo),
   deleteMovie: () => new DeleteMovieUseCase(librariesRepo, moviesRepo),
+  deleteMovieData: () => new DeleteMovieUseCase(librariesRepo, moviesRepo),
 
   updateMovieMetadata: () =>
     new UpdateMovieMetadataUseCase(metadataProvider, moviesRepo, fileSystemService),
