@@ -5,7 +5,7 @@ import { useRelatedContent } from '@/features/details';
 import { NavigationScrollView } from '@/shared/components/navigation';
 import { Skeleton } from '@/shared/components/ui/skeleton';
 import { useSettingsStore } from '@/shared/stores';
-import EpisodeCard from './episode-card';
+import VideoCard from '@/shared/components/details/video-card';
 
 export const MAX_SKELETON_COUNT = 10;
 
@@ -83,11 +83,12 @@ function EpisodesList({
       isRestoringFocus={isRestoringFocus}
     >
       {sortedEpisodes.map((episode, index) => (
-        <EpisodeCard
+        <VideoCard
           key={episode.id}
-          episode={episode}
-          selectedEpisodeId={selectedEpisode?.id}
-          onFocus={selectEpisode}
+          video={episode.video}
+          focusId={episode.video.id}
+          outOfFocus={selectedEpisode?.id !== episode.id}
+          onFocus={() => selectEpisode(episode)}
           onArrowPress={
             index === sortedEpisodes.length - 1 && hasRelatedContent
               ? (direction) => {
