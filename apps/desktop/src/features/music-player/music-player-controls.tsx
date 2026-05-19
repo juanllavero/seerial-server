@@ -1,14 +1,14 @@
 import { setFocus, useFocusable } from '@noriginmedia/norigin-spatial-navigation';
+import { Song } from '@seerial/domain';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   AudioLines,
   Ellipsis,
+  ForwardIcon,
   Languages,
   List,
   MicVocal,
-  PauseIcon,
-  PlayIcon,
-  SquareIcon,
+  RewindIcon,
 } from 'lucide-react';
 import {
   type Dispatch,
@@ -43,6 +43,7 @@ interface KaraokeMixSliderProps {
 
 interface MusicPlayerControlsProps {
   t: (key: string) => string;
+  currentSong: Song | null;
   renderSongInfo: () => ReactNode;
   isExpanded: boolean;
   isShown: boolean;
@@ -56,7 +57,6 @@ interface MusicPlayerControlsProps {
   getActivePlaybackPosition: () => Promise<number>;
   getActivePlaybackDuration: () => Promise<number>;
   setActivePlaybackPosition: (position: number) => Promise<void>;
-  handleStop: () => void;
   showLyrics: boolean;
   isLyricsButtonDisabled: boolean;
   setShowLyrics: (showLyrics: boolean) => void;
@@ -82,6 +82,8 @@ interface MusicPlayerControlsProps {
   handleKaraokeMixChange: (value: number) => Promise<void>;
   isQueueMenuOpen: boolean;
   setIsQueueMenuOpen: Dispatch<SetStateAction<boolean>>;
+  songQueue: Song[];
+  selectSong: (song: Song | null) => void;
 }
 
 function KaraokeMixSlider({ label, value, onChange }: KaraokeMixSliderProps) {
@@ -148,6 +150,7 @@ function KaraokeLoadingIcon() {
 
 function MusicPlayerControls({
   t,
+  currentSong,
   renderSongInfo,
   isExpanded,
   isShown,
@@ -161,7 +164,6 @@ function MusicPlayerControls({
   getActivePlaybackPosition,
   getActivePlaybackDuration,
   setActivePlaybackPosition,
-  handleStop,
   showLyrics,
   isLyricsButtonDisabled,
   setShowLyrics,
@@ -187,6 +189,8 @@ function MusicPlayerControls({
   handleKaraokeMixChange,
   isQueueMenuOpen,
   setIsQueueMenuOpen,
+  songQueue,
+  selectSong,
 }: MusicPlayerControlsProps) {
   const controlsHideTimeoutRef = useRef<number | null>(null);
   const [isTimelineFocused, setIsTimelineFocused] = useState(false);
@@ -234,6 +238,34 @@ function MusicPlayerControls({
       );
     }, 30);
   }, [isKaraokeAvailable, isKaraokeReady, setShowKaraokeMixer, showKaraokeMixer]);
+
+  const handlePlayNextSong = useCallback(() => {
+    if (!currentSong) {
+      return;
+    }
+
+    if (songQueue.length <= songQueue.indexOf(currentSong) + 1) {
+      return;
+    }
+
+    const nextSong = songQueue[songQueue.indexOf(currentSong) + 1];
+    selectSong(nextSong);
+  }, [songQueue, selectSong, currentSong]);
+
+  const handlePlayPrevious = useCallback(() => {
+    if (!currentSong) {
+      return;
+    }
+
+    const currentSongIndex = songQueue.indexOf(currentSong);
+    if (currentSongIndex <= 0) {
+      setCurrentTime(0);
+      return;
+    }
+
+    const previousSong = songQueue[currentSongIndex - 1];
+    selectSong(previousSong);
+  }, [songQueue, selectSong, currentSong, setCurrentTime]);
 
   useEffect(() => {
     scheduleControlsAutoHide();
@@ -354,23 +386,21 @@ function MusicPlayerControls({
           <FlexBox gap={1} width={'100%'} justify="space-between" align="center" className="pt-4">
             <div className="flex gap-2">
               <NavigationButton
-                customKey={NavigationFocusKeys.player.playPauseButton}
+                customKey={NavigationFocusKeys.player.rewindButton}
                 hideText
-                onClick={togglePlayPause}
+                onClick={handlePlayPrevious}
               >
-                {isPlaying ? (
-                  <PauseIcon fill="currentColor" size={'2vh'} />
-                ) : (
-                  <PlayIcon fill="currentColor" size={'2vh'} />
-                )}
+                <RewindIcon fill="currentColor" size={'2vh'} />
               </NavigationButton>
-              <NavigationButton
-                customKey={NavigationFocusKeys.player.closeButton}
-                hideText
-                onClick={handleStop}
-              >
-                <SquareIcon fill="currentColor" size={'2vh'} />
-              </NavigationButton>
+              {currentSong && songQueue.length > songQueue.indexOf(currentSong) + 1 && (
+                <NavigationButton
+                  customKey={NavigationFocusKeys.player.forwardButton}
+                  hideText
+                  onClick={handlePlayNextSong}
+                >
+                  <ForwardIcon fill="currentColor" size={'2vh'} />
+                </NavigationButton>
+              )}
             </div>
 
             <div className="flex gap-2">

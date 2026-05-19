@@ -6,7 +6,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronUp, Settings } from 'lucide-react';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
-import { MiniMusicPlayerButton } from '@/features/music-player';
 import { SettingsPanel } from '@/features/settings';
 import { NavigationButton, NavigationContainer } from '@/shared/components/navigation';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
@@ -285,7 +284,6 @@ function TopBar() {
         </AnimatePresence>
       </div>
       <div>
-        <MiniMusicPlayerButton />
         <NavigationButton
           customKey={NavigationFocusKeys.topBar.settings}
           onFocus={handleNonLibraryFocus}

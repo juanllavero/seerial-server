@@ -189,6 +189,7 @@ function GlobalMusicPlayer() {
   const {
     album,
     currentSong,
+    songQueue,
     isShown,
     isExpanded,
     isPlaying,
@@ -196,14 +197,15 @@ function GlobalMusicPlayer() {
     showLyrics,
     currentTime,
     duration,
-    setIsExpanded,
     setShowLyrics,
     setCurrentTime,
     setDuration,
+    selectSong,
   } = useMusicStore(
     (state) => ({
       album: state.album,
       currentSong: state.currentSong,
+      songQueue: state.songQueue,
       isShown: state.isShown,
       isExpanded: state.isExpanded,
       isPlaying: state.isPlaying,
@@ -211,10 +213,10 @@ function GlobalMusicPlayer() {
       showLyrics: state.showLyrics,
       currentTime: state.currentTime,
       duration: state.duration,
-      setIsExpanded: state.setIsExpanded,
       setShowLyrics: state.setShowLyrics,
       setCurrentTime: state.setCurrentTime,
       setDuration: state.setDuration,
+      selectSong: state.selectSong,
     }),
     shallow,
   );
@@ -257,26 +259,6 @@ function GlobalMusicPlayer() {
   const artistsText = useMemo(() => {
     return getArtistsText(currentSong?.artists);
   }, [currentSong?.artists]);
-
-  const hideExpandedPlayer = useCallback(() => {
-    setIsExpanded(false);
-    setIsQueueMenuOpen(false);
-    setShowKaraokeMixer(false);
-    closeLyricsOptions(false);
-
-    const keyToRestore = previousFocusKeyRef.current;
-
-    window.setTimeout(() => {
-      const { isShown: stillShown, currentSong: stillCurrentSong } = useMusicStore.getState();
-
-      if (stillShown && stillCurrentSong) {
-        setFocus(keyToRestore ?? NavigationFocusKeys.topBar.musicPlayer);
-        return;
-      }
-
-      setFocus(NavigationFocusKeys.topBar.settings);
-    }, 280);
-  }, [closeLyricsOptions, setIsExpanded]);
 
   const closeQueueMenu = useCallback((restoreFocus = true) => {
     setIsQueueMenuOpen(false);
@@ -331,7 +313,7 @@ function GlobalMusicPlayer() {
         return;
       }
 
-      hideExpandedPlayer();
+      handleStop();
     },
     navigateOnBack: false,
     capture: true,
@@ -430,6 +412,7 @@ function GlobalMusicPlayer() {
 
               <MusicPlayerControls
                 t={t}
+                currentSong={currentSong}
                 renderSongInfo={renderSongInfo}
                 isExpanded={isExpanded}
                 isShown={isShown}
@@ -443,7 +426,6 @@ function GlobalMusicPlayer() {
                 getActivePlaybackPosition={getActivePlaybackPosition}
                 getActivePlaybackDuration={getActivePlaybackDuration}
                 setActivePlaybackPosition={setActivePlaybackPosition}
-                handleStop={handleStop}
                 showLyrics={showLyrics}
                 isLyricsButtonDisabled={isLyricsButtonDisabled}
                 setShowLyrics={setShowLyrics}
@@ -469,6 +451,8 @@ function GlobalMusicPlayer() {
                 handleKaraokeMixChange={handleKaraokeMixChange}
                 isQueueMenuOpen={isQueueMenuOpen}
                 setIsQueueMenuOpen={setIsQueueMenuOpen}
+                songQueue={songQueue}
+                selectSong={selectSong}
               />
             </div>
           </NavigationContainer>
