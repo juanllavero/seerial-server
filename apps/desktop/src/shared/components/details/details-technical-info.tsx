@@ -18,19 +18,19 @@ function DetailsTechnicalInfo({ videoInfo, audioInfo, subtitleInfo }: DetailsTec
     <FlexBox direction="row" gap={2}>
       {videoInfo && (
         <Card className="px-3 border-none">
-          <Tertiary>{videoInfo}</Tertiary>
+          <Tertiary className="text-stone-300!">{videoInfo}</Tertiary>
         </Card>
       )}
       {audioInfo && (
         <Card className="px-3 border-none flex items-center gap-3">
           <Volume2 />
-          <Tertiary>{audioInfo}</Tertiary>
+          <Tertiary className="text-stone-300!">{audioInfo}</Tertiary>
         </Card>
       )}
       {subtitleInfo && (
         <Card className="px-3 border-none flex items-center gap-3">
           <Subtitles />
-          <Tertiary>{subtitleInfo}</Tertiary>
+          <Tertiary className="text-stone-300!">{subtitleInfo}</Tertiary>
         </Card>
       )}
     </FlexBox>

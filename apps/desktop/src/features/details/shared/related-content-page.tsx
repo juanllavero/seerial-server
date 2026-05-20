@@ -170,6 +170,7 @@ function RelatedContentPage({
   }, [collectionContent, currentItemId, currentItemType, currentItemTypeFromLibrary, t]);
 
   const albums = collection?.albums ?? [];
+  const collectionSongs = collection?.songs ?? [];
 
   // Reset focus guard when the page is hidden so it re-focuses on next open
   useEffect(() => {
@@ -213,9 +214,10 @@ function RelatedContentPage({
         focusedElementId={focusedElementId}
         isRestoringFocus={false}
       >
-        {albums.length > 0 && (
+        {collectionSongs.length > 0 && (
           <RelatedSongsSection
             albums={albums}
+            songs={collectionSongs}
             focusedElementId={focusedElementId}
             onSongFocus={(id) => setFocusedElementId(`related-song-${id}`)}
             onArrowPress={handleLeftFromFirst}

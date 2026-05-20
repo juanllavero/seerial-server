@@ -1,4 +1,4 @@
-﻿import type { Album, Movie, Series } from '@seerial/domain';
+﻿import type { Album, Movie, Series, Song } from '@seerial/domain';
 import { AlbumModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumModel';
 import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
 import { LibraryCollectionModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryCollectionModel';
@@ -7,6 +7,7 @@ import { MovieModel } from '@/api/v1/movies/infrastructure/persistence/models/Mo
 import { SeriesModel } from '@/api/v1/series/infrastructure/persistence/models/SeriesModel';
 import { DatabaseManager } from '@/api/v1/shared/infrastructure/persistence/DatabaseManager';
 import { getCollectionItemsKey } from '@/api/v1/shared/infrastructure/services/FileSearchService';
+import { SongModel } from '@/api/v1/songs/infrastructure/persistence/models/SongModel';
 import { GenericRepositoryHelper } from '@/helpers/GenericRepositoryHelper';
 import type {
   CollectionSummaryDTO,
@@ -17,6 +18,9 @@ import type { Collection } from '../../../domain/Collection';
 import { CollectionModel } from '../models/CollectionModel';
 
 export class CollectionsRepositoryImpl extends BaseRepository implements CollectionsRepositoryPort {
+  private readonly MAX_COLLECTION_SONGS = 10;
+  private readonly MAX_RECENT_ALBUM_CANDIDATES = 12;
+
   private helper: GenericRepositoryHelper<CollectionModel, Collection>;
 
   constructor() {
@@ -70,6 +74,8 @@ export class CollectionsRepositoryImpl extends BaseRepository implements Collect
       AlbumModel.find({ where: { collectionId: validatedId }, order: { collectionOrder: 'ASC' } }),
     ]);
 
+    const songs = await this.findPrioritizedCollectionSongs(validatedId, albums);
+
     return {
       id: collection.id,
       title: collection.title,
@@ -83,7 +89,117 @@ export class CollectionsRepositoryImpl extends BaseRepository implements Collect
       shows: series as unknown as Series[],
       movies: movies as unknown as Movie[],
       albums: albums as unknown as Album[],
+      songs,
     };
+  }
+
+  private async findPrioritizedCollectionSongs(
+    collectionId: string,
+    albums: AlbumModel[],
+  ): Promise<Song[]> {
+    const singlesAlbumIds = await this.findSinglesAlbumIds(collectionId);
+    const selectedSongs = await this.findSinglesSongs(singlesAlbumIds);
+    const selectedSongIds = new Set<string>();
+    for (const song of selectedSongs) selectedSongIds.add(song.id);
+
+    const remainingSlots = this.MAX_COLLECTION_SONGS - selectedSongs.length;
+    if (remainingSlots <= 0) {
+      return selectedSongs as unknown as Song[];
+    }
+
+    const singlesAlbumIdSet = new Set(singlesAlbumIds);
+    const recentAlbumIds = albums
+      .filter((album) => !singlesAlbumIdSet.has(album.id))
+      .sort((a, b) => this.getAlbumYearNumber(b.year) - this.getAlbumYearNumber(a.year))
+      .slice(0, this.MAX_RECENT_ALBUM_CANDIDATES)
+      .map((album) => album.id);
+
+    if (recentAlbumIds.length === 0) {
+      return selectedSongs as unknown as Song[];
+    }
+
+    const recentSongs = await this.findSongsFromRecentAlbums(recentAlbumIds, remainingSlots);
+    for (const song of recentSongs) {
+      if (selectedSongIds.has(song.id)) continue;
+      selectedSongs.push(song);
+      selectedSongIds.add(song.id);
+      if (selectedSongs.length >= this.MAX_COLLECTION_SONGS) break;
+    }
+
+    return selectedSongs as unknown as Song[];
+  }
+
+  private async findSinglesAlbumIds(collectionId: string): Promise<string[]> {
+    const singlesAlbumRows = await SongModel.createQueryBuilder('song')
+      .select('song.album_id', 'albumId')
+      .innerJoin('song.album', 'album')
+      .where('album.collection_id = :collectionId', { collectionId })
+      .groupBy('song.album_id')
+      .having('COUNT(song.id) = 1')
+      .getRawMany<{ albumId: string }>();
+
+    return singlesAlbumRows.map((row) => row.albumId);
+  }
+
+  private async findSinglesSongs(singlesAlbumIds: string[]): Promise<SongModel[]> {
+    if (singlesAlbumIds.length === 0) return [];
+
+    return SongModel.createQueryBuilder('song')
+      .where('song.album_id IN (:...albumIds)', { albumIds: singlesAlbumIds })
+      .orderBy('RANDOM()')
+      .limit(this.MAX_COLLECTION_SONGS)
+      .getMany();
+  }
+
+  private async findSongsFromRecentAlbums(
+    recentAlbumIds: string[],
+    maxSongs: number,
+  ): Promise<SongModel[]> {
+    const recentSongs = await SongModel.createQueryBuilder('song')
+      .where('song.album_id IN (:...albumIds)', { albumIds: recentAlbumIds })
+      .getMany();
+
+    const queuedByAlbum = new Map<string, SongModel[]>();
+    for (const song of recentSongs) {
+      const queue = queuedByAlbum.get(song.albumId) ?? [];
+      queue.push(song);
+      queuedByAlbum.set(song.albumId, queue);
+    }
+
+    for (const albumId of recentAlbumIds) {
+      const queue = queuedByAlbum.get(albumId);
+      if (!queue || queue.length <= 1) continue;
+
+      for (let i = queue.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [queue[i], queue[j]] = [queue[j], queue[i]];
+      }
+    }
+
+    const selected: SongModel[] = [];
+    while (selected.length < maxSongs) {
+      let added = false;
+
+      for (const albumId of recentAlbumIds) {
+        const song = queuedByAlbum.get(albumId)?.shift();
+        if (!song) continue;
+
+        selected.push(song);
+        added = true;
+
+        if (selected.length >= maxSongs) break;
+      }
+
+      if (!added) break;
+    }
+
+    return selected;
+  }
+
+  private getAlbumYearNumber(year?: string): number {
+    if (!year) return 0;
+    const parsedYear = Number.parseInt(year, 10);
+    return Number.isNaN(parsedYear) ? 0 : parsedYear;
   }
 
   async getByName(name: string): Promise<Collection | null> {

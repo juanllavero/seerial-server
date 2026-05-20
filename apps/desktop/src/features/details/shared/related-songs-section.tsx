@@ -8,37 +8,21 @@ import { NavigationButton, NavigationScrollView } from '@/shared/components/navi
 import { ListTitle, Tertiary } from '@/shared/components/text';
 import FlexBox from '@/shared/components/ui/flex-box';
 
-const MAX_RANDOM_SONGS = 6;
-
 interface SongWithAlbum extends Song {
   album: Album;
 }
 
 interface RelatedSongsSectionProps {
   albums: Album[];
+  songs: Song[];
   focusedElementId?: string;
   onSongFocus?: (songId: string) => void;
   onArrowPress?: (direction: string) => boolean | undefined;
 }
 
-function pickRandomSongs(albums: Album[], count: number): SongWithAlbum[] {
-  const allSongs: SongWithAlbum[] = albums.flatMap((album) =>
-    (album.songs ?? []).map((song) => ({ ...song, album })),
-  );
-
-  if (allSongs.length <= count) return allSongs;
-
-  const shuffled = [...allSongs];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-
-  return shuffled.slice(0, count);
-}
-
 function RelatedSongsSection({
   albums,
+  songs,
   focusedElementId,
   onSongFocus,
   onArrowPress,
@@ -53,14 +37,27 @@ function RelatedSongsSection({
     shallow,
   );
 
-  const randomSongs = useMemo(() => pickRandomSongs(albums, MAX_RANDOM_SONGS), [albums]);
+  const songsWithAlbum = useMemo<SongWithAlbum[]>(() => {
+    const albumMap = new Map(albums.map((album) => [album.id, album]));
+    return songs.flatMap((song) => {
+      const album = albumMap.get(song.albumId);
+      return album ? [{ ...song, album }] : [];
+    });
+  }, [albums, songs]);
 
-  console.log({
-    randomSongs,
-    albums,
-  });
+  const queueByAlbumId = useMemo(() => {
+    const grouped = new Map<string, Song[]>();
 
-  if (randomSongs.length === 0) return null;
+    for (const song of songsWithAlbum) {
+      const current = grouped.get(song.album.id) ?? [];
+      current.push(song);
+      grouped.set(song.album.id, current);
+    }
+
+    return grouped;
+  }, [songsWithAlbum]);
+
+  if (songsWithAlbum.length === 0) return null;
 
   return (
     <FlexBox direction="column" gap={1} width="100%">
@@ -73,8 +70,8 @@ function RelatedSongsSection({
         focusedElementId={focusedElementId}
         isRestoringFocus={false}
       >
-        {randomSongs.map((song) => {
-          const queue = song.album.songs ?? [];
+        {songsWithAlbum.map((song) => {
+          const queue = queueByAlbumId.get(song.album.id) ?? [song];
           const isCurrent = currentSong?.id === song.id;
 
           return (
