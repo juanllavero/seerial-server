@@ -1,5 +1,7 @@
 import type { DetailsData } from '@seerial/domain';
 import FlexBox from '@/shared/components/ui/flex-box';
+import { NavigationButton } from '@/shared/components/navigation';
+import { NavigationFocusKeys } from '@/shared/navigation/constants';
 import { Tertiary } from '../text';
 import DetailsRating from './details-rating';
 import DetailsWatchProgressBadge from './details-watch-progress-badge';
@@ -10,6 +12,7 @@ interface DetailsSummaryProps {
   durationInfo?: number;
   timeWatchedInfo?: number;
   customDescription?: string;
+  onDescriptionClick?: () => void;
 }
 
 function DetailsSummary({
@@ -18,9 +21,12 @@ function DetailsSummary({
   durationInfo,
   timeWatchedInfo,
   customDescription,
+  onDescriptionClick,
 }: DetailsSummaryProps) {
   const hasWatchProgress =
     durationInfo !== undefined && timeWatchedInfo !== undefined && durationInfo > 0;
+
+  const descriptionText = customDescription || details?.description;
 
   return (
     <FlexBox gap={0.8} direction="column">
@@ -52,7 +58,7 @@ function DetailsSummary({
         <Tertiary style={{ color: 'var(--text-secondary)' }}>{details.genres}</Tertiary>
       )}
 
-      {(customDescription || details?.description) && (
+      {descriptionText && (
         <FlexBox
           css={{
             maxWidth: 1000,
@@ -60,9 +66,20 @@ function DetailsSummary({
             paddingTop: 3,
           }}
         >
-          <Tertiary className={`line-clamp-3 ellipsis`} style={{ color: 'var(--text-secondary)' }}>
-            {customDescription || details?.description}
-          </Tertiary>
+          <NavigationButton
+            customKey={NavigationFocusKeys.details.descriptionButton}
+            title={descriptionText}
+            onClick={onDescriptionClick}
+            variant="ghost"
+            className="h-full w-full max-h-none! justify-start! rounded-lg! p-0!"
+          >
+            <Tertiary
+              className="line-clamp-3 ellipsis text-left"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              {descriptionText}
+            </Tertiary>
+          </NavigationButton>
         </FlexBox>
       )}
     </FlexBox>

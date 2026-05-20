@@ -168,7 +168,7 @@ const Image: React.FC<ImageProps> = ({
         aspectRatio,
       }}
     >
-      {isLoading && <Skeleton className="absolute inset-0 h-full w-full" />}
+      {!isLoading && <Skeleton className="absolute inset-0 h-full w-full" />}
 
       {isInView && imageSrc && (
         <img

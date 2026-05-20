@@ -149,6 +149,9 @@ function MovieDetails({ movie, isLoading, details, collectionId, libraryType }: 
         <DetailsInfo
           details={details}
           subtitle={movie?.videos && movie.videos.length > 1 ? selectedVideo?.title : undefined}
+          expandedImageSrc={details?.coverSrc ?? movie?.coverSrc}
+          expandedTitle={details?.title ?? movie?.name}
+          cast={movie?.cast}
           infoItems={[
             formatDate(details?.year ?? movie?.year ?? ''),
             selectedVideo ? formatTimeForView(selectedVideo.runtime ?? 0) : '',

@@ -15,6 +15,7 @@ export const NavigationFocusKeys = {
   },
   details: {
     container: 'details',
+    descriptionButton: 'details-description-button',
     playButton: 'details-play-button',
     playFromStartButton: 'details-play-from-start-button',
     markWatchedButton: 'details-mark-watched-button',

@@ -149,6 +149,7 @@ function SeriesDetails({
   const [resolvedVideoData, setResolvedVideoData] = useState<Map<string, Video>>(new Map());
   const [isRestoringEpisodeFocus, setIsRestoringEpisodeFocus] = useState(true);
   const [isBackgroundVideoVisible, setIsBackgroundVideoVisible] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const prevSelectedSeasonIdRef = useRef<string | null>(null);
   const isMarkingWatchedRef = useRef(false);
   const [hideUnwatchedThumbnails, setHideUnwatchedThumbnails] = useLocalStorage<boolean>(
@@ -302,6 +303,10 @@ function SeriesDetails({
           details={details}
           disableInitialFocus
           subtitle={selectedEpisode?.name}
+          expandedTitle={selectedEpisode?.name ?? details?.title}
+          expandedImageSrc={selectedSeason?.backgroundSrc ?? selectedEpisode?.video.imgSrc}
+          cast={series?.cast}
+          onDescriptionExpandedChange={setIsDescriptionExpanded}
           infoItems={detailsInfoItems}
           videoInfo={episodeForTrackInfo?.video.videoTracks?.[0]?.displayTitle}
           audioInfo={episodeAudioInfo}
@@ -313,21 +318,25 @@ function SeriesDetails({
           hideUnwatchedThumbnails={hideUnwatchedThumbnails}
           customDescription={selectedEpisode?.overview}
         />
-        <EpisodesList
-          selectedSeason={selectedSeason}
-          selectedEpisode={selectedEpisode}
-          selectEpisode={handleSelectEpisode}
-          isRestoringFocus={isRestoringEpisodeFocus}
-          isLoading={isLoading || !selectedSeason}
-          skeletonCount={numberOfItems ?? MAX_SKELETON_COUNT}
-          hideUnwatchedThumbnails={hideUnwatchedThumbnails}
-          seasonBackgroundSrc={selectedSeason?.backgroundSrc}
-        />
-        <SeasonSelector
-          seasons={series?.seasons ?? []}
-          onSelectSeason={setSelectedSeason}
-          selectedSeasonId={selectedSeason?.id}
-        />
+        {!isDescriptionExpanded && (
+          <>
+            <EpisodesList
+              selectedSeason={selectedSeason}
+              selectedEpisode={selectedEpisode}
+              selectEpisode={handleSelectEpisode}
+              isRestoringFocus={isRestoringEpisodeFocus}
+              isLoading={isLoading || !selectedSeason}
+              skeletonCount={numberOfItems ?? MAX_SKELETON_COUNT}
+              hideUnwatchedThumbnails={hideUnwatchedThumbnails}
+              seasonBackgroundSrc={selectedSeason?.backgroundSrc}
+            />
+            <SeasonSelector
+              seasons={series?.seasons ?? []}
+              onSelectSeason={setSelectedSeason}
+              selectedSeasonId={selectedSeason?.id}
+            />
+          </>
+        )}
       </Page>
     </DetailsWithRelatedContent>
   );

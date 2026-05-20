@@ -1,4 +1,4 @@
-import type { DetailsData } from '@seerial/domain';
+import type { CastData, DetailsData } from '@seerial/domain';
 
 export interface DetailsInfoProps {
   details: DetailsData | undefined;
@@ -19,4 +19,8 @@ export interface DetailsInfoProps {
   hideButtons?: boolean;
   enableKeyboardBack?: boolean;
   disableInitialFocus?: boolean;
+  cast?: CastData[];
+  expandedImageSrc?: string;
+  expandedTitle?: string;
+  onDescriptionExpandedChange?: (expanded: boolean) => void;
 }
