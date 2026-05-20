@@ -1,10 +1,16 @@
-import { Library } from "../../domain/Library";
-import { LibrariesRepositoryPort } from "../ports/LibrariesRepositoryPort";
+import { wakeUpDrives } from '@/utils/driveWakeUp';
+import type { Library } from '../../domain/Library';
+import type { LibrariesRepositoryPort } from '../ports/LibrariesRepositoryPort';
 
 export class GetLibrariesUseCase {
   constructor(private librariesRepo: LibrariesRepositoryPort) {}
 
   async execute(): Promise<Library[]> {
-    return await this.librariesRepo.getAll();
+    const libraries = await this.librariesRepo.getAll();
+
+    const allFolders = libraries.flatMap((library) => library.folders);
+    wakeUpDrives(allFolders);
+
+    return libraries;
   }
 }

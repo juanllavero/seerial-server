@@ -1,5 +1,1 @@
-export interface PlayList {
-  id: string;
-  title: string;
-  description?: string;
-}
+export type { PlayList } from '@seerial/domain';

@@ -1,4 +1,4 @@
-import { Server } from "../../domain/Server";
+import type { Server } from '../../domain/Server';
 
 export interface ServersRepositoryPort {
   getServerConfig(): Promise<Server | null>;

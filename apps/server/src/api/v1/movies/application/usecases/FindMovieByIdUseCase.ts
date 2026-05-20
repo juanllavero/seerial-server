@@ -1,5 +1,5 @@
-import { Movie } from "../../domain/Movie";
-import { MoviesRepositoryPort } from "../ports/MoviesRepositoryPort";
+import type { Movie } from '../../domain/Movie';
+import type { MoviesRepositoryPort } from '../ports/MoviesRepositoryPort';
 
 export class FindMovieByIdUseCase {
   constructor(private readonly movieRepository: MoviesRepositoryPort) {}

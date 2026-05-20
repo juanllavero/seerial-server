@@ -1,13 +1,16 @@
-import { LibrariesRepositoryPort } from "@/api/v1/libraries/application/ports/LibrariesRepositoryPort";
-import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
-import { messages } from "@/config/messages";
-import { MoviesRepositoryPort } from "../ports/MoviesRepositoryPort";
+import type { LibrariesRepositoryPort } from '@/api/v1/libraries/application/ports/LibrariesRepositoryPort';
+import {
+  contentCleanupService,
+  useCases,
+} from '@/api/v1/shared/infrastructure/adapters/di/container';
+import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
+import { messages } from '@/config/messages';
+import type { MoviesRepositoryPort } from '../ports/MoviesRepositoryPort';
 
 export class DeleteMovieUseCase {
   constructor(
     private libraryRepository: LibrariesRepositoryPort,
-    private moviesRepo: MoviesRepositoryPort
+    private moviesRepo: MoviesRepositoryPort,
   ) {}
 
   async execute(id: string): Promise<void> {
@@ -24,13 +27,10 @@ export class DeleteMovieUseCase {
     const library = await this.libraryRepository.getById(movie.libraryId);
 
     // Delete local media files and folders
-    await useCases.deleteMovieData().execute(id);
+    contentCleanupService.cleanMovie(id);
 
     if (library) {
-      await this.libraryRepository.removeAnalyzedFolder(
-        library.id,
-        movie.folder
-      );
+      await this.libraryRepository.removeAnalyzedFolder(library.id, movie.folder);
     }
 
     await this.moviesRepo.delete(id);

@@ -1,4 +1,4 @@
-import { LibrariesRepositoryPort } from "../ports/LibrariesRepositoryPort";
+import type { LibrariesRepositoryPort } from '../ports/LibrariesRepositoryPort';
 
 export class ReorderLibraryItemsUseCase {
   constructor(private librariesRepo: LibrariesRepositoryPort) {}
@@ -8,7 +8,7 @@ export class ReorderLibraryItemsUseCase {
     orderedItems: {
       id: string;
       type: string;
-    }[]
+    }[],
   ): Promise<boolean> {
     return await this.librariesRepo.reorderItems(libraryId, orderedItems);
   }

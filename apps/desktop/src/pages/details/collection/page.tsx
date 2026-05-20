@@ -1,0 +1,30 @@
+import { useGetCollection } from '@seerial/api';
+import type { Collection, DetailsData, LibraryType } from '@seerial/domain';
+import { memo } from 'react';
+import { useLocation, useParams } from 'react-router';
+import { CollectionDetails } from '@/features/details';
+
+function CollectionDetailsPage() {
+  const { collectionId } = useParams();
+  const { state } = useLocation();
+  const cachedDetails: DetailsData | undefined = state?.cachedDetails;
+  const libraryType = state?.libraryType as LibraryType | undefined;
+  const collageImages: string[] | undefined = state?.collageImages;
+
+  const { data: collection, isLoading } = useGetCollection<Collection>(collectionId ?? '', {
+    enabled: !!collectionId,
+  });
+
+  return (
+    <CollectionDetails
+      collectionId={collectionId ?? ''}
+      collection={collection}
+      libraryType={libraryType as LibraryType}
+      isLoading={isLoading}
+      details={cachedDetails}
+      collageImages={collageImages}
+    />
+  );
+}
+
+export default memo(CollectionDetailsPage);

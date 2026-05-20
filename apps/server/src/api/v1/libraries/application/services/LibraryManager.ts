@@ -1,191 +1,175 @@
-import { CollectionModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionModel";
+import * as fsPromises from 'node:fs/promises';
+import path from 'node:path';
+import { type LibraryType, LibraryTypes } from '@seerial/domain';
+import type { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
 import {
-  fileSystemService,
-  imageProcessingService,
-  librariesRepo,
-  useCases,
-} from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { clearLibrary } from "@/api/v1/shared/infrastructure/services/FileSearchService";
-import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
-import { messages } from "@/config/messages";
-import { LibraryType, LibraryTypes } from "@/data/interfaces/Media";
-import { imageExtensions } from "@/utils/constants";
-import logger from "@/utils/logger";
-import fs from "fs";
-import * as fsPromises from "fs/promises";
-import path from "path";
-import { GetLibrariesUseCase } from "../usecases/GetLibrariesUseCase";
-import { GetLibraryUseCase } from "../usecases/GetLibraryUseCase";
+    fileSystemService,
+    librariesRepo,
+    useCases,
+} from '@/api/v1/shared/infrastructure/adapters/di/container';
+import { clearLibrary } from '@/api/v1/shared/infrastructure/services/FileSearchService';
+import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
+import { messages } from '@/config/messages';
+import { imageExtensions } from '@/utils/constants';
+import logger from '@/utils/logger';
+import { GetLibrariesUseCase } from '../usecases/GetLibrariesUseCase';
+import { GetLibraryUseCase } from '../usecases/GetLibraryUseCase';
 
-const libraryManagerLogger = logger.child({ category: "Library Manager" });
+const libraryManagerLogger = logger.child({ category: 'Library Manager' });
 
-export class LibraryManager {
-  /**
-   * Fetches all libraries.
-   */
-  public static async getAllLibraries() {
-    const useCase = new GetLibrariesUseCase(librariesRepo);
-    return await useCase.execute();
+type CollectionImageSourceItem = {
+  folder?: string | null;
+  coverSrc?: string | null;
+};
+
+/**
+ * Fetches all libraries.
+ */
+export const getAllLibraries = async () => {
+  const useCase = new GetLibrariesUseCase(librariesRepo);
+  return await useCase.execute();
+};
+
+/**
+ * Fetches a single library by its ID.
+ */
+export const getLibraryById = async (id: string) => {
+  const useCase = new GetLibraryUseCase(librariesRepo);
+  const library = await useCase.execute(id);
+  if (!library) {
+    throw new NotFoundException(messages.errors.notFound.library);
+  }
+  return library;
+};
+
+export const getCollectionImages = async (
+  collection: CollectionModel,
+  type: LibraryType,
+): Promise<{
+  poster: string | null;
+  background: string | null;
+  images: string[];
+}> => {
+  const coverSrc = resolveCoverSource(collection, type);
+  const backgroundSrc = collection.backgroundSrc !== '' ? collection.backgroundSrc : '';
+
+  const items = getCollectionItemsByType(collection, type);
+  const { posterPath, backgroundPath } = await findCollectionImagesInCollectionRoot(items);
+
+  const validatedCoverSrc =
+    coverSrc !== '' && (await localFileExists(coverSrc)) ? coverSrc : '';
+
+  const resolvedPoster = posterPath ?? (validatedCoverSrc !== '' ? validatedCoverSrc : null);
+  const resolvedBackground = backgroundPath ?? (backgroundSrc !== '' ? backgroundSrc : null);
+  const imagePaths = !resolvedPoster ? getFallbackImagePaths(items) : [];
+
+  return {
+    poster: resolvedPoster,
+    background: resolvedBackground,
+    images: imagePaths,
+  };
+};
+
+const localFileExists = async (relativePath: string): Promise<boolean> => {
+  if (relativePath.startsWith('http')) return true;
+  try {
+    await fsPromises.access(fileSystemService.getExternalPath(relativePath));
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const resolveCoverSource = (collection: CollectionModel, type: LibraryType): string => {
+  if (type === LibraryTypes.MUSIC && collection.musicPosterSrc !== '') {
+    return collection.musicPosterSrc;
   }
 
-  /**
-   * Fetches a single library by its ID.
-   */
-  public static async getLibraryById(id: string) {
-    const useCase = new GetLibraryUseCase(librariesRepo);
-    const library = await useCase.execute(id);
-    if (!library) {
-      throw new NotFoundException(messages.errors.notFound.library);
-    }
-    return library;
+  return collection.posterSrc !== '' ? collection.posterSrc : '';
+};
+
+const getCollectionItemsByType = (
+  collection: CollectionModel,
+  type: LibraryType,
+): CollectionImageSourceItem[] => {
+  switch (type) {
+    case LibraryTypes.MOVIES:
+      return (collection.movies || []) as CollectionImageSourceItem[];
+    case LibraryTypes.SHOWS:
+      return (collection.series || []) as CollectionImageSourceItem[];
+    case LibraryTypes.MUSIC:
+      return (collection.albums || []) as CollectionImageSourceItem[];
+    default:
+      return [];
+  }
+};
+
+const findCollectionImagesInCollectionRoot = async (
+  items: CollectionImageSourceItem[],
+): Promise<{ posterPath: string | null; backgroundPath: string | null }> => {
+  const itemFolder = items.find((item) => Boolean(item.folder))?.folder;
+  const collectionRootFolder = itemFolder ? path.dirname(itemFolder) : null;
+
+  if (!collectionRootFolder) {
+    return { posterPath: null, backgroundPath: null };
   }
 
-  public static async getCollectionImages(
-    collection: CollectionModel,
-    type: LibraryType,
-  ): Promise<{
-    poster: string | null;
-    background: string | null;
-    images: string[];
-  }> {
-    const coverSrc =
-      type === LibraryTypes.MUSIC && collection.musicPosterSrc !== ""
-        ? collection.musicPosterSrc
-        : collection.posterSrc !== ""
-          ? collection.posterSrc
-          : "";
-
-    const backgroundSrc =
-      collection.backgroundSrc !== "" ? collection.backgroundSrc : "";
-
-    if (coverSrc !== "" && backgroundSrc !== "")
-      return { poster: coverSrc, background: backgroundSrc, images: [] };
-
-    let items: any[] = [];
-
-    if (type === "Movies") {
-      items = collection.collectionMovies.map((movie) => movie.movie) || [];
-    } else if (type === "Shows") {
-      items = collection.collectionSeries.map((series) => series.series) || [];
-    } else if (type === "Music") {
-      items = collection.collectionAlbums.map((album) => album.album) || [];
-    }
-
+  try {
+    const filesInFolder = await fsPromises.readdir(collectionRootFolder);
     let posterPath: string | null = null;
     let backgroundPath: string | null = null;
-    let baseFolder: string | null = null;
 
-    // Get the folder of the first item (root folder of the collection in this library)
-    if (items.length > 0 && items[0].folder) {
-      baseFolder = items[0].folder ?? "";
-      if (baseFolder !== null && fs.existsSync(baseFolder)) {
-        try {
-          const filesInFolder = await fsPromises.readdir(baseFolder);
+    for (const file of filesInFolder) {
+      const extension = path.extname(file).toLowerCase();
+      if (!imageExtensions.includes(extension)) continue;
 
-          // Search poster.ext and background.ext
-          for (const file of filesInFolder) {
-            const fileNameWithoutExt = path.parse(file).name.toLowerCase();
-            if (imageExtensions.includes(path.extname(file).toLowerCase())) {
-              if (fileNameWithoutExt === "poster") {
-                posterPath = path.join(baseFolder, file);
-              } else if (fileNameWithoutExt === "background") {
-                backgroundPath = path.join(baseFolder, file);
-              }
-            }
-          }
-        } catch (error) {
-          libraryManagerLogger.error(
-            error,
-            `Error reading folder ${baseFolder}`,
-          );
-        }
+      const fileNameWithoutExt = path.parse(file).name.toLowerCase();
+      if (fileNameWithoutExt === 'poster') {
+        posterPath = path.join(collectionRootFolder, file);
+      } else if (fileNameWithoutExt === 'background') {
+        backgroundPath = path.join(collectionRootFolder, file);
       }
     }
 
-    let imagePaths: string[] = [];
-
-    // If no poster found, return the first 4 covers
-    if (!posterPath && items) {
-      imagePaths = items
-        .map((item) => item.coverSrc)
-        .filter(Boolean)
-        .slice(0, 4);
+    return { posterPath, backgroundPath };
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
+      libraryManagerLogger.error(error, `Error reading folder ${collectionRootFolder}`);
     }
-
-    return {
-      poster: posterPath,
-      background: backgroundPath,
-      images: imagePaths,
-    };
+    return { posterPath: null, backgroundPath: null };
   }
+};
 
-  /**
-   * Resolves collection posterSrc and backgroundSrc.
-   * The poster could be a collage of the covers of the items in the collection.
-   */
-  static async resolveCollectionImages(
-    collection: CollectionModel,
-    libraryId: string,
-    libraryType: LibraryType,
-  ): Promise<{
-    poster: string | null;
-    background: string | null;
-  }> {
-    const collectionImages = await LibraryManager.getCollectionImages(
-      collection,
-      libraryType,
-    );
+const getFallbackImagePaths = (items: CollectionImageSourceItem[]): string[] => {
+  return items
+    .map((item) => item.coverSrc)
+    .filter((coverSrc): coverSrc is string => Boolean(coverSrc))
+    .slice(0, 4);
+};
 
-    if (collectionImages.images.length === 0)
-      return {
-        poster: collectionImages.poster,
-        background: collectionImages.background,
-      };
+/**
+ * Resolves collection poster, background, and up to 4 item cover images.
+ * When no stored poster exists, `images` is populated so the client can
+ * render the collage itself.
+ */
+export const resolveCollectionImages = async (
+  collection: CollectionModel,
+  libraryType: LibraryType,
+): Promise<{
+  poster: string | null;
+  background: string | null;
+  images: string[];
+}> => {
+  return getCollectionImages(collection, libraryType);
+};
 
-    // Generate collage
-    const ratio = libraryType === LibraryTypes.MUSIC ? "square" : "poster";
-    const collageBuffer = await imageProcessingService.generateCollage(
-      collectionImages.images,
-      ratio,
-      libraryType,
-    );
-
-    // Save collage image
-    const outputDir = fileSystemService.getExternalPath(
-      fileSystemService.join("resources", "img", "collages", collection.id),
-    );
-    fileSystemService.createFolder(outputDir);
-    const fileName = `collage-${collection.id}-${libraryId}.jpg`;
-    const filePath = fileSystemService.join(outputDir, fileName);
-    fileSystemService.writeImage(filePath, collageBuffer);
-
-    const collectionPoster = fileSystemService.join(
-      "img",
-      "collages",
-      collection.id,
-      fileName,
-    );
-
-    collection.posterSrc = collectionImages.poster || collection.posterSrc;
-    collection.backgroundSrc =
-      collectionImages.background || collection.backgroundSrc;
-
-    await collection.save();
-
-    return {
-      poster: collectionPoster,
-      background: collectionImages.background,
-    };
-  }
-
-  /**
-   * Starts a background scan of a library's files.
-   */
-  public static async startLibraryScan(libraryId: string) {
-    const library = await this.getLibraryById(libraryId); // reuses own method
-    await clearLibrary(libraryId);
-    // This is a fire-and-forget operation, so no await is needed here.
-    useCases.scanLibrary().execute(library, false);
-    return `Scan initiated for library: ${library.name}`;
-  }
-}
+/**
+ * Starts a background scan of a library's files.
+ */
+export const startLibraryScan = async (libraryId: string) => {
+  const library = await getLibraryById(libraryId); // reuses own method
+  await clearLibrary(libraryId);
+  // This is a fire-and-forget operation, so no await is needed here.
+  useCases.scanLibrary().execute(library, false);
+  return `Scan initiated for library: ${library.name}`;
+};

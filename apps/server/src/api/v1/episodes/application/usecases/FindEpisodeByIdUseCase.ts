@@ -1,5 +1,5 @@
-import { Episode } from "../../domain/Episode";
-import { EpisodeRepositoryPort } from "../ports/EpisodeRepositoryPort";
+import type { Episode } from '../../domain/Episode';
+import type { EpisodeRepositoryPort } from '../ports/EpisodeRepositoryPort';
 
 export class FindEpisodeByIdUseCase {
   constructor(private episodeRepo: EpisodeRepositoryPort) {}

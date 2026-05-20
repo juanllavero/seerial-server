@@ -1,4 +1,4 @@
-import { PlayListRepositoryPort } from "../ports/PlayListRepositoryPort";
+import type { PlayListRepositoryPort } from '../ports/PlayListRepositoryPort';
 
 export class AddSongToPlayListUseCase {
   constructor(private playlistRepo: PlayListRepositoryPort) {}

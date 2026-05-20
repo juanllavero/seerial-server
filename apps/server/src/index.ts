@@ -1,36 +1,50 @@
+import type http from 'node:http';
+import type https from 'node:https';
+import path from 'node:path';
+import { appReadyMessage, showAppName, showMessage, spinner } from '@seerial/cli';
+import compression from 'compression';
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import { config } from 'dotenv';
+import { app } from 'electron';
+import type { Express, NextFunction, Request, Response } from 'express';
+import express from 'express';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
+import swaggerUi from 'swagger-ui-express';
 import {
   downloaderService,
   fileSystemService,
   notificationService,
   tmdbApiClient,
-} from "@/api/v1/shared/infrastructure/adapters/di/container";
-import * as ConfigManager from "@/api/v1/shared/infrastructure/services/ConfigService";
-import cookieParser from "cookie-parser";
-import cors from "cors";
-import { config } from "dotenv";
-import { app } from "electron";
-import express, { Request, Response } from "express";
-import rateLimit from "express-rate-limit";
-import helmet from "helmet";
-import http from "http";
-import https from "https";
-import path from "path";
-import swaggerUi from "swagger-ui-express";
-import swaggerDocument from "../swagger.json";
-import { ServerConfigService } from "./api/v1/servers/infrastructure/services/ServerConfigService";
-import { DatabaseManager } from "./api/v1/shared/infrastructure/persistence/DatabaseManager";
-import { globalErrorHandler } from "./api/v1/shared/infrastructure/web/exceptions/GlobalErrorHandler";
-import { requestsIDsMiddleware } from "./middleware/request.id.middleware";
-import { sanitizationMiddleware } from "./middleware/sanitization.middleware";
-import { RegisterRoutes } from "./routes/routes";
-import { createTray } from "./utils/appTray";
+} from '@/api/v1/shared/infrastructure/adapters/di/container';
+import * as ConfigManager from '@/api/v1/shared/infrastructure/services/ConfigService';
+import swaggerDocument from '../swagger.json';
+import { ServerConfigService } from './api/v1/servers/infrastructure/services/ServerConfigService';
+import { DatabaseManager } from './api/v1/shared/infrastructure/persistence/DatabaseManager';
+import { globalErrorHandler } from './api/v1/shared/infrastructure/web/exceptions/GlobalErrorHandler';
+import { requestsIDsMiddleware } from './middleware/request.id.middleware';
+import { sanitizationMiddleware } from './middleware/sanitization.middleware';
+import { tokenRefreshMiddleware } from './middleware/token-refresh.middleware';
+import { RegisterRoutes } from './routes/routes';
+import { createTray } from './utils/appTray';
 
 // Initialize app and environment
 config({
   quiet: true,
 });
-process.env.APP_ROOT = path.join(__dirname, "../../");
-export const appServer = express();
+process.env.APP_ROOT = path.join(__dirname, '../../');
+export const appServer: Express = express();
+
+const hasSingleInstanceLock = app.requestSingleInstanceLock();
+
+if (!hasSingleInstanceLock) {
+  showMessage('Another Seerial Server instance is already running. Exiting...');
+  app.exit(0);
+}
+
+// Add compression middleware to compress responses and save bandwidth
+appServer.use(compression());
 
 // Sanitization middleware
 appServer.use(sanitizationMiddleware);
@@ -46,20 +60,20 @@ appServer.use(
       callback(null, origin); // Return same origin
     },
     credentials: true, // Allow cookies
-    exposedHeaders: ["Content-Range", "Accept-Ranges", "Content-Length"],
-    methods: ["GET", "PUT", "POST", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
+    exposedHeaders: ['Content-Range', 'Accept-Ranges', 'Content-Length', 'X-New-Token'],
+    methods: ['GET', 'PUT', 'POST', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  }),
 );
 
 // Rate limit for login endpoint
 appServer.use(
-  "/users/login",
+  '/users/login',
   rateLimit({
     windowMs: 10 * 60 * 1000, // 10 minutes
     max: 20, // 20 attempts per IP
-    message: "Too many login attempts, please try again later",
-  })
+    message: 'Too many login attempts, please try again later',
+  }),
 );
 
 // Limit the max number of requests per minute
@@ -69,80 +83,121 @@ appServer.use(
     max: 1000, // max 1000 requests per minute
     standardHeaders: true,
     legacyHeaders: false,
-  })
+  }),
 );
 
 // Configure helmet middleware to avoid some security vulnerabilities
 appServer.use(
   helmet({
-    contentSecurityPolicy: false, // Disable CSP
+    contentSecurityPolicy: {
+      // Applied only to HTML responses (the embedded web client).
+      // The API itself returns JSON, so CSP has minimal impact there,
+      // but the web frontend benefits from script/style restrictions.
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"], // Allow inline styles required by some UI libs
+        imgSrc: ["'self'", 'data:', 'blob:'],
+        mediaSrc: ["'self'", 'blob:'],
+        connectSrc: ["'self'", 'ws:', 'wss:'],
+        fontSrc: ["'self'", 'data:'],
+        objectSrc: ["'none'"],
+        frameAncestors: ["'self'"],
+      },
+    },
     crossOriginEmbedderPolicy: false, // Avoid problems with video streaming
-  })
+  }),
 );
 
-appServer.use(express.json({ limit: "50mb" }));
-appServer.use(express.urlencoded({ limit: "50mb", extended: true }));
+appServer.use(express.json({ limit: '50mb' }));
+appServer.use(express.urlencoded({ limit: '50mb', extended: true }));
 appServer.use(cookieParser());
-appServer.use(
-  "/media",
-  express.static(fileSystemService.getExternalPath("resources"))
-);
+appServer.use('/media', express.static(fileSystemService.getExternalPath('resources')));
 
 // Global server and WebSocket manager
 export let server: http.Server | https.Server;
 
 // Start the app
-app.whenReady().then(async () => {
-  // Initialize dependencies
-  await downloaderService.downloadYoutubeDownloader();
-  await DatabaseManager.initializeDB();
-  fileSystemService.initFolders();
-  fileSystemService.loadProperties();
-  await ConfigManager.loadConfig();
-
-  // Initialize MovieDB
-  await tmdbApiClient.initialize();
-
-  // Load or create server and user configs
-  await ServerConfigService.loadOrCreateServerConfig();
-
-  // Swagger UI
-  appServer.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-
-  // Register generated tsoa routes
-  RegisterRoutes(appServer);
-
-  // Serve static web files
-  const webPath = path.join(__dirname, "web");
-  appServer.use(express.static(webPath));
-
-  // Capture all requests and redirect to index.html
-  appServer.use((req: Request, res: Response, next) => {
-    // If the request is for a file (has an extension), skip to next middleware
-    if (path.extname(req.path)) {
-      return next();
-    }
-
-    res.sendFile(path.join(webPath, "index.html"));
+if (hasSingleInstanceLock) {
+  app.on('second-instance', () => {
+    showMessage('Another Seerial Server instance launch was blocked.');
   });
 
-  // Error handling middleware
-  appServer.use(globalErrorHandler);
+  app.whenReady().then(async () => {
+    showAppName('SEERIAL SERVER');
 
-  // Start server
-  await ServerConfigService.startServer(appServer);
+    // Dynamic CLI message
+    const s = spinner();
 
-  // Initialize NotificationService through DI container
-  notificationService.init(ServerConfigService.mainServer);
+    // Initialize dependencies
+    s.start('Initializing Youtube Downloader...');
 
-  // Setup UPnP port mapping
-  await ServerConfigService.setupPortMapping();
+    await downloaderService.downloadYoutubeDownloader();
 
-  // Create tray
-  createTray();
-});
+    s.stop('Youtube Downloader Initialized');
+
+    await DatabaseManager.initializeDB();
+    fileSystemService.initFolders();
+    fileSystemService.loadProperties();
+    await ConfigManager.loadConfig();
+
+    showMessage('Database Initialized');
+
+    // Initialize MovieDB
+    await tmdbApiClient.initialize();
+
+    showMessage('TheMovieDB API Client Initialized');
+
+    // Load or create server and user configs
+    await ServerConfigService.loadOrCreateServerConfig();
+
+    // Swagger UI — only exposed outside production to prevent API enumeration
+    if (process.env.NODE_ENV !== 'production') {
+      appServer.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+    }
+
+    // Register generated tsoa routes
+    appServer.use(tokenRefreshMiddleware);
+    RegisterRoutes(appServer);
+
+    // Serve static web files
+    const webPath = path.join(__dirname, 'web');
+    appServer.use(express.static(webPath));
+
+    // Capture all requests and redirect to index.html
+    appServer.use((req: Request, res: Response, next: NextFunction) => {
+      // If the request is for a file (has an extension), skip to next middleware
+      if (path.extname(req.path)) {
+        return next();
+      }
+
+      res.sendFile(path.join(webPath, 'index.html'));
+    });
+
+    // Error handling middleware
+    appServer.use(globalErrorHandler);
+
+    // Start server
+    await ServerConfigService.startServer(appServer);
+
+    showMessage('Server Initialized');
+
+    // Initialize NotificationService through DI container
+    notificationService.init(ServerConfigService.mainServer);
+
+    // Create tray
+    createTray();
+
+    const httpPort = ServerConfigService.serverConfig.httpPort;
+    appReadyMessage({
+      url: `http://localhost:${httpPort}/api/v1`,
+      swaggerUrl: `http://localhost:${httpPort}/api-docs`,
+      env: 'development',
+    });
+  });
+}
 
 // Prevent default quit behavior on macOS
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") app.quit();
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit();
 });

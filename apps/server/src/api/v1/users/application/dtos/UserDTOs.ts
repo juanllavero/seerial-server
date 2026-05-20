@@ -1,4 +1,4 @@
-import { UserType } from "@/utils/constants";
+import type { UserType } from '@/utils/constants';
 
 export interface LoginDTO {
   username: string;

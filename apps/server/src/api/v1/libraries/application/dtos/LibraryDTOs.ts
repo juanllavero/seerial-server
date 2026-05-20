@@ -1,4 +1,4 @@
-import { LibraryType } from "@/data/interfaces/Media";
+import type { LibraryType } from '@seerial/domain';
 
 export interface CreateLibraryDTO {
   name: string;
@@ -28,10 +28,11 @@ export interface ReorderLibrariesDTO {
 }
 
 export interface ReorderItemsDTO {
-  orderedItems: any[];
+  orderedItems: Array<{ id: string; type: string }>;
 }
 
 export interface GetLibraryContentDTO {
   type: string;
   flat?: string;
+  watched?: boolean;
 }

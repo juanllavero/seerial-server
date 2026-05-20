@@ -1,4 +1,4 @@
-import { Artist, Artist as ArtistData } from "../../domain/Artist";
+import type { Artist, Artist as ArtistData } from '../../domain/Artist';
 
 export interface ArtistsRepositoryPort {
   getById(id: string): Promise<Artist | null>;

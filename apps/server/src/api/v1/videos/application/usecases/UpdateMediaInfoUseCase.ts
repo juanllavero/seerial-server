@@ -1,8 +1,8 @@
-import { getMediaInfo } from "@/api/v1/shared/infrastructure/adapters/ffmpeg/mediaInfo";
-import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
-import { messages } from "@/config/messages";
-import { Video } from "../../domain/Video";
-import { VideoRepositoryPort } from "../ports/VideosRepositoryPort";
+import type { Video } from '@seerial/domain';
+import { getMediaInfo } from '@/api/v1/shared/infrastructure/adapters/ffmpeg/mediaInfo';
+import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
+import { messages } from '@/config/messages';
+import type { VideoRepositoryPort } from '../ports/VideosRepositoryPort';
 
 export class UpdateMediaInfoUseCase {
   constructor(private videoRepo: VideoRepositoryPort) {}

@@ -1,14 +1,30 @@
+import type { LibraryItem } from '@seerial/domain';
+
+export interface CollectionSummaryDTO {
+  id: string;
+  title: string;
+  itemCount: number;
+}
+
 export interface ReorderItemDTO {
   id: string;
-  type: "movie" | "movies" | "series" | "show" | "shows" | "album" | "albums";
+  type: 'movie' | 'movies' | 'series' | 'show' | 'shows' | 'album' | 'albums';
 }
 
 export interface MusicExtrasDTO {
-  [key: string]: any;
+  title: string;
+  src: string;
+  type: string;
 }
 
 export interface ReorderContentDTO {
   orderedItems: ReorderItemDTO[];
+}
+
+export interface CollectionContentDTO {
+  movies: LibraryItem[];
+  series: LibraryItem[];
+  albums: LibraryItem[];
 }
 
 export interface UpdateCollectionDTO {
@@ -19,4 +35,12 @@ export interface UpdateCollectionDTO {
   coverSrc?: string;
   coversUrls?: string[];
   musicPosterSrc?: string;
+}
+
+export interface CreateCollectionWithItemDTO {
+  title: string;
+  description?: string;
+  movieIds?: string[];
+  seriesIds?: string[];
+  albumIds?: string[];
 }

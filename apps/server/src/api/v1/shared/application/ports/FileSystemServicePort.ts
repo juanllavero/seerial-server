@@ -1,4 +1,4 @@
-import { FileOrDir } from "../../domain/types/FilesTypes";
+import type { FileOrDir } from '../../domain/types/FilesTypes';
 
 export interface FileSystemServicePort {
   // Initialization
@@ -32,7 +32,7 @@ export interface FileSystemServicePort {
   findImageInFolder(folderPath: string): Promise<string | null>;
 
   // JSON
-  createJSONFile(filePath: string, content: any): void;
+  createJSONFile(filePath: string, content: unknown): void;
 
   // Path operations
   dirname(filePath: string): string;
@@ -45,11 +45,7 @@ export interface FileSystemServicePort {
   readFileSync(filePath: string, encoding?: string): string;
 
   // File writing
-  writeFile(
-    filePath: string,
-    content: string,
-    encoding?: string
-  ): Promise<void>;
+  writeFile(filePath: string, content: string, encoding?: string): Promise<void>;
 
   // Image writing
   writeImage(filePath: string, imageBuffer: Buffer): Promise<void>;

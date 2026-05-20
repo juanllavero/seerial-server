@@ -1,5 +1,5 @@
-import { Video } from "../../domain/Video";
-import { VideoRepositoryPort } from "../ports/VideosRepositoryPort";
+import type { Video } from '@seerial/domain';
+import type { VideoRepositoryPort } from '../ports/VideosRepositoryPort';
 
 export class FindVideoByMovieIdUseCase {
   constructor(private videoRepo: VideoRepositoryPort) {}

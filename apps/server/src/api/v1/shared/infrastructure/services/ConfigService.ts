@@ -1,13 +1,13 @@
-import { app } from "electron";
-import fs from "fs/promises";
-import path from "path";
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { app } from 'electron';
 
 interface IConfig {
   port: number;
 }
 
 const DEFAULT_PORT = 34200;
-const configPath = path.join(app.getPath("userData"), "config.json");
+const configPath = path.join(app.getPath('userData'), 'config.json');
 
 let config: IConfig;
 
@@ -17,9 +17,9 @@ let config: IConfig;
  */
 export async function loadConfig(): Promise<void> {
   try {
-    const data = await fs.readFile(configPath, "utf-8");
+    const data = await fs.readFile(configPath, 'utf-8');
     config = JSON.parse(data);
-  } catch (error) {
+  } catch (_error) {
     config = { port: DEFAULT_PORT };
     await saveConfig();
   }

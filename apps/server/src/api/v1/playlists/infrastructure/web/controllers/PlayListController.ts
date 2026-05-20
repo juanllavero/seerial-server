@@ -1,34 +1,23 @@
-import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
-import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
-import { messages } from "@/config/messages";
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Path,
-  Post,
-  Put,
-  Route,
-  Security,
-  Tags,
-} from "tsoa";
-import {
+import { Body, Controller, Delete, Get, Patch, Path, Post, Route, Security, Tags } from 'tsoa';
+import { useCases } from '@/api/v1/shared/infrastructure/adapters/di/container';
+import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
+import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
+import { messages } from '@/config/messages';
+import type {
   AddSongToPlaylistDTO,
   CreatePlayListDTO,
   UpdatePlayListDTO,
-} from "../../../application/dtos/PlayListDTOs";
-import { PlayList } from "../../../domain/PlayList";
+} from '../../../application/dtos/PlayListDTOs';
+import type { PlayList } from '../../../domain/PlayList';
 
-@Route("playlists")
-@Tags("Playlists")
+@Route('playlists')
+@Tags('Playlists')
 export class PlayListController extends Controller {
   /**
    * Get all playlists
    */
   @Get()
-  @Security("adminAuth")
+  @Security('adminAuth')
   public async getAll(): Promise<ApiResponse<PlayList[]>> {
     const result = await useCases.getPlayLists().execute();
     return ApiResponse.success(result, messages.success.fetch);
@@ -37,8 +26,8 @@ export class PlayListController extends Controller {
   /**
    * Get playlist by ID
    */
-  @Get("{id}")
-  @Security("adminAuth")
+  @Get('{id}')
+  @Security('adminAuth')
   public async getById(@Path() id: string): Promise<ApiResponse<PlayList>> {
     const result = await useCases.getPlayListById().execute(id);
 
@@ -53,10 +42,8 @@ export class PlayListController extends Controller {
    * Create a new playlist
    */
   @Post()
-  @Security("adminAuth")
-  public async create(
-    @Body() body: CreatePlayListDTO
-  ): Promise<ApiResponse<PlayList>> {
+  @Security('adminAuth')
+  public async create(@Body() body: CreatePlayListDTO): Promise<ApiResponse<PlayList>> {
     const result = await useCases.createPlayList().execute(body);
     return ApiResponse.success(result, messages.success.create);
   }
@@ -64,11 +51,11 @@ export class PlayListController extends Controller {
   /**
    * Update playlist
    */
-  @Put("{id}")
-  @Security("adminAuth")
+  @Patch('{id}')
+  @Security('adminAuth')
   public async update(
     @Path() id: string,
-    @Body() body: UpdatePlayListDTO
+    @Body() body: UpdatePlayListDTO,
   ): Promise<ApiResponse<PlayList>> {
     const result = await useCases.updatePlayList().execute(id, body);
     return ApiResponse.success(result, messages.success.update);
@@ -77,8 +64,8 @@ export class PlayListController extends Controller {
   /**
    * Delete playlist
    */
-  @Delete("{id}")
-  @Security("adminAuth")
+  @Delete('{id}')
+  @Security('adminAuth')
   public async delete(@Path() id: string): Promise<ApiResponse<null>> {
     await useCases.deletePlayList().execute(id);
     return ApiResponse.success(null, messages.success.delete);
@@ -87,11 +74,11 @@ export class PlayListController extends Controller {
   /**
    * Add song to playlist
    */
-  @Post("{id}/songs")
-  @Security("adminAuth")
+  @Post('{id}/songs')
+  @Security('adminAuth')
   public async addSong(
     @Path() id: string,
-    @Body() body: AddSongToPlaylistDTO
+    @Body() body: AddSongToPlaylistDTO,
   ): Promise<ApiResponse<null>> {
     const { songId } = body;
 
@@ -102,12 +89,9 @@ export class PlayListController extends Controller {
   /**
    * Remove song from playlist
    */
-  @Delete("{id}/songs/{songId}")
-  @Security("adminAuth")
-  public async removeSong(
-    @Path() id: string,
-    @Path() songId: string
-  ): Promise<ApiResponse<null>> {
+  @Delete('{id}/songs/{songId}')
+  @Security('adminAuth')
+  public async removeSong(@Path() id: string, @Path() songId: string): Promise<ApiResponse<null>> {
     await useCases.removeSongFromPlayList().execute(id, songId);
     return ApiResponse.success(null, messages.success.delete);
   }

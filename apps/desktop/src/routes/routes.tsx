@@ -1,47 +1,45 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
-import Home from '../pages/home/Home'
-import Library from '../pages/library/Library'
-import MovieDetails from '../pages/details/movie/MovieDetails'
-import SeriesDetails from '../pages/details/series/SeriesDetails'
-import AlbumDetails from '../pages/details/album/AlbumDetails'
-import CollectionDetails from '../pages/details/collection/CollectionDetails'
-import VideoPlayer from '../pages/videoplayer/VideoPlayer'
-import Root from './root'
-import TopBarLayout from '@/pages/topBarLayout/TopBarLayout'
-import LoginPage from '@/pages/login/LoginPage'
-import UsersPage from '@/pages/users/UsersPage'
+import { Navigate, Route, Routes } from 'react-router-dom';
+import {
+  AlbumDetails,
+  CollectionDetails,
+  Home,
+  Library,
+  LoginPage,
+  MovieDetails,
+  SearchPage,
+  SeriesDetails,
+  ToSeePage,
+  VideoPlayer,
+  VideoPlayerFile,
+} from '@/pages';
+import { BaseLayout, TopBarLayout } from '@/shared/layouts';
+import Root from './root';
 
-export function AppRoutes() {
-	return (
-		<Routes>
-			<Route path='/' element={<Root />}>
-				<Route path='/login' element={<LoginPage />} />
-				<Route path='/users' element={<UsersPage />} />
-				<Route index element={<Navigate to='/home' replace />} />
-				<Route element={<TopBarLayout />}>
-					<Route path='/home' element={<Home />} />
-					<Route path='/home2' element={<VideoPlayer />} />
-					<Route index element={<Navigate to='library' replace />} />
-					<Route path='library/:libraryId/:type' element={<Library />} />
-					<Route
-						path='details/movie/:movieId'
-						element={<MovieDetails />}
-					/>
-					<Route
-						path='details/series/:seriesId'
-						element={<SeriesDetails />}
-					/>
-					<Route
-						path='details/album/:albumId'
-						element={<AlbumDetails />}
-					/>
-					<Route
-						path='details/collection/:collectionId/:type'
-						element={<CollectionDetails />}
-					/>
-				</Route>
-				<Route path='video-player/:videoId' element={<VideoPlayer />} />
-			</Route>
-		</Routes>
-	)
+export default function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/" element={<Root />}>
+        <Route path="/login" element={<LoginPage />} />
+        <Route index element={<Navigate to="/home" replace />} />
+
+        {/* Layout with top bar (excluding details pages) and with a slide animation page transition */}
+        <Route element={<TopBarLayout />}>
+          <Route path="/home" element={<Home />} />
+          <Route path="library/:libraryId/:type" element={<Library />} />
+          <Route path="details/movie/:movieId" element={<MovieDetails />} />
+          <Route path="details/series/:seriesId" element={<SeriesDetails />} />
+          <Route path="details/album/:albumId" element={<AlbumDetails />} />
+          <Route path="details/collection/:collectionId/:type" element={<CollectionDetails />} />
+          <Route path="/search" element={<SearchPage />} />
+          <Route path="/see" element={<ToSeePage />} />
+        </Route>
+
+        {/* Layout with no top bar and with a fade animation page transition */}
+        <Route element={<BaseLayout />}>
+          <Route path="video-player/file" element={<VideoPlayerFile />} />
+          <Route path="video-player/:videoId" element={<VideoPlayer />} />
+        </Route>
+      </Route>
+    </Routes>
+  );
 }

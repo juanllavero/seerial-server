@@ -1,4 +1,4 @@
-import { ArtistsRepositoryPort } from "../ports/ArtistsRepositoryPort";
+import type { ArtistsRepositoryPort } from '../ports/ArtistsRepositoryPort';
 
 export class DeleteArtistUseCase {
   constructor(private artistRepo: ArtistsRepositoryPort) {}

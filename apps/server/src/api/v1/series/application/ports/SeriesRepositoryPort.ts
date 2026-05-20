@@ -1,5 +1,5 @@
-import { IncludeType } from "@/types/common";
-import { Series } from "../../domain/Series";
+import type { IncludeType } from '@/types/common';
+import type { Series } from '../../domain/Series';
 
 export interface SeriesRepositoryPort {
   findAll(libraryId: string): Promise<Series[]>;

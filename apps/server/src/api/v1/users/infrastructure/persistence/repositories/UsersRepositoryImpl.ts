@@ -1,21 +1,19 @@
-import { BaseRepository } from "@/api/v1/base-repository/BaseRepository";
-import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryModel";
-import { UnauthorizedException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
-import { messages } from "@/config/messages";
-import { GenericRepositoryHelper } from "@/helpers/GenericRepositoryHelper";
-import { UserType } from "@/utils/constants";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import { In } from "typeorm";
-import { UsersRepositoryPort } from "../../../application/ports/UsersRepositoryPort";
-import { User } from "../../../domain/User";
-import { UserLibraryModel } from "../models/UserLibraryModel";
-import { UserModel } from "../models/UserModel";
+import type { User } from '@seerial/domain';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { In } from 'typeorm';
+import { BaseRepository } from '@/api/v1/base-repository/BaseRepository';
+import { LibraryModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryModel';
+import { UnauthorizedException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
+import { messages } from '@/config/messages';
+import { GenericRepositoryHelper } from '@/helpers/GenericRepositoryHelper';
+import { UserType } from '@/utils/constants';
+import { getJwtSecret } from '@/utils/jwt-secret';
+import type { UsersRepositoryPort } from '../../../application/ports/UsersRepositoryPort';
+import { UserLibraryModel } from '../models/UserLibraryModel';
+import { UserModel } from '../models/UserModel';
 
-export class UsersRepositoryImpl
-  extends BaseRepository
-  implements UsersRepositoryPort
-{
+export class UsersRepositoryImpl extends BaseRepository implements UsersRepositoryPort {
   // Generic helper for common CRUD operations
   private helper: GenericRepositoryHelper<UserModel, User>;
 
@@ -24,7 +22,7 @@ export class UsersRepositoryImpl
 
     // Initialize helper
     this.helper = new GenericRepositoryHelper(UserModel, {
-      entityName: "User",
+      entityName: 'User',
       generateShortId: true,
     });
   }
@@ -32,13 +30,13 @@ export class UsersRepositoryImpl
   async findAll(): Promise<User[]> {
     return this.helper.findAll({
       where: { hideInLogin: false },
-      select: ["id", "username", "type", "avatar"], // Exclude sensitive fields like password
+      select: ['id', 'username', 'type', 'avatar'], // Exclude sensitive fields like password
     });
   }
 
   async authenticate(
     username: string,
-    password: string | null
+    password: string | null,
   ): Promise<{ token: string; user: User | null } | null> {
     const user = await UserModel.findOne({ where: { username } });
     if (!user) return null;
@@ -53,9 +51,14 @@ export class UsersRepositoryImpl
 
     // Generate JWT
     const token = jwt.sign(
-      { userId: user.id, username: user.username, type: user.type },
-      process.env.JWT_SECRET || "",
-      { expiresIn: "30d" }
+      {
+        userId: user.id,
+        username: user.username,
+        type: user.type,
+        tokenVersion: user.tokenVersion,
+      },
+      getJwtSecret(),
+      { expiresIn: '30d' },
     );
 
     const safeUser = await UserModel.findOne({
@@ -64,9 +67,7 @@ export class UsersRepositoryImpl
     });
     return {
       token,
-      user: safeUser
-        ? (safeUser as unknown as User)
-        : (user as unknown as User),
+      user: safeUser ? (safeUser as unknown as User) : (user as unknown as User),
     };
   }
 
@@ -82,17 +83,13 @@ export class UsersRepositoryImpl
       hideInLogin?: boolean;
       maxSessions?: number;
       libraryIds?: string[];
-    }>
+    }>,
   ): Promise<User> {
-    if (data.type === "admin" && (!data.password || !data.password.trim())) {
-      throw new UnauthorizedException(
-        messages.errors.validation.userAdminNoPassword
-      );
+    if (data.type === 'admin' && !data.password?.trim()) {
+      throw new UnauthorizedException(messages.errors.validation.userAdminNoPassword);
     }
 
-    const hashedPassword = data.password
-      ? await bcrypt.hash(data.password, 10)
-      : null;
+    const hashedPassword = data.password ? await bcrypt.hash(data.password, 10) : null;
 
     const userData = {
       ...data,
@@ -113,10 +110,11 @@ export class UsersRepositoryImpl
       const userModel = user as unknown as UserModel;
 
       for (const library of libraries) {
-        UserLibraryModel.create({
+        const userLibrary = UserLibraryModel.create({
           userId: user.id,
           libraryId: library.id,
         });
+        await userLibrary.save();
       }
       await userModel.save();
     }
@@ -131,13 +129,20 @@ export class UsersRepositoryImpl
   async update(id: string, data: Partial<User>): Promise<User> {
     if (data.password) {
       data.password = await bcrypt.hash(data.password, 10);
+      // Invalidate all existing tokens when the password changes
+      const existing = await UserModel.findOne({ where: { id } });
+      if (existing) {
+        await UserModel.update(id, {
+          tokenVersion: (existing.tokenVersion ?? 0) + 1,
+        });
+      }
     }
 
     return this.helper.update(id, data);
   }
 
   async delete(id: string): Promise<void> {
-    const validatedId = this.validateId(id, "User ID");
-    this.helper.delete(validatedId);
+    const validatedId = this.validateId(id, 'User ID');
+    await this.helper.delete(validatedId);
   }
 }

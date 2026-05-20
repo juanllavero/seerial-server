@@ -1,31 +1,44 @@
-import { ServerModel } from "@/api/v1/servers/infrastructure/persistence/models/ServerModel";
-import { fileSystemService } from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { appServer } from "@/index";
-import logger from "@/utils/logger";
-import crypto from "crypto";
-import { Express } from "express";
-import fs from "fs";
-import http from "http";
-import https from "https";
-import upnp from "nat-upnp";
-import ngrok from "ngrok";
-import os from "os";
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import http from 'node:http';
+import https from 'node:https';
+import net from 'node:net';
+import os from 'node:os';
+import type { Express, NextFunction, Request, Response } from 'express';
+import ngrok from 'ngrok';
+import { ServerModel } from '@/api/v1/servers/infrastructure/persistence/models/ServerModel';
+import { fileSystemService } from '@/api/v1/shared/infrastructure/adapters/di/container';
+import { appServer } from '@/index';
+import logger from '@/utils/logger';
 
-const configLogger = logger.child({ category: "Config" });
-const sslLogger = logger.child({ category: "SSL" });
-const streamingLogger = logger.child({ category: "Streaming Server" });
-const tunnelLogger = logger.child({ category: "Tunnel" });
-const upnpLogger = logger.child({ category: "UPnP" });
+const configLogger = logger.child({ category: 'Config' });
+const sslLogger = logger.child({ category: 'SSL' });
+const streamingLogger = logger.child({ category: 'Streaming Server' });
+const tunnelLogger = logger.child({ category: 'Tunnel' });
 
-export class ServerConfigService {
-  static serverConfig: ServerModel;
-  static sslOptions: { key: string; cert: string; passphrase?: string } | null =
-    null;
-  static httpServer: http.Server | null = null;
-  static httpsServer: https.Server | null = null;
-  public static mainServer: http.Server | https.Server;
+/**
+ * Checks whether a plain IPv4 address falls within a CIDR range.
+ * Only IPv4 CIDR notation is supported (e.g. "192.168.1.0/24").
+ */
+function ipMatchesCidr(ip: string, cidr: string): boolean {
+  if (!net.isIPv4(ip)) return false;
+  const [range, prefixStr] = cidr.split('/');
+  const prefix = Number.parseInt(prefixStr ?? '32', 10);
+  if (!range || Number.isNaN(prefix) || prefix < 0 || prefix > 32) return false;
+  const toInt = (addr: string) =>
+    addr.split('.').reduce((acc, octet) => (acc << 8) + Number.parseInt(octet, 10), 0) >>> 0;
+  const mask = prefix === 0 ? 0 : (~0 << (32 - prefix)) >>> 0;
+  return (toInt(ip) & mask) === (toInt(range) & mask);
+}
 
-  static async loadOrCreateServerConfig() {
+export const ServerConfigService = {
+  serverConfig: undefined as unknown as ServerModel,
+  sslOptions: null as { key: string; cert: string; passphrase?: string } | null,
+  httpServer: null as http.Server | null,
+  httpsServer: null as https.Server | null,
+  mainServer: undefined as unknown as http.Server | https.Server,
+
+  async loadOrCreateServerConfig() {
     let config: ServerModel | null = null;
 
     try {
@@ -33,45 +46,43 @@ export class ServerConfigService {
       if (!config) {
         const hostname = os.hostname(); // Get computer hostname
         config = ServerModel.createWithDefaults({
-          name: hostname || "Server",
+          name: hostname || 'Server',
         }) as ServerModel;
         await config.save();
-        configLogger.info("Created new server config with defaults.");
+        configLogger.info('Created new server config with defaults.');
       }
       this.serverConfig = config;
     } catch (err) {
-      configLogger.error(err, "Error creating server config");
+      configLogger.error(err, 'Error creating server config');
     }
 
     if (!config) {
-      streamingLogger.error("No server config found.");
+      streamingLogger.error('No server config found.');
       return;
     }
 
     // Ensure JWT_SECRET exists
-    const secretPath = fileSystemService.getExternalPath(
-      "resources/config/jwt_secret"
-    );
+    const secretPath = fileSystemService.getExternalPath('resources/config/jwt_secret');
     if (!fs.existsSync(secretPath)) {
-      const secret = crypto.randomBytes(32).toString("hex"); // Generate secure 256-bit key
+      const secret = crypto.randomBytes(32).toString('hex'); // Generate secure 256-bit key
       fs.writeFileSync(secretPath, secret, { mode: 0o600 }); // Restrict permissions
-      configLogger.info("Generated and saved new JWT_SECRET.");
+      configLogger.info('Generated and saved new JWT_SECRET.');
     }
-    process.env.JWT_SECRET = fs.readFileSync(secretPath, "utf-8");
+    process.env.JWT_SECRET = fs.readFileSync(secretPath, 'utf-8');
 
     // Load SSL if enabled
     if (config.httpsEnabled && config.sslCertPath && config.sslKeyPath) {
       try {
         this.sslOptions = {
-          cert: fs.readFileSync(config.sslCertPath, "utf-8"),
-          key: fs.readFileSync(config.sslKeyPath, "utf-8"),
+          cert: fs.readFileSync(config.sslCertPath, 'utf-8'),
+          key: fs.readFileSync(config.sslKeyPath, 'utf-8'),
         };
         if (config.sslPassword) {
           this.sslOptions.passphrase = config.sslPassword; // Assume secure storage
         }
-        sslLogger.info("Loaded SSL certificates.");
+        sslLogger.info('Loaded SSL certificates.');
       } catch (err) {
-        sslLogger.error(err, "Error loading SSL certificates");
+        sslLogger.error(err, 'Error loading SSL certificates');
         config.httpsEnabled = false;
         await config.save();
       }
@@ -79,15 +90,40 @@ export class ServerConfigService {
 
     // Apply remote access filters
     if (config.allowRemoteConnections && config.remoteIpFilter) {
-      const filters = config.remoteIpFilter.split(",").map((f) => f.trim());
-      appServer.use((req: any, res: any, next) => {
-        const clientIp = req.ip;
+      const filters = config.remoteIpFilter
+        .split(',')
+        .map((f) => f.trim())
+        .filter(Boolean);
+
+      // Validate each filter before use to prevent RegExp-based ReDoS.
+      // Only plain IP addresses (v4/v6) and CIDR ranges are accepted.
+      const cidrOrIpPattern = /^[\d.:/a-fA-F]+$/;
+      const safeFilters = filters.filter((f) => cidrOrIpPattern.test(f));
+
+      if (safeFilters.length !== filters.length) {
+        configLogger.warn(
+          'Some IP filters were rejected because they contained invalid characters. Only plain IPs and CIDR ranges are supported.',
+        );
+      }
+
+      appServer.use((req: Request, res: Response, next: NextFunction) => {
+        const clientIp = (req.ip ?? '').replace(/^::ffff:/, ''); // Normalise IPv4-mapped IPv6
+        const matches = (filter: string): boolean => {
+          // CIDR range (contains '/')
+          if (filter.includes('/')) {
+            return ipMatchesCidr(clientIp, filter);
+          }
+          // Plain IP literal — exact match only
+          return clientIp === filter;
+        };
+
         const isAllowed =
-          config.remoteIpFilterMode === "whitelist"
-            ? filters.some((filter) => clientIp?.match(new RegExp(filter)))
-            : !filters.some((filter) => clientIp?.match(new RegExp(filter)));
+          config.remoteIpFilterMode === 'whitelist'
+            ? safeFilters.some(matches)
+            : !safeFilters.some(matches);
+
         if (!isAllowed) {
-          return res.status(403).json({ error: "Remote access denied" });
+          return res.status(403).json({ error: 'Remote access denied' });
         }
         next();
       });
@@ -96,44 +132,42 @@ export class ServerConfigService {
     // Set proxy hosts for X-Forwarded-For
     if (config.proxyHosts) {
       appServer.set(
-        "trust proxy",
-        config.proxyHosts.split(",").map((h) => h.trim())
+        'trust proxy',
+        config.proxyHosts.split(',').map((h) => h.trim()),
       );
     }
 
-    configLogger.info("Server config loaded.");
-  }
+    configLogger.info('Server config loaded.');
+  },
 
-  static async startServer(app: Express) {
-    if (this.mainServer && this.mainServer.listening) {
+  async startServer(app: Express) {
+    if (this.mainServer?.listening) {
       await new Promise<void>((resolve, reject) => {
         this.mainServer.close((err) => {
           if (err) {
-            streamingLogger.error(err, "Error closing previous server");
+            streamingLogger.error(err, 'Error closing previous server');
             return reject(err);
           }
           resolve();
         });
       });
-      streamingLogger.info("Previous server closed.");
+      streamingLogger.info('Previous server closed.');
     }
 
     if (!this.serverConfig) {
-      streamingLogger.error("Server config not loaded");
+      streamingLogger.error('Server config not loaded');
       return;
     }
 
     if (!this.serverConfig.httpsPort && !this.serverConfig.httpPort) {
-      streamingLogger.error("No ports configured");
+      streamingLogger.error('No ports configured');
       return;
     }
 
     // Start HTTP server
     this.httpServer = http.createServer(app);
     this.httpServer.listen(this.serverConfig.httpPort, () => {
-      streamingLogger.info(
-        `HTTP server started on http://localhost:${this.serverConfig.httpPort}`
-      );
+      streamingLogger.info(`HTTP server started on http://localhost:${this.serverConfig.httpPort}`);
     });
 
     // Start HTTPS server if enabled
@@ -141,95 +175,69 @@ export class ServerConfigService {
       this.httpsServer = https.createServer(this.sslOptions, app);
       this.httpsServer.listen(this.serverConfig.httpsPort, () => {
         streamingLogger.info(
-          `HTTPS server started on https://localhost:${this.serverConfig.httpsPort}`
+          `HTTPS server started on https://localhost:${this.serverConfig.httpsPort}`,
         );
       });
     }
 
     // Set main server
-    this.mainServer = this.serverConfig.httpsEnabled
-      ? (this.httpsServer as any)
-      : this.httpServer;
+    const selectedMainServer = this.serverConfig.httpsEnabled ? this.httpsServer : this.httpServer;
+    if (!selectedMainServer) {
+      streamingLogger.error('Failed to initialize main server instance');
+      return;
+    }
+    this.mainServer = selectedMainServer;
 
-    // Handle forceHttps
+    this.applyForceHttpsIfNeeded(app);
+    await this.setupTunnelIfNeeded();
+  },
+
+  applyForceHttpsIfNeeded(app: Express) {
     if (this.serverConfig.forceHttps && this.serverConfig.httpsEnabled) {
       app.use((req, res, next) => {
         if (!req.secure) {
           res.redirect(
             `https://${req.headers.host?.replace(
               `:${this.serverConfig.httpPort}`,
-              `:${this.serverConfig.httpsPort}`
-            )}${req.url}`
+              `:${this.serverConfig.httpsPort}`,
+            )}${req.url}`,
           );
         } else {
           next();
         }
       });
     }
+  },
 
-    // Setup tunnel if enabled
+  async setupTunnelIfNeeded() {
     if (this.serverConfig.tunnelEnabled && !this.serverConfig.tunnelUrl) {
-      try {
-        const port = this.serverConfig.httpsEnabled
-          ? this.serverConfig.httpsPort
-          : this.serverConfig.httpPort;
-        const url = await ngrok.connect({
-          port,
-          proto: "http",
-        });
-        this.serverConfig.tunnelUrl = url;
-        await this.serverConfig.save();
-        tunnelLogger.info(`ngrok tunnel established at ${url}`);
-      } catch (err) {
-        tunnelLogger.error(err, "Failed to establish ngrok tunnel");
+      const ngrokToken = process.env.NGROK_AUTHTOKEN;
+      if (!ngrokToken) {
+        tunnelLogger.error(
+          'NGROK_AUTHTOKEN environment variable is required to start a tunnel. Tunnel will not be started.',
+        );
+      } else {
+        try {
+          const port = this.serverConfig.httpsEnabled
+            ? this.serverConfig.httpsPort
+            : this.serverConfig.httpPort;
+          const url = await ngrok.connect({
+            port,
+            proto: 'http',
+            authtoken: ngrokToken,
+          });
+          this.serverConfig.tunnelUrl = url;
+          await this.serverConfig.save();
+          tunnelLogger.info(`ngrok tunnel established at ${url}`);
+        } catch (err) {
+          tunnelLogger.error(err, 'Failed to establish ngrok tunnel');
+        }
       }
     }
-  }
+  },
 
-  static async setupPortMapping() {
-    if (!this.serverConfig.enableAutoPortMapping) return;
-
-    const client = upnp.createClient();
-    const portsToMap = [
-      {
-        private: this.serverConfig.httpPort,
-        public: this.serverConfig.publicHttpPort,
-        protocol: "tcp",
-      },
-      {
-        private: this.serverConfig.httpsPort,
-        public: this.serverConfig.publicHttpsPort,
-        protocol: "tcp",
-      },
-    ];
-
-    for (const mapping of portsToMap) {
-      client.portMapping(
-        {
-          public: mapping.public,
-          private: mapping.private,
-          protocol: mapping.protocol,
-          ttl: 0,
-        },
-        (err: any) => {
-          if (err) {
-            upnpLogger.error(
-              err,
-              `Error mapping port ${mapping.private} to ${mapping.public}`
-            );
-          } else {
-            upnpLogger.info(
-              `Mapped port ${mapping.private} to public ${mapping.public}`
-            );
-          }
-        }
-      );
-    }
-  }
-
-  static async restartServer() {
-    streamingLogger.info("Restarting server...");
+  async restartServer() {
+    streamingLogger.info('Restarting server...');
     await this.startServer(appServer);
-    await this.setupPortMapping();
-  }
-}
+  },
+};

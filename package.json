@@ -7,19 +7,32 @@
   "main": "index.js",
   "scripts": {
     "// === RUN APPS INDIVIDUALLY ===": "",
-    "dev:server": "pnpm --filter @seerial/server dev",
-    "dev:web": "pnpm --filter @seerial/web dev",
-    "dev:desktop": "pnpm --filter @seerial/desktop dev",
-    "dev:tv": "pnpm --filter @seerial/tv start",
+    "dev:server": "turbo dev --filter=@seerial/server --log-prefix=none",
+    "dev:web": "turbo dev --filter=@seerial/web --log-prefix=none",
+    "dev:desktop": "turbo dev --filter=@seerial/desktop --log-prefix=none",
     "// === RUN WEB AND SERVER ===": "",
-    "dev": "pnpm --filter @seerial/server --filter @seerial/web --parallel dev",
-    "// === GLOBAL ===": "",
-    "lint": "lerna run lint",
-    "build": "lerna run build"
+    "dev": "turbo dev --filter=@seerial/server --filter=@seerial/web --log-prefix=none",
+    "// === QUALITY ===": "",
+    "lint": "turbo lint",
+    "lint:fix": "turbo lint:fix",
+    "// === BUILD ===": "",
+    "build": "turbo build",
+    "build:server": "pnpm --dir apps/server run build:distributable",
+    "build:server:win": "pnpm --dir apps/server run build-win",
+    "build:server:mac": "pnpm --dir apps/server run build-mac",
+    "build:server:linux": "pnpm --dir apps/server run build-linux",
+    "// === SETUP ===": "",
+    "prepare": "lefthook install"
   },
   "keywords": [],
-  "packageManager": "pnpm@10.30.2",
+  "packageManager": "pnpm@11.1.1",
   "devDependencies": {
-    "lerna": "^9.0.5"
+    "@biomejs/biome": "^2.4.10",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "electron": "41.2.0",
+    "lefthook": "^2.1.5",
+    "turbo": "^2.9.5",
+    "typescript": "^6.0.2"
   }
 }

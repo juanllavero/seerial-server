@@ -2,10 +2,10 @@ import {
   downloaderService,
   imdbScoreService,
   metadataProvider,
-} from "@/api/v1/shared/infrastructure/adapters/di/container";
-import logger from "@/utils/logger";
+} from '@/api/v1/shared/infrastructure/adapters/di/container';
+import logger from '@/utils/logger';
 
-const externalSearchLogger = logger.child({ category: "External Search" });
+const externalSearchLogger = logger.child({ category: 'External Search' });
 
 export class ExternalSearchService {
   /**
@@ -16,10 +16,10 @@ export class ExternalSearchService {
    */
   public async searchMovies(name: string, year?: string) {
     try {
-      return await metadataProvider.searchMovies(name, year ?? "");
+      return await metadataProvider.searchMovies(name, year ?? '');
     } catch (error) {
-      externalSearchLogger.error(error, "Error searching movies on TheMovieDB");
-      throw new Error("External movie search service is unavailable.");
+      externalSearchLogger.error(error, 'Error searching movies on TheMovieDB');
+      throw new Error('External movie search service is unavailable.');
     }
   }
 
@@ -31,13 +31,10 @@ export class ExternalSearchService {
    */
   public async searchTvShows(name: string, year?: string) {
     try {
-      return await metadataProvider.searchTVShows(name, year ?? "");
+      return await metadataProvider.searchTVShows(name, year ?? '');
     } catch (error) {
-      externalSearchLogger.error(
-        error,
-        "Error searching TV shows on TheMovieDB"
-      );
-      throw new Error("External TV show search service is unavailable.");
+      externalSearchLogger.error(error, 'Error searching TV shows on TheMovieDB');
+      throw new Error('External TV show search service is unavailable.');
     }
   }
 
@@ -50,11 +47,8 @@ export class ExternalSearchService {
     try {
       return await metadataProvider.searchEpisodeGroups(seriesId);
     } catch (error) {
-      externalSearchLogger.error(
-        error,
-        "Error searching episode groups on TheMovieDB"
-      );
-      throw new Error("External episode group search service is unavailable.");
+      externalSearchLogger.error(error, 'Error searching episode groups on TheMovieDB');
+      throw new Error('External episode group search service is unavailable.');
     }
   }
 
@@ -67,8 +61,8 @@ export class ExternalSearchService {
     try {
       return await imdbScoreService.getIMDBScore(imdbId);
     } catch (error) {
-      externalSearchLogger.error(error, "Error fetching IMDB score");
-      throw new Error("External IMDB score service is unavailable.");
+      externalSearchLogger.error(error, 'Error fetching IMDB score');
+      throw new Error('External IMDB score service is unavailable.');
     }
   }
 
@@ -81,11 +75,8 @@ export class ExternalSearchService {
     try {
       return await downloaderService.searchVideos(query, 20);
     } catch (error) {
-      externalSearchLogger.error(
-        error,
-        "Error searching for downloadable media"
-      );
-      throw new Error("Failed to search for downloadable media.");
+      externalSearchLogger.error(error, 'Error searching for downloadable media');
+      throw new Error('Failed to search for downloadable media.');
     }
   }
 }

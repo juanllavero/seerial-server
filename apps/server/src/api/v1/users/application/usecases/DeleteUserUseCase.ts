@@ -1,4 +1,4 @@
-import { UsersRepositoryPort } from "../ports/UsersRepositoryPort";
+import type { UsersRepositoryPort } from '../ports/UsersRepositoryPort';
 
 export class DeleteUserUseCase {
   constructor(private usersRepo: UsersRepositoryPort) {}

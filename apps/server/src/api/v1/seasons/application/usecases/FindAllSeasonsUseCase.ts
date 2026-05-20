@@ -1,5 +1,5 @@
-import { Season } from "../../domain/Season";
-import { SeasonsRepositoryPort } from "../ports/SeasonsRepositoryPort";
+import type { Season } from '../../domain/Season';
+import type { SeasonsRepositoryPort } from '../ports/SeasonsRepositoryPort';
 
 export class FindAllSeasonsUseCase {
   constructor(private seasonsRepo: SeasonsRepositoryPort) {}

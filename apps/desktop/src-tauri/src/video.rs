@@ -1,7 +1,170 @@
 use std::sync::{Arc, Mutex};
-use libmpv2::Mpv;
-use tauri::{State, Window};
+use libmpv2::{Mpv, mpv_node::MpvNode};
+use serde::Serialize;
+use tauri::{AppHandle, State, Window};
 use raw_window_handle::{HasWindowHandle};
+
+// ─── Enums ───────────────────────────────────────────────────────────────────
+
+#[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub enum SubtitleColor {
+    White, Yellow, Black, Cyan, Blue, Green, Magenta, Red, Gray,
+    Orange, Gold, Pink,
+}
+
+#[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub enum SubtitleSize {
+    Tiny, Small, Normal, Large, Huge,
+}
+
+#[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub enum SubtitlePosition {
+    BottomLeft, BottomCenter, BottomRight,
+    TopLeft, TopCenter, TopRight,
+}
+
+fn get_window_id<W: HasWindowHandle>(window: &W) -> Option<i64> {
+    let window_handle = window.window_handle().ok()?;
+    let raw_handle = window_handle.as_raw();
+
+    #[cfg(target_os = "windows")]
+    {
+        if let raw_window_handle::RawWindowHandle::Win32(handle) = raw_handle {
+            return Some(handle.hwnd.get() as i64);
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        if let raw_window_handle::RawWindowHandle::Xlib(handle) = raw_handle {
+            return Some(handle.window as i64);
+        }
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        if let raw_window_handle::RawWindowHandle::AppKit(handle) = raw_handle {
+            return Some(handle.ns_window.as_ptr() as i64);
+        }
+    }
+
+    None
+}
+
+pub fn bind_mpv_to_window<W: HasWindowHandle>(window: &W, state: &MpvState) -> Result<(), String> {
+    let Some(wid) = get_window_id(window) else {
+        return Ok(());
+    };
+
+    *state.window_id.lock().map_err(|e| e.to_string())? = Some(wid);
+
+    state.with_mpv(|mpv| {
+        mpv.set_property("wid", wid)?;
+        mpv.set_property("force-window", "yes")
+    })
+}
+
+fn map_ff_index_to_mpv_track_id(mpv: &Mpv, track_type: &str, ff_index: i64) -> Result<i64, libmpv2::Error> {
+    let track_list: MpvNode = mpv.get_property("track-list")?;
+
+    let Some(track_items) = track_list.array() else {
+        return Ok(ff_index);
+    };
+
+    for track in track_items {
+        let Some(fields) = track.map() else {
+            continue;
+        };
+
+        let mut current_type: Option<String> = None;
+        let mut current_ff_index: Option<i64> = None;
+        let mut current_id: Option<i64> = None;
+
+        for (key, value) in fields {
+            match key.as_str() {
+                "type" => {
+                    current_type = value.str().map(ToOwned::to_owned);
+                }
+                "ff-index" => {
+                    current_ff_index = value.i64();
+                }
+                "id" => {
+                    current_id = value.i64();
+                }
+                _ => {}
+            }
+        }
+
+        if current_type.as_deref() == Some(track_type) && current_ff_index == Some(ff_index) {
+            if let Some(id) = current_id {
+                return Ok(id);
+            }
+        }
+    }
+
+    Ok(ff_index)
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PlaybackStatus {
+    pub position: Option<f64>,
+    pub duration: Option<f64>,
+    pub paused_for_cache: bool,
+    pub seeking: bool,
+    pub idle_active: bool,
+    pub eof_reached: bool,
+}
+
+#[derive(serde::Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub enum VideoQuality {
+    Low,
+    Normal,
+    High,
+    Ultra,
+    Maximum,
+}
+
+#[tauri::command]
+pub fn set_video_quality(state: State<MpvState>, quality: VideoQuality) -> Result<(), String> {
+    state.with_mpv(|mpv| {
+        match quality {
+            VideoQuality::Low => {
+                mpv.command("apply-profile", &["fast"])?;
+            }
+            VideoQuality::Normal => {
+                mpv.set_property("scale", "spline36")?;
+                mpv.set_property("cscale", "spline36")?;
+                mpv.set_property("dscale", "mitchell")?;
+                mpv.set_property("deband", false)?;
+            }
+            VideoQuality::High => {
+                mpv.command("apply-profile", &["high-quality"])?;
+                mpv.set_property("deband-iterations", 2i64)?;
+            }
+            VideoQuality::Ultra => {
+                mpv.command("apply-profile", &["high-quality"])?;
+                mpv.set_property("scale", "ewa_lanczos4sharpest")?;
+                mpv.set_property("deband-iterations", 4i64)?;
+                mpv.set_property("deband-threshold", 48i64)?;
+            }
+            VideoQuality::Maximum => {
+                mpv.command("apply-profile", &["high-quality"])?;
+                mpv.set_property("scale", "ewa_lanczos4sharpest")?;
+                mpv.set_property("cscale", "ewa_lanczos4sharpest")?;
+                mpv.set_property("dscale", "ewa_lanczos4sharpest")?;
+                mpv.set_property("scale-antiring", 1.0f64)?;
+                mpv.set_property("deband-iterations", 4i64)?;
+                mpv.set_property("deband-threshold", 64i64)?;
+            }
+        }
+        Ok(())
+    })
+}
 
 pub struct MpvState {
     pub mpv: Arc<Mutex<Option<Mpv>>>,
@@ -20,9 +183,22 @@ impl MpvState {
     fn create_mpv_instance() -> Mpv {
         Mpv::with_initializer(|init| {
             init.set_property("vo", "gpu-next")?;
+            init.set_property("gpu-api", "d3d11")?;
             init.set_property("hwdec", "auto")?;
-            init.set_property("keep-open", "always")?;
+
+            init.set_property("d3d11-exclusive-fs", "yes")?;
+
+            init.set_property("target-colorspace-hint", "yes")?;
+            init.set_property("icc-profile-auto", false)?;
+
+            init.set_property("video-output-levels", "auto")?;
+
+            // init.set_property("profile", "high-quality")?;
+            
+            init.set_property("fullscreen", "yes")?;
             init.set_property("idle", "once")?;
+            init.set_property("keep-open", "always")?;
+            init.set_property("cursor-autohide", "100")?;
             init.set_property("msg-level", "all=debug")?;
             init.set_property("log-file", "./logs/mpv_log.txt")?;
             init.set_property("force-window", "no")?;   // yes to open new window for MPV
@@ -35,10 +211,10 @@ impl MpvState {
         let mut mpv_guard = self.mpv.lock().map_err(|e| e.to_string())?;
         let window_id_guard = self.window_id.lock().map_err(|e| e.to_string())?;
         
-        // Crear nueva instancia
+        // Create a new instance
         let new_mpv = Self::create_mpv_instance();
         
-        // Si tenemos un window_id guardado, aplicarlo a la nueva instancia
+        // If we have a saved window_id, apply it to the new instance
         if let Some(wid) = *window_id_guard {
             let _ = new_mpv.set_property("wid", wid);
             let _ = new_mpv.set_property("force-window", "yes");
@@ -63,49 +239,7 @@ impl MpvState {
 
 #[tauri::command]
 pub fn embed_mpv(window: Window, state: State<MpvState>) -> Result<(), String> {
-    if let Ok(window_handle) = window.window_handle() {
-        let raw_handle = window_handle.as_raw();
-        let mut window_id: Option<i64> = None;
-
-        #[cfg(target_os = "windows")]
-        {
-            if let raw_window_handle::RawWindowHandle::Win32(handle) = raw_handle {
-                let hwnd = handle.hwnd.get() as i64;
-                window_id = Some(hwnd);
-            }
-        }
-
-        #[cfg(target_os = "linux")]
-        {
-            use raw_window_handle::XlibWindowHandle;
-            if let raw_window_handle::RawWindowHandle::Xlib(handle) = raw_handle {
-                let wid = handle.window as i64;
-                window_id = Some(wid);
-            }
-        }
-        
-        #[cfg(target_os = "macos")]
-        {
-            use raw_window_handle::AppKitWindowHandle;
-            if let raw_window_handle::RawWindowHandle::AppKit(handle) = raw_handle {
-                let ns_window = handle.ns_window.as_ptr() as i64;
-                window_id = Some(ns_window);
-            }
-        }
-
-        if let Some(wid) = window_id {
-            // Guardar el window_id para futuras recreaciones
-            *state.window_id.lock().map_err(|e| e.to_string())? = Some(wid);
-            
-            // Aplicar a la instancia actual
-            state.with_mpv(|mpv| {
-                mpv.set_property("wid", wid)?;
-                mpv.set_property("force-window", "yes")
-            })?;
-        }
-    }
-
-    Ok(())
+    bind_mpv_to_window(&window, &state)
 }
 
 #[tauri::command]
@@ -128,12 +262,21 @@ pub fn toggle_play_pause(state: State<MpvState>) -> Result<(), String> {
 
 #[tauri::command]
 pub fn stop(state: State<MpvState>) -> Result<(), String> {
-    // Primero intentamos parar el video actual
+    // Stop current playback first.
     let _ = state.with_mpv(|mpv| mpv.command("stop", &[]));
     
-    // Luego recreamos la instancia de MPV para liberar recursos
+    // Recreate the MPV instance to release resources.
     state.recreate_mpv_instance()?;
     
+    Ok(())
+}
+
+#[tauri::command]
+pub fn exit_app(app: AppHandle, state: State<MpvState>) -> Result<(), String> {
+    let _ = state.with_mpv(|mpv| mpv.command("quit", &[]));
+
+    app.exit(0);
+
     Ok(())
 }
 
@@ -182,6 +325,20 @@ pub fn get_duration(state: State<MpvState>) -> Result<f64, String> {
 }
 
 #[tauri::command]
+pub fn get_playback_status(state: State<MpvState>) -> Result<PlaybackStatus, String> {
+    state.with_mpv(|mpv| {
+        Ok(PlaybackStatus {
+            position: mpv.get_property("time-pos").ok(),
+            duration: mpv.get_property("duration").ok(),
+            paused_for_cache: mpv.get_property("paused-for-cache").unwrap_or(false),
+            seeking: mpv.get_property("seeking").unwrap_or(false),
+            idle_active: mpv.get_property("idle-active").unwrap_or(false),
+            eof_reached: mpv.get_property("eof-reached").unwrap_or(false),
+        })
+    })
+}
+
+#[tauri::command]
 pub fn set_volume(state: State<MpvState>, volume: f64) -> Result<(), String> {
     state.with_mpv(|mpv| mpv.set_property("volume", volume))
 }
@@ -191,20 +348,164 @@ pub fn get_volume(state: State<MpvState>) -> Result<f64, String> {
     state.with_mpv(|mpv| mpv.get_property("volume"))
 }
 
-/// Cambia la pista de audio. Usa `0` para desactivar, `1`, `2`, etc. para cambiar.
+/// Set audio track. Incoming track_id is an ffprobe stream index.
+/// We map it to mpv `track-list/N/id` through `track-list/N/ff-index`.
 #[tauri::command]
 pub fn set_audio_track(state: State<MpvState>, track_id: i64) -> Result<(), String> {
-    state.with_mpv(|mpv| mpv.set_property("aid", track_id))
+    state.with_mpv(|mpv| {
+        let resolved_track_id = if track_id <= 0 {
+            track_id
+        } else {
+            map_ff_index_to_mpv_track_id(mpv, "audio", track_id)?
+        };
+
+        mpv.set_property("aid", resolved_track_id)
+    })
 }
 
-/// Cambia la pista de subtítulos. Usa `0` para desactivar, `1`, `2`, etc. para cambiar.
+/// Set subtitle track. Incoming track_id is an ffprobe stream index.
+/// We map it to mpv `track-list/N/id` through `track-list/N/ff-index`.
 #[tauri::command]
 pub fn set_subtitle_track(state: State<MpvState>, track_id: i64) -> Result<(), String> {
-    state.with_mpv(|mpv| mpv.set_property("sid", track_id))
+    state.with_mpv(|mpv| {
+        let resolved_track_id = if track_id <= 0 {
+            track_id
+        } else {
+            map_ff_index_to_mpv_track_id(mpv, "sub", track_id)?
+        };
+
+        mpv.set_property("sid", resolved_track_id)
+    })
 }
 
-/// Establece el nivel de zoom. 0 = sin zoom, valores positivos hacen zoom in, negativos zoom out.
+/// Set zoom level. 0 = no zoom, positive values zoom in, negative values zoom out.
 #[tauri::command]
 pub fn set_zoom(state: State<MpvState>, zoom_level: f64) -> Result<(), String> {
     state.with_mpv(|mpv| mpv.set_property("video-zoom", zoom_level))
+}
+
+#[tauri::command]
+pub fn set_audio_delay(state: State<MpvState>, delay: f64) -> Result<(), String> {
+    state.with_mpv(|mpv| mpv.set_property("audio-delay", delay))
+}
+
+#[tauri::command]
+pub fn set_subtitle_delay(state: State<MpvState>, delay: f64) -> Result<(), String> {
+    state.with_mpv(|mpv| mpv.set_property("sub-delay", delay))
+}
+
+#[tauri::command]
+pub fn set_subtitle_font_size(state: State<MpvState>, size: f64) -> Result<(), String> {
+    state.with_mpv(|mpv| mpv.set_property("sub-font-size", size))
+}
+
+#[tauri::command]
+pub fn set_subtitle_color(state: State<MpvState>, color: String) -> Result<(), String> {
+    state.with_mpv(|mpv| mpv.set_property("sub-color", color.as_str()))
+}
+
+#[tauri::command]
+pub fn set_subtitle_border_size(state: State<MpvState>, size: f64) -> Result<(), String> {
+    state.with_mpv(|mpv| mpv.set_property("sub-border-size", size))
+}
+
+#[tauri::command]
+pub fn set_subtitle_shadow_offset(state: State<MpvState>, offset: f64) -> Result<(), String> {
+    state.with_mpv(|mpv| mpv.set_property("sub-shadow-offset", offset))
+}
+
+#[tauri::command]
+pub fn set_subtitle_position(state: State<MpvState>, position: i64) -> Result<(), String> {
+    state.with_mpv(|mpv| mpv.set_property("sub-pos", position))
+}
+
+// ─── Video ───────────────────────────────────────────────────────────────────
+
+/// Toggles hardware-accelerated decoding. When enabled, uses the best
+/// available decoder automatically (NVDEC, DXVA2, VAAPI, etc.).
+#[tauri::command]
+pub fn set_hwdec(state: State<MpvState>, enabled: bool) -> Result<(), String> {
+    state.with_mpv(|mpv| {
+        mpv.set_property("hwdec", if enabled { "auto" } else { "no" })
+    })
+}
+
+// ─── Audio ───────────────────────────────────────────────────────────────────
+
+/// Normalizes multichannel audio when downmixing to stereo,
+/// preventing volume spikes on surround content.
+#[tauri::command]
+pub fn set_audio_normalize(state: State<MpvState>, enabled: bool) -> Result<(), String> {
+    state.with_mpv(|mpv| {
+        mpv.set_property("audio-normalize-downmix", enabled)
+    })
+}
+
+/// Enables S/PDIF passthrough for lossless and lossy surround formats
+/// (AC3, DTS, E-AC3, DTS-HD MA, TrueHD). When disabled, MPV decodes internally.
+#[tauri::command]
+pub fn set_audio_exclusive(state: State<MpvState>, enabled: bool) -> Result<(), String> {
+    state.with_mpv(|mpv| {
+        mpv.set_property("audio-exclusive", enabled)?;
+        mpv.set_property(
+            "audio-spdif",
+            if enabled { "ac3,dts,eac3,dts-hd,truehd" } else { "" },
+        )
+    })
+}
+
+// ─── Subtitles ───────────────────────────────────────────────────────────────
+
+/// Sets subtitle text color using a predefined palette.
+/// Colors are expressed as RGBA hex strings (`#RRGGBBAA`).
+#[tauri::command]
+pub fn set_subtitle_color_preset(state: State<MpvState>, color: SubtitleColor) -> Result<(), String> {
+    let hex = match color {
+        SubtitleColor::White   => "#FFFFFFFF",
+        SubtitleColor::Yellow  => "#FFFF00FF",
+        SubtitleColor::Black   => "#000000FF",
+        SubtitleColor::Cyan    => "#00FFFFFF",
+        SubtitleColor::Blue    => "#0000FFFF",
+        SubtitleColor::Green   => "#00FF00FF",
+        SubtitleColor::Magenta => "#FF00FFFF",
+        SubtitleColor::Red     => "#FF0000FF",
+        SubtitleColor::Gray    => "#808080FF",
+        SubtitleColor::Orange  => "#FF8000FF",
+        SubtitleColor::Gold    => "#FFD700FF",
+        SubtitleColor::Pink    => "#FF69B4FF",
+    };
+    state.with_mpv(|mpv| mpv.set_property("sub-color", hex))
+}
+
+/// Maps a named size preset to a concrete `sub-font-size` value.
+/// Values are tuned for a typical 1080p/4K living-room viewing distance.
+#[tauri::command]
+pub fn set_subtitle_size_preset(state: State<MpvState>, size: SubtitleSize) -> Result<(), String> {
+    let value: f64 = match size {
+        SubtitleSize::Tiny   => 18.0,
+        SubtitleSize::Small  => 28.0,
+        SubtitleSize::Normal => 40.0,
+        SubtitleSize::Large  => 55.0,
+        SubtitleSize::Huge   => 72.0,
+    };
+    state.with_mpv(|mpv| mpv.set_property("sub-font-size", value))
+}
+
+/// Positions subtitles using a combination of `sub-pos` (vertical %, 0 = top),
+/// `sub-align-x` (horizontal alignment), and `sub-align-y` (vertical anchor).
+#[tauri::command]
+pub fn set_subtitle_position_preset(state: State<MpvState>, position: SubtitlePosition) -> Result<(), String> {
+    state.with_mpv(|mpv| {
+        let (pos, align_x, align_y) = match position {
+            SubtitlePosition::BottomLeft   => (95i64, "left",   "bottom"),
+            SubtitlePosition::BottomCenter => (95i64, "center", "bottom"),
+            SubtitlePosition::BottomRight  => (95i64, "right",  "bottom"),
+            SubtitlePosition::TopLeft      => (5i64,  "left",   "top"),
+            SubtitlePosition::TopCenter    => (5i64,  "center", "top"),
+            SubtitlePosition::TopRight     => (5i64,  "right",  "top"),
+        };
+        mpv.set_property("sub-pos", pos)?;
+        mpv.set_property("sub-align-x", align_x)?;
+        mpv.set_property("sub-align-y", align_y)
+    })
 }

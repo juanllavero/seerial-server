@@ -1,7 +1,7 @@
-import { MediaInfoServicePort } from "@/api/v1/shared/application/ports/MediaInfoServicePort";
+import type { MediaInfoServicePort } from '@/api/v1/shared/application/ports/MediaInfoServicePort';
 
 export class ProcessEpisodeUseCase {
-  constructor(private readonly mediaInfoService: MediaInfoServicePort) {}
+  constructor(readonly _mediaInfoService: MediaInfoServicePort) {}
 
   async execute(): Promise<void> {}
 }

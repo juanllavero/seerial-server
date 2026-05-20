@@ -1,13 +1,14 @@
-import { Album } from "@/api/v1/albums/domain/Album";
-import { Collection } from "@/api/v1/collections/domain/Collection";
-import { Movie } from "@/api/v1/movies/domain/Movie";
-import { Series } from "@/api/v1/series/domain/Series";
-import logger from "@/utils/logger";
-import http from "http";
-import WebSocket, { WebSocketServer } from "ws";
-import { NotificationServicePort } from "../../../application/ports/NotificationServicePort";
+import type http from 'node:http';
+import type WebSocket from 'ws';
+import { WebSocketServer } from 'ws';
+import type { Album } from '@/api/v1/albums/domain/Album';
+import type { Collection } from '@/api/v1/collections/domain/Collection';
+import type { Movie } from '@/api/v1/movies/domain/Movie';
+import type { Series } from '@/api/v1/series/domain/Series';
+import logger from '@/utils/logger';
+import type { NotificationServicePort } from '../../../application/ports/NotificationServicePort';
 
-const notificationLogger = logger.child({ category: "Notification Service" });
+const notificationLogger = logger.child({ category: 'Notification Service' });
 
 interface Client {
   id: string;
@@ -31,18 +32,16 @@ export class NotificationServiceImpl implements NotificationServicePort {
     this.wss = new WebSocketServer({ noServer: true });
 
     // Handle WebSocket connection when HTTP server detects an upgrade
-    server.on("upgrade", (req, socket, head) => {
-      this.wss!.handleUpgrade(req, socket, head, (ws) => {
-        this.wss!.emit("connection", ws, req);
+    server.on('upgrade', (req, socket, head) => {
+      this.wss?.handleUpgrade(req, socket, head, (ws) => {
+        this.wss?.emit('connection', ws, req);
       });
     });
 
-    notificationLogger.info(
-      "WebSocket server running using the same HTTP/HTTPS server"
-    );
+    notificationLogger.info('WebSocket server running using the same HTTP/HTTPS server');
 
     // Handle new WebSocket connections
-    this.wss.on("connection", (ws: WebSocket) => {
+    this.wss.on('connection', (ws: WebSocket) => {
       // Generate a unique ID for each client
       const clientId = this.generateUniqueId();
 
@@ -53,15 +52,12 @@ export class NotificationServiceImpl implements NotificationServicePort {
       notificationLogger.info(`Client connected: ${clientId}`);
 
       // Handle messages received from the client
-      ws.on("message", (data: string) => {
-        this.broadcast(
-          JSON.stringify({ from: clientId, message: data }),
-          clientId
-        );
+      ws.on('message', (data: string) => {
+        this.broadcast(JSON.stringify({ from: clientId, message: data }), clientId);
       });
 
       // Handle client disconnection
-      ws.on("close", () => {
+      ws.on('close', () => {
         notificationLogger.info(`Client disconnected: ${clientId}`);
         this.clients.delete(clientId);
       });
@@ -112,7 +108,7 @@ export class NotificationServiceImpl implements NotificationServicePort {
    */
   public mutateLibraries(): void {
     const message = {
-      header: "MUTATE_LIBRARIES",
+      header: 'MUTATE_LIBRARIES',
       body: {},
     };
     this.broadcast(JSON.stringify(message));
@@ -124,7 +120,7 @@ export class NotificationServiceImpl implements NotificationServicePort {
    */
   public mutateLibrary(libraryId: string): void {
     const message = {
-      header: "MUTATE_LIBRARY",
+      header: 'MUTATE_LIBRARY',
       body: {
         libraryId,
       },
@@ -138,7 +134,7 @@ export class NotificationServiceImpl implements NotificationServicePort {
    */
   public mutateCollection(collection: Collection): void {
     const message = {
-      header: "MUTATE_COLLECTION",
+      header: 'MUTATE_COLLECTION',
       body: collection,
     };
     this.broadcast(JSON.stringify(message));
@@ -150,7 +146,7 @@ export class NotificationServiceImpl implements NotificationServicePort {
    */
   public mutateSeries(series: Series): void {
     const message = {
-      header: "MUTATE_SERIES",
+      header: 'MUTATE_SERIES',
       body: series,
     };
     this.broadcast(JSON.stringify(message));
@@ -161,7 +157,7 @@ export class NotificationServiceImpl implements NotificationServicePort {
    */
   public mutateSeason(): void {
     const message = {
-      header: "MUTATE_SEASON",
+      header: 'MUTATE_SEASON',
       body: {},
     };
     this.broadcast(JSON.stringify(message));
@@ -172,7 +168,7 @@ export class NotificationServiceImpl implements NotificationServicePort {
    */
   public mutateEpisode(): void {
     const message = {
-      header: "MUTATE_EPISODE",
+      header: 'MUTATE_EPISODE',
       body: {},
     };
     this.broadcast(JSON.stringify(message));
@@ -184,7 +180,7 @@ export class NotificationServiceImpl implements NotificationServicePort {
    */
   public mutateMovie(movie: Movie): void {
     const message = {
-      header: "MUTATE_MOVIE",
+      header: 'MUTATE_MOVIE',
       body: movie,
     };
     this.broadcast(JSON.stringify(message));
@@ -196,7 +192,7 @@ export class NotificationServiceImpl implements NotificationServicePort {
    */
   public mutateAlbum(album: Album): void {
     const message = {
-      header: "MUTATE_ALBUM",
+      header: 'MUTATE_ALBUM',
       body: album,
     };
     this.broadcast(JSON.stringify(message));

@@ -1,0 +1,102 @@
+export interface APIResponse<T> {
+  data: T
+  message: string
+  status: 'success' | 'error'
+}
+
+export interface EpisodeGroupResult {
+  description: string
+  episode_count: number
+  group_count: number
+  id: string
+  name: string
+  network: null
+  type: number
+}
+
+export interface IdentificationResult {
+  id: number
+  name?: string
+  title?: string
+  first_air_date?: string
+  release_date?: string
+  poster_path: string
+  overview: string
+}
+
+export interface MediaSearchResult {
+  id: string
+  title: string
+  url: string
+  duration: number
+  thumbnail: string
+}
+
+export type LibrarySearchItemType =
+  | 'collection'
+  | 'movie'
+  | 'series'
+  | 'album'
+  | 'artist'
+  | 'episode'
+  | 'song'
+
+export type LibrarySearchDetailsType = 'collection' | 'movie' | 'series' | 'album'
+
+export interface LibrarySearchNavigationTarget {
+  detailsType: LibrarySearchDetailsType
+  detailsId: string
+  focusItemId?: string
+  currentSeasonNumber?: number
+}
+
+export interface LibrarySearchItem {
+  id: string
+  type: LibrarySearchItemType
+  title: string
+  subtitle?: string
+  imageSrc?: string
+  libraryType?: 'Shows' | 'Movies' | 'Music'
+  navigation: LibrarySearchNavigationTarget
+}
+
+export interface SelectableOption {
+  key: string
+  value: string
+}
+
+export type ValueOption = string | number | boolean
+
+export interface Settings {
+  [key: string]: ValueOption
+}
+
+export enum SettingsSection {
+  ClientGeneral = 1,
+  ClientQuality,
+  ClientPlayer,
+  ServerGeneral,
+  ServerTranscode,
+  ServerLanguages,
+  ServerLibraries,
+}
+
+//#region DropDown Menu
+export interface DropdownItem {
+  title: string
+  shortcut?: string
+  action: () => void
+  hidden?: boolean
+  items?: DropdownGroup[]
+}
+
+export interface DropdownGroup {
+  separator?: boolean
+  items: DropdownItem[]
+}
+
+export interface DropdownContent {
+  title?: string
+  items: DropdownGroup[]
+}
+//#endregion

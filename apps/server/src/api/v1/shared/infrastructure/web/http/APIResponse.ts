@@ -1,4 +1,4 @@
-import { messages } from "@/config/messages";
+import { messages } from '@/config/messages';
 
 /**
  * Standard API Response structure.
@@ -31,10 +31,7 @@ export class ApiResponse<T> {
    * @param {string} [message='Operation successful'] - Optional success message.
    * @returns {ApiResponse<T>} A new ApiResponse instance.
    */
-  static success<T>(
-    data: T,
-    message: string = messages.success.default
-  ): ApiResponse<T> {
+  static success<T>(data: T, message: string = messages.success.default): ApiResponse<T> {
     return new ApiResponse(true, message, data);
   }
 

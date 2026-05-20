@@ -20,3 +20,20 @@ export interface LyricsResponse {
   message: string;
   path: string;
 }
+
+export interface SongUrlDTO {
+  filePath: string;
+  localId?: string;
+  expiresIn?: number | string;
+}
+
+export interface SeparateSongStemsResponseDTO {
+  jobId: string;
+  songId: string;
+  inputPath: string;
+  instrumentalPath: string;
+  vocalsPath: string;
+  status: 'queued' | 'started' | 'processing' | 'completed' | 'error';
+  message?: string;
+  progress?: number;
+}

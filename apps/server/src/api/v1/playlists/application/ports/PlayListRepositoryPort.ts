@@ -1,4 +1,4 @@
-import { PlayList } from "../../domain/PlayList";
+import type { PlayList } from '../../domain/PlayList';
 
 export interface PlayListRepositoryPort {
   findAll(): Promise<PlayList[]>;

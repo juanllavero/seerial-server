@@ -1,43 +1,66 @@
-import {
-  audioProcessingService,
-  fileSystemService,
-  useCases,
-} from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { MediaDetailsService } from "@/api/v1/shared/infrastructure/services/MediaDetailsService";
-import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
-import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
-import { messages } from "@/config/messages";
+import type { LyricsLine } from '@seerial/domain';
+import type { Request as ExpressRequest, Response as ExpressResponse } from 'express';
+import jwt from 'jsonwebtoken';
 import {
   Body,
   Controller,
   Delete,
   Get,
+  Patch,
   Path,
   Post,
-  Put,
   Query,
+  Request,
   Route,
   Security,
+  SuccessResponse,
   Tags,
-} from "tsoa";
+} from 'tsoa';
 import {
-  AddLyricsDTO,
+  audioProcessingService,
+  fileSystemService,
+  useCases,
+} from '@/api/v1/shared/infrastructure/adapters/di/container';
+import { findLyricsForSong } from '@/api/v1/shared/infrastructure/services/MediaDetailsService';
+import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
+import { messages } from '@/config/messages';
+import { verifyAudioStreamToken } from '@/middleware/audio.middleware';
+import type {
+  SeparateSongStemsResponseDTO,
+  SongUrlDTO,
   UpdateSongDTO,
-} from "../../../application/dtos/SongDTOs";
-import { Song } from "../../../domain/Song";
+} from '../../../application/dtos/SongDTOs';
+import type { Song } from '../../../domain/Song';
 
-@Route("songs")
-@Tags("Songs")
+type AuthenticatedRequest = ExpressRequest & { user?: { id?: string } };
+
+@Route('songs')
+@Tags('Songs')
 export class SongsController extends Controller {
+  private async resolveSongPath(filePath: string, localId?: string): Promise<string | null> {
+    if (!localId) {
+      return filePath || null;
+    }
+
+    const localFolder = fileSystemService.getExternalPath(
+      fileSystemService.join('resources', 'music', localId),
+    );
+
+    if (!(await fileSystemService.isFolder(localFolder))) {
+      return null;
+    }
+
+    const [resolvedPath] = await fileSystemService.getValidMusicFiles(localFolder);
+
+    return resolvedPath ?? null;
+  }
+
   /**
    * Update song details
    */
-  @Put("{id}")
-  @Security("adminAuth")
-  public async update(
-    @Path() id: string,
-    @Body() body: UpdateSongDTO
-  ): Promise<ApiResponse<Song>> {
+  @Patch('{id}')
+  @Security('adminAuth')
+  public async update(@Path() id: string, @Body() body: UpdateSongDTO): Promise<ApiResponse<Song>> {
     const result = await useCases.updateSong().execute(id, body);
     return ApiResponse.success(result, messages.success.update);
   }
@@ -45,83 +68,107 @@ export class SongsController extends Controller {
   /**
    * Delete a song
    */
-  @Delete("{id}")
-  @Security("adminAuth")
+  @Delete('{id}')
+  @Security('adminAuth')
   public async delete(@Path() id: string): Promise<ApiResponse<null>> {
     await useCases.deleteSong().execute(id);
     return ApiResponse.success(null, messages.success.delete);
   }
 
   /**
+   * Start asynchronous stem separation for a song.
+   */
+  @Post('{id}/separate-stems')
+  @Security('adminAuth')
+  @SuccessResponse('202', 'Accepted')
+  public async separateStems(
+    @Path() id: string,
+  ): Promise<ApiResponse<SeparateSongStemsResponseDTO>> {
+    const result = await useCases.startSongStemSeparation().execute(id);
+    this.setStatus(202);
+    return ApiResponse.success(result, messages.success.processStarted);
+  }
+
+  /**
    * Get song lyrics
    */
-  @Get("{id}/lyrics")
-  @Security("adminAuth")
-  public async getSongsLyrics(
-    @Path() id: string
-  ): Promise<ApiResponse<{ content: string; language: string }[]>> {
-    const result = await MediaDetailsService.findLyricsForSong(id);
+  @Get('{id}/lyrics')
+  @Security('adminAuth')
+  public async getSongsLyrics(@Path() id: string): Promise<ApiResponse<LyricsLine[]>> {
+    const result = await findLyricsForSong(id);
     return ApiResponse.success(result, messages.success.fetch);
   }
 
   /**
-   * Add song lyrics
+   * Generate a JWT-signed URL for direct song streaming
    */
-  @Post("lyrics")
-  @Security("adminAuth")
-  public async addSongsLyrics(
-    @Body() body: AddLyricsDTO
-  ): Promise<ApiResponse<string>> {
-    const { songId, language, content } = body;
+  @Post('stream-url')
+  @Security('cookieAuth')
+  public async getSongUrl(
+    @Body() body: SongUrlDTO,
+    @Query() isWeb?: string,
+    @Query() isDesktop?: string,
+    @Query() isMobile?: string,
+    @Request() req?: ExpressRequest,
+  ): Promise<ApiResponse<string | null>> {
+    const userId = (req as AuthenticatedRequest | undefined)?.user?.id as string;
+    const { filePath, localId, expiresIn } = body;
 
-    const song = await useCases.getSongById().execute(songId);
+    const path = await this.resolveSongPath(filePath, localId);
 
-    if (!song) {
-      throw new NotFoundException(messages.errors.notFound.song);
+    if (!path) {
+      return ApiResponse.success(null, messages.success.fetch);
     }
 
-    const songDirectory = fileSystemService.dirname(song.fileSrc);
-    const baseFilename = fileSystemService.basename(
-      song.fileSrc,
-      fileSystemService.extname(song.fileSrc)
+    const token = jwt.sign(
+      {
+        userId,
+        path,
+      },
+      process.env.JWT_SECRET || 'default-secret',
+      { expiresIn: (expiresIn ?? '2m') as jwt.SignOptions['expiresIn'] },
     );
 
-    // If original language, avoid adding the language code to the file name
-    const languageSuffix =
-      language.toLowerCase() === "original" || language === ""
-        ? ""
-        : `.${language}`;
+    const params = new URLSearchParams({ token });
+    if (isWeb) {
+      params.set('isWeb', isWeb);
+    }
+    if (isDesktop) {
+      params.set('isDesktop', isDesktop);
+    }
+    if (isMobile) {
+      params.set('isMobile', isMobile);
+    }
 
-    const finalFilename = `${baseFilename}${languageSuffix}.lrc`;
-    const fullSavePath = fileSystemService.join(songDirectory, finalFilename);
+    const url = `/songs/stream?${params.toString()}`;
 
-    await fileSystemService.writeFile(fullSavePath, content, "utf-8");
-    return ApiResponse.success(finalFilename, messages.success.create);
+    return ApiResponse.success(url, messages.success.fetch);
   }
 
   /**
    * Stream audio file
    */
-  @Get("stream")
-  @Security("adminAuth")
-  public async streamAudio(
-    @Query() path: string,
-    @Query() isWeb?: string
-  ): Promise<void> {
-    const audioPath = path;
-    const isWebBool = isWeb === "true";
+  @Get('stream')
+  public async streamAudio(@Request() req: ExpressRequest, @Query() isWeb?: string): Promise<void> {
+    const res = req.res as ExpressResponse;
+
+    await new Promise<void>((resolve, reject) => {
+      verifyAudioStreamToken(req, res, (err?: unknown) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
+
+    const audioPath = req.audioParams?.path ?? '';
+    const isWebBool = isWeb === 'true';
 
     // Get file path
     const streamablePath = await audioProcessingService.getStreamableAudioPath(
       decodeURIComponent(audioPath),
-      isWebBool
+      isWebBool,
     );
 
     // Stream the file
-    audioProcessingService.streamFile(
-      streamablePath,
-      (this as any).request,
-      (this as any).response
-    );
+    audioProcessingService.streamFile(streamablePath, req, res);
   }
 }

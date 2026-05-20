@@ -2,12 +2,12 @@ import {
   metadataProvider,
   notificationService,
   useCases,
-} from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
-import logger from "@/utils/logger";
+} from '@/api/v1/shared/infrastructure/adapters/di/container';
+import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
+import logger from '@/utils/logger';
 
 const refreshMovieMetadataLogger = logger.child({
-  category: "Refresh Movie Metadata",
+  category: 'Refresh Movie Metadata',
 });
 
 /**
@@ -16,8 +16,6 @@ const refreshMovieMetadataLogger = logger.child({
  * * @param movieId The ID of the movie in the local database.
  */
 export class RefreshMovieMetadataUseCase {
-  constructor() {}
-
   async execute(movieId: string): Promise<void> {
     const getMovieById = useCases.getMoviebyId();
     const movie = await getMovieById.execute(movieId);
@@ -29,9 +27,7 @@ export class RefreshMovieMetadataUseCase {
     const getLibraryById = useCases.getLibrary();
     const library = await getLibraryById.execute(movie.libraryId);
     if (!library) {
-      refreshMovieMetadataLogger.error(
-        `No library found for movie: ${movie.name}`,
-      );
+      refreshMovieMetadataLogger.error(`No library found for movie: ${movie.name}`);
       return;
     }
 
@@ -42,22 +38,13 @@ export class RefreshMovieMetadataUseCase {
       notificationService.mutateMovie(movie);
 
       // Get metadata from TheMovieDB
-      const movieMetadata = await metadataProvider.getMovie(
-        movie.themdbId,
-        library.language,
-      );
+      const movieMetadata = await metadataProvider.getMovie(movie.themdbId, library.language);
       if (!movieMetadata) {
-        throw new NotFoundException(
-          `No metadata found in TheMovieDB for movie: ${movie.themdbId}`,
-        );
+        throw new NotFoundException(`No metadata found in TheMovieDB for movie: ${movie.themdbId}`);
       }
 
       // Update movie metadata
-      await metadataProvider.updateMovieMetadata(
-        movie,
-        movieMetadata,
-        library.language,
-      );
+      await metadataProvider.updateMovieMetadata(movie, movieMetadata, library.language);
 
       // Update videos metadata
       const getVideoByMovieId = useCases.getVideoByMovieId();
@@ -68,10 +55,7 @@ export class RefreshMovieMetadataUseCase {
         }
       }
     } catch (error) {
-      refreshMovieMetadataLogger.error(
-        error,
-        `Error refreshing movie "${movie.name}"`,
-      );
+      refreshMovieMetadataLogger.error(error, `Error refreshing movie "${movie.name}"`);
     } finally {
       // Update UI
       const updateMovie = useCases.updateMovie();

@@ -1,45 +1,99 @@
-import logger from "@/utils/logger";
-import axios from "axios";
-import * as cheerio from "cheerio";
-import { IMDBScoreServicePort } from "../../../application/ports/IMDBScoreServicePort";
+import axios from 'axios';
+import logger from '@/utils/logger';
+import type { IMDBScoreServicePort } from '../../../application/ports/IMDBScoreServicePort';
 
-const imdbLogger = logger.child({ category: "IMDB Score" });
+const imdbLogger = logger.child({ category: 'IMDB Score' });
+
+const parseRatingValue = (value: unknown): number | null => {
+  if (typeof value !== 'number' && typeof value !== 'string') {
+    return null;
+  }
+
+  const parsed = Number(value.toString().replace(',', '.'));
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return null;
+  }
+
+  return parsed;
+};
+
+interface ImdbApiResponse {
+  rating?: {
+    aggregateRating?: unknown;
+  };
+}
+
+const isTransientImdbError = (error: unknown): boolean => {
+  if (!axios.isAxiosError(error)) {
+    return false;
+  }
+
+  if (error.code === 'ECONNABORTED') {
+    return true;
+  }
+
+  const status = error.response?.status;
+  return status === 429 || status === 502 || status === 503 || status === 504;
+};
+
+const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
 export class IMDBScoreServiceImpl implements IMDBScoreServicePort {
-  constructor() {}
+  private readonly imdbApiBaseUrl = 'https://api.imdbapi.dev/titles';
 
   axiosClient = axios.create({
-    headers: {
-      "User-Agent":
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-    },
-    timeout: 5000, // 5s timeout to avoid long waits
+    timeout: 10000,
   });
+
+  private async fetchImdbData(url: string): Promise<ImdbApiResponse> {
+    const maxAttempts = 3;
+
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const { data } = await this.axiosClient.get<ImdbApiResponse>(url);
+        return data;
+      } catch (error: unknown) {
+        const isLastAttempt = attempt === maxAttempts;
+        const transient = isTransientImdbError(error);
+
+        if (!transient || isLastAttempt) {
+          throw error;
+        }
+
+        await sleep(attempt * 300);
+      }
+    }
+
+    throw new Error('Unable to fetch IMDb page after retries');
+  }
 
   async getIMDBScore(imdbID: string): Promise<number> {
     try {
-      const url = `https://www.imdb.com/title/${imdbID}/`;
-      const { data } = await this.axiosClient.get(url);
+      const url = `${this.imdbApiBaseUrl}/${imdbID}`;
+      const data = await this.fetchImdbData(url);
+      const rating = parseRatingValue(data.rating?.aggregateRating);
 
-      const $ = cheerio.load(data);
-      const jsonLdScript = $('script[type="application/ld+json"]').html();
-
-      // Avoid errors if jsonLdScript is null or undefined
-      if (!jsonLdScript) {
-        throw new Error("JSON-LD script not found");
+      if (rating !== null) {
+        return rating;
       }
 
-      const jsonData = JSON.parse(jsonLdScript);
-      const rating = jsonData.aggregateRating?.ratingValue;
-
-      if (typeof rating !== "number" && typeof rating !== "string") {
-        throw new Error("Rating not found or invalid");
+      imdbLogger.warn({ imdbID }, 'IMDb score not found in API payload');
+      return -1;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        imdbLogger.warn(
+          {
+            imdbID,
+            code: error.code,
+            status: error.response?.status,
+            message: error.message,
+          },
+          'IMDb score request failed',
+        );
+      } else {
+        imdbLogger.warn({ imdbID, error }, 'IMDb score parsing failed');
       }
 
-      // Convert to number directly (handles comma or period depending on region)
-      return Number(rating.toString().replace(",", "."));
-    } catch (error: any) {
-      imdbLogger.error(error, `Error obtaining score for ${imdbID}`);
       return -1;
     }
   }

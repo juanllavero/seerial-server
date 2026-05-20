@@ -1,8 +1,8 @@
-import { Album } from "@/api/v1/albums/domain/Album";
-import { Collection } from "@/api/v1/collections/domain/Collection";
-import { Movie } from "@/api/v1/movies/domain/Movie";
-import { Series } from "@/api/v1/series/domain/Series";
-import http from "http";
+import type http from 'node:http';
+import type { Album } from '@/api/v1/albums/domain/Album';
+import type { Collection } from '@/api/v1/collections/domain/Collection';
+import type { Movie } from '@/api/v1/movies/domain/Movie';
+import type { Series } from '@/api/v1/series/domain/Series';
 
 /**
  * Port interface for notification service following Ports and Adapters architecture.

@@ -1,4 +1,4 @@
-import { Album } from "../../domain/Album";
+import type { Album } from '../../domain/Album';
 
 export interface AlbumsRepositoryPort {
   findAll(libraryId: string): Promise<Album[]>;
@@ -6,8 +6,9 @@ export interface AlbumsRepositoryPort {
   create(album: Partial<Album>): Promise<Album>;
   update(id: string, album: Partial<Album>): Promise<Album>;
   delete(id: string): Promise<void>;
+  findByFolder(folder: string): Promise<Album | null>;
   addArtistToAlbum(
     artistId: string,
-    albumId: string
+    albumId: string,
   ): Promise<{ id: string; artistId: string; albumId: string }>;
 }

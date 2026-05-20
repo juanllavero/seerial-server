@@ -1,25 +1,25 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import PropertiesReader, { type Reader } from 'properties-reader';
 import {
   audioExtensions,
   imageExtensions,
   initFolders,
   LOCAL_DATA_PATH,
   videoExtensions,
-} from "@/utils/constants";
-import logger from "@/utils/logger";
-import fs from "fs";
-import path from "path";
-import PropertiesReader, { Reader } from "properties-reader";
-import { FileSystemServicePort } from "../../../application/ports/FileSystemServicePort";
-import { FileOrDir } from "../../../domain/types/FilesTypes";
-import { SanitizationService } from "../../services/SanitizationService";
+} from '@/utils/constants';
+import logger from '@/utils/logger';
+import type { FileSystemServicePort } from '../../../application/ports/FileSystemServicePort';
+import type { FileOrDir } from '../../../domain/types/FilesTypes';
+import { getSystemAllowedPaths, sanitizeDirectoryPath } from '../../services/SanitizationService';
 
-const fileSystemLogger = logger.child({ category: "File System" });
+const fileSystemLogger = logger.child({ category: 'File System' });
 
 export class FileSystemServiceImpl implements FileSystemServicePort {
-  public extPath = "/";
-  public resourcesPath = this.getExternalPath("resources");
+  public extPath = '/';
+  public resourcesPath = this.getExternalPath('resources');
   public propertiesFilePath = this.getExternalPath(
-    this.join("resources", "config", "keys.properties"),
+    this.join('resources', 'config', 'keys.properties'),
   );
 
   public properties: Reader | undefined = undefined;
@@ -32,9 +32,11 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
   }
   public loadProperties(): void {
     if (!fs.existsSync(this.propertiesFilePath)) {
-      fs.writeFileSync(this.propertiesFilePath, "");
+      fs.writeFileSync(this.propertiesFilePath, '');
     }
-    this.properties = PropertiesReader(this.propertiesFilePath);
+    this.properties = PropertiesReader({
+      sourceFile: this.propertiesFilePath,
+    });
   }
   //#endregion
 
@@ -50,7 +52,7 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
       const baseDir = LOCAL_DATA_PATH;
       const fullPath = path.join(baseDir, relativePath);
 
-      const isNumeric = !isNaN(Number(relativePath));
+      const isNumeric = !Number.isNaN(Number(relativePath));
 
       if (!isNumeric) {
         const parentDir = path.dirname(fullPath);
@@ -60,8 +62,8 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
       }
 
       return fullPath;
-    } catch (error) {
-      return "";
+    } catch (_error) {
+      return '';
     }
   }
 
@@ -71,7 +73,7 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
    * @returns Absolute path to the internal file
    */
   public getInternalPath(relativePath: string): string {
-    return path.join(__dirname, "@/", relativePath);
+    return path.join(__dirname, '@/', relativePath);
   }
   //#endregion
 
@@ -92,7 +94,7 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
     try {
       const stats = await fs.promises.stat(filePath);
       return stats.isFile();
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }
@@ -100,7 +102,7 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
     try {
       const stats = await fs.promises.stat(folderPath);
       return stats.isDirectory();
-    } catch (error) {
+    } catch (_error) {
       return false;
     }
   }
@@ -133,10 +135,7 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
   //#endregion
 
   //#region GET FILES
-  public async getFileInFolder(
-    pathStr: string,
-    fileName: string,
-  ): Promise<string | null> {
+  public async getFileInFolder(pathStr: string, fileName: string): Promise<string | null> {
     try {
       const entries = await fs.promises.readdir(pathStr, {
         withFileTypes: true,
@@ -166,11 +165,7 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
   public async getValidVideoFiles(folderPath: string): Promise<string[]> {
     const videoFiles: string[] = [];
     try {
-      const sanitizedPath = SanitizationService.sanitizeDirectoryPath(
-        folderPath,
-        SanitizationService.getSystemAllowedPaths(),
-        true,
-      );
+      const sanitizedPath = sanitizeDirectoryPath(folderPath, getSystemAllowedPaths(), true);
       const filesAndFolders = await this.getFilesInFolder(sanitizedPath);
       for (const fileOrFolder of filesAndFolders) {
         const fullPath = path.join(sanitizedPath, fileOrFolder.name);
@@ -193,10 +188,7 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
   public async getValidMusicFiles(folderPath: string): Promise<string[]> {
     const musicFiles: string[] = [];
     const searchDepth = 4;
-    const exploreDirectory = async (
-      currentPath: string,
-      currentDepth: number,
-    ): Promise<void> => {
+    const exploreDirectory = async (currentPath: string, currentDepth: number): Promise<void> => {
       const entries = await this.getFilesInFolder(currentPath);
       for (const entry of entries) {
         const entryPath = path.join(currentPath, entry.name);
@@ -205,7 +197,7 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
         } else if (
           entry.isDirectory() &&
           currentDepth < searchDepth &&
-          !entry.name.startsWith("[")
+          !entry.name.startsWith('[')
         ) {
           await exploreDirectory(entryPath, currentDepth + 1);
         }
@@ -218,10 +210,7 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
     const files = await fs.promises.readdir(folderPath);
     for (const file of files) {
       const fileExt = path.extname(file).toLowerCase();
-      if (
-        imageExtensions.includes(fileExt) &&
-        file.toLowerCase().includes("cover")
-      ) {
+      if (imageExtensions.includes(fileExt) && file.toLowerCase().includes('cover')) {
         return path.join(folderPath, file);
       }
     }
@@ -230,7 +219,7 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
   //#endregion
 
   //#region JSON
-  public createJSONFile(filePath: string, content: any): void {
+  public createJSONFile(filePath: string, content: unknown): void {
     if (!fs.existsSync(path.dirname(filePath))) {
       fs.mkdirSync(path.dirname(filePath), { recursive: true });
     }
@@ -258,13 +247,10 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
 
   //#region FILE READING
   public async readFile(filePath: string): Promise<string> {
-    return fs.promises.readFile(filePath, "utf-8");
+    return fs.promises.readFile(filePath, 'utf-8');
   }
 
-  public readFileSync(
-    filePath: string,
-    encoding: BufferEncoding = "utf-8",
-  ): string {
+  public readFileSync(filePath: string, encoding: BufferEncoding = 'utf-8'): string {
     return fs.readFileSync(filePath, encoding);
   }
   //#endregion
@@ -273,15 +259,12 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
   public async writeFile(
     filePath: string,
     content: string,
-    encoding: BufferEncoding = "utf-8",
+    encoding: BufferEncoding = 'utf-8',
   ): Promise<void> {
     return fs.promises.writeFile(filePath, content, encoding);
   }
 
-  public async writeImage(
-    filePath: string,
-    imageBuffer: Buffer,
-  ): Promise<void> {
+  public async writeImage(filePath: string, imageBuffer: Buffer): Promise<void> {
     await fs.promises.writeFile(filePath, imageBuffer);
   }
   //#endregion

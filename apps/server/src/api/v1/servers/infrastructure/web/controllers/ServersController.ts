@@ -1,34 +1,25 @@
+import type { User } from '@seerial/domain';
+import { Body, Controller, Get, Patch, Path, Route, Security, Tags } from 'tsoa';
 import {
   fileSystemService,
   tmdbApiClient,
   useCases,
-} from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { ApiResponse } from "@/api/v1/shared/infrastructure/web/http/APIResponse";
-import { User } from "@/api/v1/users/domain/User";
-import { messages } from "@/config/messages";
-import {
-  Body,
-  Controller,
-  Get,
-  Patch,
-  Path,
-  Put,
-  Route,
-  Security,
-  Tags,
-} from "tsoa";
-import {
+} from '@/api/v1/shared/infrastructure/adapters/di/container';
+import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
+import { messages } from '@/config/messages';
+import type {
   ServerConfigDTO,
   ServerConfigResponse,
   ServerStatusResponse,
+  ServerUserDTO,
   UpdateServerConfigDTO,
   UpdateServerDTO,
-} from "../../../application/dtos/ServerDTOs";
-import { Server } from "../../../domain/Server";
-import { ServerConfigService } from "../../services/ServerConfigService";
+} from '../../../application/dtos/ServerDTOs';
+import type { Server } from '../../../domain/Server';
+import { ServerConfigService } from '../../services/ServerConfigService';
 
-@Route("servers")
-@Tags("Servers")
+@Route('servers')
+@Tags('Servers')
 export class ServersController extends Controller {
   /**
    * Get server status
@@ -36,16 +27,21 @@ export class ServersController extends Controller {
   @Get()
   public async getServerStatus(): Promise<ApiResponse<ServerStatusResponse>> {
     const getUsers = useCases.getAllUsers();
-    const users: User[] = await getUsers.execute();
+    const allUsers: User[] = await getUsers.execute();
+    const users: ServerUserDTO[] = allUsers.map((u) => ({
+      id: u.id,
+      username: u.username,
+      avatar: u.avatar,
+    }));
     const serverId = ServerConfigService.serverConfig.id;
     const serverName = ServerConfigService.serverConfig.name;
 
-    let apiKeyStatus: string = "INVALID_API_KEY";
+    let apiKeyStatus: string = 'INVALID_API_KEY';
     if (tmdbApiClient.THEMOVIEDB_API_TOKEN) {
       const status = await tmdbApiClient.getAPIKeyStatus();
 
       if (status) {
-        apiKeyStatus = "VALID_API_KEY";
+        apiKeyStatus = 'VALID_API_KEY';
       }
     }
 
@@ -56,18 +52,18 @@ export class ServersController extends Controller {
         status: apiKeyStatus,
         users,
       },
-      messages.success.fetch
+      messages.success.fetch,
     );
   }
 
   /**
    * Update server configuration
    */
-  @Put("{id}")
-  @Security("adminAuth")
+  @Patch('{id}')
+  @Security('adminAuth')
   public async update(
     @Path() id: string,
-    @Body() body: UpdateServerDTO
+    @Body() body: UpdateServerDTO,
   ): Promise<ApiResponse<Server>> {
     const result = await useCases.updateServer().execute(id, body);
     return ApiResponse.success(result, messages.success.update);
@@ -76,110 +72,108 @@ export class ServersController extends Controller {
   /**
    * Get a specific server config setting
    */
-  @Get("config/{key}")
-  @Security("adminAuth")
-  public async getServerConfigKey(
-    @Path() key: string
-  ): Promise<ApiResponse<ServerConfigResponse>> {
+  @Get('config/{key}')
+  @Security('adminAuth')
+  public async getServerConfigKey(@Path() key: string): Promise<ApiResponse<ServerConfigResponse>> {
     const SERVER_CONFIG_FILE = fileSystemService.getExternalPath(
-      "resources/config/serverConfig.json"
+      'resources/config/serverConfig.json',
     );
 
     const defaultServerConfig = {
       autoScan: false,
-      autoScanPeriod: "never",
-      generateChapters: "never",
+      autoScanPeriod: 'never',
+      generateChapters: 'never',
       autoSelectTracks: true,
-      preferAudioLan: "es-ES",
-      preferSubsLan: "es-ES",
-      subsMode: "autoSubs",
-      tempTranscodeFolder: "",
+      preferAudioLan: 'es-ES',
+      preferSubsLan: 'es-ES',
+      subsMode: 'autoSubs',
+      tempTranscodeFolder: '',
       transcodeBuffer: 60,
-      transcodePreset: "veryfast",
+      transcodePreset: 'veryfast',
       maxTranscodeProcesses: 4,
       automaticUpdates: false,
     };
 
+    // Restrict to known keys to prevent prototype pollution via path parameter
+    const allowedKeys = Object.keys(defaultServerConfig) as (keyof typeof defaultServerConfig)[];
+    if (!(allowedKeys as string[]).includes(key)) {
+      this.setStatus(400);
+      return ApiResponse.success({ key, value: null }, messages.success.fetch);
+    }
+
     fileSystemService.createJSONFile(SERVER_CONFIG_FILE, defaultServerConfig);
     const configData = JSON.parse(
-      fileSystemService.readFileSync(SERVER_CONFIG_FILE, "utf8")
-    );
+      fileSystemService.readFileSync(SERVER_CONFIG_FILE, 'utf8'),
+    ) as Record<string, unknown>;
 
-    const value = configData[key] !== undefined ? configData[key] : null;
+    const value = Object.hasOwn(configData, key) ? configData[key] : null;
     return ApiResponse.success({ key, value }, messages.success.fetch);
   }
 
   /**
    * Get all server config settings
    */
-  @Get("config")
-  @Security("adminAuth")
+  @Get('config')
+  @Security('adminAuth')
   public async getServerConfig(): Promise<ApiResponse<ServerConfigDTO>> {
     const SERVER_CONFIG_FILE = fileSystemService.getExternalPath(
-      "resources/config/serverConfig.json"
+      'resources/config/serverConfig.json',
     );
 
     const defaultServerConfig = {
       autoScan: false,
-      autoScanPeriod: "never",
-      generateChapters: "never",
+      autoScanPeriod: 'never',
+      generateChapters: 'never',
       autoSelectTracks: true,
-      preferAudioLan: "es-ES",
-      preferSubsLan: "es-ES",
-      subsMode: "autoSubs",
-      tempTranscodeFolder: "",
+      preferAudioLan: 'es-ES',
+      preferSubsLan: 'es-ES',
+      subsMode: 'autoSubs',
+      tempTranscodeFolder: '',
       transcodeBuffer: 60,
-      transcodePreset: "veryfast",
+      transcodePreset: 'veryfast',
       maxTranscodeProcesses: 4,
       automaticUpdates: false,
     };
 
     fileSystemService.createJSONFile(SERVER_CONFIG_FILE, defaultServerConfig);
-    const configData = JSON.parse(
-      fileSystemService.readFileSync(SERVER_CONFIG_FILE, "utf8")
-    );
+    const configData = JSON.parse(fileSystemService.readFileSync(SERVER_CONFIG_FILE, 'utf8'));
     return ApiResponse.success(configData, messages.success.fetch);
   }
 
   /**
    * Update server config settings
    */
-  @Patch("config")
-  @Security("adminAuth")
+  @Patch('config')
+  @Security('adminAuth')
   public async updateServerConfig(
-    @Body() body: UpdateServerConfigDTO
+    @Body() body: UpdateServerConfigDTO,
   ): Promise<ApiResponse<ServerConfigDTO>> {
     const SERVER_CONFIG_FILE = fileSystemService.getExternalPath(
-      "resources/config/serverConfig.json"
+      'resources/config/serverConfig.json',
     );
 
     const defaultServerConfig = {
       autoScan: false,
-      autoScanPeriod: "never",
-      generateChapters: "never",
+      autoScanPeriod: 'never',
+      generateChapters: 'never',
       autoSelectTracks: true,
-      preferAudioLan: "es-ES",
-      preferSubsLan: "es-ES",
-      subsMode: "autoSubs",
-      tempTranscodeFolder: "",
+      preferAudioLan: 'es-ES',
+      preferSubsLan: 'es-ES',
+      subsMode: 'autoSubs',
+      tempTranscodeFolder: '',
       transcodeBuffer: 60,
-      transcodePreset: "veryfast",
+      transcodePreset: 'veryfast',
       maxTranscodeProcesses: 4,
       automaticUpdates: false,
     };
 
     fileSystemService.createJSONFile(SERVER_CONFIG_FILE, defaultServerConfig);
     const updates = body;
-    let configData = JSON.parse(
-      fileSystemService.readFileSync(SERVER_CONFIG_FILE, "utf8")
-    );
+    let configData = JSON.parse(fileSystemService.readFileSync(SERVER_CONFIG_FILE, 'utf8'));
 
     configData = { ...configData, ...updates };
 
-    fileSystemService.writeFile(
-      SERVER_CONFIG_FILE,
-      JSON.stringify(configData, null, 2)
-    );
+    fileSystemService.writeFile(SERVER_CONFIG_FILE, JSON.stringify(configData, null, 2));
 
     return ApiResponse.success(configData, messages.success.update);
   }

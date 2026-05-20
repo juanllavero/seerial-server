@@ -1,19 +1,21 @@
-import { messages } from "@/config/messages";
-import { LibraryType, LibraryTypes } from "@/data/interfaces/Media";
-import logger from "@/utils/logger";
-import axios from "axios";
-import { Response } from "express";
-import fs from "fs-extra";
-import { Vibrant } from "node-vibrant/node";
-import path from "path";
-import sharp from "sharp";
-import { ImageProcessingServicePort } from "../../../application/ports/ImageProcessingServicePort";
-import { NotFoundException } from "../../web/exceptions/HTTPExceptions";
-import { fileSystemService } from "../di/container";
+import path from 'node:path';
+import { pipeline } from 'node:stream/promises';
+import { type LibraryType, LibraryTypes } from '@seerial/domain';
+import axios from 'axios';
+import type { Response } from 'express';
+import fs from 'fs-extra';
+import { Vibrant } from 'node-vibrant/node';
+import sharp from 'sharp';
+import { messages } from '@/config/messages';
+import logger from '@/utils/logger';
+import type { FileSystemServicePort } from '../../../application/ports/FileSystemServicePort';
+import type { ImageProcessingServicePort } from '../../../application/ports/ImageProcessingServicePort';
+import { NotFoundException } from '../../web/exceptions/HTTPExceptions';
+import { fileSystemService } from '../di/container';
 
-const imageProcessingLogger = logger.child({ category: "Image Processing" });
+const imageProcessingLogger = logger.child({ category: 'Image Processing' });
 
-export type CollageTileRatio = "square" | "poster"; // 1:1 or 2:3
+export type CollageTileRatio = 'square' | 'poster'; // 1:1 or 2:3
 
 interface CollageDimensions {
   width: number;
@@ -37,10 +39,20 @@ interface HSL {
   l: number;
 }
 
-export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
-  constructor(private readonly fileSystemService: any) {}
+interface Palette {
+  [name: string]: Swatch | null;
+  Vibrant: Swatch | null;
+  Muted: Swatch | null;
+  DarkVibrant: Swatch | null;
+  DarkMuted: Swatch | null;
+  LightVibrant: Swatch | null;
+  LightMuted: Swatch | null;
+}
 
-  async getImageColorPalette(imageSource: string, options: any): Promise<any> {
+export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
+  constructor(private readonly fileSystemService: FileSystemServicePort) { }
+
+  async getImageColorPalette(imageSource: string, options: PaletteOptions) {
     try {
       const palette = await Vibrant.from(imageSource).getPalette();
       const colorsRgb = this._createPalette(palette, options);
@@ -52,36 +64,30 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
         css: cssGradient,
       };
     } catch (error) {
-      imageProcessingLogger.error(error, "node-vibrant error");
-      throw new Error("The image could not be processed to extract colors.");
+      imageProcessingLogger.error(error, 'node-vibrant error');
+      throw new Error('The image could not be processed to extract colors.');
     }
   }
 
-  async createTransparentImage(
-    source: string,
-    width: number,
-    height: number
-  ): Promise<Buffer> {
+  async createTransparentImage(source: string, width: number, height: number): Promise<Buffer> {
     try {
       let sourceImageBuffer: Buffer;
 
       // Get the source image buffer
-      if (source.startsWith("http")) {
+      if (source.startsWith('http')) {
         const response = await axios.get(source, {
-          responseType: "arraybuffer",
+          responseType: 'arraybuffer',
         });
         sourceImageBuffer = response.data;
       } else {
-        const imagePath = source.startsWith("resources")
+        const imagePath = source.startsWith('resources')
           ? fileSystemService.getExternalPath(source)
           : source;
         sourceImageBuffer = await sharp(imagePath).toBuffer();
       }
 
       // Resize the image
-      const resizedImage = await sharp(sourceImageBuffer)
-        .resize(width, height)
-        .toBuffer();
+      const resizedImage = await sharp(sourceImageBuffer).resize(width, height).toBuffer();
 
       // Create the SVG mask and convert it to a buffer
       const maskSvg = this._createFadeMaskSvg(width, height);
@@ -89,46 +95,37 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
 
       // Apply the mask using composite blending
       const finalImageBuffer = await sharp(resizedImage)
-        .composite([{ input: maskBuffer, blend: "dest-in" }])
+        .composite([{ input: maskBuffer, blend: 'dest-in' }])
         .png() // Ensure output is PNG to support transparency
         .toBuffer();
 
       return finalImageBuffer;
     } catch (error) {
-      imageProcessingLogger.error(
-        error,
-        "Error processing transparent image effect"
-      );
-      throw new Error("An error occurred while processing the image effect.");
+      imageProcessingLogger.error(error, 'Error processing transparent image effect');
+      throw new Error('An error occurred while processing the image effect.');
     }
   }
 
-  async getDirectoryListing(relativePath: string): Promise<any[]> {
-    const absolutePath = require("path").join(
-      this.fileSystemService.resourcesPath,
-      relativePath
-    );
-    const fs = require("fs").promises;
+  async getDirectoryListing(relativePath: string): Promise<{ name: string; url: string }[]> {
+    const absolutePath = this.fileSystemService.getExternalPath(relativePath);
+    const fs = require('node:fs').promises;
 
     try {
       await fs.mkdir(absolutePath, { recursive: true });
       const files = await fs.readdir(absolutePath);
       return files.map((file: string) => ({
         name: file,
-        url: require("path").join(relativePath, file),
+        url: require('node:path').join(relativePath, file),
       }));
     } catch (error) {
-      imageProcessingLogger.error(
-        error,
-        `Error reading directory ${absolutePath}`
-      );
-      throw new Error("Error reading images folder.");
+      imageProcessingLogger.error(error, `Error reading directory ${absolutePath}`);
+      throw new Error('Error reading images folder.');
     }
   }
 
   async streamLocalImage(options: {
     filePath: string;
-    res: any;
+    res: Response;
     width?: number;
     height?: number;
   }): Promise<void> {
@@ -137,16 +134,34 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
 
     try {
       await fs.access(resolvedPath, fs.constants.F_OK);
+
+      if (!width && !height) {
+        // Serve the original file without re-encoding to preserve image quality.
+        const ext = path.extname(filePath).toLowerCase();
+        const mimeTypes: Record<string, string> = {
+          '.jpg': 'image/jpeg',
+          '.jpeg': 'image/jpeg',
+          '.png': 'image/png',
+          '.webp': 'image/webp',
+          '.gif': 'image/gif',
+          '.avif': 'image/avif',
+        };
+        res.setHeader('Content-Type', mimeTypes[ext] ?? 'application/octet-stream');
+        const inputStream = fs.createReadStream(resolvedPath);
+        await pipeline(inputStream, res);
+        return;
+      }
+
       const inputStream = fs.createReadStream(resolvedPath);
-      this._compressAndStream(inputStream, res, { width, height });
-    } catch (error) {
+      await this._compressAndStream(inputStream, res, { width, height });
+    } catch (_error) {
       throw new NotFoundException(messages.errors.notFound.file);
     }
   }
 
   async streamRemoteImage(options: {
     url: string;
-    res: any;
+    res: Response;
     width?: number;
     height?: number;
   }): Promise<void> {
@@ -154,27 +169,22 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
 
     try {
       const response = await axios({
-        method: "get",
+        method: 'get',
         url,
-        responseType: "stream",
+        responseType: 'stream',
       });
-      this._compressAndStream(response.data, res, { width, height });
+      await this._compressAndStream(response.data, res, { width, height });
     } catch (error) {
-      imageProcessingLogger.error(
-        error,
-        "Error downloading or processing image from URL"
-      );
+      imageProcessingLogger.error(error, 'Error downloading or processing image from URL');
       if (!res.headersSent) {
-        throw new Error(
-          "Could not download or process the image from the URL."
-        );
+        throw new Error('Could not download or process the image from the URL.');
       }
     }
   }
 
   //#region Private Static Helper Methods
-  private _createPalette(palette: any, options: PaletteOptions): string[] {
-    const profilePriority = ["DarkVibrant", "Muted", "LightVibrant", "Vibrant"];
+  private _createPalette(palette: Palette, options: PaletteOptions): string[] {
+    const profilePriority = ['DarkVibrant', 'Muted', 'LightVibrant', 'Vibrant'];
     const finalRgbColors: { r: number; g: number; b: number }[] = [];
     const usedHex = new Set<string>();
 
@@ -185,7 +195,7 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
       const [r, g, b] = swatch.rgb;
       if (Math.max(r, g, b) - Math.min(r, g, b) < 15) continue;
 
-      let hsl = this._rgbToHsl(swatch.rgb);
+      const hsl = this._rgbToHsl(swatch.rgb);
       const hue = hsl.h * 360;
       if (hue >= 300 && hue <= 350) hsl.h = 280 / 360;
       else if (hue > 20 && hue < 40) hsl.h = 10 / 360;
@@ -193,7 +203,7 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
       hsl.s = Math.min(0.95, hsl.s * options.saturationFactor);
       hsl.l = Math.max(
         options.targetLightness.min,
-        Math.min(options.targetLightness.max, hsl.l * 0.5)
+        Math.min(options.targetLightness.max, hsl.l * 0.5),
       );
 
       finalRgbColors.push(this._hslToRgb(hsl));
@@ -204,7 +214,7 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
       finalRgbColors.push(finalRgbColors[0]);
     }
 
-    if (finalRgbColors.length === 0) return Array(4).fill("rgb(25, 25, 25)");
+    if (finalRgbColors.length === 0) return Array(4).fill('rgb(25, 25, 25)');
     return finalRgbColors.map((c) => `rgb(${c.r}, ${c.g}, ${c.b})`);
   }
 
@@ -213,18 +223,16 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
     while (safeColors.length > 0 && safeColors.length < 4) {
       safeColors.push(safeColors[safeColors.length - 1]);
     }
-    if (safeColors.length === 0) return "background: black;";
+    if (safeColors.length === 0) return 'background: black;';
 
-    const cornerPositions = ["0% 100%", "100% 100%", "100% 0%", "0% 0%"];
+    const cornerPositions = ['0% 100%', '100% 100%', '100% 0%', '0% 0%'];
     const gradients = cornerPositions.map((position, index) => {
       const solidColor = safeColors[index];
-      const transparentColor = solidColor
-        .replace("rgb", "rgba")
-        .replace(")", ", 0)");
+      const transparentColor = solidColor.replace('rgb', 'rgba').replace(')', ', 0)');
       return `radial-gradient(circle farthest-side at ${position}, ${solidColor} 0%, ${transparentColor} 100%)`;
     });
 
-    return `background: ${gradients.join(", ")}, black;`;
+    return `background: ${gradients.join(', ')}, black;`;
   }
 
   private _createFadeMaskSvg = (width: number, height: number): string => `
@@ -275,7 +283,7 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
 
   private _hslToRgb(hsl: HSL): { r: number; g: number; b: number } {
     const { h, s, l } = hsl;
-    let r, g, b;
+    let r: number, g: number, b: number;
     if (s === 0) {
       r = g = b = l;
     } else {
@@ -306,11 +314,11 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
    * @param res - The Express response object.
    * @param options - Resizing options (width, height).
    */
-  private _compressAndStream(
+  private async _compressAndStream(
     inputStream: NodeJS.ReadableStream,
     res: Response,
-    options: { width?: number; height?: number }
-  ): void {
+    options: { width?: number; height?: number },
+  ): Promise<void> {
     const { width, height } = options;
     let transformer = sharp();
 
@@ -318,56 +326,50 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
       transformer = transformer.resize({
         width,
         height,
-        fit: "inside",
+        fit: 'inside',
         withoutEnlargement: true,
       });
     }
 
     transformer = transformer.jpeg({ quality: 85, progressive: true });
-    res.setHeader("Content-Type", "image/jpeg");
+    res.setHeader('Content-Type', 'image/jpeg');
 
-    // --- Stream error handling ---
-    inputStream.on("error", (err) => {
-      imageProcessingLogger.error(err, "Input stream error");
-      if (!res.headersSent)
-        res.status(500).send("Error reading the source image.");
-    });
+    try {
+      await pipeline(inputStream, transformer, res);
+    } catch (error) {
+      imageProcessingLogger.error(error, 'Error streaming processed image');
 
-    transformer.on("error", (err) => {
-      imageProcessingLogger.error(err, "Sharp processing error");
-      if (!res.headersSent) res.status(500).send("Error processing the image.");
-    });
+      if (!res.headersSent) {
+        res.status(500).send('Error processing the image.');
+      }
 
-    inputStream.pipe(transformer).pipe(res);
+      throw error;
+    }
   }
   //#endregion
 
   //#region Collection Images
 
-  private async loadImageBuffer(
-    src: string,
-    libraryType: LibraryType
-  ): Promise<Buffer> {
+  private async loadImageBuffer(src: string, libraryType: LibraryType): Promise<Buffer> {
     const defaultPath = fileSystemService.getExternalPath(
       fileSystemService.join(
-        "resources",
-        "img",
-        "default",
-        `${
-          libraryType === LibraryTypes.MUSIC
-            ? "music"
-            : libraryType === LibraryTypes.MOVIES
-            ? "movie"
-            : "series"
-        }.jpg`
-      )
+        'resources',
+        'img',
+        'default',
+        `${libraryType === LibraryTypes.MUSIC
+          ? 'music'
+          : libraryType === LibraryTypes.MOVIES
+            ? 'movie'
+            : 'series'
+        }.jpg`,
+      ),
     );
     if (!src) return fs.readFileSync(defaultPath);
 
     try {
-      if (src.startsWith("http")) {
+      if (src.startsWith('http')) {
         const res = await axios.get(src, {
-          responseType: "arraybuffer",
+          responseType: 'arraybuffer',
           timeout: 5000,
         });
         return Buffer.from(res.data);
@@ -384,18 +386,17 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
     src: string,
     width: number,
     height: number,
-    libraryType: LibraryType
+    libraryType: LibraryType,
   ): Promise<Buffer> {
     const raw = await this.loadImageBuffer(src, libraryType);
-    return sharp(raw).resize(width, height, { fit: "cover" }).toBuffer();
+    return sharp(raw).resize(width, height, { fit: 'cover' }).toBuffer();
   }
 
   private getCollageDimensions(ratio: CollageTileRatio): CollageDimensions {
     const TILE_WIDTH = 200;
     return {
       width: TILE_WIDTH,
-      height:
-        ratio === "square" ? TILE_WIDTH : Math.round((TILE_WIDTH * 3) / 2), // 200x200 o 200x300
+      height: ratio === 'square' ? TILE_WIDTH : Math.round((TILE_WIDTH * 3) / 2), // 200x200 o 200x300
     };
   }
 
@@ -404,18 +405,18 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
    */
   async generateCollage(
     imageSrcs: string[],
-    ratio: CollageTileRatio = "poster",
-    libraryType: LibraryType
+    ratio: CollageTileRatio = 'poster',
+    libraryType: LibraryType,
   ): Promise<Buffer> {
     const { width: tileW, height: tileH } = this.getCollageDimensions(ratio);
     const totalW = tileW * 2;
     const totalH = tileH * 2;
 
     const sources = [...imageSrcs.slice(0, 4)];
-    while (sources.length < 4) sources.push("");
+    while (sources.length < 4) sources.push('');
 
     const tiles = await Promise.all(
-      sources.map((src) => this.resizeToTile(src, tileW, tileH, libraryType))
+      sources.map((src) => this.resizeToTile(src, tileW, tileH, libraryType)),
     );
 
     return sharp({

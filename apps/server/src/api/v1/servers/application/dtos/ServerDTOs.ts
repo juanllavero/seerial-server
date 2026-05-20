@@ -1,4 +1,13 @@
-import { UserDTO } from "@/api/v1/users/application/dtos/UserDTOs";
+import type { UserDTO } from '@/api/v1/users/application/dtos/UserDTOs';
+
+export type { UserDTO };
+
+/** Minimal user info returned by the public server-status endpoint */
+export interface ServerUserDTO {
+  id: string;
+  username: string;
+  avatar?: string;
+}
 
 export interface UpdateServerDTO {
   name?: string;
@@ -25,7 +34,7 @@ export interface ServerStatusResponse {
   id: string;
   name: string;
   status: string;
-  users: UserDTO[];
+  users: ServerUserDTO[];
 }
 
 export interface ServerConfigDTO {
@@ -45,8 +54,8 @@ export interface ServerConfigDTO {
 
 export interface ServerConfigResponse {
   key?: string;
-  value?: any;
-  [key: string]: any;
+  value?: unknown;
+  [key: string]: unknown;
 }
 
 export interface UpdateServerConfigDTO {

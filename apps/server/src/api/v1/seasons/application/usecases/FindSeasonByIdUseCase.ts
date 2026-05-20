@@ -1,6 +1,6 @@
-import { IncludeType } from "@/types/common";
-import { Season } from "../../domain/Season";
-import { SeasonsRepositoryPort } from "../ports/SeasonsRepositoryPort";
+import type { IncludeType } from '@/types/common';
+import type { Season } from '../../domain/Season';
+import type { SeasonsRepositoryPort } from '../ports/SeasonsRepositoryPort';
 
 export class FindSeasonByIdUseCase {
   constructor(private seasonRepo: SeasonsRepositoryPort) {}

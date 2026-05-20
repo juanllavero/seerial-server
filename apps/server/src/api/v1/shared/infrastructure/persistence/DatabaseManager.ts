@@ -1,37 +1,34 @@
-import { AlbumArtistModel } from "@/api/v1/albums/infrastructure/persistence/models/AlbumArtistModel";
-import { AlbumModel } from "@/api/v1/albums/infrastructure/persistence/models/AlbumModel";
-import { ArtistModel } from "@/api/v1/artists/infrastructure/persistence/models/ArtistModel";
-import { CollectionAlbumModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionAlbum";
-import { CollectionModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionModel";
-import { CollectionMovieModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionMovie";
-import { CollectionSeriesModel } from "@/api/v1/collections/infrastructure/persistence/models/CollectionSeries";
-import { ContinueWatchingModel } from "@/api/v1/continue-watching/infrastructure/persistence/models/ContinueWatchingModel";
-import { EpisodeModel } from "@/api/v1/episodes/infrastructure/persistence/models/EpisodeModel";
-import { LibraryCollectionModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryCollectionModel";
-import { LibraryModel } from "@/api/v1/libraries/infrastructure/persistence/models/LibraryModel";
-import { MovieModel } from "@/api/v1/movies/infrastructure/persistence/models/MovieModel";
-import { MyListModel } from "@/api/v1/my-lists/infrastructure/persistence/models/MyListModel";
-import { PlayListItemModel } from "@/api/v1/playlists/infrastructure/persistence/models/PlayListItemModel";
-import { PlayListModel } from "@/api/v1/playlists/infrastructure/persistence/models/PlayListModel";
-import { SeasonModel } from "@/api/v1/seasons/infrastructure/persistence/models/SeasonModel";
-import { SeriesModel } from "@/api/v1/series/infrastructure/persistence/models/SeriesModel";
-import { ServerModel } from "@/api/v1/servers/infrastructure/persistence/models/ServerModel";
-import { fileSystemService } from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { SongModel } from "@/api/v1/songs/infrastructure/persistence/models/SongModel";
-import { UserLibraryModel } from "@/api/v1/users/infrastructure/persistence/models/UserLibraryModel";
-import { UserModel } from "@/api/v1/users/infrastructure/persistence/models/UserModel";
-import { VideoModel } from "@/api/v1/videos/infrastructure/persistence/models/VideoModel";
-import { WatchListModel } from "@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel";
-import logger from "@/utils/logger";
-import fs from "fs";
-import { DataSource, EntityManager, EntityTarget, Repository } from "typeorm";
-import { SnakeNamingStrategy } from "typeorm-naming-strategies";
+import fs from 'node:fs';
+import { DataSource, type EntityManager, type EntityTarget, type Repository } from 'typeorm';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import { AlbumArtistModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumArtistModel';
+import { AlbumModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumModel';
+import { ArtistModel } from '@/api/v1/artists/infrastructure/persistence/models/ArtistModel';
+import { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
+import { EpisodeModel } from '@/api/v1/episodes/infrastructure/persistence/models/EpisodeModel';
+import { LibraryCollectionModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryCollectionModel';
+import { LibraryModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryModel';
+import { MovieModel } from '@/api/v1/movies/infrastructure/persistence/models/MovieModel';
+import { PlayListItemModel } from '@/api/v1/playlists/infrastructure/persistence/models/PlayListItemModel';
+import { PlayListModel } from '@/api/v1/playlists/infrastructure/persistence/models/PlayListModel';
+import { SeasonModel } from '@/api/v1/seasons/infrastructure/persistence/models/SeasonModel';
+import { SeriesModel } from '@/api/v1/series/infrastructure/persistence/models/SeriesModel';
+import { ServerModel } from '@/api/v1/servers/infrastructure/persistence/models/ServerModel';
+import { fileSystemService } from '@/api/v1/shared/infrastructure/adapters/di/container';
+import { SongModel } from '@/api/v1/songs/infrastructure/persistence/models/SongModel';
+import { UserLibraryModel } from '@/api/v1/users/infrastructure/persistence/models/UserLibraryModel';
+import { UserModel } from '@/api/v1/users/infrastructure/persistence/models/UserModel';
+import { VideoModel } from '@/api/v1/videos/infrastructure/persistence/models/VideoModel';
+import { WatchListModel } from '@/api/v1/watch-lists/infrastructure/persistence/models/WatchListModel';
+import logger from '@/utils/logger';
 
-const dbLogger = logger.child({ category: "Database" });
+const dbLogger = logger.child({ category: 'Database' });
 
 export class DatabaseManager {
+  private constructor() { }
+
   public static get DB_PATH(): string {
-    return fileSystemService.getExternalPath("resources/db/data.db");
+    return fileSystemService.getExternalPath('resources/db/data.db');
   }
   public static dataSource: DataSource | null = null;
 
@@ -39,28 +36,23 @@ export class DatabaseManager {
    * Initialize SQLite DB with TypeORM and better-sqlite3.
    */
   public static async initializeDB(): Promise<void> {
-    if (this.dataSource?.isInitialized) return;
+    if (DatabaseManager.dataSource?.isInitialized) return;
 
     try {
       DatabaseManager.ensureDatabaseDirectory();
 
       // Initialize TypeORM DataSource
       DatabaseManager.dataSource = new DataSource({
-        type: "better-sqlite3",
+        type: 'better-sqlite3',
         database: DatabaseManager.DB_PATH,
         namingStrategy: new SnakeNamingStrategy(),
         entities: [
           CollectionModel,
-          CollectionAlbumModel,
-          CollectionMovieModel,
-          CollectionSeriesModel,
           LibraryCollectionModel,
-          ContinueWatchingModel,
           WatchListModel,
           EpisodeModel,
           LibraryModel,
           MovieModel,
-          MyListModel,
           PlayListModel,
           PlayListItemModel,
           SeasonModel,
@@ -91,20 +83,27 @@ export class DatabaseManager {
 
       // Configure db
       const connection = DatabaseManager.dataSource.createQueryRunner();
-      await connection.query("PRAGMA foreign_keys = ON;");
-      await connection.query("PRAGMA journal_mode = WAL;");
-      await connection.query("PRAGMA busy_timeout = 5000;");
-      await connection.query("PRAGMA synchronous = NORMAL;");
+      await connection.query('PRAGMA foreign_keys = ON;');
+      await connection.query('PRAGMA journal_mode = WAL;');
+      await connection.query('PRAGMA busy_timeout = 5000;');
+      await connection.query('PRAGMA synchronous = NORMAL;');
       await connection.release();
 
-      // Sync models to db
-      await DatabaseManager.dataSource.synchronize(); // For dev; for prod, use migrations
+      // Sync models to db — always synchronise because this is a local SQLite instance.
+      // In production the database lives only on the user's machine, so auto-synchronisation
+      // is safe and avoids the need to ship migration files with every release.
+      await DatabaseManager.dataSource.synchronize();
 
-      dbLogger.info(
-        "Database initialized successfully with TypeORM and better-sqlite3"
-      );
-    } catch (error: any) {
-      throw new Error(`Database initialization failed: ${error.message}`);
+      // One-time data migration: copy collection membership from the old junction tables
+      // (CollectionMovie, CollectionSeries, CollectionAlbum) to the new direct FK columns
+      // added to Movie, Series and Album. Safe to run on every startup because the UPDATE
+      // is a no-op once the column is already populated.
+      await DatabaseManager.migrateCollectionFKs();
+
+      dbLogger.info('Database initialized successfully with TypeORM and better-sqlite3');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(`Database initialization failed: ${message}`);
     }
   }
 
@@ -113,43 +112,41 @@ export class DatabaseManager {
    * @throws Error if DataSource is not initialized
    */
   public static getDataSource(): DataSource {
-    if (!this.dataSource) {
-      const error = new Error("DataSource has not been initialized");
+    if (!DatabaseManager.dataSource) {
+      const error = new Error('DataSource has not been initialized');
       dbLogger.error(error);
       throw error;
     }
 
-    if (!this.dataSource.isInitialized) {
-      const error = new Error("DataSource is not initialized");
+    if (!DatabaseManager.dataSource.isInitialized) {
+      const error = new Error('DataSource is not initialized');
       dbLogger.error(error);
       throw error;
     }
 
-    return this.dataSource;
+    return DatabaseManager.dataSource;
   }
 
   /**
    * Get EntityManager from DataSource
    */
   public static getEntityManager(): EntityManager {
-    return this.getDataSource().manager;
+    return DatabaseManager.getDataSource().manager;
   }
 
   /**
    * Get a repository for a specific entity
    * @param entity The entity class to get repository for
    */
-  public static getRepository<T extends object>(
-    entity: EntityTarget<T>
-  ): Repository<T> {
-    return this.getDataSource().getRepository(entity);
+  public static getRepository<T extends object>(entity: EntityTarget<T>): Repository<T> {
+    return DatabaseManager.getDataSource().getRepository(entity);
   }
 
   /**
    * Create a new query runner for transactions
    */
   public static createQueryRunner() {
-    return this.getDataSource().createQueryRunner();
+    return DatabaseManager.getDataSource().createQueryRunner();
   }
 
   /**
@@ -157,12 +154,12 @@ export class DatabaseManager {
    * @param sql The SQL query to execute
    * @param parameters Optional query parameters
    */
-  public static async query(sql: string, parameters?: any[]): Promise<any> {
+  public static async query(sql: string, parameters?: unknown[]): Promise<unknown> {
     try {
-      const dataSource = this.getDataSource();
+      const dataSource = DatabaseManager.getDataSource();
       return await dataSource.query(sql, parameters);
     } catch (error) {
-      dbLogger.error(error, "Error executing raw query");
+      dbLogger.error(error, 'Error executing raw query');
       throw error;
     }
   }
@@ -171,7 +168,7 @@ export class DatabaseManager {
    * Check if DataSource is initialized
    */
   public static isInitialized(): boolean {
-    return this.dataSource?.isInitialized ?? false;
+    return DatabaseManager.dataSource?.isInitialized ?? false;
   }
 
   /**
@@ -179,17 +176,17 @@ export class DatabaseManager {
    */
   public static async healthCheck(): Promise<boolean> {
     try {
-      const dataSource = this.getDataSource();
+      const dataSource = DatabaseManager.getDataSource();
 
       if (!dataSource.isInitialized) {
         return false;
       }
 
       // Try a simple query to verify connection
-      await dataSource.query("SELECT 1");
+      await dataSource.query('SELECT 1');
       return true;
     } catch (error) {
-      dbLogger.error(error, "Health check failed");
+      dbLogger.error(error, 'Health check failed');
       return false;
     }
   }
@@ -199,11 +196,11 @@ export class DatabaseManager {
    */
   public static async runMigrations(): Promise<void> {
     try {
-      const dataSource = this.getDataSource();
+      const dataSource = DatabaseManager.getDataSource();
       await dataSource.runMigrations();
-      dbLogger.info("Migrations executed successfully");
+      dbLogger.info('Migrations executed successfully');
     } catch (error) {
-      dbLogger.error(error, "Error running migrations");
+      dbLogger.error(error, 'Error running migrations');
       throw error;
     }
   }
@@ -213,11 +210,11 @@ export class DatabaseManager {
    */
   public static async revertLastMigration(): Promise<void> {
     try {
-      const dataSource = this.getDataSource();
+      const dataSource = DatabaseManager.getDataSource();
       await dataSource.undoLastMigration();
-      dbLogger.info("Last migration reverted successfully");
+      dbLogger.info('Last migration reverted successfully');
     } catch (error) {
-      dbLogger.error(error, "Error reverting last migration");
+      dbLogger.error(error, 'Error reverting last migration');
       throw error;
     }
   }
@@ -226,21 +223,19 @@ export class DatabaseManager {
    * Synchronize database schema (use with caution in production)
    * @param dropBeforeSync Whether to drop the database before sync
    */
-  public static async synchronize(
-    dropBeforeSync: boolean = false
-  ): Promise<void> {
+  public static async synchronize(dropBeforeSync: boolean = false): Promise<void> {
     try {
-      const dataSource = this.getDataSource();
+      const dataSource = DatabaseManager.getDataSource();
 
       if (dropBeforeSync) {
-        dbLogger.warn("Dropping database schema before sync");
+        dbLogger.warn('Dropping database schema before sync');
         await dataSource.dropDatabase();
       }
 
       await dataSource.synchronize();
-      dbLogger.info("Database schema synchronized successfully");
+      dbLogger.info('Database schema synchronized successfully');
     } catch (error) {
-      dbLogger.error(error, "Error synchronizing database schema");
+      dbLogger.error(error, 'Error synchronizing database schema');
       throw error;
     }
   }
@@ -251,7 +246,7 @@ export class DatabaseManager {
   public static async close(): Promise<void> {
     if (DatabaseManager.dataSource?.isInitialized) {
       await DatabaseManager.dataSource.destroy();
-      dbLogger.info("Database connection closed");
+      dbLogger.info('Database connection closed');
     }
   }
 
@@ -259,9 +254,64 @@ export class DatabaseManager {
    * Creates db directory if it does not exist.
    */
   private static ensureDatabaseDirectory(): void {
-    const dbDir = fileSystemService.getExternalPath("resources/db/");
+    const dbDir = fileSystemService.getExternalPath('resources/db/');
     if (!fs.existsSync(dbDir)) {
       fs.mkdirSync(dbDir, { recursive: true });
+    }
+  }
+
+  /**
+   * One-time migration: populates the new collection_id / collection_order columns
+   * on Movie, Series and Album from the legacy CollectionMovie / CollectionSeries /
+   * CollectionAlbum junction tables. Only updates rows where collection_id IS NULL
+   * so it is safe to run on every startup — it is a no-op once already migrated.
+   * The junction tables are left in place (TypeORM never drops them) and can be
+   * dropped manually once you are confident the migration succeeded.
+   */
+  private static async migrateCollectionFKs(): Promise<void> {
+    const qr = DatabaseManager.dataSource!.createQueryRunner();
+    await qr.connect();
+    try {
+      const tableNames: string[] = (
+        await qr.query(`SELECT name FROM sqlite_master WHERE type='table'`)
+      ).map((r: { name: string }) => r.name);
+
+      if (tableNames.includes('collection_movie')) {
+        await qr.query(`
+          UPDATE movie
+          SET collection_id    = (SELECT collection_id  FROM collection_movie cm WHERE cm.movie_id = movie.id LIMIT 1),
+              collection_order = COALESCE((SELECT custom_order FROM collection_movie cm WHERE cm.movie_id = movie.id LIMIT 1), 0)
+          WHERE collection_id IS NULL
+            AND EXISTS (SELECT 1 FROM collection_movie cm WHERE cm.movie_id = movie.id)
+        `);
+        dbLogger.info('Migrated movie collection FKs from CollectionMovie junction table');
+      }
+
+      if (tableNames.includes('collection_series')) {
+        await qr.query(`
+          UPDATE series
+          SET collection_id    = (SELECT collection_id  FROM collection_series cs WHERE cs.series_id = series.id LIMIT 1),
+              collection_order = COALESCE((SELECT custom_order FROM collection_series cs WHERE cs.series_id = series.id LIMIT 1), 0)
+          WHERE collection_id IS NULL
+            AND EXISTS (SELECT 1 FROM collection_series cs WHERE cs.series_id = series.id)
+        `);
+        dbLogger.info('Migrated series collection FKs from CollectionSeries junction table');
+      }
+
+      if (tableNames.includes('collection_album')) {
+        await qr.query(`
+          UPDATE album
+          SET collection_id    = (SELECT collection_id  FROM collection_album ca WHERE ca.album_id = album.id LIMIT 1),
+              collection_order = COALESCE((SELECT custom_order FROM collection_album ca WHERE ca.album_id = album.id LIMIT 1), 0)
+          WHERE collection_id IS NULL
+            AND EXISTS (SELECT 1 FROM collection_album ca WHERE ca.album_id = album.id)
+        `);
+        dbLogger.info('Migrated album collection FKs from CollectionAlbum junction table');
+      }
+    } catch (error) {
+      dbLogger.error(error, 'Error during collection FK migration — existing data is unaffected');
+    } finally {
+      await qr.release();
     }
   }
 }

@@ -9,5 +9,6 @@ export interface StreamUrlDTO {
 
 export interface VideoUrlDTO {
   filePath: string;
+  localId?: string;
   expiresIn?: number | string;
 }

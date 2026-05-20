@@ -1,5 +1,5 @@
-import { IncludeType } from "@/types/common";
-import { Season } from "../../domain/Season";
+import type { IncludeType } from '@/types/common';
+import type { Season } from '../../domain/Season';
 
 export interface SeasonsRepositoryPort {
   findAll(seriesId: string): Promise<Season[]>;

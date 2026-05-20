@@ -3,11 +3,23 @@
   "typescript.tsc.autoDetect": "off",
   "json.schemas": [
     {
-      "fileMatch": ["/*electron-builder.json5", "/*electron-builder.json"],
+      "fileMatch": [
+        "/*electron-builder.json5",
+        "/*electron-builder.json"
+      ],
       "url": "https://json.schemastore.org/electron-builder"
     }
   ],
   "editor.fontLigatures": true,
   "editor.fontFamily": "Fira Code, Consolas, 'Courier New', monospace",
-  "postman.settings.dotenv-detection-notification-visibility": false
+  "postman.settings.dotenv-detection-notification-visibility": false,
+  "editor.defaultFormatter": "biomejs.biome",
+  "logViewer.watch": [
+    {
+      "title": "Seerial Server",
+      "pattern": "C:/Users/Admin/Documents/Projects/seerial-server/apps/server/logs/app.log"
+    }
+  ],
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true
 }

@@ -1,5 +1,5 @@
-import { Server } from "../../domain/Server";
-import { ServersRepositoryPort } from "../ports/ServersRepositoryPort";
+import type { Server } from '../../domain/Server';
+import type { ServersRepositoryPort } from '../ports/ServersRepositoryPort';
 
 export class UpdateServerUseCase {
   constructor(private serversRepo: ServersRepositoryPort) {}

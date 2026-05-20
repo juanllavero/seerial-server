@@ -1,12 +1,15 @@
-import { useCases } from "@/api/v1/shared/infrastructure/adapters/di/container";
-import { NotFoundException } from "@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions";
-import { SeriesRepositoryPort } from "../ports/SeriesRepositoryPort";
+import {
+  contentCleanupService,
+  useCases,
+} from '@/api/v1/shared/infrastructure/adapters/di/container';
+import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
+import type { SeriesRepositoryPort } from '../ports/SeriesRepositoryPort';
 
 export class DeleteSeriesUseCase {
   constructor(private seriesRepo: SeriesRepositoryPort) {}
 
   async execute(id: string): Promise<void> {
-    const series = await this.seriesRepo.findById(id, "few");
+    const series = await this.seriesRepo.findById(id, 'few');
     if (!series) throw new NotFoundException(`Series with ID ${id} not found`);
 
     // Delete seasons
@@ -15,7 +18,7 @@ export class DeleteSeriesUseCase {
     }
 
     // Delete local media files and folders
-    await useCases.deleteSeriesData().execute(id);
+    contentCleanupService.cleanSeries(id);
 
     const library = await useCases.getLibrary().execute(series.libraryId);
 

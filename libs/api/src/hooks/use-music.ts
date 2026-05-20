@@ -1,0 +1,63 @@
+import { API } from '../endpoints'
+import { type ApiMutationResult, type ApiQueryResult, asBody, asVoid, type MutationHookOptions, type QueryHookOptions, useApiMutation, useApiQuery } from './common'
+
+export const useGetSongLyrics = <TResponse = unknown>(
+    songId: string,
+    options?: QueryHookOptions<TResponse>,
+): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['songs', 'lyrics', songId], API.songs.lyrics(songId), options)
+
+export const useStreamSong = <TResponse = unknown>(
+    options?: QueryHookOptions<TResponse>,
+): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['songs', 'stream'], API.songs.stream, options)
+
+export const useUpdateSong = <TResponse = unknown, TBody = unknown>(
+    songId: string,
+    options?: MutationHookOptions<TResponse, TBody>,
+): ApiMutationResult<TResponse, TBody> =>
+    useApiMutation<TResponse, TBody>(['songs', 'update', songId], API.songs.update(songId), 'PATCH', asBody, options)
+
+export const useDeleteSong = <TResponse = unknown>(
+    songId: string,
+    options?: MutationHookOptions<TResponse, void>,
+): ApiMutationResult<TResponse, void> =>
+    useApiMutation<TResponse, void>(['songs', 'delete', songId], API.songs.delete(songId), 'DELETE', asVoid, options)
+
+export const useGetArtist = <TResponse = unknown>(
+    artistId: string,
+    options?: QueryHookOptions<TResponse>,
+): ApiQueryResult<TResponse> =>
+    useApiQuery<TResponse>(['artists', 'getById', artistId], API.artists.getById(artistId), options)
+
+export const useCreateArtist = <TResponse = unknown, TBody = unknown>(
+    options?: MutationHookOptions<TResponse, TBody>,
+): ApiMutationResult<TResponse, TBody> =>
+    useApiMutation<TResponse, TBody>(['artists', 'create'], API.artists.create, 'POST', asBody, options)
+
+export const useUpdateArtist = <TResponse = unknown, TBody = unknown>(
+    artistId: string,
+    options?: MutationHookOptions<TResponse, TBody>,
+): ApiMutationResult<TResponse, TBody> =>
+    useApiMutation<TResponse, TBody>(['artists', 'update', artistId], API.artists.update(artistId), 'PATCH', asBody, options)
+
+export const useDeleteArtist = <TResponse = unknown>(
+    artistId: string,
+    options?: MutationHookOptions<TResponse, void>,
+): ApiMutationResult<TResponse, void> =>
+    useApiMutation<TResponse, void>(['artists', 'delete', artistId], API.artists.delete(artistId), 'DELETE', asVoid, options)
+
+export const useGetAlbum = <TResponse = unknown>(
+    albumId: string,
+    options?: QueryHookOptions<TResponse>,
+): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['albums', 'get', albumId], API.albums.get(albumId), options)
+
+export const useUpdateAlbum = <TResponse = unknown, TBody = unknown>(
+    albumId: string,
+    options?: MutationHookOptions<TResponse, TBody>,
+): ApiMutationResult<TResponse, TBody> =>
+    useApiMutation<TResponse, TBody>(['albums', 'update', albumId], API.albums.update(albumId), 'PATCH', asBody, options)
+
+export const useDeleteAlbum = <TResponse = unknown>(
+    albumId: string,
+    options?: MutationHookOptions<TResponse, void>,
+): ApiMutationResult<TResponse, void> =>
+    useApiMutation<TResponse, void>(['albums', 'delete', albumId], API.albums.delete(albumId), 'DELETE', asVoid, options)

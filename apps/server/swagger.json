@@ -8,7 +8,7 @@
 		"responses": {},
 		"schemas": {
 			"ApiResponse_null_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -58,8 +58,182 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"DetailsData": {
+				"properties": {
+					"title": {
+						"type": "string"
+					},
+					"subtitle": {
+						"type": "string"
+					},
+					"tagline": {
+						"type": "string"
+					},
+					"year": {
+						"type": "string"
+					},
+					"genres": {
+						"type": "string"
+					},
+					"score": {
+						"type": "number",
+						"format": "double"
+					},
+					"imdbScore": {
+						"type": "number",
+						"format": "double"
+					},
+					"description": {
+						"type": "string"
+					},
+					"directedBy": {
+						"type": "string"
+					},
+					"createdBy": {
+						"type": "string"
+					},
+					"watched": {
+						"type": "boolean"
+					},
+					"coverSrc": {
+						"type": "string"
+					},
+					"logoSrc": {
+						"type": "string"
+					},
+					"backgroundSrc": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"title",
+					"genres",
+					"description"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ContinueWatchingVideoDTO": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"subtitle": {
+						"type": "string"
+					},
+					"episodeNumber": {
+						"type": "number",
+						"format": "double"
+					},
+					"seasonNumber": {
+						"type": "number",
+						"format": "double"
+					},
+					"date": {
+						"type": "string"
+					},
+					"duration": {
+						"type": "number",
+						"format": "double"
+					},
+					"timeWatched": {
+						"type": "number",
+						"format": "double"
+					},
+					"genres": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"overview": {
+						"type": "string"
+					},
+					"backgroundImage": {
+						"type": "string"
+					},
+					"posterImage": {
+						"type": "string"
+					},
+					"logoImage": {
+						"type": "string"
+					},
+					"videoImage": {
+						"type": "string"
+					},
+					"movieId": {
+						"type": "string"
+					},
+					"episodeId": {
+						"type": "string"
+					},
+					"seriesId": {
+						"type": "string"
+					},
+					"videoId": {
+						"type": "string"
+					},
+					"details": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/DetailsData"
+							}
+						],
+						"nullable": true
+					}
+				},
+				"required": [
+					"id",
+					"title",
+					"date",
+					"duration",
+					"timeWatched",
+					"genres",
+					"overview",
+					"backgroundImage",
+					"posterImage",
+					"logoImage",
+					"videoImage",
+					"videoId",
+					"details"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_ContinueWatchingVideoDTO-Array_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/ContinueWatchingVideoDTO"
+						},
+						"type": "array",
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"ApiResponse_string_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -122,9 +296,38 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"ApiResponse_string-or-null_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"type": "string",
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"VideoUrlDTO": {
 				"properties": {
 					"filePath": {
+						"type": "string"
+					},
+					"localId": {
 						"type": "string"
 					},
 					"expiresIn": {
@@ -145,52 +348,23 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"Cast": {
+			"CastData": {
 				"properties": {
-					"adult": {
-						"type": "boolean"
-					},
-					"cast_id": {
-						"type": "number",
-						"format": "double"
+					"name": {
+						"type": "string"
 					},
 					"character": {
 						"type": "string"
 					},
-					"credit_id": {
+					"profileImage": {
 						"type": "string"
-					},
-					"gender": {
-						"type": "number",
-						"format": "double",
-						"nullable": true
-					},
-					"id": {
-						"type": "number",
-						"format": "double"
-					},
-					"known_for_department": {
-						"type": "string"
-					},
-					"name": {
-						"type": "string"
-					},
-					"order": {
-						"type": "number",
-						"format": "double"
-					},
-					"original_name": {
-						"type": "string"
-					},
-					"popularity": {
-						"type": "number",
-						"format": "double"
-					},
-					"profile_path": {
-						"type": "string",
-						"nullable": true
 					}
 				},
+				"required": [
+					"name",
+					"character",
+					"profileImage"
+				],
 				"type": "object",
 				"additionalProperties": false
 			},
@@ -378,26 +552,6 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"CastData": {
-				"properties": {
-					"name": {
-						"type": "string"
-					},
-					"character": {
-						"type": "string"
-					},
-					"profileImage": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"name",
-					"character",
-					"profileImage"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
 			"WatchList": {
 				"properties": {
 					"id": {
@@ -434,6 +588,9 @@
 						"type": "number",
 						"format": "double"
 					},
+					"watched": {
+						"type": "boolean"
+					},
 					"lastWatched": {
 						"type": "string"
 					}
@@ -442,6 +599,7 @@
 					"id",
 					"userId",
 					"timeWatched",
+					"watched",
 					"lastWatched"
 				],
 				"type": "object",
@@ -841,7 +999,7 @@
 					},
 					"cast": {
 						"items": {
-							"$ref": "#/components/schemas/Cast"
+							"$ref": "#/components/schemas/CastData"
 						},
 						"type": "array"
 					},
@@ -1178,7 +1336,7 @@
 				"additionalProperties": false
 			},
 			"ApiResponse_Video_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -1190,6 +1348,124 @@
 						"allOf": [
 							{
 								"$ref": "#/components/schemas/Video"
+							}
+						],
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"MediaInfoData": {
+				"properties": {
+					"mediaInfo": {
+						"$ref": "#/components/schemas/MediaInfo"
+					},
+					"videoTracks": {
+						"items": {
+							"$ref": "#/components/schemas/VideoTrack"
+						},
+						"type": "array"
+					},
+					"subtitleTracks": {
+						"items": {
+							"$ref": "#/components/schemas/SubtitleTrack"
+						},
+						"type": "array"
+					},
+					"audioTracks": {
+						"items": {
+							"$ref": "#/components/schemas/AudioTrack"
+						},
+						"type": "array"
+					},
+					"chapters": {
+						"items": {
+							"$ref": "#/components/schemas/Chapter"
+						},
+						"type": "array"
+					},
+					"duration": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"videoTracks",
+					"subtitleTracks",
+					"audioTracks",
+					"chapters",
+					"duration"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"PlayBackConfig": {
+				"properties": {
+					"preferAudioLan": {
+						"type": "string"
+					},
+					"preferSubLan": {
+						"type": "string"
+					},
+					"subsMode": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"preferAudioLan",
+					"preferSubLan",
+					"subsMode"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"PlayBackInfo": {
+				"properties": {
+					"title": {
+						"type": "string"
+					},
+					"subtitle": {
+						"type": "string"
+					},
+					"info": {
+						"type": "string"
+					},
+					"mediaInfoData": {
+						"$ref": "#/components/schemas/MediaInfoData"
+					},
+					"playBackConfig": {
+						"$ref": "#/components/schemas/PlayBackConfig"
+					}
+				},
+				"required": [
+					"title"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_PlayBackInfo_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/PlayBackInfo"
 							}
 						],
 						"nullable": true
@@ -1265,6 +1541,35 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"ApiResponse_Chapter-Array_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/Chapter"
+						},
+						"type": "array",
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"UserDTO": {
 				"properties": {
 					"id": {
@@ -1314,7 +1619,7 @@
 				"additionalProperties": false
 			},
 			"ApiResponse__token-string--user-UserDTO__": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -1400,7 +1705,7 @@
 				"additionalProperties": false
 			},
 			"ApiResponse_UserDTO_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -1468,7 +1773,7 @@
 				"additionalProperties": false
 			},
 			"ApiResponse_UserDTO-Array_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -1520,7 +1825,7 @@
 				"additionalProperties": false
 			},
 			"ApiResponse_LoginResponseDTO_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -1626,7 +1931,7 @@
 				"additionalProperties": false
 			},
 			"ApiResponse_Song_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -1697,8 +2002,178 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"ApiResponse__content-string--language-string_-Array_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+			"SeparateSongStemsResponseDTO": {
+				"properties": {
+					"jobId": {
+						"type": "string"
+					},
+					"songId": {
+						"type": "string"
+					},
+					"inputPath": {
+						"type": "string"
+					},
+					"instrumentalPath": {
+						"type": "string"
+					},
+					"vocalsPath": {
+						"type": "string"
+					},
+					"status": {
+						"type": "string",
+						"enum": [
+							"queued",
+							"started",
+							"processing",
+							"completed",
+							"error"
+						]
+					},
+					"message": {
+						"type": "string"
+					},
+					"progress": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"jobId",
+					"songId",
+					"inputPath",
+					"instrumentalPath",
+					"vocalsPath",
+					"status"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_SeparateSongStemsResponseDTO_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/SeparateSongStemsResponseDTO"
+							}
+						],
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"PlainLyricsLine": {
+				"properties": {
+					"original": {
+						"type": "string"
+					},
+					"pronunciation": {
+						"type": "string"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"LyricWord": {
+				"properties": {
+					"text": {
+						"type": "string"
+					},
+					"startTime": {
+						"type": "number",
+						"format": "double"
+					},
+					"endTime": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"text",
+					"startTime",
+					"endTime"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"EnhancedLyricsLine": {
+				"properties": {
+					"original": {
+						"items": {
+							"$ref": "#/components/schemas/LyricWord"
+						},
+						"type": "array"
+					},
+					"pronunciation": {
+						"items": {
+							"$ref": "#/components/schemas/LyricWord"
+						},
+						"type": "array"
+					},
+					"backgroundVocals": {
+						"items": {
+							"$ref": "#/components/schemas/LyricWord"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"original"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"LyricsLine": {
+				"properties": {
+					"agent": {
+						"type": "string",
+						"enum": [
+							"v1",
+							"v2"
+						]
+					},
+					"startTime": {
+						"type": "number",
+						"format": "double"
+					},
+					"plainText": {
+						"$ref": "#/components/schemas/PlainLyricsLine"
+					},
+					"words": {
+						"$ref": "#/components/schemas/EnhancedLyricsLine"
+					},
+					"translation": {
+						"type": "string"
+					},
+					"isBlank": {
+						"type": "boolean"
+					}
+				},
+				"required": [
+					"agent",
+					"startTime"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_LyricsLine-Array_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -1708,19 +2183,7 @@
 					},
 					"data": {
 						"items": {
-							"properties": {
-								"language": {
-									"type": "string"
-								},
-								"content": {
-									"type": "string"
-								}
-							},
-							"required": [
-								"language",
-								"content"
-							],
-							"type": "object"
+							"$ref": "#/components/schemas/LyricsLine"
 						},
 						"type": "array",
 						"nullable": true
@@ -1738,22 +2201,28 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"AddLyricsDTO": {
+			"SongUrlDTO": {
 				"properties": {
-					"songId": {
+					"filePath": {
 						"type": "string"
 					},
-					"language": {
+					"localId": {
 						"type": "string"
 					},
-					"content": {
-						"type": "string"
+					"expiresIn": {
+						"anyOf": [
+							{
+								"type": "number",
+								"format": "double"
+							},
+							{
+								"type": "string"
+							}
+						]
 					}
 				},
 				"required": [
-					"songId",
-					"language",
-					"content"
+					"filePath"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -1788,7 +2257,7 @@
 				"additionalProperties": false
 			},
 			"ApiResponse_MediaSearchResult-Array_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -1816,8 +2285,119 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"ApiResponse_any_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+			"LibrarySearchItemType": {
+				"type": "string",
+				"enum": [
+					"collection",
+					"movie",
+					"series",
+					"album",
+					"artist",
+					"episode",
+					"song"
+				]
+			},
+			"LibrarySearchDetailsType": {
+				"type": "string",
+				"enum": [
+					"collection",
+					"movie",
+					"series",
+					"album"
+				]
+			},
+			"LibrarySearchNavigationTarget": {
+				"properties": {
+					"detailsType": {
+						"$ref": "#/components/schemas/LibrarySearchDetailsType"
+					},
+					"detailsId": {
+						"type": "string"
+					},
+					"focusItemId": {
+						"type": "string"
+					},
+					"currentSeasonNumber": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"detailsType",
+					"detailsId"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"LibrarySearchItem": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"type": {
+						"$ref": "#/components/schemas/LibrarySearchItemType"
+					},
+					"title": {
+						"type": "string"
+					},
+					"subtitle": {
+						"type": "string"
+					},
+					"imageSrc": {
+						"type": "string"
+					},
+					"libraryType": {
+						"type": "string",
+						"enum": [
+							"Shows",
+							"Movies",
+							"Music"
+						]
+					},
+					"navigation": {
+						"$ref": "#/components/schemas/LibrarySearchNavigationTarget"
+					}
+				},
+				"required": [
+					"id",
+					"type",
+					"title",
+					"navigation"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_LibrarySearchItem-Array_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/LibrarySearchItem"
+						},
+						"type": "array",
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_unknown_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -1900,7 +2480,7 @@
 				"additionalProperties": false
 			},
 			"ApiResponse_HealthResponse_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -1930,7 +2510,7 @@
 				"additionalProperties": false
 			},
 			"ApiResponse_string-Array_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -1975,7 +2555,7 @@
 				"additionalProperties": false
 			},
 			"ApiResponse_FileItem-Array_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -2080,7 +2660,7 @@
 				"additionalProperties": false
 			},
 			"ApiResponse_APIKeyResponse_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -2121,6 +2701,1132 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"Album": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"libraryId": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"year": {
+						"type": "string"
+					},
+					"genres": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"folder": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"coverSrc": {
+						"type": "string"
+					},
+					"songs": {
+						"items": {
+							"$ref": "#/components/schemas/Song"
+						},
+						"type": "array"
+					},
+					"albumArtists": {
+						"items": {
+							"$ref": "#/components/schemas/AlbumArtist"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"id",
+					"libraryId",
+					"title",
+					"genres",
+					"folder",
+					"coverSrc",
+					"songs",
+					"albumArtists"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Artist": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"name"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"AlbumArtist": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"album": {
+						"$ref": "#/components/schemas/Album"
+					},
+					"artist": {
+						"$ref": "#/components/schemas/Artist"
+					}
+				},
+				"required": [
+					"id",
+					"album",
+					"artist"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_Album-or-null_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Album"
+							}
+						],
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_Album_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Album"
+							}
+						],
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UpdateAlbumDTO": {
+				"properties": {
+					"title": {
+						"type": "string"
+					},
+					"year": {
+						"type": "string"
+					},
+					"genres": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"folder": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"coverSrc": {
+						"type": "string"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_Artist_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Artist"
+							}
+						],
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UpdateArtistDTO": {
+				"properties": {
+					"name": {
+						"type": "string"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CollectionSummaryDTO": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"itemCount": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"id",
+					"title",
+					"itemCount"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_CollectionSummaryDTO-Array_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/CollectionSummaryDTO"
+						},
+						"type": "array",
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Collection": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"backgroundSrc": {
+						"type": "string"
+					},
+					"backgroundsUrls": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"coverSrc": {
+						"type": "string"
+					},
+					"coversUrls": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"numberOfItems": {
+						"type": "number",
+						"format": "double"
+					},
+					"musicPosterSrc": {
+						"type": "string"
+					},
+					"shows": {
+						"items": {
+							"$ref": "#/components/schemas/Series"
+						},
+						"type": "array"
+					},
+					"movies": {
+						"items": {
+							"$ref": "#/components/schemas/Movie"
+						},
+						"type": "array"
+					},
+					"albums": {
+						"items": {
+							"$ref": "#/components/schemas/Album"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"id",
+					"title",
+					"backgroundSrc",
+					"backgroundsUrls",
+					"coverSrc",
+					"coversUrls",
+					"shows",
+					"movies",
+					"albums"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_Collection_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Collection"
+							}
+						],
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CreateCollectionWithItemDTO": {
+				"properties": {
+					"title": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"movieIds": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"seriesIds": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"albumIds": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"title"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"MusicExtrasDTO": {
+				"properties": {
+					"title": {
+						"type": "string"
+					},
+					"src": {
+						"type": "string"
+					},
+					"type": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"title",
+					"src",
+					"type"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_MusicExtrasDTO-Array_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/MusicExtrasDTO"
+						},
+						"type": "array",
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ItemType": {
+				"type": "string",
+				"enum": [
+					"series",
+					"movie",
+					"album",
+					"collection"
+				]
+			},
+			"LibraryItem": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"years": {
+						"type": "string"
+					},
+					"coverSrc": {
+						"type": "string"
+					},
+					"backgroundSrc": {
+						"type": "string"
+					},
+					"images": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array",
+						"description": "Up to 4 item cover paths for client-side collage rendering (collections only)."
+					},
+					"numberOfItems": {
+						"type": "number",
+						"format": "double"
+					},
+					"order": {
+						"type": "number",
+						"format": "double"
+					},
+					"watched": {
+						"type": "boolean"
+					},
+					"remainingItems": {
+						"type": "number",
+						"format": "double"
+					},
+					"analyzingFiles": {
+						"type": "boolean"
+					},
+					"type": {
+						"$ref": "#/components/schemas/ItemType"
+					},
+					"details": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/DetailsData"
+							}
+						],
+						"nullable": true
+					},
+					"currentSeasonNumber": {
+						"type": "number",
+						"format": "double"
+					},
+					"collectionId": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"title",
+					"numberOfItems",
+					"order",
+					"watched",
+					"remainingItems",
+					"analyzingFiles",
+					"type",
+					"details"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CollectionContentDTO": {
+				"properties": {
+					"movies": {
+						"items": {
+							"$ref": "#/components/schemas/LibraryItem"
+						},
+						"type": "array"
+					},
+					"series": {
+						"items": {
+							"$ref": "#/components/schemas/LibraryItem"
+						},
+						"type": "array"
+					},
+					"albums": {
+						"items": {
+							"$ref": "#/components/schemas/LibraryItem"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"movies",
+					"series",
+					"albums"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_CollectionContentDTO_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/CollectionContentDTO"
+							}
+						],
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ReorderItemDTO": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"type": {
+						"type": "string",
+						"enum": [
+							"movie",
+							"movies",
+							"series",
+							"show",
+							"shows",
+							"album",
+							"albums"
+						]
+					}
+				},
+				"required": [
+					"id",
+					"type"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ReorderContentDTO": {
+				"properties": {
+					"orderedItems": {
+						"items": {
+							"$ref": "#/components/schemas/ReorderItemDTO"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"orderedItems"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_Collection-or-null_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Collection"
+							}
+						],
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UpdateCollectionDTO": {
+				"properties": {
+					"title": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					},
+					"backgroundSrc": {
+						"type": "string"
+					},
+					"backgroundsUrls": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"coverSrc": {
+						"type": "string"
+					},
+					"coversUrls": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"musicPosterSrc": {
+						"type": "string"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_Episode-or-null_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Episode"
+							}
+						],
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_Episode_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Episode"
+							}
+						],
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UpdateEpisodeDTO": {
+				"properties": {
+					"title": {
+						"type": "string"
+					},
+					"episodeNumber": {
+						"type": "number",
+						"format": "double"
+					},
+					"description": {
+						"type": "string"
+					},
+					"airDate": {
+						"type": "string"
+					},
+					"duration": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"SetEpisodeWatchStateDTO": {
+				"properties": {
+					"state": {
+						"type": "boolean"
+					}
+				},
+				"required": [
+					"state"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"LibraryType": {
+				"type": "string",
+				"enum": [
+					"Shows",
+					"Movies",
+					"Music"
+				]
+			},
+			"Record_string.string_": {
+				"properties": {},
+				"additionalProperties": {
+					"type": "string"
+				},
+				"type": "object",
+				"description": "Construct a type with a set of properties K of type T"
+			},
+			"Library": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"language": {
+						"type": "string"
+					},
+					"type": {
+						"$ref": "#/components/schemas/LibraryType"
+					},
+					"order": {
+						"type": "number",
+						"format": "double"
+					},
+					"hidden": {
+						"type": "boolean"
+					},
+					"folders": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"preferAudioLan": {
+						"type": "string"
+					},
+					"preferSubLan": {
+						"type": "string"
+					},
+					"subsMode": {
+						"type": "string"
+					},
+					"analyzedFiles": {
+						"$ref": "#/components/schemas/Record_string.string_"
+					},
+					"analyzedFolders": {
+						"$ref": "#/components/schemas/Record_string.string_"
+					},
+					"backgroundSrc": {
+						"type": "string"
+					},
+					"series": {
+						"items": {
+							"$ref": "#/components/schemas/Series"
+						},
+						"type": "array"
+					},
+					"movies": {
+						"items": {
+							"$ref": "#/components/schemas/Movie"
+						},
+						"type": "array"
+					},
+					"albums": {
+						"items": {
+							"$ref": "#/components/schemas/Album"
+						},
+						"type": "array"
+					},
+					"collections": {
+						"items": {
+							"$ref": "#/components/schemas/Collection"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"id",
+					"name",
+					"language",
+					"type",
+					"order",
+					"hidden",
+					"folders",
+					"analyzedFiles",
+					"analyzedFolders",
+					"backgroundSrc",
+					"series",
+					"movies",
+					"albums",
+					"collections"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_Library-Array_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/Library"
+						},
+						"type": "array",
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_Library_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Library"
+							}
+						],
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_LibraryItem-Array_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/LibraryItem"
+						},
+						"type": "array",
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CreateLibraryDTO": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"language": {
+						"type": "string"
+					},
+					"type": {
+						"$ref": "#/components/schemas/LibraryType"
+					},
+					"folders": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"preferAudioLan": {
+						"type": "string"
+					},
+					"preferSubLan": {
+						"type": "string"
+					},
+					"subsMode": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"name",
+					"language",
+					"type",
+					"folders"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UpdateLibraryDTO": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"language": {
+						"type": "string"
+					},
+					"type": {
+						"$ref": "#/components/schemas/LibraryType"
+					},
+					"order": {
+						"type": "number",
+						"format": "double"
+					},
+					"hidden": {
+						"type": "boolean"
+					},
+					"folders": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"preferAudioLan": {
+						"type": "string"
+					},
+					"preferSubLan": {
+						"type": "string"
+					},
+					"subsMode": {
+						"type": "string"
+					},
+					"backgroundSrc": {
+						"type": "string"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_boolean_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"type": "boolean",
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ReorderLibrariesDTO": {
+				"properties": {
+					"orderedLibraryIds": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"orderedLibraryIds"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ReorderItemsDTO": {
+				"properties": {
+					"orderedItems": {
+						"items": {
+							"properties": {
+								"type": {
+									"type": "string"
+								},
+								"id": {
+									"type": "string"
+								}
+							},
+							"required": [
+								"type",
+								"id"
+							],
+							"type": "object"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"orderedItems"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"ChangeIdentificationDTO": {
 				"properties": {
 					"themdbId": {
@@ -2135,7 +3841,7 @@
 				"additionalProperties": false
 			},
 			"ApiResponse_Movie_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -2258,7 +3964,7 @@
 				"additionalProperties": false
 			},
 			"ApiResponse_MovieResult-Array_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -2287,7 +3993,7 @@
 				"additionalProperties": false
 			},
 			"ApiResponse_number_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -2313,8 +4019,27 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"ApiResponse_boolean_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+			"PlayList": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"title": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"id",
+					"title"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_PlayList-Array_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -2323,7 +4048,10 @@
 						"type": "string"
 					},
 					"data": {
-						"type": "boolean",
+						"items": {
+							"$ref": "#/components/schemas/PlayList"
+						},
+						"type": "array",
 						"nullable": true
 					},
 					"timestamp": {
@@ -2335,6 +4063,172 @@
 					"message",
 					"data",
 					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_PlayList_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/PlayList"
+							}
+						],
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"CreatePlayListDTO": {
+				"properties": {
+					"title": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"title"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"UpdatePlayListDTO": {
+				"properties": {
+					"title": {
+						"type": "string"
+					},
+					"description": {
+						"type": "string"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"AddSongToPlaylistDTO": {
+				"properties": {
+					"songId": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"songId"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_Season_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"allOf": [
+							{
+								"$ref": "#/components/schemas/Season"
+							}
+						],
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"IncludeType": {
+				"type": "string",
+				"enum": [
+					"none",
+					"few",
+					"all"
+				]
+			},
+			"UpdateSeasonDTO": {
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"nameLock": {
+						"type": "boolean"
+					},
+					"year": {
+						"type": "string"
+					},
+					"yearLock": {
+						"type": "boolean"
+					},
+					"overview": {
+						"type": "string"
+					},
+					"overviewLock": {
+						"type": "boolean"
+					},
+					"seasonNumber": {
+						"type": "number",
+						"format": "double"
+					},
+					"backgroundSrc": {
+						"type": "string"
+					},
+					"backgroundsUrls": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"videoSrc": {
+						"type": "string"
+					},
+					"musicSrc": {
+						"type": "string"
+					}
+				},
+				"type": "object",
+				"additionalProperties": false
+			},
+			"SetSeasonWatchStateDTO": {
+				"properties": {
+					"watched": {
+						"type": "boolean"
+					},
+					"userId": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"watched",
+					"userId"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -2390,7 +4284,7 @@
 				"additionalProperties": false
 			},
 			"ApiResponse_Series_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -2542,14 +4436,6 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"IncludeType": {
-				"type": "string",
-				"enum": [
-					"none",
-					"few",
-					"all"
-				]
-			},
 			"TvResult": {
 				"properties": {
 					"poster_path": {
@@ -2617,7 +4503,7 @@
 				"additionalProperties": false
 			},
 			"ApiResponse_TvResult-Array_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -2704,7 +4590,7 @@
 				"additionalProperties": false
 			},
 			"ApiResponse_TvEpisodeGroupsResponse-or-null_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -2733,1267 +4619,23 @@
 				"type": "object",
 				"additionalProperties": false
 			},
-			"ApiResponse_Season_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
-				"properties": {
-					"success": {
-						"type": "boolean"
-					},
-					"message": {
-						"type": "string"
-					},
-					"data": {
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/Season"
-							}
-						],
-						"nullable": true
-					},
-					"timestamp": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"success",
-					"message",
-					"data",
-					"timestamp"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"UpdateSeasonDTO": {
-				"properties": {
-					"name": {
-						"type": "string"
-					},
-					"nameLock": {
-						"type": "boolean"
-					},
-					"year": {
-						"type": "string"
-					},
-					"yearLock": {
-						"type": "boolean"
-					},
-					"overview": {
-						"type": "string"
-					},
-					"overviewLock": {
-						"type": "boolean"
-					},
-					"seasonNumber": {
-						"type": "number",
-						"format": "double"
-					},
-					"backgroundSrc": {
-						"type": "string"
-					},
-					"backgroundsUrls": {
-						"items": {
-							"type": "string"
-						},
-						"type": "array"
-					},
-					"videoSrc": {
-						"type": "string"
-					},
-					"musicSrc": {
-						"type": "string"
-					}
-				},
-				"type": "object",
-				"additionalProperties": false
-			},
-			"SetSeasonWatchStateDTO": {
-				"properties": {
-					"watched": {
-						"type": "boolean"
-					},
-					"userId": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"watched",
-					"userId"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"PlayList": {
+			"ServerUserDTO": {
+				"description": "Minimal user info returned by the public server-status endpoint",
 				"properties": {
 					"id": {
 						"type": "string"
 					},
-					"title": {
+					"username": {
 						"type": "string"
 					},
-					"description": {
+					"avatar": {
 						"type": "string"
 					}
 				},
 				"required": [
 					"id",
-					"title"
+					"username"
 				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ApiResponse_PlayList-Array_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
-				"properties": {
-					"success": {
-						"type": "boolean"
-					},
-					"message": {
-						"type": "string"
-					},
-					"data": {
-						"items": {
-							"$ref": "#/components/schemas/PlayList"
-						},
-						"type": "array",
-						"nullable": true
-					},
-					"timestamp": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"success",
-					"message",
-					"data",
-					"timestamp"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ApiResponse_PlayList_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
-				"properties": {
-					"success": {
-						"type": "boolean"
-					},
-					"message": {
-						"type": "string"
-					},
-					"data": {
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/PlayList"
-							}
-						],
-						"nullable": true
-					},
-					"timestamp": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"success",
-					"message",
-					"data",
-					"timestamp"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"CreatePlayListDTO": {
-				"properties": {
-					"title": {
-						"type": "string"
-					},
-					"description": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"title"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"UpdatePlayListDTO": {
-				"properties": {
-					"title": {
-						"type": "string"
-					},
-					"description": {
-						"type": "string"
-					}
-				},
-				"type": "object",
-				"additionalProperties": false
-			},
-			"AddSongToPlaylistDTO": {
-				"properties": {
-					"songId": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"songId"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ApiResponse_Movie-Array_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
-				"properties": {
-					"success": {
-						"type": "boolean"
-					},
-					"message": {
-						"type": "string"
-					},
-					"data": {
-						"items": {
-							"$ref": "#/components/schemas/Movie"
-						},
-						"type": "array",
-						"nullable": true
-					},
-					"timestamp": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"success",
-					"message",
-					"data",
-					"timestamp"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ApiResponse_Series-Array_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
-				"properties": {
-					"success": {
-						"type": "boolean"
-					},
-					"message": {
-						"type": "string"
-					},
-					"data": {
-						"items": {
-							"$ref": "#/components/schemas/Series"
-						},
-						"type": "array",
-						"nullable": true
-					},
-					"timestamp": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"success",
-					"message",
-					"data",
-					"timestamp"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"LibraryType": {
-				"type": "string",
-				"enum": [
-					"Shows",
-					"Movies",
-					"Music"
-				]
-			},
-			"Record_string.string_": {
-				"properties": {},
-				"additionalProperties": {
-					"type": "string"
-				},
-				"type": "object",
-				"description": "Construct a type with a set of properties K of type T"
-			},
-			"Album": {
-				"properties": {
-					"id": {
-						"type": "string"
-					},
-					"libraryId": {
-						"type": "string"
-					},
-					"title": {
-						"type": "string"
-					},
-					"year": {
-						"type": "string"
-					},
-					"genres": {
-						"items": {
-							"type": "string"
-						},
-						"type": "array"
-					},
-					"folder": {
-						"type": "string"
-					},
-					"description": {
-						"type": "string"
-					},
-					"coverSrc": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"id",
-					"libraryId",
-					"title",
-					"genres",
-					"folder",
-					"coverSrc"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"Collection": {
-				"properties": {
-					"id": {
-						"type": "string"
-					},
-					"title": {
-						"type": "string"
-					},
-					"description": {
-						"type": "string"
-					},
-					"backgroundSrc": {
-						"type": "string"
-					},
-					"backgroundsUrls": {
-						"items": {
-							"type": "string"
-						},
-						"type": "array"
-					},
-					"coverSrc": {
-						"type": "string"
-					},
-					"coversUrls": {
-						"items": {
-							"type": "string"
-						},
-						"type": "array"
-					},
-					"numberOfItems": {
-						"type": "number",
-						"format": "double"
-					},
-					"musicPosterSrc": {
-						"type": "string"
-					},
-					"shows": {
-						"items": {
-							"$ref": "#/components/schemas/Series"
-						},
-						"type": "array"
-					},
-					"movies": {
-						"items": {
-							"$ref": "#/components/schemas/Movie"
-						},
-						"type": "array"
-					},
-					"albums": {
-						"items": {
-							"$ref": "#/components/schemas/Album"
-						},
-						"type": "array"
-					}
-				},
-				"required": [
-					"id",
-					"title",
-					"backgroundSrc",
-					"backgroundsUrls",
-					"coverSrc",
-					"coversUrls",
-					"shows",
-					"movies",
-					"albums"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"Library": {
-				"properties": {
-					"id": {
-						"type": "string"
-					},
-					"name": {
-						"type": "string"
-					},
-					"language": {
-						"type": "string"
-					},
-					"type": {
-						"$ref": "#/components/schemas/LibraryType"
-					},
-					"order": {
-						"type": "number",
-						"format": "double"
-					},
-					"hidden": {
-						"type": "boolean"
-					},
-					"folders": {
-						"items": {
-							"type": "string"
-						},
-						"type": "array"
-					},
-					"preferAudioLan": {
-						"type": "string"
-					},
-					"preferSubLan": {
-						"type": "string"
-					},
-					"subsMode": {
-						"type": "string"
-					},
-					"analyzedFiles": {
-						"$ref": "#/components/schemas/Record_string.string_"
-					},
-					"analyzedFolders": {
-						"$ref": "#/components/schemas/Record_string.string_"
-					},
-					"backgroundSrc": {
-						"type": "string"
-					},
-					"series": {
-						"items": {
-							"$ref": "#/components/schemas/Series"
-						},
-						"type": "array"
-					},
-					"movies": {
-						"items": {
-							"$ref": "#/components/schemas/Movie"
-						},
-						"type": "array"
-					},
-					"albums": {
-						"items": {
-							"$ref": "#/components/schemas/Album"
-						},
-						"type": "array"
-					},
-					"collections": {
-						"items": {
-							"$ref": "#/components/schemas/Collection"
-						},
-						"type": "array"
-					}
-				},
-				"required": [
-					"id",
-					"name",
-					"language",
-					"type",
-					"order",
-					"hidden",
-					"folders",
-					"analyzedFiles",
-					"analyzedFolders",
-					"backgroundSrc",
-					"series",
-					"movies",
-					"albums",
-					"collections"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ApiResponse_Library-Array_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
-				"properties": {
-					"success": {
-						"type": "boolean"
-					},
-					"message": {
-						"type": "string"
-					},
-					"data": {
-						"items": {
-							"$ref": "#/components/schemas/Library"
-						},
-						"type": "array",
-						"nullable": true
-					},
-					"timestamp": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"success",
-					"message",
-					"data",
-					"timestamp"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ApiResponse_Library_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
-				"properties": {
-					"success": {
-						"type": "boolean"
-					},
-					"message": {
-						"type": "string"
-					},
-					"data": {
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/Library"
-							}
-						],
-						"nullable": true
-					},
-					"timestamp": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"success",
-					"message",
-					"data",
-					"timestamp"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ItemType": {
-				"type": "string",
-				"enum": [
-					"series",
-					"movie",
-					"album",
-					"collection"
-				]
-			},
-			"LibraryItem": {
-				"properties": {
-					"id": {
-						"type": "string"
-					},
-					"title": {
-						"type": "string"
-					},
-					"years": {
-						"type": "string"
-					},
-					"coverSrc": {
-						"type": "string"
-					},
-					"numberOfItems": {
-						"type": "number",
-						"format": "double"
-					},
-					"order": {
-						"type": "number",
-						"format": "double"
-					},
-					"watched": {
-						"type": "boolean"
-					},
-					"remainingItems": {
-						"type": "number",
-						"format": "double"
-					},
-					"analyzingFiles": {
-						"type": "boolean"
-					},
-					"images": {
-						"properties": {
-							"images": {
-								"items": {
-									"type": "string"
-								},
-								"type": "array"
-							},
-							"background": {
-								"type": "string",
-								"nullable": true
-							},
-							"poster": {
-								"type": "string",
-								"nullable": true
-							}
-						},
-						"required": [
-							"images",
-							"background",
-							"poster"
-						],
-						"type": "object"
-					},
-					"type": {
-						"$ref": "#/components/schemas/ItemType"
-					}
-				},
-				"required": [
-					"id",
-					"title",
-					"numberOfItems",
-					"order",
-					"watched",
-					"remainingItems",
-					"analyzingFiles",
-					"type"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ApiResponse_LibraryItem-Array_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
-				"properties": {
-					"success": {
-						"type": "boolean"
-					},
-					"message": {
-						"type": "string"
-					},
-					"data": {
-						"items": {
-							"$ref": "#/components/schemas/LibraryItem"
-						},
-						"type": "array",
-						"nullable": true
-					},
-					"timestamp": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"success",
-					"message",
-					"data",
-					"timestamp"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"CreateLibraryDTO": {
-				"properties": {
-					"name": {
-						"type": "string"
-					},
-					"language": {
-						"type": "string"
-					},
-					"type": {
-						"$ref": "#/components/schemas/LibraryType"
-					},
-					"folders": {
-						"items": {
-							"type": "string"
-						},
-						"type": "array"
-					},
-					"preferAudioLan": {
-						"type": "string"
-					},
-					"preferSubLan": {
-						"type": "string"
-					},
-					"subsMode": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"name",
-					"language",
-					"type",
-					"folders"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"UpdateLibraryDTO": {
-				"properties": {
-					"name": {
-						"type": "string"
-					},
-					"language": {
-						"type": "string"
-					},
-					"type": {
-						"$ref": "#/components/schemas/LibraryType"
-					},
-					"order": {
-						"type": "number",
-						"format": "double"
-					},
-					"hidden": {
-						"type": "boolean"
-					},
-					"folders": {
-						"items": {
-							"type": "string"
-						},
-						"type": "array"
-					},
-					"preferAudioLan": {
-						"type": "string"
-					},
-					"preferSubLan": {
-						"type": "string"
-					},
-					"subsMode": {
-						"type": "string"
-					},
-					"backgroundSrc": {
-						"type": "string"
-					}
-				},
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ReorderLibrariesDTO": {
-				"properties": {
-					"orderedLibraryIds": {
-						"items": {
-							"type": "string"
-						},
-						"type": "array"
-					}
-				},
-				"required": [
-					"orderedLibraryIds"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ReorderItemsDTO": {
-				"properties": {
-					"orderedItems": {
-						"items": {},
-						"type": "array"
-					}
-				},
-				"required": [
-					"orderedItems"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ApiResponse_Episode-or-null_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
-				"properties": {
-					"success": {
-						"type": "boolean"
-					},
-					"message": {
-						"type": "string"
-					},
-					"data": {
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/Episode"
-							}
-						],
-						"nullable": true
-					},
-					"timestamp": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"success",
-					"message",
-					"data",
-					"timestamp"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ApiResponse_Episode_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
-				"properties": {
-					"success": {
-						"type": "boolean"
-					},
-					"message": {
-						"type": "string"
-					},
-					"data": {
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/Episode"
-							}
-						],
-						"nullable": true
-					},
-					"timestamp": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"success",
-					"message",
-					"data",
-					"timestamp"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"UpdateEpisodeDTO": {
-				"properties": {
-					"title": {
-						"type": "string"
-					},
-					"episodeNumber": {
-						"type": "number",
-						"format": "double"
-					},
-					"description": {
-						"type": "string"
-					},
-					"airDate": {
-						"type": "string"
-					},
-					"duration": {
-						"type": "number",
-						"format": "double"
-					}
-				},
-				"type": "object",
-				"additionalProperties": false
-			},
-			"SetEpisodeWatchStateDTO": {
-				"properties": {
-					"state": {
-						"type": "boolean"
-					}
-				},
-				"required": [
-					"state"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ContinueWatchingVideo": {
-				"properties": {
-					"id": {
-						"type": "string"
-					},
-					"title": {
-						"type": "string"
-					},
-					"subtitle": {
-						"type": "string"
-					},
-					"episodeNumber": {
-						"type": "number",
-						"format": "double"
-					},
-					"seasonNumber": {
-						"type": "number",
-						"format": "double"
-					},
-					"date": {
-						"type": "string"
-					},
-					"duration": {
-						"type": "number",
-						"format": "double"
-					},
-					"timeWatched": {
-						"type": "number",
-						"format": "double"
-					},
-					"genres": {
-						"items": {
-							"type": "string"
-						},
-						"type": "array"
-					},
-					"overview": {
-						"type": "string"
-					},
-					"backgroundImage": {
-						"type": "string"
-					},
-					"posterImage": {
-						"type": "string"
-					},
-					"logoImage": {
-						"type": "string"
-					},
-					"videoImage": {
-						"type": "string"
-					},
-					"movieId": {
-						"type": "string"
-					},
-					"episodeId": {
-						"type": "string"
-					},
-					"videoId": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"id",
-					"title",
-					"date",
-					"duration",
-					"timeWatched",
-					"genres",
-					"overview",
-					"backgroundImage",
-					"posterImage",
-					"logoImage",
-					"videoImage",
-					"videoId"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ApiResponse_ContinueWatchingVideo-Array_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
-				"properties": {
-					"success": {
-						"type": "boolean"
-					},
-					"message": {
-						"type": "string"
-					},
-					"data": {
-						"items": {
-							"$ref": "#/components/schemas/ContinueWatchingVideo"
-						},
-						"type": "array",
-						"nullable": true
-					},
-					"timestamp": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"success",
-					"message",
-					"data",
-					"timestamp"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"MusicExtrasDTO": {
-				"properties": {},
-				"type": "object",
-				"additionalProperties": {}
-			},
-			"ApiResponse_MusicExtrasDTO_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
-				"properties": {
-					"success": {
-						"type": "boolean"
-					},
-					"message": {
-						"type": "string"
-					},
-					"data": {
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/MusicExtrasDTO"
-							}
-						],
-						"nullable": true
-					},
-					"timestamp": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"success",
-					"message",
-					"data",
-					"timestamp"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ReorderItemDTO": {
-				"properties": {
-					"id": {
-						"type": "string"
-					},
-					"type": {
-						"type": "string",
-						"enum": [
-							"movie",
-							"movies",
-							"series",
-							"show",
-							"shows",
-							"album",
-							"albums"
-						]
-					}
-				},
-				"required": [
-					"id",
-					"type"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ReorderContentDTO": {
-				"properties": {
-					"orderedItems": {
-						"items": {
-							"$ref": "#/components/schemas/ReorderItemDTO"
-						},
-						"type": "array"
-					}
-				},
-				"required": [
-					"orderedItems"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ApiResponse_Collection-or-null_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
-				"properties": {
-					"success": {
-						"type": "boolean"
-					},
-					"message": {
-						"type": "string"
-					},
-					"data": {
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/Collection"
-							}
-						],
-						"nullable": true
-					},
-					"timestamp": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"success",
-					"message",
-					"data",
-					"timestamp"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ApiResponse_Collection_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
-				"properties": {
-					"success": {
-						"type": "boolean"
-					},
-					"message": {
-						"type": "string"
-					},
-					"data": {
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/Collection"
-							}
-						],
-						"nullable": true
-					},
-					"timestamp": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"success",
-					"message",
-					"data",
-					"timestamp"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"UpdateCollectionDTO": {
-				"properties": {
-					"title": {
-						"type": "string"
-					},
-					"description": {
-						"type": "string"
-					},
-					"backgroundSrc": {
-						"type": "string"
-					},
-					"backgroundsUrls": {
-						"items": {
-							"type": "string"
-						},
-						"type": "array"
-					},
-					"coverSrc": {
-						"type": "string"
-					},
-					"coversUrls": {
-						"items": {
-							"type": "string"
-						},
-						"type": "array"
-					},
-					"musicPosterSrc": {
-						"type": "string"
-					}
-				},
-				"type": "object",
-				"additionalProperties": false
-			},
-			"Artist": {
-				"properties": {
-					"id": {
-						"type": "string"
-					},
-					"name": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"name"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ApiResponse_Artist_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
-				"properties": {
-					"success": {
-						"type": "boolean"
-					},
-					"message": {
-						"type": "string"
-					},
-					"data": {
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/Artist"
-							}
-						],
-						"nullable": true
-					},
-					"timestamp": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"success",
-					"message",
-					"data",
-					"timestamp"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"UpdateArtistDTO": {
-				"properties": {
-					"name": {
-						"type": "string"
-					}
-				},
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ApiResponse_Album-or-null_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
-				"properties": {
-					"success": {
-						"type": "boolean"
-					},
-					"message": {
-						"type": "string"
-					},
-					"data": {
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/Album"
-							}
-						],
-						"nullable": true
-					},
-					"timestamp": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"success",
-					"message",
-					"data",
-					"timestamp"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"ApiResponse_Album_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
-				"properties": {
-					"success": {
-						"type": "boolean"
-					},
-					"message": {
-						"type": "string"
-					},
-					"data": {
-						"allOf": [
-							{
-								"$ref": "#/components/schemas/Album"
-							}
-						],
-						"nullable": true
-					},
-					"timestamp": {
-						"type": "string"
-					}
-				},
-				"required": [
-					"success",
-					"message",
-					"data",
-					"timestamp"
-				],
-				"type": "object",
-				"additionalProperties": false
-			},
-			"UpdateAlbumDTO": {
-				"properties": {
-					"title": {
-						"type": "string"
-					},
-					"year": {
-						"type": "string"
-					},
-					"genres": {
-						"items": {
-							"type": "string"
-						},
-						"type": "array"
-					},
-					"folder": {
-						"type": "string"
-					},
-					"description": {
-						"type": "string"
-					},
-					"coverSrc": {
-						"type": "string"
-					}
-				},
 				"type": "object",
 				"additionalProperties": false
 			},
@@ -4010,7 +4652,7 @@
 					},
 					"users": {
 						"items": {
-							"$ref": "#/components/schemas/UserDTO"
+							"$ref": "#/components/schemas/ServerUserDTO"
 						},
 						"type": "array"
 					}
@@ -4025,7 +4667,7 @@
 				"additionalProperties": false
 			},
 			"ApiResponse_ServerStatusResponse_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -4136,7 +4778,7 @@
 				"additionalProperties": false
 			},
 			"ApiResponse_Server_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -4240,7 +4882,7 @@
 				"additionalProperties": {}
 			},
 			"ApiResponse_ServerConfigResponse_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -4328,7 +4970,7 @@
 				"additionalProperties": false
 			},
 			"ApiResponse_ServerConfigDTO_": {
-				"description": "Standard API Response structure.\r\nThis class creates a consistent envelope for all API responses.",
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
 					"success": {
 						"type": "boolean"
@@ -4440,7 +5082,7 @@
 		"version": "0.2.0",
 		"description": "Media management server API for the Seerial suite",
 		"license": {
-			"name": "MIT"
+			"name": "GPL-3.0-only"
 		},
 		"contact": {
 			"name": "Juan Llavero"
@@ -4448,7 +5090,7 @@
 	},
 	"paths": {
 		"/watch-lists/watch-state": {
-			"put": {
+			"patch": {
 				"operationId": "UpdateWatchState",
 				"responses": {
 					"200": {
@@ -4482,6 +5124,32 @@
 						}
 					}
 				}
+			}
+		},
+		"/continue-watching": {
+			"get": {
+				"operationId": "GetVideos",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_ContinueWatchingVideoDTO-Array_"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"Continue Watching"
+				],
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"parameters": []
 			}
 		},
 		"/video-streaming/transcoded-url": {
@@ -4530,7 +5198,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_string_"
+									"$ref": "#/components/schemas/ApiResponse_string-or-null_"
 								}
 							}
 						}
@@ -4570,11 +5238,7 @@
 				"tags": [
 					"Video Streaming"
 				],
-				"security": [
-					{
-						"cookieAuth": []
-					}
-				],
+				"security": [],
 				"parameters": []
 			}
 		},
@@ -4590,11 +5254,7 @@
 				"tags": [
 					"Video Streaming"
 				],
-				"security": [
-					{
-						"cookieAuth": []
-					}
-				],
+				"security": [],
 				"parameters": []
 			}
 		},
@@ -4633,7 +5293,7 @@
 					}
 				]
 			},
-			"put": {
+			"patch": {
 				"operationId": "Update",
 				"responses": {
 					"200": {
@@ -4748,6 +5408,42 @@
 				]
 			}
 		},
+		"/videos/playback-info/{id}": {
+			"get": {
+				"operationId": "GetPlaybackInfo",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_PlayBackInfo_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get video info for playback (including media info and playback preferences)",
+				"tags": [
+					"Videos"
+				],
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
 		"/videos/{id}/media-info": {
 			"get": {
 				"operationId": "UpdateMediaInfo",
@@ -4764,40 +5460,6 @@
 					}
 				},
 				"description": "Update video media info",
-				"tags": [
-					"Videos"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			},
-			"put": {
-				"operationId": "UpdateMediaInfoPut",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_null_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Update video media info (PUT)",
 				"tags": [
 					"Videos"
 				],
@@ -4839,7 +5501,7 @@
 				],
 				"security": [
 					{
-						"adminAuth": []
+						"cookieAuth": []
 					}
 				],
 				"parameters": [
@@ -4948,6 +5610,42 @@
 				]
 			}
 		},
+		"/videos/{id}/chapter-thumbnails": {
+			"get": {
+				"operationId": "GetChapterThumbnails",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_Chapter-Array_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get or generate chapter thumbnails for a video.\nThumbnails are stored on disk and reused on subsequent requests.",
+				"tags": [
+					"Videos"
+				],
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
 		"/users": {
 			"post": {
 				"operationId": "Create",
@@ -4986,7 +5684,7 @@
 			}
 		},
 		"/users/{id}": {
-			"put": {
+			"patch": {
 				"operationId": "Update",
 				"responses": {
 					"200": {
@@ -5066,7 +5764,7 @@
 			}
 		},
 		"/users/public": {
-			"put": {
+			"get": {
 				"operationId": "FindAll",
 				"responses": {
 					"200": {
@@ -5129,8 +5827,35 @@
 				}
 			}
 		},
+		"/users/logout": {
+			"post": {
+				"operationId": "Logout",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "User logout",
+				"tags": [
+					"Users"
+				],
+				"security": [
+					{
+						"public": []
+					}
+				],
+				"parameters": []
+			}
+		},
 		"/songs/{id}": {
-			"put": {
+			"patch": {
 				"operationId": "Update",
 				"responses": {
 					"200": {
@@ -5209,6 +5934,42 @@
 				]
 			}
 		},
+		"/songs/{id}/separate-stems": {
+			"post": {
+				"operationId": "SeparateStems",
+				"responses": {
+					"202": {
+						"description": "Accepted",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_SeparateSongStemsResponseDTO_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Start asynchronous stem separation for a song.",
+				"tags": [
+					"Songs"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
 		"/songs/{id}/lyrics": {
 			"get": {
 				"operationId": "GetSongsLyrics",
@@ -5218,7 +5979,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ApiResponse__content-string--language-string_-Array_"
+									"$ref": "#/components/schemas/ApiResponse_LyricsLine-Array_"
 								}
 							}
 						}
@@ -5245,37 +6006,62 @@
 				]
 			}
 		},
-		"/songs/lyrics": {
+		"/songs/stream-url": {
 			"post": {
-				"operationId": "AddSongsLyrics",
+				"operationId": "GetSongUrl",
 				"responses": {
 					"200": {
 						"description": "Ok",
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_string_"
+									"$ref": "#/components/schemas/ApiResponse_string-or-null_"
 								}
 							}
 						}
 					}
 				},
-				"description": "Add song lyrics",
+				"description": "Generate a JWT-signed URL for direct song streaming",
 				"tags": [
 					"Songs"
 				],
 				"security": [
 					{
-						"adminAuth": []
+						"cookieAuth": []
 					}
 				],
-				"parameters": [],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "isWeb",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "isDesktop",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "isMobile",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
 				"requestBody": {
 					"required": true,
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/AddLyricsDTO"
+								"$ref": "#/components/schemas/SongUrlDTO"
 							}
 						}
 					}
@@ -5294,20 +6080,8 @@
 				"tags": [
 					"Songs"
 				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
+				"security": [],
 				"parameters": [
-					{
-						"in": "query",
-						"name": "path",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					},
 					{
 						"in": "query",
 						"name": "isWeb",
@@ -5355,6 +6129,51 @@
 				]
 			}
 		},
+		"/search/library": {
+			"get": {
+				"operationId": "SearchLibraryContent",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_LibrarySearchItem-Array_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Search local library content (collections, movies, series, albums, artists, episodes and songs).",
+				"tags": [
+					"Search"
+				],
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "limit",
+						"required": false,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				]
+			}
+		},
 		"/media/details/{type}": {
 			"get": {
 				"operationId": "GetDetails",
@@ -5364,7 +6183,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_any_"
+									"$ref": "#/components/schemas/ApiResponse_unknown_"
 								}
 							}
 						}
@@ -5408,7 +6227,7 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_any_"
+									"$ref": "#/components/schemas/ApiResponse_unknown_"
 								}
 							}
 						}
@@ -5470,7 +6289,11 @@
 				"tags": [
 					"Health"
 				],
-				"security": [],
+				"security": [
+					{
+						"managementAuth": []
+					}
+				],
 				"parameters": []
 			}
 		},
@@ -5685,6 +6508,1614 @@
 				}
 			}
 		},
+		"/albums/{id}": {
+			"get": {
+				"operationId": "Get",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_Album-or-null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get album by ID",
+				"tags": [
+					"Albums"
+				],
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"patch": {
+				"operationId": "Update",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_Album_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Update album details",
+				"tags": [
+					"Albums"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateAlbumDTO"
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"operationId": "Delete",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Delete an album",
+				"tags": [
+					"Albums"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/artists/{id}": {
+			"get": {
+				"operationId": "GetById",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_Artist_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get artist by ID",
+				"tags": [
+					"Artists"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"patch": {
+				"operationId": "Update",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_Artist_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Update artist details",
+				"tags": [
+					"Artists"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateArtistDTO"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/collections": {
+			"get": {
+				"operationId": "GetAll",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_CollectionSummaryDTO-Array_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get all collections (id and title only)",
+				"tags": [
+					"Collections"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": []
+			},
+			"post": {
+				"operationId": "Create",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_Collection_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Create a collection with an initial item (movie, series or album)",
+				"tags": [
+					"Collections"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateCollectionWithItemDTO"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/collections/{collectionId}/music-extras": {
+			"get": {
+				"operationId": "GetMusicExtras",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_MusicExtrasDTO-Array_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get music extras for a collection",
+				"tags": [
+					"Collections"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "collectionId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/collections/{collectionId}/content": {
+			"get": {
+				"operationId": "GetCollectionContent",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_CollectionContentDTO_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get collection content items (movies, series, albums)",
+				"tags": [
+					"Collections"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "collectionId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/collections/{id}/movies/{movieId}": {
+			"post": {
+				"operationId": "AddMovie",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Add a movie to a collection",
+				"tags": [
+					"Collections"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "path",
+						"name": "movieId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"delete": {
+				"operationId": "RemoveMovie",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Remove a movie from a collection",
+				"tags": [
+					"Collections"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "path",
+						"name": "movieId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/collections/{id}/series/{seriesId}": {
+			"post": {
+				"operationId": "AddSeries",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Add a series to a collection",
+				"tags": [
+					"Collections"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "path",
+						"name": "seriesId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"delete": {
+				"operationId": "RemoveSeries",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Remove a series from a collection",
+				"tags": [
+					"Collections"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "path",
+						"name": "seriesId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/collections/{id}/albums/{albumId}": {
+			"post": {
+				"operationId": "AddAlbum",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Add an album to a collection",
+				"tags": [
+					"Collections"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "path",
+						"name": "albumId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"delete": {
+				"operationId": "RemoveAlbum",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Remove an album from a collection",
+				"tags": [
+					"Collections"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "path",
+						"name": "albumId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/collections/{id}/items/order": {
+			"post": {
+				"operationId": "ReorderContent",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Reorder items in a collection",
+				"tags": [
+					"Collections"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ReorderContentDTO"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/collections/{id}": {
+			"get": {
+				"operationId": "Get",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_Collection-or-null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get collection by ID",
+				"tags": [
+					"Collections"
+				],
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"patch": {
+				"operationId": "Update",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_Collection_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Update collection details",
+				"tags": [
+					"Collections"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateCollectionDTO"
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"operationId": "Delete",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Delete a collection",
+				"tags": [
+					"Collections"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/episodes/{id}": {
+			"get": {
+				"operationId": "Get",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_Episode-or-null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get episode by ID",
+				"tags": [
+					"Episodes"
+				],
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"patch": {
+				"operationId": "Update",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_Episode_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Update episode details",
+				"tags": [
+					"Episodes"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateEpisodeDTO"
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"operationId": "Delete",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					},
+					"422": {
+						"description": "Invalid data.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Delete an episode",
+				"tags": [
+					"Episodes"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/episodes/{id}/watch-state": {
+			"post": {
+				"operationId": "SetWatchState",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Set episode watch state for a user",
+				"tags": [
+					"Episodes"
+				],
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SetEpisodeWatchStateDTO"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/images": {
+			"post": {
+				"operationId": "UploadImage",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Upload image file",
+				"tags": [
+					"Images"
+				],
+				"security": [
+					{
+						"cookieAuthFast": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"multipart/form-data": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"destPath": {
+										"type": "string"
+									},
+									"image": {
+										"type": "string",
+										"format": "binary"
+									}
+								},
+								"required": [
+									"destPath",
+									"image"
+								]
+							}
+						}
+					}
+				}
+			},
+			"get": {
+				"operationId": "GetDirectoryListing",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_unknown_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get directory listing",
+				"tags": [
+					"Images"
+				],
+				"security": [
+					{
+						"cookieAuthFast": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/images/local": {
+			"get": {
+				"operationId": "GetLocalImage",
+				"responses": {
+					"204": {
+						"description": "No content"
+					}
+				},
+				"description": "Get local image with optional resizing",
+				"tags": [
+					"Images"
+				],
+				"security": [
+					{
+						"cookieAuthFast": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "width",
+						"required": false,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "height",
+						"required": false,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				]
+			}
+		},
+		"/images/compressed": {
+			"get": {
+				"operationId": "GetRemoteImage",
+				"responses": {
+					"204": {
+						"description": "No content"
+					}
+				},
+				"description": "Get remote image with optional resizing",
+				"tags": [
+					"Images"
+				],
+				"security": [
+					{
+						"cookieAuthFast": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "url",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "width",
+						"required": false,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "height",
+						"required": false,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				]
+			}
+		},
+		"/images/colors": {
+			"get": {
+				"operationId": "GetImageColorPalette",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_unknown_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get image color palette",
+				"tags": [
+					"Images"
+				],
+				"security": [
+					{
+						"cookieAuthFast": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "url",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "localPath",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "minLight",
+						"required": false,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "maxLight",
+						"required": false,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "sat",
+						"required": false,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					}
+				]
+			}
+		},
+		"/images/effects/transparent": {
+			"get": {
+				"operationId": "CreateTransparentImage",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "string",
+									"format": "byte"
+								}
+							}
+						}
+					}
+				},
+				"description": "Create transparent image",
+				"tags": [
+					"Images"
+				],
+				"security": [
+					{
+						"cookieAuthFast": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "width",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "height",
+						"required": true,
+						"schema": {
+							"format": "double",
+							"type": "number"
+						}
+					},
+					{
+						"in": "query",
+						"name": "url",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "localPath",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/images/animated-artwork": {
+			"get": {
+				"operationId": "GetAnimatedArtwork",
+				"responses": {
+					"204": {
+						"description": "No content"
+					}
+				},
+				"description": "Stream animated artwork (.mp4) for an album folder",
+				"tags": [
+					"Images"
+				],
+				"security": [
+					{
+						"cookieAuthFast": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "localPath",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "variant",
+						"required": false,
+						"schema": {
+							"type": "string",
+							"enum": [
+								"square",
+								"tall"
+							]
+						}
+					}
+				]
+			}
+		},
+		"/libraries": {
+			"get": {
+				"operationId": "GetAll",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_Library-Array_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get all libraries",
+				"tags": [
+					"Libraries"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": []
+			},
+			"post": {
+				"operationId": "Create",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_Library_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Create a new library",
+				"tags": [
+					"Libraries"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/CreateLibraryDTO"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/libraries/{id}": {
+			"get": {
+				"operationId": "GetById",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_Library_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get library by ID",
+				"tags": [
+					"Libraries"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
+			"patch": {
+				"operationId": "Update",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_Library_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Update library details",
+				"tags": [
+					"Libraries"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateLibraryDTO"
+							}
+						}
+					}
+				}
+			},
+			"delete": {
+				"operationId": "Delete",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Delete a library",
+				"tags": [
+					"Libraries"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/libraries/{id}/content": {
+			"get": {
+				"operationId": "GetContent",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_LibraryItem-Array_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Get library content",
+				"tags": [
+					"Libraries"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "watched",
+						"required": false,
+						"schema": {
+							"type": "boolean"
+						}
+					}
+				]
+			}
+		},
+		"/libraries/{id}/scan": {
+			"get": {
+				"operationId": "StartScan",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_Library_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Start library scan",
+				"tags": [
+					"Libraries"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/libraries/order": {
+			"post": {
+				"operationId": "Reorder",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_boolean_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Reorder libraries",
+				"tags": [
+					"Libraries"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ReorderLibrariesDTO"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/libraries/{id}/order": {
+			"post": {
+				"operationId": "ReorderItems",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_boolean_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Reorder library items",
+				"tags": [
+					"Libraries"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ReorderItemsDTO"
+							}
+						}
+					}
+				}
+			}
+		},
 		"/movies/{id}/metadata": {
 			"post": {
 				"operationId": "RefreshMovieMetadata",
@@ -5768,7 +8199,7 @@
 			}
 		},
 		"/movies/{id}": {
-			"put": {
+			"patch": {
 				"operationId": "Update",
 				"responses": {
 					"200": {
@@ -6043,652 +8474,6 @@
 				]
 			}
 		},
-		"/movies/{id}/my-list": {
-			"get": {
-				"operationId": "IsMovieInMyList",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_boolean_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Check if movie is in user's my list",
-				"tags": [
-					"Movies"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			}
-		},
-		"/series/metadata": {
-			"post": {
-				"operationId": "RefreshMetadata",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_null_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Refresh series metadata from external sources",
-				"tags": [
-					"Series"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/RefreshMetadataDTO"
-							}
-						}
-					}
-				}
-			}
-		},
-		"/series/tmdb-id": {
-			"post": {
-				"operationId": "UpdateShowId",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_null_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Update series TMDB ID",
-				"tags": [
-					"Series"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/UpdateShowIdDTO"
-							}
-						}
-					}
-				}
-			}
-		},
-		"/series/{id}/episode-group": {
-			"post": {
-				"operationId": "UpdateEpisodeGroup",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_null_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Update series episode group",
-				"tags": [
-					"Series"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/UpdateEpisodeGroupDTO"
-							}
-						}
-					}
-				}
-			}
-		},
-		"/series/show/{id}": {
-			"put": {
-				"operationId": "Update",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_Series_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Update series details",
-				"tags": [
-					"Series"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/UpdateSeriesDTO"
-							}
-						}
-					}
-				}
-			}
-		},
-		"/series/{id}": {
-			"delete": {
-				"operationId": "Delete",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_null_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Delete a series",
-				"tags": [
-					"Series"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			},
-			"get": {
-				"operationId": "Get",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_Series_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Get series by ID",
-				"tags": [
-					"Series"
-				],
-				"security": [
-					{
-						"cookieAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					},
-					{
-						"in": "query",
-						"name": "include",
-						"required": false,
-						"schema": {
-							"$ref": "#/components/schemas/IncludeType"
-						}
-					}
-				]
-			}
-		},
-		"/series/{id}/watch-state": {
-			"post": {
-				"operationId": "SetWatchState",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_null_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Set series watch state for a user",
-				"tags": [
-					"Series"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/SetSeriesWatchStateDTO"
-							}
-						}
-					}
-				}
-			}
-		},
-		"/series/search": {
-			"get": {
-				"operationId": "SearchSeries",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_TvResult-Array_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Search series in TMDB",
-				"tags": [
-					"Series"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "query",
-						"name": "name",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					},
-					{
-						"in": "query",
-						"name": "year",
-						"required": false,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			}
-		},
-		"/series/episode-groups/search": {
-			"get": {
-				"operationId": "SearchEpisodeGroups",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_TvEpisodeGroupsResponse-or-null_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Search episode groups in TMDB",
-				"tags": [
-					"Series"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "query",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			}
-		},
-		"/series/{id}/remaining-episodes": {
-			"get": {
-				"operationId": "GetRemainingEpisodes",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_number_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Get remaining episodes count for a series",
-				"tags": [
-					"Series"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			}
-		},
-		"/series/{id}/my-list": {
-			"get": {
-				"operationId": "IsSeriesInMyList",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_boolean_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Check if series is in user's my list",
-				"tags": [
-					"Series"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			}
-		},
-		"/seasons/{id}": {
-			"get": {
-				"operationId": "Get",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_Season_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Get season details by ID",
-				"tags": [
-					"Seasons"
-				],
-				"security": [
-					{
-						"cookieAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					},
-					{
-						"in": "query",
-						"name": "include",
-						"required": false,
-						"schema": {
-							"$ref": "#/components/schemas/IncludeType"
-						}
-					}
-				]
-			},
-			"put": {
-				"operationId": "Update",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_Season_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Update season details",
-				"tags": [
-					"Seasons"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/UpdateSeasonDTO"
-							}
-						}
-					}
-				}
-			},
-			"delete": {
-				"operationId": "Delete",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_null_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Delete a season",
-				"tags": [
-					"Seasons"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			}
-		},
-		"/seasons/{id}/watch-state": {
-			"post": {
-				"operationId": "SetWatchState",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_null_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Set season watch state for a user",
-				"tags": [
-					"Seasons"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/SetSeasonWatchStateDTO"
-							}
-						}
-					}
-				}
-			}
-		},
 		"/playlists": {
 			"get": {
 				"operationId": "GetAll",
@@ -6786,7 +8571,7 @@
 					}
 				]
 			},
-			"put": {
+			"patch": {
 				"operationId": "Update",
 				"responses": {
 					"200": {
@@ -6955,768 +8740,7 @@
 				]
 			}
 		},
-		"/my-list/movies": {
-			"get": {
-				"operationId": "GetMyListMovies",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_Movie-Array_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Get movies from user's my list",
-				"tags": [
-					"My List"
-				],
-				"security": [
-					{
-						"cookieAuth": []
-					}
-				],
-				"parameters": []
-			}
-		},
-		"/my-list/series": {
-			"get": {
-				"operationId": "GetMyListSeries",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_Series-Array_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Get series from user's my list",
-				"tags": [
-					"My List"
-				],
-				"security": [
-					{
-						"cookieAuth": []
-					}
-				],
-				"parameters": []
-			}
-		},
-		"/my-list/movies/{id}/check": {
-			"get": {
-				"operationId": "IsMovieInMyList",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_boolean_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Check if a specific movie is in user's my list",
-				"tags": [
-					"My List"
-				],
-				"security": [
-					{
-						"cookieAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			}
-		},
-		"/my-list/series/{id}/check": {
-			"get": {
-				"operationId": "IsSeriesInMyList",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_boolean_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Check if a specific series is in user's my list",
-				"tags": [
-					"My List"
-				],
-				"security": [
-					{
-						"cookieAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			}
-		},
-		"/libraries": {
-			"get": {
-				"operationId": "GetAll",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_Library-Array_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Get all libraries",
-				"tags": [
-					"Libraries"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": []
-			},
-			"post": {
-				"operationId": "Create",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_Library_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Create a new library",
-				"tags": [
-					"Libraries"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/CreateLibraryDTO"
-							}
-						}
-					}
-				}
-			}
-		},
-		"/libraries/{id}": {
-			"get": {
-				"operationId": "GetById",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_Library_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Get library by ID",
-				"tags": [
-					"Libraries"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			},
-			"put": {
-				"operationId": "Update",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_Library_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Update library details",
-				"tags": [
-					"Libraries"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/UpdateLibraryDTO"
-							}
-						}
-					}
-				}
-			},
-			"delete": {
-				"operationId": "Delete",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_null_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Delete a library",
-				"tags": [
-					"Libraries"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			}
-		},
-		"/libraries/{id}/content": {
-			"get": {
-				"operationId": "GetContent",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_LibraryItem-Array_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Get library content",
-				"tags": [
-					"Libraries"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			}
-		},
-		"/libraries/{id}/scan": {
-			"get": {
-				"operationId": "StartScan",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_Library_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Start library scan",
-				"tags": [
-					"Libraries"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			}
-		},
-		"/libraries/order": {
-			"post": {
-				"operationId": "Reorder",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_boolean_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Reorder libraries",
-				"tags": [
-					"Libraries"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/ReorderLibrariesDTO"
-							}
-						}
-					}
-				}
-			}
-		},
-		"/libraries/{id}/order": {
-			"post": {
-				"operationId": "ReorderItems",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_boolean_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Reorder library items",
-				"tags": [
-					"Libraries"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/ReorderItemsDTO"
-							}
-						}
-					}
-				}
-			}
-		},
-		"/images": {
-			"post": {
-				"operationId": "UploadImage",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_null_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Upload image file",
-				"tags": [
-					"Images"
-				],
-				"security": [
-					{
-						"cookieAuthFast": []
-					}
-				],
-				"parameters": [],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"multipart/form-data": {
-							"schema": {
-								"type": "object",
-								"properties": {
-									"destPath": {
-										"type": "string"
-									},
-									"image": {
-										"type": "string",
-										"format": "binary"
-									}
-								},
-								"required": [
-									"destPath",
-									"image"
-								]
-							}
-						}
-					}
-				}
-			},
-			"get": {
-				"operationId": "GetDirectoryListing",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_any_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Get directory listing",
-				"tags": [
-					"Images"
-				],
-				"security": [
-					{
-						"cookieAuthFast": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "query",
-						"name": "path",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			}
-		},
-		"/images/local": {
-			"get": {
-				"operationId": "GetLocalImage",
-				"responses": {
-					"204": {
-						"description": "No content"
-					}
-				},
-				"description": "Get local image with optional resizing",
-				"tags": [
-					"Images"
-				],
-				"security": [
-					{
-						"cookieAuthFast": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "query",
-						"name": "path",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					},
-					{
-						"in": "query",
-						"name": "width",
-						"required": false,
-						"schema": {
-							"format": "double",
-							"type": "number"
-						}
-					},
-					{
-						"in": "query",
-						"name": "height",
-						"required": false,
-						"schema": {
-							"format": "double",
-							"type": "number"
-						}
-					}
-				]
-			}
-		},
-		"/images/compressed": {
-			"get": {
-				"operationId": "GetRemoteImage",
-				"responses": {
-					"204": {
-						"description": "No content"
-					}
-				},
-				"description": "Get remote image with optional resizing",
-				"tags": [
-					"Images"
-				],
-				"security": [
-					{
-						"cookieAuthFast": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "query",
-						"name": "url",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					},
-					{
-						"in": "query",
-						"name": "width",
-						"required": false,
-						"schema": {
-							"format": "double",
-							"type": "number"
-						}
-					},
-					{
-						"in": "query",
-						"name": "height",
-						"required": false,
-						"schema": {
-							"format": "double",
-							"type": "number"
-						}
-					}
-				]
-			}
-		},
-		"/images/colors": {
-			"get": {
-				"operationId": "GetImageColorPalette",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_any_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Get image color palette",
-				"tags": [
-					"Images"
-				],
-				"security": [
-					{
-						"cookieAuthFast": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "query",
-						"name": "url",
-						"required": false,
-						"schema": {
-							"type": "string"
-						}
-					},
-					{
-						"in": "query",
-						"name": "localPath",
-						"required": false,
-						"schema": {
-							"type": "string"
-						}
-					},
-					{
-						"in": "query",
-						"name": "minLight",
-						"required": false,
-						"schema": {
-							"format": "double",
-							"type": "number"
-						}
-					},
-					{
-						"in": "query",
-						"name": "maxLight",
-						"required": false,
-						"schema": {
-							"format": "double",
-							"type": "number"
-						}
-					},
-					{
-						"in": "query",
-						"name": "sat",
-						"required": false,
-						"schema": {
-							"format": "double",
-							"type": "number"
-						}
-					}
-				]
-			}
-		},
-		"/images/effects/transparent": {
-			"get": {
-				"operationId": "CreateTransparentImage",
-				"responses": {
-					"204": {
-						"description": "No content"
-					}
-				},
-				"description": "Create transparent image",
-				"tags": [
-					"Images"
-				],
-				"security": [
-					{
-						"cookieAuthFast": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "query",
-						"name": "width",
-						"required": true,
-						"schema": {
-							"format": "double",
-							"type": "number"
-						}
-					},
-					{
-						"in": "query",
-						"name": "height",
-						"required": true,
-						"schema": {
-							"format": "double",
-							"type": "number"
-						}
-					},
-					{
-						"in": "query",
-						"name": "url",
-						"required": false,
-						"schema": {
-							"type": "string"
-						}
-					},
-					{
-						"in": "query",
-						"name": "localPath",
-						"required": false,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			}
-		},
-		"/episodes/{id}": {
+		"/seasons/{id}": {
 			"get": {
 				"operationId": "Get",
 				"responses": {
@@ -7725,15 +8749,15 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_Episode-or-null_"
+									"$ref": "#/components/schemas/ApiResponse_Season_"
 								}
 							}
 						}
 					}
 				},
-				"description": "Get episode by ID",
+				"description": "Get season details by ID",
 				"tags": [
-					"Episodes"
+					"Seasons"
 				],
 				"security": [
 					{
@@ -7748,10 +8772,18 @@
 						"schema": {
 							"type": "string"
 						}
+					},
+					{
+						"in": "query",
+						"name": "include",
+						"required": false,
+						"schema": {
+							"$ref": "#/components/schemas/IncludeType"
+						}
 					}
 				]
 			},
-			"put": {
+			"patch": {
 				"operationId": "Update",
 				"responses": {
 					"200": {
@@ -7759,15 +8791,15 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_Episode_"
+									"$ref": "#/components/schemas/ApiResponse_Season_"
 								}
 							}
 						}
 					}
 				},
-				"description": "Update episode details",
+				"description": "Update season details",
 				"tags": [
-					"Episodes"
+					"Seasons"
 				],
 				"security": [
 					{
@@ -7789,7 +8821,7 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/UpdateEpisodeDTO"
+								"$ref": "#/components/schemas/UpdateSeasonDTO"
 							}
 						}
 					}
@@ -7807,21 +8839,11 @@
 								}
 							}
 						}
-					},
-					"422": {
-						"description": "Invalid data.",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_null_"
-								}
-							}
-						}
 					}
 				},
-				"description": "Delete an episode",
+				"description": "Delete a season",
 				"tags": [
-					"Episodes"
+					"Seasons"
 				],
 				"security": [
 					{
@@ -7840,7 +8862,7 @@
 				]
 			}
 		},
-		"/episodes/{id}/watch-state": {
+		"/seasons/{id}/watch-state": {
 			"post": {
 				"operationId": "SetWatchState",
 				"responses": {
@@ -7855,13 +8877,13 @@
 						}
 					}
 				},
-				"description": "Set episode watch state for a user",
+				"description": "Set season watch state for a user",
 				"tags": [
-					"Episodes"
+					"Seasons"
 				],
 				"security": [
 					{
-						"adminAuth": []
+						"cookieAuth": []
 					}
 				],
 				"parameters": [
@@ -7879,79 +8901,16 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/SetEpisodeWatchStateDTO"
+								"$ref": "#/components/schemas/SetSeasonWatchStateDTO"
 							}
 						}
 					}
 				}
 			}
 		},
-		"/continue-watching": {
-			"get": {
-				"operationId": "GetVideos",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_ContinueWatchingVideo-Array_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Get videos for continue watching",
-				"tags": [
-					"Continue Watching"
-				],
-				"security": [
-					{
-						"cookieAuth": []
-					}
-				],
-				"parameters": []
-			}
-		},
-		"/collections/{collectionId}/music-extras": {
-			"get": {
-				"operationId": "GetMusicExtras",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_MusicExtrasDTO_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Get music extras for a collection",
-				"tags": [
-					"Collections"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "collectionId",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			}
-		},
-		"/collections/{id}/items/order": {
+		"/series/metadata": {
 			"post": {
-				"operationId": "ReorderContent",
+				"operationId": "RefreshMetadata",
 				"responses": {
 					"200": {
 						"description": "Ok",
@@ -7964,9 +8923,83 @@
 						}
 					}
 				},
-				"description": "Reorder items in a collection",
+				"description": "Refresh series metadata from external sources",
 				"tags": [
-					"Collections"
+					"Series"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/RefreshMetadataDTO"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/series/tmdb-id": {
+			"post": {
+				"operationId": "UpdateShowId",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Update series TMDB ID",
+				"tags": [
+					"Series"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateShowIdDTO"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/series/{id}/episode-group": {
+			"post": {
+				"operationId": "UpdateEpisodeGroup",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Update series episode group",
+				"tags": [
+					"Series"
 				],
 				"security": [
 					{
@@ -7988,14 +9021,94 @@
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/ReorderContentDTO"
+								"$ref": "#/components/schemas/UpdateEpisodeGroupDTO"
 							}
 						}
 					}
 				}
 			}
 		},
-		"/collections/{id}": {
+		"/series/show/{id}": {
+			"patch": {
+				"operationId": "Update",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_Series_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Update series details",
+				"tags": [
+					"Series"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/UpdateSeriesDTO"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/series/{id}": {
+			"delete": {
+				"operationId": "Delete",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Delete a series",
+				"tags": [
+					"Series"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			},
 			"get": {
 				"operationId": "Get",
 				"responses": {
@@ -8004,15 +9117,59 @@
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_Collection-or-null_"
+									"$ref": "#/components/schemas/ApiResponse_Series_"
 								}
 							}
 						}
 					}
 				},
-				"description": "Get collection by ID",
+				"description": "Get series by ID",
 				"tags": [
-					"Collections"
+					"Series"
+				],
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "id",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "include",
+						"required": false,
+						"schema": {
+							"$ref": "#/components/schemas/IncludeType"
+						}
+					}
+				]
+			}
+		},
+		"/series/{id}/watch-state": {
+			"post": {
+				"operationId": "SetWatchState",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Set series watch state for a user",
+				"tags": [
+					"Series"
 				],
 				"security": [
 					{
@@ -8028,69 +9185,37 @@
 							"type": "string"
 						}
 					}
-				]
-			},
-			"put": {
-				"operationId": "Update",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_Collection_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Update collection details",
-				"tags": [
-					"Collections"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
 				],
 				"requestBody": {
 					"required": true,
 					"content": {
 						"application/json": {
 							"schema": {
-								"$ref": "#/components/schemas/UpdateCollectionDTO"
+								"$ref": "#/components/schemas/SetSeriesWatchStateDTO"
 							}
 						}
 					}
 				}
-			},
-			"delete": {
-				"operationId": "Delete",
+			}
+		},
+		"/series/search": {
+			"get": {
+				"operationId": "SearchSeries",
 				"responses": {
 					"200": {
 						"description": "Ok",
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_null_"
+									"$ref": "#/components/schemas/ApiResponse_TvResult-Array_"
 								}
 							}
 						}
 					}
 				},
-				"description": "Delete a collection",
+				"description": "Search series in TMDB",
 				"tags": [
-					"Collections"
+					"Series"
 				],
 				"security": [
 					{
@@ -8099,7 +9224,51 @@
 				],
 				"parameters": [
 					{
-						"in": "path",
+						"in": "query",
+						"name": "name",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "year",
+						"required": false,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/series/episode-groups/search": {
+			"get": {
+				"operationId": "SearchEpisodeGroups",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_TvEpisodeGroupsResponse-or-null_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Search episode groups in TMDB",
+				"tags": [
+					"Series"
+				],
+				"security": [
+					{
+						"adminAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "query",
 						"name": "id",
 						"required": true,
 						"schema": {
@@ -8109,182 +9278,24 @@
 				]
 			}
 		},
-		"/artists/{id}": {
+		"/series/{id}/remaining-episodes": {
 			"get": {
-				"operationId": "GetById",
+				"operationId": "GetRemainingEpisodes",
 				"responses": {
 					"200": {
 						"description": "Ok",
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_Artist_"
+									"$ref": "#/components/schemas/ApiResponse_number_"
 								}
 							}
 						}
 					}
 				},
-				"description": "Get artist by ID",
+				"description": "Get remaining episodes count for a series",
 				"tags": [
-					"Artists"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			},
-			"put": {
-				"operationId": "Update",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_Artist_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Update artist details",
-				"tags": [
-					"Artists"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/UpdateArtistDTO"
-							}
-						}
-					}
-				}
-			}
-		},
-		"/albums/{id}": {
-			"get": {
-				"operationId": "Get",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_Album-or-null_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Get album by ID",
-				"tags": [
-					"Albums"
-				],
-				"security": [
-					{
-						"cookieAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				]
-			},
-			"put": {
-				"operationId": "Update",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_Album_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Update album details",
-				"tags": [
-					"Albums"
-				],
-				"security": [
-					{
-						"adminAuth": []
-					}
-				],
-				"parameters": [
-					{
-						"in": "path",
-						"name": "id",
-						"required": true,
-						"schema": {
-							"type": "string"
-						}
-					}
-				],
-				"requestBody": {
-					"required": true,
-					"content": {
-						"application/json": {
-							"schema": {
-								"$ref": "#/components/schemas/UpdateAlbumDTO"
-							}
-						}
-					}
-				}
-			},
-			"delete": {
-				"operationId": "Delete",
-				"responses": {
-					"200": {
-						"description": "Ok",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/ApiResponse_null_"
-								}
-							}
-						}
-					}
-				},
-				"description": "Delete an album",
-				"tags": [
-					"Albums"
+					"Series"
 				],
 				"security": [
 					{
@@ -8327,7 +9338,7 @@
 			}
 		},
 		"/servers/{id}": {
-			"put": {
+			"patch": {
 				"operationId": "Update",
 				"responses": {
 					"200": {
