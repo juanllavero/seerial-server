@@ -67,6 +67,14 @@ function GeneralSettings() {
         options={languageOptions}
         onChange={handleLanguageChange}
       />
+      {settings.language === 'es' && (
+        <SettingCheckbox
+          focusKey="settings-general-preferSpainSpanish"
+          label={t('preferSpainSpanish')}
+          checked={settings.preferSpainSpanish}
+          onChange={(v) => updateSetting('preferSpainSpanish', v)}
+        />
+      )}
       <SettingCheckbox
         focusKey="settings-general-watchedIndicator"
         label={t('watchedIndicator')}

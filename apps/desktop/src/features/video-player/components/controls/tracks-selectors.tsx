@@ -1,4 +1,5 @@
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
+import { useUpdateVideo } from '@seerial/api';
 import type {
   AudioTrack,
   MediaInfoData,
@@ -6,8 +7,7 @@ import type {
   SubtitleTrack,
   Video,
 } from '@seerial/domain';
-import { getAudioTrack, getSubtitleTrack } from '@seerial/domain';
-import { useUpdateVideo } from '@seerial/api';
+import { getAudioTrack, getSubtitleTrack, isLatinSpanishTrack } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Captions, Music2 } from 'lucide-react';
@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { NavigationButton, NavigationContainer } from '@/shared/components/navigation';
 import { useKeyboardShortcut } from '@/shared/hooks/use-keyboard-shortcut';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
+import { useSettingsStore } from '@/shared/stores';
 import { useMpvPlayer } from '../../hooks/use-mpv-player';
 
 type SelectorPanel = 'audio' | 'subtitle';
@@ -104,6 +105,7 @@ function TracksSelectors({
 }: TracksSelectorsProps) {
   const { t } = useTranslation();
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
+  const preferSpainSpanish = useSettingsStore((s) => s.settings.preferSpainSpanish);
   const mpv = useMpvPlayer();
   const { mutate: updateVideo } = useUpdateVideo<
     void,
@@ -155,7 +157,12 @@ function TracksSelectors({
   };
 
   const formatSubtitleTrackLabel = (track: SubtitleTrack) => {
-    return [track.title, track.displayTitle].filter(Boolean).join(' ').trim();
+    const base = [track.title, track.displayTitle].filter(Boolean).join(' ').trim();
+    if (track.languageTag === 'spa') {
+      const variant = isLatinSpanishTrack(track) ? 'Español Latino' : 'Español (España)';
+      return base ? `${variant} — ${base}` : variant;
+    }
+    return base;
   };
 
   const handleAudioTrackChange = async (track: AudioTrack) => {
@@ -260,6 +267,7 @@ function TracksSelectors({
       playbackConfig.preferSubLan,
       playbackConfig.subsMode,
       video,
+      preferSpainSpanish,
     );
     const selectedVideoTrackId = videoTracks[0]?.id ?? null;
     const selectedAudioTrackId = preferredAudioTrack?.id ?? null;
@@ -277,7 +285,7 @@ function TracksSelectors({
         track.selected = track.id === selectedVideoTrackId;
       }
     }
-  }, [serverUrl, video, videoInfo, playbackConfig]);
+  }, [serverUrl, video, videoInfo, playbackConfig, preferSpainSpanish]);
 
   if (!hasAudioOptions && !hasSubtitleOptions) {
     return null;

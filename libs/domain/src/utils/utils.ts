@@ -1,4 +1,4 @@
-import type { Video } from "@seerial/domain";
+import type { SubtitleTrack, Video } from "@seerial/domain";
 
 /**
  * Fetches data from a given URL and returns the parsed JSON response.
@@ -120,40 +120,42 @@ export const getAudioTrack = (prefAudioLan: string, video: Video) => {
     return video.audioTracks[0];
 };
 
-export const getSubtitleTrack = (prefSubsLan: string, subsMode: string, video: Video) => {
+const LATIN_SPANISH_PATTERN = /latin|latam|lat_am|latinoam[eé]rica/i;
+
+export const isLatinSpanishTrack = (track: { languageTag: string; title?: string }): boolean => {
+    if (track.languageTag !== 'spa') return false;
+    return LATIN_SPANISH_PATTERN.test(track.title ?? '');
+};
+
+function resolveStoredSubtitleTrack(video: Video): SubtitleTrack | null | undefined {
+    if (video.selectedSubtitleTrack == null) return undefined;
+    if (video.selectedSubtitleTrack === -1) return null;
+    if (video.selectedSubtitleTrack >= 0 && video.selectedSubtitleTrack < (video.subtitleTracks?.length ?? 0)) {
+        return (video.subtitleTracks ?? [])[video.selectedSubtitleTrack];
+    }
+    return undefined;
+}
+
+function findSubtitleByLang(tracks: SubtitleTrack[], targetLang: string, preferSpainSpanish: boolean): SubtitleTrack | undefined {
+    if (targetLang === 'spa' && preferSpainSpanish) {
+        const spainTrack = tracks.findLast((t) => t.languageTag === 'spa' && !isLatinSpanishTrack(t));
+        if (spainTrack) return spainTrack;
+    }
+    return tracks.findLast((t) => t.languageTag === targetLang);
+}
+
+export const getSubtitleTrack = (prefSubsLan: string, subsMode: string, video: Video, preferSpainSpanish?: boolean) => {
     if (!video.subtitleTracks || video.subtitleTracks.length === 0) return null;
 
-    if (video.selectedSubtitleTrack != null) {
-        // -1 means the user explicitly disabled subtitles
-        if (video.selectedSubtitleTrack === -1) return null;
+    const stored = resolveStoredSubtitleTrack(video);
+    if (stored !== undefined) return stored;
 
-        if (
-            video.selectedSubtitleTrack >= 0 &&
-            video.selectedSubtitleTrack < video.subtitleTracks.length
-        ) {
-            return video.subtitleTracks[video.selectedSubtitleTrack];
-        }
-    }
-
-    // Convert 2-letter code to 3-letter code
     const targetLang = iso1to3[prefSubsLan] ?? prefSubsLan;
+    const defaultTrack = subsMode === 'alwaysSubs' ? (video.subtitleTracks[0] ?? null) : null;
 
-    const defaultTrack =
-        subsMode === 'alwaysSubs'
-            ? video.subtitleTracks.length > 0
-                ? video.subtitleTracks[0]
-                : null
-            : null;
+    if (subsMode !== 'autoSubs' && subsMode !== 'alwaysSubs') return null;
 
-    switch (subsMode) {
-        case 'autoSubs':
-        case 'alwaysSubs':
-            return (
-                video.subtitleTracks.findLast((track) => track.languageTag === targetLang) ?? defaultTrack
-            );
-        default:
-            return null;
-    }
+    return findSubtitleByLang(video.subtitleTracks, targetLang, preferSpainSpanish ?? false) ?? defaultTrack;
 };
 
 /**

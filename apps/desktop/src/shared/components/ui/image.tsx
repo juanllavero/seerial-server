@@ -168,7 +168,21 @@ const Image: React.FC<ImageProps> = ({
         aspectRatio,
       }}
     >
-      {!isLoading && <Skeleton className="absolute inset-0 h-full w-full" />}
+      <Skeleton className="absolute inset-0 h-full w-full" />
+    </div>
+  );
+
+  return (
+    <div
+      ref={containerRef}
+      className={`relative overflow-hidden ${className} transition-all duration-500 ease-in-out`}
+      style={{
+        width,
+        height,
+        aspectRatio,
+      }}
+    >
+      {isLoading && <Skeleton className="absolute inset-0 h-full w-full" />}
 
       {isInView && imageSrc && (
         <img

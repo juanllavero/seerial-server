@@ -340,6 +340,7 @@ export const es = {
     general: 'General',
     about: 'Acerca de',
     language: 'Idioma',
+    preferSpainSpanish: 'Preferir español de España en pistas de subtítulos',
     watchedIndicator: 'Indicador de visto',
     feedbackSounds: 'Sonidos de retroalimentación',
     themeMusicVolume: 'Tema musical',

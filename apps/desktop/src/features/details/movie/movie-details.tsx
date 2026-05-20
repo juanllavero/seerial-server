@@ -25,6 +25,7 @@ import DetailsBackgroundLayers from '@/shared/components/details/details-backgro
 import DetailsBackgroundPlayback from '@/shared/components/details/details-background-playback';
 import DetailsInfo from '@/shared/components/details/details-info';
 import Page from '@/shared/components/page';
+import { useSettingsStore } from '@/shared/stores';
 import { DetailsWithRelatedContent } from '../shared';
 
 interface MovieDetailsProps {
@@ -112,14 +113,17 @@ function MovieDetails({ movie, isLoading, details, collectionId, libraryType }: 
     return getAudioTrack(library.preferAudioLan ?? '', effectiveVideo)?.displayTitle;
   }, [effectiveVideo, library]);
 
+  const preferSpainSpanish = useSettingsStore((s) => s.settings.preferSpainSpanish);
+
   const movieSubtitleInfo = useMemo(() => {
     if (!effectiveVideo || !library) return undefined;
     return getSubtitleTrack(
       library.preferSubLan ?? '',
       library.subsMode ?? 'autoSubs',
       effectiveVideo,
+      preferSpainSpanish,
     )?.displayTitle;
-  }, [effectiveVideo, library]);
+  }, [effectiveVideo, library, preferSpainSpanish]);
 
   if (!isLoading && !movie) return <span>Movie not found</span>;
 
