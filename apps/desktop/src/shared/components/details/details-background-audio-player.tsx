@@ -24,6 +24,34 @@ interface DetailsBackgroundAudioPlayerProps {
   onUnavailable?: () => void;
 }
 
+function getSongIdentityFromSignedUrl(signedUrl: string): string | null {
+  try {
+    const parsed = new URL(signedUrl, 'http://localhost');
+    const token = parsed.searchParams.get('token');
+    if (!token) {
+      return null;
+    }
+
+    const tokenParts = token.split('.');
+    if (tokenParts.length < 2) {
+      return null;
+    }
+
+    const payloadPart = tokenParts[1]?.replace(/-/g, '+').replace(/_/g, '/');
+    if (!payloadPart) {
+      return null;
+    }
+
+    const paddedPayload = payloadPart.padEnd(Math.ceil(payloadPart.length / 4) * 4, '=');
+    const payloadJson = atob(paddedPayload);
+    const payload = JSON.parse(payloadJson) as { path?: string };
+
+    return payload.path ?? null;
+  } catch {
+    return null;
+  }
+}
+
 function DetailsBackgroundAudioPlayer({
   localId,
   onUnavailable,
@@ -38,6 +66,8 @@ function DetailsBackgroundAudioPlayer({
   const eofGuardRef = useRef(false);
   const loopTimerRef = useRef<number | null>(null);
   const originalVolumeRef = useRef<number>(100);
+  const currentSongIdentityRef = useRef<string | null>(null);
+  const hasActivePlaybackRef = useRef(false);
 
   const targetVolume = useMemo(
     () => getBackgroundPlaybackVolume(themeMusicVolume),
@@ -57,6 +87,9 @@ function DetailsBackgroundAudioPlayer({
     await enqueueMpvCommand(async () => {
       await fadeOutAndStopMpv(originalVolumeRef.current, () => false);
     });
+
+    hasActivePlaybackRef.current = false;
+    currentSongIdentityRef.current = null;
   }, [clearLoopTimer]);
 
   const loadAndPlay = useCallback(async () => {
@@ -81,6 +114,17 @@ function DetailsBackgroundAudioPlayer({
           isDesktop: true,
         });
 
+        const nextSongIdentity = signedUrl ? getSongIdentityFromSignedUrl(signedUrl) : null;
+        const canReuseCurrentPlayback =
+          !!nextSongIdentity &&
+          hasActivePlaybackRef.current &&
+          currentSongIdentityRef.current === nextSongIdentity;
+
+        if (canReuseCurrentPlayback) {
+          await invoke('set_volume', { volume: targetVolume });
+          return;
+        }
+
         if (!signedUrl || isDisposedRef.current || currentAttempt !== loadAttemptRef.current) {
           throw new Error('Background audio is not available');
         }
@@ -88,6 +132,8 @@ function DetailsBackgroundAudioPlayer({
         await invoke('embed_mpv');
         await invoke('set_volume', { volume: targetVolume });
         await invoke('load_url', { url: `${serverUrl}${signedUrl}` });
+
+        currentSongIdentityRef.current = nextSongIdentity;
       });
 
       const ready = await waitForMediaReady(LOAD_TIMEOUT_MS, () => {
@@ -104,6 +150,7 @@ function DetailsBackgroundAudioPlayer({
         }
 
         await invoke('play');
+        hasActivePlaybackRef.current = true;
       });
 
       return true;
@@ -133,6 +180,16 @@ function DetailsBackgroundAudioPlayer({
       void stopPlayback();
     };
   }, [localId, loadAndPlay, serverUrl, stopPlayback, targetVolume]);
+
+  useEffect(() => {
+    if (!localId || !serverUrl || targetVolume <= 0 || !hasActivePlaybackRef.current) {
+      return;
+    }
+
+    void enqueueMpvCommand(async () => {
+      await invoke('set_volume', { volume: targetVolume });
+    });
+  }, [localId, serverUrl, targetVolume]);
 
   useEffect(() => {
     if (!localId || !serverUrl || targetVolume <= 0) {

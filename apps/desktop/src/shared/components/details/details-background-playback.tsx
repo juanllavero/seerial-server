@@ -105,7 +105,6 @@ function DetailsBackgroundPlayback({
   if (mode === 'video' && activeVideoLocalId) {
     return (
       <DetailsBackgroundVideoPlayer
-        key={`video:${activeVideoLocalId}`}
         localId={activeVideoLocalId}
         onEnded={handleVideoEnded}
         onUnavailable={handleVideoUnavailable}
@@ -117,7 +116,6 @@ function DetailsBackgroundPlayback({
   if (mode === 'audio' && activeAudioLocalId) {
     return (
       <DetailsBackgroundAudioPlayer
-        key={`audio:${activeAudioLocalId}`}
         localId={activeAudioLocalId}
         onUnavailable={handleAudioUnavailable}
       />
