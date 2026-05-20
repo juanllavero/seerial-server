@@ -35,6 +35,8 @@ function uniqueArtistNames(values: string[]): string {
     return Array.from(new Set(values.filter(Boolean))).join(', ');
 }
 
+type ArtistSearchItem = Extract<LibrarySearchItem, { type: 'artist' }>;
+
 export class LocalLibrarySearchService {
     public async search(query: string, limitPerType?: number): Promise<LibrarySearchItem[]> {
         const normalizedQuery = normalizeQuery(query);
@@ -228,7 +230,7 @@ export class LocalLibrarySearchService {
                     },
                 };
             })
-            .filter((item): item is LibrarySearchItem => item !== null);
+            .filter((item): item is ArtistSearchItem => item !== null);
 
         return sortByTitle(results);
     }
