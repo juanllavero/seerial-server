@@ -1,28 +1,11 @@
-import { motion, type Variants } from 'motion/react';
-
 function Loading() {
-  const dotVariants: Variants = {
-    pulse: {
-      scale: [1, 1.5, 1],
-      transition: {
-        duration: 1.2,
-        repeat: Infinity,
-        ease: 'easeInOut',
-      },
-    },
-  };
-
   return (
-    <motion.div
-      animate="pulse"
-      transition={{ staggerChildren: -0.2, staggerDirection: -1 }}
-      className="container"
-    >
-      <motion.div className="dot" variants={dotVariants} />
-      <motion.div className="dot" variants={dotVariants} />
-      <motion.div className="dot" variants={dotVariants} />
+    <div className="container">
+      <div className="dot" />
+      <div className="dot" />
+      <div className="dot" />
       <StyleSheet />
-    </motion.div>
+    </div>
   );
 }
 
@@ -42,13 +25,23 @@ function StyleSheet() {
             gap: 20px;
         }
 
+        @keyframes dot-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.5); }
+        }
+
         .dot {
             width: 20px;
             height: 20px;
             border-radius: 50%;
             background-color: var(--app-color);
             will-change: transform;
+            animation: dot-pulse 1.2s ease-in-out infinite;
         }
+
+        .dot:nth-child(1) { animation-delay: -0.4s; }
+        .dot:nth-child(2) { animation-delay: -0.2s; }
+        .dot:nth-child(3) { animation-delay: 0s; }
       `}
     </style>
   );

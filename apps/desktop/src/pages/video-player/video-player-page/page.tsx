@@ -15,6 +15,7 @@ import {
   setAppShellBackground,
 } from '@/shared/components/details/details-background-mpv';
 import Loading from '@/shared/components/loading';
+import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
 import { useAppSettingsMpv } from '../../../features/video-player/hooks/use-app-settings-mpv';
 
 const LOAD_TIMEOUT_MS = 15000;
@@ -338,6 +339,14 @@ function VideoPlayerPage() {
 
     setIsRecoveringPlaybackError(false);
   }, [errorMode, getInitialPlaybackPosition, loadVideo, video]);
+
+  useKeyboardBack({
+    enabled: !videoLoaded && !isErrorDialogOpen,
+    preAction: () => {
+      void mpv.stop();
+      void mpv.embedMpv();
+    },
+  });
 
   if (!video || loadingVideo) {
     return <Loading />;
