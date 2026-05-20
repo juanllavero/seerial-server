@@ -50,6 +50,7 @@ export const API = {
     },
     search: {
         media: '/search/media',
+        library: '/search/library',
     },
     media: {
         details: (type: string) => `/media/details/${type}`,

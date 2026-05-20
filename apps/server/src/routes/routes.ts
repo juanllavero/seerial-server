@@ -843,6 +843,52 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "LibrarySearchItemType": {
+        "dataType": "refAlias",
+        "type": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["collection"]},{"dataType":"enum","enums":["movie"]},{"dataType":"enum","enums":["series"]},{"dataType":"enum","enums":["album"]},{"dataType":"enum","enums":["artist"]},{"dataType":"enum","enums":["episode"]},{"dataType":"enum","enums":["song"]}],"validators":{}},
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "LibrarySearchDetailsType": {
+        "dataType": "refAlias",
+        "type": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["collection"]},{"dataType":"enum","enums":["movie"]},{"dataType":"enum","enums":["series"]},{"dataType":"enum","enums":["album"]}],"validators":{}},
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "LibrarySearchNavigationTarget": {
+        "dataType": "refObject",
+        "properties": {
+            "detailsType": {"ref":"LibrarySearchDetailsType","required":true},
+            "detailsId": {"dataType":"string","required":true},
+            "focusItemId": {"dataType":"string"},
+            "currentSeasonNumber": {"dataType":"double"},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "LibrarySearchItem": {
+        "dataType": "refObject",
+        "properties": {
+            "id": {"dataType":"string","required":true},
+            "type": {"ref":"LibrarySearchItemType","required":true},
+            "title": {"dataType":"string","required":true},
+            "subtitle": {"dataType":"string"},
+            "imageSrc": {"dataType":"string"},
+            "libraryType": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["Shows"]},{"dataType":"enum","enums":["Movies"]},{"dataType":"enum","enums":["Music"]}]},
+            "navigation": {"ref":"LibrarySearchNavigationTarget","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "ApiResponse_LibrarySearchItem-Array_": {
+        "dataType": "refObject",
+        "properties": {
+            "success": {"dataType":"boolean","required":true},
+            "message": {"dataType":"string","required":true},
+            "data": {"dataType":"union","subSchemas":[{"dataType":"array","array":{"dataType":"refObject","ref":"LibrarySearchItem"}},{"dataType":"enum","enums":[null]}],"required":true},
+            "timestamp": {"dataType":"string","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "ApiResponse_unknown_": {
         "dataType": "refObject",
         "properties": {
@@ -2806,6 +2852,38 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
 
               await templateService.apiHandler({
                 methodName: 'searchDownloadableMedia',
+                controller,
+                response,
+                next,
+                validatedArgs,
+                successStatus: undefined,
+              });
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        const argsSearchController_searchLibraryContent: Record<string, TsoaRoute.ParameterSchema> = {
+                query: {"in":"query","name":"query","required":true,"dataType":"string"},
+                limit: {"in":"query","name":"limit","dataType":"double"},
+        };
+        app.get('/api/search/library',
+            authenticateMiddleware([{"cookieAuth":[]}]),
+            ...(fetchMiddlewares<RequestHandler>(SearchController)),
+            ...(fetchMiddlewares<RequestHandler>(SearchController.prototype.searchLibraryContent)),
+
+            async function SearchController_searchLibraryContent(request: ExRequest, response: ExResponse, next: any) {
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = templateService.getValidatedArgs({ args: argsSearchController_searchLibraryContent, request, response });
+
+                const controller = new SearchController();
+
+              await templateService.apiHandler({
+                methodName: 'searchLibraryContent',
                 controller,
                 response,
                 next,

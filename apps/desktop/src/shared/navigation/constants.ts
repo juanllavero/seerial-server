@@ -2,6 +2,7 @@ export const NavigationFocusKeys = {
   topBar: {
     container: 'topBar',
     home: 'home',
+    search: 'search',
     movies: 'movies',
     shows: 'shows',
     music: 'music',

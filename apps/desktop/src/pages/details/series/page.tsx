@@ -10,6 +10,7 @@ function SeriesDetailsPage() {
   const cachedDetails: DetailsData | undefined = state?.cachedDetails;
   const numberOfItems: number | undefined = state?.numberOfItems;
   const currentSeasonNumber: number | undefined = state?.currentSeasonNumber;
+  const focusEpisodeId: string | undefined = state?.focusEpisodeId;
   const collectionId: string | undefined = state?.collectionId;
   const libraryType = state?.libraryType as LibraryType | undefined;
 
@@ -27,6 +28,7 @@ function SeriesDetailsPage() {
       details={cachedDetails}
       numberOfItems={numberOfItems}
       currentSeasonNumber={currentSeasonNumber}
+      focusedEpisodeId={focusEpisodeId}
       collectionId={collectionId}
       libraryType={libraryType}
     />

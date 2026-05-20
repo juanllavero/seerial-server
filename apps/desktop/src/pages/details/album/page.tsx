@@ -9,6 +9,7 @@ function AlbumDetailsPage() {
   const { state } = useLocation();
   const cachedDetails: DetailsData | undefined = state?.cachedDetails;
   const collectionId: string | undefined = state?.collectionId;
+  const focusSongId: string | undefined = state?.focusSongId;
   const libraryType = state?.libraryType as LibraryType | undefined;
   const collectionBackgroundSrc: string | undefined = state?.collectionBackgroundSrc;
 
@@ -21,6 +22,7 @@ function AlbumDetailsPage() {
       album={album}
       isLoading={isLoading}
       details={cachedDetails}
+      initialFocusedSongId={focusSongId}
       collectionId={collectionId}
       libraryType={libraryType}
       fallbackBackgroundSrc={collectionBackgroundSrc}

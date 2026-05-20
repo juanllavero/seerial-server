@@ -1,0 +1,326 @@
+import { getCurrentFocusKey, setFocus } from '@noriginmedia/norigin-spatial-navigation';
+import { useSearchLibrary } from '@seerial/api';
+import { type LibrarySearchItem, type LibrarySearchItemType, LibraryTypes } from '@seerial/domain';
+import { useServerStore } from '@seerial/stores';
+import { memo, useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router';
+import {
+  NavigationButton,
+  NavigationContainer,
+  NavigationScrollView,
+} from '@/shared/components/navigation';
+import Page from '@/shared/components/page';
+import ListTitle from '@/shared/components/text/list-title';
+import ContentCard from '@/shared/components/ui/content-card';
+import FlexBox from '@/shared/components/ui/flex-box';
+import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
+import { NavigationFocusKeys } from '@/shared/navigation/constants';
+
+const RESULT_GROUP_ORDER: LibrarySearchItemType[] = [
+  'collection',
+  'movie',
+  'series',
+  'album',
+  'artist',
+  'episode',
+  'song',
+];
+
+const RESULT_GROUP_LABELS: Record<LibrarySearchItemType, string> = {
+  collection: 'Collections',
+  movie: 'Movies',
+  series: 'Series',
+  album: 'Albums',
+  artist: 'Artists',
+  episode: 'Episodes',
+  song: 'Songs',
+};
+
+const KEYBOARD_LAYOUT = [
+  ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'],
+  ['J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R'],
+  ['S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '0'],
+  ['1', '2', '3', '4', '5', '6', '7', '8', '9'],
+  ['SPACE', 'BACKSPACE', 'CLEAR'],
+] as const;
+
+function getResultFocusKey(item: LibrarySearchItem): string {
+  return `search-result-${item.type}-${item.id}`;
+}
+
+function SearchPage() {
+  const navigate = useNavigate();
+  const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
+  const [query, setQuery] = useState('');
+  const [focusedResultId, setFocusedResultId] = useState<string | undefined>(undefined);
+  const [lastLeftPanelFocusKey, setLastLeftPanelFocusKey] = useState('search-key-A');
+
+  const { data: searchResults = [] } = useSearchLibrary<LibrarySearchItem[]>(query, {
+    enabled: serverUrl !== '' && query.trim().length > 0,
+    params: { limit: 12 },
+    staleTime: 5_000,
+  });
+
+  const groupedResults = useMemo(() => {
+    const entries = RESULT_GROUP_ORDER.map((type) => {
+      const items = searchResults.filter((result) => result.type === type);
+      return [type, items] as const;
+    }).filter(([, items]) => items.length > 0);
+
+    return Object.fromEntries(entries) as Partial<
+      Record<LibrarySearchItemType, LibrarySearchItem[]>
+    >;
+  }, [searchResults]);
+
+  const allResults = useMemo(
+    () => RESULT_GROUP_ORDER.flatMap((type) => groupedResults[type] ?? []),
+    [groupedResults],
+  );
+  const firstResultFocusKey = allResults[0] ? getResultFocusKey(allResults[0]) : undefined;
+
+  const suggestions = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+
+    if (normalizedQuery.length < 2) {
+      return [];
+    }
+
+    const uniqueTitles = Array.from(
+      new Set(searchResults.map((item) => item.title.trim()).filter((title) => title.length > 0)),
+    );
+
+    return uniqueTitles
+      .filter((title) => title.toLowerCase().includes(normalizedQuery))
+      .sort((a, b) => {
+        const startsA = a.toLowerCase().startsWith(normalizedQuery) ? 0 : 1;
+        const startsB = b.toLowerCase().startsWith(normalizedQuery) ? 0 : 1;
+
+        if (startsA !== startsB) {
+          return startsA - startsB;
+        }
+
+        return a.localeCompare(b, undefined, { sensitivity: 'base' });
+      })
+      .slice(0, 6);
+  }, [query, searchResults]);
+
+  const handleNavigateToResult = (item: LibrarySearchItem) => {
+    const detailsType = item.navigation.detailsType;
+    const detailsId = item.navigation.detailsId;
+
+    if (!detailsId) {
+      return;
+    }
+
+    if (detailsType === 'collection') {
+      navigate(`/details/collection/${detailsId}/${item.libraryType ?? LibraryTypes.MOVIES}`);
+      return;
+    }
+
+    navigate(`/details/${detailsType}/${detailsId}`, {
+      state: {
+        currentSeasonNumber: item.navigation.currentSeasonNumber,
+        focusEpisodeId: item.type === 'episode' ? item.navigation.focusItemId : undefined,
+        focusSongId: item.type === 'song' ? item.navigation.focusItemId : undefined,
+      },
+    });
+  };
+
+  const handleKeyboardKeyPress = (key: (typeof KEYBOARD_LAYOUT)[number][number]) => {
+    if (key === 'SPACE') {
+      setQuery((prev) => `${prev} `);
+      return;
+    }
+
+    if (key === 'BACKSPACE') {
+      setQuery((prev) => prev.slice(0, -1));
+      return;
+    }
+
+    if (key === 'CLEAR') {
+      setQuery('');
+      return;
+    }
+
+    setQuery((prev) => `${prev}${key}`);
+  };
+
+  const handleLeftPanelArrowPress = (direction: string) => {
+    if (direction === 'right' && firstResultFocusKey) {
+      setFocus(firstResultFocusKey);
+      return false;
+    }
+
+    return true;
+  };
+
+  useKeyboardBack({
+    navigateOnBack: false,
+    preAction: () => {
+      const currentFocusKey = getCurrentFocusKey() ?? '';
+      const isSearchFocus = currentFocusKey.startsWith('search-');
+
+      if (isSearchFocus) {
+        setFocus(NavigationFocusKeys.topBar.container);
+        return;
+      }
+
+      navigate('/home');
+    },
+  });
+
+  useEffect(() => {
+    const focusFrame = window.requestAnimationFrame(() => {
+      if (!query) {
+        setFocus('search-key-A');
+      }
+    });
+
+    return () => window.cancelAnimationFrame(focusFrame);
+  }, [query]);
+
+  return (
+    <Page padding="2dvh 4dvh 3dvh 4dvh" fullScreen>
+      <NavigationContainer className="h-full w-full" customFocusKey="search-page-container">
+        <FlexBox width="100%" height="100%" gap={2.5} className="pr-[2dvh]">
+          <FlexBox
+            direction="column"
+            width="34dvw"
+            height="100%"
+            gap={1.2}
+            className="rounded-2xl border border-white/20 bg-black/35 p-[2dvh]"
+          >
+            <ListTitle className="text-[2.2dvh]! pl-0!">Search</ListTitle>
+            <input
+              className="h-[6dvh] w-full rounded-xl border border-white/30 bg-black/50 px-4 text-[2.2dvh] text-white outline-none"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Type to search"
+              spellCheck={false}
+            />
+
+            <div className="grid grid-cols-3 gap-2">
+              {KEYBOARD_LAYOUT.flat().map((key) => (
+                <NavigationButton
+                  key={key}
+                  customKey={`search-key-${key}`}
+                  text={key === 'BACKSPACE' ? 'Backspace' : key === 'SPACE' ? 'Space' : key}
+                  variant="secondary"
+                  className="h-[5.2dvh] justify-center"
+                  onFocus={() => setLastLeftPanelFocusKey(`search-key-${key}`)}
+                  onArrowPress={handleLeftPanelArrowPress}
+                  onClick={() => handleKeyboardKeyPress(key)}
+                />
+              ))}
+            </div>
+
+            {!!suggestions.length && (
+              <>
+                <ListTitle className="text-[1.9dvh]! pt-[0.5dvh]! pl-0!">Suggestions</ListTitle>
+                <NavigationScrollView
+                  direction="vertical"
+                  className="max-h-[22dvh] gap-2 pr-[0.5dvh]"
+                  scrollMode="center"
+                  isRestoringFocus={false}
+                >
+                  {suggestions.map((suggestion) => (
+                    <NavigationButton
+                      key={suggestion}
+                      customKey={`search-suggestion-${suggestion}`}
+                      text={suggestion}
+                      variant="secondary"
+                      className="w-full justify-start"
+                      onFocus={() => setLastLeftPanelFocusKey(`search-suggestion-${suggestion}`)}
+                      onArrowPress={handleLeftPanelArrowPress}
+                      onClick={() => setQuery(suggestion)}
+                    />
+                  ))}
+                </NavigationScrollView>
+              </>
+            )}
+          </FlexBox>
+
+          <FlexBox direction="column" width="60dvw" height="100%" gap={1} className="min-w-0">
+            <ListTitle className="text-[2.2dvh]! pl-0!">Results</ListTitle>
+            {!query.trim().length && (
+              <div className="text-[2dvh] text-white/70">
+                Start typing with the keyboard to search.
+              </div>
+            )}
+            {!!query.trim().length && !allResults.length && (
+              <div className="text-[2dvh] text-white/70">
+                No results found for the current query.
+              </div>
+            )}
+
+            <NavigationScrollView
+              direction="vertical"
+              className="h-full gap-[1.2dvh] pr-[0.6dvh]"
+              scrollMode="center"
+              focusedElementId={focusedResultId}
+              isRestoringFocus={false}
+            >
+              {RESULT_GROUP_ORDER.map((type) => {
+                const items = groupedResults[type];
+
+                if (!items?.length) {
+                  return null;
+                }
+
+                return (
+                  <div key={type} className="mb-[1.2dvh]">
+                    <ListTitle className="text-[1.8dvh]! pb-[0.6dvh]! pl-0!">
+                      {RESULT_GROUP_LABELS[type]}
+                    </ListTitle>
+                    <NavigationScrollView
+                      direction="horizontal"
+                      className="gap-4 pb-[0.5dvh]"
+                      scrollMode="center"
+                      focusedElementId={focusedResultId}
+                      isRestoringFocus={false}
+                    >
+                      {items.map((item) => {
+                        const focusKey = getResultFocusKey(item);
+                        const isFirstItemInGroup = items[0]?.id === item.id;
+
+                        return (
+                          <ContentCard
+                            key={focusKey}
+                            customKey={focusKey}
+                            imgSrc={item.imageSrc ?? ''}
+                            title={item.title}
+                            subtitle={item.subtitle}
+                            width="13dvw"
+                            aspectRatio={
+                              item.type === 'album' ||
+                              item.type === 'artist' ||
+                              item.type === 'song'
+                                ? '1'
+                                : '2/3'
+                            }
+                            action={() => handleNavigateToResult(item)}
+                            onFocus={() => setFocusedResultId(focusKey)}
+                            onArrowPress={(direction) => {
+                              if (direction === 'left' && isFirstItemInGroup) {
+                                setFocus(lastLeftPanelFocusKey);
+                                return false;
+                              }
+
+                              return true;
+                            }}
+                          />
+                        );
+                      })}
+                    </NavigationScrollView>
+                  </div>
+                );
+              })}
+            </NavigationScrollView>
+          </FlexBox>
+        </FlexBox>
+      </NavigationContainer>
+    </Page>
+  );
+}
+
+export default memo(SearchPage);

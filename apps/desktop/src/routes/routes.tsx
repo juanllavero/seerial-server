@@ -6,6 +6,7 @@ import {
   Library,
   LoginPage,
   MovieDetails,
+  SearchPage,
   SeriesDetails,
   ToSeePage,
   VideoPlayer,
@@ -29,6 +30,7 @@ export default function AppRoutes() {
           <Route path="details/series/:seriesId" element={<SeriesDetails />} />
           <Route path="details/album/:albumId" element={<AlbumDetails />} />
           <Route path="details/collection/:collectionId/:type" element={<CollectionDetails />} />
+          <Route path="/search" element={<SearchPage />} />
           <Route path="/see" element={<ToSeePage />} />
         </Route>
 

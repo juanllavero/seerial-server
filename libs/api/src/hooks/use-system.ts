@@ -7,6 +7,19 @@ export const useSearchMedia = <TResponse = unknown>(
     options?: QueryHookOptions<TResponse>,
 ): ApiQueryResult<TResponse> => useApiQuery<TResponse>(['search', 'media'], API.search.media, options)
 
+export const useSearchLibrary = <TResponse = unknown>(
+    query: string,
+    options?: QueryHookOptions<TResponse>,
+): ApiQueryResult<TResponse> => {
+    const mergedParams = { ...(options?.params ?? {}), query }
+
+    return useApiQuery<TResponse>(['search', 'library'], API.search.library, {
+        ...options,
+        params: mergedParams,
+        enabled: (options?.enabled ?? true) && query.trim().length > 0,
+    })
+}
+
 export const useGetMediaDetails = <TResponse = unknown>(
     mediaType: string,
     options?: QueryHookOptions<TResponse>,

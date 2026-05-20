@@ -44,11 +44,18 @@ function SongsList({
 
   // Set focus on load
   useEffect(() => {
+    if (focusedSongId) {
+      setFocus(focusedSongId);
+      return;
+    }
+
     if (currentSong?.albumId === album.id) {
       setFocus(currentSong?.id ?? NavigationFocusKeys.details.playButton);
+      return;
     }
+
     setFocus(NavigationFocusKeys.details.playButton);
-  }, [currentSong?.id, currentSong?.albumId, album.id]);
+  }, [focusedSongId, currentSong?.id, currentSong?.albumId, album.id]);
 
   const sortedSongs = useMemo(
     () =>

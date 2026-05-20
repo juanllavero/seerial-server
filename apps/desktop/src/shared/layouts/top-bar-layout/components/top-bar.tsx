@@ -25,6 +25,7 @@ function getActiveButtonKeyForPath(pathname: string): string {
   if (segment === LibraryTypes.MOVIES) return NavigationFocusKeys.topBar.movies;
   if (segment === LibraryTypes.SHOWS) return NavigationFocusKeys.topBar.shows;
   if (segment === LibraryTypes.MUSIC) return NavigationFocusKeys.topBar.music;
+  if (pathname === '/search') return NavigationFocusKeys.topBar.search;
   if (pathname === '/see') return NavigationFocusKeys.topBar.toSee;
 
   return NavigationFocusKeys.topBar.home;
@@ -269,6 +270,14 @@ function TopBar() {
                 onFocus={() => handleLibraryTypeFocus(LibraryTypes.MUSIC)}
                 onClick={() => handleLibraryTypePress(LibraryTypes.MUSIC)}
                 text="Music"
+                variant="ghost"
+              />
+              <NavigationButton
+                customKey={NavigationFocusKeys.topBar.search}
+                selected={pathname === '/search'}
+                onFocus={handleNonLibraryFocus}
+                onClick={() => navigate('/search')}
+                text="Search"
                 variant="ghost"
               />
               <NavigationButton

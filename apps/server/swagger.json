@@ -2285,6 +2285,117 @@
 				"type": "object",
 				"additionalProperties": false
 			},
+			"LibrarySearchItemType": {
+				"type": "string",
+				"enum": [
+					"collection",
+					"movie",
+					"series",
+					"album",
+					"artist",
+					"episode",
+					"song"
+				]
+			},
+			"LibrarySearchDetailsType": {
+				"type": "string",
+				"enum": [
+					"collection",
+					"movie",
+					"series",
+					"album"
+				]
+			},
+			"LibrarySearchNavigationTarget": {
+				"properties": {
+					"detailsType": {
+						"$ref": "#/components/schemas/LibrarySearchDetailsType"
+					},
+					"detailsId": {
+						"type": "string"
+					},
+					"focusItemId": {
+						"type": "string"
+					},
+					"currentSeasonNumber": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"detailsType",
+					"detailsId"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"LibrarySearchItem": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"type": {
+						"$ref": "#/components/schemas/LibrarySearchItemType"
+					},
+					"title": {
+						"type": "string"
+					},
+					"subtitle": {
+						"type": "string"
+					},
+					"imageSrc": {
+						"type": "string"
+					},
+					"libraryType": {
+						"type": "string",
+						"enum": [
+							"Shows",
+							"Movies",
+							"Music"
+						]
+					},
+					"navigation": {
+						"$ref": "#/components/schemas/LibrarySearchNavigationTarget"
+					}
+				},
+				"required": [
+					"id",
+					"type",
+					"title",
+					"navigation"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"ApiResponse_LibrarySearchItem-Array_": {
+				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
+				"properties": {
+					"success": {
+						"type": "boolean"
+					},
+					"message": {
+						"type": "string"
+					},
+					"data": {
+						"items": {
+							"$ref": "#/components/schemas/LibrarySearchItem"
+						},
+						"type": "array",
+						"nullable": true
+					},
+					"timestamp": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"success",
+					"message",
+					"data",
+					"timestamp"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
 			"ApiResponse_unknown_": {
 				"description": "Standard API Response structure.\nThis class creates a consistent envelope for all API responses.",
 				"properties": {
@@ -6013,6 +6124,51 @@
 						"required": true,
 						"schema": {
 							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/search/library": {
+			"get": {
+				"operationId": "SearchLibraryContent",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/ApiResponse_LibrarySearchItem-Array_"
+								}
+							}
+						}
+					}
+				},
+				"description": "Search local library content (collections, movies, series, albums, artists, episodes and songs).",
+				"tags": [
+					"Search"
+				],
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
+				"parameters": [
+					{
+						"in": "query",
+						"name": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "query",
+						"name": "limit",
+						"required": false,
+						"schema": {
+							"format": "double",
+							"type": "number"
 						}
 					}
 				]

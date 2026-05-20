@@ -31,6 +31,7 @@ interface SeriesDetailsProps {
   details: DetailsData | undefined;
   numberOfItems: number | undefined;
   currentSeasonNumber: number | undefined;
+  focusedEpisodeId?: string;
   collectionId?: string;
   libraryType?: LibraryType;
 }
@@ -53,6 +54,7 @@ function getInitialSeason(
 function getSeasonEpisodeState(
   selectedSeason: Season | null,
   getLastFocusedEpisodeForSeason: (seasonId: string) => string | undefined,
+  focusedEpisodeId?: string,
 ): { selectedEpisode: Episode | null; isRestoringEpisodeFocus: boolean } {
   if (!selectedSeason) {
     return { selectedEpisode: null, isRestoringEpisodeFocus: false };
@@ -64,6 +66,14 @@ function getSeasonEpisodeState(
 
   if (sortedEpisodes.length === 0) {
     return { selectedEpisode: null, isRestoringEpisodeFocus: false };
+  }
+
+  const explicitFocusedEpisode = focusedEpisodeId
+    ? sortedEpisodes.find((episode) => episode.id === focusedEpisodeId)
+    : null;
+
+  if (explicitFocusedEpisode) {
+    return { selectedEpisode: explicitFocusedEpisode, isRestoringEpisodeFocus: true };
   }
 
   const restoredEpisodeId = getLastFocusedEpisodeForSeason(selectedSeason.id);
@@ -122,6 +132,7 @@ function SeriesDetails({
   details,
   numberOfItems,
   currentSeasonNumber,
+  focusedEpisodeId,
   collectionId,
   libraryType,
 }: SeriesDetailsProps) {
@@ -180,13 +191,17 @@ function SeriesDetails({
   }, [series, currentSeasonNumber]);
 
   useEffect(() => {
-    const nextState = getSeasonEpisodeState(selectedSeason, getLastFocusedEpisodeForSeason);
+    const nextState = getSeasonEpisodeState(
+      selectedSeason,
+      getLastFocusedEpisodeForSeason,
+      focusedEpisodeId,
+    );
     const seasonId = selectedSeason?.id ?? null;
     const seasonChanged = prevSelectedSeasonIdRef.current !== seasonId;
     prevSelectedSeasonIdRef.current = seasonId;
     setSelectedEpisode(nextState.selectedEpisode);
     setIsRestoringEpisodeFocus(seasonChanged ? nextState.isRestoringEpisodeFocus : false);
-  }, [selectedSeason, getLastFocusedEpisodeForSeason]);
+  }, [selectedSeason, getLastFocusedEpisodeForSeason, focusedEpisodeId]);
 
   const handleSelectEpisode = useCallback(
     (episode: Episode) => {

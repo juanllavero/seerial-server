@@ -32,6 +32,34 @@ export interface MediaSearchResult {
   thumbnail: string
 }
 
+export type LibrarySearchItemType =
+  | 'collection'
+  | 'movie'
+  | 'series'
+  | 'album'
+  | 'artist'
+  | 'episode'
+  | 'song'
+
+export type LibrarySearchDetailsType = 'collection' | 'movie' | 'series' | 'album'
+
+export interface LibrarySearchNavigationTarget {
+  detailsType: LibrarySearchDetailsType
+  detailsId: string
+  focusItemId?: string
+  currentSeasonNumber?: number
+}
+
+export interface LibrarySearchItem {
+  id: string
+  type: LibrarySearchItemType
+  title: string
+  subtitle?: string
+  imageSrc?: string
+  libraryType?: 'Shows' | 'Movies' | 'Music'
+  navigation: LibrarySearchNavigationTarget
+}
+
 export interface SelectableOption {
   key: string
   value: string

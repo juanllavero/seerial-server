@@ -138,6 +138,7 @@ import { WatchListRepositoryImpl } from '@/api/v1/watch-lists/infrastructure/per
 import { AudioProcessingServiceImpl } from '../../../../songs/infrastructure/services/AudioProcessingServiceImpl';
 import { VideoProcessingServiceImpl } from '../../../../videos/infrastructure/services/VideoProcessingServiceImpl';
 import { ExternalSearchService } from '../../services/ExternalSearchService';
+import { LocalLibrarySearchService } from '../../services/LocalLibrarySearchService';
 import { DownloaderServiceImpl } from '../downloader/DownloaderServiceImpl';
 import { FileSystemServiceImpl } from '../filesystem/FileSystemServiceImpl';
 import { ImageProcessingServiceImpl } from '../image-processing/ImageProcessingServiceImpl';
@@ -158,6 +159,7 @@ export const audioProcessingService = new AudioProcessingServiceImpl();
 export const notificationService = new NotificationServiceImpl();
 export const downloaderService = new DownloaderServiceImpl();
 export const externalSearchService = new ExternalSearchService();
+export const localLibrarySearchService = new LocalLibrarySearchService();
 export const videoProcessingService = new VideoProcessingServiceImpl();
 export const imageProcessingService = new ImageProcessingServiceImpl(fileSystemService);
 export const contentCleanupService = new ContentCleanupService(fileSystemService);

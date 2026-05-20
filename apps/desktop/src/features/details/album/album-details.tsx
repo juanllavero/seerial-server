@@ -20,6 +20,7 @@ interface AlbumDetailsProps {
   album: Album | undefined;
   isLoading: boolean;
   details: DetailsData | undefined;
+  initialFocusedSongId?: string;
   collectionId?: string;
   libraryType?: LibraryType;
   fallbackBackgroundSrc?: string;
@@ -29,6 +30,7 @@ function AlbumDetails({
   album,
   isLoading,
   details,
+  initialFocusedSongId,
   collectionId,
   libraryType,
   fallbackBackgroundSrc,
@@ -36,7 +38,7 @@ function AlbumDetails({
   const navigate = useNavigate();
   const setGradientImageSrc = useGradientStore((state) => state.setGradientImageSrc);
   const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false);
-  const [focusedSongId, setFocusedSongId] = useState<string | undefined>(undefined);
+  const [focusedSongId, setFocusedSongId] = useState<string | undefined>(initialFocusedSongId);
   const { cardRoundness } = useSettingsStore(
     (s) => ({
       cardRoundness: s.settings.cardRoundness,
@@ -55,6 +57,12 @@ function AlbumDetails({
     setGradientImageSrc(src);
     return () => setGradientImageSrc('');
   }, [details?.coverSrc, album?.coverSrc, fallbackBackgroundSrc, setGradientImageSrc]);
+
+  useEffect(() => {
+    if (initialFocusedSongId) {
+      setFocusedSongId(initialFocusedSongId);
+    }
+  }, [initialFocusedSongId]);
 
   return (
     <DetailsWithRelatedContent
