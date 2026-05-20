@@ -120,7 +120,7 @@ export const getAudioTrack = (prefAudioLan: string, video: Video) => {
     return video.audioTracks[0];
 };
 
-const LATIN_SPANISH_PATTERN = /latin|latam|lat_am|latinoam[eé]rica/i;
+const LATIN_SPANISH_PATTERN = /latin|latam|lat_am|latino|latinoam[eé]rica/i;
 
 export const isLatinSpanishTrack = (track: { languageTag: string; title?: string }): boolean => {
     if (track.languageTag !== 'spa') return false;
@@ -136,15 +136,35 @@ function resolveStoredSubtitleTrack(video: Video): SubtitleTrack | null | undefi
     return undefined;
 }
 
-function findSubtitleByLang(tracks: SubtitleTrack[], targetLang: string, preferSpainSpanish: boolean): SubtitleTrack | undefined {
-    if (targetLang === 'spa' && preferSpainSpanish) {
-        const spainTrack = tracks.findLast((t) => t.languageTag === 'spa' && !isLatinSpanishTrack(t));
-        if (spainTrack) return spainTrack;
+type SpanishVariantPreference = 'spain' | 'latin' | 'none';
+
+function findSubtitleByLang(
+    tracks: SubtitleTrack[],
+    targetLang: string,
+    spanishVariantPreference: SpanishVariantPreference,
+): SubtitleTrack | undefined {
+    if (targetLang === 'spa') {
+        if (spanishVariantPreference === 'spain') {
+            const spainTrack = tracks.findLast((t) => t.languageTag === 'spa' && !isLatinSpanishTrack(t));
+            if (spainTrack) return spainTrack;
+        }
+
+        if (spanishVariantPreference === 'latin') {
+            const latinTrack = tracks.findLast((t) => t.languageTag === 'spa' && isLatinSpanishTrack(t));
+            if (latinTrack) return latinTrack;
+        }
     }
+
     return tracks.findLast((t) => t.languageTag === targetLang);
 }
 
-export const getSubtitleTrack = (prefSubsLan: string, subsMode: string, video: Video, preferSpainSpanish?: boolean) => {
+function getSpanishVariantPreference(appLanguage?: string): SpanishVariantPreference {
+    if (appLanguage === 'es-ES') return 'spain';
+    if (/^es(?:-|$)/i.test(appLanguage ?? '')) return 'latin';
+    return 'none';
+}
+
+export const getSubtitleTrack = (prefSubsLan: string, subsMode: string, video: Video, appLanguage?: string) => {
     if (!video.subtitleTracks || video.subtitleTracks.length === 0) return null;
 
     const stored = resolveStoredSubtitleTrack(video);
@@ -155,7 +175,7 @@ export const getSubtitleTrack = (prefSubsLan: string, subsMode: string, video: V
 
     if (subsMode !== 'autoSubs' && subsMode !== 'alwaysSubs') return null;
 
-    return findSubtitleByLang(video.subtitleTracks, targetLang, preferSpainSpanish ?? false) ?? defaultTrack;
+    return findSubtitleByLang(video.subtitleTracks, targetLang, getSpanishVariantPreference(appLanguage)) ?? defaultTrack;
 };
 
 /**

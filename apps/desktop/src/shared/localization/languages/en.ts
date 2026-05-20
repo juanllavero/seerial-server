@@ -336,7 +336,6 @@ export const en = {
     general: 'General',
     about: 'About',
     language: 'Language',
-    preferSpainSpanish: 'Prefer Spain Spanish for subtitle tracks',
     watchedIndicator: 'Watched indicator',
     feedbackSounds: 'Feedback sounds',
     themeMusicVolume: 'Theme music',

@@ -19,13 +19,13 @@ import {
 import { useServerStore } from '@seerial/stores';
 import { useQueryClient } from '@tanstack/react-query';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { shallow } from 'zustand/shallow';
 import DetailsBackgroundLayers from '@/shared/components/details/details-background-layers';
 import DetailsBackgroundPlayback from '@/shared/components/details/details-background-playback';
 import DetailsInfo from '@/shared/components/details/details-info';
 import Page from '@/shared/components/page';
-import { useSettingsStore } from '@/shared/stores';
 import { DetailsWithRelatedContent } from '../shared';
 
 interface MovieDetailsProps {
@@ -37,6 +37,7 @@ interface MovieDetailsProps {
 }
 
 function MovieDetails({ movie, isLoading, details, collectionId, libraryType }: MovieDetailsProps) {
+  const { i18n } = useTranslation();
   const [selectedVideo, selectVideo] = useState<Video | null>(null);
   const [resolvedVideoData, setResolvedVideoData] = useState<Map<string, Video>>(new Map());
   const [isBackgroundVideoVisible, setIsBackgroundVideoVisible] = useState(false);
@@ -113,17 +114,15 @@ function MovieDetails({ movie, isLoading, details, collectionId, libraryType }: 
     return getAudioTrack(library.preferAudioLan ?? '', effectiveVideo)?.displayTitle;
   }, [effectiveVideo, library]);
 
-  const preferSpainSpanish = useSettingsStore((s) => s.settings.preferSpainSpanish);
-
   const movieSubtitleInfo = useMemo(() => {
     if (!effectiveVideo || !library) return undefined;
     return getSubtitleTrack(
       library.preferSubLan ?? '',
       library.subsMode ?? 'autoSubs',
       effectiveVideo,
-      preferSpainSpanish,
+      i18n.language,
     )?.displayTitle;
-  }, [effectiveVideo, library, preferSpainSpanish]);
+  }, [effectiveVideo, library, i18n.language]);
 
   if (!isLoading && !movie) return <span>Movie not found</span>;
 

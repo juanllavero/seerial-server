@@ -16,7 +16,6 @@ import { useTranslation } from 'react-i18next';
 import { NavigationButton, NavigationContainer } from '@/shared/components/navigation';
 import { useKeyboardShortcut } from '@/shared/hooks/use-keyboard-shortcut';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
-import { useSettingsStore } from '@/shared/stores';
 import { useMpvPlayer } from '../../hooks/use-mpv-player';
 
 type SelectorPanel = 'audio' | 'subtitle';
@@ -103,9 +102,8 @@ function TracksSelectors({
   playbackConfig,
   onPanelChange,
 }: TracksSelectorsProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
-  const preferSpainSpanish = useSettingsStore((s) => s.settings.preferSpainSpanish);
   const mpv = useMpvPlayer();
   const { mutate: updateVideo } = useUpdateVideo<
     void,
@@ -267,7 +265,7 @@ function TracksSelectors({
       playbackConfig.preferSubLan,
       playbackConfig.subsMode,
       video,
-      preferSpainSpanish,
+      i18n.language,
     );
     const selectedVideoTrackId = videoTracks[0]?.id ?? null;
     const selectedAudioTrackId = preferredAudioTrack?.id ?? null;
@@ -285,7 +283,7 @@ function TracksSelectors({
         track.selected = track.id === selectedVideoTrackId;
       }
     }
-  }, [serverUrl, video, videoInfo, playbackConfig, preferSpainSpanish]);
+  }, [serverUrl, video, videoInfo, playbackConfig, i18n.language]);
 
   if (!hasAudioOptions && !hasSubtitleOptions) {
     return null;

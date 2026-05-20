@@ -154,6 +154,15 @@ function SearchPage() {
     return true;
   };
 
+  const handleKeyboardArrowPress = (direction: string, isRightmostColumn: boolean) => {
+    if (direction === 'right' && isRightmostColumn && firstResultFocusKey) {
+      setFocus(firstResultFocusKey);
+      return false;
+    }
+
+    return true;
+  };
+
   useKeyboardBack({
     navigateOnBack: false,
     preAction: () => {
@@ -185,7 +194,7 @@ function SearchPage() {
         <FlexBox width="100%" height="100%" gap={2.5} className="pr-[2dvh]">
           <FlexBox
             direction="column"
-            width="34dvw"
+            width="30dvw"
             height="100%"
             gap={1.2}
             className="rounded-2xl border border-white/20 bg-black/35 p-[2dvh]"
@@ -199,18 +208,32 @@ function SearchPage() {
               spellCheck={false}
             />
 
-            <div className="grid grid-cols-3 gap-2">
-              {KEYBOARD_LAYOUT.flat().map((key) => (
-                <NavigationButton
-                  key={key}
-                  customKey={`search-key-${key}`}
-                  text={key === 'BACKSPACE' ? 'Backspace' : key === 'SPACE' ? 'Space' : key}
-                  variant="secondary"
-                  className="h-[5.2dvh] justify-center"
-                  onFocus={() => setLastLeftPanelFocusKey(`search-key-${key}`)}
-                  onArrowPress={handleLeftPanelArrowPress}
-                  onClick={() => handleKeyboardKeyPress(key)}
-                />
+            <div className="flex max-h-[50%] flex-col gap-2 overflow-y-auto pr-[0.4dvh]">
+              {KEYBOARD_LAYOUT.map((row) => (
+                <div
+                  key={`search-key-row-${row.join('-')}`}
+                  className="grid gap-2"
+                  style={{ gridTemplateColumns: `repeat(${row.length}, minmax(0, 1fr))` }}
+                >
+                  {row.map((key, columnIndex) => {
+                    const isRightmostColumn = columnIndex === row.length - 1;
+
+                    return (
+                      <NavigationButton
+                        key={key}
+                        customKey={`search-key-${key}`}
+                        text={key === 'BACKSPACE' ? 'Backspace' : key === 'SPACE' ? 'Space' : key}
+                        variant="secondary"
+                        className="h-[4.5dvh] justify-center"
+                        onFocus={() => setLastLeftPanelFocusKey(`search-key-${key}`)}
+                        onArrowPress={(direction) =>
+                          handleKeyboardArrowPress(direction, isRightmostColumn)
+                        }
+                        onClick={() => handleKeyboardKeyPress(key)}
+                      />
+                    );
+                  })}
+                </div>
               ))}
             </div>
 
@@ -219,7 +242,7 @@ function SearchPage() {
                 <ListTitle className="text-[1.9dvh]! pt-[0.5dvh]! pl-0!">Suggestions</ListTitle>
                 <NavigationScrollView
                   direction="vertical"
-                  className="max-h-[22dvh] gap-2 pr-[0.5dvh]"
+                  className="gap-2 pr-[0.5dvh] w-[25dvw]"
                   scrollMode="center"
                   isRestoringFocus={false}
                 >
@@ -229,7 +252,7 @@ function SearchPage() {
                       customKey={`search-suggestion-${suggestion}`}
                       text={suggestion}
                       variant="secondary"
-                      className="w-full justify-start"
+                      className="justify-start"
                       onFocus={() => setLastLeftPanelFocusKey(`search-suggestion-${suggestion}`)}
                       onArrowPress={handleLeftPanelArrowPress}
                       onClick={() => setQuery(suggestion)}
@@ -240,7 +263,7 @@ function SearchPage() {
             )}
           </FlexBox>
 
-          <FlexBox direction="column" width="60dvw" height="100%" gap={1} className="min-w-0">
+          <FlexBox direction="column" width="80dvw" height="100%" gap={1} className="min-w-0">
             <ListTitle className="text-[2.2dvh]! pl-0!">Results</ListTitle>
             {!query.trim().length && (
               <div className="text-[2dvh] text-white/70">

@@ -15,7 +15,6 @@ export type CardRoundness =
 export interface AppSettings {
   // General
   language: string;
-  preferSpainSpanish: boolean;
   watchedIndicator: boolean;
   feedbackSounds: boolean;
   themeMusicVolume: ThemeMusicVolume;
@@ -38,7 +37,6 @@ export interface AppSettings {
 
 export const DEFAULT_SETTINGS: AppSettings = {
   language: 'en',
-  preferSpainSpanish: true,
   watchedIndicator: true,
   feedbackSounds: true,
   themeMusicVolume: 'medium',

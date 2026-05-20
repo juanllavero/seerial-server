@@ -12,6 +12,7 @@ import { useServerStore } from '@seerial/stores';
 import { useQueryClient } from '@tanstack/react-query';
 import { t } from 'i18next';
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { shallow } from 'zustand/shallow';
 import EpisodesList, {
@@ -23,7 +24,6 @@ import DetailsBackgroundLayers from '@/shared/components/details/details-backgro
 import DetailsBackgroundPlayback from '@/shared/components/details/details-background-playback';
 import DetailsInfo from '@/shared/components/details/details-info';
 import Page from '@/shared/components/page';
-import { useSettingsStore } from '@/shared/stores';
 import { DetailsWithRelatedContent } from '../shared';
 
 interface SeriesDetailsProps {
@@ -115,7 +115,7 @@ function getEpisodeAudioInfo(
 function getEpisodeSubtitleInfo(
   selectedEpisode: Episode | null,
   series: Series | undefined,
-  preferSpainSpanish?: boolean,
+  appLanguage?: string,
 ): string | undefined {
   if (!selectedEpisode) {
     return undefined;
@@ -125,7 +125,7 @@ function getEpisodeSubtitleInfo(
     series?.preferSubLan ?? '',
     series?.subsMode ?? 'autoSubs',
     selectedEpisode.video,
-    preferSpainSpanish,
+    appLanguage,
   )?.displayTitle;
 }
 
@@ -139,6 +139,7 @@ function SeriesDetails({
   collectionId,
   libraryType,
 }: SeriesDetailsProps) {
+  const { i18n } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { currentUser } = useServerStore(
@@ -173,7 +174,6 @@ function SeriesDetails({
     { state: boolean }
   >(selectedEpisode?.id ?? '');
   const { mutateAsync: updateMediaInfo } = useUpdateVideoMediaInfo(selectedEpisode?.video.id ?? '');
-  const preferSpainSpanish = useSettingsStore((s) => s.settings.preferSpainSpanish);
 
   useEffect(() => {
     const video = selectedEpisode?.video;
@@ -254,8 +254,8 @@ function SeriesDetails({
     [episodeForTrackInfo, series],
   );
   const episodeSubtitleInfo = useMemo(
-    () => getEpisodeSubtitleInfo(episodeForTrackInfo, series, preferSpainSpanish),
-    [episodeForTrackInfo, series, preferSpainSpanish],
+    () => getEpisodeSubtitleInfo(episodeForTrackInfo, series, i18n.language),
+    [episodeForTrackInfo, series, i18n.language],
   );
 
   const handleMarkWatched = useCallback(async () => {
