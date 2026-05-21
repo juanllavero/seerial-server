@@ -1,5 +1,5 @@
 import type { Season } from '@seerial/domain';
-import { memo, useEffect, useState } from 'react';
+import { memo, useEffect } from 'react';
 import { NavigationButton, NavigationScrollView } from '@/shared/components/navigation';
 import FlexBox from '@/shared/components/ui/flex-box';
 
@@ -10,8 +10,6 @@ interface SeasonSelectorProps {
 }
 
 function SeasonSelector({ seasons, selectedSeasonId, onSelectSeason }: SeasonSelectorProps) {
-  const [focusedSeasonId, setFocusedSeasonId] = useState<string | undefined>(selectedSeasonId);
-
   useEffect(() => {
     if (seasons.length > 0 && !selectedSeasonId) {
       onSelectSeason(seasons[0]);
@@ -25,7 +23,7 @@ function SeasonSelector({ seasons, selectedSeasonId, onSelectSeason }: SeasonSel
           className="gap-5 z-10 w-[70dvw]"
           direction="horizontal"
           scrollMode="center"
-          focusedElementId={focusedSeasonId}
+          focusedElementId={selectedSeasonId}
           isRestoringFocus={false}
         >
           {seasons
@@ -38,7 +36,6 @@ function SeasonSelector({ seasons, selectedSeasonId, onSelectSeason }: SeasonSel
                 text={season.name}
                 selected={selectedSeasonId === season.id}
                 className={`${selectedSeasonId === season.id ? 'color-app-color' : ''}`}
-                onFocus={() => setFocusedSeasonId(season.id)}
                 onClick={() => onSelectSeason(season)}
               />
             ))}

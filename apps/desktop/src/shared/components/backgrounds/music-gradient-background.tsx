@@ -166,6 +166,37 @@ function animateCopies(copies: AlbumCopy[], effectsRef: React.MutableRefObject<E
   });
 }
 
+async function setupTextureScene({
+  resolvedUrl,
+  container,
+  app,
+  filtersRef,
+  effectsRef,
+  isDestroyed,
+  setResizeHandler,
+}: {
+  resolvedUrl: string;
+  container: PIXI.Container;
+  app: PIXI.Application;
+  filtersRef: React.MutableRefObject<FiltersRegistry>;
+  effectsRef: React.MutableRefObject<EffectsState>;
+  isDestroyed: () => boolean;
+  setResizeHandler: (handler: () => void) => void;
+}) {
+  if (isDestroyed()) return;
+  const texture = await loadTexture(resolvedUrl);
+  if (!texture) return;
+  if (isDestroyed()) return;
+
+  const copies = createAlbumCopies(texture, container);
+  const handleResizeFn = createResizeHandler(copies, filtersRef);
+
+  window.addEventListener('resize', handleResizeFn);
+  setResizeHandler(handleResizeFn);
+  handleResizeFn();
+  app.ticker.add(() => animateCopies(copies, effectsRef));
+}
+
 const GradientBackground: React.FC<GradientBackgroundProps> = ({ imageUrl }) => {
   const { resolvedUrl } = useResolveImageUrl(imageUrl, true);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -195,36 +226,40 @@ const GradientBackground: React.FC<GradientBackgroundProps> = ({ imageUrl }) => 
     let handleResizeFn: () => void;
     let isDestroyed = false;
 
-    const initPixi = async () => {
-      await app.init({
-        resizeTo: window,
-        backgroundColor: 0x000000,
-        resolution: window.devicePixelRatio || 1,
-        autoDensity: true,
-      });
+    const initPixi = () => {
+      void app
+        .init({
+          resizeTo: window,
+          backgroundColor: 0x000000,
+          resolution: window.devicePixelRatio || 1,
+          autoDensity: true,
+        })
+        .then(() => {
+          if (isDestroyed) return;
 
-      if (isDestroyed) return;
+          if (containerRef.current) {
+            containerRef.current.appendChild(app.canvas);
+          }
 
-      if (containerRef.current) {
-        containerRef.current.appendChild(app.canvas);
-      }
+          const container = new PIXI.Container();
+          app.stage.addChild(container);
+          applyFilters(app, filtersRef, effectsRef);
 
-      const container = new PIXI.Container();
-      app.stage.addChild(container);
-      applyFilters(app, filtersRef, effectsRef);
-
-      try {
-        const texture = await loadTexture(resolvedUrl);
-        if (isDestroyed || !texture) return;
-        const copies = createAlbumCopies(texture, container);
-        handleResizeFn = createResizeHandler(copies, filtersRef);
-
-        window.addEventListener('resize', handleResizeFn);
-        handleResizeFn();
-        app.ticker.add(() => animateCopies(copies, effectsRef));
-      } catch (error) {
-        console.error('Final error loading texture:', error);
-      }
+          return setupTextureScene({
+            resolvedUrl,
+            container,
+            app,
+            filtersRef,
+            effectsRef,
+            isDestroyed: () => isDestroyed,
+            setResizeHandler: (handler) => {
+              handleResizeFn = handler;
+            },
+          });
+        })
+        .catch((error) => {
+          console.error('Final error loading texture:', error);
+        });
     };
 
     initPixi();

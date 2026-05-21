@@ -1,5 +1,5 @@
 import { Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { Button } from '@/shared/components/ui/button';
 import {
   Dialog,
@@ -19,32 +19,32 @@ interface AddServerDialogProps {
 function AddServerDialog({ open, onOpenChange, onAdd }: AddServerDialogProps) {
   const [host, setHost] = useState('');
   const [port, setPort] = useState('34200');
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isPending, startTransition] = useTransition();
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (!host.trim()) return;
-    setIsLoading(true);
     setError('');
 
     const portNum = parseInt(port, 10);
     if (Number.isNaN(portNum) || portNum < 1 || portNum > 65535) {
       setError('Puerto inválido');
-      setIsLoading(false);
       return;
     }
 
-    const ok = await onAdd(host.trim(), portNum);
-    setIsLoading(false);
+    startTransition(() => {
+      void onAdd(host.trim(), portNum).then((ok) => {
+        if (ok) {
+          setHost('');
+          setPort('34200');
+          setError('');
+          onOpenChange(false);
+          return;
+        }
 
-    if (ok) {
-      setHost('');
-      setPort('34200');
-      setError('');
-      onOpenChange(false);
-    } else {
-      setError('No se pudo conectar al servidor');
-    }
+        setError('No se pudo conectar al servidor');
+      });
+    });
   };
 
   return (
@@ -66,10 +66,9 @@ function AddServerDialog({ open, onOpenChange, onAdd }: AddServerDialogProps) {
               value={host}
               onChange={(e) => setHost(e.target.value)}
               onKeyUp={(e) => e.key === 'Enter' && handleSubmit()}
-              disabled={isLoading}
+              disabled={isPending}
               placeholder="192.168.1.100"
               className="w-full rounded-md bg-black/40 px-4 py-3 text-white placeholder:text-white/30"
-              autoFocus
             />
           </div>
 
@@ -83,7 +82,7 @@ function AddServerDialog({ open, onOpenChange, onAdd }: AddServerDialogProps) {
               value={port}
               onChange={(e) => setPort(e.target.value)}
               onKeyUp={(e) => e.key === 'Enter' && handleSubmit()}
-              disabled={isLoading}
+              disabled={isPending}
               placeholder="34200"
               className="w-full rounded-md bg-black/40 px-4 py-3 text-white placeholder:text-white/30"
             />
@@ -95,7 +94,7 @@ function AddServerDialog({ open, onOpenChange, onAdd }: AddServerDialogProps) {
         <DialogFooter className="mt-6 flex gap-3 sm:gap-3">
           <Button
             onClick={() => onOpenChange(false)}
-            disabled={isLoading}
+            disabled={isPending}
             variant="ghost"
             className="rounded-xl"
           >
@@ -103,11 +102,11 @@ function AddServerDialog({ open, onOpenChange, onAdd }: AddServerDialogProps) {
           </Button>
           <Button
             onClick={handleSubmit}
-            disabled={isLoading || !host.trim()}
+            disabled={isPending || !host.trim()}
             className="bg-app-color hover:bg-app-color/90 flex items-center gap-2 rounded-xl text-black"
           >
-            {isLoading ? (
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-black/30 border-t-black" />
+            {isPending ? (
+              <div className="size-4 animate-spin rounded-full border-2 border-black/30 border-t-black" />
             ) : (
               <>
                 <Plus size={16} />

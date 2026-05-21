@@ -27,13 +27,13 @@ function ServerCard({ server, onSelect }: ServerCardProps) {
       {/* Checking overlay */}
       {isChecking && (
         <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-black/40">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+          <div className="size-6 animate-spin rounded-full border-2 border-white/30 border-t-white" />
         </div>
       )}
 
       {/* Icon */}
       <div
-        className={`flex h-16 w-16 items-center justify-center rounded-xl transition-colors ${
+        className={`flex size-16 items-center justify-center rounded-xl transition-colors ${
           isOffline
             ? 'bg-white/5 text-white/30'
             : 'bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500/20'
@@ -58,7 +58,7 @@ function ServerCard({ server, onSelect }: ServerCardProps) {
       )}
       {server.status === 'online' && (
         <span className="flex items-center gap-1.5 rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-medium text-emerald-400">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+          <span className="size-1.5 rounded-full bg-emerald-400" />
           En línea
         </span>
       )}

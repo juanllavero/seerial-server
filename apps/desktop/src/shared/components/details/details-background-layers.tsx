@@ -1,6 +1,6 @@
 import { useGradientStore } from '@seerial/stores';
 import { memo, useEffect } from 'react';
-import { BackgroundImage } from '../backgrounds';
+import BackgroundImage from '../backgrounds/background-image';
 
 interface DetailsBackgroundLayersProps {
   imageSrc?: string;

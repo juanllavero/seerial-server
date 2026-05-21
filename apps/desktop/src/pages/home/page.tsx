@@ -30,18 +30,21 @@ function Home() {
   });
 
   useEffect(() => {
-    if (continueWatching && continueWatching.length > 0)
+    if (continueWatching && continueWatching.length > 0) {
       setFocus(`continueWatchingCard-${continueWatching[0].id}`);
+      return;
+    }
+
+    setFocus('home');
   }, [continueWatching]);
 
   useEffect(() => {
     if (continueWatching && continueWatching.length > 0) {
       setSelectedElement(continueWatching[0]);
-      setFocus(`${continueWatching[0].id}`);
-    } else {
-      setSelectedElement(null);
-      setFocus('home');
+      return;
     }
+
+    setSelectedElement(null);
   }, [continueWatching]);
 
   const handleCancelExit = () => {

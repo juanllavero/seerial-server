@@ -50,3 +50,8 @@ certificate.pem
 temp/
 coverage/
 postman/
+
+.agents/
+.claude/
+.continue/
+.windsurf/

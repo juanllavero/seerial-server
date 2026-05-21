@@ -9,7 +9,7 @@ import type {
 } from '@seerial/domain';
 import { getAudioTrack, getSubtitleTrack, isLatinSpanishTrack } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, domAnimation, LazyMotion, m } from 'framer-motion';
 import { Captions, Music2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -27,6 +27,15 @@ interface TracksSelectorsProps {
   videoInfo?: MediaInfoData;
   playbackConfig?: PlayBackConfig;
   onPanelChange?: (open: boolean) => void;
+}
+
+interface TrackSelectorsState {
+  selectedAudioTrack: AudioTrack | null;
+  selectedSubtitleTrack: SubtitleTrack | null;
+  tracks: {
+    audioTracks: AudioTrack[];
+    subtitleTracks: SubtitleTrack[];
+  };
 }
 
 function updateSelectedTrack<T extends { id: number; selected: boolean }>(
@@ -96,6 +105,153 @@ function TrackItem({
   );
 }
 
+function SelectorButtons({
+  hasAudioOptions,
+  hasSubtitleOptions,
+  openPanel,
+  onTogglePanel,
+  t,
+}: {
+  hasAudioOptions: boolean;
+  hasSubtitleOptions: boolean;
+  openPanel: SelectorPanel | null;
+  onTogglePanel: (panel: SelectorPanel) => void;
+  t: (key: string) => string;
+}) {
+  return (
+    <div className="flex items-center justify-end gap-2">
+      {hasAudioOptions && (
+        <NavigationButton
+          variant="ghost"
+          customKey={NavigationFocusKeys.player.audioTracksButton}
+          title={t('audio')}
+          className={`p-2 ${openPanel === 'audio' ? 'bg-white text-black' : ''}`}
+          onClick={() => {
+            onTogglePanel('audio');
+          }}
+        >
+          <Music2 />
+        </NavigationButton>
+      )}
+      {hasSubtitleOptions && (
+        <NavigationButton
+          variant="ghost"
+          customKey={NavigationFocusKeys.player.subtitleTracksButton}
+          title={t('subs')}
+          className={`p-2 ${openPanel === 'subtitle' ? 'bg-white text-black' : ''}`}
+          onClick={() => {
+            onTogglePanel('subtitle');
+          }}
+        >
+          <Captions />
+        </NavigationButton>
+      )}
+    </div>
+  );
+}
+
+function TracksPanel({
+  openPanel,
+  closePanel,
+  panelTracks,
+  selectedAudioTrack,
+  selectedSubtitleTrack,
+  handleDisableSubtitles,
+  handleAudioTrackChange,
+  handleSubtitleTrackChange,
+  formatAudioTrackLabel,
+  formatSubtitleTrackLabel,
+  t,
+}: {
+  openPanel: SelectorPanel | null;
+  closePanel: () => void;
+  panelTracks: (AudioTrack | SubtitleTrack)[];
+  selectedAudioTrack: AudioTrack | null;
+  selectedSubtitleTrack: SubtitleTrack | null;
+  handleDisableSubtitles: () => Promise<void>;
+  handleAudioTrackChange: (track: AudioTrack) => Promise<void>;
+  handleSubtitleTrackChange: (track: SubtitleTrack) => Promise<void>;
+  formatAudioTrackLabel: (track: AudioTrack) => string;
+  formatSubtitleTrackLabel: (track: SubtitleTrack) => string;
+  t: (key: string) => string;
+}) {
+  return (
+    <AnimatePresence>
+      {!!openPanel && (
+        <>
+          <m.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15, ease: 'easeOut' }}
+            className="fixed inset-0 z-40 bg-black/35"
+            onClick={closePanel}
+          />
+          <NavigationContainer
+            isFocusBoundary
+            className="absolute bottom-full right-0 z-50 mb-4 w-[24rem]"
+          >
+            <m.div
+              initial={{ opacity: 0, y: 12, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 12, scale: 0.98 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-black/85 shadow-2xl backdrop-blur-md"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="border-b border-white/10 px-5 py-4">
+                <div className="mt-1 text-2xl font-semibold text-white">
+                  {openPanel === 'audio' ? t('audio') : t('subs')}
+                </div>
+              </div>
+              <div className="max-h-88 overflow-y-auto p-3">
+                {openPanel === 'subtitle' && (
+                  <TrackItem
+                    focusKey={SUBTITLE_NONE_FOCUS_KEY}
+                    label={t('none')}
+                    isSelected={selectedSubtitleTrack === null}
+                    onClick={() => void handleDisableSubtitles()}
+                  />
+                )}
+                {panelTracks.map((track) => {
+                  if (!openPanel) {
+                    return null;
+                  }
+
+                  const isAudioPanel = openPanel === 'audio';
+                  const isSelected = isAudioPanel
+                    ? selectedAudioTrack?.id === track.id
+                    : selectedSubtitleTrack?.id === track.id;
+                  const label = isAudioPanel
+                    ? formatAudioTrackLabel(track as AudioTrack)
+                    : formatSubtitleTrackLabel(track as SubtitleTrack);
+
+                  return (
+                    <TrackItem
+                      key={`${openPanel}-${track.id}`}
+                      focusKey={getTrackFocusKey(openPanel, track.id)}
+                      label={label}
+                      codec={track.codec}
+                      isSelected={isSelected}
+                      onClick={() => {
+                        if (isAudioPanel) {
+                          void handleAudioTrackChange(track as AudioTrack);
+                          return;
+                        }
+                        void handleSubtitleTrackChange(track as SubtitleTrack);
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            </m.div>
+          </NavigationContainer>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
+
 function TracksSelectors({
   video,
   videoInfo,
@@ -110,19 +266,16 @@ function TracksSelectors({
     { selectedAudioTrack?: number; selectedSubtitleTrack?: number }
   >(video.id);
   const [openPanel, setOpenPanel] = useState<SelectorPanel | null>(null);
-  const [selectedAudioTrack, setSelectedAudioTrack] = useState<AudioTrack | null>(
-    video.audioTracks?.find((track) => track.selected) || null,
-  );
-  const [selectedSubtitleTrack, setSelectedSubtitleTrack] = useState<SubtitleTrack | null>(
-    video.subtitleTracks?.find((track) => track.selected) || null,
-  );
-  const [tracks, setTracks] = useState<{
-    audioTracks: AudioTrack[];
-    subtitleTracks: SubtitleTrack[];
-  }>({
-    audioTracks: video.audioTracks || [],
-    subtitleTracks: video.subtitleTracks || [],
+  const [trackSelectorsState, setTrackSelectorsState] = useState<TrackSelectorsState>({
+    selectedAudioTrack: video.audioTracks?.find((track) => track.selected) || null,
+    selectedSubtitleTrack: video.subtitleTracks?.find((track) => track.selected) || null,
+    tracks: {
+      audioTracks: video.audioTracks || [],
+      subtitleTracks: video.subtitleTracks || [],
+    },
   });
+
+  const { selectedAudioTrack, selectedSubtitleTrack, tracks } = trackSelectorsState;
 
   const subtitleOptions = tracks.subtitleTracks.filter(
     (track) => !IMAGE_SUBTITLE_CODECS.includes(track.codec),
@@ -138,14 +291,22 @@ function TracksSelectors({
             ? NavigationFocusKeys.player.audioTracksButton
             : NavigationFocusKeys.player.subtitleTracksButton;
         setTimeout(() => setFocus(focusKey), 30);
+        onPanelChange?.(false);
       }
       return null;
     });
-  }, []);
+  }, [onPanelChange]);
 
-  const togglePanel = (panel: SelectorPanel) => {
-    setOpenPanel((currentPanel) => (currentPanel === panel ? null : panel));
-  };
+  const togglePanel = useCallback(
+    (panel: SelectorPanel) => {
+      setOpenPanel((currentPanel) => {
+        const nextPanel = currentPanel === panel ? null : panel;
+        onPanelChange?.(nextPanel !== null);
+        return nextPanel;
+      });
+    },
+    [onPanelChange],
+  );
 
   const formatAudioTrackLabel = (track: AudioTrack) => {
     return [track.language === '' ? track.languageTag : track.language, track.displayTitle]
@@ -165,10 +326,13 @@ function TracksSelectors({
 
   const handleAudioTrackChange = async (track: AudioTrack) => {
     const trackIndex = (video.audioTracks ?? []).findIndex((t) => t.id === track.id);
-    setSelectedAudioTrack(track);
-    setTracks((currentTracks) => ({
-      ...currentTracks,
-      audioTracks: updateSelectedTrack(currentTracks.audioTracks, track.id),
+    setTrackSelectorsState((currentState) => ({
+      ...currentState,
+      selectedAudioTrack: track,
+      tracks: {
+        ...currentState.tracks,
+        audioTracks: updateSelectedTrack(currentState.tracks.audioTracks, track.id),
+      },
     }));
     closePanel();
     await mpv.setAudioTrack(track.id);
@@ -178,10 +342,13 @@ function TracksSelectors({
   };
 
   const handleDisableSubtitles = useCallback(async () => {
-    setSelectedSubtitleTrack(null);
-    setTracks((currentTracks) => ({
-      ...currentTracks,
-      subtitleTracks: updateSelectedTrack(currentTracks.subtitleTracks, null),
+    setTrackSelectorsState((currentState) => ({
+      ...currentState,
+      selectedSubtitleTrack: null,
+      tracks: {
+        ...currentState.tracks,
+        subtitleTracks: updateSelectedTrack(currentState.tracks.subtitleTracks, null),
+      },
     }));
     closePanel();
     await mpv.setSubtitleTrack(0);
@@ -190,10 +357,13 @@ function TracksSelectors({
 
   const handleSubtitleTrackChange = async (track: SubtitleTrack) => {
     const trackIndex = (video.subtitleTracks ?? []).findIndex((t) => t.id === track.id);
-    setSelectedSubtitleTrack(track);
-    setTracks((currentTracks) => ({
-      ...currentTracks,
-      subtitleTracks: updateSelectedTrack(currentTracks.subtitleTracks, track.id),
+    setTrackSelectorsState((currentState) => ({
+      ...currentState,
+      selectedSubtitleTrack: track,
+      tracks: {
+        ...currentState.tracks,
+        subtitleTracks: updateSelectedTrack(currentState.tracks.subtitleTracks, track.id),
+      },
     }));
     closePanel();
     await mpv.setSubtitleTrack(track.id);
@@ -203,11 +373,13 @@ function TracksSelectors({
   };
 
   useEffect(() => {
-    setSelectedAudioTrack(video.audioTracks?.find((track) => track.selected) || null);
-    setSelectedSubtitleTrack(video.subtitleTracks?.find((track) => track.selected) || null);
-    setTracks({
-      audioTracks: video.audioTracks || [],
-      subtitleTracks: video.subtitleTracks || [],
+    setTrackSelectorsState({
+      selectedAudioTrack: video.audioTracks?.find((track) => track.selected) || null,
+      selectedSubtitleTrack: video.subtitleTracks?.find((track) => track.selected) || null,
+      tracks: {
+        audioTracks: video.audioTracks || [],
+        subtitleTracks: video.subtitleTracks || [],
+      },
     });
   }, [video]);
 
@@ -235,11 +407,6 @@ function TracksSelectors({
       window.clearTimeout(focusTimeout);
     };
   }, [openPanel, selectedAudioTrack?.id, selectedSubtitleTrack?.id, tracks.audioTracks]);
-
-  // Notify parent when panel opens/closes
-  useEffect(() => {
-    onPanelChange?.(openPanel !== null);
-  }, [openPanel, onPanelChange]);
 
   // Close panel on Escape/Backspace
   useKeyboardShortcut({
@@ -271,12 +438,14 @@ function TracksSelectors({
     const selectedAudioTrackId = preferredAudioTrack?.id ?? null;
     const selectedSubtitleTrackId = preferredSubtitleTrack?.id ?? null;
 
-    setTracks({
-      audioTracks: updateSelectedTrack(audioTracks, selectedAudioTrackId),
-      subtitleTracks: updateSelectedTrack(subtitleTracks, selectedSubtitleTrackId),
+    setTrackSelectorsState({
+      selectedAudioTrack: preferredAudioTrack,
+      selectedSubtitleTrack: preferredSubtitleTrack,
+      tracks: {
+        audioTracks: updateSelectedTrack(audioTracks, selectedAudioTrackId),
+        subtitleTracks: updateSelectedTrack(subtitleTracks, selectedSubtitleTrackId),
+      },
     });
-    setSelectedAudioTrack(preferredAudioTrack);
-    setSelectedSubtitleTrack(preferredSubtitleTrack);
 
     if (selectedVideoTrackId !== null) {
       for (const track of videoTracks) {
@@ -292,106 +461,31 @@ function TracksSelectors({
   const panelTracks = openPanel === 'audio' ? tracks.audioTracks : subtitleOptions;
 
   return (
-    <div className="relative">
-      <div className="flex items-center justify-end gap-2">
-        {hasAudioOptions && (
-          <NavigationButton
-            variant="ghost"
-            customKey={NavigationFocusKeys.player.audioTracksButton}
-            title={t('audio')}
-            className={`p-2 ${openPanel === 'audio' ? 'bg-white text-black' : ''}`}
-            onClick={() => {
-              togglePanel('audio');
-            }}
-          >
-            <Music2 />
-          </NavigationButton>
-        )}
-        {hasSubtitleOptions && (
-          <NavigationButton
-            variant="ghost"
-            customKey={NavigationFocusKeys.player.subtitleTracksButton}
-            title={t('subs')}
-            className={`p-2 ${openPanel === 'subtitle' ? 'bg-white text-black' : ''}`}
-            onClick={() => {
-              togglePanel('subtitle');
-            }}
-          >
-            <Captions />
-          </NavigationButton>
-        )}
+    <LazyMotion features={domAnimation}>
+      <div className="relative">
+        <SelectorButtons
+          hasAudioOptions={hasAudioOptions}
+          hasSubtitleOptions={hasSubtitleOptions}
+          openPanel={openPanel}
+          onTogglePanel={togglePanel}
+          t={t}
+        />
+
+        <TracksPanel
+          openPanel={openPanel}
+          closePanel={closePanel}
+          panelTracks={panelTracks}
+          selectedAudioTrack={selectedAudioTrack}
+          selectedSubtitleTrack={selectedSubtitleTrack}
+          handleDisableSubtitles={handleDisableSubtitles}
+          handleAudioTrackChange={handleAudioTrackChange}
+          handleSubtitleTrackChange={handleSubtitleTrackChange}
+          formatAudioTrackLabel={formatAudioTrackLabel}
+          formatSubtitleTrackLabel={formatSubtitleTrackLabel}
+          t={t}
+        />
       </div>
-
-      <AnimatePresence>
-        {!!openPanel && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15, ease: 'easeOut' }}
-              className="fixed inset-0 z-40 bg-black/35"
-              onClick={closePanel}
-            />
-            <NavigationContainer
-              isFocusBoundary
-              className="absolute bottom-full right-0 z-50 mb-4 w-[24rem]"
-            >
-              <motion.div
-                initial={{ opacity: 0, y: 12, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 12, scale: 0.98 }}
-                transition={{ duration: 0.18, ease: 'easeOut' }}
-                className="overflow-hidden rounded-[1.75rem] border border-white/10 bg-black/85 shadow-2xl backdrop-blur-md"
-                onClick={(event) => event.stopPropagation()}
-              >
-                <div className="border-b border-white/10 px-5 py-4">
-                  <div className="mt-1 text-2xl font-semibold text-white">
-                    {openPanel === 'audio' ? t('audio') : t('subs')}
-                  </div>
-                </div>
-                <div className="max-h-88 overflow-y-auto p-3">
-                  {openPanel === 'subtitle' && (
-                    <TrackItem
-                      focusKey={SUBTITLE_NONE_FOCUS_KEY}
-                      label={t('none')}
-                      isSelected={selectedSubtitleTrack === null}
-                      onClick={() => void handleDisableSubtitles()}
-                    />
-                  )}
-                  {panelTracks.map((track) => {
-                    const isAudioPanel = openPanel === 'audio';
-                    const isSelected = isAudioPanel
-                      ? selectedAudioTrack?.id === track.id
-                      : selectedSubtitleTrack?.id === track.id;
-                    const label = isAudioPanel
-                      ? formatAudioTrackLabel(track as AudioTrack)
-                      : formatSubtitleTrackLabel(track as SubtitleTrack);
-
-                    return (
-                      <TrackItem
-                        key={`${openPanel}-${track.id}`}
-                        focusKey={getTrackFocusKey(openPanel, track.id)}
-                        label={label}
-                        codec={track.codec}
-                        isSelected={isSelected}
-                        onClick={() => {
-                          if (isAudioPanel) {
-                            void handleAudioTrackChange(track as AudioTrack);
-                            return;
-                          }
-                          void handleSubtitleTrackChange(track as SubtitleTrack);
-                        }}
-                      />
-                    );
-                  })}
-                </div>
-              </motion.div>
-            </NavigationContainer>
-          </>
-        )}
-      </AnimatePresence>
-    </div>
+    </LazyMotion>
   );
 }
 

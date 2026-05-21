@@ -1,7 +1,7 @@
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import { RepeateMode, type Song } from '@seerial/domain';
 import { useMusicStore } from '@seerial/stores';
-import { motion } from 'framer-motion';
+import { domAnimation, LazyMotion, m } from 'framer-motion';
 import { t } from 'i18next';
 import { Repeat, Repeat1, Shuffle } from 'lucide-react';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
@@ -114,8 +114,8 @@ function QueueMenu({ isOpen, onClose }: QueueMenuProps) {
   if (!isOpen) return null;
 
   return (
-    <>
-      <motion.div
+    <LazyMotion features={domAnimation}>
+      <m.div
         key="queue-menu-backdrop"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -129,7 +129,7 @@ function QueueMenu({ isOpen, onClose }: QueueMenuProps) {
         focusBoundaryDirections={['up', 'down', 'left', 'right']}
         className="fixed right-[8vh] top-[10vh] z-40 max-h-[70vh] w-[60vh]"
       >
-        <motion.div
+        <m.div
           key="queue-menu-panel"
           initial={{ opacity: 0, y: 16, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -187,9 +187,9 @@ function QueueMenu({ isOpen, onClose }: QueueMenuProps) {
               />
             ))}
           </NavigationScrollView>
-        </motion.div>
+        </m.div>
       </NavigationContainer>
-    </>
+    </LazyMotion>
   );
 }
 

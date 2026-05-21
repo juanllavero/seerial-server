@@ -83,7 +83,11 @@ function getKaraokeMixVolumes(mixValue: number): { instrumental: number; vocals:
 async function waitForAudioReady(timeoutMs: number): Promise<boolean> {
   const startedAt = Date.now();
 
-  while (Date.now() - startedAt < timeoutMs) {
+  const pollUntilReady = async (): Promise<boolean> => {
+    if (Date.now() - startedAt >= timeoutMs) {
+      return false;
+    }
+
     try {
       const duration = await invoke<number>('get_duration');
       if (Number.isFinite(duration) && duration > 0) {
@@ -94,9 +98,10 @@ async function waitForAudioReady(timeoutMs: number): Promise<boolean> {
     }
 
     await new Promise<void>((resolve) => setTimeout(resolve, READY_POLL_INTERVAL_MS));
-  }
+    return pollUntilReady();
+  };
 
-  return false;
+  return pollUntilReady();
 }
 
 function useKaraokeAvailability(
@@ -126,7 +131,7 @@ function useKaraokeAvailability(
     [onUnavailable],
   );
 
-  const resolveKaraokeStems = useCallback(async () => {
+  const resolveKaraokeStems = useCallback(() => {
     if (!songFileSrc || !serverUrl || !isShown) {
       setKaraokeStemUrls(null);
       setIsKaraokePreparing(false);
@@ -138,34 +143,45 @@ function useKaraokeAvailability(
     const instrumentalPath = replaceSongExtension(songFileSrc, '.inst.flac');
     const vocalsPath = replaceSongExtension(songFileSrc, '.vocals.flac');
 
-    const [instrumentalResult, vocalsResult] = await Promise.allSettled([
+    void Promise.allSettled([
       getSignedSongStreamUrl({ filePath: instrumentalPath, expiresIn: '10m', isDesktop: true }),
       getSignedSongStreamUrl({ filePath: vocalsPath, expiresIn: '10m', isDesktop: true }),
-    ]);
+    ])
+      .then(([instrumentalResult, vocalsResult]) => {
+        if (currentAttempt !== karaokeAvailabilityAttemptRef.current) {
+          return;
+        }
 
-    if (currentAttempt !== karaokeAvailabilityAttemptRef.current) {
-      return;
-    }
+        if (
+          instrumentalResult.status !== 'fulfilled' ||
+          vocalsResult.status !== 'fulfilled' ||
+          !instrumentalResult.value ||
+          !vocalsResult.value
+        ) {
+          setKaraokeStemUrls(null);
+          setIsKaraokePreparing(false);
+          setIsKaraokeReady(false);
+          onUnavailable?.();
+          return;
+        }
 
-    if (
-      instrumentalResult.status !== 'fulfilled' ||
-      vocalsResult.status !== 'fulfilled' ||
-      !instrumentalResult.value ||
-      !vocalsResult.value
-    ) {
-      setKaraokeStemUrls(null);
-      setIsKaraokePreparing(false);
-      setIsKaraokeReady(false);
-      onUnavailable?.();
-      return;
-    }
+        setKaraokeStemUrls({
+          instrumental: `${serverUrl}${instrumentalResult.value}`,
+          vocals: `${serverUrl}${vocalsResult.value}`,
+        });
+        setIsKaraokePreparing(true);
+        setIsKaraokeReady(false);
+      })
+      .catch(() => {
+        if (currentAttempt !== karaokeAvailabilityAttemptRef.current) {
+          return;
+        }
 
-    setKaraokeStemUrls({
-      instrumental: `${serverUrl}${instrumentalResult.value}`,
-      vocals: `${serverUrl}${vocalsResult.value}`,
-    });
-    setIsKaraokePreparing(true);
-    setIsKaraokeReady(false);
+        setKaraokeStemUrls(null);
+        setIsKaraokePreparing(false);
+        setIsKaraokeReady(false);
+        onUnavailable?.();
+      });
   }, [isShown, onUnavailable, serverUrl, songFileSrc]);
 
   const handlePolledPreloadStatus = useCallback(

@@ -1,7 +1,7 @@
 import { getSignedVideoStreamUrlPassthrough } from '@seerial/api';
 import type { Video } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useReducer, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { VideoPlayer } from '@/features/video-player';
 import { useMpvPlayer } from '@/features/video-player/hooks/use-mpv-player';
@@ -11,13 +11,39 @@ import {
   setAppShellBackground,
 } from '@/shared/components/details/details-background-mpv';
 import Loading from '@/shared/components/loading';
-import { useAppSettingsMpv } from '../../../features/video-player/hooks/use-app-settings-mpv';
 import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
+import { useAppSettingsMpv } from '../../../features/video-player/hooks/use-app-settings-mpv';
 
 const LOAD_TIMEOUT_MS = 15000;
 const PLAYER_HEALTH_POLL_INTERVAL_MS = 1000;
 
 type PlayerErrorMode = 'load' | 'playback';
+
+interface PlayerViewState {
+  videoLoaded: boolean;
+  showInitialLoadingBackdrop: boolean;
+  isErrorDialogOpen: boolean;
+  errorMode: PlayerErrorMode;
+  isRecoveringPlaybackError: boolean;
+  isPlayerLoading: boolean;
+  isPlaybackBuffering: boolean;
+}
+
+type PlayerViewAction = Partial<PlayerViewState>;
+
+const INITIAL_PLAYER_VIEW_STATE: PlayerViewState = {
+  videoLoaded: false,
+  showInitialLoadingBackdrop: true,
+  isErrorDialogOpen: false,
+  errorMode: 'load',
+  isRecoveringPlaybackError: false,
+  isPlayerLoading: true,
+  isPlaybackBuffering: false,
+};
+
+function playerViewReducer(state: PlayerViewState, action: PlayerViewAction): PlayerViewState {
+  return { ...state, ...action };
+}
 
 function buildMinimalVideo(filePath: string, title: string): Video {
   return {
@@ -44,16 +70,21 @@ function VideoPlayerFilePage() {
   useAppSettingsMpv();
 
   const mpv = useMpvPlayer();
-
   const video = buildMinimalVideo(filePath, title);
 
-  const [videoLoaded, setVideoLoaded] = useState(false);
-  const [showInitialLoadingBackdrop, setShowInitialLoadingBackdrop] = useState(true);
-  const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false);
-  const [errorMode, setErrorMode] = useState<PlayerErrorMode>('load');
-  const [isRecoveringPlaybackError, setIsRecoveringPlaybackError] = useState(false);
-  const [isPlayerLoading, setIsPlayerLoading] = useState(true);
-  const [isPlaybackBuffering, setIsPlaybackBuffering] = useState(false);
+  const [playerViewState, dispatchPlayerViewState] = useReducer(
+    playerViewReducer,
+    INITIAL_PLAYER_VIEW_STATE,
+  );
+  const {
+    videoLoaded,
+    showInitialLoadingBackdrop,
+    isErrorDialogOpen,
+    errorMode,
+    isRecoveringPlaybackError,
+    isPlayerLoading,
+    isPlaybackBuffering,
+  } = playerViewState;
 
   const lastKnownPositionRef = useRef(0);
   const completedFirstLoadAttemptRef = useRef(false);
@@ -70,17 +101,17 @@ function VideoPlayerFilePage() {
 
   const loadVideo = useCallback(
     async (resumeAt = 0): Promise<boolean> => {
-      setIsPlayerLoading(true);
-      setIsPlaybackBuffering(false);
+      dispatchPlayerViewState({ isPlayerLoading: true, isPlaybackBuffering: false });
 
       try {
         const url = await getSignedVideoStreamUrlPassthrough({
           filePath,
           expiresIn: '2m',
         });
-        await mpv.loadUrl(`${serverUrl}${url}`);
-
-        const ready = await mpv.waitForReady(LOAD_TIMEOUT_MS);
+        const [_, ready] = await Promise.all([
+          mpv.loadUrl(`${serverUrl}${url}`),
+          mpv.waitForReady(LOAD_TIMEOUT_MS),
+        ]);
         if (!ready) {
           throw new Error('Timed out waiting for video to become ready');
         }
@@ -90,24 +121,25 @@ function VideoPlayerFilePage() {
         }
 
         lastKnownPositionRef.current = resumeAt;
-        setVideoLoaded(true);
-        setIsPlayerLoading(false);
-        setIsErrorDialogOpen(false);
-        setIsRecoveringPlaybackError(false);
+        dispatchPlayerViewState({
+          videoLoaded: true,
+          isPlayerLoading: false,
+          isErrorDialogOpen: false,
+          isRecoveringPlaybackError: false,
+        });
         return true;
       } catch (e) {
         console.error(e);
-        setIsPlayerLoading(false);
-        setVideoLoaded(false);
+        dispatchPlayerViewState({ isPlayerLoading: false, videoLoaded: false });
         return false;
       } finally {
         if (!completedFirstLoadAttemptRef.current) {
           completedFirstLoadAttemptRef.current = true;
-          setShowInitialLoadingBackdrop(false);
+          dispatchPlayerViewState({ showInitialLoadingBackdrop: false });
         }
       }
     },
-    [filePath, serverUrl, mpv.loadUrl, mpv.waitForReady, mpv.setPosition],
+    [filePath, serverUrl, mpv.loadUrl, mpv.setPosition, mpv.waitForReady],
   );
 
   useEffect(() => {
@@ -130,15 +162,14 @@ function VideoPlayerFilePage() {
     let cancelled = false;
 
     const loadInitialVideo = async () => {
-      setVideoLoaded(false);
+      dispatchPlayerViewState({ videoLoaded: false });
       const loaded = await loadVideo();
 
       if (cancelled || loaded) {
         return;
       }
 
-      setErrorMode('load');
-      setIsErrorDialogOpen(true);
+      dispatchPlayerViewState({ errorMode: 'load', isErrorDialogOpen: true });
     };
 
     void loadInitialVideo();
@@ -150,19 +181,23 @@ function VideoPlayerFilePage() {
 
   const attemptPlaybackRecovery = useCallback(async () => {
     playbackRecoveryInFlightRef.current = true;
-    setIsRecoveringPlaybackError(true);
-    setIsPlayerLoading(true);
-    setVideoLoaded(false);
+    dispatchPlayerViewState({
+      isRecoveringPlaybackError: true,
+      isPlayerLoading: true,
+      videoLoaded: false,
+    });
 
     const recovered = await loadVideo(lastKnownPositionRef.current);
 
     playbackRecoveryInFlightRef.current = false;
 
     if (!recovered) {
-      setErrorMode('playback');
-      setIsRecoveringPlaybackError(false);
-      setIsPlaybackBuffering(false);
-      setIsErrorDialogOpen(true);
+      dispatchPlayerViewState({
+        errorMode: 'playback',
+        isRecoveringPlaybackError: false,
+        isPlaybackBuffering: false,
+        isErrorDialogOpen: true,
+      });
     }
   }, [loadVideo]);
 
@@ -186,10 +221,10 @@ function VideoPlayerFilePage() {
       }
 
       const buffering = playbackStatus.pausedForCache || playbackStatus.seeking;
-      setIsPlaybackBuffering(buffering);
+      dispatchPlayerViewState({ isPlaybackBuffering: buffering });
     } catch (error) {
       console.error('Playback health check failed:', error);
-      setIsPlaybackBuffering(false);
+      dispatchPlayerViewState({ isPlaybackBuffering: false });
       await attemptPlaybackRecovery();
     } finally {
       healthCheckInFlightRef.current = false;
@@ -220,23 +255,25 @@ function VideoPlayerFilePage() {
     await mpv.stop();
     await mpv.embedMpv();
     navigate(-1);
-  }, [navigate, mpv.stop, mpv.embedMpv]);
+  }, [navigate, mpv.embedMpv, mpv.stop]);
 
   const handleRetry = useCallback(async () => {
-    setIsErrorDialogOpen(false);
-    setVideoLoaded(false);
-    setIsPlayerLoading(true);
-    setIsPlaybackBuffering(false);
+    dispatchPlayerViewState({
+      isErrorDialogOpen: false,
+      videoLoaded: false,
+      isPlayerLoading: true,
+      isPlaybackBuffering: false,
+    });
 
     const retryPosition = errorMode === 'playback' ? lastKnownPositionRef.current : 0;
     const loaded = await loadVideo(retryPosition);
 
     if (!loaded) {
-      setIsErrorDialogOpen(true);
+      dispatchPlayerViewState({ isErrorDialogOpen: true });
       return;
     }
 
-    setIsRecoveringPlaybackError(false);
+    dispatchPlayerViewState({ isRecoveringPlaybackError: false });
   }, [errorMode, loadVideo]);
 
   if (!filePath) {

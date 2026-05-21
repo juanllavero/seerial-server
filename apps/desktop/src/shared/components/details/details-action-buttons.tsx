@@ -3,7 +3,7 @@ import { useRelatedContent } from '@/features/details';
 import FlexBox from '@/shared/components/ui/flex-box';
 import { MarkWatchedIcon, UnmarkWatchedIcon } from '@/shared/components/ui/icon-library';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
-import { NavigationButton } from '../navigation';
+import NavigationButton from '../navigation/navigation-button';
 
 interface DetailsActionButtonsProps {
   handlePlay?: () => void;

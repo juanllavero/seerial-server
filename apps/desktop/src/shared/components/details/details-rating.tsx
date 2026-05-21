@@ -1,6 +1,6 @@
 import type { DetailsData } from '@seerial/domain';
 import FlexBox from '@/shared/components/ui/flex-box';
-import { Tertiary } from '../text';
+import Tertiary from '../text/tertiary';
 
 interface DetailsRatingProps {
   details: DetailsData | undefined;

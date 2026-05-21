@@ -38,7 +38,7 @@ function AlbumDetails({
   const navigate = useNavigate();
   const setGradientImageSrc = useGradientStore((state) => state.setGradientImageSrc);
   const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false);
-  const [focusedSongId, setFocusedSongId] = useState<string | undefined>(initialFocusedSongId);
+  const [focusedSongId, setFocusedSongId] = useState<string | undefined>(undefined);
   const { cardRoundness } = useSettingsStore(
     (s) => ({
       cardRoundness: s.settings.cardRoundness,
@@ -135,7 +135,9 @@ function AlbumDetailsContent({
           <DetailsInfo
             details={details}
             infoItems={[formatDate(details?.year ?? album?.year ?? '')]}
-            hideButtons
+            displayOptions={{
+              hideButtons: true,
+            }}
           />
 
           <FlexBox gap={1} padding="0 4rem" className="pt-[3dvh]!">

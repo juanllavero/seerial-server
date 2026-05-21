@@ -1,6 +1,6 @@
 import { ROOT_FOCUS_KEY, SpatialNavigation } from '@noriginmedia/norigin-spatial-navigation';
 import { useEffect, useEffectEvent, useRef } from 'react';
-import { useSettingsStore } from '../stores';
+import { useSettingsStore } from '../stores/settings.store';
 import { useKeyboardShortcut } from './use-keyboard-shortcut';
 
 function createAudio(src: string) {

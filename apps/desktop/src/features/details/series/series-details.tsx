@@ -11,7 +11,7 @@ import { useLocalStorage } from '@seerial/hooks';
 import { useServerStore } from '@seerial/stores';
 import { useQueryClient } from '@tanstack/react-query';
 import { t } from 'i18next';
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { shallow } from 'zustand/shallow';
@@ -24,7 +24,7 @@ import DetailsBackgroundLayers from '@/shared/components/details/details-backgro
 import DetailsBackgroundPlayback from '@/shared/components/details/details-background-playback';
 import DetailsInfo from '@/shared/components/details/details-info';
 import Page from '@/shared/components/page';
-import { DetailsWithRelatedContent } from '../shared';
+import DetailsWithRelatedContent from '../shared/details-with-related-content';
 
 interface SeriesDetailsProps {
   series: Series | undefined;
@@ -61,7 +61,7 @@ function getSeasonEpisodeState(
     return { selectedEpisode: null, isRestoringEpisodeFocus: false };
   }
 
-  const sortedEpisodes = [...selectedSeason.episodes].sort(
+  const sortedEpisodes = selectedSeason.episodes.toSorted(
     (a, b) => a.episodeNumber - b.episodeNumber,
   );
 
@@ -87,6 +87,48 @@ function getSeasonEpisodeState(
   }
 
   return { selectedEpisode: sortedEpisodes[0], isRestoringEpisodeFocus: true };
+}
+
+interface SeriesSelectionState {
+  selectedSeason: Season | null;
+  selectedEpisode: Episode | null;
+  isRestoringEpisodeFocus: boolean;
+}
+
+type SeriesSelectionAction =
+  | { type: 'set-season'; season: Season | null }
+  | {
+      type: 'set-episode-state';
+      selectedEpisode: Episode | null;
+      isRestoringEpisodeFocus: boolean;
+    }
+  | { type: 'select-episode'; episode: Episode };
+
+function seriesSelectionReducer(
+  state: SeriesSelectionState,
+  action: SeriesSelectionAction,
+): SeriesSelectionState {
+  switch (action.type) {
+    case 'set-season':
+      return {
+        ...state,
+        selectedSeason: action.season,
+      };
+    case 'set-episode-state':
+      return {
+        ...state,
+        selectedEpisode: action.selectedEpisode,
+        isRestoringEpisodeFocus: action.isRestoringEpisodeFocus,
+      };
+    case 'select-episode':
+      return {
+        ...state,
+        selectedEpisode: action.episode,
+        isRestoringEpisodeFocus: false,
+      };
+    default:
+      return state;
+  }
 }
 
 function buildDetailsInfoItems(selectedEpisode: Episode | null, seriesYear: string | undefined) {
@@ -148,10 +190,13 @@ function SeriesDetails({
     }),
     shallow,
   );
-  const [selectedSeason, setSelectedSeason] = useState<Season | null>(null);
-  const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(null);
+  const [selectionState, dispatchSelection] = useReducer(seriesSelectionReducer, {
+    selectedSeason: null,
+    selectedEpisode: null,
+    isRestoringEpisodeFocus: true,
+  });
+  const { selectedSeason, selectedEpisode, isRestoringEpisodeFocus } = selectionState;
   const [resolvedVideoData, setResolvedVideoData] = useState<Map<string, Video>>(new Map());
-  const [isRestoringEpisodeFocus, setIsRestoringEpisodeFocus] = useState(true);
   const [isBackgroundVideoVisible, setIsBackgroundVideoVisible] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const prevSelectedSeasonIdRef = useRef<string | null>(null);
@@ -192,7 +237,7 @@ function SeriesDetails({
 
   useEffect(() => {
     const seasonToSelect = getInitialSeason(series, currentSeasonNumber);
-    setSelectedSeason(seasonToSelect);
+    dispatchSelection({ type: 'set-season', season: seasonToSelect });
   }, [series, currentSeasonNumber]);
 
   useEffect(() => {
@@ -204,14 +249,16 @@ function SeriesDetails({
     const seasonId = selectedSeason?.id ?? null;
     const seasonChanged = prevSelectedSeasonIdRef.current !== seasonId;
     prevSelectedSeasonIdRef.current = seasonId;
-    setSelectedEpisode(nextState.selectedEpisode);
-    setIsRestoringEpisodeFocus(seasonChanged ? nextState.isRestoringEpisodeFocus : false);
+    dispatchSelection({
+      type: 'set-episode-state',
+      selectedEpisode: nextState.selectedEpisode,
+      isRestoringEpisodeFocus: seasonChanged ? nextState.isRestoringEpisodeFocus : false,
+    });
   }, [selectedSeason, getLastFocusedEpisodeForSeason, focusedEpisodeId]);
 
   const handleSelectEpisode = useCallback(
     (episode: Episode) => {
-      setSelectedEpisode(episode);
-      setIsRestoringEpisodeFocus(false);
+      dispatchSelection({ type: 'select-episode', episode });
 
       if (selectedSeason) {
         setLastFocusedEpisodeForSeason(selectedSeason.id, episode.id);
@@ -305,7 +352,9 @@ function SeriesDetails({
       <Page justify="end" padding={'0'} fullScreen>
         <DetailsInfo
           details={details}
-          disableInitialFocus
+          behaviorOptions={{
+            disableInitialFocus: true,
+          }}
           subtitle={selectedEpisode?.name}
           expandedTitle={selectedEpisode?.name ?? details?.title}
           expandedImageSrc={selectedSeason?.backgroundSrc ?? selectedEpisode?.video.imgSrc}
@@ -318,8 +367,10 @@ function SeriesDetails({
           handlePlay={handlePlay}
           handleMarkWatched={handleMarkWatched}
           handleToggleHideThumbnails={handleToggleHideThumbnails}
-          isWatched={isWatched}
-          hideUnwatchedThumbnails={hideUnwatchedThumbnails}
+          displayOptions={{
+            isWatched,
+            hideUnwatchedThumbnails,
+          }}
           customDescription={selectedEpisode?.overview}
         />
         {!isDescriptionExpanded && (
@@ -336,7 +387,7 @@ function SeriesDetails({
             />
             <SeasonSelector
               seasons={series?.seasons ?? []}
-              onSelectSeason={setSelectedSeason}
+              onSelectSeason={(season) => dispatchSelection({ type: 'set-season', season })}
               selectedSeasonId={selectedSeason?.id}
             />
           </>

@@ -130,8 +130,10 @@ function DetailsBackgroundAudioPlayer({
         }
 
         await invoke('embed_mpv');
-        await invoke('set_volume', { volume: targetVolume });
-        await invoke('load_url', { url: `${serverUrl}${signedUrl}` });
+        await Promise.all([
+          invoke('set_volume', { volume: targetVolume }),
+          invoke('load_url', { url: `${serverUrl}${signedUrl}` }),
+        ]);
 
         currentSongIdentityRef.current = nextSongIdentity;
       });

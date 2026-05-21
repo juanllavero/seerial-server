@@ -55,8 +55,8 @@ export async function waitForMediaReady(
 ): Promise<boolean> {
   const startedAt = Date.now();
 
-  while (Date.now() - startedAt < timeoutMs) {
-    if (isCancelled()) {
+  const pollUntilReady = async (): Promise<boolean> => {
+    if (Date.now() - startedAt >= timeoutMs || isCancelled()) {
       return false;
     }
 
@@ -70,9 +70,10 @@ export async function waitForMediaReady(
     }
 
     await sleep(READY_POLL_INTERVAL_MS);
-  }
+    return pollUntilReady();
+  };
 
-  return false;
+  return pollUntilReady();
 }
 
 export async function fadeOutAndStopMpv(
@@ -90,19 +91,24 @@ export async function fadeOutAndStopMpv(
   const safeCurrentVolume = Number.isFinite(currentVolume) ? Math.max(0, currentVolume) : 0;
   const stepDelayMs = Math.max(1, Math.floor(FADE_OUT_DURATION_MS / FADE_OUT_STEPS));
 
-  for (let step = FADE_OUT_STEPS - 1; step >= 0; step -= 1) {
-    if (isCancelled()) {
-      break;
+  const fadeStep = async (step: number): Promise<void> => {
+    if (step < 0 || isCancelled()) {
+      return;
     }
 
     const nextVolume = safeCurrentVolume * (step / FADE_OUT_STEPS);
     await invoke('set_volume', { volume: nextVolume }).catch(() => undefined);
     await sleep(stepDelayMs);
-  }
+    await fadeStep(step - 1);
+  };
 
-  await invoke('stop').catch(() => undefined);
-  await invoke('embed_mpv').catch(() => undefined);
-  await invoke('set_volume', { volume: restoreVolume }).catch(() => undefined);
+  await fadeStep(FADE_OUT_STEPS - 1);
+
+  await Promise.all([
+    invoke('stop').catch(() => undefined),
+    invoke('embed_mpv').catch(() => undefined),
+    invoke('set_volume', { volume: restoreVolume }).catch(() => undefined),
+  ]);
 }
 
 export function setAppShellBackground(mode: AppShellBackgroundMode): void {

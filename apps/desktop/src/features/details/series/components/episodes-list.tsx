@@ -43,7 +43,7 @@ function EpisodesList({
       return [];
     }
 
-    return [...selectedSeason.episodes].sort((a, b) => a.episodeNumber - b.episodeNumber);
+    return selectedSeason.episodes.toSorted((a, b) => a.episodeNumber - b.episodeNumber);
   }, [selectedSeason]);
 
   useEffect(() => {

@@ -3,7 +3,7 @@ import { API, apiClient, useReorderLibraryItems } from '@seerial/api';
 import { LibraryContentItemType, type LibraryItem, LibraryTypes } from '@seerial/domain';
 import { useDataStore, useGradientStore, useServerStore } from '@seerial/stores';
 import { useQueryClient } from '@tanstack/react-query';
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useReducer, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { shallow } from 'zustand/shallow';
@@ -16,6 +16,114 @@ import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
 import { useSettingsStore } from '@/shared/stores';
 
 const GRID_GAP_REM = 1.25;
+
+interface LibraryContentState {
+  contextMenuItem: LibraryItem | null;
+  previousFocusKey?: string;
+  isReorderingMode: boolean;
+  reorderingItemId: string | null;
+  localItems: LibraryItem[];
+}
+
+type LibraryContentAction =
+  | { type: 'set-local-items'; items: LibraryItem[] }
+  | { type: 'open-context-menu'; item: LibraryItem; previousFocusKey?: string }
+  | { type: 'close-context-menu' }
+  | { type: 'enter-reorder-mode'; itemId: string }
+  | { type: 'exit-reorder-mode' }
+  | {
+      type: 'move-reorder-item';
+      itemId: string;
+      direction: 'up' | 'down' | 'left' | 'right';
+      itemsPerRow: number;
+    };
+
+function libraryContentReducer(
+  state: LibraryContentState,
+  action: LibraryContentAction,
+): LibraryContentState {
+  switch (action.type) {
+    case 'set-local-items':
+      return { ...state, localItems: action.items };
+    case 'open-context-menu':
+      return {
+        ...state,
+        contextMenuItem: action.item,
+        previousFocusKey: action.previousFocusKey,
+      };
+    case 'close-context-menu':
+      return { ...state, contextMenuItem: null };
+    case 'enter-reorder-mode':
+      return {
+        ...state,
+        isReorderingMode: true,
+        reorderingItemId: action.itemId,
+      };
+    case 'exit-reorder-mode':
+      return {
+        ...state,
+        isReorderingMode: false,
+        reorderingItemId: null,
+      };
+    case 'move-reorder-item': {
+      const idx = state.localItems.findIndex((item) => item.id === action.itemId);
+      if (idx === -1) {
+        return state;
+      }
+
+      let newIdx = idx;
+      if (action.direction === 'left') {
+        newIdx = idx - 1;
+      } else if (action.direction === 'right') {
+        newIdx = idx + 1;
+      } else if (action.direction === 'up') {
+        newIdx = idx - action.itemsPerRow;
+      } else if (action.direction === 'down') {
+        newIdx = idx + action.itemsPerRow;
+      }
+
+      if (newIdx < 0 || newIdx >= state.localItems.length) {
+        return state;
+      }
+
+      const next = [...state.localItems];
+      [next[idx], next[newIdx]] = [next[newIdx], next[idx]];
+      return { ...state, localItems: next };
+    }
+    default:
+      return state;
+  }
+}
+
+function getReorderingArrows(
+  isItemReordering: boolean,
+  idx: number,
+  finalItemsPerRow: number,
+  totalItems: number,
+): ReorderingArrows | undefined {
+  if (!isItemReordering) {
+    return undefined;
+  }
+
+  return {
+    up: idx - finalItemsPerRow >= 0,
+    down: idx + finalItemsPerRow < totalItems,
+    left: idx > 0,
+    right: idx < totalItems - 1,
+  };
+}
+
+function getItemImageSource(item: LibraryItem): string {
+  return item.images && item.images.length === 1 ? item.images[0] : (item.coverSrc ?? '');
+}
+
+function getItemCollageImages(item: LibraryItem): string[] | undefined {
+  return item.images && item.images.length > 1 ? item.images : undefined;
+}
+
+function getItemAspectRatio(isMusicLibrary: boolean, itemType: LibraryItem['type']): '1' | '2/3' {
+  return isMusicLibrary || itemType === LibraryContentItemType.ALBUM ? '1' : '2/3';
+}
 
 interface LibraryContentProps {
   content: LibraryItem[] | undefined;
@@ -59,15 +167,15 @@ function LibraryContent({
     }),
     shallow,
   );
-
-  // Context menu state
-  const [contextMenuItem, setContextMenuItem] = useState<LibraryItem | null>(null);
-  const [previousFocusKey, setPreviousFocusKey] = useState<string | undefined>(undefined);
-
-  // Reorder state
-  const [isReorderingMode, setIsReorderingMode] = useState(false);
-  const [reorderingItemId, setReorderingItemId] = useState<string | null>(null);
-  const [localItems, setLocalItems] = useState<LibraryItem[]>([]);
+  const [libraryState, dispatch] = useReducer(libraryContentReducer, {
+    contextMenuItem: null,
+    previousFocusKey: undefined,
+    isReorderingMode: false,
+    reorderingItemId: null,
+    localItems: content ?? [],
+  });
+  const { contextMenuItem, previousFocusKey, isReorderingMode, reorderingItemId, localItems } =
+    libraryState;
   // Keep a ref to localItems so event handlers in reorder always have the latest value.
   const localItemsRef = useRef(localItems);
   localItemsRef.current = localItems;
@@ -85,7 +193,7 @@ function LibraryContent({
   // Sync localItems when content changes and we're not in reorder mode
   useEffect(() => {
     if (!isReorderingMode && content) {
-      setLocalItems(content);
+      dispatch({ type: 'set-local-items', items: content });
     }
   }, [content, isReorderingMode]);
 
@@ -149,8 +257,7 @@ function LibraryContent({
   );
 
   const handleExitReorder = useCallback(async () => {
-    setIsReorderingMode(false);
-    setReorderingItemId(null);
+    dispatch({ type: 'exit-reorder-mode' });
     if (libraryId) {
       try {
         await reorderItems({
@@ -173,40 +280,29 @@ function LibraryContent({
 
   const handleReorderMove = useCallback(
     (itemId: string, direction: 'up' | 'down' | 'left' | 'right') => {
-      setLocalItems((prev) => {
-        const idx = prev.findIndex((i) => i.id === itemId);
-        if (idx === -1) return prev;
-        let newIdx = idx;
-        if (direction === 'left') newIdx = idx - 1;
-        else if (direction === 'right') newIdx = idx + 1;
-        else if (direction === 'up') newIdx = idx - finalItemsPerRow;
-        else if (direction === 'down') newIdx = idx + finalItemsPerRow;
-        if (newIdx < 0 || newIdx >= prev.length) return prev;
-        const next = [...prev];
-        [next[idx], next[newIdx]] = [next[newIdx], next[idx]];
-        return next;
-      });
+      dispatch({ type: 'move-reorder-item', itemId, direction, itemsPerRow: finalItemsPerRow });
     },
     [finalItemsPerRow],
   );
 
   const handleLongPress = useCallback((item: LibraryItem) => {
-    setPreviousFocusKey(getCurrentFocusKey() ?? item.id);
-    setContextMenuItem(item);
+    dispatch({
+      type: 'open-context-menu',
+      item,
+      previousFocusKey: getCurrentFocusKey() ?? item.id,
+    });
   }, []);
 
   const cards = useMemo(
     () =>
       localItems.map((item, idx) => {
         const isItemReordering = isReorderingMode && reorderingItemId === item.id;
-        const reorderingArrows: ReorderingArrows | undefined = isItemReordering
-          ? {
-              up: idx - finalItemsPerRow >= 0,
-              down: idx + finalItemsPerRow < localItems.length,
-              left: idx > 0,
-              right: idx < localItems.length - 1,
-            }
-          : undefined;
+        const reorderingArrows = getReorderingArrows(
+          isItemReordering,
+          idx,
+          finalItemsPerRow,
+          localItems.length,
+        );
 
         return (
           <ContentCard
@@ -216,11 +312,9 @@ function LibraryContent({
             subtitle={item.years}
             width={cardWidth}
             onFocus={() => handleFocus(item)}
-            aspectRatio={isMusicLibrary || item.type === LibraryContentItemType.ALBUM ? '1' : '2/3'}
-            imgSrc={
-              item.images && item.images.length === 1 ? item.images[0] : (item.coverSrc ?? '')
-            }
-            collageImages={item.images && item.images.length > 1 ? item.images : undefined}
+            aspectRatio={getItemAspectRatio(isMusicLibrary, item.type)}
+            imgSrc={getItemImageSource(item)}
+            collageImages={getItemCollageImages(item)}
             defaultImageSrc={defaultImageSrc}
             action={() => {
               if (isReorderingMode && reorderingItemId === item.id) {
@@ -268,7 +362,7 @@ function LibraryContent({
         <CardContextMenu
           title={contextMenuItem.title}
           previousFocusKey={previousFocusKey}
-          onClose={() => setContextMenuItem(null)}
+          onClose={() => dispatch({ type: 'close-context-menu' })}
           items={
             isMusicLibrary
               ? []
@@ -276,8 +370,7 @@ function LibraryContent({
                   {
                     label: t('reorderMode'),
                     action: () => {
-                      setIsReorderingMode(true);
-                      setReorderingItemId(contextMenuItem.id);
+                      dispatch({ type: 'enter-reorder-mode', itemId: contextMenuItem.id });
                     },
                   },
                   {

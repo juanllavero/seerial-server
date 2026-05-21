@@ -1,6 +1,6 @@
 import { useFocusable } from '@noriginmedia/norigin-spatial-navigation';
 import { formatTime } from '@seerial/domain';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react';
 import { Tertiary } from '@/shared/components/text';
 import FlexBox from '@/shared/components/ui/flex-box';
 import { useKeyboardShortcut } from '@/shared/hooks/use-keyboard-shortcut';
@@ -157,15 +157,19 @@ function TimelineSlider({
     ),
   });
 
+  const syncPlaybackPosition = useEffectEvent(() => {
+    if (!seeking.current) {
+      getPlaybackPosition().then(setPosition).catch(console.error);
+    }
+  });
+
   // Update position every 500ms if not seeking
   useEffect(() => {
     const interval = setInterval(() => {
-      if (!seeking.current) {
-        getPlaybackPosition().then(setPosition).catch(console.error);
-      }
+      syncPlaybackPosition();
     }, 500);
     return () => clearInterval(interval);
-  }, [getPlaybackPosition, setPosition]);
+  }, []);
 
   // Update slider color on position change
   useEffect(() => {
@@ -224,18 +228,7 @@ function TimelineSlider({
         />
 
         {/* Current time indicator */}
-        <div
-          style={{
-            position: 'absolute',
-            left: `${getKnobPosition()}%`,
-            transform: 'translateX(-35%)',
-            top: '100%',
-            whiteSpace: 'nowrap',
-            fontSize: '1.8vh',
-            fontWeight: '500',
-            pointerEvents: 'none',
-          }}
-        >
+        <div className="timeline-slider-label" style={{ left: `${getKnobPosition()}%` }}>
           {formatTime(position)}
         </div>
       </div>

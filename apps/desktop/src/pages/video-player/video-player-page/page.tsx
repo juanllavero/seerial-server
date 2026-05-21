@@ -5,7 +5,7 @@ import {
 } from '@seerial/api';
 import type { Video } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useReducer, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { VideoPlayer } from '@/features/video-player';
 import { useMpvPlayer } from '@/features/video-player/hooks/use-mpv-player';
@@ -23,29 +23,59 @@ const PLAYER_HEALTH_POLL_INTERVAL_MS = 1000;
 
 type PlayerErrorMode = 'load' | 'playback';
 
-function VideoPlayerPage() {
-  const { videoId } = useParams();
-  const navigate = useNavigate();
-  const { serverUrl, currentUserId } = useServerStore((state) => ({
-    serverUrl: state.selectedServer?.url ?? '',
-    currentUserId: state.currentUser?.id,
-  }));
+interface PlayerViewState {
+  videoLoaded: boolean;
+  showInitialLoadingBackdrop: boolean;
+  isErrorDialogOpen: boolean;
+  errorMode: PlayerErrorMode;
+  isRecoveringPlaybackError: boolean;
+  isPlayerLoading: boolean;
+  isPlaybackBuffering: boolean;
+}
 
-  useAppSettingsMpv();
+type PlayerViewAction = Partial<PlayerViewState>;
 
+const INITIAL_PLAYER_VIEW_STATE: PlayerViewState = {
+  videoLoaded: false,
+  showInitialLoadingBackdrop: true,
+  isErrorDialogOpen: false,
+  errorMode: 'load',
+  isRecoveringPlaybackError: false,
+  isPlayerLoading: true,
+  isPlaybackBuffering: false,
+};
+
+function playerViewReducer(state: PlayerViewState, action: PlayerViewAction): PlayerViewState {
+  return { ...state, ...action };
+}
+
+function useVideoPlayerPageController({
+  video,
+  loadingVideo,
+  serverUrl,
+  currentUserId,
+  navigate,
+}: {
+  video?: Video;
+  loadingVideo: boolean;
+  serverUrl: string;
+  currentUserId?: string;
+  navigate: ReturnType<typeof useNavigate>;
+}) {
   const mpv = useMpvPlayer();
-
-  const { data: video, isLoading: loadingVideo } = useGetVideo<Video>(videoId ?? '', {
-    enabled: !!videoId && serverUrl !== '',
-  });
-
-  const [videoLoaded, setVideoLoaded] = useState(false);
-  const [showInitialLoadingBackdrop, setShowInitialLoadingBackdrop] = useState(true);
-  const [isErrorDialogOpen, setIsErrorDialogOpen] = useState(false);
-  const [errorMode, setErrorMode] = useState<PlayerErrorMode>('load');
-  const [isRecoveringPlaybackError, setIsRecoveringPlaybackError] = useState(false);
-  const [isPlayerLoading, setIsPlayerLoading] = useState(true);
-  const [isPlaybackBuffering, setIsPlaybackBuffering] = useState(false);
+  const [playerViewState, setPlayerViewState] = useReducer(
+    playerViewReducer,
+    INITIAL_PLAYER_VIEW_STATE,
+  );
+  const {
+    videoLoaded,
+    showInitialLoadingBackdrop,
+    isErrorDialogOpen,
+    errorMode,
+    isRecoveringPlaybackError,
+    isPlayerLoading,
+    isPlaybackBuffering,
+  } = playerViewState;
 
   const lastKnownPositionRef = useRef(0);
   const completedFirstLoadAttemptRef = useRef(false);
@@ -68,9 +98,9 @@ function VideoPlayerPage() {
   );
 
   const getSignedStreamUrl = useCallback(
-    async (video: Video) => {
+    async (videoToPlay: Video) => {
       const url = await getSignedVideoStreamUrlPassthrough({
-        filePath: video.fileSrc,
+        filePath: videoToPlay.fileSrc,
         expiresIn: '2m',
       });
       return `${serverUrl}${url}`;
@@ -80,14 +110,11 @@ function VideoPlayerPage() {
 
   const loadVideo = useCallback(
     async (videoToPlay: Video, resumeAt = 0): Promise<boolean> => {
-      setIsPlayerLoading(true);
-      setIsPlaybackBuffering(false);
+      setPlayerViewState({ isPlayerLoading: true, isPlaybackBuffering: false });
 
       try {
         const url = await getSignedStreamUrl(videoToPlay);
-        await mpv.loadUrl(url);
-
-        const ready = await mpv.waitForReady(LOAD_TIMEOUT_MS);
+        const [_, ready] = await Promise.all([mpv.loadUrl(url), mpv.waitForReady(LOAD_TIMEOUT_MS)]);
         if (!ready) {
           throw new Error('Timed out waiting for video to become ready');
         }
@@ -97,20 +124,21 @@ function VideoPlayerPage() {
         }
 
         lastKnownPositionRef.current = resumeAt;
-        setVideoLoaded(true);
-        setIsPlayerLoading(false);
-        setIsErrorDialogOpen(false);
-        setIsRecoveringPlaybackError(false);
+        setPlayerViewState({
+          videoLoaded: true,
+          isPlayerLoading: false,
+          isErrorDialogOpen: false,
+          isRecoveringPlaybackError: false,
+        });
         return true;
       } catch (e) {
         console.error(e);
-        setIsPlayerLoading(false);
-        setVideoLoaded(false);
+        setPlayerViewState({ isPlayerLoading: false, videoLoaded: false });
         return false;
       } finally {
         if (!completedFirstLoadAttemptRef.current) {
           completedFirstLoadAttemptRef.current = true;
-          setShowInitialLoadingBackdrop(false);
+          setPlayerViewState({ showInitialLoadingBackdrop: false });
         }
       }
     },
@@ -134,7 +162,6 @@ function VideoPlayerPage() {
     currentUserIdRef.current = currentUserId;
   }, [video, currentUserId]);
 
-  // Track when video playback starts
   useEffect(() => {
     if (!videoLoaded || !video || !currentUserId || watchStateTrackedRef.current) {
       return;
@@ -142,7 +169,6 @@ function VideoPlayerPage() {
 
     watchStateTrackedRef.current = true;
 
-    // Mark the video as being watched (watched: false means still watching, not finished)
     updateWatchState({
       videoId: video.id,
       timeWatched: lastKnownPositionRef.current,
@@ -161,7 +187,7 @@ function VideoPlayerPage() {
     const loadInitialVideo = async () => {
       watchStateTrackedRef.current = false;
       videoEndedTrackedRef.current = false;
-      setVideoLoaded(false);
+      setPlayerViewState({ videoLoaded: false });
 
       const initialPosition = getInitialPlaybackPosition(video);
       const loaded = await loadVideo(video, initialPosition);
@@ -170,8 +196,7 @@ function VideoPlayerPage() {
         return;
       }
 
-      setErrorMode('load');
-      setIsErrorDialogOpen(true);
+      setPlayerViewState({ errorMode: 'load', isErrorDialogOpen: true });
     };
 
     void loadInitialVideo();
@@ -187,19 +212,23 @@ function VideoPlayerPage() {
     }
 
     playbackRecoveryInFlightRef.current = true;
-    setIsRecoveringPlaybackError(true);
-    setIsPlayerLoading(true);
-    setVideoLoaded(false);
+    setPlayerViewState({
+      isRecoveringPlaybackError: true,
+      isPlayerLoading: true,
+      videoLoaded: false,
+    });
 
     const recovered = await loadVideo(video, lastKnownPositionRef.current);
 
     playbackRecoveryInFlightRef.current = false;
 
     if (!recovered) {
-      setErrorMode('playback');
-      setIsRecoveringPlaybackError(false);
-      setIsPlaybackBuffering(false);
-      setIsErrorDialogOpen(true);
+      setPlayerViewState({
+        errorMode: 'playback',
+        isRecoveringPlaybackError: false,
+        isPlaybackBuffering: false,
+        isErrorDialogOpen: true,
+      });
     }
   }, [loadVideo, video]);
 
@@ -222,18 +251,17 @@ function VideoPlayerPage() {
         lastKnownPositionRef.current = currentPosition;
       }
 
-      // MPV entered idle state without reaching EOF — playback stopped due to an error
       if (playbackStatus.idleActive && !playbackStatus.eofReached) {
-        setIsPlaybackBuffering(false);
+        setPlayerViewState({ isPlaybackBuffering: false });
         await attemptPlaybackRecovery();
         return;
       }
 
       const buffering = playbackStatus.pausedForCache || playbackStatus.seeking;
-      setIsPlaybackBuffering(buffering);
+      setPlayerViewState({ isPlaybackBuffering: buffering });
     } catch (error) {
       console.error('Playback health check failed:', error);
-      setIsPlaybackBuffering(false);
+      setPlayerViewState({ isPlaybackBuffering: false });
       await attemptPlaybackRecovery();
     } finally {
       healthCheckInFlightRef.current = false;
@@ -254,7 +282,6 @@ function VideoPlayerPage() {
     };
   }, [videoLoaded, isErrorDialogOpen, pollPlaybackHealth]);
 
-  // Track when video ends
   useEffect(() => {
     if (!videoLoaded || !video || !currentUserId) {
       return;
@@ -266,7 +293,6 @@ function VideoPlayerPage() {
 
         if (playbackStatus.eofReached && !videoEndedTrackedRef.current) {
           videoEndedTrackedRef.current = true;
-          // Mark the video as watched (watched: true means finished watching)
           updateWatchState({
             videoId: video.id,
             timeWatched: lastKnownPositionRef.current,
@@ -293,7 +319,6 @@ function VideoPlayerPage() {
       const currentVideo = currentVideoRef.current;
       const activeUserId = currentUserIdRef.current;
 
-      // Update watch state with current position when leaving the player
       if (
         currentVideo &&
         activeUserId &&
@@ -323,21 +348,23 @@ function VideoPlayerPage() {
       return;
     }
 
-    setIsErrorDialogOpen(false);
-    setVideoLoaded(false);
-    setIsPlayerLoading(true);
-    setIsPlaybackBuffering(false);
+    setPlayerViewState({
+      isErrorDialogOpen: false,
+      videoLoaded: false,
+      isPlayerLoading: true,
+      isPlaybackBuffering: false,
+    });
 
     const retryPosition =
       errorMode === 'playback' ? lastKnownPositionRef.current : getInitialPlaybackPosition(video);
     const loaded = await loadVideo(video, retryPosition);
 
     if (!loaded) {
-      setIsErrorDialogOpen(true);
+      setPlayerViewState({ isErrorDialogOpen: true });
       return;
     }
 
-    setIsRecoveringPlaybackError(false);
+    setPlayerViewState({ isRecoveringPlaybackError: false });
   }, [errorMode, getInitialPlaybackPosition, loadVideo, video]);
 
   useKeyboardBack({
@@ -348,13 +375,61 @@ function VideoPlayerPage() {
     },
   });
 
-  if (!video || loadingVideo) {
-    return <Loading />;
-  }
-
   const shouldShowLoadingOverlay =
     !isErrorDialogOpen && (isPlayerLoading || isPlaybackBuffering || !videoLoaded);
   const shouldUseBlackLoadingBackdrop = !videoLoaded || showInitialLoadingBackdrop;
+
+  return {
+    isPageLoading: !video || loadingVideo,
+    videoLoaded,
+    isRecoveringPlaybackError,
+    isErrorDialogOpen,
+    errorMode,
+    shouldShowLoadingOverlay,
+    shouldUseBlackLoadingBackdrop,
+    handleGoBack,
+    handleRetry,
+  };
+}
+
+function VideoPlayerPage() {
+  const { videoId } = useParams();
+  const navigate = useNavigate();
+  const { serverUrl, currentUserId } = useServerStore((state) => ({
+    serverUrl: state.selectedServer?.url ?? '',
+    currentUserId: state.currentUser?.id,
+  }));
+
+  useAppSettingsMpv();
+
+  const { data: video, isLoading: loadingVideo } = useGetVideo<Video>(videoId ?? '', {
+    enabled: !!videoId && serverUrl !== '',
+  });
+  const {
+    isPageLoading,
+    videoLoaded,
+    isRecoveringPlaybackError,
+    isErrorDialogOpen,
+    errorMode,
+    shouldShowLoadingOverlay,
+    shouldUseBlackLoadingBackdrop,
+    handleGoBack,
+    handleRetry,
+  } = useVideoPlayerPageController({
+    video,
+    loadingVideo,
+    serverUrl,
+    currentUserId,
+    navigate,
+  });
+
+  if (isPageLoading) {
+    return <Loading />;
+  }
+
+  if (!video) {
+    return <Loading />;
+  }
 
   return (
     <>

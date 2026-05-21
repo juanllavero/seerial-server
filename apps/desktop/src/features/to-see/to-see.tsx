@@ -12,7 +12,8 @@ interface ToSeeProps {
 }
 
 function ToSee({ moviesLibraries, seriesLibraries }: ToSeeProps) {
-  const location = useLocation();
+  const routeLocation = useLocation();
+  const { pathname } = routeLocation;
   const lastFocusedElementId = useDataStore((state) => state.lastFocusedElementId);
   const prevLocationRef = useRef<string>('');
   const lastFocusIdRef = useRef<string | undefined>(undefined);
@@ -41,8 +42,8 @@ function ToSee({ moviesLibraries, seriesLibraries }: ToSeeProps) {
       setIsRestoringFocus(prevLocationRef.current.includes('/details'));
     }
 
-    prevLocationRef.current = location.pathname;
-  }, [location.pathname]);
+    prevLocationRef.current = pathname;
+  }, [pathname]);
 
   return (
     <Page padding="0">

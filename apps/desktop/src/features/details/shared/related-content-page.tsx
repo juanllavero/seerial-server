@@ -158,15 +158,19 @@ function RelatedContentPage({
       },
     ];
 
-    return allSections
-      .map((section) => ({
+    return allSections.reduce<ContentSection[]>((acc, section) => {
+      const newSection = {
         ...section,
         items:
           currentItemId && section.itemType === currentItemType
             ? section.items.filter((item) => item.id !== currentItemId)
             : section.items,
-      }))
-      .filter((section) => section.items.length > 0);
+      };
+      if (newSection.items.length > 0) {
+        acc.push(newSection);
+      }
+      return acc;
+    }, []);
   }, [collectionContent, currentItemId, currentItemType, currentItemTypeFromLibrary, t]);
 
   const albums = collection?.albums ?? [];

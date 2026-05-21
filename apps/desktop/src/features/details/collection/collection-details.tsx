@@ -8,7 +8,7 @@ import {
   LibraryTypes,
 } from '@seerial/domain';
 import { useDataStore, useGradientStore } from '@seerial/stores';
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { shallow } from 'zustand/shallow';
@@ -106,9 +106,16 @@ function buildOrderedSections(
   singles: LibraryItem[],
   t: (key: string) => string,
 ): CollectionSection[] {
-  const orderedSections = getOrderedSectionKeys(libraryType)
-    .map((key) => sectionsByKey[key])
-    .filter((section) => section.items.length > 0);
+  const orderedSections = getOrderedSectionKeys(libraryType).reduce<CollectionSection[]>(
+    (acc, key) => {
+      const section = sectionsByKey[key];
+      if (section.items.length > 0) {
+        acc.push(section);
+      }
+      return acc;
+    },
+    [],
+  );
 
   if (libraryType !== LibraryTypes.MUSIC || singles.length === 0) {
     return orderedSections;
@@ -324,9 +331,9 @@ function CollectionDetailsContent({
 
   const isRestoringFocus = !!lastFocusedElementId && allPageItemIds.has(lastFocusedElementId);
 
-  const [isScrollRestoring, setIsScrollRestoring] = useState(() => isRestoringFocus);
-
   const hasFocusedRef = useRef(false);
+
+  const isScrollRestoring = isRestoringFocus && !hasFocusedRef.current;
 
   useEffect(() => {
     if (!firstFocusedElementId || hasFocusedRef.current) {
@@ -338,10 +345,10 @@ function CollectionDetailsContent({
     const idToFocus =
       isRestoringFocus && lastFocusedElementId ? lastFocusedElementId : firstFocusedElementId;
 
+    setLastFocusedElementId(idToFocus);
+
     const focusFrame = window.requestAnimationFrame(() => {
-      setLastFocusedElementId(idToFocus);
       setFocus(idToFocus);
-      setIsScrollRestoring(false);
     });
 
     return () => window.cancelAnimationFrame(focusFrame);

@@ -37,7 +37,7 @@ function UserCard({ user, isSelected, onSelect }: UserCardProps) {
         )}
 
         {user.type === 'admin' && (
-          <div className="absolute top-4 right-4 flex h-7 w-7 items-center justify-center rounded-full bg-yellow-400 text-xs font-bold shadow">
+          <div className="absolute top-4 right-4 flex size-7 items-center justify-center rounded-full bg-yellow-400 text-xs font-bold shadow">
             ★
           </div>
         )}

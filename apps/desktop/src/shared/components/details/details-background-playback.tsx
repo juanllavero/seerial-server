@@ -27,10 +27,18 @@ function DetailsBackgroundPlayback({
   const hasAudioCandidates = audioCandidates.length > 0;
   const hasVideoCandidates = videoCandidates.length > 0;
 
-  const [mode, setMode] = useState<PlaybackMode>('none');
-  const [audioIndex, setAudioIndex] = useState(0);
-  const [videoIndex, setVideoIndex] = useState(0);
+  const [playbackState, setPlaybackState] = useState<{
+    mode: PlaybackMode;
+    audioIndex: number;
+    videoIndex: number;
+  }>({
+    mode: 'none',
+    audioIndex: 0,
+    videoIndex: 0,
+  });
   const previousCandidatesRef = useRef({ audio: '', video: '' });
+
+  const { mode, audioIndex, videoIndex } = playbackState;
 
   useEffect(() => {
     if (
@@ -45,58 +53,68 @@ function DetailsBackgroundPlayback({
       video: videoCandidatesKey,
     };
 
-    setAudioIndex(0);
-    setVideoIndex(0);
-    onVideoVisibilityChange?.(false);
-
+    let nextMode: PlaybackMode = 'none';
     if (hasVideoCandidates) {
-      setMode('video');
-      return;
+      nextMode = 'video';
+    } else if (hasAudioCandidates) {
+      nextMode = 'audio';
     }
 
-    if (hasAudioCandidates) {
-      setMode('audio');
-      return;
-    }
-
-    setMode('none');
-  }, [
-    audioCandidatesKey,
-    hasAudioCandidates,
-    hasVideoCandidates,
-    onVideoVisibilityChange,
-    videoCandidatesKey,
-  ]);
+    setPlaybackState({
+      audioIndex: 0,
+      videoIndex: 0,
+      mode: nextMode,
+    });
+  }, [audioCandidatesKey, hasAudioCandidates, hasVideoCandidates, videoCandidatesKey]);
 
   const handleVideoUnavailable = useCallback(() => {
     onVideoVisibilityChange?.(false);
 
-    if (videoIndex + 1 < videoCandidates.length) {
-      setVideoIndex(videoIndex + 1);
-      return;
-    }
+    setPlaybackState((currentState) => {
+      if (currentState.videoIndex + 1 < videoCandidates.length) {
+        return {
+          ...currentState,
+          videoIndex: currentState.videoIndex + 1,
+        };
+      }
 
-    if (audioCandidates.length > 0) {
-      setAudioIndex(0);
-      setMode('audio');
-      return;
-    }
+      if (audioCandidates.length > 0) {
+        return {
+          ...currentState,
+          audioIndex: 0,
+          mode: 'audio',
+        };
+      }
 
-    setMode('none');
-  }, [audioCandidates.length, onVideoVisibilityChange, videoCandidates.length, videoIndex]);
+      return {
+        ...currentState,
+        mode: 'none',
+      };
+    });
+  }, [audioCandidates.length, onVideoVisibilityChange, videoCandidates.length]);
 
   const handleAudioUnavailable = useCallback(() => {
-    if (audioIndex + 1 < audioCandidates.length) {
-      setAudioIndex(audioIndex + 1);
-      return;
-    }
+    setPlaybackState((currentState) => {
+      if (currentState.audioIndex + 1 < audioCandidates.length) {
+        return {
+          ...currentState,
+          audioIndex: currentState.audioIndex + 1,
+        };
+      }
 
-    setMode('none');
-  }, [audioCandidates.length, audioIndex]);
+      return {
+        ...currentState,
+        mode: 'none',
+      };
+    });
+  }, [audioCandidates.length]);
 
   const handleVideoEnded = useCallback(() => {
     onVideoVisibilityChange?.(false);
-    setMode('none');
+    setPlaybackState((currentState) => ({
+      ...currentState,
+      mode: 'none',
+    }));
   }, [onVideoVisibilityChange]);
 
   const activeAudioLocalId = audioCandidates[audioIndex];

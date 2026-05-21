@@ -1,9 +1,10 @@
 import { useGetLocalImage } from '@seerial/api';
 import { useServerStore } from '@seerial/stores';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export const useResolveImageUrl = (url?: string, isInView: boolean = true) => {
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
+  const objectUrlRef = useRef<string | null>(null);
 
   const isRemoteUrl = !!url?.startsWith('http');
   const localImagePath = url && !isRemoteUrl ? url : undefined;
@@ -18,25 +19,28 @@ export const useResolveImageUrl = (url?: string, isInView: boolean = true) => {
   });
 
   useEffect(() => {
-    // If the URL is remote or there is no URL, update and exit
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+    }
+
+    let nextResolvedUrl: string | undefined;
+
     if (isRemoteUrl || !url) {
-      setResolvedUrl(isRemoteUrl ? url : undefined);
-      return;
+      nextResolvedUrl = isRemoteUrl ? url : undefined;
+    } else if (localImageBlob) {
+      const objectUrl = URL.createObjectURL(localImageBlob);
+      objectUrlRef.current = objectUrl;
+      nextResolvedUrl = objectUrl;
     }
 
-    // If the URL is local but we don't have the blob yet, clear the URL
-    if (!localImageBlob) {
-      setResolvedUrl(undefined);
-      return;
-    }
+    setResolvedUrl(nextResolvedUrl);
 
-    // Create the URL from the blob
-    const objectUrl = URL.createObjectURL(localImageBlob);
-    setResolvedUrl(objectUrl);
-
-    // Clean up the memory when the component unmounts or the blob changes
     return () => {
-      URL.revokeObjectURL(objectUrl);
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = null;
+      }
     };
   }, [localImageBlob, isRemoteUrl, url]);
 

@@ -16,7 +16,7 @@ function WatchProgressBar({ duration, timeWatched }: WatchProgressBarProps) {
       aria-hidden="true"
       className="pointer-events-none absolute right-5 bottom-3 left-5 rounded-full p-1"
     >
-      <div className="h-3 w-full overflow-hidden rounded-full bg-black">
+      <div className="h-3 w-full overflow-hidden rounded-full bg-stone-950">
         <div className="h-full rounded-full bg-app-color" style={{ width: `${watchProgress}%` }} />
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { init, setFocus } from '@noriginmedia/norigin-spatial-navigation';
-import { seerialQueryClient, setApiBaseUrl, setUnauthorizedHandler } from '@seerial/api';
+import { seerialQueryClient, setUnauthorizedHandler } from '@seerial/api';
 import { useServerStore } from '@seerial/stores';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { useEffect } from 'react';
@@ -9,9 +9,10 @@ import { BrowserRouter } from 'react-router-dom';
 import { GlobalMusicPlayer } from '@/features/music-player';
 import { UpdateDialog } from '@/features/updater';
 import { useFeedbackSounds } from '@/shared/hooks/use-feedback-sounds';
-import { AppRoutes } from './routes';
+import AppRoutes from './routes/routes';
 import { updateAppLanguage } from './shared/localization/language.helpers';
 import './shared/localization/i18n';
+import './shared/styles/react-doctor-fixes.css';
 
 // Clear session and redirect to login whenever the server returns 401
 setUnauthorizedHandler(() => {
@@ -21,7 +22,6 @@ setUnauthorizedHandler(() => {
 
 function App() {
   const { i18n } = useTranslation();
-  const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
 
   useFeedbackSounds();
 
@@ -40,10 +40,6 @@ function App() {
   useEffect(() => {
     updateAppLanguage(i18n);
   }, [i18n]);
-
-  useEffect(() => {
-    setApiBaseUrl(serverUrl);
-  }, [serverUrl]);
 
   return (
     <BrowserRouter>

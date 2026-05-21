@@ -1,6 +1,8 @@
 import { useServerStore } from '@seerial/stores';
+import type { JSX } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { shallow } from 'zustand/shallow';
+import LogoIntro from '@/features/home/components/logo-intro';
 
 const PUBLIC_PATHS = ['/login', '/link'];
 const ALLOWED_PATHS_WHEN_SERVER_DOWN = ['/home', '/settings'];
@@ -21,18 +23,22 @@ function Root() {
     location.pathname.startsWith(path),
   );
 
+  let routeContent: JSX.Element;
+
   if (!user || !server) {
-    // Redirect to login if not authenticated
-    if (!isPublic) return <Navigate to="/login" replace />;
-    return <Outlet />;
+    routeContent = isPublic ? <Outlet /> : <Navigate to="/login" replace />;
+  } else if (serverOnline === false && !isAllowedWhenServerDown) {
+    routeContent = <Navigate to="/home" replace />;
+  } else {
+    routeContent = <Outlet />;
   }
 
-  if (serverOnline === false && !isAllowedWhenServerDown) {
-    // Redirect to home if server is down and not on allowed paths
-    return <Navigate to="/home" replace />;
-  }
-
-  return <Outlet />;
+  return (
+    <>
+      <LogoIntro />
+      {routeContent}
+    </>
+  );
 }
 
 export default Root;

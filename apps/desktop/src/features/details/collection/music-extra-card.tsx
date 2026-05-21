@@ -3,6 +3,7 @@ import { getSignedVideoStreamUrlPassthrough } from '@seerial/api';
 import { useServerStore } from '@seerial/stores';
 import { memo, useEffect, useRef, useState } from 'react';
 import FlexBox from '@/shared/components/ui/flex-box';
+import { MusicExtraCardFocusProvider, useMusicExtraCardFocus } from './music-extra-card-context';
 
 interface MusicExtraCardProps {
   src: string;
@@ -15,7 +16,7 @@ interface MusicExtraCardProps {
   onArrowPress?: (direction: string) => boolean;
 }
 
-function MusicExtraCard({
+function MusicExtraCardComponent({
   src,
   title,
   subtitle,
@@ -27,28 +28,82 @@ function MusicExtraCard({
 }: MusicExtraCardProps) {
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
   const [thumbnail, setThumbnail] = useState<string | null>(null);
-  const [isVisible, setIsVisible] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const { ref, focused } = useFocusable({
     focusKey: customKey,
     onEnterPress: action,
     onArrowPress,
+    onFocus: () => {
+      setFocusedKey(customKey);
+      onFocus?.();
+    },
   });
 
-  useEffect(() => {
-    if (focused && onFocus) onFocus();
-  }, [focused, onFocus]);
+  const { focusedKey, setFocusedKey } = useMusicExtraCardFocus();
 
   useEffect(() => {
     const el = ref.current as Element | null;
     if (!el) return;
 
+    let cancelled = false;
+    let video: HTMLVideoElement | null = null;
+
+    const handleLoadedData = () => {
+      if (video) {
+        video.currentTime = 10;
+      }
+    };
+
+    const handleSeeked = () => {
+      if (!video) {
+        return;
+      }
+
+      if (cancelled) {
+        video.src = '';
+        return;
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 360;
+      const ctx = canvas.getContext('2d');
+
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        try {
+          setThumbnail(canvas.toDataURL('image/jpeg', 0.8));
+        } catch {
+          // CORS or other issue, thumbnail stays null
+        }
+      }
+
+      video.src = '';
+    };
+
+    const generateThumbnail = async () => {
+      const signedUrl = await getSignedVideoStreamUrlPassthrough({
+        filePath: src,
+      });
+      if (cancelled || !signedUrl) return;
+
+      video = document.createElement('video');
+      video.crossOrigin = 'anonymous';
+      video.preload = 'metadata';
+      video.muted = true;
+      video.src = `${serverUrl}${signedUrl}`;
+      videoRef.current = video;
+
+      video.addEventListener('loadeddata', handleLoadedData);
+      video.addEventListener('seeked', handleSeeked);
+    };
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setIsVisible(true);
           observer.disconnect();
+          void generateThumbnail();
         }
       },
       { threshold: 0.1 },
@@ -56,71 +111,20 @@ function MusicExtraCard({
 
     observer.observe(el);
 
-    return () => observer.disconnect();
-  }, [ref]);
-
-  useEffect(() => {
-    if (!isVisible) return;
-
-    let cancelled = false;
-
-    async function generateThumbnail() {
-      const signedUrl = await getSignedVideoStreamUrlPassthrough({
-        filePath: src,
-      });
-      if (cancelled || !signedUrl) return;
-
-      const video = document.createElement('video');
-      video.crossOrigin = 'anonymous';
-      video.preload = 'metadata';
-      video.muted = true;
-      video.src = `${serverUrl}${signedUrl}`;
-
-      video.addEventListener(
-        'loadeddata',
-        () => {
-          video.currentTime = 10;
-        },
-        { once: true },
-      );
-
-      video.addEventListener(
-        'seeked',
-        () => {
-          if (cancelled) {
-            video.src = '';
-            return;
-          }
-
-          const canvas = document.createElement('canvas');
-          canvas.width = video.videoWidth || 640;
-          canvas.height = video.videoHeight || 360;
-          const ctx = canvas.getContext('2d');
-
-          if (ctx) {
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            try {
-              setThumbnail(canvas.toDataURL('image/jpeg', 0.8));
-            } catch {
-              // CORS or other issue, thumbnail stays null
-            }
-          }
-
-          video.src = '';
-        },
-        { once: true },
-      );
-    }
-
-    generateThumbnail();
-
     return () => {
+      observer.disconnect();
       cancelled = true;
+      if (video) {
+        video.removeEventListener('loadeddata', handleLoadedData);
+        video.removeEventListener('seeked', handleSeeked);
+        video.src = '';
+      }
       if (videoRef.current) {
         videoRef.current.src = '';
+        videoRef.current = null;
       }
     };
-  }, [src, serverUrl, isVisible]);
+  }, [ref, src, serverUrl]);
 
   return (
     <FlexBox
@@ -134,6 +138,7 @@ function MusicExtraCard({
       width={width}
       className="shrink-0 overflow-hidden"
       css={{ flex: `0 0 ${width}`, maxWidth: width }}
+      style={{ outline: focusedKey === customKey ? '2px solid #fff' : undefined }}
     >
       <div className="relative w-full overflow-hidden rounded-md" style={{ aspectRatio: '16 / 9' }}>
         <div
@@ -161,6 +166,14 @@ function MusicExtraCard({
         )}
       </div>
     </FlexBox>
+  );
+}
+
+function MusicExtraCard(props: MusicExtraCardProps) {
+  return (
+    <MusicExtraCardFocusProvider>
+      <MusicExtraCardComponent {...props} />
+    </MusicExtraCardFocusProvider>
   );
 }
 

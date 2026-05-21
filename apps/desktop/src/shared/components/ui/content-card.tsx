@@ -68,6 +68,7 @@ interface CardProps {
   onReorderMove?: (direction: 'up' | 'down' | 'left' | 'right') => void;
 }
 
+// biome-ignore lint/complexity/noExcessiveCognitiveComplexity: UI card handles multiple interaction modes in one place by design.
 function ContentCard({
   imgSrc,
   collageImages,
@@ -253,28 +254,28 @@ function ContentCard({
               {reorderingArrows?.up && (
                 <div className="absolute inset-x-0 top-2 z-20 flex justify-center">
                   <div className="rounded-full bg-black/70 p-0.5">
-                    <ChevronUp className="h-[2dvh] w-[2dvh] text-white" />
+                    <ChevronUp className="size-[2dvh] text-white" />
                   </div>
                 </div>
               )}
               {reorderingArrows?.down && (
                 <div className="absolute inset-x-0 bottom-2 z-20 flex justify-center">
                   <div className="rounded-full bg-black/70 p-0.5">
-                    <ChevronDown className="h-[2dvh] w-[2dvh] text-white" />
+                    <ChevronDown className="size-[2dvh] text-white" />
                   </div>
                 </div>
               )}
               {reorderingArrows?.left && (
                 <div className="absolute inset-y-0 left-2 z-20 flex items-center">
                   <div className="rounded-full bg-black/70 p-0.5">
-                    <ChevronLeft className="h-[2dvh] w-[2dvh] text-white" />
+                    <ChevronLeft className="size-[2dvh] text-white" />
                   </div>
                 </div>
               )}
               {reorderingArrows?.right && (
                 <div className="absolute inset-y-0 right-2 z-20 flex items-center">
                   <div className="rounded-full bg-black/70 p-0.5">
-                    <ChevronRight className="h-[2dvh] w-[2dvh] text-white" />
+                    <ChevronRight className="size-[2dvh] text-white" />
                   </div>
                 </div>
               )}

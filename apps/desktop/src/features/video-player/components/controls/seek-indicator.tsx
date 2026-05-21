@@ -1,5 +1,5 @@
 import { RotateCcw, RotateCw } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useEffectEvent, useReducer } from 'react';
 
 type SeekDirection = 'left' | 'right' | null;
 
@@ -8,22 +8,61 @@ interface SeekIndicatorProps {
   onAnimationEnd?: () => void;
 }
 
+interface SeekIndicatorState {
+  isVisible: boolean;
+  activeDirection: SeekDirection;
+}
+
+type SeekIndicatorAction =
+  | { type: 'show'; direction: Exclude<SeekDirection, null> }
+  | { type: 'hide' }
+  | { type: 'reset' };
+
+function seekIndicatorReducer(
+  state: SeekIndicatorState,
+  action: SeekIndicatorAction,
+): SeekIndicatorState {
+  switch (action.type) {
+    case 'show':
+      return {
+        isVisible: true,
+        activeDirection: action.direction,
+      };
+    case 'hide':
+      return {
+        ...state,
+        isVisible: false,
+      };
+    case 'reset':
+      return {
+        isVisible: false,
+        activeDirection: null,
+      };
+    default:
+      return state;
+  }
+}
+
 function SeekIndicator({ direction, onAnimationEnd }: SeekIndicatorProps) {
-  const [isVisible, setIsVisible] = useState(false);
-  const [activeDirection, setActiveDirection] = useState<SeekDirection>(null);
+  const [state, dispatch] = useReducer(seekIndicatorReducer, {
+    isVisible: false,
+    activeDirection: null,
+  });
+  const onAnimationEndEvent = useEffectEvent(() => {
+    onAnimationEnd?.();
+  });
 
   useEffect(() => {
     if (direction) {
-      setActiveDirection(direction);
-      setIsVisible(true);
+      dispatch({ type: 'show', direction });
 
       const fadeOutTimer = setTimeout(() => {
-        setIsVisible(false);
+        dispatch({ type: 'hide' });
       }, 800);
 
       const cleanupTimer = setTimeout(() => {
-        onAnimationEnd?.();
-        setActiveDirection(null);
+        onAnimationEndEvent();
+        dispatch({ type: 'reset' });
       }, 1000); // 800ms + 200ms
 
       return () => {
@@ -31,26 +70,17 @@ function SeekIndicator({ direction, onAnimationEnd }: SeekIndicatorProps) {
         clearTimeout(cleanupTimer);
       };
     }
-  }, [direction, onAnimationEnd]);
+  }, [direction]);
 
-  if (!activeDirection) {
+  if (!state.activeDirection) {
     return null;
   }
 
-  const isLeft = activeDirection === 'left';
+  const isLeft = state.activeDirection === 'left';
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        top: '50%',
-        [isLeft ? 'left' : 'right']: '40%',
-        transform: `translate(${isLeft ? '-50%' : '50%'}, -50%)`,
-        zIndex: 9999,
-        pointerEvents: 'none',
-        opacity: isVisible ? 1 : 0,
-        transition: 'opacity 0.2s ease-in-out',
-      }}
+      className={`seek-indicator ${isLeft ? 'seek-indicator-left' : 'seek-indicator-right'}${state.isVisible ? ' visible' : ''}`}
     >
       {isLeft ? (
         <RotateCcw size={48} style={{ filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5))' }} />

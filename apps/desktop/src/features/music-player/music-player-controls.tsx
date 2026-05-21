@@ -1,14 +1,14 @@
 import { setFocus, useFocusable } from '@noriginmedia/norigin-spatial-navigation';
 import type { Song } from '@seerial/domain';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, domAnimation, LazyMotion, m } from 'framer-motion';
 import { AudioLines, ForwardIcon, Languages, List, MicVocal, RewindIcon } from 'lucide-react';
 import {
   type Dispatch,
   memo,
-  type ReactNode,
   type SetStateAction,
   useCallback,
   useEffect,
+  useEffectEvent,
   useRef,
   useState,
 } from 'react';
@@ -20,6 +20,7 @@ import FlexBox from '@/shared/components/ui/flex-box';
 import { Slider } from '@/shared/components/ui/slider';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
 import QueueMenu from './queue-menu';
+import SongInfo from './song-info';
 
 const TEST_BACKGROUND_STYLE: 'classic' | 'background' = 'classic';
 
@@ -36,11 +37,12 @@ interface KaraokeMixSliderProps {
 interface MusicPlayerControlsProps {
   t: (key: string) => string;
   currentSong: Song | null;
-  renderSongInfo: () => ReactNode;
-  isExpanded: boolean;
-  isShown: boolean;
-  isPlaying: boolean;
-  isLoading: boolean;
+  playerState: {
+    isExpanded: boolean;
+    isShown: boolean;
+    isPlaying: boolean;
+    isLoading: boolean;
+  };
   currentTime: number;
   playerDuration: number;
   setCurrentTime: (time: number) => void;
@@ -49,27 +51,31 @@ interface MusicPlayerControlsProps {
   getActivePlaybackPosition: () => Promise<number>;
   getActivePlaybackDuration: () => Promise<number>;
   setActivePlaybackPosition: (position: number) => Promise<void>;
-  showLyrics: boolean;
-  isLyricsButtonDisabled: boolean;
+  lyricsState: {
+    showLyrics: boolean;
+    isLyricsButtonDisabled: boolean;
+    isLyricsOptionsOpen: boolean;
+    isLyricsOptionsButtonDisabled: boolean;
+    hasLyrics: boolean;
+    hasPronunciation: boolean;
+    showPronunciation: boolean;
+    hasTranslation: boolean;
+    showTranslation: boolean;
+  };
   setShowLyrics: (showLyrics: boolean) => void;
-  isLyricsOptionsOpen: boolean;
   setIsLyricsOptionsOpen: Dispatch<SetStateAction<boolean>>;
-  isLyricsOptionsButtonDisabled: boolean;
-  hasLyrics: boolean;
-  hasPronunciation: boolean;
-  showPronunciation: boolean;
-  hasTranslation: boolean;
-  showTranslation: boolean;
   setShowPronunciation: Dispatch<SetStateAction<boolean | null>>;
   setShowTranslation: (value: boolean) => void;
   closeLyricsOptions: (restoreFocus?: boolean) => void;
-  shouldShowKaraokeButton: boolean;
-  isKaraokePreparing: boolean;
-  isKaraokeActive: boolean;
-  isKaraokeReady: boolean;
-  isKaraokeAvailable: boolean;
+  karaokeState: {
+    shouldShowKaraokeButton: boolean;
+    isKaraokePreparing: boolean;
+    isKaraokeActive: boolean;
+    isKaraokeReady: boolean;
+    isKaraokeAvailable: boolean;
+    showKaraokeMixer: boolean;
+  };
   karaokeMix: number;
-  showKaraokeMixer: boolean;
   setShowKaraokeMixer: Dispatch<SetStateAction<boolean>>;
   handleKaraokeMixChange: (value: number) => Promise<void>;
   isQueueMenuOpen: boolean;
@@ -136,174 +142,109 @@ function KaraokeMixSlider({ label, value, onChange }: KaraokeMixSliderProps) {
 
 function KaraokeLoadingIcon() {
   return (
-    <span className="inline-block h-[2.2dvh] w-[2.2dvh] animate-spin rounded-full border-r-2 border-t-2 border-r-transparent border-t-current" />
+    <span className="inline-block size-[2.2dvh] animate-spin rounded-full border-2 border-current" />
   );
 }
 
-function MusicPlayerControls({
-  t,
-  currentSong,
-  renderSongInfo,
-  isExpanded,
-  isShown,
-  isPlaying,
-  isLoading,
+function MusicPlayerControlsContent({
+  playerUi,
   currentTime,
   playerDuration,
   setCurrentTime,
   setDuration,
+  handleTimelineFocusChange,
   togglePlayPause,
   getActivePlaybackPosition,
   getActivePlaybackDuration,
   setActivePlaybackPosition,
-  showLyrics,
-  isLyricsButtonDisabled,
-  setShowLyrics,
-  isLyricsOptionsOpen,
+  queueState,
+  karaokeUi,
+  t,
+  karaokeMix,
+  handleKaraokeMixChange,
+  currentSong,
+  songQueue,
+  handlePlayPrevious,
+  handlePlayNextSong,
+  toggleKaraokeMixer,
+  lyricsUi,
   setIsLyricsOptionsOpen,
-  isLyricsOptionsButtonDisabled,
-  hasLyrics,
-  hasPronunciation,
-  showPronunciation,
-  hasTranslation,
-  showTranslation,
+  setShowLyrics,
   setShowPronunciation,
   setShowTranslation,
   closeLyricsOptions,
-  shouldShowKaraokeButton,
-  isKaraokePreparing,
-  isKaraokeActive,
-  isKaraokeReady,
-  isKaraokeAvailable,
-  karaokeMix,
-  showKaraokeMixer,
-  setShowKaraokeMixer,
-  handleKaraokeMixChange,
-  isQueueMenuOpen,
-  setIsQueueMenuOpen,
-  songQueue,
-  selectSong,
-}: MusicPlayerControlsProps) {
-  const controlsHideTimeoutRef = useRef<number | null>(null);
-  const [isTimelineFocused, setIsTimelineFocused] = useState(false);
-  const [arePlayerControlsVisible, setArePlayerControlsVisible] = useState(true);
-
-  const clearControlsHideTimeout = useCallback(() => {
-    if (controlsHideTimeoutRef.current !== null) {
-      window.clearTimeout(controlsHideTimeoutRef.current);
-      controlsHideTimeoutRef.current = null;
-    }
-  }, []);
-
-  const showPlayerControls = useCallback(() => {
-    setArePlayerControlsVisible(true);
-  }, []);
-
-  const scheduleControlsAutoHide = useCallback(() => {
-    clearControlsHideTimeout();
-
-    if (!isExpanded || !isShown || !isTimelineFocused || !isPlaying) {
-      setArePlayerControlsVisible(true);
-      return;
-    }
-
-    setArePlayerControlsVisible(true);
-    controlsHideTimeoutRef.current = window.setTimeout(() => {
-      setArePlayerControlsVisible(false);
-      controlsHideTimeoutRef.current = null;
-    }, PLAYER_CONTROLS_AUTO_HIDE_MS);
-  }, [clearControlsHideTimeout, isExpanded, isShown, isTimelineFocused, isPlaying]);
-
-  const toggleKaraokeMixer = useCallback(() => {
-    if (!isKaraokeReady || !isKaraokeAvailable) {
-      return;
-    }
-
-    const nextValue = !showKaraokeMixer;
-    setShowKaraokeMixer(nextValue);
-
-    window.setTimeout(() => {
-      setFocus(
-        nextValue
-          ? NavigationFocusKeys.player.karaokeSlider
-          : NavigationFocusKeys.player.karaokeButton,
-      );
-    }, 30);
-  }, [isKaraokeAvailable, isKaraokeReady, setShowKaraokeMixer, showKaraokeMixer]);
-
-  const handlePlayNextSong = useCallback(() => {
-    if (!currentSong) {
-      return;
-    }
-
-    if (songQueue.length <= songQueue.indexOf(currentSong) + 1) {
-      return;
-    }
-
-    const nextSong = songQueue[songQueue.indexOf(currentSong) + 1];
-    selectSong(nextSong);
-  }, [songQueue, selectSong, currentSong]);
-
-  const handlePlayPrevious = useCallback(() => {
-    if (!currentSong) {
-      return;
-    }
-
-    const currentSongIndex = songQueue.indexOf(currentSong);
-    if (currentSongIndex <= 0) {
-      setCurrentTime(0);
-      return;
-    }
-
-    const previousSong = songQueue[currentSongIndex - 1];
-    selectSong(previousSong);
-  }, [songQueue, selectSong, currentSong, setCurrentTime]);
-
-  useEffect(() => {
-    scheduleControlsAutoHide();
-
-    return () => {
-      clearControlsHideTimeout();
-    };
-  }, [clearControlsHideTimeout, scheduleControlsAutoHide]);
-
-  useEffect(() => {
-    if (!isShown || !isExpanded) {
-      setArePlayerControlsVisible(true);
-      clearControlsHideTimeout();
-      return;
-    }
-
-    const handleControlsActivity = (e: KeyboardEvent) => {
-      if (isTimelineFocused && e.key === 'ArrowUp') {
-        clearControlsHideTimeout();
-        setArePlayerControlsVisible(false);
-        return;
-      }
-
-      showPlayerControls();
-
-      if (isTimelineFocused) {
-        scheduleControlsAutoHide();
-        return;
-      }
-
-      clearControlsHideTimeout();
-    };
-
-    window.addEventListener('keydown', handleControlsActivity);
-
-    return () => {
-      window.removeEventListener('keydown', handleControlsActivity);
-    };
-  }, [
-    clearControlsHideTimeout,
-    isExpanded,
-    isShown,
-    isTimelineFocused,
-    scheduleControlsAutoHide,
-    showPlayerControls,
-  ]);
+}: {
+  playerUi: {
+    arePlayerControlsVisible: boolean;
+    isLoading: boolean;
+  };
+  currentTime: number;
+  playerDuration: number;
+  setCurrentTime: (time: number) => void;
+  setDuration: (duration: number) => void;
+  handleTimelineFocusChange: (focused: boolean) => void;
+  togglePlayPause: () => Promise<void>;
+  getActivePlaybackPosition: () => Promise<number>;
+  getActivePlaybackDuration: () => Promise<number>;
+  setActivePlaybackPosition: (position: number) => Promise<void>;
+  queueState: {
+    isQueueMenuOpen: boolean;
+    setIsQueueMenuOpen: Dispatch<SetStateAction<boolean>>;
+  };
+  karaokeUi: {
+    showKaraokeMixer: boolean;
+    isKaraokeAvailable: boolean;
+    shouldShowKaraokeButton: boolean;
+    isKaraokeActive: boolean;
+    isKaraokeReady: boolean;
+    isKaraokePreparing: boolean;
+  };
+  t: (key: string) => string;
+  karaokeMix: number;
+  handleKaraokeMixChange: (value: number) => Promise<void>;
+  currentSong: Song | null;
+  songQueue: Song[];
+  handlePlayPrevious: () => void;
+  handlePlayNextSong: () => void;
+  toggleKaraokeMixer: () => void;
+  lyricsUi: {
+    isLyricsButtonDisabled: boolean;
+    showLyrics: boolean;
+    isLyricsOptionsOpen: boolean;
+    isLyricsOptionsButtonDisabled: boolean;
+    hasLyrics: boolean;
+    hasPronunciation: boolean;
+    showPronunciation: boolean;
+    hasTranslation: boolean;
+    showTranslation: boolean;
+  };
+  setIsLyricsOptionsOpen: Dispatch<SetStateAction<boolean>>;
+  setShowLyrics: (showLyrics: boolean) => void;
+  setShowPronunciation: Dispatch<SetStateAction<boolean | null>>;
+  setShowTranslation: (value: boolean) => void;
+  closeLyricsOptions: (restoreFocus?: boolean) => void;
+}) {
+  const { arePlayerControlsVisible, isLoading } = playerUi;
+  const { isQueueMenuOpen, setIsQueueMenuOpen } = queueState;
+  const {
+    showKaraokeMixer,
+    isKaraokeAvailable,
+    shouldShowKaraokeButton,
+    isKaraokeActive,
+    isKaraokeReady,
+    isKaraokePreparing,
+  } = karaokeUi;
+  const {
+    isLyricsButtonDisabled,
+    showLyrics,
+    isLyricsOptionsOpen,
+    isLyricsOptionsButtonDisabled,
+    hasLyrics,
+    hasPronunciation,
+    showPronunciation,
+    hasTranslation,
+    showTranslation,
+  } = lyricsUi;
 
   return (
     <div
@@ -320,7 +261,7 @@ function MusicPlayerControls({
           )}
 
           <div className="flex justify-center pb-4">
-            {TEST_BACKGROUND_STYLE === 'background' && renderSongInfo()}
+            {TEST_BACKGROUND_STYLE === 'background' && <SongInfo />}
           </div>
         </div>
 
@@ -330,7 +271,7 @@ function MusicPlayerControls({
             setPosition={setCurrentTime}
             duration={playerDuration}
             setDuration={setDuration}
-            onFocusChange={setIsTimelineFocused}
+            onFocusChange={handleTimelineFocusChange}
             togglePlayPause={togglePlayPause}
             playbackControls={{
               getPosition: getActivePlaybackPosition,
@@ -343,7 +284,7 @@ function MusicPlayerControls({
             <QueueMenu isOpen={isQueueMenuOpen} onClose={setIsQueueMenuOpen} />
 
             {showKaraokeMixer && isKaraokeAvailable && (
-              <motion.div
+              <m.div
                 key="karaoke-mix-slider"
                 initial={{ y: 16, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -358,7 +299,7 @@ function MusicPlayerControls({
                     void handleKaraokeMixChange(nextValue);
                   }}
                 />
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
 
@@ -427,7 +368,7 @@ function MusicPlayerControls({
 
                 <AnimatePresence initial={false}>
                   {isLyricsOptionsOpen && !isLyricsOptionsButtonDisabled && !!hasLyrics && (
-                    <motion.div
+                    <m.div
                       key="lyrics-options-menu"
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -438,12 +379,16 @@ function MusicPlayerControls({
                       <LyricsOptionsMenu
                         open={isLyricsOptionsOpen}
                         triggerFocusKey={NavigationFocusKeys.player.lyricsOptionsButton}
-                        pronunciationLabel={t('lyricsPronunciation')}
-                        translationLabel={t('lyricsTranslation')}
-                        hasPronunciation={hasPronunciation}
-                        showPronunciation={showPronunciation}
-                        hasTranslation={hasTranslation}
-                        showTranslation={showTranslation}
+                        pronunciationOption={{
+                          label: t('lyricsPronunciation'),
+                          available: hasPronunciation,
+                          selected: showPronunciation,
+                        }}
+                        translationOption={{
+                          label: t('lyricsTranslation'),
+                          available: hasTranslation,
+                          selected: showTranslation,
+                        }}
                         onTogglePronunciation={() => {
                           setShowPronunciation((currentValue) => !currentValue);
                         }}
@@ -452,7 +397,7 @@ function MusicPlayerControls({
                         }}
                         onClose={() => closeLyricsOptions()}
                       />
-                    </motion.div>
+                    </m.div>
                   )}
                 </AnimatePresence>
               </div>
@@ -470,6 +415,238 @@ function MusicPlayerControls({
         </FlexBox>
       </div>
     </div>
+  );
+}
+
+function MusicPlayerControls({
+  t,
+  currentSong,
+  playerState,
+  currentTime,
+  playerDuration,
+  setCurrentTime,
+  setDuration,
+  togglePlayPause,
+  getActivePlaybackPosition,
+  getActivePlaybackDuration,
+  setActivePlaybackPosition,
+  lyricsState,
+  setShowLyrics,
+  setIsLyricsOptionsOpen,
+  setShowPronunciation,
+  setShowTranslation,
+  closeLyricsOptions,
+  karaokeState,
+  karaokeMix,
+  setShowKaraokeMixer,
+  handleKaraokeMixChange,
+  isQueueMenuOpen,
+  setIsQueueMenuOpen,
+  songQueue,
+  selectSong,
+}: MusicPlayerControlsProps) {
+  const { isExpanded, isShown, isPlaying, isLoading } = playerState;
+  const {
+    showLyrics,
+    isLyricsButtonDisabled,
+    isLyricsOptionsOpen,
+    isLyricsOptionsButtonDisabled,
+    hasLyrics,
+    hasPronunciation,
+    showPronunciation,
+    hasTranslation,
+    showTranslation,
+  } = lyricsState;
+  const {
+    shouldShowKaraokeButton,
+    isKaraokePreparing,
+    isKaraokeActive,
+    isKaraokeReady,
+    isKaraokeAvailable,
+    showKaraokeMixer,
+  } = karaokeState;
+
+  const controlsHideTimeoutRef = useRef<number | null>(null);
+  const isTimelineFocusedRef = useRef(false);
+
+  const handleTimelineFocusChange = useCallback((focused: boolean) => {
+    isTimelineFocusedRef.current = focused;
+    if (focused) {
+      setArePlayerControlsVisible(true);
+    }
+  }, []);
+  const [arePlayerControlsVisible, setArePlayerControlsVisible] = useState(true);
+
+  const clearControlsHideTimeout = useCallback(() => {
+    if (controlsHideTimeoutRef.current !== null) {
+      window.clearTimeout(controlsHideTimeoutRef.current);
+      controlsHideTimeoutRef.current = null;
+    }
+  }, []);
+
+  const showPlayerControls = useCallback(() => {
+    setArePlayerControlsVisible(true);
+  }, []);
+
+  const scheduleControlsAutoHide = useCallback(() => {
+    clearControlsHideTimeout();
+
+    if (!isExpanded || !isShown || !isTimelineFocusedRef.current || !isPlaying) {
+      setArePlayerControlsVisible(true);
+      return;
+    }
+
+    setArePlayerControlsVisible(true);
+    controlsHideTimeoutRef.current = window.setTimeout(() => {
+      setArePlayerControlsVisible(false);
+      controlsHideTimeoutRef.current = null;
+    }, PLAYER_CONTROLS_AUTO_HIDE_MS);
+  }, [clearControlsHideTimeout, isExpanded, isShown, isPlaying]);
+
+  const toggleKaraokeMixer = useCallback(() => {
+    if (!isKaraokeReady || !isKaraokeAvailable) {
+      return;
+    }
+
+    const nextValue = !showKaraokeMixer;
+    setShowKaraokeMixer(nextValue);
+
+    window.setTimeout(() => {
+      setFocus(
+        nextValue
+          ? NavigationFocusKeys.player.karaokeSlider
+          : NavigationFocusKeys.player.karaokeButton,
+      );
+    }, 30);
+  }, [isKaraokeAvailable, isKaraokeReady, setShowKaraokeMixer, showKaraokeMixer]);
+
+  const handlePlayNextSong = useCallback(() => {
+    if (!currentSong) {
+      return;
+    }
+
+    if (songQueue.length <= songQueue.indexOf(currentSong) + 1) {
+      return;
+    }
+
+    const nextSong = songQueue[songQueue.indexOf(currentSong) + 1];
+    selectSong(nextSong);
+  }, [songQueue, selectSong, currentSong]);
+
+  const handlePlayPrevious = useCallback(() => {
+    if (!currentSong) {
+      return;
+    }
+
+    const currentSongIndex = songQueue.indexOf(currentSong);
+    if (currentSongIndex <= 0) {
+      setCurrentTime(0);
+      return;
+    }
+
+    const previousSong = songQueue[currentSongIndex - 1];
+    selectSong(previousSong);
+  }, [songQueue, selectSong, currentSong, setCurrentTime]);
+
+  useEffect(() => {
+    scheduleControlsAutoHide();
+
+    return () => {
+      clearControlsHideTimeout();
+    };
+  }, [clearControlsHideTimeout, scheduleControlsAutoHide]);
+
+  const showPlayerControlsEvent = useEffectEvent(() => {
+    showPlayerControls();
+  });
+
+  const scheduleControlsAutoHideEvent = useEffectEvent(() => {
+    scheduleControlsAutoHide();
+  });
+
+  const clearControlsHideTimeoutEvent = useEffectEvent(() => {
+    clearControlsHideTimeout();
+  });
+
+  useEffect(() => {
+    if (!isShown || !isExpanded) {
+      setArePlayerControlsVisible(true);
+      clearControlsHideTimeoutEvent();
+      return;
+    }
+
+    const handleControlsActivity = (e: KeyboardEvent) => {
+      if (isTimelineFocusedRef.current && e.key === 'ArrowUp') {
+        clearControlsHideTimeoutEvent();
+        setArePlayerControlsVisible(false);
+        return;
+      }
+
+      showPlayerControlsEvent();
+
+      if (isTimelineFocusedRef.current) {
+        scheduleControlsAutoHideEvent();
+        return;
+      }
+
+      clearControlsHideTimeoutEvent();
+    };
+
+    window.addEventListener('keydown', handleControlsActivity);
+
+    return () => {
+      window.removeEventListener('keydown', handleControlsActivity);
+    };
+  }, [isExpanded, isShown]);
+
+  return (
+    <LazyMotion features={domAnimation}>
+      <MusicPlayerControlsContent
+        playerUi={{ arePlayerControlsVisible, isLoading }}
+        currentTime={currentTime}
+        playerDuration={playerDuration}
+        setCurrentTime={setCurrentTime}
+        setDuration={setDuration}
+        handleTimelineFocusChange={handleTimelineFocusChange}
+        togglePlayPause={togglePlayPause}
+        getActivePlaybackPosition={getActivePlaybackPosition}
+        getActivePlaybackDuration={getActivePlaybackDuration}
+        setActivePlaybackPosition={setActivePlaybackPosition}
+        queueState={{ isQueueMenuOpen, setIsQueueMenuOpen }}
+        karaokeUi={{
+          showKaraokeMixer,
+          isKaraokeAvailable,
+          shouldShowKaraokeButton,
+          isKaraokeActive,
+          isKaraokeReady,
+          isKaraokePreparing,
+        }}
+        t={t}
+        karaokeMix={karaokeMix}
+        handleKaraokeMixChange={handleKaraokeMixChange}
+        currentSong={currentSong}
+        songQueue={songQueue}
+        handlePlayPrevious={handlePlayPrevious}
+        handlePlayNextSong={handlePlayNextSong}
+        toggleKaraokeMixer={toggleKaraokeMixer}
+        lyricsUi={{
+          isLyricsButtonDisabled,
+          showLyrics,
+          isLyricsOptionsOpen,
+          isLyricsOptionsButtonDisabled,
+          hasLyrics,
+          hasPronunciation,
+          showPronunciation,
+          hasTranslation,
+          showTranslation,
+        }}
+        setIsLyricsOptionsOpen={setIsLyricsOptionsOpen}
+        setShowLyrics={setShowLyrics}
+        setShowPronunciation={setShowPronunciation}
+        setShowTranslation={setShowTranslation}
+        closeLyricsOptions={closeLyricsOptions}
+      />
+    </LazyMotion>
   );
 }
 

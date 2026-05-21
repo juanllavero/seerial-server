@@ -14,7 +14,6 @@ export {
   GlobalMusicPlayer,
   LRCVisualizer,
   LyricsOptionsMenu,
-  MiniMusicPlayerButton,
   MusicPlayerControls,
   QueueMenu,
 } from './music-player';

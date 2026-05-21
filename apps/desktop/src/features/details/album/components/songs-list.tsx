@@ -1,12 +1,10 @@
-import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import type { Album, Song } from '@seerial/domain';
 import { useMusicStore } from '@seerial/stores';
-import { memo, useEffect, useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { shallow } from 'zustand/shallow';
 import ListTitle from '@/shared/components/text/list-title';
 import FlexBox from '@/shared/components/ui/flex-box';
-import { NavigationFocusKeys } from '@/shared/navigation/constants';
 import SongCard from './song-card';
 
 interface SongsListProps {
@@ -42,24 +40,9 @@ function SongsList({
     shallow,
   );
 
-  // Set focus on load
-  useEffect(() => {
-    if (focusedSongId) {
-      setFocus(focusedSongId);
-      return;
-    }
-
-    if (currentSong?.albumId === album.id) {
-      setFocus(currentSong?.id ?? NavigationFocusKeys.details.playButton);
-      return;
-    }
-
-    setFocus(NavigationFocusKeys.details.playButton);
-  }, [focusedSongId, currentSong?.id, currentSong?.albumId, album.id]);
-
   const sortedSongs = useMemo(
     () =>
-      [...songs].sort(
+      songs.toSorted(
         (a, b) =>
           getSafeTrackNumber(a) - getSafeTrackNumber(b) ||
           a.title.localeCompare(b.title, undefined, { sensitivity: 'base' }),
@@ -68,13 +51,14 @@ function SongsList({
   );
 
   const discNumbers = useMemo(
-    () => [...new Set(sortedSongs.map((song) => getSafeDiscNumber(song)))].sort((a, b) => a - b),
+    () =>
+      [...new Set(sortedSongs.map((song) => getSafeDiscNumber(song)))].toSorted((a, b) => a - b),
     [sortedSongs],
   );
 
   const queue = useMemo(
     () =>
-      [...songs].sort(
+      songs.toSorted(
         (a, b) =>
           getSafeDiscNumber(a) - getSafeDiscNumber(b) ||
           getSafeTrackNumber(a) - getSafeTrackNumber(b) ||

@@ -2,7 +2,7 @@ import { API, api } from '@seerial/api';
 import type { BasicUser, PersistedServer } from '@seerial/domain';
 import { setCookie } from '@seerial/domain';
 import { ArrowLeft } from 'lucide-react';
-import { useState } from 'react';
+import { useReducer, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Input } from '@/shared/components/ui/input';
 import UserCard from './user-card';
@@ -21,29 +21,104 @@ interface UserSelectorProps {
   onLogin: (user: BasicUser) => void;
 }
 
+interface UserSelectorState {
+  view: View;
+  selectedUser: BasicUser | null;
+  profilePassword: string;
+  username: string;
+  password: string;
+  newUsername: string;
+  newPassword: string;
+  newUserType: string;
+  error: string;
+}
+
+type UserSelectorAction =
+  | { type: 'set-view'; value: View }
+  | { type: 'set-selected-user'; value: BasicUser | null }
+  | { type: 'set-profile-password'; value: string }
+  | { type: 'set-username'; value: string }
+  | { type: 'set-password'; value: string }
+  | { type: 'set-new-username'; value: string }
+  | { type: 'set-new-password'; value: string }
+  | { type: 'set-new-user-type'; value: string }
+  | { type: 'set-error'; value: string }
+  | { type: 'clear-error' }
+  | { type: 'reset-and-go-back'; hasProfiles: boolean };
+
+function userSelectorReducer(
+  state: UserSelectorState,
+  action: UserSelectorAction,
+): UserSelectorState {
+  switch (action.type) {
+    case 'set-view':
+      return { ...state, view: action.value };
+    case 'set-selected-user':
+      return { ...state, selectedUser: action.value };
+    case 'set-profile-password':
+      return { ...state, profilePassword: action.value };
+    case 'set-username':
+      return { ...state, username: action.value };
+    case 'set-password':
+      return { ...state, password: action.value };
+    case 'set-new-username':
+      return { ...state, newUsername: action.value };
+    case 'set-new-password':
+      return { ...state, newPassword: action.value };
+    case 'set-new-user-type':
+      return { ...state, newUserType: action.value };
+    case 'set-error':
+      return { ...state, error: action.value };
+    case 'clear-error':
+      return { ...state, error: '' };
+    case 'reset-and-go-back':
+      return {
+        ...state,
+        selectedUser: null,
+        error: '',
+        view: action.hasProfiles ? 'profiles' : 'manual',
+      };
+    default:
+      return state;
+  }
+}
+
 function UserSelector({ server, users, onServerChange, onLogin }: UserSelectorProps) {
   const navigate = useNavigate();
-  const [view, setView] = useState<View>(users.length > 0 ? 'profiles' : 'manual');
+  const [state, dispatch] = useReducer(userSelectorReducer, {
+    view: users.length > 0 ? 'profiles' : 'manual',
+    selectedUser: null,
+    profilePassword: '',
+    username: '',
+    password: '',
+    newUsername: '',
+    newPassword: '',
+    newUserType: 'normal',
+    error: '',
+  });
 
-  const [selectedUser, setSelectedUser] = useState<BasicUser | null>(null);
-  const [profilePassword, setProfilePassword] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [newUsername, setNewUsername] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [newUserType, setNewUserType] = useState('normal');
+  const {
+    view,
+    selectedUser,
+    profilePassword,
+    username,
+    password,
+    newUsername,
+    newPassword,
+    newUserType,
+    error,
+  } = state;
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const showError = (msg: string) => {
-    setError(msg);
-    setTimeout(() => setError(''), 5000);
+    dispatch({ type: 'set-error', value: msg });
+    setTimeout(() => dispatch({ type: 'clear-error' }), 5000);
   };
 
   const doLogin = async (loginUsername: string, loginPassword: string) => {
-    setIsLoading(true);
-    setError('');
+    setIsSubmitting(true);
+    dispatch({ type: 'clear-error' });
     try {
       const response = await api.post<AuthResponse>(API.users.login, {
         username: loginUsername,
@@ -57,7 +132,7 @@ function UserSelector({ server, users, onServerChange, onLogin }: UserSelectorPr
     } catch {
       showError('Contraseña incorrecta');
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -69,8 +144,8 @@ function UserSelector({ server, users, onServerChange, onLogin }: UserSelectorPr
   const handleManualLogin = () => doLogin(username, password);
 
   const handleAddUser = async () => {
-    setIsLoading(true);
-    setError('');
+    setIsSubmitting(true);
+    dispatch({ type: 'clear-error' });
     try {
       const response = await api.post<AuthResponse>(API.users.create, {
         username: newUsername,
@@ -85,14 +160,12 @@ function UserSelector({ server, users, onServerChange, onLogin }: UserSelectorPr
     } catch {
       showError('Error al crear usuario');
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 
   const resetAndGoBack = () => {
-    setSelectedUser(null);
-    setError('');
-    setView(users.length > 0 ? 'profiles' : 'manual');
+    dispatch({ type: 'reset-and-go-back', hasProfiles: users.length > 0 });
   };
 
   // ── Profiles view ──────────────────────────────────────────────────────────
@@ -111,7 +184,7 @@ function UserSelector({ server, users, onServerChange, onLogin }: UserSelectorPr
           </button>
         </div>
 
-        <h1 className="mb-10 text-center text-4xl font-bold tracking-tight text-white">
+        <h1 className="mb-10 text-center text-4xl font-semibold tracking-tight text-white">
           ¿Quién eres?
         </h1>
 
@@ -123,9 +196,9 @@ function UserSelector({ server, users, onServerChange, onLogin }: UserSelectorPr
               user={user}
               isSelected={selectedUser?.id === user.id}
               onSelect={(u) => {
-                setSelectedUser(u === selectedUser ? null : u);
-                setProfilePassword('');
-                setError('');
+                dispatch({ type: 'set-selected-user', value: u === selectedUser ? null : u });
+                dispatch({ type: 'set-profile-password', value: '' });
+                dispatch({ type: 'clear-error' });
               }}
             />
           ))}
@@ -137,17 +210,16 @@ function UserSelector({ server, users, onServerChange, onLogin }: UserSelectorPr
             <Input
               type="password"
               value={profilePassword}
-              onChange={(e) => setProfilePassword(e.target.value)}
+              onChange={(e) => dispatch({ type: 'set-profile-password', value: e.target.value })}
               onKeyUp={(e) => e.key === 'Enter' && handleProfileLogin()}
-              disabled={isLoading}
+              disabled={isSubmitting}
               placeholder={`Contraseña para ${selectedUser.username}`}
-              className="mb-4 w-full rounded-md bg-black px-5 py-7"
-              autoFocus
+              className="mb-4 w-full rounded-md bg-stone-900 px-5 py-7"
             />
             {error && (
               <p className="mb-3 animate-pulse text-sm font-medium text-red-400">{error}</p>
             )}
-            <PrimaryButton onClick={handleProfileLogin} isLoading={isLoading}>
+            <PrimaryButton onClick={handleProfileLogin} isLoading={isSubmitting}>
               Iniciar Sesión
             </PrimaryButton>
           </div>
@@ -157,17 +229,17 @@ function UserSelector({ server, users, onServerChange, onLogin }: UserSelectorPr
         <div className="mx-auto flex max-w-md flex-col gap-3">
           <SecondaryButton
             onClick={() => {
-              setView('manual');
-              setSelectedUser(null);
-              setError('');
+              dispatch({ type: 'set-view', value: 'manual' });
+              dispatch({ type: 'set-selected-user', value: null });
+              dispatch({ type: 'clear-error' });
             }}
           >
             Acceder manualmente
           </SecondaryButton>
           <SecondaryButton
             onClick={() => {
-              setView('addUser');
-              setError('');
+              dispatch({ type: 'set-view', value: 'addUser' });
+              dispatch({ type: 'clear-error' });
             }}
           >
             Añadir usuario
@@ -182,36 +254,36 @@ function UserSelector({ server, users, onServerChange, onLogin }: UserSelectorPr
     return (
       <>
         <BackButton onClick={resetAndGoBack} />
-        <h1 className="mb-10 text-center text-4xl font-bold tracking-tight text-white">
+        <h1 className="mb-10 text-center text-4xl font-semibold tracking-tight text-white">
           Acceder manualmente
         </h1>
         <div className="mx-auto max-w-md space-y-5">
           <FieldInput
             label="Usuario"
             value={username}
-            onChange={setUsername}
+            onChange={(value) => dispatch({ type: 'set-username', value })}
             placeholder="Introduce tu usuario"
           />
           <FieldInput
             label="Contraseña"
             type="password"
             value={password}
-            onChange={setPassword}
+            onChange={(value) => dispatch({ type: 'set-password', value })}
             onEnter={handleManualLogin}
             placeholder="Introduce tu contraseña"
           />
           {error && <ErrorText>{error}</ErrorText>}
           <PrimaryButton
             onClick={handleManualLogin}
-            isLoading={isLoading}
+            isLoading={isSubmitting}
             disabled={!username.trim()}
           >
             Acceder
           </PrimaryButton>
           <SecondaryButton
             onClick={() => {
-              setView('addUser');
-              setError('');
+              dispatch({ type: 'set-view', value: 'addUser' });
+              dispatch({ type: 'clear-error' });
             }}
           >
             Añadir usuario
@@ -225,21 +297,21 @@ function UserSelector({ server, users, onServerChange, onLogin }: UserSelectorPr
   return (
     <>
       <BackButton onClick={resetAndGoBack} />
-      <h1 className="mb-10 text-center text-4xl font-bold tracking-tight text-white">
+      <h1 className="mb-10 text-center text-4xl font-semibold tracking-tight text-white">
         Añadir usuario
       </h1>
       <div className="mx-auto max-w-md space-y-5">
         <FieldInput
           label="Usuario"
           value={newUsername}
-          onChange={setNewUsername}
+          onChange={(value) => dispatch({ type: 'set-new-username', value })}
           placeholder="Nombre de usuario"
         />
         <FieldInput
           label="Contraseña"
           type="password"
           value={newPassword}
-          onChange={setNewPassword}
+          onChange={(value) => dispatch({ type: 'set-new-password', value })}
           placeholder="Contraseña"
         />
         <div>
@@ -249,9 +321,9 @@ function UserSelector({ server, users, onServerChange, onLogin }: UserSelectorPr
           <select
             id="userType"
             value={newUserType}
-            onChange={(e) => setNewUserType(e.target.value)}
-            disabled={isLoading}
-            className="w-full rounded-md bg-black p-4 text-white focus:outline-none disabled:opacity-50"
+            onChange={(e) => dispatch({ type: 'set-new-user-type', value: e.target.value })}
+            disabled={isSubmitting}
+            className="w-full rounded-md bg-stone-900 p-4 text-white focus:outline-none disabled:opacity-50"
           >
             <option value="normal">Usuario Regular</option>
             <option value="admin">Administrador</option>
@@ -260,7 +332,7 @@ function UserSelector({ server, users, onServerChange, onLogin }: UserSelectorPr
         {error && <ErrorText>{error}</ErrorText>}
         <PrimaryButton
           onClick={handleAddUser}
-          isLoading={isLoading}
+          isLoading={isSubmitting}
           disabled={!newUsername.trim() || (newUserType === 'admin' && !newPassword.trim())}
         >
           Añadir
@@ -304,7 +376,7 @@ function PrimaryButton({
       className="bg-app-color hover:bg-app-color/90 focus:ring-app-color flex w-full items-center justify-center rounded-xl py-4 text-lg font-semibold text-black shadow-lg transition-all focus:ring-4 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
     >
       {isLoading ? (
-        <div className="h-6 w-6 animate-spin rounded-full border-4 border-black/20 border-t-black" />
+        <div className="size-6 animate-spin rounded-full border-4 border-black/20 border-t-black" />
       ) : (
         children
       )}
@@ -357,7 +429,7 @@ function FieldInput({
         onChange={(e) => onChange(e.target.value)}
         onKeyUp={(e) => e.key === 'Enter' && onEnter?.()}
         placeholder={placeholder}
-        className="w-full rounded-md bg-black px-5 py-7"
+        className="w-full rounded-md bg-stone-900 px-5 py-7"
       />
     </div>
   );

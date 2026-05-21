@@ -2,7 +2,7 @@ import { getCurrentFocusKey, setFocus } from '@noriginmedia/norigin-spatial-navi
 import { useGetLibraries } from '@seerial/api';
 import { type Library, LibraryTypes } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, domAnimation, LazyMotion, m } from 'framer-motion';
 import { ChevronUp, Settings } from 'lucide-react';
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
@@ -175,12 +175,6 @@ function TopBar() {
     isInsideTopBarRef.current = false;
   }, []);
 
-  const initialPathnameRef = useRef(pathname);
-
-  useEffect(() => {
-    setFocus(getActiveButtonKeyForPath(initialPathnameRef.current));
-  }, []);
-
   useEffect(() => {
     if (!showLibraries) {
       if (focusToRestoreRef.current) {
@@ -219,115 +213,117 @@ function TopBar() {
   }, []);
 
   return (
-    <NavigationContainer
-      customFocusKey={NavigationFocusKeys.topBar.container}
-      className="relative flex justify-between items-center w-screen h-[8dvh] min-h-[8dvh] z-50"
-      onFocus={handleContainerFocus}
-      onBlur={handleContainerBlur}
-    >
-      <img src="/Seerial_logo.svg" alt="Logo" className="w-[5dvh] ml-10" />
-      <div className="flex flex-1 justify-center">
-        <AnimatePresence initial={false} mode="wait">
-          {!showLibraries && (
-            <motion.div
-              key="top-bar-actions"
-              initial={{ opacity: 0, y: 24 }}
+    <LazyMotion features={domAnimation}>
+      <NavigationContainer
+        customFocusKey={NavigationFocusKeys.topBar.container}
+        className="relative flex justify-between items-center w-screen h-[8dvh] min-h-[8dvh] z-50"
+        onFocus={handleContainerFocus}
+        onBlur={handleContainerBlur}
+      >
+        <img src="/Seerial_logo.svg" alt="Logo" className="w-[5dvh] ml-10" />
+        <div className="flex flex-1 justify-center">
+          <AnimatePresence initial={false} mode="wait">
+            {!showLibraries && (
+              <m.div
+                key="top-bar-actions"
+                initial={{ opacity: 0, y: 24 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -40 }}
+                transition={{ duration: 0.2, ease: 'easeInOut' }}
+                className="flex gap-6"
+              >
+                <NavigationButton
+                  customKey={NavigationFocusKeys.topBar.home}
+                  text="Home"
+                  selected={pathname === '/home'}
+                  onFocus={handleNonLibraryFocus}
+                  onClick={() => navigate('/home')}
+                  variant="ghost"
+                />
+                <NavigationButton
+                  customKey={LIBRARY_TYPE_BUTTONS[LibraryTypes.MOVIES]}
+                  disabled={!showMovies}
+                  selected={pathname.split('/').pop() === LibraryTypes.MOVIES}
+                  onFocus={() => handleLibraryTypeFocus(LibraryTypes.MOVIES)}
+                  onClick={() => handleLibraryTypePress(LibraryTypes.MOVIES)}
+                  text="Movies"
+                  variant="ghost"
+                />
+                <NavigationButton
+                  customKey={LIBRARY_TYPE_BUTTONS[LibraryTypes.SHOWS]}
+                  disabled={!showSeries}
+                  selected={pathname.split('/').pop() === LibraryTypes.SHOWS}
+                  onFocus={() => handleLibraryTypeFocus(LibraryTypes.SHOWS)}
+                  onClick={() => handleLibraryTypePress(LibraryTypes.SHOWS)}
+                  text="Shows"
+                  variant="ghost"
+                />
+                <NavigationButton
+                  customKey={LIBRARY_TYPE_BUTTONS[LibraryTypes.MUSIC]}
+                  disabled={!showMusic}
+                  selected={pathname.split('/').pop() === LibraryTypes.MUSIC}
+                  onFocus={() => handleLibraryTypeFocus(LibraryTypes.MUSIC)}
+                  onClick={() => handleLibraryTypePress(LibraryTypes.MUSIC)}
+                  text="Music"
+                  variant="ghost"
+                />
+                <NavigationButton
+                  customKey={NavigationFocusKeys.topBar.search}
+                  selected={pathname === '/search'}
+                  onFocus={handleNonLibraryFocus}
+                  onClick={() => navigate('/search')}
+                  text="Search"
+                  variant="ghost"
+                />
+                <NavigationButton
+                  customKey={NavigationFocusKeys.topBar.toSee}
+                  selected={pathname === '/see'}
+                  onFocus={handleNonLibraryFocus}
+                  onClick={() => navigate('/see')}
+                  text="To See"
+                  variant="ghost"
+                />
+              </m.div>
+            )}
+          </AnimatePresence>
+        </div>
+        <div>
+          <NavigationButton
+            customKey={NavigationFocusKeys.topBar.settings}
+            onFocus={handleNonLibraryFocus}
+            onClick={() => setShowSettings(true)}
+            className="mr-10"
+            variant="ghost"
+          >
+            <Settings size={'3dvh'} />
+          </NavigationButton>
+        </div>
+
+        <SettingsPanel open={showSettings} onClose={closeSettings} />
+
+        <AnimatePresence>
+          {showLibraries && (
+            <m.div
+              initial={{ opacity: 0, y: -12 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -40 }}
+              exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.2, ease: 'easeInOut' }}
-              className="flex gap-6"
+              className="pointer-events-none absolute left-1/2 top-3 -translate-x-1/2"
             >
-              <NavigationButton
-                customKey={NavigationFocusKeys.topBar.home}
-                text="Home"
-                selected={pathname === '/home'}
-                onFocus={handleNonLibraryFocus}
-                onClick={() => navigate('/home')}
-                variant="ghost"
-              />
-              <NavigationButton
-                customKey={LIBRARY_TYPE_BUTTONS[LibraryTypes.MOVIES]}
-                disabled={!showMovies}
-                selected={pathname.split('/').pop() === LibraryTypes.MOVIES}
-                onFocus={() => handleLibraryTypeFocus(LibraryTypes.MOVIES)}
-                onClick={() => handleLibraryTypePress(LibraryTypes.MOVIES)}
-                text="Movies"
-                variant="ghost"
-              />
-              <NavigationButton
-                customKey={LIBRARY_TYPE_BUTTONS[LibraryTypes.SHOWS]}
-                disabled={!showSeries}
-                selected={pathname.split('/').pop() === LibraryTypes.SHOWS}
-                onFocus={() => handleLibraryTypeFocus(LibraryTypes.SHOWS)}
-                onClick={() => handleLibraryTypePress(LibraryTypes.SHOWS)}
-                text="Shows"
-                variant="ghost"
-              />
-              <NavigationButton
-                customKey={LIBRARY_TYPE_BUTTONS[LibraryTypes.MUSIC]}
-                disabled={!showMusic}
-                selected={pathname.split('/').pop() === LibraryTypes.MUSIC}
-                onFocus={() => handleLibraryTypeFocus(LibraryTypes.MUSIC)}
-                onClick={() => handleLibraryTypePress(LibraryTypes.MUSIC)}
-                text="Music"
-                variant="ghost"
-              />
-              <NavigationButton
-                customKey={NavigationFocusKeys.topBar.search}
-                selected={pathname === '/search'}
-                onFocus={handleNonLibraryFocus}
-                onClick={() => navigate('/search')}
-                text="Search"
-                variant="ghost"
-              />
-              <NavigationButton
-                customKey={NavigationFocusKeys.topBar.toSee}
-                selected={pathname === '/see'}
-                onFocus={handleNonLibraryFocus}
-                onClick={() => navigate('/see')}
-                text="To See"
-                variant="ghost"
-              />
-            </motion.div>
+              <ChevronUp className="text-white/80" size={'2.5dvh'} />
+            </m.div>
           )}
         </AnimatePresence>
-      </div>
-      <div>
-        <NavigationButton
-          customKey={NavigationFocusKeys.topBar.settings}
-          onFocus={handleNonLibraryFocus}
-          onClick={() => setShowSettings(true)}
-          className="mr-10"
-          variant="ghost"
-        >
-          <Settings size={'3dvh'} />
-        </NavigationButton>
-      </div>
 
-      <SettingsPanel open={showSettings} onClose={closeSettings} />
-
-      <AnimatePresence>
-        {showLibraries && (
-          <motion.div
-            initial={{ opacity: 0, y: -12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.2, ease: 'easeInOut' }}
-            className="pointer-events-none absolute left-1/2 top-3 -translate-x-1/2"
-          >
-            <ChevronUp className="text-white/80" size={'2.5dvh'} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <LibrariesList
-        type={libraryType}
-        libraries={selectedLibraries}
-        show={showLibraries}
-        hide={hideLibraries}
-        hideWithoutFocusRestore={hideLibrariesWithoutFocusRestore}
-      />
-    </NavigationContainer>
+        <LibrariesList
+          type={libraryType}
+          libraries={selectedLibraries}
+          show={showLibraries}
+          hide={hideLibraries}
+          hideWithoutFocusRestore={hideLibrariesWithoutFocusRestore}
+        />
+      </NavigationContainer>
+    </LazyMotion>
   );
 }
 

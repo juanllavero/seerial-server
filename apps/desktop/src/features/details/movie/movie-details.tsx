@@ -26,7 +26,7 @@ import DetailsBackgroundLayers from '@/shared/components/details/details-backgro
 import DetailsBackgroundPlayback from '@/shared/components/details/details-background-playback';
 import DetailsInfo from '@/shared/components/details/details-info';
 import Page from '@/shared/components/page';
-import { DetailsWithRelatedContent } from '../shared';
+import DetailsWithRelatedContent from '../shared/details-with-related-content';
 
 interface MovieDetailsProps {
   movie: Movie | undefined;
@@ -164,7 +164,9 @@ function MovieDetails({ movie, isLoading, details, collectionId, libraryType }: 
           videoInfo={effectiveVideo?.videoTracks?.[0]?.displayTitle}
           handlePlay={handlePlay}
           handleMarkWatched={handleMarkWatched}
-          isWatched={isWatched}
+          displayOptions={{
+            isWatched,
+          }}
         />
       </Page>
     </DetailsWithRelatedContent>

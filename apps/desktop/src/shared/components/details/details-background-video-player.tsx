@@ -32,7 +32,6 @@ function DetailsBackgroundVideoPlayer({
 
   useEffect(() => {
     isDisposedRef.current = false;
-    onVisibilityChange?.(false);
     setVideoSrc(null);
 
     if (!localId || !serverUrl) {
@@ -62,7 +61,7 @@ function DetailsBackgroundVideoPlayer({
       isDisposedRef.current = true;
       clearRevealTimer();
     };
-  }, [clearRevealTimer, localId, onUnavailable, onVisibilityChange, serverUrl]);
+  }, [clearRevealTimer, localId, onUnavailable, serverUrl]);
 
   const handleCanPlay = useCallback(() => {
     if (videoRef.current) {

@@ -1,55 +1,38 @@
-import * as React from 'react';
-
 import { cn } from '../../utils/tailwind';
 
-const Card = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
+function Card(props: React.HTMLAttributes<HTMLDivElement>) {
+  const { className, ...rest } = props;
+  return (
     <div
-      ref={ref}
       className={cn('bg-card text-card-foreground rounded-xl border shadow', className)}
-      {...props}
+      {...rest}
     />
-  ),
-);
-Card.displayName = 'Card';
+  );
+}
 
-const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('flex flex-col gap-1.5 p-6', className)} {...props} />
-  ),
-);
-CardHeader.displayName = 'CardHeader';
+function CardHeader(props: React.HTMLAttributes<HTMLDivElement>) {
+  const { className, ...rest } = props;
+  return <div className={cn('flex flex-col gap-1.5 p-6', className)} {...rest} />;
+}
 
-const CardTitle = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn('leading-none font-semibold tracking-tight', className)}
-      {...props}
-    />
-  ),
-);
-CardTitle.displayName = 'CardTitle';
+function CardTitle(props: React.HTMLAttributes<HTMLDivElement>) {
+  const { className, ...rest } = props;
+  return <div className={cn('leading-none font-semibold tracking-tight', className)} {...rest} />;
+}
 
-const CardDescription = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('text-muted-foreground text-sm', className)} {...props} />
-  ),
-);
-CardDescription.displayName = 'CardDescription';
+function CardDescription(props: React.HTMLAttributes<HTMLDivElement>) {
+  const { className, ...rest } = props;
+  return <div className={cn('text-muted-foreground text-sm', className)} {...rest} />;
+}
 
-const CardContent = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('p-6 pt-0', className)} {...props} />
-  ),
-);
-CardContent.displayName = 'CardContent';
+function CardContent(props: React.HTMLAttributes<HTMLDivElement>) {
+  const { className, ...rest } = props;
+  return <div className={cn('p-6 pt-0', className)} {...rest} />;
+}
 
-const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(
-  ({ className, ...props }, ref) => (
-    <div ref={ref} className={cn('flex items-center p-6 pt-0', className)} {...props} />
-  ),
-);
-CardFooter.displayName = 'CardFooter';
+function CardFooter(props: React.HTMLAttributes<HTMLDivElement>) {
+  const { className, ...rest } = props;
+  return <div className={cn('flex items-center p-6 pt-0', className)} {...rest} />;
+}
 
 export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle };

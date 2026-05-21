@@ -12,12 +12,16 @@ import FlexBox from '@/shared/components/ui/flex-box';
 interface LyricsOptionsMenuProps {
   open: boolean;
   triggerFocusKey: string;
-  pronunciationLabel: string;
-  translationLabel: string;
-  hasPronunciation: boolean;
-  showPronunciation: boolean;
-  hasTranslation: boolean;
-  showTranslation: boolean;
+  pronunciationOption: {
+    label: string;
+    available: boolean;
+    selected: boolean;
+  };
+  translationOption: {
+    label: string;
+    available: boolean;
+    selected: boolean;
+  };
   onTogglePronunciation: () => void;
   onToggleTranslation: () => void;
   onClose: () => void;
@@ -95,12 +99,8 @@ function LyricsOptionsItem({
 function LyricsOptionsMenu({
   open,
   triggerFocusKey,
-  pronunciationLabel,
-  translationLabel,
-  hasPronunciation,
-  showPronunciation,
-  hasTranslation,
-  showTranslation,
+  pronunciationOption,
+  translationOption,
   onTogglePronunciation,
   onToggleTranslation,
   onClose,
@@ -113,9 +113,9 @@ function LyricsOptionsMenu({
       return;
     }
 
-    const firstFocusKey = hasPronunciation
+    const firstFocusKey = pronunciationOption.available
       ? pronunciationFocusKey
-      : hasTranslation
+      : translationOption.available
         ? translationFocusKey
         : null;
 
@@ -130,7 +130,13 @@ function LyricsOptionsMenu({
     return () => {
       window.clearTimeout(focusTimeout);
     };
-  }, [hasPronunciation, hasTranslation, open, pronunciationFocusKey, translationFocusKey]);
+  }, [
+    pronunciationOption.available,
+    translationOption.available,
+    open,
+    pronunciationFocusKey,
+    translationFocusKey,
+  ]);
 
   return (
     <NavigationContainer
@@ -141,9 +147,9 @@ function LyricsOptionsMenu({
       <FlexBox direction="column" gap={0.4} width="100%">
         <LyricsOptionsItem
           focusKey={pronunciationFocusKey}
-          label={pronunciationLabel}
-          disabled={!hasPronunciation}
-          selected={showPronunciation}
+          label={pronunciationOption.label}
+          disabled={!pronunciationOption.available}
+          selected={pronunciationOption.selected}
           onSelect={() => {
             onTogglePronunciation();
             onClose();
@@ -160,9 +166,9 @@ function LyricsOptionsMenu({
 
         <LyricsOptionsItem
           focusKey={translationFocusKey}
-          label={translationLabel}
-          disabled={!hasTranslation}
-          selected={showTranslation}
+          label={translationOption.label}
+          disabled={!translationOption.available}
+          selected={translationOption.selected}
           onSelect={() => {
             onToggleTranslation();
             onClose();

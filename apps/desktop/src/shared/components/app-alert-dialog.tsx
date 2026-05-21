@@ -8,7 +8,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/shared/components/ui/alert-dialog';
-import { NavigationButton, NavigationContainer } from './navigation';
+import NavigationButton from './navigation/navigation-button';
+import NavigationContainer from './navigation/navigation-container';
 
 const PRIMARY_ACTION_FOCUS_KEY = 'app-alert-dialog-primary-action';
 

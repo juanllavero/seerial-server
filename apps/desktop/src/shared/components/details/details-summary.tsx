@@ -1,8 +1,8 @@
 import type { DetailsData } from '@seerial/domain';
-import FlexBox from '@/shared/components/ui/flex-box';
 import { NavigationButton } from '@/shared/components/navigation';
+import FlexBox from '@/shared/components/ui/flex-box';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
-import { Tertiary } from '../text';
+import Tertiary from '../text/tertiary';
 import DetailsRating from './details-rating';
 import DetailsWatchProgressBadge from './details-watch-progress-badge';
 
@@ -32,15 +32,8 @@ function DetailsSummary({
     <FlexBox gap={0.8} direction="column">
       {infoItems && infoItems.length > 0 ? (
         <FlexBox className="flex-row" gap={0.8} align="center">
-          {infoItems.map((item, index) => (
-            <Tertiary
-              key={`Info item ${
-                // biome-ignore lint/suspicious/noArrayIndexKey: <This is just display info>
-                index
-              }`}
-            >
-              {item}
-            </Tertiary>
+          {infoItems.map((item) => (
+            <Tertiary key={`info-item-${item}`}>{item}</Tertiary>
           ))}
 
           {hasWatchProgress && (

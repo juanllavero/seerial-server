@@ -1,5 +1,5 @@
 export { AlbumDetails } from './album';
-export { CollectionDetails, MusicExtraCard } from './collection';
+export { CollectionDetails } from './collection';
 export { MovieDetails } from './movie';
 export { SeriesDetails } from './series';
 export {

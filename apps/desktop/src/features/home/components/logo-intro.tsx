@@ -1,59 +1,61 @@
+import { pause, resume } from '@noriginmedia/norigin-spatial-navigation';
 import { useEffect, useState } from 'react';
 import '@/shared/styles/animations.css';
 
+type LogoIntroStage = 'initial' | 'logo-appear' | 'logo-move' | 'text-appear' | 'fade-out';
+
+function getAnimationStage(elapsedMs: number): LogoIntroStage {
+  if (elapsedMs >= 4000) return 'fade-out';
+  if (elapsedMs >= 1400) return 'text-appear';
+  if (elapsedMs >= 1200) return 'logo-move';
+  if (elapsedMs >= 100) return 'logo-appear';
+  return 'initial';
+}
+
 const LogoIntro = () => {
-  const [animationStage, setAnimationStage] = useState('initial');
-  const [showMainContent, setShowMainContent] = useState(false);
+  const [elapsedMs, setElapsedMs] = useState(0);
+  const [hasPlayed, setHasPlayed] = useState(
+    () => sessionStorage.getItem('seerial_intro_played') === 'true',
+  );
 
   useEffect(() => {
-    const timer1 = setTimeout(() => {
-      setAnimationStage('logo-appear');
-    }, 100);
+    if (hasPlayed) return;
 
-    const timer2 = setTimeout(() => {
-      setAnimationStage('logo-move');
-    }, 1200);
+    // Disable spatial navigation while intro is active
+    pause();
 
-    const timer3 = setTimeout(() => {
-      setAnimationStage('text-appear');
-    }, 1400);
+    const start = Date.now();
+    const intervalId = window.setInterval(() => {
+      const newElapsed = Date.now() - start;
+      setElapsedMs(newElapsed);
 
-    const timer4 = setTimeout(() => {
-      setAnimationStage('fade-out');
-    }, 4000);
-
-    const timer5 = setTimeout(() => {
-      setShowMainContent(true);
-    }, 5000);
+      if (newElapsed >= 5000) {
+        sessionStorage.setItem('seerial_intro_played', 'true');
+        setHasPlayed(true);
+      }
+    }, 50);
 
     return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-      clearTimeout(timer3);
-      clearTimeout(timer4);
-      clearTimeout(timer5);
+      window.clearInterval(intervalId);
+      // Re-enable spatial navigation when intro unmounts
+      resume();
     };
-  }, []);
+  }, [hasPlayed]);
 
-  if (showMainContent) return null;
+  if (hasPlayed) return null;
+
+  const animationStage = getAnimationStage(elapsedMs);
 
   return (
-    <div className="fixed z-999 inset-0 bg-black flex items-center justify-center overflow-hidden">
+    <div className="fixed z-999 inset-0 bg-[#000000] flex items-center justify-center overflow-hidden">
       <div
         className={`relative ${animationStage === 'fade-out' ? 'opacity-0' : 'opacity-100'}`}
-        style={{
-          transition: 'opacity 1s ease-out',
-        }}
+        style={{ transition: 'opacity 1s ease-out' }}
       >
         <div className="flex items-center justify-center">
-          {/* Logo Container */}
           <div
-            className={`origin-center transition-all duration-500 ease-in-out ${
-              animationStage === 'initial'
-                ? 'scale-0'
-                : animationStage === 'logo-appear'
-                  ? 'scale-100'
-                  : 'scale-100'
+            className={`origin-center transition-scale duration-500 ease-in-out ${
+              animationStage === 'initial' ? 'scale-0' : 'scale-100'
             }`}
             style={{
               transition:
@@ -65,7 +67,6 @@ const LogoIntro = () => {
             <img src="/Seerial_logo.svg" alt="Logo" className="w-[20dvh]" />
           </div>
 
-          {/* Text Container */}
           <div
             className={`${
               animationStage === 'text-appear' || animationStage === 'fade-out'
@@ -73,7 +74,8 @@ const LogoIntro = () => {
                 : 'opacity-0 translate-x-50'
             }`}
             style={{
-              transition: 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+              transition:
+                'opacity 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
             }}
           >
             <span className="text-8xl font-black text-white">eerial</span>

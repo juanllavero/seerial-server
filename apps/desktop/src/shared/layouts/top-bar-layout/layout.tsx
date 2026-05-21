@@ -1,6 +1,6 @@
 import { useGradientStore } from '@seerial/stores';
-import { AnimatePresence, motion } from 'framer-motion';
-import { memo, type ReactElement, useEffect, useRef, useState } from 'react';
+import { AnimatePresence, domAnimation, LazyMotion, m } from 'framer-motion';
+import { memo, type ReactElement, useEffect, useReducer, useRef } from 'react';
 import { useLocation, useMatch, useOutlet } from 'react-router-dom';
 import { GradientBackground } from '@/shared/components/backgrounds';
 import TopBar from './components/top-bar';
@@ -25,82 +25,130 @@ type OutletSnapshot = {
   element: ReactElement | null;
 };
 
+interface TopBarLayoutState {
+  renderedOutlet: OutletSnapshot;
+  isPageVisible: boolean;
+  renderedHideTopBar: boolean;
+}
+
+type TopBarLayoutAction =
+  | { type: 'sync-current'; outlet: OutletSnapshot; hideTopBar: boolean }
+  | { type: 'queue-next'; outlet: OutletSnapshot; hideTopBar: boolean }
+  | { type: 'commit-next'; outlet: OutletSnapshot; hideTopBar: boolean };
+
+function topBarLayoutReducer(
+  state: TopBarLayoutState,
+  action: TopBarLayoutAction,
+): TopBarLayoutState {
+  switch (action.type) {
+    case 'sync-current':
+      return {
+        ...state,
+        renderedOutlet: action.outlet,
+        renderedHideTopBar: action.hideTopBar,
+        isPageVisible: true,
+      };
+    case 'queue-next':
+      return {
+        ...state,
+        isPageVisible: false,
+      };
+    case 'commit-next':
+      return {
+        ...state,
+        renderedOutlet: action.outlet,
+        renderedHideTopBar: action.hideTopBar,
+        isPageVisible: true,
+      };
+    default:
+      return state;
+  }
+}
+
 const TopBarLayout = () => {
   const gradientImageSrc = useGradientStore((state) => state.gradientImageSrc);
-  const location = useLocation();
+  const routeLocation = useLocation();
   const outlet = useOutlet();
-  const previousPathnameRef = useRef(location.pathname);
+  const { pathname, key: routeKey } = routeLocation;
+  const previousPathnameRef = useRef(pathname);
   const pendingOutletRef = useRef<OutletSnapshot | null>(null);
   const pendingHideTopBarRef = useRef<boolean | null>(null);
-  const [renderedOutlet, setRenderedOutlet] = useState<OutletSnapshot>(() => ({
-    key: location.key,
-    element: outlet,
-  }));
-  const [isPageVisible, setIsPageVisible] = useState(true);
+  const [layoutState, dispatchLayout] = useReducer(topBarLayoutReducer, {
+    renderedOutlet: { key: routeKey, element: outlet },
+    isPageVisible: true,
+    renderedHideTopBar: false,
+  });
+  const { renderedOutlet, isPageVisible, renderedHideTopBar } = layoutState;
 
   const isMovieDetails = useMatch('details/movie/:movieId');
   const isSeriesDetails = useMatch('details/series/:seriesId');
   const isAlbumDetails = useMatch('details/album/:albumId');
   const isCollectionDetails = useMatch('details/collection/:collectionId/:type');
   const hideTopBar = !!(isMovieDetails || isSeriesDetails || isAlbumDetails || isCollectionDetails);
-  const [renderedHideTopBar, setRenderedHideTopBar] = useState(hideTopBar);
 
   useEffect(() => {
     const previousPathname = previousPathnameRef.current;
 
-    if (previousPathname !== location.pathname) {
-      previousPathnameRef.current = location.pathname;
+    if (previousPathname !== pathname) {
+      previousPathnameRef.current = pathname;
     }
-  }, [location.pathname]);
+  }, [pathname]);
 
   useEffect(() => {
-    if (location.key === renderedOutlet.key) {
-      setRenderedOutlet({ key: location.key, element: outlet });
-      setRenderedHideTopBar(hideTopBar);
+    if (routeKey === renderedOutlet.key) {
+      dispatchLayout({
+        type: 'sync-current',
+        outlet: { key: routeKey, element: outlet },
+        hideTopBar,
+      });
       return;
     }
 
-    pendingOutletRef.current = { key: location.key, element: outlet };
+    pendingOutletRef.current = { key: routeKey, element: outlet };
     pendingHideTopBarRef.current = hideTopBar;
-    setIsPageVisible(false);
-  }, [location.key, outlet, renderedOutlet.key, hideTopBar]);
+    dispatchLayout({ type: 'queue-next', outlet: { key: routeKey, element: outlet }, hideTopBar });
+  }, [routeKey, outlet, renderedOutlet.key, hideTopBar]);
 
   const handleExitComplete = () => {
     if (!pendingOutletRef.current) {
       return;
     }
 
-    setRenderedOutlet(pendingOutletRef.current);
+    dispatchLayout({
+      type: 'commit-next',
+      outlet: pendingOutletRef.current,
+      hideTopBar: pendingHideTopBarRef.current ?? false,
+    });
     pendingOutletRef.current = null;
-    setRenderedHideTopBar(pendingHideTopBarRef.current ?? false);
     pendingHideTopBarRef.current = null;
-    setIsPageVisible(true);
   };
 
   return (
-    <div
-      className="seerial-app-shell w-full h-full m-0 flex flex-col items-center justify-end overflow-hidden"
-      style={{ backgroundColor: 'var(--seerial-app-shell-background, black)' }}
-    >
-      <GradientBackground imageSrc={gradientImageSrc} index={0} />
-      {!renderedHideTopBar && <TopBar />}
+    <LazyMotion features={domAnimation}>
+      <div
+        className="seerial-app-shell w-full h-full m-0 flex flex-col items-center justify-end overflow-hidden"
+        style={{ backgroundColor: 'var(--seerial-app-shell-background, black)' }}
+      >
+        <GradientBackground imageSrc={gradientImageSrc} index={0} />
+        {!renderedHideTopBar && <TopBar />}
 
-      <AnimatePresence mode="wait" initial={false} onExitComplete={handleExitComplete}>
-        {isPageVisible && (
-          <motion.div
-            key={renderedOutlet.key}
-            className="w-full flex-1 min-h-0"
-            variants={pageVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            transition={pageTransition}
-          >
-            {renderedOutlet.element}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+        <AnimatePresence mode="wait" initial={false} onExitComplete={handleExitComplete}>
+          {isPageVisible && (
+            <m.div
+              key={renderedOutlet.key}
+              className="w-full flex-1 min-h-0"
+              variants={pageVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              transition={pageTransition}
+            >
+              {renderedOutlet.element}
+            </m.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </LazyMotion>
   );
 };
 

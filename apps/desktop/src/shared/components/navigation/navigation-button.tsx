@@ -103,7 +103,7 @@ function FocusableButton({
       size={null}
       title={title}
       data-focus-key={customKey}
-      className={`${className} max-h-[5vh] ${rounded ? 'p-4' : 'px-8 py-4'} 
+      className={`${className} max-h-[5vh] ${rounded ? 'p-4' : 'px-8 py-4'}
       rounded-full text-black hover:text-black `}
       style={{
         color: textColor,

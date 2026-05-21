@@ -1,6 +1,6 @@
 import type { LyricsLine } from '@seerial/domain';
 import { useMusicStore } from '@seerial/stores';
-import type { CSSProperties, ReactNode, WheelEvent } from 'react';
+import type { CSSProperties, WheelEvent } from 'react';
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { shallow } from 'zustand/shallow';
@@ -213,14 +213,12 @@ const EnhancedSegment = memo(function EnhancedSegment({
     if (!el) return;
 
     if (isPastLine) {
-      el.style.transition = 'none';
-      el.style.width = '100%';
+      el.style.cssText = 'transition: none; width: 100%;';
       return;
     }
 
     if (!isCurrentLine || lineActivationAudioTime === null || lineActivationWallTime === null) {
-      el.style.transition = 'none';
-      el.style.width = '0%';
+      el.style.cssText = 'transition: none; width: 0%;';
       return;
     }
 
@@ -237,8 +235,7 @@ const EnhancedSegment = memo(function EnhancedSegment({
 
     if (audioNow >= (segment.endTime ?? segment.startTime + totalDurationSec)) {
       // Already past — snap to full instantly
-      el.style.transition = 'none';
-      el.style.width = '100%';
+      el.style.cssText = 'transition: none; width: 100%;';
       return;
     }
 
@@ -249,24 +246,20 @@ const EnhancedSegment = memo(function EnhancedSegment({
       const remainingMs = Math.max((1 - progress) * animationDurationMs, 150);
       const startPct = `${Math.round(progress * 1000) / 10}%`;
 
-      el.style.transition = 'none';
-      el.style.width = startPct;
+      el.style.cssText = `transition: none; width: ${startPct};`;
       requestAnimationFrame(() => {
-        el.style.transition = `width ${remainingMs}ms linear`;
-        el.style.width = '100%';
+        el.style.cssText = `transition: width ${remainingMs}ms linear; width: 100%;`;
       });
       return;
     }
 
     // Syllable hasn't started yet: reset and schedule
-    el.style.transition = 'none';
-    el.style.width = '0%';
+    el.style.cssText = 'transition: none; width: 0%;';
 
     const delayMs = Math.max((segment.startTime - audioNow) * 1000, 0);
     const timerId = setTimeout(() => {
       requestAnimationFrame(() => {
-        el.style.transition = `width ${animationDurationMs}ms linear`;
-        el.style.width = '100%';
+        el.style.cssText = `transition: width ${animationDurationMs}ms linear; width: 100%;`;
       });
     }, delayMs);
 
@@ -314,15 +307,23 @@ function renderEnhancedSegment(
   );
 }
 
-function renderAlignedPronunciationPair(
-  originalLine: LyricDisplayLine,
-  pronunciationLine: LyricDisplayLine,
-  isCurrentLine: boolean,
-  isPastLine: boolean,
-  lineActivationAudioTime: number | null,
-  lineActivationWallTime: number | null,
+const AlignedPronunciationPair = memo(function AlignedPronunciationPair({
+  originalLine,
+  pronunciationLine,
+  isCurrentLine,
+  isPastLine,
+  lineActivationAudioTime,
+  lineActivationWallTime,
   isV2 = false,
-) {
+}: {
+  originalLine: LyricDisplayLine;
+  pronunciationLine: LyricDisplayLine;
+  isCurrentLine: boolean;
+  isPastLine: boolean;
+  lineActivationAudioTime: number | null;
+  lineActivationWallTime: number | null;
+  isV2?: boolean;
+}) {
   // 1. Count how many synchronized blocks there are
   const maxIndex = Math.max(
     ...originalLine.segments.map((s) => s.alignmentTrackIndex ?? -1),
@@ -330,11 +331,25 @@ function renderAlignedPronunciationPair(
   );
 
   // 2. Pair each original segment with its corresponding romaji
+  const originalSegmentsByIndex = new Map<number, LyricSegment>();
+  for (const segment of originalLine.segments) {
+    if (segment.alignmentTrackIndex !== undefined) {
+      originalSegmentsByIndex.set(segment.alignmentTrackIndex, segment);
+    }
+  }
+
+  const pronunciationSegmentsByIndex = new Map<number, LyricSegment>();
+  for (const segment of pronunciationLine.segments) {
+    if (segment.alignmentTrackIndex !== undefined) {
+      pronunciationSegmentsByIndex.set(segment.alignmentTrackIndex, segment);
+    }
+  }
+
   const pairedSegments = [];
   for (let i = 0; i <= maxIndex; i++) {
     pairedSegments.push({
-      orig: originalLine.segments.find((s) => s.alignmentTrackIndex === i),
-      pron: pronunciationLine.segments.find((s) => s.alignmentTrackIndex === i),
+      orig: originalSegmentsByIndex.get(i),
+      pron: pronunciationSegmentsByIndex.get(i),
     });
   }
 
@@ -392,7 +407,7 @@ function renderAlignedPronunciationPair(
       })}
     </div>
   );
-}
+});
 
 // For lines without pronunciation or simple translations
 function renderLyricLine(
@@ -503,50 +518,68 @@ function getGroupRenderState(
   };
 }
 
-function renderGroupMainLines(group: LyricGroup, state: GroupRenderState): ReactNode {
+const GroupMainLines = memo(function GroupMainLines({
+  group,
+  state,
+}: {
+  group: LyricGroup;
+  state: GroupRenderState;
+}) {
   if (group.lines[0]?.alignmentTrackWidths && group.lines[1]?.alignmentTrackWidths) {
-    return [
-      renderAlignedPronunciationPair(
-        group.lines[0],
-        group.lines[1],
-        state.isCurrentLine,
-        state.isPastLine,
-        state.segActivationAudioTime,
-        state.segActivationWallTime,
-        state.isV2,
-      ),
-      ...group.lines
-        .slice(2)
-        .map((line, lineIndex) =>
-          renderLyricLine(
-            line,
-            lineIndex + 2,
-            state.textClass,
-            state.isCurrentLine,
-            state.isPastLine,
-            state.segActivationAudioTime,
-            state.segActivationWallTime,
-            state.isV2,
-          ),
-        ),
-    ];
+    return (
+      <>
+        <AlignedPronunciationPair
+          originalLine={group.lines[0]}
+          pronunciationLine={group.lines[1]}
+          isCurrentLine={state.isCurrentLine}
+          isPastLine={state.isPastLine}
+          lineActivationAudioTime={state.segActivationAudioTime}
+          lineActivationWallTime={state.segActivationWallTime}
+          isV2={state.isV2}
+        />
+        {group.lines
+          .slice(2)
+          .map((line, lineIndex) =>
+            renderLyricLine(
+              line,
+              lineIndex + 2,
+              state.textClass,
+              state.isCurrentLine,
+              state.isPastLine,
+              state.segActivationAudioTime,
+              state.segActivationWallTime,
+              state.isV2,
+            ),
+          )}
+      </>
+    );
   }
 
-  return group.lines.map((line, lineIndex) =>
-    renderLyricLine(
-      line,
-      lineIndex,
-      state.textClass,
-      state.isCurrentLine,
-      state.isPastLine,
-      state.segActivationAudioTime,
-      state.segActivationWallTime,
-      state.isV2,
-    ),
+  return (
+    <>
+      {group.lines.map((line, lineIndex) =>
+        renderLyricLine(
+          line,
+          lineIndex,
+          state.textClass,
+          state.isCurrentLine,
+          state.isPastLine,
+          state.segActivationAudioTime,
+          state.segActivationWallTime,
+          state.isV2,
+        ),
+      )}
+    </>
   );
-}
+});
 
-function renderGroupOptionalRows(group: LyricGroup, state: GroupRenderState): ReactNode {
+const GroupOptionalRows = memo(function GroupOptionalRows({
+  group,
+  state,
+}: {
+  group: LyricGroup;
+  state: GroupRenderState;
+}) {
   return (
     <>
       {!!group.backgroundVocals?.length &&
@@ -576,7 +609,7 @@ function renderGroupOptionalRows(group: LyricGroup, state: GroupRenderState): Re
       )}
     </>
   );
-}
+});
 
 function renderLyricGroupItem(
   group: LyricGroup,
@@ -605,8 +638,8 @@ function renderLyricGroupItem(
       <div
         className={`flex max-w-[56dvw] flex-col ${state.itemsClass} ${state.groupClass} ${state.containerAlignClass}`}
       >
-        {renderGroupMainLines(group, state)}
-        {renderGroupOptionalRows(group, state)}
+        <GroupMainLines group={group} state={state} />
+        <GroupOptionalRows group={group} state={state} />
       </div>
     </div>
   );

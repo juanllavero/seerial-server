@@ -57,31 +57,54 @@ function FlexBox({
   onScroll,
   ...restProps
 }: FlexBoxProps) {
+  const flexStyle: CSSProperties = {
+    display: 'flex',
+    flexDirection: direction,
+    flexWrap: wrap,
+    justifyContent: justify,
+    alignItems: align,
+    width: width,
+    height: height,
+    gap: `${gap}rem`,
+    padding: padding,
+    margin: margin,
+    ...css,
+  };
+
+  const interactiveProps = onClick
+    ? {
+        role: ((restProps.role as string | undefined) ?? 'button') as React.AriaRole,
+        tabIndex: (restProps.tabIndex as number | undefined) ?? 0,
+        onClick,
+        onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick();
+          }
+
+          const restOnKeyDown = restProps.onKeyDown as
+            | ((event: React.KeyboardEvent<HTMLDivElement>) => void)
+            | undefined;
+          restOnKeyDown?.(e);
+        },
+      }
+    : {};
+
+  const pointerProps = {
+    ...(onMouseEnter ? { onMouseEnter } : {}),
+    ...(onMouseLeave ? { onMouseLeave } : {}),
+    ...(onMouseDown ? { onMouseDown } : {}),
+    ...(onMouseUp ? { onMouseUp } : {}),
+    ...(onScroll ? { onScroll } : {}),
+  };
+
   return (
-    // biome-ignore lint/a11y/noStaticElementInteractions: <This is a special component>
-    // biome-ignore lint/a11y/useKeyWithClickEvents: <This is a special component>
     <div
       ref={ref}
       className={`${className} ${hideScrollbar ? 'hide-scrollbar' : ''} scroll-smooth ${scroll === 'horizontal' ? 'overflow-x-auto' : ''} ${scroll === 'vertical' ? 'overflow-y-auto' : ''}`}
-      style={{
-        display: 'flex',
-        flexDirection: direction,
-        flexWrap: wrap,
-        justifyContent: justify,
-        alignItems: align,
-        width: width,
-        height: height,
-        gap: `${gap}rem`,
-        padding: padding,
-        margin: margin,
-        ...css,
-      }}
-      onClick={onClick}
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-      onMouseDown={onMouseDown}
-      onMouseUp={onMouseUp}
-      onScroll={onScroll}
+      style={flexStyle}
+      {...pointerProps}
+      {...interactiveProps}
       {...restProps}
     >
       {children}

@@ -1,0 +1,40 @@
+/* Add these classes to your main CSS file (e.g., styles.css or index.css) or a relevant module */
+
+.seek-indicator {
+  position: fixed;
+  top: 50%;
+  z-index: 50;
+  pointer-events: none;
+  transition: opacity 0.2s ease-in-out;
+}
+.seek-indicator-left {
+  left: 40%;
+  transform: translate(-50%, -50%);
+}
+.seek-indicator-right {
+  right: 40%;
+  transform: translate(50%, -50%);
+}
+.seek-indicator.visible {
+  opacity: 1;
+}
+.seek-indicator:not(.visible) {
+  opacity: 0;
+}
+
+.timeline-slider-label {
+  position: absolute;
+  top: 100%;
+  left: 50%; /* This may need to be dynamically set if not always 50% */
+  transform: translateX(-35%);
+  white-space: nowrap;
+  font-size: 1.8vh;
+  font-weight: 500;
+  pointer-events: none;
+}
+
+.flex-box {
+  display: flex;
+  flex-wrap: wrap;
+  /* Add more default styles as needed, or use utility classes for direction, justify, align, etc. */
+}

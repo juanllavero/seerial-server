@@ -33,18 +33,16 @@ function MenuItem({ label, focusKey, index, totalItems, onSelect }: MenuItemProp
   });
 
   return (
-    <div
+    <button
+      type="button"
       ref={ref}
-      role="button"
-      tabIndex={0}
       onClick={onSelect}
-      onKeyDown={(e) => e.key === 'Enter' && onSelect()}
       className={`w-full cursor-pointer rounded-lg px-5 py-[1.2dvh] text-left text-[1.8vh] font-medium transition-colors ${
         focused ? 'bg-white text-black' : 'text-white hover:bg-white/10'
       }`}
     >
       {label}
-    </div>
+    </button>
   );
 }
 
@@ -61,11 +59,8 @@ function CardContextMenu({ title, items, onClose, previousFocusKey }: CardContex
     focusKey: MENU_FOCUS_KEY,
     trackChildren: true,
     isFocusBoundary: true,
+    preferredChildFocusKey: `${MENU_FOCUS_KEY}_ITEM_0`,
   });
-
-  useEffect(() => {
-    setFocus(`${MENU_FOCUS_KEY}_ITEM_0`);
-  }, []);
 
   // When the menu opens the user may still be holding Enter (long press).
   // Block repeat keydown events for Enter at the capture phase so neither
@@ -95,15 +90,27 @@ function CardContextMenu({ title, items, onClose, previousFocusKey }: CardContex
   });
 
   return (
+    // biome-ignore lint/a11y/useSemanticElements: fullscreen overlay cannot be a native button because it contains interactive descendants
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
-      onClick={handleClose}
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) {
+          handleClose();
+        }
+      }}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape' || e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleClose();
+        }
+      }}
+      role="button"
+      tabIndex={0}
     >
       <FocusContext.Provider value={focusKey}>
         <div
           ref={ref as React.Ref<HTMLDivElement>}
           className="min-w-[28dvh] max-w-[50dvh] rounded-xl border border-white/20 bg-neutral-900/95 p-2 shadow-2xl"
-          onClick={(e) => e.stopPropagation()}
         >
           {title && (
             <div className="truncate border-b border-white/10 px-5 py-2 text-[1.4vh] font-medium text-white/50">

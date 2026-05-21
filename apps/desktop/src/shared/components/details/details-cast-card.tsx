@@ -2,7 +2,7 @@ import type { CastData } from '@seerial/domain';
 import { NavigationButton } from '@/shared/components/navigation';
 import FlexBox from '@/shared/components/ui/flex-box';
 import Image from '@/shared/components/ui/image';
-import { Tertiary } from '../text';
+import Tertiary from '../text/tertiary';
 
 interface DetailsCastCardProps {
   person: CastData;

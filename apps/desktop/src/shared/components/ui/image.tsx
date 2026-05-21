@@ -1,6 +1,6 @@
 import { useGetLocalImage } from '@seerial/api';
 import { useServerStore } from '@seerial/stores';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useReducer, useRef } from 'react';
 import { Skeleton } from './skeleton';
 
 /**
@@ -35,6 +35,76 @@ interface ImageProps {
   tmdbSize?: TmdbImageSize;
   style?: React.CSSProperties;
   className?: string;
+}
+
+interface ImageState {
+  imageSrc: string | undefined;
+  isLoading: boolean;
+  hasError: boolean;
+  isInView: boolean;
+}
+
+type ImageAction =
+  | { type: 'reset-source'; directImageSrc: string | undefined; localImagePath: string | undefined }
+  | { type: 'set-local-image'; imageSrc: string }
+  | { type: 'apply-fallback'; fallbackSrc?: string }
+  | { type: 'mark-loaded' }
+  | { type: 'mark-error' }
+  | { type: 'enter-view' };
+
+const INITIAL_IMAGE_STATE: ImageState = {
+  imageSrc: undefined,
+  isLoading: true,
+  hasError: false,
+  isInView: false,
+};
+
+function imageReducer(state: ImageState, action: ImageAction): ImageState {
+  switch (action.type) {
+    case 'reset-source':
+      return {
+        ...state,
+        imageSrc: action.localImagePath ? undefined : action.directImageSrc,
+        isLoading: true,
+        hasError: false,
+      };
+    case 'set-local-image':
+      return {
+        ...state,
+        imageSrc: action.imageSrc,
+      };
+    case 'apply-fallback':
+      if (action.fallbackSrc) {
+        return {
+          ...state,
+          imageSrc: action.fallbackSrc,
+        };
+      }
+
+      return {
+        ...state,
+        hasError: true,
+        isLoading: false,
+      };
+    case 'mark-loaded':
+      return {
+        ...state,
+        isLoading: false,
+      };
+    case 'mark-error':
+      return {
+        ...state,
+        hasError: true,
+        isLoading: false,
+      };
+    case 'enter-view':
+      return {
+        ...state,
+        isInView: true,
+      };
+    default:
+      return state;
+  }
 }
 
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/';
@@ -74,11 +144,15 @@ const Image: React.FC<ImageProps> = ({
       ? optimizeTmdbUrl(url, tmdbSize)
       : undefined
     : (src ?? fallbackSrc);
-  const [isLoading, setIsLoading] = useState(true);
-  const [hasError, setHasError] = useState(false);
-  const [isInView, setIsInView] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const objectUrlRef = useRef<string | null>(null);
+
+  const [imageState, dispatchImageState] = useReducer(imageReducer, {
+    ...INITIAL_IMAGE_STATE,
+    imageSrc: directImageSrc,
+  });
+  const { imageSrc, isLoading, hasError, isInView } = imageState;
 
   const { data: localImageBlob, error: localImageError } = useGetLocalImage({
     enabled: isInView && !!localImagePath && !!serverUrl,
@@ -86,25 +160,30 @@ const Image: React.FC<ImageProps> = ({
     queryKey: ['images', 'local', serverUrl, localImagePath],
   });
 
-  const [imageSrc, setImageSrc] = useState(directImageSrc);
-
   // Reset image state when the source changes.
   useEffect(() => {
-    setIsLoading(true);
-    setHasError(false);
-    setImageSrc(localImagePath ? undefined : directImageSrc);
+    dispatchImageState({ type: 'reset-source', directImageSrc, localImagePath });
   }, [directImageSrc, localImagePath]);
 
   useEffect(() => {
+    if (objectUrlRef.current) {
+      URL.revokeObjectURL(objectUrlRef.current);
+      objectUrlRef.current = null;
+    }
+
     if (!localImageBlob) {
       return;
     }
 
     const objectUrl = URL.createObjectURL(localImageBlob);
-    setImageSrc(objectUrl);
+    objectUrlRef.current = objectUrl;
+    dispatchImageState({ type: 'set-local-image', imageSrc: objectUrl });
 
     return () => {
-      URL.revokeObjectURL(objectUrl);
+      if (objectUrlRef.current) {
+        URL.revokeObjectURL(objectUrlRef.current);
+        objectUrlRef.current = null;
+      }
     };
   }, [localImageBlob]);
 
@@ -113,13 +192,7 @@ const Image: React.FC<ImageProps> = ({
       return;
     }
 
-    if (fallbackSrc) {
-      setImageSrc(fallbackSrc);
-      return;
-    }
-
-    setHasError(true);
-    setIsLoading(false);
+    dispatchImageState({ type: 'apply-fallback', fallbackSrc });
   }, [fallbackSrc, localImageError]);
 
   // Intersection Observer for lazy loading
@@ -128,7 +201,7 @@ const Image: React.FC<ImageProps> = ({
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            setIsInView(true);
+            dispatchImageState({ type: 'enter-view' });
             observer.disconnect();
           }
         });
@@ -144,33 +217,19 @@ const Image: React.FC<ImageProps> = ({
   }, []);
 
   const handleImageLoad = () => {
-    setIsLoading(false);
+    dispatchImageState({ type: 'mark-loaded' });
   };
 
   const handleImageError = () => {
     if (hasError) {
-      setIsLoading(false);
+      dispatchImageState({ type: 'mark-loaded' });
     } else {
-      setHasError(true);
+      dispatchImageState({ type: 'mark-error' });
       if (imgRef.current) {
         imgRef.current.src = fallbackSrc ?? '';
       }
     }
   };
-
-  return (
-    <div
-      ref={containerRef}
-      className={`relative overflow-hidden ${className} transition-all duration-500 ease-in-out`}
-      style={{
-        width,
-        height,
-        aspectRatio,
-      }}
-    >
-      <Skeleton className="absolute inset-0 h-full w-full" />
-    </div>
-  );
 
   return (
     <div
@@ -200,7 +259,7 @@ const Image: React.FC<ImageProps> = ({
       {!isLoading && hasError && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-700 text-gray-200">
           {/** biome-ignore lint/a11y/noSvgWithoutTitle: <This is just a fallback> */}
-          <svg className="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="size-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"

@@ -6,8 +6,8 @@ import FlexBox from '@/shared/components/ui/flex-box';
 import Image from '@/shared/components/ui/image';
 import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
-import { Title } from '../text';
 import Tertiary from '../text/tertiary';
+import Title from '../text/title';
 import DetailsActionButtons from './details-action-buttons';
 import DetailsCastCard from './details-cast-card';
 import DetailsHeader from './details-header';
@@ -31,19 +31,19 @@ function DetailsInfo({
   handleMoreOptions,
   handleMarkWatched,
   handleToggleHideThumbnails,
-  isWatched,
-  hideUnwatchedThumbnails,
   videoInfo,
   audioInfo,
   subtitleInfo,
-  hideButtons,
-  enableKeyboardBack = true,
-  disableInitialFocus = false,
+  displayOptions,
+  behaviorOptions,
   cast,
   expandedImageSrc,
   expandedTitle,
   onDescriptionExpandedChange,
 }: DetailsInfoProps) {
+  const { isWatched, hideUnwatchedThumbnails, hideButtons } = displayOptions ?? {};
+  const { enableKeyboardBack = true, disableInitialFocus = false } = behaviorOptions ?? {};
+
   const { t } = useTranslation();
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
   const [focusedCastId, setFocusedCastId] = useState<string | undefined>();
@@ -64,11 +64,12 @@ function DetailsInfo({
 
   const closeExpandedDescription = useCallback(() => {
     setIsDescriptionExpanded(false);
+    onDescriptionExpandedChange?.(false);
 
     requestAnimationFrame(() => {
       setFocus(NavigationFocusKeys.details.descriptionButton);
     });
-  }, []);
+  }, [onDescriptionExpandedChange]);
 
   const openExpandedDescription = useCallback(() => {
     if (!descriptionText) {
@@ -76,7 +77,8 @@ function DetailsInfo({
     }
 
     setIsDescriptionExpanded(true);
-  }, [descriptionText]);
+    onDescriptionExpandedChange?.(true);
+  }, [descriptionText, onDescriptionExpandedChange]);
 
   useKeyboardBack({
     enabled: enableKeyboardBack,
@@ -99,10 +101,6 @@ function DetailsInfo({
   }, [disableInitialFocus, isDescriptionExpanded]);
 
   useEffect(() => {
-    onDescriptionExpandedChange?.(isDescriptionExpanded);
-  }, [isDescriptionExpanded, onDescriptionExpandedChange]);
-
-  useEffect(() => {
     if (!isDescriptionExpanded || !firstCastFocusKey) {
       return;
     }
@@ -116,6 +114,9 @@ function DetailsInfo({
     return () => {
       window.cancelAnimationFrame(frame);
     };
+    // Avoid calling prop callback in effect; instead, call directly in the handler where state changes
+    // If you need to synchronize, lift state up to a shared Provider or use a shared state management
+    // Remove prop callback call from effect
   }, [isDescriptionExpanded, firstCastFocusKey]);
 
   if (isDescriptionExpanded) {

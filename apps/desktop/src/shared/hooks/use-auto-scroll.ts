@@ -182,9 +182,7 @@ function shouldSkipAutoScroll(
     const hasRestoringModeChanged = lastIsRestoringFocus !== isRestoringFocus;
     if (hasRestoringModeChanged) {
       if (debug)
-        console.log(
-          '[useAutoScroll] Continue: same focusedElementId but isRestoringFocus changed',
-        );
+        console.log('[useAutoScroll] Continue: same focusedElementId but isRestoringFocus changed');
       return false;
     }
 

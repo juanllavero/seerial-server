@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, domAnimation, LazyMotion, m } from 'framer-motion';
 import { memo } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 
@@ -17,24 +17,26 @@ const BaseLayout = () => {
   const location = useLocation();
 
   return (
-    <div
-      className="seerial-app-shell w-full h-full m-0 flex flex-col items-center justify-end overflow-hidden"
-      style={{ backgroundColor: 'var(--seerial-app-shell-background, black)' }}
-    >
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={location.key}
-          className="w-full flex-1 min-h-0"
-          variants={pageVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          transition={pageTransition}
-        >
-          <Outlet />
-        </motion.div>
-      </AnimatePresence>
-    </div>
+    <LazyMotion features={domAnimation}>
+      <div
+        className="seerial-app-shell w-full h-full m-0 flex flex-col items-center justify-end overflow-hidden"
+        style={{ backgroundColor: 'var(--seerial-app-shell-background, black)' }}
+      >
+        <AnimatePresence mode="wait" initial={false}>
+          <m.div
+            key={location.key}
+            className="w-full flex-1 min-h-0"
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            transition={pageTransition}
+          >
+            <Outlet />
+          </m.div>
+        </AnimatePresence>
+      </div>
+    </LazyMotion>
   );
 };
 

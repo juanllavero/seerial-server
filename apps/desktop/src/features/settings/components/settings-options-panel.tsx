@@ -1,5 +1,5 @@
 import { FocusContext, setFocus, useFocusable } from '@noriginmedia/norigin-spatial-navigation';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, domAnimation, LazyMotion, m } from 'framer-motion';
 import { Check } from 'lucide-react';
 import { memo, useCallback, useEffect } from 'react';
 import { Tertiary } from '@/shared/components/text';
@@ -82,37 +82,39 @@ function SettingsOptionsPanel({ data, onClose }: SettingsOptionsPanelProps) {
   );
 
   return (
-    <AnimatePresence>
-      {data && (
-        <motion.div
-          initial={{ width: 0, opacity: 0 }}
-          animate={{ width: 256, opacity: 1 }}
-          exit={{ width: 0, opacity: 0 }}
-          transition={SLIDE_TRANSITION}
-          className="shrink-0 overflow-hidden border-l border-white/10"
-        >
-          <FocusContext.Provider value={focusKey}>
-            <div ref={ref} className="flex h-full w-64 flex-col">
-              <div className="px-5 pt-8 pb-4">
-                <Tertiary className="font-semibold text-white/50">{data.label}</Tertiary>
+    <LazyMotion features={domAnimation}>
+      <AnimatePresence>
+        {data && (
+          <m.div
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 256, opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={SLIDE_TRANSITION}
+            className="shrink-0 overflow-hidden border-l border-white/10"
+          >
+            <FocusContext.Provider value={focusKey}>
+              <div ref={ref} className="flex h-full w-64 flex-col">
+                <div className="px-5 pt-8 pb-4">
+                  <Tertiary className="font-semibold text-white/50">{data.label}</Tertiary>
+                </div>
+                <div className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2 pb-4">
+                  {data.options.map((option, i) => (
+                    <OptionItem
+                      key={option.value}
+                      focusKey={`settings-option-${i}`}
+                      label={option.label}
+                      selected={option.value === data.value}
+                      onSelect={() => handleSelect(option.value)}
+                      onGoBack={onClose}
+                    />
+                  ))}
+                </div>
               </div>
-              <div className="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2 pb-4">
-                {data.options.map((option, i) => (
-                  <OptionItem
-                    key={option.value}
-                    focusKey={`settings-option-${i}`}
-                    label={option.label}
-                    selected={option.value === data.value}
-                    onSelect={() => handleSelect(option.value)}
-                    onGoBack={onClose}
-                  />
-                ))}
-              </div>
-            </div>
-          </FocusContext.Provider>
-        </motion.div>
-      )}
-    </AnimatePresence>
+            </FocusContext.Provider>
+          </m.div>
+        )}
+      </AnimatePresence>
+    </LazyMotion>
   );
 }
 

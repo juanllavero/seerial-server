@@ -1,7 +1,7 @@
 import { Subtitles, Volume2 } from 'lucide-react';
 import { Card } from '@/shared/components/ui/card';
 import FlexBox from '@/shared/components/ui/flex-box';
-import { Tertiary } from '../text';
+import Tertiary from '../text/tertiary';
 
 interface DetailsTechnicalInfoProps {
   videoInfo?: string;

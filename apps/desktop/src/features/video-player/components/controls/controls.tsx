@@ -13,6 +13,12 @@ import VideoInfoComponent from '../video-info';
 import TimelineSlider from './timeline-slider';
 import TracksSelectors from './tracks-selectors';
 
+const END_TIME_FORMATTER = new Intl.DateTimeFormat([], {
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
+});
+
 type ControlsMode = 'hidden' | 'full' | 'compact';
 
 interface ControlsProps {
@@ -76,33 +82,34 @@ function Controls({
 
   const watchedList = video?.watchLists?.find((list) => list.userId === user?.id);
   const timeWatched = watchedList?.timeWatched ?? 0;
-  const [streamStartTime, setStreamStartTime] = useState(timeWatched ?? 0);
+  const streamStartTimeRef = useRef(timeWatched ?? 0);
 
   const initializePosition = useCallback(async () => {
-    let attempts = 0;
     const maxAttempts = 10;
     const retryInterval = 500;
 
-    const tryGetDuration = async (): Promise<number> => {
-      while (attempts < maxAttempts) {
-        try {
-          const dur = await mpv.getDuration();
-          if (typeof dur === 'number') {
-            return dur;
-          }
-        } catch (error) {
-          console.warn(`Attempt ${attempts + 1} failed to get duration:`, error);
-        }
-        attempts++;
-        await new Promise((resolve) => setTimeout(resolve, retryInterval));
+    const tryGetDuration = async (attempt = 0): Promise<number> => {
+      if (attempt >= maxAttempts) {
+        return 0;
       }
-      return 0;
+
+      try {
+        const dur = await mpv.getDuration();
+        if (typeof dur === 'number') {
+          return dur;
+        }
+      } catch (error) {
+        console.warn(`Attempt ${attempt + 1} failed to get duration:`, error);
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, retryInterval));
+      return tryGetDuration(attempt + 1);
     };
 
     const dur = await tryGetDuration();
     setDuration(dur > 0 ? dur : video?.runtime ? video.runtime * 60 || 0 : 0);
-    setPosition(streamStartTime ?? 0);
-  }, [video, streamStartTime, mpv.getDuration]);
+    setPosition(streamStartTimeRef.current ?? 0);
+  }, [video, mpv.getDuration]);
 
   const handlePlayPause = useCallback(() => {
     void mpv.togglePlayPause();
@@ -110,8 +117,8 @@ function Controls({
 
   useEffect(() => {
     if (!video) return;
+    streamStartTimeRef.current = timeWatched && timeWatched > 0 ? timeWatched : 0;
     initializePosition();
-    setStreamStartTime(timeWatched && timeWatched > 0 ? timeWatched : 0);
   }, [video, timeWatched, initializePosition]);
 
   const handleTimelineFocusChange = useCallback(
@@ -125,11 +132,7 @@ function Controls({
   const endTime = useMemo(() => {
     const remainingSeconds = Math.max(duration - position, 0);
     const endsAt = new Date(Date.now() + remainingSeconds * 1000);
-    return new Intl.DateTimeFormat([], {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    }).format(endsAt);
+    return END_TIME_FORMATTER.format(endsAt);
   }, [duration, position]);
 
   if (controlsMode === 'hidden') return null;

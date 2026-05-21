@@ -61,7 +61,11 @@ export function useMpvPlayer() {
   const waitForReady = useCallback(async (timeoutMs: number): Promise<boolean> => {
     const startedAt = Date.now();
 
-    while (Date.now() - startedAt < timeoutMs) {
+    const pollUntilReady = async (): Promise<boolean> => {
+      if (Date.now() - startedAt >= timeoutMs) {
+        return false;
+      }
+
       try {
         const duration = await invoke<number>('get_duration');
         if (Number.isFinite(duration) && duration > 0) {
@@ -72,9 +76,10 @@ export function useMpvPlayer() {
       }
 
       await new Promise<void>((resolve) => setTimeout(resolve, READY_POLL_INTERVAL_MS));
-    }
+      return pollUntilReady();
+    };
 
-    return false;
+    return pollUntilReady();
   }, []);
 
   return {

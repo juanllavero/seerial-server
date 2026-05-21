@@ -4,22 +4,17 @@ import { memo, useEffect, useRef, useState } from 'react';
 import FadedCover from '@/shared/components/backgrounds/faded-cover';
 import FlexBox from '@/shared/components/ui/flex-box';
 import Image from '@/shared/components/ui/image';
+import SongInfo from './song-info';
 
 interface ArtworkProps {
   imageSrc?: string;
   albumFolderPath?: string;
   shouldShowLyricsPanel: boolean;
-  renderSongInfo: () => React.ReactNode;
 }
 
 const TEST_BACKGROUND_STYLE: 'classic' | 'background' = 'classic';
 
-function Artwork({
-  imageSrc,
-  albumFolderPath,
-  shouldShowLyricsPanel,
-  renderSongInfo,
-}: ArtworkProps) {
+function Artwork({ imageSrc, albumFolderPath, shouldShowLyricsPanel }: ArtworkProps) {
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
   const videoRef = useRef<HTMLVideoElement>(null);
   const [videoBlobUrl, setVideoBlobUrl] = useState<string | null>(null);
@@ -60,7 +55,7 @@ function Artwork({
             loop
             muted
             playsInline
-            className="h-[50vh] w-[50vh] object-cover rounded-3xl drop-shadow-2xl"
+            className="size-[50vh] object-cover rounded-3xl drop-shadow-2xl"
           />
         ) : (
           <Image
@@ -70,7 +65,7 @@ function Artwork({
             height="50vh"
           />
         )}
-        {renderSongInfo()}
+        <SongInfo />
       </FlexBox>
     </div>
   );

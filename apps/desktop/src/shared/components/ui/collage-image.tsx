@@ -57,6 +57,12 @@ type BlobsRef = React.RefObject<(Blob | undefined)[]>;
 type SetUrls = React.Dispatch<React.SetStateAction<(string | undefined)[]>>;
 
 const EMPTY_URLS: (string | undefined)[] = [undefined, undefined, undefined, undefined];
+const COLLAGE_SLOTS = [
+  { id: 'slot-0', index: 0 },
+  { id: 'slot-1', index: 1 },
+  { id: 'slot-2', index: 2 },
+  { id: 'slot-3', index: 3 },
+] as const;
 
 function freeAllSlots(urlsRef: UrlsRef, prevBlobsRef: BlobsRef, setObjectUrls: SetUrls): void {
   let freed = false;
@@ -158,12 +164,13 @@ function CollageImage({ images, defaultSrc, className = '' }: CollageImageProps)
       ref={containerRef}
       className={`grid h-full w-full grid-cols-2 grid-rows-2 overflow-hidden ${className}`}
     >
-      {slots.map((img, i) => {
-        const src = objectUrls[i] ?? (img?.startsWith('http') ? img : undefined) ?? defaultSrc;
+      {COLLAGE_SLOTS.map((slot) => {
+        const img = slots[slot.index];
+        const src =
+          objectUrls[slot.index] ?? (img?.startsWith('http') ? img : undefined) ?? defaultSrc;
         return (
           <img
-            // biome-ignore lint/suspicious/noArrayIndexKey: positional slots
-            key={i}
+            key={slot.id}
             src={isInView ? src : undefined}
             alt=""
             className="h-full w-full object-cover"
@@ -174,7 +181,7 @@ function CollageImage({ images, defaultSrc, className = '' }: CollageImageProps)
   );
 }
 
-// Custom equality: evita re-renders cuando el padre pasa un array nuevo con los mismos valores.
+// Custom equality: avoid re-renders when parent passes a new array with identical values.
 export default memo(
   CollageImage,
   (prev, next) =>

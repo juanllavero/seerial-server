@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, use } from 'react';
 
 interface RelatedContentContextValue {
   navigateToRelated: () => void;
@@ -11,7 +11,7 @@ const RelatedContentContext = createContext<RelatedContentContextValue>({
 });
 
 export function useRelatedContent() {
-  return useContext(RelatedContentContext);
+  return use(RelatedContentContext);
 }
 
 export default RelatedContentContext;

@@ -19,7 +19,7 @@ function ServerSelector({ onServerSelected }: ServerSelectorProps) {
 
   return (
     <>
-      <h1 className="mb-3 text-center text-4xl font-bold tracking-tight text-white">
+      <h1 className="mb-3 text-center text-4xl font-semibold tracking-tight text-white">
         Selecciona un servidor
       </h1>
       <p className="mb-10 text-center text-sm text-white/40">
@@ -29,8 +29,8 @@ function ServerSelector({ onServerSelected }: ServerSelectorProps) {
       {/* Server grid */}
       {allServers.length === 0 ? (
         <div className="mb-10 flex flex-col items-center gap-3 py-12 text-white/30">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-white/20 border-t-white/60" />
-          <span className="text-sm">Buscando servidores...</span>
+          <div className="size-6 animate-spin rounded-full border-2 border-white/20 border-t-white/60" />
+          <span className="text-sm">{`Buscando servidores...`}</span>
         </div>
       ) : (
         <div className="mb-10 grid grid-cols-2 justify-items-center gap-4 sm:grid-cols-3 md:grid-cols-4">

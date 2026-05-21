@@ -1,5 +1,6 @@
 import type { DetailsData } from '@seerial/domain';
-import { Subtitle, Title } from '../text';
+import Subtitle from '../text/subtitle';
+import Title from '../text/title';
 import AlignedImage from './aligned-image';
 
 interface DetailsHeaderProps {

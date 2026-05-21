@@ -12,7 +12,8 @@ import { NavigationFocusKeys } from '@/shared/navigation/constants';
 
 function LibraryPage() {
   const { libraryId, type } = useParams();
-  const location = useLocation();
+  const routeLocation = useLocation();
+  const { pathname } = routeLocation;
   const navigate = useNavigate();
   const { connectWS } = useWebSocketStore((state) => ({ connectWS: state.connectWS }), shallow);
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
@@ -83,8 +84,8 @@ function LibraryPage() {
         setIsRestoringFocus(isComingFromDetails);
       }
     }
-    prevLocationRef.current = location.pathname;
-  }, [libraryContent, location.pathname]);
+    prevLocationRef.current = pathname;
+  }, [libraryContent, pathname]);
 
   if (isLoading) {
     return <Loading />;

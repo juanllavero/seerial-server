@@ -1,5 +1,5 @@
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, domAnimation, LazyMotion, m } from 'framer-motion';
 import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
@@ -25,7 +25,11 @@ interface SettingsPanelProps {
   onClose: () => void;
 }
 
-function SettingsPanel({ open, onClose }: SettingsPanelProps) {
+interface OpenSettingsPanelProps {
+  onClose: () => void;
+}
+
+function OpenSettingsPanel({ onClose }: OpenSettingsPanelProps) {
   const { t } = useTranslation();
   const [activeCategory, setActiveCategory] = useState<SettingsCategory>('general');
   const [optionsData, setOptionsData] = useState<OptionsRequest | null>(null);
@@ -40,7 +44,7 @@ function SettingsPanel({ open, onClose }: SettingsPanelProps) {
 
   useKeyboardShortcut({
     key: ['Escape', 'Backspace'],
-    enabled: open,
+    enabled: true,
     capture: true,
     onKeyDown: useCallback(
       (e: KeyboardEvent) => {
@@ -57,98 +61,92 @@ function SettingsPanel({ open, onClose }: SettingsPanelProps) {
   });
 
   useEffect(() => {
-    if (open) {
-      const frame = window.requestAnimationFrame(() => {
-        setFocus(FIRST_CATEGORY_KEY);
-      });
-      return () => window.cancelAnimationFrame(frame);
-    }
-  }, [open]);
+    const frame = window.requestAnimationFrame(() => {
+      setFocus(FIRST_CATEGORY_KEY);
+    });
 
-  // Reset state when panel opens
-  useEffect(() => {
-    if (open) {
-      setActiveCategory('general');
-      setOptionsData(null);
-    }
-  }, [open]);
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
-  // Close options panel when switching categories
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally reacts to activeCategory changes
-  useEffect(() => {
+  const handleCategorySelect = useCallback((category: SettingsCategory) => {
+    setActiveCategory(category);
     setOptionsData(null);
-  }, [activeCategory]);
+  }, []);
 
   const optionsCtx = useMemo(() => ({ openOptions: setOptionsData }), []);
 
-  return createPortal(
-    <AnimatePresence>
-      {open && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
-            className="fixed inset-0 z-50 bg-black/70"
-          />
+  return (
+    <>
+      {/* Backdrop */}
+      <m.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+        className="fixed inset-0 z-50 bg-black/70"
+      />
 
-          {/* Panel — slides in from the right, widens when options open */}
-          <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
-            transition={SLIDE_TRANSITION}
-            className="fixed inset-y-0 right-0 z-50 flex"
+      {/* Panel — slides in from the right, widens when options open */}
+      <m.div
+        initial={{ x: '100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '100%' }}
+        transition={SLIDE_TRANSITION}
+        className="fixed inset-y-0 right-0 z-50 flex"
+      >
+        <m.div
+          animate={{ width: optionsData ? '100dvh' : '100dvh' }}
+          transition={SLIDE_TRANSITION}
+          className="flex h-full max-w-dvh"
+        >
+          <NavigationContainer
+            isFocusBoundary
+            customFocusKey={NavigationFocusKeys.settings.container}
+            className="flex h-full w-full overflow-hidden border-l border-white/10 bg-black/95 shadow-2xl"
           >
-            <motion.div
-              animate={{ width: optionsData ? '100dvh' : '100dvh' }}
-              transition={SLIDE_TRANSITION}
-              className="flex h-full max-w-dvh"
-            >
+            <SettingsOptionsContext.Provider value={optionsCtx}>
+              {/* Categories sidebar */}
               <NavigationContainer
+                customFocusKey="settings-sidebar"
                 isFocusBoundary
-                customFocusKey={NavigationFocusKeys.settings.container}
-                className="flex h-full w-full overflow-hidden border-l border-white/10 bg-black/95 shadow-2xl"
+                focusBoundaryDirections={['left', 'up', 'down']}
+                className="flex w-66 shrink-0 flex-col border-r border-white/10"
               >
-                <SettingsOptionsContext.Provider value={optionsCtx}>
-                  {/* Categories sidebar */}
-                  <NavigationContainer
-                    customFocusKey="settings-sidebar"
-                    isFocusBoundary
-                    focusBoundaryDirections={['left', 'up', 'down']}
-                    className="flex w-66 shrink-0 flex-col border-r border-white/10"
-                  >
-                    <div className="px-6 pt-8 pb-8">
-                      <h1 className="text-4xl font-bold text-white">{t('settings')}</h1>
-                    </div>
-                    <SettingsCategoryList
-                      categories={CATEGORIES}
-                      activeCategory={activeCategory}
-                      onCategorySelect={setActiveCategory}
-                    />
-                  </NavigationContainer>
-
-                  {/* Content area */}
-                  <NavigationContainer
-                    customFocusKey="settings-content"
-                    isFocusBoundary
-                    focusBoundaryDirections={['up', 'down']}
-                    className="flex-1 overflow-y-auto p-8"
-                  >
-                    <SettingsCategoryContent category={activeCategory} />
-                  </NavigationContainer>
-
-                  {/* Options panel (third pane) */}
-                  <SettingsOptionsPanel data={optionsData} onClose={closeOptions} />
-                </SettingsOptionsContext.Provider>
+                <div className="px-6 pt-8 pb-8">
+                  <h1 className="text-4xl font-semibold text-white">{t('settings')}</h1>
+                </div>
+                <SettingsCategoryList
+                  categories={CATEGORIES}
+                  activeCategory={activeCategory}
+                  onCategorySelect={handleCategorySelect}
+                />
               </NavigationContainer>
-            </motion.div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>,
+
+              {/* Content area */}
+              <NavigationContainer
+                customFocusKey="settings-content"
+                isFocusBoundary
+                focusBoundaryDirections={['up', 'down']}
+                className="flex-1 overflow-y-auto p-8"
+              >
+                <SettingsCategoryContent category={activeCategory} />
+              </NavigationContainer>
+
+              {/* Options panel (third pane) */}
+              <SettingsOptionsPanel data={optionsData} onClose={closeOptions} />
+            </SettingsOptionsContext.Provider>
+          </NavigationContainer>
+        </m.div>
+      </m.div>
+    </>
+  );
+}
+
+function SettingsPanel({ open, onClose }: SettingsPanelProps) {
+  return createPortal(
+    <LazyMotion features={domAnimation}>
+      <AnimatePresence>{open && <OpenSettingsPanel onClose={onClose} />}</AnimatePresence>
+    </LazyMotion>,
     document.body,
   );
 }

@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, use } from 'react';
 
 export interface SelectOption {
   label: string;
@@ -20,7 +20,7 @@ interface SettingsOptionsContextValue {
 export const SettingsOptionsContext = createContext<SettingsOptionsContextValue | null>(null);
 
 export function useSettingsOptions() {
-  const ctx = useContext(SettingsOptionsContext);
+  const ctx = use(SettingsOptionsContext);
   if (!ctx) throw new Error('useSettingsOptions must be used inside SettingsOptionsContext');
   return ctx;
 }

@@ -49,8 +49,12 @@ function HomePageContent({
         durationInfo={selectedElement?.duration}
         timeWatchedInfo={selectedElement?.timeWatched}
         infoItems={infoItems}
-        enableKeyboardBack={false}
-        hideButtons
+        behaviorOptions={{
+          enableKeyboardBack: false,
+        }}
+        displayOptions={{
+          hideButtons: true,
+        }}
       />
 
       {/* <LogoIntro /> */}

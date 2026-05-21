@@ -1,6 +1,6 @@
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation';
 import type { ItemType, LibraryType } from '@seerial/domain';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, domAnimation, LazyMotion, m } from 'framer-motion';
 import { memo, useCallback, useRef, useState } from 'react';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
 import ChevronIndicator from './chevron-indicator';
@@ -55,38 +55,40 @@ function DetailsWithRelatedContent({
   };
 
   return (
-    <RelatedContentContext.Provider value={contextValue}>
-      <div className="relative w-screen h-screen overflow-hidden">
-        {background}
-        <motion.div
-          className="absolute inset-0 w-full h-full z-10"
-          animate={{ x: isRelatedVisible ? '-100%' : '0%' }}
-          transition={slideTransition}
-        >
-          {children}
-          <AnimatePresence>
-            {hasRelatedContent && !isRelatedVisible && <ChevronIndicator />}
-          </AnimatePresence>
-        </motion.div>
+    <LazyMotion features={domAnimation}>
+      <RelatedContentContext.Provider value={contextValue}>
+        <div className="relative w-screen h-screen overflow-hidden">
+          {background}
+          <m.div
+            className="absolute inset-0 w-full h-full z-10"
+            animate={{ x: isRelatedVisible ? '-100%' : '0%' }}
+            transition={slideTransition}
+          >
+            {children}
+            <AnimatePresence>
+              {hasRelatedContent && !isRelatedVisible && <ChevronIndicator />}
+            </AnimatePresence>
+          </m.div>
 
-        <motion.div
-          className="absolute top-0 left-full w-full h-full z-10"
-          animate={{ x: isRelatedVisible ? '-100%' : '0%' }}
-          transition={slideTransition}
-        >
-          {hasRelatedContent && (
-            <RelatedContentPage
-              collectionId={collectionId}
-              currentItemId={currentItemId}
-              currentItemType={currentItemType}
-              libraryType={libraryType}
-              isVisible={isRelatedVisible}
-              onNavigateBack={navigateFromRelated}
-            />
-          )}
-        </motion.div>
-      </div>
-    </RelatedContentContext.Provider>
+          <m.div
+            className="absolute top-0 left-full w-full h-full z-10"
+            animate={{ x: isRelatedVisible ? '-100%' : '0%' }}
+            transition={slideTransition}
+          >
+            {hasRelatedContent && (
+              <RelatedContentPage
+                collectionId={collectionId}
+                currentItemId={currentItemId}
+                currentItemType={currentItemType}
+                libraryType={libraryType}
+                isVisible={isRelatedVisible}
+                onNavigateBack={navigateFromRelated}
+              />
+            )}
+          </m.div>
+        </div>
+      </RelatedContentContext.Provider>
+    </LazyMotion>
   );
 }
 
