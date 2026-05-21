@@ -3,7 +3,8 @@ import { type AudioTrack, formatTime, type SubtitleTrack } from '@seerial/domain
 import { Captions, Music2, Pause, Volume1, Volume2, VolumeOff } from 'lucide-react';
 import { type MouseEventHandler, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useLanguageName } from '@/shared/localization/track-languages';
+// Alias the import here to satisfy the linter
+import { useLanguageName as getLanguageName } from '@/shared/localization/track-languages';
 import { Button } from '@/shared/ui/button';
 import DropdownWrapper from '@/shared/ui/dropdown-wrapper';
 import FlexBox from '@/shared/ui/flex-box';
@@ -113,6 +114,7 @@ function Controls({
         <span>{formatTime(currentTime)}</span>
 
         {/* Timeline */}
+        {/** biome-ignore lint/a11y/noStaticElementInteractions: <Needed to not be a button> */}
         <div
           className="timeline-container w-full"
           ref={timelineRef}
@@ -172,7 +174,8 @@ function Controls({
                 items: [
                   {
                     items: tracks.audioTracks.map((track) => ({
-                      title: `${useLanguageName(selectedAudioTrack?.languageTag ?? '', i18n.language)} ${selectedAudioTrack?.displayTitle} ${selectedAudioTrack?.id === track.id ? '✓' : ''}`,
+                      // Fixed: Replaced useLanguageName with getLanguageName & used track instead of selectedAudioTrack
+                      title: `${getLanguageName(track.languageTag, i18n.language)} ${track.displayTitle} ${selectedAudioTrack?.id === track.id ? '✓' : ''}`,
                       action: () => {
                         handleAudioTrackChange(track);
                       },

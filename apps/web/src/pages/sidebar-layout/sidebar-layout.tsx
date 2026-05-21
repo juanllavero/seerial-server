@@ -8,7 +8,8 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/shared/ui/sideb
 
 const SideBarLayout = () => {
   const location = useLocation();
-  const inSettings = useMemo(() => location.pathname.includes('/settings'), [location.pathname]);
+  const { pathname } = location;
+  const inSettings = useMemo(() => pathname.includes('/settings'), [pathname]);
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
   const hasSong = useMusicStore((state) => Boolean(state.currentSong));

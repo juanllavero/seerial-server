@@ -134,9 +134,11 @@ function CorrectIdentificationSearch() {
     setSearchQuery({ name: defaultName, year: defaultYear });
 
     // Focus the search button when the dialog is opened
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       searchButtonRef.current?.focus();
     }, 0);
+
+    return () => clearTimeout(timeout);
   }, [isShow, movie?.name, movie?.year, series?.name, series?.year]);
 
   const search = (name: string, year: string) => {

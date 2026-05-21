@@ -5,14 +5,7 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   base: './',
-  plugins: [
-    react({
-      babel: {
-        plugins: ['babel-plugin-react-compiler'],
-      },
-    }),
-    tailwindcss(),
-  ],
+  plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -21,9 +14,8 @@ export default defineConfig({
   server: {
     port: 5180,
     proxy: {
-      //Redirects API requests to the server
       '/api': {
-        target: 'http://localhost:34200', // Server URL for development
+        target: 'http://localhost:34200',
         changeOrigin: true,
         ws: true,
       },

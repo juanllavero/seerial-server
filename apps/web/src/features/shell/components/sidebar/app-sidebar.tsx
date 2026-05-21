@@ -9,7 +9,8 @@ import NavSettings from './settings/nav-settings';
 
 function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation();
-  const inSettings = useMemo(() => location.pathname.includes('/settings'), [location.pathname]);
+  const { pathname } = location;
+  const inSettings = useMemo(() => pathname.includes('/settings'), [pathname]);
   const hasSong = useMusicStore((state) => Boolean(state.currentSong));
 
   return (

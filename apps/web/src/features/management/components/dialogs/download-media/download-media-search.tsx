@@ -168,9 +168,11 @@ function DownloadMediaSearch() {
     setSubmittedSearchText(searchText);
 
     // Focus the search button when the dialog is opened
-    setTimeout(() => {
+    const timeout = setTimeout(() => {
       searchButtonRef.current?.focus();
     }, 0);
+
+    return () => clearTimeout(timeout);
   }, [
     movie?.name,
     movieId,

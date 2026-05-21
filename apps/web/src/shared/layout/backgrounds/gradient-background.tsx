@@ -29,6 +29,9 @@ const GradientBackground = ({
       return;
     }
 
+    // Declare the timeout identifier variable within the main useEffect scope
+    let timeoutId: ReturnType<typeof setTimeout>;
+
     const generateGradient = async () => {
       setVisible(true);
 
@@ -41,14 +44,19 @@ const GradientBackground = ({
       const newIndex = (activeIndex + 1) % 2;
       setGradientCSS(css);
 
-      const timeout = setTimeout(() => {
+      timeoutId = setTimeout(() => {
         setActiveIndex(newIndex);
       }, 100);
-
-      return () => clearTimeout(timeout);
     };
 
     generateGradient();
+
+    // React cleanly grabs this synchronous function callback to clear timers when unmounting/re-running
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, [activeIndex, imageSrc, showGradient]);
 
   return (

@@ -39,7 +39,6 @@ function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
 
   return (
     <FlexBox
-      key={index}
       className={`hover:bg-black/40 ${currentSong?.id === song.id ? '' : ''}`}
       justify="space-between"
       align="center"
@@ -59,6 +58,8 @@ function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
         {!isMobile && (
           <FlexBox justify="center" align="center" css={{ width: '2rem', cursor: 'pointer' }}>
             {isHovered ? (
+              // biome-ignore lint/a11y/useKeyWithClickEvents: <Nedds to be clickable only on desktop>
+              // biome-ignore lint/a11y/noStaticElementInteractions: <Needs to be clickable only on desktop>
               <div
                 onClick={() => {
                   if (!isTablet) {
@@ -99,6 +100,9 @@ function MusicCard({ index, song, handlePlaySong }: MusicCardProps) {
           </FlexBox>
         </FlexBox>
       </FlexBox>
+
+      {/** biome-ignore lint/a11y/useKeyWithClickEvents: <Needs to be clickable only on desktop> */}
+      {/** biome-ignore lint/a11y/noStaticElementInteractions: <Needs to be clickable only on desktop> */}
       <div
         className="flex items-center space-x-2"
         onClick={(e) => {

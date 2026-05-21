@@ -1,0 +1,1 @@
+export const plugins = ['babel-plugin-react-compiler'];

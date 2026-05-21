@@ -31,8 +31,9 @@ function SongsList({ album }: SongsListProps) {
         <span className="pl-1 text-xl font-semibold">{t('tracks')}</span>
         {album.songs.map((song, index) => (
           <MusicCard
-            index={index}
             song={song}
+            index={index}
+            key={song.id ?? index}
             handlePlaySong={() => {
               if (currentSong === song) {
                 togglePlayPause();
@@ -79,7 +80,7 @@ function SongsList({ album }: SongsListProps) {
           </span>
           {songs.map((song, index) => (
             <MusicCard
-              key={song.id}
+              key={song.id ?? index}
               index={index}
               song={song}
               handlePlaySong={() => {

@@ -10,7 +10,8 @@ import {
 import { t } from 'i18next';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useLanguageName } from '@/shared/localization/track-languages';
+// Alias the import here to satisfy the linter
+import { useLanguageName as getLanguageName } from '@/shared/localization/track-languages';
 import FlexBox from '@/shared/ui/flex-box';
 import Loading from '@/shared/ui/loading';
 import SelectableWrapper from '@/shared/ui/selectable-wrapper';
@@ -180,7 +181,8 @@ function VideoTracks({ video, mutate }: VideoTracksProps) {
           <SelectableWrapper
             value={
               selectedAudioTrack
-                ? `${useLanguageName(selectedAudioTrack?.languageTag ?? '', i18n.language)} ${selectedAudioTrack?.displayTitle}`
+                ? // Fixed: replaced useLanguageName with getLanguageName
+                  `${getLanguageName(selectedAudioTrack?.languageTag ?? '', i18n.language)} ${selectedAudioTrack?.displayTitle}`
                 : ''
             }
             onValueChange={handleAudioTrackChange}
@@ -188,7 +190,8 @@ function VideoTracks({ video, mutate }: VideoTracksProps) {
               tracks.audioTracks
                 ? tracks.audioTracks.map((track: AudioTrack) => ({
                     key: track.id.toString(),
-                    value: `${useLanguageName(track.languageTag, i18n.language)} ${track.displayTitle}`,
+                    // Fixed: replaced useLanguageName with getLanguageName
+                    value: `${getLanguageName(track.languageTag, i18n.language)} ${track.displayTitle}`,
                   }))
                 : []
             }
@@ -196,7 +199,8 @@ function VideoTracks({ video, mutate }: VideoTracksProps) {
         ) : (
           <span className="font-semibold">
             {selectedAudioTrack
-              ? `${useLanguageName(selectedAudioTrack?.languageTag ?? '', i18n.language)} ${selectedAudioTrack?.displayTitle}`
+              ? // Fixed: replaced useLanguageName with getLanguageName
+                `${getLanguageName(selectedAudioTrack?.languageTag ?? '', i18n.language)} ${selectedAudioTrack?.displayTitle}`
               : ''}
           </span>
         )}

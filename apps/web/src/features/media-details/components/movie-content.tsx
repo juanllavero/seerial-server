@@ -38,8 +38,6 @@ function MovieContent({ movie }: MovieContentProps) {
     navigate(`/video-player/${video.id}`);
   };
 
-  const onlyMovie = movie.videos.length === 1;
-
   return (
     <FlexBox
       direction="column"
@@ -52,6 +50,7 @@ function MovieContent({ movie }: MovieContentProps) {
         <HorizontalList title={t('videos')}>
           {movie.videos.map((video) => (
             <VideoCard
+              key={video.id}
               video={video}
               playVideo={playEpisode}
               getVideoMenu={getEpisodeMenu}
@@ -66,6 +65,7 @@ function MovieContent({ movie }: MovieContentProps) {
         <HorizontalList title={t('extras')}>
           {movie.extras.map((video) => (
             <VideoCard
+              key={video.id}
               video={video}
               playVideo={playEpisode}
               getVideoMenu={getEpisodeMenu}

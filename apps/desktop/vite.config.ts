@@ -12,14 +12,7 @@ export default defineConfig(async () => ({
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
   },
-  plugins: [
-    react({
-      babel: {
-        plugins: ['babel-plugin-react-compiler'],
-      },
-    }),
-    tailwindcss(),
-  ],
+  plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -37,10 +30,10 @@ export default defineConfig(async () => ({
     host: host || false,
     hmr: host
       ? {
-          protocol: 'ws',
-          host,
-          port: 1421,
-        }
+        protocol: 'ws',
+        host,
+        port: 1421,
+      }
       : undefined,
     watch: {
       // 3. tell vite to ignore watching `src-tauri`

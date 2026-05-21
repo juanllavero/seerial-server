@@ -12,7 +12,8 @@ import {
 const NavHomeButton = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const inHome = useMemo(() => location.pathname.includes('/home'), [location.pathname]);
+  const { pathname } = location;
+  const inHome = useMemo(() => pathname.includes('/home'), [pathname]);
 
   const home = {
     id: '0',
@@ -28,6 +29,7 @@ const NavHomeButton = () => {
       <SidebarMenu>
         <SidebarMenuItem>
           <SidebarMenuButton asChild tooltip={home.name}>
+            {/** biome-ignore lint/a11y/useValidAnchor: <Needs to be an <a> element> */}
             <a
               href={''}
               className={`flex items-center gap-2 ${inHome ? 'bg-accent' : ''}`}
