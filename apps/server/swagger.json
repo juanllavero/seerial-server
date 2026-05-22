@@ -3021,6 +3021,12 @@
 							"$ref": "#/components/schemas/Album"
 						},
 						"type": "array"
+					},
+					"songs": {
+						"items": {
+							"$ref": "#/components/schemas/Song"
+						},
+						"type": "array"
 					}
 				},
 				"required": [
@@ -8034,7 +8040,7 @@
 			}
 		},
 		"/libraries/order": {
-			"post": {
+			"patch": {
 				"operationId": "Reorder",
 				"responses": {
 					"200": {
@@ -8071,7 +8077,7 @@
 			}
 		},
 		"/libraries/{id}/order": {
-			"post": {
+			"patch": {
 				"operationId": "ReorderItems",
 				"responses": {
 					"200": {

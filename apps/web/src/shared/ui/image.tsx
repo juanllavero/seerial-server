@@ -57,7 +57,7 @@ const Image: React.FC<ImageProps> = ({
     setIsLoading(true);
     setHasError(false);
     const newSrc = url
-      ? url.startsWith('http2')
+      ? url.startsWith('http')
         ? url
         : url.startsWith('local')
           ? url.replace('local', '')

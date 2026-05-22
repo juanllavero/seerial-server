@@ -130,7 +130,7 @@ function ImageListTab({
   }, [imageUrl]);
 
   return (
-    <FlexBox direction="column" gap={1} height={isTablet ? '25rem' : '35rem'}>
+    <FlexBox direction="column" gap={1} height={'100%'}>
       <FlexBox gap={1} justify="center" align="center" width={'100%'} padding="0 0.5rem">
         {/* Hidden input for file selection */}
         <input

@@ -132,8 +132,8 @@ export class ImagesController extends Controller {
     const imagePath = nodePath.isAbsolute(path)
       ? path
       : fileSystemService.getExternalPath(
-          path.includes('resources/') ? path : fileSystemService.join('resources', path),
-        );
+        path.includes('resources/') ? path : fileSystemService.join('resources', path),
+      );
 
     const sanitizedPath = sanitizeImagePath(
       imagePath,
@@ -187,11 +187,11 @@ export class ImagesController extends Controller {
     }
 
     const imageSource = localPath
-      ? fileSystemService.getExternalPath(
-          localPath?.includes('resources/')
-            ? localPath
-            : fileSystemService.join('resources', localPath ?? ''),
-        )
+      ? await fileSystemService.isFile(localPath) ? localPath : fileSystemService.getExternalPath(
+        localPath?.includes('resources/')
+          ? localPath
+          : fileSystemService.join('resources', localPath ?? ''),
+      )
       : url;
 
     const options = {
@@ -261,10 +261,10 @@ export class ImagesController extends Controller {
     const folderPath = nodePath.isAbsolute(decodedLocalPath)
       ? decodedLocalPath
       : fileSystemService.getExternalPath(
-          decodedLocalPath.includes('resources/')
-            ? decodedLocalPath
-            : fileSystemService.join('resources', decodedLocalPath),
-        );
+        decodedLocalPath.includes('resources/')
+          ? decodedLocalPath
+          : fileSystemService.join('resources', decodedLocalPath),
+      );
 
     const sanitizedFolder = sanitizeDirectoryPath(folderPath, getSystemAllowedPaths(), true);
 

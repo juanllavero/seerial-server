@@ -149,7 +149,7 @@ export class LibrariesController extends Controller {
   /**
    * Reorder libraries
    */
-  @Post('order')
+  @Patch('order')
   @Security('adminAuth')
   public async reorder(@Body() body: ReorderLibrariesDTO): Promise<ApiResponse<boolean>> {
     const { orderedLibraryIds } = body;
@@ -161,7 +161,7 @@ export class LibrariesController extends Controller {
   /**
    * Reorder library items
    */
-  @Post('{id}/order')
+  @Patch('{id}/order')
   @Security('adminAuth')
   public async reorderItems(
     @Path() id: string,

@@ -1444,6 +1444,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
     const dataSource = DatabaseManager.getDataSource();
 
     if (!dataSource) {
+      logger.error(`[reorderItems] No data source available.`);
       return false;
     }
 
@@ -1472,19 +1473,19 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
       );
 
       // Reset the order of the items based on library type
-      if (library.type === 'Movies') {
+      if (library.type === LibraryTypes.MOVIES) {
         await queryRunner.manager.update(
           MovieModel,
           { libraryId: libraryId },
           { order: tempOrder },
         );
-      } else if (library.type === 'Shows') {
+      } else if (library.type === LibraryTypes.SHOWS) {
         await queryRunner.manager.update(
           SeriesModel,
           { libraryId: libraryId },
           { order: tempOrder },
         );
-      } else if (library.type === 'Music') {
+      } else if (library.type === LibraryTypes.MUSIC) {
         await queryRunner.manager.update(
           AlbumModel,
           { libraryId: libraryId },
@@ -1503,19 +1504,19 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
             { libraryId: libraryId, collectionId: item.id },
             { customOrder: newOrder },
           );
-        } else if (item.type === 'movies') {
+        } else if (item.type === 'movie') {
           await queryRunner.manager.update(
             MovieModel,
             { libraryId: libraryId, id: item.id },
             { order: newOrder },
           );
-        } else if (item.type === 'shows') {
+        } else if (item.type === 'series') {
           await queryRunner.manager.update(
             SeriesModel,
             { libraryId: libraryId, id: item.id },
             { order: newOrder },
           );
-        } else if (item.type === 'albums') {
+        } else if (item.type === 'album') {
           await queryRunner.manager.update(
             AlbumModel,
             { libraryId: libraryId, id: item.id },
@@ -1526,7 +1527,10 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
 
       await queryRunner.commitTransaction();
       return true;
-    } catch (_error) {
+    } catch (error) {
+      if (error instanceof Error && error.stack) {
+        logger.error(error.stack);
+      }
       await queryRunner.rollbackTransaction();
       return false;
     } finally {

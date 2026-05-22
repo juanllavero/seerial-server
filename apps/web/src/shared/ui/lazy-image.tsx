@@ -32,7 +32,7 @@ function LazyImage({
   const [loaded, setLoaded] = useState(false);
   const [imageSrc, setImageSrc] = useState(
     url
-      ? url.startsWith('http2')
+      ? url.startsWith('http')
         ? url
         : url.startsWith('local')
           ? url.replace('local', '')
@@ -45,7 +45,7 @@ function LazyImage({
 
   useEffect(() => {
     const newSrc = url
-      ? url.startsWith('http2')
+      ? url.startsWith('http')
         ? url
         : url.startsWith('local')
           ? url.replace('local', '')
@@ -56,7 +56,7 @@ function LazyImage({
     if (imageSrc !== newSrc) setImageSrc(newSrc ?? errorSrc);
     setLoaded(false); // Reset loaded to show skeleton while loading new image
     setHasError(false); // Reset error state
-  }, [url, src]);
+  }, [url, src, errorSrc, imageSrc]);
 
   const containerStyles = {
     width: width,

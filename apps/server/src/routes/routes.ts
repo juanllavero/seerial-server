@@ -1142,6 +1142,7 @@ const models: TsoaRoute.Models = {
             "shows": {"dataType":"array","array":{"dataType":"refObject","ref":"Series"},"required":true},
             "movies": {"dataType":"array","array":{"dataType":"refObject","ref":"Movie"},"required":true},
             "albums": {"dataType":"array","array":{"dataType":"refObject","ref":"Album"},"required":true},
+            "songs": {"dataType":"array","array":{"dataType":"refObject","ref":"Song"}},
         },
         "additionalProperties": false,
     },
@@ -4362,7 +4363,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsLibrariesController_reorder: Record<string, TsoaRoute.ParameterSchema> = {
                 body: {"in":"body","name":"body","required":true,"ref":"ReorderLibrariesDTO"},
         };
-        app.post('/api/libraries/order',
+        app.patch('/api/libraries/order',
             authenticateMiddleware([{"adminAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(LibrariesController)),
             ...(fetchMiddlewares<RequestHandler>(LibrariesController.prototype.reorder)),
@@ -4394,7 +4395,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
                 body: {"in":"body","name":"body","required":true,"ref":"ReorderItemsDTO"},
         };
-        app.post('/api/libraries/:id/order',
+        app.patch('/api/libraries/:id/order',
             authenticateMiddleware([{"adminAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(LibrariesController)),
             ...(fetchMiddlewares<RequestHandler>(LibrariesController.prototype.reorderItems)),
