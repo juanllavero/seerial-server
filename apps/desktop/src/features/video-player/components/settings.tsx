@@ -195,7 +195,7 @@ function Settings({ onPanelChange, settings, updateSetting }: SettingsProps) {
           className={`p-2 ${open ? 'bg-white text-black' : ''}`}
           onClick={() => handleOpenChange(!open)}
         >
-          <SettingsIcon />
+          <SettingsIcon size={'2dvh'} />
         </NavigationButton>
 
         <AnimatePresence>

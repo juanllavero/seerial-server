@@ -1,4 +1,5 @@
 import { useGetAnimatedArtwork } from '@seerial/api';
+import { useLocalStorage } from '@seerial/hooks';
 import { useServerStore } from '@seerial/stores';
 import { memo, useEffect, useRef, useState } from 'react';
 import FadedCover from '@/shared/components/backgrounds/faded-cover';
@@ -12,12 +13,11 @@ interface ArtworkProps {
   shouldShowLyricsPanel: boolean;
 }
 
-const TEST_BACKGROUND_STYLE: 'classic' | 'background' = 'classic';
-
 function Artwork({ imageSrc, albumFolderPath, shouldShowLyricsPanel }: ArtworkProps) {
   const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
   const videoRef = useRef<HTMLVideoElement>(null);
   const [videoBlobUrl, setVideoBlobUrl] = useState<string | null>(null);
+  const [coverStyle] = useLocalStorage<'classic' | 'background'>('music_cover_style', 'classic');
 
   const { data: animatedBlob } = useGetAnimatedArtwork({
     enabled: !!albumFolderPath && !!serverUrl,
@@ -37,7 +37,7 @@ function Artwork({ imageSrc, albumFolderPath, shouldShowLyricsPanel }: ArtworkPr
     };
   }, [animatedBlob]);
 
-  if (TEST_BACKGROUND_STYLE === 'background') {
+  if (coverStyle === 'background') {
     return <FadedCover imageSrc={imageSrc ?? ''} videoBlobUrl={videoBlobUrl} videoRef={videoRef} />;
   }
 

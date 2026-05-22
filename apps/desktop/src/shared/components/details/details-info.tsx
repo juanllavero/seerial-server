@@ -6,8 +6,9 @@ import FlexBox from '@/shared/components/ui/flex-box';
 import Image from '@/shared/components/ui/image';
 import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
 import { NavigationFocusKeys } from '@/shared/navigation/constants';
+import ListTitle from '../text/list-title';
+import Subtitle from '../text/subtitle';
 import Tertiary from '../text/tertiary';
-import Title from '../text/title';
 import DetailsActionButtons from './details-action-buttons';
 import DetailsCastCard from './details-cast-card';
 import DetailsHeader from './details-header';
@@ -37,6 +38,7 @@ function DetailsInfo({
   displayOptions,
   behaviorOptions,
   cast,
+  isExpandedImageLandscape = false,
   expandedImageSrc,
   expandedTitle,
   onDescriptionExpandedChange,
@@ -124,15 +126,19 @@ function DetailsInfo({
       <FlexBox
         direction="column"
         justify="space-between"
-        width={'100%'}
-        height="100%"
-        className="z-50"
-        padding="4dvh 4rem"
+        width="100dvw"
+        height="100dvh"
+        padding="4dvh 0 0 0"
+        className="absolute z-50 top-0"
       >
-        <FlexBox className="flex-row" align="stretch" gap={3} css={{ maxHeight: '56dvh' }}>
+        <FlexBox align="start" height={'100%'} gap={5} padding="0 5dvh">
           <FlexBox
             className="shrink-0 overflow-hidden rounded-xl bg-black/35"
-            css={{ width: '34dvh', height: '52dvh' }}
+            css={{
+              height: isExpandedImageLandscape ? '44dvh' : '58dvh',
+              width: 'auto',
+              aspectRatio: isExpandedImageLandscape ? '16 / 9' : '3 / 4',
+            }}
           >
             <Image
               url={expandedImageSrc}
@@ -145,7 +151,7 @@ function DetailsInfo({
           </FlexBox>
 
           <FlexBox direction="column" gap={1.2} css={{ minWidth: 0 }}>
-            {!!fullTitle && <Title className="line-clamp-2">{fullTitle}</Title>}
+            {!!fullTitle && <Subtitle className="line-clamp-2">{fullTitle}</Subtitle>}
             <Tertiary
               className="overflow-y-auto pr-2"
               style={{ color: 'var(--text-secondary)', maxHeight: '40dvh' }}
@@ -156,8 +162,8 @@ function DetailsInfo({
         </FlexBox>
 
         {castMembers.length > 0 && (
-          <FlexBox direction="column" gap={1.2}>
-            <Tertiary style={{ color: 'var(--text-primary)' }}>{t('cast')}</Tertiary>
+          <FlexBox direction="column" gap={1.2} height={'35dvh'}>
+            <ListTitle style={{ color: 'var(--text-primary)' }}>{t('cast')}</ListTitle>
             <NavigationScrollView
               direction="horizontal"
               className="w-full gap-4 pb-[2dvh]"
@@ -198,6 +204,7 @@ function DetailsInfo({
         durationInfo={durationInfo}
         timeWatchedInfo={timeWatchedInfo}
         customDescription={customDescription}
+        clickableDescription={!hideButtons}
         onDescriptionClick={openExpandedDescription}
       />
 

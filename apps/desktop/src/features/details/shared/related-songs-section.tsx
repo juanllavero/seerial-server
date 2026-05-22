@@ -60,11 +60,11 @@ function RelatedSongsSection({
   if (songsWithAlbum.length === 0) return null;
 
   return (
-    <FlexBox direction="column" gap={1} width="100%">
+    <FlexBox direction="column" gap={2} width="40dvw" padding="0 3dvh">
       <ListTitle>{t('music')}</ListTitle>
 
       <NavigationScrollView
-        direction="horizontal"
+        direction="vertical"
         className="z-10 w-full min-w-0 gap-3"
         scrollMode="center"
         focusedElementId={focusedElementId}
@@ -78,7 +78,7 @@ function RelatedSongsSection({
             <NavigationButton
               key={song.id}
               customKey={`related-song-${song.id}`}
-              className="shrink-0 w-[25vh] justify-start rounded-xl! py-8! px-12!"
+              className="shrink-0 justify-start rounded-xl! py-8! px-12!"
               onClick={() => setPlaybackContext(song, song.album, queue)}
               onFocus={() => onSongFocus?.(song.id ?? '')}
               onArrowPress={onArrowPress}

@@ -1,7 +1,8 @@
 import { setFocus, useFocusable } from '@noriginmedia/norigin-spatial-navigation';
 import type { Song } from '@seerial/domain';
+import { useLocalStorage } from '@seerial/hooks';
 import { AnimatePresence, domAnimation, LazyMotion, m } from 'framer-motion';
-import { AudioLines, ForwardIcon, Languages, List, MicVocal, RewindIcon } from 'lucide-react';
+import { AudioLines, Languages, Layers, List, MicVocal, SkipBack, SkipForward } from 'lucide-react';
 import {
   type Dispatch,
   memo,
@@ -22,7 +23,7 @@ import { NavigationFocusKeys } from '@/shared/navigation/constants';
 import QueueMenu from './queue-menu';
 import SongInfo from './song-info';
 
-const TEST_BACKGROUND_STYLE: 'classic' | 'background' = 'classic';
+export type CoverStyle = 'classic' | 'background';
 
 const KARAOKE_MIX_MIN = -10;
 const KARAOKE_MIX_MAX = 10;
@@ -246,6 +247,12 @@ function MusicPlayerControlsContent({
     showTranslation,
   } = lyricsUi;
 
+  const [coverStyle, setCoverStyle] = useLocalStorage<CoverStyle>('music_cover_style', 'classic');
+
+  const toggleCoverStyle = useCallback(() => {
+    setCoverStyle((prev) => (prev === 'classic' ? 'background' : 'classic'));
+  }, [setCoverStyle]);
+
   return (
     <div
       className={`pointer-events-none absolute inset-x-0 bottom-[3.5vh] z-30 flex justify-center px-[4vh] transition-opacity duration-300 linear ${
@@ -261,7 +268,7 @@ function MusicPlayerControlsContent({
           )}
 
           <div className="flex justify-center pb-4">
-            {TEST_BACKGROUND_STYLE === 'background' && <SongInfo />}
+            {coverStyle === 'background' && <SongInfo />}
           </div>
         </div>
 
@@ -310,7 +317,7 @@ function MusicPlayerControlsContent({
                 hideText
                 onClick={handlePlayPrevious}
               >
-                <RewindIcon fill="currentColor" size={'2vh'} />
+                <SkipBack fill="currentColor" size={'2vh'} />
               </NavigationButton>
               {currentSong && songQueue.length > songQueue.indexOf(currentSong) + 1 && (
                 <NavigationButton
@@ -318,7 +325,7 @@ function MusicPlayerControlsContent({
                   hideText
                   onClick={handlePlayNextSong}
                 >
-                  <ForwardIcon fill="currentColor" size={'2vh'} />
+                  <SkipForward fill="currentColor" size={'2vh'} />
                 </NavigationButton>
               )}
             </div>
@@ -403,6 +410,16 @@ function MusicPlayerControlsContent({
               </div>
 
               <NavigationButton
+                customKey={NavigationFocusKeys.player.coverStyleButton}
+                title={t('coverStyle')}
+                hideText
+                selected={coverStyle === 'background'}
+                onClick={toggleCoverStyle}
+              >
+                <Layers size={'2dvh'} />
+              </NavigationButton>
+
+              <NavigationButton
                 customKey={NavigationFocusKeys.player.openQueueButton}
                 hideText
                 selected={isQueueMenuOpen}
@@ -468,14 +485,21 @@ function MusicPlayerControls({
 
   const controlsHideTimeoutRef = useRef<number | null>(null);
   const isTimelineFocusedRef = useRef(false);
+  const timelineFocusedAtRef = useRef(0);
+  const arePlayerControlsVisibleRef = useRef(true);
 
   const handleTimelineFocusChange = useCallback((focused: boolean) => {
     isTimelineFocusedRef.current = focused;
     if (focused) {
+      timelineFocusedAtRef.current = Date.now();
       setArePlayerControlsVisible(true);
     }
   }, []);
   const [arePlayerControlsVisible, setArePlayerControlsVisible] = useState(true);
+
+  useEffect(() => {
+    arePlayerControlsVisibleRef.current = arePlayerControlsVisible;
+  }, [arePlayerControlsVisible]);
 
   const clearControlsHideTimeout = useCallback(() => {
     if (controlsHideTimeoutRef.current !== null) {
@@ -576,9 +600,18 @@ function MusicPlayerControls({
     }
 
     const handleControlsActivity = (e: KeyboardEvent) => {
-      if (isTimelineFocusedRef.current && e.key === 'ArrowUp') {
+      const recentlyFocusedTimeline = Date.now() - timelineFocusedAtRef.current < 120;
+
+      if (isTimelineFocusedRef.current && e.key === 'ArrowUp' && !recentlyFocusedTimeline) {
         clearControlsHideTimeoutEvent();
-        setArePlayerControlsVisible(false);
+
+        if (arePlayerControlsVisibleRef.current) {
+          setArePlayerControlsVisible(false);
+          return;
+        }
+
+        setArePlayerControlsVisible(true);
+        scheduleControlsAutoHideEvent();
         return;
       }
 

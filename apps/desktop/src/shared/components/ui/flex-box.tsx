@@ -25,6 +25,7 @@ interface FlexBoxProps {
   className?: string;
   ref?: React.Ref<HTMLDivElement>;
   css?: CSSProperties;
+  style?: CSSProperties;
   onMouseEnter?: (e?: React.MouseEvent) => void;
   onMouseLeave?: (e?: React.MouseEvent) => void;
   onMouseDown?: (e?: React.MouseEvent) => void;
@@ -50,6 +51,7 @@ function FlexBox({
   hideScrollbar,
   ref,
   css,
+  style,
   onMouseEnter,
   onMouseLeave,
   onMouseDown,
@@ -69,6 +71,7 @@ function FlexBox({
     padding: padding,
     margin: margin,
     ...css,
+    ...style,
   };
 
   const interactiveProps = onClick

@@ -133,15 +133,22 @@ function buildOrderedSections(
   ];
 }
 
-function getFirstFocusedElementId(sections: CollectionSection[]): string | undefined {
+function getFirstFocusedElementId(
+  sections: CollectionSection[],
+  musicExtras?: MusicExtra[],
+): string | undefined {
   const firstSection = sections[0];
   const firstItem = firstSection?.items[0];
 
-  if (!firstSection || !firstItem) {
-    return undefined;
+  if (firstSection && firstItem) {
+    return `${firstSection.key}-${firstItem.id}`;
   }
 
-  return `${firstSection.key}-${firstItem.id}`;
+  if (musicExtras && musicExtras.length > 0) {
+    return 'extra-0';
+  }
+
+  return undefined;
 }
 
 function getOrderedSectionKeys(libraryType: LibraryType | undefined): CollectionSectionKey[] {
@@ -312,8 +319,8 @@ function CollectionDetailsContent({
   );
 
   const firstFocusedElementId = useMemo(
-    () => getFirstFocusedElementId(orderedSections),
-    [orderedSections],
+    () => getFirstFocusedElementId(orderedSections, musicExtras),
+    [orderedSections, musicExtras],
   );
 
   const allPageItemIds = useMemo(() => {
@@ -332,27 +339,63 @@ function CollectionDetailsContent({
   const isRestoringFocus = !!lastFocusedElementId && allPageItemIds.has(lastFocusedElementId);
 
   const hasFocusedRef = useRef(false);
+  const lastFocusTargetKeyRef = useRef<string | null>(null);
 
   const isScrollRestoring = isRestoringFocus && !hasFocusedRef.current;
 
   useEffect(() => {
-    if (!firstFocusedElementId || hasFocusedRef.current) {
+    if (!firstFocusedElementId) {
       return;
     }
 
-    hasFocusedRef.current = true;
-
     const idToFocus =
       isRestoringFocus && lastFocusedElementId ? lastFocusedElementId : firstFocusedElementId;
+    const focusTargetKey = `${collectionId ?? ''}:${idToFocus}`;
+
+    if (lastFocusTargetKeyRef.current !== focusTargetKey) {
+      lastFocusTargetKeyRef.current = focusTargetKey;
+      hasFocusedRef.current = false;
+    }
+
+    if (hasFocusedRef.current) {
+      return;
+    }
 
     setLastFocusedElementId(idToFocus);
 
-    const focusFrame = window.requestAnimationFrame(() => {
-      setFocus(idToFocus);
-    });
+    let focusRetryTimer: number | null = null;
+    let focusAttempts = 0;
+    const maxFocusAttempts = 12;
 
-    return () => window.cancelAnimationFrame(focusFrame);
-  }, [firstFocusedElementId, isRestoringFocus, lastFocusedElementId, setLastFocusedElementId]);
+    const focusWhenReady = () => {
+      const focusableTarget = document.querySelector(`[data-focus-key="${idToFocus}"]`);
+      if (focusableTarget) {
+        hasFocusedRef.current = true;
+        setFocus(idToFocus);
+        return;
+      }
+
+      focusAttempts += 1;
+      if (focusAttempts < maxFocusAttempts) {
+        focusRetryTimer = window.setTimeout(focusWhenReady, 40);
+      }
+    };
+
+    const focusFrame = window.requestAnimationFrame(focusWhenReady);
+
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      if (focusRetryTimer !== null) {
+        window.clearTimeout(focusRetryTimer);
+      }
+    };
+  }, [
+    collectionId,
+    firstFocusedElementId,
+    isRestoringFocus,
+    lastFocusedElementId,
+    setLastFocusedElementId,
+  ]);
 
   const imageWidth = libraryType === LibraryTypes.MUSIC ? '45vh' : '45vh';
   const imageHeight = libraryType === LibraryTypes.MUSIC ? '45vh' : '68vh';

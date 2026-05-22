@@ -120,7 +120,7 @@ export const getAudioTrack = (prefAudioLan: string, video: Video) => {
     return video.audioTracks[0];
 };
 
-const LATIN_SPANISH_PATTERN = /latin|latam|lat_am|latino|latinoam[eé]rica/i;
+const LATIN_SPANISH_PATTERN = /latin|lat|LAT|latam|lat_am|latino|latinoam[eé]rica/i;
 
 export const isLatinSpanishTrack = (track: { languageTag: string; title?: string }): boolean => {
     if (track.languageTag !== 'spa') return false;

@@ -30,12 +30,21 @@ function Home() {
   });
 
   useEffect(() => {
+    let frameId = 0;
+
     if (continueWatching && continueWatching.length > 0) {
-      setFocus(`continueWatchingCard-${continueWatching[0].id}`);
-      return;
+      frameId = window.requestAnimationFrame(() => {
+        setFocus(continueWatching[0].id);
+      });
+    } else {
+      frameId = window.requestAnimationFrame(() => {
+        setFocus('home');
+      });
     }
 
-    setFocus('home');
+    return () => {
+      window.cancelAnimationFrame(frameId);
+    };
   }, [continueWatching]);
 
   useEffect(() => {

@@ -49,6 +49,7 @@ export const NavigationFocusKeys = {
     repeatButton: 'player-repeat-button',
     shuffleButton: 'player-shuffle-button',
     chapters: 'player-chapters',
+    coverStyleButton: 'player-cover-style-button',
   },
   settings: {
     container: 'settings-panel',

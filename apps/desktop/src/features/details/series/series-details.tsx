@@ -356,8 +356,9 @@ function SeriesDetails({
             disableInitialFocus: true,
           }}
           subtitle={selectedEpisode?.name}
+          isExpandedImageLandscape={true}
           expandedTitle={selectedEpisode?.name ?? details?.title}
-          expandedImageSrc={selectedSeason?.backgroundSrc ?? selectedEpisode?.video.imgSrc}
+          expandedImageSrc={selectedEpisode?.video.imgSrc ?? selectedSeason?.backgroundSrc}
           cast={series?.cast}
           onDescriptionExpandedChange={setIsDescriptionExpanded}
           infoItems={detailsInfoItems}

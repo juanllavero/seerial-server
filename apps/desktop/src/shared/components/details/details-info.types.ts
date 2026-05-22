@@ -28,6 +28,7 @@ export interface DetailsInfoProps {
   displayOptions?: DetailsInfoDisplayOptions;
   behaviorOptions?: DetailsInfoBehaviorOptions;
   cast?: CastData[];
+  isExpandedImageLandscape?: boolean;
   expandedImageSrc?: string;
   expandedTitle?: string;
   onDescriptionExpandedChange?: (expanded: boolean) => void;

@@ -40,7 +40,7 @@ function MusicExtraCardComponent({
     },
   });
 
-  const { focusedKey, setFocusedKey } = useMusicExtraCardFocus();
+  const { setFocusedKey } = useMusicExtraCardFocus();
 
   useEffect(() => {
     const el = ref.current as Element | null;
@@ -138,7 +138,6 @@ function MusicExtraCardComponent({
       width={width}
       className="shrink-0 overflow-hidden"
       css={{ flex: `0 0 ${width}`, maxWidth: width }}
-      style={{ outline: focusedKey === customKey ? '2px solid #fff' : undefined }}
     >
       <div className="relative w-full overflow-hidden rounded-md" style={{ aspectRatio: '16 / 9' }}>
         <div

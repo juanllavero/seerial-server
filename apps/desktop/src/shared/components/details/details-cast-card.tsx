@@ -1,6 +1,5 @@
 import type { CastData } from '@seerial/domain';
 import { NavigationButton } from '@/shared/components/navigation';
-import FlexBox from '@/shared/components/ui/flex-box';
 import Image from '@/shared/components/ui/image';
 import Tertiary from '../text/tertiary';
 
@@ -22,35 +21,30 @@ function DetailsCastCard({
       customKey={focusKey}
       onFocus={() => onFocused?.(focusKey)}
       variant="ghost"
-      className={`h-[22dvh] w-[20dvh] shrink-0 rounded-xl! bg-black/35 p-3! text-left justify-start! max-h-none! border-2 ${
-        isSelected ? 'border-white' : 'border-transparent'
-      }`}
+      className={`h-[25dvh] w-[25dvh] shrink-0 rounded-xl! bg-transparent! p-0! max-h-none! whitespace-normal!`}
     >
-      <FlexBox direction="column" gap={0.8} align="center">
+      <div className="flex flex-col items-center gap-2">
         <Image
           url={person.profileImage}
           fallbackSrc="/img/fileNotFound.jpg"
           alt={person.name}
-          width="9dvh"
-          height="9dvh"
+          width="15dvh"
+          height="15dvh"
           aspectRatio="1"
-          className="rounded-full"
+          className={`border-2 border-transparent rounded-full transition-transform duration-300! ease-in-out ${isSelected ? 'scale-100 border-white' : 'scale-90'}`}
           objectFit="cover"
           tmdbSize="w185"
         />
-        <Tertiary
-          className="line-clamp-1 w-full text-center"
-          style={{ color: 'var(--text-primary)' }}
-        >
+        <Tertiary className="line-clamp-1 w-full text-center" style={{ color: 'white' }}>
           {person.name}
         </Tertiary>
         <Tertiary
-          className="line-clamp-2 w-full text-center"
+          className="line-clamp-2! w-full text-center"
           style={{ color: 'var(--text-secondary)' }}
         >
           {person.character}
         </Tertiary>
-      </FlexBox>
+      </div>
     </NavigationButton>
   );
 }

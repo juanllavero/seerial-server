@@ -68,6 +68,20 @@ function getItemTypeForLibrary(libraryType: LibraryType | undefined): ItemType |
   }
 }
 
+function getFirstRelatedSongFocusId(
+  albums: Collection['albums'] | undefined,
+  songs: Collection['songs'] | undefined,
+) {
+  if (!albums?.length || !songs?.length) {
+    return undefined;
+  }
+
+  const albumIds = new Set(albums.map((album) => album.id));
+  const firstSongWithAlbum = songs.find((song) => albumIds.has(song.albumId));
+
+  return firstSongWithAlbum ? `related-song-${firstSongWithAlbum.id}` : undefined;
+}
+
 interface RelatedContentPageProps {
   collectionId: string;
   currentItemId?: string;
@@ -89,6 +103,7 @@ function RelatedContentPage({
   const navigate = useNavigate();
   const [focusedElementId, setFocusedElementId] = useState<string | undefined>();
   const hasFocusedRef = useRef(false);
+  const lastFocusedSongIdRef = useRef<string | undefined>(undefined);
 
   useKeyboardBack({
     enabled: isVisible,
@@ -106,7 +121,7 @@ function RelatedContentPage({
     enabled: !!collectionId,
   });
 
-  const handleLeftFromFirst = useCallback(
+  const handleLeftFromSongs = useCallback(
     (direction: string) => {
       if (direction === 'left') {
         onNavigateBack();
@@ -175,6 +190,29 @@ function RelatedContentPage({
 
   const albums = collection?.albums ?? [];
   const collectionSongs = collection?.songs ?? [];
+  const firstSongFocusId = useMemo(
+    () => getFirstRelatedSongFocusId(collection?.albums, collection?.songs),
+    [collection?.albums, collection?.songs],
+  );
+
+  const handleLeftFromRelatedContent = useCallback(
+    (direction: string) => {
+      if (direction !== 'left') {
+        return true;
+      }
+
+      const songFocusId = lastFocusedSongIdRef.current ?? firstSongFocusId;
+      if (songFocusId) {
+        setFocusedElementId(songFocusId);
+        setFocus(songFocusId);
+        return false;
+      }
+
+      onNavigateBack();
+      return false;
+    },
+    [firstSongFocusId, onNavigateBack],
+  );
 
   // Reset focus guard when the page is hidden so it re-focuses on next open
   useEffect(() => {
@@ -185,14 +223,15 @@ function RelatedContentPage({
 
   // Focus the first element when the page becomes visible
   useEffect(() => {
-    if (!isVisible || hasFocusedRef.current || sections.length === 0) return;
+    if (!isVisible || hasFocusedRef.current) return;
 
     const firstSection = sections[0];
     const firstItem = firstSection?.items[0];
-    if (!firstItem) return;
+    const focusId =
+      firstSongFocusId ?? (firstItem ? `related-${firstSection.key}-${firstItem.id}` : undefined);
+    if (!focusId) return;
 
     hasFocusedRef.current = true;
-    const focusId = `related-${firstSection.key}-${firstItem.id}`;
     setFocusedElementId(focusId);
 
     const frame = window.requestAnimationFrame(() => {
@@ -200,17 +239,30 @@ function RelatedContentPage({
     });
 
     return () => window.cancelAnimationFrame(frame);
-  }, [isVisible, sections]);
+  }, [firstSongFocusId, isVisible, sections]);
 
   return (
     <FlexBox
-      direction="column"
+      direction="row"
       width="100dvw"
-      height="92dvh"
-      padding="2dvh 0"
+      height="100dvh"
+      padding="4dvh 0 2dvh 0"
       gap={2}
       className="overflow-hidden"
     >
+      {collectionSongs.length > 0 && (
+        <RelatedSongsSection
+          albums={albums}
+          songs={collectionSongs}
+          focusedElementId={focusedElementId}
+          onSongFocus={(id) => {
+            const songFocusId = `related-song-${id}`;
+            lastFocusedSongIdRef.current = songFocusId;
+            setFocusedElementId(songFocusId);
+          }}
+          onArrowPress={handleLeftFromSongs}
+        />
+      )}
       <NavigationScrollView
         direction="vertical"
         className="w-full max-h-full gap-6 pb-[5dvh]"
@@ -218,16 +270,6 @@ function RelatedContentPage({
         focusedElementId={focusedElementId}
         isRestoringFocus={false}
       >
-        {collectionSongs.length > 0 && (
-          <RelatedSongsSection
-            albums={albums}
-            songs={collectionSongs}
-            focusedElementId={focusedElementId}
-            onSongFocus={(id) => setFocusedElementId(`related-song-${id}`)}
-            onArrowPress={handleLeftFromFirst}
-          />
-        )}
-
         {sections.map((section) => (
           <FlexBox
             key={section.key}
@@ -257,7 +299,7 @@ function RelatedContentPage({
                   onFocus={() => {
                     setFocusedElementId(`related-${section.key}-${item.id}`);
                   }}
-                  onArrowPress={itemIndex === 0 ? handleLeftFromFirst : undefined}
+                  onArrowPress={itemIndex === 0 ? handleLeftFromRelatedContent : undefined}
                   action={() => {
                     navigate(`/details/${section.itemType}/${item.id}`, {
                       state: {

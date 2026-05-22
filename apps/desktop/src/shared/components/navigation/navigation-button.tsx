@@ -13,6 +13,7 @@ interface FocusableButtonProps {
   disabled?: boolean;
   onClick?: (e: React.MouseEvent) => void;
   onFocus?: () => void;
+  onBlur?: () => void;
   onArrowPress?: (direction: string) => boolean | undefined;
   customKey?: string;
   selected?: boolean;
@@ -71,6 +72,7 @@ function FocusableButton({
   disabled,
   onClick,
   onFocus,
+  onBlur,
   onArrowPress,
   customKey,
   selected = false,
@@ -81,6 +83,7 @@ function FocusableButton({
   const { ref, focused } = useFocusable({
     onEnterPress: onClick,
     onFocus,
+    onBlur,
     onArrowPress: onArrowPress
       ? (direction) => {
           const shouldContinueNavigation = onArrowPress(direction);

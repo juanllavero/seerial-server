@@ -130,7 +130,7 @@ function SelectorButtons({
             onTogglePanel('audio');
           }}
         >
-          <Music2 />
+          <Music2 size={'2dvh'} />
         </NavigationButton>
       )}
       {hasSubtitleOptions && (
@@ -143,7 +143,7 @@ function SelectorButtons({
             onTogglePanel('subtitle');
           }}
         >
-          <Captions />
+          <Captions size={'2dvh'} />
         </NavigationButton>
       )}
     </div>
