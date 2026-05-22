@@ -88,21 +88,17 @@ function OpenSettingsPanel({ onClose }: OpenSettingsPanelProps) {
 
       {/* Panel — slides in from the right, widens when options open */}
       <m.div
-        initial={{ x: '100%' }}
-        animate={{ x: 0 }}
-        exit={{ x: '100%' }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         transition={SLIDE_TRANSITION}
-        className="fixed inset-y-0 right-0 z-50 flex"
+        className="absolute inset-y-0 top-20 right-20 z-50 flex"
       >
-        <m.div
-          animate={{ width: optionsData ? '100dvh' : '100dvh' }}
-          transition={SLIDE_TRANSITION}
-          className="flex h-full max-w-dvh"
-        >
+        <div className="flex h-[80dvh] w-dvh">
           <NavigationContainer
             isFocusBoundary
             customFocusKey={NavigationFocusKeys.settings.container}
-            className="flex h-full w-full overflow-hidden border-l border-white/10 bg-black/95 shadow-2xl"
+            className="flex h-full w-full overflow-hidden border border-white/10 bg-neutral-950 shadow-2xl rounded-2xl"
           >
             <SettingsOptionsContext.Provider value={optionsCtx}>
               {/* Categories sidebar */}
@@ -136,7 +132,7 @@ function OpenSettingsPanel({ onClose }: OpenSettingsPanelProps) {
               <SettingsOptionsPanel data={optionsData} onClose={closeOptions} />
             </SettingsOptionsContext.Provider>
           </NavigationContainer>
-        </m.div>
+        </div>
       </m.div>
     </>
   );

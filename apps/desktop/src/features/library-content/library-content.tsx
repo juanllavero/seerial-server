@@ -176,9 +176,17 @@ function LibraryContent({
   });
   const { contextMenuItem, previousFocusKey, isReorderingMode, reorderingItemId, localItems } =
     libraryState;
-  // Keep a ref to localItems so event handlers in reorder always have the latest value.
   const localItemsRef = useRef(localItems);
   localItemsRef.current = localItems;
+
+  const isReorderingModeRef = useRef(isReorderingMode);
+  isReorderingModeRef.current = isReorderingMode;
+
+  useEffect(() => {
+    if (!isReorderingModeRef.current && content) {
+      dispatch({ type: 'set-local-items', items: content });
+    }
+  }, [content]);
 
   const { mutateAsync: reorderItems } = useReorderLibraryItems(libraryId ?? '');
 
@@ -189,13 +197,6 @@ function LibraryContent({
       setFocus(content[0].id);
     }
   }, [lastFocusedElementId, content]);
-
-  // Sync localItems when content changes and we're not in reorder mode
-  useEffect(() => {
-    if (!isReorderingMode && content) {
-      dispatch({ type: 'set-local-items', items: content });
-    }
-  }, [content, isReorderingMode]);
 
   const handleFocus = useCallback(
     (item: LibraryItem) => {
@@ -256,34 +257,50 @@ function LibraryContent({
     [currentUser, queryClient, libraryId],
   );
 
-  const handleExitReorder = useCallback(async () => {
-    dispatch({ type: 'exit-reorder-mode' });
-    if (libraryId) {
-      try {
-        await reorderItems({
-          libraryId,
-          orderedItems: localItemsRef.current.map((item) => ({ id: item.id, type: item.type })),
-        });
-        await queryClient.invalidateQueries({ queryKey: ['libraries', 'content', libraryId] });
-      } catch {
-        // Silently fail
-      }
-    }
-  }, [libraryId, reorderItems, queryClient]);
-
-  useKeyboardBack({
-    enabled: isReorderingMode,
-    navigateOnBack: false,
-    capture: true,
-    preAction: handleExitReorder,
-  });
-
   const handleReorderMove = useCallback(
-    (itemId: string, direction: 'up' | 'down' | 'left' | 'right') => {
-      dispatch({ type: 'move-reorder-item', itemId, direction, itemsPerRow: finalItemsPerRow });
+    async (itemId: string, direction: 'up' | 'down' | 'left' | 'right') => {
+      const items = localItemsRef.current;
+      const idx = items.findIndex((item) => item.id === itemId);
+      if (idx === -1) return;
+
+      let newIdx = idx;
+      if (direction === 'left') newIdx = idx - 1;
+      else if (direction === 'right') newIdx = idx + 1;
+      else if (direction === 'up') newIdx = idx - finalItemsPerRow;
+      else if (direction === 'down') newIdx = idx + finalItemsPerRow;
+
+      if (newIdx < 0 || newIdx >= items.length) return;
+
+      const next = [...items];
+
+      const [movedItem] = next.splice(idx, 1);
+
+      next.splice(newIdx, 0, movedItem);
+
+      dispatch({ type: 'set-local-items', items: next });
+
+      setTimeout(() => {
+        const el = document.querySelector(`[data-focus-key="${itemId}"]`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 50);
+
+      if (libraryId) {
+        try {
+          await reorderItems({
+            orderedItems: next.map((item) => ({ id: item.id, type: item.type })),
+          });
+          queryClient.invalidateQueries({ queryKey: ['libraries', 'content', libraryId] });
+        } catch (error) {
+          console.error('Error reordering items:', error);
+        }
+      }
     },
-    [finalItemsPerRow],
+    [finalItemsPerRow, libraryId, reorderItems, queryClient],
   );
+
+  const handleExitReorder = useCallback(() => {
+    dispatch({ type: 'exit-reorder-mode' });
+  }, []);
 
   const handleLongPress = useCallback((item: LibraryItem) => {
     dispatch({
@@ -292,6 +309,13 @@ function LibraryContent({
       previousFocusKey: getCurrentFocusKey() ?? item.id,
     });
   }, []);
+
+  useKeyboardBack({
+    enabled: isReorderingMode,
+    navigateOnBack: false,
+    capture: true,
+    preAction: handleExitReorder,
+  });
 
   const cards = useMemo(
     () =>

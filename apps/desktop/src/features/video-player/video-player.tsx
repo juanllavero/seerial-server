@@ -102,7 +102,7 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
       <FlexBox
         className="absolute w-full h-full overflow-hidden"
         css={{
-          backgroundColor: isVisible ? 'rgba(0, 0, 0, 0.3)' : 'transparent',
+          backgroundColor: isVisible ? 'rgba(0, 0, 0, 0.8)' : 'transparent',
           transition: 'background-color 0.3s ease',
         }}
         width={'100%'}

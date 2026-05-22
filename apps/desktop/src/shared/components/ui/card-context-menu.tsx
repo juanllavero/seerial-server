@@ -1,6 +1,8 @@
 import { FocusContext, setFocus, useFocusable } from '@noriginmedia/norigin-spatial-navigation';
 import { useEffect } from 'react';
 import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
+import { NavigationContainer } from '../navigation';
+import NavigationButton from '../navigation/navigation-button';
 
 export interface ContextMenuItem {
   label: string;
@@ -8,43 +10,6 @@ export interface ContextMenuItem {
 }
 
 const MENU_FOCUS_KEY = 'CARD_CONTEXT_MENU';
-
-interface MenuItemProps {
-  label: string;
-  focusKey: string;
-  index: number;
-  totalItems: number;
-  onSelect: () => void;
-}
-
-function MenuItem({ label, focusKey, index, totalItems, onSelect }: MenuItemProps) {
-  const { ref, focused } = useFocusable({
-    focusKey,
-    onEnterPress: onSelect,
-    onArrowPress: (direction) => {
-      if (direction === 'up' && index > 0) {
-        setFocus(`${MENU_FOCUS_KEY}_ITEM_${index - 1}`);
-      } else if (direction === 'down' && index < totalItems - 1) {
-        setFocus(`${MENU_FOCUS_KEY}_ITEM_${index + 1}`);
-      }
-      // Always return false to prevent focus from leaving the menu
-      return false;
-    },
-  });
-
-  return (
-    <button
-      type="button"
-      ref={ref}
-      onClick={onSelect}
-      className={`w-full cursor-pointer rounded-lg px-5 py-[1.2dvh] text-left text-[1.8vh] font-medium transition-colors ${
-        focused ? 'bg-white text-black' : 'text-white hover:bg-white/10'
-      }`}
-    >
-      {label}
-    </button>
-  );
-}
 
 interface CardContextMenuProps {
   title?: string;
@@ -72,6 +37,9 @@ function CardContextMenu({ title, items, onClose, previousFocusKey }: CardContex
         e.preventDefault();
       }
     };
+
+    setFocus(`${MENU_FOCUS_KEY}_ITEM_0`);
+
     window.addEventListener('keydown', blockRepeatEnter, { capture: true });
     return () => window.removeEventListener('keydown', blockRepeatEnter, { capture: true });
   }, []);
@@ -110,26 +78,31 @@ function CardContextMenu({ title, items, onClose, previousFocusKey }: CardContex
       <FocusContext.Provider value={focusKey}>
         <div
           ref={ref as React.Ref<HTMLDivElement>}
-          className="min-w-[28dvh] max-w-[50dvh] rounded-xl border border-white/20 bg-neutral-900/95 p-2 shadow-2xl"
+          className="min-w-[38dvh] max-w-[50dvh] rounded-xl border border-white/20 bg-neutral-950 p-2 shadow-2xl"
         >
           {title && (
-            <div className="truncate border-b border-white/10 px-5 py-2 text-[1.4vh] font-medium text-white/50">
+            <div className="truncate border-b border-white/10 px-5 py-2 text-[2.4vh] font-medium text-white/50">
               {title}
             </div>
           )}
-          {items.map((item, index) => (
-            <MenuItem
-              key={item.label}
-              label={item.label}
-              focusKey={`${MENU_FOCUS_KEY}_ITEM_${index}`}
-              index={index}
-              totalItems={items.length}
-              onSelect={() => {
-                item.action();
-                handleClose();
-              }}
-            />
-          ))}
+          <NavigationContainer
+            focusBoundaryDirections={['up', 'down', 'left', 'right']}
+            isFocusBoundary
+            className="flex max-h-[30dvh] flex-col gap-1 overflow-y-auto p-2"
+          >
+            {items.map((item, index) => (
+              <NavigationButton
+                key={item.label}
+                text={item.label}
+                variant="ghost"
+                customKey={`${MENU_FOCUS_KEY}_ITEM_${index}`}
+                onClick={() => {
+                  item.action();
+                  handleClose();
+                }}
+              />
+            ))}
+          </NavigationContainer>
         </div>
       </FocusContext.Provider>
     </div>

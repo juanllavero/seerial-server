@@ -206,7 +206,7 @@ function ContentCard({
         <div
           className={`relative h-full w-full scale-95 ${cardRoundness} border-2 transition-transform duration-350 ${
             isReordering
-              ? 'transform scale-[1.04] border-yellow-400'
+              ? 'transform scale-[1] border-yellow-400'
               : focused
                 ? 'transform scale-100 border-white'
                 : 'border-transparent'
