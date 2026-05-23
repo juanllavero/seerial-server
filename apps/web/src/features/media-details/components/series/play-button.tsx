@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/shared/ui/button';
 import FlexBox from '@/shared/ui/flex-box';
-import { PlayIcon } from '@/shared/ui/icon-library';
+import { PlayIcon } from 'lucide-react';
 
 interface PlayButtonProps {
   currentlyWatchingEpisodeId?: string;
@@ -56,7 +56,7 @@ function PlayButton({ currentlyWatchingEpisodeId, selectedSeasonId }: PlayButton
       }}
     >
       <FlexBox align="center" gap={0.5} className="text-black">
-        <PlayIcon color="#111111" />
+        <PlayIcon color="#111111" fill="#111111" />
         {getPlayButtonText()}
       </FlexBox>
     </Button>

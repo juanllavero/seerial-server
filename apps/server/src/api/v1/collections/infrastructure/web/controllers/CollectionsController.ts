@@ -1,4 +1,4 @@
-import type { Collection } from '@seerial/domain';
+import type { Collection, UpdateCollectionDTO } from '@seerial/domain';
 import type { Request as ExpressRequest } from 'express';
 import {
   Body,
@@ -23,7 +23,6 @@ import type {
   CreateCollectionWithItemDTO,
   MusicExtrasDTO,
   ReorderContentDTO,
-  UpdateCollectionDTO,
 } from '../../../application/dtos/CollectionDTOs';
 
 @Route('collections')

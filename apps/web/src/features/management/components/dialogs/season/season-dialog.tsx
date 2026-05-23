@@ -1,5 +1,5 @@
 import { API, useGet } from '@seerial/api';
-import type { Season, Series } from '@seerial/domain';
+import type { Season, Series, UpdateSeasonDTO } from '@seerial/domain';
 import { shallow } from 'zustand/shallow';
 import useEditDialog from '@/features/management/hooks/use-edit-dialog';
 import { ModalWrapper } from '@/shared/ui/modal-wrapper';
@@ -29,7 +29,8 @@ function SeasonDialog() {
 
   const { control, images, selectedTab, setSelectedTab, handleUpdate, t } = useEditDialog<
     Season,
-    SeasonImageState
+    SeasonImageState,
+    UpdateSeasonDTO
   >({
     entity: season,
     configs: [seasonInfoConfig],
@@ -48,6 +49,19 @@ function SeasonDialog() {
     }),
     apiUpdateUrl: season ? API.seasons.update(season.id) : '',
     errorMessage: 'Error updating season',
+    dtoKeys: [
+      'name',
+      'nameLock',
+      'year',
+      'yearLock',
+      'overview',
+      'overviewLock',
+      'seasonNumber',
+      'backgroundSrc',
+      'backgroundsUrls',
+      'videoSrc',
+      'musicSrc',
+    ],
   });
 
   if (!season) return null;

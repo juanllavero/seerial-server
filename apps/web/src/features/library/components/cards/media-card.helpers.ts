@@ -1,4 +1,4 @@
-import type { DropdownContent, DropdownItem, LibraryItem } from '@seerial/domain';
+import { LibraryTypes, type DropdownContent, type DropdownItem, type LibraryItem, type LibraryType } from '@seerial/domain';
 import type { NavigateFunction } from 'react-router-dom';
 import type { DialogName, DialogPayloads } from '@/features/management';
 
@@ -33,21 +33,21 @@ interface MenuOptions {
   actions: MenuActions;
 }
 
-export function getCardPresentation(item: LibraryItem): CardPresentation {
-  const isMusic = item.type === 'album';
+export function getCardPresentation(item: LibraryItem, libraryType: LibraryType): CardPresentation {
+  const isMusic = libraryType === LibraryTypes.MUSIC;
   const errorSrc = isMusic ? '/img/songDefault.png' : '/img/fileNotFound.jpg';
 
   return {
     aspectRatio: isMusic ? 1 : 2 / 3,
     errorSrc,
-    imgSrc: item.coverSrc && item.coverSrc !== '' ? item.coverSrc : errorSrc,
+    imgSrc: item.type === 'collection' && item.images && item.images.length > 0 ? item.images[0] : (item.coverSrc && item.coverSrc !== '' ? item.coverSrc : errorSrc),
     cornerNumber: item.type === 'series' ? item.remainingItems : undefined,
   };
 }
 
 export function createMediaCardAction(
   item: LibraryItem,
-  libraryType: string,
+  libraryType: LibraryType,
   navigate: NavigateFunction,
   actions: SelectionActions,
   libraryId: string,

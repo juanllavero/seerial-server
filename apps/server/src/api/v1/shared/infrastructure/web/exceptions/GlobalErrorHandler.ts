@@ -30,11 +30,15 @@ export function globalErrorHandler(
   let errorDetails: unknown = err; // Raw error for logging purposes
 
   // Determine Error Type and Hydrate values
-  if (err instanceof ValidateError) {
+  if (err instanceof ValidateError || (err instanceof Error && err.name === 'ValidateError')) {
     statusCode = HTTPCodes.VALIDATION_ERROR;
     message = 'Validation Failed';
-    data = err.fields;
-    errorDetails = { fields: err.fields }; // Cleaner log for validation
+
+    // biome-ignore lint/suspicious/noExplicitAny: <Needed to access custom properties of ValidateError>
+    const fields = (err as any).fields || {};
+
+    data = fields;
+    errorDetails = { fields };
   } else if (err instanceof HttpException) {
     statusCode = err.statusCode;
     message = err.message;

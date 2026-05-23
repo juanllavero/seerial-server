@@ -12,6 +12,7 @@
   --color-foreground: var(--foreground);
 
   --color-app-color: var(--app-color);
+  --color-sidebar: var(--sidebar);
 
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
@@ -135,6 +136,7 @@
     --chart-5: #e94b7d;
 
     --app-color: #8edce6;
+    --sidebar: #0F0F0F;
 
     --radius: 0.5rem;
   }

@@ -1,5 +1,5 @@
 import { API, useGet } from '@seerial/api';
-import type { Movie } from '@seerial/domain';
+import type { Movie, UpdateMovieDTO } from '@seerial/domain';
 import { shallow } from 'zustand/shallow';
 import useEditDialog from '@/features/management/hooks/use-edit-dialog';
 import { ImageType } from '@/shared/lib/constants';
@@ -35,7 +35,8 @@ function MovieDialog() {
 
   const { control, images, selectedTab, setSelectedTab, handleUpdate, t } = useEditDialog<
     Movie,
-    MovieImageState
+    MovieImageState,
+    UpdateMovieDTO
   >({
     entity: movie,
     configs: [movieInfoConfig, movieTagsConfig],
@@ -68,6 +69,36 @@ function MovieDialog() {
     }),
     apiUpdateUrl: movie ? API.movies.update(movie.id) : '',
     errorMessage: 'Error updating movie',
+    dtoKeys: [
+      'name',
+      'nameLock',
+      'overview',
+      'overviewLock',
+      'year',
+      'yearLock',
+      'tagline',
+      'taglineLock',
+      'genres',
+      'genresLock',
+      'productionStudios',
+      'productionStudiosLock',
+      'directedBy',
+      'directedByLock',
+      'writtenBy',
+      'writtenByLock',
+      'creator',
+      'creatorLock',
+      'musicComposer',
+      'musicComposerLock',
+      'videoSrc',
+      'musicSrc',
+      'logoSrc',
+      'logosUrls',
+      'backgroundSrc',
+      'backgroundsUrls',
+      'coverSrc',
+      'coversUrls',
+    ],
   });
 
   if (!movie) return null;

@@ -18,11 +18,8 @@ import { episodesRepo, useCases } from '@/api/v1/shared/infrastructure/adapters/
 import { BadRequestException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
 import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
 import { messages } from '@/config/messages';
-import type {
-  SetEpisodeWatchStateDTO,
-  UpdateEpisodeDTO,
-} from '../../../application/dtos/EpisodeDTOs';
 import type { Episode } from '../../../domain/Episode';
+import type { UpdateEpisodeDTO, SetEpisodeWatchStateDTO } from '@seerial/domain';
 
 type AuthenticatedRequest = ExpressRequest & { user?: { id?: string } };
 

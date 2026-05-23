@@ -1,4 +1,4 @@
-import type { DropdownContent, LibraryItem } from '@seerial/domain';
+import type { DropdownContent, LibraryItem, LibraryType } from '@seerial/domain';
 import { useDataStore, useServerStore } from '@seerial/stores';
 import { Pencil } from 'lucide-react';
 import { memo } from 'react';
@@ -20,7 +20,7 @@ import Card from '@/shared/cards/card';
 
 interface MediaCardProps {
   item: LibraryItem;
-  libraryType: string;
+  libraryType: LibraryType;
   libraryId: string;
 }
 
@@ -29,7 +29,7 @@ function MediaCard({ item, libraryType, libraryId }: MediaCardProps) {
   const navigate = useNavigate();
   const { cardWidth } = useCardWidth();
   const isMobile = useIsMobile();
-  const width = isMobile ? '100%' : cardWidth * 1.2;
+  const width = isMobile ? '100%' : `${cardWidth * 1.2}px`;
 
   const { user } = useServerStore((state) => ({ user: state.currentUser }), shallow);
   const { selectSeries, selectMovie, selectAlbum, selectCollection } = useDataStore(
@@ -45,7 +45,7 @@ function MediaCard({ item, libraryType, libraryId }: MediaCardProps) {
   const { refreshMetadata, toggleMovieWatched, toggleSeriesWatched } = useMediaActions();
 
   const { id, title, years, watched } = item;
-  const { aspectRatio, errorSrc, imgSrc, cornerNumber } = getCardPresentation(item);
+  const { aspectRatio, errorSrc, imgSrc, cornerNumber } = getCardPresentation(item, libraryType);
 
   const action = createMediaCardAction(
     item,
@@ -96,7 +96,7 @@ function MediaCard({ item, libraryType, libraryId }: MediaCardProps) {
             openMediaCardEditDialog(item, openDialog);
           }}
         >
-          <Pencil size={16} />
+          <Pencil size={16} fill="currentColor" />
         </Button>
       }
       errorSrc={errorSrc}

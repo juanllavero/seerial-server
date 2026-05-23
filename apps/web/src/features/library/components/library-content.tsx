@@ -1,12 +1,14 @@
 import type { LibraryItem, LibraryType } from '@seerial/domain';
 import { useReorderableList } from '@seerial/hooks';
-import { memo } from 'react';
+import { memo, useEffect } from 'react';
 import { useCardWidth } from '@/shared/hooks/use-card-width';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { SortableGrid } from '@/shared/lists/sortable-grid';
 import Grid from '@/shared/ui/grid';
 import MediaCard from './cards/media-card';
 import type { QueryObserverResult } from '@tanstack/react-query';
+import { shallow } from 'zustand/vanilla/shallow';
+import useDataStore from '../../../../../../libs/stores/src/data.store';
 
 interface LibraryContentProps {
   libraryContent: LibraryItem[];
@@ -16,10 +18,21 @@ interface LibraryContentProps {
 }
 
 function LibraryContent({ libraryContent, libraryType, libraryId, mutate }: LibraryContentProps) {
+  const { setCurrentBackground } = useDataStore(
+    (state) => ({
+      setCurrentBackground: state.setCurrentBackground,
+    }),
+    shallow,
+  );
   const isMobile = useIsMobile();
   const { cardWidth } = useCardWidth();
 
   const { items, handleDragEnd } = useReorderableList(libraryContent, libraryId, mutate);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <Need to be on start>
+  useEffect(() => {
+    setCurrentBackground(undefined);
+  }, []);
 
   return (
     <Grid

@@ -1,5 +1,9 @@
 import { useDialogStore } from '@/features/management';
-import { MovieContent, CastList, MovieMyListButton as MyListButton } from '@/features/media-details';
+import {
+  MovieContent,
+  CastList,
+  MovieMyListButton as MyListButton,
+} from '@/features/media-details';
 import { useSettingsStore } from '@/features/settings';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { Button } from '@/shared/ui/button';
@@ -7,6 +11,7 @@ import ExpandableText from '@/shared/ui/expandable-text';
 import FlexBox from '@/shared/ui/flex-box';
 import { UnmarkWatchedIcon, MarkWatchedIcon } from '@/shared/ui/icon-library';
 import LazyImage from '@/shared/ui/lazy-image';
+import LogoImage from '@/shared/ui/logo-image';
 import NotFound from '@/shared/ui/not-found';
 import { Skeleton } from '@/shared/ui/skeleton';
 import { useGet, API, useSetMovieWatchState } from '@seerial/api';
@@ -64,14 +69,7 @@ function MovieDetailsPage() {
     const logoUrl = movie.logoSrc;
 
     if (logoUrl && logoUrl !== '') {
-      return (
-        <LazyImage
-          url={logoUrl}
-          maxHeight={isMobile ? '100%' : 200}
-          width={isMobile ? '100%' : 350}
-          errorSrc="/img/Default_video_thumbnail.jpg"
-        />
-      );
+      return <LogoImage className="mt-5 pb-5" imageUrl={logoUrl} />;
     } else {
       return (
         <span
@@ -125,10 +123,9 @@ function MovieDetailsPage() {
                 <FlexBox className="image-container">
                   <LazyImage
                     url={movie.coverSrc}
-                    width={330}
-                    maxHeight={495}
-                    height={495}
-                    errorSrc={'/img/fileNotFound.jpg'}
+                    width={'27dvh'}
+                    height={'40dvh'}
+                    className="rounded-sm"
                   />
                 </FlexBox>
               ))}
@@ -196,7 +193,7 @@ function MovieDetailsPage() {
               }}
             >
               <FlexBox align="center" gap={0.5} className="text-black">
-                <PlayIcon color="#111111" />
+                <PlayIcon color="#111111" fill="#111111" />
                 {getPlayButtonText()}
               </FlexBox>
             </Button>

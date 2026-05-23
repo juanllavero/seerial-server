@@ -1,5 +1,5 @@
 import { API, useGet } from '@seerial/api';
-import type { Episode, Series } from '@seerial/domain';
+import type { Episode, Series, UpdateEpisodeDTO } from '@seerial/domain';
 import { shallow } from 'zustand/vanilla/shallow';
 import useEditDialog from '@/features/management/hooks/use-edit-dialog';
 import { ModalWrapper } from '../../../../../shared/ui/modal-wrapper';
@@ -31,7 +31,8 @@ function EpisodeDialog() {
 
   const { control, images, selectedTab, setSelectedTab, handleUpdate, t } = useEditDialog<
     Episode,
-    EpisodeImageState
+    EpisodeImageState,
+    UpdateEpisodeDTO
   >({
     entity: episode,
     configs: [episodeInfoConfig],
@@ -46,6 +47,18 @@ function EpisodeDialog() {
     }),
     apiUpdateUrl: episode ? API.episodes.update(episode.id) : '',
     errorMessage: 'Error updating episode',
+    dtoKeys: [
+      'name',
+      'nameLock',
+      'year',
+      'yearLock',
+      'overview',
+      'overviewLock',
+      'directedBy',
+      'directedByLock',
+      'writtenBy',
+      'writtenByLock',
+    ],
   });
 
   if (!episode || !series) return null;

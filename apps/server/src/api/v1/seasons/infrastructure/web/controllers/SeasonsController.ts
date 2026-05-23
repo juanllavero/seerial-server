@@ -21,7 +21,7 @@ import {
 import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
 import { messages } from '@/config/messages';
 import type { IncludeType } from '@/types/common';
-import type { SetSeasonWatchStateDTO, UpdateSeasonDTO } from '../../../application/dtos/SeasonDTOs';
+import type { SetSeasonWatchStateDTO, UpdateSeasonDTO } from '@seerial/domain';
 import type { Season } from '../../../domain/Season';
 
 type AuthenticatedRequest = ExpressRequest & { user?: { id?: string } };

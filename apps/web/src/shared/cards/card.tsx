@@ -16,7 +16,7 @@ interface CardProps {
   itemKey: string;
   imgSrc: string;
   aspectRatio: number;
-  width: string | number;
+  width: string;
   title: string;
   subtitle: string;
   action: () => void;
@@ -30,7 +30,6 @@ interface CardProps {
   hidePlayButton?: boolean;
   progress?: number;
   cornerNumber?: number;
-  collageComponent?: React.ReactNode;
   watched?: boolean;
   errorSrc?: string;
 }
@@ -54,7 +53,6 @@ function Card({
   progress,
   cornerNumber,
   watched,
-  collageComponent,
   errorSrc,
 }: CardProps) {
   const [playButtonHovered, setPlayButtonHovered] = useState(false);
@@ -146,19 +144,13 @@ function Card({
             </FlexBox>
           )}
         </FlexBox>
-        {collageComponent ? (
-          collageComponent
-        ) : (
-          <LazyImage
-            key={itemKey}
-            url={imgSrc}
-            width={width}
-            height={typeof width === 'number' ? width / aspectRatio : undefined}
-            alt={title}
-            aspectRatio={String(aspectRatio)}
-            errorSrc={errorSrc}
-          />
-        )}
+        <LazyImage
+          key={itemKey}
+          url={imgSrc}
+          width={width}
+          alt={title}
+          aspectRatio={String(aspectRatio)}
+        />
       </div>
       <div
         className="grid p-2"
@@ -172,6 +164,8 @@ function Card({
       >
         <Tooltip>
           <TooltipTrigger className="max-w-full truncate">
+            {/** biome-ignore lint/a11y/noStaticElementInteractions: <No need> */}
+            {/** biome-ignore lint/a11y/useValidAnchor: <No need> */}
             <a className="a_text" id="title ellipsis truncate" onClick={action}>
               {title}
             </a>

@@ -27,16 +27,6 @@ export interface CollectionContentDTO {
   albums: LibraryItem[];
 }
 
-export interface UpdateCollectionDTO {
-  title?: string;
-  description?: string;
-  backgroundSrc?: string;
-  backgroundsUrls?: string[];
-  coverSrc?: string;
-  coversUrls?: string[];
-  musicPosterSrc?: string;
-}
-
 export interface CreateCollectionWithItemDTO {
   title: string;
   description?: string;

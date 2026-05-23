@@ -3463,24 +3463,55 @@
 			},
 			"UpdateEpisodeDTO": {
 				"properties": {
-					"title": {
+					"name": {
 						"type": "string"
 					},
-					"episodeNumber": {
-						"type": "number",
-						"format": "double"
+					"nameLock": {
+						"type": "boolean"
 					},
-					"description": {
+					"year": {
 						"type": "string"
 					},
-					"airDate": {
+					"yearLock": {
+						"type": "boolean"
+					},
+					"overview": {
 						"type": "string"
 					},
-					"duration": {
-						"type": "number",
-						"format": "double"
+					"overviewLock": {
+						"type": "boolean"
+					},
+					"directedBy": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"directedByLock": {
+						"type": "boolean"
+					},
+					"writtenBy": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"writtenByLock": {
+						"type": "boolean"
 					}
 				},
+				"required": [
+					"name",
+					"nameLock",
+					"year",
+					"yearLock",
+					"overview",
+					"overviewLock",
+					"directedBy",
+					"directedByLock",
+					"writtenBy",
+					"writtenByLock"
+				],
 				"type": "object",
 				"additionalProperties": false
 			},
@@ -3878,14 +3909,116 @@
 			},
 			"UpdateMovieDTO": {
 				"properties": {
-					"title": {
+					"name": {
 						"type": "string"
 					},
-					"releaseDate": {
-						"type": "string"
+					"nameLock": {
+						"type": "boolean"
 					},
 					"overview": {
 						"type": "string"
+					},
+					"overviewLock": {
+						"type": "boolean"
+					},
+					"year": {
+						"type": "string"
+					},
+					"yearLock": {
+						"type": "boolean"
+					},
+					"tagline": {
+						"type": "string"
+					},
+					"taglineLock": {
+						"type": "boolean"
+					},
+					"genres": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"genresLock": {
+						"type": "boolean"
+					},
+					"productionStudios": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"productionStudiosLock": {
+						"type": "boolean"
+					},
+					"directedBy": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"directedByLock": {
+						"type": "boolean"
+					},
+					"writtenBy": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"writtenByLock": {
+						"type": "boolean"
+					},
+					"creator": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"creatorLock": {
+						"type": "boolean"
+					},
+					"musicComposer": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"musicComposerLock": {
+						"type": "boolean"
+					},
+					"videoSrc": {
+						"type": "string"
+					},
+					"musicSrc": {
+						"type": "string"
+					},
+					"logoSrc": {
+						"type": "string"
+					},
+					"logosUrls": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"backgroundSrc": {
+						"type": "string"
+					},
+					"backgroundsUrls": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"coverSrc": {
+						"type": "string"
+					},
+					"coversUrls": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
 					}
 				},
 				"type": "object",

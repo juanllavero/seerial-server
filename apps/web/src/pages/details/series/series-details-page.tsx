@@ -24,6 +24,7 @@ import { MarkWatchedIcon, UnmarkWatchedIcon } from '@/shared/ui/icon-library';
 import LazyImage from '@/shared/ui/lazy-image';
 import NotFound from '@/shared/ui/not-found';
 import { Skeleton } from '@/shared/ui/skeleton';
+import LogoImage from '@/shared/ui/logo-image';
 function SeriesDetailsPage() {
   const { seriesId } = useParams();
   const { selectedSeasonId, selectSeason, setCurrentBackground, currentBackground } = useDataStore(
@@ -89,14 +90,7 @@ function SeriesDetailsPage() {
     const logoUrl = series.logoSrc;
 
     if (logoUrl && logoUrl !== '') {
-      return (
-        <LazyImage
-          url={logoUrl}
-          maxHeight={isMobile ? '100%' : 200}
-          width={isMobile ? '100%' : 350}
-          errorSrc="/img/Default_video_thumbnail.jpg"
-        />
-      );
+      return <LogoImage className="mt-5 pb-5" imageUrl={logoUrl} />;
     } else {
       return (
         <span
@@ -152,10 +146,9 @@ function SeriesDetailsPage() {
                 <FlexBox className="image-container">
                   <LazyImage
                     url={series.coverSrc}
-                    width={330}
-                    maxHeight={495}
-                    height={495}
-                    errorSrc={'/img/fileNotFound.jpg'}
+                    width={'27dvh'}
+                    height={'40dvh'}
+                    className="rounded-sm"
                   />
                 </FlexBox>
               ))}

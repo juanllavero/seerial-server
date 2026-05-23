@@ -32,7 +32,7 @@ import type {
   UpdateEpisodeGroupDTO,
   UpdateSeriesDTO,
   UpdateShowIdDTO,
-} from '../../../application/dtos/SeriesDTOs';
+} from '@seerial/domain';
 import type { Series } from '../../../domain/Series';
 
 type AuthenticatedRequest = ExpressRequest & { user?: { id?: string } };

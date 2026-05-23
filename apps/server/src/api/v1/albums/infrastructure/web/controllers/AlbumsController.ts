@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, Patch, Path, Route, Security, Tags } fro
 import { useCases } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
 import { messages } from '@/config/messages';
-import type { UpdateAlbumDTO } from '../../../application/dtos/AlbumDTOs';
+import type { UpdateAlbumDTO } from '@seerial/domain';
 import type { Album } from '../../../domain/Album';
 
 @Route('albums')

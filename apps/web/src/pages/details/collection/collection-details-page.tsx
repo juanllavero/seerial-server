@@ -208,7 +208,6 @@ function CollectionDetailsPage() {
                 hidePlayButton={false}
                 progress={0}
                 cornerNumber={0}
-                collageComponent={undefined}
                 watched={false}
                 errorSrc={'/img/fileNotFound.jpg'}
               />
@@ -253,7 +252,6 @@ function CollectionDetailsPage() {
                 hidePlayButton={false}
                 progress={0}
                 cornerNumber={0}
-                collageComponent={undefined}
                 watched={false}
                 errorSrc={'/img/fileNotFound.jpg'}
               />
@@ -291,7 +289,6 @@ function CollectionDetailsPage() {
                 hidePlayButton={false}
                 progress={0}
                 cornerNumber={0}
-                collageComponent={undefined}
                 watched={false}
                 errorSrc={'/img/fileNotFound.jpg'}
               />

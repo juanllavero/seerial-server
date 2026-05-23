@@ -1,5 +1,6 @@
-import { api } from '@seerial/api';
-import { useEffect, useRef, useState } from 'react';
+import { useGetImageColors } from '@seerial/api';
+import { useServerStore } from '@seerial/stores';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 interface GradientBackgroundProps {
   showGradient?: boolean;
@@ -9,6 +10,41 @@ interface GradientBackgroundProps {
   index?: number;
 }
 
+interface ImageColorsResponse {
+  css?: string;
+  data?: {
+    css?: string;
+  };
+}
+
+const GRADIENT_TRANSITION_MS = 700;
+// How long to wait after a source change before starting the crossfade.
+// Prevents the gradient from updating while quickly navigating between cards.
+const GRADIENT_DELAY_MS = 400;
+
+const normalizeGradientCss = (value?: string): string => {
+  if (!value) return '';
+  return value
+    .replace(/^background\s*:\s*/i, '')
+    .replace(/;$/, '')
+    .trim();
+};
+
+const getImageColorsSourceKey = (params?: { url?: string; localPath?: string }): string => {
+  if (params?.url) return `url:${params.url}`;
+  if (params?.localPath) return `local:${params.localPath}`;
+  return '';
+};
+
+const buildImageColorsParams = (
+  imageSrc?: string,
+): { url?: string; localPath?: string } | undefined => {
+  if (!imageSrc || imageSrc === '') return undefined;
+  if (imageSrc.startsWith('http')) return { url: imageSrc };
+  if (imageSrc.startsWith('local')) return { localPath: imageSrc.replace('local', '') };
+  return { localPath: imageSrc };
+};
+
 const GradientBackground = ({
   showGradient = true,
   imageSrc,
@@ -16,63 +52,162 @@ const GradientBackground = ({
   height = '100%',
   index = -1,
 }: GradientBackgroundProps) => {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [visible, setVisible] = useState(true);
-  const [gradientCSS, setGradientCSS] = useState<string | undefined>('');
-  const canvasRef1 = useRef<HTMLCanvasElement | null>(null);
-  const canvasRef2 = useRef<HTMLCanvasElement | null>(null);
-  const canvasRefs = [canvasRef1, canvasRef2];
+  const serverUrl = useServerStore((state) => state.selectedServer?.url ?? '');
+
+  // Layer A: committed gradient, always visible as the base
+  const [committedGradient, setCommittedGradient] = useState('');
+  // Layer B: incoming gradient, fades in on top of A
+  const [incomingGradient, setIncomingGradient] = useState('');
+  const [incomingVisible, setIncomingVisible] = useState(false);
+
+  const gradientCacheRef = useRef<Record<string, string>>({});
+  const rafRef = useRef<number | null>(null);
+  const delayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const imageColorsParams = useMemo(() => buildImageColorsParams(imageSrc), [imageSrc]);
+  const imageSourceKey = useMemo(
+    () => getImageColorsSourceKey(imageColorsParams),
+    [imageColorsParams],
+  );
+
+  const { data: imageColorsData } = useGetImageColors<ImageColorsResponse>({
+    enabled: showGradient && !!imageColorsParams,
+    params: imageColorsParams,
+    queryKey: ['images', 'colors', serverUrl, imageSrc],
+    staleTime: 1000 * 60 * 30,
+  });
+
+  const imageColorsCss = normalizeGradientCss(imageColorsData?.css ?? imageColorsData?.data?.css);
+
+  const cancelPendingRaf = useCallback(() => {
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
+  }, []);
+
+  const cancelPendingDelay = useCallback(() => {
+    if (delayTimerRef.current !== null) {
+      clearTimeout(delayTimerRef.current);
+      delayTimerRef.current = null;
+    }
+  }, []);
+
+  // Starts a crossfade to a new gradient.
+  // Double RAF ensures the browser has painted layer B at opacity 0 before
+  // triggering the CSS transition, preventing any flash.
+  const crossfadeTo = useCallback(
+    (gradient: string) => {
+      cancelPendingRaf();
+      setIncomingGradient(gradient);
+      setIncomingVisible(false);
+
+      rafRef.current = requestAnimationFrame(() => {
+        rafRef.current = requestAnimationFrame(() => {
+          setIncomingVisible(true);
+          rafRef.current = null;
+        });
+      });
+    },
+    [cancelPendingRaf],
+  );
+
+  // Schedules a crossfade after GRADIENT_DELAY_MS.
+  // Any pending delay or RAF is cancelled first, so rapid source changes
+  // only trigger a single transition once the user settles on a card.
+  const scheduleCrossfade = useCallback(
+    (gradient: string) => {
+      cancelPendingDelay();
+      cancelPendingRaf();
+
+      delayTimerRef.current = setTimeout(() => {
+        delayTimerRef.current = null;
+        crossfadeTo(gradient);
+      }, GRADIENT_DELAY_MS);
+    },
+    [cancelPendingDelay, cancelPendingRaf, crossfadeTo],
+  );
 
   useEffect(() => {
-    if (!showGradient || !imageSrc || imageSrc === '') {
-      setVisible(false);
+    // No valid source or gradients disabled: leave the current background untouched.
+    // Satisfies req: invalid/undefined/empty imageSrc → keep existing gradient.
+    if (!showGradient || !imageSourceKey) return;
+
+    // Prefer fresh server data; fall back to local cache for this source key.
+    // If neither exists (fetch in-flight or failed), bail out without changes.
+    const resolvedGradient = imageColorsCss || gradientCacheRef.current[imageSourceKey];
+    if (!resolvedGradient) return;
+
+    // Update cache with the fresh value
+    if (imageColorsCss) {
+      gradientCacheRef.current[imageSourceKey] = imageColorsCss;
+    }
+
+    // Nothing changed, cancel any pending transition
+    if (resolvedGradient === committedGradient) {
+      cancelPendingDelay();
+      cancelPendingRaf();
       return;
     }
 
-    // Declare the timeout identifier variable within the main useEffect scope
-    let timeoutId: ReturnType<typeof setTimeout>;
+    // First gradient ever: apply immediately, no animation needed
+    if (!committedGradient) {
+      cancelPendingDelay();
+      cancelPendingRaf();
+      setCommittedGradient(resolvedGradient);
+      return;
+    }
 
-    const generateGradient = async () => {
-      setVisible(true);
+    // Different gradient: schedule a delayed crossfade
+    scheduleCrossfade(resolvedGradient);
 
-      const response = await api.get<{ data?: { css?: string }; css?: string }>(
-        `/api/image-colors?${imageSrc?.startsWith('http') ? `url=${imageSrc}` : `localPath=${imageSrc}`}`,
-      );
-
-      const css = response?.data?.css ?? response?.css;
-
-      const newIndex = (activeIndex + 1) % 2;
-      setGradientCSS(css);
-
-      timeoutId = setTimeout(() => {
-        setActiveIndex(newIndex);
-      }, 100);
-    };
-
-    generateGradient();
-
-    // React cleanly grabs this synchronous function callback to clear timers when unmounting/re-running
     return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
+      cancelPendingDelay();
+      cancelPendingRaf();
     };
-  }, [activeIndex, imageSrc, showGradient]);
+  }, [
+    showGradient,
+    imageSourceKey,
+    imageColorsCss,
+    committedGradient,
+    cancelPendingDelay,
+    cancelPendingRaf,
+    scheduleCrossfade,
+  ]);
+
+  const handleTransitionEnd = useCallback(
+    (event: React.TransitionEvent<HTMLDivElement>) => {
+      if (event.propertyName !== 'opacity' || !incomingVisible || !incomingGradient) {
+        return;
+      }
+      // Commit the incoming gradient to layer A and reset layer B
+      setCommittedGradient(incomingGradient);
+      setIncomingGradient('');
+      setIncomingVisible(false);
+    },
+    [incomingVisible, incomingGradient],
+  );
 
   return (
     <div className="absolute inset-0 overflow-hidden" style={{ zIndex: index, width, height }}>
-      {[0, 1].map((i) => (
-        <canvas
-          key={i}
-          ref={canvasRefs[i]}
-          className={`absolute inset-0 h-full w-full transition-opacity duration-700 ${activeIndex === i && showGradient && visible ? 'opacity-100' : 'opacity-0'} `}
-          style={{
-            width,
-            height,
-            background: gradientCSS ? gradientCSS.replace('background: ', '').replace(';', '') : '',
-          }}
-        />
-      ))}
+      {/* Layer A: committed gradient, permanent base */}
+      <div
+        className="absolute inset-0 h-full w-full"
+        style={{ width, height, background: committedGradient }}
+      />
+      {/* Layer B: incoming gradient, fades in over layer A */}
+      <div
+        className="absolute inset-0 h-full w-full"
+        onTransitionEnd={handleTransitionEnd}
+        style={{
+          width,
+          height,
+          background: incomingGradient,
+          opacity: incomingVisible ? 1 : 0,
+          transition: `opacity ${GRADIENT_TRANSITION_MS}ms ease`,
+          pointerEvents: 'none',
+        }}
+      />
     </div>
   );
 };

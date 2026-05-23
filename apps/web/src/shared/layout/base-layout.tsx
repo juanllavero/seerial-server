@@ -1,4 +1,4 @@
-import { useGradientStore, useServerStore } from '@seerial/stores';
+import { useDataStore, useGradientStore, useServerStore } from '@seerial/stores';
 import type React from 'react';
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
@@ -15,11 +15,18 @@ import { useIsMobile } from '@/shared/hooks/use-mobile';
 import '../../styles/utils.css';
 import GradientBackground from './backgrounds/gradient-background';
 import './base-layout.css';
+import DetailsBackgroundLayers from './backgrounds/details-background-layers';
 
 export default function BaseLayout({ children }: { children: React.ReactNode }) {
   const { user } = useServerStore(
     (state) => ({
       user: state.currentUser,
+    }),
+    shallow,
+  );
+  const { currentBackground } = useDataStore(
+    (state) => ({
+      currentBackground: state.currentBackground,
     }),
     shallow,
   );
@@ -39,6 +46,8 @@ export default function BaseLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="relative">
       <GradientBackground imageSrc={selectedBackgroundForGradient} showGradient={inMusicPage} />
+
+      <DetailsBackgroundLayers imageSrc={currentBackground} />
 
       {/* Toaster root */}
       <Toaster theme="dark" richColors />

@@ -26,7 +26,7 @@ import type {
   ChangeIdentificationDTO,
   SetMovieWatchStateDTO,
   UpdateMovieDTO,
-} from '../../../application/dtos/MovieDTOs';
+} from '@seerial/domain';
 import type { Movie } from '../../../domain/Movie';
 
 type AuthenticatedRequest = ExpressRequest & { user?: { id?: string } };

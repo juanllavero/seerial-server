@@ -1,5 +1,5 @@
 import { API, useGet } from '@seerial/api';
-import type { Series } from '@seerial/domain';
+import type { Series, UpdateSeriesDTO } from '@seerial/domain';
 import { shallow } from 'zustand/shallow';
 import useEditDialog from '@/features/management/hooks/use-edit-dialog';
 import { ImageType } from '@/shared/lib/constants';
@@ -32,7 +32,8 @@ function SeriesDialog() {
 
   const { control, images, selectedTab, setSelectedTab, handleUpdate, t } = useEditDialog<
     Series,
-    SeriesImageState
+    SeriesImageState,
+    UpdateSeriesDTO
   >({
     entity: series,
     configs: [seriesInfoConfig, seriesTagsConfig],
@@ -58,6 +59,35 @@ function SeriesDialog() {
     }),
     apiUpdateUrl: series ? API.series.update(series.id) : '',
     errorMessage: 'Error updating series',
+    dtoKeys: [
+      'name',
+      'nameLock',
+      'overview',
+      'overviewLock',
+      'year',
+      'yearLock',
+      'score',
+      'tagline',
+      'taglineLock',
+      'logoSrc',
+      'logosUrls',
+      'coverSrc',
+      'coversUrls',
+      'productionStudios',
+      'productionStudiosLock',
+      'creator',
+      'creatorLock',
+      'musicComposer',
+      'musicComposerLock',
+      'genres',
+      'genresLock',
+      'preferAudioLan',
+      'preferSubLan',
+      'subsMode',
+      'folder',
+      'episodeGroupId',
+      'analyzingFiles',
+    ],
   });
 
   if (!series) return null;
