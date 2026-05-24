@@ -1,6 +1,7 @@
 import { useGetLocalImage } from '@seerial/api';
 import { useServerStore } from '@seerial/stores';
 import { memo, useEffect, useReducer, useRef } from 'react';
+import './background-image.css';
 
 interface BackgroundImageProps {
   imageSrc: string | undefined;
@@ -160,6 +161,7 @@ function BackgroundImage({ imageSrc, index = 1 }: BackgroundImageProps) {
           }}
         />
       )}
+      <div className="noise" />
     </div>
   );
 }
