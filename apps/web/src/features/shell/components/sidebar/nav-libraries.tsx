@@ -17,7 +17,7 @@ import {
 import React, { memo, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { shallow } from 'zustand/shallow';
-import { useDialogStore } from '@/features/management';
+import { type DialogName, type DialogPayloads, useDialogStore } from '@/features/management';
 import { LibraryTypes } from '@/shared/data/enums/library-types';
 import {
   DropdownMenu,
@@ -55,7 +55,7 @@ interface NavLibraryItemProps {
   isAdmin: boolean;
   isMobile: boolean;
   libraries: Library[];
-  openDialog: ReturnType<typeof useDialogStore>['openDialog'];
+  openDialog: <T extends DialogName>(name: T, payload: DialogPayloads[T]) => void;
   searchFiles: (id: string) => void;
 }
 

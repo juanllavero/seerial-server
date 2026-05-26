@@ -35,6 +35,11 @@ export default function BaseLayout({ children }: { children: React.ReactNode }) 
   const isMobile = useIsMobile();
 
   const location = useLocation();
+  const inDetailsPage =
+    location.pathname.includes('/movie/') ||
+    location.pathname.includes('/series/') ||
+    location.pathname.includes('/album/') ||
+    location.pathname.includes('/collection/');
   const inMusicPage = location.pathname.includes('/album/');
 
   useEffect(() => {
@@ -47,7 +52,7 @@ export default function BaseLayout({ children }: { children: React.ReactNode }) 
     <div className="relative">
       <GradientBackground imageSrc={selectedBackgroundForGradient} showGradient={inMusicPage} />
 
-      <DetailsBackgroundLayers imageSrc={currentBackground} />
+      {inDetailsPage && <DetailsBackgroundLayers imageSrc={currentBackground} />}
 
       {/* Toaster root */}
       <Toaster theme="dark" richColors />
