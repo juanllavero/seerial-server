@@ -28,6 +28,7 @@ import type {
   UpdateMovieDTO,
 } from '@seerial/domain';
 import type { Movie } from '../../../domain/Movie';
+import { findImagesInFolder } from '@/api/v1/libraries/application/services/LibraryManager';
 
 type AuthenticatedRequest = ExpressRequest & { user?: { id?: string } };
 
@@ -157,7 +158,13 @@ export class MoviesController extends Controller {
       throw new NotFoundException(messages.errors.notFound.movie);
     }
 
-    return ApiResponse.success(movie, messages.success.fetch);
+    const localImages = await findImagesInFolder(movie.folder);
+
+    return ApiResponse.success({
+      ...movie,
+      coverSrc: localImages.posterPath ?? movie.coverSrc,
+      backgroundSrc: localImages.backgroundPath ?? movie.backgroundSrc,
+    }, messages.success.fetch);
   }
 
   /**

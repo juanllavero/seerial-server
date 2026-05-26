@@ -3,9 +3,9 @@ import path from 'node:path';
 import { type LibraryType, LibraryTypes } from '@seerial/domain';
 import type { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
 import {
-    fileSystemService,
-    librariesRepo,
-    useCases,
+  fileSystemService,
+  librariesRepo,
+  useCases,
 } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { clearLibrary } from '@/api/v1/shared/infrastructure/services/FileSearchService';
 import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
@@ -108,14 +108,19 @@ const findCollectionImagesInCollectionRoot = async (
   items: CollectionImageSourceItem[],
 ): Promise<{ posterPath: string | null; backgroundPath: string | null }> => {
   const itemFolder = items.find((item) => Boolean(item.folder))?.folder;
-  const collectionRootFolder = itemFolder ? path.dirname(itemFolder) : null;
+  const rootFolder = itemFolder ? path.dirname(itemFolder) : null;
+  return findImagesInFolder(rootFolder);
+};
 
-  if (!collectionRootFolder) {
+export const findImagesInFolder = async (
+  folderPath: string | undefined | null,
+): Promise<{ posterPath: string | null; backgroundPath: string | null }> => {
+  if (!folderPath) {
     return { posterPath: null, backgroundPath: null };
   }
 
   try {
-    const filesInFolder = await fsPromises.readdir(collectionRootFolder);
+    const filesInFolder = await fsPromises.readdir(folderPath);
     let posterPath: string | null = null;
     let backgroundPath: string | null = null;
 
@@ -125,16 +130,16 @@ const findCollectionImagesInCollectionRoot = async (
 
       const fileNameWithoutExt = path.parse(file).name.toLowerCase();
       if (fileNameWithoutExt === 'poster') {
-        posterPath = path.join(collectionRootFolder, file);
+        posterPath = path.join(folderPath, file);
       } else if (fileNameWithoutExt === 'background') {
-        backgroundPath = path.join(collectionRootFolder, file);
+        backgroundPath = path.join(folderPath, file);
       }
     }
 
     return { posterPath, backgroundPath };
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
-      libraryManagerLogger.error(error, `Error reading folder ${collectionRootFolder}`);
+      libraryManagerLogger.error(error, `Error reading folder ${folderPath}`);
     }
     return { posterPath: null, backgroundPath: null };
   }

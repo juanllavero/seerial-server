@@ -34,6 +34,7 @@ import type {
   UpdateShowIdDTO,
 } from '@seerial/domain';
 import type { Series } from '../../../domain/Series';
+import { findImagesInFolder } from '@/api/v1/libraries/application/services/LibraryManager';
 
 type AuthenticatedRequest = ExpressRequest & { user?: { id?: string } };
 
@@ -221,7 +222,12 @@ export class SeriesController extends Controller {
       throw new NotFoundException(messages.errors.notFound.series);
     }
 
-    return ApiResponse.success(series, messages.success.fetch);
+    const localImages = await findImagesInFolder(series.folder);
+
+    return ApiResponse.success({
+      ...series,
+      coverSrc: localImages.posterPath ?? series.coverSrc,
+    }, messages.success.fetch);
   }
 
   /**

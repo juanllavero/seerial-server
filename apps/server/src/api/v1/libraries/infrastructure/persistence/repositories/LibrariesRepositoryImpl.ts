@@ -18,7 +18,7 @@ import { messages } from '@/config/messages';
 import { GenericRepositoryHelper } from '@/helpers/GenericRepositoryHelper';
 import logger from '@/utils/logger';
 import type { LibrariesRepositoryPort } from '../../../application/ports/LibrariesRepositoryPort';
-import { resolveCollectionImages } from '../../../application/services/LibraryManager';
+import { findImagesInFolder, resolveCollectionImages } from '../../../application/services/LibraryManager';
 import type { Library } from '../../../domain/Library';
 import { LibraryCollectionModel } from '../models/LibraryCollectionModel';
 import { LibraryModel } from '../models/LibraryModel';
@@ -708,11 +708,13 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
           () => this.generateItemDetails(movie, 'movie', userId),
         );
 
+        const localImages = await findImagesInFolder(movie.folder);
+
         const item = {
           id: movie.id,
           title: movie.name,
           years: movie.year ? movie.year.split('-')[0] : '-',
-          coverSrc: movie.coverSrc,
+          coverSrc: localImages.posterPath ?? movie.coverSrc,
           numberOfItems: movie.videos?.length || 0,
           order: movie.order,
           watched: movieWatched,
@@ -720,7 +722,11 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
           analyzingFiles: movie.analyzingFiles,
           type: 'movie' as const,
           collectionId: movie.collectionId ?? undefined,
-          details,
+          details: {
+            ...details,
+            coverSrc: localImages.posterPath ?? movie.coverSrc,
+            backgroundSrc: localImages.backgroundPath ?? movie.backgroundSrc,
+          } as DetailsData,
         };
 
         this.logTiming('buildMovieItems.movie.total', movieStartedAt, {
@@ -816,12 +822,14 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
           () => this.generateItemDetails(series, 'series', userId, currentSeason ?? undefined),
         );
 
+        const localImages = await findImagesInFolder(series.folder);
+
         const item = {
           id: series.id,
           title: series.name,
           years,
           order: series.order,
-          coverSrc: series.coverSrc,
+          coverSrc: localImages.posterPath ?? series.coverSrc,
           currentSeasonNumber: runtimeStats?.currentSeasonNumber,
           numberOfItems: runtimeStats?.currentSeasonEpisodeCount ?? 0,
           watched: seriesWatched,
@@ -829,7 +837,10 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
           analyzingFiles: series.analyzingFiles,
           type: 'series' as const,
           collectionId: series.collectionId ?? undefined,
-          details,
+          details: {
+            ...details,
+            coverSrc: localImages.posterPath ?? series.coverSrc,
+          } as DetailsData,
         };
 
         this.logTiming('buildSeriesItems.series.total', seriesStartedAt, {

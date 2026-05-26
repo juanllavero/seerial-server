@@ -185,11 +185,16 @@ export class ScanLibraryUseCase {
 
     const updatedLibrary = await this.librariesRepo.getById(library.id);
     const currentAnalyzedFiles = updatedLibrary?.analyzedFiles ?? library.analyzedFiles;
-    await this.cleanupMissingFiles(library.id, library.type, currentAnalyzedFiles, accessibleRoots);
+    await this.cleanupMissingFiles(library, currentAnalyzedFiles, accessibleRoots);
 
+    // Cleanup empty collections/albums/series after removing missing content, to avoid leaving orphaned entries in the DB
+    await this.cleanupEmptyCollections(library.id);
     if (library.type === 'Music') {
-      await this.cleanupEmptyAlbums(library.id, accessibleRoots);
-      await this.cleanupEmptyCollections(library.id);
+      await this.cleanupEmptyAlbums(library, accessibleRoots);
+    } else if (library.type === 'Shows') {
+      await this.cleanupEmptySeries(library, accessibleRoots);
+    } else if (library.type === 'Movies') {
+      await this.cleanupEmptyMovies(library, accessibleRoots);
     }
 
     logger.info({ libraryId: library.id }, 'Cleanup scan for missing content completed');
@@ -200,7 +205,7 @@ export class ScanLibraryUseCase {
     accessibleRoots: string[],
   ): Promise<void> {
     for (const [folderPath, contentId] of Object.entries(library.analyzedFolders)) {
-      if (!accessibleRoots.some((root) => folderPath.startsWith(root))) continue;
+      if (!this.isAccessibleRoot(folderPath, accessibleRoots)) continue;
 
       const missing = await this.isFolderMissing(folderPath);
       if (missing) {
@@ -208,7 +213,7 @@ export class ScanLibraryUseCase {
           { folderPath, contentId, libraryType: library.type },
           'Analyzed folder no longer exists or was renamed, removing content from DB',
         );
-        await this.deleteFolderContent(library.type, library.id, folderPath, contentId);
+        await this.deleteFolderContent(library, folderPath, contentId);
       }
     }
   }
@@ -248,13 +253,12 @@ export class ScanLibraryUseCase {
   }
 
   private async deleteFolderContent(
-    libraryType: Library['type'],
-    libraryId: string,
+    library: Library,
     folderPath: string,
     contentId: string,
   ): Promise<void> {
     try {
-      if (libraryType === 'Shows') {
+      if (library.type === 'Shows') {
         await useCases.deleteSeries().execute(contentId);
       } else {
         await useCases.deleteMovie().execute(contentId);
@@ -270,7 +274,8 @@ export class ScanLibraryUseCase {
       );
     }
     try {
-      await this.librariesRepo.removeAnalyzedFolder(libraryId, folderPath);
+      await this.librariesRepo.removeAnalyzedFolder(library.id, folderPath);
+      delete library.analyzedFolders[folderPath];
     } catch (error) {
       logger.error(
         { folderPath, err: error instanceof Error ? error.message : String(error) },
@@ -280,35 +285,33 @@ export class ScanLibraryUseCase {
   }
 
   private async cleanupMissingFiles(
-    libraryId: string,
-    libraryType: Library['type'],
+    library: Library,
     analyzedFiles: Record<string, string>,
     accessibleRoots: string[],
   ): Promise<void> {
     for (const [filePath, contentId] of Object.entries(analyzedFiles)) {
-      if (!accessibleRoots.some((root) => filePath.startsWith(root))) continue;
+      if (!this.isAccessibleRoot(filePath, accessibleRoots)) continue;
 
       const missing = await this.isFileMissing(filePath);
       if (missing) {
         logger.info(
-          { filePath, contentId, libraryType },
+          { filePath, contentId, libraryType: library.type },
           'Analyzed file no longer exists or was renamed, removing content from DB',
         );
-        await this.deleteFileContent(libraryId, libraryType, filePath, contentId);
+        await this.deleteFileContent(library, filePath, contentId);
       }
     }
   }
 
   private async deleteFileContent(
-    libraryId: string,
-    libraryType: Library['type'],
+    library: Library,
     filePath: string,
     contentId: string,
   ): Promise<void> {
     try {
-      if (libraryType === 'Shows') {
+      if (library.type === 'Shows') {
         await useCases.deleteEpisode().execute(contentId);
-      } else if (libraryType === 'Movies') {
+      } else if (library.type === 'Movies') {
         await useCases.deleteVideo().execute(contentId);
       } else {
         await useCases.deleteSong().execute(contentId);
@@ -324,19 +327,104 @@ export class ScanLibraryUseCase {
       );
     }
     try {
-      await this.librariesRepo.removeAnalyzedFile(libraryId, filePath);
+      await this.librariesRepo.removeAnalyzedFile(library.id, filePath);
+      delete library.analyzedFiles[filePath];
     } catch (error) {
       logger.error({ filePath, error }, 'Failed to remove analyzed file entry');
     }
   }
 
-  private async cleanupEmptyAlbums(libraryId: string, accessibleRoots: string[]): Promise<void> {
-    const albums = await useCases.getAlbums().execute(libraryId);
+  private async cleanupEmptySeries(library: Library, accessibleRoots: string[]): Promise<void> {
+    const seriesList = await useCases.getSeries().execute(library.id, 'all');
+
+    for (const series of seriesList) {
+      if (!series.id) continue;
+
+      const episodes = series.seasons.flatMap(season => season.episodes);
+
+      const hasNoLiveEpisodes = await this.hasNoLiveFiles(episodes.map(e => ({
+        fileSrc: e.video.fileSrc,
+      })), accessibleRoots);
+      if (!hasNoLiveEpisodes) continue;
+
+      logger.info({ seriesId: series.id, name: series.name }, 'Series has no live episodes on disk, removing from DB');
+
+      // Clean up analyzedFiles entries for this series' episodes
+      for (const episode of episodes) {
+        try {
+          await this.librariesRepo.removeAnalyzedFile(library.id, episode.video.fileSrc);
+          delete library.analyzedFiles[episode.video.fileSrc];
+        } catch (_) { }
+      }
+
+      // Delete the Series
+      try {
+        await useCases.deleteSeries().execute(series.id);
+
+        // 3. Clean up analyzedFolders entries for this series
+        for (const [folderPath, contentId] of Object.entries(library.analyzedFolders)) {
+          if (contentId === series.id) {
+            await this.librariesRepo.removeAnalyzedFolder(library.id, folderPath);
+            delete library.analyzedFolders[folderPath];
+          }
+        }
+      } catch (error) {
+        logger.error(
+          { seriesId: series.id, err: error instanceof Error ? error.message : String(error) },
+          'Failed to delete empty series'
+        );
+      }
+    }
+  }
+
+  private async cleanupEmptyMovies(library: Library, accessibleRoots: string[]): Promise<void> {
+    const movies = await useCases.getMovies().execute(library.id);
+
+    for (const movie of movies) {
+      if (!movie.id) continue;
+
+      const videos = await useCases.getVideoByMovieId().execute(movie.id);
+
+      // If the movie has no videos, it means it was scanned but all its files are missing. We can safely delete it without checking analyzedFiles, to avoid leaving orphaned entries in the DB.
+      const hasNoLiveVideos = await this.hasNoLiveFiles(videos, accessibleRoots);
+      if (!hasNoLiveVideos) continue;
+
+
+      // Clean up analyzedFiles entries for this movie's videos
+      for (const video of videos) {
+        try {
+          await this.librariesRepo.removeAnalyzedFile(library.id, video.fileSrc);
+          delete library.analyzedFiles[video.fileSrc];
+        } catch (_) { }
+      }
+
+      // Delete the Movie
+      try {
+        await useCases.deleteMovie().execute(movie.id);
+
+        // Clean up analyzedFolders entries for this movie
+        for (const [folderPath, contentId] of Object.entries(library.analyzedFolders)) {
+          if (contentId === movie.id) {
+            await this.librariesRepo.removeAnalyzedFolder(library.id, folderPath);
+            delete library.analyzedFolders[folderPath];
+          }
+        }
+      } catch (error) {
+        logger.error(
+          { movieId: movie.id, err: error instanceof Error ? error.message : String(error) },
+          'Failed to delete empty movie'
+        );
+      }
+    }
+  }
+
+  private async cleanupEmptyAlbums(library: Library, accessibleRoots: string[]): Promise<void> {
+    const albums = await useCases.getAlbums().execute(library.id);
     for (const album of albums) {
       if (!album.id) continue;
       const songs = await useCases.getSongsByAlbum().execute(album.id);
 
-      const hasNoLiveSongs = await this.albumHasNoLiveSongs(songs, accessibleRoots);
+      const hasNoLiveSongs = await this.hasNoLiveFiles(songs, accessibleRoots);
       if (!hasNoLiveSongs) continue;
 
       logger.info({ albumId: album.id, title: album.title }, 'Album has no live songs on disk, removing from DB');
@@ -344,7 +432,7 @@ export class ScanLibraryUseCase {
       // Clean up analyzedFiles entries for this album's songs
       for (const song of songs) {
         try {
-          await this.librariesRepo.removeAnalyzedFile(libraryId, song.fileSrc);
+          await this.librariesRepo.removeAnalyzedFile(library.id, song.fileSrc);
         } catch (_) {
           // Entry may have already been removed by cleanupMissingFiles
         }
@@ -361,22 +449,29 @@ export class ScanLibraryUseCase {
     }
   }
 
-  private async albumHasNoLiveSongs(
-    songs: Array<{ fileSrc: string }>,
+  private async hasNoLiveFiles(
+    files: Array<{ fileSrc: string }>,
     accessibleRoots: string[],
   ): Promise<boolean> {
-    if (songs.length === 0) return true;
+    if (files.length === 0) return true;
 
-    const accessibleSongs = songs.filter((song) =>
-      accessibleRoots.some((root) => song.fileSrc.startsWith(root)),
+    const accessibleFiles = files.filter((file) =>
+      accessibleRoots.some((root) => {
+        const normRoot = root.replace(/[/\\]/g, '/').toLowerCase();
+        const normPath = file.fileSrc.replace(/[/\\]/g, '/').toLowerCase();
+        return normPath.startsWith(normRoot);
+      }),
     );
 
-    // If none of the songs fall under accessible roots, skip deletion (drive may be disconnected)
-    if (accessibleSongs.length === 0) return false;
+    // If none of the files are in the accessible roots, the disk might be disconnected.
+    // Return false to avoid accidental deletion.
+    if (!this.isAccessibleRoot(files[0].fileSrc, accessibleRoots)) return false;
 
-    for (const song of accessibleSongs) {
-      if (!(await this.isFileMissing(song.fileSrc))) return false;
+    for (const file of accessibleFiles) {
+      // If at least one file exists, the content (Movie/Series) is still alive
+      if (!(await this.isFileMissing(file.fileSrc))) return false;
     }
+
     return true;
   }
 
@@ -447,5 +542,14 @@ export class ScanLibraryUseCase {
         'Failed to remove analyzed folder entry during cleanup',
       );
     }
+  }
+
+  private isAccessibleRoot(folderPath: string, accessibleRoots: string[]): boolean {
+    return accessibleRoots.some((root) => {
+      // Normalize paths to compare in a case-insensitive way and handle different separators
+      const normRoot = root.replace(/[/\\]/g, '/').toLowerCase();
+      const normPath = folderPath.replace(/[/\\]/g, '/').toLowerCase();
+      return normPath.startsWith(normRoot);
+    });
   }
 }

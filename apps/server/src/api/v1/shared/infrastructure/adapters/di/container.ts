@@ -147,6 +147,8 @@ import { MediaInfoServiceImpl } from '../media-info/MediaInfoServiceImpl';
 import { MetadataProviderImpl } from '../metadata/MetadataProviderImpl';
 import { TMDbApiClient } from '../metadata/TMDbApiClient';
 import { NotificationServiceImpl } from '../notification/NotificationServiceImpl';
+import { FindAllMoviesUseCase } from '@/api/v1/movies/application/usecases/FindAllMoviesUseCase';
+import { FindAllSeriesUseCase } from '@/api/v1/series/application/usecases/FindAllSeriesUseCase';
 
 //#endregion
 
@@ -238,6 +240,7 @@ export const useCases = {
   removeAlbumFromCollection: () => new RemoveAlbumFromCollectionUseCase(collectionsRepo),
 
   // Series
+  getSeries: () => new FindAllSeriesUseCase(seriesRepo),
   getSeriesById: () => new FindSeriesByIdUseCase(seriesRepo),
   createSeries: () => new CreateSeriesUseCase(seriesRepo),
   updateSeries: () => new UpdateSeriesUseCase(seriesRepo),
@@ -270,6 +273,7 @@ export const useCases = {
   deleteSeason: () => new DeleteSeasonUseCase(seasonsRepo),
 
   // Movies
+  getMovies: () => new FindAllMoviesUseCase(moviesRepo),
   getMoviebyId: () => new FindMovieByIdUseCase(moviesRepo),
   getMovieByPath: () => new FindMovieByPathUseCase(moviesRepo),
   updateMovie: () => new UpdateMovieUseCase(moviesRepo),

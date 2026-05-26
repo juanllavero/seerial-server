@@ -30,9 +30,11 @@ export class SeriesRepositoryImpl extends BaseRepository implements SeriesReposi
     });
   }
 
-  async findAll(libraryId: string): Promise<Series[]> {
+  async findAll(libraryId: string, include: IncludeType = 'none'): Promise<Series[]> {
     const validatedId = this.validateId(libraryId, 'Library ID');
-    return this.helper.findManyByField('libraryId', validatedId);
+    return this.helper.findManyByField('libraryId', validatedId, {
+      relations: this.RELATIONS[include],
+    });
   }
 
   async findById(id: string, include: IncludeType = 'none'): Promise<Series | null> {
