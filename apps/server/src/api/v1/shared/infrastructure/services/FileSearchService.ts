@@ -1,12 +1,12 @@
 import * as path from 'node:path';
 import { parse } from 'node:path';
-import { existsSync } from 'fs-extra';
 import { AlbumModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumModel';
 import { MovieModel } from '@/api/v1/movies/infrastructure/persistence/models/MovieModel';
 import { SeriesModel } from '@/api/v1/series/infrastructure/persistence/models/SeriesModel';
 import {
-  notificationService,
-  useCases,
+    fileSystemService,
+    notificationService,
+    useCases,
 } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import logger from '@/utils/logger';
 
@@ -35,7 +35,7 @@ export async function clearLibrary(libraryId: string) {
 
   for (const [filePath, rootFolder] of Object.entries(fileToRootFolder)) {
     if (!isRootConnected(rootFolder, rootConnectivity)) continue;
-    if (existsSync(filePath)) continue;
+    if (fileSystemService.existsSync(filePath)) continue;
 
     await removeMissingFileFromLibrary(library.type, filePath);
   }
@@ -71,7 +71,7 @@ function isRootConnected(rootFolder: string, rootConnectivity: Map<string, boole
   const cached = rootConnectivity.get(resolvedRoot);
   if (cached !== undefined) return cached;
 
-  if (existsSync(resolvedRoot)) {
+  if (fileSystemService.existsSync(resolvedRoot)) {
     rootConnectivity.set(resolvedRoot, true);
     return true;
   }

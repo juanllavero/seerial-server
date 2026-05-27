@@ -3,7 +3,6 @@ import { pipeline } from 'node:stream/promises';
 import { type LibraryType, LibraryTypes } from '@seerial/domain';
 import axios from 'axios';
 import type { Response } from 'express';
-import fs from 'fs-extra';
 import { Vibrant } from 'node-vibrant/node';
 import sharp from 'sharp';
 import { messages } from '@/config/messages';
@@ -11,7 +10,6 @@ import logger from '@/utils/logger';
 import type { FileSystemServicePort } from '../../../application/ports/FileSystemServicePort';
 import type { ImageProcessingServicePort } from '../../../application/ports/ImageProcessingServicePort';
 import { NotFoundException } from '../../web/exceptions/HTTPExceptions';
-import { fileSystemService } from '../di/container';
 
 const imageProcessingLogger = logger.child({ category: 'Image Processing' });
 
@@ -81,7 +79,7 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
         sourceImageBuffer = response.data;
       } else {
         const imagePath = source.startsWith('resources')
-          ? fileSystemService.getExternalPath(source)
+          ? this.fileSystemService.getExternalPath(source)
           : source;
         sourceImageBuffer = await sharp(imagePath).toBuffer();
       }
@@ -106,19 +104,20 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
     }
   }
 
-  async getDirectoryListing(relativePath: string): Promise<{ name: string; url: string }[]> {
-    const absolutePath = this.fileSystemService.getExternalPath(relativePath);
-    const fs = require('node:fs').promises;
-
+  async getDirectoryListing(folderPath: string): Promise<{ name: string; url: string }[]> {
+    // folderPath is already an absolute, sanitized path resolved by the controller
     try {
-      await fs.mkdir(absolutePath, { recursive: true });
-      const files = await fs.readdir(absolutePath);
-      return files.map((file: string) => ({
-        name: file,
-        url: require('node:path').join(relativePath, file),
-      }));
+      this.fileSystemService.createFolder(folderPath);
+      const entries = await this.fileSystemService.getFilesInFolder(folderPath);
+      return entries
+        .filter((entry) => entry.isFile())
+        .map((entry) => ({
+          name: entry.name,
+        // Return a URL the client can use with the GET /images/local endpoint
+          url: `images/local?path=${encodeURIComponent(this.fileSystemService.join(folderPath, entry.name))}`,
+        }));
     } catch (error) {
-      imageProcessingLogger.error(error, `Error reading directory ${absolutePath}`);
+      imageProcessingLogger.error(error, `Error reading directory ${folderPath}`);
       throw new Error('Error reading images folder.');
     }
   }
@@ -133,7 +132,10 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
     const resolvedPath = path.resolve(decodeURIComponent(filePath));
 
     try {
-      await fs.access(resolvedPath, fs.constants.F_OK);
+      const exists = await this.fileSystemService.isFile(resolvedPath);
+      if (!exists) {
+        throw new Error('File does not exist');
+      }
 
       if (!width && !height) {
         // Serve the original file without re-encoding to preserve image quality.
@@ -147,12 +149,12 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
           '.avif': 'image/avif',
         };
         res.setHeader('Content-Type', mimeTypes[ext] ?? 'application/octet-stream');
-        const inputStream = fs.createReadStream(resolvedPath);
+        const inputStream = this.fileSystemService.createReadStream(resolvedPath);
         await pipeline(inputStream, res);
         return;
       }
 
-      const inputStream = fs.createReadStream(resolvedPath);
+      const inputStream = this.fileSystemService.createReadStream(resolvedPath);
       await this._compressAndStream(inputStream, res, { width, height });
     } catch (_error) {
       throw new NotFoundException(messages.errors.notFound.file);
@@ -351,8 +353,8 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
   //#region Collection Images
 
   private async loadImageBuffer(src: string, libraryType: LibraryType): Promise<Buffer> {
-    const defaultPath = fileSystemService.getExternalPath(
-      fileSystemService.join(
+    const defaultPath = this.fileSystemService.getExternalPath(
+      this.fileSystemService.join(
         'resources',
         'img',
         'default',
@@ -364,7 +366,7 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
         }.jpg`,
       ),
     );
-    if (!src) return fs.readFileSync(defaultPath);
+    if (!src) return this.fileSystemService.readFileBuffer(defaultPath);
 
     try {
       if (src.startsWith('http')) {
@@ -374,11 +376,11 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
         });
         return Buffer.from(res.data);
       } else {
-        const filePath = fileSystemService.getExternalPath(src);
-        return fs.readFileSync(filePath);
+        const filePath = this.fileSystemService.getExternalPath(src);
+        return this.fileSystemService.readFileBuffer(filePath);
       }
     } catch {
-      return fs.readFileSync(defaultPath);
+      return this.fileSystemService.readFileBuffer(defaultPath);
     }
   }
 

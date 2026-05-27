@@ -1,4 +1,3 @@
-import fs from 'node:fs';
 import type { Video } from '@seerial/domain';
 import type {
   CreditsResponse,
@@ -29,7 +28,7 @@ const metadataLogger = logger.child({ category: 'Metadata' });
 const metadataManagerLogger = logger.child({ category: 'Metadata Manager' });
 
 export class MetadataProviderImpl implements MetadataProviderPort {
-  constructor(private readonly apiClient: TMDbApiClient) {}
+  constructor(private readonly apiClient: TMDbApiClient) { }
 
   private readonly BASE_URL: string = 'https://image.tmdb.org/t/p/original';
 
@@ -505,14 +504,6 @@ export class MetadataProviderImpl implements MetadataProviderPort {
    * @param series instance of the series.
    */
   public async updateSeasonMetadata(season: Season, series: Series): Promise<Season> {
-    // Create folders if they do not exist
-    const outputImageDir = fileSystemService.getExternalPath(
-      `resources/img/backgrounds/${season.id}`,
-    );
-    if (!fs.existsSync(outputImageDir)) {
-      fs.mkdirSync(outputImageDir);
-    }
-
     // If there is another season with background, use its background instead of downloading another one
     if (series.seasons && series.seasons.length > 1) {
       for (let i = 0; i < series.seasons.length; i++) {
@@ -674,9 +665,7 @@ export class MetadataProviderImpl implements MetadataProviderPort {
       const outputDir = fileSystemService.getExternalPath(
         `resources/img/thumbnails/video/${video.id}/`,
       );
-      if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir);
-      }
+      fileSystemService.createFolder(outputDir);
 
       if (thumbnails.length > 0) {
         video.imgUrls = thumbnails.map((thumb) => `${this.BASE_URL}${thumb.file_path}`);
@@ -765,22 +754,8 @@ export class MetadataProviderImpl implements MetadataProviderPort {
       .map((person) => person.name as string);
   }
 
-  private ensureMovieImageDirectories(movieId: string, collectionId?: string): void {
-    const dirs = [
-      fileSystemService.getExternalPath(`resources/img/logos/${movieId}`),
-      fileSystemService.getExternalPath(`resources/img/posters/${movieId}`),
-      fileSystemService.getExternalPath(`resources/img/backgrounds/${movieId}`),
-    ];
-
-    if (collectionId) {
-      dirs.push(fileSystemService.getExternalPath(`resources/img/posters/${collectionId}`));
-    }
-
-    for (const dir of dirs) {
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir);
-      }
-    }
+  private ensureMovieImageDirectories(_movieId: string, _collectionId?: string): void {
+    // Folders are no longer pre-created; images are stored in content media/ folders
   }
 
   private assignMovieImageUrls(
@@ -826,19 +801,6 @@ export class MetadataProviderImpl implements MetadataProviderPort {
    * @param series instance of the series.
    */
   private async downloadSeriesImages(series: Series) {
-    // Create folders if they do not exist
-    const outputLogosDir = fileSystemService.getExternalPath(`resources/img/logos/${series.id}`);
-    if (!fs.existsSync(outputLogosDir)) {
-      fs.mkdirSync(outputLogosDir);
-    }
-
-    const outputPostersDir = fileSystemService.getExternalPath(
-      `resources/img/posters/${series.id}`,
-    );
-    if (!fs.existsSync(outputPostersDir)) {
-      fs.mkdirSync(outputPostersDir);
-    }
-
     try {
       const images = await metadataProvider.getTVShowImages(series.themdbId);
       if (!images) return;

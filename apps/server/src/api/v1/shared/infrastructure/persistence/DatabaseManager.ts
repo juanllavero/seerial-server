@@ -1,4 +1,3 @@
-import fs from 'node:fs';
 import { DataSource, type EntityManager, type EntityTarget, type Repository } from 'typeorm';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { AlbumArtistModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumArtistModel';
@@ -255,8 +254,8 @@ export class DatabaseManager {
    */
   private static ensureDatabaseDirectory(): void {
     const dbDir = fileSystemService.getExternalPath('resources/db/');
-    if (!fs.existsSync(dbDir)) {
-      fs.mkdirSync(dbDir, { recursive: true });
+    if (!fileSystemService.existsSync(dbDir)) {
+      fileSystemService.createFolder(dbDir);
     }
   }
 
@@ -269,7 +268,12 @@ export class DatabaseManager {
    * dropped manually once you are confident the migration succeeded.
    */
   private static async migrateCollectionFKs(): Promise<void> {
-    const qr = DatabaseManager.dataSource!.createQueryRunner();
+    const dataSource = DatabaseManager.dataSource;
+    if (!dataSource) {
+      return;
+    }
+
+    const qr = dataSource.createQueryRunner();
     await qr.connect();
     try {
       const tableNames: string[] = (

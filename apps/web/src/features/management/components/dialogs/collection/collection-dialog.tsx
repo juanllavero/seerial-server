@@ -59,10 +59,10 @@ function CollectionDialog() {
       description: collection.description ?? '',
       covers: collection.coversUrls ?? [],
       selectedCover: collection.coverSrc ?? '',
-      localCoverFolder: `img/posters/${collection.id}`,
+      localCoverFolder: `resources/collections/${collection.id}/media`,
       backgrounds: collection.backgroundsUrls ?? [],
       selectedBackground: collection.backgroundSrc ?? '',
-      localBackgroundFolder: `img/backgrounds/${collection.id}`,
+      localBackgroundFolder: `resources/collections/${collection.id}/media`,
     });
     setSelectedTab(t('generalButton'));
   }, [collection, resetFormState, t]);

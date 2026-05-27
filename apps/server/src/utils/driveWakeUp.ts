@@ -1,5 +1,5 @@
-import fs from 'node:fs/promises';
 import path from 'node:path';
+import { fileSystemService } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import logger from '@/utils/logger';
 
 const driveWakeUpLogger = logger.child({ category: 'Drive Wake-Up' });
@@ -35,8 +35,10 @@ export function wakeUpDrives(folders: string[]): void {
   driveWakeUpLogger.debug({ roots }, 'Waking up drives');
 
   for (const root of roots) {
-    fs.stat(root).catch((err) => {
-      driveWakeUpLogger.warn({ root, err }, 'Drive wake-up stat failed');
+    void fileSystemService.getFileStats(root).then((stats) => {
+      if (!stats) {
+        driveWakeUpLogger.warn({ root }, 'Drive wake-up stat failed');
+      }
     });
   }
 }

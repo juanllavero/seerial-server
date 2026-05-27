@@ -1,12 +1,13 @@
 import {
   contentCleanupService,
+  seriesRepo,
   useCases,
 } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
 import type { SeasonsRepositoryPort } from '../ports/SeasonsRepositoryPort';
 
 export class DeleteSeasonUseCase {
-  constructor(private seasonsRepo: SeasonsRepositoryPort) {}
+  constructor(private seasonsRepo: SeasonsRepositoryPort) { }
 
   async execute(id: string): Promise<void> {
     const season = await this.seasonsRepo.findById(id, 'few');
@@ -17,8 +18,11 @@ export class DeleteSeasonUseCase {
       await useCases.deleteEpisode().execute(episode.id);
     }
 
-    // Delete local media files and folders
-    contentCleanupService.cleanSeason(id);
+    // Delete local media files for this season
+    const series = await seriesRepo.findById(season.seriesId, 'few');
+    if (series?.folder) {
+      contentCleanupService.cleanSeasonMedia(series.folder, season.seasonNumber);
+    }
 
     await this.seasonsRepo.delete(id);
   }

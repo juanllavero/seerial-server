@@ -1,7 +1,7 @@
-import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { Get, Query, Route, Security, Tags } from 'tsoa';
+import { fileSystemService } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { messages } from '@/config/messages';
 import { getSystemAllowedPaths, sanitizeDirectoryPath } from '../../services/SanitizationService';
 import { ApiResponse } from '../http/APIResponse';
@@ -31,7 +31,7 @@ export class FilesController {
       const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
       for (let i = 0; i < letters.length; i++) {
         const drive = `${letters[i]}:\\`;
-        if (fs.existsSync(drive)) {
+        if (fileSystemService.existsSync(drive)) {
           drives.push(drive);
         }
       }
@@ -39,8 +39,8 @@ export class FilesController {
       // For Unix-like systems such as macOS or Linux
       drives.push('/'); // Add the root directory
       const volumes = '/Volumes'; // In macOS, external volumes are in /Volumes
-      if (fs.existsSync(volumes)) {
-        const mountedVolumes = fs.readdirSync(volumes);
+      if (fileSystemService.existsSync(volumes)) {
+        const mountedVolumes = fileSystemService.getFoldersInFolderSync(volumes);
         mountedVolumes.forEach((volume) => {
           drives.push(path.join(volumes, volume)); // Add each mounted volume
         });
@@ -62,18 +62,19 @@ export class FilesController {
       true, // Must exist
     );
 
-    return ApiResponse.success(getFolderContent(sanitizedPath), messages.success.fetch);
+    const content = await getFolderContent(sanitizedPath);
+    return ApiResponse.success(content, messages.success.fetch);
   }
 }
 
 // Function to get files and folders within a directory
-const getFolderContent = (dirPath: string) => {
+const getFolderContent = async (dirPath: string): Promise<FileItem[]> => {
   const contents: FileItem[] = [];
 
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true });
+  if (!fileSystemService.existsSync(dirPath)) {
+    fileSystemService.createFolder(dirPath);
   }
-  const items = fs.readdirSync(dirPath, { withFileTypes: true });
+  const items = await fileSystemService.getFilesInFolder(dirPath);
 
   items.forEach((item) => {
     // Filter hidden files and folders

@@ -1,24 +1,21 @@
-import fs from 'node:fs';
 import type { MovieResponse } from 'moviedb-promise';
-import type { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
-import type { FileSystemServicePort } from '@/api/v1/shared/application/ports/FileSystemServicePort';
+import type { Collection } from '@/api/v1/collections/domain/Collection';
+import type { Movie } from '@/api/v1/movies/domain/Movie';
 import type { MetadataProviderPort } from '@/api/v1/shared/application/ports/MetadataProviderPort';
 import { imdbScoreService } from '@/api/v1/shared/infrastructure/adapters/di/container';
-import type { MovieModel } from '../../infrastructure/persistence/models/MovieModel';
 import type { MoviesRepositoryPort } from '../ports/MoviesRepositoryPort';
 
 export class UpdateMovieMetadataUseCase {
   constructor(
     private readonly metadataProvider: MetadataProviderPort,
     private readonly movieRepository: MoviesRepositoryPort,
-    private readonly fileSystemService: FileSystemServicePort,
-  ) {}
+  ) { }
 
   async execute(
-    movie: MovieModel,
+    movie: Movie,
     movieMetadata: MovieResponse,
     language: string,
-    collection?: CollectionModel,
+    collection?: Collection,
   ): Promise<void> {
     // Update basic metadata
     if (!movie.nameLock) movie.name = movieMetadata.title ?? '';
@@ -51,7 +48,7 @@ export class UpdateMovieMetadataUseCase {
   }
 
   private async updateMovieCredits(
-    movie: MovieModel,
+    movie: Movie,
     themdbId: number,
     language: string,
   ): Promise<void> {
@@ -71,14 +68,14 @@ export class UpdateMovieMetadataUseCase {
     }
   }
 
-  private updateCrewCredits(movie: MovieModel, crew: Array<{ name?: string; job?: string }>): void {
+  private updateCrewCredits(movie: Movie, crew: Array<{ name?: string; job?: string }>): void {
     this.updateDirectedBy(movie, crew);
     this.updateWrittenBy(movie, crew);
     this.updateCreator(movie, crew);
     this.updateMusicComposer(movie, crew);
   }
 
-  private updateDirectedBy(movie: MovieModel, crew: Array<{ name?: string; job?: string }>): void {
+  private updateDirectedBy(movie: Movie, crew: Array<{ name?: string; job?: string }>): void {
     if (movie.directedByLock) return;
     movie.directedBy.splice(0, movie.directedBy.length);
     movie.directedBy = crew
@@ -86,7 +83,7 @@ export class UpdateMovieMetadataUseCase {
       .map((person) => person.name as string);
   }
 
-  private updateWrittenBy(movie: MovieModel, crew: Array<{ name?: string; job?: string }>): void {
+  private updateWrittenBy(movie: Movie, crew: Array<{ name?: string; job?: string }>): void {
     if (movie.writtenByLock) return;
     movie.writtenBy.splice(0, movie.writtenBy.length);
     movie.writtenBy = crew
@@ -94,7 +91,7 @@ export class UpdateMovieMetadataUseCase {
       .map((person) => person.name as string);
   }
 
-  private updateCreator(movie: MovieModel, crew: Array<{ name?: string; job?: string }>): void {
+  private updateCreator(movie: Movie, crew: Array<{ name?: string; job?: string }>): void {
     if (movie.creatorLock) return;
 
     const creatorJobs = new Set([
@@ -117,7 +114,7 @@ export class UpdateMovieMetadataUseCase {
   }
 
   private updateMusicComposer(
-    movie: MovieModel,
+    movie: Movie,
     crew: Array<{ name?: string; job?: string }>,
   ): void {
     if (movie.musicComposerLock) return;
@@ -128,41 +125,11 @@ export class UpdateMovieMetadataUseCase {
   }
 
   private async downloadMovieImages(
-    movie: MovieModel,
-    collection?: CollectionModel,
+    movie: Movie,
+    collection?: Collection,
   ): Promise<void> {
     const images = await this.metadataProvider.getMovieImages(movie.themdbId);
     if (!images) return;
-
-    // Create folders if they do not exist
-    const outputLogosDir = this.fileSystemService.getExternalPath(
-      `resources/img/logos/${movie.id}`,
-    );
-    if (!fs.existsSync(outputLogosDir)) {
-      fs.mkdirSync(outputLogosDir);
-    }
-
-    const outputPostersDir = this.fileSystemService.getExternalPath(
-      `resources/img/posters/${movie.id}`,
-    );
-    if (!fs.existsSync(outputPostersDir)) {
-      fs.mkdirSync(outputPostersDir);
-    }
-
-    const outputPostersCollectionDir = this.fileSystemService.getExternalPath(
-      `resources/img/posters/${collection?.id}`,
-    );
-
-    if (collection && !fs.existsSync(outputPostersCollectionDir)) {
-      fs.mkdirSync(outputPostersCollectionDir);
-    }
-
-    const outputImageDir = this.fileSystemService.getExternalPath(
-      `resources/img/backgrounds/${movie.id}`,
-    );
-    if (!fs.existsSync(outputImageDir)) {
-      fs.mkdirSync(outputImageDir);
-    }
 
     const baseUrl = 'https://image.tmdb.org/t/p/original';
 
@@ -185,9 +152,9 @@ export class UpdateMovieMetadataUseCase {
 
       // If there is a collection, add poster to collection
       if (collection) {
-        collection.postersUrls.push(movie.coversUrls[0]);
-        if (!collection.posterSrc) {
-          collection.posterSrc = movie.coversUrls[0];
+        collection.coversUrls.push(movie.coversUrls[0]);
+        if (!collection.coverSrc) {
+          collection.coverSrc = movie.coversUrls[0];
         }
       }
     }

@@ -1,6 +1,7 @@
 import type { LyricsLine } from '@seerial/domain';
 import type { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import jwt from 'jsonwebtoken';
+import path from 'node:path';
 import {
   Body,
   Controller,
@@ -19,6 +20,9 @@ import {
 import {
   audioProcessingService,
   fileSystemService,
+  moviesRepo,
+  seasonsRepo,
+  seriesRepo,
   useCases,
 } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { findLyricsForSong } from '@/api/v1/shared/infrastructure/services/MediaDetailsService';
@@ -42,6 +46,34 @@ export class SongsController extends Controller {
       return filePath || null;
     }
 
+    // Try movie media folder
+    const movie = await moviesRepo.findById(localId);
+    if (movie?.folder) {
+      const mediaFolder = path.join(movie.folder, 'media');
+      const [musicPath] = await fileSystemService.getValidMusicFiles(mediaFolder);
+      if (musicPath) return musicPath;
+    }
+
+    // Try season media folder (localId is season id)
+    const season = await seasonsRepo.findById(localId, 'few');
+    if (season) {
+      const series = await seriesRepo.findById(season.seriesId, 'few');
+      if (series?.folder) {
+        const mediaFolder = path.join(series.folder, 'media');
+        const all = await fileSystemService.getValidMusicFiles(mediaFolder);
+        const match = all.find((p) =>
+          path.basename(p).startsWith(`s${season.seasonNumber}_theme`),
+        );
+        if (match) return match;
+        // Fallback: any music file prefixed with sN_
+        const fallback = all.find((p) =>
+          path.basename(p).startsWith(`s${season.seasonNumber}_`),
+        );
+        if (fallback) return fallback;
+      }
+    }
+
+    // Legacy fallback: resources/music/{localId}
     const localFolder = fileSystemService.getExternalPath(
       fileSystemService.join('resources', 'music', localId),
     );

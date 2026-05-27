@@ -11,7 +11,6 @@ import {
 import logger from '@/utils/logger';
 import type { FileSystemServicePort } from '../../../application/ports/FileSystemServicePort';
 import type { FileOrDir } from '../../../domain/types/FilesTypes';
-import { getSystemAllowedPaths, sanitizeDirectoryPath } from '../../services/SanitizationService';
 
 const fileSystemLogger = logger.child({ category: 'File System' });
 
@@ -90,6 +89,19 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
   //#endregion
 
   //#region CHECK EXISTENCE
+  public async exists(pathStr: string): Promise<boolean> {
+    try {
+      await fs.promises.access(pathStr, fs.constants.F_OK);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  public existsSync(pathStr: string): boolean {
+    return fs.existsSync(pathStr);
+  }
+
   public async isFile(filePath: string): Promise<boolean> {
     try {
       const stats = await fs.promises.stat(filePath);
@@ -135,6 +147,44 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
   //#endregion
 
   //#region GET FILES
+  public async getFileStats(pathStr: string) {
+    try {
+      return await fs.promises.stat(pathStr);
+    } catch {
+      return null;
+    }
+  }
+
+  public getFileStatsSync(pathStr: string) {
+    try {
+      return fs.statSync(pathStr);
+    } catch {
+      return null;
+    }
+  }
+
+  public getNamesInFolderSync(pathStr: string): string[] {
+    try {
+      return fs.readdirSync(pathStr);
+    } catch {
+      return [];
+    }
+  }
+
+  public async getFoldersInFolder(pathStr: string): Promise<string[]> {
+    const entries = await this.getFilesInFolder(pathStr);
+    return entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name);
+  }
+
+  public getFoldersInFolderSync(pathStr: string): string[] {
+    try {
+      const entries = fs.readdirSync(pathStr, { withFileTypes: true });
+      return entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name);
+    } catch {
+      return [];
+    }
+  }
+
   public async getFileInFolder(pathStr: string, fileName: string): Promise<string | null> {
     try {
       const entries = await fs.promises.readdir(pathStr, {
@@ -165,10 +215,9 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
   public async getValidVideoFiles(folderPath: string): Promise<string[]> {
     const videoFiles: string[] = [];
     try {
-      const sanitizedPath = sanitizeDirectoryPath(folderPath, getSystemAllowedPaths(), true);
-      const filesAndFolders = await this.getFilesInFolder(sanitizedPath);
+      const filesAndFolders = await this.getFilesInFolder(folderPath);
       for (const fileOrFolder of filesAndFolders) {
-        const fullPath = path.join(sanitizedPath, fileOrFolder.name);
+        const fullPath = path.join(folderPath, fileOrFolder.name);
         if (fileOrFolder.isFile() && this.isVideoFile(fullPath)) {
           videoFiles.push(fullPath);
         } else if (fileOrFolder.isDirectory()) {
@@ -253,6 +302,23 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
   public readFileSync(filePath: string, encoding: BufferEncoding = 'utf-8'): string {
     return fs.readFileSync(filePath, encoding);
   }
+
+  public async readFileBuffer(filePath: string): Promise<Buffer> {
+    return fs.promises.readFile(filePath);
+  }
+  //#endregion
+
+  //#region STREAMS
+  public createReadStream(
+    filePath: string,
+    options?: { start?: number; end?: number },
+  ): NodeJS.ReadableStream {
+    return fs.createReadStream(filePath, options);
+  }
+
+  public createWriteStream(filePath: string): NodeJS.WritableStream {
+    return fs.createWriteStream(filePath);
+  }
   //#endregion
 
   //#region FILE WRITING
@@ -262,6 +328,18 @@ export class FileSystemServiceImpl implements FileSystemServicePort {
     encoding: BufferEncoding = 'utf-8',
   ): Promise<void> {
     return fs.promises.writeFile(filePath, content, encoding);
+  }
+
+  public writeFileSync(
+    filePath: string,
+    content: string,
+    options: { encoding?: BufferEncoding; mode?: number } = {},
+  ): void {
+    fs.writeFileSync(filePath, content, options);
+  }
+
+  public chmod(pathStr: string, mode: number): void {
+    fs.chmodSync(pathStr, mode);
   }
 
   public async writeImage(filePath: string, imageBuffer: Buffer): Promise<void> {

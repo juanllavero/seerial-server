@@ -1,5 +1,5 @@
-import fs from 'node:fs';
 import axios from 'axios';
+import { fileSystemService } from '@/api/v1/shared/infrastructure/adapters/di/container';
 
 /**
  * Checks if a string is a valid URL
@@ -24,7 +24,7 @@ export const downloadImage = async (url: string, filePath: string) => {
     });
 
     return new Promise<void>((resolve, reject) => {
-      const writer = fs.createWriteStream(filePath);
+      const writer = fileSystemService.createWriteStream(filePath);
       response.data.pipe(writer);
       writer.on('finish', resolve);
       writer.on('error', reject);

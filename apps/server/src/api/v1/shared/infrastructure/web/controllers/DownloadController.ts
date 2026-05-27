@@ -68,7 +68,12 @@ export class DownloadController extends Controller {
       fileName += '.jpg';
     }
 
-    await downloadImage(url, path.join(fileSystemService.resourcesPath, downloadFolder, fileName));
+    // Support both absolute paths (entity content folders) and LOCAL_DATA_PATH-relative paths
+    const resolvedFolder = path.isAbsolute(downloadFolder)
+      ? downloadFolder
+      : fileSystemService.getExternalPath(downloadFolder);
+
+    await downloadImage(url, path.join(resolvedFolder, fileName));
 
     return ApiResponse.success(null, messages.success.download);
   }

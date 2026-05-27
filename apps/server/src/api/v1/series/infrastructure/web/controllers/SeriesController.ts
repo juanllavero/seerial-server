@@ -1,3 +1,4 @@
+import path from 'node:path';
 import type { Request as ExpressRequest } from 'express';
 import type { TvEpisodeGroupsResponse, TvResult } from 'moviedb-promise';
 import {
@@ -222,7 +223,7 @@ export class SeriesController extends Controller {
       throw new NotFoundException(messages.errors.notFound.series);
     }
 
-    const localImages = await findImagesInFolder(series.folder);
+    const localImages = await findImagesInFolder(path.join(series.folder, 'media'));
 
     return ApiResponse.success({
       ...series,

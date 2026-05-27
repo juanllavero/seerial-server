@@ -15,8 +15,8 @@ import DownloadMediaCard from './download-media-card';
 import DownloadMediaCardSkeleton from './download-media-card-skeleton';
 
 interface DownloadTarget {
-  libraryId: string;
-  mediaId: string;
+  mediaFolder: string;
+  fileBaseName: string;
 }
 
 function buildDefaultSearchText(
@@ -47,21 +47,22 @@ function getDownloadTarget(
 ): DownloadTarget {
   if (isMovie) {
     return {
-      libraryId: movie?.libraryId ?? '',
-      mediaId: movie?.id ?? '',
+      mediaFolder: movie?.folder ? `${movie.folder}/media` : '',
+      fileBaseName: '',
     };
   }
 
   if (isSeason) {
+    const seasonNum = season?.seasonNumber ?? 1;
     return {
-      libraryId: series?.libraryId ?? '',
-      mediaId: season?.id ?? '',
+      mediaFolder: series?.folder ? `${series.folder}/media` : '',
+      fileBaseName: `s${seasonNum}_`,
     };
   }
 
   return {
-    libraryId: series?.libraryId ?? '',
-    mediaId: series?.id ?? '',
+    mediaFolder: series?.folder ? `${series.folder}/media` : '',
+    fileBaseName: '',
   };
 }
 
@@ -193,14 +194,15 @@ function DownloadMediaSearch() {
   }, [downloaded, closeDialog, setDownloaded]);
 
   const downloadMedia = async (media: MediaSearchResult) => {
-    const { libraryId, mediaId } = getDownloadTarget(isMovie, isSeason, movie, season, series);
+    const { mediaFolder, fileBaseName } = getDownloadTarget(isMovie, isSeason, movie, season, series);
+    const fileName = fileBaseName + (type === 'music' ? 'theme' : 'video');
 
     await connectWS();
 
     if (type === 'music') {
-      await downloadAudio(media.id, media.url, libraryId, mediaId);
+      await downloadAudio(media.id, media.url, mediaFolder, fileName);
     } else {
-      await downloadVideo(media.id, media.url, libraryId, mediaId);
+      await downloadVideo(media.id, media.url, mediaFolder, fileName);
     }
   };
 

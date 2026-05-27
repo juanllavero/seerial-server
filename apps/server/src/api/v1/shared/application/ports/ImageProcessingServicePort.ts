@@ -14,7 +14,7 @@ export interface ImageProcessingServicePort {
     css: string;
   }>;
   createTransparentImage(source: string, width: number, height: number): Promise<Buffer>;
-  getDirectoryListing(relativePath: string): Promise<{ name: string; url: string }[]>;
+  getDirectoryListing(folderPath: string): Promise<{ name: string; url: string }[]>;
   streamLocalImage(options: {
     filePath: string;
     res: unknown;

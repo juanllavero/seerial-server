@@ -244,13 +244,13 @@ interface WebSocketState {
   downloadAudio: (
     elementId: string,
     url: string,
-    libraryId: string,
+    mediaFolder: string,
     fileName: string,
   ) => Promise<void>;
   downloadVideo: (
     elementId: string,
     url: string,
-    libraryId: string,
+    mediaFolder: string,
     fileName: string,
   ) => Promise<void>;
   addMessageToQueue: (message: WebSocketMessage) => void;
@@ -331,7 +331,7 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>((set, get)
     }
   },
 
-  downloadVideo: async (elementId, url, libraryId, fileName) => {
+  downloadVideo: async (elementId, url, mediaFolder, fileName) => {
     set({
       downloadingElementId: elementId,
       downloadPercentage: 0,
@@ -344,10 +344,10 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>((set, get)
     try {
       const response = await api.post<{ data?: unknown }>(API.downloads.video, {
         url,
-        downloadFolder: `resources/video/${libraryId}/`,
+        downloadFolder: mediaFolder,
         fileName,
       });
-      if (!response || !response.data) {
+      if (!response?.data) {
         throw new Error();
       }
       const data = response.data;
@@ -357,7 +357,7 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>((set, get)
     }
   },
 
-  downloadAudio: async (elementId, url, libraryId, fileName) => {
+  downloadAudio: async (elementId, url, mediaFolder, fileName) => {
     set({
       downloadingElementId: elementId,
       downloadPercentage: 0,
@@ -370,10 +370,10 @@ export const useWebSocketStore = createWithEqualityFn<WebSocketState>((set, get)
     try {
       const response = await api.post<{ data?: unknown }>(API.downloads.music, {
         url,
-        downloadFolder: `resources/music/${libraryId}/`,
+        downloadFolder: mediaFolder,
         fileName,
       });
-      if (!response || !response.data) {
+      if (!response?.data) {
         throw new Error();
       }
       const data = response.data;

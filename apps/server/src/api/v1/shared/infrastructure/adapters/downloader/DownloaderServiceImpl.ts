@@ -1,5 +1,4 @@
 import { exec, spawn } from 'node:child_process';
-import fs, { chmodSync, createWriteStream, existsSync, mkdirSync, unlinkSync } from 'node:fs';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { https } from 'follow-redirects';
@@ -77,7 +76,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
   private async forceReDownloadYtDlp(): Promise<void> {
     const ytDlpPath = this.getYtDlpPath();
     try {
-      if (existsSync(ytDlpPath)) unlinkSync(ytDlpPath);
+      if (fileSystemService.existsSync(ytDlpPath)) fileSystemService.deleteFile(ytDlpPath);
     } catch (err) {
       downloaderLogger.warn({ err }, 'Could not delete existing yt-dlp binary before re-download');
     }
@@ -91,23 +90,27 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
     const binDir = this.getBinDir();
     const ytDlpPath = this.getYtDlpPath();
 
-    if (existsSync(ytDlpPath)) {
+    if (fileSystemService.existsSync(ytDlpPath)) {
       downloaderLogger.info({ message: 'yt-dlp is already in:', ytDlpPath });
       return;
     }
 
-    if (!existsSync(binDir)) mkdirSync(binDir, { recursive: true });
+    fileSystemService.createFolder(binDir);
 
     const url = this.getDownloadURL();
 
     downloaderLogger.info({ message: 'Downloading yt-dlp from:', url });
 
     return new Promise((resolve, reject) => {
-      const file = createWriteStream(ytDlpPath);
+      const file = fileSystemService.createWriteStream(ytDlpPath);
 
       https
         .get(url, (response) => {
           if (response.statusCode !== 200) {
+            file.destroy();
+            if (fileSystemService.existsSync(ytDlpPath)) {
+              fileSystemService.deleteFile(ytDlpPath);
+            }
             reject(
               new Error(`[DepCheck]: Error downloading yt-dlp. HTTP code ${response.statusCode}`),
             );
@@ -117,22 +120,27 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
           response.pipe(file);
 
           file.on('finish', () => {
-            file.close(() => {
-              try {
-                if (process.platform !== 'win32') {
-                  chmodSync(ytDlpPath, 0o755); // Add executable permission
-                }
-                resolve();
-              } catch (err) {
-                reject(err);
+            try {
+              if (process.platform !== 'win32') {
+                fileSystemService.chmod(ytDlpPath, 0o755); // Add executable permission
               }
-            });
+              resolve();
+            } catch (err) {
+              reject(err);
+            }
+          });
+
+          file.on('error', (err) => {
+            if (fileSystemService.existsSync(ytDlpPath)) {
+              fileSystemService.deleteFile(ytDlpPath);
+            }
+            reject(err);
           });
         })
         .on('error', (err) => {
           // Clean partially downloaded file
           try {
-            if (existsSync(ytDlpPath)) unlinkSync(ytDlpPath);
+            if (fileSystemService.existsSync(ytDlpPath)) fileSystemService.deleteFile(ytDlpPath);
           } catch {}
           reject(err);
         });
@@ -202,15 +210,17 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
   }
 
   public async downloadVideo(url: string, downloadFolder: string, fileName: string): Promise<void> {
-    const folder = fileSystemService.getExternalPath(downloadFolder);
+    const folder = path.isAbsolute(downloadFolder)
+      ? downloadFolder
+      : fileSystemService.getExternalPath(downloadFolder);
 
     // Make sure the download path has a trailing slash
     const outputPath = path.join(folder, `${fileName}.webm`);
 
     // Remove if exists
-    if (fs.existsSync(outputPath)) {
+    if (fileSystemService.existsSync(outputPath)) {
       try {
-        fs.unlinkSync(outputPath);
+        fileSystemService.deleteFile(outputPath);
       } catch (error) {
         downloaderLogger.error({ error, outputPath }, 'File not removed');
       }
@@ -223,7 +233,9 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
   }
 
   public async downloadAudio(url: string, downloadFolder: string, fileName: string): Promise<void> {
-    const folder = fileSystemService.getExternalPath(downloadFolder);
+    const folder = path.isAbsolute(downloadFolder)
+      ? downloadFolder
+      : fileSystemService.getExternalPath(downloadFolder);
 
     // Create folder if it doesn't exist
     fileSystemService.createFolder(folder);
@@ -232,9 +244,9 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
     const outputPath = path.join(folder, `${fileName}.opus`);
 
     // Remove if exists
-    if (fs.existsSync(outputPath)) {
+    if (fileSystemService.existsSync(outputPath)) {
       try {
-        fs.unlinkSync(outputPath);
+        fileSystemService.deleteFile(outputPath);
       } catch (error) {
         downloaderLogger.error({ error, outputPath }, 'File not removed');
       }

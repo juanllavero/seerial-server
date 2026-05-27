@@ -1,24 +1,23 @@
 import { spawn, spawnSync } from 'node:child_process';
 import crypto from 'node:crypto';
-import fs from 'node:fs';
 import path from 'node:path';
 import type { Request, Response } from 'express';
 import {
-  fileSystemService,
-  notificationService,
+    fileSystemService,
+    notificationService,
 } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { executeFfmpeg } from '@/api/v1/shared/infrastructure/adapters/ffmpeg/nativeFfmpeg';
 import {
-  BadRequestException,
-  NotFoundException,
+    BadRequestException,
+    NotFoundException,
 } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
 import { messages } from '@/config/messages';
 import { audioExtensions } from '@/utils/constants';
 import logger from '@/utils/logger';
 import type {
-  AudioProcessingServicePort,
-  StemSeparationJob,
-  StemSeparationJobStatus,
+    AudioProcessingServicePort,
+    StemSeparationJob,
+    StemSeparationJobStatus,
 } from '../../application/ports/AudioProcessingServicePort';
 
 const audioProcessingLogger = logger.child({
@@ -59,9 +58,7 @@ export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
 
   constructor() {
     this.cacheDir = path.join(fileSystemService.resourcesPath, 'cache', 'audio');
-    if (!fs.existsSync(this.cacheDir)) {
-      fs.mkdirSync(this.cacheDir, { recursive: true });
-    }
+    fileSystemService.createFolder(this.cacheDir);
   }
 
   async ensureStemSeparationAvailable(): Promise<void> {
@@ -92,7 +89,7 @@ export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
    * @returns The path to the audio file ready to be transmitted.
    */
   async getStreamableAudioPath(originalPath: string, isWeb: boolean): Promise<string> {
-    if (!fs.existsSync(originalPath)) {
+    if (!fileSystemService.existsSync(originalPath)) {
       throw new NotFoundException(messages.errors.notFound.file);
     }
 
@@ -109,7 +106,7 @@ export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
     const cachedFilePath = path.join(this.cacheDir, `${originalPathHash}.mp3`);
 
     // Check if cached file already exists
-    if (fs.existsSync(cachedFilePath)) {
+    if (fileSystemService.existsSync(cachedFilePath)) {
       return cachedFilePath;
     }
 
@@ -128,7 +125,7 @@ export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
       return cachedFilePath;
     } catch (_error) {
       // Clean failed file if created
-      if (fs.existsSync(cachedFilePath)) fs.unlinkSync(cachedFilePath);
+      if (fileSystemService.existsSync(cachedFilePath)) fileSystemService.deleteFile(cachedFilePath);
       throw new Error(messages.errors.server.internal);
     }
   }
@@ -138,7 +135,10 @@ export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
    * @param filePath The path to the file that will be transmitted.
    */
   streamFile(filePath: string, req: Request, res: Response): void {
-    const stat = fs.statSync(filePath);
+    const stat = fileSystemService.getFileStatsSync(filePath);
+    if (!stat) {
+      throw new NotFoundException(messages.errors.notFound.file);
+    }
     const fileSize = stat.size;
     const range = req.headers.range;
     const contentType = this.getAudioContentType(filePath);
@@ -148,7 +148,7 @@ export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
       const start = parseInt(parts[0], 10);
       const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
       const chunkSize = end - start + 1;
-      const file = fs.createReadStream(filePath, { start, end });
+      const file = fileSystemService.createReadStream(filePath, { start, end });
       const head = {
         'Content-Range': `bytes ${start}-${end}/${fileSize}`,
         'Accept-Ranges': 'bytes',
@@ -160,7 +160,7 @@ export class AudioProcessingServiceImpl implements AudioProcessingServicePort {
     } else {
       const head = { 'Content-Length': fileSize, 'Content-Type': contentType };
       res.writeHead(200, head);
-      fs.createReadStream(filePath).pipe(res);
+      fileSystemService.createReadStream(filePath).pipe(res);
     }
   }
 

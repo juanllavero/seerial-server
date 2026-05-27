@@ -2,10 +2,10 @@ import { contentCleanupService } from '@/api/v1/shared/infrastructure/adapters/d
 import type { CollectionsRepositoryPort } from '../ports/CollectionsRepositoryPort';
 
 export class DeleteCollectionUseCase {
-  constructor(private collectionRepo: CollectionsRepositoryPort) {}
+  constructor(private collectionRepo: CollectionsRepositoryPort) { }
 
   async execute(id: string): Promise<boolean> {
-    contentCleanupService.cleanCollection(id);
+    contentCleanupService.cleanCollectionMedia(id);
     return await this.collectionRepo.delete(id);
   }
 }

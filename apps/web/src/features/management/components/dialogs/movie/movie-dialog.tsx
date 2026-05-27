@@ -58,9 +58,9 @@ function MovieDialog() {
       selectedLogo: m.logoSrc || '',
       selectedPoster: m.coverSrc || '',
       selectedBackground: m.backgroundSrc || '',
-      localLogoFolder: `img/logos/${m.id}`,
-      localBackgroundFolder: `img/backgrounds/${m.id}`,
-      localPosterFolder: `img/posters/${m.id}`,
+      localLogoFolder: m.folder ? `${m.folder}/media` : '',
+      localBackgroundFolder: m.folder ? `${m.folder}/media` : '',
+      localPosterFolder: m.folder ? `${m.folder}/media` : '',
     }),
     getExtraSubmitData: (imgs, m) => ({
       logoSrc: imgs.selectedLogo ?? m.logoSrc,

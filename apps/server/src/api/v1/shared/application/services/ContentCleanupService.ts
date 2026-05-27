@@ -1,55 +1,57 @@
+import path from 'node:path';
 import type { FileSystemServicePort } from '../ports/FileSystemServicePort';
 
 /**
  * Centralizes local filesystem cleanup for all content types.
- * Each method deletes the folders/files stored for a given entity ID.
  */
 export class ContentCleanupService {
-  constructor(private readonly fs: FileSystemServicePort) {}
+  constructor(private readonly fs: FileSystemServicePort) { }
 
-  // Helper method to get the external path for a given relative path
   getExternalPath(relativePath: string): string {
     return this.fs.getExternalPath(relativePath);
   }
 
-  // Helper method to delete all media types for an entity
-  cleanMedia(id: string): void {
-    this.fs.deleteFolder(this.getExternalPath(`resources/music/${id}`));
-    this.fs.deleteFolder(this.getExternalPath(`resources/videos/${id}`));
-    this.fs.deleteFolder(this.getExternalPath(`resources/img/logos/${id}`));
+  // Movie: delete the entire media/ folder inside the movie's folder
+  cleanMovieMedia(movieFolder: string): void {
+    this.fs.deleteFolder(path.join(movieFolder, 'media'));
+  }
+
+  // Series: delete the entire media/ folder inside the series' folder
+  cleanSeriesMedia(seriesFolder: string): void {
+    this.fs.deleteFolder(path.join(seriesFolder, 'media'));
+  }
+
+  // Season: delete only the s{N}_* files from the series' media/ folder
+  cleanSeasonMedia(seriesFolder: string, seasonNumber: number): void {
+    const mediaFolder = path.join(seriesFolder, 'media');
+    if (!this.fs.existsSync(mediaFolder)) return;
+
+    const prefix = `s${seasonNumber}_`;
+    try {
+      const files = this.fs.getNamesInFolderSync(mediaFolder);
+      for (const file of files) {
+        if (file.toLowerCase().startsWith(prefix)) {
+          this.fs.deleteFile(path.join(mediaFolder, file));
+        }
+      }
+    } catch {
+      // Ignore errors if folder is not accessible
+    }
+  }
+
+  // Collection: delete the media/ folder under resources/collections/{id}/
+  cleanCollectionMedia(id: string): void {
+    this.fs.deleteFolder(this.getExternalPath(`resources/collections/${id}/media`));
+  }
+
+  // Album: poster image (still in resources)
+  cleanAlbum(id: string): void {
     this.fs.deleteFolder(this.getExternalPath(`resources/img/posters/${id}`));
-    this.fs.deleteFolder(this.getExternalPath(`resources/img/backgrounds/${id}`));
-  }
-
-  // Series
-  cleanSeries(id: string): void {
-    this.cleanMedia(id);
-  }
-
-  // Season
-  cleanSeason(id: string): void {
-    this.cleanMedia(id);
-  }
-
-  // Movie
-  cleanMovie(id: string): void {
-    this.cleanMedia(id);
   }
 
   // Video: thumbnail images (frame and chapters)
   cleanVideo(id: string): void {
     this.fs.deleteFolder(this.getExternalPath(`resources/img/thumbnails/video/${id}`));
     this.fs.deleteFolder(this.getExternalPath(`resources/img/thumbnails/chapters/${id}`));
-  }
-
-  // Album: poster image
-  cleanAlbum(id: string): void {
-    this.fs.deleteFolder(this.getExternalPath(`resources/img/posters/${id}`));
-  }
-
-  // Collection: poster and background images
-  cleanCollection(id: string): void {
-    this.fs.deleteFolder(this.getExternalPath(`resources/img/posters/${id}`));
-    this.fs.deleteFolder(this.getExternalPath(`resources/img/backgrounds/${id}`));
   }
 }

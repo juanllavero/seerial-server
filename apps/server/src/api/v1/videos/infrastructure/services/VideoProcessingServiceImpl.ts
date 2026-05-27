@@ -1,18 +1,20 @@
 import type { Request as ExpressRequest, Response as ExpressResponse } from 'express';
+import path from 'node:path';
+import { fileSystemService } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { executeFfmpegPipeToStream } from '@/api/v1/shared/infrastructure/adapters/ffmpeg/nativeFfmpeg';
 import {
-  getSystemAllowedPaths,
-  sanitizeVideoPath,
+    getSystemAllowedPaths,
+    sanitizeVideoPath,
 } from '@/api/v1/shared/infrastructure/services/SanitizationService';
 import {
-  BadRequestException,
-  NotFoundException,
+    BadRequestException,
+    NotFoundException,
 } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
 import { messages } from '@/config/messages';
 import logger from '@/utils/logger';
 import type {
-  TranscodeVideoParams,
-  VideoProcessingServicePort,
+    TranscodeVideoParams,
+    VideoProcessingServicePort,
 } from '../../application/ports/VideoProcessingServicePort';
 
 const videoProcessingLogger = logger.child({ category: 'Video Processing' });
@@ -41,7 +43,7 @@ export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
         true, // Must exist
       );
 
-      if (!require('node:fs').existsSync(sanitizedVideoPath)) {
+      if (!fileSystemService.existsSync(sanitizedVideoPath)) {
         throw new NotFoundException(messages.errors.notFound.video);
       }
 
@@ -124,8 +126,6 @@ export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
 
   streamDirectVideoFile(req: ExpressRequest, res: ExpressResponse): void {
     const { path: videoPath } = req.videoParams;
-    const fs = require('node:fs');
-    const path = require('node:path');
 
     try {
       const sanitizedVideoPath = sanitizeVideoPath(
@@ -134,11 +134,14 @@ export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
         true, // Must exist
       );
 
-      if (!fs.existsSync(sanitizedVideoPath)) {
+      if (!fileSystemService.existsSync(sanitizedVideoPath)) {
         throw new NotFoundException(messages.errors.notFound.video);
       }
 
-      const stat = fs.statSync(sanitizedVideoPath);
+      const stat = fileSystemService.getFileStatsSync(sanitizedVideoPath);
+      if (!stat) {
+        throw new NotFoundException(messages.errors.notFound.video);
+      }
       const fileSize = stat.size;
       const range = req.headers.range;
 
@@ -153,7 +156,7 @@ export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
         }
 
         const chunkSize = end - start + 1;
-        const file = fs.createReadStream(sanitizedVideoPath, { start, end });
+        const file = fileSystemService.createReadStream(sanitizedVideoPath, { start, end });
         const ext = path.extname(sanitizedVideoPath).toLowerCase();
         const contentType = this.getVideoContentType(ext);
 
@@ -171,7 +174,7 @@ export class VideoProcessingServiceImpl implements VideoProcessingServicePort {
           'Content-Type': 'video/mp4',
           'Cross-Origin-Resource-Policy': 'cross-origin',
         });
-        fs.createReadStream(sanitizedVideoPath).pipe(res);
+        fileSystemService.createReadStream(sanitizedVideoPath).pipe(res);
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : `Invalid video path: ${videoPath}`;

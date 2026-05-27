@@ -1,4 +1,4 @@
-import { API, useCreate, useGet } from '@seerial/api';
+import { API, apiClient, useGet } from '@seerial/api';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -47,9 +47,8 @@ function ImageListTab({
     isLoading,
     mutate,
   } = useGet<LocalImage[]>(
-    localFolder ? `${API.images.directoryListing}?path=${localFolder}` : null,
+    localFolder ? `${API.images.directoryListing}?path=${encodeURIComponent(localFolder)}` : null,
   );
-  const { create } = useCreate<unknown>();
 
   const handleImageUpload = () => {
     setImageUrl(null);
@@ -88,10 +87,8 @@ function ImageListTab({
     formData.append('image', file);
 
     try {
-      await create(API.images.upload, formData as unknown as Partial<unknown>);
-
+      await apiClient.post(API.images.upload, formData);
       mutate();
-
       showToast('success', t('imageLoaded'));
     } catch (_err) {
       showToast('error', t('errorImageUpload'));
@@ -103,15 +100,26 @@ function ImageListTab({
   const downloadImage = async (url: string) => {
     setIsUploading(true);
 
+    // Extract a clean extension from the URL path, ignoring query strings
+    const urlPath = (() => {
+      try {
+        return new URL(url).pathname;
+      } catch {
+        return url.split('?')[0];
+      }
+    })();
+    const lastSegment = urlPath.split('/').pop() ?? '';
+    const rawExt = lastSegment.includes('.') ? (lastSegment.split('.').pop() ?? '') : '';
+    const safeExt = /^[a-zA-Z0-9]{1,10}$/.test(rawExt) ? rawExt : '';
+    const fileName = `${generateRandoumUUID()}${safeExt ? `.${safeExt}` : ''}`;
+
     try {
-      await create(API.downloads.image, {
-        url: url,
+      await apiClient.post(API.downloads.image, {
+        url,
         downloadFolder: localFolder,
-        fileName: `${generateRandoumUUID()}.${url.split('.').pop()}`,
+        fileName,
       });
-
       mutate();
-
       showToast('success', t('imageLoaded'));
     } catch (_err) {
       showToast('error', t('errorImageUpload'));

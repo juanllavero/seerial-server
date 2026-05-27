@@ -6,7 +6,7 @@ import { NotFoundException } from '@/api/v1/shared/infrastructure/web/exceptions
 import type { SeriesRepositoryPort } from '../ports/SeriesRepositoryPort';
 
 export class DeleteSeriesUseCase {
-  constructor(private seriesRepo: SeriesRepositoryPort) {}
+  constructor(private seriesRepo: SeriesRepositoryPort) { }
 
   async execute(id: string): Promise<void> {
     const series = await this.seriesRepo.findById(id, 'few');
@@ -18,7 +18,7 @@ export class DeleteSeriesUseCase {
     }
 
     // Delete local media files and folders
-    contentCleanupService.cleanSeries(id);
+    contentCleanupService.cleanSeriesMedia(series.folder);
 
     const library = await useCases.getLibrary().execute(series.libraryId);
 

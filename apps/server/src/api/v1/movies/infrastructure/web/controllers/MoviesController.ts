@@ -1,3 +1,4 @@
+import path from 'node:path';
 import type { Request as ExpressRequest } from 'express';
 import type { MovieResult } from 'moviedb-promise';
 import {
@@ -158,7 +159,7 @@ export class MoviesController extends Controller {
       throw new NotFoundException(messages.errors.notFound.movie);
     }
 
-    const localImages = await findImagesInFolder(movie.folder);
+    const localImages = await findImagesInFolder(path.join(movie.folder, 'media'));
 
     return ApiResponse.success({
       ...movie,

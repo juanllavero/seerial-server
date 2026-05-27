@@ -1,6 +1,6 @@
-import fs from 'node:fs/promises';
 import path from 'node:path';
 import { app } from 'electron';
+import { fileSystemService } from '../adapters/di/container';
 
 interface IConfig {
   port: number;
@@ -17,7 +17,7 @@ let config: IConfig;
  */
 export async function loadConfig(): Promise<void> {
   try {
-    const data = await fs.readFile(configPath, 'utf-8');
+    const data = await fileSystemService.readFile(configPath);
     config = JSON.parse(data);
   } catch (_error) {
     config = { port: DEFAULT_PORT };
@@ -29,7 +29,8 @@ export async function loadConfig(): Promise<void> {
  * Save the config to config.json
  */
 export async function saveConfig(): Promise<void> {
-  await fs.writeFile(configPath, JSON.stringify(config, null, 2));
+  fileSystemService.createFolder(path.dirname(configPath));
+  await fileSystemService.writeFile(configPath, JSON.stringify(config, null, 2));
 }
 
 /**

@@ -1,5 +1,4 @@
 import crypto from 'node:crypto';
-import fs from 'node:fs';
 import http from 'node:http';
 import https from 'node:https';
 import net from 'node:net';
@@ -63,19 +62,19 @@ export const ServerConfigService = {
 
     // Ensure JWT_SECRET exists
     const secretPath = fileSystemService.getExternalPath('resources/config/jwt_secret');
-    if (!fs.existsSync(secretPath)) {
+    if (!fileSystemService.existsSync(secretPath)) {
       const secret = crypto.randomBytes(32).toString('hex'); // Generate secure 256-bit key
-      fs.writeFileSync(secretPath, secret, { mode: 0o600 }); // Restrict permissions
+      fileSystemService.writeFileSync(secretPath, secret, { mode: 0o600 }); // Restrict permissions
       configLogger.info('Generated and saved new JWT_SECRET.');
     }
-    process.env.JWT_SECRET = fs.readFileSync(secretPath, 'utf-8');
+    process.env.JWT_SECRET = fileSystemService.readFileSync(secretPath, 'utf-8');
 
     // Load SSL if enabled
     if (config.httpsEnabled && config.sslCertPath && config.sslKeyPath) {
       try {
         this.sslOptions = {
-          cert: fs.readFileSync(config.sslCertPath, 'utf-8'),
-          key: fs.readFileSync(config.sslKeyPath, 'utf-8'),
+          cert: fileSystemService.readFileSync(config.sslCertPath, 'utf-8'),
+          key: fileSystemService.readFileSync(config.sslKeyPath, 'utf-8'),
         };
         if (config.sslPassword) {
           this.sslOptions.passphrase = config.sslPassword; // Assume secure storage

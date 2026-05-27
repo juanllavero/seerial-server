@@ -1,10 +1,11 @@
-import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { FileSystemServiceImpl } from '../adapters/filesystem/FileSystemServiceImpl';
 import { audioExtensions, imageExtensions, videoExtensions } from '@/utils/constants';
 import logger from '@/utils/logger';
 
 const sanitizationLogger = logger.child({ category: 'Sanitization' });
+const fileSystemService = new FileSystemServiceImpl();
 
 // Patterns to detect path traversal
 const dangerousPatterns = [
@@ -158,7 +159,7 @@ export function sanitizeFilePath(filePath: string, allowedBasePaths?: string[]):
 function resolveExistingPathCandidate(filePath: string): string | null {
   const candidates = buildCompatiblePathCandidates(filePath);
   for (const candidate of candidates) {
-    if (fs.existsSync(candidate)) {
+    if (fileSystemService.existsSync(candidate)) {
       return candidate;
     }
   }
@@ -181,12 +182,12 @@ export function sanitizeDirectoryPath(
   const sanitizedPath = sanitizeFilePath(dirPath, allowedBasePaths);
 
   if (shouldExist) {
-    if (!fs.existsSync(sanitizedPath)) {
+    if (!fileSystemService.existsSync(sanitizedPath)) {
       throw new Error('Directory does not exist');
     }
 
-    const stats = fs.statSync(sanitizedPath);
-    if (!stats.isDirectory()) {
+    const stats = fileSystemService.getFileStatsSync(sanitizedPath);
+    if (!stats?.isDirectory()) {
       throw new Error('Path is not a directory');
     }
   }
@@ -222,8 +223,8 @@ export function sanitizeFilePathWithExtension(
       throw new Error('File does not exist');
     }
 
-    const stats = fs.statSync(existingPath);
-    if (!stats.isFile()) {
+    const stats = fileSystemService.getFileStatsSync(existingPath);
+    if (!stats?.isFile()) {
       throw new Error('Path is not a file');
     }
 
@@ -282,7 +283,7 @@ export function getSystemAllowedPaths(): string[] {
     const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     for (let i = 0; i < letters.length; i++) {
       const drive = `${letters[i]}:\\`;
-      if (fs.existsSync(drive)) {
+      if (fileSystemService.existsSync(drive)) {
         allowedPaths.push(drive);
       }
     }
@@ -292,9 +293,9 @@ export function getSystemAllowedPaths(): string[] {
 
     // On macOS, add mounted volumes
     const volumes = '/Volumes';
-    if (fs.existsSync(volumes)) {
+    if (fileSystemService.existsSync(volumes)) {
       try {
-        const mountedVolumes = fs.readdirSync(volumes);
+        const mountedVolumes = fileSystemService.getFoldersInFolderSync(volumes);
         mountedVolumes.forEach((volume) => {
           allowedPaths.push(path.join(volumes, volume));
         });

@@ -281,7 +281,7 @@ export const useCases = {
   deleteMovieData: () => new DeleteMovieUseCase(librariesRepo, moviesRepo),
 
   updateMovieMetadata: () =>
-    new UpdateMovieMetadataUseCase(metadataProvider, moviesRepo, fileSystemService),
+    new UpdateMovieMetadataUseCase(metadataProvider, moviesRepo),
   searchMovieMetadata: () => new SearchMovieMetadataUseCase(),
   refreshMovieMetadata: () => new RefreshMovieMetadataUseCase(),
   scanMovie: () =>

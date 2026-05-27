@@ -1,4 +1,3 @@
-import fs from 'node:fs';
 import nodePath from 'node:path';
 import type { Request as ExpressRequest, Response } from 'express';
 import {
@@ -84,7 +83,12 @@ export class ImagesController extends Controller {
       throw new BadRequestException();
     }
 
-    const sanitizedDestPath = sanitizeDirectoryPath(destPath, getSystemAllowedPaths(), false);
+    // Resolve relative paths to LOCAL_DATA_PATH so callers can pass either absolute
+    // content-folder paths or LOCAL_DATA_PATH-relative paths (e.g. 'resources/collections/…')
+    const resolvedDestPath = nodePath.isAbsolute(destPath)
+      ? destPath
+      : fileSystemService.getExternalPath(destPath);
+    const sanitizedDestPath = sanitizeDirectoryPath(resolvedDestPath, getSystemAllowedPaths(), false);
 
     // Combine the paths
     const finalPath = safeJoinPath(sanitizedDestPath, image.originalname);
@@ -105,12 +109,14 @@ export class ImagesController extends Controller {
   @Security('cookieAuthFast')
   public async getDirectoryListing(@Query() path: string): Promise<ApiResponse<unknown>> {
     const imagesPath = path;
+    const decodedImagesPath = decodeURIComponent(imagesPath);
 
-    const sanitizedPath = sanitizeDirectoryPath(
-      decodeURIComponent(imagesPath),
-      getSystemAllowedPaths(),
-      true,
-    );
+    // Resolve relative paths to LOCAL_DATA_PATH (mirrors uploadImage and getLocalImage behaviour)
+    const resolvedImagesPath = nodePath.isAbsolute(decodedImagesPath)
+      ? decodedImagesPath
+      : fileSystemService.getExternalPath(decodedImagesPath);
+
+    const sanitizedPath = sanitizeDirectoryPath(resolvedImagesPath, getSystemAllowedPaths(), true);
 
     const images = await imageProcessingService.getDirectoryListing(sanitizedPath);
     return ApiResponse.success(images, messages.success.fetch);
@@ -270,13 +276,15 @@ export class ImagesController extends Controller {
 
     const filePath = nodePath.join(sanitizedFolder, fileName);
 
-    try {
-      await fs.promises.access(filePath, fs.constants.F_OK);
-    } catch {
+    const exists = await fileSystemService.exists(filePath);
+    if (!exists) {
       throw new NotFoundException();
     }
 
-    const stat = await fs.promises.stat(filePath);
+    const stat = await fileSystemService.getFileStats(filePath);
+    if (!stat?.isFile()) {
+      throw new NotFoundException();
+    }
     const fileSize = stat.size;
     const range = (req as ExpressRequest | undefined)?.headers?.range;
 
@@ -293,14 +301,14 @@ export class ImagesController extends Controller {
         'Content-Type': 'video/mp4',
       });
 
-      fs.createReadStream(filePath, { start, end }).pipe(res);
+      fileSystemService.createReadStream(filePath, { start, end }).pipe(res);
     } else {
       res.writeHead(200, {
         'Content-Length': fileSize,
         'Content-Type': 'video/mp4',
       });
 
-      fs.createReadStream(filePath).pipe(res);
+      fileSystemService.createReadStream(filePath).pipe(res);
     }
   }
 }

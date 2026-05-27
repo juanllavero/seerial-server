@@ -50,8 +50,8 @@ function SeriesDialog() {
       posters: s.coversUrls || [],
       selectedLogo: s.logoSrc || '',
       selectedPoster: s.coverSrc || '',
-      localLogoFolder: `img/logos/${s.id}`,
-      localPosterFolder: `img/posters/${s.id}`,
+      localLogoFolder: s.folder ? `${s.folder}/media` : '',
+      localPosterFolder: s.folder ? `${s.folder}/media` : '',
     }),
     getExtraSubmitData: (imgs, s) => ({
       logoSrc: imgs.selectedLogo ?? s.logoSrc,

@@ -42,7 +42,7 @@ const Image: React.FC<ImageProps> = ({
 
   const [imageSrc, setImageSrc] = useState(
     url
-      ? url.startsWith('http')
+      ? url.startsWith('http2')
         ? url
         : url.startsWith('local')
           ? url.replace('local', '')
@@ -57,7 +57,7 @@ const Image: React.FC<ImageProps> = ({
     setIsLoading(true);
     setHasError(false);
     const newSrc = url
-      ? url.startsWith('http')
+      ? url.startsWith('http2')
         ? url
         : url.startsWith('local')
           ? url.replace('local', '')
@@ -140,6 +140,8 @@ const Image: React.FC<ImageProps> = ({
   };
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: <Intended for clickable images without keyboard interaction>
+    // biome-ignore lint/a11y/useKeyWithClickEvents: <Intended for clickable images without keyboard interaction>
     <div
       ref={containerRef}
       className={`relative overflow-hidden ${containerClass} ${className} transition-all duration-500 ease-in-out`}

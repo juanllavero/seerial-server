@@ -1,6 +1,7 @@
 import { API, useGet } from '@seerial/api';
 import type { Season, Series, UpdateSeasonDTO } from '@seerial/domain';
 import { shallow } from 'zustand/shallow';
+import { useEffect } from 'react';
 import useEditDialog from '@/features/management/hooks/use-edit-dialog';
 import { ModalWrapper } from '@/shared/ui/modal-wrapper';
 import { useDialogStore } from '../../../stores/dialog-store';
@@ -42,7 +43,7 @@ function SeasonDialog() {
     getImagesFromEntity: (s) => ({
       backgrounds: s.backgroundsUrls || [],
       selectedBackground: s.backgroundSrc || '',
-      localBackgroundFolder: `img/backgrounds/${s.id}`,
+      localBackgroundFolder: '',
     }),
     getExtraSubmitData: (imgs, s) => ({
       backgroundSrc: imgs.selectedBackground ?? s.backgroundSrc,
@@ -63,6 +64,13 @@ function SeasonDialog() {
       'musicSrc',
     ],
   });
+
+  // Set the background folder once the parent series is available
+  // (season has no folder of its own; images live in {series.folder}/media)
+  useEffect(() => {
+    if (!series?.folder) return;
+    images.setFormState({ localBackgroundFolder: `${series.folder}/media` });
+  }, [series?.folder, images.setFormState]);
 
   if (!season) return null;
 

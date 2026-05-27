@@ -1,8 +1,12 @@
 import type { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import jwt from 'jsonwebtoken';
+import path from 'node:path';
 import { Body, Controller, Get, Post, Request, Route, Security, Tags } from 'tsoa';
 import {
   fileSystemService,
+  moviesRepo,
+  seasonsRepo,
+  seriesRepo,
   videoProcessingService,
 } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import { ApiResponse } from '@/api/v1/shared/infrastructure/web/http/APIResponse';
@@ -25,6 +29,31 @@ export class VideoStreamingController extends Controller {
       return filePath || null;
     }
 
+    // Try movie media folder
+    const movie = await moviesRepo.findById(localId);
+    if (movie?.folder) {
+      const mediaFolder = path.join(movie.folder, 'media');
+      const [videoPath] = await fileSystemService.getValidVideoFiles(mediaFolder);
+      if (videoPath) return videoPath;
+    }
+
+    // Try season media folder (localId is season id)
+    const season = await seasonsRepo.findById(localId, 'few');
+    if (season) {
+      const series = await seriesRepo.findById(season.seriesId, 'few');
+      if (series?.folder) {
+        const mediaFolder = path.join(series.folder, 'media');
+        const prefix = `s${season.seasonNumber}_video`;
+        const [videoPath] = await fileSystemService.getValidVideoFiles(mediaFolder);
+        if (videoPath && path.basename(videoPath).startsWith(prefix)) return videoPath;
+        // Fallback: any video prefixed with sN_
+        const all = await fileSystemService.getValidVideoFiles(mediaFolder);
+        const match = all.find((p) => path.basename(p).startsWith(`s${season.seasonNumber}_`));
+        if (match) return match;
+      }
+    }
+
+    // Legacy fallback: resources/videos/{localId}
     const localFolder = fileSystemService.getExternalPath(
       fileSystemService.join('resources', 'videos', localId),
     );

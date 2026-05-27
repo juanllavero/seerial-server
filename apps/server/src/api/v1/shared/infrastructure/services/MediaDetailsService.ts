@@ -1,4 +1,3 @@
-import * as fs from 'node:fs/promises';
 import path from 'node:path';
 import type { LyricsLine } from '@seerial/domain';
 import { fileSystemService, useCases } from '@/api/v1/shared/infrastructure/adapters/di/container';
@@ -173,7 +172,9 @@ export async function findLyricsForSong(songId: string): Promise<LyricsLine[]> {
   try {
     const songDirectory = path.dirname(song.fileSrc);
     const songBaseName = path.basename(song.fileSrc, path.extname(song.fileSrc));
-    const filesInDir = await fs.readdir(songDirectory);
+    const filesInDir = (await fileSystemService.getFilesInFolder(songDirectory)).map(
+      (entry) => entry.name,
+    );
     const lyricCandidates = buildLyricLookupCandidates(songBaseName, song.title, song.trackNumber);
 
     const isLrc = (f: string) => path.extname(f).toLowerCase() === '.lrc';
@@ -190,9 +191,9 @@ export async function findLyricsForSong(songId: string): Promise<LyricsLine[]> {
 
     if (ttmlOriginal) {
       const [ttmlContent, translationContent] = await Promise.all([
-        fs.readFile(path.join(songDirectory, ttmlOriginal), 'utf-8'),
+        fileSystemService.readFile(path.join(songDirectory, ttmlOriginal)),
         firstTranslation
-          ? fs.readFile(path.join(songDirectory, firstTranslation), 'utf-8')
+          ? fileSystemService.readFile(path.join(songDirectory, firstTranslation))
           : Promise.resolve(undefined),
       ]);
       lines = buildLyricsFromTtml(ttmlContent, translationContent);
@@ -208,12 +209,12 @@ export async function findLyricsForSong(songId: string): Promise<LyricsLine[]> {
 
       const pronunciationFile = lrcFiles.find((f) => matchLang(f) === 'pronunciation');
       const [originalContent, pronunciationContent, translationContent] = await Promise.all([
-        fs.readFile(path.join(songDirectory, lrcOriginal), 'utf-8'),
+        fileSystemService.readFile(path.join(songDirectory, lrcOriginal)),
         pronunciationFile
-          ? fs.readFile(path.join(songDirectory, pronunciationFile), 'utf-8')
+          ? fileSystemService.readFile(path.join(songDirectory, pronunciationFile))
           : Promise.resolve(undefined),
         firstTranslation
-          ? fs.readFile(path.join(songDirectory, firstTranslation), 'utf-8')
+          ? fileSystemService.readFile(path.join(songDirectory, firstTranslation))
           : Promise.resolve(undefined),
       ]);
       lines = buildLyricsFromLrc(originalContent, pronunciationContent, translationContent);
@@ -252,14 +253,9 @@ async function findExtrasInFolder(
   let extrasPath: string | undefined;
 
   for (const candidate of extrasPathCandidates) {
-    try {
-      const stats = await fs.stat(candidate);
-      if (stats.isDirectory()) {
-        extrasPath = candidate;
-        break;
-      }
-    } catch (_error) {
-      // Ignore error and continue
+    if (await fileSystemService.isFolder(candidate)) {
+      extrasPath = candidate;
+      break;
     }
   }
 
@@ -267,7 +263,7 @@ async function findExtrasInFolder(
     return [];
   }
 
-  const files = await fs.readdir(extrasPath);
+  const files = (await fileSystemService.getFilesInFolder(extrasPath)).map((entry) => entry.name);
 
   for (const file of files) {
     const fileExt = path.extname(file).toLowerCase();

@@ -1,7 +1,9 @@
 import { type ChildProcess, spawn, spawnSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
 import ffmpegPath from 'ffmpeg-static';
 import ffprobePath from 'ffprobe-static';
+import { FileSystemServiceImpl } from '../filesystem/FileSystemServiceImpl';
+
+const fileSystemService = new FileSystemServiceImpl();
 
 export const ffmpegPathFinal = ffmpegPath ?? '';
 export const ffprobePathFinal = ffprobePath.path ?? '';
@@ -46,7 +48,7 @@ const findSystemFfmpegPath = (): string => {
     .map((line) => line.trim())
     .find(Boolean);
 
-  return candidatePath && existsSync(candidatePath) ? candidatePath : '';
+  return candidatePath && fileSystemService.existsSync(candidatePath) ? candidatePath : '';
 };
 
 export interface ResolvedFfmpegPath {
@@ -58,7 +60,7 @@ export interface ResolvedFfmpegPath {
 
 export const resolveFfmpegPath = (): ResolvedFfmpegPath => {
   const packagedPath = getFfmpegPath();
-  const packagedExists = !!packagedPath && existsSync(packagedPath);
+  const packagedExists = !!packagedPath && fileSystemService.existsSync(packagedPath);
   const systemPath = packagedExists ? '' : findSystemFfmpegPath();
   const resolvedPath = packagedExists ? packagedPath : systemPath;
 

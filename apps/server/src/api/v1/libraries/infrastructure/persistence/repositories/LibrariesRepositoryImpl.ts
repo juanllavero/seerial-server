@@ -1,3 +1,4 @@
+import path from 'node:path';
 import type { DetailsData } from '@seerial/domain';
 import { type ItemType, type LibraryItem, LibraryTypes } from '@seerial/domain';
 import { In, Not } from 'typeorm';
@@ -708,7 +709,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
           () => this.generateItemDetails(movie, 'movie', userId),
         );
 
-        const localImages = await findImagesInFolder(movie.folder);
+        const localImages = await findImagesInFolder(path.join(movie.folder, 'media'));
 
         const item = {
           id: movie.id,
@@ -822,7 +823,7 @@ export class LibrariesRepositoryImpl extends BaseRepository implements Libraries
           () => this.generateItemDetails(series, 'series', userId, currentSeason ?? undefined),
         );
 
-        const localImages = await findImagesInFolder(series.folder);
+        const localImages = await findImagesInFolder(path.join(series.folder, 'media'));
 
         const item = {
           id: series.id,

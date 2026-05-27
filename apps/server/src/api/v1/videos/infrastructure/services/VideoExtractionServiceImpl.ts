@@ -3,15 +3,14 @@ import os from 'node:os';
 import nodePath from 'node:path';
 import type { Chapter } from '@seerial/domain';
 import type { Response as ExpressResponse } from 'express';
-import fs from 'fs-extra';
 import { fileSystemService } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import {
-  executeFfmpeg,
-  executeFfmpegPipeToStream,
+    executeFfmpeg,
+    executeFfmpegPipeToStream,
 } from '@/api/v1/shared/infrastructure/adapters/ffmpeg/nativeFfmpeg';
 import {
-  BadRequestException,
-  NotFoundException,
+    BadRequestException,
+    NotFoundException,
 } from '@/api/v1/shared/infrastructure/web/exceptions/HTTPExceptions';
 import { messages } from '@/config/messages';
 import logger from '@/utils/logger';
@@ -78,7 +77,7 @@ export class VideoExtractionServiceImpl implements VideoExtractionServicePort {
       throw new BadRequestException(messages.errors.validation.invalidData);
     }
 
-    if (!fs.existsSync(videoPath)) {
+    if (!fileSystemService.existsSync(videoPath)) {
       throw new NotFoundException(messages.errors.notFound.file);
     }
 
@@ -87,13 +86,13 @@ export class VideoExtractionServiceImpl implements VideoExtractionServicePort {
       .update(videoPath + trackIdNum + startTimeNum)
       .digest('hex');
     const cacheDir = fileSystemService.join(os.tmpdir(), 'video_subs_cache');
-    await fs.ensureDir(cacheDir);
+    fileSystemService.createFolder(cacheDir);
     const cachedFile = fileSystemService.join(cacheDir, `${hash}.vtt`);
 
     res.setHeader('Content-Type', 'text/vtt');
 
-    if (await fs.pathExists(cachedFile)) {
-      fs.createReadStream(cachedFile).pipe(res);
+    if (await fileSystemService.exists(cachedFile)) {
+      fileSystemService.createReadStream(cachedFile).pipe(res);
       return;
     }
 
@@ -105,7 +104,7 @@ export class VideoExtractionServiceImpl implements VideoExtractionServicePort {
 
     try {
       await executeFfmpeg(args);
-      fs.createReadStream(cachedFile).pipe(res);
+      fileSystemService.createReadStream(cachedFile).pipe(res);
     } catch (error) {
       videoExtractionLogger.error(error, 'FFMPEG error generating subtitles');
       if (!res.headersSent) {
@@ -135,13 +134,14 @@ export class VideoExtractionServiceImpl implements VideoExtractionServicePort {
     );
     const thumbnailsDir = fileSystemService.getExternalPath(relativeBase);
 
+    const thumbnailEntries = await fileSystemService.getFilesInFolder(thumbnailsDir);
     const alreadyGenerated =
-      fs.existsSync(thumbnailsDir) &&
-      (await fs.readdir(thumbnailsDir)).filter((f: string) => f.endsWith('.jpg')).length >=
-        chapters.length;
+      fileSystemService.existsSync(thumbnailsDir) &&
+      thumbnailEntries.filter((entry) => entry.isFile() && entry.name.endsWith('.jpg')).length >=
+      chapters.length;
 
     if (!alreadyGenerated) {
-      await fs.ensureDir(thumbnailsDir);
+      fileSystemService.createFolder(thumbnailsDir);
 
       for (let i = 0; i < chapters.length; i++) {
         const chapter = chapters[i];

@@ -11,7 +11,7 @@ export class DeleteMovieUseCase {
   constructor(
     private libraryRepository: LibrariesRepositoryPort,
     private moviesRepo: MoviesRepositoryPort,
-  ) {}
+  ) { }
 
   async execute(id: string): Promise<void> {
     const movie = await this.moviesRepo.findById(id);
@@ -27,7 +27,7 @@ export class DeleteMovieUseCase {
     const library = await this.libraryRepository.getById(movie.libraryId);
 
     // Delete local media files and folders
-    contentCleanupService.cleanMovie(id);
+    contentCleanupService.cleanMovieMedia(movie.folder);
 
     if (library) {
       await this.libraryRepository.removeAnalyzedFolder(library.id, movie.folder);

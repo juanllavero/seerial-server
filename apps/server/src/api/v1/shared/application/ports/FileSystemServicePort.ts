@@ -1,5 +1,11 @@
 import type { FileOrDir } from '../../domain/types/FilesTypes';
 
+export interface FileSystemStats {
+  size: number;
+  isFile: () => boolean;
+  isDirectory: () => boolean;
+}
+
 export interface FileSystemServicePort {
   // Initialization
   initFolders(): void;
@@ -14,6 +20,8 @@ export interface FileSystemServicePort {
   isAudioFile(filePath: string): boolean;
 
   // Check existence
+  exists(path: string): Promise<boolean>;
+  existsSync(path: string): boolean;
   isFile(path: string): Promise<boolean>;
   isFolder(path: string): Promise<boolean>;
 
@@ -23,6 +31,11 @@ export interface FileSystemServicePort {
   deleteFolder(path: string): void;
 
   // Get files
+  getFileStats(path: string): Promise<FileSystemStats | null>;
+  getFileStatsSync(path: string): FileSystemStats | null;
+  getNamesInFolderSync(path: string): string[];
+  getFoldersInFolder(path: string): Promise<string[]>;
+  getFoldersInFolderSync(path: string): string[];
   getFileInFolder(path: string, fileName: string): Promise<string | null>;
   getFilesInFolder(path: string): Promise<FileOrDir[]>;
 
@@ -43,9 +56,16 @@ export interface FileSystemServicePort {
   // File reading
   readFile(filePath: string): Promise<string>;
   readFileSync(filePath: string, encoding?: string): string;
+  readFileBuffer(filePath: string): Promise<Buffer>;
+
+  // Streams
+  createReadStream(filePath: string, options?: { start?: number; end?: number }): NodeJS.ReadableStream;
+  createWriteStream(filePath: string): NodeJS.WritableStream;
 
   // File writing
   writeFile(filePath: string, content: string, encoding?: string): Promise<void>;
+  writeFileSync(filePath: string, content: string, options?: { encoding?: BufferEncoding; mode?: number }): void;
+  chmod(path: string, mode: number): void;
 
   // Image writing
   writeImage(filePath: string, imageBuffer: Buffer): Promise<void>;
