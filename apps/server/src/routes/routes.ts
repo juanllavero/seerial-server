@@ -4268,7 +4268,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsLibrariesController_startScan: Record<string, TsoaRoute.ParameterSchema> = {
                 id: {"in":"path","name":"id","required":true,"dataType":"string"},
         };
-        app.get('/api/libraries/:id/scan',
+        app.post('/api/libraries/:id/scan',
             authenticateMiddleware([{"adminAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(LibrariesController)),
             ...(fetchMiddlewares<RequestHandler>(LibrariesController.prototype.startScan)),

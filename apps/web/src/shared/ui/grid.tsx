@@ -1,5 +1,5 @@
 import type React from 'react';
-import type { CSSProperties } from 'react';
+import { forwardRef, type CSSProperties } from 'react';
 
 interface GridProps {
   columns?: string;
@@ -20,26 +20,30 @@ interface GridProps {
   css?: CSSProperties;
 }
 
-function Grid({
-  columns = '1fr',
-  rows = '1fr',
-  gap = '0',
-  columnGap = '0',
-  padding = '0',
-  margin = '0',
-  width = 'auto',
-  height = 'auto',
-  justifyContent = 'center',
-  alignItems = 'center',
-  scroll,
-  hideScrollbar,
-  className = '',
-  onClick,
-  children,
-  css,
-}: GridProps) {
+const Grid = forwardRef<HTMLDivElement, GridProps>(function Grid(
+  {
+    columns = '1fr',
+    rows = '1fr',
+    gap = '0',
+    columnGap = '0',
+    padding = '0',
+    margin = '0',
+    width = 'auto',
+    height = 'auto',
+    justifyContent = 'center',
+    alignItems = 'center',
+    scroll,
+    hideScrollbar,
+    className = '',
+    onClick,
+    children,
+    css,
+  },
+  ref,
+) {
   return (
     <div
+      ref={ref}
       className={`${className} ${hideScrollbar ? 'hide-scrollbar' : ''} scroll-smooth ${scroll === 'horizontal' ? 'overflow-x-auto' : ''} ${scroll === 'vertical' ? 'overflow-y-auto' : ''}`}
       style={{
         display: 'grid',
@@ -60,6 +64,6 @@ function Grid({
       {children}
     </div>
   );
-}
+});
 
 export default Grid;

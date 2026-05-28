@@ -24,7 +24,10 @@ type WebSocketGet = () => WebSocketState;
 
 function handleScanComplete(body: unknown, set: WebSocketSet): void {
   set({ analyzing: false, analyzingLibraryId: null });
-  const scannedLibraryId = typeof body === 'string' ? body : null;
+  const scannedLibraryId =
+    typeof body === 'string'
+      ? body
+      : getBodyString(body, 'libraryId');
 
   void seerialQueryClient.invalidateQueries({ queryKey: ['libraries', 'getAll'] });
   if (!scannedLibraryId) {

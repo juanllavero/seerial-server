@@ -132,6 +132,7 @@ function NavLibraryItem({
 const NavLibraries = () => {
   const { isMobile } = useSidebar();
   const connectWS = useWebSocketStore((state) => state.connectWS);
+  const setAnalyzing = useWebSocketStore((state) => state.setAnalyzing);
   const { analyzing, analyzingLibraryId } = useWebSocketStore(
     (state) => ({
       analyzing: state.analyzing,
@@ -193,9 +194,15 @@ const NavLibraries = () => {
   }, [libraries, navigate, selectLibrary]);
 
   const searchFiles = async (libraryId: string) => {
-    await connectWS();
+    if (analyzing) return;
 
-    await createRequest(API.libraries.scan(libraryId), undefined);
+    await connectWS();
+    setAnalyzing(true, libraryId);
+
+    const started = await createRequest(API.libraries.scan(libraryId), undefined);
+    if (!started) {
+      setAnalyzing(false, '');
+    }
   };
 
   const [activeItem, setActiveItem] = React.useState<Item | null>(null);

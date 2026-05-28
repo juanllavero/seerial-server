@@ -8137,7 +8137,7 @@
 			}
 		},
 		"/libraries/{id}/scan": {
-			"get": {
+			"post": {
 				"operationId": "StartScan",
 				"responses": {
 					"200": {

@@ -89,6 +89,12 @@ export class ScanMovieUseCase {
 
   private async handleSingleMovieScan(library: Library, root: string): Promise<void> {
     const { mainFiles, extraFiles } = await this.detectMovieFiles(root);
+
+    if (mainFiles.length === 0) {
+      logger.info({ libraryId: library.id, root }, 'Skipping movie folder with no video files');
+      return;
+    }
+
     await this.writeQueue.enqueue(async () => {
       await this.processMovieFolder(library, root, mainFiles, extraFiles);
     });

@@ -76,7 +76,7 @@ export class LibrariesController extends Controller {
   /**
    * Start library scan
    */
-  @Get('{id}/scan')
+  @Post('{id}/scan')
   @Security('adminAuth')
   public async startScan(@Path() id: string): Promise<ApiResponse<Library>> {
     const library = await useCases.getLibrary().execute(id);

@@ -40,7 +40,7 @@ export const defaults = {
     maxSessions: 0,
   },
   AlbumModel: {
-    order: 0,
+    order: () => Date.now(),
     title: '',
     year: '',
     genres: [],
@@ -63,7 +63,7 @@ export const defaults = {
   },
   SeriesModel: {
     themdbId: -1,
-    order: 0,
+    order: () => Date.now(),
     name: '',
     nameLock: false,
     overview: '',
@@ -128,7 +128,7 @@ export const defaults = {
     themdbId: -1,
     imdbScore: 0,
     score: 0,
-    order: 0,
+    order: () => Date.now(),
     name: '',
     nameLock: false,
     overview: '',

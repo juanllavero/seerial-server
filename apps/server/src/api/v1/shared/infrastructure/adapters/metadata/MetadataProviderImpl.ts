@@ -21,7 +21,7 @@ import type { Season } from '@/api/v1/seasons/domain/Season';
 import type { Series } from '@/api/v1/series/domain/Series';
 import logger from '@/utils/logger';
 import type { MetadataProviderPort } from '../../../application/ports/MetadataProviderPort';
-import { fileSystemService, imdbScoreService, metadataProvider, useCases } from '../di/container';
+import { fileSystemService, imdbScoreService, metadataProvider, moviesRepo, seasonsRepo, seriesRepo, useCases } from '../di/container';
 import type { TMDbApiClient } from './TMDbApiClient';
 
 const metadataLogger = logger.child({ category: 'Metadata' });
@@ -438,10 +438,11 @@ export class MetadataProviderImpl implements MetadataProviderPort {
     // Update crew and credits
     await this.updateSeriesCredits(series, language);
 
-    // Download logos and posters
+    // Assign remote image URLs (no local download — images are only saved to disk
+    // when the user explicitly changes them via the web client)
     await this.downloadSeriesImages(series);
 
-    await useCases.updateSeries().execute(series.id, series);
+    await seriesRepo.update(series.id, series);
     return series;
   }
 
@@ -512,7 +513,7 @@ export class MetadataProviderImpl implements MetadataProviderPort {
           season.backgroundSrc = s.backgroundSrc;
           season.backgroundsUrls = s.backgroundsUrls;
 
-          await useCases.updateSeason().execute(season.id, season);
+          await seasonsRepo.update(season.id, season);
           return season;
         }
       }
@@ -526,7 +527,7 @@ export class MetadataProviderImpl implements MetadataProviderPort {
         season.backgroundsUrls = backdrops.map((bg) => `${this.BASE_URL}${bg.file_path}`);
         season.backgroundSrc = season.backgroundsUrls[0];
       }
-      await useCases.updateSeason().execute(season.id, season);
+      await seasonsRepo.update(season.id, season);
     } catch (error) {
       metadataManagerLogger.error(error, `Error updating backgrounds for season ${season.id}`);
     }
@@ -622,10 +623,11 @@ export class MetadataProviderImpl implements MetadataProviderPort {
     // Update cast and crew
     await this.updateMovieCredits(movie, movieMetadata.id ?? 0, language);
 
-    // Download images (logos, backgrounds and posters)
+    // Assign remote image URLs (no local download — images are only saved to disk
+    // when the user explicitly changes them via the web client)
     await this.downloadMovieImages(movie, collection);
 
-    await useCases.updateMovie().execute(movie.id, movie);
+    await moviesRepo.update(movie.id, movie);
     if (collection) {
       await useCases.updateCollection().execute(collection.id, collection);
     }

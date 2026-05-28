@@ -1,6 +1,5 @@
-import { monitorForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
-import { useEffect, useRef } from 'react';
-import { SortableItem } from './sortable-item';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { SortableItem, SortableListContext } from './sortable-item';
 
 interface SortableEntity {
   id: string;
@@ -18,33 +17,132 @@ export function SortableGrid<T extends SortableEntity>({
   renderItem,
 }: SortableGridProps<T>) {
   const onDragEndRef = useRef(onDragEnd);
+  const sourceIndexRef = useRef<number | null>(null);
+  const pointerPositionRef = useRef<{ x: number; y: number } | null>(null);
+  const draggedRectRef = useRef<{ width: number; height: number } | null>(null);
+  const [sourceIndex, setSourceIndex] = useState<number | null>(null);
+  const [pointerPosition, setPointerPosition] = useState<{ x: number; y: number } | null>(null);
+  const [targetIndex, setTargetIndex] = useState<number | null>(null);
+  const [draggedRect, setDraggedRect] = useState<{ width: number; height: number } | null>(null);
+
+  const beginDrag = useCallback(
+    (
+      nextSourceIndex: number,
+      nextPointerPosition: { x: number; y: number },
+      nextDraggedRect: { width: number; height: number },
+    ) => {
+      sourceIndexRef.current = nextSourceIndex;
+      pointerPositionRef.current = nextPointerPosition;
+      draggedRectRef.current = nextDraggedRect;
+      setSourceIndex(nextSourceIndex);
+      setPointerPosition(nextPointerPosition);
+      setTargetIndex(nextSourceIndex);
+      setDraggedRect(nextDraggedRect);
+    },
+    [],
+  );
+
+  const updateDrag = useCallback((payload: { pointerPosition: { x: number; y: number }; targetIndex: number | null }) => {
+    pointerPositionRef.current = payload.pointerPosition;
+    setPointerPosition(payload.pointerPosition);
+    setTargetIndex(payload.targetIndex);
+  }, []);
+
+  const endDrag = useCallback(() => {
+    sourceIndexRef.current = null;
+    pointerPositionRef.current = null;
+    draggedRectRef.current = null;
+    setSourceIndex(null);
+    setPointerPosition(null);
+    setTargetIndex(null);
+    setDraggedRect(null);
+  }, []);
 
   useEffect(() => {
     onDragEndRef.current = onDragEnd;
   }, [onDragEnd]);
 
   useEffect(() => {
-    return monitorForElements({
-      onDrop: ({ source, location }) => {
-        const target = location.current.dropTargets[0];
-        if (!target) return;
+    const handlePointerMove = (event: PointerEvent) => {
+      if (sourceIndexRef.current === null) return;
 
-        const sourceData = source.data as { id: string; index: number };
-        const targetData = target.data as { id: string; index: number };
+      const element = document.elementFromPoint(event.clientX, event.clientY);
+      const targetElement = element?.closest<HTMLElement>('[data-sortable-item-index]');
+      const destinationIndex = Number(targetElement?.dataset.sortableItemIndex);
 
-        if (sourceData.id === targetData.id) return;
+      updateDrag({
+        pointerPosition: { x: event.clientX, y: event.clientY },
+        targetIndex: Number.isNaN(destinationIndex) ? null : destinationIndex,
+      });
+    };
 
-        const sourceIndex = sourceData.index;
-        const destinationIndex = targetData.index;
+    const handlePointerUp = (event: PointerEvent) => {
+      const currentSourceIndex = sourceIndexRef.current;
+      if (currentSourceIndex === null) return;
 
-        onDragEndRef.current(sourceIndex, destinationIndex);
-      },
-    });
-  }, []);
+      const element = document.elementFromPoint(event.clientX, event.clientY);
+      const targetElement = element?.closest<HTMLElement>('[data-sortable-item-index]');
+      const destinationIndex = Number(targetElement?.dataset.sortableItemIndex);
 
-  return items?.map((item, index) => (
-    <SortableItem key={item.id} id={item.id} index={index}>
-      {renderItem(item)}
-    </SortableItem>
-  ));
+      endDrag();
+
+      if (Number.isNaN(destinationIndex)) return;
+      if (currentSourceIndex === destinationIndex) return;
+
+      onDragEndRef.current(currentSourceIndex, destinationIndex);
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+    window.addEventListener('pointercancel', handlePointerUp);
+
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('pointercancel', handlePointerUp);
+    };
+  }, [endDrag, updateDrag]);
+
+  const contextValue = useMemo(
+    () => ({
+      sourceIndex,
+      targetIndex,
+      pointerPosition,
+      draggedRect,
+      beginDrag,
+      updateDrag,
+      endDrag,
+    }),
+    [beginDrag, draggedRect, endDrag, pointerPosition, sourceIndex, targetIndex, updateDrag],
+  );
+
+  return (
+    <SortableListContext.Provider value={contextValue}>
+      {sourceIndex !== null && pointerPosition && draggedRect && items[sourceIndex] && (
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'fixed',
+            left: 0,
+            top: 0,
+            width: draggedRect.width,
+            height: draggedRect.height,
+            transform: `translate3d(${pointerPosition.x + 12}px, ${pointerPosition.y + 12}px, 0) scale(1.02)`,
+            zIndex: 9999,
+            pointerEvents: 'none',
+            opacity: 0.96,
+            boxShadow: '0 16px 40px rgba(0, 0, 0, 0.35)',
+            borderRadius: '0.75rem',
+          }}
+        >
+          {renderItem(items[sourceIndex])}
+        </div>
+      )}
+      {items?.map((item, index) => (
+        <SortableItem key={item.id} id={item.id} index={index}>
+          {renderItem(item)}
+        </SortableItem>
+      ))}
+    </SortableListContext.Provider>
+  );
 }
