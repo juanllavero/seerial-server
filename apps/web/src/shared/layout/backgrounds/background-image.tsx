@@ -1,6 +1,6 @@
 import { useGetLocalImage } from '@seerial/api';
 import { useServerStore } from '@seerial/stores';
-import { memo, useEffect, useReducer, useRef } from 'react';
+import { useEffect, useReducer, useRef } from 'react';
 import './background-image.css';
 
 interface BackgroundImageProps {
@@ -166,4 +166,4 @@ function BackgroundImage({ imageSrc, index = 1 }: BackgroundImageProps) {
   );
 }
 
-export default memo(BackgroundImage);
+export default BackgroundImage;

@@ -1,7 +1,5 @@
 import { useMusicStore } from '@seerial/stores';
-import { memo } from 'react';
 import { shallow } from 'zustand/shallow';
-import GradientBackground from '@/shared/layout/backgrounds/gradient-background';
 import MusicGradient from '@/shared/layout/backgrounds/music-gradient';
 import LRCVisualizer from '../lyrics/lrc-visualizer';
 import NextSongs from '../menu/next-songs';
@@ -78,4 +76,4 @@ function DesktopMusicPlayerExpanded() {
   );
 }
 
-export default memo(DesktopMusicPlayerExpanded);
+export default DesktopMusicPlayerExpanded;

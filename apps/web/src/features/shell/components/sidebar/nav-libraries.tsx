@@ -14,7 +14,7 @@ import {
   Trash2,
   TvMinimal,
 } from 'lucide-react';
-import React, { memo, useMemo } from 'react';
+import type React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { shallow } from 'zustand/shallow';
 import { type DialogName, type DialogPayloads, useDialogStore } from '@/features/management';
@@ -49,7 +49,6 @@ interface Item {
 interface NavLibraryItemProps {
   item: Item;
   activeItem: Item | null;
-  setActiveItem: (item: Item) => void;
   analyzingLibraryId: string | null;
   analyzing: boolean;
   isAdmin: boolean;
@@ -62,7 +61,6 @@ interface NavLibraryItemProps {
 function NavLibraryItem({
   item,
   activeItem,
-  setActiveItem,
   analyzingLibraryId,
   analyzing,
   isAdmin,
@@ -80,7 +78,6 @@ function NavLibraryItem({
           className={`flex items-center gap-2 ${isActive ? 'bg-transparent' : ''}`}
           onClick={(e) => {
             e.preventDefault();
-            setActiveItem(item);
             item.action();
           }}
           style={{ color: isActive ? 'var(--app-color)' : '' }}
@@ -171,27 +168,21 @@ const NavLibraries = () => {
 
   const libraries = data ? data : [];
 
-  const librariesItems = useMemo(() => {
-    return libraries && libraries.length > 0
-      ? [
-          ...libraries.map((library) => ({
-            id: library.id,
-            name: library.name,
-            type: library.type,
-            logo:
-              library.type === LibraryTypes.SHOWS
-                ? TvMinimal
-                : library.type === LibraryTypes.MOVIES
-                  ? Film
-                  : Music,
-            action: () => {
-              selectLibrary(library.id);
-              navigate(`/library/${library.id}/${library.type}`);
-            },
-          })),
-        ]
-      : [];
-  }, [libraries, navigate, selectLibrary]);
+  const librariesItems = libraries.map((library) => ({
+    id: library.id,
+    name: library.name,
+    type: library.type,
+    logo:
+      library.type === LibraryTypes.SHOWS
+        ? TvMinimal
+        : library.type === LibraryTypes.MOVIES
+          ? Film
+          : Music,
+    action: () => {
+      selectLibrary(library.id);
+      navigate(`/library/${library.id}/${library.type}`);
+    },
+  }));
 
   const searchFiles = async (libraryId: string) => {
     if (analyzing) return;
@@ -205,13 +196,7 @@ const NavLibraries = () => {
     }
   };
 
-  const [activeItem, setActiveItem] = React.useState<Item | null>(null);
-
-  React.useEffect(() => {
-    if (librariesItems) {
-      setActiveItem(librariesItems.find((item) => item.id === selectedLibraryId) || null);
-    }
-  }, [selectedLibraryId, librariesItems]);
+  const activeItem = librariesItems.find((item) => item.id === selectedLibraryId) || null;
 
   return (
     <>
@@ -229,7 +214,6 @@ const NavLibraries = () => {
                   key={item.id}
                   item={item}
                   activeItem={activeItem}
-                  setActiveItem={setActiveItem}
                   analyzingLibraryId={analyzingLibraryId}
                   analyzing={analyzing}
                   isAdmin={isAdmin}
@@ -306,4 +290,4 @@ const NavLibraries = () => {
   );
 };
 
-export default memo(NavLibraries);
+export default NavLibraries;

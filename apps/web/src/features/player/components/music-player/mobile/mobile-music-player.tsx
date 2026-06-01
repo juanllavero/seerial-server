@@ -1,7 +1,7 @@
 import { useGetSongLyrics } from '@seerial/api';
 import type { LRCFile } from '@seerial/domain';
 import { useMusicStore } from '@seerial/stores';
-import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { shallow } from 'zustand/shallow';
 import MusicGradient from '@/shared/layout/backgrounds/music-gradient';
 import Image from '@/shared/ui/image';
@@ -332,4 +332,4 @@ const MobileMusicPlayer = () => {
   );
 };
 
-export default memo(MobileMusicPlayer);
+export default MobileMusicPlayer;

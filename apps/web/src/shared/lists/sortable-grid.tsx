@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { SortableItem, SortableListContext } from './sortable-item';
 
 interface SortableEntity {
@@ -25,30 +25,30 @@ export function SortableGrid<T extends SortableEntity>({
   const [targetIndex, setTargetIndex] = useState<number | null>(null);
   const [draggedRect, setDraggedRect] = useState<{ width: number; height: number } | null>(null);
 
-  const beginDrag = useCallback(
-    (
-      nextSourceIndex: number,
-      nextPointerPosition: { x: number; y: number },
-      nextDraggedRect: { width: number; height: number },
-    ) => {
-      sourceIndexRef.current = nextSourceIndex;
-      pointerPositionRef.current = nextPointerPosition;
-      draggedRectRef.current = nextDraggedRect;
-      setSourceIndex(nextSourceIndex);
-      setPointerPosition(nextPointerPosition);
-      setTargetIndex(nextSourceIndex);
-      setDraggedRect(nextDraggedRect);
-    },
-    [],
-  );
+  const beginDrag = (
+    nextSourceIndex: number,
+    nextPointerPosition: { x: number; y: number },
+    nextDraggedRect: { width: number; height: number },
+  ) => {
+    sourceIndexRef.current = nextSourceIndex;
+    pointerPositionRef.current = nextPointerPosition;
+    draggedRectRef.current = nextDraggedRect;
+    setSourceIndex(nextSourceIndex);
+    setPointerPosition(nextPointerPosition);
+    setTargetIndex(nextSourceIndex);
+    setDraggedRect(nextDraggedRect);
+  };
 
-  const updateDrag = useCallback((payload: { pointerPosition: { x: number; y: number }; targetIndex: number | null }) => {
+  const updateDrag = (payload: {
+    pointerPosition: { x: number; y: number };
+    targetIndex: number | null;
+  }) => {
     pointerPositionRef.current = payload.pointerPosition;
     setPointerPosition(payload.pointerPosition);
     setTargetIndex(payload.targetIndex);
-  }, []);
+  };
 
-  const endDrag = useCallback(() => {
+  const endDrag = () => {
     sourceIndexRef.current = null;
     pointerPositionRef.current = null;
     draggedRectRef.current = null;
@@ -56,7 +56,7 @@ export function SortableGrid<T extends SortableEntity>({
     setPointerPosition(null);
     setTargetIndex(null);
     setDraggedRect(null);
-  }, []);
+  };
 
   useEffect(() => {
     onDragEndRef.current = onDragEnd;
@@ -70,10 +70,9 @@ export function SortableGrid<T extends SortableEntity>({
       const targetElement = element?.closest<HTMLElement>('[data-sortable-item-index]');
       const destinationIndex = Number(targetElement?.dataset.sortableItemIndex);
 
-      updateDrag({
-        pointerPosition: { x: event.clientX, y: event.clientY },
-        targetIndex: Number.isNaN(destinationIndex) ? null : destinationIndex,
-      });
+      pointerPositionRef.current = { x: event.clientX, y: event.clientY };
+      setPointerPosition({ x: event.clientX, y: event.clientY });
+      setTargetIndex(Number.isNaN(destinationIndex) ? null : destinationIndex);
     };
 
     const handlePointerUp = (event: PointerEvent) => {
@@ -84,7 +83,13 @@ export function SortableGrid<T extends SortableEntity>({
       const targetElement = element?.closest<HTMLElement>('[data-sortable-item-index]');
       const destinationIndex = Number(targetElement?.dataset.sortableItemIndex);
 
-      endDrag();
+      sourceIndexRef.current = null;
+      pointerPositionRef.current = null;
+      draggedRectRef.current = null;
+      setSourceIndex(null);
+      setPointerPosition(null);
+      setTargetIndex(null);
+      setDraggedRect(null);
 
       if (Number.isNaN(destinationIndex)) return;
       if (currentSourceIndex === destinationIndex) return;
@@ -101,20 +106,17 @@ export function SortableGrid<T extends SortableEntity>({
       window.removeEventListener('pointerup', handlePointerUp);
       window.removeEventListener('pointercancel', handlePointerUp);
     };
-  }, [endDrag, updateDrag]);
+  }, []);
 
-  const contextValue = useMemo(
-    () => ({
-      sourceIndex,
-      targetIndex,
-      pointerPosition,
-      draggedRect,
-      beginDrag,
-      updateDrag,
-      endDrag,
-    }),
-    [beginDrag, draggedRect, endDrag, pointerPosition, sourceIndex, targetIndex, updateDrag],
-  );
+  const contextValue = {
+    sourceIndex,
+    targetIndex,
+    pointerPosition,
+    draggedRect,
+    beginDrag,
+    updateDrag,
+    endDrag,
+  };
 
   return (
     <SortableListContext.Provider value={contextValue}>

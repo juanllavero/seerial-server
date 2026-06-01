@@ -1,5 +1,3 @@
-import { memo } from 'react';
-
 function SmallSpinner({ size }: { size?: number }) {
   return (
     <div
@@ -34,4 +32,4 @@ function SmallSpinner({ size }: { size?: number }) {
   );
 }
 
-export default memo(SmallSpinner);
+export default SmallSpinner;

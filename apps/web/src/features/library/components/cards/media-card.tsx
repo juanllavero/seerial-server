@@ -1,7 +1,6 @@
 import type { DropdownContent, LibraryItem, LibraryType } from '@seerial/domain';
 import { useDataStore, useServerStore } from '@seerial/stores';
 import { Pencil } from 'lucide-react';
-import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { shallow } from 'zustand/shallow';
@@ -104,4 +103,4 @@ function MediaCard({ item, libraryType, libraryId }: MediaCardProps) {
   );
 }
 
-export default memo(MediaCard);
+export default MediaCard;

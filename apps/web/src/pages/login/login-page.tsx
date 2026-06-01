@@ -1,6 +1,6 @@
 import type { BasicUser } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { shallow } from 'zustand/shallow';
 import { LoginLayout, UserSelector } from '@/features/auth';
@@ -32,25 +32,25 @@ export default function LoginPage() {
   const [isCheckingServer, setIsCheckingServer] = useState(true);
   const [serverAvailable, setServerAvailable] = useState(false);
 
-  const probeLocalServer = useCallback(async () => {
-    setIsCheckingServer(true);
-    try {
-      const client = createServerClient(LOCAL_SERVER.url);
-      const response = await client.get('/servers');
-      setDiscoveredUsers((response?.data?.data?.users as BasicUser[]) ?? []);
-      setServerAvailable(true);
-      setSelectedServer(LOCAL_SERVER);
-    } catch {
-      setDiscoveredUsers([]);
-      setServerAvailable(false);
-    } finally {
-      setIsCheckingServer(false);
-    }
-  }, [setSelectedServer]);
-
   useEffect(() => {
+    const probeLocalServer = async () => {
+      setIsCheckingServer(true);
+      try {
+        const client = createServerClient(LOCAL_SERVER.url);
+        const response = await client.get('/servers');
+        setDiscoveredUsers((response?.data?.data?.users as BasicUser[]) ?? []);
+        setServerAvailable(true);
+        setSelectedServer(LOCAL_SERVER);
+      } catch {
+        setDiscoveredUsers([]);
+        setServerAvailable(false);
+      } finally {
+        setIsCheckingServer(false);
+      }
+    };
+
     probeLocalServer();
-  }, [probeLocalServer]);
+  }, [setSelectedServer]);
 
   if ((selectedServer && currentUser) || isCheckingServer) {
     return <Loading />;

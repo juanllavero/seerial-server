@@ -1,5 +1,4 @@
 import type React from 'react';
-import { memo } from 'react';
 import LazyImage from '../ui/lazy-image';
 
 const LogoImage = ({ imageUrl, className }: { imageUrl: string; className?: string }) => {
@@ -26,4 +25,4 @@ const LogoImage = ({ imageUrl, className }: { imageUrl: string; className?: stri
   );
 };
 
-export default memo(LogoImage);
+export default LogoImage;

@@ -1,7 +1,7 @@
 import { useGetAlbum } from '@seerial/api';
 import type { Album } from '@seerial/domain';
 import { useGradientStore, useMusicStore } from '@seerial/stores';
-import { memo, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { shallow } from 'zustand/shallow';
 
 function MusicPlayer() {
@@ -28,7 +28,7 @@ function MusicPlayer() {
 
       return cleanup;
     }
-  }, [currentSong, initializeAudioRef]);
+  }, [initializeAudioRef]);
 
   // Handle gradient background
   useEffect(() => {
@@ -36,7 +36,7 @@ function MusicPlayer() {
       setAlbum(album);
       generateGradient(album.coverSrc, true);
     }
-  }, [album]);
+  }, [album, generateGradient, setAlbum]);
 
   if (!album || !currentSong) return null;
 
@@ -46,8 +46,10 @@ function MusicPlayer() {
       src={`/api/${getAudioSrc()}`}
       onError={(e) => console.error('Audio loading error:', e)}
       autoPlay
-    />
+    >
+      <track kind="captions" label="Captions" />
+    </audio>
   );
 }
 
-export default memo(MusicPlayer);
+export default MusicPlayer;

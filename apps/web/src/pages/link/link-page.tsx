@@ -1,7 +1,7 @@
 import { publicApiClient } from '@seerial/api';
 import { useServerStore } from '@seerial/stores';
 import { t } from 'i18next';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CENTRAL_SERVER } from '@/shared/lib/constants';
 import Image from '@/shared/ui/image';
@@ -15,40 +15,6 @@ export default function TVLinkPage() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleAutoLink = useCallback(
-    async (autoCode: string) => {
-      if (!user) return;
-
-      setIsLoading(true);
-      setError(null);
-
-      try {
-        const response = await publicApiClient.post<{ error?: string }>(
-          `https://${CENTRAL_SERVER}/users/link`,
-          {
-            user_code: autoCode.toUpperCase(),
-          },
-        );
-        const data = response.data;
-
-        if (data && !data.error) {
-          setSuccess(true);
-          setTimeout(() => {
-            navigate('/home');
-          }, 2000);
-        } else {
-          setError(data?.error || 'Failed to link device');
-        }
-      } catch (err) {
-        console.error('Auto-link error:', err);
-        setError('Network error occurred');
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [navigate, user],
-  );
-
   // Obtener código de los parámetros URL si existe
   useEffect(() => {
     const urlCode = searchParams.get('code');
@@ -59,10 +25,39 @@ export default function TVLinkPage() {
 
       // Si el código tiene 4 dígitos, intentar vincularlo automáticamente
       if (cleanCode.length === 4 && user) {
+        const handleAutoLink = async (autoCode: string) => {
+          setIsLoading(true);
+          setError(null);
+
+          try {
+            const response = await publicApiClient.post<{ error?: string }>(
+              `https://${CENTRAL_SERVER}/users/link`,
+              {
+                user_code: autoCode.toUpperCase(),
+              },
+            );
+            const data = response.data;
+
+            if (data && !data.error) {
+              setSuccess(true);
+              setTimeout(() => {
+                navigate('/home');
+              }, 2000);
+            } else {
+              setError(data?.error || 'Failed to link device');
+            }
+          } catch (err) {
+            console.error('Auto-link error:', err);
+            setError('Network error occurred');
+          } finally {
+            setIsLoading(false);
+          }
+        };
+
         handleAutoLink(cleanCode);
       }
     }
-  }, [searchParams, user, handleAutoLink]);
+  }, [searchParams, user, navigate]);
 
   const handleCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.slice(0, 4);

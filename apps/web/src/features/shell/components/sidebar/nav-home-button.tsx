@@ -1,6 +1,5 @@
 import { t } from 'i18next';
 import { House } from 'lucide-react';
-import { memo, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   SidebarGroup,
@@ -13,7 +12,7 @@ const NavHomeButton = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { pathname } = location;
-  const inHome = useMemo(() => pathname.includes('/home'), [pathname]);
+  const inHome = pathname.includes('/home');
 
   const home = {
     id: '0',
@@ -58,4 +57,4 @@ const NavHomeButton = () => {
   );
 };
 
-export default memo(NavHomeButton);
+export default NavHomeButton;

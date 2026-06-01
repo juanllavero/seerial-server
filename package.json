@@ -32,6 +32,7 @@
     "@types/react-dom": "^19.2.2",
     "electron": "41.2.0",
     "lefthook": "^2.1.5",
+    "react-doctor": "^0.2.9",
     "turbo": "^2.9.5",
     "typescript": "^6.0.2"
   }

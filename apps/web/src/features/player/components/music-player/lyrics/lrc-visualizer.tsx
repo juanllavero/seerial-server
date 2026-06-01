@@ -3,7 +3,7 @@ import type { LRCFile, LRCLine } from '@seerial/domain';
 import { useMusicStore } from '@seerial/stores';
 import i18next from 'i18next';
 import { Plus } from 'lucide-react';
-import { memo, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { shallow } from 'zustand/shallow';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
@@ -196,4 +196,4 @@ const LRCVisualizer = () => {
   );
 };
 
-export default memo(LRCVisualizer);
+export default LRCVisualizer;

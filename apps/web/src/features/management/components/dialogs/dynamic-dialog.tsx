@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { type DialogType, dialogRegistry } from './dialog-registry';
 
 interface DynamicDialogProps {
@@ -7,10 +6,7 @@ interface DynamicDialogProps {
 }
 
 function DynamicDialog({ type, isOpen }: DynamicDialogProps) {
-  const DialogComponent = useMemo(() => {
-    if (isOpen) return dialogRegistry[type];
-    return null;
-  }, [type, isOpen]);
+  const DialogComponent = isOpen ? dialogRegistry[type] : null;
 
   if (!isOpen || !DialogComponent) return null;
 

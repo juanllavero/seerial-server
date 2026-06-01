@@ -1,5 +1,4 @@
 import { useMusicStore } from '@seerial/stores';
-import { useMemo } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { AppSidebar, CardWidthSlider } from '@/features/shell';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
@@ -9,7 +8,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/shared/ui/sideb
 const SideBarLayout = () => {
   const location = useLocation();
   const { pathname } = location;
-  const inSettings = useMemo(() => pathname.includes('/settings'), [pathname]);
+  const inSettings = pathname.includes('/settings');
   const isMobile = useIsMobile();
   const isTablet = useIsTablet();
   const hasSong = useMusicStore((state) => Boolean(state.currentSong));

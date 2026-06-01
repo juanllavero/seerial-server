@@ -1,6 +1,5 @@
 import { useMusicStore } from '@seerial/stores';
 import '@/styles/animations.css';
-import { memo } from 'react';
 
 const MusicWave = () => {
   const isPlaying = useMusicStore((state) => state.isPlaying);
@@ -24,4 +23,4 @@ const MusicWave = () => {
   );
 };
 
-export default memo(MusicWave);
+export default MusicWave;

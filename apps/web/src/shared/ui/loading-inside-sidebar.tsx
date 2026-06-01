@@ -1,4 +1,3 @@
-import { memo } from 'react';
 import { useSidebar } from './sidebar';
 import SmallSpinner from './small-spinner';
 
@@ -13,4 +12,4 @@ function LoadingInsideSidebar() {
   );
 }
 
-export default memo(LoadingInsideSidebar);
+export default LoadingInsideSidebar;

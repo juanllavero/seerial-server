@@ -1,7 +1,6 @@
 import { useGetMediaBackground } from '@seerial/api';
 import type { Movie, Season, Series } from '@seerial/domain';
 import { Download, Trash2 } from 'lucide-react';
-import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useIsTablet } from '@/shared/hooks/use-tablet';
 import { Button } from '@/shared/ui/button';
@@ -253,4 +252,4 @@ function MediaTab({ series, season, movie }: MediaTabProps) {
   );
 }
 
-export default memo(MediaTab);
+export default MediaTab;

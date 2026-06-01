@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react';
-import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface ExpandableTextProps {
@@ -80,4 +80,4 @@ const ExpandableText = ({ text, className = '' }: ExpandableTextProps) => {
   );
 };
 
-export default memo(ExpandableText);
+export default ExpandableText;

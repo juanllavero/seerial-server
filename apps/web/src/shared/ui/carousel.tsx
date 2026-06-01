@@ -51,35 +51,23 @@ const Carousel = React.forwardRef<
   const [canScrollPrev, setCanScrollPrev] = React.useState(false);
   const [canScrollNext, setCanScrollNext] = React.useState(false);
 
-  const onSelect = React.useCallback((api: CarouselApi) => {
-    if (!api) {
-      return;
-    }
-
-    setCanScrollPrev(api.canScrollPrev());
-    setCanScrollNext(api.canScrollNext());
-  }, []);
-
-  const scrollPrev = React.useCallback(() => {
+  const scrollPrev = () => {
     api?.scrollPrev();
-  }, [api]);
+  };
 
-  const scrollNext = React.useCallback(() => {
+  const scrollNext = () => {
     api?.scrollNext();
-  }, [api]);
+  };
 
-  const handleKeyDown = React.useCallback(
-    (event: React.KeyboardEvent<HTMLDivElement>) => {
-      if (event.key === 'ArrowLeft') {
-        event.preventDefault();
-        scrollPrev();
-      } else if (event.key === 'ArrowRight') {
-        event.preventDefault();
-        scrollNext();
-      }
-    },
-    [scrollPrev, scrollNext],
-  );
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      scrollPrev();
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      scrollNext();
+    }
+  };
 
   React.useEffect(() => {
     if (!api || !setApi) {
@@ -94,14 +82,23 @@ const Carousel = React.forwardRef<
       return;
     }
 
-    onSelect(api);
-    api.on('reInit', onSelect);
-    api.on('select', onSelect);
+    const handleSelect = (carouselApi: CarouselApi) => {
+      if (!carouselApi) {
+        return;
+      }
+
+      setCanScrollPrev(carouselApi.canScrollPrev());
+      setCanScrollNext(carouselApi.canScrollNext());
+    };
+
+    handleSelect(api);
+    api.on('reInit', handleSelect);
+    api.on('select', handleSelect);
 
     return () => {
-      api?.off('select', onSelect);
+      api?.off('select', handleSelect);
     };
-  }, [api, onSelect]);
+  }, [api]);
 
   return (
     <CarouselContext.Provider
@@ -116,16 +113,14 @@ const Carousel = React.forwardRef<
         canScrollNext,
       }}
     >
-      <div
+      <section
         ref={ref}
         onKeyDownCapture={handleKeyDown}
         className={cn('relative', className)}
-        role="region"
-        aria-roledescription="carousel"
         {...props}
       >
         {children}
-      </div>
+      </section>
     </CarouselContext.Provider>
   );
 });
@@ -159,8 +154,6 @@ const CarouselItem = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLD
     return (
       <div
         ref={ref}
-        role="group"
-        aria-roledescription="slide"
         className={cn(
           'min-w-0 shrink-0 grow-0 basis-full',
           orientation === 'horizontal' ? 'pl-4' : 'pt-4',

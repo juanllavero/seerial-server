@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 type FormState<T> = {
   [K in keyof T]: T[K];
@@ -55,39 +55,28 @@ function useFormState<T extends object>(
   // (schema is typically an inline object literal — new reference every render)
   const schemaRef = useRef<T>(schema);
 
-  // Helper to update multiple form state values at once
-  const setFormState = useCallback((values: Partial<T>) => {
+  const setFormState = (values: Partial<T>) => {
     setFormStateInternal((prev) => ({ ...prev, ...values }));
-  }, []);
+  };
 
-  // Helper to reset form state to initial values.
-  // Uses schemaRef so its reference is stable and won't cause infinite useEffect loops
-  // when callers include resetFormState in their dependency arrays.
-  const resetFormState = useCallback((values?: Partial<T>) => {
+  const resetFormState = (values?: Partial<T>) => {
     setFormStateInternal({
       ...schemaRef.current,
       ...values,
     });
-  }, []);
+  };
 
-  // Dynamically create setters for each form field — memoized so references are stable across renders
-  // biome-ignore lint/correctness/useExhaustiveDependencies: setters rely only on setFormStateInternal (stable useState setter) and schema keys (constant per hook instance); no deps needed
-  const setters = useMemo(() => {
-    const result = {} as FormSetters<T>;
+  const setters = {} as FormSetters<T>;
 
-    for (const key of Object.keys(schema) as Array<Extract<keyof T, string>>) {
-      if (Object.hasOwn(schema, key)) {
-        const setterName =
-          `set${key.charAt(0).toUpperCase()}${key.slice(1)}` as keyof FormSetters<T>;
-        const setter = (value: T[typeof key]) => {
-          setFormStateInternal((prev) => ({ ...prev, [key]: value }));
-        };
-        result[setterName] = setter as FormSetters<T>[typeof setterName];
-      }
+  for (const key of Object.keys(schema) as Array<Extract<keyof T, string>>) {
+    if (Object.hasOwn(schema, key)) {
+      const setterName = `set${key.charAt(0).toUpperCase()}${key.slice(1)}` as keyof FormSetters<T>;
+      const setter = (value: T[typeof key]) => {
+        setFormStateInternal((prev) => ({ ...prev, [key]: value }));
+      };
+      setters[setterName] = setter as FormSetters<T>[typeof setterName];
     }
-
-    return result;
-  }, []);
+  }
 
   return {
     ...formState,

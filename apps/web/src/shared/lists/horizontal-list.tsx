@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { Button } from '@/shared/ui/button';
 import { Carousel, type CarouselApi, CarouselContent, CarouselItem } from '@/shared/ui/carousel';
@@ -21,20 +21,18 @@ function HorizontalList({ title, className, children }: HorizontalListProps) {
 
   const isMobile = useIsMobile();
 
-  const updateButtonState = useCallback(() => {
-    if (!carouselApi) return;
-
-    const canScrollPrev = carouselApi.canScrollPrev();
-    const canScrollNext = carouselApi.canScrollNext();
-    const needsButtons = canScrollPrev || canScrollNext;
-
-    setShowButtons(needsButtons);
-    setDisableLeft(!canScrollPrev);
-    setDisableRight(!canScrollNext);
-  }, [carouselApi]);
-
   useEffect(() => {
     if (!carouselApi) return;
+
+    const updateButtonState = () => {
+      const canScrollPrev = carouselApi.canScrollPrev();
+      const canScrollNext = carouselApi.canScrollNext();
+      const needsButtons = canScrollPrev || canScrollNext;
+
+      setShowButtons(needsButtons);
+      setDisableLeft(!canScrollPrev);
+      setDisableRight(!canScrollNext);
+    };
 
     if (childrenCount === 0) {
       setShowButtons(false);
@@ -54,17 +52,17 @@ function HorizontalList({ title, className, children }: HorizontalListProps) {
       carouselApi.off('select', updateButtonState);
       carouselApi.off('reInit', updateButtonState);
     };
-  }, [carouselApi, childrenCount, updateButtonState]);
+  }, [carouselApi, childrenCount]);
 
-  const handleScrollRight = useCallback(() => {
+  const handleScrollRight = () => {
     if (!carouselApi) return;
     carouselApi.scrollNext();
-  }, [carouselApi]);
+  };
 
-  const handleScrollLeft = useCallback(() => {
+  const handleScrollLeft = () => {
     if (!carouselApi) return;
     carouselApi.scrollPrev();
-  }, [carouselApi]);
+  };
 
   const gapValue = isMobile ? 1.5 : 0.5;
   const paddingValue = '1rem';

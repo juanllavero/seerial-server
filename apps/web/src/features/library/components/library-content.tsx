@@ -1,6 +1,6 @@
 import type { LibraryItem, LibraryType } from '@seerial/domain';
 import { useReorderableList } from '@seerial/hooks';
-import { memo, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useCardWidth } from '@/shared/hooks/use-card-width';
 import { useIsMobile } from '@/shared/hooks/use-mobile';
 import { SortableGrid } from '@/shared/lists/sortable-grid';
@@ -61,4 +61,4 @@ function LibraryContent({ libraryContent, libraryType, libraryId, mutate }: Libr
   );
 }
 
-export default memo(LibraryContent);
+export default LibraryContent;

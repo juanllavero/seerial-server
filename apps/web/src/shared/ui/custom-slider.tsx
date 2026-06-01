@@ -1,5 +1,5 @@
 import type React from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface SliderProps {
   value: number;
@@ -28,56 +28,75 @@ const CustomSlider: React.FC<SliderProps> = ({
   const sliderRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const calculateValue = useCallback((clientX: number) => {
+  const calculateValue = (clientX: number) => {
     if (!sliderRef.current) return 0;
 
     const rect = sliderRef.current.getBoundingClientRect();
     const x = clientX - rect.left;
     const percentage = Math.max(0, Math.min(100, (x / rect.width) * 100));
     return percentage;
-  }, []);
+  };
 
-  const handleMouseDown = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      setIsDragging(true);
-      onInteractionStart?.();
-      const newValue = calculateValue(e.clientX);
-      setTempValue(newValue);
-      onChange(newValue);
-    },
-    [calculateValue, onChange, onInteractionStart],
-  );
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+    onInteractionStart?.();
+    const newValue = calculateValue(e.clientX);
+    setTempValue(newValue);
+    onChange(newValue);
+  };
 
-  const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
-      if (!isDragging) return;
-
-      const newValue = calculateValue(e.clientX);
-      setTempValue(newValue);
-      onChange(newValue);
-    },
-    [isDragging, calculateValue, onChange],
-  );
-
-  const handleMouseUp = useCallback(() => {
-    setIsDragging(false);
-    onInteractionEnd?.();
-  }, [onInteractionEnd]);
-
-  const handleMouseEnter = useCallback(() => {
+  const handleMouseEnter = () => {
     setIsHovering(true);
-  }, []);
+  };
 
-  const handleMouseLeave = useCallback(() => {
+  const handleMouseLeave = () => {
     if (isDragging) return;
 
     setIsHovering(false);
-  }, [isDragging]);
+  };
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    let nextValue = currentValue;
+
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
+      nextValue = Math.max(0, currentValue - 1);
+    } else if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
+      nextValue = Math.min(100, currentValue + 1);
+    } else if (event.key === 'Home') {
+      nextValue = 0;
+    } else if (event.key === 'End') {
+      nextValue = 100;
+    } else {
+      return;
+    }
+
+    event.preventDefault();
+    onInteractionStart?.();
+    setTempValue(nextValue);
+    onChange(nextValue);
+    onInteractionEnd?.();
+  };
 
   // Event listeners for dragging
   useEffect(() => {
     if (isDragging) {
+      const handleMouseMove = (e: MouseEvent) => {
+        const slider = sliderRef.current;
+        if (!slider) return;
+
+        const rect = slider.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const newValue = Math.max(0, Math.min(100, (x / rect.width) * 100));
+        setTempValue(newValue);
+        onChange(newValue);
+      };
+
+      const handleMouseUp = () => {
+        setIsDragging(false);
+        onInteractionEnd?.();
+      };
+
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
 
@@ -86,14 +105,7 @@ const CustomSlider: React.FC<SliderProps> = ({
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [isDragging, handleMouseMove, handleMouseUp]);
-
-  // Sync tempValue and value when not dragging
-  useEffect(() => {
-    if (!isDragging) {
-      setTempValue(value);
-    }
-  }, [value, isDragging]);
+  }, [isDragging, onChange, onInteractionEnd]);
 
   const currentValue = isDragging ? tempValue : value;
 
@@ -101,9 +113,16 @@ const CustomSlider: React.FC<SliderProps> = ({
     <div
       ref={containerRef}
       className={`relative w-full cursor-pointer py-2 ${className}`}
+      role="slider"
+      tabIndex={0}
+      aria-label="Slider"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={Math.round(currentValue)}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onMouseDown={handleMouseDown}
+      onKeyDown={handleKeyDown}
     >
       {/* Slider Bar */}
       <div

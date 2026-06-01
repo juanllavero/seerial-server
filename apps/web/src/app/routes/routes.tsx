@@ -1,4 +1,4 @@
-import { lazy, memo } from 'react';
+import { lazy } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Root from './root';
 
@@ -48,15 +48,3 @@ export function AppRoutes() {
     </Routes>
   );
 }
-
-// Export memoized components for consistency
-export const MemoizedHomePage = memo(HomePage);
-export const MemoizedSettingsPage = memo(SettingsPage);
-export const MemoizedLibraryPage = memo(LibraryPage);
-export const MemoizedMovieDetailsPage = memo(MovieDetailsPage);
-export const MemoizedSeriesDetailsPage = memo(SeriesDetailsPage);
-export const MemoizedAlbumDetailsPage = memo(AlbumDetailsPage);
-export const MemoizedCollectionDetailsPage = memo(CollectionDetailsPage);
-export const MemoizedEpisodeDetailsPage = memo(EpisodeDetailsPage);
-export const MemoizedVideoPlayerPage = memo(VideoPlayerPage);
-export const MemoizedSideBarLayout = memo(SideBarLayout);

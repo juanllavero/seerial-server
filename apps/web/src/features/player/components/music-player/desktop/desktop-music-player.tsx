@@ -1,5 +1,4 @@
 import { useMusicStore } from '@seerial/stores';
-import { memo } from 'react';
 import { shallow } from 'zustand/shallow';
 import MusicControlsExpanded from './controls/music-controls-expanded';
 
@@ -22,4 +21,4 @@ function DesktopMusicPlayer() {
   );
 }
 
-export default memo(DesktopMusicPlayer);
+export default DesktopMusicPlayer;

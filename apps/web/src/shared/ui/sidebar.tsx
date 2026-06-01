@@ -70,61 +70,75 @@ const SidebarProvider = React.forwardRef<
     // We use openProp and setOpenProp for control from outside the component.
     const [_open, _setOpen] = React.useState(defaultOpen);
     const open = openProp ?? _open;
-    const setOpen = React.useCallback(
-      (value: boolean | ((value: boolean) => boolean)) => {
-        const openState = typeof value === 'function' ? value(open) : value;
-        if (setOpenProp) {
-          setOpenProp(openState);
-        } else {
-          _setOpen(openState);
-        }
+    const openRef = React.useRef(open);
+    openRef.current = open;
+    const setOpen = (value: boolean | ((value: boolean) => boolean)) => {
+      const openState = typeof value === 'function' ? value(openRef.current) : value;
+      if (setOpenProp) {
+        setOpenProp(openState);
+      } else {
+        _setOpen(openState);
+      }
 
-        // This sets the cookie to keep the sidebar state.
-        setCookie(SIDEBAR_COOKIE_NAME, String(openState), SIDEBAR_COOKIE_MAX_AGE);
-      },
-      [setOpenProp, open],
-    );
+      // This sets the cookie to keep the sidebar state.
+      setCookie(SIDEBAR_COOKIE_NAME, String(openState), SIDEBAR_COOKIE_MAX_AGE);
+    };
 
-    React.useEffect(() => {
-      // Set cookie to keep the sidebar state. This is used to remember the state of the sidebar across page reloads.
-      setCookie(SIDEBAR_COOKIE_NAME, String(open), SIDEBAR_COOKIE_MAX_AGE);
-    }, [open]);
+    const toggleSidebar = () => {
+      if (isMobile) {
+        setOpenMobile((value) => !value);
+        return;
+      }
 
-    // Helper to toggle the sidebar.
-    const toggleSidebar = React.useCallback(() => {
-      return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
-    }, [isMobile, setOpen]);
+      const nextOpen = !openRef.current;
+      if (setOpenProp) {
+        setOpenProp(nextOpen);
+      } else {
+        _setOpen(nextOpen);
+      }
+      setCookie(SIDEBAR_COOKIE_NAME, String(nextOpen), SIDEBAR_COOKIE_MAX_AGE);
+    };
 
     // Adds a keyboard shortcut to toggle the sidebar.
     React.useEffect(() => {
       const handleKeyDown = (event: KeyboardEvent) => {
-        if (event.key === SIDEBAR_KEYBOARD_SHORTCUT && (event.metaKey || event.ctrlKey)) {
-          event.preventDefault();
-          toggleSidebar();
+        if (event.key !== SIDEBAR_KEYBOARD_SHORTCUT || !(event.metaKey || event.ctrlKey)) {
+          return;
         }
+
+        event.preventDefault();
+        if (isMobile) {
+          setOpenMobile((value) => !value);
+          return;
+        }
+
+        const nextOpen = !openRef.current;
+        if (setOpenProp) {
+          setOpenProp(nextOpen);
+        } else {
+          _setOpen(nextOpen);
+        }
+        setCookie(SIDEBAR_COOKIE_NAME, String(nextOpen), SIDEBAR_COOKIE_MAX_AGE);
       };
 
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [toggleSidebar]);
+    }, [isMobile, setOpenProp]);
 
     // We add a state so that we can do data-state="expanded" or "collapsed".
     // This makes it easier to style the sidebar with Tailwind classes.
     const state = open && !isTablet ? 'expanded' : 'collapsed';
 
-    const contextValue = React.useMemo<SidebarContext>(
-      () => ({
-        state,
-        open,
-        setOpen,
-        isMobile,
-        isTablet,
-        openMobile,
-        setOpenMobile,
-        toggleSidebar,
-      }),
-      [state, open, setOpen, isMobile, isTablet, openMobile, toggleSidebar],
-    );
+    const contextValue: SidebarContext = {
+      state,
+      open,
+      setOpen,
+      isMobile,
+      isTablet,
+      openMobile,
+      setOpenMobile,
+      toggleSidebar,
+    };
 
     return (
       <SidebarContext.Provider value={contextValue}>
@@ -647,9 +661,7 @@ const SidebarMenuSkeleton = React.forwardRef<
   }
 >(({ className, showIcon = false, ...props }, ref) => {
   // Random width between 50 to 90%.
-  const width = React.useMemo(() => {
-    return `${Math.floor(Math.random() * 40) + 50}%`;
-  }, []);
+  const [width] = React.useState(() => `${Math.floor(Math.random() * 40) + 50}%`);
 
   return (
     <div

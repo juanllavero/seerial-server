@@ -1,6 +1,6 @@
 import { useGetImageColors } from '@seerial/api';
 import { useServerStore } from '@seerial/stores';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface GradientBackgroundProps {
   showGradient?: boolean;
@@ -64,11 +64,8 @@ const GradientBackground = ({
   const rafRef = useRef<number | null>(null);
   const delayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const imageColorsParams = useMemo(() => buildImageColorsParams(imageSrc), [imageSrc]);
-  const imageSourceKey = useMemo(
-    () => getImageColorsSourceKey(imageColorsParams),
-    [imageColorsParams],
-  );
+  const imageColorsParams = buildImageColorsParams(imageSrc);
+  const imageSourceKey = getImageColorsSourceKey(imageColorsParams);
 
   const { data: imageColorsData } = useGetImageColors<ImageColorsResponse>({
     enabled: showGradient && !!imageColorsParams,
@@ -79,25 +76,22 @@ const GradientBackground = ({
 
   const imageColorsCss = normalizeGradientCss(imageColorsData?.css ?? imageColorsData?.data?.css);
 
-  const cancelPendingRaf = useCallback(() => {
-    if (rafRef.current !== null) {
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-    }
-  }, []);
+  useEffect(() => {
+    const cancelPendingRaf = () => {
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+    };
 
-  const cancelPendingDelay = useCallback(() => {
-    if (delayTimerRef.current !== null) {
-      clearTimeout(delayTimerRef.current);
-      delayTimerRef.current = null;
-    }
-  }, []);
+    const cancelPendingDelay = () => {
+      if (delayTimerRef.current !== null) {
+        clearTimeout(delayTimerRef.current);
+        delayTimerRef.current = null;
+      }
+    };
 
-  // Starts a crossfade to a new gradient.
-  // Double RAF ensures the browser has painted layer B at opacity 0 before
-  // triggering the CSS transition, preventing any flash.
-  const crossfadeTo = useCallback(
-    (gradient: string) => {
+    const crossfadeTo = (gradient: string) => {
       cancelPendingRaf();
       setIncomingGradient(gradient);
       setIncomingVisible(false);
@@ -108,15 +102,9 @@ const GradientBackground = ({
           rafRef.current = null;
         });
       });
-    },
-    [cancelPendingRaf],
-  );
+    };
 
-  // Schedules a crossfade after GRADIENT_DELAY_MS.
-  // Any pending delay or RAF is cancelled first, so rapid source changes
-  // only trigger a single transition once the user settles on a card.
-  const scheduleCrossfade = useCallback(
-    (gradient: string) => {
+    const scheduleCrossfade = (gradient: string) => {
       cancelPendingDelay();
       cancelPendingRaf();
 
@@ -124,11 +112,8 @@ const GradientBackground = ({
         delayTimerRef.current = null;
         crossfadeTo(gradient);
       }, GRADIENT_DELAY_MS);
-    },
-    [cancelPendingDelay, cancelPendingRaf, crossfadeTo],
-  );
+    };
 
-  useEffect(() => {
     // No valid source or gradients disabled: leave the current background untouched.
     // Satisfies req: invalid/undefined/empty imageSrc → keep existing gradient.
     if (!showGradient || !imageSourceKey) return;
@@ -165,28 +150,17 @@ const GradientBackground = ({
       cancelPendingDelay();
       cancelPendingRaf();
     };
-  }, [
-    showGradient,
-    imageSourceKey,
-    imageColorsCss,
-    committedGradient,
-    cancelPendingDelay,
-    cancelPendingRaf,
-    scheduleCrossfade,
-  ]);
+  }, [showGradient, imageSourceKey, imageColorsCss, committedGradient]);
 
-  const handleTransitionEnd = useCallback(
-    (event: React.TransitionEvent<HTMLDivElement>) => {
-      if (event.propertyName !== 'opacity' || !incomingVisible || !incomingGradient) {
-        return;
-      }
-      // Commit the incoming gradient to layer A and reset layer B
-      setCommittedGradient(incomingGradient);
-      setIncomingGradient('');
-      setIncomingVisible(false);
-    },
-    [incomingVisible, incomingGradient],
-  );
+  const handleTransitionEnd = (event: React.TransitionEvent<HTMLDivElement>) => {
+    if (event.propertyName !== 'opacity' || !incomingVisible || !incomingGradient) {
+      return;
+    }
+    // Commit the incoming gradient to layer A and reset layer B
+    setCommittedGradient(incomingGradient);
+    setIncomingGradient('');
+    setIncomingVisible(false);
+  };
 
   return (
     <div className="absolute inset-0 overflow-hidden" style={{ zIndex: index, width, height }}>

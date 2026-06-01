@@ -1,5 +1,5 @@
 import { useDataStore, useServerStore } from '@seerial/stores';
-import { memo, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { shallow } from 'zustand/shallow';
 import { NoContent } from '@/features/home';
@@ -56,4 +56,4 @@ function LibraryPage() {
   );
 }
 
-export default memo(LibraryPage);
+export default LibraryPage;

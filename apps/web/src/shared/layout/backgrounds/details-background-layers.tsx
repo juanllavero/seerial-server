@@ -1,5 +1,5 @@
 import { useGradientStore } from '@seerial/stores';
-import { memo, useEffect } from 'react';
+import { useEffect } from 'react';
 
 interface DetailsBackgroundLayersProps {
   imageSrc?: string;
@@ -22,4 +22,4 @@ function DetailsBackgroundLayers({ imageSrc, isHidden = false }: DetailsBackgrou
   );
 }
 
-export default memo(DetailsBackgroundLayers);
+export default DetailsBackgroundLayers;
