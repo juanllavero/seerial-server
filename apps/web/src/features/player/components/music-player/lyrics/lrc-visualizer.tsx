@@ -52,9 +52,9 @@ const LRCVisualizer = () => {
         }
         const timeMatch = trimmedLine.match(/\[(\d{1,2}):(\d{2})\.(\d{2,3})\](.*)/);
         if (timeMatch) {
-          const minutes = parseInt(timeMatch[1]);
-          const seconds = parseInt(timeMatch[2]);
-          const milliseconds = parseInt(timeMatch[3].padEnd(3, '0'));
+          const minutes = parseInt(timeMatch[1], 10);
+          const seconds = parseInt(timeMatch[2], 10);
+          const milliseconds = parseInt(timeMatch[3].padEnd(3, '0'), 10);
           const time = minutes * 60 + seconds + milliseconds / 1000;
           const text = timeMatch[4].trim();
           lrcLines.push({ time, text: text || '♪' });
@@ -173,15 +173,17 @@ const LRCVisualizer = () => {
               const isCurrentLine = index === currentLineIndex;
               const lineClasses = isCurrentLine ? 'text-white' : 'text-gray-400';
               return (
-                <div key={index} className="rounded-lg px-4 py-2 text-center">
-                  <span
+                <div key={`${line.time}-${line.text}`} className="rounded-lg px-4 py-2 text-center">
+                  <button
+                    type="button"
                     onClick={() => handleLineClick(line.time)}
                     className={`cursor-pointer font-black transition-all duration-300 ease-out ${getLineOpacity(index)} ${getLineScale(index)} ${getLineBlur(
                       index,
                     )} text-2xl @lg:text-4xl @2xl:text-5xl ${lineClasses} hover:text-white hover:opacity-100`}
+                    aria-label={`Seek to lyric at ${line.time.toFixed(2)} seconds`}
                   >
                     {line.text}
-                  </span>
+                  </button>
                 </div>
               );
             })
