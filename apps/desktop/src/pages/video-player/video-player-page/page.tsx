@@ -1,7 +1,7 @@
 import {
-  getSignedVideoStreamUrlPassthrough,
-  useGetVideo,
-  useUpdateVideoWatchState,
+    getSignedVideoStreamUrlPassthrough,
+    useGetVideo,
+    useUpdateVideoWatchState,
 } from '@seerial/api';
 import type { Video } from '@seerial/domain';
 import { useServerStore } from '@seerial/stores';
@@ -11,8 +11,8 @@ import { VideoPlayer } from '@/features/video-player';
 import { useMpvPlayer } from '@/features/video-player/hooks/use-mpv-player';
 import AppAlertDialog from '@/shared/components/app-alert-dialog';
 import {
-  resetAppShellBackground,
-  setAppShellBackground,
+    resetAppShellBackground,
+    setAppShellBackground,
 } from '@/shared/components/details/details-background-mpv';
 import Loading from '@/shared/components/loading';
 import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
@@ -85,6 +85,7 @@ function useVideoPlayerPageController({
   const videoEndedTrackedRef = useRef(false);
   const currentVideoRef = useRef<Video | null>(null);
   const currentUserIdRef = useRef<string | undefined>(undefined);
+  const lastSeekedAtRef = useRef(0);
 
   const { mutate: updateWatchState } = useUpdateVideoWatchState();
 
@@ -252,6 +253,11 @@ function useVideoPlayerPageController({
       }
 
       if (playbackStatus.idleActive && !playbackStatus.eofReached) {
+        if (Date.now() - lastSeekedAtRef.current < 1500) {
+          setPlayerViewState({ isPlaybackBuffering: true });
+          return;
+        }
+
         setPlayerViewState({ isPlaybackBuffering: false });
         await attemptPlaybackRecovery();
         return;
@@ -379,6 +385,15 @@ function useVideoPlayerPageController({
     !isErrorDialogOpen && (isPlayerLoading || isPlaybackBuffering || !videoLoaded);
   const shouldUseBlackLoadingBackdrop = !videoLoaded || showInitialLoadingBackdrop;
 
+  const handleSeekCommitted = useCallback((position: number) => {
+    if (typeof position !== 'number' || !Number.isFinite(position) || position < 0) {
+      return;
+    }
+
+    lastSeekedAtRef.current = Date.now();
+    lastKnownPositionRef.current = position;
+  }, []);
+
   return {
     isPageLoading: !video || loadingVideo,
     videoLoaded,
@@ -389,6 +404,7 @@ function useVideoPlayerPageController({
     shouldUseBlackLoadingBackdrop,
     handleGoBack,
     handleRetry,
+    handleSeekCommitted,
   };
 }
 
@@ -415,6 +431,7 @@ function VideoPlayerPage() {
     shouldUseBlackLoadingBackdrop,
     handleGoBack,
     handleRetry,
+    handleSeekCommitted,
   } = useVideoPlayerPageController({
     video,
     loadingVideo,
@@ -460,7 +477,9 @@ function VideoPlayerPage() {
         }}
       />
 
-      {!!videoLoaded && !isRecoveringPlaybackError && <VideoPlayer video={video} />}
+      {!!videoLoaded && !isRecoveringPlaybackError && (
+        <VideoPlayer video={video} onSeekCommitted={handleSeekCommitted} />
+      )}
     </>
   );
 }

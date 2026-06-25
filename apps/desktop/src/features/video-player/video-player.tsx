@@ -19,9 +19,10 @@ import { NavigationFocusKeys } from '@/shared/navigation/constants';
 
 interface VideoPlayerProps {
   video: Video;
+  onSeekCommitted?: (position: number) => void;
 }
 
-export default function VideoPlayer({ video }: VideoPlayerProps) {
+export default function VideoPlayer({ video, onSeekCommitted }: VideoPlayerProps) {
   const [isTimelineFocused, setIsTimelineFocused] = useState(false);
   const [tracksPanelOpen, setTracksPanelOpen] = useState(false);
   const [chaptersExpanded, setChaptersExpanded] = useState(false);
@@ -126,6 +127,7 @@ export default function VideoPlayer({ video }: VideoPlayerProps) {
           <Controls
             video={video}
             controlsMode={mode}
+            onSeekCommitted={onSeekCommitted}
             onTimelineFocusChange={handleTimelineFocusChange}
             onTracksPanelChange={handleTracksPanelChange}
             settings={settings}

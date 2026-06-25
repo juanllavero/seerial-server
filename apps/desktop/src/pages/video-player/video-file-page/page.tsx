@@ -7,8 +7,8 @@ import { VideoPlayer } from '@/features/video-player';
 import { useMpvPlayer } from '@/features/video-player/hooks/use-mpv-player';
 import AppAlertDialog from '@/shared/components/app-alert-dialog';
 import {
-  resetAppShellBackground,
-  setAppShellBackground,
+    resetAppShellBackground,
+    setAppShellBackground,
 } from '@/shared/components/details/details-background-mpv';
 import Loading from '@/shared/components/loading';
 import { useKeyboardBack } from '@/shared/hooks/use-keyboard-back';
@@ -276,6 +276,14 @@ function VideoPlayerFilePage() {
     dispatchPlayerViewState({ isRecoveringPlaybackError: false });
   }, [errorMode, loadVideo]);
 
+  const handleSeekCommitted = useCallback((position: number) => {
+    if (typeof position !== 'number' || !Number.isFinite(position) || position < 0) {
+      return;
+    }
+
+    lastKnownPositionRef.current = position;
+  }, []);
+
   if (!filePath) {
     return <Loading />;
   }
@@ -313,7 +321,9 @@ function VideoPlayerFilePage() {
         }}
       />
 
-      {!!videoLoaded && !isRecoveringPlaybackError && <VideoPlayer video={video} />}
+      {!!videoLoaded && !isRecoveringPlaybackError && (
+        <VideoPlayer video={video} onSeekCommitted={handleSeekCommitted} />
+      )}
     </>
   );
 }

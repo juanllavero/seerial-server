@@ -25,6 +25,7 @@ interface ControlsProps {
   video: Video;
   runtime?: number;
   controlsMode: ControlsMode;
+  onSeekCommitted?: (position: number) => void;
   onTimelineFocusChange?: (focused: boolean) => void;
   onTracksPanelChange?: (open: boolean) => void;
   settings: PlayerSettings;
@@ -35,6 +36,7 @@ function Controls({
   video,
   runtime,
   controlsMode,
+  onSeekCommitted,
   onTimelineFocusChange,
   onTracksPanelChange,
   settings,
@@ -167,6 +169,7 @@ function Controls({
           setDuration={setDuration}
           position={position}
           setPosition={setPosition}
+          onSeekCommitted={onSeekCommitted}
           keyboardShortcutEnabled={controlsMode === 'compact' || isTimelineFocused}
           onFocusChange={handleTimelineFocusChange}
           togglePlayPause={handlePlayPause}

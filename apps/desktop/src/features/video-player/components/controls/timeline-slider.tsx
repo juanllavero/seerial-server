@@ -13,6 +13,7 @@ interface TimelineSliderProps {
   setPosition: (pos: number) => void;
   duration: number;
   setDuration: (dur: number) => void;
+  onSeekCommitted?: (position: number) => void;
   keyboardShortcutEnabled?: boolean;
   onFocusChange?: (focused: boolean) => void;
   togglePlayPause?: () => void;
@@ -28,12 +29,15 @@ function TimelineSlider({
   setPosition,
   duration,
   setDuration,
+  onSeekCommitted,
   keyboardShortcutEnabled,
   onFocusChange,
   togglePlayPause,
   playbackControls,
 }: TimelineSliderProps) {
   const seeking = useRef<boolean>(false);
+  const seekQueueRef = useRef(Promise.resolve());
+  const pendingSeekCountRef = useRef(0);
   const sliderRef = useRef<HTMLInputElement>(null);
   const [seekDirection, setSeekDirection] = useState<'left' | 'right' | null>(null);
   const mpv = useMpvPlayer();
@@ -93,15 +97,21 @@ function TimelineSlider({
   };
 
   const handleSeekEnd = async (value: number) => {
-    seeking.current = false;
+    pendingSeekCountRef.current += 1;
     try {
       const currentDur = await getPlaybackDuration();
       const clamped = Math.max(0, Math.min(currentDur, value));
-      await setPlaybackPosition(clamped);
+      const nextSeek = seekQueueRef.current.then(() => setPlaybackPosition(clamped));
+      seekQueueRef.current = nextSeek.catch(() => undefined);
+      await nextSeek;
       setPosition(clamped);
       setDuration(currentDur);
+      onSeekCommitted?.(clamped);
     } catch (error) {
       console.error('Seek set failed:', error);
+    } finally {
+      pendingSeekCountRef.current = Math.max(0, pendingSeekCountRef.current - 1);
+      seeking.current = pendingSeekCountRef.current > 0;
     }
   };
 
@@ -109,20 +119,35 @@ function TimelineSlider({
     async (delta: number) => {
       // Show visual indicator
       setSeekDirection(delta < 0 ? 'left' : 'right');
+      pendingSeekCountRef.current += 1;
+      seeking.current = true;
 
       try {
         const currentPos = await getPlaybackPosition();
         const currentDur = await getPlaybackDuration();
 
         const newPos = Math.max(0, Math.min(currentDur, currentPos + delta));
-        await setPlaybackPosition(newPos);
+        const nextSeek = seekQueueRef.current.then(() => setPlaybackPosition(newPos));
+        seekQueueRef.current = nextSeek.catch(() => undefined);
+        await nextSeek;
         setPosition(newPos);
         setDuration(currentDur);
+        onSeekCommitted?.(newPos);
       } catch (error) {
         console.error('Seek failed:', error);
+      } finally {
+        pendingSeekCountRef.current = Math.max(0, pendingSeekCountRef.current - 1);
+        seeking.current = pendingSeekCountRef.current > 0;
       }
     },
-    [getPlaybackDuration, getPlaybackPosition, setPlaybackPosition, setPosition, setDuration],
+    [
+      getPlaybackDuration,
+      getPlaybackPosition,
+      onSeekCommitted,
+      setPlaybackPosition,
+      setPosition,
+      setDuration,
+    ],
   );
 
   // Calculate knob position as a percentage
