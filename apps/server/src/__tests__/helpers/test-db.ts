@@ -5,10 +5,7 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { AlbumArtistModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumArtistModel';
 import { AlbumModel } from '@/api/v1/albums/infrastructure/persistence/models/AlbumModel';
 import { ArtistModel } from '@/api/v1/artists/infrastructure/persistence/models/ArtistModel';
-import { CollectionAlbumModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionAlbum';
 import { CollectionModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionModel';
-import { CollectionMovieModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionMovie';
-import { CollectionSeriesModel } from '@/api/v1/collections/infrastructure/persistence/models/CollectionSeries';
 import { EpisodeModel } from '@/api/v1/episodes/infrastructure/persistence/models/EpisodeModel';
 import { LibraryCollectionModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryCollectionModel';
 import { LibraryModel } from '@/api/v1/libraries/infrastructure/persistence/models/LibraryModel';
@@ -41,9 +38,6 @@ export async function getTestDataSource(): Promise<DataSource> {
     namingStrategy: new SnakeNamingStrategy(),
     entities: [
       CollectionModel,
-      CollectionAlbumModel,
-      CollectionMovieModel,
-      CollectionSeriesModel,
       LibraryCollectionModel,
       WatchListModel,
       EpisodeModel,

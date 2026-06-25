@@ -25,6 +25,7 @@ export class ServersController extends Controller {
    * Get server status
    */
   @Get()
+  @Security('cookieAuth')
   public async getServerStatus(): Promise<ApiResponse<ServerStatusResponse>> {
     const getUsers = useCases.getAllUsers();
     const allUsers: User[] = await getUsers.execute();
@@ -94,19 +95,15 @@ export class ServersController extends Controller {
       automaticUpdates: false,
     };
 
-    // Restrict to known keys to prevent prototype pollution via path parameter
-    const allowedKeys = Object.keys(defaultServerConfig) as (keyof typeof defaultServerConfig)[];
-    if (!(allowedKeys as string[]).includes(key)) {
-      this.setStatus(400);
-      return ApiResponse.success({ key, value: null }, messages.success.fetch);
-    }
-
     fileSystemService.createJSONFile(SERVER_CONFIG_FILE, defaultServerConfig);
     const configData = JSON.parse(
       fileSystemService.readFileSync(SERVER_CONFIG_FILE, 'utf8'),
     ) as Record<string, unknown>;
 
-    const value = Object.hasOwn(configData, key) ? configData[key] : null;
+    // Restrict key lookup to known settings while keeping backward-compatible null responses.
+    const allowedKeys = Object.keys(defaultServerConfig) as string[];
+    const isAllowedKey = allowedKeys.includes(key);
+    const value = isAllowedKey && Object.hasOwn(configData, key) ? configData[key] : null;
     return ApiResponse.success({ key, value }, messages.success.fetch);
   }
 

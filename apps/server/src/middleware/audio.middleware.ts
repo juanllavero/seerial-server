@@ -33,6 +33,14 @@ export const verifyAudioStreamToken = (req: Request, _res: Response, next: NextF
 
   try {
     const decoded = jwt.verify(token, secret) as AudioStreamTokenPayload;
+    if (!decoded || typeof decoded !== 'object' || typeof decoded.path !== 'string') {
+      return next(new ForbiddenException(messages.errors.token.invalid));
+    }
+
+    if (!decoded.path.trim()) {
+      return next(new ForbiddenException(messages.errors.token.invalid));
+    }
+
     req.audioParams = decoded;
     next();
   } catch (_error) {

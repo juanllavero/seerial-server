@@ -37,8 +37,8 @@ export default function LoginPage() {
       setIsCheckingServer(true);
       try {
         const client = createServerClient(LOCAL_SERVER.url);
-        const response = await client.get('/servers');
-        setDiscoveredUsers((response?.data?.data?.users as BasicUser[]) ?? []);
+        const response = await client.get('/users/public');
+        setDiscoveredUsers((response?.data?.data as BasicUser[]) ?? []);
         setServerAvailable(true);
         setSelectedServer(LOCAL_SERVER);
       } catch {

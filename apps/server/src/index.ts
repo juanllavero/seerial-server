@@ -1,5 +1,6 @@
 import type http from 'node:http';
 import type https from 'node:https';
+import net from 'node:net';
 import path from 'node:path';
 import { appReadyMessage, showAppName, showMessage, spinner } from '@seerial/cli';
 import compression from 'compression';
@@ -36,6 +37,67 @@ config({
 process.env.APP_ROOT = path.join(__dirname, '../../');
 export const appServer: Express = express();
 
+const configuredCorsAllowedOrigins = new Set(
+  (process.env.CORS_ALLOWED_ORIGINS ?? '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean),
+);
+
+function isPrivateIpv4(ip: string): boolean {
+  const parts = ip.split('.').map((part) => Number.parseInt(part, 10));
+  if (parts.length !== 4 || parts.some((part) => Number.isNaN(part))) {
+    return false;
+  }
+
+  const [a, b] = parts;
+  if (a === 10) return true;
+  if (a === 127) return true;
+  if (a === 169 && b === 254) return true;
+  if (a === 172 && b >= 16 && b <= 31) return true;
+  if (a === 192 && b === 168) return true;
+  return false;
+}
+
+function isTrustedCorsOrigin(origin: string): boolean {
+  if (configuredCorsAllowedOrigins.has(origin)) {
+    return true;
+  }
+
+  let parsedOrigin: URL;
+  try {
+    parsedOrigin = new URL(origin);
+  } catch {
+    return false;
+  }
+
+  if (parsedOrigin.protocol !== 'http:' && parsedOrigin.protocol !== 'https:') {
+    return false;
+  }
+
+  const hostname = parsedOrigin.hostname.toLowerCase();
+  if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+    return true;
+  }
+
+  if (hostname.endsWith('.local')) {
+    return true;
+  }
+
+  if (net.isIP(hostname) === 4) {
+    return isPrivateIpv4(hostname);
+  }
+
+  if (net.isIP(hostname) === 6) {
+    const lower = hostname.toLowerCase();
+    if (lower === '::1' || lower.startsWith('fe80:') || lower.startsWith('fc') || lower.startsWith('fd')) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 const hasSingleInstanceLock = app.requestSingleInstanceLock();
 
 if (!hasSingleInstanceLock) {
@@ -57,7 +119,12 @@ appServer.use(
   cors({
     origin: (origin, callback) => {
       if (!origin) return callback(null, true); // Curl or server side requests
-      callback(null, origin); // Return same origin
+      if (isTrustedCorsOrigin(origin)) {
+        callback(null, origin);
+        return;
+      }
+
+      callback(null, false);
     },
     credentials: true, // Allow cookies
     exposedHeaders: ['Content-Range', 'Accept-Ranges', 'Content-Length', 'X-New-Token'],
@@ -68,7 +135,7 @@ appServer.use(
 
 // Rate limit for login endpoint
 appServer.use(
-  '/users/login',
+  '/api/users/login',
   rateLimit({
     windowMs: 10 * 60 * 1000, // 10 minutes
     max: 20, // 20 attempts per IP
@@ -112,7 +179,34 @@ appServer.use(
 appServer.use(express.json({ limit: '50mb' }));
 appServer.use(express.urlencoded({ limit: '50mb', extended: true }));
 appServer.use(cookieParser());
-appServer.use('/media', express.static(fileSystemService.getExternalPath('resources')));
+
+// Keep legacy /media URLs working but block sensitive folders from static exposure.
+appServer.use('/media', (req: Request, res: Response, next: NextFunction) => {
+  let normalizedPath = '/';
+  try {
+    normalizedPath = path.posix.normalize(decodeURIComponent(req.path).replace(/\\/g, '/'));
+  } catch {
+    normalizedPath = path.posix.normalize(req.path.replace(/\\/g, '/'));
+  }
+
+  const firstSegment = normalizedPath.replace(/^\/+/, '').split('/')[0]?.toLowerCase();
+  const blockedSegments = new Set(['config', 'db']);
+
+  if (firstSegment && blockedSegments.has(firstSegment)) {
+    return res.status(404).end();
+  }
+
+  next();
+});
+
+appServer.use(
+  '/media',
+  express.static(fileSystemService.getExternalPath('resources'), {
+    dotfiles: 'deny',
+    index: false,
+    fallthrough: false,
+  }),
+);
 
 // Global server and WebSocket manager
 export let server: http.Server | https.Server;
@@ -150,6 +244,9 @@ if (hasSingleInstanceLock) {
 
     // Load or create server and user configs
     await ServerConfigService.loadOrCreateServerConfig();
+
+    // Register HTTPS redirection before API routes so it applies to all handlers.
+    ServerConfigService.applyForceHttpsIfNeeded(appServer);
 
     // Swagger UI — only exposed outside production to prevent API enumeration
     if (process.env.NODE_ENV !== 'production') {

@@ -165,6 +165,11 @@ async function authenticateFast(request: Request): Promise<UserDTO> {
       throw new UnauthorizedException(messages.errors.token.invalid);
     }
 
+    const ip = getClientIp(request);
+    if (!isLoopback(ip) && !user.allowRemote) {
+      throw new UnauthorizedException(messages.errors.token.noRemoteAccess);
+    }
+
     maybeAttachRefreshedToken(request, decoded, user);
 
     return user;

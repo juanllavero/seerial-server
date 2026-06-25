@@ -3937,7 +3937,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
                 image: {"in":"formData","name":"image","required":true,"dataType":"file"},
         };
         app.post('/api/images',
-            authenticateMiddleware([{"cookieAuthFast":[]}]),
+            authenticateMiddleware([{"adminAuth":[]}]),
             upload.fields([
                 {
                     name: "image",
@@ -5405,6 +5405,7 @@ export function RegisterRoutes(app: Router,opts?:{multer?:ReturnType<typeof mult
         const argsServersController_getServerStatus: Record<string, TsoaRoute.ParameterSchema> = {
         };
         app.get('/api/servers',
+            authenticateMiddleware([{"cookieAuth":[]}]),
             ...(fetchMiddlewares<RequestHandler>(ServersController)),
             ...(fetchMiddlewares<RequestHandler>(ServersController.prototype.getServerStatus)),
 

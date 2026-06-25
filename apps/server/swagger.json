@@ -7584,7 +7584,7 @@
 				],
 				"security": [
 					{
-						"cookieAuthFast": []
+						"adminAuth": []
 					}
 				],
 				"parameters": [],
@@ -9472,7 +9472,11 @@
 				"tags": [
 					"Servers"
 				],
-				"security": [],
+				"security": [
+					{
+						"cookieAuth": []
+					}
+				],
 				"parameters": []
 			}
 		},

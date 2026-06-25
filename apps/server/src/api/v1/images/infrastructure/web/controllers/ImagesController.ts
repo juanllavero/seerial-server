@@ -15,6 +15,7 @@ import {
 import {
   fileSystemService,
   imageProcessingService,
+  useCases,
 } from '@/api/v1/shared/infrastructure/adapters/di/container';
 import {
   getSystemAllowedPaths,
@@ -34,6 +35,80 @@ import { messages } from '@/config/messages';
 @Route('images')
 @Tags('Images')
 export class ImagesController extends Controller {
+  private getAllowedImageUploadMimes(): string[] {
+    return ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
+  }
+
+  private getAllowedImageUploadExtensions(): string[] {
+    return ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif'];
+  }
+
+  private detectImageMime(buffer: Buffer): string | null {
+    if (buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+      return 'image/jpeg';
+    }
+
+    if (
+      buffer.length >= 8 &&
+      buffer[0] === 0x89 &&
+      buffer[1] === 0x50 &&
+      buffer[2] === 0x4e &&
+      buffer[3] === 0x47 &&
+      buffer[4] === 0x0d &&
+      buffer[5] === 0x0a &&
+      buffer[6] === 0x1a &&
+      buffer[7] === 0x0a
+    ) {
+      return 'image/png';
+    }
+
+    if (
+      buffer.length >= 4 &&
+      buffer[0] === 0x47 &&
+      buffer[1] === 0x49 &&
+      buffer[2] === 0x46 &&
+      buffer[3] === 0x38
+    ) {
+      return 'image/gif';
+    }
+
+    if (
+      buffer.length >= 12 &&
+      buffer[0] === 0x52 &&
+      buffer[1] === 0x49 &&
+      buffer[2] === 0x46 &&
+      buffer[3] === 0x46 &&
+      buffer[8] === 0x57 &&
+      buffer[9] === 0x45 &&
+      buffer[10] === 0x42 &&
+      buffer[11] === 0x50
+    ) {
+      return 'image/webp';
+    }
+
+    if (
+      buffer.length >= 12 &&
+      buffer[4] === 0x66 &&
+      buffer[5] === 0x74 &&
+      buffer[6] === 0x79 &&
+      buffer[7] === 0x70 &&
+      ((buffer[8] === 0x61 && buffer[9] === 0x76 && buffer[10] === 0x69 && buffer[11] === 0x66) ||
+        (buffer[8] === 0x61 && buffer[9] === 0x76 && buffer[10] === 0x69 && buffer[11] === 0x73))
+    ) {
+      return 'image/avif';
+    }
+
+    return null;
+  }
+
+  private async getAllowedUploadPaths(): Promise<string[]> {
+    const resourcesRoot = fileSystemService.getExternalPath('resources');
+    const libraries = await useCases.getLibraries().execute();
+    const libraryRoots = libraries.flatMap((library) => library.folders ?? []).filter(Boolean);
+
+    return [resourcesRoot, ...libraryRoots];
+  }
+
   private getResponseFromRequest(req?: ExpressRequest): Response {
     if (req?.res) {
       return req.res;
@@ -67,13 +142,15 @@ export class ImagesController extends Controller {
    * Upload image file
    */
   @Post()
-  @Security('cookieAuthFast')
+  @Security('adminAuth')
   public async uploadImage(
     @FormField() destPath: string,
     @UploadedFile() image: Express.Multer.File,
   ): Promise<ApiResponse<null>> {
-    // Validate MIME type to prevent uploading executables or other unwanted file types
-    const allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
+    const allowedMimes = this.getAllowedImageUploadMimes();
+    const allowedExtensions = this.getAllowedImageUploadExtensions();
+
+    // Validate declared MIME type
     if (!allowedMimes.includes(image.mimetype)) {
       throw new BadRequestException();
     }
@@ -83,12 +160,25 @@ export class ImagesController extends Controller {
       throw new BadRequestException();
     }
 
+    const ext = nodePath.extname(image.originalname).toLowerCase();
+    if (!allowedExtensions.includes(ext)) {
+      throw new BadRequestException();
+    }
+
+    // Validate magic bytes to avoid trusting client-declared MIME type.
+    const detectedMime = this.detectImageMime(image.buffer);
+    if (!detectedMime || detectedMime !== image.mimetype) {
+      throw new BadRequestException();
+    }
+
     // Resolve relative paths to LOCAL_DATA_PATH so callers can pass either absolute
     // content-folder paths or LOCAL_DATA_PATH-relative paths (e.g. 'resources/collections/…')
     const resolvedDestPath = nodePath.isAbsolute(destPath)
       ? destPath
       : fileSystemService.getExternalPath(destPath);
-    const sanitizedDestPath = sanitizeDirectoryPath(resolvedDestPath, getSystemAllowedPaths(), false);
+
+    const allowedUploadPaths = await this.getAllowedUploadPaths();
+    const sanitizedDestPath = sanitizeDirectoryPath(resolvedDestPath, allowedUploadPaths, false);
 
     // Combine the paths
     const finalPath = safeJoinPath(sanitizedDestPath, image.originalname);

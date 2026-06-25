@@ -50,6 +50,13 @@ function normalizePathForComparison(inputPath: string): string {
   return process.platform === 'win32' ? normalized.toLowerCase() : normalized;
 }
 
+function isPathInsideBase(candidatePath: string, basePath: string): boolean {
+  if (candidatePath === basePath) return true;
+  const separator = process.platform === 'win32' ? '\\' : '/';
+  const normalizedBase = basePath.endsWith(separator) ? basePath : `${basePath}${separator}`;
+  return candidatePath.startsWith(normalizedBase);
+}
+
 /**
  * Builds platform-aware path candidates from a raw file path.
  * This allows accepting Windows-formatted paths on Unix-like systems
@@ -135,7 +142,7 @@ export function sanitizeFilePath(filePath: string, allowedBasePaths?: string[]):
 
     const normalizedCandidate = normalizePathForComparison(candidate);
     const isWithinAllowedPath = normalizedAllowedBasePaths.some((basePath) =>
-      normalizedCandidate.startsWith(basePath),
+      isPathInsideBase(normalizedCandidate, basePath),
     );
 
     if (isWithinAllowedPath) {

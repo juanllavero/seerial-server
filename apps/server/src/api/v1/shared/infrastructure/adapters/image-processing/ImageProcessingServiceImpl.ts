@@ -7,6 +7,7 @@ import { Vibrant } from 'node-vibrant/node';
 import sharp from 'sharp';
 import { messages } from '@/config/messages';
 import logger from '@/utils/logger';
+import { isSafePublicHttpUrl } from '@/utils/network-security';
 import type { FileSystemServicePort } from '../../../application/ports/FileSystemServicePort';
 import type { ImageProcessingServicePort } from '../../../application/ports/ImageProcessingServicePort';
 import { NotFoundException } from '../../web/exceptions/HTTPExceptions';
@@ -73,8 +74,16 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
 
       // Get the source image buffer
       if (source.startsWith('http')) {
+        if (!(await isSafePublicHttpUrl(source))) {
+          throw new Error('Blocked remote URL');
+        }
+
         const response = await axios.get(source, {
           responseType: 'arraybuffer',
+          timeout: 10000,
+          maxContentLength: 50 * 1024 * 1024,
+          maxBodyLength: 50 * 1024 * 1024,
+          maxRedirects: 3,
         });
         sourceImageBuffer = response.data;
       } else {
@@ -113,7 +122,7 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
         .filter((entry) => entry.isFile())
         .map((entry) => ({
           name: entry.name,
-        // Return a URL the client can use with the GET /images/local endpoint
+          // Return a URL the client can use with the GET /images/local endpoint
           url: `images/local?path=${encodeURIComponent(this.fileSystemService.join(folderPath, entry.name))}`,
         }));
     } catch (error) {
@@ -170,10 +179,18 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
     const { url, res, width, height } = options;
 
     try {
+      if (!(await isSafePublicHttpUrl(url))) {
+        throw new Error('Blocked remote URL');
+      }
+
       const response = await axios({
         method: 'get',
         url,
         responseType: 'stream',
+        timeout: 10000,
+        maxContentLength: 50 * 1024 * 1024,
+        maxBodyLength: 50 * 1024 * 1024,
+        maxRedirects: 3,
       });
       await this._compressAndStream(response.data, res, { width, height });
     } catch (error) {
@@ -370,9 +387,16 @@ export class ImageProcessingServiceImpl implements ImageProcessingServicePort {
 
     try {
       if (src.startsWith('http')) {
+        if (!(await isSafePublicHttpUrl(src))) {
+          throw new Error('Blocked remote URL');
+        }
+
         const res = await axios.get(src, {
           responseType: 'arraybuffer',
           timeout: 5000,
+          maxContentLength: 50 * 1024 * 1024,
+          maxBodyLength: 50 * 1024 * 1024,
+          maxRedirects: 3,
         });
         return Buffer.from(res.data);
       } else {

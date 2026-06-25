@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { fileSystemService } from '@/api/v1/shared/infrastructure/adapters/di/container';
+import { isSafePublicHttpUrl } from '@/utils/network-security';
 
 /**
  * Checks if a string is a valid URL
@@ -16,11 +17,19 @@ export const isValidURL = (urlString: string) => {
 };
 
 export const downloadImage = async (url: string, filePath: string) => {
+  if (!(await isSafePublicHttpUrl(url))) {
+    throw new Error('Blocked remote URL');
+  }
+
   try {
     const response = await axios({
       url,
       method: 'GET',
       responseType: 'stream',
+      timeout: 10000,
+      maxContentLength: 50 * 1024 * 1024,
+      maxBodyLength: 50 * 1024 * 1024,
+      maxRedirects: 3,
     });
 
     return new Promise<void>((resolve, reject) => {

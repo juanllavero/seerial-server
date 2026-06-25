@@ -60,14 +60,28 @@ export const ServerConfigService = {
       return;
     }
 
-    // Ensure JWT_SECRET exists
-    const secretPath = fileSystemService.getExternalPath('resources/config/jwt_secret');
-    if (!fileSystemService.existsSync(secretPath)) {
-      const secret = crypto.randomBytes(32).toString('hex'); // Generate secure 256-bit key
-      fileSystemService.writeFileSync(secretPath, secret, { mode: 0o600 }); // Restrict permissions
-      configLogger.info('Generated and saved new JWT_SECRET.');
+    // Ensure JWT_SECRET exists in a private location outside static-served resources.
+    const privateSecretPath = fileSystemService.getExternalPath('config/jwt_secret');
+    const legacySecretPath = fileSystemService.getExternalPath('resources/config/jwt_secret');
+
+    if (!fileSystemService.existsSync(privateSecretPath)) {
+      if (fileSystemService.existsSync(legacySecretPath)) {
+        const legacySecret = fileSystemService.readFileSync(legacySecretPath, 'utf-8').trim();
+        fileSystemService.writeFileSync(privateSecretPath, legacySecret, { mode: 0o600 });
+        configLogger.info('Migrated JWT_SECRET to private config path.');
+      } else {
+        const secret = crypto.randomBytes(32).toString('hex'); // Generate secure 256-bit key
+        fileSystemService.writeFileSync(privateSecretPath, secret, { mode: 0o600 });
+        configLogger.info('Generated and saved new JWT_SECRET.');
+      }
     }
-    process.env.JWT_SECRET = fileSystemService.readFileSync(secretPath, 'utf-8');
+
+    // Remove legacy public-path secret when migration is complete.
+    if (fileSystemService.existsSync(legacySecretPath)) {
+      fileSystemService.deleteFile(legacySecretPath);
+    }
+
+    process.env.JWT_SECRET = fileSystemService.readFileSync(privateSecretPath, 'utf-8').trim();
 
     // Load SSL if enabled
     if (config.httpsEnabled && config.sslCertPath && config.sslKeyPath) {
@@ -187,7 +201,6 @@ export const ServerConfigService = {
     }
     this.mainServer = selectedMainServer;
 
-    this.applyForceHttpsIfNeeded(app);
     await this.setupTunnelIfNeeded();
   },
 

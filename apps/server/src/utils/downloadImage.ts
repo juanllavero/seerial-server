@@ -2,12 +2,31 @@ import https from 'node:https';
 import http from 'node:http';
 import path from 'node:path';
 import { fileSystemService } from '@/api/v1/shared/infrastructure/adapters/di/container';
+import { isSafePublicHttpUrl } from './network-security';
+
+const MAX_REDIRECTS = 5;
 
 /**
  * Downloads a remote image URL and saves it to the given destination path.
  * Ensures the parent directory exists before writing.
  */
 export async function downloadImage(url: string, destPath: string): Promise<void> {
+  return downloadImageWithRedirects(url, destPath, 0);
+}
+
+async function downloadImageWithRedirects(
+  url: string,
+  destPath: string,
+  redirectCount: number,
+): Promise<void> {
+  if (redirectCount > MAX_REDIRECTS) {
+    throw new Error(`Too many redirects while downloading ${url}`);
+  }
+
+  if (!(await isSafePublicHttpUrl(url))) {
+    throw new Error(`Blocked remote URL: ${url}`);
+  }
+
   fileSystemService.createFolder(path.dirname(destPath));
 
   return new Promise((resolve, reject) => {
@@ -22,7 +41,9 @@ export async function downloadImage(url: string, destPath: string): Promise<void
           reject(new Error(`Redirect with no location header from ${url}`));
           return;
         }
-        downloadImage(redirectUrl, destPath).then(resolve).catch(reject);
+        downloadImageWithRedirects(redirectUrl, destPath, redirectCount + 1)
+          .then(resolve)
+          .catch(reject);
         return;
       }
 

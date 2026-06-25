@@ -1,6 +1,5 @@
-import { exec, spawn } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import path from 'node:path';
-import { promisify } from 'node:util';
 import { https } from 'follow-redirects';
 import {
   downloaderService,
@@ -22,14 +21,9 @@ const {
   resolvedPath: ffmpegLocation,
 } = resolveFfmpegPath();
 
-const ffmpegArg = ffmpegLocation ? ` --ffmpeg-location "${ffmpegLocation}"` : '';
-
 const nodeExecutableName = path.basename(process.execPath).toLowerCase();
 // If the server process itself is node, use its known path directly.
 // Otherwise (e.g. packaged Electron), fall back to "node" so yt-dlp resolves it from PATH.
-const jsRuntimesArg = nodeExecutableName.startsWith('node')
-  ? ` --js-runtimes "node:${process.execPath}"`
-  : ' --js-runtimes "node"';
 
 if (!ffmpegStaticExists && ffmpegPathFinal && systemFfmpegPath) {
   downloaderLogger.info(
@@ -45,11 +39,58 @@ if (!ffmpegStaticExists && ffmpegPathFinal && !systemFfmpegPath) {
   );
 }
 
-const execAsync = promisify(exec);
-
 // Singleton queue: all auto-downloads are serialized so only one yt-dlp search+download
 // runs at a time, preventing unbounded memory usage during library scans.
 const autoDownloadQueue = new WriteQueue();
+
+const MAX_SEARCH_QUERY_LENGTH = 300;
+
+function normalizeSearchQuery(input: string): string {
+  return input.trim().replace(/\s+/g, ' ').slice(0, MAX_SEARCH_QUERY_LENGTH);
+}
+
+function isSafeMediaUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+function runProcessCaptureStdout(command: string, args: string[]): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, {
+      shell: false,
+      windowsHide: true,
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    child.stdout.on('data', (data: Buffer) => {
+      stdout += data.toString();
+    });
+
+    child.stderr.on('data', (data: Buffer) => {
+      stderr += data.toString();
+    });
+
+    child.on('error', (error) => reject(error));
+    child.on('close', (code) => {
+      if (code === 0) {
+        resolve(stdout);
+        return;
+      }
+
+      reject(
+        new Error(
+          `Process exited with code ${code ?? 'unknown'}${stderr ? `: ${stderr.trim()}` : ''}`,
+        ),
+      );
+    });
+  });
+}
 
 export class DownloaderServiceImpl implements DownloaderServicePort {
   private getBinDir = (): string => {
@@ -141,19 +182,45 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
           // Clean partially downloaded file
           try {
             if (fileSystemService.existsSync(ytDlpPath)) fileSystemService.deleteFile(ytDlpPath);
-          } catch {}
+          } catch { }
           reject(err);
         });
     });
   }
 
   public async searchVideos(query: string, numberOfResults: number): Promise<MediaSearchResult[]> {
-    const searchQuery = `"${downloaderService.getYtDlpPath()}" "ytsearch${
-      numberOfResults > 0 ? numberOfResults : 1
-    }:${query}" --dump-json --default-search ytsearch --no-playlist --no-check-certificate --geo-bypass --flat-playlist --skip-download --quiet --ignore-errors${ffmpegArg}${jsRuntimesArg}`;
+    const safeQuery = normalizeSearchQuery(query);
+    if (!safeQuery) {
+      return [];
+    }
+
+    const ytDlpPath = downloaderService.getYtDlpPath();
+    const searchArgs = [
+      `ytsearch${numberOfResults > 0 ? numberOfResults : 1}:${safeQuery}`,
+      '--dump-json',
+      '--default-search',
+      'ytsearch',
+      '--no-playlist',
+      '--no-check-certificate',
+      '--geo-bypass',
+      '--flat-playlist',
+      '--skip-download',
+      '--quiet',
+      '--ignore-errors',
+    ];
+
+    if (ffmpegLocation) {
+      searchArgs.push('--ffmpeg-location', ffmpegLocation);
+    }
+
+    if (nodeExecutableName.startsWith('node')) {
+      searchArgs.push('--js-runtimes', `node:${process.execPath}`);
+    } else {
+      searchArgs.push('--js-runtimes', 'node');
+    }
 
     try {
-      const { stdout } = await execAsync(searchQuery);
+      const stdout = await runProcessCaptureStdout(ytDlpPath, searchArgs);
 
       if (!stdout) return [];
 
@@ -184,7 +251,7 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
         );
         try {
           await this.forceReDownloadYtDlp();
-          const { stdout: retryStdout } = await execAsync(searchQuery);
+          const retryStdout = await runProcessCaptureStdout(ytDlpPath, searchArgs);
           if (!retryStdout) return [];
           const retryEntries = retryStdout
             .split('\n')
@@ -210,6 +277,10 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
   }
 
   public async downloadVideo(url: string, downloadFolder: string, fileName: string): Promise<void> {
+    if (!isSafeMediaUrl(url)) {
+      throw new Error('Invalid media URL');
+    }
+
     const folder = path.isAbsolute(downloadFolder)
       ? downloadFolder
       : fileSystemService.getExternalPath(downloadFolder);
@@ -226,13 +297,27 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
       }
     }
 
-    // Prepare yt-dlp command
-    const command = `"${downloaderService.getYtDlpPath()}" -f "bestvideo*+bestaudio/best" -o "${outputPath}" ${url} -q --progress --force-overwrite${ffmpegArg}${jsRuntimesArg}`;
+    const command = downloaderService.getYtDlpPath();
+    const args = ['-f', 'bestvideo*+bestaudio/best', '-o', outputPath, url, '-q', '--progress', '--force-overwrite'];
 
-    this.downloadContent(command, fileName);
+    if (ffmpegLocation) {
+      args.push('--ffmpeg-location', ffmpegLocation);
+    }
+
+    if (nodeExecutableName.startsWith('node')) {
+      args.push('--js-runtimes', `node:${process.execPath}`);
+    } else {
+      args.push('--js-runtimes', 'node');
+    }
+
+    this.downloadContent(command, args, fileName);
   }
 
   public async downloadAudio(url: string, downloadFolder: string, fileName: string): Promise<void> {
+    if (!isSafeMediaUrl(url)) {
+      throw new Error('Invalid media URL');
+    }
+
     const folder = path.isAbsolute(downloadFolder)
       ? downloadFolder
       : fileSystemService.getExternalPath(downloadFolder);
@@ -252,16 +337,27 @@ export class DownloaderServiceImpl implements DownloaderServicePort {
       }
     }
 
-    // Prepare the yt-dlp command to download only the audio (the best audio available)
-    const command = `"${downloaderService.getYtDlpPath()}" -f "bestaudio/best" -o "${outputPath}" ${url} -q --progress --force-overwrite${ffmpegArg}${jsRuntimesArg}`;
+    const command = downloaderService.getYtDlpPath();
+    const args = ['-f', 'bestaudio/best', '-o', outputPath, url, '-q', '--progress', '--force-overwrite'];
 
-    this.downloadContent(command, fileName);
+    if (ffmpegLocation) {
+      args.push('--ffmpeg-location', ffmpegLocation);
+    }
+
+    if (nodeExecutableName.startsWith('node')) {
+      args.push('--js-runtimes', `node:${process.execPath}`);
+    } else {
+      args.push('--js-runtimes', 'node');
+    }
+
+    this.downloadContent(command, args, fileName);
   }
 
-  private async downloadContent(command: string, fileName: string) {
+  private async downloadContent(command: string, args: string[], fileName: string) {
     try {
-      const process = spawn(command, {
-        shell: true,
+      const process = spawn(command, args, {
+        shell: false,
+        windowsHide: true,
       });
 
       process.stdout.on('data', (data: Buffer) => {
